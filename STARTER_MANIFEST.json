@@ -1,0 +1,8 @@
+{
+  "name": "pet-access-platform-zcode-starter",
+  "version": "v0.3-DEV-MASTER",
+  "canonical_design": "docs/MASTER_DESIGN_v0.3_DEV.md",
+  "zcode_entry": "ZCODE_START_PROMPT.md",
+  "created": "2026-09-06",
+  "file_count": 19
+}
