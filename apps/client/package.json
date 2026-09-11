@@ -1,0 +1,9 @@
+{
+  "name": "@petaccess/client",
+  "version": "0.1.0",
+  "private": true,
+  "description": "uni-app x cross-platform client source (H5/WeChat/Android/iOS/HarmonyOS). Built with HBuilderX — see BLOCKERS.md B-01. Local H5 verification runs via @petaccess/client-h5 which shares @petaccess/client-core business logic.",
+  "dependencies": {
+    "@petaccess/client-core": "workspace:*"
+  }
+}

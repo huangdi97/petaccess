@@ -1,0 +1,53 @@
+<template>
+  <view class="page">
+    <text class="h1">开始使用</text>
+    <view class="panel">
+      <view class="row">
+        <button :type="mode === 'login' ? 'primary' : 'default'" @click="mode = 'login'">登录</button>
+        <button :type="mode === 'register' ? 'primary' : 'default'" @click="mode = 'register'">注册</button>
+      </view>
+      <text v-if="mode === 'register'" class="label">昵称</text>
+      <input v-if="mode === 'register'" v-model="displayName" />
+      <text class="label">邮箱</text>
+      <input v-model="email" />
+      <text class="label">密码（≥8 位）</text>
+      <input v-model="password" :password="true" />
+      <button type="primary" @click="submit">{{ mode === "login" ? "登录" : "注册并开始" }}</button>
+      <text v-if="msg" class="notice">{{ msg }}</text>
+      <text class="notice">位置仅用于附近查询与现场核验，不建立连续轨迹；小区只展示公共空间规则。</text>
+    </view>
+  </view>
+</template>
+
+<script setup lang="ts">
+import { ref } from "vue";
+import { session } from "@petaccess/client-core";
+
+const mode = ref<"login" | "register">("login");
+const displayName = ref("");
+const email = ref("");
+const password = ref("");
+const msg = ref("");
+
+async function submit() {
+  try {
+    if (mode.value === "login") {
+      await session.login(email.value, password.value);
+    } else {
+      await session.register(displayName.value, email.value, password.value);
+    }
+    uni.switchTab({ url: "/pages/index/index" });
+  } catch (e) {
+    msg.value = "登录/注册失败，请检查输入";
+  }
+}
+</script>
+
+<style>
+.page { padding: 16px; }
+.panel { background-color: #ffffff; border-radius: 12px; padding: 14px; }
+.h1 { font-size: 20px; font-weight: bold; margin-bottom: 12px; }
+.label { color: #69747f; font-size: 12px; margin-top: 10px; }
+.notice { color: #69747f; font-size: 12px; margin-top: 8px; }
+.row { flex-direction: row; margin-bottom: 8px; }
+</style>

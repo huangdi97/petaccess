@@ -18,6 +18,20 @@
 - ADR-015: MVP does not depend on mass social scraping.
 - ADR-016: Demo data is synthetic by default.
 
+- ADR-017: Place.location is a denormalized geography(Point,4326) representative
+  point synced by app logic; all authoritative geometry lives in place_geometry
+  (Point/LineString/Polygon/MultiPolygon). Context: nearby queries need an
+  indexed point without polygon centroid ambiguity. Status: accepted.
+- ADR-018: Client = uni-app x source (apps/client, HBuilderX-built, all five
+  targets) + platform-neutral @petaccess/client-core (shared business logic) +
+  @petaccess/client-h5 Vite app as the locally verifiable H5 vehicle for
+  G07/G17. Context: uni-app x has no npm CLI build path (no vite-uts branch,
+  HBuilderX-only), and HBuilderX cannot be installed headlessly (BLOCKER B-01).
+  The H5 app reuses the identical core; no business logic duplicated. Status: accepted.
+- ADR-019: SQLAlchemy String columns store enum values; DB reads return plain
+  str, so role/status comparisons use str values. response_models coerce back
+  to enums at the API boundary. Status: accepted.
+
 任何重大变更追加正式 ADR：
 - Context
 - Decision

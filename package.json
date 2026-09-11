@@ -12,5 +12,10 @@
     "admin:dev": "pnpm --filter @petaccess/admin dev",
     "admin:build": "pnpm --filter @petaccess/admin build",
     "client:dev": "pnpm --filter @petaccess/client dev:h5"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   }
 }

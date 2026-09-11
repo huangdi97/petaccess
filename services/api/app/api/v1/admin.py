@@ -55,7 +55,7 @@ def list_users(
             "id": u.id,
             "display_name": u.display_name,
             "email": u.email,
-            "role": u.role.value,
+            "role": str(u.role),
             "status": u.status,
             "created_at": u.created_at,
         }
@@ -148,6 +148,36 @@ def quality_dashboard(
             or 0,
         },
     }
+
+
+@router.get("/observations", response_model=Page[dict])
+def list_all_observations(
+    limit: int = Query(default=50, le=200),
+    offset: int = Query(default=0, ge=0),
+    user: User = Depends(require_role(UserRole.MODERATOR)),
+    db: Session = Depends(get_db),
+) -> Page[dict]:
+    """All observations for moderation (design #25 Contributions queue)."""
+    stmt = select(ObservationClaim).order_by(ObservationClaim.reported_at.desc())
+    total = db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
+    rows = db.scalars(stmt.limit(limit).offset(offset)).all()
+    items = [
+        {
+            "id": o.id,
+            "place_id": o.place_id,
+            "occurred_at": o.occurred_at,
+            "animal_scope": o.animal_scope,
+            "observed_action": o.observed_action,
+            "staff_action": o.staff_action,
+            "place_confidence": o.place_confidence,
+            "dispute_status": o.dispute_status,
+            "withdrawn_at": o.withdrawn_at,
+            "note": o.note,
+            "proximity_verified": o.proximity_verified,
+        }
+        for o in rows
+    ]
+    return Page(items=items, total=total, limit=limit, offset=offset)
 
 
 @router.get("/ai-queue", response_model=Page[dict])

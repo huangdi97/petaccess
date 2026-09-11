@@ -1,0 +1,24 @@
+<template>
+  <view class="row">
+    <view v-for="m in modes" :key="m" class="pill" :class="{ active: mode === m }"
+          @click="$emit('change', m)">
+      <text :class="{ activeText: mode === m }">{{ MODE_LABELS[m] }}</text>
+    </view>
+  </view>
+</template>
+
+<script setup lang="ts">
+import { MODE_LABELS, type QueryMode } from "@petaccess/client-core";
+
+defineProps<{ mode: QueryMode }>();
+defineEmits<{ (e: "change", m: QueryMode): void }>();
+
+const modes: QueryMode[] = ["with_pet", "restrictions", "service_dog", "rules_only"];
+</script>
+
+<style>
+.row { flex-direction: row; flex-wrap: wrap; margin-bottom: 12px; }
+.pill { border: 1px solid #e4e8ec; border-radius: 999px; padding: 6px 14px; margin-right: 8px; }
+.active { background-color: #34618e; border-color: #34618e; }
+.activeText { color: #ffffff; }
+</style>

@@ -1,0 +1,79 @@
+<template>
+  <view class="page">
+    <text class="h1">新建宠物档案</text>
+    <text class="muted">AI 仅为建议，以你的确认为准；服务犬身份仅由用户声明。</text>
+    <view class="panel">
+      <text class="label">名字</text>
+      <input v-model="pet.display_name" placeholder="如：豆豆" />
+      <text class="label">物种</text>
+      <picker :range="speciesOptions" @change="onSpecies">
+        <view><text>{{ speciesLabel }}</text></view>
+      </picker>
+      <text class="label">品种</text>
+      <input v-model="pet.breed_text" placeholder="如：柴犬" />
+      <text class="label">体重 kg（体重上限规则必需，不填返回"需补充"）</text>
+      <input v-model="pet.weight_kg" type="digit" />
+      <text class="label">服务犬身份（用户声明）</text>
+      <picker :range="roleOptions" @change="onRole">
+        <view><text>{{ roleLabel }}</text></view>
+      </picker>
+      <button type="primary" :disabled="!pet.display_name" @click="save">保存并设为本次对象</button>
+      <text v-if="msg" class="notice">{{ msg }}</text>
+    </view>
+  </view>
+</template>
+
+<script setup lang="ts">
+import { computed, ref } from "vue";
+import { client, session } from "@petaccess/client-core";
+
+const pet = ref({ display_name: "", species: "dog", breed_text: "", weight_kg: "" });
+const serviceRole = ref("none");
+const msg = ref("");
+
+const speciesOptions = ["犬", "猫", "其他"];
+const speciesValues = ["dog", "cat", "other"];
+const roleOptions = ["普通宠物", "服务犬（在役）", "服务犬（训练中）"];
+const roleValues = ["none", "working", "in_training"];
+const speciesLabel = computed(() => speciesOptions[speciesValues.indexOf(pet.value.species)]);
+const roleLabel = computed(() => roleOptions[roleValues.indexOf(serviceRole.value)]);
+
+function onSpecies(e: { detail: { value: number } }) {
+  pet.value.species = speciesValues[e.detail.value];
+}
+function onRole(e: { detail: { value: number } }) {
+  serviceRole.value = roleValues[e.detail.value];
+}
+
+async function save() {
+  try {
+    const created = await client.createPet({
+      display_name: pet.value.display_name,
+      species: pet.value.species,
+      breed_text: pet.value.breed_text || null,
+      weight_kg: pet.value.weight_kg ? Number(pet.value.weight_kg) : null,
+      service_role: serviceRole.value,
+    });
+    session.activePet = {
+      id: created.id,
+      display_name: pet.value.display_name,
+      species: pet.value.species,
+      breed_text: pet.value.breed_text || null,
+      weight_kg: pet.value.weight_kg ? Number(pet.value.weight_kg) : null,
+      service_role: serviceRole.value,
+    };
+    uni.navigateBack();
+  } catch (e) {
+    msg.value = "保存失败（需登录）";
+  }
+}
+</script>
+
+<style>
+.page { padding: 16px; }
+.panel { background-color: #ffffff; border-radius: 12px; padding: 14px; }
+.h1 { font-size: 20px; font-weight: bold; }
+.label { color: #69747f; font-size: 12px; margin-top: 10px; }
+.muted { color: #69747f; font-size: 13px; }
+.notice { color: #8f4a3a; font-size: 13px; margin-top: 8px; }
+</style>

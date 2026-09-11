@@ -1,0 +1,44 @@
+<template>
+  <view class="page">
+    <view class="panel">
+      <input v-model="q" placeholder="搜索场所名称" @confirm="search" />
+      <button type="primary" @click="search">搜索</button>
+    </view>
+    <view v-for="p in results" :key="p.id" class="panel" @click="open(p.id)">
+      <text class="strong">{{ p.canonical_name }}</text>
+      <text class="muted">{{ p.place_type }} · {{ p.canonical_address ?? "" }}</text>
+    </view>
+    <view v-if="searched && !results.length" class="panel">
+      <text class="muted">没有匹配的场所 — 未收录不等于不存在规则</text>
+    </view>
+  </view>
+</template>
+
+<script setup lang="ts">
+import { ref } from "vue";
+import { client, type PlaceSummary } from "@petaccess/client-core";
+
+const q = ref("");
+const results = ref<PlaceSummary[]>([]);
+const searched = ref(false);
+
+async function search() {
+  searched.value = true;
+  try {
+    results.value = await client.searchPlaces(q.value);
+  } catch (e) {
+    results.value = [];
+  }
+}
+
+function open(id: string) {
+  uni.navigateTo({ url: `/pages/place/place?id=${id}` });
+}
+</script>
+
+<style>
+.page { padding: 16px; }
+.panel { background-color: #ffffff; border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+.strong { font-weight: bold; }
+.muted { color: #69747f; font-size: 13px; }
+</style>

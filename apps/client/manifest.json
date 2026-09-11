@@ -1,0 +1,41 @@
+{
+  "name": "宠物准入地图",
+  "appid": "__UNI__PETACCESS",
+  "description": "现实场所动物准入规则地图：带宠出行、普通宠物限制、服务犬通行、规则地图",
+  "versionName": "0.1.0",
+  "versionCode": "100",
+  "transformPx": false,
+  "app": {
+    "distribute": {
+      "icons": {
+        "description": "图标由发布流程提供（见 BLOCKERS.md 平台签名/账号项）"
+      }
+    }
+  },
+  "quickapp": {},
+  "mp-weixin": {
+    "appid": "",
+    "setting": {
+      "urlCheck": false,
+      "es6": true,
+      "minified": true
+    },
+    "usingComponents": true,
+    "requiredPrivateInfos": ["getLocation"],
+    "permission": {
+      "scope.userLocation": {
+        "desc": "位置仅用于附近场所查询与现场核验，不建立连续轨迹"
+      }
+    }
+  },
+  "h5": {
+    "title": "宠物准入地图",
+    "router": {
+      "mode": "hash"
+    }
+  },
+  "harmonyos": {
+    "description": "HarmonyOS 配置由 DevEco Studio 打开 uni-app x 工程生成（见 BLOCKERS.md）"
+  },
+  "vueVersion": "3"
+}

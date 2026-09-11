@@ -157,11 +157,15 @@ def run_demo_seed() -> dict[str, int]:  # noqa: PLR0915 - linear demo data scrip
         session.execute(text(f"DELETE FROM {table}"))
 
     # --- users ---
+    from app.core.security import hash_password
+
+    admin_password = hash_password("admin12345")  # dev-only documented credential
     users = {
         "admin": User(
             id=uid("user_admin"),
             display_name="演示管理员",
-            email="admin@demo.local",
+            email="admin@demo-petaccess.com",
+            password_hash=admin_password,
             role=UserRole.ADMIN,
         ),
         "operator": User(

@@ -13,6 +13,7 @@ from . import (
     places,
     regulations,
     rules,
+    sources,
     verifications,
     watches,
 )
@@ -24,6 +25,8 @@ api_router.include_router(places.router)
 api_router.include_router(places.admin)
 api_router.include_router(rules.router)
 api_router.include_router(rules.admin)
+api_router.include_router(sources.router)
+api_router.include_router(sources.admin)
 api_router.include_router(observations.router)
 api_router.include_router(verifications.router)
 api_router.include_router(operators.router)

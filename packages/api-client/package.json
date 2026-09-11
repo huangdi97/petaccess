@@ -4,6 +4,11 @@
   "private": true,
   "type": "module",
   "description": "OpenAPI-generated TS client for the Place Animal Access Map API (SSOT: FastAPI OpenAPI)",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
     "generate": "openapi-typescript http://127.0.0.1:8010/openapi.json -o src/schema.d.ts"
   },

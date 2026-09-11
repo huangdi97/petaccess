@@ -1,0 +1,19 @@
+{
+  "name": "@petaccess/client-core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Platform-neutral client business core: API access, session, query modes, map adapter interfaces. Shared by uni-app x and the H5 verification app.",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@petaccess/api-client": "workspace:*",
+    "vue": "^3.5.13"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}

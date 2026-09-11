@@ -1,0 +1,82 @@
+<template>
+  <view class="page">
+    <ModeBar :mode="session.mode" @change="(m) => (session.mode = m)" />
+    <view class="panel">
+      <text class="strong">{{ who }}</text>
+      <navigator url="/pages/pet-new/pet-new" class="pill">
+        <text>换宠物 / 新建</text>
+      </navigator>
+    </view>
+    <map
+      class="map"
+      :latitude="camera.lat"
+      :longitude="camera.lng"
+      :scale="14"
+      :markers="markers"
+      @markertap="onMarkerTap"
+    />
+    <text class="notice">
+      Mock/腾讯地图 Provider 由 adapter 决定；位置仅用于附近查询，不建立连续轨迹。
+    </text>
+    <text class="h2">附近场所</text>
+    <view v-for="p in places" :key="p.id" class="panel"
+          @click="openPlace(p.id)">
+      <text class="strong">{{ p.canonical_name }}</text>
+      <text class="muted">{{ p.place_type }}<text v-if="p.distance_m"> · {{ Math.round(p.distance_m) }}m</text></text>
+    </view>
+  </view>
+</template>
+
+<script setup lang="ts">
+import { onShow } from "@dcloudio/uni-app";
+import { ref, computed } from "vue";
+import { client, session, type PlaceSummary } from "@petaccess/client-core";
+import ModeBar from "../../components/ModeBar.uvue";
+
+const camera = ref({ lat: 31.23, lng: 121.47 });
+const places = ref<PlaceSummary[]>([]);
+const markers = computed(() =>
+  places.value.map((p, i) => ({
+    id: i,
+    latitude: 31.23 + ((i % 3) - 1) * 0.004,
+    longitude: 121.47 + ((i % 4) - 2) * 0.004,
+    title: p.canonical_name,
+    width: 24,
+    height: 24,
+  })),
+);
+const who = computed(() =>
+  session.activePet
+    ? `本次：${session.activePet.display_name} · ${session.activePet.breed_text ?? session.activePet.species}`
+    : "未设置宠物档案",
+);
+
+onShow(async () => {
+  await session.restore();
+  try {
+    places.value = await client.nearby(camera.value.lat, camera.value.lng, 3000);
+  } catch (e) {
+    // one-shot定位失败时回退为关键词搜索入口，不默认记录位置
+  }
+});
+
+function onMarkerTap(e: { markerId: number }) {
+  const p = places.value[e.markerId];
+  if (p) openPlace(p.id);
+}
+
+function openPlace(id: string) {
+  uni.navigateTo({ url: `/pages/place/place?id=${id}` });
+}
+</script>
+
+<style>
+.page { padding: 16px; }
+.panel { background-color: #ffffff; border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+.strong { font-weight: bold; font-size: 16px; }
+.muted { color: #69747f; font-size: 13px; }
+.notice { color: #69747f; font-size: 12px; }
+.h2 { font-size: 16px; font-weight: bold; margin: 12px 0; }
+.map { height: 260px; border-radius: 12px; }
+.pill { border: 1px solid #e4e8ec; border-radius: 999px; padding: 6px 14px; }
+</style>

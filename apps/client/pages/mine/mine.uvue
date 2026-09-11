@@ -1,0 +1,70 @@
+<template>
+  <view class="page">
+    <view v-if="!session.signedIn" class="panel">
+      <text class="muted">未登录 — 登录后可管理宠物档案、关注规则变化。</text>
+      <navigator url="/pages/onboarding/onboarding">
+        <button type="primary">登录 / 注册</button>
+      </navigator>
+    </view>
+    <block v-else>
+      <view class="panel">
+        <text class="strong">{{ session.user?.display_name }}</text>
+        <text class="muted">{{ session.user?.email }}</text>
+      </view>
+      <text class="h2">宠物档案</text>
+      <view v-for="p in pets" :key="p.id" class="panel">
+        <text class="strong">{{ p.display_name }}</text>
+        <text class="muted">{{ p.species }} {{ p.breed_text ?? "" }} {{ p.weight_kg ? `· ${p.weight_kg}kg` : "" }}</text>
+        <button @click="setActive(p)">设为本次对象</button>
+      </view>
+      <text class="h2">关注的规则变化</text>
+      <view v-for="w in watches" :key="w.id" class="panel">
+        <text class="muted">{{ w.target_type }} · {{ w.target_id }}</text>
+      </view>
+      <view class="panel">
+        <text class="notice">
+          · 位置仅用于附近查询/现场核验，不建立连续轨迹
+          · 小区只展示公共空间规则，无住户信息
+          · 服务犬身份仅由用户声明，平台不凭照片认定
+        </text>
+      </view>
+      <button @click="logout">退出登录</button>
+    </block>
+  </view>
+</template>
+
+<script setup lang="ts">
+import { onShow } from "@dcloudio/uni-app";
+import { ref } from "vue";
+import { client, session, type ActivePet } from "@petaccess/client-core";
+
+const pets = ref<Awaited<ReturnType<typeof client.myPets>>>([]);
+const watches = ref<Awaited<ReturnType<typeof client.myWatches>>>([]);
+
+onShow(async () => {
+  await session.restore();
+  if (!session.signedIn) return;
+  try {
+    pets.value = await client.myPets();
+    watches.value = await client.myWatches();
+  } catch (e) { /* 网络异常时静默，页面可重进 */ }
+});
+
+function setActive(p: ActivePet) {
+  session.activePet = p;
+  session.mode = "with_pet";
+}
+
+function logout() {
+  session.logout();
+}
+</script>
+
+<style>
+.page { padding: 16px; }
+.panel { background-color: #ffffff; border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+.h2 { font-size: 16px; font-weight: bold; margin: 12px 0; }
+.strong { font-weight: bold; }
+.muted { color: #69747f; font-size: 13px; }
+.notice { color: #69747f; font-size: 12px; }
+</style>

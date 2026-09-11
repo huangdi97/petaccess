@@ -1,0 +1,150 @@
+<template>
+  <view class="page">
+    <view v-if="place" class="panel">
+      <text class="h1">{{ place.canonical_name }}</text>
+      <text class="muted">{{ place.place_type }} · {{ place.canonical_address ?? "地址未收录" }}</text>
+      <button @click="toggleWatch">{{ watching ? "已关注规则变化 ✓" : "关注此场所规则变化" }}</button>
+    </view>
+
+    <view v-if="answer" class="answer" :class="'s-' + answer.status">
+      <text class="muted">
+        {{ session.activePet ? `对于：${session.activePet.display_name}` : "未选择宠物档案" }}
+        · {{ MODE_LABELS[session.mode] }}
+      </text>
+      <text class="status">{{ answer.headline }}</text>
+      <text v-if="answer.obligations.length" class="muted">条件：{{ answer.obligations.join(" · ") }}</text>
+      <text v-if="answer.unknownInputs.length" class="muted">需补充：{{ answer.unknownInputs.join("、") }}（不猜测）</text>
+      <text class="notice">最近核验：{{ latestVerified ?? "暂无" }}</text>
+    </view>
+
+    <text class="h2">分区域规则</text>
+    <view class="panel">
+      <view v-for="z in answer?.zones ?? []" :key="z.zone.id" class="zoneRow">
+        <text>{{ z.zone.name }}{{ z.zone.floor_ref ? ` · ${z.zone.floor_ref}` : "" }}</text>
+        <text>{{ STATUS_TEXT[z.status] ?? z.status }}{{ z.obligations.length ? " · " + z.obligations.join("·") : "" }}</text>
+      </view>
+    </view>
+
+    <text class="h2">规则来源与核验</text>
+    <view class="panel">
+      <view v-for="r in currentRules" :key="r.id" class="zoneRow">
+        <text>{{ r.rule_origin }}</text>
+        <view class="row">
+          <button size="mini" @click="quickConfirm(r.id, 'still_valid')">仍有效</button>
+          <button size="mini" @click="quickConfirm(r.id, 'changed')">已变化</button>
+          <button size="mini" @click="quickConfirm(r.id, 'uncertain')">不确定</button>
+        </view>
+      </view>
+      <text v-if="quickMsg" class="notice">{{ quickMsg }}</text>
+    </view>
+
+    <text class="h2">现场观察（与规则并存，不构成规则）</text>
+    <view class="panel">
+      <view v-for="o in observations" :key="o.id" class="zoneRow">
+        <text>{{ o.occurred_at.slice(0, 10) }} · {{ o.animal_scope }} {{ o.observed_action }}</text>
+        <text class="muted">{{ o.staff_action }}</text>
+      </view>
+      <text class="notice">本页展示已收录的规则和历史现场记录，不构成场所实际无动物的保证。</text>
+    </view>
+
+    <navigator :url="`/pages/contribute/contribute?id=${placeId}`" class="panel">
+      <text>报告规则 / 贡献</text>
+    </navigator>
+  </view>
+</template>
+
+<script setup lang="ts">
+import { onLoad } from "@dcloudio/uni-app";
+import { computed, ref, watch } from "vue";
+import {
+  client, evaluatePlace, provenanceSummary, session, MODE_LABELS,
+  type Answer, type ObservationView, type RuleView, type SourceView, type Zone,
+} from "@petaccess/client-core";
+
+const placeId = ref("");
+const place = ref<{ canonical_name: string; place_type: string; canonical_address: string | null } | null>(null);
+const zones = ref<Zone[]>([]);
+const rules = ref<RuleView[]>([]);
+const observations = ref<ObservationView[]>([]);
+const verifications = ref<{ occurred_at: string; result: string; note: string | null }[]>([]);
+const sources = ref<SourceView[]>([]);
+const answer = ref<Answer | null>(null);
+const quickMsg = ref("");
+const watching = ref(false);
+
+const STATUS_TEXT: Record<string, string> = {
+  MATCH: "可进入", CONDITIONAL: "有条件", RESTRICTED: "限制",
+  UNKNOWN: "信息不足", CONFLICT: "冲突",
+};
+const currentRules = computed(() => rules.value.filter((r) => r.status === "current"));
+const prov = computed(() => provenanceSummary(rules.value, verifications.value));
+const latestVerified = computed(() =>
+  prov.value.latestVerified ? prov.value.latestVerified.slice(0, 10) : null);
+
+async function evaluate() {
+  const animal = session.activePet
+    ? { species: session.activePet.species,
+        service_role: session.activePet.service_role,
+        weight_kg: session.activePet.weight_kg }
+    : null;
+  answer.value = await evaluatePlace(
+    session.mode, animal, placeId.value, zones.value,
+    (body) => client.evaluate(body as Parameters<typeof client.evaluate>[0]),
+  );
+}
+watch(() => [session.mode, session.activePet], () => { void evaluate(); });
+
+onLoad(async (query) => {
+  placeId.value = (query?.["id"] as string) ?? "";
+  place.value = await client.place(placeId.value);
+  zones.value = await client.zones(placeId.value);
+  rules.value = await client.rules(placeId.value);
+  observations.value = await client.observations(placeId.value);
+  verifications.value = await client.verifications(placeId.value);
+  sources.value = (await client.allSources()).filter((s) =>
+    rules.value.some((r) => r.source_id === s.id));
+  await evaluate();
+});
+
+async function quickConfirm(ruleId: string, result: "still_valid" | "changed" | "uncertain") {
+  try {
+    await client.verify({
+      place_id: placeId.value, rule_id: ruleId, result,
+      note: "Quick Confirm", proximity_verified: true,
+      distance_bucket: "<100m", accuracy_bucket: "10-50m",
+    });
+    quickMsg.value = "已记录 ✓";
+    verifications.value = await client.verifications(placeId.value);
+  } catch (e) {
+    quickMsg.value = "需要登录后核验";
+  }
+}
+
+async function toggleWatch() {
+  try {
+    const mine = await client.myWatches();
+    const existing = mine.find((w) => w.target_type === "place" && w.target_id === placeId.value);
+    if (existing) {
+      await client.unwatch(existing.id);
+      watching.value = false;
+    } else {
+      await client.watch("place", placeId.value);
+      watching.value = true;
+    }
+  } catch (e) {
+    quickMsg.value = "关注失败（需登录）";
+  }
+}
+</script>
+
+<style>
+.page { padding: 16px; }
+.panel { background-color: #ffffff; border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+.h1 { font-size: 20px; font-weight: bold; }
+.h2 { font-size: 16px; font-weight: bold; margin: 12px 0; }
+.muted { color: #69747f; font-size: 13px; }
+.notice { color: #69747f; font-size: 12px; margin-top: 8px; }
+.answer { border-radius: 12px; padding: 14px; background-color: #ffffff; border: 1px solid #e4e8ec; margin-bottom: 12px; }
+.zoneRow { flex-direction: row; justify-content: space-between; padding: 8px 0; }
+.row { flex-direction: row; }
+</style>

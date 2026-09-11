@@ -1,0 +1,16 @@
+<script setup lang="ts">
+import { onShow } from "@dcloudio/uni-app";
+import { bindStorage, session } from "@petaccess/client-core";
+import { uniStorage, uniRequestBase } from "./platform/adapter";
+
+bindStorage(uniStorage);
+uniRequestBase();
+
+onShow(async () => {
+  await session.restore();
+});
+</script>
+
+<style>
+/* 全局样式由 pages.json globalStyle + 各页自带样式组成 */
+</style>

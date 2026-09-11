@@ -10,7 +10,8 @@ import type { paths } from "./schema";
 export type ApiPaths = paths;
 
 export interface ClientOptions {
-  baseUrl: string;
+  /** Static base URL or a getter evaluated per request (allows runtime reconfig). */
+  baseUrl: string | (() => string);
   /** Returns the current bearer token, when signed in. */
   getToken?: () => string | undefined;
   /** Idempotency-Key header helper for high-risk writes. */
@@ -38,14 +39,16 @@ interface RequestOptions {
 }
 
 export function createClient(options: ClientOptions) {
-  const base = options.baseUrl.replace(/\/$/, "");
+  const resolveBase = () =>
+    (typeof options.baseUrl === "function" ? options.baseUrl() : options.baseUrl)
+      .replace(/\/$/, "");
 
   async function request<T>(
     method: HttpMethod,
     path: string,
     opts: RequestOptions = {},
   ): Promise<T> {
-    const url = new URL(base + path);
+    const url = new URL(resolveBase() + path);
     for (const [k, v] of Object.entries(opts.query ?? {})) {
       if (v !== undefined) url.searchParams.set(k, String(v));
     }
@@ -77,7 +80,7 @@ export function createClient(options: ClientOptions) {
     return payload as T;
   }
 
-  return { request, baseUrl: base };
+  return { request, get baseUrl() { return resolveBase(); } };
 }
 
 export type ApiClient = ReturnType<typeof createClient>;
