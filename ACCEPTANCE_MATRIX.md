@@ -5,7 +5,7 @@
 | G00 Repo | documented setup works | PASS |
 | G01 Infra | PostGIS/Redis/MinIO health green | PASS |
 | G02 Migration | upgrade + downgrade | PASS |
-| G03 Rule Engine | unit matrix passes | NOT_RUN |
+| G03 Rule Engine | unit matrix passes | PASS |
 | G04 API | OpenAPI + integration | NOT_RUN |
 | G05 Contract | generated TS client matches | NOT_RUN |
 | G06 Admin | real CRUD/moderation/dispute | NOT_RUN |

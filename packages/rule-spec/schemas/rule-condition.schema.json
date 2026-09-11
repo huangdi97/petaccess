@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petaccess.local/schemas/rule-condition.schema.json",
+  "title": "RuleCondition",
+  "description": "Structured condition attached to a rule (design #11). Free text may only supplement, never drive matching.",
+  "type": "object",
+  "required": ["condition_type"],
+  "properties": {
+    "condition_type": {
+      "type": "string",
+      "enum": [
+        "leash_required",
+        "muzzle_required",
+        "carrier_required",
+        "stroller_required",
+        "no_ground",
+        "registration_required",
+        "vaccination_required",
+        "max_weight_kg",
+        "min_weight_kg",
+        "max_shoulder_height_cm",
+        "max_count",
+        "reservation_required",
+        "advance_notice_required",
+        "designated_entrance",
+        "designated_elevator",
+        "designated_route",
+        "time_windows",
+        "date_windows",
+        "season",
+        "fee",
+        "room_restriction",
+        "other_structured_note"
+      ]
+    },
+    "value_flag": { "type": "boolean" },
+    "value_numeric": { "type": "number" },
+    "value_text": { "type": "string" },
+    "value_json": {}
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "condition_type": {
+            "enum": [
+              "leash_required", "muzzle_required", "carrier_required", "stroller_required",
+              "no_ground", "registration_required", "vaccination_required",
+              "reservation_required", "advance_notice_required"
+            ]
+          }
+        }
+      },
+      "then": { "required": ["value_flag"] }
+    },
+    {
+      "if": {
+        "properties": {
+          "condition_type": {
+            "enum": [
+              "max_weight_kg", "min_weight_kg", "max_shoulder_height_cm", "max_count"
+            ]
+          }
+        }
+      },
+      "then": { "required": ["value_numeric"] }
+    },
+    {
+      "if": {
+        "properties": {
+          "condition_type": { "enum": ["time_windows", "date_windows", "season"] }
+        }
+      },
+      "then": { "required": ["value_json"] }
+    },
+    {
+      "if": {
+        "properties": {
+          "condition_type": {
+            "enum": ["designated_entrance", "designated_elevator", "designated_route",
+                     "room_restriction", "other_structured_note"]
+          }
+        }
+      },
+      "then": { "required": ["value_text"] }
+    }
+  ]
+}

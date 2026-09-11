@@ -1,7 +1,7 @@
 # PROJECT_STATE.md
 
 ## Current phase
-PHASE 1 COMPLETE (Foundation + Database) — entering Phase 2 (Rule Spec & Evaluator)
+PHASE 2 COMPLETE (Rule Spec & Evaluator) — entering Phase 3 (FastAPI full API)
 
 ## Last verified
 2026-09-06
@@ -12,6 +12,10 @@ PHASE 1 COMPLETE (Foundation + Database) — entering Phase 2 (Rule Spec & Evalu
 - Phase 1: 17 张领域表 SQLAlchemy 2 模型；Alembic 初始迁移（含 postgis/pg_trgm 扩展、
   GIST 空间索引、trgm 名称索引）；合成 demo seed（4 虚构场所/15 Zone/规则/来源/观察/
   异议/法规/认领/关注）；FastAPI 应用骨架 + /health + /health/ready。
+- Phase 2: packages/rule-spec 5 个 JSON Schema（draft 2020-12）+ cafe fixture；
+  app/rulespec 纯确定性 evaluator（无 DB/LLM），Zone 覆盖 Place 特异性解析、
+  服务犬与普通宠物 scope 隔离、obligation/threshold/time-window 条件求值、
+  UNKNOWN≠允许/禁止、冲突检测。
 
 ## Test evidence
 - `alembic upgrade head` → 19 tables；`alembic downgrade base` → 2 tables；再 upgrade 成功。
@@ -20,6 +24,8 @@ PHASE 1 COMPLETE (Foundation + Database) — entering Phase 2 (Rule Spec & Evalu
 - seed 重复运行两次成功（确定性 UUID）。
 - uvicorn 冒烟：/health 200, /health/ready 200 (postgres 17.5, postgis 3.5), /api/v1/ping 200。
 - `ruff check` PASS；`ruff format --check` PASS；`mypy services/api/app` PASS (22 files)。
+- pytest: evaluator 15 passed（GOAL #7 十条全含）+ contract 2 passed
+  （JSON Schema 校验 + fixture 三场景期望状态），共 17 passed。
 
 ## Actual commands
 - `bash scripts/dev.sh` / `docker compose up -d`
@@ -36,4 +42,4 @@ PHASE 1 COMPLETE (Foundation + Database) — entering Phase 2 (Rule Spec & Evalu
 None confirmed.
 
 ## Next action
-Phase 2: packages/rule-spec JSON Schema + 确定性 evaluator + 单测矩阵（GOAL #7 十条）。
+Phase 3: FastAPI 全量 API（auth/pets/places/nearby/zones/rules/evaluate/sources/observations/verifications/operators/regulations/disputes/watches/admin）+ RBAC/audit/rate-limit/idempotency + OpenAPI → TS client。

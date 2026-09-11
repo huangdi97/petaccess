@@ -1,0 +1,8 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petaccess.local/schemas/animal-scope.schema.json",
+  "title": "AnimalScope",
+  "description": "Animal scope of a rule or query (design #10). service_dog is never merged with ordinary pet scopes.",
+  "type": "string",
+  "enum": ["dog", "cat", "ordinary_pet", "service_dog", "other"]
+}

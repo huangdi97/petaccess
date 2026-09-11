@@ -1,0 +1,73 @@
+{
+  "description": "星河咖啡 demo: indoor prohibited / outdoor conditional leash / service dog allowed",
+  "rules": [
+    {
+      "id": "rule-cafe-indoor",
+      "place_id": "place-xinghe-cafe",
+      "zone_id": "zone-cafe-indoor",
+      "animal_scope": "ordinary_pet",
+      "action": "enter",
+      "effect": "prohibited",
+      "status": "current",
+      "source_id": "src-signage-cafe",
+      "conditions": []
+    },
+    {
+      "id": "rule-cafe-outdoor",
+      "place_id": "place-xinghe-cafe",
+      "zone_id": "zone-cafe-outdoor",
+      "animal_scope": "ordinary_pet",
+      "action": "enter",
+      "effect": "conditional",
+      "status": "current",
+      "source_id": "src-signage-cafe",
+      "conditions": [{"condition_type": "leash_required", "value_flag": true}]
+    },
+    {
+      "id": "rule-cafe-service-dog",
+      "place_id": "place-xinghe-cafe",
+      "zone_id": null,
+      "animal_scope": "service_dog",
+      "action": "enter",
+      "effect": "allowed",
+      "status": "current",
+      "source_id": "src-signage-cafe",
+      "conditions": []
+    }
+  ],
+  "queries": [
+    {
+      "name": "ordinary dog indoor → RESTRICTED",
+      "query": {
+        "animal": {"species": "dog", "service_role": "none", "weight_kg": 9.5},
+        "place_id": "place-xinghe-cafe",
+        "zone_id": "zone-cafe-indoor",
+        "date_time": "2026-09-08T12:00:00+00:00",
+        "intended_action": "enter"
+      },
+      "expected_status": "RESTRICTED"
+    },
+    {
+      "name": "ordinary dog outdoor → CONDITIONAL (leash obligation)",
+      "query": {
+        "animal": {"species": "dog", "service_role": "none", "weight_kg": 9.5},
+        "place_id": "place-xinghe-cafe",
+        "zone_id": "zone-cafe-outdoor",
+        "date_time": "2026-09-08T12:00:00+00:00",
+        "intended_action": "enter"
+      },
+      "expected_status": "CONDITIONAL"
+    },
+    {
+      "name": "service dog indoor → MATCH (service dog rule, zone shadow does not fabricate)",
+      "query": {
+        "animal": {"species": "dog", "service_role": "working"},
+        "place_id": "place-xinghe-cafe",
+        "zone_id": "zone-cafe-indoor",
+        "date_time": "2026-09-08T12:00:00+00:00",
+        "intended_action": "enter"
+      },
+      "expected_status": "MATCH"
+    }
+  ]
+}

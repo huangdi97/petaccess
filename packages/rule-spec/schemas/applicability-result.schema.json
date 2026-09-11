@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petaccess.local/schemas/applicability-result.schema.json",
+  "title": "ApplicabilityResult",
+  "description": "Deterministic evaluator output (design #12). UNKNOWN is never rendered as allowed or prohibited.",
+  "type": "object",
+  "required": ["status", "matched_rules", "unmet_conditions", "unknown_inputs", "reason_codes", "source_refs"],
+  "properties": {
+    "status": {
+      "enum": ["MATCH", "CONDITIONAL", "RESTRICTED", "UNKNOWN", "CONFLICT"]
+    },
+    "matched_rules": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "unmet_conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["rule_id", "condition_type", "kind"],
+        "properties": {
+          "rule_id": { "type": "string" },
+          "condition_type": { "$ref": "rule-condition.schema.json#/properties/condition_type" },
+          "kind": { "enum": ["obligation", "failed_check", "outside_window"] },
+          "detail": {}
+        }
+      }
+    },
+    "unknown_inputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["input", "reason"],
+        "properties": {
+          "input": { "type": "string" },
+          "reason": { "type": "string" }
+        }
+      }
+    },
+    "reason_codes": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "source_refs": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

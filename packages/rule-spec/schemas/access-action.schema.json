@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petaccess.local/schemas/access-action.schema.json",
+  "title": "AccessAction",
+  "description": "Action a rule governs or a query intends (design #10).",
+  "type": "string",
+  "enum": [
+    "enter",
+    "pass_through",
+    "stay",
+    "walk",
+    "off_leash",
+    "ground_contact",
+    "ride_elevator",
+    "ride_transport",
+    "use_facility",
+    "dine",
+    "stay_overnight"
+  ]
+}
