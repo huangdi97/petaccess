@@ -1,0 +1,14 @@
+{
+  "name": "@petaccess/api-client",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "OpenAPI-generated TS client for the Place Animal Access Map API (SSOT: FastAPI OpenAPI)",
+  "scripts": {
+    "generate": "openapi-typescript http://127.0.0.1:8010/openapi.json -o src/schema.d.ts"
+  },
+  "devDependencies": {
+    "openapi-typescript": "^7.5.0",
+    "typescript": "^5.7.0"
+  }
+}

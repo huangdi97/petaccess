@@ -3,6 +3,9 @@ name = "petaccess-monorepo"
 version = "0.1.0"
 description = "Place Animal Access Map - Python workspace root"
 requires-python = ">=3.11"
+dependencies = [
+    "pydantic[email]>=2.13.5",
+]
 
 [dependency-groups]
 dev = [

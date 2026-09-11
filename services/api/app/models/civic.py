@@ -1,5 +1,6 @@
 """JurisdictionRule, DisputeCase, AuditLog, WatchSubscription (design #18, #24, #26)."""
 
+import uuid
 from datetime import datetime
 
 from sqlalchemy import (
@@ -118,7 +119,7 @@ class AuditLog(Base):
         Index("ix_audit_created", "created_at"),
     )
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     actor_user_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     actor_role: Mapped[str | None] = mapped_column(String(32), nullable=True)
     action: Mapped[str] = mapped_column(String(64), nullable=False)

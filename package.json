@@ -1,0 +1,16 @@
+{
+  "name": "petaccess-monorepo",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Place Animal Access Map monorepo root",
+  "packageManager": "pnpm@12.4.1",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "client:gen": "pnpm --filter @petaccess/api-client generate",
+    "admin:dev": "pnpm --filter @petaccess/admin dev",
+    "admin:build": "pnpm --filter @petaccess/admin build",
+    "client:dev": "pnpm --filter @petaccess/client dev:h5"
+  }
+}

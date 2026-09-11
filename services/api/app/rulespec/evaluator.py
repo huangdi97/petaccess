@@ -154,6 +154,9 @@ def _eval_condition(cond: Condition, ctx: QueryContext, now: datetime) -> tuple[
         return False, None
     if ct in _THRESHOLD_CONDITIONS:
         numeric = cond.value_numeric
+        if numeric is None:
+            # malformed condition; never fabricate a verdict from it
+            return True, None
         if ct == "max_weight_kg":
             if animal.weight_kg is None:
                 return False, "weight_kg"
