@@ -1,45 +1,51 @@
 # PROJECT_STATE.md
 
 ## Current phase
-PHASE 2 COMPLETE (Rule Spec & Evaluator) — entering Phase 3 (FastAPI full API)
+RC-READY（Stage A 本地垂直切片完成；Stage C 真实 Provider 等外部凭证）
 
 ## Last verified
-2026-09-06
+2026-09-12
 
-## Completed
-- Phase 0: monorepo (uv Python workspace + Node 结构预留), git init, docker-compose
-  (PostGIS 17-3.5 / Redis 7 / MinIO), root scripts, ruff+pytest+mypy 配置, uv.lock.
-- Phase 1: 17 张领域表 SQLAlchemy 2 模型；Alembic 初始迁移（含 postgis/pg_trgm 扩展、
-  GIST 空间索引、trgm 名称索引）；合成 demo seed（4 虚构场所/15 Zone/规则/来源/观察/
-  异议/法规/认领/关注）；FastAPI 应用骨架 + /health + /health/ready。
-- Phase 2: packages/rule-spec 5 个 JSON Schema（draft 2020-12）+ cafe fixture；
-  app/rulespec 纯确定性 evaluator（无 DB/LLM），Zone 覆盖 Place 特异性解析、
-  服务犬与普通宠物 scope 隔离、obligation/threshold/time-window 条件求值、
-  UNKNOWN≠允许/禁止、冲突检测。
+## Completed（全部 13 个 Phase 的本地可实现部分）
+- Phase 0: monorepo（uv workspace + pnpm workspace）、docker compose（PostGIS/Redis/MinIO）、
+  根脚本、ruff/mypy/pytest、uv.lock + pnpm-lock。
+- Phase 1: 17 表 + Alembic up/down + PostGIS/trgm 索引 + 可重复 seed（4 虚构场所 + 全演示状态）。
+- Phase 2: rule-spec 5 个 JSON Schema + 纯确定性 evaluator + 15 单测（GOAL #7 十条）+ 契约测试。
+- Phase 3: FastAPI 全量 API（13 组路由 / OpenAPI 50 路径）+ RBAC/audit/rate-limit/idempotency
+  + openapi-typescript TS client。
+- Phase 4: Admin（Vue3+Vite+TS）：登录/质量看板/场所/规则/来源/法规/认领/异议/观察/
+  AI 队列/冲突/审计/用户，全部真连 API；vue-tsc strict + build 通过。
+- Phase 5: client-core（平台无关业务核心）+ client-h5（浏览器真跑闭环）+
+  uni-app x 源码工程（7 页面 + adapter；HBuilderX 构建见 B-01）。
+- Phase 6: Vision/OCR/Map/Notification Provider 抽象 + Mock（确定性、跨进程可验证）。
+- Phase 7: 快速贡献/渐进披露/幂等/限流（30/h→429 实测）。
+- Phase 8: 认领→批准→问卷→operator 规则版本化（取代所有现行规则）；观察保留不可删。
+- Phase 9: 法规四态 review_status（NOT_REVIEWED 等严格区分）+ 审核流。
+- Phase 10: Dispute 全流程（提交→临时措施→反声明→办结→审计）。
+- Phase 11: Celery worker 真跑：规则变化通知 + mock sink 落 Redis + 幂等不重复。
+- Phase 12: 跨端配置与说明（docs/PLATFORMS.md）。
+- Phase 13: Playwright E2E 5/5；pip-audit/pnpm audit 0 漏洞；文档齐备。
 
-## Test evidence
-- `alembic upgrade head` → 19 tables；`alembic downgrade base` → 2 tables；再 upgrade 成功。
-- PostGIS 真查：ST_Distance nearby 返回 4 场所距离（355m/818m/1931m/2728m）；
-  ST_Contains 点位命中"A 草坪"；pg_trgm 模糊搜索命中"星河咖啡·测试店"。
-- seed 重复运行两次成功（确定性 UUID）。
-- uvicorn 冒烟：/health 200, /health/ready 200 (postgres 17.5, postgis 3.5), /api/v1/ping 200。
-- `ruff check` PASS；`ruff format --check` PASS；`mypy services/api/app` PASS (22 files)。
-- pytest: evaluator 15 passed（GOAL #7 十条全含）+ contract 2 passed
-  （JSON Schema 校验 + fixture 三场景期望状态），共 17 passed。
-
-## Actual commands
-- `bash scripts/dev.sh` / `docker compose up -d`
-- `cd services/api && uv run alembic upgrade head`
-- `uv run python -m app.db.seed --demo`
-- `bash scripts/lint.sh` / `bash scripts/test.sh` / `uv run mypy services/api/app`
+## Test evidence（真实命令与结果）
+- `uv run pytest -q` → **30 passed**（15 evaluator 单测 + 2 契约 + 13 集成）；Playwright E2E 另计 5 passed
+- `pnpm exec playwright test` → **5 passed**
+- `bash scripts/lint.sh` → All checks passed（ruff check + format）
+- `uv run mypy services/api/app` → 54 files, no issues
+- `pnpm --filter @petaccess/admin build` / `client-h5 build` → vue-tsc + vite build 通过
+- alembic upgrade head / downgrade base / upgrade head → PASS
+- PostGIS 真查：ST_DWithin nearby、ST_Contains 点在"A 草坪"、trgm 模糊搜索 → PASS
+- Celery：notify_rule_changes → {'notified_watches': 1}，Redis 有通知，二次 0
 
 ## Known environment notes
-- 目录名为中文 → docker compose 必须固定 `name: petaccess`（已写入 compose 文件）。
-- .env 中 DB host 使用 127.0.0.1（localhost 解析 ::1 时出现瞬时 No buffer space）。
-- 端口 8000 被本机其他进程占用，冒烟测试用 8010；API 默认仍配置 8000。
+- 本机 8000 端口被外部进程占用 → 文档统一用 8010 跑 API 示例（不影响交付配置）。
+- Docker Desktop 在本机偶发退出（会话中重启过一次）；容器卷数据持久。
+- .env 使用 127.0.0.1 避免 localhost→::1 的瞬时连接问题。
 
 ## Current blockers
-None confirmed.
+见 BLOCKERS.md（B-01..B-07，全部为真实外部凭证/工具项）。
 
 ## Next action
-Phase 3: FastAPI 全量 API（auth/pets/places/nearby/zones/rules/evaluate/sources/observations/verifications/operators/regulations/disputes/watches/admin）+ RBAC/audit/rate-limit/idempotency + OpenAPI → TS client。
+用户侧：HBuilderX 安装（B-01）→ uni-app x 全端构建验证；真实 Key 到位后切 Provider。
+
+## Truth rule
+Never infer PASS.
