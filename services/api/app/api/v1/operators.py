@@ -113,8 +113,8 @@ def review_claim(
         action="operator_claim.review",
         target_type="operator_claim",
         target_id=claim_id,
-        before_state={"status": before_status.value},
-        after_state={"status": claim.status.value},
+        before_state={"status": str(before_status)},
+        after_state={"status": str(claim.status)},
     )
     db.commit()
     db.refresh(claim)
@@ -162,10 +162,11 @@ def submit_questionnaire(
         db.flush()
 
     created_rules: list[str] = []
+    # operator declaration is authoritative: supersede ALL current rules on
+    # the place regardless of origin (community/signage rules are archived as history)
     prior_rules = db.scalars(
         select(AccessRule).where(
             AccessRule.place_id == claim.place_id,
-            AccessRule.rule_origin == "operator_declared",
             AccessRule.status == "current",
         )
     ).all()

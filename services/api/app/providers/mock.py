@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import hashlib
+import json
+from datetime import UTC, datetime
 
 from .base import OcrResult, PetSuggestion
 
@@ -63,13 +65,33 @@ class MockOCRProvider:
 
 
 class MockNotificationProvider:
-    """Captures notifications in memory; used by worker watch tasks."""
+    """Captures notifications in memory AND in Redis (cross-process inspectable).
+
+    Redis storage makes worker-executed sends verifiable from the API/tests;
+    failures are silent (mock only).
+    """
 
     sent: list[dict] = []
 
     def send(self, user_id: str, channel: str, title: str, body: str) -> dict:
-        item = {"user_id": user_id, "channel": channel, "title": title, "body": body}
+        item = {
+            "user_id": user_id,
+            "channel": channel,
+            "title": title,
+            "body": body,
+            "sent_at": datetime.now(UTC).isoformat(),
+        }
         type(self).sent.append(item)
+        try:
+            import redis as _redis
+
+            from app.core.config import get_settings
+
+            r = _redis.Redis.from_url(get_settings().redis_url, decode_responses=True)
+            r.rpush("mock:notifications", json.dumps(item, ensure_ascii=False))
+            r.expire("mock:notifications", 86400)
+        except Exception:
+            pass
         return {"status": "sent_mock", "item": item}
 
 
