@@ -1,8 +1,10 @@
 # ACCEPTANCE_MATRIX_v0.5.md
 
-Verified at HEAD `0542827` on 2026-09-12. Every PASS below has a real command
-and its real output recorded in `WORKBUDDY_TAKEOVER_REPORT.md` /
-`PROJECT_STATE_V05.md`.
+v0.5 gates closed across sessions and re-verified in full on 2026-09-13
+(HEAD `2d7e7cb` + V33 closeout): pytest 184, Playwright 7, lint, mypy,
+both app builds, 7-revision migration cycle, live infra. Every PASS below has
+a real command and its real output recorded in `WORKBUDDY_TAKEOVER_REPORT.md`,
+`ZCODE_RESUME_TAKEOVER_REPORT.md` or `V05_FINAL_REPORT.md`.
 
 | Gate | 验收 | 状态 |
 |---|---|---|
@@ -39,7 +41,7 @@ and its real output recorded in `WORKBUDDY_TAKEOVER_REPORT.md` /
 | V30 | HBuilderX target build status | **BLOCKED_EXTERNAL** (B-01) |
 | V31 | real map live smoke | **BLOCKED_EXTERNAL_EXPECTED** (B-04) |
 | V32 | real AI live smoke | **BLOCKED_EXTERNAL_EXPECTED** (B-05) |
-| V33 | V05_FINAL_REPORT | **NOT_STARTED** |
+| V33 | V05_FINAL_REPORT | **PASS** — `V05_FINAL_REPORT.md` 生成；最终全量验证 pytest 184 / Playwright 7 / lint / mypy 72 files / 双端 build / 迁移 7 revision 循环 / infra / seed（真实命令输出见报告 §10） |
 
 附加（NEXT_GOAL 新增要求，非原 Gate 编号）:
 
