@@ -27,8 +27,8 @@ and its real output recorded in `WORKBUDDY_TAKEOVER_REPORT.md` /
 | V18 | DataLicense | **PASS** — model + API present |
 | V19 | PetAccessJSON | **PASS** — `test_v05_properties.py` |
 | V20 | Answerability | **PASS** — `answerability.py` + tests |
-| V21 | Admin v0.5 真 API | **NOT_STARTED** — v0.3-era views only |
-| V22 | H5 v0.5 E2E | **NOT_STARTED** — v0.3-era surfaces only |
+| V21 | Admin v0.5 真 API | **PASS** — 8 新视图绑定真端点；API 增补 9 个分页读端点；5 集成测试；admin build 绿（commit `8cede60`） |
+| V22 | H5 v0.5 E2E | **PASS** — BoundaryView + MatchExplainView 绑真 API；用户边界 API（GET/PUT default）；7 集成测试 + 2 Playwright 旅程；H5 build 绿（commit `88b4c70`） |
 | V23 | Rule acquisition E2E-A | **PASS** — upload→MinIO→OCR→candidate→publish |
 | V24 | Operator E2E-B | **PASS** — template inheritance + override |
 | V25 | Source monitor E2E-C | **PASS** — hash change→candidate→supersede→watch |
@@ -47,7 +47,7 @@ and its real output recorded in `WORKBUDDY_TAKEOVER_REPORT.md` /
 |---|---|---|
 | V34 | E2E-D external public lead（不得直接发布） | **NOT_STARTED** |
 | V35 | Adversarial fixtures（≥30 类） | **NOT_STARTED** |
-| V36 | `MIGRATION_V05.md` | **NOT_STARTED** |
+| V36 | `MIGRATION_V05.md` | **PASS** — 文档生成；down→up→down→up 双循环（6 revision/向）真实验证干净通过；backfill 幂等不猜；demo seed 复跑正常 |
 | V37 | Evidence-first / EvidenceBundle 一等实体 | **PASS** — `source_artifact` + `evidence_bundle` + `observation_candidate` 建表（migration `5cb24fc8e838`），22 单元测试 + 6 API 测试 |
 | V38 | Collector abstraction / SourceArtifact | **PASS** — 7 个 collector 类（含 4 个 v0.5 可无凭证实现），`COLLECTORS` 注册表 + contract 测试 |
 | V39 | Original vs Derived evidence 分离 | **PASS** — `evidence_class` 区分；派生 bundle 强制引用 `derived_from_bundle_id`，否则拒绝写入 |
