@@ -2,10 +2,13 @@
 import { onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import {
-  client, ApiError, session,
-  type BoundaryMatchResult, type EffectiveRuleSet,
+  client,
+  ApiError,
+  session,
+  type BoundaryMatchResult,
+  type EffectiveRuleSet,
 } from "@petaccess/client-core";
-import Shell from "../components/Shell.vue";
+import AppShell from "../components/AppShell.vue";
 
 /**
  * 可解释解析：为什么是「允许 / 有条件 / 禁止 / 未知」。
@@ -48,7 +51,10 @@ async function resolveRules() {
   busy.value = true;
   try {
     const animal = session.activePet
-      ? { animal: session.activePet.species, service_role: session.activePet.service_role ?? "none" }
+      ? {
+          animal: session.activePet.species,
+          service_role: session.activePet.service_role ?? "none",
+        }
       : { animal: "dog", service_role: session.mode === "service_dog" ? "service_dog" : "none" };
     resolved.value = await client.effectiveRules(placeId, { ...animal, action: "enter" });
   } catch (e) {
@@ -64,7 +70,10 @@ async function loadBoundary() {
     boundary.value = await client.boundaryMatch(placeId);
   } catch (e) {
     // No profile is a normal state, not an error worth a red banner.
-    if (e instanceof ApiError && (e as unknown as { code?: string }).code === "no_boundary_profile") {
+    if (
+      e instanceof ApiError &&
+      (e as unknown as { code?: string }).code === "no_boundary_profile"
+    ) {
       boundary.value = null;
       note.value = "尚未设置共处边界，设置后可在此逐项比对。";
       return;
@@ -79,7 +88,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <Shell>
+  <AppShell>
     <div v-if="error" class="panel" data-testid="match-error">{{ error }}</div>
 
     <div class="panel">
@@ -96,13 +105,19 @@ onMounted(async () => {
     <div v-if="resolved" class="panel" data-testid="effective-rules">
       <div class="muted">生效结论</div>
       <div style="font-size: 22px; font-weight: 700; margin: 4px 0" data-testid="effective-effect">
-        {{ resolved.effect === "allowed" ? "可进入" :
-           resolved.effect === "prohibited" ? "不可进入" :
-           resolved.effect === "conditional" ? "有条件可进入" : "信息不足" }}
+        {{
+          resolved.effect === "allowed"
+            ? "可进入"
+            : resolved.effect === "prohibited"
+              ? "不可进入"
+              : resolved.effect === "conditional"
+                ? "有条件可进入"
+                : "信息不足"
+        }}
       </div>
       <div class="muted">
-        合规状态：{{ COMPLIANCE_TEXT[resolved.compliance_state] ?? resolved.compliance_state }}
-        · 适用规则 {{ resolved.applicable_rules.length }} 条
+        合规状态：{{ COMPLIANCE_TEXT[resolved.compliance_state] ?? resolved.compliance_state }} ·
+        适用规则 {{ resolved.applicable_rules.length }} 条
       </div>
 
       <template v-if="resolved.obligations.length">
@@ -112,7 +127,12 @@ onMounted(async () => {
 
       <h2>推导过程</h2>
       <ol style="padding-left: 18px; margin: 6px 0">
-        <li v-for="(s, i) in resolved.explanation_steps" :key="i" class="muted" style="margin-bottom: 4px">
+        <li
+          v-for="(s, i) in resolved.explanation_steps"
+          :key="i"
+          class="muted"
+          style="margin-bottom: 4px"
+        >
           {{ s }}
         </li>
         <li v-if="!resolved.explanation_steps.length" class="muted">无解释步骤</li>
@@ -140,22 +160,38 @@ onMounted(async () => {
       <div v-if="note" class="muted" data-testid="boundary-note">{{ note }}</div>
       <template v-if="boundary">
         <div class="muted" style="margin-bottom: 8px">
-          共 {{ boundary.results.length }} 项 ·
-          符合 {{ boundary.summary.match }} · 冲突 {{ boundary.summary.conflict }} ·
-          未知 {{ boundary.summary.unknown }}（{{ boundary.summary.note }}）
+          共 {{ boundary.results.length }} 项 · 符合 {{ boundary.summary.match }} · 冲突
+          {{ boundary.summary.conflict }} · 未知 {{ boundary.summary.unknown }}（{{
+            boundary.summary.note
+          }}）
         </div>
-        <div v-for="r in boundary.results" :key="r.attribute" class="zone-row" data-testid="boundary-item">
+        <div
+          v-for="r in boundary.results"
+          :key="r.attribute"
+          class="zone-row"
+          data-testid="boundary-item"
+        >
           <span>
             {{ r.attribute }}
-            <span class="tag" style="margin-left: 6px">{{ STANCE_TEXT[r.stance] ?? r.stance }}</span>
+            <span class="tag" style="margin-left: 6px">{{
+              STANCE_TEXT[r.stance] ?? r.stance
+            }}</span>
           </span>
           <span>
-            <span class="tag" :class="r.verdict === 'MATCH' ? 's-MATCH' : r.verdict === 'CONFLICT' ? 's-RESTRICTED' : ''"
-                  style="color: #fff; border: none">{{ VERDICT_TEXT[r.verdict] ?? r.verdict }}</span>
+            <span
+              class="tag"
+              :class="
+                r.verdict === 'MATCH' ? 's-MATCH' : r.verdict === 'CONFLICT' ? 's-RESTRICTED' : ''
+              "
+              style="color: #fff; border: none"
+              >{{ VERDICT_TEXT[r.verdict] ?? r.verdict }}</span
+            >
           </span>
         </div>
       </template>
-      <RouterLink to="/boundary" class="pill" style="display: inline-block; margin-top: 10px">设置共处边界</RouterLink>
+      <RouterLink to="/boundary" class="pill" style="display: inline-block; margin-top: 10px"
+        >设置共处边界</RouterLink
+      >
     </div>
-  </Shell>
+  </AppShell>
 </template>

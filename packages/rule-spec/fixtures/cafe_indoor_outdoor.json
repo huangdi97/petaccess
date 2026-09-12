@@ -21,7 +21,7 @@
       "effect": "conditional",
       "status": "current",
       "source_id": "src-signage-cafe",
-      "conditions": [{"condition_type": "leash_required", "value_flag": true}]
+      "conditions": [{ "condition_type": "leash_required", "value_flag": true }]
     },
     {
       "id": "rule-cafe-service-dog",
@@ -39,7 +39,7 @@
     {
       "name": "ordinary dog indoor → RESTRICTED",
       "query": {
-        "animal": {"species": "dog", "service_role": "none", "weight_kg": 9.5},
+        "animal": { "species": "dog", "service_role": "none", "weight_kg": 9.5 },
         "place_id": "place-xinghe-cafe",
         "zone_id": "zone-cafe-indoor",
         "date_time": "2026-09-08T12:00:00+00:00",
@@ -50,7 +50,7 @@
     {
       "name": "ordinary dog outdoor → CONDITIONAL (leash obligation)",
       "query": {
-        "animal": {"species": "dog", "service_role": "none", "weight_kg": 9.5},
+        "animal": { "species": "dog", "service_role": "none", "weight_kg": 9.5 },
         "place_id": "place-xinghe-cafe",
         "zone_id": "zone-cafe-outdoor",
         "date_time": "2026-09-08T12:00:00+00:00",
@@ -61,7 +61,7 @@
     {
       "name": "service dog indoor → MATCH (service dog rule, zone shadow does not fabricate)",
       "query": {
-        "animal": {"species": "dog", "service_role": "working"},
+        "animal": { "species": "dog", "service_role": "working" },
         "place_id": "place-xinghe-cafe",
         "zone_id": "zone-cafe-indoor",
         "date_time": "2026-09-08T12:00:00+00:00",

@@ -1,12 +1,21 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { page, get, post, ApiError } from "../api";
+import { page, post, ApiError } from "../api";
 
 interface Regulation {
-  id: string; jurisdiction_level: string; jurisdiction_id: string; authority: string;
-  document_name: string; clause_ref: string | null; animal_scope: string;
-  venue_scope: string | null; action: string | null; effect: string | null;
-  mandatory_level: string; review_status: string; effective_from: string | null;
+  id: string;
+  jurisdiction_level: string;
+  jurisdiction_id: string;
+  authority: string;
+  document_name: string;
+  clause_ref: string | null;
+  animal_scope: string;
+  venue_scope: string | null;
+  action: string | null;
+  effect: string | null;
+  mandatory_level: string;
+  review_status: string;
+  effective_from: string | null;
 }
 
 const items = ref<Regulation[]>([]);
@@ -16,9 +25,12 @@ const reviewStatusFilter = ref("");
 async function load() {
   error.value = "";
   try {
-    items.value = (await page<Regulation>("/regulations", {
-      review_status: reviewStatusFilter.value || undefined, limit: 100,
-    })).items;
+    items.value = (
+      await page<Regulation>("/regulations", {
+        review_status: reviewStatusFilter.value || undefined,
+        limit: 100,
+      })
+    ).items;
   } catch (e) {
     error.value = e instanceof ApiError ? e.message : String(e);
   }
@@ -60,21 +72,50 @@ onMounted(load);
   </div>
   <div class="panel">
     <table>
-      <thead><tr><th>文件</th><th>条款</th><th>层级</th><th>动物</th><th>效力</th><th>审核状态</th><th>操作</th></tr></thead>
+      <thead>
+        <tr>
+          <th>文件</th>
+          <th>条款</th>
+          <th>层级</th>
+          <th>动物</th>
+          <th>效力</th>
+          <th>审核状态</th>
+          <th>操作</th>
+        </tr>
+      </thead>
       <tbody>
         <tr v-for="r in items" :key="r.id">
           <td>{{ r.document_name }}</td>
           <td>{{ r.clause_ref ?? "—" }}</td>
           <td>{{ r.jurisdiction_level }}</td>
           <td>{{ r.animal_scope }}</td>
-          <td>{{ r.effect ?? "—" }}<span class="muted" v-if="r.mandatory_level"> · {{ r.mandatory_level }}</span></td>
-          <td><span class="tag" :class="{ warn: r.review_status === 'not_reviewed' }">{{ r.review_status }}</span></td>
           <td>
-            <button v-if="r.review_status === 'not_reviewed'" @click="markReviewed(r, 'no_explicit_rule_found')">标记·无明文规则</button>
-            <button v-if="r.review_status !== 'reviewed_active'" @click="markReviewed(r, 'reviewed_active')">标记·现行有效</button>
+            {{ r.effect ?? "—"
+            }}<span class="muted" v-if="r.mandatory_level"> · {{ r.mandatory_level }}</span>
+          </td>
+          <td>
+            <span class="tag" :class="{ warn: r.review_status === 'not_reviewed' }">{{
+              r.review_status
+            }}</span>
+          </td>
+          <td>
+            <button
+              v-if="r.review_status === 'not_reviewed'"
+              @click="markReviewed(r, 'no_explicit_rule_found')"
+            >
+              标记·无明文规则
+            </button>
+            <button
+              v-if="r.review_status !== 'reviewed_active'"
+              @click="markReviewed(r, 'reviewed_active')"
+            >
+              标记·现行有效
+            </button>
           </td>
         </tr>
-        <tr v-if="!items.length"><td colspan="7" class="muted">暂无法规</td></tr>
+        <tr v-if="!items.length">
+          <td colspan="7" class="muted">暂无法规</td>
+        </tr>
       </tbody>
     </table>
   </div>

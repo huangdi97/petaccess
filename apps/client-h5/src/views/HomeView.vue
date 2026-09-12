@@ -2,10 +2,14 @@
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import {
-  client, session, synthDemoCamera, STATUS_GLYPHS,
-  type PlaceSummary, type MapCamera,
+  client,
+  session,
+  synthDemoCamera,
+  STATUS_GLYPHS,
+  type PlaceSummary,
+  type MapCamera,
 } from "@petaccess/client-core";
-import Shell from "../components/Shell.vue";
+import AppShell from "../components/AppShell.vue";
 import MockMap from "../components/MockMap.vue";
 
 const router = useRouter();
@@ -33,7 +37,7 @@ function open(id: string) {
 </script>
 
 <template>
-  <Shell>
+  <AppShell>
     <div class="map-mock" data-testid="map">
       <MockMap :camera="camera" :places="places" @select="open" />
     </div>
@@ -47,7 +51,9 @@ function open(id: string) {
       <div class="row" style="justify-content: space-between; cursor: pointer" @click="open(p.id)">
         <div>
           <strong>{{ p.canonical_name }}</strong>
-          <div class="muted">{{ p.place_type }}<span v-if="p.distance_m"> · {{ Math.round(p.distance_m) }}m</span></div>
+          <div class="muted">
+            {{ p.place_type }}<span v-if="p.distance_m"> · {{ Math.round(p.distance_m) }}m</span>
+          </div>
         </div>
         <span class="tag">{{ STATUS_GLYPHS.UNKNOWN }}</span>
       </div>
@@ -55,5 +61,5 @@ function open(id: string) {
     <div class="panel" v-if="!loading && !places.length && !error">
       <span class="muted">附近暂无已收录场所</span>
     </div>
-  </Shell>
+  </AppShell>
 </template>

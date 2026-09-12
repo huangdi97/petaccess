@@ -9,8 +9,14 @@ const modes: QueryMode[] = ["with_pet", "restrictions", "service_dog", "rules_on
 
 <template>
   <div class="row" style="margin-bottom: 12px">
-    <button v-for="m in modes" :key="m" class="pill" :class="{ active: mode === m }"
-            :data-mode="m" @click="$emit('change', m)">
+    <button
+      v-for="m in modes"
+      :key="m"
+      class="pill"
+      :class="{ active: mode === m }"
+      :data-mode="m"
+      @click="$emit('change', m)"
+    >
       {{ MODE_LABELS[m] }}
     </button>
   </div>

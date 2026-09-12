@@ -92,9 +92,10 @@ onMounted(load);
   <div v-if="error" class="error-banner">{{ error }}</div>
 
   <p class="muted">
-    AI / OCR / 监控 / 导入 的产物一律先进候选，永不直接写规则。
-    状态机 DISCOVERED → EXTRACTED → MATCH_PENDING → REVIEW_PENDING → APPROVED → PUBLISHED，
-    只有 <span class="mono">APPROVED</span> 可经 <span class="mono">/publish</span> 落入规范性规则集（ADR-005）。
+    AI / OCR / 监控 / 导入 的产物一律先进候选，永不直接写规则。 状态机 DISCOVERED → EXTRACTED →
+    MATCH_PENDING → REVIEW_PENDING → APPROVED → PUBLISHED， 只有
+    <span class="mono">APPROVED</span> 可经
+    <span class="mono">/publish</span> 落入规范性规则集（ADR-005）。
   </p>
 
   <div class="toolbar">
@@ -105,15 +106,28 @@ onMounted(load);
         <option v-for="s in CANDIDATE_STATUSES" :key="s" :value="s">{{ s }}</option>
       </select>
     </div>
-    <button @click="offset = 0; load()">刷新</button>
+    <button
+      @click="
+        offset = 0;
+        load();
+      "
+    >
+      刷新
+    </button>
   </div>
 
   <div class="panel">
     <table class="compact">
       <thead>
         <tr>
-          <th>候选</th><th>归属</th><th>作用域</th><th>动作 / 效果</th>
-          <th>抽取</th><th>置信</th><th>状态</th><th>操作</th>
+          <th>候选</th>
+          <th>归属</th>
+          <th>作用域</th>
+          <th>动作 / 效果</th>
+          <th>抽取</th>
+          <th>置信</th>
+          <th>状态</th>
+          <th>操作</th>
         </tr>
       </thead>
       <tbody>
@@ -125,10 +139,18 @@ onMounted(load);
               Z: {{ shortId(c.zone_id) }}
             </td>
             <td>{{ c.animal_scope ?? "—" }}</td>
-            <td>{{ c.action ?? "—" }} / <span :class="{ muted: !c.effect }">{{ c.effect ?? "—" }}</span></td>
-            <td class="mono">{{ c.extraction_method }}<span v-if="c.extraction_provider"> · {{ c.extraction_provider }}</span></td>
+            <td>
+              {{ c.action ?? "—" }} /
+              <span :class="{ muted: !c.effect }">{{ c.effect ?? "—" }}</span>
+            </td>
+            <td class="mono">
+              {{ c.extraction_method
+              }}<span v-if="c.extraction_provider"> · {{ c.extraction_provider }}</span>
+            </td>
             <td class="mono">{{ c.internal_confidence ?? "—" }}</td>
-            <td><span class="tag" :class="statusTone(c.review_status)">{{ c.review_status }}</span></td>
+            <td>
+              <span class="tag" :class="statusTone(c.review_status)">{{ c.review_status }}</span>
+            </td>
             <td>
               <div class="actions">
                 <button @click="expanded = expanded === c.id ? '' : c.id">
@@ -137,16 +159,23 @@ onMounted(load);
                 <button
                   v-for="t in nextStates(c)"
                   :key="t"
-                  :class="{ primary: t === 'APPROVED' || t === 'REVIEW_PENDING', danger: t === 'REJECTED' }"
+                  :class="{
+                    primary: t === 'APPROVED' || t === 'REVIEW_PENDING',
+                    danger: t === 'REJECTED',
+                  }"
                   :disabled="busy === `${c.id}:${t}`"
                   @click="move(c, t)"
-                >→ {{ t }}</button>
+                >
+                  → {{ t }}
+                </button>
                 <button
                   v-if="c.review_status === 'APPROVED'"
                   class="primary"
                   :disabled="busy === `${c.id}:PUBLISH`"
                   @click="publish(c)"
-                >发布为规则</button>
+                >
+                  发布为规则
+                </button>
               </div>
             </td>
           </tr>
@@ -154,11 +183,20 @@ onMounted(load);
             <td colspan="8">
               <div class="explain">
                 <dl class="kv">
-                  <dt>创建时间</dt><dd>{{ ts(c.created_at) }}</dd>
-                  <dt>来源 ID</dt><dd class="mono">{{ c.source_id }}</dd>
-                  <dt>候选条件</dt><dd class="mono">{{ c.proposed_conditions?.length ? JSON.stringify(c.proposed_conditions) : "—" }}</dd>
-                  <dt>已发布规则</dt><dd class="mono">{{ c.published_rule_id ?? "未发布" }}</dd>
-                  <dt>复核备注</dt><dd>{{ c.review_note || "—" }}</dd>
+                  <dt>创建时间</dt>
+                  <dd>{{ ts(c.created_at) }}</dd>
+                  <dt>来源 ID</dt>
+                  <dd class="mono">{{ c.source_id }}</dd>
+                  <dt>候选条件</dt>
+                  <dd class="mono">
+                    {{
+                      c.proposed_conditions?.length ? JSON.stringify(c.proposed_conditions) : "—"
+                    }}
+                  </dd>
+                  <dt>已发布规则</dt>
+                  <dd class="mono">{{ c.published_rule_id ?? "未发布" }}</dd>
+                  <dt>复核备注</dt>
+                  <dd>{{ c.review_note || "—" }}</dd>
                 </dl>
                 <template v-if="c.raw_text">
                   <div style="margin-top: 8px" class="muted">抽取原文</div>
@@ -170,14 +208,34 @@ onMounted(load);
             </td>
           </tr>
         </template>
-        <tr v-if="!items.length"><td colspan="8" class="muted">暂无候选</td></tr>
+        <tr v-if="!items.length">
+          <td colspan="8" class="muted">暂无候选</td>
+        </tr>
       </tbody>
     </table>
 
     <div class="pager">
-      <button :disabled="offset === 0" @click="offset = Math.max(0, offset - limit); load()">上一页</button>
-      <span class="muted">第 {{ offset / limit + 1 }} / {{ pageCount }} 页 · 共 {{ total }} 条</span>
-      <button :disabled="offset + limit >= total" @click="offset += limit; load()">下一页</button>
+      <button
+        :disabled="offset === 0"
+        @click="
+          offset = Math.max(0, offset - limit);
+          load();
+        "
+      >
+        上一页
+      </button>
+      <span class="muted"
+        >第 {{ offset / limit + 1 }} / {{ pageCount }} 页 · 共 {{ total }} 条</span
+      >
+      <button
+        :disabled="offset + limit >= total"
+        @click="
+          offset += limit;
+          load();
+        "
+      >
+        下一页
+      </button>
     </div>
   </div>
 </template>

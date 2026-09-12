@@ -3,9 +3,16 @@ import { onMounted, ref } from "vue";
 import { page, post, ApiError } from "../api";
 
 interface Dispute {
-  id: string; target_type: string; target_id: string; reason_code: string;
-  notice_text: string; counter_statement: string | null; status: string;
-  temporary_action: string; resolution: string | null; resolution_note: string | null;
+  id: string;
+  target_type: string;
+  target_id: string;
+  reason_code: string;
+  notice_text: string;
+  counter_statement: string | null;
+  status: string;
+  temporary_action: string;
+  resolution: string | null;
+  resolution_note: string | null;
   created_at: string;
 }
 
@@ -72,27 +79,48 @@ onMounted(load);
     <div class="row">
       <div style="flex: 2">
         <strong>{{ d.reason_code }}</strong>
-        <span class="tag" :class="{ warn: d.status !== 'resolved' }" style="margin-left: 8px">{{ d.status }}</span>
+        <span class="tag" :class="{ warn: d.status !== 'resolved' }" style="margin-left: 8px">{{
+          d.status
+        }}</span>
         <span class="tag" style="margin-left: 4px">{{ d.target_type }}</span>
       </div>
       <div class="muted">{{ d.created_at.slice(0, 10) }}</div>
     </div>
     <p style="margin: 8px 0 4px">{{ d.notice_text }}</p>
-    <p class="muted" v-if="d.counter_statement" style="margin: 4px 0">反声明：{{ d.counter_statement }}</p>
+    <p class="muted" v-if="d.counter_statement" style="margin: 4px 0">
+      反声明：{{ d.counter_statement }}
+    </p>
     <div class="row" style="margin-top: 8px; align-items: end" v-if="d.status !== 'resolved'">
       <div style="flex: 0">
         <label>临时措施</label><br />
-        <button :disabled="busyId === d.id" @click="temporaryAction(d, 'mark_unverified')">标记未核验</button>
-        <button :disabled="busyId === d.id" style="margin-left: 6px" @click="temporaryAction(d, 'mark_disputed')">标记争议中</button>
+        <button :disabled="busyId === d.id" @click="temporaryAction(d, 'mark_unverified')">
+          标记未核验
+        </button>
+        <button
+          :disabled="busyId === d.id"
+          style="margin-left: 6px"
+          @click="temporaryAction(d, 'mark_disputed')"
+        >
+          标记争议中
+        </button>
       </div>
       <div style="flex: 0">
         <label>办结</label><br />
-        <button v-for="r in RESOLUTIONS" :key="r.value" class="primary"
-                :disabled="busyId === d.id" style="margin-right: 6px; margin-top: 4px"
-                @click="resolve(d, r.value)">{{ r.label }}</button>
+        <button
+          v-for="r in RESOLUTIONS"
+          :key="r.value"
+          class="primary"
+          :disabled="busyId === d.id"
+          style="margin-right: 6px; margin-top: 4px"
+          @click="resolve(d, r.value)"
+        >
+          {{ r.label }}
+        </button>
       </div>
     </div>
-    <p class="muted" v-else style="margin: 4px 0">办结：{{ d.resolution }} · {{ d.resolution_note }}</p>
+    <p class="muted" v-else style="margin: 4px 0">
+      办结：{{ d.resolution }} · {{ d.resolution_note }}
+    </p>
   </div>
   <div class="panel" v-if="!items.length"><span class="muted">暂无异议</span></div>
 </template>

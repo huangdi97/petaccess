@@ -56,7 +56,7 @@ const form = ref({
 });
 
 /** Collector → platform preview, mirrors `_platform_for_collector` on the API. */
-const platformPreview = ref("official_web");
+
 
 const bundleForm = ref({
   artifact_id: "",
@@ -125,10 +125,14 @@ async function createBundle() {
       artifact_id: bundleForm.value.artifact_id,
       evidence_class: bundleForm.value.evidence_class,
     };
-    if (bundleForm.value.quoted_fragment) payload.quoted_fragment = bundleForm.value.quoted_fragment;
-    if (bundleForm.value.extracted_fragment) payload.extracted_fragment = bundleForm.value.extracted_fragment;
-    if (bundleForm.value.extraction_method) payload.extraction_method = bundleForm.value.extraction_method;
-    if (bundleForm.value.derived_from_bundle_id) payload.derived_from_bundle_id = bundleForm.value.derived_from_bundle_id;
+    if (bundleForm.value.quoted_fragment)
+      payload.quoted_fragment = bundleForm.value.quoted_fragment;
+    if (bundleForm.value.extracted_fragment)
+      payload.extracted_fragment = bundleForm.value.extracted_fragment;
+    if (bundleForm.value.extraction_method)
+      payload.extraction_method = bundleForm.value.extraction_method;
+    if (bundleForm.value.derived_from_bundle_id)
+      payload.derived_from_bundle_id = bundleForm.value.derived_from_bundle_id;
     const created = await post<Bundle>("/admin/evidence-bundles", payload);
     info.value = `已创建证据包 ${created.id.slice(0, 8)}…（${created.evidence_class}）`;
     await load();
@@ -163,7 +167,9 @@ onMounted(() => {
       <div class="field">
         <label>采集器</label>
         <select v-model="form.collector_type" @change="onCollectorChange">
-          <option v-for="c in COLLECTOR_TYPES" :key="c.value" :value="c.value">{{ c.label }}</option>
+          <option v-for="c in COLLECTOR_TYPES" :key="c.value" :value="c.value">
+            {{ c.label }}
+          </option>
         </select>
       </div>
       <div v-if="leadOnly" class="lead-warn">
@@ -192,10 +198,16 @@ onMounted(() => {
       <label>内容哈希（可选，用于变更检测）</label>
       <input v-model="form.content_hash" class="mono" placeholder="sha256…" />
       <label>抓取摘录</label>
-      <textarea v-model="form.captured_excerpt" rows="3" placeholder="页面/照片中与准入相关的原文片段" />
+      <textarea
+        v-model="form.captured_excerpt"
+        rows="3"
+        placeholder="页面/照片中与准入相关的原文片段"
+      />
       <p class="hint">
-        默认 <span class="mono">display_allowed=false</span>、<span class="mono">redistribution_allowed=false</span> ——
-        未明确授权前不得对外展示或再分发。
+        默认 <span class="mono">display_allowed=false</span>、<span class="mono"
+          >redistribution_allowed=false</span
+        >
+        —— 未明确授权前不得对外展示或再分发。
       </p>
       <button class="primary" style="margin-top: 10px" :disabled="busy" @click="createArtifact">
         冻结为证据原件
@@ -210,7 +222,9 @@ onMounted(() => {
       <div class="field" style="margin-top: 10px">
         <label>证据类别</label>
         <select v-model="bundleForm.evidence_class">
-          <option v-for="c in EVIDENCE_CLASSES" :key="c.value" :value="c.value">{{ c.label }}</option>
+          <option v-for="c in EVIDENCE_CLASSES" :key="c.value" :value="c.value">
+            {{ c.label }}
+          </option>
         </select>
       </div>
       <div v-if="bundleForm.evidence_class === 'derived'" class="field" style="margin-top: 10px">
@@ -220,14 +234,23 @@ onMounted(() => {
       <label>引用片段</label>
       <textarea v-model="bundleForm.quoted_fragment" rows="2" placeholder="逐字引用，保持可追溯" />
       <label>抽取片段</label>
-      <textarea v-model="bundleForm.extracted_fragment" rows="2" placeholder="结构化抽取结果（可改写）" />
+      <textarea
+        v-model="bundleForm.extracted_fragment"
+        rows="2"
+        placeholder="结构化抽取结果（可改写）"
+      />
       <div class="field" style="margin-top: 10px">
         <label>抽取方式</label>
         <select v-model="bundleForm.extraction_method">
           <option v-for="m in EXTRACTION_METHODS" :key="m" :value="m">{{ m }}</option>
         </select>
       </div>
-      <button class="primary" style="margin-top: 10px" :disabled="busy || !bundleForm.artifact_id" @click="createBundle">
+      <button
+        class="primary"
+        style="margin-top: 10px"
+        :disabled="busy || !bundleForm.artifact_id"
+        @click="createBundle"
+      >
         生成证据包
       </button>
     </div>
@@ -238,22 +261,43 @@ onMounted(() => {
     <h2>证据原件（{{ artifacts.length }}）</h2>
     <table class="compact">
       <thead>
-        <tr><th>ID</th><th>平台 / 采集器</th><th>类型</th><th>URL</th><th>哈希</th><th>授权</th><th>采集时间</th></tr>
+        <tr>
+          <th>ID</th>
+          <th>平台 / 采集器</th>
+          <th>类型</th>
+          <th>URL</th>
+          <th>哈希</th>
+          <th>授权</th>
+          <th>采集时间</th>
+        </tr>
       </thead>
       <tbody>
         <tr v-for="a in artifacts" :key="a.id">
           <td class="mono">{{ shortId(a.id) }}</td>
-          <td class="mono">{{ a.source_platform }}<br /><span class="muted">{{ a.collector_type }}</span></td>
+          <td class="mono">
+            {{ a.source_platform }}<br /><span class="muted">{{ a.collector_type }}</span>
+          </td>
           <td>{{ a.artifact_type }}</td>
-          <td class="mono" style="max-width: 220px; overflow: hidden; text-overflow: ellipsis">{{ a.source_url ?? "—" }}</td>
+          <td class="mono" style="max-width: 220px; overflow: hidden; text-overflow: ellipsis">
+            {{ a.source_url ?? "—" }}
+          </td>
           <td class="mono">{{ a.content_hash ?? "—" }}</td>
           <td>
-            <span class="tag" :class="a.display_allowed ? 'ok' : 'unknown'">展示 {{ a.display_allowed ? "允许" : "禁止" }}</span>
-            <span class="tag" :class="a.redistribution_allowed ? 'ok' : 'unknown'" style="margin-left: 4px">再分发 {{ a.redistribution_allowed ? "允许" : "禁止" }}</span>
+            <span class="tag" :class="a.display_allowed ? 'ok' : 'unknown'"
+              >展示 {{ a.display_allowed ? "允许" : "禁止" }}</span
+            >
+            <span
+              class="tag"
+              :class="a.redistribution_allowed ? 'ok' : 'unknown'"
+              style="margin-left: 4px"
+              >再分发 {{ a.redistribution_allowed ? "允许" : "禁止" }}</span
+            >
           </td>
           <td class="muted">{{ ts(a.collected_at) }}</td>
         </tr>
-        <tr v-if="!artifacts.length"><td colspan="7" class="muted">暂无证据原件</td></tr>
+        <tr v-if="!artifacts.length">
+          <td colspan="7" class="muted">暂无证据原件</td>
+        </tr>
       </tbody>
     </table>
   </div>
@@ -262,18 +306,31 @@ onMounted(() => {
     <h2>证据包（{{ bundles.length }}）</h2>
     <table class="compact">
       <thead>
-        <tr><th>ID</th><th>原件</th><th>类别</th><th>引用片段</th><th>抽取方式</th><th>来源证据包</th></tr>
+        <tr>
+          <th>ID</th>
+          <th>原件</th>
+          <th>类别</th>
+          <th>引用片段</th>
+          <th>抽取方式</th>
+          <th>来源证据包</th>
+        </tr>
       </thead>
       <tbody>
         <tr v-for="b in bundles" :key="b.id">
           <td class="mono">{{ shortId(b.id) }}</td>
           <td class="mono">{{ shortId(b.artifact_id) }}</td>
-          <td><span class="tag" :class="b.evidence_class === 'original' ? 'ok' : 'warn'">{{ b.evidence_class }}</span></td>
+          <td>
+            <span class="tag" :class="b.evidence_class === 'original' ? 'ok' : 'warn'">{{
+              b.evidence_class
+            }}</span>
+          </td>
           <td class="quote">{{ b.quoted_fragment || b.extracted_fragment || "—" }}</td>
           <td class="mono">{{ b.extraction_method ?? "—" }}</td>
           <td class="mono">{{ shortId(b.derived_from_bundle_id) }}</td>
         </tr>
-        <tr v-if="!bundles.length"><td colspan="6" class="muted">暂无证据包</td></tr>
+        <tr v-if="!bundles.length">
+          <td colspan="6" class="muted">暂无证据包</td>
+        </tr>
       </tbody>
     </table>
   </div>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { session, MODE_LABELS, type QueryMode } from "@petaccess/client-core";
+import { session, type QueryMode } from "@petaccess/client-core";
 import ModeBar from "../components/ModeBar.vue";
 
 const who = computed(() =>
@@ -9,7 +9,6 @@ const who = computed(() =>
       (session.activePet.weight_kg ? ` · ${session.activePet.weight_kg}kg` : "")
     : "未设置宠物档案",
 );
-const mode = computed(() => MODE_LABELS[session.mode]);
 
 function setMode(m: QueryMode) {
   session.mode = m;

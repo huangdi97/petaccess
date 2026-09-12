@@ -52,8 +52,12 @@ export const CONDITION_LABELS: Record<string, string> = {
 };
 
 /** Build the evaluator request for a mode (design #4). */
-export function modeQuery(mode: QueryMode, animal: AnimalQuery | null): {
-  animal: AnimalQuery; intended_action: string;
+export function modeQuery(
+  mode: QueryMode,
+  animal: AnimalQuery | null,
+): {
+  animal: AnimalQuery;
+  intended_action: string;
 } {
   switch (mode) {
     case "service_dog":
@@ -61,12 +65,16 @@ export function modeQuery(mode: QueryMode, animal: AnimalQuery | null): {
     case "restrictions":
       return { animal: { species: "dog", service_role: "none" }, intended_action: "enter" };
     case "rules_only":
-      return { animal: animal ?? { species: "other", service_role: "none" },
-               intended_action: "enter" };
+      return {
+        animal: animal ?? { species: "other", service_role: "none" },
+        intended_action: "enter",
+      };
     case "with_pet":
     default:
-      return { animal: animal ?? { species: "dog", service_role: "none" },
-               intended_action: "enter" };
+      return {
+        animal: animal ?? { species: "dog", service_role: "none" },
+        intended_action: "enter",
+      };
   }
 }
 
@@ -97,8 +105,12 @@ export async function evaluatePlace(
   animal: AnimalQuery | null,
   placeId: string,
   zones: Zone[],
-  evaluateFn: (body: { animal: AnimalQuery; place_id: string;
-    zone_id?: string | null; intended_action: string }) => Promise<EvaluateView>,
+  evaluateFn: (body: {
+    animal: AnimalQuery;
+    place_id: string;
+    zone_id?: string | null;
+    intended_action: string;
+  }) => Promise<EvaluateView>,
 ): Promise<Answer> {
   const q = modeQuery(mode, animal);
   const zoneAnswers: ZoneAnswer[] = [];
@@ -107,7 +119,11 @@ export async function evaluatePlace(
   let overall: EvaluateView["status"] = "UNKNOWN";
 
   const rank: Record<EvaluateView["status"], number> = {
-    MATCH: 0, CONDITIONAL: 1, CONFLICT: 3, UNKNOWN: 2, RESTRICTED: 4,
+    MATCH: 0,
+    CONDITIONAL: 1,
+    CONFLICT: 3,
+    UNKNOWN: 2,
+    RESTRICTED: 4,
   };
   // Overall answer = the most favorable applicable determination among zones
   // (a place with an allowed pet zone is enterable, with zone caveats shown).
@@ -135,8 +151,10 @@ export async function evaluatePlace(
   overall = best;
   if (mode === "restrictions") {
     // Restriction mode inverts the framing: the answer highlights explicit limits
-    overall = zoneAnswers.some((z) => z.status === "RESTRICTED") || evaluated.status === "RESTRICTED"
-      ? "RESTRICTED" : "UNKNOWN";
+    overall =
+      zoneAnswers.some((z) => z.status === "RESTRICTED") || evaluated.status === "RESTRICTED"
+        ? "RESTRICTED"
+        : "UNKNOWN";
   }
   return {
     headline: STATUS_LABELS[overall],
@@ -149,7 +167,10 @@ export async function evaluatePlace(
 }
 
 /** Latest verification + source summary for the place header. */
-export function provenanceSummary(rules: RuleView[], verifications: { occurred_at: string }[]): {
+export function provenanceSummary(
+  rules: RuleView[],
+  verifications: { occurred_at: string }[],
+): {
   latestVerified: string | null;
   ruleCount: number;
 } {

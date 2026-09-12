@@ -2,7 +2,7 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { client, type PlaceSummary } from "@petaccess/client-core";
-import Shell from "../components/Shell.vue";
+import AppShell from "../components/AppShell.vue";
 
 const router = useRouter();
 const q = ref("");
@@ -22,11 +22,22 @@ async function search() {
 </script>
 
 <template>
-  <Shell>
+  <AppShell>
     <div class="panel">
-      <input v-model="q" placeholder="搜索场所名称，如：星河、公园、商场" data-testid="search-input"
-             @keydown.enter="search" />
-      <button class="primary block" style="margin-top: 8px" @click="search" data-testid="search-btn">搜索</button>
+      <input
+        v-model="q"
+        placeholder="搜索场所名称，如：星河、公园、商场"
+        data-testid="search-input"
+        @keydown.enter="search"
+      />
+      <button
+        class="primary block"
+        style="margin-top: 8px"
+        @click="search"
+        data-testid="search-btn"
+      >
+        搜索
+      </button>
     </div>
     <div v-if="error" class="panel">{{ error }}</div>
     <div class="panel" v-for="p in results" :key="p.id" :data-testid="'result-' + p.canonical_name">
@@ -38,5 +49,5 @@ async function search() {
     <div class="panel" v-if="searched && !results.length && !error">
       <span class="muted">没有匹配的场所 — 未收录不等于不存在规则</span>
     </div>
-  </Shell>
+  </AppShell>
 </template>

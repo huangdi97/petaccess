@@ -20,9 +20,15 @@ export function logout(): void {
   localStorage.removeItem("admin_token");
 }
 
-interface PageLike<T> { items: T[]; total: number }
+interface PageLike<T> {
+  items: T[];
+  total: number;
+}
 
-export async function page<T>(path: string, query: Record<string, string | number | undefined> = {}): Promise<PageLike<T>> {
+export async function page<T>(
+  path: string,
+  query: Record<string, string | number | undefined> = {},
+): Promise<PageLike<T>> {
   return api.request<PageLike<T>>("get", path, { query });
 }
 

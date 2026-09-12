@@ -1,0 +1,14 @@
+node_modules
+dist
+.venv
+unpackage
+coverage
+coverage.json
+playwright-out
+test-results
+pnpm-lock.yaml
+**/*.md
+packages/api-client
+docs/reality_audit/*.json
+schemas
+apps/client

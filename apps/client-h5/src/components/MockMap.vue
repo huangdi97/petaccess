@@ -28,9 +28,14 @@ function pos(p: PlaceSummary): { left: string; top: string } {
 
 <template>
   <div>
-    <div v-for="p in places" :key="p.id" class="map-pin" :style="pos(p)"
-         :data-testid="'pin-' + p.canonical_name"
-         @click="$emit('select', p.id)">
+    <div
+      v-for="p in places"
+      :key="p.id"
+      class="map-pin"
+      :style="pos(p)"
+      :data-testid="'pin-' + p.canonical_name"
+      @click="$emit('select', p.id)"
+    >
       <div class="dot s-UNKNOWN"></div>
       <div class="lbl">{{ p.canonical_name }}</div>
     </div>

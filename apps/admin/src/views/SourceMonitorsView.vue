@@ -117,7 +117,12 @@ onMounted(load);
         <input v-model="form.place_id" class="mono" placeholder="place uuid" />
       </div>
     </div>
-    <button class="primary" style="margin-top: 10px" :disabled="busy === 'create' || !form.source_id || !form.url" @click="createMonitor">
+    <button
+      class="primary"
+      style="margin-top: 10px"
+      :disabled="busy === 'create' || !form.source_id || !form.url"
+      @click="createMonitor"
+    >
       创建监控
     </button>
   </div>
@@ -126,15 +131,31 @@ onMounted(load);
     <h2>监控列表（{{ total }}）</h2>
     <table class="compact">
       <thead>
-        <tr><th>ID</th><th>URL</th><th>来源</th><th>状态</th><th>失败</th><th>哈希</th><th>最近检查</th><th>最近变化</th><th>操作</th></tr>
+        <tr>
+          <th>ID</th>
+          <th>URL</th>
+          <th>来源</th>
+          <th>状态</th>
+          <th>失败</th>
+          <th>哈希</th>
+          <th>最近检查</th>
+          <th>最近变化</th>
+          <th>操作</th>
+        </tr>
       </thead>
       <tbody>
         <tr v-for="m in items" :key="m.id">
           <td class="mono">{{ shortId(m.id) }}</td>
-          <td class="mono" style="max-width: 260px; overflow: hidden; text-overflow: ellipsis">{{ m.url }}</td>
+          <td class="mono" style="max-width: 260px; overflow: hidden; text-overflow: ellipsis">
+            {{ m.url }}
+          </td>
           <td class="mono">{{ shortId(m.source_id) }}</td>
           <td>
-            <span class="tag" :class="m.status === 'active' ? 'ok' : m.status === 'failing' ? 'restricted' : 'warn'">{{ m.status }}</span>
+            <span
+              class="tag"
+              :class="m.status === 'active' ? 'ok' : m.status === 'failing' ? 'restricted' : 'warn'"
+              >{{ m.status }}</span
+            >
           </td>
           <td class="mono">{{ m.failure_count }}</td>
           <td class="mono">{{ m.content_hash || "—" }}</td>
@@ -146,7 +167,9 @@ onMounted(load);
             </button>
           </td>
         </tr>
-        <tr v-if="!items.length"><td colspan="9" class="muted">暂无监控</td></tr>
+        <tr v-if="!items.length">
+          <td colspan="9" class="muted">暂无监控</td>
+        </tr>
       </tbody>
     </table>
   </div>

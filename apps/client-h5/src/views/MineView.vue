@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { client, session } from "@petaccess/client-core";
-import Shell from "../components/Shell.vue";
 
 const pets = ref<Awaited<ReturnType<typeof client.myPets>>>([]);
 const watches = ref<Awaited<ReturnType<typeof client.myWatches>>>([]);
@@ -40,7 +39,13 @@ onMounted(async () => {
           {{ p.weight_kg ? `· ${p.weight_kg}kg` : "" }}
           {{ p.service_role !== "none" ? "· 服务犬（用户声明）" : "" }}
         </div>
-        <button style="margin-top: 8px" @click="session.activePet = p; session.mode = 'with_pet'">
+        <button
+          style="margin-top: 8px"
+          @click="
+            session.activePet = p;
+            session.mode = 'with_pet';
+          "
+        >
           设为本次对象
         </button>
       </div>
@@ -52,8 +57,7 @@ onMounted(async () => {
       <h2>我的共处边界</h2>
       <div class="panel">
         <div class="muted">
-          设定你自己的出行偏好，用于逐项比对场所公开记录。逐项判定，无总分；
-          未设置的项保持未知。
+          设定你自己的出行偏好，用于逐项比对场所公开记录。逐项判定，无总分； 未设置的项保持未知。
         </div>
         <RouterLink to="/boundary">
           <button class="primary block" style="margin-top: 8px" data-testid="open-boundary">

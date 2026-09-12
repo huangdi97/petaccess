@@ -38,8 +38,12 @@ async function submit() {
     </p>
     <div class="panel">
       <div class="row">
-        <button class="pill" :class="{ active: mode === 'login' }" @click="mode = 'login'">登录</button>
-        <button class="pill" :class="{ active: mode === 'register' }" @click="mode = 'register'">注册</button>
+        <button class="pill" :class="{ active: mode === 'login' }" @click="mode = 'login'">
+          登录
+        </button>
+        <button class="pill" :class="{ active: mode === 'register' }" @click="mode = 'register'">
+          注册
+        </button>
       </div>
       <div v-if="error" class="notice" style="color: var(--restricted)">{{ error }}</div>
       <form @submit.prevent="submit">
@@ -48,8 +52,13 @@ async function submit() {
         <label>邮箱</label>
         <input v-model="email" type="email" required autocomplete="username" />
         <label>密码（≥8 位）</label>
-        <input v-model="password" type="password" required minlength="8"
-               autocomplete="current-password" />
+        <input
+          v-model="password"
+          type="password"
+          required
+          minlength="8"
+          autocomplete="current-password"
+        />
         <button class="primary block" style="margin-top: 14px" :disabled="busy">
           {{ mode === "login" ? "登录" : "注册并开始" }}
         </button>

@@ -2,11 +2,7 @@
   "package": "pet-access-v05-next-pack",
   "purpose": "incremental continuation from existing local RC",
   "historical_expected_baseline": "95c357e",
-  "tracks": [
-    "RC-HARDENING-01",
-    "V05-DOMAIN-01",
-    "PILOT-READINESS-01"
-  ],
+  "tracks": ["RC-HARDENING-01", "V05-DOMAIN-01", "PILOT-READINESS-01"],
   "entry_prompt": "ZCODE_CONTINUE_PROMPT_v0.5.md",
   "master_goal": "NEXT_GOAL_v0.5.md",
   "files": [

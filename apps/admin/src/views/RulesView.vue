@@ -3,11 +3,20 @@ import { onMounted, ref } from "vue";
 import { page, get, ApiError } from "../api";
 
 interface Rule {
-  id: string; place_id: string | null; zone_id: string | null;
-  animal_scope: string; action: string; effect: string; status: string;
-  rule_origin: string; review_due_at: string | null;
+  id: string;
+  place_id: string | null;
+  zone_id: string | null;
+  animal_scope: string;
+  action: string;
+  effect: string;
+  status: string;
+  rule_origin: string;
+  review_due_at: string | null;
 }
-interface Place { id: string; canonical_name: string }
+interface Place {
+  id: string;
+  canonical_name: string;
+}
 
 const rules = ref<Rule[]>([]);
 const places = ref<Place[]>([]);
@@ -45,16 +54,38 @@ onMounted(load);
   </div>
   <div class="panel">
     <table>
-      <thead><tr><th>动物</th><th>动作</th><th>效果</th><th>状态</th><th>来源类型</th><th>复核到期</th></tr></thead>
+      <thead>
+        <tr>
+          <th>动物</th>
+          <th>动作</th>
+          <th>效果</th>
+          <th>状态</th>
+          <th>来源类型</th>
+          <th>复核到期</th>
+        </tr>
+      </thead>
       <tbody>
         <tr v-for="r in rules" :key="r.id">
-          <td>{{ r.animal_scope }}</td><td>{{ r.action }}</td>
-          <td><span class="tag" :class="{ restricted: r.effect === 'prohibited', ok: r.effect === 'allowed', warn: r.effect === 'conditional' }">{{ r.effect }}</span></td>
+          <td>{{ r.animal_scope }}</td>
+          <td>{{ r.action }}</td>
+          <td>
+            <span
+              class="tag"
+              :class="{
+                restricted: r.effect === 'prohibited',
+                ok: r.effect === 'allowed',
+                warn: r.effect === 'conditional',
+              }"
+              >{{ r.effect }}</span
+            >
+          </td>
           <td>{{ r.status }}</td>
           <td class="muted">{{ r.rule_origin }}</td>
           <td class="muted">{{ r.review_due_at?.slice(0, 10) ?? "—" }}</td>
         </tr>
-        <tr v-if="!rules.length"><td colspan="6" class="muted">暂无规则</td></tr>
+        <tr v-if="!rules.length">
+          <td colspan="6" class="muted">暂无规则</td>
+        </tr>
       </tbody>
     </table>
   </div>

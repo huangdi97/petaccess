@@ -53,7 +53,9 @@ async function loadAnswerability() {
   cells.value = [];
   busy.value = "answer";
   try {
-    const res = await get<{ place_id: string; cells: AnswerCell[] }>(`/places/${placeId.value}/answerability`);
+    const res = await get<{ place_id: string; cells: AnswerCell[] }>(
+      `/places/${placeId.value}/answerability`,
+    );
     cells.value = res.cells;
   } catch (e) {
     error.value = errText(e);
@@ -81,16 +83,17 @@ function stateTone(state: string): string {
   <div v-if="error" class="error-banner">{{ error }}</div>
 
   <p class="muted">
-    分层解析：法规 → 监管指引 → 模板 → 场所/分区覆盖 → 临时政策。
-    输出 <span class="mono">compliance_state</span> ∈
-    CONSISTENT / POTENTIAL_CONFLICT / REVIEW_REQUIRED / UNKNOWN，并给出逐步解释
-    —— 不做「最后写入者获胜」。未知一律保持 UNKNOWN，不折算为允许或禁止。
+    分层解析：法规 → 监管指引 → 模板 → 场所/分区覆盖 → 临时政策。 输出
+    <span class="mono">compliance_state</span> ∈ CONSISTENT / POTENTIAL_CONFLICT / REVIEW_REQUIRED /
+    UNKNOWN，并给出逐步解释 —— 不做「最后写入者获胜」。未知一律保持 UNKNOWN，不折算为允许或禁止。
   </p>
 
   <div class="panel">
     <h2>输入</h2>
     <div class="row">
-      <div class="field"><label>场所 ID</label><input v-model="placeId" class="mono" placeholder="place uuid" /></div>
+      <div class="field">
+        <label>场所 ID</label><input v-model="placeId" class="mono" placeholder="place uuid" />
+      </div>
       <div class="field">
         <label>动物</label>
         <select v-model="animal">
@@ -105,21 +108,40 @@ function stateTone(state: string): string {
         </select>
       </div>
       <div class="field"><label>动作</label><input v-model="action" placeholder="enter" /></div>
-      <div class="field"><label>分区 ID（可选）</label><input v-model="zoneId" class="mono" placeholder="zone uuid" /></div>
+      <div class="field">
+        <label>分区 ID（可选）</label
+        ><input v-model="zoneId" class="mono" placeholder="zone uuid" />
+      </div>
     </div>
     <div class="actions" style="margin-top: 10px">
-      <button class="primary" :disabled="busy === 'resolve' || !placeId" @click="resolveRules">解析生效规则</button>
-      <button :disabled="busy === 'answer' || !placeId" @click="loadAnswerability">查询可答性</button>
+      <button class="primary" :disabled="busy === 'resolve' || !placeId" @click="resolveRules">
+        解析生效规则
+      </button>
+      <button :disabled="busy === 'answer' || !placeId" @click="loadAnswerability">
+        查询可答性
+      </button>
     </div>
   </div>
 
   <div v-if="result" class="panel">
     <h2>解析结果</h2>
     <div class="stat-grid">
-      <div class="stat"><div class="num">{{ result.effect }}</div><div class="label">生效效果</div></div>
-      <div class="stat"><div class="num" style="font-size: 18px">{{ result.compliance_state }}</div><div class="label">合规状态</div></div>
-      <div class="stat"><div class="num">{{ result.applicable_rules.length }}</div><div class="label">适用规则</div></div>
-      <div class="stat"><div class="num">{{ result.unresolved_conflicts.length }}</div><div class="label">未解冲突</div></div>
+      <div class="stat">
+        <div class="num">{{ result.effect }}</div>
+        <div class="label">生效效果</div>
+      </div>
+      <div class="stat">
+        <div class="num" style="font-size: 18px">{{ result.compliance_state }}</div>
+        <div class="label">合规状态</div>
+      </div>
+      <div class="stat">
+        <div class="num">{{ result.applicable_rules.length }}</div>
+        <div class="label">适用规则</div>
+      </div>
+      <div class="stat">
+        <div class="num">{{ result.unresolved_conflicts.length }}</div>
+        <div class="label">未解冲突</div>
+      </div>
     </div>
 
     <h2>逐步解释</h2>
@@ -133,7 +155,12 @@ function stateTone(state: string): string {
     <template v-if="result.suppressed.length">
       <h2>被抑制的规则</h2>
       <table class="compact">
-        <thead><tr><th>规则</th><th>抑制原因</th></tr></thead>
+        <thead>
+          <tr>
+            <th>规则</th>
+            <th>抑制原因</th>
+          </tr>
+        </thead>
         <tbody>
           <tr v-for="s in result.suppressed" :key="s.rule">
             <td class="mono">{{ shortId(s.rule) }}</td>
@@ -146,7 +173,12 @@ function stateTone(state: string): string {
     <template v-if="result.unresolved_conflicts.length">
       <h2>未解冲突（需人工复核）</h2>
       <table class="compact">
-        <thead><tr><th>规则 A</th><th>规则 B</th></tr></thead>
+        <thead>
+          <tr>
+            <th>规则 A</th>
+            <th>规则 B</th>
+          </tr>
+        </thead>
         <tbody>
           <tr v-for="(pair, i) in result.unresolved_conflicts" :key="i">
             <td class="mono">{{ shortId(pair[0]) }}</td>
@@ -168,11 +200,19 @@ function stateTone(state: string): string {
     <h2>可答性（Answerability）</h2>
     <p class="muted">每个问题给出状态与依据，明示「不可答」而非猜测。</p>
     <table class="compact">
-      <thead><tr><th>问题</th><th>状态</th><th>依据</th></tr></thead>
+      <thead>
+        <tr>
+          <th>问题</th>
+          <th>状态</th>
+          <th>依据</th>
+        </tr>
+      </thead>
       <tbody>
         <tr v-for="c in cells" :key="c.question">
           <td>{{ c.question }}</td>
-          <td><span class="tag" :class="stateTone(c.state)">{{ c.state }}</span></td>
+          <td>
+            <span class="tag" :class="stateTone(c.state)">{{ c.state }}</span>
+          </td>
           <td class="muted">{{ c.detail }}</td>
         </tr>
       </tbody>

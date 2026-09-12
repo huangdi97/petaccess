@@ -2,7 +2,7 @@
 import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
 import { client } from "@petaccess/client-core";
-import Shell from "../components/Shell.vue";
+import AppShell from "../components/AppShell.vue";
 
 const route = useRoute();
 const placeId = route.params.id as string;
@@ -18,7 +18,14 @@ const result = ref("");
 const msg = ref("");
 
 const zones = ref<{ id: string; name: string }[]>([]);
-client.zones(placeId).then((zs) => { zones.value = zs; }).catch(() => { /* anonymous ok */ });
+client
+  .zones(placeId)
+  .then((zs) => {
+    zones.value = zs;
+  })
+  .catch(() => {
+    /* anonymous ok */
+  });
 
 const conditionOptions = computed(() => [
   { key: "leash_required", label: "需牵引" },
@@ -59,8 +66,12 @@ async function submitVerification() {
     await client.verify({
       place_id: placeId,
       rule_id: target?.id ?? null,
-      result: result.value === "仍有效" ? "still_valid"
-        : result.value === "已变化" ? "changed" : "uncertain",
+      result:
+        result.value === "仍有效"
+          ? "still_valid"
+          : result.value === "已变化"
+            ? "changed"
+            : "uncertain",
       note: "现场核验",
       proximity_verified: true,
       distance_bucket: "<100m",
@@ -75,36 +86,92 @@ async function submitVerification() {
 </script>
 
 <template>
-  <Shell>
+  <AppShell>
     <h1>现场贡献</h1>
     <div class="panel">
       <template v-if="step === 1">
         <strong>你知道这里对普通犬的规则吗？</strong>
         <div class="row" style="margin-top: 10px">
-          <button class="pill" @click="knowRule = '明确允许'; step = 2">明确允许</button>
-          <button class="pill" @click="knowRule = '明确限制'; step = 2">明确限制</button>
-          <button class="pill" @click="knowRule = '有条件'; step = 2">有条件</button>
-          <button class="pill" @click="result = '不确定'; step = 5">不确定</button>
+          <button
+            class="pill"
+            @click="
+              knowRule = '明确允许';
+              step = 2;
+            "
+          >
+            明确允许
+          </button>
+          <button
+            class="pill"
+            @click="
+              knowRule = '明确限制';
+              step = 2;
+            "
+          >
+            明确限制
+          </button>
+          <button
+            class="pill"
+            @click="
+              knowRule = '有条件';
+              step = 2;
+            "
+          >
+            有条件
+          </button>
+          <button
+            class="pill"
+            @click="
+              result = '不确定';
+              step = 5;
+            "
+          >
+            不确定
+          </button>
         </div>
       </template>
 
       <template v-else-if="step === 2">
         <strong>在哪里？</strong>
         <div class="row" style="margin-top: 10px">
-          <button class="pill" @click="scope = 'dog'; step = 3">全场 / 不确定</button>
-          <button v-for="z in zones" :key="z.id" class="pill"
-                  @click="zone = z.id; scope = 'dog'; step = 3">{{ z.name }}</button>
+          <button
+            class="pill"
+            @click="
+              scope = 'dog';
+              step = 3;
+            "
+          >
+            全场 / 不确定
+          </button>
+          <button
+            v-for="z in zones"
+            :key="z.id"
+            class="pill"
+            @click="
+              zone = z.id;
+              scope = 'dog';
+              step = 3;
+            "
+          >
+            {{ z.name }}
+          </button>
         </div>
       </template>
 
       <template v-else-if="step === 3">
         <strong>需要什么条件？（可多选 / 全不选）</strong>
         <div class="row" style="margin-top: 10px">
-          <button v-for="c in conditionOptions" :key="c.key" class="pill"
-                  :class="{ active: conditions.includes(c.key) }"
-                  @click="conditions.includes(c.key)
-                    ? (conditions = conditions.filter(k => k !== c.key))
-                    : conditions.push(c.key)">
+          <button
+            v-for="c in conditionOptions"
+            :key="c.key"
+            class="pill"
+            :class="{ active: conditions.includes(c.key) }"
+            @click="
+              conditions.includes(c.key)
+                ? (conditions = conditions.filter((k) => k !== c.key))
+                : conditions.push(c.key)
+            "
+          >
             {{ c.label }}
           </button>
         </div>
@@ -122,9 +189,33 @@ async function submitVerification() {
       <template v-else-if="step === 5">
         <strong>现场实际情况</strong>
         <div class="row" style="margin-top: 10px">
-          <button class="pill" @click="result = '仍有效'; submitVerification()">规则仍有效</button>
-          <button class="pill" @click="result = '已变化'; submitVerification()">规则已变化</button>
-          <button class="pill" @click="result = '观察'; submitObservation()">提交现场观察</button>
+          <button
+            class="pill"
+            @click="
+              result = '仍有效';
+              submitVerification();
+            "
+          >
+            规则仍有效
+          </button>
+          <button
+            class="pill"
+            @click="
+              result = '已变化';
+              submitVerification();
+            "
+          >
+            规则已变化
+          </button>
+          <button
+            class="pill"
+            @click="
+              result = '观察';
+              submitObservation();
+            "
+          >
+            提交现场观察
+          </button>
         </div>
       </template>
 
@@ -137,5 +228,5 @@ async function submitVerification() {
       位置仅记录分桶后的现场核验结果（距离/精度），不保存原始 GPS 轨迹（ADR-012）。
       高频提交会被限流。
     </div>
-  </Shell>
+  </AppShell>
 </template>

@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
+from sqlalchemy import update
 from sqlalchemy.orm import Session
 
 from app.core.errors import ApiError
@@ -123,6 +124,23 @@ def publish(
     db.add(rule)
     db.flush()
 
+    # Atomic compare-and-set on the candidate status: two reviewers publishing
+    # the same APPROVED candidate must yield exactly one AccessRule. The loser's
+    # CAS matches 0 rows, the whole transaction (rule included) rolls back.
+    updated = db.execute(
+        update(RuleCandidate)
+        .where(RuleCandidate.id == candidate.id, RuleCandidate.review_status == "APPROVED")
+        .values(
+            review_status="PUBLISHED",
+            published_rule_id=rule.id,
+            reviewer_id=reviewer_id,
+            review_note=(note or "")[:500] or None,
+        )
+    )
+    if updated.rowcount != 1:
+        db.rollback()
+        raise ApiError("候选已被并发发布", code="candidate_already_published")
+
     from app.models import RuleCondition
 
     for cond in candidate.proposed_conditions or []:
@@ -148,6 +166,7 @@ def publish(
             )
         )
 
+    # mirror the CAS result onto the ORM object the caller holds
     candidate.review_status = "PUBLISHED"
     candidate.published_rule_id = rule.id
     candidate.reviewer_id = reviewer_id

@@ -44,6 +44,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/health/components": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Health Components
+         * @description Per-dependency health: DB/PostGIS, Redis, MinIO, Celery (NEXT_GOAL §A5).
+         */
+        get: operations["health_components_health_components_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/metrics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Metrics Snapshot
+         * @description In-process counters + latency percentiles (metrics abstraction).
+         */
+        get: operations["metrics_snapshot_metrics_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/register": {
         parameters: {
             query?: never;
@@ -397,6 +437,24 @@ export interface paths {
         patch: operations["update_rule_api_v1_rules__rule_id__patch"];
         trace?: never;
     };
+    "/api/v1/sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Sources */
+        get: operations["list_sources_api_v1_sources_get"];
+        put?: never;
+        /** Create Source */
+        post: operations["create_source_api_v1_sources_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/places/{place_id}/observations": {
         parameters: {
             query?: never;
@@ -723,6 +781,61 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/media/upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload Media */
+        post: operations["upload_media_api_v1_media_upload_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/media/{media_id}/url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Media Url
+         * @description Presigned GET (15 min). Evidence media is never publicly readable.
+         */
+        get: operations["media_url_api_v1_media__media_id__url_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/media/{media_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Media Meta */
+        get: operations["media_meta_api_v1_media__media_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Media */
+        delete: operations["delete_media_api_v1_media__media_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/ai/pet-vision": {
         parameters: {
             query?: never;
@@ -797,6 +910,487 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/places/{place_id}/candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Place Candidates */
+        get: operations["list_place_candidates_api_v1_places__place_id__candidates_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/places/{place_id}/effective-rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Effective Rules
+         * @description v0.5 resolution: layered rules → EffectiveRuleSet (explainable).
+         *
+         *     Body: {"animal": "dog", "service_role": "none", "action": "enter",
+         *            "zone_id": null}
+         */
+        post: operations["effective_rules_api_v1_places__place_id__effective_rules_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/boundary-profiles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List My Boundary Profiles */
+        get: operations["list_my_boundary_profiles_api_v1_boundary_profiles_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/boundary-profiles/default": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Default Boundary Profile
+         * @description Returns 404-free shape: `profile: null` when the user has none yet.
+         */
+        get: operations["get_default_boundary_profile_api_v1_boundary_profiles_default_get"];
+        /**
+         * Upsert Default Boundary Profile
+         * @description Replace the caller's default profile wholesale.
+         *
+         *     Replacing rather than patching keeps the UI simple and avoids stale
+         *     preferences lingering after a user clears a stance.
+         */
+        put: operations["upsert_default_boundary_profile_api_v1_boundary_profiles_default_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/places/{place_id}/boundary-match": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Boundary Match Endpoint
+         * @description Per-item MATCH/CONFLICT/UNKNOWN against the caller's boundary profile.
+         *
+         *     Never returns a score.
+         */
+        get: operations["boundary_match_endpoint_api_v1_places__place_id__boundary_match_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/places/{place_id}/answerability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Place Answerability */
+        get: operations["place_answerability_api_v1_places__place_id__answerability_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin List Candidates */
+        get: operations["admin_list_candidates_api_v1_admin_candidates_get"];
+        put?: never;
+        /** Admin Create Candidate */
+        post: operations["admin_create_candidate_api_v1_admin_candidates_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/candidates/{candidate_id}/transition": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Admin Transition Candidate */
+        post: operations["admin_transition_candidate_api_v1_admin_candidates__candidate_id__transition_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/candidates/{candidate_id}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Admin Publish Candidate */
+        post: operations["admin_publish_candidate_api_v1_admin_candidates__candidate_id__publish_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/monitors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin List Monitors */
+        get: operations["admin_list_monitors_api_v1_admin_monitors_get"];
+        put?: never;
+        /** Admin Create Monitor */
+        post: operations["admin_create_monitor_api_v1_admin_monitors_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/monitors/{monitor_id}/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Admin Check Monitor
+         * @description One monitor sweep: unchanged | changed | failed.
+         *
+         *     On change the captured page becomes traceable evidence
+         *     (SourceArtifact → EvidenceBundle) and then a RuleCandidate. A rule is never
+         *     written directly — it still has to pass review.
+         */
+        post: operations["admin_check_monitor_api_v1_admin_monitors__monitor_id__check_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/organizations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin List Organizations */
+        get: operations["admin_list_organizations_api_v1_admin_organizations_get"];
+        put?: never;
+        /** Admin Create Org */
+        post: operations["admin_create_org_api_v1_admin_organizations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/policy-templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin List Templates */
+        get: operations["admin_list_templates_api_v1_admin_policy_templates_get"];
+        put?: never;
+        /** Admin Create Template */
+        post: operations["admin_create_template_api_v1_admin_policy_templates_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/place-policy-bindings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin List Bindings */
+        get: operations["admin_list_bindings_api_v1_admin_place_policy_bindings_get"];
+        put?: never;
+        /** Admin Create Binding */
+        post: operations["admin_create_binding_api_v1_admin_place_policy_bindings_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/amenities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin List Amenities */
+        get: operations["admin_list_amenities_api_v1_admin_amenities_get"];
+        put?: never;
+        /** Admin Create Amenity */
+        post: operations["admin_create_amenity_api_v1_admin_amenities_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/entrances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin List Entrances */
+        get: operations["admin_list_entrances_api_v1_admin_entrances_get"];
+        put?: never;
+        /** Admin Create Entrance */
+        post: operations["admin_create_entrance_api_v1_admin_entrances_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/access-paths": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin List Access Paths */
+        get: operations["admin_list_access_paths_api_v1_admin_access_paths_get"];
+        put?: never;
+        /** Admin Create Access Path */
+        post: operations["admin_create_access_path_api_v1_admin_access_paths_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/event-policies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin List Event Policies */
+        get: operations["admin_list_event_policies_api_v1_admin_event_policies_get"];
+        put?: never;
+        /** Admin Create Event */
+        post: operations["admin_create_event_api_v1_admin_event_policies_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/data-licenses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin List Data Licenses */
+        get: operations["admin_list_data_licenses_api_v1_admin_data_licenses_get"];
+        put?: never;
+        /** Admin Create License */
+        post: operations["admin_create_license_api_v1_admin_data_licenses_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/coexistence-policies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin List Coexistence */
+        get: operations["admin_list_coexistence_api_v1_admin_coexistence_policies_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/source-artifacts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin List Artifacts */
+        get: operations["admin_list_artifacts_api_v1_admin_source_artifacts_get"];
+        put?: never;
+        /**
+         * Admin Create Artifact
+         * @description Freeze one collector output as original evidence.
+         */
+        post: operations["admin_create_artifact_api_v1_admin_source_artifacts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/evidence-bundles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin List Bundles */
+        get: operations["admin_list_bundles_api_v1_admin_evidence_bundles_get"];
+        put?: never;
+        /**
+         * Admin Create Bundle
+         * @description Create the attributable statement a candidate will cite.
+         */
+        post: operations["admin_create_bundle_api_v1_admin_evidence_bundles_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/evidence/classify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Admin Classify
+         * @description Preview which lane (rule / observation) captured text belongs to.
+         */
+        post: operations["admin_classify_api_v1_admin_evidence_classify_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/observation-candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin List Observation Candidates */
+        get: operations["admin_list_observation_candidates_api_v1_admin_observation_candidates_get"];
+        put?: never;
+        /**
+         * Admin Create Observation Candidate
+         * @description Observation lane: a sighting, never a rule.
+         */
+        post: operations["admin_create_observation_candidate_api_v1_admin_observation_candidates_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/observation-candidates/{candidate_id}/transition": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Admin Transition Observation Candidate
+         * @description Walk the observation state machine. Approval never writes an AccessRule.
+         */
+        post: operations["admin_transition_observation_candidate_api_v1_admin_observation_candidates__candidate_id__transition_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/audit": {
         parameters: {
             query?: never;
@@ -851,6 +1445,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/observations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List All Observations
+         * @description All observations for moderation (design #25 Contributions queue).
+         */
+        get: operations["list_all_observations_api_v1_admin_observations_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/ai-queue": {
         parameters: {
             query?: never;
@@ -883,6 +1497,26 @@ export interface paths {
          * @description Places with disputed rules or operator-vs-signage effect conflicts.
          */
         get: operations["conflict_review_api_v1_admin_conflicts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/worker/jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Worker Job Visibility
+         * @description Failed-job visibility + worker liveness (NEXT_GOAL §A5).
+         */
+        get: operations["worker_job_visibility_api_v1_admin_worker_jobs_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -937,6 +1571,51 @@ export interface components {
          * @enum {string}
          */
         AnimalScope: "dog" | "cat" | "ordinary_pet" | "service_dog" | "other";
+        /** ArtifactIn */
+        ArtifactIn: {
+            /** Source Id */
+            source_id?: string | null;
+            /** Collector Type */
+            collector_type: string;
+            /** Artifact Type */
+            artifact_type: string;
+            /** Source Url */
+            source_url?: string | null;
+            /** Source Content Id */
+            source_content_id?: string | null;
+            /** Media Id */
+            media_id?: string | null;
+            /** Snapshot Ref */
+            snapshot_ref?: string | null;
+            /** Content Hash */
+            content_hash?: string | null;
+            /**
+             * Publisher Type
+             * @default unknown
+             */
+            publisher_type: string;
+            /** Published At */
+            published_at?: string | null;
+            /** Captured Excerpt */
+            captured_excerpt?: string | null;
+            /**
+             * Storage Allowed
+             * @default true
+             */
+            storage_allowed: boolean;
+            /**
+             * Display Allowed
+             * @default false
+             */
+            display_allowed: boolean;
+            /**
+             * Redistribution Allowed
+             * @default false
+             */
+            redistribution_allowed: boolean;
+            /** Data Source Job Id */
+            data_source_job_id?: string | null;
+        };
         /** AuditOut */
         AuditOut: {
             /** Id */
@@ -967,6 +1646,17 @@ export interface components {
              */
             created_at: string;
         };
+        /** BindingIn */
+        BindingIn: {
+            /** Place Id */
+            place_id: string;
+            /** Template Id */
+            template_id?: string | null;
+            /** Overrides */
+            overrides?: unknown[] | null;
+            /** Source Id */
+            source_id?: string | null;
+        };
         /** Body_classify_pet_api_v1_ai_pet_vision_post */
         Body_classify_pet_api_v1_ai_pet_vision_post: {
             /** Image */
@@ -976,6 +1666,101 @@ export interface components {
         Body_ocr_signage_api_v1_ai_ocr_signage_post: {
             /** Image */
             image: string;
+        };
+        /** Body_upload_media_api_v1_media_upload_post */
+        Body_upload_media_api_v1_media_upload_post: {
+            /** File */
+            file: string;
+        };
+        /** BoundaryPreferenceIn */
+        BoundaryPreferenceIn: {
+            /** Attribute */
+            attribute: string;
+            /** Stance */
+            stance: string;
+            /** Note */
+            note?: string | null;
+        };
+        /** BoundaryProfileIn */
+        BoundaryProfileIn: {
+            /** Name */
+            name: string;
+            /**
+             * Is Default
+             * @default true
+             */
+            is_default: boolean;
+            /**
+             * Preferences
+             * @default []
+             */
+            preferences: components["schemas"]["BoundaryPreferenceIn"][];
+        };
+        /** BundleIn */
+        BundleIn: {
+            /** Artifact Id */
+            artifact_id: string;
+            /** Quoted Fragment */
+            quoted_fragment?: string | null;
+            /** Extracted Fragment */
+            extracted_fragment?: string | null;
+            /**
+             * Evidence Class
+             * @default original
+             */
+            evidence_class: string;
+            /** Derived From Bundle Id */
+            derived_from_bundle_id?: string | null;
+            /** Extraction Method */
+            extraction_method?: string | null;
+            /** Extraction Model */
+            extraction_model?: string | null;
+            /** Extraction Model Version */
+            extraction_model_version?: string | null;
+            /** Place Match Evidence */
+            place_match_evidence?: {
+                [key: string]: unknown;
+            } | null;
+            /** Temporal Evidence */
+            temporal_evidence?: {
+                [key: string]: unknown;
+            } | null;
+            /** Privacy Notes */
+            privacy_notes?: string | null;
+        };
+        /** CandidateIn */
+        CandidateIn: {
+            /** Source Id */
+            source_id: string;
+            /** Place Id */
+            place_id?: string | null;
+            /** Zone Id */
+            zone_id?: string | null;
+            /** Animal Scope */
+            animal_scope?: string | null;
+            /** Action */
+            action?: string | null;
+            /** Effect */
+            effect?: string | null;
+            /** Proposed Conditions */
+            proposed_conditions?: unknown[] | null;
+            /** Extraction Method */
+            extraction_method: string;
+            /** Extraction Provider */
+            extraction_provider?: string | null;
+            /** Internal Confidence */
+            internal_confidence?: number | null;
+            /** Raw Text */
+            raw_text?: string | null;
+            /** Media Id */
+            media_id?: string | null;
+        };
+        /** CandidateReview */
+        CandidateReview: {
+            /** Target */
+            target: string;
+            /** Note */
+            note?: string | null;
         };
         /** ConditionIn */
         ConditionIn: {
@@ -1218,6 +2003,43 @@ export interface components {
          * @enum {string}
          */
         MandatoryLevel: "mandatory" | "advisory" | "discretionary";
+        /** MonitorIn */
+        MonitorIn: {
+            /** Source Id */
+            source_id: string;
+            /** Url */
+            url: string;
+            /**
+             * Schedule Minutes
+             * @default 1440
+             */
+            schedule_minutes: number;
+            /** Place Id */
+            place_id?: string | null;
+        };
+        /** ObservationCandidateIn */
+        ObservationCandidateIn: {
+            /** Evidence Bundle Id */
+            evidence_bundle_id: string;
+            /** Place Id */
+            place_id?: string | null;
+            /** Zone Id */
+            zone_id?: string | null;
+            /** Animal Scope */
+            animal_scope?: string | null;
+            /** Observed Action */
+            observed_action?: string | null;
+            /** Spatial Context */
+            spatial_context?: string | null;
+            /** Occurred At */
+            occurred_at?: string | null;
+            /** Extraction Method */
+            extraction_method?: string | null;
+            /** Raw Text */
+            raw_text?: string | null;
+            /** Derivation Confidence */
+            derivation_confidence?: number | null;
+        };
         /**
          * ObservationDisputeStatus
          * @enum {string}
@@ -1462,6 +2284,17 @@ export interface components {
         Page_RuleOut_: {
             /** Items */
             items: components["schemas"]["RuleOut"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
+        /** Page[SourceOut] */
+        Page_SourceOut_: {
+            /** Items */
+            items: components["schemas"]["SourceOut"][];
             /** Total */
             total: number;
             /** Limit */
@@ -1872,11 +2705,106 @@ export interface components {
          * @enum {string}
          */
         ServiceRole: "none" | "in_training" | "working" | "unknown";
+        /** SourceIn */
+        SourceIn: {
+            source_type: components["schemas"]["SourceType"];
+            /** Issuer */
+            issuer: string;
+            /**
+             * Issuer Verification
+             * @default unverified
+             */
+            issuer_verification: string;
+            /** Source Url */
+            source_url?: string | null;
+            /** Observed At */
+            observed_at?: string | null;
+            /** Published At */
+            published_at?: string | null;
+            /**
+             * Directness
+             * @default secondary
+             */
+            directness: string;
+            /**
+             * Spatial Precision
+             * @default unknown
+             */
+            spatial_precision: string;
+            /** Notes */
+            notes?: string | null;
+        };
+        /** SourceOut */
+        SourceOut: {
+            /** Id */
+            id: string;
+            source_type: components["schemas"]["SourceType"];
+            /** Issuer */
+            issuer: string;
+            /** Issuer Verification */
+            issuer_verification: string;
+            /** Source Url */
+            source_url: string | null;
+            /**
+             * Collected At
+             * Format: date-time
+             */
+            collected_at: string;
+            /** Observed At */
+            observed_at: string | null;
+            /** Published At */
+            published_at: string | null;
+            /** Source Availability */
+            source_availability: string;
+            /** Directness */
+            directness: string;
+            /** Spatial Precision */
+            spatial_precision: string;
+            /** Notes */
+            notes: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /**
+         * SourceType
+         * @enum {string}
+         */
+        SourceType: "statute_or_regulation" | "government_service" | "official_operator_policy" | "onsite_signage" | "certified_verifier" | "ordinary_user" | "external_web_reference" | "imported_dataset";
         /**
          * SpatialPrecision
          * @enum {string}
          */
         SpatialPrecision: "precise" | "approximate" | "unknown";
+        /** TemplateIn */
+        TemplateIn: {
+            /** Organization Id */
+            organization_id: string;
+            /** Name */
+            name: string;
+            /** Venue Scope */
+            venue_scope?: string | null;
+            /**
+             * Rules
+             * @default []
+             */
+            rules: components["schemas"]["TemplateRuleIn"][];
+        };
+        /** TemplateRuleIn */
+        TemplateRuleIn: {
+            /** Animal Scope */
+            animal_scope: string;
+            /** Action */
+            action: string;
+            /** Effect */
+            effect: string;
+            /** Conditions */
+            conditions?: unknown[] | null;
+            /** Notes */
+            notes?: string | null;
+        };
         /**
          * TemporaryAction
          * @enum {string}
@@ -2125,6 +3053,50 @@ export interface operations {
         };
     };
     readiness_health_ready_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    health_components_health_components_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    metrics_snapshot_metrics_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -2919,6 +3891,72 @@ export interface operations {
             };
         };
     };
+    list_sources_api_v1_sources_get: {
+        parameters: {
+            query?: {
+                source_type?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_SourceOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_source_api_v1_sources_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SourceIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_place_observations_api_v1_places__place_id__observations_get: {
         parameters: {
             query?: {
@@ -3633,6 +4671,140 @@ export interface operations {
             };
         };
     };
+    upload_media_api_v1_media_upload_post: {
+        parameters: {
+            query?: {
+                purpose?: string;
+                owner_type?: string | null;
+                owner_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_media_api_v1_media_upload_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    media_url_api_v1_media__media_id__url_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                media_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    media_meta_api_v1_media__media_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                media_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_media_api_v1_media__media_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                media_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     classify_pet_api_v1_ai_pet_vision_post: {
         parameters: {
             query?: never;
@@ -3754,6 +4926,1282 @@ export interface operations {
             };
         };
     };
+    list_place_candidates_api_v1_places__place_id__candidates_get: {
+        parameters: {
+            query?: {
+                review_status?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                place_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_dict_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    effective_rules_api_v1_places__place_id__effective_rules_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                place_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_my_boundary_profiles_api_v1_boundary_profiles_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    get_default_boundary_profile_api_v1_boundary_profiles_default_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    upsert_default_boundary_profile_api_v1_boundary_profiles_default_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BoundaryProfileIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    boundary_match_endpoint_api_v1_places__place_id__boundary_match_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                place_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    place_answerability_api_v1_places__place_id__answerability_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                place_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_list_candidates_api_v1_admin_candidates_get: {
+        parameters: {
+            query?: {
+                review_status?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_dict_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_create_candidate_api_v1_admin_candidates_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CandidateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_transition_candidate_api_v1_admin_candidates__candidate_id__transition_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                candidate_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CandidateReview"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_publish_candidate_api_v1_admin_candidates__candidate_id__publish_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                candidate_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_list_monitors_api_v1_admin_monitors_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_dict_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_create_monitor_api_v1_admin_monitors_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MonitorIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_check_monitor_api_v1_admin_monitors__monitor_id__check_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                monitor_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_list_organizations_api_v1_admin_organizations_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_dict_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_create_org_api_v1_admin_organizations_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_list_templates_api_v1_admin_policy_templates_get: {
+        parameters: {
+            query?: {
+                organization_id?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_dict_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_create_template_api_v1_admin_policy_templates_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TemplateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_list_bindings_api_v1_admin_place_policy_bindings_get: {
+        parameters: {
+            query?: {
+                place_id?: string | null;
+                active_only?: boolean;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_dict_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_create_binding_api_v1_admin_place_policy_bindings_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BindingIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_list_amenities_api_v1_admin_amenities_get: {
+        parameters: {
+            query?: {
+                place_id?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_dict_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_create_amenity_api_v1_admin_amenities_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_list_entrances_api_v1_admin_entrances_get: {
+        parameters: {
+            query?: {
+                place_id?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_dict_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_create_entrance_api_v1_admin_entrances_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_list_access_paths_api_v1_admin_access_paths_get: {
+        parameters: {
+            query?: {
+                place_id?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_dict_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_create_access_path_api_v1_admin_access_paths_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_list_event_policies_api_v1_admin_event_policies_get: {
+        parameters: {
+            query?: {
+                place_id?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_dict_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_create_event_api_v1_admin_event_policies_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_list_data_licenses_api_v1_admin_data_licenses_get: {
+        parameters: {
+            query?: {
+                source_id?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_dict_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_create_license_api_v1_admin_data_licenses_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_list_coexistence_api_v1_admin_coexistence_policies_get: {
+        parameters: {
+            query?: {
+                place_id?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_dict_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_list_artifacts_api_v1_admin_source_artifacts_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_dict_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_create_artifact_api_v1_admin_source_artifacts_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ArtifactIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_list_bundles_api_v1_admin_evidence_bundles_get: {
+        parameters: {
+            query?: {
+                artifact_id?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_dict_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_create_bundle_api_v1_admin_evidence_bundles_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BundleIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_classify_api_v1_admin_evidence_classify_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_list_observation_candidates_api_v1_admin_observation_candidates_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_dict_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_create_observation_candidate_api_v1_admin_observation_candidates_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ObservationCandidateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_transition_observation_candidate_api_v1_admin_observation_candidates__candidate_id__transition_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                candidate_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_audit_api_v1_admin_audit_get: {
         parameters: {
             query?: {
@@ -3841,6 +6289,38 @@ export interface operations {
             };
         };
     };
+    list_all_observations_api_v1_admin_observations_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_dict_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     ai_extraction_queue_api_v1_admin_ai_queue_get: {
         parameters: {
             query?: {
@@ -3892,6 +6372,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Page_dict_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    worker_job_visibility_api_v1_admin_worker_jobs_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
             /** @description Validation Error */

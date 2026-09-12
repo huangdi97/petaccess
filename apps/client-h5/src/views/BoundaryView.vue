@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { client, ApiError, type BoundaryProfile } from "@petaccess/client-core";
-import Shell from "../components/Shell.vue";
+import AppShell from "../components/AppShell.vue";
 
 /**
  * 共处边界：用户对「与动物共处」的自有条件。
@@ -21,7 +21,11 @@ interface AttributeOption {
 const ATTRIBUTES: AttributeOption[] = [
   { value: "off_leash", label: "脱绳活动", stances: ["avoid", "accept"] },
   { value: "designated_area", label: "指定活动区", stances: ["prefer", "avoid"] },
-  { value: "indoor_access", label: "室内进入", stances: ["require_prohibited", "accept", "prefer"] },
+  {
+    value: "indoor_access",
+    label: "室内进入",
+    stances: ["require_prohibited", "accept", "prefer"],
+  },
   { value: "carrier_required", label: "要求装载（笼/包/推车）", stances: ["accept", "avoid"] },
   { value: "muzzle_required", label: "要求嘴套", stances: ["accept", "avoid"] },
   { value: "size_limit", label: "体型限制", stances: ["avoid", "accept"] },
@@ -97,9 +101,10 @@ async function save() {
     apply(saved);
     msg.value = `已保存 ${preferences.length} 项边界${preferences.length ? "" : "（未设置项保持未知）"}`;
   } catch (e) {
-    error.value = e instanceof ApiError
-      ? `${e.message}${e.message.includes("登录") ? "" : "（需登录后保存）"}`
-      : String(e);
+    error.value =
+      e instanceof ApiError
+        ? `${e.message}${e.message.includes("登录") ? "" : "（需登录后保存）"}`
+        : String(e);
   } finally {
     busy.value = false;
   }
@@ -109,7 +114,7 @@ onMounted(load);
 </script>
 
 <template>
-  <Shell>
+  <AppShell>
     <div v-if="error" class="panel" data-testid="boundary-error">{{ error }}</div>
     <div v-if="msg" class="panel" data-testid="boundary-msg">{{ msg }}</div>
 
@@ -133,14 +138,21 @@ onMounted(load);
           :class="{ active: chosen[attr.value] === s }"
           :data-testid="`stance-${attr.value}-${s}`"
           @click="pick(attr.value, s)"
-        >{{ STANCE_LABELS[s] }}</button>
+        >
+          {{ STANCE_LABELS[s] }}
+        </button>
       </div>
       <div v-if="chosen[attr.value]" class="muted" style="margin-top: 6px">
         已选：{{ STANCE_LABELS[chosen[attr.value]] }}（再次点击可清除）
       </div>
     </div>
 
-    <button class="primary block" :disabled="busy || !loaded" data-testid="boundary-save" @click="save">
+    <button
+      class="primary block"
+      :disabled="busy || !loaded"
+      data-testid="boundary-save"
+      @click="save"
+    >
       {{ busy ? "保存中…" : "保存边界" }}
     </button>
 
@@ -150,5 +162,5 @@ onMounted(load);
         服务犬适用独立的通行规则，不在此边界内判断。
       </div>
     </div>
-  </Shell>
+  </AppShell>
 </template>

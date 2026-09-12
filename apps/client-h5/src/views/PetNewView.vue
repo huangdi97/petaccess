@@ -2,7 +2,7 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { client, session } from "@petaccess/client-core";
-import Shell from "../components/Shell.vue";
+import AppShell from "../components/AppShell.vue";
 
 const router = useRouter();
 const pet = ref({ display_name: "", species: "dog", breed_text: "", weight_kg: "" });
@@ -68,7 +68,7 @@ async function save() {
 </script>
 
 <template>
-  <Shell>
+  <AppShell>
     <h1>新建宠物档案</h1>
     <p class="muted">档案仅用于规则匹配；AI 仅为建议，一切以你的确认为准。</p>
     <div class="panel">
@@ -95,9 +95,16 @@ async function save() {
         <option value="in_training">服务犬（训练中）</option>
       </select>
 
-      <button class="primary block" style="margin-top: 16px" :disabled="!pet.display_name || saving"
-              data-testid="pet-save" @click="save">保存并设为本次对象</button>
+      <button
+        class="primary block"
+        style="margin-top: 16px"
+        :disabled="!pet.display_name || saving"
+        data-testid="pet-save"
+        @click="save"
+      >
+        保存并设为本次对象
+      </button>
       <div v-if="error" class="notice" style="color: var(--restricted)">{{ error }}</div>
     </div>
-  </Shell>
+  </AppShell>
 </template>

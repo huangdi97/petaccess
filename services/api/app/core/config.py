@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     s3_region: str = "us-east-1"
     s3_secure: bool = False
 
-    jwt_secret: str = "CHANGE_ME_FOR_ANY_NONLOCAL_USE"
+    jwt_secret: str = "dev_only_change_me_min_32_bytes_0123456789abcdef"
     jwt_algorithm: str = "HS256"
     access_token_ttl_minutes: int = 60
     refresh_token_ttl_days: int = 30

@@ -2,7 +2,8 @@
 
 These cover the G04/G06 flows: auth, RBAC, pets, places search/nearby,
 deterministic evaluation over DB rules, observations with idempotency,
-verifications, watches, dispute lifecycle, admin quality/audit.
+watches, dispute lifecycle, admin quality/audit. Verification endpoints are
+covered in test_verifications.py.
 """
 
 import uuid

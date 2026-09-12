@@ -66,7 +66,12 @@ const tplForm = ref({
 const bindForm = ref({ place_id: "", template_id: "", source_id: "", overridesJson: "[]" });
 
 function addRule() {
-  tplForm.value.rules.push({ animal_scope: "dog", action: "enter", effect: "prohibited", notes: "" });
+  tplForm.value.rules.push({
+    animal_scope: "dog",
+    action: "enter",
+    effect: "prohibited",
+    notes: "",
+  });
 }
 function removeRule(i: number) {
   tplForm.value.rules.splice(i, 1);
@@ -113,18 +118,21 @@ async function createTemplate() {
   info.value = "";
   busy.value = "tpl";
   try {
-    const created = await post<{ id: string; name: string; rules: number }>("/admin/policy-templates", {
-      organization_id: tplForm.value.organization_id,
-      name: tplForm.value.name,
-      venue_scope: tplForm.value.venue_scope || null,
-      rules: tplForm.value.rules.map((r) => ({
-        animal_scope: r.animal_scope,
-        action: r.action,
-        effect: r.effect,
-        conditions: null,
-        notes: r.notes || null,
-      })),
-    });
+    const created = await post<{ id: string; name: string; rules: number }>(
+      "/admin/policy-templates",
+      {
+        organization_id: tplForm.value.organization_id,
+        name: tplForm.value.name,
+        venue_scope: tplForm.value.venue_scope || null,
+        rules: tplForm.value.rules.map((r) => ({
+          animal_scope: r.animal_scope,
+          action: r.action,
+          effect: r.effect,
+          conditions: null,
+          notes: r.notes || null,
+        })),
+      },
+    );
     info.value = `已创建政策模板「${created.name}」，含 ${created.rules} 条规则`;
     bindForm.value.template_id = created.id;
     tplForm.value.name = "";
@@ -151,7 +159,10 @@ async function createBinding() {
     const payload: Record<string, unknown> = { place_id: bindForm.value.place_id, overrides };
     if (bindForm.value.template_id) payload.template_id = bindForm.value.template_id;
     if (bindForm.value.source_id) payload.source_id = bindForm.value.source_id;
-    const created = await post<{ id: string; place_id: string }>("/admin/place-policy-bindings", payload);
+    const created = await post<{ id: string; place_id: string }>(
+      "/admin/place-policy-bindings",
+      payload,
+    );
     info.value = `已绑定场所 ${created.place_id.slice(0, 8)}…（旧绑定自动失活，历史保留）`;
     await load();
   } catch (e) {
@@ -189,7 +200,12 @@ onMounted(load);
           <option value="government">government（政府）</option>
         </select>
       </div>
-      <button class="primary" style="margin-top: 10px" :disabled="busy === 'org' || !orgForm.name" @click="createOrg">
+      <button
+        class="primary"
+        style="margin-top: 10px"
+        :disabled="busy === 'org' || !orgForm.name"
+        @click="createOrg"
+      >
         创建组织
       </button>
       <p class="hint">{{ RULE_LAYERS.map((l) => `${l.value}=${l.label}`).join(" / ") }}</p>
@@ -204,8 +220,18 @@ onMounted(load);
       <label>来源 ID（可选）</label>
       <input v-model="bindForm.source_id" class="mono" placeholder="source uuid" />
       <label>覆盖项（JSON 数组）</label>
-      <textarea v-model="bindForm.overridesJson" rows="3" class="mono" placeholder='[{"animal_scope":"dog","effect":"conditional"}]' />
-      <button class="primary" style="margin-top: 10px" :disabled="busy === 'bind' || !bindForm.place_id" @click="createBinding">
+      <textarea
+        v-model="bindForm.overridesJson"
+        rows="3"
+        class="mono"
+        placeholder='[{"animal_scope":"dog","effect":"conditional"}]'
+      />
+      <button
+        class="primary"
+        style="margin-top: 10px"
+        :disabled="busy === 'bind' || !bindForm.place_id"
+        @click="createBinding"
+      >
         绑定并覆盖
       </button>
     </div>
@@ -218,7 +244,9 @@ onMounted(load);
         <label>所属组织</label>
         <select v-model="tplForm.organization_id">
           <option value="">— 选择组织 —</option>
-          <option v-for="o in orgs" :key="o.id" :value="o.id">{{ o.name }}（{{ shortId(o.id) }}）</option>
+          <option v-for="o in orgs" :key="o.id" :value="o.id">
+            {{ o.name }}（{{ shortId(o.id) }}）
+          </option>
         </select>
       </div>
       <div class="field">
@@ -233,7 +261,15 @@ onMounted(load);
 
     <h2 style="margin-top: 16px">模板规则</h2>
     <table class="compact">
-      <thead><tr><th>动物</th><th>动作</th><th>效果</th><th>说明</th><th></th></tr></thead>
+      <thead>
+        <tr>
+          <th>动物</th>
+          <th>动作</th>
+          <th>效果</th>
+          <th>说明</th>
+          <th></th>
+        </tr>
+      </thead>
       <tbody>
         <tr v-for="(r, i) in tplForm.rules" :key="i">
           <td>
@@ -254,7 +290,11 @@ onMounted(load);
     </table>
     <div class="actions" style="margin-top: 10px">
       <button @click="addRule">+ 增加规则</button>
-      <button class="primary" :disabled="busy === 'tpl' || !tplForm.organization_id || !tplForm.name" @click="createTemplate">
+      <button
+        class="primary"
+        :disabled="busy === 'tpl' || !tplForm.organization_id || !tplForm.name"
+        @click="createTemplate"
+      >
         创建模板
       </button>
     </div>
@@ -263,15 +303,26 @@ onMounted(load);
   <div class="panel">
     <h2>已建组织（{{ orgs.length }}）</h2>
     <table class="compact">
-      <thead><tr><th>ID</th><th>名称</th><th>类型</th><th>创建时间</th></tr></thead>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>名称</th>
+          <th>类型</th>
+          <th>创建时间</th>
+        </tr>
+      </thead>
       <tbody>
         <tr v-for="o in orgs" :key="o.id">
           <td class="mono">{{ shortId(o.id) }}</td>
           <td>{{ o.name }}</td>
-          <td><span class="tag unknown">{{ o.kind }}</span></td>
+          <td>
+            <span class="tag unknown">{{ o.kind }}</span>
+          </td>
           <td class="muted">{{ ts(o.created_at) }}</td>
         </tr>
-        <tr v-if="!orgs.length"><td colspan="4" class="muted">暂无组织</td></tr>
+        <tr v-if="!orgs.length">
+          <td colspan="4" class="muted">暂无组织</td>
+        </tr>
       </tbody>
     </table>
   </div>
@@ -279,7 +330,16 @@ onMounted(load);
   <div class="panel">
     <h2>已建模板（{{ templates.length }}）</h2>
     <table class="compact">
-      <thead><tr><th>ID</th><th>名称</th><th>组织</th><th>场馆范围</th><th>规则</th><th>状态</th></tr></thead>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>名称</th>
+          <th>组织</th>
+          <th>场馆范围</th>
+          <th>规则</th>
+          <th>状态</th>
+        </tr>
+      </thead>
       <tbody>
         <tr v-for="t in templates" :key="t.id">
           <td class="mono">{{ shortId(t.id) }}</td>
@@ -292,9 +352,13 @@ onMounted(load);
               {{ r.animal_scope }} · {{ r.action }} · <strong>{{ r.effect }}</strong>
             </div>
           </td>
-          <td><span class="tag unknown">{{ t.status }}</span></td>
+          <td>
+            <span class="tag unknown">{{ t.status }}</span>
+          </td>
         </tr>
-        <tr v-if="!templates.length"><td colspan="6" class="muted">暂无模板</td></tr>
+        <tr v-if="!templates.length">
+          <td colspan="6" class="muted">暂无模板</td>
+        </tr>
       </tbody>
     </table>
   </div>
@@ -302,17 +366,32 @@ onMounted(load);
   <div class="panel">
     <h2>场所绑定（{{ bindings.length }}）</h2>
     <table class="compact">
-      <thead><tr><th>ID</th><th>场所</th><th>模板</th><th>来源</th><th>状态</th><th>覆盖项</th></tr></thead>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>场所</th>
+          <th>模板</th>
+          <th>来源</th>
+          <th>状态</th>
+          <th>覆盖项</th>
+        </tr>
+      </thead>
       <tbody>
         <tr v-for="b in bindings" :key="b.id">
           <td class="mono">{{ shortId(b.id) }}</td>
           <td class="mono">{{ shortId(b.place_id) }}</td>
           <td class="mono">{{ shortId(b.template_id) }}</td>
           <td class="mono">{{ shortId(b.source_id) }}</td>
-          <td><span class="tag" :class="b.is_active ? 'ok' : 'unknown'">{{ b.is_active ? "生效中" : "已失活" }}</span></td>
+          <td>
+            <span class="tag" :class="b.is_active ? 'ok' : 'unknown'">{{
+              b.is_active ? "生效中" : "已失活"
+            }}</span>
+          </td>
           <td class="mono hint">{{ b.overrides ? JSON.stringify(b.overrides) : "—" }}</td>
         </tr>
-        <tr v-if="!bindings.length"><td colspan="6" class="muted">暂无绑定</td></tr>
+        <tr v-if="!bindings.length">
+          <td colspan="6" class="muted">暂无绑定</td>
+        </tr>
       </tbody>
     </table>
   </div>
