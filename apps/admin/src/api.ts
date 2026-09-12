@@ -37,3 +37,27 @@ export async function post<T>(path: string, body?: unknown): Promise<T> {
 export async function patch<T>(path: string, body?: unknown): Promise<T> {
   return api.request<T>("patch", path, { body });
 }
+
+/** Shared error normalisation so every view renders the same message shape. */
+export function errText(e: unknown): string {
+  if (e instanceof ApiError) {
+    const code = (e as unknown as { code?: string }).code;
+    return code ? `${e.message}（${code}）` : e.message;
+  }
+  return String(e);
+}
+
+/** Short uuid renderer used across admin tables. */
+export function shortId(id?: string | null, len = 8): string {
+  if (!id) return "—";
+  return `${id.slice(0, len)}…`;
+}
+
+/** ISO timestamp → local `YYYY-MM-DD HH:mm` (or em dash). */
+export function ts(value?: string | null): string {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return String(value);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}

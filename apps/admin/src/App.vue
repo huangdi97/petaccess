@@ -19,6 +19,17 @@ const nav = [
   { to: "/users", label: "用户" },
 ];
 
+const navV05 = [
+  { to: "/rule-candidates", label: "规则候选" },
+  { to: "/observation-candidates", label: "观察候选" },
+  { to: "/evidence", label: "证据复核" },
+  { to: "/monitors", label: "来源监控" },
+  { to: "/organizations", label: "组织 / 模板" },
+  { to: "/spatial", label: "设施 / 出入口 / 路径" },
+  { to: "/event-rules", label: "活动政策 / 许可" },
+  { to: "/match-debugger", label: "解析调试 / 可答性" },
+];
+
 function onLogout() {
   logout();
   router.push({ name: "login" });
@@ -30,6 +41,8 @@ function onLogout() {
     <aside class="sidebar">
       <div class="brand">宠物准入平台 · Admin</div>
       <RouterLink v-for="n in nav" :key="n.to" :to="n.to">{{ n.label }}</RouterLink>
+      <div class="nav-section">v0.5 域模型</div>
+      <RouterLink v-for="n in navV05" :key="n.to" :to="n.to">{{ n.label }}</RouterLink>
       <div class="spacer"></div>
       <button style="margin: 0 16px; width: calc(100% - 32px)" @click="onLogout">退出登录</button>
     </aside>

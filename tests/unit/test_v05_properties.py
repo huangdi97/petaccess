@@ -17,6 +17,12 @@ from app.rulespec.v05_resolver import (
 
 NOW = datetime(2026, 9, 12, 12, 0, tzinfo=UTC)
 
+#: Every state appearing in the candidate machine (keys ∪ transition targets),
+#: so the property test can attempt both legal and illegal jumps.
+ALL_STATES = set(CANDIDATE_TRANSITIONS) | {
+    t for targets in CANDIDATE_TRANSITIONS.values() for t in targets
+}
+
 layer_values = ["LEGAL", "REGULATORY_GUIDANCE", "OPERATOR_POLICY", "TEMPORARY_POLICY", None]
 effect_values = ["allowed", "prohibited", "conditional"]
 mandatory_values = [None, "mandatory", "advisory", "discretionary"]
@@ -117,15 +123,22 @@ def test_expired_events_never_applicable(rules):
             assert r.effective_to is None or r.effective_to >= NOW
 
 
-@given(st.lists(st.sampled_from(list(CANDIDATE_TRANSITIONS)), min_size=1, max_size=8))
+@given(st.lists(st.sampled_from(sorted(ALL_STATES)), min_size=1, max_size=10))
 def test_unpublished_candidate_never_published_directly(sequence):
     """Candidates start at DISCOVERED; PUBLISHED is only reachable through the
-    APPROVED transition. Random transition attempts can never reach PUBLISHED
-    without passing APPROVED."""
+    APPROVED transition.
+
+    The generated `sequence` is a list of *target states* to attempt. A target is
+    only applied when the state machine permits it. The invariant under test:
+    if we ever land on PUBLISHED then we must have passed through APPROVED, and
+    PUBLISHED must never be reachable from DISCOVERED/EXTRACTED/MATCH_PENDING/
+    REVIEW_PENDING directly.
+    """
     state = "DISCOVERED"
     ever_published = False
     seen_approved = False
     for nxt in sequence:
+        # Attempt an illegal jump straight to PUBLISHED from a pre-approval state.
         allowed = CANDIDATE_TRANSITIONS.get(state, set())
         if nxt in allowed:
             state = nxt
@@ -133,7 +146,12 @@ def test_unpublished_candidate_never_published_directly(sequence):
             seen_approved = True
         if state == "PUBLISHED":
             ever_published = True
-    assert ever_published == seen_approved
+            # Reaching PUBLISHED by any path must imply APPROVED was visited.
+            assert seen_approved, f"reached PUBLISHED without APPROVED: {sequence}"
+    # And the structural guarantee: no pre-approval state lists PUBLISHED.
+    for pre in ("DISCOVERED", "EXTRACTED", "MATCH_PENDING", "REVIEW_PENDING"):
+        assert "PUBLISHED" not in CANDIDATE_TRANSITIONS[pre]
+    assert ever_published == seen_approved or not ever_published
 
 
 def test_superseded_rule_never_current_by_construction():

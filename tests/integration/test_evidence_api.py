@@ -325,3 +325,182 @@ def test_artifact_listing_and_audit_trail(client, moderator):
     audits = s.scalars(select(AuditLog).where(AuditLog.target_id == art_id)).all()
     s.close()
     assert any(a.action == "artifact.create" for a in audits)
+
+
+# ------------------------------------------------- v0.5 registry read surface
+# The Admin v0.5 pages are read+write; every write endpoint needs a matching
+# reader or an operator cannot review what they created. These tests pin the
+# read surface so a future refactor cannot silently drop it.
+
+
+def test_v05_registry_lists_are_reachable(client, moderator):
+    """Every v0.5 registry resource exposes a paged GET for the Admin UI."""
+    for path in (
+        "/api/v1/admin/organizations",
+        "/api/v1/admin/policy-templates",
+        "/api/v1/admin/place-policy-bindings",
+        "/api/v1/admin/amenities",
+        "/api/v1/admin/entrances",
+        "/api/v1/admin/access-paths",
+        "/api/v1/admin/event-policies",
+        "/api/v1/admin/data-licenses",
+        "/api/v1/admin/coexistence-policies",
+        "/api/v1/admin/monitors",
+        "/api/v1/admin/candidates",
+        "/api/v1/admin/observation-candidates",
+        "/api/v1/admin/source-artifacts",
+        "/api/v1/admin/evidence-bundles",
+    ):
+        r = client.get(path, headers=_auth(moderator))
+        assert r.status_code == 200, f"{path} -> {r.status_code}"
+        body = r.json()
+        assert "items" in body and "total" in body, path
+
+
+def test_organization_template_binding_round_trip(client, moderator):
+    """create → list: the created objects come back through the readers."""
+    org = client.post(
+        "/api/v1/admin/organizations",
+        json={"name": f"连锁-{uuid.uuid4().hex[:6]}", "kind": "chain"},
+        headers=_auth(moderator),
+    )
+    assert org.status_code == 201, org.text
+    org_id = org.json()["id"]
+    assert any(
+        o["id"] == org_id
+        for o in client.get("/api/v1/admin/organizations", headers=_auth(moderator)).json()["items"]
+    )
+
+    tpl = client.post(
+        "/api/v1/admin/policy-templates",
+        json={
+            "organization_id": org_id,
+            "name": "标准门店政策",
+            "venue_scope": "indoor",
+            "rules": [
+                {
+                    "animal_scope": "dog",
+                    "action": "enter",
+                    "effect": "prohibited",
+                    "conditions": None,
+                }
+            ],
+        },
+        headers=_auth(moderator),
+    )
+    assert tpl.status_code == 201, tpl.text
+    tpl_id = tpl.json()["id"]
+
+    templates = client.get(
+        "/api/v1/admin/policy-templates",
+        params={"organization_id": org_id},
+        headers=_auth(moderator),
+    ).json()["items"]
+    mine = [t for t in templates if t["id"] == tpl_id]
+    assert mine, "新建模板未出现在列表中"
+    assert mine[0]["rule_count"] == 1
+    # template rules are layer-locked to OPERATOR_POLICY
+    assert mine[0]["rules"][0]["rule_layer"] == "OPERATOR_POLICY"
+
+    place_id = _new_place(client, moderator)
+    bind = client.post(
+        "/api/v1/admin/place-policy-bindings",
+        json={"place_id": place_id, "template_id": tpl_id},
+        headers=_auth(moderator),
+    )
+    assert bind.status_code == 201, bind.text
+    bindings = client.get(
+        "/api/v1/admin/place-policy-bindings",
+        params={"place_id": place_id},
+        headers=_auth(moderator),
+    ).json()["items"]
+    assert any(b["id"] == bind.json()["id"] and b["is_active"] for b in bindings)
+
+
+def test_event_policy_effectiveness_flag_is_computed(client, moderator):
+    """is_effective_now reflects the caller's clock, not a stored column."""
+    from datetime import UTC, datetime, timedelta
+
+    place_id = _new_place(client, moderator)
+    src = _new_source(client, moderator)
+    now = datetime.now(UTC)
+    created = client.post(
+        "/api/v1/admin/event-policies",
+        json={
+            "place_id": place_id,
+            "name": f"展会管控-{uuid.uuid4().hex[:6]}",
+            "animal_scope": "dog",
+            "action": "enter",
+            "effect": "prohibited",
+            "effective_from": (now - timedelta(hours=1)).isoformat(),
+            "effective_to": (now + timedelta(hours=1)).isoformat(),
+            "source_id": src,
+        },
+        headers=_auth(moderator),
+    )
+    assert created.status_code == 201, created.text
+    ev_id = created.json()["id"]
+
+    rows = client.get(
+        "/api/v1/admin/event-policies",
+        params={"place_id": place_id},
+        headers=_auth(moderator),
+    ).json()["items"]
+    mine = [e for e in rows if e["id"] == ev_id]
+    assert mine and mine[0]["is_effective_now"] is True
+
+
+def test_active_only_binding_filter_excludes_superseded(client, moderator):
+    """Re-binding deactivates the previous binding but keeps the history."""
+    place_id = _new_place(client, moderator)
+    org_id = client.post(
+        "/api/v1/admin/organizations",
+        json={"name": f"组织-{uuid.uuid4().hex[:6]}", "kind": "brand"},
+        headers=_auth(moderator),
+    ).json()["id"]
+    tpl_id = client.post(
+        "/api/v1/admin/policy-templates",
+        json={"organization_id": org_id, "name": "T1", "rules": []},
+        headers=_auth(moderator),
+    ).json()["id"]
+
+    first = client.post(
+        "/api/v1/admin/place-policy-bindings",
+        json={"place_id": place_id, "template_id": tpl_id},
+        headers=_auth(moderator),
+    )
+    assert first.status_code == 201
+    second = client.post(
+        "/api/v1/admin/place-policy-bindings",
+        json={"place_id": place_id, "template_id": tpl_id},
+        headers=_auth(moderator),
+    )
+    assert second.status_code == 201
+
+    active = client.get(
+        "/api/v1/admin/place-policy-bindings",
+        params={"place_id": place_id, "active_only": True},
+        headers=_auth(moderator),
+    ).json()["items"]
+    assert [b["id"] for b in active] == [second.json()["id"]]
+    # history is preserved, not deleted
+    everything = client.get(
+        "/api/v1/admin/place-policy-bindings",
+        params={"place_id": place_id},
+        headers=_auth(moderator),
+    ).json()["items"]
+    assert len(everything) >= 2
+
+
+def test_read_endpoints_require_moderator(client, moderator):
+    """The read surface is privileged: an ordinary user must be rejected."""
+    email = f"plain-{uuid.uuid4().hex[:8]}@example.com"
+    client.post(
+        "/api/v1/auth/register",
+        json={"display_name": "普通用户", "email": email, "password": "passw0rd123"},
+    )
+    tok = client.post(
+        "/api/v1/auth/login", json={"email": email, "password": "passw0rd123"}
+    ).json()["access_token"]
+    r = client.get("/api/v1/admin/organizations", headers=_auth(tok))
+    assert r.status_code in (401, 403)

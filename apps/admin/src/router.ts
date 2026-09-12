@@ -16,4 +16,14 @@ export const routes: RouteRecordRaw[] = [
   { path: "/conflicts", name: "conflicts", component: () => import("./views/ConflictsView.vue") },
   { path: "/audit", name: "audit", component: () => import("./views/AuditView.vue") },
   { path: "/users", name: "users", component: () => import("./views/UsersView.vue") },
+
+  // ---- v0.5: real-API domain surfaces ----
+  { path: "/rule-candidates", name: "rule-candidates", component: () => import("./views/RuleCandidatesView.vue") },
+  { path: "/evidence", name: "evidence", component: () => import("./views/EvidenceView.vue") },
+  { path: "/observation-candidates", name: "observation-candidates", component: () => import("./views/ObservationCandidatesView.vue") },
+  { path: "/monitors", name: "monitors", component: () => import("./views/SourceMonitorsView.vue") },
+  { path: "/organizations", name: "organizations", component: () => import("./views/OrganizationsView.vue") },
+  { path: "/spatial", name: "spatial", component: () => import("./views/SpatialExtrasView.vue") },
+  { path: "/event-rules", name: "event-rules", component: () => import("./views/EventRulesView.vue") },
+  { path: "/match-debugger", name: "match-debugger", component: () => import("./views/MatchDebuggerView.vue") },
 ];

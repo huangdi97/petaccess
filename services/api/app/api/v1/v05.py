@@ -895,6 +895,296 @@ def place_answerability(place_id: str, db: Session = Depends(get_db)):
     }
 
 
+# ------------------------------------------------- v0.5 registry read surface
+# The v0.5 domain objects below were originally write-only (create endpoints).
+# An operator cannot review what they cannot list, so each gains a paged reader.
+# Additive only — no existing endpoint shape changes.
+
+
+@admin.get("/organizations", response_model=Page[dict])
+def admin_list_organizations(
+    limit: int = Query(default=50, le=200),
+    offset: int = Query(default=0, ge=0),
+    user: User = Depends(require_role(UserRole.MODERATOR)),
+    db: Session = Depends(get_db),
+):
+    stmt = select(Organization).order_by(Organization.created_at.desc())
+    total = db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
+    rows = db.scalars(stmt.limit(limit).offset(offset)).all()
+    items = [
+        {
+            "id": o.id,
+            "name": o.name,
+            "kind": o.kind,
+            "status": getattr(o, "status", None),
+            "created_at": o.created_at,
+        }
+        for o in rows
+    ]
+    return Page(items=items, total=total, limit=limit, offset=offset)
+
+
+@admin.get("/policy-templates", response_model=Page[dict])
+def admin_list_templates(
+    organization_id: str | None = None,
+    limit: int = Query(default=50, le=200),
+    offset: int = Query(default=0, ge=0),
+    user: User = Depends(require_role(UserRole.MODERATOR)),
+    db: Session = Depends(get_db),
+):
+    stmt = select(PolicyTemplate)
+    if organization_id:
+        stmt = stmt.where(PolicyTemplate.organization_id == organization_id)
+    stmt = stmt.order_by(PolicyTemplate.created_at.desc())
+    total = db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
+    rows = db.scalars(stmt.limit(limit).offset(offset)).all()
+    items = []
+    for t in rows:
+        rules = db.scalars(
+            select(PolicyTemplateRule).where(PolicyTemplateRule.template_id == t.id)
+        ).all()
+        items.append(
+            {
+                "id": t.id,
+                "organization_id": t.organization_id,
+                "name": t.name,
+                "venue_scope": t.venue_scope,
+                "status": t.status,
+                "rule_count": len(rules),
+                "rules": [
+                    {
+                        "animal_scope": r.animal_scope,
+                        "action": r.action,
+                        "effect": r.effect,
+                        "rule_layer": r.rule_layer,
+                        "notes": r.notes,
+                    }
+                    for r in rules
+                ],
+                "created_at": t.created_at,
+            }
+        )
+    return Page(items=items, total=total, limit=limit, offset=offset)
+
+
+@admin.get("/place-policy-bindings", response_model=Page[dict])
+def admin_list_bindings(
+    place_id: str | None = None,
+    active_only: bool = False,
+    limit: int = Query(default=50, le=200),
+    offset: int = Query(default=0, ge=0),
+    user: User = Depends(require_role(UserRole.MODERATOR)),
+    db: Session = Depends(get_db),
+):
+    stmt = select(PlacePolicyBinding)
+    if place_id:
+        stmt = stmt.where(PlacePolicyBinding.place_id == place_id)
+    if active_only:
+        stmt = stmt.where(PlacePolicyBinding.is_active.is_(True))
+    stmt = stmt.order_by(PlacePolicyBinding.created_at.desc())
+    total = db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
+    rows = db.scalars(stmt.limit(limit).offset(offset)).all()
+    items = [
+        {
+            "id": b.id,
+            "place_id": b.place_id,
+            "template_id": b.template_id,
+            "source_id": b.source_id,
+            "is_active": b.is_active,
+            "overrides": b.overrides,
+            "created_at": b.created_at,
+        }
+        for b in rows
+    ]
+    return Page(items=items, total=total, limit=limit, offset=offset)
+
+
+@admin.get("/amenities", response_model=Page[dict])
+def admin_list_amenities(
+    place_id: str | None = None,
+    limit: int = Query(default=50, le=200),
+    offset: int = Query(default=0, ge=0),
+    user: User = Depends(require_role(UserRole.MODERATOR)),
+    db: Session = Depends(get_db),
+):
+    stmt = select(Amenity)
+    if place_id:
+        stmt = stmt.where(Amenity.place_id == place_id)
+    stmt = stmt.order_by(Amenity.created_at.desc())
+    total = db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
+    rows = db.scalars(stmt.limit(limit).offset(offset)).all()
+    items = [
+        {
+            "id": a.id,
+            "place_id": a.place_id,
+            "zone_id": a.zone_id,
+            "amenity_type": a.amenity_type,
+            "status": a.status,
+            "source_id": a.source_id,
+            "verified_at": a.verified_at,
+        }
+        for a in rows
+    ]
+    return Page(items=items, total=total, limit=limit, offset=offset)
+
+
+@admin.get("/entrances", response_model=Page[dict])
+def admin_list_entrances(
+    place_id: str | None = None,
+    limit: int = Query(default=50, le=200),
+    offset: int = Query(default=0, ge=0),
+    user: User = Depends(require_role(UserRole.MODERATOR)),
+    db: Session = Depends(get_db),
+):
+    stmt = select(Entrance)
+    if place_id:
+        stmt = stmt.where(Entrance.place_id == place_id)
+    stmt = stmt.order_by(Entrance.created_at.desc())
+    total = db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
+    rows = db.scalars(stmt.limit(limit).offset(offset)).all()
+    items = [
+        {
+            "id": e.id,
+            "place_id": e.place_id,
+            "zone_id": e.zone_id,
+            "name": e.name,
+            "entrance_type": e.entrance_type,
+            "access_notes": e.access_notes,
+            "source_id": e.source_id,
+        }
+        for e in rows
+    ]
+    return Page(items=items, total=total, limit=limit, offset=offset)
+
+
+@admin.get("/access-paths", response_model=Page[dict])
+def admin_list_access_paths(
+    place_id: str | None = None,
+    limit: int = Query(default=50, le=200),
+    offset: int = Query(default=0, ge=0),
+    user: User = Depends(require_role(UserRole.MODERATOR)),
+    db: Session = Depends(get_db),
+):
+    stmt = select(AccessPath)
+    if place_id:
+        stmt = stmt.where(AccessPath.place_id == place_id)
+    stmt = stmt.order_by(AccessPath.created_at.desc())
+    total = db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
+    rows = db.scalars(stmt.limit(limit).offset(offset)).all()
+    items = [
+        {
+            "id": p.id,
+            "place_id": p.place_id,
+            "name": p.name,
+            "from_node": p.from_node,
+            "to_node": p.to_node,
+            "animal_scope": p.animal_scope,
+            "time_window": p.time_window,
+            "source_id": p.source_id,
+        }
+        for p in rows
+    ]
+    return Page(items=items, total=total, limit=limit, offset=offset)
+
+
+@admin.get("/event-policies", response_model=Page[dict])
+def admin_list_event_policies(
+    place_id: str | None = None,
+    limit: int = Query(default=50, le=200),
+    offset: int = Query(default=0, ge=0),
+    user: User = Depends(require_role(UserRole.MODERATOR)),
+    db: Session = Depends(get_db),
+):
+    stmt = select(EventPolicy)
+    if place_id:
+        stmt = stmt.where(EventPolicy.place_id == place_id)
+    stmt = stmt.order_by(EventPolicy.effective_from.desc())
+    total = db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
+    rows = db.scalars(stmt.limit(limit).offset(offset)).all()
+    now = datetime.now(UTC)
+    items = []
+    for ev in rows:
+        items.append(
+            {
+                "id": ev.id,
+                "place_id": ev.place_id,
+                "zone_id": ev.zone_id,
+                "name": ev.name,
+                "animal_scope": ev.animal_scope,
+                "action": ev.action,
+                "effect": ev.effect,
+                "time_window": ev.time_window,
+                "effective_from": ev.effective_from,
+                "effective_to": ev.effective_to,
+                "is_effective_now": bool(
+                    ev.effective_from
+                    and ev.effective_to
+                    and ev.effective_from <= now <= ev.effective_to
+                ),
+                "source_id": ev.source_id,
+            }
+        )
+    return Page(items=items, total=total, limit=limit, offset=offset)
+
+
+@admin.get("/data-licenses", response_model=Page[dict])
+def admin_list_data_licenses(
+    source_id: str | None = None,
+    limit: int = Query(default=50, le=200),
+    offset: int = Query(default=0, ge=0),
+    user: User = Depends(require_role(UserRole.MODERATOR)),
+    db: Session = Depends(get_db),
+):
+    stmt = select(DataLicense)
+    if source_id:
+        stmt = stmt.where(DataLicense.source_id == source_id)
+    stmt = stmt.order_by(DataLicense.created_at.desc())
+    total = db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
+    rows = db.scalars(stmt.limit(limit).offset(offset)).all()
+    items = [
+        {
+            "id": lic.id,
+            "source_id": lic.source_id,
+            "license_name": lic.license_name,
+            "display_allowed": lic.display_allowed,
+            "storage_allowed": lic.storage_allowed,
+            "redistribution_allowed": lic.redistribution_allowed,
+            "commercial_use_allowed": lic.commercial_use_allowed,
+            "attribution_required": lic.attribution_required,
+        }
+        for lic in rows
+    ]
+    return Page(items=items, total=total, limit=limit, offset=offset)
+
+
+@admin.get("/coexistence-policies", response_model=Page[dict])
+def admin_list_coexistence(
+    place_id: str | None = None,
+    limit: int = Query(default=50, le=200),
+    offset: int = Query(default=0, ge=0),
+    user: User = Depends(require_role(UserRole.MODERATOR)),
+    db: Session = Depends(get_db),
+):
+    stmt = select(CoexistencePolicy)
+    if place_id:
+        stmt = stmt.where(CoexistencePolicy.place_id == place_id)
+    total = db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
+    rows = db.scalars(stmt.limit(limit).offset(offset)).all()
+    items = [
+        {
+            "id": c.id,
+            "place_id": c.place_id,
+            "zone_id": c.zone_id,
+            "attribute": c.attribute,
+            "value": c.value,
+            "source_id": c.source_id,
+            "notes": getattr(c, "notes", None),
+        }
+        for c in rows
+    ]
+    return Page(items=items, total=total, limit=limit, offset=offset)
+
+
 # ============================================================ evidence-first
 # SourceArtifact → EvidenceBundle → Claim → Candidate (brief §5).
 # Admin surface for the evidence chain; publication stays behind the guard rails.
