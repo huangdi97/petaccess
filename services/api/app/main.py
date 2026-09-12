@@ -1,5 +1,6 @@
 """FastAPI application entrypoint (design #29, #31)."""
 
+import time
 import uuid
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -10,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1.router import api_router
 from app.core.config import get_settings
 from app.core.errors import install_error_handlers
+from app.core.observability import metrics, request_id_ctx
 from app.db.session import check_db_health
 
 
@@ -48,9 +50,18 @@ app.add_middleware(
 
 @app.middleware("http")
 async def request_id_middleware(request: Request, call_next):
-    request.state.request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
+    rid = request.headers.get("X-Request-ID") or str(uuid.uuid4())
+    request.state.request_id = rid
+    request_id_ctx.set(rid)
+    start = time.monotonic()
     response = await call_next(request)
-    response.headers["X-Request-ID"] = request.state.request_id
+    response.headers["X-Request-ID"] = rid
+    route = request.scope.get("route")
+    metric_name = f"http.{request.method}.{getattr(route, 'path', 'unknown')}"
+    metrics.observe_latency(metric_name, time.monotonic() - start)
+    metrics.incr("http.requests.total")
+    if response.status_code >= 500:
+        metrics.incr("http.requests.5xx")
     return response
 
 
@@ -65,6 +76,46 @@ async def readiness() -> dict:
     """Readiness: DB/PostGIS reachable."""
     db = check_db_health()
     return {"status": "ready", "db": db}
+
+
+@app.get("/health/components", tags=["health"])
+async def health_components() -> dict:
+    """Per-dependency health: DB/PostGIS, Redis, MinIO, Celery (NEXT_GOAL §A5)."""
+    import redis as redis_lib
+
+    from app.providers.factory import get_storage_provider
+    from app.worker.celery_app import celery_app as celery
+
+    components: dict[str, dict] = {}
+    try:
+        db = check_db_health()
+        components["postgres"] = {"ok": True, "postgis": db["postgis"][:20]}
+    except Exception as exc:
+        components["postgres"] = {"ok": False, "error": str(exc)[:120]}
+    try:
+        r = redis_lib.Redis.from_url(settings.redis_url, socket_connect_timeout=2)
+        components["redis"] = {"ok": bool(r.ping())}
+    except Exception as exc:
+        components["redis"] = {"ok": False, "error": str(exc)[:120]}
+    try:
+        components["minio"] = {"ok": bool(get_storage_provider().healthy())}
+    except Exception as exc:
+        components["minio"] = {"ok": False, "error": str(exc)[:120]}
+    try:
+        pings = celery.control.ping(timeout=2)
+        components["celery"] = {"ok": bool(pings), "nodes": len(pings[0]) if pings else 0}
+    except Exception as exc:
+        components["celery"] = {"ok": False, "error": str(exc)[:120]}
+    return {
+        "components": components,
+        "all_ok": all(c.get("ok") for c in components.values()),
+    }
+
+
+@app.get("/metrics", tags=["health"])
+async def metrics_snapshot() -> dict:
+    """In-process counters + latency percentiles (metrics abstraction)."""
+    return metrics.snapshot()
 
 
 app.include_router(api_router, prefix="/api/v1")

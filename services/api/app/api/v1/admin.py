@@ -229,3 +229,21 @@ def conflict_review(
         for r in disputed
     ]
     return Page(items=items[offset : offset + limit], total=len(items), limit=limit, offset=offset)
+
+
+@router.get("/worker/jobs", response_model=dict)
+def worker_job_visibility(
+    limit: int = Query(default=50, le=200),
+    user: User = Depends(require_role(UserRole.MODERATOR)),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Failed-job visibility + worker liveness (NEXT_GOAL §A5)."""
+    from app.core.observability import list_failed_jobs
+    from app.worker.celery_app import celery_app as celery
+
+    try:
+        pings = celery.control.ping(timeout=2)
+        workers = list(pings[0].keys()) if pings else []
+    except Exception:
+        workers = []
+    return {"workers_online": workers, "failed_jobs": list_failed_jobs(limit)}

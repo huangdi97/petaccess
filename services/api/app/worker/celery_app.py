@@ -23,11 +23,31 @@ celery_app.conf.update(
     result_serializer="json",
     timezone="UTC",
     enable_utc=True,
+    # bounded redelivery: visibility_timeout guards against lost workers
+    broker_transport_options={"visibility_timeout": 3600},
     beat_schedule={
         # hourly sweep for due rule-change notifications
         "watch-notify-sweep": {"task": "app.worker.tasks.notify_rule_changes", "schedule": 3600.0},
+        # hourly TTL purge for expired media (design #20/#28)
+        "media-ttl-sweep": {
+            "task": "app.worker.tasks.cleanup_expired_scene_photos",
+            "schedule": 3600.0,
+        },
     },
 )
+
+
+from celery.signals import task_failure  # noqa: E402
+
+from app.core.observability import metrics, record_failed_job  # noqa: E402
+
+
+@task_failure.connect
+def _on_task_failure(sender=None, task_id=None, exception=None, **kwargs):
+    """Failed-job visibility: Redis list + metrics counter (NEXT_GOAL §A5)."""
+    name = getattr(sender, "name", "unknown")
+    record_failed_job(name, task_id or "", str(exception) if exception else "unknown")
+    metrics.incr("worker.task_failures")
 
 
 @celery_app.task(name="app.worker.tasks.healthcheck_task")
