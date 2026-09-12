@@ -206,6 +206,9 @@ class SourceMonitor(Base, PkMixin, TimestampMixin):
     place_id: Mapped[str | None] = mapped_column(
         String(36), ForeignKey("place.id", ondelete="SET NULL"), nullable=True
     )
+    #: last fetched excerpt, retained so a detected change can be turned into a
+    #: traceable EvidenceBundle (brief §6: source changed → diff → bundle)
+    last_excerpt: Mapped[str | None] = mapped_column(Text, nullable=True)
 
 
 class FreshnessPolicy(Base, PkMixin, TimestampMixin):

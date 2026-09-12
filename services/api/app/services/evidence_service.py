@@ -538,3 +538,62 @@ def ingest_and_classify(
     )
     kind = classify(draft)
     return artifact, bundle, kind
+
+
+# --------------------------------------------------- monitor → evidence chain
+
+
+def record_monitor_change(
+    db: Session,
+    monitor,
+    *,
+    fetch_result,
+    previous_hash: str | None,
+    diff_note: str | None = None,
+) -> tuple[SourceArtifact, EvidenceBundle] | None:
+    """Turn a detected source change into traceable evidence (brief §6).
+
+    ``source changed → diff → EvidenceBundle → RuleCandidate → Review``. The
+    candidate is deliberately *not* created here — the caller routes it through
+    the rule or observation lane after classification.
+
+    Returns ``None`` when the fetch produced no usable content, so a failed or
+    empty sweep cannot silently create evidence.
+    """
+    if fetch_result is None or not getattr(fetch_result, "ok", False):
+        return None
+    content_hash = getattr(fetch_result, "content_hash", None)
+    if not content_hash:
+        return None
+
+    artifact = SourceArtifact(
+        source_id=monitor.source_id,
+        source_platform=SourcePlatform.OFFICIAL_WEB,
+        collector_type=CollectorType.OFFICIAL_WEB,
+        artifact_type="page_snapshot",
+        source_url=monitor.url,
+        content_hash=content_hash,
+        collected_at=datetime.now(UTC),
+        publisher_type="unknown",
+        captured_excerpt=getattr(fetch_result, "body_excerpt", None),
+        storage_allowed=True,
+        display_allowed=False,
+        redistribution_allowed=False,
+        retention_until=None,
+    )
+    db.add(artifact)
+    db.flush()
+
+    bundle = create_bundle(
+        db,
+        artifact,
+        source_id=monitor.source_id,
+        quoted_fragment=getattr(fetch_result, "body_excerpt", None),
+        extraction_method="url_monitor",
+        temporal_evidence={
+            "previous_hash": previous_hash,
+            "observed_hash": content_hash,
+            "diff_note": diff_note,
+        },
+    )
+    return artifact, bundle

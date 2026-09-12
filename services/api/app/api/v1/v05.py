@@ -298,22 +298,39 @@ def admin_check_monitor(
     user: User = Depends(require_role(UserRole.MODERATOR)),
     db: Session = Depends(get_db),
 ):
-    """One monitor sweep: unchanged | changed | failed. On change a
-    RuleCandidate (EXTRACTED) is created — never a direct rule mutation."""
+    """One monitor sweep: unchanged | changed | failed.
+
+    On change the captured page becomes traceable evidence
+    (SourceArtifact → EvidenceBundle) and then a RuleCandidate. A rule is never
+    written directly — it still has to pass review.
+    """
+    from app.services.evidence_service import record_monitor_change
 
     monitor = db.get(SourceMonitor, monitor_id)
     if monitor is None:
         raise NotFound("监控不存在")
-    outcome = check_monitor(monitor)
+    sweep = check_monitor(monitor)
     candidate_id = None
-    if outcome == "changed":
+    bundle_id = None
+    artifact_id = None
+    if sweep.outcome == "changed":
+        # source changed → diff artifact → EvidenceBundle (brief §6)
+        recorded = record_monitor_change(
+            db,
+            monitor,
+            fetch_result=sweep.fetch,
+            previous_hash=sweep.previous_hash,
+        )
+        if recorded is not None:
+            artifact, bundle = recorded
+            artifact_id, bundle_id = artifact.id, bundle.id
         # diff artifact = raw excerpt kept on candidate for review
         cand = create_from_extraction(
             db,
             source_id=monitor.source_id,
             extraction_method="url_monitor",
             place_id=monitor.place_id,
-            raw_text="source content changed",
+            raw_text=monitor.last_excerpt or "source content changed",
         )
         candidate_id = cand.id
     record_audit(
@@ -324,12 +341,18 @@ def admin_check_monitor(
         action="monitor.check",
         target_type="source_monitor",
         target_id=monitor.id,
-        after_state={"outcome": outcome, "candidate_id": candidate_id},
+        after_state={
+            "outcome": sweep.outcome,
+            "candidate_id": candidate_id,
+            "evidence_bundle_id": bundle_id,
+        },
     )
     db.commit()
     return {
-        "outcome": outcome,
+        "outcome": sweep.outcome,
         "candidate_id": candidate_id,
+        "artifact_id": artifact_id,
+        "evidence_bundle_id": bundle_id,
         "content_hash": (monitor.content_hash or "")[:12],
         "failure_count": monitor.failure_count,
     }

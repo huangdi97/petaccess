@@ -111,12 +111,26 @@ def fetch_url_safely(url: str, *, timeout_seconds: float = 5.0) -> FetchResult:
     return FetchResult(True, digest, etag, last_modified, excerpt, None)
 
 
-def check_monitor(monitor) -> str:
+@dataclass(frozen=True)
+class CheckOutcome:
+    """Result of one monitor sweep.
+
+    ``fetch`` carries the raw FetchResult when the fetch succeeded, so the
+    caller can build a traceable EvidenceBundle (content hash + excerpt) instead
+    of discarding the captured bytes.
+    """
+
+    outcome: str  # unchanged | changed | failed
+    previous_hash: str | None = None
+    fetch: FetchResult | None = None
+
+
+def check_monitor(monitor) -> CheckOutcome:
     """Run one check cycle for a SourceMonitor row.
 
-    Returns 'unchanged' | 'changed' | 'failed' and updates the monitor row
-    (hash/etag/status/failure_count/next_check). Candidate creation is the
-    caller's job (needs place matching + review context).
+    Returns a CheckOutcome and updates the monitor row (hash/etag/status/
+    failure_count/next_check). Candidate creation is the caller's job — it needs
+    place matching + review context.
     """
     from datetime import UTC, datetime, timedelta
 
@@ -127,7 +141,7 @@ def check_monitor(monitor) -> str:
         monitor.status = "failing" if monitor.failure_count >= 3 else monitor.status
         monitor.last_checked_at = datetime.now(UTC)
         monitor.next_check_at = datetime.now(UTC) + timedelta(minutes=monitor.schedule_minutes)
-        return "failed"
+        return CheckOutcome("failed")
 
     monitor.last_checked_at = datetime.now(UTC)
     monitor.next_check_at = datetime.now(UTC) + timedelta(minutes=monitor.schedule_minutes)
@@ -135,10 +149,11 @@ def check_monitor(monitor) -> str:
     monitor.content_hash = result.content_hash
     monitor.etag = result.etag
     monitor.last_modified = result.last_modified
+    monitor.last_excerpt = (result.body_excerpt or "")[:2000] or None
     monitor.failure_count = 0
     monitor.status = "active"
 
     if previous_hash is None or previous_hash == result.content_hash:
-        return "unchanged"
+        return CheckOutcome("unchanged", previous_hash, result)
     monitor.last_changed_at = datetime.now(UTC)
-    return "changed"
+    return CheckOutcome("changed", previous_hash, result)

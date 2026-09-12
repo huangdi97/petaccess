@@ -315,6 +315,26 @@ def test_e2e_c_source_monitor_change_to_new_rule_and_watch(client, moderator):
         assert second["candidate_id"]
         cand_id = second["candidate_id"]
 
+        # brief §6: source changed → diff → EvidenceBundle, so the candidate is
+        # traceable back to the exact captured page rather than a bare string.
+        assert second["evidence_bundle_id"], "monitor change must produce evidence"
+        assert second["artifact_id"], "evidence must anchor to a source artifact"
+
+        from app.db.session import get_session_factory as _gsf
+        from app.models.evidence import EvidenceBundle, SourceArtifact
+
+        _s = _gsf()()
+        _art = _s.get(SourceArtifact, second["artifact_id"])
+        _bundle = _s.get(EvidenceBundle, second["evidence_bundle_id"])
+        # the artifact's hash must equal the hash the sweep recorded
+        assert _art.content_hash.startswith(second["content_hash"])
+        assert _bundle.artifact_id == _art.id
+        assert _bundle.quoted_fragment and "prohibited" in _bundle.quoted_fragment
+        assert (
+            _bundle.temporal_evidence["previous_hash"] != _bundle.temporal_evidence["observed_hash"]
+        )
+        _s.close()
+
         # candidate must be matched to structured fields before review
         from app.db.session import get_session_factory
         from app.models.v05 import RuleCandidate
