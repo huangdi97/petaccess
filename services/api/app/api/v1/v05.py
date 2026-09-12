@@ -250,6 +250,7 @@ def admin_create_monitor(
         place_id=body.place_id,
     )
     db.add(monitor)
+    db.flush()
     record_audit(
         db,
         request=None,
@@ -360,6 +361,7 @@ def admin_create_org(
 ):
     org = Organization(name=body.get("name", ""), kind=body.get("kind", "brand"))
     db.add(org)
+    db.flush()
     record_audit(
         db,
         request=None,
@@ -447,6 +449,7 @@ def admin_create_binding(
         source_id=body.source_id,
     )
     db.add(binding)
+    db.flush()
     record_audit(
         db,
         request=None,
@@ -479,6 +482,7 @@ def admin_create_amenity(
         verified_at=datetime.now(UTC),
     )
     db.add(amenity)
+    db.flush()
     record_audit(
         db,
         request=None,
@@ -555,6 +559,7 @@ def admin_create_event(
         source_id=body["source_id"],
     )
     db.add(event)
+    db.flush()
     record_audit(
         db,
         request=None,
@@ -585,6 +590,7 @@ def admin_create_license(
         license_name=body.get("license_name"),
     )
     db.add(license_)
+    db.flush()
     record_audit(
         db,
         request=None,

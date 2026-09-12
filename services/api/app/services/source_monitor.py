@@ -65,7 +65,9 @@ def fetch_url_safely(url: str, *, timeout_seconds: float = 5.0) -> FetchResult:
     etag = last_modified = content_type = None
     try:
         # follow redirects manually and re-validate every hop
-        with httpx.Client(timeout=timeout_seconds, follow_redirects=False) as client:
+        with httpx.Client(
+            timeout=timeout_seconds, follow_redirects=False, trust_env=False
+        ) as client:
             current = url
             for _hop in range(3):
                 with client.stream("GET", current) as resp:

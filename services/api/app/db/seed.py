@@ -135,6 +135,9 @@ def run_demo_seed() -> dict[str, int]:  # noqa: PLR0915 - linear demo data scrip
     counts: dict[str, int] = {}
 
     # --- reset demo tables (dev only; FK order respected) ---
+    # v0.5 tables are listed before the entities they reference (source, place,
+    # zone, organization). rule_candidate/rule_condition hang off source and
+    # place, so they must be cleared before either.
     for table in (
         "audit_log",
         "watch_subscription",
@@ -147,6 +150,24 @@ def run_demo_seed() -> dict[str, int]:  # noqa: PLR0915 - linear demo data scrip
         "operator_claim",
         "external_place_ref",
         "place_geometry",
+        # --- v0.5 domain tables ---
+        "rule_candidate",
+        "data_source_job",
+        "source_monitor",
+        "policy_template_rule",
+        "place_policy_binding",
+        "policy_template",
+        "organization",
+        "boundary_preference",
+        "boundary_profile",
+        "coexistence_policy",
+        "freshness_policy",
+        "amenity",
+        "entrance",
+        "access_path",
+        "event_policy",
+        "data_license",
+        "media_object",
         "zone",
         "place",
         "operator",
