@@ -1,0 +1,18 @@
+{
+  "place": {
+    "canonical_name": "",
+    "place_type": "",
+    "source": ""
+  },
+  "rules": [],
+  "zones": [],
+  "amenities": [],
+  "entrances": [],
+  "access_paths": [],
+  "audit": {
+    "expressible": null,
+    "unsupported_conditions": [],
+    "unknown_fields": [],
+    "schema_gaps": []
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "petaccessjson_version": "0.1",
+  "subject": {
+    "species": "dog",
+    "role": "ordinary_pet"
+  },
+  "scope": {
+    "place_id": "uuid",
+    "zone_id": null
+  },
+  "action": "enter",
+  "effect": "conditional",
+  "rule_layer": "OPERATOR_POLICY",
+  "conditions": [
+    {
+      "type": "max_weight_kg",
+      "value": 15
+    },
+    {
+      "type": "stroller_required",
+      "value": true
+    }
+  ],
+  "validity": {
+    "effective_from": "2026-09-01T00:00:00+08:00",
+    "effective_to": null
+  },
+  "source": {
+    "source_id": "uuid",
+    "verified_at": "2026-09-10T12:00:00+08:00"
+  },
+  "version": {
+    "rule_version": 1
+  }
+}
