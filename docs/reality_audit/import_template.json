@@ -1,0 +1,56 @@
+{
+  "_readme": [
+    "Reality Audit JSON import template (REALITY_AUDIT_PLAN / NEXT_GOAL C2).",
+    "Copy this structure; one element of `samples` per place. All names below are placeholders — use fictional demo places unless you hold lawful real material with provenance.",
+    "Flat CSV alternative: import_template.csv (same fields, one row per fragment; the tool ingests both via --csv detection by file suffix).",
+    "Known enums: animal_scope in dog|cat|ordinary_pet|service_dog|other; action in enter|pass_through|stay|walk|off_leash|ground_contact|ride_elevator|ride_transport|use_facility|dine|stay_overnight; effect in allowed|prohibited|conditional; rule_layer in LEGAL|REGULATORY_GUIDANCE|OPERATOR_POLICY|TEMPORARY_POLICY; source_type per docs (statute_or_regulation|government_service|official_operator_policy|onsite_signage|certified_verifier|ordinary_user|external_web_reference|imported_dataset).",
+    "Anything outside these sets is reported back as a schema-gap candidate — that is the point of the audit."
+  ],
+  "samples": [
+    {
+      "sample_id": "example-001",
+      "note": "one line of human context",
+      "place": {"canonical_name": "样板·某某（虚构）", "place_type": "cafe", "location_wkt": "POINT(lng lat)"},
+      "zones": [{"zone_key": "indoor", "name": "室内堂食区"}],
+      "sources": [
+        {
+          "source_key": "src-1",
+          "source_type": "onsite_signage",
+          "issuer": "来源主体",
+          "last_verified_at": "2026-09-01T00:00:00+00:00",
+          "display_allowed": true,
+          "redistribution_allowed": false,
+          "storage_allowed": true
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "r-1",
+          "zone_key": "indoor",
+          "animal_scope": "ordinary_pet",
+          "action": "enter",
+          "effect": "conditional",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": null,
+          "origin": null,
+          "effective_from": null,
+          "effective_to": null,
+          "source_key": "src-1",
+          "conditions": [
+            {"condition_type": "leash_required", "value_flag": true},
+            {"condition_type": "max_weight_kg", "value_numeric": 10},
+            {"condition_type": "time_windows", "value_json": [{"days": [5, 6], "start": "09:00", "end": "18:00"}]}
+          ]
+        }
+      ],
+      "coexistence": [
+        {"zone_key": "indoor", "attribute": "animal_on_customer_seat", "value": "prohibited"}
+      ],
+      "queries": [
+        {"animal": "dog", "service_role": "none", "action": "enter", "zone_key": "indoor"},
+        {"animal": "dog", "service_role": "working", "action": "enter", "zone_key": "indoor"}
+      ],
+      "boundary_preferences": [["ordinary_pet_indoor_dining", "accept"]]
+    }
+  ]
+}

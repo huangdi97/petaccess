@@ -35,7 +35,7 @@ and its real output recorded in `WORKBUDDY_TAKEOVER_REPORT.md` /
 | V26 | migration up/down/up | **PASS** — 4 revisions, clean cycle |
 | V27 | old tests remain PASS | **PASS** — full suite green |
 | V28 | new domain/property tests PASS | **PASS** — resolver/properties/track_b/evidence |
-| V29 | Reality Audit tooling | **NOT_STARTED** |
+| V29 | Reality Audit tooling | **PASS** — 引擎 `app/tools/reality_audit.py`（纯函数，CLI `python -m app.tools.reality_audit` 与 admin API `POST /admin/reality-audit` 同代码路径）；CSV/JSON import template（`docs/reality_audit/import_template.*`）；对 6 个合成样本实跑产出 `REALITY_AUDIT_REPORT.md` + `SCHEMA_GAPS.md` + `provenance_manifest.json`（5/6 可表达，3 个 gap 候选：use_pet_elevator note-only、pet_swimming_pool 未建模、边界 UNKNOWN）；12 测试；不伪造真实商家数据 |
 | V30 | HBuilderX target build status | **BLOCKED_EXTERNAL** (B-01) |
 | V31 | real map live smoke | **BLOCKED_EXTERNAL_EXPECTED** (B-04) |
 | V32 | real AI live smoke | **BLOCKED_EXTERNAL_EXPECTED** (B-05) |

@@ -1,0 +1,130 @@
+{
+  "_readme": [
+    "Synthetic adversarial samples for the Reality Audit tool (REALITY_AUDIT_PLAN 第一阶段).",
+    "Every place, issuer and rule here is FICTIONAL. Do not replace with real-merchant claims without lawful material and provenance.",
+    "Run: uv run python -m app.tools.reality_audit docs/reality_audit/synthetic_samples.json --out docs/reality_audit/"
+  ],
+  "samples": [
+    {
+      "sample_id": "syn-cafe-001",
+      "note": "咖啡馆：室内禁止 / 户外牵引有条件",
+      "place": {"canonical_name": "样板·云边咖啡馆（虚构）", "place_type": "cafe", "location_wkt": "POINT(122.500 30.500)"},
+      "zones": [{"zone_key": "indoor", "name": "室内堂食区"}, {"zone_key": "outdoor", "name": "户外座位区"}],
+      "sources": [
+        {"source_key": "sign1", "source_type": "onsite_signage", "issuer": "门口告示牌", "last_verified_at": "2026-08-20T00:00:00+00:00", "display_allowed": true, "redistribution_allowed": false}
+      ],
+      "rules": [
+        {"rule_id": "c-in", "zone_key": "indoor", "animal_scope": "ordinary_pet", "action": "enter", "effect": "prohibited", "rule_layer": "OPERATOR_POLICY", "conditions": [], "source_key": "sign1"},
+        {"rule_id": "c-out", "zone_key": "outdoor", "animal_scope": "ordinary_pet", "action": "enter", "effect": "conditional", "rule_layer": "OPERATOR_POLICY", "conditions": [{"condition_type": "leash_required", "value_flag": true}], "source_key": "sign1"},
+        {"rule_id": "c-sd", "animal_scope": "service_dog", "action": "enter", "effect": "allowed", "rule_layer": "OPERATOR_POLICY", "conditions": [], "source_key": "sign1"}
+      ],
+      "coexistence": [
+        {"zone_key": "outdoor", "attribute": "ordinary_pet_outdoor_dining", "value": "allowed"},
+        {"zone_key": "indoor", "attribute": "animal_on_customer_seat", "value": "prohibited"}
+      ],
+      "queries": [
+        {"animal": "dog", "service_role": "none", "action": "enter", "zone_key": "indoor"},
+        {"animal": "dog", "service_role": "none", "action": "enter", "zone_key": "outdoor"},
+        {"animal": "dog", "service_role": "working", "action": "enter", "zone_key": "indoor"}
+      ],
+      "boundary_preferences": [["ordinary_pet_indoor_dining", "avoid"], ["animal_on_customer_seat", "avoid"]]
+    },
+    {
+      "sample_id": "syn-mall-002",
+      "note": "商场：公共区允许 / 餐饮区禁止 / 宠物电梯义务",
+      "place": {"canonical_name": "样板·星荟广场（虚构）", "place_type": "mall", "location_wkt": "POINT(122.510 30.505)"},
+      "zones": [{"zone_key": "public", "name": "公共通道"}, {"zone_key": "fnb", "name": "餐饮层"}, {"zone_key": "l3", "name": "3F宠物区"}],
+      "sources": [
+        {"source_key": "op1", "source_type": "official_operator_policy", "issuer": "商场运营方", "last_verified_at": "2026-09-01T00:00:00+00:00", "display_allowed": true, "redistribution_allowed": false}
+      ],
+      "rules": [
+        {"rule_id": "m-pub", "zone_key": "public", "animal_scope": "ordinary_pet", "action": "enter", "effect": "conditional", "rule_layer": "OPERATOR_POLICY", "conditions": [{"condition_type": "leash_required", "value_flag": true}], "source_key": "op1"},
+        {"rule_id": "m-fnb", "zone_key": "fnb", "animal_scope": "ordinary_pet", "action": "enter", "effect": "prohibited", "rule_layer": "OPERATOR_POLICY", "conditions": [], "source_key": "op1"},
+        {"rule_id": "m-l3", "zone_key": "l3", "animal_scope": "ordinary_pet", "action": "enter", "effect": "allowed", "rule_layer": "OPERATOR_POLICY", "conditions": [{"condition_type": "use_pet_elevator", "value_flag": true}], "source_key": "op1"}
+      ],
+      "coexistence": [],
+      "queries": [
+        {"animal": "dog", "service_role": "none", "action": "enter", "zone_key": "public"},
+        {"animal": "dog", "service_role": "none", "action": "enter", "zone_key": "fnb"},
+        {"animal": "dog", "service_role": "none", "action": "enter", "zone_key": "l3"}
+      ],
+      "boundary_preferences": [["dedicated_pet_zone_available", "prefer"]]
+    },
+    {
+      "sample_id": "syn-park-003",
+      "note": "公园：周末草坪开放 + 夜间关闭 + 法定mandatory",
+      "place": {"canonical_name": "样板·澜山公园（虚构）", "place_type": "park", "location_wkt": "POINT(122.520 30.510)"},
+      "zones": [{"zone_key": "lawn", "name": "南草坪"}],
+      "sources": [
+        {"source_key": "gov1", "source_type": "government_service", "issuer": "样板区绿化局", "last_verified_at": "2026-07-15T00:00:00+00:00", "display_allowed": true, "redistribution_allowed": false}
+      ],
+      "rules": [
+        {"rule_id": "p-law", "zone_key": "lawn", "animal_scope": "ordinary_pet", "action": "off_leash", "effect": "prohibited", "rule_layer": "LEGAL", "mandatory_level": "mandatory", "conditions": [], "source_key": "gov1", "origin": "legal"},
+        {"rule_id": "p-wk", "zone_key": "lawn", "animal_scope": "ordinary_pet", "action": "enter", "effect": "conditional", "rule_layer": "OPERATOR_POLICY", "conditions": [{"condition_type": "time_windows", "value_json": [{"days": [5, 6], "start": "09:00", "end": "18:00"}]}], "source_key": "gov1"}
+      ],
+      "coexistence": [],
+      "queries": [
+        {"animal": "dog", "service_role": "none", "action": "off_leash", "zone_key": "lawn"},
+        {"animal": "dog", "service_role": "none", "action": "enter", "zone_key": "lawn"}
+      ],
+      "boundary_preferences": []
+    },
+    {
+      "sample_id": "syn-hotel-004",
+      "note": "酒店：10kg 限重 + 来源超过 180 天未复核（stale）",
+      "place": {"canonical_name": "样板·栖云酒店（虚构）", "place_type": "hotel", "location_wkt": "POINT(122.530 30.515)"},
+      "zones": [],
+      "sources": [
+        {"source_key": "ph1", "source_type": "official_operator_policy", "issuer": "酒店前台电话", "last_verified_at": "2025-12-01T00:00:00+00:00", "display_allowed": true, "redistribution_allowed": false}
+      ],
+      "rules": [
+        {"rule_id": "h-w", "animal_scope": "ordinary_pet", "action": "stay_overnight", "effect": "conditional", "rule_layer": "OPERATOR_POLICY", "conditions": [{"condition_type": "max_weight_kg", "value_numeric": 10}], "source_key": "ph1"}
+      ],
+      "coexistence": [],
+      "queries": [
+        {"animal": "dog", "service_role": "none", "action": "stay_overnight", "zone_key": null}
+      ],
+      "boundary_preferences": []
+    },
+    {
+      "sample_id": "syn-market-005",
+      "note": "超市：1F 禁止 / 3F 允许 + 无效来源类型（schema gap 探针）",
+      "place": {"canonical_name": "样板·惠选超市（虚构）", "place_type": "supermarket", "location_wkt": "POINT(122.540 30.520)"},
+      "zones": [{"zone_key": "1f", "name": "一层卖场"}, {"zone_key": "3f", "name": "三层宠物用品区"}],
+      "sources": [
+        {"source_key": "weird", "source_type": "social_media_scrape", "issuer": "不明抓取", "last_verified_at": "2026-09-10T00:00:00+00:00", "display_allowed": false, "redistribution_allowed": false}
+      ],
+      "rules": [
+        {"rule_id": "s-1f", "zone_key": "1f", "animal_scope": "ordinary_pet", "action": "enter", "effect": "prohibited", "rule_layer": "OPERATOR_POLICY", "conditions": [], "source_key": "weird"},
+        {"rule_id": "s-3f", "zone_key": "3f", "animal_scope": "ordinary_pet", "action": "enter", "effect": "allowed", "rule_layer": "OPERATOR_POLICY", "conditions": [], "source_key": "weird"}
+      ],
+      "coexistence": [
+        {"zone_key": null, "attribute": "pet_swimming_pool", "value": "available"}
+      ],
+      "queries": [
+        {"animal": "dog", "service_role": "none", "action": "enter", "zone_key": "1f"},
+        {"animal": "dog", "service_role": "none", "action": "enter", "zone_key": "3f"}
+      ],
+      "boundary_preferences": [["pet_swimming_pool", "prefer"]]
+    },
+    {
+      "sample_id": "syn-event-006",
+      "note": "宠物活动日：临时政策遮蔽运营政策 + 管理方试图放宽法定（冲突）",
+      "place": {"canonical_name": "样板·河湾市集（虚构）", "place_type": "market", "location_wkt": "POINT(122.550 30.525)"},
+      "zones": [{"zone_key": "plaza", "name": "中心广场"}],
+      "sources": [
+        {"source_key": "ev1", "source_type": "official_operator_policy", "issuer": "市集主办方", "last_verified_at": "2026-09-11T00:00:00+00:00", "display_allowed": true, "redistribution_allowed": false},
+        {"source_key": "law1", "source_type": "statute_or_regulation", "issuer": "样板市市容条例", "last_verified_at": "2026-06-01T00:00:00+00:00", "display_allowed": true, "redistribution_allowed": false}
+      ],
+      "rules": [
+        {"rule_id": "e-law", "zone_key": "plaza", "animal_scope": "ordinary_pet", "action": "enter", "effect": "prohibited", "rule_layer": "LEGAL", "mandatory_level": "mandatory", "conditions": [], "source_key": "law1", "origin": "legal"},
+        {"rule_id": "e-ev", "zone_key": "plaza", "animal_scope": "ordinary_pet", "action": "enter", "effect": "allowed", "rule_layer": "TEMPORARY_POLICY", "conditions": [], "source_key": "ev1", "origin": "event", "effective_from": "2026-09-12T00:00:00+00:00", "effective_to": "2026-09-14T23:59:00+00:00"}
+      ],
+      "coexistence": [],
+      "queries": [
+        {"animal": "dog", "service_role": "none", "action": "enter", "zone_key": "plaza"}
+      ],
+      "boundary_preferences": []
+    }
+  ]
+}

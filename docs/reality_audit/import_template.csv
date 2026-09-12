@@ -1,0 +1,10 @@
+﻿sample_id,note,place_name,place_type,location_wkt,zone_key,zone_name,source_key,source_type,issuer,last_verified_at,rule_id,animal_scope,action,effect,rule_layer,mandatory_level,origin,zone_key_rule,condition_type,value_flag,value_numeric,value_text,value_json,coexistence_attribute,coexistence_value,coexistence_zone_key,query_animal,query_service_role,query_action,query_zone_key
+syn-cafe-100,CSV模板示例：咖啡馆（虚构）,样板·路口咖啡馆（虚构）,cafe,POINT(122.500 30.500),indoor,室内堂食区,sign1,onsite_signage,门口告示牌,2026-08-20T00:00:00+00:00,,,,,,,,,,,,,,,,,,,,
+syn-cafe-100,,,,,outdoor,户外座位区,,,,,,,,,,,,,,,,,,,,,,,,
+syn-cafe-100,,,,,,,,,,,c-in,ordinary_pet,enter,prohibited,OPERATOR_POLICY,,operator_direct,indoor,,,,,,,,,,,,
+syn-cafe-100,,,,,,,,,,,c-out,ordinary_pet,enter,conditional,OPERATOR_POLICY,,operator_direct,outdoor,leash_required,true,,,,,,,,,,
+syn-cafe-100,,,,,,,,,,,c-sd,service_dog,enter,allowed,OPERATOR_POLICY,,operator_direct,,,,,,,,,,,,,
+syn-cafe-100,,,,,,,,,,,,,,,,,,,,,,,,ordinary_pet_outdoor_dining,allowed,outdoor,,,,
+syn-cafe-100,,,,,,,,,,,,,,,,,,,,,,,,animal_on_customer_seat,prohibited,indoor,,,,
+syn-cafe-100,,,,,,,,,,,,,,,,,,,,,,,,,,,dog,none,enter,indoor
+syn-cafe-100,,,,,,,,,,,,,,,,,,,,,,,,,,,dog,working,enter,indoor

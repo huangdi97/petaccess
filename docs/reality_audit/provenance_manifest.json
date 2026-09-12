@@ -1,0 +1,20 @@
+{
+  "manifest_version": "1.0",
+  "generated_at": "2026-09-12T19:36:51.248386+00:00",
+  "input": "synthetic_samples.json",
+  "data_nature": "synthetic_adversarial_fixtures",
+  "real_place_claims": 0,
+  "sample_ids": [
+    "syn-cafe-001",
+    "syn-mall-002",
+    "syn-park-003",
+    "syn-hotel-004",
+    "syn-market-005",
+    "syn-event-006"
+  ],
+  "tool": "app.tools.reality_audit",
+  "engine_outputs": [
+    "REALITY_AUDIT_REPORT.md",
+    "SCHEMA_GAPS.md"
+  ]
+}

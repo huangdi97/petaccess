@@ -1641,6 +1641,27 @@ def admin_transition_observation_candidate(
 # ------------------------------------------------------- evidence serializers
 
 
+@admin.post("/reality-audit")
+def admin_reality_audit(
+    body: dict,
+    user: User = Depends(require_role(UserRole.MODERATOR)),
+):
+    """Reality Audit over submitted samples (REALITY_AUDIT_PLAN, NEXT_GOAL C2).
+
+    Same pure engine as the CLI (`python -m app.tools.reality_audit`). No DB
+    writes: the samples stay request-scoped, so synthetic fixtures can be
+    audited without touching production tables.
+    """
+    from app.tools.reality_audit import audit_samples
+
+    samples = body.get("samples")
+    if not isinstance(samples, list) or not samples:
+        raise ApiError("需要非空 samples 数组", code="samples_required")
+    if len(samples) > 200:
+        raise ApiError("单次审计样本过多（≤200）", code="too_many_samples")
+    return audit_samples(samples)
+
+
 def _platform_for_collector(collector_type: str) -> str:
     """Map a collector to its platform; unknown collectors fall back safely."""
     from app.models.evidence import CollectorType, SourcePlatform
