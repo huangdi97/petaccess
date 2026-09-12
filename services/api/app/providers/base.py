@@ -6,7 +6,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 
 @dataclass(frozen=True)
@@ -45,9 +45,14 @@ class NotificationProvider(Protocol):
 
 @runtime_checkable
 class MapProvider(Protocol):
-    """Map provider adapter (ADR-008): Tencent first, mock for dev."""
+    """Map provider adapter (ADR-008): Tencent first, mock for dev.
 
-    def search_places(self, keyword: str, lat: float, lng: float, radius_m: int) -> list[dict]: ...
+    search_places returns provider-shaped entries (dicts for the mock;
+    RemotePlace for the Tencent adapter). Callers map them into
+    ExternalPlaceRef rows — provider ids never become primary keys (ADR-003).
+    """
+
+    def search_places(self, keyword: str, lat: float, lng: float, radius_m: int) -> list[Any]: ...
 
     def reverse_geocode(self, lat: float, lng: float) -> dict: ...
 

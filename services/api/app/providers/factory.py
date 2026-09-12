@@ -44,10 +44,15 @@ def get_notification_provider() -> NotificationProvider:
 @lru_cache
 def get_map_provider() -> MapProvider:
     settings = get_settings()
-    if settings.feature_real_map and settings.map_provider != "mock":
-        if not settings.tencent_map_key_client and not settings.tencent_map_key_server:
+    if settings.map_provider == "tencent" or (
+        settings.feature_real_map and settings.tencent_map_key_server
+    ):
+        key = settings.tencent_map_key_server or settings.tencent_map_key_client
+        if not key:
             raise RuntimeError("腾讯地图 Key 未配置（TENCENT_MAP_KEY_*），保持 mock")
-        raise RuntimeError("腾讯地图 adapter 需要真实 key 联调（见 BLOCKERS.md）")
+        from .tencent_map import TencentMapProvider
+
+        return TencentMapProvider(key)
     return MockMapProvider()
 
 
