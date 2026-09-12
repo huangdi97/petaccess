@@ -152,6 +152,9 @@ def run_demo_seed() -> dict[str, int]:  # noqa: PLR0915 - linear demo data scrip
         "place_geometry",
         # --- v0.5 domain tables ---
         "rule_candidate",
+        "observation_candidate",
+        "evidence_bundle",
+        "source_artifact",
         "data_source_job",
         "source_monitor",
         "policy_template_rule",

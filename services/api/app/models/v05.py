@@ -147,6 +147,11 @@ class RuleCandidate(Base, PkMixin, TimestampMixin):
     media_id: Mapped[str | None] = mapped_column(
         String(36), nullable=True
     )  # media_object ref (no FK to avoid cycle with track A)
+    evidence_bundle_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("evidence_bundle.id", ondelete="RESTRICT"),
+        nullable=True,
+    )  # candidates from the evidence chain cite their bundle (brief §5)
 
 
 CANDIDATE_TRANSITIONS: dict[str, set[str]] = {

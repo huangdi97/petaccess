@@ -62,6 +62,7 @@ class CandidateIn(BaseModel):
     internal_confidence: float | None = Field(default=None, ge=0, le=1)
     raw_text: str | None = None
     media_id: str | None = None
+    evidence_bundle_id: str | None = None
 
 
 class CandidateReview(BaseModel):
@@ -108,6 +109,7 @@ def _candidate_dict(c) -> dict:
         "review_note": c.review_note,
         "published_rule_id": c.published_rule_id,
         "media_id": c.media_id,
+        "evidence_bundle_id": c.evidence_bundle_id,
         "created_at": c.created_at,
     }
 
@@ -139,6 +141,11 @@ def admin_create_candidate(
 ):
     if db.get(Source, body.source_id) is None:
         raise NotFound("来源不存在")
+    if body.evidence_bundle_id:
+        from app.models.evidence import EvidenceBundle
+
+        if db.get(EvidenceBundle, body.evidence_bundle_id) is None:
+            raise NotFound("证据包不存在")
     cand = create_from_extraction(
         db,
         source_id=body.source_id,
@@ -153,6 +160,7 @@ def admin_create_candidate(
         internal_confidence=body.internal_confidence,
         raw_text=body.raw_text,
         media_id=body.media_id,
+        evidence_bundle_id=body.evidence_bundle_id,
     )
     record_audit(
         db,
@@ -1601,6 +1609,15 @@ def admin_transition_observation_candidate(
             f"非法状态迁移 {cand.review_status} → {target}",
             code="invalid_observation_transition",
         )
+    if target == "PUBLISHED" and cand.evidence_bundle_id:
+        # Publishing an observation claim derived from a lead-only platform is
+        # redistribution: the same licence gate as the rule lane applies.
+        from app.models.evidence import EvidenceBundle
+        from app.services.evidence_service import ClaimKind, assert_publishable
+
+        bundle = db.get(EvidenceBundle, cand.evidence_bundle_id)
+        if bundle is not None:
+            assert_publishable(bundle, kind=ClaimKind.OBSERVATION)
     before = cand.review_status
     cand.review_status = target
     cand.reviewer_id = user.id

@@ -20,10 +20,14 @@ v0.5 数据库迁移文档 — 记录实际存在的迁移、回填策略、已�
 | 4 | `b2a1c7d9e001` | backfill rule_layer | 由 `source.source_type` 确定性回填 `access_rule.rule_layer`（见 §3） | additive（仅回填可空列，幂等） |
 | 5 | `5cb24fc8e838` | evidence-first | 新增 `source_artifact`、`evidence_bundle`、`observation_candidate` | additive（新表） |
 | 6 | `4565819baf78` | source_monitor last_excerpt | `source_monitor` 增加 `last_excerpt`（Text，可空），用于把检测到的源变化转成可追溯 EvidenceBundle | additive（可空列） |
+| 7 | `c81e02ba6d45` | rule_candidate evidence bundle link | `rule_candidate` 增加 `evidence_bundle_id`（可空，FK→evidence_bundle RESTRICT），使证据链产出的候选可追溯并在发布边界执行 lead-only 许可闸门（E2E-D） | additive（可空列 + FK） |
 
 无任何 drop/rename/非空化 破坏性操作。第 6 个迁移的 autogenerate 曾提议删除手写的
 `ix_place_canonical_name_trgm` GIN/trgm 索引（Alembic 无法内省），已在迁移中显式保留
 ——该索引承载场所模糊搜索，删除会静默降级。
+
+seed 重置清单相应纳入 `observation_candidate` / `evidence_bundle` / `source_artifact`
+（在 `rule_candidate` 之后、`data_source_job` 之前删除，RESTRICT 外键顺序安全）。
 
 ## 2. `4930732f4783`（v0.5 域）新增与增量明细
 
@@ -73,12 +77,16 @@ $ uv run alembic downgrade base     # 6 个 downgrade 步全部执行（第 2 �
 $ uv run alembic upgrade head       # 6 个 upgrade 步全部执行（第 2 轮）
 $ uv run alembic current
 4565819baf78 (head)
+# 追加 revision 7 后：upgrade head → downgrade -1 → upgrade head，三步干净通过
+$ uv run alembic current
+c81e02ba6d45 (head)
 $ uv run python -m app.db.seed --demo
 Demo seed complete: {'users': 4, 'pets': 3, 'places': 4, 'zones': 15, …, 'sources': 8, …}
 ```
 
 即 **down → up → down → up 双循环干净通过**（每方向各 6 个 revision 步），
-升级后 demo seed 正常。基线测试在同日重跑：pytest 129 passed、Playwright 7 passed。
+revision 7 通过升级 → 降级 → 再升级单项循环验证，升级后 demo seed 正常。
+基线测试在同日重跑：pytest 130 passed、Playwright 7 passed。
 
 ## 6. 回滚说明
 

@@ -6,6 +6,8 @@
   template inheritance + explicit override
 - E2E-C 来源监控: source hash change → candidate → review → new rule supersedes
   old → watch notification fired (mock sink in Redis)
+- E2E-D 外部公开线索: lead → SourceArtifact → EvidenceBundle → classify →
+  Rule/Observation candidates → review → **no direct publish** without licence
 """
 
 import uuid
@@ -440,3 +442,236 @@ def test_e2e_c_source_monitor_change_to_new_rule_and_watch(client, moderator):
     finally:
         sm._assert_public_host = orig_assert_public_host
         server.shutdown()
+
+
+def test_e2e_d_external_lead_never_publishes_directly(client, moderator):
+    """E2E-D 外部公开线索（brief §5/§10, NEXT_GOAL C1）：
+
+    lead fixture → SourceArtifact → EvidenceBundle → classify 双通道
+    → Rule/Observation 候选 → 人工复核 → 无再分发许可不得直接发布。
+    同一链路在补齐许可后必须可发布（闸门按许可判定，不按平台一刀切）。
+    """
+    place_id = _new_place(client, moderator, "E2E-D 线索书店咖啡")
+    src_id = _new_source(client, moderator, "E2E-D 论坛线索", source_type="external_web_reference")
+
+    # --- 1. lead fixture → SourceArtifact（用户提交的公开帖子链接；许可默认全拒）
+    art = client.post(
+        "/api/v1/admin/source-artifacts",
+        json={
+            "source_id": src_id,
+            "collector_type": "UserLinkCollector",
+            "artifact_type": "url",
+            "source_url": "https://forum.example/t/pet-policy-123",
+            "source_content_id": "forum-post-123",
+            "content_hash": "b" * 64,
+            "publisher_type": "ordinary_user",
+            "captured_excerpt": "楼主说该店规定宠物不能进室内，只能坐户外",
+        },
+        headers=_auth(moderator),
+    )
+    assert art.status_code == 201, art.text
+    art_id = art.json()["id"]
+    assert art.json()["source_platform"] == "user_link"
+
+    # --- 2. EvidenceBundle：可追溯的原文引用
+    bundle = client.post(
+        "/api/v1/admin/evidence-bundles",
+        json={
+            "artifact_id": art_id,
+            "quoted_fragment": "该店规定宠物不能进室内，只能坐户外",
+            "extraction_method": "manual",
+        },
+        headers=_auth(moderator),
+    )
+    assert bundle.status_code == 201, bundle.text
+    bundle_id = bundle.json()["id"]
+    assert bundle.json()["license_metadata"]["redistribution_allowed"] is False
+
+    # --- 3. classify：政策措辞进规则通道
+    lane = client.post(
+        "/api/v1/admin/evidence/classify",
+        json={"text": "该店规定宠物不能进室内，只能坐户外"},
+        headers=_auth(moderator),
+    ).json()
+    assert lane["kind"] == "rule"
+
+    # --- 4. 规则通道候选：必须引用 bundle，且只到 MATCH_PENDING
+    cand = client.post(
+        "/api/v1/admin/candidates",
+        json={
+            "source_id": src_id,
+            "place_id": place_id,
+            "animal_scope": "ordinary_pet",
+            "action": "enter",
+            "effect": "prohibited",
+            "extraction_method": "user_link",
+            "raw_text": "该店规定宠物不能进室内，只能坐户外",
+            "evidence_bundle_id": bundle_id,
+        },
+        headers=_auth(moderator),
+    )
+    assert cand.status_code == 201, cand.text
+    cand_id = cand.json()["id"]
+    assert cand.json()["review_status"] == "MATCH_PENDING"
+    assert cand.json()["evidence_bundle_id"] == bundle_id
+
+    # --- 5. 复核走到 APPROVED，发布必须被闸门拒绝（无再分发许可）
+    client.post(
+        f"/api/v1/admin/candidates/{cand_id}/transition",
+        json={"target": "REVIEW_PENDING", "note": "已匹配场所"},
+        headers=_auth(moderator),
+    )
+    client.post(
+        f"/api/v1/admin/candidates/{cand_id}/transition",
+        json={"target": "APPROVED", "note": "内容与原文一致"},
+        headers=_auth(moderator),
+    )
+    blocked = client.post(f"/api/v1/admin/candidates/{cand_id}/publish", headers=_auth(moderator))
+    assert blocked.status_code == 400, blocked.text
+    assert blocked.json()["error"]["code"] == "lead_only_source_not_publishable"
+
+    # 发布被拒后复核员驳回候选（正确收口），历史保留
+    client.post(
+        f"/api/v1/admin/candidates/{cand_id}/transition",
+        json={"target": "REJECTED", "note": "lead-only 来源，缺再分发许可"},
+        headers=_auth(moderator),
+    )
+
+    # --- 6. 观察通道：同一 lead 的目击内容走观察状态机，PUBLISHED 同样被闸门拦截
+    obs_art = client.post(
+        "/api/v1/admin/source-artifacts",
+        json={
+            "source_id": src_id,
+            "collector_type": "UserLinkCollector",
+            "artifact_type": "url",
+            "source_url": "https://forum.example/t/pet-policy-123#reply9",
+            "content_hash": "c" * 64,
+            "publisher_type": "ordinary_user",
+            "captured_excerpt": "我看到有人把狗放在座位上",
+        },
+        headers=_auth(moderator),
+    ).json()
+    obs_bundle = client.post(
+        "/api/v1/admin/evidence-bundles",
+        json={"artifact_id": obs_art["id"], "quoted_fragment": "我看到有人把狗放在座位上"},
+        headers=_auth(moderator),
+    ).json()
+    obs_lane = client.post(
+        "/api/v1/admin/evidence/classify",
+        json={"text": "我看到有人把狗放在座位上"},
+        headers=_auth(moderator),
+    ).json()
+    assert obs_lane["kind"] == "observation"
+
+    obs_cand = client.post(
+        "/api/v1/admin/observation-candidates",
+        json={
+            "evidence_bundle_id": obs_bundle["id"],
+            "place_id": place_id,
+            "animal_scope": "ordinary_pet",
+            "observed_action": "on_seat",
+            "spatial_context": "customer_seat",
+        },
+        headers=_auth(moderator),
+    )
+    assert obs_cand.status_code == 201, obs_cand.text
+    obs_id = obs_cand.json()["id"]
+    for target in ("EXTRACTED", "PLACE_MATCH_PENDING", "REVIEW_PENDING", "APPROVED"):
+        resp = client.post(
+            f"/api/v1/admin/observation-candidates/{obs_id}/transition",
+            json={"target": target},
+            headers=_auth(moderator),
+        )
+        assert resp.status_code == 200, resp.text
+    obs_blocked = client.post(
+        f"/api/v1/admin/observation-candidates/{obs_id}/transition",
+        json={"target": "PUBLISHED"},
+        headers=_auth(moderator),
+    )
+    assert obs_blocked.status_code == 400, obs_blocked.text
+    assert obs_blocked.json()["error"]["code"] == "lead_only_source_not_publishable"
+
+    # --- 7. 整条 lead 链不得产生任何规范规则
+    from sqlalchemy import func, select
+
+    from app.db.session import get_session_factory
+    from app.models import AccessRule
+
+    s = get_session_factory()()
+    count = (
+        s.scalar(
+            select(func.count()).select_from(AccessRule).where(AccessRule.place_id == place_id)
+        )
+        or 0
+    )
+    s.close()
+    assert count == 0, "lead 未取得许可前不得产生 AccessRule"
+
+    # --- 8. 对照组：同一链路，管理方核验许可后（redistribution_allowed=True）
+    #        必须可正常发布 —— 闸门判的是许可，不是平台。
+    licensed_art = client.post(
+        "/api/v1/admin/source-artifacts",
+        json={
+            "source_id": src_id,
+            "collector_type": "UserLinkCollector",
+            "artifact_type": "url",
+            "source_url": "https://forum.example/t/pet-policy-123",
+            "content_hash": "d" * 64,
+            "publisher_type": "official_operator",
+            "captured_excerpt": "店方在帖子中确认：宠物不能进室内",
+            "redistribution_allowed": True,
+        },
+        headers=_auth(moderator),
+    ).json()
+    licensed_bundle = client.post(
+        "/api/v1/admin/evidence-bundles",
+        json={
+            "artifact_id": licensed_art["id"],
+            "quoted_fragment": "店方确认宠物不能进室内",
+            "extraction_method": "manual",
+        },
+        headers=_auth(moderator),
+    ).json()
+    assert licensed_bundle["license_metadata"]["redistribution_allowed"] is True
+
+    licensed_cand = client.post(
+        "/api/v1/admin/candidates",
+        json={
+            "source_id": src_id,
+            "place_id": place_id,
+            "animal_scope": "ordinary_pet",
+            "action": "enter",
+            "effect": "prohibited",
+            "extraction_method": "user_link",
+            "raw_text": "店方确认宠物不能进室内",
+            "evidence_bundle_id": licensed_bundle["id"],
+        },
+        headers=_auth(moderator),
+    )
+    assert licensed_cand.status_code == 201, licensed_cand.text
+    licensed_id = licensed_cand.json()["id"]
+    client.post(
+        f"/api/v1/admin/candidates/{licensed_id}/transition",
+        json={"target": "REVIEW_PENDING"},
+        headers=_auth(moderator),
+    )
+    client.post(
+        f"/api/v1/admin/candidates/{licensed_id}/transition",
+        json={"target": "APPROVED", "note": "店方本尊回帖确认，许可已核"},
+        headers=_auth(moderator),
+    )
+    pub = client.post(f"/api/v1/admin/candidates/{licensed_id}/publish", headers=_auth(moderator))
+    assert pub.status_code == 200, pub.text
+    rule_id = pub.json()["published_rule_id"]
+
+    eff = client.post(f"/api/v1/places/{place_id}/effective-rules", json={"animal": "dog"}).json()
+    assert rule_id in eff["applicable_rules"]
+    assert eff["effect"] == "prohibited"
+
+    # 审计：发布动作已记录（审计挂在产出的规则上，与 E2E-A 一致）
+    from app.models import AuditLog
+
+    s = get_session_factory()()
+    audits = s.scalars(select(AuditLog).where(AuditLog.target_id == rule_id)).all()
+    s.close()
+    assert any(a.action == "candidate.publish" for a in audits)

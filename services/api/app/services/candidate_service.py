@@ -51,6 +51,7 @@ def create_from_extraction(
     internal_confidence: float | None = None,
     raw_text: str | None = None,
     media_id: str | None = None,
+    evidence_bundle_id: str | None = None,
 ) -> RuleCandidate:
     """Entry point for OCR/AI/monitor/import outputs. Creates the candidate in
     MATCH_PENDING when extraction already produced structured fields (the next
@@ -69,6 +70,7 @@ def create_from_extraction(
         internal_confidence=internal_confidence,
         raw_text=raw_text[:4000] if raw_text else None,
         media_id=media_id,
+        evidence_bundle_id=evidence_bundle_id,
         review_status=status,
     )
     db.add(candidate)
@@ -91,6 +93,17 @@ def publish(
     source = db.get(Source, candidate.source_id)
     if source is None:
         raise ApiError("来源不存在", code="source_missing")
+    if candidate.evidence_bundle_id:
+        # Publish boundary for the evidence chain (brief §5/§10): a lead-only
+        # platform bundle without a redistribution licence can be reviewed but
+        # never published, and rule evidence must stay traceable to its quote/hash.
+        from app.models.evidence import EvidenceBundle
+        from app.services.evidence_service import ClaimKind, assert_publishable
+
+        bundle = db.get(EvidenceBundle, candidate.evidence_bundle_id)
+        if bundle is None:
+            raise ApiError("证据包不存在", code="evidence_bundle_missing")
+        assert_publishable(bundle, kind=ClaimKind.RULE)
 
     rule = AccessRule(
         place_id=candidate.place_id,

@@ -45,7 +45,7 @@ and its real output recorded in `WORKBUDDY_TAKEOVER_REPORT.md` /
 
 | Gate | 验收 | 状态 |
 |---|---|---|
-| V34 | E2E-D external public lead（不得直接发布） | **NOT_STARTED** |
+| V34 | E2E-D external public lead（不得直接发布） | **PASS** — lead→artifact→bundle→classify 双通道→复核→发布被 `lead_only_source_not_publishable` 拦截；许可补齐后同链路可发布（闸门按许可判定）；观察通道 PUBLISHED 同步接线闸门；新增迁移 `c81e02ba6d45`（rule_candidate.evidence_bundle_id）；测试 `test_e2e_d_external_lead_never_publishes_directly` |
 | V35 | Adversarial fixtures（≥30 类） | **NOT_STARTED** |
 | V36 | `MIGRATION_V05.md` | **PASS** — 文档生成；down→up→down→up 双循环（6 revision/向）真实验证干净通过；backfill 幂等不猜；demo seed 复跑正常 |
 | V37 | Evidence-first / EvidenceBundle 一等实体 | **PASS** — `source_artifact` + `evidence_bundle` + `observation_candidate` 建表（migration `5cb24fc8e838`），22 单元测试 + 6 API 测试 |
