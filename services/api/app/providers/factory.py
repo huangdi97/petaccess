@@ -5,8 +5,20 @@ from typing import TYPE_CHECKING
 
 from app.core.config import get_settings
 
-from .base import MapProvider, NotificationProvider, OCRProvider, VisionProvider
-from .mock import MockMapProvider, MockNotificationProvider, MockOCRProvider, MockVisionProvider
+from .base import (
+    MapProvider,
+    NaturalLanguageQueryProvider,
+    NotificationProvider,
+    OCRProvider,
+    VisionProvider,
+)
+from .mock import (
+    MockMapProvider,
+    MockNLQueryProvider,
+    MockNotificationProvider,
+    MockOCRProvider,
+    MockVisionProvider,
+)
 
 if TYPE_CHECKING:
     from .storage import StorageProvider
@@ -54,6 +66,21 @@ def get_map_provider() -> MapProvider:
 
         return TencentMapProvider(key)
     return MockMapProvider()
+
+
+@lru_cache
+def get_nl_provider() -> NaturalLanguageQueryProvider:
+    settings = get_settings()
+    if settings.feature_real_ai and settings.ai_api_key:
+        raise RuntimeError("NL provider 真实 adapter 未选型（见 AI_PROVIDER_SELECTION.md）")
+    return MockNLQueryProvider()
+
+
+@lru_cache
+def get_ai_guard():
+    from .ai_guard import AiGuard
+
+    return AiGuard()
 
 
 @lru_cache

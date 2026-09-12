@@ -39,6 +39,19 @@ class OCRProvider(Protocol):
 
 
 @runtime_checkable
+class NaturalLanguageQueryProvider(Protocol):
+    """Parses a natural-language query into a QueryContext DRAFT (design #12).
+
+    Output is always a draft: the deterministic evaluator remains the only
+    rule judge (ADR-005). Implementations must never return verdicts.
+    """
+
+    def parse_query(
+        self, text: str, lat: float | None = None, lng: float | None = None
+    ) -> dict: ...
+
+
+@runtime_checkable
 class NotificationProvider(Protocol):
     def send(self, user_id: str, channel: str, title: str, body: str) -> dict: ...
 

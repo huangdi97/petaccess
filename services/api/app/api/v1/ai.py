@@ -14,7 +14,12 @@ from pydantic import BaseModel, Field
 from app.core.config import get_settings
 from app.core.errors import ApiError
 from app.core.security import get_current_user
-from app.providers.factory import get_ocr_provider, get_vision_provider
+from app.providers.factory import (
+    get_ai_guard,
+    get_nl_provider,
+    get_ocr_provider,
+    get_vision_provider,
+)
 from app.providers.mock import MockMapProvider
 
 router = APIRouter(prefix="/ai", tags=["ai"])
@@ -41,7 +46,7 @@ async def classify_pet(
     data = await image.read()
     if len(data) > 10 * 1024 * 1024:
         raise ApiError("图片超过 10MB 限制", code="payload_too_large", status_code=413)
-    suggestion = provider.classify_pet(data)
+    suggestion = get_ai_guard().call("vision", "classify_pet", lambda: provider.classify_pet(data))
     return PetVisionOut(
         species=suggestion.species,
         breed_candidates=suggestion.breed_candidates,
@@ -64,7 +69,9 @@ async def ocr_signage(
     data = await image.read()
     if len(data) > 10 * 1024 * 1024:
         raise ApiError("图片超过 10MB 限制", code="payload_too_large", status_code=413)
-    result = get_ocr_provider().extract_text(data)
+    result = get_ai_guard().call(
+        "ocr", "extract_text", lambda: get_ocr_provider().extract_text(data)
+    )
     return OcrOut(
         text_blocks=result.text_blocks,
         rule_candidates=result.rule_candidates,
@@ -95,22 +102,15 @@ def parse_query(
     Real LLM adapter would return the same shape; the deterministic evaluator
     remains the only rule judge (ADR-005).
     """
-    text = body.text
-    animal: dict | None = None
-    import re
-
-    weight = re.search(r"(\d+(?:\.\d+)?)\s*kg", text)
-    species = "dog" if ("犬" in text or "狗" in text) else ("cat" if "猫" in text else None)
-    if species or weight:
-        animal = {
-            "species": species or "other",
-            "weight_kg": float(weight.group(1)) if weight else None,
-        }
-    keywords = [w for w in ("咖啡", "公园", "商场", "社区", "附近") if w in text]
+    parsed = get_ai_guard().call(
+        "nlq",
+        "parse_query",
+        lambda: get_nl_provider().parse_query(body.text, body.lat, body.lng),
+    )
     return ParseQueryOut(
-        intent="search_places",
-        animal=animal,
-        keywords=keywords or [text],
+        intent=parsed["intent"],
+        animal=parsed.get("animal"),
+        keywords=parsed["keywords"],
         note="解析仅为查询草稿，准入判定由确定性 evaluator 完成。",
     )
 

@@ -95,6 +95,29 @@ class MockNotificationProvider:
         return {"status": "sent_mock", "item": item}
 
 
+class MockNLQueryProvider:
+    """Deterministic regex-based draft parser (no network, no LLM)."""
+
+    def parse_query(self, text: str, lat: float | None = None, lng: float | None = None) -> dict:
+        import re
+
+        weight = re.search(r"(\d+(?:\.\d+)?)\s*kg", text)
+        species = "dog" if ("犬" in text or "狗" in text) else ("cat" if "猫" in text else None)
+        animal = None
+        if species or weight:
+            animal = {
+                "species": species or "other",
+                "weight_kg": float(weight.group(1)) if weight else None,
+            }
+        keywords = [w for w in ("咖啡", "公园", "商场", "社区", "附近") if w in text]
+        return {
+            "intent": "search_places",
+            "animal": animal,
+            "keywords": keywords or [text],
+            "note": "解析仅为查询草稿，准入判定由确定性 evaluator 完成。",
+        }
+
+
 class MockMapProvider:
     """Synthetic map data around the demo city center (no key needed)."""
 
