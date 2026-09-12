@@ -1120,6 +1120,230 @@ def run_demo_seed() -> dict[str, int]:  # noqa: PLR0915 - linear demo data scrip
     )
     session.add(watch_1)
 
+    # --- v0.5 demo data (NEXT_GOAL Track B) ---
+    from app.models.v05 import (
+        AccessPath,
+        Amenity,
+        BoundaryPreference,
+        BoundaryProfile,
+        CoexistencePolicy,
+        DataLicense,
+        Entrance,
+        EventPolicy,
+        FreshnessPolicy,
+        Organization,
+        PlacePolicyBinding,
+        PolicyTemplate,
+        PolicyTemplateRule,
+        SourceMonitor,
+    )
+
+    org_yunqi = Organization(
+        id=uid("org_yunqi"),
+        name="云栖集团（演示）",
+        kind="brand",
+        contact_email="group@yunqi-demo.example",
+    )
+    template_mall = PolicyTemplate(
+        id=uid("template_mall"),
+        organization_id=org_yunqi.id,
+        name="云栖集团商场宠物通则（演示）",
+        version=1,
+        status="current",
+        venue_scope="mall",
+    )
+    tr1 = PolicyTemplateRule(
+        id=uid("template_rule_carrier"),
+        template_id=template_mall.id,
+        animal_scope="ordinary_pet",
+        action="enter",
+        effect="conditional",
+        conditions=[{"condition_type": "carrier_required", "value_flag": True}],
+        rule_layer="OPERATOR_POLICY",
+        notes="集团：公共区域需宠物包",
+    )
+    tr2 = PolicyTemplateRule(
+        id=uid("template_rule_sd"),
+        template_id=template_mall.id,
+        animal_scope="service_dog",
+        action="enter",
+        effect="allowed",
+        rule_layer="OPERATOR_POLICY",
+        notes="集团：服务犬通用通行",
+    )
+    binding_yunqi = PlacePolicyBinding(
+        id=uid("binding_yunqi"),
+        place_id=places["place_yunqi_mall"].id,
+        template_id=template_mall.id,
+        is_active=True,
+        overrides=[
+            {
+                "id": "ovr-b1",
+                "zone_id": z_mall_b1.id,
+                "animal_scope": "ordinary_pet",
+                "action": "enter",
+                "effect": "prohibited",
+                "note": "门店 override：B1 超市集团通则之上明确禁止",
+            }
+        ],
+        source_id=src_mall_policy.id,
+    )
+    session.add_all([org_yunqi, template_mall, tr1, tr2])
+    session.flush()
+    session.add(binding_yunqi)
+    session.flush()
+
+    coex_cafe = [
+        CoexistencePolicy(
+            id=uid("coex_outdoor"),
+            place_id=places["place_xinghe_cafe"].id,
+            zone_id=z_cafe_outdoor.id,
+            attribute="ordinary_pet_outdoor_dining",
+            value="allowed",
+            source_id=src_signage_cafe.id,
+            verified_at=NOW - D(days=16),
+        ),
+        CoexistencePolicy(
+            id=uid("coex_indoor"),
+            place_id=places["place_xinghe_cafe"].id,
+            zone_id=z_cafe_indoor.id,
+            attribute="ordinary_pet_indoor_dining",
+            value="prohibited",
+            source_id=src_signage_cafe.id,
+            verified_at=NOW - D(days=16),
+        ),
+        CoexistencePolicy(
+            id=uid("coex_tableware"),
+            place_id=places["place_xinghe_cafe"].id,
+            zone_id=None,
+            attribute="animal_use_customer_tableware",
+            value="prohibited",
+            source_id=src_signage_cafe.id,
+            verified_at=NOW - D(days=16),
+        ),
+        CoexistencePolicy(
+            id=uid("coex_seat"),
+            place_id=places["place_xinghe_cafe"].id,
+            zone_id=None,
+            attribute="animal_on_customer_seat",
+            value="prohibited",
+            source_id=src_signage_cafe.id,
+            verified_at=NOW - D(days=16),
+        ),
+    ]
+    session.add_all(coex_cafe)
+
+    session.add_all(
+        [
+            Amenity(
+                id=uid("amen_water"),
+                place_id=places["place_qinglan_park"].id,
+                zone_id=z_park_pet.id,
+                amenity_type="PET_WATER",
+                status="available",
+                source_id=src_park_gov.id,
+                verified_at=NOW - D(days=20),
+            ),
+            Amenity(
+                id=uid("amen_bag"),
+                place_id=places["place_qinglan_park"].id,
+                zone_id=z_park_pet.id,
+                amenity_type="WASTE_BAG",
+                status="available",
+                source_id=src_park_gov.id,
+                verified_at=NOW - D(days=20),
+            ),
+            Entrance(
+                id=uid("entrance_south"),
+                place_id=places["place_yunqi_mall"].id,
+                zone_id=z_mall_1f.id,
+                name="南门宠物通道",
+                entrance_type="PET_DESIGNATED",
+                access_notes="宠物推车/包从南门专用通道进入",
+                source_id=src_mall_policy.id,
+            ),
+            AccessPath(
+                id=uid("path_pet_zone"),
+                place_id=places["place_yunqi_mall"].id,
+                name="南门 → 3F 宠物区路线",
+                from_node="南门",
+                to_node="3F 宠物区",
+                steps=[
+                    {"step": 1, "node": "南门宠物通道"},
+                    {"step": 2, "node": "2号宠物梯"},
+                    {"step": 3, "node": "3F 宠物区"},
+                ],
+                animal_scope="ordinary_pet",
+                conditions=[{"condition_type": "carrier_required", "value_flag": True}],
+                source_id=src_mall_policy.id,
+            ),
+            SourceMonitor(
+                id=uid("monitor_park"),
+                source_id=src_park_gov.id,
+                url="https://demo-gov.example/park-pet-policy",
+                schedule_minutes=1440,
+                place_id=places["place_qinglan_park"].id,
+                content_hash="seedhash0001",
+            ),
+            FreshnessPolicy(
+                id=uid("freshness_default"), name="默认 90 天复核", review_interval_days=90
+            ),
+            DataLicense(
+                id=uid("license_park_gov"),
+                source_id=src_park_gov.id,
+                display_allowed=True,
+                storage_allowed=True,
+                redistribution_allowed=False,
+                commercial_use_allowed=False,
+                attribution_required=True,
+                license_name="演示政府公开数据协议",
+            ),
+            BoundaryProfile(
+                id=uid("boundary_alice"),
+                user_id=users["alice"].id,
+                name="A 的共处边界",
+                is_default=True,
+            ),
+            BoundaryPreference(
+                id=uid("bpref_indoor"),
+                profile_id=uid("boundary_alice"),
+                attribute="ordinary_pet_indoor_dining",
+                stance="avoid",
+                note="不接受普通宠物室内堂食",
+            ),
+            BoundaryPreference(
+                id=uid("bpref_outdoor"),
+                profile_id=uid("boundary_alice"),
+                attribute="ordinary_pet_outdoor_dining",
+                stance="accept",
+            ),
+            BoundaryPreference(
+                id=uid("bpref_seat"),
+                profile_id=uid("boundary_alice"),
+                attribute="animal_on_customer_seat",
+                stance="avoid",
+            ),
+            BoundaryPreference(
+                id=uid("bpref_tableware"),
+                profile_id=uid("boundary_alice"),
+                attribute="animal_use_customer_tableware",
+                stance="require_prohibited",
+            ),
+            EventPolicy(
+                id=uid("event_market"),
+                place_id=places["place_qinglan_park"].id,
+                zone_id=z_park_pet.id,
+                name="周末宠物市集（演示）",
+                animal_scope="ordinary_pet",
+                action="enter",
+                effect="allowed",
+                effective_from=NOW + D(days=7),
+                effective_to=NOW + D(days=9),
+                source_id=src_park_gov.id,
+            ),
+        ]
+    )
+
     # --- audit log entry for the operator claim approval (design #25) ---
     session.add(
         AuditLog(
