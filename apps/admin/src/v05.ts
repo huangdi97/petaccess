@@ -106,16 +106,18 @@ export const COEXISTENCE_ATTRIBUTES = [
   { value: "size_limit", label: "是否有体型限制" },
   { value: "breed_limit", label: "是否有品种限制" },
   { value: "peak_hours_restriction", label: "高峰时段是否限制" },
+  { value: "dining_together", label: "是否可与同桌就餐" },
+  { value: "waiting_area", label: "是否设有等候区" },
 ];
 
-/** Neutral stance vocabulary. Never "safe/dangerous" — brief §7 forbids
- *  judging the venue; a stance describes the user's own requirement. */
+/** Boundary stance vocabulary — must match the branches in
+ *  `app.rulespec.v05_boundary.match()`. A stance describes the *user's own*
+ *  requirement; it is never a verdict about the venue (brief §7). */
 export const COEXISTENCE_STANCES = [
-  { value: "acceptable", label: "可接受" },
-  { value: "not_acceptable", label: "不可接受" },
-  { value: "prefer_avoid", label: "倾向避开" },
-  { value: "context_dependent", label: "视情况而定" },
-  { value: "unknown", label: "未知" },
+  { value: "accept", label: "可接受" },
+  { value: "avoid", label: "希望没有" },
+  { value: "require_prohibited", label: "必须禁止（硬性要求）" },
+  { value: "prefer", label: "希望提供" },
 ];
 
 // ---- amenity types (kept as free text with suggestions)

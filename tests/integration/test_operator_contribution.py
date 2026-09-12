@@ -65,7 +65,7 @@ def test_operator_claim_full_loop(client):
         json={
             "canonical_name": "认领演示商店",
             "place_type": "store",
-            "location_wkt": "POINT(121.472 31.231)",
+            "location_wkt": "POINT(122.500 30.500)",
         },
         headers=_auth(mod_tok),
     )

@@ -127,6 +127,11 @@ const STATUS_TEXT: Record<string, string> = {
         <button style="margin-top: 10px" @click="toggleWatch">
           {{ watching ? "已关注规则变化 ✓（点击取消）" : "关注此场所规则变化" }}
         </button>
+        <RouterLink :to="`/place/${placeId}/why`">
+          <button style="margin-top: 10px; margin-left: 6px" class="primary" data-testid="open-why">
+            为什么是这个结果
+          </button>
+        </RouterLink>
       </div>
 
       <div v-if="answer" class="answer panel" :class="'s-' + answer.status" data-testid="answer">

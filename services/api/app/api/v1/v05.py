@@ -791,6 +791,145 @@ def effective_rules(
     }
 
 
+# ----------------------------------------------------- user boundary profile
+# The H5 "共处边界" screen needs to persist the caller's own preferences.
+# These are user-scoped (not admin), so they live on `router`, not `admin`.
+# A profile describes *the user's* requirement; matching is per-item and never
+# produces a single score (brief §8).
+
+
+class BoundaryPreferenceIn(BaseModel):
+    attribute: str = Field(min_length=1, max_length=60)
+    stance: str = Field(min_length=1, max_length=30)
+    note: str | None = Field(default=None, max_length=300)
+
+
+class BoundaryProfileIn(BaseModel):
+    name: str = Field(min_length=1, max_length=80)
+    is_default: bool = True
+    preferences: list[BoundaryPreferenceIn] = []
+
+
+#: Stances the matcher understands (app.rulespec.v05_boundary.match).
+_BOUNDARY_STANCES = {"accept", "avoid", "require_prohibited", "prefer"}
+
+
+def _serialize_boundary_profile(profile) -> dict:
+    return {
+        "id": profile.id,
+        "user_id": profile.user_id,
+        "name": profile.name,
+        "is_default": profile.is_default,
+        "preferences": [
+            {
+                "id": p.id,
+                "attribute": p.attribute,
+                "stance": p.stance,
+                "note": p.note,
+            }
+            for p in profile.preferences
+        ],
+        "created_at": profile.created_at,
+    }
+
+
+@router.get("/boundary-profiles")
+def list_my_boundary_profiles(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    from app.models.v05 import BoundaryProfile
+
+    rows = db.scalars(
+        select(BoundaryProfile)
+        .where(BoundaryProfile.user_id == user.id)
+        .order_by(BoundaryProfile.is_default.desc())
+    ).all()
+    return {"items": [_serialize_boundary_profile(p) for p in rows]}
+
+
+@router.get("/boundary-profiles/default")
+def get_default_boundary_profile(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Returns 404-free shape: `profile: null` when the user has none yet."""
+    from app.models.v05 import BoundaryProfile
+
+    profile = db.scalar(
+        select(BoundaryProfile)
+        .where(BoundaryProfile.user_id == user.id)
+        .order_by(BoundaryProfile.is_default.desc())
+    )
+    return {"profile": _serialize_boundary_profile(profile) if profile else None}
+
+
+@router.put("/boundary-profiles/default")
+def upsert_default_boundary_profile(
+    body: BoundaryProfileIn,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Replace the caller's default profile wholesale.
+
+    Replacing rather than patching keeps the UI simple and avoids stale
+    preferences lingering after a user clears a stance.
+    """
+    from app.models.v05 import BoundaryPreference, BoundaryProfile
+
+    for pref in body.preferences:
+        if pref.stance not in _BOUNDARY_STANCES:
+            raise ApiError(
+                f"未知边界类型 {pref.stance}",
+                code="invalid_boundary_stance",
+                status_code=422,
+            )
+
+    existing = db.scalar(
+        select(BoundaryProfile).where(
+            BoundaryProfile.user_id == user.id, BoundaryProfile.is_default.is_(True)
+        )
+    )
+    if existing is not None:
+        for old in db.scalars(
+            select(BoundaryPreference).where(BoundaryPreference.profile_id == existing.id)
+        ).all():
+            db.delete(old)
+        db.flush()
+        existing.name = body.name
+    else:
+        existing = BoundaryProfile(user_id=user.id, name=body.name, is_default=True)
+        db.add(existing)
+        db.flush()
+
+    seen: set[str] = set()
+    for pref in body.preferences:
+        if pref.attribute in seen:
+            continue
+        seen.add(pref.attribute)
+        db.add(
+            BoundaryPreference(
+                profile_id=existing.id,
+                attribute=pref.attribute,
+                stance=pref.stance,
+                note=pref.note,
+            )
+        )
+    record_audit(
+        db,
+        request=None,
+        actor_user_id=user.id,
+        actor_role=str(user.role),
+        action="boundary_profile.upsert",
+        target_type="boundary_profile",
+        target_id=existing.id,
+        after_state={"name": body.name, "preferences": len(seen)},
+    )
+    db.commit()
+    db.refresh(existing)
+    return _serialize_boundary_profile(existing)
+
+
 @router.get("/places/{place_id}/boundary-match")
 def boundary_match_endpoint(
     place_id: str,

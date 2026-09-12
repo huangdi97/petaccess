@@ -49,6 +49,18 @@ onMounted(async () => {
         <span class="muted">{{ w.target_type }} · {{ w.target_id.slice(0, 8) }}…</span>
       </div>
       <div class="panel" v-if="!watches.length"><span class="muted">暂无关注</span></div>
+      <h2>我的共处边界</h2>
+      <div class="panel">
+        <div class="muted">
+          设定你自己的出行偏好，用于逐项比对场所公开记录。逐项判定，无总分；
+          未设置的项保持未知。
+        </div>
+        <RouterLink to="/boundary">
+          <button class="primary block" style="margin-top: 8px" data-testid="open-boundary">
+            设置 / 修改共处边界
+          </button>
+        </RouterLink>
+      </div>
       <h2>隐私</h2>
       <div class="panel">
         <div class="notice">

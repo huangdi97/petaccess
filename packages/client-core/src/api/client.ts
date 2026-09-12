@@ -26,6 +26,55 @@ export { ApiError };
 
 export interface Page<T> { items: T[]; total: number; limit: number; offset: number }
 
+// ------------------------------------------------------------------ v0.5 types
+
+/** Explainable layered resolution (app.rulespec.v05_resolver.resolve). */
+export interface EffectiveRuleSet {
+  effect: string;
+  compliance_state: "CONSISTENT" | "POTENTIAL_CONFLICT" | "REVIEW_REQUIRED" | "UNKNOWN";
+  applicable_rules: string[];
+  suppressed: { rule: string; reason: string }[];
+  unresolved_conflicts: string[][];
+  explanation_steps: string[];
+  obligations: string[];
+}
+
+export interface BoundaryPreference {
+  id?: string;
+  attribute: string;
+  stance: string;
+  note?: string | null;
+}
+
+export interface BoundaryProfile {
+  id: string;
+  user_id?: string;
+  name: string;
+  is_default: boolean;
+  preferences: BoundaryPreference[];
+  created_at?: string | null;
+}
+
+/** Per-item verdict. Deliberately has no total score (brief §8). */
+export interface BoundaryPreferenceResult {
+  attribute: string;
+  stance: string;
+  verdict: "MATCH" | "CONFLICT" | "UNKNOWN";
+  reason: string;
+}
+
+export interface BoundaryMatchResult {
+  profile_id: string;
+  results: BoundaryPreferenceResult[];
+  summary: { match: number; conflict: number; unknown: number; note: string };
+}
+
+export interface AnswerCell {
+  question: string;
+  state: string;
+  detail: string;
+}
+
 export interface PlaceSummary {
   id: string; canonical_name: string; place_type: string;
   canonical_address: string | null; distance_m: number | null;
@@ -191,5 +240,34 @@ export const client = {
   async mapConfig() {
     return api.request<{ provider: string; center: { lat: number; lng: number };
       zoom: number }>("get", "/ai/map/config");
+  },
+
+  // ------------------------------------------------------------- v0.5 domain
+  // These back the v0.5 H5 surfaces: explainable effective rules, the user's
+  // own coexistence boundary, and the per-item boundary match.
+
+  async effectiveRules(placeId: string, body: {
+    animal: string; service_role?: string; action?: string; zone_id?: string | null;
+  }) {
+    return api.request<EffectiveRuleSet>("post", `/places/${placeId}/effective-rules`, { body });
+  },
+  async boundaryProfiles() {
+    return api.request<{ items: BoundaryProfile[] }>("get", "/boundary-profiles");
+  },
+  async defaultBoundaryProfile() {
+    return api.request<{ profile: BoundaryProfile | null }>("get", "/boundary-profiles/default");
+  },
+  async saveBoundaryProfile(body: {
+    name: string; is_default?: boolean;
+    preferences: { attribute: string; stance: string; note?: string | null }[];
+  }) {
+    return api.request<BoundaryProfile>("put", "/boundary-profiles/default", { body });
+  },
+  async boundaryMatch(placeId: string) {
+    return api.request<BoundaryMatchResult>("get", `/places/${placeId}/boundary-match`);
+  },
+  async answerability(placeId: string) {
+    return api.request<{ place_id: string; cells: AnswerCell[] }>(
+      "get", `/places/${placeId}/answerability`);
   },
 };

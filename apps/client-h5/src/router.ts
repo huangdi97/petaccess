@@ -8,4 +8,7 @@ export const routes: RouteRecordRaw[] = [
   { path: "/pet/new", name: "pet-new", component: () => import("./views/PetNewView.vue") },
   { path: "/contribute/:id", name: "contribute", component: () => import("./views/ContributeView.vue") },
   { path: "/mine", name: "mine", component: () => import("./views/MineView.vue") },
+  // ---- v0.5: explainable match + user coexistence boundary ----
+  { path: "/boundary", name: "boundary", component: () => import("./views/BoundaryView.vue") },
+  { path: "/place/:id/why", name: "match-explain", component: () => import("./views/MatchExplainView.vue") },
 ];

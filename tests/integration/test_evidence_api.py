@@ -53,7 +53,7 @@ def _new_place(client, tok) -> str:
         json={
             "canonical_name": f"证据测试场所-{uuid.uuid4().hex[:6]}",
             "place_type": "cafe",
-            "location_wkt": "POINT(121.471 31.231)",
+            "location_wkt": "POINT(122.500 30.500)",
         },
         headers=_auth(tok),
     )

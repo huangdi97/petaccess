@@ -75,3 +75,51 @@ test("register → create pet → answer carries pet context → quick confirm",
   await page.getByRole("button", { name: "仍有效" }).first().click();
   await expect(page.getByTestId("quick-msg")).toContainText("已记录");
 });
+
+/**
+ * v0.5 journey: coexistence boundary -> explainable match.
+ *
+ * Verifies the two new H5 surfaces reach real API data and that the boundary
+ * result stays per-item (no total score) with missing data reported as UNKNOWN
+ * rather than coerced into a verdict.
+ */
+test("v0.5: set coexistence boundary and boundary-match explains per item", async ({ page }) => {
+  const email = `e2e-bnd-${Date.now()}@example.com`;
+
+  // register (a boundary profile is user-scoped)
+  await page.goto("/#/onboarding");
+  await page.getByRole("button", { name: "注册", exact: true }).click();
+  await page.locator("input").nth(0).fill("边界 E2E");
+  await page.locator('input[type="email"]').fill(email);
+  await page.locator('input[type="password"]').fill("passw0rd123");
+  await page.getByRole("button", { name: "注册并开始" }).click();
+  await expect(page).toHaveURL(/#\/$/);
+
+  // set one stance: indoor_access -> require_prohibited
+  await page.goto("/#/boundary");
+  await expect(page.getByRole("heading", { name: "共处边界" })).toBeVisible();
+  await page.getByTestId("stance-indoor_access-require_prohibited").click();
+  await page.getByTestId("boundary-save").click();
+  await expect(page.getByTestId("boundary-msg")).toContainText("已保存");
+
+  // reload: the saved stance is restored (server-persisted, not local state)
+  await page.goto("/#/boundary");
+  await expect(page.getByTestId("stance-indoor_access-require_prohibited")).toHaveClass(/active/);
+
+  // the explainable-match page shows the per-item comparison
+  await page.goto(`/#/place/${CAFE_ID}/why`);
+  await expect(page.getByTestId("effective-effect")).toBeVisible();
+  await expect(page.getByTestId("boundary-section")).toBeVisible();
+  await expect(page.getByTestId("boundary-item").first()).toBeVisible();
+  // per-item verdict vocabulary only -- never a numeric score
+  await expect(page.getByTestId("boundary-section")).toContainText("无总分");
+});
+
+test("v0.5: explainable match shows derivation steps", async ({ page }) => {
+  await page.goto(`/#/place/${CAFE_ID}/why`);
+  const rules = page.getByTestId("effective-rules");
+  await expect(rules).toBeVisible();
+  await expect(rules).toContainText("推导过程");
+  // compliance state is one of the closed vocabulary
+  await expect(rules).toContainText(/各层一致|存在潜在冲突|需人工复核|信息不足/);
+});

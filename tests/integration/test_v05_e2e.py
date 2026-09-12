@@ -72,7 +72,7 @@ def _new_place(client, tok, name: str) -> str:
         json={
             "canonical_name": name,
             "place_type": "cafe",
-            "location_wkt": "POINT(121.471 31.231)",
+            "location_wkt": "POINT(122.500 30.500)",
         },
         headers=_auth(tok),
     )
