@@ -36,6 +36,8 @@ known-first-party = ["app", "worker"]
 [tool.ruff.lint.per-file-ignores]
 # tests build function-kwargs dicts and assert domain exceptions raise
 "tests/**" = ["C408", "B017"]
+# alembic autogenerate emits long single-line column definitions
+"services/api/migrations/versions/**" = ["E501"]
 
 [tool.mypy]
 python_version = "3.11"

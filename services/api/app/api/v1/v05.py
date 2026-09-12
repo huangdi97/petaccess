@@ -870,3 +870,381 @@ def place_answerability(place_id: str, db: Session = Depends(get_db)):
         "place_id": place_id,
         "cells": [{"question": c.question, "state": c.state, "detail": c.detail} for c in cells],
     }
+
+
+# ============================================================ evidence-first
+# SourceArtifact → EvidenceBundle → Claim → Candidate (brief §5).
+# Admin surface for the evidence chain; publication stays behind the guard rails.
+
+
+class ArtifactIn(BaseModel):
+    source_id: str | None = None
+    collector_type: str
+    artifact_type: str
+    source_url: str | None = Field(default=None, max_length=1000)
+    source_content_id: str | None = None
+    media_id: str | None = None
+    snapshot_ref: str | None = None
+    content_hash: str | None = Field(default=None, max_length=64)
+    publisher_type: str = "unknown"
+    published_at: datetime | None = None
+    captured_excerpt: str | None = None
+    storage_allowed: bool = True
+    display_allowed: bool = False
+    redistribution_allowed: bool = False
+    data_source_job_id: str | None = None
+
+
+class BundleIn(BaseModel):
+    artifact_id: str
+    quoted_fragment: str | None = None
+    extracted_fragment: str | None = None
+    evidence_class: str = "original"
+    derived_from_bundle_id: str | None = None
+    extraction_method: str | None = None
+    extraction_model: str | None = None
+    extraction_model_version: str | None = None
+    place_match_evidence: dict | None = None
+    temporal_evidence: dict | None = None
+    privacy_notes: str | None = None
+
+
+class ObservationCandidateIn(BaseModel):
+    evidence_bundle_id: str
+    place_id: str | None = None
+    zone_id: str | None = None
+    animal_scope: str | None = None
+    observed_action: str | None = None
+    spatial_context: str | None = None
+    occurred_at: datetime | None = None
+    extraction_method: str | None = None
+    raw_text: str | None = None
+    derivation_confidence: float | None = None
+
+
+@admin.post("/source-artifacts", status_code=201)
+def admin_create_artifact(
+    body: ArtifactIn,
+    user: User = Depends(require_role(UserRole.MODERATOR)),
+    db: Session = Depends(get_db),
+):
+    """Freeze one collector output as original evidence."""
+    from app.models.evidence import SourceArtifact
+    from app.services.evidence_service import CollectedArtifact, record_artifact
+
+    if body.source_id and db.get(Source, body.source_id) is None:
+        raise NotFound("来源不存在")
+    collected = CollectedArtifact(
+        source_platform=_platform_for_collector(body.collector_type),
+        artifact_type=body.artifact_type,
+        collector_type=body.collector_type,
+        source_url=body.source_url,
+        source_content_id=body.source_content_id,
+        media_id=body.media_id,
+        snapshot_ref=body.snapshot_ref,
+        content_hash=body.content_hash,
+        publisher_type=body.publisher_type,
+        published_at=body.published_at,
+        captured_excerpt=body.captured_excerpt,
+        storage_allowed=body.storage_allowed,
+        display_allowed=body.display_allowed,
+        redistribution_allowed=body.redistribution_allowed,
+    )
+    artifact = record_artifact(
+        db,
+        collected,
+        source_id=body.source_id,
+        data_source_job_id=body.data_source_job_id,
+    )
+    record_audit(
+        db,
+        request=None,
+        actor_user_id=user.id,
+        actor_role=str(user.role),
+        action="artifact.create",
+        target_type="source_artifact",
+        target_id=artifact.id,
+        after_state={"platform": artifact.source_platform, "type": artifact.artifact_type},
+    )
+    db.commit()
+    _ = SourceArtifact
+    return _serialize_artifact(artifact)
+
+
+@admin.get("/source-artifacts", response_model=Page[dict])
+def admin_list_artifacts(
+    limit: int = Query(default=50, le=200),
+    offset: int = Query(default=0, ge=0),
+    user: User = Depends(require_role(UserRole.MODERATOR)),
+    db: Session = Depends(get_db),
+):
+    from app.models.evidence import SourceArtifact
+
+    stmt = select(SourceArtifact).order_by(SourceArtifact.collected_at.desc())
+    total = db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
+    rows = db.scalars(stmt.limit(limit).offset(offset)).all()
+    return Page(
+        items=[_serialize_artifact(a) for a in rows], total=total, limit=limit, offset=offset
+    )
+
+
+@admin.post("/evidence-bundles", status_code=201)
+def admin_create_bundle(
+    body: BundleIn,
+    user: User = Depends(require_role(UserRole.MODERATOR)),
+    db: Session = Depends(get_db),
+):
+    """Create the attributable statement a candidate will cite."""
+    from app.models.evidence import SourceArtifact
+    from app.services.evidence_service import create_bundle
+
+    artifact = db.get(SourceArtifact, body.artifact_id)
+    if artifact is None:
+        raise NotFound("证据原件不存在")
+    bundle = create_bundle(
+        db,
+        artifact,
+        quoted_fragment=body.quoted_fragment,
+        extracted_fragment=body.extracted_fragment,
+        evidence_class=body.evidence_class,
+        derived_from_bundle_id=body.derived_from_bundle_id,
+        extraction_method=body.extraction_method,
+        extraction_model=body.extraction_model,
+        extraction_model_version=body.extraction_model_version,
+        place_match_evidence=body.place_match_evidence,
+        temporal_evidence=body.temporal_evidence,
+        privacy_notes=body.privacy_notes,
+    )
+    record_audit(
+        db,
+        request=None,
+        actor_user_id=user.id,
+        actor_role=str(user.role),
+        action="evidence_bundle.create",
+        target_type="evidence_bundle",
+        target_id=bundle.id,
+        after_state={"class": bundle.evidence_class, "artifact_id": artifact.id},
+    )
+    db.commit()
+    return _serialize_bundle(bundle)
+
+
+@admin.get("/evidence-bundles", response_model=Page[dict])
+def admin_list_bundles(
+    artifact_id: str | None = None,
+    limit: int = Query(default=50, le=200),
+    offset: int = Query(default=0, ge=0),
+    user: User = Depends(require_role(UserRole.MODERATOR)),
+    db: Session = Depends(get_db),
+):
+    from app.models.evidence import EvidenceBundle
+
+    stmt = select(EvidenceBundle).order_by(EvidenceBundle.captured_at.desc())
+    if artifact_id:
+        stmt = stmt.where(EvidenceBundle.artifact_id == artifact_id)
+    total = db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
+    rows = db.scalars(stmt.limit(limit).offset(offset)).all()
+    return Page(items=[_serialize_bundle(b) for b in rows], total=total, limit=limit, offset=offset)
+
+
+@admin.post("/evidence/classify")
+def admin_classify(
+    body: dict,
+    user: User = Depends(require_role(UserRole.MODERATOR)),
+):
+    """Preview which lane (rule / observation) captured text belongs to."""
+    from app.services.evidence_service import ClaimDraft, classify
+
+    draft = ClaimDraft(
+        kind=body.get("kind") or "",
+        quoted_fragment=body.get("quoted_fragment"),
+        extracted_fragment=body.get("extracted_fragment"),
+    )
+    if not draft.kind:
+        draft.kind = classify(body.get("text") or draft.quoted_fragment or "")
+    else:
+        draft.kind = classify(draft)
+    return {"kind": draft.kind}
+
+
+@admin.post("/observation-candidates", status_code=201)
+def admin_create_observation_candidate(
+    body: ObservationCandidateIn,
+    user: User = Depends(require_role(UserRole.MODERATOR)),
+    db: Session = Depends(get_db),
+):
+    """Observation lane: a sighting, never a rule."""
+    from app.models.evidence import EvidenceBundle
+    from app.services.evidence_service import ClaimDraft, create_observation_candidate
+
+    bundle = db.get(EvidenceBundle, body.evidence_bundle_id)
+    if bundle is None:
+        raise NotFound("证据包不存在")
+    cand = create_observation_candidate(
+        db,
+        bundle,
+        draft=ClaimDraft(
+            kind="observation",
+            animal_scope=body.animal_scope,
+            observed_action=body.observed_action,
+            spatial_context=body.spatial_context,
+            derivation_confidence=body.derivation_confidence,
+        ),
+        place_id=body.place_id,
+        zone_id=body.zone_id,
+        occurred_at=body.occurred_at,
+        raw_text=body.raw_text,
+    )
+    record_audit(
+        db,
+        request=None,
+        actor_user_id=user.id,
+        actor_role=str(user.role),
+        action="observation_candidate.create",
+        target_type="observation_candidate",
+        target_id=cand.id,
+        after_state={"status": cand.review_status},
+    )
+    db.commit()
+    return _serialize_observation_candidate(cand)
+
+
+@admin.get("/observation-candidates", response_model=Page[dict])
+def admin_list_observation_candidates(
+    limit: int = Query(default=50, le=200),
+    offset: int = Query(default=0, ge=0),
+    user: User = Depends(require_role(UserRole.MODERATOR)),
+    db: Session = Depends(get_db),
+):
+    from app.models.evidence import ObservationCandidate
+
+    stmt = select(ObservationCandidate).order_by(ObservationCandidate.created_at.desc())
+    total = db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
+    rows = db.scalars(stmt.limit(limit).offset(offset)).all()
+    return Page(
+        items=[_serialize_observation_candidate(c) for c in rows],
+        total=total,
+        limit=limit,
+        offset=offset,
+    )
+
+
+@admin.post("/observation-candidates/{candidate_id}/transition")
+def admin_transition_observation_candidate(
+    candidate_id: str,
+    body: dict,
+    user: User = Depends(require_role(UserRole.MODERATOR)),
+    db: Session = Depends(get_db),
+):
+    """Walk the observation state machine. Approval never writes an AccessRule."""
+    from app.models.evidence import OBSERVATION_CANDIDATE_TRANSITIONS, ObservationCandidate
+
+    cand = db.get(ObservationCandidate, candidate_id)
+    if cand is None:
+        raise NotFound("观察候选不存在")
+    target = body.get("target")
+    allowed = OBSERVATION_CANDIDATE_TRANSITIONS.get(cand.review_status, set())
+    if target not in allowed:
+        raise ApiError(
+            f"非法状态迁移 {cand.review_status} → {target}",
+            code="invalid_observation_transition",
+        )
+    before = cand.review_status
+    cand.review_status = target
+    cand.reviewer_id = user.id
+    if body.get("note"):
+        cand.review_note = str(body["note"])[:500]
+    record_audit(
+        db,
+        request=None,
+        actor_user_id=user.id,
+        actor_role=str(user.role),
+        action="observation_candidate.transition",
+        target_type="observation_candidate",
+        target_id=cand.id,
+        before_state={"status": before},
+        after_state={"status": target},
+    )
+    db.commit()
+    return _serialize_observation_candidate(cand)
+
+
+# ------------------------------------------------------- evidence serializers
+
+
+def _platform_for_collector(collector_type: str) -> str:
+    """Map a collector to its platform; unknown collectors fall back safely."""
+    from app.models.evidence import CollectorType, SourcePlatform
+    from app.services.evidence_service import COLLECTORS
+
+    cls = COLLECTORS.get(collector_type)
+    if cls is not None:
+        return cls().source_platform
+    _ = (CollectorType, SourcePlatform)
+    return "platform_upload"
+
+
+def _serialize_artifact(a) -> dict:
+    return {
+        "id": a.id,
+        "source_id": a.source_id,
+        "source_platform": a.source_platform,
+        "collector_type": a.collector_type,
+        "artifact_type": a.artifact_type,
+        "source_url": a.source_url,
+        "media_id": a.media_id,
+        "snapshot_ref": a.snapshot_ref,
+        "content_hash": (a.content_hash or "")[:12] or None,
+        "collected_at": a.collected_at,
+        "publisher_type": a.publisher_type,
+        "published_at": a.published_at,
+        "captured_excerpt": (a.captured_excerpt or "")[:500] or None,
+        "storage_allowed": a.storage_allowed,
+        "display_allowed": a.display_allowed,
+        "redistribution_allowed": a.redistribution_allowed,
+        "retention_until": a.retention_until,
+    }
+
+
+def _serialize_bundle(b) -> dict:
+    return {
+        "id": b.id,
+        "artifact_id": b.artifact_id,
+        "source_id": b.source_id,
+        "source_platform": b.source_platform,
+        "source_url": b.source_url,
+        "publisher_type": b.publisher_type,
+        "published_at": b.published_at,
+        "captured_at": b.captured_at,
+        "quoted_fragment": b.quoted_fragment,
+        "extracted_fragment": b.extracted_fragment,
+        "evidence_class": b.evidence_class,
+        "content_hash": (b.content_hash or "")[:12] or None,
+        "screenshot_ref": b.screenshot_ref,
+        "extraction_method": b.extraction_method,
+        "extraction_model": b.extraction_model,
+        "extraction_model_version": b.extraction_model_version,
+        "derived_from_bundle_id": b.derived_from_bundle_id,
+        "place_match_evidence": b.place_match_evidence,
+        "license_metadata": b.license_metadata,
+    }
+
+
+def _serialize_observation_candidate(c) -> dict:
+    return {
+        "id": c.id,
+        "evidence_bundle_id": c.evidence_bundle_id,
+        "source_id": c.source_id,
+        "place_id": c.place_id,
+        "zone_id": c.zone_id,
+        "animal_scope": c.animal_scope,
+        "observed_action": c.observed_action,
+        "spatial_context": c.spatial_context,
+        "occurred_at": c.occurred_at,
+        "extraction_method": c.extraction_method,
+        "raw_text": (c.raw_text or "")[:500] or None,
+        "review_status": c.review_status,
+        "review_note": c.review_note,
+        "published_claim_id": c.published_claim_id,
+        "derivation_confidence": c.derivation_confidence,
+    }

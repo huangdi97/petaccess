@@ -1,6 +1,16 @@
 """Entity registry: importing this module registers all tables on Base.metadata."""
 
 from .civic import AuditLog, DisputeCase, JurisdictionRule, WatchSubscription
+from .evidence import (
+    CollectorType,
+    EvidenceBundle,
+    EvidenceClass,
+    ExtractionMethod,
+    ObservationCandidate,
+    PublisherType,
+    SourceArtifact,
+    SourcePlatform,
+)
 from .media import MediaObject
 from .observation import ObservationClaim, VerificationEvent
 from .place import ExternalPlaceRef, Operator, OperatorClaim, Place, PlaceGeometry, Zone
@@ -33,19 +43,27 @@ __all__ = [
     "BoundaryPreference",
     "BoundaryProfile",
     "CoexistencePolicy",
+    "CollectorType",
     "DataLicense",
     "DataSourceJob",
     "DisputeCase",
     "Entrance",
     "EventPolicy",
+    "EvidenceBundle",
+    "EvidenceClass",
     "ExternalPlaceRef",
+    "ExtractionMethod",
     "FreshnessPolicy",
+    "ObservationCandidate",
     "Organization",
     "PlacePolicyBinding",
     "PolicyTemplate",
     "PolicyTemplateRule",
+    "PublisherType",
     "RuleCandidate",
+    "SourceArtifact",
     "SourceMonitor",
+    "SourcePlatform",
     "JurisdictionRule",
     "MediaObject",
     "ObservationClaim",

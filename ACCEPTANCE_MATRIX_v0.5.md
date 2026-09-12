@@ -6,7 +6,7 @@ and its real output recorded in `WORKBUDDY_TAKEOVER_REPORT.md` /
 
 | Gate | 验收 | 状态 |
 |---|---|---|
-| V00 | 原 RC baseline 全绿 | **PASS** — pytest 89, Playwright 5, lint, mypy |
+| V00 | 原 RC baseline 全绿 | **PASS** — pytest 117, Playwright 5, lint, mypy |
 | V01 | MinIO 上传/删除/OCR queue E2E | **PASS** — `test_media.py` 5 passed (real MinIO) |
 | V02 | Tencent adapter + contract tests | **PASS** — 13 fixture contract tests |
 | V03 | AI adapters + contract tests | **PASS** — `test_ai_guard.py` |
@@ -34,7 +34,7 @@ and its real output recorded in `WORKBUDDY_TAKEOVER_REPORT.md` /
 | V25 | Source monitor E2E-C | **PASS** — hash change→candidate→supersede→watch |
 | V26 | migration up/down/up | **PASS** — 4 revisions, clean cycle |
 | V27 | old tests remain PASS | **PASS** — full suite green |
-| V28 | new domain/property tests PASS | **PASS** — resolver/properties/track_b |
+| V28 | new domain/property tests PASS | **PASS** — resolver/properties/track_b/evidence |
 | V29 | Reality Audit tooling | **NOT_STARTED** |
 | V30 | HBuilderX target build status | **BLOCKED_EXTERNAL** (B-01) |
 | V31 | real map live smoke | **BLOCKED_EXTERNAL_EXPECTED** (B-04) |
@@ -48,10 +48,13 @@ and its real output recorded in `WORKBUDDY_TAKEOVER_REPORT.md` /
 | V34 | E2E-D external public lead（不得直接发布） | **NOT_STARTED** |
 | V35 | Adversarial fixtures（≥30 类） | **NOT_STARTED** |
 | V36 | `MIGRATION_V05.md` | **NOT_STARTED** |
-| V37 | Evidence-first / EvidenceBundle 一等实体 | **PARTIAL** — candidate 携带 `raw_text` + `media_id` + `extraction_method`，可追溯；但无独立 EvidenceBundle 表（source_platform / captured_at / content_hash / license metadata 未独立建模） |
-| V38 | Collector abstraction / SourceArtifact | **NOT_STARTED** |
-| V39 | Original vs Derived evidence 分离 | **PARTIAL** — `media_object`（原始媒体）+ `raw_text`（派生）已分离存储，未显式标注 evidence class |
+| V37 | Evidence-first / EvidenceBundle 一等实体 | **PASS** — `source_artifact` + `evidence_bundle` + `observation_candidate` 建表（migration `5cb24fc8e838`），22 单元测试 + 6 API 测试 |
+| V38 | Collector abstraction / SourceArtifact | **PASS** — 7 个 collector 类（含 4 个 v0.5 可无凭证实现），`COLLECTORS` 注册表 + contract 测试 |
+| V39 | Original vs Derived evidence 分离 | **PASS** — `evidence_class` 区分；派生 bundle 强制引用 `derived_from_bundle_id`，否则拒绝写入 |
 | V40 | DataLicense source policy 字段完整度 | **PASS** — 7 个必需字段全部存在（display/storage/redistribution/commercial/attribution/license_name/license_url/expires_at），默认值保守（redistribution=false, commercial=false） |
-| V41 | ObservationCandidate 与 RuleCandidate 分离 | **NOT_STARTED** — 仅有 `rule_candidate`，无独立 observation candidate 状态机 |
+| V41 | ObservationCandidate 与 RuleCandidate 分离 | **PASS** — 独立表 + 独立状态机；API 层测试证明观察发布后 `effective-rules` 结果逐字节不变且不产生任何 AccessRule |
+| V42 | lead-only 来源发布闸门 | **PASS** — 社交/搜索/用户链接来源缺 `redistribution_allowed` 时拒绝发布（`lead_only_source_not_publishable`） |
+| V43 | 规则类证据可追溯性 | **PASS** — 规则类 bundle 缺原文片段与哈希时拒绝发布 |
+| V44 | 证据链写入审计 | **PASS** — artifact/bundle/observation-candidate 写入均有 `AuditLog` |
 
 状态：NOT_RUN / PASS / PARTIAL / FAIL / BLOCKED_EXTERNAL / NOT_STARTED
