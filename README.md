@@ -27,7 +27,7 @@ cd apps/admin && pnpm install && pnpm dev          # http://localhost:5173
 | 目标 | 命令 |
 |---|---|
 | infra up（+迁移+seed） | `bash scripts/dev.sh` |
-| 全部测试 | `bash scripts/test.sh`（pytest 207：单测+契约+集成；E2E 见下） |
+| 全部测试 | `bash scripts/test.sh`（pytest 209：单测+契约+集成；E2E 见下） |
 | lint | `bash scripts/lint.sh`（ruff check + format check） |
 | typecheck | `bash scripts/typecheck.sh`（mypy） |
 | E2E（需 API:8010 + H5:5175 运行中） | `pnpm exec playwright test` |

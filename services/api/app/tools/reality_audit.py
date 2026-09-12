@@ -90,6 +90,7 @@ _RULE_KEYS = {
     "effective_from",
     "effective_to",
     "status",
+    "note",
 }
 _COEXISTENCE_KEYS = {"zone_key", "attribute", "value"}
 _QUERY_KEYS = {"animal", "service_role", "action", "zone_key"}
@@ -349,7 +350,13 @@ def _resolve_query(sample: dict, query: dict, layer_rules: dict, zones: dict):
 # ------------------------------------------------------------------ rendering
 
 
-def render_report(result: dict) -> str:
+_DEFAULT_DATA_NATURE = (
+    "synthetic adversarial fixtures only — no real-merchant rule is claimed or "
+    "fabricated (REALITY_AUDIT_PLAN 第一阶段)"
+)
+
+
+def render_report(result: dict, data_nature: str | None = None) -> str:
     lines = [
         "# REALITY_AUDIT_REPORT.md",
         "",
@@ -357,8 +364,7 @@ def render_report(result: dict) -> str:
         f"- Samples: {result['sample_count']} "
         f"(expressible {result['expressible_count']} / "
         f"non-expressible {result['non_expressible_count']})",
-        "- Data nature: **synthetic adversarial fixtures only** — no real-merchant "
-        "rule is claimed or fabricated (REALITY_AUDIT_PLAN 第一阶段).",
+        f"- Data nature: **{data_nature or _DEFAULT_DATA_NATURE}**.",
         "",
     ]
     for s in result["samples"]:
@@ -424,8 +430,20 @@ def render_schema_gaps(result: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
-def render_provenance(result: dict, input_name: str) -> dict:
-    return {
+_ALLOWED_MANIFEST_OVERRIDES = {"data_nature", "real_place_claims", "note"}
+
+
+def render_provenance(
+    result: dict, input_name: str, manifest_override: dict | None = None
+) -> dict:
+    """Build the provenance manifest.
+
+    Defaults describe synthetic fixtures. A run over REAL captured data must
+    declare it explicitly via a `_manifest` block in the input JSON — the
+    override is operator-asserted provenance, never inferred. Unknown override
+    keys are ignored (typo-safe); `real_place_claims` must stay an int.
+    """
+    manifest = {
         "manifest_version": "1.0",
         "generated_at": result["audited_at"],
         "input": input_name,
@@ -435,6 +453,21 @@ def render_provenance(result: dict, input_name: str) -> dict:
         "tool": "app.tools.reality_audit",
         "engine_outputs": ["REALITY_AUDIT_REPORT.md", "SCHEMA_GAPS.md"],
     }
+    for key in _ALLOWED_MANIFEST_OVERRIDES:
+        if manifest_override and key in manifest_override:
+            manifest[key] = manifest_override[key]
+    return manifest
+
+
+def read_manifest_override(path: Path) -> dict | None:
+    """Read the optional top-level `_manifest` block from a JSON input."""
+    if path.suffix.lower() != ".json":
+        return None
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if isinstance(data, dict) and isinstance(data.get("_manifest"), dict):
+        override = data["_manifest"]
+        return {k: v for k, v in override.items() if k in _ALLOWED_MANIFEST_OVERRIDES}
+    return None
 
 
 # -------------------------------------------------------------------- ingest
@@ -586,14 +619,20 @@ def main(argv: Iterable[str] | None = None) -> int:
 
     path = Path(args.input)
     samples = ingest_csv(path) if path.suffix.lower() == ".csv" else ingest_json(path)
+    manifest_override = read_manifest_override(path)
 
     result = audit_samples(samples)
     out_dir = Path(args.out)
     out_dir.mkdir(parents=True, exist_ok=True)
-    (out_dir / "REALITY_AUDIT_REPORT.md").write_text(render_report(result), encoding="utf-8")
+    data_nature = (manifest_override or {}).get("data_nature")
+    (out_dir / "REALITY_AUDIT_REPORT.md").write_text(
+        render_report(result, data_nature=data_nature), encoding="utf-8"
+    )
     (out_dir / "SCHEMA_GAPS.md").write_text(render_schema_gaps(result), encoding="utf-8")
     (out_dir / "provenance_manifest.json").write_text(
-        json.dumps(render_provenance(result, path.name), ensure_ascii=False, indent=2),
+        json.dumps(
+            render_provenance(result, path.name, manifest_override), ensure_ascii=False, indent=2
+        ),
         encoding="utf-8",
     )
 

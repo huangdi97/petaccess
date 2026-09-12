@@ -1,0 +1,812 @@
+ {
+ "_manifest": {
+  "data_nature": "real_pilot_place_claims_verified_online_2026_09_13",
+  "real_place_claims": 10,
+  "note": "PART B pilot: 10 real Shanghai places; every rule transcribed from a source captured on 2026-09-13 (URLs/quotes/hashes in REAL_DATA_PILOT_10_REPORT.md and the ingested Source->SourceArtifact->EvidenceBundle chain). All candidates remain REVIEW_PENDING; nothing is published without human review."
+ },
+ "_readme": [
+  "REAL PILOT samples (PART B, B9): 10 real places in Shanghai, evidence verified online on 2026-09-13.",
+  "Every rule below is transcribed from a real source captured during the pilot (see REAL_DATA_PILOT_10_REPORT.md for URLs, quotes, hashes).",
+  "Runs: uv run python -m app.tools.reality_audit docs/reality_audit/real_pilot_samples.json --out docs/reality_audit/real_pilot_01/",
+  "Evidence URLs / quotes / hashes intentionally do NOT live here — this file encodes only the normative content (zones/rules/queries); provenance is carried by the Source -> SourceArtifact -> EvidenceBundle chain ingested via the API."
+ ],
+ "samples": [
+  {
+   "sample_id": "real-qt-taikoo-li",
+   "note": "前滩太古里（商场）：户外开放区域有条件允许 / 室内未经同意禁止；条例23条 LEGAL 层同向禁犬",
+   "place": {
+    "canonical_name": "前滩太古里",
+    "place_type": "mall",
+    "location_wkt": "POINT(121.4893 31.1784)"
+   },
+   "zones": [
+    {"zone_key": "outdoor_open", "name": "户外开放区域"},
+    {"zone_key": "indoor", "name": "商场室内空间"}
+   ],
+   "sources": [
+    {
+     "source_key": "taikoo_official",
+     "source_type": "official_operator_policy",
+     "issuer": "前滩太古里官网《宠物友好》页（太古地产）",
+     "last_verified_at": "2026-09-13T00:00:00+00:00",
+     "display_allowed": true,
+     "redistribution_allowed": false
+    },
+    {
+     "source_key": "sh_dog_regulation",
+     "source_type": "statute_or_regulation",
+     "issuer": "上海市人大常委会《上海市养犬管理条例》第二十三条（上海公安网转载）",
+     "last_verified_at": "2026-09-13T00:00:00+00:00",
+     "display_allowed": true,
+     "redistribution_allowed": true
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "qt-indoor-legal",
+     "zone_key": "indoor",
+     "animal_scope": "dog",
+     "action": "enter",
+     "effect": "prohibited",
+     "rule_layer": "LEGAL",
+     "conditions": [],
+     "source_key": "sh_dog_regulation"
+    },
+    {
+     "rule_id": "qt-indoor-op",
+     "zone_key": "indoor",
+     "animal_scope": "ordinary_pet",
+     "action": "enter",
+     "effect": "prohibited",
+     "rule_layer": "OPERATOR_POLICY",
+     "conditions": [],
+     "source_key": "taikoo_official",
+     "note": "官方原文：未经同意不得进入商场室内空间"
+    },
+    {
+     "rule_id": "qt-outdoor-op",
+     "zone_key": "outdoor_open",
+     "animal_scope": "ordinary_pet",
+     "action": "enter",
+     "effect": "conditional",
+     "rule_layer": "OPERATOR_POLICY",
+     "conditions": [
+      {"condition_type": "leash_required", "value_flag": true},
+      {"condition_type": "vaccination_required", "value_flag": true},
+      {"condition_type": "max_count", "value_numeric": 1}
+     ],
+     "source_key": "taikoo_official",
+     "note": "官方原文：须年满8周/已接种含狂犬疫苗/已登记；每位访客限携1只；未成年人须监护人陪同；须牵引"
+    },
+    {
+     "rule_id": "qt-sd-legal",
+     "animal_scope": "service_dog",
+     "action": "enter",
+     "effect": "allowed",
+     "rule_layer": "LEGAL",
+     "conditions": [],
+     "source_key": "sh_dog_regulation",
+     "note": "条例23条但书：盲人携带导盲犬的，不受本条规定的限制"
+    },
+    {
+     "rule_id": "qt-sd-op",
+     "animal_scope": "service_dog",
+     "action": "enter",
+     "effect": "allowed",
+     "rule_layer": "OPERATOR_POLICY",
+     "conditions": [],
+     "source_key": "taikoo_official",
+     "note": "官方原文：导盲犬不受本须知限制"
+    }
+   ],
+   "coexistence": [
+    {"zone_key": "outdoor_open", "attribute": "pet_stroller_rental", "value": "available"}
+   ],
+   "queries": [
+    {"animal": "dog", "service_role": "none", "action": "enter", "zone_key": "indoor"},
+    {"animal": "dog", "service_role": "none", "action": "enter", "zone_key": "outdoor_open"},
+    {"animal": "cat", "service_role": "none", "action": "enter", "zone_key": "indoor"},
+    {"animal": "dog", "service_role": "working", "action": "enter", "zone_key": "indoor"}
+   ]
+  },
+  {
+   "sample_id": "real-dl-disneyland",
+   "note": "上海迪士尼乐园（景区）：宠物禁入（导盲犬除外）；导盲犬须牵引且部分项目可能不允许",
+   "place": {
+    "canonical_name": "上海迪士尼乐园",
+    "place_type": "scenic_area",
+    "location_wkt": "POINT(121.6570 31.1433)"
+   },
+   "zones": [
+    {"zone_key": "whole_park", "name": "全园"}
+   ],
+   "sources": [
+    {
+     "source_key": "disney_official",
+     "source_type": "official_operator_policy",
+     "issuer": "上海迪士尼度假区官网《上海迪士尼乐园游客须知》",
+     "last_verified_at": "2026-09-13T00:00:00+00:00",
+     "display_allowed": true,
+     "redistribution_allowed": false
+    },
+    {
+     "source_key": "sh_dog_regulation",
+     "source_type": "statute_or_regulation",
+     "issuer": "上海市人大常委会《上海市养犬管理条例》第二十三条（上海公安网转载）",
+     "last_verified_at": "2026-09-13T00:00:00+00:00",
+     "display_allowed": true,
+     "redistribution_allowed": true
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "dl-pet-ban",
+     "zone_key": "whole_park",
+     "animal_scope": "ordinary_pet",
+     "action": "enter",
+     "effect": "prohibited",
+     "rule_layer": "OPERATOR_POLICY",
+     "conditions": [],
+     "source_key": "disney_official",
+     "note": "官方原文：动物（导盲犬除外）"
+    },
+    {
+     "rule_id": "dl-sd-op",
+     "zone_key": "whole_park",
+     "animal_scope": "service_dog",
+     "action": "enter",
+     "effect": "conditional",
+     "rule_layer": "OPERATOR_POLICY",
+     "conditions": [
+      {"condition_type": "leash_required", "value_flag": true}
+     ],
+     "source_key": "disney_official",
+     "note": "官方原文：导盲犬须时刻栓有系绳并在主人的看管下；部分游乐项目也可能不允许导盲犬进入"
+    },
+    {
+     "rule_id": "dl-legal-dog",
+     "zone_key": "whole_park",
+     "animal_scope": "dog",
+     "action": "enter",
+     "effect": "prohibited",
+     "rule_layer": "LEGAL",
+     "conditions": [],
+     "source_key": "sh_dog_regulation",
+     "note": "条例23条『文化娱乐场所』解释覆盖游乐园——归一化问题，见报告"
+    },
+    {
+     "rule_id": "dl-sd-legal",
+     "animal_scope": "service_dog",
+     "action": "enter",
+     "effect": "allowed",
+     "rule_layer": "LEGAL",
+     "conditions": [],
+     "source_key": "sh_dog_regulation"
+    }
+   ],
+   "coexistence": [],
+   "queries": [
+    {"animal": "dog", "service_role": "none", "action": "enter", "zone_key": "whole_park"},
+    {"animal": "cat", "service_role": "none", "action": "enter", "zone_key": "whole_park"},
+    {"animal": "dog", "service_role": "working", "action": "enter", "zone_key": "whole_park"}
+   ]
+  },
+  {
+   "sample_id": "real-gc-huangpu-sect",
+   "note": "广场公园黄浦段（公园）：H6 宠物试点区域有条件允许（TEMPORARY_POLICY，2025-09-01 起），其余区域维持禁止",
+   "place": {
+    "canonical_name": "广场公园（黄浦段）",
+    "place_type": "park",
+    "location_wkt": "POINT(121.4755 31.2265)"
+   },
+   "zones": [
+    {"zone_key": "h6_pet_area", "name": "H6宠物试点区域（金陵中路、西藏南路、延安东路、普安路合围）"},
+    {"zone_key": "other_areas", "name": "公园其余区域"}
+   ],
+   "sources": [
+    {
+     "source_key": "hp_gov_notice",
+     "source_type": "government_service",
+     "issuer": "黄浦区人民政府官网《9月1日起，上海这些公园试点宠物入园》",
+     "last_verified_at": "2026-09-13T00:00:00+00:00",
+     "display_allowed": true,
+     "redistribution_allowed": true
+    },
+    {
+     "source_key": "pincang_detail",
+     "source_type": "external_web_reference",
+     "issuer": "品橙旅游（试点细则报道：8:00-20:00/限犬猫/肩高≥45cm须嘴套/≤1.5m牵引）",
+     "last_verified_at": "2026-09-13T00:00:00+00:00",
+     "display_allowed": true,
+     "redistribution_allowed": false
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "gc-h6-pilot",
+     "zone_key": "h6_pet_area",
+     "animal_scope": "ordinary_pet",
+     "action": "enter",
+     "effect": "conditional",
+     "rule_layer": "TEMPORARY_POLICY",
+     "effective_from": "2025-09-01T00:00:00+00:00",
+     "conditions": [
+      {"condition_type": "leash_required", "value_flag": true}
+     ],
+     "source_key": "hp_gov_notice",
+     "note": "政府公告确认试点允许入园；试点期结束时间未公布（review_due）"
+    },
+    {
+     "rule_id": "gc-h6-detail-media",
+     "zone_key": "h6_pet_area",
+     "animal_scope": "ordinary_pet",
+     "action": "enter",
+     "effect": "conditional",
+     "rule_layer": "REGULATORY_GUIDANCE",
+     "effective_from": "2025-09-01T00:00:00+00:00",
+     "conditions": [],
+     "source_key": "pincang_detail",
+     "note": "媒体报道细则：8:00-20:00、限犬猫、肩高≥45cm须嘴套、≤1.5m刚性牵引——待官方公告原文核验"
+    },
+    {
+     "rule_id": "gc-other-keep",
+     "zone_key": "other_areas",
+     "animal_scope": "ordinary_pet",
+     "action": "enter",
+     "effect": "prohibited",
+     "rule_layer": "OPERATOR_POLICY",
+     "conditions": [],
+     "source_key": "hp_gov_notice",
+     "note": "未列入试点的其余区域维持原管理规定"
+    }
+   ],
+   "coexistence": [],
+   "queries": [
+    {"animal": "dog", "service_role": "none", "action": "enter", "zone_key": "h6_pet_area"},
+    {"animal": "dog", "service_role": "none", "action": "enter", "zone_key": "other_areas"},
+    {"animal": "cat", "service_role": "none", "action": "enter", "zone_key": "h6_pet_area"}
+   ]
+  },
+  {
+   "sample_id": "real-dj-daji-park",
+   "note": "大吉路公园（口袋公园）：全园试点允许携宠（TEMPORARY_POLICY，2025-09-01 起）",
+   "place": {
+    "canonical_name": "大吉路公园",
+    "place_type": "park",
+    "location_wkt": "POINT(121.4870 31.2145)"
+   },
+   "zones": [
+    {"zone_key": "whole_park", "name": "全园"}
+   ],
+   "sources": [
+    {
+     "source_key": "hp_gov_notice",
+     "source_type": "government_service",
+     "issuer": "黄浦区人民政府官网《9月1日起，上海这些公园试点宠物入园》",
+     "last_verified_at": "2026-09-13T00:00:00+00:00",
+     "display_allowed": true,
+     "redistribution_allowed": true
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "dj-pilot",
+     "zone_key": "whole_park",
+     "animal_scope": "ordinary_pet",
+     "action": "enter",
+     "effect": "conditional",
+     "rule_layer": "TEMPORARY_POLICY",
+     "effective_from": "2025-09-01T00:00:00+00:00",
+     "conditions": [
+      {"condition_type": "leash_required", "value_flag": true}
+     ],
+     "source_key": "hp_gov_notice",
+     "note": "政府公告确认试点允许入园；细则以现场公告为准；试点期结束时间未公布"
+    }
+   ],
+   "coexistence": [],
+   "queries": [
+    {"animal": "dog", "service_role": "none", "action": "enter", "zone_key": "whole_park"}
+   ]
+  },
+  {
+   "sample_id": "real-gh-grand-gateway",
+   "note": "港汇恒隆广场（商场）：2026-02 起室内禁止携宠（运营方规定，经解放日报/新华网报道，官方原文待核验）；户外街道保留",
+   "place": {
+    "canonical_name": "港汇恒隆广场",
+    "place_type": "mall",
+    "location_wkt": "POINT(121.4346 31.1946)"
+   },
+   "zones": [
+    {"zone_key": "indoor", "name": "室内商业空间"},
+    {"zone_key": "outdoor", "name": "户外街区"}
+   ],
+   "sources": [
+    {
+     "source_key": "jfdaily_news",
+     "source_type": "external_web_reference",
+     "issuer": "解放日报（运营方室内宠物禁令报道）",
+     "last_verified_at": "2026-09-13T00:00:00+00:00",
+     "display_allowed": true,
+     "redistribution_allowed": false
+    },
+    {
+     "source_key": "xinhua_news",
+     "source_type": "external_web_reference",
+     "issuer": "新华网（上海商场宠物友好调整报道）",
+     "last_verified_at": "2026-09-13T00:00:00+00:00",
+     "display_allowed": true,
+     "redistribution_allowed": false
+    },
+    {
+     "source_key": "sh_dog_regulation",
+     "source_type": "statute_or_regulation",
+     "issuer": "上海市人大常委会《上海市养犬管理条例》第二十三条（上海公安网转载）",
+     "last_verified_at": "2026-09-13T00:00:00+00:00",
+     "display_allowed": true,
+     "redistribution_allowed": true
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "gh-indoor-old",
+     "zone_key": "indoor",
+     "animal_scope": "ordinary_pet",
+     "action": "enter",
+     "effect": "conditional",
+     "rule_layer": "OPERATOR_POLICY",
+     "effective_to": "2026-01-31T23:59:59+00:00",
+     "conditions": [],
+     "source_key": "xinhua_news",
+     "note": "调整前宠物友好政策（媒体报道）；已被 2026-02 调整取代（supersede 时间线素材）"
+    },
+    {
+     "rule_id": "gh-indoor-new",
+     "zone_key": "indoor",
+     "animal_scope": "ordinary_pet",
+     "action": "enter",
+     "effect": "prohibited",
+     "rule_layer": "OPERATOR_POLICY",
+     "effective_from": "2026-02-01T00:00:00+00:00",
+     "conditions": [],
+     "source_key": "jfdaily_news",
+     "note": "运营方规定经媒体报道；官方渠道原文待核验（Needs Verification）"
+    },
+    {
+     "rule_id": "gh-outdoor-keep",
+     "zone_key": "outdoor",
+     "animal_scope": "ordinary_pet",
+     "action": "enter",
+     "effect": "conditional",
+     "rule_layer": "OPERATOR_POLICY",
+     "effective_from": "2026-02-01T00:00:00+00:00",
+     "conditions": [
+      {"condition_type": "leash_required", "value_flag": true}
+     ],
+     "source_key": "jfdaily_news",
+     "note": "报道：户外街区保留携宠通行"
+    },
+    {
+     "rule_id": "gh-legal-dog",
+     "zone_key": "indoor",
+     "animal_scope": "dog",
+     "action": "enter",
+     "effect": "prohibited",
+     "rule_layer": "LEGAL",
+     "conditions": [],
+     "source_key": "sh_dog_regulation"
+    },
+    {
+     "rule_id": "gh-sd-legal",
+     "animal_scope": "service_dog",
+     "action": "enter",
+     "effect": "allowed",
+     "rule_layer": "LEGAL",
+     "conditions": [],
+     "source_key": "sh_dog_regulation"
+    }
+   ],
+   "coexistence": [],
+   "queries": [
+    {"animal": "dog", "service_role": "none", "action": "enter", "zone_key": "indoor"},
+    {"animal": "dog", "service_role": "none", "action": "enter", "zone_key": "outdoor"},
+    {"animal": "dog", "service_role": "working", "action": "enter", "zone_key": "indoor"}
+   ]
+  },
+  {
+   "sample_id": "real-lib-sh-library-east",
+   "note": "上海图书馆东馆（图书馆）：官方读者须知明示禁止携带猫狗（导盲犬、军警犬除外）；条例23条 LEGAL 层同向",
+   "place": {
+    "canonical_name": "上海图书馆东馆",
+    "place_type": "library",
+    "location_wkt": "POINT(121.5232 31.2216)"
+   },
+   "zones": [
+    {"zone_key": "whole_building", "name": "全馆"}
+   ],
+   "sources": [
+    {
+     "source_key": "library_notice",
+     "source_type": "official_operator_policy",
+     "issuer": "上海图书馆官网《读者须知》",
+     "last_verified_at": "2026-09-13T00:00:00+00:00",
+     "display_allowed": true,
+     "redistribution_allowed": true
+    },
+    {
+     "source_key": "sh_dog_regulation",
+     "source_type": "statute_or_regulation",
+     "issuer": "上海市人大常委会《上海市养犬管理条例》第二十三条（上海公安网转载）",
+     "last_verified_at": "2026-09-13T00:00:00+00:00",
+     "display_allowed": true,
+     "redistribution_allowed": true
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "lib-pets-op",
+     "zone_key": "whole_building",
+     "animal_scope": "ordinary_pet",
+     "action": "enter",
+     "effect": "prohibited",
+     "rule_layer": "OPERATOR_POLICY",
+     "conditions": [],
+     "source_key": "library_notice",
+     "note": "官方原文：禁止携带活禽以及猫、狗（导盲犬、军警犬除外）等动物"
+    },
+    {
+     "rule_id": "lib-sd-op",
+     "zone_key": "whole_building",
+     "animal_scope": "service_dog",
+     "action": "enter",
+     "effect": "allowed",
+     "rule_layer": "OPERATOR_POLICY",
+     "conditions": [],
+     "source_key": "library_notice"
+    },
+    {
+     "rule_id": "lib-legal-dog",
+     "zone_key": "whole_building",
+     "animal_scope": "dog",
+     "action": "enter",
+     "effect": "prohibited",
+     "rule_layer": "LEGAL",
+     "conditions": [],
+     "source_key": "sh_dog_regulation"
+    },
+    {
+     "rule_id": "lib-sd-legal",
+     "animal_scope": "service_dog",
+     "action": "enter",
+     "effect": "allowed",
+     "rule_layer": "LEGAL",
+     "conditions": [],
+     "source_key": "sh_dog_regulation"
+    }
+   ],
+   "coexistence": [],
+   "queries": [
+    {"animal": "dog", "service_role": "none", "action": "enter", "zone_key": "whole_building"},
+    {"animal": "cat", "service_role": "none", "action": "enter", "zone_key": "whole_building"},
+    {"animal": "dog", "service_role": "working", "action": "enter", "zone_key": "whole_building"}
+   ]
+  },
+  {
+   "sample_id": "real-fp-peace-hotel",
+   "note": "和平饭店（酒店）：普通宠物禁入、服务动物有条件允许（OTA 聚合的运营方政策，官网原文待核验）；条例23条『宾馆』LEGAL 层禁犬",
+   "place": {
+    "canonical_name": "和平饭店（费尔蒙）",
+    "place_type": "hotel",
+    "location_wkt": "POINT(121.4900 31.2380)"
+   },
+   "zones": [
+    {"zone_key": "whole_hotel", "name": "全酒店"}
+   ],
+   "sources": [
+    {
+     "source_key": "ota_pages",
+     "source_type": "external_web_reference",
+     "issuer": "Booking/Hotels.com/Expedia 聚合展示的运营方宠物政策",
+     "last_verified_at": "2026-09-13T00:00:00+00:00",
+     "display_allowed": true,
+     "redistribution_allowed": false
+    },
+    {
+     "source_key": "sh_dog_regulation",
+     "source_type": "statute_or_regulation",
+     "issuer": "上海市人大常委会《上海市养犬管理条例》第二十三条（上海公安网转载）",
+     "last_verified_at": "2026-09-13T00:00:00+00:00",
+     "display_allowed": true,
+     "redistribution_allowed": true
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "fp-pets-op",
+     "zone_key": "whole_hotel",
+     "animal_scope": "ordinary_pet",
+     "action": "enter",
+     "effect": "prohibited",
+     "rule_layer": "OPERATOR_POLICY",
+     "conditions": [],
+     "source_key": "ota_pages",
+     "note": "OTA 聚合政策：Pets are not allowed；费尔蒙官网原文待核验（Needs Verification）"
+    },
+    {
+     "rule_id": "fp-sd-op",
+     "zone_key": "whole_hotel",
+     "animal_scope": "service_dog",
+     "action": "enter",
+     "effect": "conditional",
+     "rule_layer": "OPERATOR_POLICY",
+     "conditions": [],
+     "source_key": "ota_pages",
+     "note": "OTA 聚合政策：服务动物允许，具体安排以酒店确认为准"
+    },
+    {
+     "rule_id": "fp-legal-dog",
+     "zone_key": "whole_hotel",
+     "animal_scope": "dog",
+     "action": "enter",
+     "effect": "prohibited",
+     "rule_layer": "LEGAL",
+     "conditions": [],
+     "source_key": "sh_dog_regulation"
+    },
+    {
+     "rule_id": "fp-sd-legal",
+     "animal_scope": "service_dog",
+     "action": "enter",
+     "effect": "allowed",
+     "rule_layer": "LEGAL",
+     "conditions": [],
+     "source_key": "sh_dog_regulation"
+    }
+   ],
+   "coexistence": [],
+   "queries": [
+    {"animal": "dog", "service_role": "none", "action": "enter", "zone_key": "whole_hotel"},
+    {"animal": "dog", "service_role": "working", "action": "enter", "zone_key": "whole_hotel"}
+   ]
+  },
+  {
+   "sample_id": "real-sb-roastery",
+   "note": "星巴克臻选上海烘焙工坊（咖啡）：品牌有宠物友好门店计划，本店政策未公开——UNKNOWN 演示（无门店规则 ≠ 允许）；条例23条『餐饮场所』LEGAL 层禁犬",
+   "place": {
+    "canonical_name": "星巴克臻选上海烘焙工坊",
+    "place_type": "cafe",
+    "location_wkt": "POINT(121.4522 31.2249)"
+   },
+   "zones": [
+    {"zone_key": "whole_store", "name": "全店"}
+   ],
+   "sources": [
+    {
+     "source_key": "sbux_brand",
+     "source_type": "official_operator_policy",
+     "issuer": "星巴克中国官网新闻（品牌宠物友好门店计划，450+门店）",
+     "last_verified_at": "2026-09-13T00:00:00+00:00",
+     "display_allowed": true,
+     "redistribution_allowed": false
+    },
+    {
+     "source_key": "sh_dog_regulation",
+     "source_type": "statute_or_regulation",
+     "issuer": "上海市人大常委会《上海市养犬管理条例》第二十三条（上海公安网转载）",
+     "last_verified_at": "2026-09-13T00:00:00+00:00",
+     "display_allowed": true,
+     "redistribution_allowed": true
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "sb-legal-dog",
+     "zone_key": "whole_store",
+     "animal_scope": "dog",
+     "action": "enter",
+     "effect": "prohibited",
+     "rule_layer": "LEGAL",
+     "conditions": [],
+     "source_key": "sh_dog_regulation",
+     "note": "条例23条明列『餐饮场所』——与品牌宠物友好计划的适用范围冲突是本试点的核心归一化问题"
+    },
+    {
+     "rule_id": "sb-sd-legal",
+     "animal_scope": "service_dog",
+     "action": "enter",
+     "effect": "allowed",
+     "rule_layer": "LEGAL",
+     "conditions": [],
+     "source_key": "sh_dog_regulation"
+    }
+   ],
+   "coexistence": [],
+   "queries": [
+    {"animal": "dog", "service_role": "none", "action": "enter", "zone_key": "whole_store"},
+    {"animal": "cat", "service_role": "none", "action": "enter", "zone_key": "whole_store"},
+    {"animal": "dog", "service_role": "working", "action": "enter", "zone_key": "whole_store"}
+   ]
+  },
+  {
+   "sample_id": "real-mn-kaidi-hongkou",
+   "note": "Manner咖啡凯德虹口店（咖啡）：媒体报道的门店宠物政策（户外区有条件/室内不接待），官方渠道未发布——Needs Verification 的 RuleCandidate；条例23条 LEGAL 层禁犬",
+   "place": {
+    "canonical_name": "Manner咖啡（凯德虹口商业中心店）",
+    "place_type": "cafe",
+    "location_wkt": "POINT(121.4828 31.2648)"
+   },
+   "zones": [
+    {"zone_key": "outdoor_seating", "name": "户外宠物区"},
+    {"zone_key": "indoor", "name": "室内"}
+   ],
+   "sources": [
+    {
+     "source_key": "cbndata_news",
+     "source_type": "external_web_reference",
+     "issuer": "CBNData（Manner 首家宠物友好店报道）",
+     "last_verified_at": "2026-09-13T00:00:00+00:00",
+     "display_allowed": true,
+     "redistribution_allowed": false
+    },
+    {
+     "source_key": "social_posts",
+     "source_type": "ordinary_user",
+     "issuer": "社交平台用户帖子（lead，未经核实，仅用于发现线索）",
+     "last_verified_at": "2026-09-13T00:00:00+00:00",
+     "display_allowed": false,
+     "redistribution_allowed": false
+    },
+    {
+     "source_key": "sh_dog_regulation_note",
+     "source_type": "statute_or_regulation",
+     "issuer": "上海市人大常委会《上海市养犬管理条例》第二十三条（上海公安网转载）",
+     "last_verified_at": "2026-09-13T00:00:00+00:00",
+     "display_allowed": true,
+     "redistribution_allowed": true
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "mn-outdoor-media",
+     "zone_key": "outdoor_seating",
+     "animal_scope": "ordinary_pet",
+     "action": "enter",
+     "effect": "conditional",
+     "rule_layer": "OPERATOR_POLICY",
+     "conditions": [
+      {"condition_type": "leash_required", "value_flag": true}
+     ],
+     "source_key": "cbndata_news",
+     "note": "媒体报道的门店政策；Manner 官方渠道未发布对应条款（Needs Verification）"
+    },
+    {
+     "rule_id": "mn-indoor-media",
+     "zone_key": "indoor",
+     "animal_scope": "ordinary_pet",
+     "action": "enter",
+     "effect": "prohibited",
+     "rule_layer": "OPERATOR_POLICY",
+     "conditions": [],
+     "source_key": "cbndata_news",
+     "note": "报道限定宠物于户外区域；室内政策为转述推断，待核验"
+    },
+    {
+     "rule_id": "mn-legal-dog",
+     "zone_key": "indoor",
+     "animal_scope": "dog",
+     "action": "enter",
+     "effect": "prohibited",
+     "rule_layer": "LEGAL",
+     "conditions": [],
+     "source_key": "sh_dog_regulation_note"
+    },
+    {
+     "rule_id": "mn-sd-legal",
+     "animal_scope": "service_dog",
+     "action": "enter",
+     "effect": "allowed",
+     "rule_layer": "LEGAL",
+     "conditions": [],
+     "source_key": "sh_dog_regulation_note"
+    }
+   ],
+   "coexistence": [],
+   "queries": [
+    {"animal": "dog", "service_role": "none", "action": "enter", "zone_key": "indoor"},
+    {"animal": "dog", "service_role": "none", "action": "enter", "zone_key": "outdoor_seating"}
+   ]
+  },
+  {
+   "sample_id": "real-xm-west-bund-gate-m",
+   "note": "星巴克（徐汇西岸梦中心店）（咖啡）：2026-08 调整后室内不接待宠物、户外宠物友好区有条件允许（媒体报道的运营方调整，官方原文待核验）；含用户经历 ObservationCandidate 线索",
+   "place": {
+    "canonical_name": "星巴克咖啡（徐汇西岸梦中心店）",
+    "place_type": "cafe",
+    "location_wkt": "POINT(121.4490 31.1750)"
+   },
+   "zones": [
+    {"zone_key": "indoor", "name": "室内"},
+    {"zone_key": "outdoor_pet_area", "name": "户外宠物友好区"}
+   ],
+   "sources": [
+    {
+     "source_key": "media_report",
+     "source_type": "external_web_reference",
+     "issuer": "新闻媒体（2026-08 星巴克宠物专区调整报道）",
+     "last_verified_at": "2026-09-13T00:00:00+00:00",
+     "display_allowed": true,
+     "redistribution_allowed": false
+    },
+    {
+     "source_key": "user_posts",
+     "source_type": "ordinary_user",
+     "issuer": "社交平台用户经历帖（lead-only，仅用于 ObservationCandidate）",
+     "last_verified_at": "2026-09-13T00:00:00+00:00",
+     "display_allowed": false,
+     "redistribution_allowed": false
+    },
+    {
+     "source_key": "sh_dog_regulation_note",
+     "source_type": "statute_or_regulation",
+     "issuer": "上海市人大常委会《上海市养犬管理条例》第二十三条（上海公安网转载）",
+     "last_verified_at": "2026-09-13T00:00:00+00:00",
+     "display_allowed": true,
+     "redistribution_allowed": true
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "xm-indoor-new",
+     "zone_key": "indoor",
+     "animal_scope": "ordinary_pet",
+     "action": "enter",
+     "effect": "prohibited",
+     "rule_layer": "OPERATOR_POLICY",
+     "effective_from": "2026-08-01T00:00:00+00:00",
+     "conditions": [],
+     "source_key": "media_report",
+     "note": "报道的运营方调整：室内宠物专区取消；官方渠道原文待核验（Needs Verification）"
+    },
+    {
+     "rule_id": "xm-outdoor-media",
+     "zone_key": "outdoor_pet_area",
+     "animal_scope": "ordinary_pet",
+     "action": "enter",
+     "effect": "conditional",
+     "rule_layer": "OPERATOR_POLICY",
+     "effective_from": "2026-08-01T00:00:00+00:00",
+     "conditions": [
+      {"condition_type": "leash_required", "value_flag": true}
+     ],
+     "source_key": "media_report",
+     "note": "报道：宠物引导至户外区域"
+    },
+    {
+     "rule_id": "xm-legal-dog",
+     "zone_key": "indoor",
+     "animal_scope": "dog",
+     "action": "enter",
+     "effect": "prohibited",
+     "rule_layer": "LEGAL",
+     "conditions": [],
+     "source_key": "sh_dog_regulation_note"
+    },
+    {
+     "rule_id": "xm-sd-legal",
+     "animal_scope": "service_dog",
+     "action": "enter",
+     "effect": "allowed",
+     "rule_layer": "LEGAL",
+     "conditions": [],
+     "source_key": "sh_dog_regulation_note"
+    }
+   ],
+   "coexistence": [],
+   "queries": [
+    {"animal": "dog", "service_role": "none", "action": "enter", "zone_key": "indoor"},
+    {"animal": "dog", "service_role": "none", "action": "enter", "zone_key": "outdoor_pet_area"},
+    {"animal": "dog", "service_role": "working", "action": "enter", "zone_key": "indoor"}
+   ]
+  }
+ ]
+}

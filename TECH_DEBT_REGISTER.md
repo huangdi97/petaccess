@@ -28,6 +28,7 @@
 | TD-06 | 无 resolver batch 批量端点（多场所评估逐次调用） | 规模化时列表页 N×单次成本 | 数据量上来后加 batch 端点（evaluator 本身可批量，GOAL §20） | 当前 4–50 场所规模下 p95≤28ms，无实际瓶颈 |
 | TD-07 | client-core 手写 v0.5 DTO（`EffectiveRuleSet` 等接口与后端 schema 重复） | 类型双写漂移风险 | 由生成 `schema.d.ts` 的 operations 类型替代（A1"no duplicated API DTO"） | 涉及 20+ 视图类型迁移，独立重构任务 |
 | TD-08 | `observability.py` failed-job 落盘在 Redis 不可用时静默跳过 | Redis 故障期间失败任务不可见（任务本身仍失败/重试可见） | 记录降级计数或落本地文件 | 结构性小改进，非缺陷；可靠性主链（有界重试/幂等/失败可见）已验证 |
+| TD-09 | PART B 试点中 7/33 规则候选引用 search_snippet 采集来源（页面未直接抓取核验：解放日报、OTA、CBNData、西岸报道URL待归档） | Evidence Completeness 78.8% < 90%，B15 停止条件已触发（扩量暂停） | 人工核验原文页/定位 URL/补抓 hash，升级 capture_method 后方可 APPROVED；扩量前完成 | 如实登记；见 REAL_DATA_PILOT_10_REPORT.md §7 与 REAL_DATA_FINAL_REPORT.md §9 |
 
 ## 扫描方法与结果
 

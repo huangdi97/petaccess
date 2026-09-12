@@ -181,3 +181,85 @@ def test_committed_report_matches_engine():
     assert manifest["tool"] == "app.tools.reality_audit"
     assert manifest["data_nature"] == "synthetic_adversarial_fixtures"
     assert manifest["real_place_claims"] == 0
+
+
+def test_manifest_override_declares_real_data():
+    """真实数据运行必须显式声明（_manifest），默认仍为 synthetic。"""
+    result = audit_samples(
+        [
+            {
+                "sample_id": "r-1",
+                "place": {
+                    "canonical_name": "样板（虚构）",
+                    "place_type": "cafe",
+                    "location_wkt": "POINT(122.5 30.5)",
+                },
+                "sources": [
+                    {
+                        "source_key": "s1",
+                        "source_type": "onsite_signage",
+                        "last_verified_at": "2026-09-01T00:00:00+00:00",
+                    }
+                ],
+                "rules": [],
+                "queries": [],
+            }
+        ],
+        now=NOW,
+    )
+    manifest = render_provenance(
+        result,
+        "real_pilot_samples.json",
+        {"data_nature": "real_pilot_place_claims", "real_place_claims": 10},
+    )
+    assert manifest["data_nature"] == "real_pilot_place_claims"
+    assert manifest["real_place_claims"] == 10
+    # 默认不变
+    default = render_provenance(result, "synthetic.json")
+    assert default["data_nature"] == "synthetic_adversarial_fixtures"
+    assert default["real_place_claims"] == 0
+    # 未知覆盖键被忽略（typo-safe）
+    manifest2 = render_provenance(result, "x.json", {"data_nature": "real", "typo_key": 1})
+    assert "typo_key" not in manifest2
+    report = render_report(result, data_nature="real")
+    assert "Data nature: **real**" in report
+
+
+def test_rule_note_field_not_flagged_unknown():
+    """规则的 note 字段是文档性字段，不得进入 unknown-fields 检测。"""
+    samples = [
+        {
+            "sample_id": "note-1",
+            "place": {
+                "canonical_name": "样板（虚构）",
+                "place_type": "cafe",
+                "location_wkt": "POINT(122.5 30.5)",
+            },
+            "zones": [{"zone_key": "indoor", "name": "室内"}],
+            "sources": [
+                {
+                    "source_key": "s1",
+                    "source_type": "onsite_signage",
+                    "issuer": "样牌",
+                    "last_verified_at": "2026-09-01T00:00:00+00:00",
+                }
+            ],
+            "rules": [
+                {
+                    "rule_id": "r1",
+                    "zone_key": "indoor",
+                    "animal_scope": "ordinary_pet",
+                    "action": "enter",
+                    "effect": "prohibited",
+                    "rule_layer": "OPERATOR_POLICY",
+                    "conditions": [],
+                    "source_key": "s1",
+                    "note": "官方原文摘录",
+                }
+            ],
+            "queries": [],
+        }
+    ]
+    result = audit_samples(samples, now=NOW)
+    sample = result["samples"][0]
+    assert sample["unknown_fields"] == []

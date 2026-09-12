@@ -1,0 +1,25 @@
+{
+  "manifest_version": "1.0",
+  "generated_at": "2026-09-12T22:01:04.553412+00:00",
+  "input": "real_pilot_samples.json",
+  "data_nature": "real_pilot_place_claims_verified_online_2026_09_13",
+  "real_place_claims": 10,
+  "sample_ids": [
+    "real-qt-taikoo-li",
+    "real-dl-disneyland",
+    "real-gc-huangpu-sect",
+    "real-dj-daji-park",
+    "real-gh-grand-gateway",
+    "real-lib-sh-library-east",
+    "real-fp-peace-hotel",
+    "real-sb-roastery",
+    "real-mn-kaidi-hongkou",
+    "real-xm-west-bund-gate-m"
+  ],
+  "tool": "app.tools.reality_audit",
+  "engine_outputs": [
+    "REALITY_AUDIT_REPORT.md",
+    "SCHEMA_GAPS.md"
+  ],
+  "note": "PART B pilot: 10 real Shanghai places; every rule transcribed from a source captured on 2026-09-13 (URLs/quotes/hashes in REAL_DATA_PILOT_10_REPORT.md and the ingested Source->SourceArtifact->EvidenceBundle chain). All candidates remain REVIEW_PENDING; nothing is published without human review."
+}
