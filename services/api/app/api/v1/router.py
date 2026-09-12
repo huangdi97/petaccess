@@ -15,6 +15,7 @@ from . import (
     regulations,
     rules,
     sources,
+    v05,
     verifications,
     watches,
 )
@@ -39,6 +40,8 @@ api_router.include_router(disputes.admin)
 api_router.include_router(watches.router)
 api_router.include_router(media.router)
 api_router.include_router(ai.router)
+api_router.include_router(v05.router)
+api_router.include_router(v05.admin)
 api_router.include_router(admin.router)
 
 
