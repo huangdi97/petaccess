@@ -106,6 +106,16 @@ class AccessRule(Base, PkMixin, TimestampMixin):
     # Free text may only supplement, never drive matching (design #11)
     note: Mapped[str | None] = mapped_column(Text, nullable=True)
 
+    # --- v0.5 additive metadata (MIGRATION_SPEC_v0.5) ---
+    # rule_layer: LEGAL | REGULATORY_GUIDANCE | OPERATOR_POLICY | TEMPORARY_POLICY
+    # NULL means legacy row → resolver reports REVIEW_REQUIRED (never guessed).
+    rule_layer: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    origin_authority: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    organization_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    policy_template_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    event_policy_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    freshness_policy_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+
     place: Mapped["Place | None"] = relationship(back_populates="rules", foreign_keys=[place_id])
     zone: Mapped["Zone | None"] = relationship(back_populates="rules", foreign_keys=[zone_id])
     source: Mapped["Source"] = relationship(back_populates="rules")
