@@ -1,6 +1,7 @@
 """Entity registry: importing this module registers all tables on Base.metadata."""
 
 from .civic import AuditLog, DisputeCase, JurisdictionRule, WatchSubscription
+from .media import MediaObject
 from .observation import ObservationClaim, VerificationEvent
 from .place import ExternalPlaceRef, Operator, OperatorClaim, Place, PlaceGeometry, Zone
 from .rule import AccessRule, RuleCondition, Source
@@ -12,6 +13,7 @@ __all__ = [
     "DisputeCase",
     "ExternalPlaceRef",
     "JurisdictionRule",
+    "MediaObject",
     "ObservationClaim",
     "Operator",
     "OperatorClaim",

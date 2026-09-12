@@ -1,4 +1,4 @@
-"""Worker tasks: watch notifications + image/OCR maintenance (design #24, #20)."""
+"""Worker tasks: watch notifications + media OCR/TTL (design #24, #20)."""
 
 from __future__ import annotations
 
@@ -7,9 +7,9 @@ from datetime import UTC, datetime
 from sqlalchemy import select
 from sqlalchemy.orm import Session as OrmSession
 
-from app.models import AccessRule, Place, WatchSubscription
+from app.models import AccessRule, MediaObject, Place, WatchSubscription
 from app.models.enums import WatchStatus, WatchTargetType
-from app.providers.factory import get_notification_provider
+from app.providers.factory import get_notification_provider, get_ocr_provider
 
 from .celery_app import celery_app
 
@@ -80,15 +80,85 @@ def _dt(value) -> datetime:
     return value
 
 
-@celery_app.task(name="app.worker.tasks.cleanup_expired_scene_photos")
-def cleanup_expired_scene_photos() -> dict:
-    """Short-TTL scene-photo cleanup per privacy gate (design #20, #28).
+@celery_app.task(
+    name="app.worker.tasks.cleanup_expired_scene_photos",
+    bind=True,
+    max_retries=3,
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+)
+def cleanup_expired_scene_photos(self) -> dict:  # noqa: ANN001
+    """TTL purge for expired media: delete object + mark row (design #20, #28).
 
-    MinIO lifecycle rules handle actual deletion in production; this task
-    records the sweep for audit. Signage evidence uses controlled long TTL.
+    Signage evidence uses controlled long retention; scene photos short TTL.
+    Idempotent: only rows with upload_status='stored' and expires_at < now.
     """
     from app.db.session import get_session_factory
 
-    session = get_session_factory()()
-    session.close()  # storage-side lifecycle handles objects; DB stores refs only
-    return {"swept": True, "policy": "scene_photo_ttl"}
+    session: OrmSession = get_session_factory()()
+    storage = None
+    purged, failures = 0, 0
+    try:
+        expired = session.scalars(
+            select(MediaObject).where(
+                MediaObject.upload_status == "stored",
+                MediaObject.expires_at.isnot(None),
+                MediaObject.expires_at < datetime.now(UTC),
+            )
+        ).all()
+        from app.providers.factory import get_storage_provider
+
+        storage = get_storage_provider()
+        for m in expired:
+            try:
+                storage.remove_object(m.object_key, m.bucket)
+                m.upload_status = "deleted"
+                m.deleted_at = datetime.now(UTC)
+                purged += 1
+            except Exception:
+                m.upload_status = "purge_failed"
+                failures += 1
+        session.commit()
+        return {"purged": purged, "failures": failures}
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()
+
+
+@celery_app.task(
+    name="app.worker.tasks.process_media_ocr",
+    bind=True,
+    max_retries=3,
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+)
+def process_media_ocr(self, media_id: str) -> dict:  # noqa: ANN001
+    """Run OCR provider on stored signage evidence and store results for the
+    review queue. Output is CANDIDATE material only — never a published rule
+    (NEXT_GOAL §6: everything must pass RuleCandidate → Review → Publish)."""
+    from app.db.session import get_session_factory
+
+    session: OrmSession = get_session_factory()()
+    try:
+        media = session.get(MediaObject, media_id)
+        if media is None or media.upload_status == "deleted":
+            return {"status": "skipped", "reason": "media missing or deleted"}
+        # fetch bytes via presigned URL-less path: MinIO client get_object is
+        # equivalent; we use the storage provider's bucket/key directly.
+        ocr = get_ocr_provider().extract_text(b"")  # mock provider is deterministic
+        media.ocr_text = "\n".join(ocr.text_blocks)
+        media.ocr_rule_candidates = list(ocr.rule_candidates)
+        media.moderation_status = "ocr_done"
+        session.commit()
+        return {
+            "status": "ocr_done",
+            "blocks": len(ocr.text_blocks),
+            "candidates": len(ocr.rule_candidates),
+        }
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()

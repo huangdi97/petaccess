@@ -1,11 +1,15 @@
 """Provider factory: mock first; real adapters only when env enables them."""
 
 from functools import lru_cache
+from typing import TYPE_CHECKING
 
 from app.core.config import get_settings
 
 from .base import MapProvider, NotificationProvider, OCRProvider, VisionProvider
 from .mock import MockMapProvider, MockNotificationProvider, MockOCRProvider, MockVisionProvider
+
+if TYPE_CHECKING:
+    from .storage import StorageProvider
 
 
 @lru_cache
@@ -45,3 +49,14 @@ def get_map_provider() -> MapProvider:
             raise RuntimeError("腾讯地图 Key 未配置（TENCENT_MAP_KEY_*），保持 mock")
         raise RuntimeError("腾讯地图 adapter 需要真实 key 联调（见 BLOCKERS.md）")
     return MockMapProvider()
+
+
+@lru_cache
+def get_storage_provider() -> "StorageProvider":
+    """MinIO when S3 endpoint is configured; NullStorage for pure unit tests."""
+    from .storage import MinioStorageProvider, NullStorageProvider
+
+    settings = get_settings()
+    if settings.s3_endpoint:
+        return MinioStorageProvider()
+    return NullStorageProvider()

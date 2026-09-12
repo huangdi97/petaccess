@@ -7,6 +7,7 @@ from . import (
     ai,
     auth,
     disputes,
+    media,
     observations,
     operators,
     pets,
@@ -36,6 +37,7 @@ api_router.include_router(regulations.admin)
 api_router.include_router(disputes.router)
 api_router.include_router(disputes.admin)
 api_router.include_router(watches.router)
+api_router.include_router(media.router)
 api_router.include_router(ai.router)
 api_router.include_router(admin.router)
 
