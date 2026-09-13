@@ -1,0 +1,15 @@
+{
+  "package": "workbuddy-production-launch-pack",
+  "entry": "WORKBUDDY_PRODUCTION_START_PROMPT.md",
+  "master_goal": "WORKBUDDY_PRODUCTION_MASTER_GOAL.md",
+  "target": "Shanghai central public beta",
+  "files": [
+    "WORKBUDDY_PRODUCTION_MASTER_GOAL.md",
+    "WORKBUDDY_PRODUCTION_START_PROMPT.md",
+    "PRODUCTION_ACCEPTANCE_MATRIX.md",
+    "UI_UX_IMPLEMENTATION_SPEC.md",
+    "LAUNCH_READINESS_CHECKLIST.md",
+    "PRODUCTION_STATE.md",
+    "README_WORKBUDDY_PRODUCTION_PACK.md"
+  ]
+}

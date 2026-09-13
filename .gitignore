@@ -12,7 +12,9 @@ dist/
 build/
 coverage/
 test-results/
+playwright-out/
 .vite/
+.workbuddy-ai/
 .hbuilderx/
 unpackage/
 .idea/
