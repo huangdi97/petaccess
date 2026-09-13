@@ -135,6 +135,13 @@ class RuleCandidate(Base, PkMixin, TimestampMixin):
     animal_scope: Mapped[str | None] = mapped_column(String(20), nullable=True)
     action: Mapped[str | None] = mapped_column(String(24), nullable=True)
     effect: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    # Normative layer the candidate claims (LEGAL | REGULATORY_GUIDANCE |
+    # OPERATOR_POLICY | TEMPORARY_POLICY). Carried through to the published
+    # AccessRule — publishing MUST NOT flatten a statutory rule to an operator
+    # policy, because the resolver keys precedence/suppression on this value.
+    rule_layer: Mapped[str] = mapped_column(
+        String(30), default="OPERATOR_POLICY", server_default="OPERATOR_POLICY", nullable=False
+    )
     proposed_conditions: Mapped[list | None] = mapped_column(JSON, nullable=True)
     extraction_method: Mapped[str] = mapped_column(String(40), nullable=False)
     extraction_provider: Mapped[str | None] = mapped_column(String(60), nullable=True)

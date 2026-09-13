@@ -316,6 +316,9 @@ def run(evidence_path: Path) -> int:
                         "animal_scope": r["animal_scope"],
                         "action": r["action"],
                         "effect": r["effect"],
+                        # normative layer from the evidence register; without this
+                        # a statutory rule would be published as an operator policy
+                        "rule_layer": r.get("rule_layer") or "OPERATOR_POLICY",
                         "proposed_conditions": r.get("conditions") or [],
                         "extraction_method": EXTRACTION_METHOD,
                         "extraction_provider": EXTRACTION_PROVIDER,

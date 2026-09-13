@@ -42,6 +42,7 @@ from app.rulespec.v05_resolver import (
 from app.schemas.common import Page
 from app.services.answerability import compute_answerability
 from app.services.candidate_service import create_from_extraction, publish, transition
+from app.services.publish_gate import LAYER_VALUES
 from app.services.source_monitor import check_monitor
 
 router = APIRouter(tags=["v05"])
@@ -58,6 +59,7 @@ class CandidateIn(BaseModel):
     animal_scope: str | None = None
     action: str | None = None
     effect: str | None = None
+    rule_layer: str | None = None
     proposed_conditions: list | None = None
     extraction_method: str
     extraction_provider: str | None = None
@@ -70,6 +72,11 @@ class CandidateIn(BaseModel):
 class CandidateReview(BaseModel):
     target: str  # next state
     note: str | None = None
+
+
+class CandidateLayerIn(BaseModel):
+    rule_layer: str  # LEGAL | REGULATORY_GUIDANCE | OPERATOR_POLICY | TEMPORARY_POLICY
+    reason: str | None = None
 
 
 @router.get("/places/{place_id}/candidates", response_model=Page[dict])
@@ -101,6 +108,7 @@ def _candidate_dict(c) -> dict:
         "animal_scope": c.animal_scope,
         "action": c.action,
         "effect": c.effect,
+        "rule_layer": c.rule_layer,
         "proposed_conditions": c.proposed_conditions,
         "extraction_method": c.extraction_method,
         "extraction_provider": c.extraction_provider,
@@ -156,6 +164,7 @@ def admin_create_candidate(
         animal_scope=body.animal_scope,
         action=body.action,
         effect=body.effect,
+        rule_layer=body.rule_layer,
         proposed_conditions=body.proposed_conditions,
         extraction_method=body.extraction_method,
         extraction_provider=body.extraction_provider,
@@ -204,6 +213,49 @@ def admin_transition_candidate(
     )
     db.commit()
     return _candidate_dict(cand)
+
+
+@admin.post("/candidates/{candidate_id}/rule-layer")
+def admin_set_candidate_layer(
+    candidate_id: str,
+    body: CandidateLayerIn,
+    user: User = Depends(require_role(UserRole.MODERATOR)),
+    db: Session = Depends(get_db),
+):
+    """Correct a candidate's normative layer before review/publish (BLK-LAYER-01).
+
+    The layer decides which resolver pool the published rule lands in, so it is
+    reviewer-controlled data, not a client hint. Published candidates are frozen:
+    changing the layer of a rule already in force would silently rewrite the
+    answer, so that path requires a new candidate + supersession instead.
+    """
+    cand = db.get(RuleCandidate, candidate_id)
+    if cand is None:
+        raise NotFound("候选不存在")
+    if cand.review_status in ("PUBLISHED", "SUPERSEDED"):
+        raise ApiError("已发布候选的分层不可原地修改（须走 supersession）", code="candidate_frozen")
+    if body.rule_layer not in LAYER_VALUES:
+        raise ApiError(
+            f"非法 rule_layer {body.rule_layer}（允许：{sorted(LAYER_VALUES)}）",
+            code="invalid_rule_layer",
+        )
+    before = cand.rule_layer
+    if before == body.rule_layer:
+        return {"id": cand.id, "rule_layer": cand.rule_layer, "changed": False}
+    cand.rule_layer = body.rule_layer
+    record_audit(
+        db,
+        request=None,
+        actor_user_id=user.id,
+        actor_role=str(user.role),
+        action="candidate.set_rule_layer",
+        target_type="rule_candidate",
+        target_id=cand.id,
+        before_state={"rule_layer": before},
+        after_state={"rule_layer": cand.rule_layer, "reason": body.reason},
+    )
+    db.commit()
+    return {"id": cand.id, "rule_layer": cand.rule_layer, "changed": True}
 
 
 @admin.post("/candidates/{candidate_id}/publish")

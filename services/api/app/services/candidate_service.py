@@ -48,6 +48,7 @@ def create_from_extraction(
     animal_scope: str | None = None,
     action: str | None = None,
     effect: str | None = None,
+    rule_layer: str | None = None,
     proposed_conditions: list | None = None,
     extraction_provider: str | None = None,
     internal_confidence: float | None = None,
@@ -66,6 +67,7 @@ def create_from_extraction(
         animal_scope=animal_scope,
         action=action,
         effect=effect,
+        rule_layer=rule_layer or "OPERATOR_POLICY",
         proposed_conditions=proposed_conditions,
         extraction_method=extraction_method,
         extraction_provider=extraction_provider,
@@ -124,7 +126,12 @@ def publish(
         else "imported",
         recorded_at=datetime.now(UTC),
         status="current",
-        rule_layer="OPERATOR_POLICY",
+        # The candidate's declared layer is carried through verbatim: the
+        # resolver routes LEGAL / REGULATORY_GUIDANCE / TEMPORARY_POLICY /
+        # OPERATOR_POLICY into different precedence pools, so flattening a
+        # statutory prohibition to an operator policy would silently change
+        # the answer. Pre-Publish Validation rejects unknown layer values.
+        rule_layer=candidate.rule_layer or "OPERATOR_POLICY",
         note=f"published from candidate {candidate.id} ({candidate.extraction_method})",
     )
     db.add(rule)

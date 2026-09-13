@@ -38,12 +38,14 @@ from app.models.enums import (
     SourceType,
 )
 from app.models.evidence import EvidenceBundle, SourceArtifact
+from app.rulespec.v05_resolver import RuleLayer
 from app.services.answerability import STALE_DAYS
 
 CONDITION_TYPES = {e.value for e in RuleConditionType}
 SCOPE_VALUES = {e.value for e in AnimalScope}
 ACTION_VALUES = {e.value for e in RuleAction}
 EFFECT_VALUES = {e.value for e in RuleEffect}
+LAYER_VALUES = {e.value for e in RuleLayer}
 
 #: source types whose artifacts are leads at best — never publishable as rules
 _LEAD_ONLY_SOURCE_TYPES = {SourceType.ORDINARY_USER.value}
@@ -123,6 +125,9 @@ def validate_for_publish(
     scope_ok = candidate.animal_scope in SCOPE_VALUES
     action_ok = candidate.action in ACTION_VALUES
     effect_ok = candidate.effect in EFFECT_VALUES
+    # the declared normative layer must be a known layer: an unknown value would
+    # fall through to the operator pool in the resolver (silent mis-layering)
+    layer_ok = (candidate.rule_layer or "OPERATOR_POLICY") in LAYER_VALUES
     conditions = candidate.proposed_conditions or []
     conditions_ok = all(
         isinstance(c, dict) and c.get("condition_type") in CONDITION_TYPES for c in conditions
@@ -135,10 +140,11 @@ def validate_for_publish(
                     scope_ok
                     and action_ok
                     and effect_ok
+                    and layer_ok
                     and conditions_ok
                     and place_ok
                 ),
-                "候选字段超出 schema 支持（scope/action/effect/conditions/zone 归属）",
+                "候选字段超出 schema 支持（scope/action/effect/rule_layer/conditions/zone 归属）",
             )
         ]
     )
