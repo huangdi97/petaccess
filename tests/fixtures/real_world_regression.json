@@ -1,0 +1,994 @@
+{
+ "_readme": [
+  "REAL-WORLD-REGRESSION-FIXTURES (PILOT-REVIEW-AND-SCHEMA-FIX-01 S11).",
+  "Sanitized abstraction of the 10 real Shanghai pilot places (R2 evidence state):",
+  "identifying names/addresses/coordinates replaced by rw-XX keys; normative",
+  "content (zones/rules/exceptions/queries/expected resolver outcomes) preserved",
+  "for resolver regression. Expected values recorded from the actual R2 audit run",
+  "(docs/reality_audit/real_pilot_02/) - regenerate via the audit tool, never hand-edit."
+ ],
+ "generated_from": "docs/reality_audit/real_pilot_samples_r2.json",
+ "expected_run": "REALITY-AUDIT-10-R2 (real_pilot_02)",
+ "places": [
+  {
+   "key": "rw-01-mall-taikoo-li",
+   "place_type": "mall",
+   "zones": [
+    {
+     "zone_key": "outdoor_open",
+     "name": "户外开放区域"
+    },
+    {
+     "zone_key": "indoor",
+     "name": "商场室内空间"
+    }
+   ],
+   "sources": [
+    {
+     "source_key": "taikoo_official",
+     "source_type": "official_operator_policy",
+     "display_allowed": true,
+     "redistribution_allowed": false
+    },
+    {
+     "source_key": "sh_dog_regulation",
+     "source_type": "statute_or_regulation",
+     "display_allowed": true,
+     "redistribution_allowed": true
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "qt-indoor-legal",
+     "zone_key": "indoor",
+     "animal_scope": "dog",
+     "action": "enter",
+     "effect": "prohibited",
+     "rule_layer": "LEGAL",
+     "conditions": [],
+     "source_key": "sh_dog_regulation",
+     "exceptions": [
+      {
+       "exception_id": "exc-qt-indoor-legal-sd",
+       "animal_scope": "service_dog",
+       "effect": "allowed",
+       "source_key": "sh_dog_regulation",
+       "note": "但书/政策例外：导盲犬等工作犬不受本条限制"
+      }
+     ]
+    },
+    {
+     "rule_id": "qt-indoor-op",
+     "zone_key": "indoor",
+     "animal_scope": "ordinary_pet",
+     "action": "enter",
+     "effect": "prohibited",
+     "rule_layer": "OPERATOR_POLICY",
+     "conditions": [],
+     "source_key": "taikoo_official"
+    },
+    {
+     "rule_id": "qt-outdoor-op",
+     "zone_key": "outdoor_open",
+     "animal_scope": "ordinary_pet",
+     "action": "enter",
+     "effect": "conditional",
+     "rule_layer": "OPERATOR_POLICY",
+     "conditions": [
+      {
+       "condition_type": "leash_required",
+       "value_flag": true
+      },
+      {
+       "condition_type": "vaccination_required",
+       "value_flag": true
+      },
+      {
+       "condition_type": "max_count",
+       "value_numeric": 1
+      }
+     ],
+     "source_key": "taikoo_official"
+    },
+    {
+     "rule_id": "qt-sd-op",
+     "animal_scope": "service_dog",
+     "action": "enter",
+     "effect": "allowed",
+     "rule_layer": "OPERATOR_POLICY",
+     "conditions": [],
+     "source_key": "taikoo_official"
+    }
+   ],
+   "queries": [
+    {
+     "animal": "dog",
+     "service_role": "none",
+     "action": "enter",
+     "zone_key": "indoor",
+     "expected_effect": "prohibited",
+     "expected_compliance": "CONSISTENT",
+     "expected_exceptions": []
+    },
+    {
+     "animal": "dog",
+     "service_role": "none",
+     "action": "enter",
+     "zone_key": "outdoor_open",
+     "expected_effect": "conditional",
+     "expected_compliance": "CONSISTENT",
+     "expected_exceptions": []
+    },
+    {
+     "animal": "cat",
+     "service_role": "none",
+     "action": "enter",
+     "zone_key": "indoor",
+     "expected_effect": "prohibited",
+     "expected_compliance": "CONSISTENT",
+     "expected_exceptions": []
+    },
+    {
+     "animal": "dog",
+     "service_role": "working",
+     "action": "enter",
+     "zone_key": "indoor",
+     "expected_effect": "allowed",
+     "expected_compliance": "CONSISTENT",
+     "expected_exceptions": [
+      "exc-qt-indoor-legal-sd"
+     ]
+    }
+   ]
+  },
+  {
+   "key": "rw-02-scenic-disneyland",
+   "place_type": "scenic_area",
+   "zones": [
+    {
+     "zone_key": "whole_park",
+     "name": "全园"
+    }
+   ],
+   "sources": [
+    {
+     "source_key": "disney_official",
+     "source_type": "official_operator_policy",
+     "display_allowed": true,
+     "redistribution_allowed": false
+    },
+    {
+     "source_key": "sh_dog_regulation",
+     "source_type": "statute_or_regulation",
+     "display_allowed": true,
+     "redistribution_allowed": true
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "dl-pet-ban",
+     "zone_key": "whole_park",
+     "animal_scope": "ordinary_pet",
+     "action": "enter",
+     "effect": "prohibited",
+     "rule_layer": "OPERATOR_POLICY",
+     "conditions": [],
+     "source_key": "disney_official"
+    },
+    {
+     "rule_id": "dl-sd-op",
+     "zone_key": "whole_park",
+     "animal_scope": "service_dog",
+     "action": "enter",
+     "effect": "conditional",
+     "rule_layer": "OPERATOR_POLICY",
+     "conditions": [
+      {
+       "condition_type": "leash_required",
+       "value_flag": true
+      }
+     ],
+     "source_key": "disney_official"
+    },
+    {
+     "rule_id": "dl-legal-dog",
+     "zone_key": "whole_park",
+     "animal_scope": "dog",
+     "action": "enter",
+     "effect": "prohibited",
+     "rule_layer": "LEGAL",
+     "conditions": [],
+     "source_key": "sh_dog_regulation",
+     "exceptions": [
+      {
+       "exception_id": "exc-dl-legal-dog-sd",
+       "animal_scope": "service_dog",
+       "effect": "allowed",
+       "source_key": "sh_dog_regulation",
+       "note": "但书/政策例外：导盲犬等工作犬不受本条限制"
+      }
+     ]
+    }
+   ],
+   "queries": [
+    {
+     "animal": "dog",
+     "service_role": "none",
+     "action": "enter",
+     "zone_key": "whole_park",
+     "expected_effect": "prohibited",
+     "expected_compliance": "CONSISTENT",
+     "expected_exceptions": []
+    },
+    {
+     "animal": "cat",
+     "service_role": "none",
+     "action": "enter",
+     "zone_key": "whole_park",
+     "expected_effect": "prohibited",
+     "expected_compliance": "CONSISTENT",
+     "expected_exceptions": []
+    },
+    {
+     "animal": "dog",
+     "service_role": "working",
+     "action": "enter",
+     "zone_key": "whole_park",
+     "expected_effect": "conditional",
+     "expected_compliance": "CONSISTENT",
+     "expected_exceptions": [
+      "exc-dl-legal-dog-sd"
+     ]
+    }
+   ]
+  },
+  {
+   "key": "rw-03-park-huangpu-sect",
+   "place_type": "park",
+   "zones": [
+    {
+     "zone_key": "h6_pet_area",
+     "name": "H6宠物试点区域（金陵中路、西藏南路、延安东路、普安路合围）"
+    },
+    {
+     "zone_key": "other_areas",
+     "name": "公园其余区域"
+    }
+   ],
+   "sources": [
+    {
+     "source_key": "hp_gov_notice",
+     "source_type": "government_service",
+     "display_allowed": true,
+     "redistribution_allowed": true
+    },
+    {
+     "source_key": "pincang_detail",
+     "source_type": "external_web_reference",
+     "display_allowed": true,
+     "redistribution_allowed": false
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "gc-h6-pilot",
+     "zone_key": "h6_pet_area",
+     "animal_scope": "ordinary_pet",
+     "action": "enter",
+     "effect": "conditional",
+     "rule_layer": "TEMPORARY_POLICY",
+     "effective_from": "2025-09-01T00:00:00+00:00",
+     "conditions": [
+      {
+       "condition_type": "leash_required",
+       "value_flag": true
+      }
+     ],
+     "source_key": "hp_gov_notice"
+    },
+    {
+     "rule_id": "gc-h6-detail-media",
+     "zone_key": "h6_pet_area",
+     "animal_scope": "ordinary_pet",
+     "action": "enter",
+     "effect": "conditional",
+     "rule_layer": "REGULATORY_GUIDANCE",
+     "effective_from": "2025-09-01T00:00:00+00:00",
+     "conditions": [],
+     "source_key": "pincang_detail"
+    },
+    {
+     "rule_id": "gc-other-keep",
+     "zone_key": "other_areas",
+     "animal_scope": "ordinary_pet",
+     "action": "enter",
+     "effect": "prohibited",
+     "rule_layer": "OPERATOR_POLICY",
+     "conditions": [],
+     "source_key": "hp_gov_notice"
+    }
+   ],
+   "queries": [
+    {
+     "animal": "dog",
+     "service_role": "none",
+     "action": "enter",
+     "zone_key": "h6_pet_area",
+     "expected_effect": "conditional",
+     "expected_compliance": "CONSISTENT",
+     "expected_exceptions": []
+    },
+    {
+     "animal": "dog",
+     "service_role": "none",
+     "action": "enter",
+     "zone_key": "other_areas",
+     "expected_effect": "prohibited",
+     "expected_compliance": "CONSISTENT",
+     "expected_exceptions": []
+    },
+    {
+     "animal": "cat",
+     "service_role": "none",
+     "action": "enter",
+     "zone_key": "h6_pet_area",
+     "expected_effect": "conditional",
+     "expected_compliance": "CONSISTENT",
+     "expected_exceptions": []
+    }
+   ]
+  },
+  {
+   "key": "rw-04-park-daji-park",
+   "place_type": "park",
+   "zones": [
+    {
+     "zone_key": "whole_park",
+     "name": "全园"
+    }
+   ],
+   "sources": [
+    {
+     "source_key": "hp_gov_notice",
+     "source_type": "government_service",
+     "display_allowed": true,
+     "redistribution_allowed": true
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "dj-pilot",
+     "zone_key": "whole_park",
+     "animal_scope": "ordinary_pet",
+     "action": "enter",
+     "effect": "conditional",
+     "rule_layer": "TEMPORARY_POLICY",
+     "effective_from": "2025-09-01T00:00:00+00:00",
+     "conditions": [
+      {
+       "condition_type": "leash_required",
+       "value_flag": true
+      }
+     ],
+     "source_key": "hp_gov_notice"
+    }
+   ],
+   "queries": [
+    {
+     "animal": "dog",
+     "service_role": "none",
+     "action": "enter",
+     "zone_key": "whole_park",
+     "expected_effect": "conditional",
+     "expected_compliance": "CONSISTENT",
+     "expected_exceptions": []
+    }
+   ]
+  },
+  {
+   "key": "rw-05-mall-grand-gateway",
+   "place_type": "mall",
+   "zones": [
+    {
+     "zone_key": "indoor",
+     "name": "室内商业空间"
+    },
+    {
+     "zone_key": "outdoor",
+     "name": "户外街区"
+    }
+   ],
+   "sources": [
+    {
+     "source_key": "jfdaily_news",
+     "source_type": "external_web_reference",
+     "display_allowed": true,
+     "redistribution_allowed": false
+    },
+    {
+     "source_key": "xinhua_news",
+     "source_type": "external_web_reference",
+     "display_allowed": true,
+     "redistribution_allowed": false
+    },
+    {
+     "source_key": "sh_dog_regulation",
+     "source_type": "statute_or_regulation",
+     "display_allowed": true,
+     "redistribution_allowed": true
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "gh-indoor-old",
+     "zone_key": "indoor",
+     "animal_scope": "ordinary_pet",
+     "action": "enter",
+     "effect": "conditional",
+     "rule_layer": "OPERATOR_POLICY",
+     "effective_to": "2026-01-31T23:59:59+00:00",
+     "conditions": [],
+     "source_key": "xinhua_news"
+    },
+    {
+     "rule_id": "gh-indoor-new",
+     "zone_key": "indoor",
+     "animal_scope": "ordinary_pet",
+     "action": "enter",
+     "effect": "prohibited",
+     "rule_layer": "OPERATOR_POLICY",
+     "effective_from": "2026-02-01T00:00:00+00:00",
+     "conditions": [],
+     "source_key": "jfdaily_news",
+     "exceptions": [
+      {
+       "exception_id": "exc-gh-indoor-new-sd",
+       "animal_scope": "service_dog",
+       "effect": "allowed",
+       "source_key": "jfdaily_news",
+       "note": "新华网原文：『明确禁止除导盲犬等工作犬以外的其他宠物进入商场室内公共区域』——运营方政策自带工作犬例外（R2 直接抓取核验）"
+      }
+     ]
+    },
+    {
+     "rule_id": "gh-outdoor-keep",
+     "zone_key": "outdoor",
+     "animal_scope": "ordinary_pet",
+     "action": "enter",
+     "effect": "conditional",
+     "rule_layer": "OPERATOR_POLICY",
+     "effective_from": "2026-02-01T00:00:00+00:00",
+     "conditions": [
+      {
+       "condition_type": "leash_required",
+       "value_flag": true
+      }
+     ],
+     "source_key": "jfdaily_news"
+    },
+    {
+     "rule_id": "gh-legal-dog",
+     "zone_key": "indoor",
+     "animal_scope": "dog",
+     "action": "enter",
+     "effect": "prohibited",
+     "rule_layer": "LEGAL",
+     "conditions": [],
+     "source_key": "sh_dog_regulation",
+     "exceptions": [
+      {
+       "exception_id": "exc-gh-legal-dog-sd",
+       "animal_scope": "service_dog",
+       "effect": "allowed",
+       "source_key": "sh_dog_regulation",
+       "note": "但书/政策例外：导盲犬等工作犬不受本条限制"
+      }
+     ]
+    }
+   ],
+   "queries": [
+    {
+     "animal": "dog",
+     "service_role": "none",
+     "action": "enter",
+     "zone_key": "indoor",
+     "expected_effect": "prohibited",
+     "expected_compliance": "CONSISTENT",
+     "expected_exceptions": []
+    },
+    {
+     "animal": "dog",
+     "service_role": "none",
+     "action": "enter",
+     "zone_key": "outdoor",
+     "expected_effect": "conditional",
+     "expected_compliance": "CONSISTENT",
+     "expected_exceptions": []
+    },
+    {
+     "animal": "dog",
+     "service_role": "working",
+     "action": "enter",
+     "zone_key": "indoor",
+     "expected_effect": "allowed",
+     "expected_compliance": "CONSISTENT",
+     "expected_exceptions": [
+      "exc-gh-legal-dog-sd"
+     ]
+    }
+   ]
+  },
+  {
+   "key": "rw-06-library-sh-library-east",
+   "place_type": "library",
+   "zones": [
+    {
+     "zone_key": "whole_building",
+     "name": "全馆"
+    }
+   ],
+   "sources": [
+    {
+     "source_key": "library_notice",
+     "source_type": "official_operator_policy",
+     "display_allowed": true,
+     "redistribution_allowed": true
+    },
+    {
+     "source_key": "sh_dog_regulation",
+     "source_type": "statute_or_regulation",
+     "display_allowed": true,
+     "redistribution_allowed": true
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "lib-pets-op",
+     "zone_key": "whole_building",
+     "animal_scope": "ordinary_pet",
+     "action": "enter",
+     "effect": "prohibited",
+     "rule_layer": "OPERATOR_POLICY",
+     "conditions": [],
+     "source_key": "library_notice"
+    },
+    {
+     "rule_id": "lib-sd-op",
+     "zone_key": "whole_building",
+     "animal_scope": "service_dog",
+     "action": "enter",
+     "effect": "allowed",
+     "rule_layer": "OPERATOR_POLICY",
+     "conditions": [],
+     "source_key": "library_notice"
+    },
+    {
+     "rule_id": "lib-legal-dog",
+     "zone_key": "whole_building",
+     "animal_scope": "dog",
+     "action": "enter",
+     "effect": "prohibited",
+     "rule_layer": "LEGAL",
+     "conditions": [],
+     "source_key": "sh_dog_regulation",
+     "exceptions": [
+      {
+       "exception_id": "exc-lib-legal-dog-sd",
+       "animal_scope": "service_dog",
+       "effect": "allowed",
+       "source_key": "sh_dog_regulation",
+       "note": "但书/政策例外：导盲犬等工作犬不受本条限制"
+      }
+     ]
+    }
+   ],
+   "queries": [
+    {
+     "animal": "dog",
+     "service_role": "none",
+     "action": "enter",
+     "zone_key": "whole_building",
+     "expected_effect": "prohibited",
+     "expected_compliance": "CONSISTENT",
+     "expected_exceptions": []
+    },
+    {
+     "animal": "cat",
+     "service_role": "none",
+     "action": "enter",
+     "zone_key": "whole_building",
+     "expected_effect": "prohibited",
+     "expected_compliance": "CONSISTENT",
+     "expected_exceptions": []
+    },
+    {
+     "animal": "dog",
+     "service_role": "working",
+     "action": "enter",
+     "zone_key": "whole_building",
+     "expected_effect": "allowed",
+     "expected_compliance": "CONSISTENT",
+     "expected_exceptions": [
+      "exc-lib-legal-dog-sd"
+     ]
+    }
+   ]
+  },
+  {
+   "key": "rw-07-hotel-peace-hotel",
+   "place_type": "hotel",
+   "zones": [
+    {
+     "zone_key": "whole_hotel",
+     "name": "全酒店"
+    }
+   ],
+   "sources": [
+    {
+     "source_key": "ota_pages",
+     "source_type": "official_operator_policy",
+     "display_allowed": true,
+     "redistribution_allowed": false
+    },
+    {
+     "source_key": "sh_dog_regulation",
+     "source_type": "statute_or_regulation",
+     "display_allowed": true,
+     "redistribution_allowed": true
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "fp-pets-op",
+     "zone_key": "whole_hotel",
+     "animal_scope": "ordinary_pet",
+     "action": "enter",
+     "effect": "prohibited",
+     "rule_layer": "OPERATOR_POLICY",
+     "conditions": [],
+     "source_key": "ota_pages"
+    },
+    {
+     "rule_id": "fp-sd-op",
+     "zone_key": "whole_hotel",
+     "animal_scope": "service_dog",
+     "action": "enter",
+     "effect": "allowed",
+     "rule_layer": "OPERATOR_POLICY",
+     "conditions": [],
+     "source_key": "ota_pages"
+    },
+    {
+     "rule_id": "fp-legal-dog",
+     "zone_key": "whole_hotel",
+     "animal_scope": "dog",
+     "action": "enter",
+     "effect": "prohibited",
+     "rule_layer": "LEGAL",
+     "conditions": [],
+     "source_key": "sh_dog_regulation",
+     "exceptions": [
+      {
+       "exception_id": "exc-fp-legal-dog-sd",
+       "animal_scope": "service_dog",
+       "effect": "allowed",
+       "source_key": "sh_dog_regulation",
+       "note": "但书/政策例外：导盲犬等工作犬不受本条限制"
+      }
+     ]
+    }
+   ],
+   "queries": [
+    {
+     "animal": "dog",
+     "service_role": "none",
+     "action": "enter",
+     "zone_key": "whole_hotel",
+     "expected_effect": "prohibited",
+     "expected_compliance": "CONSISTENT",
+     "expected_exceptions": []
+    },
+    {
+     "animal": "dog",
+     "service_role": "working",
+     "action": "enter",
+     "zone_key": "whole_hotel",
+     "expected_effect": "allowed",
+     "expected_compliance": "CONSISTENT",
+     "expected_exceptions": [
+      "exc-fp-legal-dog-sd"
+     ]
+    }
+   ]
+  },
+  {
+   "key": "rw-08-cafe-roastery",
+   "place_type": "cafe",
+   "zones": [
+    {
+     "zone_key": "whole_store",
+     "name": "全店"
+    }
+   ],
+   "sources": [
+    {
+     "source_key": "sbux_brand",
+     "source_type": "official_operator_policy",
+     "display_allowed": true,
+     "redistribution_allowed": false
+    },
+    {
+     "source_key": "sh_dog_regulation",
+     "source_type": "statute_or_regulation",
+     "display_allowed": true,
+     "redistribution_allowed": true
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "sb-legal-dog",
+     "zone_key": "whole_store",
+     "animal_scope": "dog",
+     "action": "enter",
+     "effect": "prohibited",
+     "rule_layer": "LEGAL",
+     "conditions": [],
+     "source_key": "sh_dog_regulation",
+     "exceptions": [
+      {
+       "exception_id": "exc-sb-legal-dog-sd",
+       "animal_scope": "service_dog",
+       "effect": "allowed",
+       "source_key": "sh_dog_regulation",
+       "note": "但书/政策例外：导盲犬等工作犬不受本条限制"
+      }
+     ]
+    }
+   ],
+   "queries": [
+    {
+     "animal": "dog",
+     "service_role": "none",
+     "action": "enter",
+     "zone_key": "whole_store",
+     "expected_effect": "prohibited",
+     "expected_compliance": "CONSISTENT",
+     "expected_exceptions": []
+    },
+    {
+     "animal": "cat",
+     "service_role": "none",
+     "action": "enter",
+     "zone_key": "whole_store",
+     "expected_effect": "unknown",
+     "expected_compliance": "UNKNOWN",
+     "expected_exceptions": []
+    },
+    {
+     "animal": "dog",
+     "service_role": "working",
+     "action": "enter",
+     "zone_key": "whole_store",
+     "expected_effect": "allowed",
+     "expected_compliance": "CONSISTENT",
+     "expected_exceptions": [
+      "exc-sb-legal-dog-sd"
+     ]
+    }
+   ]
+  },
+  {
+   "key": "rw-09-cafe-kaidi-hongkou",
+   "place_type": "cafe",
+   "zones": [
+    {
+     "zone_key": "outdoor_seating",
+     "name": "户外宠物区"
+    },
+    {
+     "zone_key": "indoor",
+     "name": "室内"
+    }
+   ],
+   "sources": [
+    {
+     "source_key": "cbndata_news",
+     "source_type": "external_web_reference",
+     "display_allowed": true,
+     "redistribution_allowed": false
+    },
+    {
+     "source_key": "social_posts",
+     "source_type": "ordinary_user",
+     "display_allowed": false,
+     "redistribution_allowed": false
+    },
+    {
+     "source_key": "sh_dog_regulation_note",
+     "source_type": "statute_or_regulation",
+     "display_allowed": true,
+     "redistribution_allowed": true
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "mn-outdoor-media",
+     "zone_key": "outdoor_seating",
+     "animal_scope": "ordinary_pet",
+     "action": "enter",
+     "effect": "conditional",
+     "rule_layer": "OPERATOR_POLICY",
+     "conditions": [
+      {
+       "condition_type": "leash_required",
+       "value_flag": true
+      }
+     ],
+     "source_key": "cbndata_news"
+    },
+    {
+     "rule_id": "mn-indoor-media",
+     "zone_key": "indoor",
+     "animal_scope": "ordinary_pet",
+     "action": "enter",
+     "effect": "prohibited",
+     "rule_layer": "OPERATOR_POLICY",
+     "conditions": [],
+     "source_key": "cbndata_news"
+    },
+    {
+     "rule_id": "mn-legal-dog",
+     "zone_key": "indoor",
+     "animal_scope": "dog",
+     "action": "enter",
+     "effect": "prohibited",
+     "rule_layer": "LEGAL",
+     "conditions": [],
+     "source_key": "sh_dog_regulation_note",
+     "exceptions": [
+      {
+       "exception_id": "exc-mn-legal-dog-sd",
+       "animal_scope": "service_dog",
+       "effect": "allowed",
+       "source_key": "sh_dog_regulation_note",
+       "note": "但书/政策例外：导盲犬等工作犬不受本条限制"
+      }
+     ]
+    }
+   ],
+   "queries": [
+    {
+     "animal": "dog",
+     "service_role": "none",
+     "action": "enter",
+     "zone_key": "indoor",
+     "expected_effect": "prohibited",
+     "expected_compliance": "CONSISTENT",
+     "expected_exceptions": []
+    },
+    {
+     "animal": "dog",
+     "service_role": "none",
+     "action": "enter",
+     "zone_key": "outdoor_seating",
+     "expected_effect": "conditional",
+     "expected_compliance": "CONSISTENT",
+     "expected_exceptions": []
+    }
+   ]
+  },
+  {
+   "key": "rw-10-cafe-west-bund-gate-m",
+   "place_type": "cafe",
+   "zones": [
+    {
+     "zone_key": "indoor",
+     "name": "室内"
+    },
+    {
+     "zone_key": "outdoor_pet_area",
+     "name": "户外宠物友好区"
+    }
+   ],
+   "sources": [
+    {
+     "source_key": "media_report",
+     "source_type": "external_web_reference",
+     "display_allowed": true,
+     "redistribution_allowed": false
+    },
+    {
+     "source_key": "user_posts",
+     "source_type": "ordinary_user",
+     "display_allowed": false,
+     "redistribution_allowed": false
+    },
+    {
+     "source_key": "sh_dog_regulation_note",
+     "source_type": "statute_or_regulation",
+     "display_allowed": true,
+     "redistribution_allowed": true
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "xm-indoor-new",
+     "zone_key": "indoor",
+     "animal_scope": "ordinary_pet",
+     "action": "enter",
+     "effect": "prohibited",
+     "rule_layer": "OPERATOR_POLICY",
+     "effective_from": "2026-08-01T00:00:00+00:00",
+     "conditions": [],
+     "source_key": "media_report"
+    },
+    {
+     "rule_id": "xm-outdoor-media",
+     "zone_key": "outdoor_pet_area",
+     "animal_scope": "ordinary_pet",
+     "action": "enter",
+     "effect": "conditional",
+     "rule_layer": "OPERATOR_POLICY",
+     "effective_from": "2026-08-01T00:00:00+00:00",
+     "conditions": [
+      {
+       "condition_type": "leash_required",
+       "value_flag": true
+      }
+     ],
+     "source_key": "media_report"
+    },
+    {
+     "rule_id": "xm-legal-dog",
+     "zone_key": "indoor",
+     "animal_scope": "dog",
+     "action": "enter",
+     "effect": "prohibited",
+     "rule_layer": "LEGAL",
+     "conditions": [],
+     "source_key": "sh_dog_regulation_note",
+     "exceptions": [
+      {
+       "exception_id": "exc-xm-legal-dog-sd",
+       "animal_scope": "service_dog",
+       "effect": "allowed",
+       "source_key": "sh_dog_regulation_note",
+       "note": "但书/政策例外：导盲犬等工作犬不受本条限制"
+      }
+     ]
+    }
+   ],
+   "queries": [
+    {
+     "animal": "dog",
+     "service_role": "none",
+     "action": "enter",
+     "zone_key": "indoor",
+     "expected_effect": "prohibited",
+     "expected_compliance": "CONSISTENT",
+     "expected_exceptions": []
+    },
+    {
+     "animal": "dog",
+     "service_role": "none",
+     "action": "enter",
+     "zone_key": "outdoor_pet_area",
+     "expected_effect": "conditional",
+     "expected_compliance": "CONSISTENT",
+     "expected_exceptions": []
+    },
+    {
+     "animal": "dog",
+     "service_role": "working",
+     "action": "enter",
+     "zone_key": "indoor",
+     "expected_effect": "allowed",
+     "expected_compliance": "CONSISTENT",
+     "expected_exceptions": [
+      "exc-xm-legal-dog-sd"
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -9,6 +9,7 @@ Targets the branches left uncovered by the v0.5 suites:
 import socket
 import threading
 import types
+from datetime import UTC, datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import pytest
@@ -276,7 +277,7 @@ def _source(db, issuer="quality-baseline"):
     src = Source(
         source_type="onsite_signage",
         issuer=issuer,
-        directness="primary",
+        directness="direct",
         collected_at="2026-09-13T00:00:00Z",
     )
     db.add(src)
@@ -285,10 +286,39 @@ def _source(db, issuer="quality-baseline"):
 
 
 def _approved_candidate(db, *, place_id=None, source_id=None, bundle_id=None):
-    from app.models import Place
+    from app.models import Place, Source
+    from app.models.evidence import EvidenceBundle, SourceArtifact
 
     if source_id is None:
         source_id = _source(db).id
+    if bundle_id is None:
+        src_row = db.get(Source, source_id)
+        artifact = SourceArtifact(
+            source_id=src_row.id,
+            source_platform="OnsiteEvidenceCollector",
+            artifact_type="signage_photo",
+            collector_type="OnsiteEvidenceCollector",
+            content_hash="b" * 64,
+            captured_excerpt="宠物需牵引",
+            collected_at=datetime.now(UTC),
+            storage_allowed=True,
+            display_allowed=True,
+            redistribution_allowed=True,
+        )
+        db.add(artifact)
+        db.flush()
+        bundle = EvidenceBundle(
+            artifact_id=artifact.id,
+            source_id=src_row.id,
+            source_platform="OnsiteEvidenceCollector",
+            quoted_fragment="宠物需牵引",
+            content_hash="b" * 64,
+            captured_at=datetime.now(UTC),
+            place_match_evidence={"matched_by": "manual_review_fixture"},
+        )
+        db.add(bundle)
+        db.flush()
+        bundle_id = bundle.id
     if place_id is None:
         place = Place(canonical_name="质量基线测试咖啡", place_type="cafe")
         db.add(place)

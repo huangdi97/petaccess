@@ -5,18 +5,19 @@ Old endpoints unchanged (additive). Admin review actions are audited.
 """
 
 from datetime import UTC, datetime
+from types import SimpleNamespace
 
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app.core.audit import record_audit
 from app.core.errors import ApiError, NotFound
 from app.core.security import get_current_user, require_role
 from app.db.session import get_db
-from app.models import AccessRule, Place, Source, User
-from app.models.enums import UserRole
+from app.models import AccessRule, Place, RuleException, Source, User
+from app.models.enums import RuleStatus, UserRole
 from app.models.v05 import (
     AccessPath,
     Amenity,
@@ -33,6 +34,7 @@ from app.models.v05 import (
 )
 from app.rulespec.v05_boundary import match as boundary_match
 from app.rulespec.v05_resolver import (
+    LayeredException,
     LayeredRule,
     RuleLayer,
     resolve,
@@ -243,6 +245,136 @@ class MonitorIn(BaseModel):
     place_id: str | None = None
 
 
+class RuleExceptionIn(BaseModel):
+    rule_id: str
+    animal_scope: str = Field(pattern="^(dog|cat|ordinary_pet|service_dog|other)$")
+    effect: str = Field(pattern="^(allowed|prohibited|conditional)$")
+    source_id: str
+    effective_from: datetime | None = None
+    effective_to: datetime | None = None
+    note: str | None = Field(default=None, max_length=500)
+
+
+class RuleExceptionTransition(BaseModel):
+    target: str = Field(pattern="^(superseded|withdrawn|current|disputed|archived)$")
+    note: str | None = Field(default=None, max_length=500)
+
+
+def _serialize_rule_exception(e: RuleException) -> dict:
+    return {
+        "id": e.id,
+        "rule_id": e.rule_id,
+        "animal_scope": e.animal_scope,
+        "effect": e.effect,
+        "source_id": e.source_id,
+        "status": e.status,
+        "effective_from": e.effective_from.isoformat() if e.effective_from else None,
+        "effective_to": e.effective_to.isoformat() if e.effective_to else None,
+        "note": e.note,
+    }
+
+
+@admin.post("/rule-exceptions", status_code=201)
+def admin_create_rule_exception(
+    body: RuleExceptionIn,
+    user: User = Depends(require_role(UserRole.MODERATOR)),
+    db: Session = Depends(get_db),
+):
+    """Attach a scope carve-out to a base rule (SG-REAL-01).
+
+    Generic mechanism — no hardcoded scope branch. An exception without a
+    source is invalid (column is NOT NULL); the base rule must exist.
+    """
+    from app.models import RuleException as RuleExceptionModel
+
+    rule = db.get(AccessRule, body.rule_id)
+    if rule is None:
+        raise NotFound("规则不存在")
+    if db.get(Source, body.source_id) is None:
+        raise NotFound("来源不存在")
+    exc = RuleExceptionModel(
+        rule_id=body.rule_id,
+        animal_scope=body.animal_scope,
+        effect=body.effect,
+        source_id=body.source_id,
+        effective_from=body.effective_from,
+        effective_to=body.effective_to,
+        note=body.note,
+    )
+    db.add(exc)
+    db.flush()
+    record_audit(
+        db,
+        request=None,
+        actor_user_id=user.id,
+        actor_role=str(user.role),
+        action="rule_exception.create",
+        target_type="rule_exception",
+        target_id=exc.id,
+        after_state={
+            "rule_id": exc.rule_id,
+            "animal_scope": exc.animal_scope,
+            "effect": exc.effect,
+            "source_id": exc.source_id,
+        },
+    )
+    db.commit()
+    return _serialize_rule_exception(exc)
+
+
+@admin.get("/rule-exceptions", response_model=Page[dict])
+def admin_list_rule_exceptions(
+    rule_id: str | None = None,
+    limit: int = Query(default=50, le=200),
+    offset: int = Query(default=0, ge=0),
+    user: User = Depends(require_role(UserRole.MODERATOR)),
+    db: Session = Depends(get_db),
+):
+    from app.models import RuleException as RuleExceptionModel
+
+    stmt = select(RuleExceptionModel).order_by(RuleExceptionModel.created_at.desc())
+    if rule_id:
+        stmt = stmt.where(RuleExceptionModel.rule_id == rule_id)
+    total = db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
+    rows = db.scalars(stmt.limit(limit).offset(offset)).all()
+    return Page(
+        items=[_serialize_rule_exception(e) for e in rows], total=total, limit=limit, offset=offset
+    )
+
+
+@admin.post("/rule-exceptions/{exception_id}/transition")
+def admin_transition_rule_exception(
+    exception_id: str,
+    body: RuleExceptionTransition,
+    user: User = Depends(require_role(UserRole.MODERATOR)),
+    db: Session = Depends(get_db),
+):
+    """Lifecycle: only `current` exceptions apply (expired/superseded fall back
+    to the base rule). Transitions are audited."""
+    from app.models import RuleException as RuleExceptionModel
+
+    exc = db.get(RuleExceptionModel, exception_id)
+    if exc is None:
+        raise NotFound("规则例外不存在")
+    before = exc.status
+    exc.status = RuleStatus(body.target)
+    if body.note:
+        exc.note = body.note[:500]
+    record_audit(
+        db,
+        request=None,
+        actor_user_id=user.id,
+        actor_role=str(user.role),
+        action="rule_exception.transition",
+        target_type="rule_exception",
+        target_id=exc.id,
+        before_state={"status": before},
+        after_state={"status": exc.status, "note": body.note},
+    )
+    db.commit()
+    return _serialize_rule_exception(exc)
+
+
 @admin.post("/monitors", status_code=201)
 def admin_create_monitor(
     body: MonitorIn,
@@ -332,13 +464,15 @@ def admin_check_monitor(
         if recorded is not None:
             artifact, bundle = recorded
             artifact_id, bundle_id = artifact.id, bundle.id
-        # diff artifact = raw excerpt kept on candidate for review
+        # diff artifact = raw excerpt kept on candidate for review; the
+        # candidate cites the bundle so the publish gate can trace evidence
         cand = create_from_extraction(
             db,
             source_id=monitor.source_id,
             extraction_method="url_monitor",
             place_id=monitor.place_id,
             raw_text=monitor.last_excerpt or "source content changed",
+            evidence_bundle_id=bundle_id,
         )
         candidate_id = cand.id
     record_audit(
@@ -648,6 +782,7 @@ def _load_layered_rules(db: Session, place_id: str) -> dict:
     rules = list(
         db.scalars(
             select(AccessRule)
+            .options(selectinload(AccessRule.conditions))
             .where(
                 (AccessRule.place_id == place_id)
                 | AccessRule.zone_id.in_(select(Zone.id).where(Zone.place_id == place_id))
@@ -676,7 +811,16 @@ def _load_layered_rules(db: Session, place_id: str) -> dict:
                 else "operator_direct"
             ),
             conditions=tuple(
-                c if isinstance(c, dict) else {"condition_type": c} for c in (r.conditions or [])
+                {
+                    "condition_type": c.condition_type,
+                    "value_flag": c.value_flag,
+                    "value_numeric": (
+                        float(c.value_numeric) if c.value_numeric is not None else None
+                    ),
+                    "value_text": c.value_text,
+                    "value_json": c.value_json,
+                }
+                for c in r.conditions
             ),
             zone_id=r.zone_id,
             place_id=r.place_id,
@@ -752,6 +896,28 @@ def _load_layered_rules(db: Session, place_id: str) -> dict:
             )
         )
 
+    # exceptions attach to base rules by id (SG-REAL-01); only current ones load
+    rule_ids = [r.id for r in rules]
+    exceptions = (
+        [
+            LayeredException(
+                id=e.id,
+                rule_id=e.rule_id,
+                animal_scope=e.animal_scope,
+                effect=e.effect,
+                source_id=e.source_id,
+                status=e.status,
+                effective_from=e.effective_from,
+                effective_to=e.effective_to,
+            )
+            for e in db.scalars(
+                select(RuleException).where(RuleException.rule_id.in_(rule_ids))
+            ).all()
+        ]
+        if rule_ids
+        else []
+    )
+
     return {
         "legal": legal,
         "guidance": guidance,
@@ -759,6 +925,7 @@ def _load_layered_rules(db: Session, place_id: str) -> dict:
         "operator": operator,
         "events": events,
         "now": now,
+        "exceptions": exceptions,
     }
 
 
@@ -787,6 +954,7 @@ def effective_rules(
         action=body.get("action", "enter"),
         zone_id=body.get("zone_id"),
         now=datetime.now(UTC),
+        exceptions=grouped["exceptions"],
     )
     return {
         "effect": rs.effect,
@@ -796,6 +964,7 @@ def effective_rules(
         "unresolved_conflicts": [[a.id, b.id] for a, b in rs.unresolved_conflicts],
         "explanation_steps": rs.explanation_steps,
         "obligations": rs.obligations,
+        "applied_exceptions": rs.applied_exceptions,
     }
 
 
@@ -984,6 +1153,7 @@ def boundary_match_endpoint(
         action="enter",
         zone_id=None,
         now=datetime.now(UTC),
+        exceptions=grouped["exceptions"],
     )
     results = boundary_match(effective_effect=rs.effect, coexistence=coexistence, preferences=prefs)
     return {
@@ -1010,6 +1180,7 @@ def place_answerability(place_id: str, db: Session = Depends(get_db)):
     rules = list(
         db.scalars(
             select(AccessRule)
+            .options(selectinload(AccessRule.conditions))
             .where(
                 (AccessRule.place_id == place_id)
                 | AccessRule.zone_id.in_(select(Zone.id).where(Zone.place_id == place_id))
@@ -1352,6 +1523,7 @@ class ArtifactIn(BaseModel):
     storage_allowed: bool = True
     display_allowed: bool = False
     redistribution_allowed: bool = False
+    evidence_strength: str | None = Field(default=None, max_length=24)
     data_source_job_id: str | None = None
 
 
@@ -1410,11 +1582,20 @@ def admin_create_artifact(
         display_allowed=body.display_allowed,
         redistribution_allowed=body.redistribution_allowed,
     )
+    strength = body.evidence_strength
+    if strength is None and body.source_id:
+        src = db.get(Source, body.source_id)
+        if src is not None:
+            from app.services.evidence_service import strength_for_artifact
+
+            collected_probe = SimpleNamespace(collector_type=body.collector_type)
+            strength = strength_for_artifact(collected_probe, src)
     artifact = record_artifact(
         db,
         collected,
         source_id=body.source_id,
         data_source_job_id=body.data_source_job_id,
+        evidence_strength=strength,
     )
     record_audit(
         db,
@@ -1693,6 +1874,7 @@ def _serialize_artifact(a) -> dict:
         "display_allowed": a.display_allowed,
         "redistribution_allowed": a.redistribution_allowed,
         "retention_until": a.retention_until,
+        "evidence_strength": a.evidence_strength,
     }
 
 

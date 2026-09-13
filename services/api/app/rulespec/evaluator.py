@@ -52,6 +52,12 @@ _OBLIGATION_CONDITIONS = {
     "vaccination_required",
     "reservation_required",
     "advance_notice_required",
+    # structured access-path obligations (SG use_pet_elevator, S9): the value
+    # references an Entrance (entrance_type=PET_DESIGNATED) / AccessPath step,
+    # not a bare boolean — the pet route is a first-class record.
+    "designated_entrance",
+    "designated_elevator",
+    "designated_route",
 }
 
 # Condition types whose numeric/threshold semantics need the query's animal data.
@@ -185,8 +191,82 @@ def _eval_condition(cond: Condition, ctx: QueryContext, now: datetime) -> tuple[
     return True, None
 
 
-def evaluate(ctx: QueryContext, rules: list[Rule]) -> ApplicabilityResult:
+def _match_exceptions(
+    rules: list[Rule], ctx: QueryContext, now: datetime, exceptions: list[dict]
+) -> dict[str, dict]:
+    """Return {base_rule_id: exception} for active, sourced, scope-matching exceptions."""
+    by_id = {r.id: r for r in rules}
+    matched: dict[str, dict] = {}
+    for exc in exceptions:
+        base = by_id.get(str(exc.get("rule_id")))
+        if base is None:
+            continue
+        if not exc.get("source_id"):
+            continue  # an exception without provenance never applies
+        if str(exc.get("status") or "current") != "current":
+            continue
+        ef, et = exc.get("effective_from"), exc.get("effective_to")
+        if ef is not None and now < ef:
+            continue
+        if et is not None and now > et:
+            continue
+        probe = Rule(
+            id=f"exc-probe-{exc.get('id', '?')}",
+            animal_scope=AnimalScope(str(exc.get("animal_scope"))),
+            action=base.action,
+            effect=RuleEffect(str(exc.get("effect", "allowed"))),
+        )
+        if not _animal_scope_matches(probe, ctx.animal):
+            continue
+        prev = matched.get(base.id)
+        if prev is not None and str(prev.get("effect")) != str(exc.get("effect")):
+            continue  # conflicting exceptions: keep base governing (strictest path)
+        matched.setdefault(base.id, exc)
+    return matched
+
+
+def _apply_exceptions(rules: list[Rule], matched: dict[str, dict], ctx: QueryContext) -> list[Rule]:
+    """Replace exception-exempted base rules with their synthetic exception rule."""
+    out: list[Rule] = []
+    for r in rules:
+        exc = matched.get(r.id)
+        if exc is None:
+            out.append(r)
+            continue
+        out.append(
+            Rule(
+                id=f"exc:{exc.get('id', '?')}",
+                animal_scope=AnimalScope(str(exc.get("animal_scope"))),
+                action=r.action,
+                effect=RuleEffect(str(exc.get("effect", "allowed"))),
+                status=r.status,
+                zone_id=r.zone_id,
+                place_id=r.place_id,
+                effective_from=r.effective_from,
+                effective_to=r.effective_to,
+                source_id=str(exc.get("source_id")),
+            )
+        )
+    return out
+
+
+def evaluate(
+    ctx: QueryContext,
+    rules: list[Rule],
+    exceptions: list[dict] | None = None,
+) -> ApplicabilityResult:
+    """Evaluate with optional rule exceptions (SG-REAL-01).
+
+    Each exception dict: {id, rule_id, animal_scope, effect, source_id,
+    status?, effective_from?, effective_to?}. A matching, active, sourced
+    exception replaces its base rule for this query — generic mechanism, no
+    hardcoded scope branch. Exceptions never widen to other scopes: the
+    exempt scope matches exactly like a service_dog-scoped rule would.
+    """
     now = ctx.date_time
+    matched = _match_exceptions(rules, ctx, now, exceptions or [])
+    if matched:
+        rules = _apply_exceptions(rules, matched, ctx)
     in_scope = [r for r in rules if _rule_in_scope(r, ctx, now)]
     if not in_scope:
         return ApplicabilityResult(

@@ -189,6 +189,10 @@ class SourceArtifact(Base, PkMixin, TimestampMixin):
     #: captured excerpt kept on the artifact itself (bounded, for review)
     captured_excerpt: Mapped[str | None] = mapped_column(Text, nullable=True)
 
+    #: descriptive capture posture (EvidenceStrength) — NOT a trust score; a
+    #: NULL here means "captured before the classification existed" (legacy row)
+    evidence_strength: Mapped[str | None] = mapped_column(String(24), nullable=True)
+
     #: licence posture at collection time (denormalised from DataLicense for audit)
     storage_allowed: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     display_allowed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)

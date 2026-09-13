@@ -16,6 +16,7 @@ VALID_LAYERS = {"LEGAL", "REGULATORY_GUIDANCE", "OPERATOR_POLICY", "TEMPORARY_PO
 VALID_EFFECTS = {"allowed", "prohibited", "conditional"}
 VALID_SPECIES = {"dog", "cat", "other"}
 VALID_ROLES = {"ordinary_pet", "service_dog"}
+VALID_EXCEPT_SCOPES = {"dog", "cat", "ordinary_pet", "service_dog", "other"}
 
 
 class PetAccessJSONError(ValueError):
@@ -36,12 +37,13 @@ def dump(
     effective_to: str | None = None,
     source_id: str,
     verified_at: str | None = None,
+    exceptions: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     if rule_layer not in VALID_LAYERS:
         raise PetAccessJSONError(f"invalid rule_layer {rule_layer}")
     if effect not in VALID_EFFECTS:
         raise PetAccessJSONError(f"invalid effect {effect}")
-    return {
+    doc = {
         "petaccessjson_version": PETACCESSJSON_VERSION,
         "subject": {"species": species, "role": role},
         "scope": {"place_id": place_id, "zone_id": zone_id},
@@ -52,6 +54,9 @@ def dump(
         "validity": {"effective_from": effective_from, "effective_to": effective_to},
         "source": {"source_id": source_id, "verified_at": verified_at},
     }
+    if exceptions:
+        doc["exceptions"] = exceptions
+    return doc
 
 
 def load(data: dict[str, Any]) -> dict[str, Any]:
@@ -75,4 +80,18 @@ def load(data: dict[str, Any]) -> dict[str, Any]:
     scope = data["scope"] or {}
     if not scope.get("place_id"):
         raise PetAccessJSONError("scope.place_id required")
+    exceptions = data.get("exceptions")
+    if exceptions is not None:
+        if not isinstance(exceptions, list):
+            raise PetAccessJSONError("exceptions must be a list")
+        for exc in exceptions:
+            if not isinstance(exc, dict):
+                raise PetAccessJSONError("exception must be an object")
+            if exc.get("animal_scope") not in VALID_EXCEPT_SCOPES:
+                raise PetAccessJSONError("invalid exception.animal_scope")
+            if exc.get("effect") not in VALID_EFFECTS:
+                raise PetAccessJSONError("invalid exception.effect")
+            if not exc.get("source_id"):
+                # an exception without provenance is invalid, never guessed
+                raise PetAccessJSONError("exception.source_id required")
     return data

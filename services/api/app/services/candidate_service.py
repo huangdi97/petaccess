@@ -12,11 +12,12 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from sqlalchemy import update
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from app.core.errors import ApiError
 from app.models import AccessRule, RuleCandidate, Source
+from app.models.enums import RuleStatus
 from app.models.v05 import CANDIDATE_TRANSITIONS
 
 
@@ -94,6 +95,11 @@ def publish(
     source = db.get(Source, candidate.source_id)
     if source is None:
         raise ApiError("来源不存在", code="source_missing")
+    # Pre-Publish Validation (S8): evidence / place match / schema support /
+    # unresolved conflict / freshness / data license — all must pass.
+    from app.services.publish_gate import validate_for_publish
+
+    validate_for_publish(db, candidate)
     if candidate.evidence_bundle_id:
         # Publish boundary for the evidence chain (brief §5/§10): a lead-only
         # platform bundle without a redistribution licence can be reviewed but
@@ -124,6 +130,26 @@ def publish(
     db.add(rule)
     db.flush()
 
+    # Same-issuer policy change: the source updated its own rule, so current
+    # rules from THAT source with the same owner+scope+action are superseded
+    # here (history preserved via supersedes_rule_id). Cross-source conflicts
+    # never reach this point — the publish gate blocks them as unresolved.
+    superseded_same_source = db.scalars(
+        select(AccessRule).where(
+            AccessRule.place_id == candidate.place_id
+            if candidate.zone_id is None
+            else AccessRule.zone_id == candidate.zone_id,
+            AccessRule.status == "current",
+            AccessRule.source_id == candidate.source_id,
+            AccessRule.animal_scope == candidate.animal_scope,
+            AccessRule.action == candidate.action,
+            AccessRule.id != rule.id,  # never supersede the rule just created
+        )
+    ).all()
+    for old_rule in superseded_same_source:
+        old_rule.status = RuleStatus.SUPERSEDED
+        rule.supersedes_rule_id = old_rule.id
+
     # Atomic compare-and-set on the candidate status: two reviewers publishing
     # the same APPROVED candidate must yield exactly one AccessRule. The loser's
     # CAS matches 0 rows, the whole transaction (rule included) rolls back.
@@ -137,7 +163,8 @@ def publish(
             review_note=(note or "")[:500] or None,
         )
     )
-    if updated.rowcount != 1:
+    updated_rowcount: int | None = getattr(updated, "rowcount", None)
+    if updated_rowcount != 1:
         db.rollback()
         raise ApiError("候选已被并发发布", code="candidate_already_published")
 

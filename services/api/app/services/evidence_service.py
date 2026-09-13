@@ -305,6 +305,7 @@ def record_artifact(
     source_id: str | None = None,
     data_source_job_id: str | None = None,
     now: datetime | None = None,
+    evidence_strength: str | None = None,
 ) -> SourceArtifact:
     """Freeze a collector's output as an original-evidence row."""
     artifact = SourceArtifact(
@@ -597,3 +598,44 @@ def record_monitor_change(
         },
     )
     return artifact, bundle
+
+
+# ------------------------------------------------------- evidence strength (S7)
+
+
+def strength_for_artifact(artifact, source) -> str:
+    """Descriptive capture posture (EvidenceStrength). NOT a trust score.
+
+    Deterministic mapping from how the artifact was captured and what kind of
+    source it documents; unknown combinations stay None for human review.
+    """
+    from app.models.enums import (
+        Directness,
+        EvidenceStrength,
+        SourceType,
+    )
+
+    collector = (artifact.collector_type or "").lower()
+    stype = str(getattr(source, "source_type", "") or "")
+    directness = str(getattr(source, "directness", "") or "")
+    if collector.startswith("agent_search_snippet"):
+        if stype == SourceType.ORDINARY_USER.value:
+            return EvidenceStrength.SOCIAL_LEAD.value
+        return EvidenceStrength.SEARCH_SNIPPET.value
+    if collector.startswith("agent_web_reader"):
+        if stype in (
+            SourceType.STATUTE_OR_REGULATION.value,
+            SourceType.GOVERNMENT_SERVICE.value,
+            SourceType.OFFICIAL_OPERATOR_POLICY.value,
+        ):
+            return EvidenceStrength.PRIMARY_DIRECT.value
+        if stype == SourceType.ORDINARY_USER.value:
+            return EvidenceStrength.USER_SUBMITTED.value
+        if directness == Directness.DIRECT.value:
+            return EvidenceStrength.PRIMARY_DIRECT.value
+        return EvidenceStrength.SECONDARY_REPUTABLE.value
+    if collector in (CollectorType.ONSITE_EVIDENCE,):
+        return EvidenceStrength.PRIMARY_CAPTURED.value
+    if stype == SourceType.ORDINARY_USER.value:
+        return EvidenceStrength.USER_SUBMITTED.value
+    return "unknown"

@@ -91,6 +91,7 @@ _RULE_KEYS = {
     "effective_to",
     "status",
     "note",
+    "exceptions",
 }
 _COEXISTENCE_KEYS = {"zone_key", "attribute", "value"}
 _QUERY_KEYS = {"animal", "service_role", "action", "zone_key"}
@@ -306,7 +307,7 @@ def _audit_one(sample: dict, now: datetime, gap_registry: dict) -> dict:
 
 
 def _resolve_query(sample: dict, query: dict, layer_rules: dict, zones: dict):
-    from app.rulespec.v05_resolver import LayeredRule, resolve
+    from app.rulespec.v05_resolver import LayeredException, LayeredRule, resolve
 
     def build(rule: dict) -> LayeredRule:
         origin = rule.get("origin") or (
@@ -333,6 +334,24 @@ def _resolve_query(sample: dict, query: dict, layer_rules: dict, zones: dict):
         "operator_rules": [build(r) for r in layer_rules.get("OPERATOR_POLICY", [])],
         "event_rules": [build(r) for r in layer_rules.get("TEMPORARY_POLICY", [])],
     }
+    id_by_rule = {
+        rule_id: _sample_rule_source(sample, rule_id) for rule_id in _sample_rule_ids(sample)
+    }
+    exceptions: list[LayeredException] = []
+    for i, exc in enumerate(_sample_exceptions(sample)):
+        base_rule_id = str(exc.get("base_rule_id") or "")
+        exceptions.append(
+            LayeredException(
+                id=str(exc.get("exception_id") or f"exc-{i}"),
+                rule_id=base_rule_id,
+                animal_scope=str(exc.get("animal_scope") or "service_dog"),
+                effect=str(exc.get("effect") or "allowed"),
+                source_id=id_by_rule.get(base_rule_id) or exc.get("source_key") or None,
+                status=str(exc.get("status") or "current"),
+                effective_from=_parse_dt(exc.get("effective_from")),
+                effective_to=_parse_dt(exc.get("effective_to")),
+            )
+        )
     return resolve(
         legal=buckets["legal"],
         guidance=buckets["guidance"],
@@ -344,7 +363,29 @@ def _resolve_query(sample: dict, query: dict, layer_rules: dict, zones: dict):
         action=query.get("action", "enter"),
         zone_id=query.get("zone_key"),
         now=datetime.now(UTC),
+        exceptions=exceptions,
     )
+
+
+def _sample_rule_ids(sample: dict) -> list[str]:
+    return [r.get("rule_id", "") for r in sample.get("rules", [])]
+
+
+def _sample_rule_source(sample: dict, rule_id: str) -> str | None:
+    for r in sample.get("rules", []):
+        if r.get("rule_id") == rule_id:
+            return r.get("source_key")
+    return None
+
+
+def _sample_exceptions(sample: dict) -> list[dict]:
+    out: list[dict] = []
+    for r in sample.get("rules", []):
+        for exc in r.get("exceptions") or []:
+            exc = dict(exc)
+            exc.setdefault("base_rule_id", r.get("rule_id"))
+            out.append(exc)
+    return out
 
 
 # ------------------------------------------------------------------ rendering

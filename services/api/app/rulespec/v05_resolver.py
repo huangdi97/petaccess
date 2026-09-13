@@ -86,6 +86,38 @@ class EffectiveRuleSet:
     effect: str = "unknown"  # allowed | conditional | prohibited | unknown
     obligations: list[str] = field(default_factory=list)
     missing_inputs: list[str] = field(default_factory=list)
+    applied_exceptions: list[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class LayeredException:
+    """A carve-out attached to a base rule (SG-REAL-01).
+
+    The same normative statement may govern a broad scope while exempting a
+    narrower one (e.g. 条例23 prohibits dogs in malls, its 但书 exempts guide
+    dogs). Generic mechanism: no hardcoded service_dog branch. source_id is
+    required — an exception without provenance never applies.
+    """
+
+    id: str
+    rule_id: str
+    animal_scope: str  # the scope this exception governs (e.g. service_dog)
+    effect: str  # what applies to that scope instead of the base effect
+    source_id: str | None  # None/empty => invalid, never applied
+    status: str = "current"  # only "current" applies
+    conditions: tuple[dict, ...] = ()
+    effective_from: datetime | None = None
+    effective_to: datetime | None = None
+
+    def active_at(self, now: datetime) -> bool:
+        if self.status != "current":
+            return False
+        if self.effective_from is not None and now < self.effective_from:
+            return False
+        return not (self.effective_to is not None and now > self.effective_to)
+
+    def has_source(self) -> bool:
+        return bool(self.source_id)
 
 
 def _scope_matches(rule: LayeredRule, animal: str, service_role: str) -> bool:
@@ -133,11 +165,13 @@ def resolve(
     action: str,
     zone_id: str | None,
     now: datetime,
+    exceptions: list[LayeredException] | None = None,
 ) -> EffectiveRuleSet:
     steps: list[str] = []
     suppressed: list[tuple[LayeredRule, str]] = []
     conflicts: list[tuple[LayeredRule, LayeredRule]] = []
     applicable: list[LayeredRule] = []
+    applied_exceptions: list[str] = []
 
     def in_scope(layer: list[LayeredRule]) -> list[LayeredRule]:
         return [
@@ -149,17 +183,91 @@ def resolve(
             and (r.zone_id is None or r.zone_id == zone_id)
         ]
 
-    scoped_legal = in_scope(legal)
-    scoped_guidance = in_scope(guidance)
-    scoped_template = in_scope(template_rules)
-    scoped_operator = in_scope(operator_rules)
-    scoped_events = in_scope(event_rules)
+    # --- 0. rule exceptions (SG-REAL-01): a matched exception replaces its
+    # base rule for this query. Invalid exceptions (no source / not active)
+    # never apply; conflicting matching exceptions force review, not a guess.
+    matched: dict[str, LayeredException] = {}
+    conflicted_rule_ids: set[str] = set()
+    for exc in exceptions or []:
+        probe = LayeredRule(
+            id=f"exc-probe-{exc.id}",
+            animal_scope=exc.animal_scope,
+            action="enter",
+            effect="allowed",
+            rule_layer=None,
+            origin="operator_direct",
+        )
+        if not (
+            _scope_matches(probe, animal, service_role)
+            and exc.active_at(now)
+            and exc.has_source()
+        ):
+            continue
+        if exc.rule_id in matched and matched[exc.rule_id].effect != exc.effect:
+            steps.append(
+                f"exceptions {matched[exc.rule_id].id} vs {exc.id} conflict on rule "
+                f"{exc.rule_id}: REVIEW_REQUIRED, not guessed."
+            )
+            conflicted_rule_ids.add(exc.rule_id)
+            continue
+        matched[exc.rule_id] = matched.get(exc.rule_id, exc)
 
-    if not (scoped_legal or scoped_guidance or scoped_template or scoped_operator or scoped_events):
+    def apply_exceptions(layer: list[LayeredRule]) -> list[LayeredRule]:
+        out: list[LayeredRule] = []
+        for r in layer:
+            exc = matched.get(r.id)
+            if exc is None:
+                out.append(r)
+                continue
+            if r.id in conflicted_rule_ids:
+                out.append(r)  # keep base governing; compliance flips below
+                continue
+            suppressed.append(
+                (
+                    r,
+                    f"exempted by exception {exc.id} (scope {exc.animal_scope}, "
+                    f"source {exc.source_id})",
+                )
+            )
+            applicable.append(
+                LayeredRule(
+                    id=f"exc-{exc.id}",
+                    animal_scope=exc.animal_scope,
+                    action=r.action,
+                    effect=exc.effect,
+                    rule_layer=r.rule_layer,
+                    origin="exception",
+                    conditions=exc.conditions,
+                    zone_id=r.zone_id,
+                    place_id=r.place_id,
+                    source_id=exc.source_id,
+                    mandatory_level=r.mandatory_level,
+                )
+            )
+            applied_exceptions.append(exc.id)
+        return out
+
+    scoped_legal = apply_exceptions(in_scope(legal))
+    scoped_guidance = apply_exceptions(in_scope(guidance))
+    scoped_template = apply_exceptions(in_scope(template_rules))
+    scoped_operator = apply_exceptions(in_scope(operator_rules))
+    scoped_events = apply_exceptions(in_scope(event_rules))
+
+    if not (
+        scoped_legal
+        or scoped_guidance
+        or scoped_template
+        or scoped_operator
+        or scoped_events
+        or applicable
+    ):
+        # applicable may hold exception-derived rules even when every base rule
+        # was exempted for this query — those still govern.
         return EffectiveRuleSet(
             explanation_steps=["no in-scope rules in any layer"],
             compliance_state=ComplianceState.UNKNOWN,
             effect="unknown",
+            applied_exceptions=applied_exceptions,
         )
 
     # --- 1. LEGAL layer -----------------------------------------------------
@@ -262,6 +370,13 @@ def resolve(
             "governing, allowed rule recorded as suppressed for review."
         )
 
+    if applied_exceptions:
+        steps.append(
+            f"{len(applied_exceptions)} rule exception(s) applied: "
+            + ", ".join(sorted(applied_exceptions))
+            + " (base rules exempted for this query)."
+        )
+
     # --- 5. compliance state -------------------------------------------------
     unknown_layer_rules = [
         r
@@ -271,7 +386,7 @@ def resolve(
         if r.rule_layer is None
     ]
     relaxed_against_legal = [s for s in suppressed if "cannot be relaxed" in s[1]]
-    if unknown_layer_rules:
+    if unknown_layer_rules or conflicted_rule_ids:
         compliance = ComplianceState.REVIEW_REQUIRED
         steps.append(
             f"{len(unknown_layer_rules)} governing rule(s) have no rule_layer "
@@ -285,6 +400,12 @@ def resolve(
 
     # --- 6. synthesized effect ------------------------------------------------
     legal_conditions = [dict(c) for c in mandatory_conditions]
+    # exception conditions are explicit normative content too: a conditional
+    # statutory exemption (e.g. guide dogs must be leashed) surfaces as an
+    # obligation exactly like the base rule's would.
+    for r in applicable:
+        if r.origin == "exception":
+            legal_conditions.extend(dict(c) for c in r.conditions)
     governing = [r for r in applicable if r.rule_layer != RuleLayer.LEGAL.value] or applicable
     if mandatory_prohibited:
         effect = "prohibited"
@@ -311,6 +432,7 @@ def resolve(
         compliance_state=compliance,
         effect=effect,
         obligations=obligations,
+        applied_exceptions=applied_exceptions,
     )
 
 

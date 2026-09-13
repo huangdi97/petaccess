@@ -147,3 +147,44 @@ class RuleCondition(Base, PkMixin, TimestampMixin):
     value_json: Mapped[dict | list | None] = mapped_column(JSON, nullable=True)
 
     rule: Mapped["AccessRule"] = relationship(back_populates="conditions")
+
+
+class RuleException(Base, PkMixin, TimestampMixin):
+    """A carve-out attached to a base rule (SG-REAL-01; PILOT-REVIEW S3).
+
+    The same normative statement may govern a broad scope while exempting a
+    narrower one — e.g. 《上海市养犬管理条例》第二十三条 prohibits dogs in
+    商场 while its 但书 exempts guide dogs. Modelling the exemption as a
+    second standalone rule cannot express "exempt FROM this rule"; the resolver
+    saw two same-layer rules and silently picked the strictest.
+
+    Semantics (ADR layered-animal-scope, DECISIONS.md):
+      - animal_scope is the scope the exception GOVERNS (service_dog for guide
+        dogs — the user-declared working role, never derived from photos).
+      - effect is what applies to that scope instead of the base effect.
+      - source_id is NOT NULL: an exception without provenance is invalid.
+      - Only status='current' exceptions apply; expired windows fall back to
+        the base rule; withdrawn/superseded never apply.
+      - Observations never take part in resolution (ADR-004).
+    """
+
+    __tablename__ = "rule_exception"
+    __table_args__ = (
+        Index("ix_rule_exception_rule", "rule_id"),
+        Index("ix_rule_exception_status", "status"),
+    )
+
+    rule_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("access_rule.id", ondelete="CASCADE"), nullable=False
+    )
+    animal_scope: Mapped[AnimalScope] = mapped_column(String(20), nullable=False)
+    effect: Mapped[RuleEffect] = mapped_column(String(16), nullable=False)
+    source_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("source.id", ondelete="RESTRICT"), nullable=False
+    )
+    status: Mapped[RuleStatus] = mapped_column(
+        String(20), default=RuleStatus.CURRENT, nullable=False
+    )
+    effective_from: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    effective_to: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    note: Mapped[str | None] = mapped_column(Text, nullable=True)

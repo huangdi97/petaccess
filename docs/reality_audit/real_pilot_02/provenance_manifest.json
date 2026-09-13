@@ -1,0 +1,25 @@
+{
+  "manifest_version": "1.0",
+  "generated_at": "2026-09-13T06:20:58.596321+00:00",
+  "input": "real_pilot_samples_r2.json",
+  "data_nature": "real_pilot_place_claims_verified_online_2026_09_13",
+  "real_place_claims": 10,
+  "sample_ids": [
+    "real-qt-taikoo-li",
+    "real-dl-disneyland",
+    "real-gc-huangpu-sect",
+    "real-dj-daji-park",
+    "real-gh-grand-gateway",
+    "real-lib-sh-library-east",
+    "real-fp-peace-hotel",
+    "real-sb-roastery",
+    "real-mn-kaidi-hongkou",
+    "real-xm-west-bund-gate-m"
+  ],
+  "tool": "app.tools.reality_audit",
+  "engine_outputs": [
+    "REALITY_AUDIT_REPORT.md",
+    "SCHEMA_GAPS.md"
+  ],
+  "note": "R2: evidence repaired 2026-09-13 (see EVIDENCE_REPAIR_LOG_R1.md); statutory and operator service-dog exemptions now modelled as RuleException per ADR-020; Fairmont service-animal effect corrected to allowed from official page. All candidates remain REVIEW_PENDING."
+}

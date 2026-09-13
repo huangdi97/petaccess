@@ -363,7 +363,7 @@ def test_e2e_c_source_monitor_change_to_new_rule_and_watch(client, moderator):
             headers=_auth(moderator),
         )
         pub = client.post(f"/api/v1/admin/candidates/{cand_id}/publish", headers=_auth(moderator))
-        assert pub.status_code == 200
+        assert pub.status_code == 200, pub.text
         new_rule_id = pub.json()["published_rule_id"]
 
         # new version supersedes the old one (history preserved)

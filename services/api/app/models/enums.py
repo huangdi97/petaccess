@@ -129,6 +129,22 @@ class SourceAvailability(StrEnum):
     UNAVAILABLE = "unavailable"
 
 
+class EvidenceStrength(StrEnum):
+    """Descriptive capture posture of an artifact — NOT a trust score.
+
+    Internal, reviewable classification of HOW evidence was captured. Never
+    aggregated into a composite credibility number (design #13: no single
+    trust score; PILOT-REVIEW-AND-SCHEMA-FIX-01 S7).
+    """
+
+    PRIMARY_DIRECT = "primary_direct"  # issuer's own channel, fetched verbatim
+    PRIMARY_CAPTURED = "primary_captured"  # on-site capture (signage photo etc.)
+    SECONDARY_REPUTABLE = "secondary_reputable"  # reputable news reporting issuer statement
+    SEARCH_SNIPPET = "search_snippet"  # search-result snippet only; page not verified
+    USER_SUBMITTED = "user_submitted"  # user content with stored artifact
+    SOCIAL_LEAD = "social_lead"  # lead-only social content; never publishable
+
+
 class Directness(StrEnum):
     DIRECT = "direct"
     SECONDARY = "secondary"

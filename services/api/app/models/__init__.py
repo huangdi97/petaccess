@@ -14,7 +14,7 @@ from .evidence import (
 from .media import MediaObject
 from .observation import ObservationClaim, VerificationEvent
 from .place import ExternalPlaceRef, Operator, OperatorClaim, Place, PlaceGeometry, Zone
-from .rule import AccessRule, RuleCondition, Source
+from .rule import AccessRule, RuleCondition, RuleException, Source
 from .user import PetProfile, User
 from .v05 import (
     AccessPath,
@@ -61,6 +61,7 @@ __all__ = [
     "PolicyTemplateRule",
     "PublisherType",
     "RuleCandidate",
+    "RuleException",
     "SourceArtifact",
     "SourceMonitor",
     "SourcePlatform",

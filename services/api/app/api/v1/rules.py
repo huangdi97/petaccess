@@ -10,7 +10,7 @@ from app.core.audit import record_audit
 from app.core.errors import ApiError, NotFound
 from app.core.security import require_role
 from app.db.session import get_db
-from app.models import AccessRule, Place, Source, User, Zone
+from app.models import AccessRule, Place, RuleException, Source, User, Zone
 from app.models.enums import UserRole
 from app.rulespec.evaluator import evaluate as spec_evaluate
 from app.rulespec.model import (
@@ -123,6 +123,29 @@ def evaluate_rules(body: EvaluateIn, db: Session = Depends(get_db)) -> EvaluateO
         raise NotFound("场所不存在")
     db_rules = load_rules_for_place(db, body.place_id)
     spec_rules = [to_spec_rule(r) for r in db_rules]
+    # SG-REAL-01: active exceptions on these rules participate in evaluation
+    db_exceptions = (
+        db.scalars(
+            select(RuleException).where(
+                RuleException.rule_id.in_([r.id for r in db_rules])
+            )
+        ).all()
+        if db_rules
+        else []
+    )
+    exceptions = [
+        {
+            "id": e.id,
+            "rule_id": e.rule_id,
+            "animal_scope": e.animal_scope,
+            "effect": e.effect,
+            "source_id": e.source_id,
+            "status": e.status,
+            "effective_from": e.effective_from,
+            "effective_to": e.effective_to,
+        }
+        for e in db_exceptions
+    ]
     ctx = QueryContext(
         animal=AnimalInput(**body.animal.model_dump()),
         place_id=body.place_id,
@@ -130,7 +153,7 @@ def evaluate_rules(body: EvaluateIn, db: Session = Depends(get_db)) -> EvaluateO
         date_time=body.date_time or datetime.now(UTC),
         intended_action=RuleAction(body.intended_action.value),
     )
-    result = spec_evaluate(ctx, spec_rules)
+    result = spec_evaluate(ctx, spec_rules, exceptions)
     return EvaluateOut(
         status=result.status.value,
         matched_rules=result.matched_rules,

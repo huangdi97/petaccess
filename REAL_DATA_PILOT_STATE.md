@@ -8,7 +8,7 @@
 | 项 | 值 |
 |---|---|
 | PART A 状态 | **PASS**（2026-09-13，A01–A28 全 PASS） |
-| PART B 状态 | **PILOT_10_DONE — B15 触发停止扩量（Evidence incomplete 21.2% > 10%），先修系统** |
+| PART B 状态 | **R2_GATE_PASS（有条件）— PILOT-REVIEW-AND-SCHEMA-FIX-01 完成；允许 30–50 扩量（前置见 R2 报告 §11）** |
 | Pilot 区域 | 上海（黄浦/浦东/徐汇为主；选择依据见 REAL_DATA_PILOT_10_REPORT.md §2） |
 | 已建真实 Place 数 | **10 / 10** |
 | real_place_claims（provenance manifest） | **10**（docs/reality_audit/real_pilot_01/provenance_manifest.json） |
@@ -58,9 +58,12 @@ RuleCandidate 33 · ObservationCandidate 3 · 全部候选有完整证据链（b
 Schema Gap > 20% ✅(10%) · attribution error > 5% ✅(0%) · **evidence incomplete > 10% ❌(21.2% 触发)** ·
 AI major extraction error > 5% ⏳(待人工复核) · unauthorized source usage ✅(0) · merge/duplicate instability ✅(0)。
 
-**当前动作：停止 30–50 扩量。修复清单**（REAL_DATA_PILOT_10_REPORT.md §7）：
-解放日报/新华网人工核验 → 费尔蒙官网政策页定位 → Manner 门店/客服核验 → 西岸报道 URL 归档 →
-（社媒 lead 按设计保持 lead-only）。修复后 Evidence Completeness ≥90% 方可重启扩量并产出 REALITY_AUDIT_REAL_01.md。
+**R2 修复结果（2026-09-13，详见 REAL_DATA_PILOT_10_R2_REPORT.md）**：
+7 条 snippet 候选 → 5 修复（新华网/费尔蒙官网/潮新闻直抓）、1 归因错误（Manner，建议人工 REJECT）、
+1 未证实（港汇户外）；**direct-or-strong 93.9%**（≥90% 解锁）；SG-REAL-01 已修复（RuleException，ADR-020），
+服务犬解析 7/7 正确；Pre-Publish Validation 六检上线；REAL-WORLD-REGRESSION-FIXTURES 入 CI；
+REALITY-AUDIT-10-R2：10/10 可表达、0 resolver 错误。全量测试 238/238。
+**扩量前置**：人工 Review Gate 处置 33 条 + 2 条残留 snippet 核验。
 
 ## 关键红线执行情况
 
