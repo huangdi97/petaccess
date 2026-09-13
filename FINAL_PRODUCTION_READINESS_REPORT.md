@@ -24,11 +24,11 @@ READY_FOR_PUBLIC_BETA = NO
 |---|---|
 | 产品版本 | `v0.6.0-beta`（未发布，未打 tag） |
 | 上游 tag | `v0.5-quality-freeze` |
-| 当前 HEAD | `a970a80`（本轮 P0+P3 增量）；前置基线 `08ee60c` |
+| 当前 HEAD | `078f33d`（本轮 P0+P3+P7/P13 增量）；前置基线 `08ee60c` |
 | 分支 | `master`（无 remote） |
-| 提交总数 | 32 |
-| 工作区 | 干净（无未提交源码改动） |
-| 本轮新增提交 | `147f3e4`（P0）、`a970a80`（P3） |
+| 提交总数 | 33 |
+| 工作区 | 干净（仅 4 个接管前 ZCode 残留 `*.patch` 未跟踪） |
+| 本轮新增提交 | `147f3e4`（P0）、`a970a80`（P3）、`078f33d`（P7/P13 文档与状态） |
 
 ---
 
@@ -262,13 +262,28 @@ CROSS_PLATFORM_GATE = BLOCKED_EXTERNAL
 |---|---|---|
 | Lint | `ruff check .` | ✅ All checks passed |
 | 类型 | `mypy services/api/app` | ✅ 73 files, no issues |
-| 数据库无关测试 | `pytest`（9 个文件） | ✅ **132 passed** |
-| H5 构建 | `pnpm --filter @petaccess/client-h5 build` | ✅ vue-tsc + vite |
-| Admin 构建 | `pnpm --filter @petaccess/admin build` | ✅ |
-| 令牌入产物 | `grep -- '--pa-*' dist/assets/*.css` | ✅ 全部命中 |
-| 应用导入 | `python -c "from app.main import app"` | ✅ 37 条 admin 路由 |
+| 数据库无关单元测试 | `pytest tests/unit --deselect <20 个 db_session 用例>` | ✅ **142 passed, 20 deselected**（17.53s） |
+| 契约测试 | `pytest tests/contract` | ✅ **22 passed**（0.70s） |
+| 需数据库的单元测试 | 同 20 个 `db_session` 用例 | ❌ 1 失败 + 1 挂起（Postgres 不可达，ENV-01） |
+| 应用导入 / 路由 | `app.openapi()` | ✅ 87 条路径，其中 **30 条 `/api/v1/admin/*`**（含新增 `candidates/{id}/rule-layer`） |
+| H5 构建 | `vue-tsc --noEmit` + `vite build` | ✅ 类型通过，构建 3.29s（63 modules） |
+| Admin 构建 | `vue-tsc --noEmit` + `vite build` | ✅ 类型通过，构建 3.61s |
+| 令牌入产物 | `grep -- '--pa-*' dist-verify/assets/*.css` | ✅ **60 个令牌**，含 6 态 × (前景/底色) 12 个状态色令牌 |
 | 发布门禁 | `publish_reviewed_r1.py --dry-run` | ✅ 拒绝 33 行未签署候选 |
 | 全量测试 | `pytest` | ❌ 超时（ENV-01） |
+
+> **说明**：`tests/unit/conftest.py` 的 `db_session` 夹具直连真实 Postgres。本轮用 AST
+> 静态枚举出全部 20 个依赖该夹具的用例并显式 deselect，得到可复现的 DB-free 基线；
+> 未对失败/挂起做任何掩饰——它们正是 ENV-01 的直接后果。
+>
+> **构建说明**：`pnpm build` 默认写入 `dist/`，会被本机沙箱的批量删除保护拦截
+> （`SAFE_DELETE_BULK_CONFIRM_REQUIRED`，因 `emptyDir` 需清理 72 个旧文件）。这是沙箱
+> 策略而非代码问题；改用全新 `--outDir` 后两端均构建成功，临时目录已清理。
+>
+> **两处自我更正**：① 早期稿曾写「132 passed」，实为不含 `test_reality_audit.py`
+> 的口径；已按 AST 枚举法重测为 **142 passed / 20 deselected**。② 早期稿曾写
+> 「37 条 admin 路由」，系 `app.routes` 的惰性占位（`_IncludedRouter`）导致的误读；
+> 改用 `app.openapi()` 实查为 **87 条路径 / 30 条 admin 路径**。
 
 ---
 

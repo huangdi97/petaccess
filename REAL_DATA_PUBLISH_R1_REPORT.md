@@ -15,7 +15,7 @@
 | 2 | 机器可读决策登记表（33 行） | `docs/reality_audit/review_decisions_r1.json`，由 `scripts/gen_review_decisions_r1.py` 从证据链+入库清单**生成**（非手抄） |
 | 3 | 发布执行脚本（含人类签署门禁、弱证据拦截、批量上限、发布后校验） | `scripts/publish_reviewed_r1.py` |
 | 4 | 分层回填脚本 | `scripts/backfill_candidate_rule_layer.py` |
-| 5 | 新增 admin 端点 `POST /admin/candidates/{id}/rule-layer`（带审计、已发布候选冻结） | `services/api/app/api/v1/v05.py`；冒烟确认 37 条 admin 路由、端点存在 |
+| 5 | 新增 admin 端点 `POST /admin/candidates/{id}/rule-layer`（带审计、已发布候选冻结） | `services/api/app/api/v1/v05.py`；`app.openapi()` 实查：共 87 条路径，其中 30 条 `/api/v1/admin/*`，该端点已注册 |
 | 6 | **发布路径 P0 缺陷修复（BLK-LAYER-01）** | 见 §3 |
 | 7 | 5 项回归测试 | `tests/unit/test_publish_layer_integrity.py`（5 passed） |
 

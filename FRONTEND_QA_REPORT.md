@@ -53,13 +53,31 @@ status-badge--block
 status-badge__icon
 ```
 
+**复核（全新 outDir 重跑）**：`grep -o -- '--pa-[a-z0-9-]*'` 去重后共 **60 个令牌**；
+其中状态色令牌 **12 个** = 6 态 × (前景 + `-bg` 底色)，
+即 `--pa-color-status-{allowed,conditional,restricted,unknown,stale,conflict}` 及其 `-bg`。
+
 结论：设计系统不是装饰性文档，而是真实进入构建产物。
 
 ### 2.3 Admin（`apps/admin`）
 
 ```
-✓ built in 3.44s   （24 个视图，无回归）
+$ vue-tsc --noEmit && vite build
+✓ built in 3.61s   （24 个视图，无回归）
 ```
+
+### 2.4 构建环境说明（沙箱）
+
+默认 `pnpm build` 写入 `dist/`，会触发本机沙箱的批量删除保护：
+
+```
+[safe-delete][SAFE_DELETE_BULK_CONFIRM_REQUIRED] {"count":72,"threshold":50,
+ "targets":["...apps\\client-h5\\dist\\assets"],"targetCount":1}
+```
+
+原因是 Vite 的 `prepareOutDir` 需清空 `dist/assets` 下 72 个旧文件（超过阈值 50）。
+这是**沙箱策略限制，不是代码缺陷**——`vue-tsc` 在清目录之前已通过。改用全新
+`--outDir dist-verify` 后两端均构建成功，验证完成后临时目录已删除。
 
 ---
 
