@@ -1,13 +1,18 @@
+/* Design tokens are the single source of truth (packages/design-tokens).
+ * The short local names below are aliases kept for readability in this file —
+ * every value resolves to a token, so changing the token changes the app. */
+@import "@petaccess/design-tokens/tokens.css";
+
 :root {
-  --bg: #f4f6f8;
-  --panel: #fff;
-  --line: #e4e8ec;
-  --text: #1d2733;
-  --muted: #69747f;
-  --accent: #34618e;
-  --ok: #2e7d52;
-  --warn: #96692a;
-  --restricted: #8f4a3a;
+  --bg: var(--pa-color-bg-app);
+  --panel: var(--pa-color-bg-surface);
+  --line: var(--pa-color-border);
+  --text: var(--pa-color-text-primary);
+  --muted: var(--pa-color-text-muted);
+  --accent: var(--pa-color-accent);
+  --ok: var(--pa-color-status-allowed);
+  --warn: var(--pa-color-status-conditional);
+  --restricted: var(--pa-color-status-restricted);
 }
 * {
   box-sizing: border-box;
@@ -238,9 +243,83 @@ label {
 .tag {
   display: inline-block;
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: var(--pa-radius-sm);
   padding: 1px 6px;
-  font-size: 12px;
+  font-size: var(--pa-font-size-sm);
   color: var(--muted);
   margin-right: 4px;
 }
+
+/* ---------------------------------------------------------------- status badge
+ * UI_UX_IMPLEMENTATION_SPEC §3: a status is icon + text + colour, never colour
+ * alone. The component always renders the icon and the label; these rules only
+ * paint them. */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pa-space-1);
+  border-radius: var(--pa-radius-sm);
+  padding: 2px 8px;
+  font-size: var(--pa-font-size-md);
+  font-weight: var(--pa-font-weight-medium);
+  line-height: var(--pa-line-height-tight);
+  border: 1px solid currentColor;
+  white-space: nowrap;
+}
+.status-badge .status-badge__icon {
+  font-weight: var(--pa-font-weight-bold);
+  line-height: 1;
+}
+.status-badge--block {
+  display: flex;
+  width: 100%;
+  justify-content: flex-start;
+  padding: 6px 10px;
+  font-size: var(--pa-font-size-base);
+}
+
+/* --------------------------------------------------------------- source badge */
+.source-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pa-space-1);
+  border: 1px solid var(--line);
+  border-radius: var(--pa-radius-sm);
+  padding: 1px 6px;
+  font-size: var(--pa-font-size-sm);
+  color: var(--muted);
+  margin-right: var(--pa-space-1);
+}
+.source-badge .source-badge__icon {
+  color: var(--pa-color-text-secondary);
+}
+
+/* -------------------------------------------------------------- accessibility
+ * UI_UX_IMPLEMENTATION_SPEC §10: keyboard focus must be visible, and touch
+ * targets must be at least 44px. */
+:focus-visible {
+  outline: 2px solid var(--pa-color-focus);
+  outline-offset: 2px;
+}
+button,
+.pill,
+.tabbar a {
+  min-height: var(--pa-layout-touch-target);
+}
+.tabbar a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+

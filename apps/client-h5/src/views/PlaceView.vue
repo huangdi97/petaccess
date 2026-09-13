@@ -13,6 +13,8 @@ import {
   type Zone,
 } from "@petaccess/client-core";
 import AppShell from "../components/AppShell.vue";
+import SourceBadge from "../components/SourceBadge.vue";
+import StatusBadge from "../components/StatusBadge.vue";
 
 const route = useRoute();
 const placeId = route.params.id as string;
@@ -134,13 +136,8 @@ async function disputeFirstRule() {
   }
 }
 
-const STATUS_TEXT: Record<string, string> = {
-  MATCH: "可进入",
-  CONDITIONAL: "有条件",
-  RESTRICTED: "限制",
-  UNKNOWN: "信息不足",
-  CONFLICT: "冲突",
-};
+// Status rendering always goes through StatusBadge (icon + text + colour); the
+// label table lives in @petaccess/design-tokens so no view can drop the icon.
 </script>
 
 <template>
@@ -176,6 +173,7 @@ const STATUS_TEXT: Record<string, string> = {
                   : "规则地图"
           }}
         </div>
+        <StatusBadge :status="answer.status" block />
         <div class="status" data-testid="answer-status">{{ answer.headline }}</div>
         <div v-if="answer.obligations.length" class="muted">
           条件：{{ answer.obligations.join(" · ") }}
@@ -204,9 +202,7 @@ const STATUS_TEXT: Record<string, string> = {
             }}</span></span
           >
           <span>
-            <span class="tag" :class="'s-' + z.status" style="color: #fff; border: none">{{
-              STATUS_TEXT[z.status] ?? z.status
-            }}</span>
+            <StatusBadge :status="z.status" />
             <span class="muted" v-if="z.obligations.length">{{ z.obligations.join(" · ") }}</span>
           </span>
         </div>
@@ -217,13 +213,7 @@ const STATUS_TEXT: Record<string, string> = {
         >
           <span>全场 · {{ r.animal_scope }} · {{ r.action }}</span>
           <span>
-            <span
-              class="tag"
-              :class="'s-' + r.effect.toUpperCase()"
-              style="color: #fff; border: none"
-            >
-              {{ r.effect === "allowed" ? "允许" : r.effect === "prohibited" ? "限制" : "有条件" }}
-            </span>
+            <StatusBadge :effect="r.effect" />
           </span>
         </div>
       </div>
@@ -233,7 +223,7 @@ const STATUS_TEXT: Record<string, string> = {
         <div v-for="r in rules.filter((r) => r.status === 'current')" :key="r.id" class="zone-row">
           <span>
             {{ sourceMap.get(r.source_id)?.issuer ?? "来源 " + r.source_id.slice(0, 8) }}
-            <span class="tag">{{ sourceMap.get(r.source_id)?.source_type ?? "?" }}</span>
+            <SourceBadge :source-type="sourceMap.get(r.source_id)?.source_type" />
           </span>
           <span class="muted">
             核验：{{ r.last_verified_at?.slice(0, 10) ?? "暂无" }}

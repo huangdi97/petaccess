@@ -1,0 +1,109 @@
+/* @petaccess/design-tokens — CSS custom properties.
+ * Visual position (UI_UX_IMPLEMENTATION_SPEC §1): neutral, clear, city-tool,
+ * evidence-traceable, restrained. NOT a "cute pet community".
+ * Light is the shipped theme; the tokens are defined once so a dark theme can be
+ * added by overriding :root under a [data-theme="dark"] selector without touching
+ * any component.
+ */
+
+:root {
+  /* --- colour: surfaces ------------------------------------------------- */
+  --pa-color-bg-app: #f4f6f8;
+  --pa-color-bg-surface: #ffffff;
+  --pa-color-bg-sunken: #eef1f4;
+  --pa-color-bg-overlay: rgba(20, 28, 36, 0.44);
+
+  /* --- colour: text ------------------------------------------------------ */
+  --pa-color-text-primary: #1d2733;
+  --pa-color-text-secondary: #4a5560;
+  --pa-color-text-muted: #69747f;
+  --pa-color-text-inverse: #ffffff;
+
+  /* --- colour: lines ----------------------------------------------------- */
+  --pa-color-border: #e4e8ec;
+  --pa-color-border-strong: #c8d0d8;
+  --pa-color-focus: #34618e;
+
+  /* --- colour: brand / action -------------------------------------------- */
+  --pa-color-accent: #34618e;
+  --pa-color-accent-weak: #e7eef5;
+
+  /* --- colour: status (semantic; never the ONLY signal) ------------------ */
+  --pa-color-status-allowed: #2e7d52;
+  --pa-color-status-allowed-bg: #e8f3ec;
+  --pa-color-status-conditional: #8a5f18;
+  --pa-color-status-conditional-bg: #faf1df;
+  --pa-color-status-restricted: #8f4a3a;
+  --pa-color-status-restricted-bg: #f7e9e5;
+  --pa-color-status-unknown: #5c6873;
+  --pa-color-status-unknown-bg: #eceff2;
+  --pa-color-status-conflict: #6f5a9e;
+  --pa-color-status-conflict-bg: #eeeafa;
+  --pa-color-status-stale: #8a5f18;
+  --pa-color-status-stale-bg: #faf1df;
+
+  /* --- spacing (4px base) ------------------------------------------------ */
+  --pa-space-1: 4px;
+  --pa-space-2: 8px;
+  --pa-space-3: 12px;
+  --pa-space-4: 16px;
+  --pa-space-5: 24px;
+  --pa-space-6: 32px;
+  --pa-space-7: 48px;
+
+  /* --- radius ------------------------------------------------------------ */
+  --pa-radius-sm: 6px;
+  --pa-radius-md: 10px;
+  --pa-radius-lg: 12px;
+  --pa-radius-pill: 999px;
+
+  /* --- typography -------------------------------------------------------- */
+  --pa-font-family: "PingFang SC", "Microsoft YaHei", "Segoe UI", system-ui, sans-serif;
+  --pa-font-size-xs: 11px;
+  --pa-font-size-sm: 12px;
+  --pa-font-size-md: 13px;
+  --pa-font-size-base: 15px;
+  --pa-font-size-lg: 16px;
+  --pa-font-size-xl: 18px;
+  --pa-font-size-2xl: 20px;
+  --pa-font-weight-regular: 400;
+  --pa-font-weight-medium: 500;
+  --pa-font-weight-bold: 700;
+  --pa-line-height-tight: 1.25;
+  --pa-line-height-base: 1.5;
+
+  /* --- elevation --------------------------------------------------------- */
+  --pa-elevation-0: none;
+  --pa-elevation-1: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --pa-elevation-2: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --pa-elevation-3: 0 6px 18px rgba(0, 0, 0, 0.14);
+
+  /* --- motion ------------------------------------------------------------ */
+  --pa-motion-fast: 120ms;
+  --pa-motion-base: 200ms;
+  --pa-motion-slow: 320ms;
+  --pa-motion-ease: cubic-bezier(0.2, 0, 0.2, 1);
+
+  /* --- layout ------------------------------------------------------------ */
+  --pa-layout-max-width: 480px;
+  --pa-layout-touch-target: 44px;
+  --pa-layout-tabbar-height: 56px;
+}
+
+/* Breakpoints are consumed in JS (see src/index.ts) because CSS custom
+ * properties cannot be used inside @media conditions. Documented here so the
+ * two stay in sync:
+ *   sm 0–479   mobile portrait
+ *   md 480–767 mobile landscape / small tablet
+ *   lg 768–1023 tablet
+ *   xl 1024+    desktop H5 / admin
+ */
+
+/* --- reduced motion (UI_UX_IMPLEMENTATION_SPEC §10) --------------------- */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --pa-motion-fast: 0ms;
+    --pa-motion-base: 0ms;
+    --pa-motion-slow: 0ms;
+  }
+}
