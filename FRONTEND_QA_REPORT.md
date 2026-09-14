@@ -129,3 +129,52 @@ UI_FRONTEND_PRODUCTION_GATE = PARTIAL
 - **PASS 的部分**：设计令牌体系落地并进入产物；状态三通道语义强制化；中性文案机读守卫；可访问性基线；H5 与 Admin 类型检查与构建通过。
 - **未 PASS 的部分**：地图交互壳、Place Detail 完整 Section、skeleton/offline、视觉回归基线。
 - 未 PASS 项中，第 1、2（部分）、4、6 项**受 ENV-01 / B-04 直接阻塞**；第 3 项可立即实施。
+
+---
+
+## 7. 本轮增量（commit `716b163`）
+
+本节记录在 §1–§6 之后追加的实现，上一节的缺口清单中第 3 项（skeleton / offline）已在本轮消除。
+
+### 7.1 Admin 接入设计系统（此前完全未接入）
+
+| 项 | 前 | 后 |
+|---|---|---|
+| 令牌依赖 | ❌ 自有 `--bg/--panel/--line/...` 临时变量 | ✅ 依赖 `@petaccess/design-tokens` |
+| 令牌入产物 | 0 个 | **65 个** |
+| 硬编码颜色 | 9 处 hex + 1 处 rgba | 0 |
+| 状态语义 | `.tag.ok/.restricted/.warn` 裸色块（含义只在类名里） | 共享 `StatusBadge.vue`（icon+文字+aria） |
+| 来源徽标 | 无 | 共享 `SourceBadge.vue` |
+
+**零标记改动的接入方式**：保留短名（`--bg: var(--pa-color-bg-app)`），因此 24 个存量 Admin 视图无需修改即可切换到单一真源。
+
+### 7.2 状态完整性
+
+新增 `PAGE_STATES`（8 态，强制 icon + title + description）+ 两端 `StateMessage.vue` + H5 `SkeletonList.vue` + `composables/useOnline.ts`。
+
+接入页面：HomeView、SearchView、PlaceView、BoundaryView（H5）；Dashboard、Rules、Sources（Admin）。
+
+**离线的产品决定**：离线**不排队写入**。未经确认的核验会产生假的证据记录，而证据完整性是本产品的全部意义；因此离线时禁用提交并说明原因，而非静默缓存。
+
+### 7.3 消除硬编码颜色
+
+H5 8 处 hex + 2 处阴影 rgba → 令牌（阴影改用 `--pa-elevation-1/2`）；`MatchExplainView.vue` 与 `PlacesView.vue` 的内联样式 → 类。新增地图令牌（`--pa-color-map-*`）与 `--pa-color-skeleton-sheen`。
+
+### 7.4 本轮验证
+
+| 检查 | 结果 |
+|---|---|
+| `ruff check .` | ✅ All checks passed |
+| `mypy services/api/app` | ✅ 74 files, no issues |
+| H5 `vue-tsc` + `vite build` | ✅ 65 令牌，状态类全部命中 |
+| Admin `vue-tsc` + `vite build` | ✅ 65 令牌 |
+| `pytest tests/unit tests/contract`（DB-free） | ✅ **194 passed, 20 deselected** |
+| 新增守卫 | `test_ui_states.py`(8) · `test_quality_metrics.py`(19) · `test_design_tokens.py`(10) |
+
+### 7.5 本轮仍未达成
+
+视觉回归截图基线（ENV-01）、地图交互壳（B-04）、Place Detail 完整 10 Section、PARTIAL 与 PERMISSION_DENIED 全页态、多断点与真机 QA、暗色主题、uni-app x 端接入、其余 21 个 Admin 视图的骨架屏。
+
+其中 **PARTIAL 全页态、Place Detail 补齐、暗色主题、其余视图骨架屏** 无外部阻塞，可立即实施。
+
+详见 `UI_UX_IMPLEMENTATION_REPORT.md`、`FRONTEND_ACCEPTANCE.md`、`PRODUCT_IA.md`、`UX_FLOW.md`。

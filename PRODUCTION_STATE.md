@@ -7,7 +7,7 @@ P0_PILOT_REVIEW_PUBLISH（工作稿与工具链完成；写库被阻塞）
 REAL_DATA_PILOT_10_R2（`REAL_DATA_PILOT_10_R2_REPORT.md`，R2 Gate PASS 有条件）
 
 ## Actual HEAD
-`a970a80`（本轮 P0 + P3 增量已提交；前置基线 `08ee60c`）
+`716b163`（本轮 P0 + P3 + P4 + P7/P13 增量已提交；前置基线 `08ee60c`）
 
 ## Expected Facts（R2 基线）
 - Evidence completeness: 93.9%
@@ -21,11 +21,11 @@ REAL_DATA_PILOT_10_R2（`REAL_DATA_PILOT_10_R2_REPORT.md`，R2 Gate PASS 有条�
 - 真实 Place: 10
 - RuleCandidate: 33（全部 REVIEW_PENDING）
 - APPROVED / REJECTED / PUBLISHED: 0 / 0 / 0
-- 数据库无关测试: 132 passed
+- 数据库无关测试 + 契约测试: 194 passed / 20 deselected（DB 依赖用例）
 - `ruff check .`: All checks passed
-- `mypy services/api/app`: 73 files, no issues
+- `mypy services/api/app`: 74 files, no issues
 - 全量测试（含 DB 依赖）: 无法执行（ENV-01）
-- H5 构建 / Admin 构建: 均通过
+- H5 构建 / Admin 构建: 均通过（两端各 65 个令牌入产物）
 
 ## 总判定
 ```text
@@ -44,7 +44,7 @@ READY_FOR_PUBLIC_BETA = NO
 | P1 30–50 扩量 | NOT_RUN（被 P0 Gate 阻塞） |
 | P2 UX Freeze | PARTIAL |
 | P3 UI / Frontend | PARTIAL |
-| P4 Admin / Data Ops | NOT_RUN |
+| P4 Admin / Data Ops | PARTIAL（数据质量看板已实现；端到端验证待数据层） |
 | P5 Real Provider | BLOCKED_EXTERNAL |
 | P6 Backend Hardening | NOT_RUN |
 | P7 Security/Privacy/Compliance | PARTIAL |

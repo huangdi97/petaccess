@@ -24,11 +24,11 @@ READY_FOR_PUBLIC_BETA = NO
 |---|---|
 | 产品版本 | `v0.6.0-beta`（未发布，未打 tag） |
 | 上游 tag | `v0.5-quality-freeze` |
-| 当前 HEAD | `078f33d`（本轮 P0+P3+P7/P13 增量）；前置基线 `08ee60c` |
+| 当前 HEAD | `716b163`（本轮 P0 + P3 + P4 + P7/P13 增量）；前置基线 `08ee60c` |
 | 分支 | `master`（无 remote） |
-| 提交总数 | 33 |
+| 提交总数 | 35 |
 | 工作区 | 干净（仅 4 个接管前 ZCode 残留 `*.patch` 未跟踪） |
-| 本轮新增提交 | `147f3e4`（P0）、`a970a80`（P3）、`078f33d`（P7/P13 文档与状态） |
+| 本轮新增提交 | `147f3e4`（P0）、`a970a80`（P3）、`078f33d`（P7/P13 文档与状态）、`97ff43e`（数据更正）、`716b163`（P3/P4 Admin 设计系统 + 状态完整性 + 数据质量 KPI） |
 
 ---
 
@@ -91,26 +91,34 @@ UI_FRONTEND_PRODUCTION_GATE = PARTIAL
 ```
 
 **已达成**
-- `packages/design-tokens`（此前为**空目录**）：完整令牌体系 + 6 态状态语义（icon+文字+颜色三通道）+ 来源徽标 + 禁用词表
+- `packages/design-tokens`（此前为**空目录**）：完整令牌体系 + 6 态状态语义（icon+文字+颜色三通道）+ 8 态页面状态词汇 + 来源徽标 + 禁用词表
 - 状态语义强制化：`StatusBadge.vue` 是唯一渲染入口，图标与文本不可省略（测试强制）
-- 中性文案机读守卫：扫描全部 60+ 前台 `.vue`/`.ts`，禁用词零命中
+- **令牌被 H5 与 Admin 共同消费**（此前 Admin 完全未接入）：Admin 令牌入产物 0 → **65 个**，硬编码颜色 9 处 hex + 1 处 rgba → 0
+- **状态完整性**：`StateMessage` / `SkeletonList` / `useOnline` 接入 4 个 H5 核心页 + 3 个 Admin 视图；核心页具备 loading / skeleton / empty / error / offline 五态
+- 中性文案机读守卫：扫描全部前台 `.vue`/`.ts`，禁用词零命中
 - 可访问性基线：`:focus-visible` 外描边、44px 触控、`visually-hidden` 语义、`prefers-reduced-motion` 归零动效
-- 构建验证：H5（`vue-tsc` + `vite build`）与 Admin 均通过；令牌确认进入 dist CSS
+- 构建验证：H5（`vue-tsc` + `vite build`）与 Admin 均通过；令牌确认进入 dist CSS（两端各 65 个）
+- 规范 §12 要求的 5 份文档齐备（`DESIGN_SYSTEM` / `UI_STATE_MATRIX` / `COPY_GUIDE` / `UX_FLOW` / `FRONTEND_QA_REPORT`），另补 `PRODUCT_IA.md` / `FRONTEND_ACCEPTANCE.md` / `UI_UX_IMPLEMENTATION_REPORT.md`
 
 **未达成**
 - 地图首页交互壳（clustering / bottom sheet / filter chips / 定位 / list-map 切换 / coverage hint）—— 阻塞于地图 provider（B-04）
 - Place Detail 的 10 个 Section（现为 4 个板块）
-- skeleton / offline 状态（可立即实现，未做）
 - 视觉回归截图基线 —— 需可运行 API（ENV-01）
+- PARTIAL / PERMISSION_DENIED 全页态；多断点与真机 QA
 - 暗色主题
-- 令牌未接入 admin 与 uni-app x 端
+- 令牌未接入 uni-app x 端（B-01）；其余 21 个 Admin 视图未接骨架屏
+
+详见 `FRONTEND_ACCEPTANCE.md` 与 `UI_UX_IMPLEMENTATION_REPORT.md`。
 
 ---
 
 ## 6. Admin / Data Ops 完成度
 
 `PARTIAL`。24 个视图、`require_role` 权限门、审计日志齐备；Candidate/Evidence/Review/Monitor/Freshness/Org/Template/Audit 均已实现。
-缺口：Data Quality 面板未实现；publish / rollback / supersession 的端到端验证需数据层。
+
+**本轮补齐**：Data Quality 看板从「4 项状态全缺」变为完整实现——新增 3 组真实指标（规则构成与时效 / 候选管线按状态与层级 / 证据完整性含哈希与许可覆盖率），并修复一处真实报表缺陷（时效积压原先把已废止规则也计入，虚增待办）。指标计算抽为纯函数并单测 19 例。
+
+剩余缺口：publish / rollback / supersession 的端到端验证需数据层；其余 21 个视图未接骨架屏。
 
 ---
 
@@ -248,8 +256,9 @@ CROSS_PLATFORM_GATE = BLOCKED_EXTERNAL
 | P0 审核 | `REAL_DATA_REVIEW_DECISIONS_R1.md`、`docs/reality_audit/review_decisions_r1.json` |
 | P0 发布 | `REAL_DATA_PUBLISH_R1_REPORT.md`、`PUBLISHED_RULES_SNAPSHOT_R1.md`、`scripts/publish_reviewed_r1.py`、`scripts/gen_review_decisions_r1.py`、`scripts/backfill_candidate_rule_layer.py` |
 | P0 修复 | `services/api/app/models/v05.py`、`app/services/candidate_service.py`、`app/services/publish_gate.py`、`app/api/v1/v05.py`、迁移 `d1a4f7c93b28`、`scripts/real_pilot_ingest.py`、`tests/unit/test_publish_layer_integrity.py` |
-| P3 UI | `packages/design-tokens/*`、`apps/client-h5/src/components/{StatusBadge,SourceBadge}.vue`、`styles.css`、`views/PlaceView.vue`、`tests/unit/test_design_tokens.py` |
-| P3 文档 | `DESIGN_SYSTEM.md`、`UI_STATE_MATRIX.md`、`COPY_GUIDE.md`、`FRONTEND_QA_REPORT.md` |
+| P3 UI | `packages/design-tokens/*`、`apps/client-h5/src/components/{StatusBadge,SourceBadge,StateMessage,SkeletonList}.vue`、`apps/client-h5/src/composables/useOnline.ts`、`apps/admin/src/components/{StatusBadge,SourceBadge,StateMessage}.vue`、两端 `styles.css`、`views/{PlaceView,HomeView,SearchView,BoundaryView,MatchExplainView,DashboardView,RulesView,SourcesView,PlacesView}.vue`、`tests/unit/{test_design_tokens,test_ui_states}.py` |
+| P4 Data Ops | `services/api/app/services/quality_metrics.py`、`app/api/v1/admin.py`（`/admin/quality` 扩展）、`apps/admin/src/views/DashboardView.vue`、`tests/unit/test_quality_metrics.py` |
+| P3/P2 文档 | `DESIGN_SYSTEM.md`、`UI_STATE_MATRIX.md`、`COPY_GUIDE.md`、`FRONTEND_QA_REPORT.md`、`PRODUCT_IA.md`、`UX_FLOW.md`、`FRONTEND_ACCEPTANCE.md`、`UI_UX_IMPLEMENTATION_REPORT.md` |
 | P7 合规 | `COMPLIANCE_GATE.md`、`docs/legal/`（6 份草案 + 索引） |
 | P13 运维 | `docs/ROLLBACK_RUNBOOK.md`、`docs/INCIDENT_RUNBOOK.md` |
 | 状态 | `PRODUCTION_STATE.md`、`PRODUCTION_ACCEPTANCE_MATRIX.md`、`BLOCKERS.md`、`LAUNCH_READINESS_CHECKLIST.md` |
@@ -261,14 +270,14 @@ CROSS_PLATFORM_GATE = BLOCKED_EXTERNAL
 | 检查 | 命令 | 结果 |
 |---|---|---|
 | Lint | `ruff check .` | ✅ All checks passed |
-| 类型 | `mypy services/api/app` | ✅ 73 files, no issues |
-| 数据库无关单元测试 | `pytest tests/unit --deselect <20 个 db_session 用例>` | ✅ **142 passed, 20 deselected**（17.53s） |
-| 契约测试 | `pytest tests/contract` | ✅ **22 passed**（0.70s） |
+| 类型 | `mypy services/api/app` | ✅ 74 files, no issues |
+| 数据库无关单元测试 + 契约测试 | `pytest tests/unit tests/contract --deselect <20 个 db_session 用例>` | ✅ **194 passed, 20 deselected**（18.77s） |
 | 需数据库的单元测试 | 同 20 个 `db_session` 用例 | ❌ 1 失败 + 1 挂起（Postgres 不可达，ENV-01） |
-| 应用导入 / 路由 | `app.openapi()` | ✅ 87 条路径，其中 **30 条 `/api/v1/admin/*`**（含新增 `candidates/{id}/rule-layer`） |
-| H5 构建 | `vue-tsc --noEmit` + `vite build` | ✅ 类型通过，构建 3.29s（63 modules） |
-| Admin 构建 | `vue-tsc --noEmit` + `vite build` | ✅ 类型通过，构建 3.61s |
-| 令牌入产物 | `grep -- '--pa-*' dist-verify/assets/*.css` | ✅ **60 个令牌**，含 6 态 × (前景/底色) 12 个状态色令牌 |
+| 应用导入 / 路由 | `app.openapi()` | ✅ 87 条路径，其中 **30 条 `/api/v1/admin/*`**（含 `candidates/{id}/rule-layer` 与扩展后的 `quality`） |
+| H5 构建 | `vue-tsc --noEmit` + `vite build` | ✅ 类型通过，63 modules，index 102.31 kB (gzip 39.66 kB) |
+| Admin 构建 | `vue-tsc --noEmit` + `vite build` | ✅ 类型通过，index 102.94 kB (gzip 40.27 kB) |
+| 令牌入产物 | `grep -- '--pa-*' dist-verify/assets/*.css` | ✅ **两端各 65 个令牌**（Admin 此前为 0） |
+| 状态类入产物 | `grep -o 'state-message[a-z_-]*\|skeleton[a-z_-]*'` | ✅ 两端全部命中 |
 | 发布门禁 | `publish_reviewed_r1.py --dry-run` | ✅ 拒绝 33 行未签署候选 |
 | 全量测试 | `pytest` | ❌ 超时（ENV-01） |
 
@@ -281,9 +290,10 @@ CROSS_PLATFORM_GATE = BLOCKED_EXTERNAL
 > 策略而非代码问题；改用全新 `--outDir` 后两端均构建成功，临时目录已清理。
 >
 > **两处自我更正**：① 早期稿曾写「132 passed」，实为不含 `test_reality_audit.py`
-> 的口径；已按 AST 枚举法重测为 **142 passed / 20 deselected**。② 早期稿曾写
-> 「37 条 admin 路由」，系 `app.routes` 的惰性占位（`_IncludedRouter`）导致的误读；
-> 改用 `app.openapi()` 实查为 **87 条路径 / 30 条 admin 路径**。
+> 的口径；已按 AST 枚举法重测为 **142 passed / 20 deselected**，本轮新增测试后为
+> **194 passed / 20 deselected**。② 早期稿曾写「37 条 admin 路由」，系 `app.routes`
+> 的惰性占位（`_IncludedRouter`）导致的误读；改用 `app.openapi()` 实查为
+> **87 条路径 / 30 条 admin 路径**。
 
 ---
 
