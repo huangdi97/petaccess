@@ -193,6 +193,9 @@ importers:
       '@petaccess/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
+      '@petaccess/design-tokens':
+        specifier: workspace:*
+        version: link:../../packages/design-tokens
       vue:
         specifier: ^3.5.13
         version: 3.5.42(typescript@5.9.3)

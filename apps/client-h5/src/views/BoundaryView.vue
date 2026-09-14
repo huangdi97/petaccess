@@ -2,6 +2,9 @@
 import { onMounted, ref } from "vue";
 import { client, ApiError, type BoundaryProfile } from "@petaccess/client-core";
 import AppShell from "../components/AppShell.vue";
+import SkeletonList from "../components/SkeletonList.vue";
+import StateMessage from "../components/StateMessage.vue";
+import { useOnline } from "../composables/useOnline";
 
 /**
  * 共处边界：用户对「与动物共处」的自有条件。
@@ -48,9 +51,12 @@ const error = ref("");
 const msg = ref("");
 const busy = ref(false);
 const loaded = ref(false);
+const loading = ref(true);
+const { online } = useOnline();
 
 async function load() {
   error.value = "";
+  loading.value = true;
   try {
     const res = await client.defaultBoundaryProfile();
     apply(res.profile);
@@ -58,6 +64,7 @@ async function load() {
     error.value = e instanceof ApiError ? e.message : String(e);
   } finally {
     loaded.value = true;
+    loading.value = false;
   }
 }
 
@@ -86,6 +93,10 @@ function pick(attribute: string, stance: string) {
 async function save() {
   error.value = "";
   msg.value = "";
+  if (!online.value) {
+    error.value = "当前无网络连接，边界保存需要联网。";
+    return;
+  }
   busy.value = true;
   try {
     const preferences = Object.entries(chosen.value).map(([attribute, stance]) => ({
@@ -115,52 +126,68 @@ onMounted(load);
 
 <template>
   <AppShell>
-    <div v-if="error" class="panel" data-testid="boundary-error">{{ error }}</div>
-    <div v-if="msg" class="panel" data-testid="boundary-msg">{{ msg }}</div>
-
-    <div class="panel">
-      <h1>共处边界</h1>
-      <p class="muted" style="margin-top: 4px">
-        这些是<strong>你自己的</strong>出行偏好，用来逐项比对场所公开记录。
-        没设置的项保持「未知」，不会被当成允许或禁止。
-      </p>
-      <label>方案名称</label>
-      <input v-model="profileName" placeholder="我的共处边界" />
+    <div v-if="!online" class="offline-banner" data-testid="offline-banner">
+      <span aria-hidden="true">⊘</span>
+      <span>当前无网络连接：可查看已加载内容，保存操作已暂停。</span>
     </div>
-
-    <div v-for="attr in ATTRIBUTES" :key="attr.value" class="panel" data-testid="boundary-attr">
-      <div style="font-weight: 600">{{ attr.label }}</div>
-      <div class="row" style="margin-top: 8px">
-        <button
-          v-for="s in attr.stances"
-          :key="s"
-          class="pill"
-          :class="{ active: chosen[attr.value] === s }"
-          :data-testid="`stance-${attr.value}-${s}`"
-          @click="pick(attr.value, s)"
-        >
-          {{ STANCE_LABELS[s] }}
-        </button>
-      </div>
-      <div v-if="chosen[attr.value]" class="muted" style="margin-top: 6px">
-        已选：{{ STANCE_LABELS[chosen[attr.value]] }}（再次点击可清除）
-      </div>
-    </div>
-
-    <button
-      class="primary block"
-      :disabled="busy || !loaded"
-      data-testid="boundary-save"
-      @click="save"
+    <SkeletonList v-if="loading" :rows="4" />
+    <StateMessage
+      v-else-if="error && !loaded"
+      kind="ERROR"
+      :description="`未能取得共处边界：${error}`"
     >
-      {{ busy ? "保存中…" : "保存边界" }}
-    </button>
+      <template #action>
+        <button class="primary" @click="load">重试</button>
+      </template>
+    </StateMessage>
+    <template v-else>
+      <div v-if="error" class="panel" data-testid="boundary-error">{{ error }}</div>
+      <div v-if="msg" class="panel" data-testid="boundary-msg">{{ msg }}</div>
 
-    <div class="panel" style="margin-top: 12px">
-      <div class="muted">
-        说明：边界仅用于「你」的比对结果，不是对场所的评分，也不会改变规则收录内容。
-        服务犬适用独立的通行规则，不在此边界内判断。
+      <div class="panel">
+        <h1>共处边界</h1>
+        <p class="muted" style="margin-top: 4px">
+          这些是<strong>你自己的</strong>出行偏好，用来逐项比对场所公开记录。
+          没设置的项保持「未知」，不会被当成允许或禁止。
+        </p>
+        <label>方案名称</label>
+        <input v-model="profileName" placeholder="我的共处边界" />
       </div>
-    </div>
+
+      <div v-for="attr in ATTRIBUTES" :key="attr.value" class="panel" data-testid="boundary-attr">
+        <div style="font-weight: 600">{{ attr.label }}</div>
+        <div class="row" style="margin-top: 8px">
+          <button
+            v-for="s in attr.stances"
+            :key="s"
+            class="pill"
+            :class="{ active: chosen[attr.value] === s }"
+            :data-testid="`stance-${attr.value}-${s}`"
+            @click="pick(attr.value, s)"
+          >
+            {{ STANCE_LABELS[s] }}
+          </button>
+        </div>
+        <div v-if="chosen[attr.value]" class="muted" style="margin-top: 6px">
+          已选：{{ STANCE_LABELS[chosen[attr.value]] }}（再次点击可清除）
+        </div>
+      </div>
+
+      <button
+        class="primary block"
+        :disabled="busy || !loaded || !online"
+        data-testid="boundary-save"
+        @click="save"
+      >
+        {{ busy ? "保存中…" : "保存边界" }}
+      </button>
+
+      <div class="panel" style="margin-top: 12px">
+        <div class="muted">
+          说明：边界仅用于「你」的比对结果，不是对场所的评分，也不会改变规则收录内容。
+          服务犬适用独立的通行规则，不在此边界内判断。
+        </div>
+      </div>
+    </template>
   </AppShell>
 </template>

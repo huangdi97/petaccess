@@ -185,6 +185,87 @@ export function badgeForSourceType(sourceType: string | null | undefined): Sourc
 
 /* ---------------------------------------------------------------- copy rules */
 
+/**
+ * Page-level async and edge states (Master Goal §5.5: every core page must have
+ * loading / skeleton / empty / success / partial / stale / conflict / error /
+ * offline / permission-denied).
+ *
+ * These are *page* states, not access statuses — a place can be ALLOWED and the
+ * page can still be OFFLINE. They live here for the same reason the statuses do:
+ * one vocabulary, one place to edit, and a machine-checkable guarantee that each
+ * state carries an icon and words rather than a colour alone.
+ */
+export type PageStateKey =
+  | "LOADING"
+  | "EMPTY"
+  | "ERROR"
+  | "OFFLINE"
+  | "PARTIAL"
+  | "STALE"
+  | "CONFLICT"
+  | "PERMISSION_DENIED";
+
+export interface PageStateSemantics {
+  readonly key: PageStateKey;
+  /** Glyph, so the state is legible without colour. */
+  readonly icon: string;
+  /** Short heading. */
+  readonly title: string;
+  /** One neutral sentence explaining what the state does and does not mean. */
+  readonly description: string;
+}
+
+export const PAGE_STATES: Readonly<Record<PageStateKey, PageStateSemantics>> = {
+  LOADING: {
+    key: "LOADING",
+    icon: "…",
+    title: "加载中",
+    description: "正在取得数据。",
+  },
+  EMPTY: {
+    key: "EMPTY",
+    icon: "○",
+    title: "暂无收录内容",
+    description: "本平台只展示已核验收录的信息；未收录不代表该场所没有规则。",
+  },
+  ERROR: {
+    key: "ERROR",
+    icon: "!",
+    title: "加载失败",
+    description: "未能取得数据。在重试成功之前，页面不会展示任何推测结论。",
+  },
+  OFFLINE: {
+    key: "OFFLINE",
+    icon: "⊘",
+    title: "当前无网络连接",
+    description: "离线时不接受提交，以免产生未经确认的记录。已加载的内容仍可查看。",
+  },
+  PARTIAL: {
+    key: "PARTIAL",
+    icon: "◑",
+    title: "信息不完整",
+    description: "部分字段尚未收录，结论可能随补充证据变化。",
+  },
+  STALE: {
+    key: "STALE",
+    icon: "⟳",
+    title: "需要复核",
+    description: "证据超出核验时效，结论可能已变化。",
+  },
+  CONFLICT: {
+    key: "CONFLICT",
+    icon: "⚠",
+    title: "来源存在不一致",
+    description: "已收录来源之间结论冲突，待人工复核。",
+  },
+  PERMISSION_DENIED: {
+    key: "PERMISSION_DENIED",
+    icon: "⛔",
+    title: "需要登录",
+    description: "此操作需要登录后进行；未登录不会提交任何数据。",
+  },
+};
+
 /** Neutral wording the product must use (UI_UX_IMPLEMENTATION_SPEC §8). */
 export const REQUIRED_COPY = {
   unknownLong: "截至今日，在已核验来源中暂未找到明确规则",

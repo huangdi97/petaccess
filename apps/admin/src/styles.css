@@ -1,20 +1,27 @@
+/* Design tokens are the single source of truth (packages/design-tokens), shared
+ * with apps/client-h5 and apps/client (uni-app x). The short local names below
+ * are aliases kept so the existing view markup does not have to change — every
+ * value resolves to a token, so editing a token restyles the whole admin.
+ * UI_UX_IMPLEMENTATION_SPEC §9 requires admin to consume the same token set. */
+@import "@petaccess/design-tokens/tokens.css";
+
 :root {
-  --bg: #f6f7f9;
-  --panel: #ffffff;
-  --line: #e3e6ea;
-  --text: #1c2530;
-  --muted: #6b7684;
-  --accent: #2b6cb0;
-  --danger: #b0432b;
-  --ok: #2b7a4b;
-  --warn: #9a6b1f;
+  --bg: var(--pa-color-bg-app);
+  --panel: var(--pa-color-bg-surface);
+  --line: var(--pa-color-border);
+  --text: var(--pa-color-text-primary);
+  --muted: var(--pa-color-text-muted);
+  --accent: var(--pa-color-accent);
+  --danger: var(--pa-color-status-restricted);
+  --ok: var(--pa-color-status-allowed);
+  --warn: var(--pa-color-status-conditional);
 }
 * {
   box-sizing: border-box;
 }
 body {
   margin: 0;
-  font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-family: var(--pa-font-family);
   background: var(--bg);
   color: var(--text);
   font-size: 14px;
@@ -47,7 +54,7 @@ a {
   color: var(--text);
 }
 .sidebar a.router-link-active {
-  background: #eaf1f8;
+  background: var(--pa-color-accent-weak);
   color: var(--accent);
   font-weight: 600;
 }
@@ -85,6 +92,9 @@ h2 {
   padding: 16px;
   margin-bottom: 16px;
 }
+.panel--sunken {
+  background: var(--pa-color-bg-sunken);
+}
 table {
   width: 100%;
   border-collapse: collapse;
@@ -116,12 +126,12 @@ button {
 button.primary {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--pa-color-text-inverse);
 }
 button.danger {
   background: var(--danger);
   border-color: var(--danger);
-  color: #fff;
+  color: var(--pa-color-text-inverse);
 }
 button:disabled {
   opacity: 0.5;
@@ -137,7 +147,7 @@ textarea {
   font-size: 13px;
   font-family: inherit;
   width: 100%;
-  background: #fff;
+  background: var(--pa-color-bg-surface);
   color: var(--text);
 }
 label {
@@ -183,7 +193,7 @@ label {
   color: var(--muted);
 }
 .error-banner {
-  background: #fdeceb;
+  background: var(--pa-color-status-restricted-bg);
   border: 1px solid var(--danger);
   color: var(--danger);
   border-radius: 6px;
@@ -191,7 +201,7 @@ label {
   margin-bottom: 12px;
 }
 .ok-banner {
-  background: #eaf6ee;
+  background: var(--pa-color-status-allowed-bg);
   border: 1px solid var(--ok);
   color: var(--ok);
   border-radius: 6px;
@@ -276,7 +286,7 @@ td.mono,
   margin: 4px 0 0;
 }
 .explain {
-  background: #f8fafc;
+  background: var(--pa-color-bg-sunken);
   border: 1px solid var(--line);
   border-radius: 6px;
   padding: 10px 12px;
@@ -306,10 +316,10 @@ td.mono,
   border-left: 3px solid var(--line);
   padding: 4px 10px;
   margin: 4px 0;
-  background: #fbfcfd;
+  background: var(--pa-color-bg-sunken);
 }
 .lead-warn {
-  background: #fdf6e8;
+  background: var(--pa-color-status-conditional-bg);
   border: 1px solid var(--warn);
   color: var(--warn);
   border-radius: 6px;
@@ -325,5 +335,165 @@ td.mono,
 @media (max-width: 900px) {
   .two-col {
     grid-template-columns: 1fr;
+  }
+}
+
+/* ---- shared status / source badges (UI_UX_IMPLEMENTATION_SPEC §3, §4) ----
+ * Admin shows the same neutral vocabulary as the consumer app. Colour comes
+ * from the token pair bound inline by the component; the icon and the label are
+ * always rendered, so a status is never colour-only. */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pa-space-1);
+  border-radius: var(--pa-radius-pill);
+  padding: 2px 10px;
+  font-size: var(--pa-font-size-sm);
+  font-weight: var(--pa-font-weight-medium);
+  white-space: nowrap;
+}
+.status-badge--block {
+  display: flex;
+  width: 100%;
+  border-radius: var(--pa-radius-sm);
+  padding: var(--pa-space-2) var(--pa-space-3);
+  font-size: var(--pa-font-size-md);
+}
+.status-badge__icon {
+  font-weight: var(--pa-font-weight-bold);
+}
+
+.source-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pa-space-1);
+  border: 1px solid var(--pa-color-border);
+  border-radius: var(--pa-radius-sm);
+  padding: 1px 8px;
+  font-size: var(--pa-font-size-sm);
+  color: var(--pa-color-text-secondary);
+  white-space: nowrap;
+}
+.source-badge__icon {
+  color: var(--pa-color-text-muted);
+}
+
+/* ---- accessibility baseline (UI_UX_IMPLEMENTATION_SPEC §10) ---- */
+:focus-visible {
+  outline: 2px solid var(--pa-color-focus);
+  outline-offset: 2px;
+}
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+button,
+input,
+select,
+textarea,
+a {
+  min-height: 32px;
+}
+.toolbar button,
+.pager button,
+.actions button {
+  min-height: 32px;
+}
+
+/* ---- async state primitives (Master Goal §5.5) ----
+ * Admin is desktop, so the skeleton is a flat shimmer rather than a card
+ * placeholder; motion is removed entirely under prefers-reduced-motion. */
+.skeleton {
+  background: var(--pa-color-bg-sunken);
+  border-radius: var(--pa-radius-sm);
+  position: relative;
+  overflow: hidden;
+  min-height: 14px;
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--pa-color-skeleton-sheen),
+    transparent
+  );
+  animation: pa-shimmer var(--pa-motion-slow) var(--pa-motion-ease) infinite;
+}
+@keyframes pa-shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+.skeleton-table {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-2);
+}
+.empty-state {
+  border: 1px dashed var(--pa-color-border-strong);
+  border-radius: var(--pa-radius-md);
+  padding: var(--pa-space-5);
+  text-align: center;
+  color: var(--pa-color-text-muted);
+}
+.empty-state__title {
+  color: var(--pa-color-text-secondary);
+  font-weight: var(--pa-font-weight-medium);
+  margin-bottom: var(--pa-space-1);
+}
+
+/* Page-level state block (StateMessage.vue). Shares the empty-state look but is
+ * a component so the wording comes from the shared PAGE_STATES vocabulary. */
+.state-message {
+  border: 1px dashed var(--pa-color-border-strong);
+  border-radius: var(--pa-radius-md);
+  padding: var(--pa-space-5);
+  text-align: center;
+}
+.state-message__icon {
+  font-size: 22px;
+  line-height: 1;
+  color: var(--pa-color-text-muted);
+}
+.state-message__title {
+  margin-top: var(--pa-space-2);
+  color: var(--pa-color-text-secondary);
+  font-weight: var(--pa-font-weight-medium);
+}
+.state-message__body {
+  margin: var(--pa-space-1) 0 0;
+  color: var(--pa-color-text-muted);
+  font-size: var(--pa-font-size-sm);
+  line-height: var(--pa-line-height-base);
+}
+.state-message__action {
+  margin-top: var(--pa-space-3);
+}
+.offline-banner {
+  background: var(--pa-color-status-stale-bg);
+  border: 1px solid var(--pa-color-status-stale);
+  color: var(--pa-color-status-stale);
+  border-radius: var(--pa-radius-sm);
+  padding: var(--pa-space-2) var(--pa-space-3);
+  margin-bottom: var(--pa-space-3);
+  font-size: var(--pa-font-size-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after {
+    animation: none;
   }
 }

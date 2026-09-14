@@ -14,6 +14,7 @@ about comments, so documenting a forbidden term does not trip the guard.
 
 from __future__ import annotations
 
+import json
 import re
 from pathlib import Path
 
@@ -76,8 +77,51 @@ def test_status_badge_component_renders_icon_and_label():
 
 
 def test_app_styles_consume_tokens_instead_of_redeclaring_them():
-    styles = _read(H5_SRC / "styles.css")
-    assert "@petaccess/design-tokens/tokens.css" in styles, "app must import the token sheet"
+    for label, styles in (
+        ("client-h5", H5_SRC / "styles.css"),
+        ("admin", ADMIN_SRC / "styles.css"),
+    ):
+        text = _read(styles)
+        assert "@petaccess/design-tokens/tokens.css" in text, (
+            f"{label} must import the shared token sheet"
+        )
+
+
+def test_both_apps_declare_the_token_package_as_a_dependency():
+    """§9: the apps depend on the package, they do not vendor a copy."""
+    for app in ("client-h5", "admin"):
+        pkg = json.loads(_read(REPO / "apps" / app / "package.json"))
+        deps = {**pkg.get("dependencies", {}), **pkg.get("devDependencies", {})}
+        assert "@petaccess/design-tokens" in deps, f"{app} does not depend on the token package"
+
+
+def test_app_stylesheets_and_components_have_no_hardcoded_colours():
+    """§9: every colour resolves to a token, so one edit restyles everything.
+
+    Raw hex/rgb literals in an app file are the failure mode this guards: they
+    silently opt out of the design system and cannot be themed.
+    """
+    literal = re.compile(r"#[0-9a-fA-F]{3,8}\b|\brgba?\(")
+    offenders: list[str] = []
+    for root in (H5_SRC, ADMIN_SRC):
+        for path in sorted(list(root.rglob("*.css")) + list(root.rglob("*.vue"))):
+            source = _strip_comments(_read(path))
+            for match in literal.finditer(source):
+                offenders.append(f"{path.relative_to(REPO)}: {match.group(0)}")
+    assert not offenders, "hard-coded colour outside the token package: " + "; ".join(offenders)
+
+
+def test_admin_reuses_the_shared_status_and_source_badges():
+    """Admin must not re-invent the status vocabulary as bare coloured pills."""
+    for name, must_have in (
+        ("StatusBadge.vue", ("status-badge__icon", "semantics.label", "aria")),
+        ("SourceBadge.vue", ("source-badge", "badgeForSourceType")),
+    ):
+        path = ADMIN_SRC / "components" / name
+        assert path.exists(), f"admin/{name} missing"
+        src = _read(path)
+        for needle in must_have:
+            assert needle in src, f"admin/{name} must contain {needle!r}"
 
 
 # ------------------------------------------------------------- §8 neutral copy

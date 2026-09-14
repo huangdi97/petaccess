@@ -1,5 +1,7 @@
 """Admin endpoints: audit log, data quality, users, queues (design #25, #31)."""
 
+from datetime import UTC, datetime
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -10,18 +12,45 @@ from app.models import (
     AccessRule,
     AuditLog,
     DisputeCase,
+    EvidenceBundle,
     ObservationClaim,
     OperatorClaim,
     Place,
+    RuleCandidate,
     Source,
+    SourceArtifact,
     User,
     VerificationEvent,
 )
 from app.models.enums import UserRole
+from app.models.evidence import SourcePlatform
 from app.schemas.civic import AuditOut
 from app.schemas.common import Page
+from app.services.quality_metrics import (
+    age_days,
+    distribution,
+    is_overdue,
+    median_age_days,
+    ratio,
+)
 
 router = APIRouter(prefix="/admin", tags=["admin"])
+
+#: Candidate pipeline states, in the order the state machine allows them.
+CANDIDATE_STATUSES = [
+    "DISCOVERED",
+    "EXTRACTED",
+    "MATCH_PENDING",
+    "REVIEW_PENDING",
+    "APPROVED",
+    "REJECTED",
+    "PUBLISHED",
+]
+
+#: Rule layers, so the dashboard can show mis-routing at a glance.
+RULE_LAYERS = ["LEGAL", "REGULATORY_GUIDANCE", "OPERATOR_POLICY", "TEMPORARY_POLICY"]
+
+RULE_EFFECTS = ["allowed", "conditional", "prohibited"]
 
 
 @router.get("/audit", response_model=Page[AuditOut])
@@ -69,7 +98,15 @@ def quality_dashboard(
     user: User = Depends(require_role(UserRole.MODERATOR)),
     db: Session = Depends(get_db),
 ) -> dict:
-    """KPI skeleton from design #37 (Rule Coverage, Median Rule Age, etc.)."""
+    """Operational KPIs (design #37; Master Goal P4 "data quality metrics").
+
+    Deliberately reports raw, decomposable numbers — coverage ratios, pipeline
+    distribution, freshness backlog — and no composite quality index. A blended
+    score would be exactly the kind of unfalsifiable number this product refuses
+    to show about places, so it refuses to show one about itself.
+    """
+    now = datetime.now(UTC)
+
     total_rules = db.scalar(select(func.count()).select_from(AccessRule)) or 0
     current_rules = (
         db.scalar(
@@ -96,15 +133,15 @@ def quality_dashboard(
         or 0
     )
     total_sources = db.scalar(select(func.count()).select_from(Source)) or 0
-    now = func.now()
-    overdue = (
-        db.scalar(
-            select(func.count())
-            .select_from(AccessRule)
-            .where(AccessRule.review_due_at.isnot(None), AccessRule.review_due_at < now)
+    # Freshness backlog: only *current* rules past their review date need action.
+    # Counting superseded rows here would inflate the queue with work nobody has
+    # to do, so the decision lives in a unit-tested helper rather than inline SQL.
+    due_rows = db.execute(
+        select(AccessRule.review_due_at, AccessRule.status).where(
+            AccessRule.review_due_at.isnot(None)
         )
-        or 0
-    )
+    ).all()
+    overdue = sum(1 for due_at, status in due_rows if is_overdue(due_at, status, now))
     places_total = db.scalar(select(func.count()).select_from(Place)) or 0
     places_with_rules = (
         db.scalar(
@@ -112,22 +149,113 @@ def quality_dashboard(
         )
         or 0
     )
+
+    # --- rule composition / freshness -------------------------------------
+    effect_rows = db.scalars(select(AccessRule.effect)).all()
+    rule_ages = db.scalars(
+        select(AccessRule.recorded_at).where(AccessRule.status == "current")
+    ).all()
+    never_verified = (
+        db.scalar(
+            select(func.count())
+            .select_from(AccessRule)
+            .where(AccessRule.status == "current", AccessRule.last_verified_at.is_(None))
+        )
+        or 0
+    )
+
+    # --- candidate pipeline ------------------------------------------------
+    candidate_status_rows = db.scalars(select(RuleCandidate.review_status)).all()
+    candidate_layer_rows = db.scalars(select(RuleCandidate.rule_layer)).all()
+    candidates_total = len(candidate_status_rows)
+    candidates_without_evidence = (
+        db.scalar(
+            select(func.count())
+            .select_from(RuleCandidate)
+            .where(RuleCandidate.evidence_bundle_id.is_(None))
+        )
+        or 0
+    )
+    published_candidates = (
+        db.scalar(
+            select(func.count())
+            .select_from(RuleCandidate)
+            .where(RuleCandidate.published_rule_id.isnot(None))
+        )
+        or 0
+    )
+
+    # --- evidence integrity ------------------------------------------------
+    bundles_total = db.scalar(select(func.count()).select_from(EvidenceBundle)) or 0
+    bundles_with_hash = (
+        db.scalar(
+            select(func.count())
+            .select_from(EvidenceBundle)
+            .where(EvidenceBundle.content_hash.isnot(None))
+        )
+        or 0
+    )
+    bundles_with_license = (
+        db.scalar(
+            select(func.count())
+            .select_from(EvidenceBundle)
+            .where(EvidenceBundle.license_metadata.isnot(None))
+        )
+        or 0
+    )
+    lead_only_bundles = (
+        db.scalar(
+            select(func.count())
+            .select_from(EvidenceBundle)
+            .where(EvidenceBundle.source_platform.in_(SourcePlatform.LEAD_ONLY))
+        )
+        or 0
+    )
+    artifacts_total = db.scalar(select(func.count()).select_from(SourceArtifact)) or 0
+
     return {
+        "generated_at": now.isoformat(),
         "rule_coverage": {
             "places_total": places_total,
             "places_with_rules": places_with_rules,
-            "coverage_ratio": round(places_with_rules / places_total, 3) if places_total else 0,
+            "coverage_ratio": ratio(places_with_rules, places_total),
         },
         "rules": {
             "total": total_rules,
             "current": current_rules,
             "with_source": rules_with_source,
-            "source_coverage": round(rules_with_source / total_rules, 3) if total_rules else 0,
+            "source_coverage": ratio(rules_with_source, total_rules),
             "review_overdue": overdue,
+            "never_verified": never_verified,
+            "by_effect": distribution(RULE_EFFECTS, effect_rows),
+            "age_days": {
+                "median": median_age_days(rule_ages, now),
+                "oldest": max((age_days(a, now) or 0 for a in rule_ages), default=None),
+                "newest": min((age_days(a, now) or 0 for a in rule_ages), default=None),
+            },
+        },
+        "candidates": {
+            "total": candidates_total,
+            "by_status": distribution(CANDIDATE_STATUSES, candidate_status_rows),
+            "by_layer": distribution(RULE_LAYERS, candidate_layer_rows),
+            "without_evidence": candidates_without_evidence,
+            "evidence_coverage": ratio(
+                candidates_total - candidates_without_evidence, candidates_total
+            ),
+            "published": published_candidates,
+        },
+        "evidence": {
+            "artifacts_total": artifacts_total,
+            "bundles_total": bundles_total,
+            "with_content_hash": bundles_with_hash,
+            "hash_coverage": ratio(bundles_with_hash, bundles_total),
+            "with_license_metadata": bundles_with_license,
+            "license_coverage": ratio(bundles_with_license, bundles_total),
+            "lead_only": lead_only_bundles,
         },
         "provenance": {
             "sources_total": total_sources,
-            "official_ratio": round(official_sources / total_sources, 3) if total_sources else 0,
+            "official_ratio": ratio(official_sources, total_sources),
         },
         "contributions": {
             "observations": db.scalar(select(func.count()).select_from(ObservationClaim)) or 0,

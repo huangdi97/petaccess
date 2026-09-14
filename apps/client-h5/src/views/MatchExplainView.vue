@@ -179,11 +179,10 @@ onMounted(async () => {
           </span>
           <span>
             <span
-              class="tag"
+              class="tag tag--on-solid"
               :class="
                 r.verdict === 'MATCH' ? 's-MATCH' : r.verdict === 'CONFLICT' ? 's-RESTRICTED' : ''
               "
-              style="color: #fff; border: none"
               >{{ VERDICT_TEXT[r.verdict] ?? r.verdict }}</span
             >
           </span>

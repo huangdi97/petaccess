@@ -73,7 +73,7 @@ h2 {
 }
 .pill.active {
   background: var(--accent);
-  color: #fff;
+  color: var(--pa-color-text-inverse);
   border-color: var(--accent);
 }
 button {
@@ -88,7 +88,7 @@ button {
 button.primary {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--pa-color-text-inverse);
 }
 button.block {
   display: block;
@@ -102,7 +102,7 @@ textarea {
   border-radius: 10px;
   padding: 10px 12px;
   font-size: 15px;
-  background: #fff;
+  background: var(--pa-color-bg-surface);
   color: var(--text);
   margin: 4px 0;
   font-family: inherit;
@@ -187,8 +187,8 @@ label {
   border-radius: 12px;
   border: 1px solid var(--line);
   background:
-    repeating-linear-gradient(0deg, #eef2f5 0 24px, #e7ecf0 24px 25px),
-    repeating-linear-gradient(90deg, #eef2f5 0 24px, #e7ecf0 24px 25px);
+    repeating-linear-gradient(0deg, var(--pa-color-map-grid-a) 0 24px, var(--pa-color-map-grid-b) 24px 25px),
+    repeating-linear-gradient(90deg, var(--pa-color-map-grid-a) 0 24px, var(--pa-color-map-grid-b) 24px 25px);
   position: relative;
   overflow: hidden;
 }
@@ -204,17 +204,17 @@ label {
   border-radius: 50% 50% 50% 0;
   transform: rotate(-45deg);
   margin: 0 auto;
-  border: 2px solid #fff;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  border: 2px solid var(--pa-color-map-pin-border);
+  box-shadow: var(--pa-elevation-2);
 }
 .map-pin .lbl {
   font-size: 11px;
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--pa-color-map-label-bg);
   border-radius: 6px;
   padding: 1px 5px;
   margin-top: 2px;
   white-space: nowrap;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--pa-elevation-1);
 }
 .s-MATCH {
   background: var(--ok);
@@ -226,16 +226,19 @@ label {
   background: var(--restricted);
 }
 .s-UNKNOWN {
-  background: #9aa4ae;
+  background: var(--pa-color-status-unknown);
 }
 .s-CONFLICT {
-  background: #6f5a9e;
+  background: var(--pa-color-status-conflict);
+}
+.s-STALE {
+  background: var(--pa-color-status-stale);
 }
 
 .notice {
   font-size: 12px;
   color: var(--muted);
-  background: #eef1f4;
+  background: var(--pa-color-bg-sunken);
   border-radius: 8px;
   padding: 8px 10px;
   margin-top: 10px;
@@ -248,6 +251,12 @@ label {
   font-size: var(--pa-font-size-sm);
   color: var(--muted);
   margin-right: 4px;
+}
+/* Tag sitting on a filled status chip: the fill already carries the semantic
+ * colour, so the text must switch to the inverse token and drop its border. */
+.tag--on-solid {
+  color: var(--pa-color-text-inverse);
+  border: none;
 }
 
 /* ---------------------------------------------------------------- status badge
@@ -321,5 +330,96 @@ button,
   clip: rect(0 0 0 0);
   white-space: nowrap;
   border: 0;
+}
+
+/* ------------------------------------------------------------- async states
+ * Master Goal §5.5: every core page carries loading / skeleton / empty / error
+ * / offline / partial / stale / conflict. The states themselves come from
+ * @petaccess/design-tokens so the wording lives in one place. */
+.skeleton-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-2);
+}
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--pa-color-bg-sunken);
+  border-radius: var(--pa-radius-sm);
+}
+.skeleton--card {
+  height: 64px;
+  border-radius: var(--pa-radius-md);
+}
+.skeleton--line {
+  height: 14px;
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--pa-color-skeleton-sheen),
+    transparent
+  );
+  animation: pa-shimmer var(--pa-motion-slow) var(--pa-motion-ease) infinite;
+}
+@keyframes pa-shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.state-message {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--pa-radius-lg);
+  padding: var(--pa-space-5) var(--pa-space-4);
+  text-align: center;
+}
+.state-message__icon {
+  font-size: 22px;
+  line-height: 1;
+  color: var(--muted);
+}
+.state-message__title {
+  margin-top: var(--pa-space-2);
+  font-weight: var(--pa-font-weight-medium);
+  color: var(--text);
+}
+.state-message__body {
+  margin: var(--pa-space-1) 0 0;
+  font-size: var(--pa-font-size-sm);
+  color: var(--muted);
+  line-height: var(--pa-line-height-base);
+}
+.state-message__action {
+  margin-top: var(--pa-space-3);
+}
+
+/* Offline is a *page* state, not a status colour: it uses the stale token so
+ * it reads as "needs attention", never as an error or a verdict. */
+.offline-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--pa-space-2);
+  background: var(--pa-color-status-stale-bg);
+  border: 1px solid var(--pa-color-status-stale);
+  color: var(--pa-color-status-stale);
+  border-radius: var(--pa-radius-md);
+  padding: var(--pa-space-2) var(--pa-space-3);
+  font-size: var(--pa-font-size-sm);
+  margin-bottom: var(--pa-space-3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after {
+    animation: none;
+  }
 }
 

@@ -13,7 +13,9 @@ import {
   type Zone,
 } from "@petaccess/client-core";
 import AppShell from "../components/AppShell.vue";
+import SkeletonList from "../components/SkeletonList.vue";
 import SourceBadge from "../components/SourceBadge.vue";
+import StateMessage from "../components/StateMessage.vue";
 import StatusBadge from "../components/StatusBadge.vue";
 
 const route = useRoute();
@@ -32,6 +34,7 @@ const verifications = ref<{ occurred_at: string; result: string; note: string | 
 const sources = ref<SourceView[]>([]);
 const answer = ref<Answer | null>(null);
 const error = ref("");
+const loading = ref(true);
 const watching = ref(false);
 const quickMsg = ref("");
 
@@ -63,7 +66,10 @@ watch(
   },
 );
 
-onMounted(async () => {
+/** Load every section of the place page. Used on mount and by the retry action. */
+async function load() {
+  loading.value = true;
+  error.value = "";
   try {
     place.value = await client.place(placeId);
     zones.value = await client.zones(placeId);
@@ -76,8 +82,12 @@ onMounted(async () => {
     await evaluate();
   } catch (e) {
     error.value = e instanceof Error ? e.message : String(e);
+  } finally {
+    loading.value = false;
   }
-});
+}
+
+onMounted(load);
 
 async function quickConfirm(ruleId: string, result: "still_valid" | "changed" | "uncertain") {
   quickMsg.value = "";
@@ -142,8 +152,18 @@ async function disputeFirstRule() {
 
 <template>
   <AppShell>
-    <div v-if="error" class="panel">{{ error }}</div>
-    <template v-if="place">
+    <SkeletonList v-if="loading" :rows="4" />
+    <StateMessage v-else-if="error" kind="ERROR" :description="`未能取得场所信息：${error}`">
+      <template #action>
+        <button class="primary" @click="load">重试</button>
+      </template>
+    </StateMessage>
+    <StateMessage
+      v-else-if="!place"
+      kind="EMPTY"
+      description="该场所尚未收录，或已被移除。未收录不代表该场所没有规则。"
+    />
+    <template v-else>
       <div class="panel">
         <h1>{{ place.canonical_name }}</h1>
         <div class="muted" style="margin-top: 4px">

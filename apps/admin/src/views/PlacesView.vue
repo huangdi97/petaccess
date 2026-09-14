@@ -81,7 +81,7 @@ async function create() {
         {{ creating ? "取消" : "新建场所" }}
       </button>
     </div>
-    <div v-if="creating" class="panel" style="margin-top: 12px; background: #fafbfc">
+    <div v-if="creating" class="panel panel--sunken" style="margin-top: 12px">
       <div class="row">
         <div><label>名称</label><input v-model="form.canonical_name" /></div>
         <div>

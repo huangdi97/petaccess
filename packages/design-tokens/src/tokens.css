@@ -28,6 +28,16 @@
   --pa-color-accent: #34618e;
   --pa-color-accent-weak: #e7eef5;
 
+  /* --- colour: map ------------------------------------------------------- */
+  /* The mock map shell renders the same markers as the future real provider
+   * overlay, so its chrome is tokenised too instead of being hard-coded in the
+   * component. Marker fills are the status tokens (see .s-* in the app sheet),
+   * which keeps the map legend and the status badge visually identical. */
+  --pa-color-map-grid-a: #eef2f5;
+  --pa-color-map-grid-b: #e7ecf0;
+  --pa-color-map-pin-border: #ffffff;
+  --pa-color-map-label-bg: rgba(255, 255, 255, 0.92);
+
   /* --- colour: status (semantic; never the ONLY signal) ------------------ */
   --pa-color-status-allowed: #2e7d52;
   --pa-color-status-allowed-bg: #e8f3ec;
@@ -41,6 +51,11 @@
   --pa-color-status-conflict-bg: #eeeafa;
   --pa-color-status-stale: #8a5f18;
   --pa-color-status-stale-bg: #faf1df;
+
+  /* --- colour: async states ---------------------------------------------- */
+  /* Sheen swept across a skeleton placeholder. Shared so the H5 and admin
+   * loading states shimmer identically. */
+  --pa-color-skeleton-sheen: rgba(255, 255, 255, 0.6);
 
   /* --- spacing (4px base) ------------------------------------------------ */
   --pa-space-1: 4px;
