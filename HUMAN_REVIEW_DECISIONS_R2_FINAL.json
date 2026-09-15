@@ -1,10 +1,16 @@
 {
-  "revision": "R2-FINAL",
+  "revision": "R2-FINAL-R2",
   "reviewer": "",
   "reviewed_at": "",
+  "human_decisions": [
+    "APPROVED",
+    "APPROVED_WITH_NOTE",
+    "HOLD",
+    "REJECTED"
+  ],
   "decisions": [
     {
-      "candidate_id": "ed79071d-d052-46b4-a216-dc789aae4128",
+      "candidate_id": "4c7aba30-a7e3-4ad7-88d7-61a0ba255f27",
       "final_decision": "",
       "review_note": ""
     },
@@ -14,17 +20,102 @@
       "review_note": ""
     },
     {
+      "candidate_id": "ffb804af-c271-443f-a07a-0fb3b5db5a87",
+      "final_decision": "",
+      "review_note": ""
+    },
+    {
       "candidate_id": "887f21ba-e548-457b-a3dd-30ea806d988e",
       "final_decision": "",
       "review_note": ""
     },
     {
-      "candidate_id": "c2b179b9-77bf-433a-9219-5a406c42d5c7",
+      "candidate_id": "ed79071d-d052-46b4-a216-dc789aae4128",
       "final_decision": "",
       "review_note": ""
     },
     {
-      "candidate_id": "52936479-c385-4279-814e-aa7fe8ab0a42",
+      "candidate_id": "70cc7579-1764-4177-82b5-fd2d5b255b37",
+      "final_decision": "",
+      "review_note": ""
+    },
+    {
+      "candidate_id": "f5a8d87f-2d2a-4c1a-a018-b319cc9e580f",
+      "final_decision": "",
+      "review_note": ""
+    },
+    {
+      "candidate_id": "393c6b89-ea48-451f-aa93-9fba89ce215f",
+      "final_decision": "",
+      "review_note": ""
+    },
+    {
+      "candidate_id": "8f98fd01-9a1a-4d64-b354-01632d7bdbcd",
+      "final_decision": "",
+      "review_note": ""
+    },
+    {
+      "candidate_id": "73448553-cdfa-44db-8265-cb45dd325687",
+      "final_decision": "",
+      "review_note": ""
+    },
+    {
+      "candidate_id": "21578527-5b09-4d53-b868-512c3603b83f",
+      "final_decision": "",
+      "review_note": ""
+    },
+    {
+      "candidate_id": "81168603-f74a-4130-8fd7-c09a645a4840",
+      "final_decision": "",
+      "review_note": ""
+    },
+    {
+      "candidate_id": "9c8b4b26-a2cb-4efd-b188-aeee3a194951",
+      "final_decision": "",
+      "review_note": ""
+    },
+    {
+      "candidate_id": "fb003b3a-3583-484b-b16f-7a6f3a1b71d0",
+      "final_decision": "",
+      "review_note": ""
+    },
+    {
+      "candidate_id": "cfe82cd4-4156-4daa-9ce2-3fdd5f5797fb",
+      "final_decision": "",
+      "review_note": ""
+    },
+    {
+      "candidate_id": "f799a74b-1f7e-49fb-bc4f-6281838877f0",
+      "final_decision": "",
+      "review_note": ""
+    },
+    {
+      "candidate_id": "c8a3f92b-27eb-443e-bc0e-083458158582",
+      "final_decision": "",
+      "review_note": ""
+    },
+    {
+      "candidate_id": "02454820-f30c-47de-851d-894496c36914",
+      "final_decision": "",
+      "review_note": ""
+    },
+    {
+      "candidate_id": "e94d2259-7f77-4bb5-a81c-c5ac5bc81239",
+      "final_decision": "",
+      "review_note": ""
+    },
+    {
+      "candidate_id": "0de7771a-d461-4f86-8190-dac0604b9970",
+      "final_decision": "",
+      "review_note": ""
+    },
+    {
+      "candidate_id": "70d10467-a771-4331-bc3e-444eac424df2",
+      "final_decision": "",
+      "review_note": ""
+    },
+    {
+      "candidate_id": "d91706de-9447-4b3d-8977-fbfe08760c7e",
       "final_decision": "",
       "review_note": ""
     },
@@ -49,32 +140,12 @@
       "review_note": ""
     },
     {
-      "candidate_id": "21578527-5b09-4d53-b868-512c3603b83f",
+      "candidate_id": "c2b179b9-77bf-433a-9219-5a406c42d5c7",
       "final_decision": "",
       "review_note": ""
     },
     {
-      "candidate_id": "81168603-f74a-4130-8fd7-c09a645a4840",
-      "final_decision": "",
-      "review_note": ""
-    },
-    {
-      "candidate_id": "f5a8d87f-2d2a-4c1a-a018-b319cc9e580f",
-      "final_decision": "",
-      "review_note": ""
-    },
-    {
-      "candidate_id": "cfe82cd4-4156-4daa-9ce2-3fdd5f5797fb",
-      "final_decision": "",
-      "review_note": ""
-    },
-    {
-      "candidate_id": "393c6b89-ea48-451f-aa93-9fba89ce215f",
-      "final_decision": "",
-      "review_note": ""
-    },
-    {
-      "candidate_id": "f799a74b-1f7e-49fb-bc4f-6281838877f0",
+      "candidate_id": "52936479-c385-4279-814e-aa7fe8ab0a42",
       "final_decision": "",
       "review_note": ""
     },
@@ -104,61 +175,6 @@
       "review_note": ""
     },
     {
-      "candidate_id": "c8a3f92b-27eb-443e-bc0e-083458158582",
-      "final_decision": "",
-      "review_note": ""
-    },
-    {
-      "candidate_id": "4c7aba30-a7e3-4ad7-88d7-61a0ba255f27",
-      "final_decision": "",
-      "review_note": ""
-    },
-    {
-      "candidate_id": "e94d2259-7f77-4bb5-a81c-c5ac5bc81239",
-      "final_decision": "",
-      "review_note": ""
-    },
-    {
-      "candidate_id": "0de7771a-d461-4f86-8190-dac0604b9970",
-      "final_decision": "",
-      "review_note": ""
-    },
-    {
-      "candidate_id": "70cc7579-1764-4177-82b5-fd2d5b255b37",
-      "final_decision": "",
-      "review_note": ""
-    },
-    {
-      "candidate_id": "8f98fd01-9a1a-4d64-b354-01632d7bdbcd",
-      "final_decision": "",
-      "review_note": ""
-    },
-    {
-      "candidate_id": "ffb804af-c271-443f-a07a-0fb3b5db5a87",
-      "final_decision": "",
-      "review_note": ""
-    },
-    {
-      "candidate_id": "9c8b4b26-a2cb-4efd-b188-aeee3a194951",
-      "final_decision": "",
-      "review_note": ""
-    },
-    {
-      "candidate_id": "6fc38502-85c7-4d7e-8a24-56fd5cc68e8a",
-      "final_decision": "",
-      "review_note": ""
-    },
-    {
-      "candidate_id": "fb003b3a-3583-484b-b16f-7a6f3a1b71d0",
-      "final_decision": "",
-      "review_note": ""
-    },
-    {
-      "candidate_id": "6bf5128a-17ad-4a2f-83e5-eabecc7afb9f",
-      "final_decision": "",
-      "review_note": ""
-    },
-    {
       "candidate_id": "1a97f24e-3cd0-445c-804d-741be34a0dad",
       "final_decision": "",
       "review_note": ""
@@ -169,17 +185,12 @@
       "review_note": ""
     },
     {
-      "candidate_id": "73448553-cdfa-44db-8265-cb45dd325687",
+      "candidate_id": "6fc38502-85c7-4d7e-8a24-56fd5cc68e8a",
       "final_decision": "",
       "review_note": ""
     },
     {
-      "candidate_id": "70d10467-a771-4331-bc3e-444eac424df2",
-      "final_decision": "",
-      "review_note": ""
-    },
-    {
-      "candidate_id": "d91706de-9447-4b3d-8977-fbfe08760c7e",
+      "candidate_id": "6bf5128a-17ad-4a2f-83e5-eabecc7afb9f",
       "final_decision": "",
       "review_note": ""
     }

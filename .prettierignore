@@ -10,6 +10,9 @@ pnpm-lock.yaml
 **/*.md
 packages/api-client
 docs/reality_audit/**/*.json
+# generated sign-off sheet: emit via scripts/gen_human_review_packet_r2_final.py,
+# never hand-edit — Prettier must not fight the generator over it
+HUMAN_REVIEW_DECISIONS_*.json
 # generated fixture: "regenerate via the audit tool, never hand-edit"
 tests/fixtures/*.json
 schemas

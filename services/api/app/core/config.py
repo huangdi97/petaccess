@@ -63,6 +63,37 @@ class Settings(BaseSettings):
     scene_photo_ttl_hours: int = 72
 
 
+#: Secrets shipped as defaults so `uvicorn app.main:app` works on a laptop.
+#: They are a convenience, never a credential — a deployment that still holds
+#: them would be signing tokens with a key published in this repository.
+DEV_ONLY_DEFAULTS: frozenset[str] = frozenset(
+    {
+        "dev_only_change_me_min_32_bytes_0123456789abcdef",  # jwt_secret
+    }
+)
+
+#: Environments where a dev-only default must be refused at startup (§75:
+#: a missing configuration should fail loudly, not surface as a KeyError later).
+PRODUCTION_ENVS: frozenset[str] = frozenset({"production", "prod", "staging"})
+
+
+class InsecureDefaultSecret(RuntimeError):
+    """Raised at startup when a published dev secret would be used for real."""
+
+
+def validate_runtime(settings: Settings) -> None:
+    """Fail at boot rather than run with a secret anyone can read from GitHub."""
+    if settings.app_env.strip().lower() not in PRODUCTION_ENVS:
+        return
+    offenders = [name for name in ("jwt_secret",) if getattr(settings, name) in DEV_ONLY_DEFAULTS]
+    if offenders:
+        raise InsecureDefaultSecret(
+            "app_env="
+            f"{settings.app_env!r} but these secrets still hold their dev defaults: "
+            f"{', '.join(offenders)}. Set them in the environment; refusing to start."
+        )
+
+
 @lru_cache
 def get_settings() -> Settings:
     return Settings()

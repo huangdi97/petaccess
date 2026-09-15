@@ -1,0 +1,54 @@
+{
+  "firstparty_source_id": "4923dd6a-18ec-4017-ab62-fb9f8c15cc07",
+  "firstparty_artifact_id": "1bf60fef-68cd-4c66-85d9-f28562ee37cb",
+  "content_hash": "38aba307ec8e953a0b1e8f2c8d3ff801fe96044a605f6a69b09a2f0155c5030d",
+  "hash_formula": "sha256(captured_excerpt_zh)",
+  "quote_zh": "上海和平饭店（费尔蒙旗下酒店）禁止宠物入内。导盲犬可随时进入酒店，且无需支付额外费用或受任何限制。",
+  "quote_en": "Fairmont Peace Hotel does not allow pets. Seeing-eye dogs are always welcome and exempt of charges and restrictions.",
+  "prohibition_fragment": "上海和平饭店（费尔蒙旗下酒店）禁止宠物入内。",
+  "guide_fragment": "导盲犬可随时进入酒店，且无需支付额外费用或受任何限制。",
+  "license_metadata": {
+    "storage_allowed": true,
+    "display_allowed": true,
+    "redistribution_allowed": false,
+    "license_name": "运营方官网内容，版权归费尔蒙/雅高集团所有；仅限事实性摘录引用",
+    "license_source": "https://www.fairmont.com/zh/hotels/shanghai/fairmont-peace-hotel/guest-services.html",
+    "capture_locator": "https://www.fairmont.com/zh/hotels/shanghai/fairmont-peace-hotel/guest-services.html",
+    "capture_locator_en": "https://www.fairmont.com/en/hotels/shanghai/fairmont-peace-hotel/guest-services.html",
+    "third_party_snapshot": null,
+    "reproducibility": "无第三方快照；可复现性依赖 canonical URL + sha256(captured_excerpt)。最近复核 2026-09-15，中英双语页逐字一致。",
+    "attribution_required": true,
+    "attribution_text": "费尔蒙上海和平饭店官网《宾客信息·宠物政策》"
+  },
+  "place_match_evidence": {
+    "matched_by": "canonical_name_and_address",
+    "place_id": "7f5093f3-1222-4049-af9d-cc5ca4386b54",
+    "canonical_name": "和平饭店（费尔蒙）",
+    "canonical_address": "上海市黄浦区南京东路20号",
+    "zone_name": "全酒店",
+    "spatial_precision": "precise",
+    "note": "场所为单位：酒店经营范围即 sd 宠物政策适用范围，无进一步房间级细分（来源未作区域限定）。"
+  },
+  "temporal_evidence": {
+    "published_at": null,
+    "captured_at": "2026-09-15T14:45:48.882876+00:00",
+    "effective_from": null,
+    "effective_to": null,
+    "open_ended_reason": "运营方常态化政策，来源未标注终止日期",
+    "last_verified_at": "2026-09-15",
+    "needs_verification": false
+  },
+  "supersedes": {
+    "source": "aa9ebefe-7923-4c19-924b-8deb0c8efa70",
+    "candidates": [
+      "7efddba6-7c42-4013-8918-bedbb996d702",
+      "4c7aba30-a7e3-4ad7-88d7-61a0ba255f27"
+    ],
+    "preserved": true
+  },
+  "reverified_at": "2026-09-15",
+  "bundle_id": "d2359c42-da06-4647-92b4-5df0757a4c7c",
+  "sd_firstparty_candidate_id": "0de7771a-d461-4f86-8190-dac0604b9970",
+  "pets_firstparty_candidate_id": "02454820-f30c-47de-851d-894496c36914",
+  "applied_at": "2026-09-15T14:45:48.882876+00:00"
+}

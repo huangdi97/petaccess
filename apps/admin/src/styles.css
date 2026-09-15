@@ -88,7 +88,7 @@ h2 {
 .panel {
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--pa-radius-control);
   padding: 16px;
   margin-bottom: 16px;
 }
@@ -216,7 +216,7 @@ label {
 .stat {
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--pa-radius-control);
   padding: 14px;
 }
 .stat .num {

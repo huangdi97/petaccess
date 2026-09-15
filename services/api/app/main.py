@@ -9,7 +9,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.router import api_router
-from app.core.config import get_settings
+from app.core.config import get_settings, validate_runtime
 from app.core.errors import install_error_handlers
 from app.core.observability import metrics, request_id_ctx
 from app.db.session import check_db_health
@@ -17,6 +17,9 @@ from app.db.session import check_db_health
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    # §75: a deployment missing its configuration must fail here, not degrade
+    # into signing tokens with the key published in this repository.
+    validate_runtime(get_settings())
     yield
 
 

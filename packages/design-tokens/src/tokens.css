@@ -67,9 +67,12 @@
   --pa-space-7: 48px;
 
   /* --- radius ------------------------------------------------------------ */
+  /* Semantic names, not just a numeric ladder: a control (button/input/chip)
+   * and a card are allowed to diverge later without touching every call site. */
   --pa-radius-sm: 6px;
-  --pa-radius-md: 10px;
-  --pa-radius-lg: 12px;
+  --pa-radius-control: 8px; /* buttons, inputs, chips */
+  --pa-radius-md: 10px; /* cards */
+  --pa-radius-lg: 12px; /* sheets / modals */
   --pa-radius-pill: 999px;
 
   /* --- typography -------------------------------------------------------- */

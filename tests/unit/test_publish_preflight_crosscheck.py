@@ -102,5 +102,39 @@ def test_legal_without_level_is_still_refused_from_the_register_alone(mod):
 
 
 def test_unsigned_register_is_refused(mod):
+    """An unfilled decision is refused, and the message names the accepted set so
+    the reviewer is told what to write instead of only what is wrong."""
     problems = mod.preflight([_row(final_decision=None)], "审阅人甲", 20, _state())
-    assert any("final_decision 未填" in p for p in problems)
+    assert any("不在词表内" in p for p in problems)
+    assert any("APPROVED" in p and "REJECTED" in p for p in problems)
+
+
+def test_approved_with_note_is_an_approval_not_a_rejection(mod):
+    """Regression: this value used to be called '未填', and had it reached run()
+    the ``else REJECTED`` branch would have inverted the reviewer's decision."""
+    problems = mod.preflight([_row(final_decision="APPROVED_WITH_NOTE")], "审阅人甲", 20, None)
+    assert not any("不在词表内" in p for p in problems)
+
+
+def test_approved_with_note_must_carry_the_note_that_makes_it_meaningful(mod):
+    problems = mod.preflight(
+        [_row(final_decision="APPROVED_WITH_NOTE", review_note="")], "审阅人甲", 20, None
+    )
+    assert any("必须填写 review_note" in p for p in problems)
+
+
+def test_approved_with_note_publishes_as_an_approval(mod):
+    """Dry-run planning must route it to the approval bucket."""
+    result = mod.run(
+        [
+            _row(
+                final_decision="APPROVED_WITH_NOTE",
+                review_note="证据充分，但来源页面无归档快照",
+                proposed_decision="RECOMMEND_APPROVE",
+            )
+        ],
+        None,
+        execute=False,
+    )
+    assert [r["rule_id"] for r in result["approved"]] == ["r-1"]
+    assert result["rejected"] == []

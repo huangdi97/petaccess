@@ -36,6 +36,20 @@ from pathlib import Path
 
 import httpx
 
+# The sign-off vocabulary lives next to this script, not inside the app package.
+# Kept resolvable when this file is loaded by path (tests do exactly that), where
+# the script directory would otherwise not be on sys.path.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from human_decisions import (  # noqa: E402
+    APPROVAL_DECISIONS,
+    APPROVED,
+    APPROVED_WITH_NOTE,
+    EXECUTABLE_DECISIONS,
+    HOLD,
+    HUMAN_DECISIONS,
+    REJECTED,
+)
+
 REPO = Path(__file__).resolve().parents[1]
 AUDIT = REPO / "docs" / "reality_audit"
 #: Decision registers are versioned; the publisher must always read the NEWEST
@@ -53,8 +67,8 @@ SNAPSHOT = REPO / "PUBLISHED_RULES_SNAPSHOT_R1.json"
 
 BASE = "http://127.0.0.1:8010"
 WEAK = {"search_snippet", "social_lead"}
-EXECUTABLE = {"APPROVED", "REJECTED"}
-TERMINAL = {"PUBLISHED", "REJECTED"}
+EXECUTABLE = EXECUTABLE_DECISIONS
+TERMINAL = {"PUBLISHED", REJECTED}
 VALID_MANDATORY = {"mandatory", "advisory", "operator_discretion", "discretionary"}
 
 
@@ -139,24 +153,35 @@ def preflight(
     db_state: dict[str, dict] | None = None,
 ) -> list[str]:
     problems: list[str] = []
-    approved = [r for r in rows if r["final_decision"] == "APPROVED"]
+    # Both approval spellings count toward the batch cap: publishing either one
+    # creates a rule, so counting only "APPROVED" would understate the batch.
+    approved = [r for r in rows if r["final_decision"] in APPROVAL_DECISIONS]
 
     for r in rows:
         fd = r.get("final_decision")
-        if fd not in EXECUTABLE and fd != "HOLD":
-            problems.append(f"{r['candidate_id']} {r['rule_id']}: final_decision 未填")
+        if fd not in HUMAN_DECISIONS:
+            problems.append(
+                f"{r['candidate_id']} {r['rule_id']}: final_decision={fd!r} 不在词表内"
+                f"（可用：{' | '.join(HUMAN_DECISIONS)}）"
+            )
             continue
-        if fd == "HOLD":
+        if fd == HOLD:
             continue
         if not r.get("reviewer"):
             problems.append(f"{r['candidate_id']} {r['rule_id']}: 缺少 reviewer 署名")
         if not r.get("reviewed_at"):
             problems.append(f"{r['candidate_id']} {r['rule_id']}: 缺少 reviewed_at")
-        if fd == "APPROVED" and r["evidence_strength"] in WEAK:
+        if fd == APPROVED_WITH_NOTE and not (r.get("review_note") or "").strip():
             problems.append(
-                f"{r['candidate_id']} {r['rule_id']}: 弱证据({r['evidence_strength']})不得 APPROVED"
+                f"{r['candidate_id']} {r['rule_id']}: APPROVED_WITH_NOTE 必须填写 "
+                "review_note（附带意见要随决定一起留痕）"
             )
-        if fd == "APPROVED":
+        if fd in APPROVAL_DECISIONS and r["evidence_strength"] in WEAK:
+            problems.append(
+                f"{r['candidate_id']} {r['rule_id']}: 弱证据({r['evidence_strength']})"
+                f"不得 {fd}（ADR-021）"
+            )
+        if fd in APPROVAL_DECISIONS:
             # BLK-LAYER-02 / ADR-023: a LEGAL rule without an explicit mandatory
             # level cannot become the resolver floor — refuse, never default it.
             ml = r.get("mandatory_level")
@@ -194,7 +219,8 @@ def preflight(
         problems.append("--reviewer 与登记表中的署名不一致")
     if len(approved) > max_approve:
         problems.append(
-            f"批次过大：APPROVED={len(approved)} > --max-approve={max_approve}（禁止盲批）"
+            f"批次过大：批准数={len(approved)} > --max-approve={max_approve}（禁止盲批；"
+            f"批准含 {' + '.join(sorted(APPROVAL_DECISIONS))}）"
         )
     return problems
 
@@ -213,20 +239,23 @@ def run(rows: list[dict], api: Api | None, execute: bool) -> dict:
         if not execute:
             # dry-run: show what the *proposed* decision would do, clearly labelled
             planned = {
-                "RECOMMEND_APPROVE": "APPROVED",
-                "RECOMMEND_APPROVE_WITH_NOTE": "APPROVED",
-                "RECOMMEND_REJECT": "REJECTED",
-                "RECOMMEND_HOLD": "HOLD",
-            }.get(r["proposed_decision"], "HOLD")
+                "RECOMMEND_APPROVE": APPROVED,
+                "RECOMMEND_APPROVE_WITH_NOTE": APPROVED_WITH_NOTE,
+                "RECOMMEND_REJECT": REJECTED,
+                "RECOMMEND_HOLD": HOLD,
+            }.get(r["proposed_decision"], HOLD)
             fd = planned
         cid, rule_id = r["candidate_id"], r["rule_id"]
-        if fd == "HOLD":
+        if fd == HOLD:
             result["held"].append({"candidate_id": cid, "rule_id": rule_id})
             continue
 
-        target = "APPROVED" if fd == "APPROVED" else "REJECTED"
+        # APPROVED_WITH_NOTE is an approval, not a rejection. The old one-line
+        # ternary here mapped anything that was not exactly "APPROVED" to
+        # "REJECTED", which would have inverted a reviewer's decision.
+        target = APPROVED if fd in APPROVAL_DECISIONS else REJECTED
         if not execute:
-            result["approved" if target == "APPROVED" else "rejected"].append(
+            result["approved" if target == APPROVED else "rejected"].append(
                 {"candidate_id": cid, "rule_id": rule_id, "layer": r["rule_layer"]}
             )
             continue
@@ -243,7 +272,7 @@ def run(rows: list[dict], api: Api | None, execute: bool) -> dict:
             )
             continue
 
-        if target == "REJECTED":
+        if target == REJECTED:
             result["rejected"].append({"candidate_id": cid, "rule_id": rule_id})
             continue
         result["approved"].append({"candidate_id": cid, "rule_id": rule_id})

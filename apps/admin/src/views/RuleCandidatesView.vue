@@ -69,7 +69,25 @@ async function move(c: Candidate, target: string) {
   }
 }
 
+/**
+ * Publishing is irreversible in product terms — it writes a normative rule that
+ * real users will be told to rely on. Two clicks instead of one, with the second
+ * click restyled and relabelled, so it can never be triggered by a stray tap on
+ * a row of otherwise-ordinary buttons.
+ */
+const pending = ref("");
+
+function guard(key: string): boolean {
+  if (pending.value !== key) {
+    pending.value = key;
+    return false;
+  }
+  pending.value = "";
+  return true;
+}
+
 async function publish(c: Candidate) {
+  if (!guard(`${c.id}:PUBLISH`)) return;
   error.value = "";
   busy.value = `${c.id}:PUBLISH`;
   try {
@@ -80,6 +98,12 @@ async function publish(c: Candidate) {
   } finally {
     busy.value = "";
   }
+}
+
+/** Rejecting discards human review work, so it gets the same two-click guard. */
+async function reject(c: Candidate) {
+  if (!guard(`${c.id}:REJECTED`)) return;
+  await move(c, "REJECTED");
 }
 
 const pageCount = computed(() => Math.max(1, Math.ceil(total.value / limit)));
@@ -156,25 +180,33 @@ onMounted(load);
                 <button @click="expanded = expanded === c.id ? '' : c.id">
                   {{ expanded === c.id ? "收起" : "详情" }}
                 </button>
-                <button
-                  v-for="t in nextStates(c)"
-                  :key="t"
-                  :class="{
-                    primary: t === 'APPROVED' || t === 'REVIEW_PENDING',
-                    danger: t === 'REJECTED',
-                  }"
-                  :disabled="busy === `${c.id}:${t}`"
-                  @click="move(c, t)"
-                >
-                  → {{ t }}
-                </button>
+                <template v-for="t in nextStates(c)" :key="t">
+                  <button
+                    v-if="t === 'REJECTED'"
+                    :class="pending === `${c.id}:REJECTED` ? 'danger' : ''"
+                    :disabled="busy === `${c.id}:${t}`"
+                    @click="reject(c)"
+                  >
+                    {{ pending === `${c.id}:REJECTED` ? "再点一次确认驳回" : "→ REJECTED" }}
+                  </button>
+                  <button
+                    v-else
+                    :class="{
+                      primary: t === 'APPROVED' || t === 'REVIEW_PENDING',
+                    }"
+                    :disabled="busy === `${c.id}:${t}`"
+                    @click="move(c, t)"
+                  >
+                    → {{ t }}
+                  </button>
+                </template>
                 <button
                   v-if="c.review_status === 'APPROVED'"
-                  class="primary"
+                  :class="pending === `${c.id}:PUBLISH` ? 'danger' : 'primary'"
                   :disabled="busy === `${c.id}:PUBLISH`"
                   @click="publish(c)"
                 >
-                  发布为规则
+                  {{ pending === `${c.id}:PUBLISH` ? "再点一次确认发布" : "发布为规则" }}
                 </button>
               </div>
             </td>
