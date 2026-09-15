@@ -40,7 +40,9 @@ pwsh -File scripts/qa_all.ps1 -SkipPlaywright  # 跳过 E2E（不需要起服务
 .venv/Scripts/python.exe scripts/mutation_probe.py
 ```
 
-API（另开一个终端，Playwright 需要）：
+API（**E2E 不需要手动起** —— `playwright.config.ts` 已把它作为第二个 `webServer`，
+以 `/health` 做就绪检查，且 `reuseExistingServer` 会复用已监听的实例。下面这条只在
+你想手动调接口 / 跑 Admin 时才需要）：
 
 ```bash
 cd services/api
