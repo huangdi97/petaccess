@@ -421,12 +421,7 @@ a {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    var(--pa-color-skeleton-sheen),
-    transparent
-  );
+  background: linear-gradient(90deg, transparent, var(--pa-color-skeleton-sheen), transparent);
   animation: pa-shimmer var(--pa-motion-slow) var(--pa-motion-ease) infinite;
 }
 @keyframes pa-shimmer {

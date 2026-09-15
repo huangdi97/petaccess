@@ -194,7 +194,15 @@ def test_e2e_b_operator_template_inheritance_and_override(client, moderator):
                     "effect": "conditional",
                     "conditions": [{"condition_type": "leash_required", "value_flag": True}],
                 },
-                {"animal_scope": "service_dog", "action": "enter", "effect": "allowed"},
+                {
+                    "animal_scope": "service_dog",
+                    "action": "enter",
+                    "effect": "allowed",
+                    # ADR-025: a template entry carries the same source-faithful
+                    # scope a place rule would; bare `service_dog` governs nothing.
+                    "subject_scope_normalized": "service_dog",
+                    "normalization_type": "exact",
+                },
             ],
         },
         headers=_auth(moderator),

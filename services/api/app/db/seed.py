@@ -986,7 +986,7 @@ def run_demo_seed() -> dict[str, int]:  # noqa: PLR0915 - linear demo data scrip
             action=None,
             effect=None,
             conditions=None,
-            mandatory_level=MandatoryLevel.DISCRETIONARY,
+            mandatory_level=MandatoryLevel.OPERATOR_DISCRETION,
             source_id=src_city_regulation.id,
             status="current",
             review_status=JurisdictionReviewStatus.EXPLICIT_OPERATOR_DISCRETION,

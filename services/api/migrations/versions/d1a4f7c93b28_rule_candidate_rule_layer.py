@@ -47,12 +47,12 @@ def upgrade() -> None:
         ),
     )
     op.create_check_constraint(
-        "ck_rule_candidate_layer",
+        op.f("ck_rule_candidate_layer"),
         "rule_candidate",
         f"rule_layer IN ({_LAYERS})",
     )
 
 
 def downgrade() -> None:
-    op.drop_constraint("ck_rule_candidate_layer", "rule_candidate", type_="check")
+    op.drop_constraint(op.f("ck_rule_candidate_layer"), "rule_candidate", type_="check")
     op.drop_column("rule_candidate", "rule_layer")

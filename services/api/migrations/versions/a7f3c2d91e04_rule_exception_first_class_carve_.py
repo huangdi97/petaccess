@@ -65,15 +65,15 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
         sa.CheckConstraint(
             "animal_scope IN ('dog','cat','ordinary_pet','service_dog','other')",
-            name="ck_rule_exception_scope",
+            name=op.f("ck_rule_exception_scope"),
         ),
         sa.CheckConstraint(
             "effect IN ('allowed','prohibited','conditional')",
-            name="ck_rule_exception_effect",
+            name=op.f("ck_rule_exception_effect"),
         ),
         sa.CheckConstraint(
             "status IN ('pending_review','current','superseded','withdrawn','disputed','archived')",
-            name="ck_rule_exception_status",
+            name=op.f("ck_rule_exception_status"),
         ),
     )
     op.create_index("ix_rule_exception_rule", "rule_exception", ["rule_id"])

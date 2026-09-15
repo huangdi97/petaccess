@@ -1,0 +1,17 @@
+{
+  "rule_id": "fp-sd-op-firstparty",
+  "candidate_id": "0de7771a-d461-4f86-8190-dac0604b9970",
+  "source_id": "4923dd6a-18ec-4017-ab62-fb9f8c15cc07",
+  "artifact_id": "1bf60fef-68cd-4c66-85d9-f28562ee37cb",
+  "evidence_bundle_id": "7d101942-9abe-43d2-b4a2-90bb7a584d1f",
+  "source_url": "https://www.fairmont.com/zh/hotels/shanghai/fairmont-peace-hotel/guest-services.html",
+  "source_url_en": "https://www.fairmont.com/en/hotels/shanghai/fairmont-peace-hotel/guest-services.html",
+  "issuer": "费尔蒙酒店集团官网《上海和平饭店 · 宾客服务》宠物政策",
+  "quote_zh": "上海和平饭店（费尔蒙旗下酒店）禁止宠物入内。导盲犬可随时进入酒店，且无需支付额外费用或受任何限制。",
+  "quote_en": "Fairmont Peace Hotel does not allow pets. Seeing-eye dogs are always welcome and exempt of charges and restrictions.",
+  "content_hash": "38aba307ec8e953a0b1e8f2c8d3ff801fe96044a605f6a69b09a2f0155c5030d",
+  "captured_at": "2026-09-15T00:00:00Z",
+  "supersedes_ota_row": "7efddba6-7c42-4013-8918-bedbb996d702",
+  "note": "一手来源（fairmont.com）自 2026-09-13 即为该 place 的证据锚点；本行只记录新建的、按来源原话建模的候选（guide_dog / exact）。旧行 fp-sd-op 未被改写其证据，仅因建模为粗粒度 service_dog 而建议 REJECT。",
+  "hash_formula": "sha256(captured_excerpt)"
+}

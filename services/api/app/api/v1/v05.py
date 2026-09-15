@@ -16,8 +16,15 @@ from app.core.audit import record_audit
 from app.core.errors import ApiError, NotFound
 from app.core.security import get_current_user, require_role
 from app.db.session import get_db
-from app.models import AccessRule, Place, RuleException, Source, User
-from app.models.enums import RuleStatus, UserRole
+from app.models import AccessRule, Place, RuleException, Source, User, Zone
+from app.models.enums import (
+    AnimalScope,
+    HolderScope,
+    NormalizationType,
+    NormativeEffect,
+    RuleStatus,
+    UserRole,
+)
 from app.models.v05 import (
     AccessPath,
     Amenity,
@@ -32,6 +39,10 @@ from app.models.v05 import (
     RuleCandidate,
     SourceMonitor,
 )
+from app.rulespec.animal_scope import (
+    SCOPE_SUBJECTS,
+    normalization_confers_legal_effect,
+)
 from app.rulespec.v05_boundary import match as boundary_match
 from app.rulespec.v05_resolver import (
     LayeredException,
@@ -42,7 +53,7 @@ from app.rulespec.v05_resolver import (
 from app.schemas.common import Page
 from app.services.answerability import compute_answerability
 from app.services.candidate_service import create_from_extraction, publish, transition
-from app.services.publish_gate import LAYER_VALUES
+from app.services.publish_gate import LAYER_VALUES, MANDATORY_LEVEL_VALUES
 from app.services.source_monitor import check_monitor
 
 router = APIRouter(tags=["v05"])
@@ -60,6 +71,7 @@ class CandidateIn(BaseModel):
     action: str | None = None
     effect: str | None = None
     rule_layer: str | None = None
+    mandatory_level: str | None = None
     proposed_conditions: list | None = None
     extraction_method: str
     extraction_provider: str | None = None
@@ -67,6 +79,91 @@ class CandidateIn(BaseModel):
     raw_text: str | None = None
     media_id: str | None = None
     evidence_bundle_id: str | None = None
+    # --- ADR-025 / ADR-028: source-faithful scope ---------------------------
+    source_scope_exact: str | None = Field(default=None, max_length=64)
+    subject_scope_normalized: str | None = Field(default=None, max_length=32)
+    normalization_type: str | None = Field(default=None, max_length=32)
+    normative_effect: str | None = Field(default=None, max_length=32)
+    holder_scope: str | None = Field(default=None, max_length=32)
+    operator_obligations: list | None = None
+
+
+#: subject scopes a rule may legally be normalised onto
+SUBJECT_SCOPE_VALUES = set(SCOPE_SUBJECTS)
+NORMALIZATION_VALUES = {e.value for e in NormalizationType}
+NORMATIVE_EFFECT_VALUES = {e.value for e in NormativeEffect}
+HOLDER_SCOPE_VALUES = {e.value for e in HolderScope}
+ANIMAL_SCOPE_VALUES = {e.value for e in AnimalScope}
+
+
+def _validate_scope_fields(
+    *,
+    animal_scope: str | None,
+    subject_scope_normalized: str | None,
+    normalization_type: str | None,
+    normative_effect: str | None,
+    holder_scope: str | None,
+) -> None:
+    """Never guess whether a stored scope is a legal equivalent (ADR-025).
+
+    Two things are refused:
+      * a precise subject scope with no declared normalisation (ambiguous);
+      * the coarse ``service_dog`` scope with no *legal* normalisation — that is
+        exactly the 「导盲犬 → 全部服务犬」 widening and governs nothing.
+    """
+    if subject_scope_normalized is not None:
+        if subject_scope_normalized not in SUBJECT_SCOPE_VALUES:
+            raise ApiError(
+                f"非法 subject_scope_normalized {subject_scope_normalized}"
+                f"（允许：{sorted(SUBJECT_SCOPE_VALUES)}）",
+                code="invalid_subject_scope",
+            )
+        if normalization_type is None:
+            raise ApiError(
+                "subject_scope_normalized 需要同时提供 normalization_type"
+                "（exact / compound_term_split / parent_group_for_query_only / "
+                "legal_interpretation_required）；平台不猜测该 scope 是否具有法律效力。",
+                code="scope_normalization_ambiguous",
+                status_code=422,
+            )
+    if normalization_type is not None and normalization_type not in NORMALIZATION_VALUES:
+        raise ApiError(
+            f"非法 normalization_type {normalization_type}（允许：{sorted(NORMALIZATION_VALUES)}）",
+            code="invalid_normalization_type",
+        )
+    if normative_effect is not None and normative_effect not in NORMATIVE_EFFECT_VALUES:
+        raise ApiError(
+            f"非法 normative_effect {normative_effect}",
+            code="invalid_normative_effect",
+        )
+    if holder_scope is not None and holder_scope not in HOLDER_SCOPE_VALUES:
+        raise ApiError(f"非法 holder_scope {holder_scope}", code="invalid_holder_scope")
+    if animal_scope == AnimalScope.SERVICE_DOG.value and not normalization_confers_legal_effect(
+        normalization_type
+    ):
+        raise ApiError(
+            "animal_scope='service_dog' 必须声明具备法律效力的 normalization_type"
+            "（exact 或 compound_term_split）——否则它就是「导盲犬→全部服务犬」的"
+            "未经证成的泛化，不得入库。",
+            code="service_dog_scope_unproven",
+        )
+
+
+class CandidateScopeIn(BaseModel):
+    """Reviewer-controlled re-modelling of a candidate's animal scope.
+
+    Used to split a compound source term (e.g. 军警犬) into one row per member
+    without touching the candidate's evidence — the split rows share the exact
+    same EvidenceBundle, so provenance stays intact (ADR-028).
+    """
+
+    source_scope_exact: str | None = Field(default=None, max_length=64)
+    subject_scope_normalized: str | None = Field(default=None, max_length=32)
+    normalization_type: str | None = Field(default=None, max_length=32)
+    normative_effect: str | None = Field(default=None, max_length=32)
+    holder_scope: str | None = Field(default=None, max_length=32)
+    operator_obligations: list | None = None
+    reason: str | None = None
 
 
 class CandidateReview(BaseModel):
@@ -76,6 +173,12 @@ class CandidateReview(BaseModel):
 
 class CandidateLayerIn(BaseModel):
     rule_layer: str  # LEGAL | REGULATORY_GUIDANCE | OPERATOR_POLICY | TEMPORARY_POLICY
+    reason: str | None = None
+
+
+class CandidateMandatoryIn(BaseModel):
+    # mandatory | advisory | operator_discretion (ADR-023)
+    mandatory_level: str
     reason: str | None = None
 
 
@@ -109,6 +212,7 @@ def _candidate_dict(c) -> dict:
         "action": c.action,
         "effect": c.effect,
         "rule_layer": c.rule_layer,
+        "mandatory_level": c.mandatory_level,
         "proposed_conditions": c.proposed_conditions,
         "extraction_method": c.extraction_method,
         "extraction_provider": c.extraction_provider,
@@ -120,6 +224,13 @@ def _candidate_dict(c) -> dict:
         "published_rule_id": c.published_rule_id,
         "media_id": c.media_id,
         "evidence_bundle_id": c.evidence_bundle_id,
+        # --- ADR-025 / ADR-028 scope layer ---
+        "source_scope_exact": c.source_scope_exact,
+        "subject_scope_normalized": c.subject_scope_normalized,
+        "normalization_type": c.normalization_type,
+        "normative_effect": c.normative_effect,
+        "holder_scope": c.holder_scope,
+        "operator_obligations": c.operator_obligations,
         "created_at": c.created_at,
     }
 
@@ -151,11 +262,26 @@ def admin_create_candidate(
 ):
     if db.get(Source, body.source_id) is None:
         raise NotFound("来源不存在")
+    if body.mandatory_level is not None and body.mandatory_level not in MANDATORY_LEVEL_VALUES:
+        allowed = sorted(MANDATORY_LEVEL_VALUES)
+        raise ApiError(
+            f"非法 mandatory_level {body.mandatory_level}（允许：{allowed}）",
+            code="invalid_mandatory_level",
+        )
     if body.evidence_bundle_id:
         from app.models.evidence import EvidenceBundle
 
         if db.get(EvidenceBundle, body.evidence_bundle_id) is None:
             raise NotFound("证据包不存在")
+    # ADR-025 / ADR-028: refuse an ambiguous or unproven animal scope at ingest
+    # time, so a widening can never reach the review queue in the first place.
+    _validate_scope_fields(
+        animal_scope=body.animal_scope,
+        subject_scope_normalized=body.subject_scope_normalized,
+        normalization_type=body.normalization_type,
+        normative_effect=body.normative_effect,
+        holder_scope=body.holder_scope,
+    )
     cand = create_from_extraction(
         db,
         source_id=body.source_id,
@@ -165,6 +291,7 @@ def admin_create_candidate(
         action=body.action,
         effect=body.effect,
         rule_layer=body.rule_layer,
+        mandatory_level=body.mandatory_level,
         proposed_conditions=body.proposed_conditions,
         extraction_method=body.extraction_method,
         extraction_provider=body.extraction_provider,
@@ -172,6 +299,12 @@ def admin_create_candidate(
         raw_text=body.raw_text,
         media_id=body.media_id,
         evidence_bundle_id=body.evidence_bundle_id,
+        source_scope_exact=body.source_scope_exact,
+        subject_scope_normalized=body.subject_scope_normalized,
+        normalization_type=body.normalization_type,
+        normative_effect=body.normative_effect,
+        holder_scope=body.holder_scope,
+        operator_obligations=body.operator_obligations,
     )
     record_audit(
         db,
@@ -181,10 +314,90 @@ def admin_create_candidate(
         action="candidate.create",
         target_type="rule_candidate",
         target_id=cand.id,
-        after_state={"status": cand.review_status, "method": body.extraction_method},
+        after_state={
+            "status": cand.review_status,
+            "method": body.extraction_method,
+            "rule_layer": cand.rule_layer,
+            "mandatory_level": cand.mandatory_level,
+            "source_scope_exact": cand.source_scope_exact,
+            "subject_scope_normalized": cand.subject_scope_normalized,
+            "normalization_type": cand.normalization_type,
+        },
     )
     db.commit()
     return _candidate_dict(cand)
+
+
+@admin.post("/candidates/{candidate_id}/scope")
+def admin_set_candidate_scope(
+    candidate_id: str,
+    body: CandidateScopeIn,
+    user: User = Depends(require_role(UserRole.MODERATOR)),
+    db: Session = Depends(get_db),
+):
+    """Re-model a candidate's source-faithful animal scope before review (ADR-028).
+
+    This is how a *compound* source term is split: 「军警犬」 names exactly
+    police + military working dogs, and the platform refuses to collapse that
+    into one vague subject. Each member gets its own candidate, all sharing the
+    original EvidenceBundle — provenance is never duplicated or weakened.
+
+    Published candidates are frozen: changing the scope of an in-force rule would
+    silently rewrite the answer, so that path requires a new candidate +
+    supersession.
+    """
+    cand = db.get(RuleCandidate, candidate_id)
+    if cand is None:
+        raise NotFound("候选不存在")
+    if cand.review_status in ("PUBLISHED", "SUPERSEDED"):
+        raise ApiError(
+            "已发布候选的 scope 不可原地修改（须走 supersession）", code="candidate_frozen"
+        )
+
+    _validate_scope_fields(
+        animal_scope=cand.animal_scope,
+        subject_scope_normalized=body.subject_scope_normalized,
+        normalization_type=body.normalization_type,
+        normative_effect=body.normative_effect,
+        holder_scope=body.holder_scope,
+    )
+
+    before = {
+        "source_scope_exact": cand.source_scope_exact,
+        "subject_scope_normalized": cand.subject_scope_normalized,
+        "normalization_type": cand.normalization_type,
+        "normative_effect": cand.normative_effect,
+        "holder_scope": cand.holder_scope,
+        "operator_obligations": cand.operator_obligations,
+    }
+    cand.source_scope_exact = body.source_scope_exact
+    cand.subject_scope_normalized = body.subject_scope_normalized
+    cand.normalization_type = body.normalization_type
+    cand.normative_effect = body.normative_effect
+    cand.holder_scope = body.holder_scope
+    if body.operator_obligations is not None:
+        cand.operator_obligations = body.operator_obligations
+    after = {
+        "source_scope_exact": cand.source_scope_exact,
+        "subject_scope_normalized": cand.subject_scope_normalized,
+        "normalization_type": cand.normalization_type,
+        "normative_effect": cand.normative_effect,
+        "holder_scope": cand.holder_scope,
+        "operator_obligations": cand.operator_obligations,
+    }
+    record_audit(
+        db,
+        request=None,
+        actor_user_id=user.id,
+        actor_role=str(user.role),
+        action="candidate.set_scope",
+        target_type="rule_candidate",
+        target_id=cand.id,
+        before_state=before,
+        after_state={**after, "reason": body.reason},
+    )
+    db.commit()
+    return {"id": cand.id, **after}
 
 
 @admin.post("/candidates/{candidate_id}/transition")
@@ -258,6 +471,53 @@ def admin_set_candidate_layer(
     return {"id": cand.id, "rule_layer": cand.rule_layer, "changed": True}
 
 
+@admin.post("/candidates/{candidate_id}/mandatory-level")
+def admin_set_candidate_mandatory_level(
+    candidate_id: str,
+    body: CandidateMandatoryIn,
+    user: User = Depends(require_role(UserRole.MODERATOR)),
+    db: Session = Depends(get_db),
+):
+    """Set a candidate's normative force before review/publish (BLK-LAYER-02).
+
+    mandatory_level decides whether a published LEGAL rule becomes the
+    resolver's floor. It is reviewer-controlled data: the publish gate refuses
+    a LEGAL candidate that leaves it blank, so it can never be defaulted by the
+    client. Published candidates are frozen — a change in force of an in-force
+    rule must go through a new candidate + supersession.
+    """
+    cand = db.get(RuleCandidate, candidate_id)
+    if cand is None:
+        raise NotFound("候选不存在")
+    if cand.review_status in ("PUBLISHED", "SUPERSEDED"):
+        raise ApiError(
+            "已发布候选的强制级别不可原地修改（须走 supersession）", code="candidate_frozen"
+        )
+    if body.mandatory_level not in MANDATORY_LEVEL_VALUES:
+        raise ApiError(
+            f"非法 mandatory_level {body.mandatory_level}"
+            f"（允许：{sorted(MANDATORY_LEVEL_VALUES)}）",
+            code="invalid_mandatory_level",
+        )
+    before = cand.mandatory_level
+    if before == body.mandatory_level:
+        return {"id": cand.id, "mandatory_level": cand.mandatory_level, "changed": False}
+    cand.mandatory_level = body.mandatory_level
+    record_audit(
+        db,
+        request=None,
+        actor_user_id=user.id,
+        actor_role=str(user.role),
+        action="candidate.set_mandatory_level",
+        target_type="rule_candidate",
+        target_id=cand.id,
+        before_state={"mandatory_level": before},
+        after_state={"mandatory_level": cand.mandatory_level, "reason": body.reason},
+    )
+    db.commit()
+    return {"id": cand.id, "mandatory_level": cand.mandatory_level, "changed": True}
+
+
 @admin.post("/candidates/{candidate_id}/publish")
 def admin_publish_candidate(
     candidate_id: str,
@@ -277,13 +537,20 @@ def admin_publish_candidate(
         action="candidate.publish",
         target_type="access_rule",
         target_id=rule.id,
-        after_state={"candidate_id": cand.id, "effect": rule.effect},
+        after_state={
+            "candidate_id": cand.id,
+            "effect": rule.effect,
+            "rule_layer": rule.rule_layer,
+            "mandatory_level": rule.mandatory_level,
+        },
     )
     db.commit()
     return {
         "published_rule_id": rule.id,
         "candidate_id": cand.id,
         "candidate_status": cand.review_status,
+        "rule_layer": rule.rule_layer,
+        "mandatory_level": rule.mandatory_level,
     }
 
 
@@ -305,6 +572,38 @@ class RuleExceptionIn(BaseModel):
     effective_from: datetime | None = None
     effective_to: datetime | None = None
     note: str | None = Field(default=None, max_length=500)
+    # --- ADR-025: source-faithful carve-out ---------------------------------
+    #: the precise role/scope the source itself names (e.g. 'guide_dog').
+    source_scope_exact: str | None = Field(default=None, max_length=64)
+    #: the precise subject the exception governs (the legal matching unit).
+    subject_scope_normalized: str | None = Field(
+        default=None,
+        pattern=(
+            "^(dog|ordinary_pet|service_dog|cat|other|ordinary_dog|guide_dog|"
+            "hearing_dog|assistance_dog|other_service_dog|police_dog|"
+            "military_working_dog)$"
+        ),
+    )
+    #: exact | parent_group_for_query_only | legal_interpretation_required.
+    #: Omit it and the carve-out is stored as NOT a legal equivalent — a
+    #: `service_dog` carve-out never applies until a reviewer declares `exact`.
+    normalization_type: str | None = Field(
+        default=None,
+        pattern=(
+            "^(exact|parent_group_for_query_only|legal_interpretation_required"
+            "|compound_term_split)$"
+        ),
+    )
+    #: exempt_from_prohibition | permission | prohibition |
+    #: conditional_permission | facilitation_required
+    normative_effect: str | None = Field(
+        default=None,
+        pattern=(
+            "^(permission|prohibition|conditional_permission|"
+            "exempt_from_prohibition|facilitation_required)$"
+        ),
+    )
+    holder_scope: str | None = Field(default=None, pattern="^(any_handler|person_with_disability)$")
 
 
 class RuleExceptionTransition(BaseModel):
@@ -323,6 +622,12 @@ def _serialize_rule_exception(e: RuleException) -> dict:
         "effective_from": e.effective_from.isoformat() if e.effective_from else None,
         "effective_to": e.effective_to.isoformat() if e.effective_to else None,
         "note": e.note,
+        # --- ADR-025 scope layer (additive) ---
+        "source_scope_exact": e.source_scope_exact,
+        "subject_scope_normalized": e.subject_scope_normalized,
+        "normalization_type": e.normalization_type,
+        "normative_effect": e.normative_effect,
+        "holder_scope": e.holder_scope,
     }
 
 
@@ -344,6 +649,30 @@ def admin_create_rule_exception(
         raise NotFound("规则不存在")
     if db.get(Source, body.source_id) is None:
         raise NotFound("来源不存在")
+
+    # ADR-025: a precise subject scope without a declared normalisation is
+    # ambiguous — never guess whether it is a legal equivalent. Reject it so the
+    # reviewer states their intent explicitly.
+    if body.subject_scope_normalized is not None and body.normalization_type is None:
+        raise ApiError(
+            "subject_scope_normalized 需要同时提供 normalization_type"
+            "（exact / parent_group_for_query_only / legal_interpretation_required）；"
+            "平台不猜测该 scope 是否具有法律效力。",
+            code="scope_normalization_ambiguous",
+            status_code=422,
+        )
+
+    normative_effect = body.normative_effect
+    if normative_effect is None and body.normalization_type == "exact":
+        # Mirror the migration backfill: only derive a normative effect where the
+        # normalisation is exact, otherwise it would encode the inference under
+        # review (ADR-025).
+        normative_effect = {
+            "allowed": "permission",
+            "prohibited": "prohibition",
+            "conditional": "conditional_permission",
+        }.get(body.effect)
+
     exc = RuleExceptionModel(
         rule_id=body.rule_id,
         animal_scope=body.animal_scope,
@@ -352,6 +681,11 @@ def admin_create_rule_exception(
         effective_from=body.effective_from,
         effective_to=body.effective_to,
         note=body.note,
+        source_scope_exact=body.source_scope_exact or body.animal_scope,
+        subject_scope_normalized=body.subject_scope_normalized,
+        normalization_type=body.normalization_type,
+        normative_effect=normative_effect,
+        holder_scope=body.holder_scope,
     )
     db.add(exc)
     db.flush()
@@ -368,6 +702,11 @@ def admin_create_rule_exception(
             "animal_scope": exc.animal_scope,
             "effect": exc.effect,
             "source_id": exc.source_id,
+            "source_scope_exact": exc.source_scope_exact,
+            "subject_scope_normalized": exc.subject_scope_normalized,
+            "normalization_type": exc.normalization_type,
+            "normative_effect": exc.normative_effect,
+            "holder_scope": exc.holder_scope,
         },
     )
     db.commit()
@@ -561,6 +900,31 @@ class TemplateRuleIn(BaseModel):
     effect: str
     conditions: list | None = None
     notes: str | None = None
+    # --- ADR-025: source-faithful scope for inherited entries -----------------
+    source_scope_exact: str | None = Field(default=None, max_length=64)
+    subject_scope_normalized: str | None = Field(
+        default=None,
+        pattern=(
+            "^(dog|ordinary_pet|service_dog|cat|other|ordinary_dog|guide_dog|"
+            "hearing_dog|assistance_dog|other_service_dog|police_dog|"
+            "military_working_dog)$"
+        ),
+    )
+    normalization_type: str | None = Field(
+        default=None,
+        pattern=(
+            "^(exact|parent_group_for_query_only|legal_interpretation_required"
+            "|compound_term_split)$"
+        ),
+    )
+    normative_effect: str | None = Field(
+        default=None,
+        pattern=(
+            "^(permission|prohibition|conditional_permission|"
+            "exempt_from_prohibition|facilitation_required)$"
+        ),
+    )
+    holder_scope: str | None = Field(default=None, pattern="^(any_handler|person_with_disability)$")
 
 
 class TemplateIn(BaseModel):
@@ -619,6 +983,11 @@ def admin_create_template(
                 conditions=r.conditions,
                 rule_layer="OPERATOR_POLICY",
                 notes=r.notes,
+                source_scope_exact=r.source_scope_exact or r.animal_scope,
+                subject_scope_normalized=r.subject_scope_normalized,
+                normalization_type=r.normalization_type,
+                normative_effect=r.normative_effect,
+                holder_scope=r.holder_scope,
             )
         )
     record_audit(
@@ -844,8 +1213,9 @@ def _load_layered_rules(db: Session, place_id: str) -> dict:
     )
 
     legal, guidance, template, operator, events = [], [], [], [], []
-    for r in rules:
-        lr = LayeredRule(
+
+    def _to_layered(r: AccessRule) -> LayeredRule:
+        return LayeredRule(
             id=r.id,
             animal_scope=r.animal_scope,
             action=r.action,
@@ -877,15 +1247,49 @@ def _load_layered_rules(db: Session, place_id: str) -> dict:
             zone_id=r.zone_id,
             place_id=r.place_id,
             source_id=r.source_id,
+            mandatory_level=r.mandatory_level,
+            # ADR-025: source-faithful scope + normative effect layer
+            source_scope_exact=r.source_scope_exact,
+            subject_scope_normalized=r.subject_scope_normalized,
+            normalization_type=r.normalization_type,
+            normative_effect=r.normative_effect,
+            holder_scope=r.holder_scope,
+            operator_obligations=tuple(r.operator_obligations or ()),
         )
-        if r.rule_layer == RuleLayer.LEGAL.value:
+
+    def _bucket(lr: LayeredRule) -> None:
+        if lr.rule_layer == RuleLayer.LEGAL.value:
             legal.append(lr)
-        elif r.rule_layer == RuleLayer.REGULATORY_GUIDANCE.value:
+        elif lr.rule_layer == RuleLayer.REGULATORY_GUIDANCE.value:
             guidance.append(lr)
-        elif r.rule_layer == RuleLayer.TEMPORARY_POLICY.value:
+        elif lr.rule_layer == RuleLayer.TEMPORARY_POLICY.value:
             events.append(lr)
         else:
             operator.append(lr)
+
+    for r in rules:
+        _bucket(_to_layered(r))
+
+    # ADR-025: jurisdiction-level rules are the source of truth. They are stored
+    # once (no place_id) and apply by place_type, so 《上海市养犬管理条例》第23条
+    # is not copied into one row per venue. Per-place rows, when they exist, are
+    # projections — the jurisdiction rule is what governs.
+    place = db.get(Place, place_id)
+    if place is not None:
+        jurisdiction_rules = db.scalars(
+            select(AccessRule)
+            .options(selectinload(AccessRule.conditions))
+            .where(AccessRule.jurisdiction_code.is_not(None))
+            .where(AccessRule.status == "current")
+        ).all()
+        seen = {r.id for r in rules}
+        for r in jurisdiction_rules:
+            if r.id in seen:
+                continue
+            applies = r.applies_to_place_types or []
+            if applies and place.place_type not in applies:
+                continue
+            _bucket(_to_layered(r))
 
     # template rules via active binding
     binding = db.scalar(
@@ -908,6 +1312,13 @@ def _load_layered_rules(db: Session, place_id: str) -> dict:
                         conditions=tuple(tr.conditions or ()),
                         place_id=place_id,
                         source_id=None,
+                        # ADR-025: an inherited entry keeps its source-faithful
+                        # scope — bare `service_dog` never governs.
+                        source_scope_exact=tr.source_scope_exact,
+                        subject_scope_normalized=tr.subject_scope_normalized,
+                        normalization_type=tr.normalization_type,
+                        normative_effect=tr.normative_effect,
+                        holder_scope=tr.holder_scope,
                     )
                 )
     # explicit place/zone overrides from binding
@@ -961,6 +1372,12 @@ def _load_layered_rules(db: Session, place_id: str) -> dict:
                 status=e.status,
                 effective_from=e.effective_from,
                 effective_to=e.effective_to,
+                # ADR-025: the carve-out matches on the precise role it names
+                source_scope_exact=e.source_scope_exact,
+                subject_scope_normalized=e.subject_scope_normalized,
+                normalization_type=e.normalization_type,
+                normative_effect=e.normative_effect,
+                holder_scope=e.holder_scope,
             )
             for e in db.scalars(
                 select(RuleException).where(RuleException.rule_id.in_(rule_ids))
@@ -990,7 +1407,10 @@ def effective_rules(
     """v0.5 resolution: layered rules → EffectiveRuleSet (explainable).
 
     Body: {"animal": "dog", "service_role": "none", "action": "enter",
-           "zone_id": null}
+           "zone_id": null, "declared_role": "guide_dog" (optional)}
+
+    ``declared_role`` (ADR-025) pins the query to one precise animal role, so a
+    hearing-dog question does not inherit a guide-dog proviso.
     """
     if db.get(Place, place_id) is None:
         raise NotFound("场所不存在")
@@ -1007,7 +1427,19 @@ def effective_rules(
         zone_id=body.get("zone_id"),
         now=datetime.now(UTC),
         exceptions=grouped["exceptions"],
+        declared_role=body.get("declared_role"),
     )
+    # ADR-025: the normative-effect layer is additive — `effect` keeps its
+    # 3-value contract for existing clients, while these fields carry what the
+    # 3-value vocabulary cannot express (a carve-out, or a duty to accommodate).
+    normative_effects = sorted(
+        {r.normative_effect for r in rs.applicable_rules if r.normative_effect}
+    )
+    operator_obligations: list[str] = []
+    for r in rs.applicable_rules:
+        for obligation in r.operator_obligations:
+            if obligation not in operator_obligations:
+                operator_obligations.append(obligation)
     return {
         "effect": rs.effect,
         "compliance_state": rs.compliance_state.value,
@@ -1017,6 +1449,108 @@ def effective_rules(
         "explanation_steps": rs.explanation_steps,
         "obligations": rs.obligations,
         "applied_exceptions": rs.applied_exceptions,
+        # --- normative effect layer (ADR-025, additive) ---
+        "normative_effects": normative_effects,
+        "operator_obligations": operator_obligations,
+        "facilitation_required": "facilitation_required" in normative_effects,
+        "holder_scopes": sorted({r.holder_scope for r in rs.applicable_rules if r.holder_scope}),
+    }
+
+
+@router.get("/places/{place_id}/extras")
+def place_extras(place_id: str, db: Session = Depends(get_db)):
+    """Public read-only extras for the Place Detail page (spec §2.4 §4/§5/§6).
+
+    Coexistence attributes (共处边界), amenities (设施), entrances + access paths
+    (怎么进入) and the current event policies. These are spatial/structured facts
+    from a source — never judgments about people (ADR-014), and observations are
+    deliberately NOT included here: a field record is not a venue policy.
+    """
+    if db.get(Place, place_id) is None:
+        raise NotFound("场所不存在")
+    zone_ids = select(Zone.id).where(Zone.place_id == place_id)
+
+    def _in_place(model, *, zoned: bool = True):
+        """Rows attached to this place, plus its zones when the model has one.
+
+        ``AccessPath`` is scoped to the place only (a route between entrances is
+        not owned by a single zone), so it opts out of the zone branch — the
+        column simply does not exist there.
+        """
+        cond = model.place_id == place_id
+        if zoned:
+            cond = cond | model.zone_id.in_(zone_ids)
+        return select(model).where(cond)
+
+    coex = db.scalars(_in_place(CoexistencePolicy)).all()
+    amenities = db.scalars(_in_place(Amenity)).all()
+    entrances = db.scalars(_in_place(Entrance)).all()
+    paths = db.scalars(_in_place(AccessPath, zoned=False)).all()
+    events = db.scalars(_in_place(EventPolicy)).all()
+
+    return {
+        "coexistence": [
+            {
+                "id": c.id,
+                "zone_id": c.zone_id,
+                "attribute": c.attribute,
+                "value": c.value,
+                "conditions": c.conditions,
+                "source_id": c.source_id,
+                "verified_at": c.verified_at,
+            }
+            for c in coex
+        ],
+        "amenities": [
+            {
+                "id": a.id,
+                "zone_id": a.zone_id,
+                "amenity_type": a.amenity_type,
+                "status": a.status,
+                "source_id": a.source_id,
+                "verified_at": a.verified_at,
+            }
+            for a in amenities
+        ],
+        "entrances": [
+            {
+                "id": e.id,
+                "zone_id": e.zone_id,
+                "name": e.name,
+                "entrance_type": e.entrance_type,
+                "access_notes": e.access_notes,
+                "source_id": e.source_id,
+            }
+            for e in entrances
+        ],
+        "access_paths": [
+            {
+                "id": p.id,
+                "name": p.name,
+                "from_node": p.from_node,
+                "to_node": p.to_node,
+                "steps": p.steps,
+                "animal_scope": p.animal_scope,
+                "time_window": p.time_window,
+                "source_id": p.source_id,
+            }
+            for p in paths
+        ],
+        "event_policies": [
+            {
+                "id": e.id,
+                "zone_id": e.zone_id,
+                "name": e.name,
+                "animal_scope": e.animal_scope,
+                "action": e.action,
+                "effect": e.effect,
+                "conditions": e.conditions,
+                "effective_from": e.effective_from,
+                "effective_to": e.effective_to,
+                "source_id": e.source_id,
+            }
+            for e in events
+        ],
     }
 
 

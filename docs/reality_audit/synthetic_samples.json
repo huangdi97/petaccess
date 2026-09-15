@@ -109,7 +109,7 @@
     },
     {
       "sample_id": "syn-event-006",
-      "note": "宠物活动日：临时政策遮蔽运营政策 + 管理方试图放宽法定（冲突）",
+      "note": "宠物活动日：临时政策遮蔽运营政策 + 管理方试图放宽法定（冲突）。事件有效期刻意设为宽窗口（2026-01-01→2099-12-31），避免该样本随真实时间流逝而失效（time-bomb）。",
       "place": {"canonical_name": "样板·河湾市集（虚构）", "place_type": "market", "location_wkt": "POINT(122.550 30.525)"},
       "zones": [{"zone_key": "plaza", "name": "中心广场"}],
       "sources": [
@@ -118,7 +118,7 @@
       ],
       "rules": [
         {"rule_id": "e-law", "zone_key": "plaza", "animal_scope": "ordinary_pet", "action": "enter", "effect": "prohibited", "rule_layer": "LEGAL", "mandatory_level": "mandatory", "conditions": [], "source_key": "law1", "origin": "legal"},
-        {"rule_id": "e-ev", "zone_key": "plaza", "animal_scope": "ordinary_pet", "action": "enter", "effect": "allowed", "rule_layer": "TEMPORARY_POLICY", "conditions": [], "source_key": "ev1", "origin": "event", "effective_from": "2026-09-12T00:00:00+00:00", "effective_to": "2026-09-14T23:59:00+00:00"}
+        {"rule_id": "e-ev", "zone_key": "plaza", "animal_scope": "ordinary_pet", "action": "enter", "effect": "allowed", "rule_layer": "TEMPORARY_POLICY", "conditions": [], "source_key": "ev1", "origin": "event", "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2099-12-31T23:59:00+00:00"}
       ],
       "coexistence": [],
       "queries": [

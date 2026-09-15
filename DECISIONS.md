@@ -77,3 +77,155 @@
   解决并留痕；跨来源冲突必须人工解决）、freshness（≤STALE_DAYS）、data license
   （lead-only/不存储证据不得发布）。任一失败抛稳定错误码，永不静默降级。
   Status: accepted.
+
+- ADR-023: `mandatory_level` 是一等公民，法定约束不得被低层静默放宽
+  （BLK-LAYER-02）。Context: `AccessRule` 无 `mandatory_level` 列，而
+  `v05_resolver.py` 的 `legal_mandatory` 分支要求 `mandatory_level == "mandatory"`，
+  故 DB 来源的 LEGAL 规则永远进不了该分支，且在合成 effect 时被排除在
+  `governing` 之外。后果：运营方 `allowed` 规则可覆盖《上海市养犬管理条例》
+  第二十三条的法定禁止——R1 试点的 13 项回归夹具同样不带该字段，因此测试无法
+  暴露。Decision:
+  (1) 词表收敛为 `mandatory | advisory | operator_discretion`（`MandatoryLevel`），
+      旧值 `discretionary` 仅在读入时归一化为 `operator_discretion`
+      （`normalize_mandatory_level`），不再作为新写入的合法值。
+  (2) `AccessRule` 与 `RuleCandidate` 各增 `mandatory_level`（nullable, String(20)，
+      带 CHECK 约束），publish() 逐字透传，绝不默认填充。
+  (3) 语义：只有 `rule_layer=LEGAL` 且 `mandatory_level=mandatory` 的规则才是
+      resolver 地板；`NULL` **永不**被读作 mandatory（unknown ≠ binding）。
+  (4) 地板同时覆盖禁令与条件：mandatory legal `prohibited` 不可被下层
+      `allowed/conditional` 放宽；mandatory legal `conditional` 的义务不可被下层
+      `allowed` 抹去（effect 至少保持 `conditional`）。下层仍可更严格
+      （`prohibited` 永远优先）。
+  (5) 发布边界（Pre-Publish Validation 第 4b 项）拒绝 `rule_layer=LEGAL` 而未声明
+      `mandatory_level` 的候选（错误码 `legal_requires_mandatory_level`），未知取值
+      拒绝（`schema_unsupported`）——机器不猜。
+  (6) 同步面：API（`RuleOut/RuleIn`、`CandidateIn`、`/admin/candidates/{id}/
+      mandatory-level`、publish 响应）、Admin、PetAccessJSON（dump/load 校验 +
+      LEGAL 必须声明）、audit（candidate.create / publish / set_mandatory_level 的
+      before/after 均含该字段）、ingest 与 review register（由 layer 确定性映射，
+      LEGAL→mandatory，其余→operator_discretion，可逐行覆盖）。
+  Alternatives: 保持现状并登记为已知限制（被用户明确否决——不得带已知正确性缺陷
+  发布）；在 resolver 内对 LEGAL 规则硬编码默认 mandatory（猜测，违背
+  "unknown ≠ allowed/prohibited"，且会把 advisory 法规误升为强制）；只加列不加
+  门禁（缺口可再次静默出现）。Evidence:
+  `tests/unit/test_mandatory_level.py`（22 项：词表/归一化/列与约束存在性/地板
+  语义/门禁/迁移回填幂等/性质不变量）、`tests/integration/test_mandatory_level.py`
+  （真实 DB 的 effective-rules 地板）、`test_publish_layer_integrity.py` F2 由
+  "open" 改为 fixed。Migration impact: additive（`e3b7a1c4f920`）；两列 nullable，
+  回填仅填 NULL（LEGAL→mandatory，其余已知层→operator_discretion，遗留 NULL 层保持
+  NULL），归一化 `discretionary`，重复执行为 no-op。Status: accepted.
+
+- ADR-024: 手写迁移必须用 `op.f()` 声明字面约束名；登记表与库必须发布前一致
+  （ENV-01 解除轮次）。Context: 依赖栈就绪后第一次真实跑迁移与全量测试，立刻暴露
+  两类问题。(a) 4 个手写迁移把已带前缀的名字传给 `op.create_check_constraint` /
+  `sa.CheckConstraint`，命名约定 `ck_%(table_name)s_%(constraint_name)s` 二次加前缀，
+  产生 `ck_access_rule_ck_access_rule_mandatory_level` 等 7 个双前缀约束，跨 4 张表；
+  与 `metadata.create_all` 建库的命名发散，且 `downgrade()` 直接失败（实测
+  `constraint "ck_rule_candidate_mandatory_level" does not exist`）。
+  (b) 33 条真实候选在 `rule_candidate.rule_layer` 列存在前入库，取了
+  `server_default='OPERATOR_POLICY'`，而入库脚本按 manifest 幂等跳过已存在候选，
+  重跑不校正 ⇒ 登记表声明 16 条 LEGAL，库中全为 OPERATOR_POLICY ⇒ 发布将把
+  16 条法定规则静默降级为运营方政策（ADR-023 的静默降级，经陈旧数据到达）。
+  Decision:
+  (1) 手写迁移一律用 `op.f("<最终名>")` 包裹 `create/drop_constraint` 与
+      `CheckConstraint(name=...)`，与自动生成迁移保持一致；
+  (2) 已受影响的库由幂等修复迁移 `f4c9d2e7a831` 原地重命名（只改名字，
+      同时存在性判定 ⇒ 全新库为 no-op）；
+  (3) `publish_reviewed_r1.py` 预检增加**登记表↔库一致性**校验：`rule_layer` 或
+      `mandatory_level` 任一不一致即硬拒绝；`--execute` 必须能读到库状态；
+      发布后同时校验 `rule_layer` 与 `mandatory_level`；
+  (4) `backfill_candidate_rule_layer.py` 扩展为同时校正 `mandatory_level`，
+      全部经 live API 写入以留审计；
+  (5) 修正 `RuleIn` 缺遗留值归一化：抽出共享注解类型
+      `NormalizedMandatoryLevel`（`Annotated[MandatoryLevel, BeforeValidator(...)]`），
+      读写路径共用同一词表。
+  Evidence: 全量 `pytest` **319 passed / 0 failed**；`alembic` up/down/up 往返通过；
+  修复后 `REMAINING DOUBLE-PREFIXED: 0`；33 条候选层级/规范力与登记表一致
+  （LEGAL/mandatory 16，`LEGAL` 缺 level = 0）；Playwright **14 passed**；
+  新增 8 个预检守卫单测 + 5 个 `/extras` 集成测试。
+  Migration impact: additive（`f4c9d2e7a831`，仅重命名约束）；无数据变更。
+  Status: accepted.
+
+
+---
+
+## ADR-025 — 源忠实动物范围：本体父关系不得扩张法律效力
+
+- Context: `《上海市养犬管理条例》第二十三条` 禁止犬只进入商场，但书为
+  「盲人携带导盲犬的，不受本条规定的限制」。旧模型按 ADR-020 的理由
+  （"导盲犬 is-a 服务犬 + service_role=working"）把该但书存成
+  `animal_scope='service_dog'`，于是存储行声称**所有**服务犬都不受法定禁止约束。
+  这是把**本体关系当法律论证**。同时 `allowed/prohibited/conditional` 也无法表达
+  「该但书为窄主体移除基础禁止」（豁免/但书）与「场所负有积极便利义务」
+  （《无障碍环境建设法》第46条「提供便利」），把义务塞进 `allowed` 会把义务抬成无条件许可。
+- Decision:
+  (1) 新增精确分类 `AnimalRole`
+      （`ORDINARY_DOG` / `GUIDE_DOG` / `HEARING_DOG` / `ASSISTANCE_DOG` /
+      `OTHER_SERVICE_DOG` / `POLICE_DOG` / `MILITARY_WORKING_DOG`）；
+      `POLICE_DOG` 与 `MILITARY_WORKING_DOG` **不属于**服务犬（不辅助残障人士）。
+  (2) 新增 `source_scope_exact` / `subject_scope_normalized` / `normalization_type`
+      （`exact` | `parent_group_for_query_only` | `legal_interpretation_required`）。
+      **只有 `exact` 才赋予法律效力**；裸 `service_dog`（无归一化）不产生任何效力。
+      本体父关系**仅**用于查询侧扩张（搜索 / 分类 / UI 分组）。
+  (3) 新增 `NormativeEffect`
+      （`permission` / `prohibition` / `conditional_permission` /
+      `exempt_from_prohibition` / `facilitation_required`）与 `HolderScope`
+      （`any_handler` / `person_with_disability`），作为 `RuleEffect` 旁挂的规范层；
+      `NORMATIVE_TO_EFFECT` 把 `facilitation_required` 降为 `conditional`，**绝不降为 `allowed`**。
+  (4) resolver 新增 optional `declared_role`：用户声明"我是助听犬"时不做查询扩张，
+      因此**助听犬不继承导盲犬但书**；未声明时仍扩张（"找出可能适用的规则"）。
+  (5) 迁移 `a2d5e8b91c47` additive；回填**保守且绝不扩张**：`dog`/`ordinary_pet` → `exact`，
+      `service_dog` → NULL + `legal_interpretation_required`（正是那个未证成的泛化，
+      在人工重新建模前不生效）。
+  (6) 不变量（测试固定）：
+      `ONTOLOGY_PARENT_RELATIONSHIP MUST_NOT IMPLY_LEGAL_SCOPE_EXPANSION`。
+- Evidence: `tests/unit/test_animal_scope.py`（19 例 + 2 property 各 300 例）；
+  `tests/unit/test_rule_exceptions.py`、`tests/integration/test_rule_exceptions.py`；
+  全量 `pytest` 349 passed / 0 failed；`ruff` / `mypy` / ESLint / Prettier / 两端 build / E2E 16 passed。
+- Migration impact: `a2d5e8b91c47`（additive）+ 修复迁移 `c1f7a3e8d502`
+  （补 `rule_exception` 漏列）+ `d4a8b2f6c903`（`policy_template_rule` 补 scope 列）。
+- Status: accepted.
+
+## ADR-026 — 已应用迁移被后补修改 ⇒ 必须用幂等修复迁移，且迁移必须可重入
+
+- Context: 2026-09-15 接管时实测：`alembic_version` 已到 `a2d5e8b91c47`，但
+  `access_rule` / `rule_candidate` 有 ADR-025 的 5 个 scope 列，`rule_exception` **没有**。
+  根因：该迁移先在两张表上被应用（打上版本号），之后才把 `rule_exception` 补进同一个文件，
+  而 Alembic 不会重跑已应用的 revision。后果是任何读 `RuleException` 的路径直接
+  `UndefinedColumn`，一次性打红 10 个测试，而版本表看起来完全健康。
+- Decision:
+  (1) **不修改已应用的迁移**（会重演同一缺陷），而是新增幂等修复迁移 `c1f7a3e8d502`：
+      逐列做存在性判定后再 `add_column`，逐约束判定后再 `create_check_constraint`，
+      回填语句全部以 `... IS NULL` 守卫 ⇒ 全新库为 no-op、旧库补齐。
+  (2) 手写迁移一律使用 `op.f()` 显式约束名（沿用 ADR-024），避免命名约定二次加前缀。
+  (3) 迁移的 `upgrade()` 必须具备**可重入性**：任何 `add/drop` 前先 inspect，
+      使"部分应用"不再可能静默存在。
+- Evidence: `c1f7a3e8d502` 后实测 `rule_exception` 16 列 / 8 约束齐备；
+  `alembic upgrade head` → `d4a8b2f6c903`；全量 `pytest` 349 passed。
+- Migration impact: additive；不改数据语义。
+- Status: accepted.
+
+## ADR-027 — Consumer UX Baseline v1：首页是 Decision Home，地图是一级 Tab
+
+- Context: `UI_CORE_CLOSURE_REPORT.md` 的页面级交付真实存在，但首页实现是 **Map Home**
+  （`view` 默认 `map`），与冻结方向「Search-first / 首页不是 Map-first / 首页是 Decision Home」
+  直接冲突；地图也没有独立路由。同时 `PlaceView` 的分区结论、核验范围等语义
+  需要一个统一的入口把「已核验 / 待核实」讲清楚。
+- Decision:
+  (1) 首页改为 **Decision Home**（`apps/client-h5/src/views/HomeView.vue` 重写）：
+      覆盖范围头 → 「去之前，查清规则」→ 搜索框 → 三个查询视角
+      （`看场所规则` 默认 / `携带动物` / `共处偏好`）→ 最近查看 → 类别 → 附近已核验 / 规则待核实
+      → 贡献降级为页脚。
+  (2) 地图前移为 `views/MapView.vue` 并新增一级路由 `/map`；底部导航
+      `首页 / 地图 / 贡献 / 我的`。
+  (3) 六项修正：核验范围精确到「动物 · 区域」；`待核实场所` → `规则待核实`；
+      状态中性（不大面积绿）；条件表述为「进入前需满足」；每条答案带「为什么？」；
+      贡献降低视觉优先级。
+  (4) `UNKNOWN ≠ ALLOWED` 与「规则待核实」的语义在页面**前置声明**，不依赖数据是否加载成功。
+  (5) 消费端接通 ADR-025：`ActivePet.declared_role` → `client.effectiveRules(declared_role)`
+      → resolver 不扩张查询。
+  (6) `贡献` 可无场所打开（Tab 需要），此时**不猜场所**，显式要求先选定。
+- Evidence: E2E 16 passed（含 3 个新增 Consumer UX 用例）；H5/Admin build、ESLint 0、
+  Prettier、vue-tsc 0；`pytest` 349 passed。
+- Migration impact: 无（前端 + `client-core` 类型）。
+- Status: accepted.

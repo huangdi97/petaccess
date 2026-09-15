@@ -33,6 +33,27 @@ cd apps/admin && pnpm install && pnpm dev          # http://localhost:5173
 | E2E（需 API:8010 + H5:5175 运行中） | `pnpm exec playwright test` |
 | worker | `cd services/api && uv run celery -A app.worker.celery_app:celery_app worker --pool=solo` |
 
+### E2E 前置（API :8010 + 真实数据）
+
+E2E 断言的是真实数据，因此需要 API 与种子数据都在。H5 产物通过**绝对 API 基址**直连
+:8010（API 的 CORS 已放行 `http://127.0.0.1:5175`）：
+
+```bash
+# 1. 基础设施 + 迁移
+docker-compose up -d && cd services/api && uv run alembic upgrade head && cd ../..
+
+# 2. API（E2E 约定 8010）+ worker（OCR/TTL 用例需要）
+cd services/api && uv run uvicorn app.main:app --port 8010 &
+cd services/api && uv run celery -A app.worker.celery_app:celery_app worker --pool=solo &
+
+# 3. 以 E2E 基址构建 H5，然后运行
+VITE_API_BASE=http://127.0.0.1:8010/api/v1 pnpm --filter @petaccess/client-h5 build
+pnpm exec playwright test
+```
+
+`vite preview` 不会继承 `server.proxy`，因此 `vite.config.ts` 同时声明了 `preview.proxy`
+（可用 `VITE_API_PROXY` 覆盖目标），避免相对基址的产物在预览时把 404 误判为应用缺陷。
+
 ## 演示账号（种子数据，全部虚构场所）
 
 - 管理员：`admin@demo-petaccess.com` / `admin12345`

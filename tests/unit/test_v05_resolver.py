@@ -27,6 +27,8 @@ def lr(
     conditions=(),
     from_=None,
     to=None,
+    subject_scope=None,
+    normalization=None,
 ):
     return LayeredRule(
         id=id_,
@@ -41,6 +43,10 @@ def lr(
         mandatory_level=mandatory,
         effective_from=from_,
         effective_to=to,
+        # ADR-025: a rule only speaks about a precise subject when the caller (or
+        # the ingest pipeline) recorded the source-faithful normalisation.
+        subject_scope_normalized=subject_scope,
+        normalization_type=normalization,
     )
 
 
@@ -191,6 +197,44 @@ def test_service_dog_isolation_against_ordinary_pet_rules():
     op = [lr("O1", effect="prohibited", animal="ordinary_pet")]
     rs = resolve(**base_kwargs(operator_rules=op, service_role="working"))
     assert rs.effect == "unknown"  # ordinary-pet rule never governs a service dog
-    sd = [lr("S1", animal="service_dog", effect="allowed")]
+    # ADR-025: a rule governing service dogs must carry the precise subject scope
+    # plus the normalisation that makes it a legal equivalent. A bare
+    # `animal_scope="service_dog"` row would govern nothing.
+    sd = [
+        lr(
+            "S1",
+            animal="service_dog",
+            effect="allowed",
+            subject_scope="service_dog",
+            normalization="exact",
+        )
+    ]
     rs2 = resolve(**base_kwargs(operator_rules=op + sd, service_role="working"))
     assert rs2.effect == "allowed"
+
+
+def test_legacy_service_dog_scope_without_normalisation_confers_nothing():
+    """ADR-025's whole point: `service_dog` with no declared normalisation is the
+    unproven widening and must not govern any query."""
+    legacy = [lr("S1", animal="service_dog", effect="allowed")]
+    for role in ("working", "none"):
+        rs = resolve(**base_kwargs(operator_rules=legacy, service_role=role))
+        assert rs.effect == "unknown", role
+
+
+def test_declared_role_does_not_inherit_another_roles_proviso():
+    """A hearing-dog query must not inherit a guide-dog proviso (ADR-025)."""
+    guide_only = [
+        lr(
+            "S1",
+            animal="service_dog",
+            effect="allowed",
+            subject_scope="guide_dog",
+            normalization="exact",
+        )
+    ]
+    kw = base_kwargs(operator_rules=guide_only, service_role="working")
+    assert resolve(**kw).effect == "allowed"
+    assert resolve(**kw, declared_role="guide_dog").effect == "allowed"
+    assert resolve(**kw, declared_role="hearing_dog").effect == "unknown"
+    assert resolve(**kw, declared_role="assistance_dog").effect == "unknown"

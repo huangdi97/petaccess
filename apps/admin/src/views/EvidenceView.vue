@@ -57,7 +57,6 @@ const form = ref({
 
 /** Collector → platform preview, mirrors `_platform_for_collector` on the API. */
 
-
 const bundleForm = ref({
   artifact_id: "",
   quoted_fragment: "",

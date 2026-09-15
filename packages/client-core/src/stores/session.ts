@@ -21,6 +21,13 @@ export interface ActivePet {
   breed_text: string | null;
   weight_kg: number | null;
   service_role: string;
+  /**
+   * ADR-025 / Consumer UX §14 — the precise animal role, when the user declares
+   * one (e.g. `guide_dog`). Optional: without it a service-dog query expands to
+   * the whole assistance group (query-side only), so a hearing dog would still
+   * see a guide-dog proviso. Declaring the role removes that ambiguity.
+   */
+  declared_role?: string | null;
 }
 
 const TOKEN_KEY = "pa_token";

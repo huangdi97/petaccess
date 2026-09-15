@@ -111,9 +111,7 @@ onMounted(load);
     </table>
     <div v-if="!loading && !rules.length && !error" class="empty-state">
       <div class="empty-state__title">该场所暂无已发布规则</div>
-      <div>
-        {{ selectedPlaceName }} 尚未有通过发布闸门的规则。规则必须先经候选评审与来源核验。
-      </div>
+      <div>{{ selectedPlaceName }} 尚未有通过发布闸门的规则。规则必须先经候选评审与来源核验。</div>
     </div>
   </div>
 </template>

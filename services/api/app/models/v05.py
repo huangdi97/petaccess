@@ -80,6 +80,17 @@ class PolicyTemplateRule(Base, PkMixin, TimestampMixin):
     conditions: Mapped[list | None] = mapped_column(JSON, nullable=True)
     rule_layer: Mapped[str] = mapped_column(String(30), default="OPERATOR_POLICY", nullable=False)
     notes: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    # --- ADR-025: source-faithful scope for inherited template entries ---------
+    #: what the template's source literally names (e.g. 'service_dog')
+    source_scope_exact: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    #: the precise subject the entry governs — the legal matching unit
+    subject_scope_normalized: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    #: exact | parent_group_for_query_only | legal_interpretation_required
+    normalization_type: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    #: permission | prohibition | conditional_permission |
+    #: exempt_from_prohibition | facilitation_required
+    normative_effect: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    holder_scope: Mapped[str | None] = mapped_column(String(32), nullable=True)
 
     template: Mapped["PolicyTemplate"] = relationship(back_populates="rules")
 
@@ -142,6 +153,25 @@ class RuleCandidate(Base, PkMixin, TimestampMixin):
     rule_layer: Mapped[str] = mapped_column(
         String(30), default="OPERATOR_POLICY", server_default="OPERATOR_POLICY", nullable=False
     )
+    # Normative force carried to the published rule (BLK-LAYER-02 / ADR-023):
+    # mandatory | advisory | operator_discretion. NULL is preserved as "not
+    # declared" — the publish gate refuses a LEGAL candidate without it, because
+    # the resolver must never guess that a statutory prohibition is binding.
+    mandatory_level: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    # ---- ADR-025: source-faithful scope + normative effect ------------------
+    # A source that says 导盲犬 governs guide_dog and nothing wider. These four
+    # columns record what the source literally names, the precise AnimalRole it
+    # was normalised to, whether that normalisation is a legal equivalent, and
+    # what the source normatively does. Without them a guide-dog proviso gets
+    # silently widened into "all service dogs allowed".
+    source_scope_exact: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    subject_scope_normalized: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    normalization_type: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    normative_effect: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    holder_scope: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    operator_obligations: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    #: set when the candidate is a per-place projection of a jurisdiction rule
+    projection_of_rule_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     proposed_conditions: Mapped[list | None] = mapped_column(JSON, nullable=True)
     extraction_method: Mapped[str] = mapped_column(String(40), nullable=False)
     extraction_provider: Mapped[str | None] = mapped_column(String(60), nullable=True)

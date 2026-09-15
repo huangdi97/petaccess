@@ -187,8 +187,16 @@ label {
   border-radius: 12px;
   border: 1px solid var(--line);
   background:
-    repeating-linear-gradient(0deg, var(--pa-color-map-grid-a) 0 24px, var(--pa-color-map-grid-b) 24px 25px),
-    repeating-linear-gradient(90deg, var(--pa-color-map-grid-a) 0 24px, var(--pa-color-map-grid-b) 24px 25px);
+    repeating-linear-gradient(
+      0deg,
+      var(--pa-color-map-grid-a) 0 24px,
+      var(--pa-color-map-grid-b) 24px 25px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      var(--pa-color-map-grid-a) 0 24px,
+      var(--pa-color-map-grid-b) 24px 25px
+    );
   position: relative;
   overflow: hidden;
 }
@@ -358,12 +366,7 @@ button,
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    var(--pa-color-skeleton-sheen),
-    transparent
-  );
+  background: linear-gradient(90deg, transparent, var(--pa-color-skeleton-sheen), transparent);
   animation: pa-shimmer var(--pa-motion-slow) var(--pa-motion-ease) infinite;
 }
 @keyframes pa-shimmer {
@@ -422,4 +425,3 @@ button,
     animation: none;
   }
 }
-

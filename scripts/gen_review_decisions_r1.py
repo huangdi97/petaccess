@@ -76,6 +76,16 @@ def strength_for(source: dict, candidate_id: str) -> str:
     return "secondary_reputable"
 
 
+def mandatory_for(rule: dict) -> str:
+    """Deterministic normative force from the layer (BLK-LAYER-02 / ADR-023).
+
+    A LEGAL rule is binding by definition; everything else is the operator's
+    discretion. The register lets a reviewer override this per row, but never
+    leaves it blank for a LEGAL rule (the publish gate would refuse it).
+    """
+    return "mandatory" if rule.get("rule_layer") == "LEGAL" else "operator_discretion"
+
+
 def propose(rule: dict, candidate_id: str, strength: str) -> tuple[str, str]:
     rule_id = rule["rule_id"]
     if rule_id in REJECT:
@@ -119,6 +129,7 @@ def main() -> int:
                     "source_url": src.get("source_url"),
                     "issuer": src.get("issuer"),
                     "rule_layer": rule.get("rule_layer"),
+                    "mandatory_level": mandatory_for(rule),
                     "animal_scope": rule.get("animal_scope"),
                     "action": rule.get("action"),
                     "effect": rule.get("effect"),

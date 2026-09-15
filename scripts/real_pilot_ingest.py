@@ -319,6 +319,17 @@ def run(evidence_path: Path) -> int:
                         # normative layer from the evidence register; without this
                         # a statutory rule would be published as an operator policy
                         "rule_layer": r.get("rule_layer") or "OPERATOR_POLICY",
+                        # normative force (BLK-LAYER-02 / ADR-023). Deterministic
+                        # mapping from the layer, overridable per rule: LEGAL rules
+                        # are binding by definition, everything else is the
+                        # operator's discretion. The publish gate rejects a LEGAL
+                        # candidate that leaves this blank, so it is never guessed.
+                        "mandatory_level": r.get("mandatory_level")
+                        or (
+                            "mandatory"
+                            if (r.get("rule_layer") or "OPERATOR_POLICY") == "LEGAL"
+                            else "operator_discretion"
+                        ),
                         "proposed_conditions": r.get("conditions") or [],
                         "extraction_method": EXTRACTION_METHOD,
                         "extraction_provider": EXTRACTION_PROVIDER,

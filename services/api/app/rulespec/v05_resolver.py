@@ -28,18 +28,25 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import StrEnum
 
+from app.models.enums import MandatoryLevel, normalize_mandatory_level
+
+__all__ = [
+    "RuleLayer",
+    "MandatoryLevel",
+    "normalize_mandatory_level",
+    "ComplianceState",
+    "LayeredRule",
+    "EffectiveRuleSet",
+    "LayeredException",
+    "resolve",
+]
+
 
 class RuleLayer(StrEnum):
     LEGAL = "LEGAL"
     REGULATORY_GUIDANCE = "REGULATORY_GUIDANCE"
     OPERATOR_POLICY = "OPERATOR_POLICY"
     TEMPORARY_POLICY = "TEMPORARY_POLICY"
-
-
-class MandatoryLevel(StrEnum):
-    MANDATORY = "mandatory"
-    ADVISORY = "advisory"
-    DISCRETIONARY = "discretionary"
 
 
 class ComplianceState(StrEnum):
@@ -65,7 +72,26 @@ class LayeredRule:
     zone_id: str | None = None
     place_id: str | None = None
     source_id: str | None = None
-    mandatory_level: str | None = None  # for legal rules
+    # mandatory | advisory | operator_discretion (or the legacy 'discretionary').
+    # Only a LEGAL rule carrying 'mandatory' becomes the resolver floor
+    # (ADR-023 / BLK-LAYER-02); NULL is never read as mandatory.
+    mandatory_level: str | None = None
+    # ---- ADR-025: source-faithful scope + normative effect ------------------
+    #: what the source literally names (e.g. 'guide_dog')
+    source_scope_exact: str | None = None
+    #: the precise AnimalRole this rule governs (the legal matching unit)
+    subject_scope_normalized: str | None = None
+    #: exact | parent_group_for_query_only | legal_interpretation_required.
+    #: Anything other than 'exact' means the stored scope is NOT a legal
+    #: equivalent, so the rule confers no legal effect (see animal_scope.py).
+    normalization_type: str | None = None
+    #: permission | prohibition | conditional_permission |
+    #: exempt_from_prohibition | facilitation_required
+    normative_effect: str | None = None
+    #: any_handler | person_with_disability (无障碍法第46条)
+    holder_scope: str | None = None
+    #: positive duties the venue owes; surfaced, never folded into `effect`
+    operator_obligations: tuple[str, ...] = ()
     effective_from: datetime | None = None
     effective_to: datetime | None = None
     supersedes_rule_id: str | None = None
@@ -101,11 +127,22 @@ class LayeredException:
 
     id: str
     rule_id: str
-    animal_scope: str  # the scope this exception governs (e.g. service_dog)
+    animal_scope: str  # the scope this exception governs (e.g. guide_dog)
     effect: str  # what applies to that scope instead of the base effect
     source_id: str | None  # None/empty => invalid, never applied
     status: str = "current"  # only "current" applies
     conditions: tuple[dict, ...] = ()
+    # ---- ADR-025: the exception is a source-faithful carve-out ---------------
+    #: what the source literally names (e.g. '导盲犬')
+    source_scope_exact: str | None = None
+    #: precise role the source names (e.g. 'guide_dog'); None ⇒ legacy row
+    subject_scope_normalized: str | None = None
+    #: exact | parent_group_for_query_only | legal_interpretation_required
+    normalization_type: str | None = None
+    #: exempt_from_prohibition | permission | …
+    normative_effect: str | None = None
+    #: any_handler | person_with_disability（无障碍法第46条）
+    holder_scope: str | None = None
     effective_from: datetime | None = None
     effective_to: datetime | None = None
 
@@ -120,18 +157,32 @@ class LayeredException:
         return bool(self.source_id)
 
 
-def _scope_matches(rule: LayeredRule, animal: str, service_role: str) -> bool:
-    from app.rulespec.evaluator import _animal_scope_matches  # reuse v1 semantics
-    from app.rulespec.model import AnimalInput, AnimalScope, RuleAction, RuleEffect
-    from app.rulespec.model import Rule as SpecRule
+def _scope_matches(
+    rule: LayeredRule, animal: str, service_role: str, declared_role: str | None = None
+) -> bool:
+    """Match on the precise subject scope, never on an ontology parent (ADR-025).
 
-    probe = SpecRule(
-        id=rule.id,
-        animal_scope=AnimalScope(rule.animal_scope),
-        action=RuleAction(rule.action),
-        effect=RuleEffect(rule.effect),
+    A rule whose stored scope is not a legal equivalent
+    (``normalization_type != 'exact'``) governs nothing — that is precisely what
+    stops a 导盲犬 proviso from being applied to every service dog.
+
+    The query side still expands a generic "service dog" query to the four
+    assistance roles, so a correctly-modelled guide-dog rule *is* found when the
+    user asks about their service dog. When the user *declares* the role
+    (``declared_role``), no expansion happens: a hearing-dog query must not
+    inherit a guide-dog proviso.
+    """
+    from app.rulespec.animal_scope import QuerySubject, query_subjects, rule_governs
+
+    query = query_subjects(
+        QuerySubject(species=animal, service_role=service_role, declared_role=declared_role)
     )
-    return _animal_scope_matches(probe, AnimalInput(species=animal, service_role=service_role))
+    return rule_governs(
+        query,
+        rule.animal_scope,
+        rule.subject_scope_normalized,
+        rule.normalization_type,
+    )
 
 
 def _action_matches(rule: LayeredRule, action: str) -> bool:
@@ -166,6 +217,7 @@ def resolve(
     zone_id: str | None,
     now: datetime,
     exceptions: list[LayeredException] | None = None,
+    declared_role: str | None = None,
 ) -> EffectiveRuleSet:
     steps: list[str] = []
     suppressed: list[tuple[LayeredRule, str]] = []
@@ -177,7 +229,7 @@ def resolve(
         return [
             r
             for r in layer
-            if _scope_matches(r, animal, service_role)
+            if _scope_matches(r, animal, service_role, declared_role)
             and _action_matches(r, action)
             and _in_time(r, now)
             and (r.zone_id is None or r.zone_id == zone_id)
@@ -196,9 +248,14 @@ def resolve(
             effect="allowed",
             rule_layer=None,
             origin="operator_direct",
+            # ADR-025: a carve-out matches on the precise role the source named.
+            # An exception stored as the generic `service_dog` (the unproven
+            # widening) therefore matches nothing until it is re-modelled.
+            subject_scope_normalized=exc.subject_scope_normalized,
+            normalization_type=exc.normalization_type,
         )
         if not (
-            _scope_matches(probe, animal, service_role)
+            _scope_matches(probe, animal, service_role, declared_role)
             and exc.active_at(now)
             and exc.has_source()
         ):
@@ -222,10 +279,12 @@ def resolve(
             if r.id in conflicted_rule_ids:
                 out.append(r)  # keep base governing; compliance flips below
                 continue
+            precise = exc.subject_scope_normalized or exc.animal_scope
+            carve_out = " · carve-out" if exc.normative_effect == "exempt_from_prohibition" else ""
             suppressed.append(
                 (
                     r,
-                    f"exempted by exception {exc.id} (scope {exc.animal_scope}, "
+                    f"exempted by exception {exc.id} (scope {precise}{carve_out}, "
                     f"source {exc.source_id})",
                 )
             )
@@ -271,8 +330,13 @@ def resolve(
         )
 
     # --- 1. LEGAL layer -----------------------------------------------------
-    legal_mandatory = [r for r in scoped_legal if r.mandatory_level == "mandatory"]
-    legal_other = [r for r in scoped_legal if r.mandatory_level != "mandatory"]
+    # mandatory_level is normalised on read so the legacy 'discretionary'
+    # spelling cannot hide a binding constraint (or invent one).
+    def _is_mandatory(r: LayeredRule) -> bool:
+        return normalize_mandatory_level(r.mandatory_level) == MandatoryLevel.MANDATORY.value
+
+    legal_mandatory = [r for r in scoped_legal if _is_mandatory(r)]
+    legal_other = [r for r in scoped_legal if not _is_mandatory(r)]
     applicable.extend(legal_mandatory)
     if legal_mandatory:
         steps.append(
@@ -284,11 +348,13 @@ def resolve(
         steps.append(f"LEGAL non-mandatory rules included ({len(legal_other)}).")
 
     mandatory_prohibited = [r for r in legal_mandatory if r.effect == "prohibited"]
-    mandatory_conditions = [
-        c for r in legal_mandatory if r.effect == "conditional" for c in r.conditions
-    ]
+    mandatory_conditional = [r for r in legal_mandatory if r.effect == "conditional"]
+    mandatory_conditions = [c for r in mandatory_conditional for c in r.conditions]
 
     # --- 2. lower layers: conflict-with-legal handling -----------------------
+    # A lower layer may never silently relax the mandatory legal floor: neither
+    # by outvoting a mandatory prohibition with an allowance, nor by dropping
+    # the obligations of a mandatory legal condition.
     for group, label in (
         (scoped_guidance, "REGULATORY_GUIDANCE"),
         (scoped_template, "template"),
@@ -296,12 +362,27 @@ def resolve(
         (scoped_events, "event"),
     ):
         for r in group:
-            if mandatory_prohibited and r.effect in ("allowed", "conditional"):
+            relaxes_prohibition = bool(mandatory_prohibited) and r.effect in (
+                "allowed",
+                "conditional",
+            )
+            drops_obligation = (
+                bool(mandatory_conditional) and not mandatory_prohibited and r.effect == "allowed"
+            )
+            if relaxes_prohibition:
                 suppressed.append(
                     (
                         r,
                         f"suppressed: MANDATORY legal prohibition (rule "
                         f"{mandatory_prohibited[0].id}) cannot be relaxed by {label}",
+                    )
+                )
+            elif drops_obligation:
+                suppressed.append(
+                    (
+                        r,
+                        f"suppressed: MANDATORY legal condition (rule "
+                        f"{mandatory_conditional[0].id}) cannot be dropped by {label}",
                     )
                 )
             else:
@@ -418,6 +499,14 @@ def resolve(
             effect = "allowed"
         else:
             effect = "conditional"
+        if effect == "allowed" and mandatory_conditional:
+            # a mandatory legal condition is not relaxable: an operator's plain
+            # "allowed" cannot erase the statutory obligation.
+            effect = "conditional"
+            steps.append(
+                "effect raised to conditional: MANDATORY legal condition "
+                f"({mandatory_conditional[0].id}) cannot be dropped."
+            )
         steps.append(f"effect from governing rules ({len(governing)}): {effect}.")
     else:
         effect = "unknown"

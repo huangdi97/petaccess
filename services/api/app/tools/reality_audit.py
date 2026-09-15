@@ -225,7 +225,7 @@ def _audit_one(sample: dict, now: datetime, gap_registry: dict) -> dict:
     queries_out = []
     for query in sample.get("queries", []):
         unknown_fields += [f"queries.{k}" for k in _unknown_keys(query, _QUERY_KEYS)]
-        eff = _resolve_query(sample, query, layer_rules, zones)
+        eff = _resolve_query(sample, query, layer_rules, zones, now)
         queries_out.append(
             {
                 "query": query,
@@ -306,7 +306,7 @@ def _audit_one(sample: dict, now: datetime, gap_registry: dict) -> dict:
     }
 
 
-def _resolve_query(sample: dict, query: dict, layer_rules: dict, zones: dict):
+def _resolve_query(sample: dict, query: dict, layer_rules: dict, zones: dict, now: datetime):
     from app.rulespec.v05_resolver import LayeredException, LayeredRule, resolve
 
     def build(rule: dict) -> LayeredRule:
@@ -325,6 +325,13 @@ def _resolve_query(sample: dict, query: dict, layer_rules: dict, zones: dict):
             mandatory_level=rule.get("mandatory_level"),
             effective_from=_parse_dt(rule.get("effective_from")),
             effective_to=_parse_dt(rule.get("effective_to")),
+            # ADR-025: the audit must see the same source-faithful scope the
+            # resolver sees — otherwise it would report a widening the
+            # production path no longer commits.
+            source_scope_exact=rule.get("source_scope_exact"),
+            subject_scope_normalized=rule.get("subject_scope_normalized"),
+            normalization_type=rule.get("normalization_type"),
+            normative_effect=rule.get("normative_effect"),
         )
 
     buckets = {
@@ -350,6 +357,12 @@ def _resolve_query(sample: dict, query: dict, layer_rules: dict, zones: dict):
                 status=str(exc.get("status") or "current"),
                 effective_from=_parse_dt(exc.get("effective_from")),
                 effective_to=_parse_dt(exc.get("effective_to")),
+                # ADR-025: a carve-out matches on the precise role it names.
+                source_scope_exact=exc.get("source_scope_exact"),
+                subject_scope_normalized=exc.get("subject_scope_normalized"),
+                normalization_type=exc.get("normalization_type"),
+                normative_effect=exc.get("normative_effect"),
+                holder_scope=exc.get("holder_scope"),
             )
         )
     return resolve(
@@ -362,7 +375,11 @@ def _resolve_query(sample: dict, query: dict, layer_rules: dict, zones: dict):
         service_role=query.get("service_role", "none"),
         action=query.get("action", "enter"),
         zone_id=query.get("zone_key"),
-        now=datetime.now(UTC),
+        # Determinism: use the injected `now`, never the wall clock. Using
+        # datetime.now() here made the audit non-reproducible and silently
+        # expired every time-windowed event rule (found 2026-09-15: syn-event-006
+        # stopped reporting its conflict once 2026-09-14 passed).
+        now=now,
         exceptions=exceptions,
     )
 
@@ -474,9 +491,7 @@ def render_schema_gaps(result: dict) -> str:
 _ALLOWED_MANIFEST_OVERRIDES = {"data_nature", "real_place_claims", "note"}
 
 
-def render_provenance(
-    result: dict, input_name: str, manifest_override: dict | None = None
-) -> dict:
+def render_provenance(result: dict, input_name: str, manifest_override: dict | None = None) -> dict:
     """Build the provenance manifest.
 
     Defaults describe synthetic fixtures. A run over REAL captured data must

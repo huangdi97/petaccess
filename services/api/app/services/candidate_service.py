@@ -49,12 +49,20 @@ def create_from_extraction(
     action: str | None = None,
     effect: str | None = None,
     rule_layer: str | None = None,
+    mandatory_level: str | None = None,
     proposed_conditions: list | None = None,
     extraction_provider: str | None = None,
     internal_confidence: float | None = None,
     raw_text: str | None = None,
     media_id: str | None = None,
     evidence_bundle_id: str | None = None,
+    # --- ADR-025 / ADR-028: source-faithful scope ---------------------------
+    source_scope_exact: str | None = None,
+    subject_scope_normalized: str | None = None,
+    normalization_type: str | None = None,
+    normative_effect: str | None = None,
+    holder_scope: str | None = None,
+    operator_obligations: list | None = None,
 ) -> RuleCandidate:
     """Entry point for OCR/AI/monitor/import outputs. Creates the candidate in
     MATCH_PENDING when extraction already produced structured fields (the next
@@ -68,6 +76,7 @@ def create_from_extraction(
         action=action,
         effect=effect,
         rule_layer=rule_layer or "OPERATOR_POLICY",
+        mandatory_level=mandatory_level,
         proposed_conditions=proposed_conditions,
         extraction_method=extraction_method,
         extraction_provider=extraction_provider,
@@ -76,6 +85,15 @@ def create_from_extraction(
         media_id=media_id,
         evidence_bundle_id=evidence_bundle_id,
         review_status=status,
+        # ADR-025 / ADR-028: what the source literally said, and how it was
+        # turned into the stored subject. Publishing copies these verbatim, so a
+        # candidate that never carried them would publish an unscoped rule.
+        source_scope_exact=source_scope_exact,
+        subject_scope_normalized=subject_scope_normalized,
+        normalization_type=normalization_type,
+        normative_effect=normative_effect,
+        holder_scope=holder_scope,
+        operator_obligations=operator_obligations,
     )
     db.add(candidate)
     db.flush()
@@ -132,6 +150,21 @@ def publish(
         # statutory prohibition to an operator policy would silently change
         # the answer. Pre-Publish Validation rejects unknown layer values.
         rule_layer=candidate.rule_layer or "OPERATOR_POLICY",
+        # Normative force is carried through verbatim (BLK-LAYER-02 / ADR-023).
+        # The publish gate refuses a LEGAL candidate without an explicit level,
+        # so a statutory prohibition can never land as a relaxable rule.
+        mandatory_level=candidate.mandatory_level,
+        # ADR-025 / ADR-028: the source-faithful scope MUST survive publication.
+        # Without this the published AccessRule keeps only the coarse
+        # `animal_scope`, and the resolver then treats a bare `service_dog` row as
+        # the unproven widening (governs nothing) — the 导盲犬 carve-out would
+        # silently stop working the moment it went live.
+        source_scope_exact=candidate.source_scope_exact,
+        subject_scope_normalized=candidate.subject_scope_normalized,
+        normalization_type=candidate.normalization_type,
+        normative_effect=candidate.normative_effect,
+        holder_scope=candidate.holder_scope,
+        operator_obligations=candidate.operator_obligations,
         note=f"published from candidate {candidate.id} ({candidate.extraction_method})",
     )
     db.add(rule)

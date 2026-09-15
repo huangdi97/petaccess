@@ -29,13 +29,7 @@ export function breakpointFor(width: number): BreakpointKey {
 /* ------------------------------------------------------------------ status */
 
 /** Neutral access states (UI_UX_IMPLEMENTATION_SPEC §3). */
-export type StatusKey =
-  | "ALLOWED"
-  | "CONDITIONAL"
-  | "RESTRICTED"
-  | "UNKNOWN"
-  | "CONFLICT"
-  | "STALE";
+export type StatusKey = "ALLOWED" | "CONDITIONAL" | "RESTRICTED" | "UNKNOWN" | "CONFLICT" | "STALE";
 
 export interface StatusSemantics {
   readonly key: StatusKey;
@@ -138,13 +132,7 @@ export function semanticForEffect(effect: string): StatusSemantics {
 
 /** Foreground source badges (UI_UX_IMPLEMENTATION_SPEC §4). */
 export type SourceBadgeKey =
-  | "STATUTE"
-  | "GOVERNMENT"
-  | "OPERATOR"
-  | "ONSITE"
-  | "USER_REPORT"
-  | "NEEDS_REVIEW"
-  | "CONFLICT";
+  "STATUTE" | "GOVERNMENT" | "OPERATOR" | "ONSITE" | "USER_REPORT" | "NEEDS_REVIEW" | "CONFLICT";
 
 export interface SourceBadge {
   readonly key: SourceBadgeKey;

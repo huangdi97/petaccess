@@ -43,6 +43,53 @@ def _auth(m):
     return {"Authorization": f"Bearer {m['token']}"}
 
 
+def _new_place_rule(client, moderator) -> dict:
+    """A fresh source + place + LEGAL dog-prohibition rule.
+
+    Used by tests that must not inherit the module-scoped fixtures' exceptions
+    (a `current` carve-out on a shared rule would leak into other tests).
+    """
+    suffix = uuid.uuid4().hex[:8]
+    src = client.post(
+        "/api/v1/sources",
+        json={
+            "source_type": "statute_or_regulation",
+            "issuer": f"测试条例（隔离夹具 {suffix}）",
+            "issuer_verification": "verified",
+            "directness": "direct",
+            "observed_at": "2026-09-13T00:00:00Z",
+        },
+        headers=_auth(moderator),
+    )
+    assert src.status_code == 201, src.text
+    place = client.post(
+        "/api/v1/places",
+        json={"canonical_name": f"例外隔离商场{suffix}", "place_type": "mall"},
+        headers=_auth(moderator),
+    )
+    assert place.status_code == 201, place.text
+    rule = client.post(
+        "/api/v1/rules",
+        json={
+            "place_id": place.json()["id"],
+            "animal_scope": "dog",
+            "action": "enter",
+            "effect": "prohibited",
+            "source_id": src.json()["id"],
+            "rule_layer": "LEGAL",
+            "rule_origin": "official_regulation",
+            "recorded_at": "2026-09-13T00:00:00Z",
+        },
+        headers=_auth(moderator),
+    )
+    assert rule.status_code in (200, 201), rule.text
+    return {
+        "rule_id": rule.json()["id"],
+        "source_id": src.json()["id"],
+        "place_id": place.json()["id"],
+    }
+
+
 @pytest.fixture(scope="module")
 def rule_and_source(client, moderator):
     """A current LEGAL dog-prohibition rule on its own place, with a source."""
@@ -104,7 +151,9 @@ def test_exception_lifecycle_and_resolver(client, moderator, rule_and_source):
     )
     assert eff0.json()["effect"] == "prohibited"
 
-    # create the exception (guide-dog exemption from the same statute)
+    # create the exception (guide-dog exemption from the same statute).
+    # ADR-025: the proviso names 导盲犬 — it must be stored as the precise role
+    # with an *exact* normalisation, not as the generic `service_dog` widening.
     exc = client.post(
         "/api/v1/admin/rule-exceptions",
         json={
@@ -112,6 +161,11 @@ def test_exception_lifecycle_and_resolver(client, moderator, rule_and_source):
             "animal_scope": "service_dog",
             "effect": "allowed",
             "source_id": ids["source_id"],
+            "source_scope_exact": "导盲犬",
+            "subject_scope_normalized": "guide_dog",
+            "normalization_type": "exact",
+            "normative_effect": "exempt_from_prohibition",
+            "holder_scope": "person_with_disability",
         },
         headers=_auth(moderator),
     )
@@ -158,6 +212,96 @@ def test_exception_lifecycle_and_resolver(client, moderator, rule_and_source):
     )
     assert eff3.json()["effect"] == "prohibited"
     assert eff3.json()["applied_exceptions"] == []
+
+
+def test_guide_dog_carve_out_does_not_extend_to_other_service_roles(
+    client, moderator, rule_and_source
+):
+    """ADR-025 at the API level: the 导盲犬 proviso governs 导盲犬 only.
+
+    A hearing-dog query (`declared_role`) must fall back to the statutory ban —
+    this is the invariant that stops ontology (GUIDE_DOG is-a SERVICE_DOG) from
+    being used as a legal argument.
+    """
+    ids = rule_and_source
+    exc = client.post(
+        "/api/v1/admin/rule-exceptions",
+        json={
+            "rule_id": ids["rule_id"],
+            "animal_scope": "service_dog",
+            "effect": "allowed",
+            "source_id": ids["source_id"],
+            "subject_scope_normalized": "guide_dog",
+            "normalization_type": "exact",
+            "normative_effect": "exempt_from_prohibition",
+            "holder_scope": "person_with_disability",
+        },
+        headers=_auth(moderator),
+    )
+    assert exc.status_code == 201, exc.text
+    exc_id = exc.json()["id"]
+
+    def effective(**extra):
+        return client.post(
+            f"/api/v1/places/{ids['place_id']}/effective-rules",
+            json={"animal": "dog", "service_role": "working", **extra},
+        ).json()
+
+    assert effective()["effect"] == "allowed"  # underspecified: carve-out found
+    assert effective(declared_role="guide_dog")["effect"] == "allowed"
+    # the three roles the proviso does NOT name keep the statutory prohibition
+    hearing = effective(declared_role="hearing_dog")
+    assert hearing["effect"] == "prohibited"
+    assert exc_id not in hearing["applied_exceptions"]
+    assistance = effective(declared_role="assistance_dog")
+    assert assistance["effect"] == "prohibited"
+    assert exc_id not in assistance["applied_exceptions"]
+
+
+def test_bare_service_dog_exception_without_normalisation_confers_nothing(
+    client, moderator, rule_and_source
+):
+    """A carve-out stored as the generic `service_dog` (no declared
+    normalisation) is exactly the ADR-025 widening — it must not apply until a
+    reviewer re-models it."""
+    ids = _new_place_rule(client, moderator)  # isolated: no shared carve-outs
+    exc = client.post(
+        "/api/v1/admin/rule-exceptions",
+        json={
+            "rule_id": ids["rule_id"],
+            "animal_scope": "service_dog",
+            "effect": "allowed",
+            "source_id": ids["source_id"],
+        },
+        headers=_auth(moderator),
+    )
+    assert exc.status_code == 201, exc.text
+    eff = client.post(
+        f"/api/v1/places/{ids['place_id']}/effective-rules",
+        json={"animal": "dog", "service_role": "working"},
+    ).json()
+    assert eff["effect"] == "prohibited"
+    assert eff["applied_exceptions"] == []
+
+
+def test_precise_subject_scope_requires_a_declared_normalisation(
+    client, moderator, rule_and_source
+):
+    """Never guess whether a scope is a legal equivalent (ADR-025)."""
+    ids = rule_and_source
+    r = client.post(
+        "/api/v1/admin/rule-exceptions",
+        json={
+            "rule_id": ids["rule_id"],
+            "animal_scope": "service_dog",
+            "effect": "allowed",
+            "source_id": ids["source_id"],
+            "subject_scope_normalized": "guide_dog",
+            # normalization_type deliberately omitted
+        },
+        headers=_auth(moderator),
+    )
+    assert r.status_code == 422, r.text
 
 
 def test_exception_requires_existing_rule_and_source(client, moderator, rule_and_source):

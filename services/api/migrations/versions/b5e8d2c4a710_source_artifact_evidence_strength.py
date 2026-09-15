@@ -45,7 +45,7 @@ def upgrade() -> None:
         sa.Column("evidence_strength", sa.String(length=24), nullable=True),
     )
     op.create_check_constraint(
-        "ck_source_artifact_strength",
+        op.f("ck_source_artifact_strength"),
         "source_artifact",
         "evidence_strength IS NULL OR evidence_strength IN ("
         "'primary_direct','primary_captured','secondary_reputable',"
@@ -55,5 +55,5 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_constraint("ck_source_artifact_strength", "source_artifact", type_="check")
+    op.drop_constraint(op.f("ck_source_artifact_strength"), "source_artifact", type_="check")
     op.drop_column("source_artifact", "evidence_strength")

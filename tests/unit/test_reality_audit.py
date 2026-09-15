@@ -126,6 +126,12 @@ def test_service_dog_isolation_visible_in_audit():
             "effect": "allowed",
             "rule_layer": "OPERATOR_POLICY",
             "conditions": [],
+            # ADR-025: the audit only sees a service-dog rule govern when the
+            # sample records the precise scope + normalisation, exactly like the
+            # ingest pipeline now requires.
+            "source_scope_exact": "service_dog",
+            "subject_scope_normalized": "service_dog",
+            "normalization_type": "exact",
         }
     )
     sample["queries"].append(

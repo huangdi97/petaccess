@@ -12,6 +12,7 @@ from app.models.enums import (
     RuleOrigin,
     RuleStatus,
 )
+from app.schemas.common import NormalizedMandatoryLevel
 
 
 class ConditionIn(BaseModel):
@@ -36,6 +37,11 @@ class RuleIn(BaseModel):
     effect: RuleEffect
     source_id: str
     rule_origin: RuleOrigin
+    # Normative layer + force (BLK-LAYER-02 / ADR-023). Optional here for
+    # backward compatibility with the legacy v0.3 rule editor; the candidate
+    # publish path is the authoritative producer of these fields.
+    rule_layer: str | None = None
+    mandatory_level: NormalizedMandatoryLevel | None = None
     effective_from: datetime | None = None
     effective_to: datetime | None = None
     review_due_at: datetime | None = None
@@ -69,6 +75,8 @@ class RuleOut(BaseModel):
     review_due_at: datetime | None
     status: RuleStatus
     supersedes_rule_id: str | None
+    rule_layer: str | None = None
+    mandatory_level: NormalizedMandatoryLevel | None = None
     note: str | None
     conditions: list[ConditionOut] = []
 

@@ -69,12 +69,44 @@ class AccessRule(Base, PkMixin, TimestampMixin):
 
     __tablename__ = "access_rule"
     __table_args__ = (
-        CheckConstraint("(place_id IS NOT NULL) OR (zone_id IS NOT NULL)", name="needs_owner"),
+        # A rule is owned by a place/zone, OR is a jurisdiction-level rule that
+        # applies by place_type (ADR-025). Exactly one of those shapes.
+        CheckConstraint(
+            "(place_id IS NOT NULL) OR (zone_id IS NOT NULL) OR (jurisdiction_code IS NOT NULL)",
+            name="needs_owner",
+        ),
         CheckConstraint("supersedes_rule_id != id", name="supersedes_not_self"),
+        # BLK-LAYER-02 / ADR-023: mandatory_level is a closed vocabulary. The
+        # legacy spelling 'discretionary' is tolerated so a pre-existing row can
+        # still validate; the additive migration normalises it.
+        CheckConstraint(
+            "mandatory_level IS NULL OR mandatory_level IN "
+            "('mandatory','advisory','operator_discretion','discretionary')",
+            name="mandatory_level",
+        ),
+        # ADR-025: scope normalisation must be declared, and a query-only parent
+        # group may never stand in for a source-specific legal scope.
+        CheckConstraint(
+            "normalization_type IS NULL OR normalization_type IN "
+            "('exact','parent_group_for_query_only','legal_interpretation_required',"
+            "'compound_term_split')",
+            name="normalization_type",
+        ),
+        CheckConstraint(
+            "normative_effect IS NULL OR normative_effect IN "
+            "('permission','prohibition','conditional_permission',"
+            "'exempt_from_prohibition','facilitation_required')",
+            name="normative_effect",
+        ),
+        CheckConstraint(
+            "holder_scope IS NULL OR holder_scope IN ('any_handler','person_with_disability')",
+            name="holder_scope",
+        ),
         Index("ix_access_rule_place_status", "place_id", "status"),
         Index("ix_access_rule_zone_status", "zone_id", "status"),
         Index("ix_access_rule_scope_action", "animal_scope", "action"),
         Index("ix_access_rule_review_due", "review_due_at"),
+        Index("ix_access_rule_jurisdiction", "jurisdiction_code", "status"),
     )
 
     place_id: Mapped[str | None] = mapped_column(
@@ -86,6 +118,26 @@ class AccessRule(Base, PkMixin, TimestampMixin):
     animal_scope: Mapped[AnimalScope] = mapped_column(String(20), nullable=False)
     action: Mapped[RuleAction] = mapped_column(String(24), nullable=False)
     effect: Mapped[RuleEffect] = mapped_column(String(16), nullable=False)
+    # ---- ADR-025: source-faithful scope + normative effect ------------------
+    #: what the source literally names (e.g. 'guide_dog'); never widened
+    source_scope_exact: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    #: the precise AnimalRole this rule governs (query/legal matching unit)
+    subject_scope_normalized: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    #: how source_scope_exact became subject_scope_normalized
+    normalization_type: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    #: what the source normatively does (carve-out / duty / plain effect)
+    normative_effect: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    #: who must be holding the animal (无障碍法第46条 ⇒ person_with_disability)
+    holder_scope: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    #: positive duties the venue owes (identification equipment, protective
+    #: measures…); a list, because the source may name several
+    operator_obligations: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    #: jurisdiction-level rules only: ISO 3166-2-ish code, e.g. 'CN-SH'
+    jurisdiction_code: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    #: jurisdiction-level rules only: which place_types it applies to
+    applies_to_place_types: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    #: per-place projections point back at the jurisdiction rule they copy
+    projection_of_rule_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     source_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("source.id", ondelete="RESTRICT"), nullable=False
     )
@@ -110,6 +162,13 @@ class AccessRule(Base, PkMixin, TimestampMixin):
     # rule_layer: LEGAL | REGULATORY_GUIDANCE | OPERATOR_POLICY | TEMPORARY_POLICY
     # NULL means legacy row → resolver reports REVIEW_REQUIRED (never guessed).
     rule_layer: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    # Normative force of this rule (BLK-LAYER-02 / ADR-023):
+    # mandatory | advisory | operator_discretion.
+    # The resolver only treats a LEGAL rule as its floor when this is
+    # 'mandatory'; NULL is NEVER interpreted as mandatory (unknown ≠ binding).
+    # The publish boundary requires a LEGAL candidate to declare it, so a
+    # statutory prohibition cannot silently become relaxable.
+    mandatory_level: Mapped[str | None] = mapped_column(String(20), nullable=True)
     origin_authority: Mapped[str | None] = mapped_column(String(160), nullable=True)
     organization_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     policy_template_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
@@ -172,6 +231,19 @@ class RuleException(Base, PkMixin, TimestampMixin):
     __table_args__ = (
         Index("ix_rule_exception_rule", "rule_id"),
         Index("ix_rule_exception_status", "status"),
+        # ADR-025: a carve-out must declare the precise scope it names.
+        CheckConstraint(
+            "normalization_type IS NULL OR normalization_type IN "
+            "('exact','parent_group_for_query_only','legal_interpretation_required',"
+            "'compound_term_split')",
+            name="normalization_type",
+        ),
+        CheckConstraint(
+            "normative_effect IS NULL OR normative_effect IN "
+            "('permission','prohibition','conditional_permission',"
+            "'exempt_from_prohibition','facilitation_required')",
+            name="normative_effect",
+        ),
     )
 
     rule_id: Mapped[str] = mapped_column(
@@ -179,6 +251,17 @@ class RuleException(Base, PkMixin, TimestampMixin):
     )
     animal_scope: Mapped[AnimalScope] = mapped_column(String(20), nullable=False)
     effect: Mapped[RuleEffect] = mapped_column(String(16), nullable=False)
+    # ---- ADR-025: the carve-out is source-faithful too -----------------------
+    #: what the source literally names (e.g. 'guide_dog')
+    source_scope_exact: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    #: precise AnimalRole the carve-out governs; matching uses this
+    subject_scope_normalized: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    #: exact | parent_group_for_query_only | legal_interpretation_required
+    normalization_type: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    #: exempt_from_prohibition for a 但书/豁免; permission for a plain grant
+    normative_effect: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    #: any_handler | person_with_disability
+    holder_scope: Mapped[str | None] = mapped_column(String(32), nullable=True)
     source_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("source.id", ondelete="RESTRICT"), nullable=False
     )

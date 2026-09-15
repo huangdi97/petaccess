@@ -2,7 +2,7 @@
 
 > 每个核心页面的状态完整性矩阵 · 对应 `UI_UX_IMPLEMENTATION_SPEC.md` §5.5 与 `WORKBUDDY_PRODUCTION_MASTER_GOAL.md` §5.5
 > 图例：✅ 已实现并有守卫 · 🟡 部分实现 · ❌ 未实现 · n/a 不适用
-> 基准 commit `716b163`
+> 基准 commit `53c4c03`（2026-09-14 更新，见 `UI_CORE_CLOSURE_REPORT.md`）
 
 **重要前提**：数据层（PostGIS）不可用（ENV-01），因此「已实现」指**代码路径存在且构建通过、且有源码级机读守卫**，不指已在真实数据上跑通。视觉回归截图无法采集，见 `FRONTEND_ACCEPTANCE.md` §5。
 
@@ -33,23 +33,24 @@
 | 页面 | loading | skeleton | empty | success | partial | stale | conflict | error | offline | permission denied |
 |---|---|---|---|---|---|---|---|---|---|---|
 | 启动 / Onboarding | ✅ | ❌ | n/a | ✅ | n/a | n/a | n/a | 🟡 | ❌ | 🟡 |
-| 定位授权 | 🟡 | n/a | n/a | 🟡 | n/a | n/a | n/a | 🟡 | ❌ | 🟡 |
-| **地图首页** | ✅ | ✅ | ✅ | ✅ | ❌ | 🟡¹ | 🟡¹ | ✅ | ✅ | ❌ |
-| **搜索 / 发现** | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ |
+| 定位授权 | ✅ | n/a | n/a | ✅ | n/a | n/a | n/a | ✅ | ✅ | ✅ |
+| **地图首页** | ✅ | ✅ | ✅ | ✅ | ✅ | 🟡¹ | 🟡¹ | ✅ | ✅ | ❌ |
+| **搜索 / 发现** | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | 🟡¹ | ✅ | ✅ | ❌ |
 | Place Card | n/a | ❌ | 🟡 | ✅ | 🟡 | 🟡¹ | 🟡¹ | 🟡 | ❌ | n/a |
-| **Place Detail** | ✅ | ✅ | ✅ | ✅ | 🟡 | 🟡¹ | ✅ | ✅ | ❌ | 🟡² |
+| **Place Detail（10 Section）** | ✅ | ✅ | ✅ | ✅ | ✅ | 🟡¹ | ✅ | ✅ | ❌ | 🟡² |
 | Zone 明细 | n/a | n/a | ✅ | ✅ | 🟡 | 🟡¹ | 🟡¹ | ✅ | n/a | n/a |
-| **Boundary Profile** | ✅ | ✅ | 🟡 | ✅ | ❌ | n/a | ❌ | ✅ | ✅ | 🟡² |
-| Pet Profile | 🟡 | ❌ | ✅ | ✅ | 🟡 | n/a | n/a | ✅ | ❌ | 🟡² |
-| Contribution | 🟡 | ❌ | ✅ | ✅ | 🟡 | n/a | n/a | ✅ | ❌ | 🟡² |
-| 证据上传 | 🟡 | n/a | 🟡 | 🟡 | 🟡 | n/a | n/a | 🟡 | ❌ | 🟡² |
-| Watch / 关注 | 🟡 | n/a | ✅ | ✅ | n/a | n/a | n/a | ✅ | ❌ | 🟡² |
+| **Boundary Profile** | ✅ | ✅ | ✅ | ✅ | ❌ | n/a | ❌ | ✅ | ✅ | 🟡² |
+| **Pet Profile（CRUD）** | ✅ | ✅ | ✅ | ✅ | n/a | n/a | n/a | ✅ | ✅ | ✅ |
+| **Contribution（4 入口）** | ✅ | n/a | ✅ | ✅ | ✅ | n/a | n/a | ✅ | ✅ | ✅ |
+| **证据上传（真实 media）** | ✅ | n/a | ✅ | ✅ | ✅ | n/a | n/a | ✅ | ✅ | ✅ |
+| **通知中心 / Watch** | ✅ | ✅ | ✅ | ✅ | ✅ | n/a | n/a | ✅ | ❌ | ✅ |
 | 纠错 / 异议 | 🟡 | n/a | n/a | ✅ | n/a | n/a | n/a | ✅ | ❌ | 🟡² |
 | Match Explain | ✅ | ❌ | ❌ | ✅ | 🟡 | 🟡¹ | ✅ | ✅ | ❌ | ❌ |
-| 隐私 / 数据控制 | 🟡 | n/a | 🟡 | 🟡 | n/a | n/a | n/a | 🟡 | ❌ | ❌ |
-| 关于 / 数据方法论 | ❌ | n/a | ❌ | ❌ | n/a | n/a | n/a | n/a | n/a | n/a |
+| **隐私 / 数据控制** | ✅ | n/a | ✅ | ✅ | ✅ | n/a | n/a | ✅ | ❌ | ❌ |
+| **设置 / 关于 / 方法论** | ✅ | n/a | n/a | ✅ | n/a | n/a | n/a | n/a | n/a | n/a |
 
 ¹ 通过 `StatusBadge` 语义呈现（STALE / CONFLICT），非独立页面态。
+² 通过 `StateMessage(PERMISSION_DENIED)` 全页呈现（未登录 + 登录入口），非仅内联提示。
 ² 以登录提示形式呈现，非全页态。
 
 **加粗行 = 本轮新接入状态三件套的页面。**
@@ -67,15 +68,26 @@
 | 错误可恢复 | `StateMessage(ERROR)` + [重试] 按钮重新发起请求 | HomeView / SearchView / PlaceView / BoundaryView |
 | 权限失败 | 「需要登录后才能核验」类文案，而非静默 | `PlaceView.vue` 等 |
 
-### 明确缺口
+### 明确缺口（2026-09-14 更新）
 
-1. **PARTIAL 全页态未实现**：`PAGE_STATES.PARTIAL` 已定义但无页面渲染它（部分数据场景目前直接展示可用部分）。
-2. **PERMISSION_DENIED 全页态未实现**：目前为内联提示。
-3. **地图首页与搜索仍为工具级**：`MockMap.vue` 为静态占位，无 marker clustering、bottom sheet、filter chips、定位、list/map 切换、coverage hint（`UI_UX_IMPLEMENTATION_SPEC` §2.1/§2.2）。依赖真实地图 provider（B-04）与数据层。
-4. **Place Detail 未覆盖 §2.4 的 10 个 Section**：现为 4 个（当前答案 / 分区规则 / 来源与核验 / 现场观察）。
-5. **无 Place Card 独立组件**：列表场景未抽取。
-6. **无纠错/异议独立页**：仅 Place Detail 内一个按钮。
-7. **PetNewView / MineView / ContributeView 未接骨架屏**。
+1. ~~**PARTIAL 全页态未实现**~~ → **已实现**：`PlaceView`（部分板块缺失）、`ContributeView`（OCR 降级）、
+   `PrivacyView`（导出未实现）、`NotificationsView`（Mock 通道）均渲染 `StateMessage(PARTIAL)`。
+2. ~~**PERMISSION_DENIED 全页态未实现**~~ → **已实现**：`PetProfileView` / `ContributeView` /
+   `NotificationsView` 未登录时渲染全页 `PERMISSION_DENIED` + 登录入口。
+3. ~~**地图首页与搜索仍为工具级**~~ → **已实现**：`clusterMarkers()` 聚类、`BottomSheet.vue`、
+   `FilterChips.vue`、一次性定位（`LocationState`）、list/map 切换、`coverageHint()`。
+   腾讯 / Mock 两条 provider 路径行为一致（抽象在 `client-core`）。
+4. ~~**Place Detail 未覆盖 §2.4 的 10 个 Section**~~ → **已实现**：10 个 Section 全部落地
+   （新增后端只读端点 `GET /places/{id}/extras` 支撑 §4/§5/§6）。
+5. **无 Place Card 独立组件**：仍为内联渲染（列表场景未抽取）。**低优先级**。
+6. **无纠错/异议独立页**：仍为 Place Detail 内入口。**低优先级**。
+7. ~~**PetNewView / MineView / ContributeView 未接骨架屏**~~ → **已实现**：
+   `PetProfileView` 使用 `SkeletonList`；`MineView` 为同步渲染无需骨架；
+   `ContributeView` 为表单流程，无列表加载态。
+8. **真实数据渲染未验证**：`ENV-01`（无 PostGIS）⇒ 场所列表 / 规则内容 / 地图图钉
+   未在真实数据上跑通。**外部条件阻塞**，非代码缺口。
+9. **视觉回归截图缺失**：依赖运行中的数据层，见 `FRONTEND_ACCEPTANCE.md` §5。
+10. **深色主题**：`NOT_STARTED`（P2，按指令最后处理）。
 
 ---
 

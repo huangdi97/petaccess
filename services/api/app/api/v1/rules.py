@@ -126,9 +126,7 @@ def evaluate_rules(body: EvaluateIn, db: Session = Depends(get_db)) -> EvaluateO
     # SG-REAL-01: active exceptions on these rules participate in evaluation
     db_exceptions = (
         db.scalars(
-            select(RuleException).where(
-                RuleException.rule_id.in_([r.id for r in db_rules])
-            )
+            select(RuleException).where(RuleException.rule_id.in_([r.id for r in db_rules]))
         ).all()
         if db_rules
         else []
@@ -207,6 +205,10 @@ def create_rule(
         recorded_at=datetime.now(UTC),
         review_due_at=body.review_due_at,
         status="current",
+        # BLK-LAYER-02 / ADR-023: layer + normative force are first-class and
+        # never defaulted here — a LEGAL rule must declare its mandatory_level.
+        rule_layer=body.rule_layer,
+        mandatory_level=body.mandatory_level.value if body.mandatory_level else None,
         note=body.note,
     )
     db.add(rule)
@@ -225,6 +227,8 @@ def create_rule(
             "effect": body.effect.value,
             "animal_scope": body.animal_scope.value,
             "action": body.action.value,
+            "rule_layer": rule.rule_layer,
+            "mandatory_level": rule.mandatory_level,
         },
     )
     db.commit()

@@ -10,12 +10,16 @@ resolver routes rules into the legal / guidance / event / operator pools on this
 value, so flattening changes the published answer. The fix carries the layer
 through (migration d1a4f7c93b28).
 
-F2 (open, recorded as BLK-LAYER-02) — ``AccessRule`` has no ``mandatory_level``
-column, so a DB-backed LEGAL rule can never be ``mandatory``. The resolver's
-"LEGAL mandatory rules govern; lower layers cannot relax them" branch is
-therefore unreachable for published rules, and a statutory prohibition can be
-outvoted by an operator ``allowed`` rule. Pinned below so the behaviour cannot
-change silently; the fix needs a human decision (schema + ADR), not a patch.
+F2 (fixed, ADR-023) — ``AccessRule`` had no ``mandatory_level`` column, so a
+DB-backed LEGAL rule could never be ``mandatory``. The resolver's "LEGAL
+mandatory rules govern; lower layers cannot relax them" branch was therefore
+unreachable for published rules, and a statutory prohibition could be outvoted
+by an operator ``allowed`` rule. The fix adds ``mandatory_level`` to
+``AccessRule``/``RuleCandidate`` (migration e3b7a1c4f920), carries it through
+publish(), and makes the publish gate refuse a LEGAL candidate that leaves it
+blank. The two resolver-behaviour tests below are kept: they document that NULL
+is still never read as mandatory (unknown ≠ binding) — the fix is that such a
+rule can no longer be published, not that the resolver guesses.
 """
 
 from datetime import UTC, datetime
@@ -106,16 +110,15 @@ def test_temporary_policy_is_distinguished_by_its_layer():
     assert op.is_temporary is False
 
 
-# --- F2: the mandatory_level gap (open finding, recorded for the review Gate) -
+# --- F2: mandatory_level (BLK-LAYER-02, fixed in ADR-023) --------------------
 
 
 def test_legal_prohibition_without_mandatory_level_does_not_govern():
-    """BLK-LAYER-02: a non-mandatory LEGAL prohibition is outvoted by operator.
+    """NULL mandatory_level is never read as binding (unknown ≠ mandatory).
 
-    ``AccessRule`` stores no ``mandatory_level``, so every published LEGAL rule
-    lands in the resolver's ``legal_other`` bucket and is excluded from the
-    governing set whenever any non-legal rule applies. A venue operator rule
-    saying "allowed" therefore wins against 《上海市养犬管理条例》第23条.
+    This is why the publish gate must refuse a LEGAL candidate that leaves the
+    level blank (see tests/unit/test_mandatory_level.py) — the resolver will not
+    invent a floor for it.
     """
     rs = _resolve(
         legal=[_rule("L1", layer=RuleLayer.LEGAL.value, effect="prohibited")],
@@ -127,7 +130,7 @@ def test_legal_prohibition_without_mandatory_level_does_not_govern():
 
 
 def test_legal_prohibition_with_mandatory_level_does_govern():
-    """The designed behaviour the DB path cannot currently reach (see F2)."""
+    """The designed behaviour, now reachable for published rules (ADR-023)."""
     rs = _resolve(
         legal=[
             _rule(

@@ -49,11 +49,26 @@ onMounted(async () => {
           设为本次对象
         </button>
       </div>
+      <div class="panel" v-if="!pets.length">
+        <span class="muted">还没有宠物档案。涉及体重/体型条件的规则会返回「需补充」。</span>
+      </div>
+      <RouterLink to="/pets">
+        <button class="primary block" style="margin-top: 8px" data-testid="open-pet-profile">
+          管理宠物档案（新建 / 编辑 / 删除）
+        </button>
+      </RouterLink>
+
       <h2>关注的规则变化</h2>
       <div class="panel" v-for="w in watches" :key="w.id">
         <span class="muted">{{ w.target_type }} · {{ w.target_id.slice(0, 8) }}…</span>
       </div>
       <div class="panel" v-if="!watches.length"><span class="muted">暂无关注</span></div>
+      <RouterLink to="/notifications">
+        <button class="primary block" style="margin-top: 8px" data-testid="open-notifications">
+          通知中心
+        </button>
+      </RouterLink>
+
       <h2>我的共处边界</h2>
       <div class="panel">
         <div class="muted">
@@ -65,14 +80,24 @@ onMounted(async () => {
           </button>
         </RouterLink>
       </div>
-      <h2>隐私</h2>
+
+      <h2>隐私与数据</h2>
       <div class="panel">
         <div class="notice">
           · 位置仅用于附近查询/现场核验，不建立连续轨迹<br />
           · 小区只展示公共空间规则，无住户信息<br />
           · 服务犬身份仅由用户声明，平台不凭照片认定
         </div>
+        <div class="row" style="margin-top: 8px">
+          <RouterLink to="/privacy">
+            <button class="pill" data-testid="open-privacy">隐私与数据控制</button>
+          </RouterLink>
+          <RouterLink to="/settings">
+            <button class="pill" data-testid="open-settings">设置 / 方法论</button>
+          </RouterLink>
+        </div>
       </div>
+
       <button class="block" @click="session.logout()">退出登录</button>
     </template>
   </div>

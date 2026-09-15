@@ -8,10 +8,10 @@
 import { computed } from "vue";
 import { badgeForSourceType } from "@petaccess/design-tokens";
 
-const props = withDefaults(
-  defineProps<{ sourceType?: string | null; label?: string | null }>(),
-  { sourceType: null, label: null },
-);
+const props = withDefaults(defineProps<{ sourceType?: string | null; label?: string | null }>(), {
+  sourceType: null,
+  label: null,
+});
 
 const badge = computed(() => badgeForSourceType(props.sourceType));
 </script>

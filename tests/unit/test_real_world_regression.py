@@ -59,6 +59,11 @@ def _build(place: dict):
             mandatory_level=r.get("mandatory_level"),
             effective_from=_parse(r.get("effective_from")),
             effective_to=_parse(r.get("effective_to")),
+            # ADR-025: source-faithful scope — a rule only governs the precise
+            # subject the source names, never an ontology parent.
+            source_scope_exact=r.get("source_scope_exact"),
+            subject_scope_normalized=r.get("subject_scope_normalized"),
+            normalization_type=r.get("normalization_type"),
         )
         buckets[layer].append(lr)
         for exc in r.get("exceptions") or []:
@@ -72,6 +77,8 @@ def _build(place: dict):
                     status=exc.get("status") or "current",
                     effective_from=_parse(exc.get("effective_from")),
                     effective_to=_parse(exc.get("effective_to")),
+                    subject_scope_normalized=exc.get("subject_scope_normalized"),
+                    normalization_type=exc.get("normalization_type"),
                 )
             )
     return buckets, exceptions
@@ -91,6 +98,7 @@ def _resolve(place: dict, q: dict):
         zone_id=q.get("zone_key"),
         now=NOW,
         exceptions=exceptions,
+        declared_role=q.get("declared_role"),
     )
 
 

@@ -9,6 +9,8 @@ test-results
 pnpm-lock.yaml
 **/*.md
 packages/api-client
-docs/reality_audit/*.json
+docs/reality_audit/**/*.json
+# generated fixture: "regenerate via the audit tool, never hand-edit"
+tests/fixtures/*.json
 schemas
 apps/client

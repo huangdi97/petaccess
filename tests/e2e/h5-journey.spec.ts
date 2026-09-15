@@ -6,8 +6,19 @@ import { expect, test } from "@playwright/test";
 
 const CAFE_ID = "8412b521-5e1c-505d-9dec-568acb860c76"; // deterministic seed UUID
 
-test("health and home render nearby places", async ({ page }) => {
+test("health and decision home render nearby places", async ({ page }) => {
   await page.goto("/");
+  // Consumer UX Baseline v1 §9/§11: the landing surface is the Decision Home
+  // (search-first). The map moved to its own tab.
+  await expect(page.getByTestId("home-title")).toBeVisible();
+  await expect(page.getByTestId("home-search-input")).toBeVisible();
+  await expect(page.getByText("附近已核验")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "规则待核实" })).toBeVisible();
+
+  // the map tab still renders the full shell and the list fallback
+  await page.goto("/#/map");
+  await expect(page.getByTestId("map")).toBeVisible();
+  await page.getByTestId("view-list").click();
   await expect(page.getByRole("heading", { name: "附近场所" })).toBeVisible();
   await expect(page.getByText("星河咖啡·测试店").first()).toBeVisible();
   await expect(page.getByText("青岚公园·演示").first()).toBeVisible();
@@ -19,15 +30,19 @@ test("place detail shows one-sentence answer with zones and provenance", async (
   await expect(answer).toBeVisible();
   // design #48: actionable answer + obligations + source + last verification
   // anonymous visit → no pet profile yet (explicit, never guessed)
-  await expect(answer).toContainText("未选择宠物档案");
-  await expect(answer).toContainText("有条件进入");
+  await expect(answer).toContainText("我的宠物：未设置");
+  await expect(page.getByTestId("answer-status")).toContainText("有条件进入");
   await expect(answer).toContainText("需牵引");
-  await expect(answer).toContainText("最近核验：");
-  // zone breakdown: indoor restricted, outdoor conditional, service dog allowed
+  // provenance is rendered by section 1 as a whole, not by the answer block
+  await expect(page.getByTestId("section-answer")).toContainText("最近核验：");
+  // zone breakdown: every zone is listed, and its status is computed on demand
+  // (one evaluation per zone, so the list does not fan out into N requests)
   const zones = page.getByTestId("zones");
   await expect(zones).toContainText("室内堂食区");
-  await expect(zones).toContainText("限制");
   await expect(zones).toContainText("户外座位区");
+  const indoor = zones.locator(".zone-row").filter({ hasText: "室内堂食区" });
+  await indoor.getByRole("button", { name: "查看" }).click();
+  await expect(indoor).toContainText("明确限制");
   // observations coexist with rules but do not change the answer
   await expect(page.getByText("no_interaction_observed").first()).toBeVisible();
 });
@@ -69,10 +84,10 @@ test("register → create pet → answer carries pet context → quick confirm",
 
   // place answer references the pet
   await page.goto(`/#/place/${CAFE_ID}`);
-  await expect(page.getByTestId("answer")).toContainText("对于：豆豆");
+  await expect(page.getByTestId("answer")).toContainText("我的宠物：豆豆");
 
   // quick confirm requires auth → succeeds and records
-  await page.getByRole("button", { name: "仍有效" }).first().click();
+  await page.getByRole("button", { name: "仍然如此" }).first().click();
   await expect(page.getByTestId("quick-msg")).toContainText("已记录");
 });
 

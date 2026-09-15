@@ -53,7 +53,10 @@
        "animal_scope": "service_dog",
        "effect": "allowed",
        "source_key": "sh_dog_regulation",
-       "note": "但书/政策例外：导盲犬等工作犬不受本条限制"
+       "note": "但书/政策例外：导盲犬等工作犬不受本条限制",
+       "source_scope_exact": "service_dog",
+       "subject_scope_normalized": "guide_dog",
+       "normalization_type": "exact"
       }
      ]
     },
@@ -97,7 +100,10 @@
      "effect": "allowed",
      "rule_layer": "OPERATOR_POLICY",
      "conditions": [],
-     "source_key": "taikoo_official"
+     "source_key": "taikoo_official",
+     "source_scope_exact": "service_dog",
+     "subject_scope_normalized": "service_dog",
+     "normalization_type": "exact"
     }
    ],
    "queries": [
@@ -188,7 +194,10 @@
        "value_flag": true
       }
      ],
-     "source_key": "disney_official"
+     "source_key": "disney_official",
+     "source_scope_exact": "service_dog",
+     "subject_scope_normalized": "service_dog",
+     "normalization_type": "exact"
     },
     {
      "rule_id": "dl-legal-dog",
@@ -205,7 +214,10 @@
        "animal_scope": "service_dog",
        "effect": "allowed",
        "source_key": "sh_dog_regulation",
-       "note": "但书/政策例外：导盲犬等工作犬不受本条限制"
+       "note": "但书/政策例外：导盲犬等工作犬不受本条限制",
+       "source_scope_exact": "service_dog",
+       "subject_scope_normalized": "guide_dog",
+       "normalization_type": "exact"
       }
      ]
     }
@@ -446,7 +458,10 @@
        "animal_scope": "service_dog",
        "effect": "allowed",
        "source_key": "jfdaily_news",
-       "note": "新华网原文：『明确禁止除导盲犬等工作犬以外的其他宠物进入商场室内公共区域』——运营方政策自带工作犬例外（R2 直接抓取核验）"
+       "note": "新华网原文：『明确禁止除导盲犬等工作犬以外的其他宠物进入商场室内公共区域』——运营方政策自带工作犬例外（R2 直接抓取核验）",
+       "source_scope_exact": "service_dog",
+       "subject_scope_normalized": "guide_dog",
+       "normalization_type": "exact"
       }
      ]
     },
@@ -481,7 +496,10 @@
        "animal_scope": "service_dog",
        "effect": "allowed",
        "source_key": "sh_dog_regulation",
-       "note": "但书/政策例外：导盲犬等工作犬不受本条限制"
+       "note": "但书/政策例外：导盲犬等工作犬不受本条限制",
+       "source_scope_exact": "service_dog",
+       "subject_scope_normalized": "guide_dog",
+       "normalization_type": "exact"
       }
      ]
     }
@@ -560,7 +578,10 @@
      "effect": "allowed",
      "rule_layer": "OPERATOR_POLICY",
      "conditions": [],
-     "source_key": "library_notice"
+     "source_key": "library_notice",
+     "source_scope_exact": "service_dog",
+     "subject_scope_normalized": "service_dog",
+     "normalization_type": "exact"
     },
     {
      "rule_id": "lib-legal-dog",
@@ -577,7 +598,10 @@
        "animal_scope": "service_dog",
        "effect": "allowed",
        "source_key": "sh_dog_regulation",
-       "note": "但书/政策例外：导盲犬等工作犬不受本条限制"
+       "note": "但书/政策例外：导盲犬等工作犬不受本条限制",
+       "source_scope_exact": "service_dog",
+       "subject_scope_normalized": "guide_dog",
+       "normalization_type": "exact"
       }
      ]
     }
@@ -656,7 +680,10 @@
      "effect": "allowed",
      "rule_layer": "OPERATOR_POLICY",
      "conditions": [],
-     "source_key": "ota_pages"
+     "source_key": "ota_pages",
+     "source_scope_exact": "service_dog",
+     "subject_scope_normalized": "service_dog",
+     "normalization_type": "exact"
     },
     {
      "rule_id": "fp-legal-dog",
@@ -673,7 +700,10 @@
        "animal_scope": "service_dog",
        "effect": "allowed",
        "source_key": "sh_dog_regulation",
-       "note": "但书/政策例外：导盲犬等工作犬不受本条限制"
+       "note": "但书/政策例外：导盲犬等工作犬不受本条限制",
+       "source_scope_exact": "service_dog",
+       "subject_scope_normalized": "guide_dog",
+       "normalization_type": "exact"
       }
      ]
     }
@@ -740,7 +770,10 @@
        "animal_scope": "service_dog",
        "effect": "allowed",
        "source_key": "sh_dog_regulation",
-       "note": "但书/政策例外：导盲犬等工作犬不受本条限制"
+       "note": "但书/政策例外：导盲犬等工作犬不受本条限制",
+       "source_scope_exact": "service_dog",
+       "subject_scope_normalized": "guide_dog",
+       "normalization_type": "exact"
       }
      ]
     }
@@ -851,7 +884,10 @@
        "animal_scope": "service_dog",
        "effect": "allowed",
        "source_key": "sh_dog_regulation_note",
-       "note": "但书/政策例外：导盲犬等工作犬不受本条限制"
+       "note": "但书/政策例外：导盲犬等工作犬不受本条限制",
+       "source_scope_exact": "service_dog",
+       "subject_scope_normalized": "guide_dog",
+       "normalization_type": "exact"
       }
      ]
     }
@@ -953,7 +989,10 @@
        "animal_scope": "service_dog",
        "effect": "allowed",
        "source_key": "sh_dog_regulation_note",
-       "note": "但书/政策例外：导盲犬等工作犬不受本条限制"
+       "note": "但书/政策例外：导盲犬等工作犬不受本条限制",
+       "source_scope_exact": "service_dog",
+       "subject_scope_normalized": "guide_dog",
+       "normalization_type": "exact"
       }
      ]
     }

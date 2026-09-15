@@ -60,11 +60,133 @@ class IndoorOutdoor(StrEnum):
 
 
 class AnimalScope(StrEnum):
+    """Coarse scope kept for the public API surface (ADR-025).
+
+    New records must also carry the precise ``AnimalRole`` in
+    ``subject_scope_normalized`` — ``AnimalScope`` alone cannot express the
+    difference between a guide dog and, say, a police dog.
+    """
+
     DOG = "dog"
     CAT = "cat"
     ORDINARY_PET = "ordinary_pet"
     SERVICE_DOG = "service_dog"
     OTHER = "other"
+
+
+class AnimalRole(StrEnum):
+    """Precise animal-role taxonomy — the modelling unit for legal scope.
+
+    Source fidelity rule (ADR-025): a source that says 导盲犬 governs
+    ``GUIDE_DOG`` and **nothing wider**. Ontology (``GUIDE_DOG`` is-a
+    ``SERVICE_DOG``) is a *query* convenience; it must never widen a
+    source-specific legal effect.
+    """
+
+    ORDINARY_DOG = "ordinary_dog"
+    GUIDE_DOG = "guide_dog"
+    HEARING_DOG = "hearing_dog"
+    ASSISTANCE_DOG = "assistance_dog"
+    OTHER_SERVICE_DOG = "other_service_dog"
+    POLICE_DOG = "police_dog"
+    MILITARY_WORKING_DOG = "military_working_dog"
+
+
+#: Roles that are service dogs in the assistance sense (query parent only).
+SERVICE_DOG_ROLES: frozenset[str] = frozenset(
+    {
+        AnimalRole.GUIDE_DOG.value,
+        AnimalRole.HEARING_DOG.value,
+        AnimalRole.ASSISTANCE_DOG.value,
+        AnimalRole.OTHER_SERVICE_DOG.value,
+    }
+)
+
+#: Police and military working dogs are **working** dogs but are NOT service
+#: dogs (they do not assist a person with a disability). Never fold them into
+#: the service-dog parent.
+WORKING_DOG_ROLES: frozenset[str] = frozenset(
+    {*SERVICE_DOG_ROLES, AnimalRole.POLICE_DOG.value, AnimalRole.MILITARY_WORKING_DOG.value}
+)
+
+#: Leaf roles a query may expand to when the caller asks for the generic
+#: "dog" scope. Order is irrelevant; the set is the point.
+ALL_ANIMAL_ROLES: frozenset[str] = frozenset(r.value for r in AnimalRole)
+
+
+class NormalizationType(StrEnum):
+    """How a source scope was turned into a stored subject scope (ADR-025).
+
+    Only the types in ``LEGAL_NORMALIZATION_TYPES`` (``EXACT`` and
+    ``COMPOUND_TERM_SPLIT``) authorise the stored scope to stand in for the
+    source's legal effect. The others are explicitly *not* legal equivalents.
+    """
+
+    #: stored scope == the scope the source literally names
+    EXACT = "exact"
+    #: stored scope is a query convenience (parent group); carries NO legal effect
+    PARENT_GROUP_FOR_QUERY_ONLY = "parent_group_for_query_only"
+    #: widening requires a legal interpretation that has not been made
+    LEGAL_INTERPRETATION_REQUIRED = "legal_interpretation_required"
+    #: The source used a **compound term** (e.g. 军警犬 = military + police dogs)
+    #: and this row is ONE member of a documented, exhaustive split of that term.
+    #: It carries legal effect, but only for its own member: the union of the
+    #: split rows must equal the source's set, and nothing outside it may be
+    #: added. ``source_scope_exact`` keeps the compound wording verbatim so the
+    #: split stays auditable — this is NOT a licence to widen to "other working
+    #: dogs". (ADR-028)
+    COMPOUND_TERM_SPLIT = "compound_term_split"
+
+
+#: normalisation types that DO confer legal effect (i.e. the stored scope is a
+#: faithful reading of the source). Kept explicit so a new type cannot become
+#: legal by accident.
+LEGAL_NORMALIZATION_TYPES: frozenset[str] = frozenset(
+    {
+        NormalizationType.EXACT.value,
+        NormalizationType.COMPOUND_TERM_SPLIT.value,
+    }
+)
+
+
+class NormativeEffect(StrEnum):
+    """What the source normatively does — a layer beside ``RuleEffect``.
+
+    ``RuleEffect`` (allowed/prohibited/conditional) answers "may this subject
+    enter?". It cannot express "the base prohibition does not apply to this
+    subject" (a carve-out) or "the venue must actively accommodate this
+    subject" (a duty). Forcing those into ``allowed`` silently inflates a
+    duty into an unconditional permission, so they get their own layer
+    (ADR-025). The API keeps returning ``effect``; ``normative_effect`` is
+    additive.
+    """
+
+    PERMISSION = "permission"
+    PROHIBITION = "prohibition"
+    CONDITIONAL_PERMISSION = "conditional_permission"
+    #: the rule removes a base prohibition for a narrow subject (但书/豁免)
+    EXEMPT_FROM_PROHIBITION = "exempt_from_prohibition"
+    #: the venue has a positive duty to accommodate (无障碍「提供便利」)
+    FACILITATION_REQUIRED = "facilitation_required"
+
+
+class HolderScope(StrEnum):
+    """Who must be holding/using the animal for the norm to apply."""
+
+    ANY_HANDLER = "any_handler"
+    PERSON_WITH_DISABILITY = "person_with_disability"
+
+
+#: ``RuleEffect`` values that a ``NormativeEffect`` may be reduced to for the
+#: legacy 3-value API. ``FACILITATION_REQUIRED`` deliberately maps to
+#: ``conditional`` — never ``allowed`` — because a duty is not a permission.
+NORMATIVE_TO_EFFECT: dict[str, str] = {
+    NormativeEffect.PERMISSION.value: "allowed",
+    NormativeEffect.PROHIBITION.value: "prohibited",
+    NormativeEffect.CONDITIONAL_PERMISSION.value: "conditional",
+    NormativeEffect.EXEMPT_FROM_PROHIBITION.value: "allowed",
+    NormativeEffect.FACILITATION_REQUIRED.value: "conditional",
+}
 
 
 class RuleAction(StrEnum):
@@ -257,9 +379,39 @@ class JurisdictionReviewStatus(StrEnum):
 
 
 class MandatoryLevel(StrEnum):
+    """Normative force of a rule/regulation (RULE_RESOLVER_SPEC, ADR-023).
+
+    - ``mandatory``           — a binding constraint. The resolver treats a
+      mandatory LEGAL rule as the floor: no lower layer may silently relax it.
+    - ``advisory``            — guidance that informs but does not bind.
+    - ``operator_discretion`` — the operator/venue decides; the default for
+      operator-origin rules.
+
+    The legacy value ``discretionary`` is still accepted on read (existing rows,
+    fixtures) and is normalised to ``operator_discretion`` by
+    ``app.rulespec.v05_resolver.normalize_mandatory_level``. It is intentionally
+    NOT a member here so new writes cannot reintroduce the second spelling.
+    """
+
     MANDATORY = "mandatory"
     ADVISORY = "advisory"
-    DISCRETIONARY = "discretionary"
+    OPERATOR_DISCRETION = "operator_discretion"
+
+
+#: legacy spellings still found in old rows / fixtures → canonical value
+LEGACY_MANDATORY_LEVELS: dict[str, str] = {
+    "discretionary": MandatoryLevel.OPERATOR_DISCRETION.value,
+}
+
+
+def normalize_mandatory_level(value: str | None) -> str | None:
+    """Map a stored mandatory_level onto the canonical vocabulary.
+
+    Returns ``None`` unchanged (unknown level — never coerced to a value).
+    """
+    if value is None:
+        return None
+    return LEGACY_MANDATORY_LEVELS.get(str(value), str(value))
 
 
 class DisputeCaseStatus(StrEnum):

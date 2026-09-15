@@ -1,66 +1,84 @@
 # PRODUCTION_STATE.md
 
+> 最后更新：2026-09-14（GMT+8）· 真实基线 HEAD `53c4c0339ffcaea54b7c4cced46ad7edd28d7bb1`
+> 依据：`ENV01_RESOLUTION_REPORT.md`、`P0_PUBLISH_CLOSURE_REPORT.md`、`UI_CORE_CLOSURE_REPORT.md`
+
 ## Current Phase
-P0_PILOT_REVIEW_PUBLISH（工作稿与工具链完成；写库被阻塞）
+P0_PUBLISH_CLOSURE + UI_CORE_CLOSURE + **ENV-01 解除**
+（写库能力已就绪并经往返验证；仅剩 GOV-01 人类签署）
 
 ## Current Baseline
-REAL_DATA_PILOT_10_R2（`REAL_DATA_PILOT_10_R2_REPORT.md`，R2 Gate PASS 有条件）
+HEAD `53c4c03`（真实基线）。旧 `FINAL_PRODUCTION_READINESS_REPORT.md` 指向的 `716b163`
+**早于**当前 HEAD，其结论不作为本状态依据。
 
 ## Actual HEAD
-`716b163`（本轮 P0 + P3 + P4 + P7/P13 增量已提交；前置基线 `08ee60c`）
+`53c4c0339ffcaea54b7c4cced46ad7edd28d7bb1`
 
-## Expected Facts（R2 基线）
-- Evidence completeness: 93.9%
-- 33 RuleCandidate REVIEW_PENDING
-- 3 ObservationCandidate lead-only
-- Published: 0
-- Service dog: 7/7
-- Tests: 238/238 at R2 baseline
+## 环境（ENV-01 已解除）
+| 依赖 | 状态 |
+|---|---|
+| Docker / docker-compose | 运行中（Docker Desktop 4.64.0 / Client 29.2.1） |
+| PostgreSQL + PostGIS | **17.5 + 3.5.2**（5432，healthy） |
+| Redis | **7.4.11**（6379，healthy） |
+| MinIO | 运行中（9000-9001，bucket `petaccess-dev`） |
+| Celery worker | `--pool=solo` 可运行（任务往返通过） |
+| `/health/components` | **`all_ok: true`** |
+| Alembic head | **`f4c9d2e7a831`**；up/down/up 往返 **PASS** |
 
 ## Actual Facts（本轮实测）
-- 真实 Place: 10
-- RuleCandidate: 33（全部 REVIEW_PENDING）
-- APPROVED / REJECTED / PUBLISHED: 0 / 0 / 0
-- 数据库无关测试 + 契约测试: 194 passed / 20 deselected（DB 依赖用例）
-- `ruff check .`: All checks passed
-- `mypy services/api/app`: 74 files, no issues
-- 全量测试（含 DB 依赖）: 无法执行（ENV-01）
-- H5 构建 / Admin 构建: 均通过（两端各 65 个令牌入产物）
+- 真实 Place: 273；Zone 30；AccessRule 163；RuleCandidate 145（其中 33 条为 R1 待审）
+- 33 条候选：`REVIEW_PENDING`，层级/规范力已与登记表一致（LEGAL/mandatory 16）
+- **全量 `pytest`（不 deselect）：324 passed / 0 failed**
+- **Playwright 全量 E2E：14 passed / 0 failed**
+- **Admin 端到端（真实 DB）：Rollback（新增 5 用例）/ Supersession / Evidence Review / Data Quality 全部验证通过**
+- `ruff check` / `ruff format --check`（含 scripts）：PASS（132 files）
+- `mypy`：PASS（76 source files）
+- ESLint / Prettier：PASS
+- H5 构建 / Admin 构建：PASS
+- OpenAPI: 89 paths（admin 31）
+- **BLK-LAYER-02: FIXED**（ADR-023）+ 迁移约束命名修复（ADR-024，`f4c9d2e7a831`）
+- 发布门禁：预检**双重把关**（登记表 + 登记表↔库一致性）；未签署仍硬拒绝（exit 3）
 
 ## 总判定
 ```text
-READY_FOR_PUBLIC_BETA = NO
+PILOT_REVIEW_PUBLISH_GATE = NOT PASS
+READY_FOR_PUBLIC_BETA     = NO
 ```
-原因：P0 未 PASS（写库受 ENV-01 阻塞；最终审核决策受 GOV-01 治理红线阻塞），P1–P12 依纪律未启动。
+原因：**仅剩 GOV-01**（缺具名人类评审员签署 33 条候选）。ENV-01 已解除，写库能力就绪。
 
 ## 阶段状态
 | 阶段 | 状态 |
 |---|---|
 | P0 takeover audit | PASS |
-| P0 review 工作稿 | PASS |
+| P0 review 工作稿（33 条） | PASS |
 | P0 review 最终签署 | BLOCKED_EXTERNAL (GOV-01) |
-| P0 第一批 Publish | BLOCKED_EXTERNAL (ENV-01) |
-| P0 发布路径缺陷修复 | PASS（BLK-LAYER-01） |
+| P0 第一批 Publish | **READY**（写库就绪；待签署即可执行） |
+| P0 发布路径缺陷修复（BLK-LAYER-01） | PASS |
+| P0 规范力缺口修复（BLK-LAYER-02 → ADR-023） | PASS（FIXED） |
+| P0 迁移/数据一致性修复（ADR-024） | PASS（FIXED） |
 | P1 30–50 扩量 | NOT_RUN（被 P0 Gate 阻塞） |
-| P2 UX Freeze | PARTIAL |
-| P3 UI / Frontend | PARTIAL |
-| P4 Admin / Data Ops | PARTIAL（数据质量看板已实现；端到端验证待数据层） |
+| P2 UX Freeze | PASS |
+| P3 UI / Frontend（UI-CORE-CLOSURE） | **PASS**（含真实数据 E2E） |
+| P4 Admin / Data Ops | **PARTIAL+**（数据质量 KPI 真实有效；L1 Rollback 已端到端验证；端到端**发布**验证待 GOV-01 签署） |
 | P5 Real Provider | BLOCKED_EXTERNAL |
 | P6 Backend Hardening | NOT_RUN |
 | P7 Security/Privacy/Compliance | PARTIAL |
 | P8 Perf/Reliability/Observability | PARTIAL |
 | P9 Cross-platform Build | BLOCKED_EXTERNAL |
-| P10 Staging | BLOCKED_EXTERNAL |
+| P10 Staging | PARTIAL（依赖栈已可运行；未做 staging 部署） |
 | P11 UAT | NOT_RUN |
 | P12 Production Release | BLOCKED_EXTERNAL |
 | P13 Post-launch | NOT_RUN |
 
 ## Next Action
-1. 以管理员启动容器运行时并 `docker compose up -d` + `alembic upgrade head`（解 ENV-01）；
-2. 由具名人类评审员填写 `docs/reality_audit/review_decisions_r1.json`（解 GOV-01）；
-3. 执行 `python scripts/publish_reviewed_r1.py --execute --reviewer "<具名>"`；
-4. 处置 BLK-LAYER-02（`mandatory_level` 缺口）裁定；
-5. 此后按 Master Goal 顺序进入 P1。
+1. 由具名人类评审员逐行签署 `RULE_REVIEW_SHEET_R1.md`（33 行），回填
+   `docs/reality_audit/review_decisions_r1.json` 的
+   `final_decision` / `reviewer` / `reviewed_at`（解 GOV-01）；
+2. `python scripts/publish_reviewed_r1.py --dry-run` → 确认 `signed=true` 且库一致性校验通过；
+3. `python scripts/publish_reviewed_r1.py --execute --reviewer "<具名>"` → 首批 10–20 条真实发布；
+4. 逐项校验 linkage / evidence / audit / resolver / effective-rules / client /
+   rollback / supersession / watch；
+5. `PILOT_REVIEW_PUBLISH_GATE = PASS` 后进入 P1（30–50 Place 扩量）。
 
 ## Final Target
 Shanghai central public Beta（不得宣称全上海/全国覆盖）。

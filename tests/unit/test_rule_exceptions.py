@@ -42,7 +42,30 @@ GUIDE_EXEMPTION = LayeredException(
     animal_scope="service_dog",
     effect="allowed",
     source_id="src-statute",
+    # ADR-025: the proviso names 导盲犬 and nothing wider. Stored as the precise
+    # role with an *exact* normalisation — that is what lets it confer legal
+    # effect. A bare `service_dog` scope (no normalisation) governs nothing.
+    subject_scope_normalized="guide_dog",
+    normalization_type="exact",
+    normative_effect="exempt_from_prohibition",
 )
+
+
+def _precise_exception(**kwargs) -> LayeredException:
+    """An exception with the ADR-025 precise-scope fields filled in.
+
+    Every test below wants to exercise *its own* condition (expiry, status,
+    provenance, conflict) — not the scope gate. Without these fields the scope
+    gate would refuse the exception first and mask the behaviour under test.
+    """
+    base = {
+        "animal_scope": "service_dog",
+        "effect": "allowed",
+        "subject_scope_normalized": "guide_dog",
+        "normalization_type": "exact",
+    }
+    base.update(kwargs)
+    return LayeredException(**base)
 
 
 def _resolve(rules, *, animal="dog", service_role="none", exceptions=(), zone_id="indoor", now=NOW):
@@ -85,11 +108,9 @@ def test_service_dog_exempt_via_exception():
 
 
 def test_expired_exception_falls_back_to_base():
-    expired = LayeredException(
+    expired = _precise_exception(
         id="exc-old",
         rule_id="legal-dog-ban",
-        animal_scope="service_dog",
-        effect="allowed",
         source_id="src-statute",
         effective_to=NOW - timedelta(days=1),
     )
@@ -99,11 +120,9 @@ def test_expired_exception_falls_back_to_base():
 
 
 def test_future_exception_not_yet_effective():
-    future = LayeredException(
+    future = _precise_exception(
         id="exc-future",
         rule_id="legal-dog-ban",
-        animal_scope="service_dog",
-        effect="allowed",
         source_id="src-statute",
         effective_from=NOW + timedelta(days=1),
     )
@@ -113,26 +132,15 @@ def test_future_exception_not_yet_effective():
 
 def test_withdrawn_and_superseded_exceptions_never_apply():
     for status in ("withdrawn", "superseded", "archived"):
-        exc = LayeredException(
-            id="exc-dead",
-            rule_id="legal-dog-ban",
-            animal_scope="service_dog",
-            effect="allowed",
-            source_id="src-statute",
-            status=status,
+        exc = _precise_exception(
+            id="exc-dead", rule_id="legal-dog-ban", source_id="src-statute", status=status
         )
         rs = _resolve([STATUTE_BAN], animal="dog", service_role="working", exceptions=[exc])
         assert rs.effect == "prohibited", status
 
 
 def test_exception_without_source_never_applies():
-    exc = LayeredException(
-        id="exc-nosrc",
-        rule_id="legal-dog-ban",
-        animal_scope="service_dog",
-        effect="allowed",
-        source_id=None,
-    )
+    exc = _precise_exception(id="exc-nosrc", rule_id="legal-dog-ban", source_id=None)
     rs = _resolve([STATUTE_BAN], animal="dog", service_role="working", exceptions=[exc])
     assert rs.effect == "prohibited"
     assert rs.applied_exceptions == []
@@ -150,12 +158,8 @@ def test_exception_never_widens_to_ordinary_pets():
 
 
 def test_conflicting_exceptions_force_review():
-    contradict = LayeredException(
-        id="exc-no",
-        rule_id="legal-dog-ban",
-        animal_scope="service_dog",
-        effect="prohibited",
-        source_id="src-other",
+    contradict = _precise_exception(
+        id="exc-no", rule_id="legal-dog-ban", effect="prohibited", source_id="src-other"
     )
     rs = _resolve(
         [STATUTE_BAN],
@@ -174,12 +178,11 @@ def test_exception_carries_explanation_and_source_ref():
 
 
 def test_conditional_exception_works_too():
-    conditional = LayeredException(
+    conditional = _precise_exception(
         id="exc-cond",
         rule_id="legal-dog-ban",
-        animal_scope="service_dog",
-        effect="conditional",
         source_id="src-statute",
+        effect="conditional",
         conditions=({"condition_type": "leash_required", "value_flag": True},),
     )
     rs = _resolve([STATUTE_BAN], animal="dog", service_role="working", exceptions=[conditional])
@@ -238,6 +241,66 @@ roles = st.sampled_from(["none", "working", "in_training", "unknown"])
 species = st.sampled_from(["dog", "cat", "other"])
 statuses = st.sampled_from(["current", "withdrawn", "superseded", "archived", "pending_review"])
 window_offsets = st.integers(min_value=-30, max_value=30)
+# ADR-025 fields — drawn independently so the property exercises the scope gate.
+subject_scopes = st.sampled_from(
+    [None, "dog", "ordinary_pet", "service_dog", "cat", "other", "guide_dog", "police_dog"]
+)
+normalisations = st.sampled_from(
+    [None, "exact", "parent_group_for_query_only", "legal_interpretation_required"]
+)
+
+_ROLE_SET = {
+    "ordinary_dog",
+    "guide_dog",
+    "hearing_dog",
+    "assistance_dog",
+    "other_service_dog",
+    "police_dog",
+    "military_working_dog",
+}
+_ASSISTANCE_ROLES = {"guide_dog", "hearing_dog", "assistance_dog", "other_service_dog"}
+
+
+def _expected_legal_scope(exc_animal_scope, subject_scope, normalization_type) -> set[str] | None:
+    """Independent re-derivation of the ADR-025 legal scope (hand-written mirror).
+
+    Deliberately NOT importing `app.rulespec.animal_scope` — the point is to
+    catch a drift in the production rule, not to restate it.
+    """
+    if normalization_type in ("legal_interpretation_required", "parent_group_for_query_only"):
+        return None
+    scope = subject_scope
+    if scope is None:
+        scope = exc_animal_scope if exc_animal_scope in ("dog", "ordinary_pet") else None
+        if scope is None:
+            return None
+    elif scope == "service_dog" and normalization_type != "exact":
+        return None
+    if scope == "dog":
+        return set(_ROLE_SET)
+    if scope == "ordinary_pet":
+        return {"ordinary_dog", "ordinary_cat", "other_pet"}
+    if scope == "service_dog":
+        return set(_ASSISTANCE_ROLES)
+    if scope == "cat":
+        return {"ordinary_cat"}
+    if scope == "other":
+        return {"other_pet"}
+    if scope in _ROLE_SET:
+        return {scope}
+    return None
+
+
+def _expected_query_subjects(sp, rl) -> set[str]:
+    if sp == "cat":
+        return {"ordinary_cat"}
+    if sp == "other":
+        return {"other_pet"}
+    if sp != "dog":
+        return set()
+    if rl in ("working", "in_training"):
+        return set(_ASSISTANCE_ROLES)
+    return {"ordinary_dog"}
 
 
 @st.composite
@@ -255,6 +318,8 @@ def exception_batches(draw):
                 effect=draw(st.sampled_from(["allowed", "prohibited", "conditional"])),
                 source_id=draw(st.sampled_from(["src-statute", None])),
                 status=draw(statuses),
+                subject_scope_normalized=draw(subject_scopes),
+                normalization_type=draw(normalisations),
                 effective_from=NOW + timedelta(days=from_off) if from_off != 0 else None,
                 effective_to=NOW + timedelta(days=to_off) if to_off != 0 else None,
             )
@@ -288,42 +353,32 @@ def test_exception_never_governs_outside_its_scope(exc_batch, role, species):
         now=NOW,
         exceptions=list(exc_batch),
     )
-    # Core invariant: every APPLIED exception must be sourced, active, and its
-    # scope must match the query — anything else applying is a leak.
-    # Additionally a service_dog-scoped exception must never apply to a
-    # non-working-like query (must not widen to ordinary pets).
-
-    def scope_matches(e, sp, rl):
-        # mirror evaluator scope semantics for the probe
-        if e.animal_scope == "service_dog":
-            return rl in ("working", "in_training", "unknown") and sp == "dog"
-        if e.animal_scope == "ordinary_pet":
-            if rl in ("working", "in_training"):
-                return False
-            return sp in ("dog", "cat", "other")
-        if e.animal_scope == "dog":
-            return sp == "dog"
-        if e.animal_scope == "cat":
-            return sp == "cat"
-        return True  # other
-
+    # Core invariant (ADR-025): every APPLIED exception must be sourced, active,
+    # AND its legal scope must overlap the query's subjects. Anything else
+    # applying is a leak — exactly the 导盲犬→service_dog widening.
+    query = _expected_query_subjects(species, role)
     for exc_id in rs.applied_exceptions:
-        matching = [
-            e
-            for e in exc_batch
-            if e.id == exc_id
-            and e.source_id
-            and e.status == "current"
-            and scope_matches(e, species, role)
-        ]
+        matching = []
+        for e in exc_batch:
+            if e.id != exc_id or not e.source_id or e.status != "current":
+                continue
+            if e.effective_from is not None and e.effective_from > NOW:
+                continue
+            if e.effective_to is not None and e.effective_to < NOW:
+                continue
+            legal = _expected_legal_scope(
+                e.animal_scope, e.subject_scope_normalized, e.normalization_type
+            )
+            if legal and query & legal:
+                matching.append(e)
         assert matching, f"exception {exc_id} applied without source/activity/scope match"
 
-    # a service_dog-scoped exception must never apply to a query that is
-    # explicitly NOT working (role=none). role=unknown applies by design
-    # (conservative: the evaluator treats unknown as potentially working).
-    if not (species == "dog" and role in ("working", "in_training", "unknown")):
-        service_scoped = {e.id for e in exc_batch if e.animal_scope == "service_dog"}
-        assert service_scoped.isdisjoint(set(rs.applied_exceptions))
+    # `service_dog` declared as an exact scope is legal by construction (the
+    # source itself names the category); anything less must never be reachable.
+    for exc_id in rs.applied_exceptions:
+        src = next(e for e in exc_batch if e.id == exc_id)
+        if src.subject_scope_normalized == "service_dog":
+            assert src.normalization_type == "exact"
 
 
 @given(exc_batch=exception_batches(), role=roles)

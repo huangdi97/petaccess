@@ -17,6 +17,8 @@ VALID_EFFECTS = {"allowed", "prohibited", "conditional"}
 VALID_SPECIES = {"dog", "cat", "other"}
 VALID_ROLES = {"ordinary_pet", "service_dog"}
 VALID_EXCEPT_SCOPES = {"dog", "cat", "ordinary_pet", "service_dog", "other"}
+#: normative force (ADR-023). "discretionary" is the tolerated legacy spelling.
+VALID_MANDATORY_LEVELS = {"mandatory", "advisory", "operator_discretion", "discretionary"}
 
 
 class PetAccessJSONError(ValueError):
@@ -38,11 +40,18 @@ def dump(
     source_id: str,
     verified_at: str | None = None,
     exceptions: list[dict[str, Any]] | None = None,
+    mandatory_level: str | None = None,
 ) -> dict[str, Any]:
     if rule_layer not in VALID_LAYERS:
         raise PetAccessJSONError(f"invalid rule_layer {rule_layer}")
     if effect not in VALID_EFFECTS:
         raise PetAccessJSONError(f"invalid effect {effect}")
+    if mandatory_level is not None and mandatory_level not in VALID_MANDATORY_LEVELS:
+        raise PetAccessJSONError(f"invalid mandatory_level {mandatory_level}")
+    if rule_layer == "LEGAL" and mandatory_level is None:
+        # a legal rule must declare its force: the resolver never guesses
+        # (ADR-023 / BLK-LAYER-02)
+        raise PetAccessJSONError("LEGAL rule requires mandatory_level")
     doc = {
         "petaccessjson_version": PETACCESSJSON_VERSION,
         "subject": {"species": species, "role": role},
@@ -50,6 +59,7 @@ def dump(
         "action": action,
         "effect": effect,
         "rule_layer": rule_layer,
+        "mandatory_level": mandatory_level,
         "conditions": conditions or [],
         "validity": {"effective_from": effective_from, "effective_to": effective_to},
         "source": {"source_id": source_id, "verified_at": verified_at},
@@ -77,6 +87,11 @@ def load(data: dict[str, Any]) -> dict[str, Any]:
         raise PetAccessJSONError("invalid effect")
     if data["rule_layer"] not in VALID_LAYERS:
         raise PetAccessJSONError("invalid rule_layer")
+    mandatory_level = data.get("mandatory_level")
+    if mandatory_level is not None and mandatory_level not in VALID_MANDATORY_LEVELS:
+        raise PetAccessJSONError("invalid mandatory_level")
+    if data["rule_layer"] == "LEGAL" and mandatory_level is None:
+        raise PetAccessJSONError("LEGAL rule requires mandatory_level")
     scope = data["scope"] or {}
     if not scope.get("place_id"):
         raise PetAccessJSONError("scope.place_id required")

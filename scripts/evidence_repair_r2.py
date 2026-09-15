@@ -192,8 +192,7 @@ REPOINT = {
 EXEMPTION_NOTES = {
     # 新华网原文本身写明运营方政策含工作犬例外
     "gh-indoor-new": (
-        "原文明确『除导盲犬等工作犬以外』——运营方政策自带服务犬例外"
-        "（配合 RuleException 建模）"
+        "原文明确『除导盲犬等工作犬以外』——运营方政策自带服务犬例外（配合 RuleException 建模）"
     ),
 }
 

@@ -17,7 +17,12 @@ withDefaults(
 </script>
 
 <template>
-  <div class="skeleton-list" :data-testid="'skeleton-' + variant" aria-busy="true" aria-live="polite">
+  <div
+    class="skeleton-list"
+    :data-testid="'skeleton-' + variant"
+    aria-busy="true"
+    aria-live="polite"
+  >
     <div v-for="i in rows" :key="i" class="skeleton" :class="'skeleton--' + variant">
       <span class="visually-hidden">加载中</span>
     </div>

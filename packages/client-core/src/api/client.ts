@@ -109,6 +109,73 @@ export interface RuleView {
   source_id: string;
   last_verified_at: string | null;
   note: string | null;
+  /** normative layer (LEGAL | REGULATORY_GUIDANCE | OPERATOR_POLICY |
+   *  TEMPORARY_POLICY); null = legacy row → the resolver flags REVIEW_REQUIRED */
+  rule_layer?: string | null;
+  /** normative force (mandatory | advisory | operator_discretion) — ADR-023 */
+  mandatory_level?: string | null;
+}
+
+/** Structured coexistence attribute (spec §2.4 Section 4). Never a judgment. */
+export interface CoexistenceItem {
+  id: string;
+  zone_id: string | null;
+  attribute: string;
+  value: string;
+  conditions: unknown[] | null;
+  source_id: string;
+  verified_at: string | null;
+}
+
+export interface AmenityItem {
+  id: string;
+  zone_id: string | null;
+  amenity_type: string;
+  status: string;
+  source_id: string;
+  verified_at: string | null;
+}
+
+export interface EntranceItem {
+  id: string;
+  zone_id: string | null;
+  name: string;
+  entrance_type: string;
+  access_notes: string | null;
+  source_id: string;
+}
+
+export interface AccessPathItem {
+  id: string;
+  name: string;
+  from_node: string;
+  to_node: string;
+  steps: unknown[] | null;
+  animal_scope: string | null;
+  time_window: Record<string, unknown> | null;
+  source_id: string;
+}
+
+export interface EventPolicyItem {
+  id: string;
+  zone_id: string | null;
+  name: string;
+  animal_scope: string;
+  action: string;
+  effect: string;
+  conditions: unknown[] | null;
+  effective_from: string;
+  effective_to: string;
+  source_id: string;
+}
+
+/** Public read-only extras for the Place Detail page (spec §2.4 §4/§5/§6). */
+export interface PlaceExtras {
+  coexistence: CoexistenceItem[];
+  amenities: AmenityItem[];
+  entrances: EntranceItem[];
+  access_paths: AccessPathItem[];
+  event_policies: EventPolicyItem[];
 }
 
 export interface EvaluateView {
@@ -139,6 +206,78 @@ export interface SourceView {
   collected_at: string;
 }
 
+// ------------------------------------------------------------------ pets
+
+/** Pet profile write payload (design #5). `service_role` is user-declared only. */
+export interface PetIn {
+  display_name: string;
+  species: string;
+  breed_text?: string | null;
+  breed_id?: string | null;
+  weight_kg?: number | null;
+  shoulder_height_cm?: number | null;
+  service_role?: string;
+  registration_status?: string | null;
+  vaccination_status?: string | null;
+  avatar_url?: string | null;
+}
+
+export interface PetView {
+  id: string;
+  display_name: string;
+  species: string;
+  breed_text: string | null;
+  weight_kg: number | null;
+  shoulder_height_cm: number | null;
+  service_role: string;
+  registration_status: string | null;
+  vaccination_status: string | null;
+  avatar_url: string | null;
+  created_at: string;
+}
+
+// ----------------------------------------------------------------- media
+
+export type MediaPurposeKey = "signage_evidence" | "scene_photo" | "avatar" | "import_document";
+
+export interface MediaView {
+  id: string;
+  purpose: string;
+  privacy_class: string;
+  byte_size: number;
+  sha256: string;
+  duplicate_of: string | null;
+  moderation_status: string;
+  expires_at: string | null;
+}
+
+export interface MediaMetaView {
+  id: string;
+  purpose: string;
+  privacy_class: string;
+  mime_type: string;
+  byte_size: number;
+  moderation_status: string;
+  ocr_text: string | null;
+  ocr_rule_candidates: unknown[] | null;
+  upload_status: string;
+  created_at: string;
+  expires_at: string | null;
+  deleted_at: string | null;
+}
+
+// --------------------------------------------------------------- watches
+
+/** A subscription to changes on a place / zone / rule (notification centre). */
+export interface WatchView {
+  id: string;
+  target_type: string;
+  target_id: string;
+  channels?: string[];
+  status?: string;
+  created_at?: string | null;
+}
+
 const asParams = (q: Record<string, unknown>) =>
   Object.fromEntries(Object.entries(q).filter(([, v]) => v !== undefined)) as Record<
     string,
@@ -164,26 +303,58 @@ export const client = {
   },
 
   async myPets() {
-    const res = await api.request<
-      Page<{
-        id: string;
-        display_name: string;
-        species: string;
-        breed_text: string | null;
-        weight_kg: number | null;
-        service_role: string;
-      }>
-    >("get", "/pets");
+    const res = await api.request<Page<PetView>>("get", "/pets");
     return res.items;
   },
-  async createPet(body: {
-    display_name: string;
-    species: string;
-    breed_text?: string | null;
-    weight_kg?: number | null;
-    service_role?: string;
-  }) {
-    return api.request<{ id: string }>("post", "/pets", { body });
+  async createPet(body: PetIn) {
+    return api.request<PetView>("post", "/pets", { body });
+  },
+  async updatePet(petId: string, body: PetIn) {
+    return api.request<PetView>("patch", `/pets/${petId}`, { body });
+  },
+  async deletePet(petId: string) {
+    return api.request<void>("delete", `/pets/${petId}`);
+  },
+
+  // --------------------------------------------------------------- media
+  // Multipart upload cannot go through the JSON-only api-client, so this is
+  // the one method that talks fetch directly. It still uses the shared base
+  // URL and token provider, so auth/error semantics stay identical.
+
+  async uploadMedia(
+    file: File,
+    purpose: MediaPurposeKey,
+    opts: { ownerType?: string; ownerId?: string } = {},
+  ): Promise<MediaView> {
+    const form = new FormData();
+    form.append("file", file);
+    const query = new URLSearchParams({ purpose });
+    if (opts.ownerType) query.set("owner_type", opts.ownerType);
+    if (opts.ownerId) query.set("owner_id", opts.ownerId);
+    const token = tokenProvider();
+    const res = await fetch(`${base}/media/upload?${query.toString()}`, {
+      method: "POST",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: form,
+    });
+    const payload = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+    if (!res.ok) {
+      const err = payload.error as { code?: string; message?: string } | undefined;
+      throw new ApiError(res.status, err?.code ?? "upload_failed", err?.message ?? "上传失败");
+    }
+    return payload as unknown as MediaView;
+  },
+  async mediaUrl(mediaId: string) {
+    return api.request<{ id: string; url: string; expires_in: number }>(
+      "get",
+      `/media/${mediaId}/url`,
+    );
+  },
+  async mediaMeta(mediaId: string) {
+    return api.request<MediaMetaView>("get", `/media/${mediaId}`);
+  },
+  async deleteMedia(mediaId: string) {
+    return api.request<void>("delete", `/media/${mediaId}`);
   },
 
   async searchPlaces(q: string) {
@@ -247,6 +418,7 @@ export const client = {
     staff_action: string;
     place_confidence: string;
     note?: string | null;
+    evidence_refs?: { media_id: string; purpose?: string }[] | null;
     proximity_verified?: boolean;
     distance_bucket?: string | null;
     accuracy_bucket?: string | null;
@@ -255,9 +427,12 @@ export const client = {
   },
   async verify(body: {
     place_id: string;
+    zone_id?: string | null;
     rule_id?: string | null;
+    event_type?: string;
     result: string;
     note?: string | null;
+    evidence_refs?: { media_id: string; purpose?: string }[] | null;
     proximity_verified?: boolean;
     distance_bucket?: string | null;
     accuracy_bucket?: string | null;
@@ -285,7 +460,7 @@ export const client = {
     return api.request<void>("delete", `/watches/${watchId}`);
   },
   async myWatches() {
-    return api.request<{ id: string; target_type: string; target_id: string }[]>("get", "/watches");
+    return api.request<WatchView[]>("get", "/watches");
   },
   async regulations(placeId?: string) {
     const path = placeId ? `/places/${placeId}/regulations` : "/regulations";
@@ -353,6 +528,10 @@ export const client = {
       service_role?: string;
       action?: string;
       zone_id?: string | null;
+      // ADR-025: pin the query to one precise animal role so a hearing-dog
+      // question never inherits a guide-dog proviso. Omit it and a generic
+      // service-dog query expands to the whole assistance group (query-side only).
+      declared_role?: string | null;
     },
   ) {
     return api.request<EffectiveRuleSet>("post", `/places/${placeId}/effective-rules`, { body });
@@ -378,5 +557,8 @@ export const client = {
       "get",
       `/places/${placeId}/answerability`,
     );
+  },
+  async placeExtras(placeId: string) {
+    return api.request<PlaceExtras>("get", `/places/${placeId}/extras`);
   },
 };
