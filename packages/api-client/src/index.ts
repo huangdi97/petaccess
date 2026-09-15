@@ -39,9 +39,17 @@ interface RequestOptions {
 }
 
 export function createClient(options: ClientOptions) {
-  const resolveBase = () =>
-    (typeof options.baseUrl === "function" ? options.baseUrl() : options.baseUrl)
-      .replace(/\/$/, "");
+  const resolveBase = () => {
+    const raw = (
+      typeof options.baseUrl === "function" ? options.baseUrl() : options.baseUrl
+    ).replace(/\/$/, "");
+    // A relative base ("/api/v1") is the documented default — the H5 is served
+    // from the same origin as the API behind a reverse proxy. `new URL()` needs
+    // an absolute URL, so anchor a relative base to the current origin instead
+    // of throwing "Invalid URL" and degrading every screen to an error state.
+    const origin = typeof globalThis.location !== "undefined" ? globalThis.location.origin : "";
+    return origin ? new URL(raw, origin).toString().replace(/\/$/, "") : raw;
+  };
 
   async function request<T>(
     method: HttpMethod,

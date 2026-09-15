@@ -17,6 +17,7 @@ dev = [
     "jsonschema>=4.26.0",
     "hypothesis>=6.168.0",
     "pytest-cov>=7.1.0",
+    "pytest-timeout>=2.4",
 ]
 
 [tool.uv.workspace]
@@ -47,7 +48,40 @@ ignore_missing_imports = true
 check_untyped_defs = true
 exclude = ["node_modules", "dist", "migrations/versions", ".venv"]
 
+[tool.coverage.run]
+# Branch coverage, not just line: the governance invariants live in branches
+# (`if layer == LEGAL`, `if needs_verification`, ...) and line coverage alone
+# reports them green while the negative path is untested.
+branch = true
+source = ["services/api/app", "services/worker", "scripts"]
+omit = [
+  "*/migrations/*",
+  "*/tests/*",
+  "scripts/*_r1.py",
+  "scripts/*_r2.py",
+  "scripts/gen_*",
+  "scripts/probe_*",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+exclude_also = [
+  "if TYPE_CHECKING:",
+  "raise NotImplementedError",
+  "@overload",
+  "if __name__ == .__main__.:",
+]
+
 [tool.pytest.ini_options]
 testpaths = ["tests", "services/api/tests"]
 asyncio_mode = "auto"
+# `scripts/` holds shared tooling the tests assert on (e.g. the sign-off decision
+# vocabulary); make it importable rather than duplicating the constants in tests.
+pythonpath = ["scripts"]
 filterwarnings = ["ignore::DeprecationWarning"]
+# Hard per-test ceiling. Without it a missing Celery worker turns 4 media/e2e
+# cases into a multi-minute hang that looks like a dead suite; with it they fail
+# fast with a stack dump. The slowest healthy case is ~13s (Hypothesis).
+timeout = 120
+timeout_method = "thread"
