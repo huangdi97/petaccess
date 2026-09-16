@@ -44,10 +44,29 @@ sm: 0    md: 480    lg: 768    xl: 1024
 | 长 reason 文本 | PlaceView 第 7 段按块级展示 |
 | 表格长字段 | **Admin 表格无列宽/换行控制**（见 `ADMIN_UI_AUDIT.md` 未达标 2） |
 
-## 5. 机器验证覆盖
+## 5. 机器验证覆盖（已补齐）
 
-- E2E 只在默认 1280×720 视口运行（Playwright 无 `projects`），**没有移动端宽度的自动验证**。
-- 本轮未新增响应式用例：新增需要先有多视口 project，与视觉回归前置相同。
+- 功能 E2E（`playwright.config.ts`）仍在默认视口运行——它断言的是**行为**，视口无关。
+- **视觉回归（`playwright.visual.config.ts`）已按 5 个视口实测**，逐页出图并可复现：
+
+| project | 引擎 | 视口 | 消费者页 | Admin 页 |
+|---|---|---|---|---|
+| `h5-390` | Chromium（Pixel 5） | 393×851 @2.75 | 11 | — |
+| `h5-768` | Chromium（tablet） | 768×1024 @2 | 11 | — |
+| `h5-1440` | Chromium | 1440×900 | 11 | — |
+| `admin-1440` | Chromium | 1440×900 | — | 7 |
+| `admin-768` | Chromium（tablet） | 768×1024 @2 | — | 7 |
+
+合计 47 张基线，比对模式 **47 passed**，详见 `VISUAL_REGRESSION_BASELINE.md`。
+
+### 实测补充的两条事实
+
+1. **平板档不用 WebKit**。`devices["iPad (gen 7)"]` 解析为 WebKit，而本环境下 WebKit
+   加载不了应用（模块请求 404 + cancelled），只会截出空白页并报 PASS。
+   经实测改为 Chromium 768 宽（保留 iPad UA 与 `hasTouch`），理由与证据见 `VISUAL_REGRESSION_BASELINE.md` §3.2。
+2. **触控目标是真实量出来的**。390 宽下 `a.btn-inline` 实测 75×29、`input` 实测 328×42，
+   均低于 44px 指引；已在 `styles.css` 统一到 `--pa-layout-touch-target`，a11y 审计归零。
+   「设了 padding 应该够了」这种推法算不出 42 vs 44。
 
 ## 6. 结论
 

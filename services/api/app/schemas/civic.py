@@ -3,7 +3,7 @@ operator claims, watches, sources (design #13-14, #18, #24, #26)."""
 
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.models.enums import (
     AnimalScope,
@@ -26,6 +26,7 @@ from app.models.enums import (
     VerificationResult,
     WatchStatus,
     WatchTargetType,
+    normalize_mandatory_level,
 )
 
 
@@ -187,6 +188,22 @@ class RegulationOut(BaseModel):
     review_status: JurisdictionReviewStatus
     reviewed_at: datetime | None
     created_at: datetime
+
+    @field_validator("mandatory_level", mode="before")
+    @classmethod
+    def _normalise_legacy_mandatory_level(cls, value: object) -> object:
+        """Accept the pre-ADR-023 spelling on read.
+
+        `discretionary` is the legacy spelling of `operator_discretion`, and a
+        single row carrying it used to take down `GET /regulations` with a 500:
+        response validation runs per item, so one unconvertible value failed the
+        whole list rather than that one row. Normalising here rather than in the
+        endpoint means every construction path — list, place-scoped, create,
+        review — inherits it, and a future endpoint cannot forget.
+        """
+        if isinstance(value, str):
+            return normalize_mandatory_level(value)
+        return value
 
 
 # --- operator claims (design #16) ---

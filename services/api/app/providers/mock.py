@@ -91,6 +91,11 @@ class MockNotificationProvider:
             r.rpush("mock:notifications", json.dumps(item, ensure_ascii=False))
             r.expire("mock:notifications", 86400)
         except Exception:
+            # Local dev convenience only: if Redis is not running the mock
+            # provider still has to return a delivered-looking result, because
+            # its whole purpose is to let the app run without infrastructure.
+            # Note the returned status is `sent_mock` — it never claims a real
+            # delivery, so swallowing here cannot misreport anything to a user.
             pass
         return {"status": "sent_mock", "item": item}
 

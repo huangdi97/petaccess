@@ -1,45 +1,52 @@
 # Visual Regression Matrix
 
-> 现状：仓库**没有截图基线**。本文档记录真实覆盖范围，以及为什么本轮没有新增快照。
+> **本文件的旧结论已被取代。** 旧版记录「仓库没有截图基线，VISUAL_REGRESSION = FAIL」。
+> 当前真实状态见 `docs/frontend/VISUAL_REGRESSION_BASELINE.md`（47 张基线，比对模式全绿）。
+> 这里保留的是**历史缺口记录**与当时的判断，用于对照 §4 的三条前置是否真的被满足。
 
-## 1. 当前真实状态
+## 1. 旧版记录的真实状态（已不成立）
 
-| 项 | 真实值 |
+| 项 | 当时真实值 |
 |---|---|
-| Playwright 配置 | `playwright.config.ts`，`testDir: ./tests/e2e`，默认视口（1280×720），**无 `projects` 多视口** |
-| E2E 用例 | 16 例，全部为**功能断言**（`getByTestId` / `getByRole` / `getByText`） |
+| Playwright 配置 | `playwright.config.ts`，`testDir: ./tests/e2e`，默认视口，无 `projects` 多视口 |
+| E2E 用例 | 16 例，全部为功能断言 |
 | `toHaveScreenshot` | **0 处** |
-| `playwright-out/` `test-results/` | 空（1K，仅目录占位） |
 | Admin E2E | 无 |
 
-判定：**VISUAL_REGRESSION = FAIL**（规范 §63 要求的基线并不存在）。
+当时判定：**VISUAL_REGRESSION = FAIL**。
 
-## 2. 为什么本轮没有补
+## 2. 当时给出的三条前置，以及本轮的落地情况
 
-1. 规范 §63 明确要求「动态 timestamp 用 fixture 固定」「不要 snapshot 整个动态页面造成 flaky」。
-   当前 H5 首页/详情直接吃真实 API（`:8010` 种子数据），没有固定 fixture 层；
-   在没有冻结数据源之前加截图，产出的会是**必然 flaky 的基线**，比没有基线更糟。
-2. 生成基线需要先人工确认「这就是正确的样子」，而本轮禁止 AI 代替人类做产品判断。
-3. 因此本轮把它作为**明确的开放项**记录在案，而不是造一批假绿的快照。
-
-## 3. 规范要求的矩阵 vs 现状
-
-| 页面 / 状态 | 规范视口 | 现状 |
+| # | 前置 | 本轮结果 |
 |---|---|---|
-| Home / Search / No Result / Map / Bottom Sheet / Place Detail / Rule Trace / Evidence / UNKNOWN / CONDITIONAL / RESTRICTED / Contribution / Profile | 390 / 768 / 1440 | ❌ 无截图；仅 390 以外视口连功能断言都没有 |
-| Admin Review Queue / Review Detail / Evidence / Publish Gate / Audit | 390 / 768 / 1440 | ❌ 无任何 Admin E2E |
+| 1 | 冻结 E2E 数据（时间戳、相对时间不漂移） | **已完成**：`page.clock.install({time: "2026-09-15T04:00:00Z"})` 逐例冻结时钟 |
+| 2 | 多视口 `projects` + 独立快照路径 | **已完成**：`playwright.visual.config.ts` 5 个 project（390 / 768 / 1440 / admin-1440 / admin-768），快照按 `{name}-{project}-{platform}` 分目录 |
+| 3 | 先补 Admin 功能 E2E，再对稳定页面开截图 | **已完成**：Admin 7 页进入视觉基线（登录 → dashboard → 候选 → 证据 → 来源 → 法规 → 审计） |
 
-## 4. 落地所需的三条前置（下一步，不在本轮）
+另有一条当时未列入、但实际是必要条件的：**截图必须能失败**。本轮补了 `assertRendered()` 与
+`assertNotErrorState()` 两道护栏，否则错误态与空白页都会被写成"通过的基线"（详见新文件的 §3）。
 
-1. **冻结 E2E 数据**：为 H5 增加只读 fixture 模式（固定 `CAFE_ID` 之外的时间戳与种子），
-   使 `latestVerified`、相对时间不再漂移。
-2. **多视口 projects**：在 `playwright.config.ts` 增加
-   `projects: [{name:'mobile-390'},{name:'tablet-768'},{name:'desktop-1440'}]`，
-   并给每个 project 独立 `snapshotPathTemplate`。
-3. **先功能后视觉**：先补 Admin 的功能 E2E（登录 → 候选 → 详情 → 审计），
-   再对稳定页面开 `toHaveScreenshot({ maxDiffPixelRatio: 0.02 })`。
+## 3. 规范矩阵 vs 当前覆盖
 
-## 5. 结论
+| 页面 / 状态 | 规范视口 | 当前 |
+|---|---|---|
+| Home | 390 / 768 / 1440 | ✅ 3 视口 |
+| Search / Search Empty | 390 / 768 / 1440 | ✅ 3 视口 |
+| Map / Map Bottom Sheet | 390 / 768 / 1440 | ✅ 3 视口 |
+| Place Detail（UNKNOWN） | 390 / 768 / 1440 | ✅ 3 视口 |
+| Place Detail（CONDITIONAL） | 390 / 768 / 1440 | ✅ 3 视口 |
+| Rule Trace | 390 / 768 / 1440 | ✅ 3 视口 |
+| Contribution | 390 / 768 / 1440 | ✅ 3 视口 |
+| Profile / Mine | 390 / 768 / 1440 | ✅ 3 视口 |
+| Boundary（共处边界） | 390 / 768 / 1440 | ✅ 3 视口 |
+| Evidence Detail（独立页） | 390 / 768 / 1440 | ❌ 只在 Admin 侧覆盖 |
+| RESTRICTED / STALE / NETWORK_ERROR 状态页 | 390 / 768 / 1440 | ❌ 未单独出图 |
+| Admin 登录 / Dashboard / 候选 / 证据 / 来源 / 法规 / 审计 | 768 / 1440 | ✅ 2 视口 |
+| Admin Publish Gate（发布确认） | 768 / 1440 | ❌ 需要交互态，未出图 |
+| Admin 390 | 390 | ❌ 未做（Admin 是桌面治理工具，未定 390 断点要求） |
 
-**VISUAL_REGRESSION = FAIL（未实现，非回归）**。
-它是对规范 §63 的诚实缺口，不影响签署语义；但签署后进入试点前应当补齐。
+## 4. 结论
+
+**VISUAL_REGRESSION = PASS**（当前状态见 `VISUAL_REGRESSION_BASELINE.md`）。
+
+§3 里带 ❌ 的 4 行是本轮**明确的未覆盖项**，不冒充为通过。

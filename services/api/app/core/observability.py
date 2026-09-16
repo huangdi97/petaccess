@@ -94,6 +94,11 @@ def record_failed_job(task_name: str, task_id: str, error: str) -> None:
         r.lpush(FAILED_JOBS_KEY, entry)
         r.ltrim(FAILED_JOBS_KEY, 0, MAX_FAILED_JOBS_KEPT - 1)
     except Exception:
+        # Best-effort bookkeeping: the failed-jobs list is a convenience view
+        # for operators, and losing an entry must never turn a task failure
+        # into a different, confusing failure. The task's own exception is
+        # what callers see. Errors here have no channel to report to without
+        # recursing into the same failure.
         pass
 
 

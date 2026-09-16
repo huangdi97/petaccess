@@ -18,6 +18,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -58,9 +59,22 @@ class Api:
 
 
 def bootstrap_admin(evidence: dict) -> str:
-    """Register (or reuse) the pilot admin user, promote it in DB, return token."""
+    """Register (or reuse) the pilot admin user, promote it in DB, return token.
+
+    The password comes from the environment and has no default. It used to be a
+    literal in this file: a working credential for the pilot admin account,
+    committed to the repository and readable by anyone with a checkout. A
+    missing variable now fails loudly before any account is created, because
+    the failure mode of a silent default — a pilot admin whose password is in
+    the git history — is not recoverable by rotating a secret.
+    """
     email = evidence["admin_email"]
-    password = "PilotAdmin0913!"
+    password = os.environ.get("PILOT_ADMIN_PASSWORD")
+    if not password:
+        raise SystemExit(
+            "PILOT_ADMIN_PASSWORD is not set. Export it before running the pilot "
+            "ingest; credentials are not kept in the repository."
+        )
     with httpx.Client(base_url=BASE, timeout=15.0, trust_env=False) as c:
         r = c.post(
             "/api/v1/auth/register",

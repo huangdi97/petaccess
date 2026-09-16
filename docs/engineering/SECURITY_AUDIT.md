@@ -9,10 +9,11 @@
 | 级别 | 数量 | 说明 |
 |---|---|---|
 | CRITICAL | **0** | — |
-| HIGH | **0** | — |
-| MEDIUM | **1（已修）** | `jwt_secret` 开发默认值被写进源码 |
-| LOW | 4 | 见下表，均为开发态或受控项 |
+| HIGH | **0** | bandit 起始 1 项（硬编码试点密码），本轮已修 |
+| MEDIUM | **0** | — |
+| LOW | 15 | bandit 实跑结果，见 §5.1；均为开发态或受控项 |
 | FALSE_POSITIVE | 1 | `seed.py` 的 f-string SQL（表名来自硬编码白名单） |
+| 未跑 | `pip-audit` | 明确 NOT_RUN，见 §5 |
 
 ## 2. MEDIUM — 已修：可预测的 JWT 签名密钥
 
@@ -66,15 +67,43 @@ session.execute(text(f"DELETE FROM {table}"))
 | 原始 SQL 拼接 | 1（见 FALSE_POSITIVE） |
 | 前端 `console.log` / 调试输出 | 0 命中 |
 | 统一错误体（§20） | `{"error": {"code","message","request_id","details"}}`，不含 SQL / 栈 / 路径 / 密钥 |
-| `pnpm audit` | **PASS** — `No known vulnerabilities found` |
-| `bandit` | **NOT_RUN** — 工具已安装（1.9.4，写入 dev 说明见 `LOCAL_DEV_WINDOWS.md`），但**执行被安全审批拦截**，本轮未取回结果；不冒充通过 |
-| `pip-audit` | **NOT_RUN** — 未安装；本环境无系统 pip（venv 由 uv 创建后 bootstrap pip），仅安装到 bandit |
+| `pnpm audit --prod` | **PASS** — 0 已知漏洞 |
+| `bandit`（本轮补跑） | **PASS_WITH_FINDINGS** — 见 §5.1 |
+| `pip-audit` | **NOT_RUN** — 安装失败（`cyclonedx.parser` 依赖冲突，独立 venv 亦失败）；未取回结果，不冒充通过 |
+
+### 5.1 bandit 实跑（本轮补跑，修正上一版的 NOT_RUN）
+
+命令：
+
+```bash
+.venv/Scripts/python.exe -m bandit -q -r services/api/app services/worker scripts
+```
+
+| | 起始 | 最终 |
+|---|---|---|
+| HIGH | **1** | **0** |
+| MEDIUM | **1** | **0** |
+| LOW | 16 | **15** |
+| 代码行数 | 18,262 | 18,262 |
+
+本轮修掉的 2 项：
+
+| 文件 | 级别 | 问题 | 处理 |
+|---|---|---|---|
+| `scripts/real_pilot_ingest.py` | HIGH | 硬编码密码 `PilotAdmin0913!` | 改为读取环境变量 `PILOT_ADMIN_PASSWORD`，缺失时显式失败而不是回退到硬编码值 |
+| `scripts/evidence_repair_r2.py` | MEDIUM | `hashlib.md5()` 默认用法（B324） | 该摘要只用于生成维修记录的短 id，不是安全原语——显式声明 `usedforsecurity=False` 并在注释里说明理由 |
+
+另外三处 `except Exception: pass`（`seed.py` / `observability.py` / `mock.py`）此前是无注释的静默吞异常，
+补了「为什么这里吞是合理的」的说明——不是 suppress，是让下一个读代码的人不必猜。
+
+剩余 15 项 LOW 全部为开发态或受控项（Flask/EOL 无关项、`try/except/pass` 的开发态兜底、
+`rulespec/model.py` 的枚举成员 `PASS_THROUGH = "pass_through"` 被 B105 误判为硬编码密码）。
 
 ## 6. 依赖
 
-- `pnpm audit`（含 dev 依赖）无已知漏洞。
+- `pnpm audit --prod` 无已知漏洞。
 - **未做任何 major 升级**（规范 §23 明确禁止无必要的 major 升级）。
-- Python 侧依赖审计未跑（见上），是本案卷的真实缺口。
+- Python 侧依赖审计（`pip-audit`）**仍未跑**，是本案卷的真实缺口，见 §5。
 
 ## 7. 建议（下一步，不在本轮）
 

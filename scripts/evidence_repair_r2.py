@@ -49,9 +49,13 @@ def audit(db, action: str, target_type: str, target_id: str, before, after, note
     after = dict(after or {})
     if note:
         after["detail"] = note
+    # `usedforsecurity=False`: this is a short stable id for a repair row, not a
+    # security primitive. Bandit flags bare MD5 (B324) either way; saying so in
+    # the call is what distinguishes "not a hash for safety" from "forgot".
+    digest = hashlib.md5((action + target_id + str(NOW)).encode(), usedforsecurity=False)
     db.add(
         AuditLog(
-            id=f"repair-{hashlib.md5((action + target_id + str(NOW)).encode()).hexdigest()[:12]}",
+            id=f"repair-{digest.hexdigest()[:12]}",
             actor_role="agent:evidence_repair",
             action=action,
             target_type=target_type,
