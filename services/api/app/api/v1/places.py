@@ -8,14 +8,14 @@ import uuid
 
 from fastapi import APIRouter, Depends, Query
 from geoalchemy2 import WKTElement
-from sqlalchemy import func, select, text
-from sqlalchemy.orm import Session
+from sqlalchemy import case, func, or_, select, text
+from sqlalchemy.orm import Session, aliased
 
 from app.core.audit import record_audit
 from app.core.errors import NotFound
 from app.core.security import get_current_user, require_role
 from app.db.session import get_db
-from app.models import ExternalPlaceRef, Place, PlaceGeometry, User, Zone
+from app.models import AccessRule, ExternalPlaceRef, Place, PlaceGeometry, User, Zone
 from app.models.enums import UserRole
 from app.schemas.common import Page
 from app.schemas.places import (
@@ -38,6 +38,96 @@ admin = APIRouter(tags=["admin:places"])
 # --- public read endpoints ---
 
 
+def _disambiguation_projection():
+    """Correlated columns that let one list row stand on its own.
+
+    Kept as a single projected select rather than a property on `Place` so the
+    extra subqueries only cost anything on the endpoints that need them.
+    """
+    parent = aliased(Place)
+    parent_place_name = (
+        select(parent.canonical_name)
+        .where(parent.id == Place.parent_place_id)
+        .scalar_subquery()
+        .label("parent_place_name")
+    )
+    rule_count = (
+        select(func.count(AccessRule.id))
+        .where(AccessRule.place_id == Place.id, AccessRule.status == "current")
+        .scalar_subquery()
+        .label("rule_count")
+    )
+    last_verified_at = (
+        select(func.max(AccessRule.last_verified_at))
+        .where(AccessRule.place_id == Place.id, AccessRule.status == "current")
+        .scalar_subquery()
+        .label("last_verified_at")
+    )
+    return parent_place_name, rule_count, last_verified_at
+
+
+def _search_order(q: str, rule_count, last_verified_at):
+    """Rank a name search the way the question was asked.
+
+    Plain alphabetical ordering was not neutral in practice: it put a brand-new
+    branch with zero rules above the verified flagship, so the first thing the
+    user saw was "尚未收录规则" when the very next row had the answer. Three
+    tiers, each only breaking ties the previous one left open:
+
+      1. match quality — exact canonical name, then prefix, then substring,
+         then alias-only hits;
+      2. can it answer — a place with current rules outranks one without;
+      3. freshness — newer `last_verified_at` first, NULLs last.
+
+    Name is the final tiebreak so the order stays stable across pages. This
+    ranks rows; it never decides what the rules mean.
+    """
+    escaped = q.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    match_rank = case(
+        (Place.canonical_name == q, 0),
+        (Place.canonical_name.ilike(f"{escaped}%", escape="\\"), 1),
+        (Place.canonical_name.ilike(f"%{escaped}%", escape="\\"), 2),
+        else_=3,
+    )
+    has_rules = case((rule_count > 0, 0), else_=1)
+    return (
+        match_rank,
+        has_rules,
+        last_verified_at.desc().nullslast(),
+        Place.canonical_name,
+    )
+
+
+def _matched_alias(place: Place, q: str) -> str | None:
+    """Which alias produced this hit, if the canonical name did not.
+
+    Reported back to the client so a place the user never named still explains
+    itself. Fuzzy on the same rule the SQL used, mirrored here.
+    """
+    needle = q.casefold()
+    if needle in place.canonical_name.casefold():
+        return None
+    for alias in place.alias_names or []:
+        if needle in alias.casefold():
+            return alias
+    return None
+
+
+def _to_summary(row, q: str | None = None) -> PlaceSummary:
+    place, parent_place_name, rule_count, last_verified_at = row
+    return PlaceSummary(
+        id=place.id,
+        canonical_name=place.canonical_name,
+        place_type=place.place_type,
+        canonical_address=place.canonical_address,
+        parent_place_name=parent_place_name,
+        matched_alias=_matched_alias(place, q) if q else None,
+        alias_names=list(place.alias_names or []),
+        rule_count=rule_count or 0,
+        last_verified_at=last_verified_at,
+    )
+
+
 @router.get("/places", response_model=Page[PlaceSummary])
 def list_places(
     q: str | None = Query(default=None, max_length=100, description="fuzzy name search"),
@@ -46,17 +136,33 @@ def list_places(
     offset: int = Query(default=0, ge=0),
     db: Session = Depends(get_db),
 ) -> Page[PlaceSummary]:
-    stmt = select(Place).where(Place.lifecycle_status == "active")
+    parent_place_name, rule_count, last_verified_at = _disambiguation_projection()
+    stmt = select(Place, parent_place_name, rule_count, last_verified_at).where(
+        Place.lifecycle_status == "active"
+    )
     if q:
-        # pg_trgm similarity + ILIKE fallback in one OR for CJK friendliness
-        stmt = stmt.where(
-            text("place.canonical_name % :q OR place.canonical_name ILIKE :like")
+        # pg_trgm similarity + ILIKE fallback in one OR for CJK friendliness.
+        # Aliases get the same treatment: a hit on a former name or a brand
+        # short form is as real as a hit on the canonical name, and returning
+        # nothing here would read as "this place has no rules".
+        alias_hit = text(
+            "EXISTS (SELECT 1 FROM jsonb_array_elements_text(place.alias_names) AS alias_name "
+            "WHERE alias_name % :q OR alias_name ILIKE :like)"
         ).params(q=q, like=f"%{q}%")
+        stmt = stmt.where(
+            or_(
+                text("place.canonical_name % :q OR place.canonical_name ILIKE :like").params(
+                    q=q, like=f"%{q}%"
+                ),
+                alias_hit,
+            )
+        )
     if place_type:
         stmt = stmt.where(Place.place_type == place_type)
     total = db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
-    rows = db.scalars(stmt.order_by(Place.canonical_name).limit(limit).offset(offset)).all()
-    items = [PlaceSummary.model_validate(r) for r in rows]
+    order = _search_order(q, rule_count, last_verified_at) if q else (Place.canonical_name,)
+    rows = db.execute(stmt.order_by(*order).limit(limit).offset(offset)).all()
+    items = [_to_summary(row, q) for row in rows]
     return Page(items=items, total=total, limit=limit, offset=offset)
 
 
@@ -71,10 +177,14 @@ def nearby_places(
 ) -> Page[PlaceSummary]:
     """PostGIS ST_DWithin nearby search ordered by distance (GIST-indexed)."""
     point = text("ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography")
+    parent_place_name, rule_count, last_verified_at = _disambiguation_projection()
     base = (
         select(
             Place,
             func.ST_Distance(Place.location, point).label("distance_m"),
+            parent_place_name,
+            rule_count,
+            last_verified_at,
         )
         .where(
             Place.lifecycle_status == "active",
@@ -87,7 +197,7 @@ def nearby_places(
     rows = db.execute(base.order_by(text("distance_m")).limit(limit).offset(offset)).all()
     items = []
     for row in rows:
-        summary = PlaceSummary.model_validate(row[0])
+        summary = _to_summary((row[0], row[2], row[3], row[4]))
         summary.distance_m = round(float(row[1] or 0), 1)
         items.append(summary)
     return Page(items=items, total=total, limit=limit, offset=offset)

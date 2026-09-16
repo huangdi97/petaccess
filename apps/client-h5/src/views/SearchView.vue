@@ -13,6 +13,8 @@ import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import {
   client,
+  freshnessLabel,
+  placeTypeLabel,
   session,
   synthDemoCamera,
   type BoundaryProfile,
@@ -67,6 +69,18 @@ const visible = computed(() =>
     return checks.every(Boolean);
   }),
 );
+
+/**
+ * What rule material sits behind this row, and how fresh it is.
+ *
+ * Not a verdict — the verdict is the status badge, which comes from the
+ * resolver. This is the "is there anything to read here" line, so a user can
+ * tell 「尚未收录规则」 from 「有 7 条规则，最近核验于上季度」 before tapping in.
+ */
+function ruleSummary(p: PlaceSummary): string {
+  if (!p.rule_count) return "尚未收录规则";
+  return `生效规则 ${p.rule_count} 条 · ${freshnessLabel(p.last_verified_at)}`;
+}
 
 async function enrich(list: PlaceSummary[]) {
   const status: Record<string, string> = {};
@@ -152,10 +166,14 @@ async function applyFilters() {
 
 onMounted(async () => {
   await session.restore();
-  try {
-    boundary.value = (await client.defaultBoundaryProfile()).profile;
-  } catch {
-    boundary.value = null;
+  // Account-scoped, so a signed-out visitor gets a 401 rather than an empty
+  // profile. Only ask when there is an account to ask about.
+  if (session.signedIn) {
+    try {
+      boundary.value = (await client.defaultBoundaryProfile()).profile;
+    } catch {
+      boundary.value = null;
+    }
   }
   await search();
 });
@@ -167,9 +185,13 @@ onMounted(async () => {
       <span aria-hidden="true">⊘</span>
       <span>当前无网络连接：搜索需要联网，提交类操作已暂停。</span>
     </div>
+    <!-- The search field is the page's headline action, but a field is not a
+         heading: without this, screen-reader users get no page title at all. -->
+    <h1 class="visually-hidden">搜索场所规则</h1>
     <div class="panel">
       <input
         v-model="q"
+        aria-label="搜索场所"
         placeholder="搜索场所名称 / 类别 / 附近（留空则查附近）"
         data-testid="search-input"
         @keydown.enter="search"
@@ -230,11 +252,27 @@ onMounted(async () => {
             <strong>{{ p.canonical_name }}</strong>
             <StatusBadge :status="statuses[p.id] ?? 'UNKNOWN'" />
           </div>
-          <div class="muted">{{ p.place_type }} · {{ p.canonical_address ?? "" }}</div>
+          <!-- Branch first: two rows of one brand must be separable at a glance,
+               otherwise a branch's rules get read as the whole brand's.
+               "所属" and not "位于" — the parent may be a brand (分店) or a
+               container (商场里的店铺), and only "所属" is true for both. -->
+          <div v-if="p.parent_place_name" class="muted" data-testid="result-branch">
+            所属 {{ p.parent_place_name }}
+          </div>
+          <div class="muted" data-testid="result-meta">
+            {{ placeTypeLabel(p.place_type) }} ·
+            {{ p.canonical_address ?? "地址待补充" }}
+          </div>
+          <!-- Why a place the user never named came back. -->
+          <div v-if="p.matched_alias" class="muted" data-testid="result-alias">
+            以「{{ p.matched_alias }}」匹配（曾用名／别称）
+          </div>
+          <div class="muted" data-testid="result-rules">{{ ruleSummary(p) }}</div>
           <div class="row" style="margin-top: 6px">
             <span v-if="verified[p.id]" class="tag">已核验</span>
             <span v-if="hasPetZone[p.id]" class="tag">独立携宠区</span>
             <span v-if="serviceDogInfo[p.id]" class="tag">含服务犬信息</span>
+            <span v-if="p.rule_count === 0" class="tag">尚未收录规则</span>
             <StatusBadge v-if="conflicts[p.id]" semantic="CONFLICT" />
           </div>
         </div>

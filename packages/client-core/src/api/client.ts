@@ -3,6 +3,7 @@
  * The only module in the client allowed to talk HTTP.
  */
 import { createClient, ApiError } from "@petaccess/api-client";
+import type { ApiSchemas } from "@petaccess/api-client";
 
 let base = "http://127.0.0.1:8000/api/v1";
 let tokenProvider: () => string | undefined = () => undefined;
@@ -80,13 +81,16 @@ export interface AnswerCell {
   detail: string;
 }
 
-export interface PlaceSummary {
-  id: string;
-  canonical_name: string;
-  place_type: string;
-  canonical_address: string | null;
-  distance_m: number | null;
-}
+/**
+ * Derived from the generated schema, not hand-written.
+ *
+ * This was a hand-copied interface and it drifted the moment the server grew
+ * `parent_place_name` / `matched_alias` / `rule_count` — the API returned them, the
+ * type did not mention them, and anything reading them failed to compile. The
+ * file header below says business code must never hand-write DTOs (ADR-011);
+ * this makes that true for the one place it was not.
+ */
+export type PlaceSummary = ApiSchemas["PlaceSummary"];
 
 export interface Zone {
   id: string;

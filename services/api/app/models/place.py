@@ -12,7 +12,9 @@ from sqlalchemy import (
     Index,
     String,
     Text,
+    text,
 )
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, PkMixin, TimestampMixin
@@ -57,6 +59,13 @@ class Place(Base, PkMixin, TimestampMixin):
     )
 
     canonical_name: Mapped[str] = mapped_column(String(200), nullable=False)
+    # Alternate names the public actually searches with (former name, brand
+    # short form, colloquial mall name). A lookup key only: never rendered as
+    # the place's name and never carrying source/verification semantics.
+    # See migration a7c4e1b90d33.
+    alias_names: Mapped[list[str]] = mapped_column(
+        JSONB, nullable=False, default=list, server_default=text("'[]'::jsonb")
+    )
     place_type: Mapped[PlaceType] = mapped_column(String(32), nullable=False, index=True)
     parent_place_id: Mapped[str | None] = mapped_column(
         String(36), ForeignKey("place.id", ondelete="SET NULL"), nullable=True

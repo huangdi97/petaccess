@@ -86,10 +86,28 @@ def test_place_search_and_nearby(client):
     assert r2.json()["total"] >= 3
 
 
+def test_search_ranks_a_place_that_can_answer_above_one_that_cannot(client):
+    """A rule-less branch must not outrank the flagship that has rules.
+
+    Plain alphabetical order put the brand's new branch first, so the top hit
+    read 「尚未收录规则」 while the row under it held the answer. Ranking by
+    match quality, then by whether the place can answer, then by freshness.
+    """
+    items = client.get("/api/v1/places", params={"q": "星河咖啡"}).json()["items"]
+    assert len(items) >= 2, "same-brand search collapsed the branches"
+    assert items[0]["rule_count"] > 0, "a place with no rules ranked first"
+    assert items[0]["parent_place_name"] is None
+    assert items[1]["rule_count"] == 0
+    assert items[1]["parent_place_name"] == items[0]["canonical_name"]
+
+
 def test_evaluate_cafe_zones(client):
     """Design #7.1: indoor prohibited, outdoor conditional leash, service dog allowed."""
     places = client.get("/api/v1/places", params={"q": "星河"}).json()["items"]
-    place_id = places[0]["id"]
+    # Named explicitly rather than `places[0]`: the brand now has a branch too,
+    # and a test about *this* cafe's zones should not depend on ranking.
+    flagship = next(p for p in places if p["canonical_name"].endswith("测试店"))
+    place_id = flagship["id"]
     zones = client.get(f"/api/v1/places/{place_id}/zones").json()
     indoor = next(z for z in zones if z["indoor_outdoor"] == "indoor")
     outdoor = next(z for z in zones if z["indoor_outdoor"] == "outdoor")
@@ -121,7 +139,8 @@ def test_evaluate_cafe_zones(client):
 def test_unknown_weight_is_unknown(client):
     """Design #12: missing required input → UNKNOWN, never guessed."""
     places = client.get("/api/v1/places", params={"q": "云栖"}).json()["items"]
-    place_id = places[0]["id"]
+    mall = next(p for p in places if "商场" in p["canonical_name"])
+    place_id = mall["id"]
     zones = client.get(f"/api/v1/places/{place_id}/zones").json()
     b1 = next(z for z in zones if z["floor_ref"] == "B1")
     f1 = next(z for z in zones if z["floor_ref"] == "1F")

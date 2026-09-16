@@ -128,13 +128,21 @@ export async function evaluatePlace(
   // Overall answer = the most favorable applicable determination among zones
   // (a place with an allowed pet zone is enterable, with zone caveats shown).
   let best: EvaluateView["status"] = "UNKNOWN";
-  const evaluated = await evaluateFn({ ...q, place_id: placeId, zone_id: null });
+  // One place-level query plus one per zone. These used to run one after the
+  // other — a 7-zone mall cost 8 sequential round-trips per answer, and the
+  // detail page asks for two answers, so a single page load spent double-digit
+  // requests queueing behind each other. Fire them together and fold the
+  // results in zone order so the outcome stays deterministic.
+  const [evaluated, ...zoneResults] = await Promise.all([
+    evaluateFn({ ...q, place_id: placeId, zone_id: null }),
+    ...zones.map((zone) => evaluateFn({ ...q, place_id: placeId, zone_id: zone.id })),
+  ]);
   for (const u of evaluated.unknown_inputs) unknownInputs.add(u.input);
   for (const c of evaluated.unmet_conditions) obligations.add(conditionLabel(c.condition_type));
   if (evaluated.status !== "UNKNOWN") best = evaluated.status;
 
-  for (const zone of zones) {
-    const r = await evaluateFn({ ...q, place_id: placeId, zone_id: zone.id });
+  for (const [i, zone] of zones.entries()) {
+    const r = zoneResults[i];
     for (const u of r.unknown_inputs) unknownInputs.add(u.input);
     for (const c of r.unmet_conditions) {
       obligations.add(conditionLabel(c.condition_type));

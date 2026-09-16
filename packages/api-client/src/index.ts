@@ -5,9 +5,15 @@
  * via `pnpm generate` when the API changes). Business code must never
  * hand-write DTOs (ADR-011).
  */
-import type { paths } from "./schema";
+import type { components, paths } from "./schema";
 
 export type ApiPaths = paths;
+/**
+ * Re-exported so `client-core` can derive its DTOs from the generated schema
+ * instead of hand-writing them (ADR-011). Hand-written copies are how a field
+ * added on the server stays invisible to the client.
+ */
+export type ApiSchemas = components["schemas"];
 
 export interface ClientOptions {
   /** Static base URL or a getter evaluated per request (allows runtime reconfig). */

@@ -32,6 +32,27 @@ DEMO_PLACES: list[dict] = [
         "canonical_address": "演示市星河区云杉路 100 号（虚构地址）",
         "lng": 121.4737,
         "lat": 31.2304,
+        # Search keys, not identity: the name this place used to carry, and the
+        # short form people actually type. A hit on either must say which one
+        # matched rather than silently returning a differently-named place.
+        "alias_names": ["星河咖啡", "星河咖啡（云杉路旧址）", "Xinghe Coffee"],
+    },
+    {
+        # Deliberate sibling: same brand, different branch. Search for the brand
+        # alone must return both, each labelled by branch and address, instead of
+        # one ambiguous row.
+        # Key kept as `..._yunqi` on purpose: ids derive from it, and renaming a
+        # key re-ids a place that already has rules pointed at it.
+        "key": "place_xinghe_cafe_yunqi",
+        "canonical_name": "星河咖啡·栖霞分店",
+        "place_type": "cafe",
+        "canonical_address": "演示市云栖区栖霞街 68 号（虚构地址）",
+        "lng": 121.4655,
+        "lat": 31.2246,
+        "parent_place_id_key": "place_xinghe_cafe",
+        # Named after its own street, not the district: a "云栖分店" collided
+        # with 云栖中心 on the query "云栖" and buried the mall.
+        "alias_names": ["星河咖啡", "星河咖啡栖霞店", "Xinghe Coffee Qixia"],
     },
     {
         "key": "place_qinglan_park",
@@ -40,6 +61,8 @@ DEMO_PLACES: list[dict] = [
         "canonical_address": "演示市青岚区青岚大道 8 号（虚构地址）",
         "lng": 121.4880,
         "lat": 31.2380,
+        # The park was renamed; the old name still circulates on local signage.
+        "alias_names": ["青岚河滨绿地", "青岚公园"],
     },
     {
         "key": "place_yunqi_mall",
@@ -48,6 +71,7 @@ DEMO_PLACES: list[dict] = [
         "canonical_address": "演示市云栖区栖霞街 66 号（虚构地址）",
         "lng": 121.4650,
         "lat": 31.2240,
+        "alias_names": ["云栖中心", "云栖购物中心", "Yunqi Center"],
     },
     {
         "key": "place_songfeng_community",
@@ -56,6 +80,7 @@ DEMO_PLACES: list[dict] = [
         "canonical_address": "演示市松风区松风路 20 弄（虚构地址）",
         "lng": 121.4950,
         "lat": 31.2180,
+        "alias_names": ["松风新村"],
     },
 ]
 
@@ -178,7 +203,11 @@ def run_demo_seed() -> dict[str, int]:  # noqa: PLR0915 - linear demo data scrip
         "pet_profile",
         '"user"',
     ):
-        session.execute(text(f"DELETE FROM {table}"))
+        # `table` iterates a literal declared a few lines above; nothing from
+        # outside this function reaches the string, so there is no injection
+        # path. Marked rather than silenced by config so the marker stays
+        # attached to the one line that has to justify itself.
+        session.execute(text(f"DELETE FROM {table}"))  # nosec B608
 
     # --- users ---
     from app.core.security import hash_password
@@ -361,8 +390,15 @@ def run_demo_seed() -> dict[str, int]:  # noqa: PLR0915 - linear demo data scrip
             place_type=spec["place_type"],
             canonical_address=spec["canonical_address"],
             location=f"POINT({spec['lng']} {spec['lat']})",
+            alias_names=list(spec.get("alias_names", [])),
         )
         places[spec["key"]] = p
+    # Branch linkage is a second pass because a sibling may be declared before
+    # the place it hangs off.
+    for spec in DEMO_PLACES:
+        parent_key = spec.get("parent_place_id_key")
+        if parent_key:
+            places[spec["key"]].parent_place_id = places[parent_key].id
     places["place_yunqi_mall"].operator_id = op_yunqi.id
     places["place_songfeng_community"].operator_id = op_songfeng.id
     session.add_all(places.values())

@@ -941,9 +941,37 @@ export interface paths {
          * @description v0.5 resolution: layered rules → EffectiveRuleSet (explainable).
          *
          *     Body: {"animal": "dog", "service_role": "none", "action": "enter",
-         *            "zone_id": null}
+         *            "zone_id": null, "declared_role": "guide_dog" (optional)}
+         *
+         *     ``declared_role`` (ADR-025) pins the query to one precise animal role, so a
+         *     hearing-dog question does not inherit a guide-dog proviso.
          */
         post: operations["effective_rules_api_v1_places__place_id__effective_rules_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/places/{place_id}/extras": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Place Extras
+         * @description Public read-only extras for the Place Detail page (spec §2.4 §4/§5/§6).
+         *
+         *     Coexistence attributes (共处边界), amenities (设施), entrances + access paths
+         *     (怎么进入) and the current event policies. These are spatial/structured facts
+         *     from a source — never judgments about people (ADR-014), and observations are
+         *     deliberately NOT included here: a field record is not a venue policy.
+         */
+        get: operations["place_extras_api_v1_places__place_id__extras_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1051,6 +1079,35 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/candidates/{candidate_id}/scope": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Admin Set Candidate Scope
+         * @description Re-model a candidate's source-faithful animal scope before review (ADR-028).
+         *
+         *     This is how a *compound* source term is split: 「军警犬」 names exactly
+         *     police + military working dogs, and the platform refuses to collapse that
+         *     into one vague subject. Each member gets its own candidate, all sharing the
+         *     original EvidenceBundle — provenance is never duplicated or weakened.
+         *
+         *     Published candidates are frozen: changing the scope of an in-force rule would
+         *     silently rewrite the answer, so that path requires a new candidate +
+         *     supersession.
+         */
+        post: operations["admin_set_candidate_scope_api_v1_admin_candidates__candidate_id__scope_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/candidates/{candidate_id}/transition": {
         parameters: {
             query?: never;
@@ -1068,6 +1125,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/candidates/{candidate_id}/rule-layer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Admin Set Candidate Layer
+         * @description Correct a candidate's normative layer before review/publish (BLK-LAYER-01).
+         *
+         *     The layer decides which resolver pool the published rule lands in, so it is
+         *     reviewer-controlled data, not a client hint. Published candidates are frozen:
+         *     changing the layer of a rule already in force would silently rewrite the
+         *     answer, so that path requires a new candidate + supersession instead.
+         */
+        post: operations["admin_set_candidate_layer_api_v1_admin_candidates__candidate_id__rule_layer_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/candidates/{candidate_id}/mandatory-level": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Admin Set Candidate Mandatory Level
+         * @description Set a candidate's normative force before review/publish (BLK-LAYER-02).
+         *
+         *     mandatory_level decides whether a published LEGAL rule becomes the
+         *     resolver's floor. It is reviewer-controlled data: the publish gate refuses
+         *     a LEGAL candidate that leaves it blank, so it can never be defaulted by the
+         *     client. Published candidates are frozen — a change in force of an in-force
+         *     rule must go through a new candidate + supersession.
+         */
+        post: operations["admin_set_candidate_mandatory_level_api_v1_admin_candidates__candidate_id__mandatory_level_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/candidates/{candidate_id}/publish": {
         parameters: {
             query?: never;
@@ -1079,6 +1187,51 @@ export interface paths {
         put?: never;
         /** Admin Publish Candidate */
         post: operations["admin_publish_candidate_api_v1_admin_candidates__candidate_id__publish_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/rule-exceptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin List Rule Exceptions */
+        get: operations["admin_list_rule_exceptions_api_v1_admin_rule_exceptions_get"];
+        put?: never;
+        /**
+         * Admin Create Rule Exception
+         * @description Attach a scope carve-out to a base rule (SG-REAL-01).
+         *
+         *     Generic mechanism — no hardcoded scope branch. An exception without a
+         *     source is invalid (column is NOT NULL); the base rule must exist.
+         */
+        post: operations["admin_create_rule_exception_api_v1_admin_rule_exceptions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/rule-exceptions/{exception_id}/transition": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Admin Transition Rule Exception
+         * @description Lifecycle: only `current` exceptions apply (expired/superseded fall back
+         *     to the base rule). Transitions are audited.
+         */
+        post: operations["admin_transition_rule_exception_api_v1_admin_rule_exceptions__exception_id__transition_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1391,6 +1544,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/reality-audit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Admin Reality Audit
+         * @description Reality Audit over submitted samples (REALITY_AUDIT_PLAN, NEXT_GOAL C2).
+         *
+         *     Same pure engine as the CLI (`python -m app.tools.reality_audit`). No DB
+         *     writes: the samples stay request-scoped, so synthetic fixtures can be
+         *     audited without touching production tables.
+         */
+        post: operations["admin_reality_audit_api_v1_admin_reality_audit_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/audit": {
         parameters: {
             query?: never;
@@ -1434,7 +1611,12 @@ export interface paths {
         };
         /**
          * Quality Dashboard
-         * @description KPI skeleton from design #37 (Rule Coverage, Median Rule Age, etc.).
+         * @description Operational KPIs (design #37; Master Goal P4 "data quality metrics").
+         *
+         *     Deliberately reports raw, decomposable numbers — coverage ratios, pipeline
+         *     distribution, freshness backlog — and no composite quality index. A blended
+         *     score would be exactly the kind of unfalsifiable number this product refuses
+         *     to show about places, so it refuses to show one about itself.
          */
         get: operations["quality_dashboard_api_v1_admin_quality_get"];
         put?: never;
@@ -1568,6 +1750,11 @@ export interface components {
         };
         /**
          * AnimalScope
+         * @description Coarse scope kept for the public API surface (ADR-025).
+         *
+         *     New records must also carry the precise ``AnimalRole`` in
+         *     ``subject_scope_normalized`` — ``AnimalScope`` alone cannot express the
+         *     difference between a guide dog and, say, a police dog.
          * @enum {string}
          */
         AnimalScope: "dog" | "cat" | "ordinary_pet" | "service_dog" | "other";
@@ -1613,6 +1800,8 @@ export interface components {
              * @default false
              */
             redistribution_allowed: boolean;
+            /** Evidence Strength */
+            evidence_strength?: string | null;
             /** Data Source Job Id */
             data_source_job_id?: string | null;
         };
@@ -1742,6 +1931,10 @@ export interface components {
             action?: string | null;
             /** Effect */
             effect?: string | null;
+            /** Rule Layer */
+            rule_layer?: string | null;
+            /** Mandatory Level */
+            mandatory_level?: string | null;
             /** Proposed Conditions */
             proposed_conditions?: unknown[] | null;
             /** Extraction Method */
@@ -1754,6 +1947,34 @@ export interface components {
             raw_text?: string | null;
             /** Media Id */
             media_id?: string | null;
+            /** Evidence Bundle Id */
+            evidence_bundle_id?: string | null;
+            /** Source Scope Exact */
+            source_scope_exact?: string | null;
+            /** Subject Scope Normalized */
+            subject_scope_normalized?: string | null;
+            /** Normalization Type */
+            normalization_type?: string | null;
+            /** Normative Effect */
+            normative_effect?: string | null;
+            /** Holder Scope */
+            holder_scope?: string | null;
+            /** Operator Obligations */
+            operator_obligations?: unknown[] | null;
+        };
+        /** CandidateLayerIn */
+        CandidateLayerIn: {
+            /** Rule Layer */
+            rule_layer: string;
+            /** Reason */
+            reason?: string | null;
+        };
+        /** CandidateMandatoryIn */
+        CandidateMandatoryIn: {
+            /** Mandatory Level */
+            mandatory_level: string;
+            /** Reason */
+            reason?: string | null;
         };
         /** CandidateReview */
         CandidateReview: {
@@ -1761,6 +1982,30 @@ export interface components {
             target: string;
             /** Note */
             note?: string | null;
+        };
+        /**
+         * CandidateScopeIn
+         * @description Reviewer-controlled re-modelling of a candidate's animal scope.
+         *
+         *     Used to split a compound source term (e.g. 军警犬) into one row per member
+         *     without touching the candidate's evidence — the split rows share the exact
+         *     same EvidenceBundle, so provenance stays intact (ADR-028).
+         */
+        CandidateScopeIn: {
+            /** Source Scope Exact */
+            source_scope_exact?: string | null;
+            /** Subject Scope Normalized */
+            subject_scope_normalized?: string | null;
+            /** Normalization Type */
+            normalization_type?: string | null;
+            /** Normative Effect */
+            normative_effect?: string | null;
+            /** Holder Scope */
+            holder_scope?: string | null;
+            /** Operator Obligations */
+            operator_obligations?: unknown[] | null;
+            /** Reason */
+            reason?: string | null;
         };
         /** ConditionIn */
         ConditionIn: {
@@ -2000,9 +2245,21 @@ export interface components {
         };
         /**
          * MandatoryLevel
+         * @description Normative force of a rule/regulation (RULE_RESOLVER_SPEC, ADR-023).
+         *
+         *     - ``mandatory``           — a binding constraint. The resolver treats a
+         *       mandatory LEGAL rule as the floor: no lower layer may silently relax it.
+         *     - ``advisory``            — guidance that informs but does not bind.
+         *     - ``operator_discretion`` — the operator/venue decides; the default for
+         *       operator-origin rules.
+         *
+         *     The legacy value ``discretionary`` is still accepted on read (existing rows,
+         *     fixtures) and is normalised to ``operator_discretion`` by
+         *     ``app.rulespec.v05_resolver.normalize_mandatory_level``. It is intentionally
+         *     NOT a member here so new writes cannot reintroduce the second spelling.
          * @enum {string}
          */
-        MandatoryLevel: "mandatory" | "advisory" | "discretionary";
+        MandatoryLevel: "mandatory" | "advisory" | "operator_discretion";
         /** MonitorIn */
         MonitorIn: {
             /** Source Id */
@@ -2471,6 +2728,12 @@ export interface components {
         /**
          * PlaceSummary
          * @description Map card / list item: evaluation-relevant projection.
+         *
+         *     Carries enough to disambiguate two same-brand branches without a second
+         *     request: the branch, the address, the alias that produced the hit, and how
+         *     much rule material (and how fresh) sits behind the place. The *verdict* is
+         *     deliberately not here — that comes from the resolver, and duplicating it in
+         *     a list projection is how a list and a detail page end up disagreeing.
          */
         PlaceSummary: {
             /** Id */
@@ -2482,6 +2745,19 @@ export interface components {
             canonical_address: string | null;
             /** Distance M */
             distance_m?: number | null;
+            /** Parent Place Name */
+            parent_place_name?: string | null;
+            /** Matched Alias */
+            matched_alias?: string | null;
+            /** Alias Names */
+            alias_names?: string[];
+            /**
+             * Rule Count
+             * @default 0
+             */
+            rule_count: number;
+            /** Last Verified At */
+            last_verified_at?: string | null;
         };
         /**
          * PlaceType
@@ -2500,6 +2776,8 @@ export interface components {
             lifecycle_status?: components["schemas"]["LifecycleStatus"] | null;
             /** Location Wkt */
             location_wkt?: string | null;
+            /** Alias Names */
+            alias_names?: string[] | null;
         };
         /** RegisterIn */
         RegisterIn: {
@@ -2614,6 +2892,40 @@ export interface components {
          * @enum {string}
          */
         RuleEffect: "allowed" | "prohibited" | "conditional";
+        /** RuleExceptionIn */
+        RuleExceptionIn: {
+            /** Rule Id */
+            rule_id: string;
+            /** Animal Scope */
+            animal_scope: string;
+            /** Effect */
+            effect: string;
+            /** Source Id */
+            source_id: string;
+            /** Effective From */
+            effective_from?: string | null;
+            /** Effective To */
+            effective_to?: string | null;
+            /** Note */
+            note?: string | null;
+            /** Source Scope Exact */
+            source_scope_exact?: string | null;
+            /** Subject Scope Normalized */
+            subject_scope_normalized?: string | null;
+            /** Normalization Type */
+            normalization_type?: string | null;
+            /** Normative Effect */
+            normative_effect?: string | null;
+            /** Holder Scope */
+            holder_scope?: string | null;
+        };
+        /** RuleExceptionTransition */
+        RuleExceptionTransition: {
+            /** Target */
+            target: string;
+            /** Note */
+            note?: string | null;
+        };
         /** RuleIn */
         RuleIn: {
             /** Place Id */
@@ -2626,6 +2938,9 @@ export interface components {
             /** Source Id */
             source_id: string;
             rule_origin: components["schemas"]["RuleOrigin"];
+            /** Rule Layer */
+            rule_layer?: string | null;
+            mandatory_level?: components["schemas"]["MandatoryLevel"] | null;
             /** Effective From */
             effective_from?: string | null;
             /** Effective To */
@@ -2675,6 +2990,9 @@ export interface components {
             status: components["schemas"]["RuleStatus"];
             /** Supersedes Rule Id */
             supersedes_rule_id: string | null;
+            /** Rule Layer */
+            rule_layer?: string | null;
+            mandatory_level?: components["schemas"]["MandatoryLevel"] | null;
             /** Note */
             note: string | null;
             /**
@@ -2804,6 +3122,16 @@ export interface components {
             conditions?: unknown[] | null;
             /** Notes */
             notes?: string | null;
+            /** Source Scope Exact */
+            source_scope_exact?: string | null;
+            /** Subject Scope Normalized */
+            subject_scope_normalized?: string | null;
+            /** Normalization Type */
+            normalization_type?: string | null;
+            /** Normative Effect */
+            normative_effect?: string | null;
+            /** Holder Scope */
+            holder_scope?: string | null;
         };
         /**
          * TemporaryAction
@@ -4998,6 +5326,37 @@ export interface operations {
             };
         };
     };
+    place_extras_api_v1_places__place_id__extras_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                place_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_my_boundary_profiles_api_v1_boundary_profiles_get: {
         parameters: {
             query?: never;
@@ -5199,6 +5558,41 @@ export interface operations {
             };
         };
     };
+    admin_set_candidate_scope_api_v1_admin_candidates__candidate_id__scope_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                candidate_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CandidateScopeIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     admin_transition_candidate_api_v1_admin_candidates__candidate_id__transition_post: {
         parameters: {
             query?: never;
@@ -5234,6 +5628,76 @@ export interface operations {
             };
         };
     };
+    admin_set_candidate_layer_api_v1_admin_candidates__candidate_id__rule_layer_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                candidate_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CandidateLayerIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_set_candidate_mandatory_level_api_v1_admin_candidates__candidate_id__mandatory_level_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                candidate_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CandidateMandatoryIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     admin_publish_candidate_api_v1_admin_candidates__candidate_id__publish_post: {
         parameters: {
             query?: never;
@@ -5244,6 +5708,107 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_list_rule_exceptions_api_v1_admin_rule_exceptions_get: {
+        parameters: {
+            query?: {
+                rule_id?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_dict_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_create_rule_exception_api_v1_admin_rule_exceptions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RuleExceptionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_transition_rule_exception_api_v1_admin_rule_exceptions__exception_id__transition_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                exception_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RuleExceptionTransition"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -6172,6 +6737,41 @@ export interface operations {
             path: {
                 candidate_id: string;
             };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_reality_audit_api_v1_admin_reality_audit_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody: {
