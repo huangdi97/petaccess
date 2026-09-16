@@ -900,6 +900,10 @@ def exception_plan(rows: list[dict]) -> list[dict]:
 
 
 def write_registry(rows: list[dict]) -> None:
+    # A row already signed by a named human keeps that signature: the register is
+    # rebuilt from the database so the machine proposal stays honest, not so the
+    # human's ruling can be regenerated away.
+    preserve_signature(rows, _read_existing(REGISTRY_FINAL).get("rows"))
     doc = {
         "_readme": [
             f"{REVISION} GOV-01 sign-off register (ADR-025 / ADR-028).",
@@ -1477,16 +1481,58 @@ def render_quick_table(rows: list[dict]) -> str:
     return "\n".join(L) + "\n"
 
 
-def render_decisions(rows: list[dict]) -> str:
+#: Fields that belong to the human, not to the generator.
+SIGN_OFF_FIELDS = ("final_decision", "reviewer", "reviewed_at", "review_note")
+
+
+def preserve_signature(fresh: list[dict], previous_rows: list[dict] | None) -> list[dict]:
+    """Carry an already-recorded human signature onto regenerated rows.
+
+    Regenerating the artefacts must never un-sign the register. The packet is
+    rebuilt from the database so the *machine proposal* stays honest, but a
+    human decision is an immutable review event (POST_SIGNATURE_PUBLISHER_CLOSURE_R1
+    §1) — "rebuild the row" must not quietly erase it. Until this existed,
+    re-running the generator after a sign-off silently produced a blank sheet,
+    and the human decision was simply gone.
+
+    Keyed by ``candidate_id``, never by position: a row that moves cannot hand its
+    signature to a different rule.
+    """
+    if not previous_rows:
+        return fresh
+    previous = {str(r.get("candidate_id")): r for r in previous_rows}
+    for row in fresh:
+        old = previous.get(str(row.get("candidate_id")))
+        if not old:
+            continue
+        for field in SIGN_OFF_FIELDS:
+            if old.get(field):
+                row[field] = old[field]
+    return fresh
+
+
+def _read_existing(path: Path) -> dict:
+    """The previous artefact, or {} when there is nothing to preserve."""
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+
+
+def render_decisions(rows: list[dict], previous: dict | None = None) -> str:
+    previous = previous or {}
     doc = {
         "revision": REVISION,
-        "reviewer": "",
-        "reviewed_at": "",
+        "reviewer": previous.get("reviewer") or "",
+        "reviewed_at": previous.get("reviewed_at") or "",
         "human_decisions": list(HUMAN_DECISIONS),
-        "decisions": [
-            {"candidate_id": r["candidate_id"], "final_decision": "", "review_note": ""}
-            for r in rows
-        ],
+        "decisions": preserve_signature(
+            [
+                {"candidate_id": r["candidate_id"], "final_decision": "", "review_note": ""}
+                for r in rows
+            ],
+            previous.get("decisions"),
+        ),
     }
     # This file lives at the repo root, so Prettier owns it (unlike the register,
     # which .prettierignore exempts). Emit its canonical 2-space form directly
@@ -1500,7 +1546,9 @@ def main() -> int:
     write_registry(rows)
     PACKET.write_text(render_packet(rows), encoding="utf-8", newline="\n")
     QUICK_TABLE.write_text(render_quick_table(rows), encoding="utf-8", newline="\n")
-    DECISIONS.write_text(render_decisions(rows), encoding="utf-8", newline="\n")
+    DECISIONS.write_text(
+        render_decisions(rows, previous=_read_existing(DECISIONS)), encoding="utf-8", newline="\n"
+    )
 
     counts = Counter(r["proposed_decision"] for r in rows)
     print(
