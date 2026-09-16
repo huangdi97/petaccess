@@ -18,10 +18,21 @@ Six checks that must ALL pass before a RuleCandidate may be published:
 Deliberately NO composite trust score: each check is a named, auditable
 gate. Violations raise ApiError with a stable code on the first failed check
 in the order above (deterministic for tests and review UX).
+
+Two entry points, one body:
+
+* ``evaluate_for_publish`` returns **every** violation, in gate order.
+* ``validate_for_publish`` raises ``ApiError`` on the first one.
+
+The dry-run publisher calls the first so a blocked candidate can be reported
+with its reasons; ``candidate_service.publish()`` calls the second. They cannot
+drift, because the second is a wrapper over the first — there is no separate
+"dry-run gate".
 """
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import UTC, datetime
 
 from sqlalchemy import select
@@ -59,10 +70,16 @@ NORMALIZATION_VALUES = {e.value for e in NormalizationType}
 _LEAD_ONLY_SOURCE_TYPES = {SourceType.ORDINARY_USER.value}
 
 
-def _first_violation(checks: list[tuple[str, bool, str]]) -> None:
-    for code, failed, message in checks:
-        if failed:
-            raise ApiError(message, code=code)
+@dataclass(frozen=True)
+class GateViolation:
+    """One failed pre-publish check, in canonical gate order."""
+
+    code: str
+    message: str
+
+
+def _collect(checks: list[tuple[str, bool, str]]) -> list[GateViolation]:
+    return [GateViolation(code=code, message=message) for code, failed, message in checks if failed]
 
 
 def scope_violations(candidate) -> list[tuple[str, bool, str]]:
@@ -108,10 +125,21 @@ def scope_violations(candidate) -> list[tuple[str, bool, str]]:
     ]
 
 
-def validate_for_publish(
+def evaluate_for_publish(
     db: Session, candidate: RuleCandidate, *, now: datetime | None = None
-) -> None:
-    """Raise ApiError on the first failed pre-publish check; return when clean."""
+) -> list[GateViolation]:
+    """Every failed pre-publish check, in canonical gate order (empty == clean).
+
+    ``validate_for_publish`` raises on the first one; this returns the whole list
+    so a dry-run can say *why* a candidate is blocked rather than only the first
+    reason. Both run this one body — there is deliberately no second, simplified
+    validation used only by the dry-run path.
+
+    A missing evidence bundle/artifact is a *prerequisite* failure (every later
+    check reads one of those objects), so the walk stops there with that single
+    violation instead of emitting a cascade of derived nonsense.
+    """
+    violations: list[GateViolation] = []
     now = now or datetime.now(UTC)
 
     # ---- 1. evidence: traceable anchor (bundle chain or media) --------------
@@ -121,14 +149,14 @@ def validate_for_publish(
     if candidate.evidence_bundle_id:
         bundle = db.get(EvidenceBundle, candidate.evidence_bundle_id)
         if bundle is None:
-            raise ApiError("证据包不存在", code="evidence_bundle_missing")
+            return [GateViolation(code="evidence_bundle_missing", message="证据包不存在")]
         artifact = db.get(SourceArtifact, bundle.artifact_id)
         if artifact is None:
-            raise ApiError("证据原件不存在", code="evidence_missing")
+            return [GateViolation(code="evidence_missing", message="证据原件不存在")]
         traceable = (
             bool(bundle.quoted_fragment) or bool(bundle.content_hash) or bool(artifact.content_hash)
         )
-        _first_violation(
+        violations += _collect(
             [("evidence_not_traceable", not traceable, "证据缺少原文片段或内容哈希，无法追溯")]
         )
     elif candidate.media_id:
@@ -136,9 +164,15 @@ def validate_for_publish(
 
         media = db.get(MediaObject, candidate.media_id)
         if media is None or not media.sha256:
-            raise ApiError("媒体证据不存在或缺少哈希，无法追溯", code="evidence_missing")
+            return [
+                GateViolation(code="evidence_missing", message="媒体证据不存在或缺少哈希，无法追溯")
+            ]
     else:
-        raise ApiError("候选未引用证据包，无法追溯（先补证据链）", code="evidence_missing")
+        return [
+            GateViolation(
+                code="evidence_missing", message="候选未引用证据包，无法追溯（先补证据链）"
+            )
+        ]
 
     # ---- 2. data license (lead-only artifacts never publish) ----------------
     source = db.get(Source, candidate.source_id)
@@ -153,7 +187,7 @@ def validate_for_publish(
             or (artifact.evidence_strength in weak_strength)
         )
     )
-    _first_violation(
+    violations += _collect(
         [
             (
                 "lead_only_source_not_publishable",
@@ -170,7 +204,7 @@ def validate_for_publish(
     zone_ok = zone is not None and zone.place_id == candidate.place_id
     place_ok = candidate.place_id is not None and (zone_ok or candidate.zone_id is None)
     matched = (bool(bundle.place_match_evidence) if bundle is not None else False) or place_ok
-    _first_violation(
+    violations += _collect(
         [("place_match_missing", not matched, "证据缺少 place_match_evidence，无法确认归属")]
     )
 
@@ -189,7 +223,7 @@ def validate_for_publish(
     conditions_ok = all(
         isinstance(c, dict) and c.get("condition_type") in CONDITION_TYPES for c in conditions
     )
-    _first_violation(
+    violations += _collect(
         [
             (
                 "schema_unsupported",
@@ -216,7 +250,7 @@ def validate_for_publish(
     legal_without_level = (
         candidate.rule_layer or "OPERATOR_POLICY"
     ) == RuleLayer.LEGAL.value and normalize_mandatory_level(candidate.mandatory_level) is None
-    _first_violation(
+    violations += _collect(
         [
             (
                 "legal_requires_mandatory_level",
@@ -232,11 +266,11 @@ def validate_for_publish(
     # Publishing copies the normalisation onto the AccessRule, so whatever the
     # candidate declares is what the resolver will see in production. The checks
     # live in one place (`scope_violations`) so tests and the gate cannot drift.
-    _first_violation(scope_violations(candidate))
+    violations += _collect(scope_violations(candidate))
 
     # ---- 5. unresolved conflict ---------------------------------------------
     conflict = _has_unresolved_conflict(db, candidate)
-    _first_violation(
+    violations += _collect(
         [
             (
                 "unresolved_conflict",
@@ -251,7 +285,24 @@ def validate_for_publish(
         artifact.collected_at if artifact is not None else (media.created_at if media else None)
     )
     stale = captured is None or (now - captured).days > STALE_DAYS
-    _first_violation([("evidence_stale", stale, f"证据超过 {STALE_DAYS} 天未核验，须先复核来源")])
+    violations += _collect(
+        [("evidence_stale", stale, f"证据超过 {STALE_DAYS} 天未核验，须先复核来源")]
+    )
+    return violations
+
+
+def validate_for_publish(
+    db: Session, candidate: RuleCandidate, *, now: datetime | None = None
+) -> None:
+    """Raise ApiError on the first failed pre-publish check; return when clean.
+
+    Thin wrapper over :func:`evaluate_for_publish` so the raising and the
+    collecting form can never drift apart — the publish boundary and the
+    dry-run read exactly the same gates in exactly the same order.
+    """
+    violations = evaluate_for_publish(db, candidate, now=now)
+    if violations:
+        raise ApiError(violations[0].message, code=violations[0].code)
 
 
 def _has_unresolved_conflict(db: Session, candidate: RuleCandidate) -> bool:

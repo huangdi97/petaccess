@@ -52,7 +52,12 @@ from app.rulespec.v05_resolver import (
 )
 from app.schemas.common import Page
 from app.services.answerability import compute_answerability
-from app.services.candidate_service import create_from_extraction, publish, transition
+from app.services.candidate_service import (
+    create_from_extraction,
+    publish,
+    publish_exception,
+    transition,
+)
 from app.services.publish_gate import LAYER_VALUES, MANDATORY_LEVEL_VALUES
 from app.services.source_monitor import check_monitor
 
@@ -518,9 +523,24 @@ def admin_set_candidate_mandatory_level(
     return {"id": cand.id, "mandatory_level": cand.mandatory_level, "changed": True}
 
 
+class PublishIn(BaseModel):
+    """Optional publish mode.
+
+    Absent (or empty) means "publish this candidate as an AccessRule", which is
+    the historical behaviour. ``exception_of_rule_id`` means "this candidate is a
+    carve-out of that base rule", and the publish becomes a ``RuleException``
+    instead — see ``candidate_service.publish_exception``. The caller states the
+    base explicitly because a candidate row carries no base-rule pointer of its
+    own; the API will not guess one, and it refuses a cross-layer binding.
+    """
+
+    exception_of_rule_id: str | None = Field(default=None, max_length=36)
+
+
 @admin.post("/candidates/{candidate_id}/publish")
 def admin_publish_candidate(
     candidate_id: str,
+    body: PublishIn | None = None,
     user: User = Depends(require_role(UserRole.MODERATOR)),
     db: Session = Depends(get_db),
 ):
@@ -528,6 +548,38 @@ def admin_publish_candidate(
     cand = db.get(RuleCandidate, candidate_id)
     if cand is None:
         raise NotFound("候选不存在")
+    if body is not None and body.exception_of_rule_id:
+        exc = publish_exception(
+            db, cand, base_rule_id=body.exception_of_rule_id, reviewer_id=user.id
+        )
+        record_audit(
+            db,
+            request=None,
+            actor_user_id=user.id,
+            actor_role=str(user.role),
+            action="candidate.publish_exception",
+            target_type="rule_exception",
+            target_id=exc.id,
+            after_state={
+                "candidate_id": cand.id,
+                "base_rule_id": exc.rule_id,
+                "effect": exc.effect,
+                "animal_scope": exc.animal_scope,
+                "source_scope_exact": exc.source_scope_exact,
+                "subject_scope_normalized": exc.subject_scope_normalized,
+                "normalization_type": exc.normalization_type,
+                "normative_effect": exc.normative_effect,
+                "holder_scope": exc.holder_scope,
+            },
+        )
+        db.commit()
+        return {
+            "published_rule_id": exc.rule_id,
+            "rule_exception_id": exc.id,
+            "candidate_id": cand.id,
+            "candidate_status": cand.review_status,
+            "publication_type": "rule_exception",
+        }
     rule = publish(db, cand, reviewer_id=user.id)
     record_audit(
         db,

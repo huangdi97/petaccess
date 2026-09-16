@@ -1,38 +1,82 @@
-"""Execute the P0 first real publish batch (PILOT-REVIEW-PUBLISH-01 / S6-S7).
+"""Publish the signed review batch — plan first, then (only with --execute) write.
 
-Reads the newest sign-off register under ``docs/reality_audit/`` and drives the
-LIVE API. Resolution order is R2-FINAL → R2 → R1, so a sign-off can never be
-ignored because the publisher still pointed at a superseded register
-(``--registry`` overrides):
+Two entry points, one planner
+-----------------------------
+``--dry-run`` and ``--execute`` run the **same** pipeline:
 
-    REVIEW_PENDING --(APPROVED|REJECTED)--> publish() --> AccessRule
+    signed register
+      → authorisation          (Human ``final_decision``, nothing else)
+      → pre-publish validation (the canonical `publish_gate`, called for real)
+      → publication classification
+      → dependency planning    (base AccessRule before its RuleException)
+      → plan
+      → dry-run: NO WRITE      |      execute: transactional write
 
-Hard gates enforced here (all must hold, otherwise the script aborts):
+The dry-run is not a printout of what the register says; it is the real plan the
+execute path would consume, evaluated against the real database through the real
+gate. That is the only way "the dry-run passed" can mean anything.
+
+What this fixes (POST_SIGNATURE_PUBLISHER_CLOSURE_R1)
+-----------------------------------------------------
+
+**P0-01 — RuleException had no path.** An exception candidate states a carve-out
+of another rule (《上海市养犬管理条例》第二十三条 prohibits dogs in 商场, its
+但书 exempts guide dogs). Publishing it as an AccessRule is wrong twice over: the
+resolver then sees two same-layer rules and picks the strictest, and the
+carve-out silently stops working. Exceptions are now a first-class publication
+type with a dependency on their base rule, and the write itself goes through
+``candidate_service.publish_exception``, which refuses a cross-layer binding at
+the boundary rather than trusting the plan.
+
+**P0-02 — the plan used the AI's recommendation.** The old dry-run planned from
+``proposed_decision``, so a signed HOLD could still be planned for publication if
+the machine had recommended approval. Authorisation now reads ``final_decision``
+only; ``proposed_decision`` is carried in the plan for comparison and never
+consulted for permission.
+
+**P0-03 — the dry-run never touched the publish gate.** It reported a clean
+sign-off and planned 23 creations while having executed none of the six
+Pre-Publish Validation checks. The dry-run now calls
+``publish_gate.evaluate_for_publish`` against a live session, so "APPROVED" is
+reported separately from "publishable" and every blocked row carries its reasons.
+
+Hard gates enforced here (all must hold, otherwise the run aborts):
 
   1. HUMAN SIGN-OFF. Every row must carry ``final_decision`` AND ``reviewer``
      AND ``reviewed_at``. A machine-proposed decision is never executed on its
      own — AI does not make the final rule call (ADR-005 / Master Goal §0.9).
   2. NO WEAK EVIDENCE. A row whose ``evidence_strength`` is search_snippet or
-     social_lead may not be APPROVED (ADR-021); the API's Pre-Publish Validation
-     would reject it anyway, but failing here keeps the run atomic.
+     social_lead may not be APPROVED (ADR-021); the gate rejects it too, but
+     failing here keeps the run atomic.
   3. NO BULK BLIND APPROVE. ``--max-approve`` (default 20) caps the batch, so a
-     signed file that approves all 33 in one shot must be split deliberately.
-  4. VERIFY AFTER PUBLISH. Each published candidate is re-read: the AccessRule
-     must exist, carry the candidate's rule_layer, be linked back to the
-     candidate, and be visible through /effective-rules.
+     signed file that approves 23 in one shot must be split deliberately.
+  4. BASE BEFORE EXCEPTION. A carve-out is never planned ahead of the rule it
+     carves out of, and is blocked outright if that base is not publishable.
+  5. VERIFY AFTER PUBLISH. Each published candidate is re-read: the rule must
+     exist, carry the candidate's rule_layer, be linked back to the candidate,
+     and be visible through /effective-rules.
 
 Usage:
     python scripts/publish_reviewed_r1.py --dry-run
     python scripts/publish_reviewed_r1.py --execute --reviewer "姓名"
 """
 
-from __future__ import annotations
+# NOTE: deliberately no ``from __future__ import annotations``. PEP 563 turns
+# every annotation into a string, and ``@dataclass`` then resolves those through
+# ``sys.modules[cls.__module__]`` — which does not exist when a module is loaded
+# by path, the way this repo's tests load this script (``spec_from_file_location``
+# without registering it in ``sys.modules``). Runtime annotations keep the plan
+# dataclasses importable from a test harness as well as from the CLI.
 
 import argparse
 import json
 import sys
+from collections import Counter
+from collections.abc import Iterable, Mapping, MutableMapping, Sequence
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any, Protocol
 
 import httpx
 
@@ -70,6 +114,32 @@ WEAK = {"search_snippet", "social_lead"}
 EXECUTABLE = EXECUTABLE_DECISIONS
 TERMINAL = {"PUBLISHED", REJECTED}
 VALID_MANDATORY = {"mandatory", "advisory", "operator_discretion", "discretionary"}
+
+# ------------------------------------------------------------- publication types
+#: A base rule is created.
+CREATE_ACCESS_RULE = "CREATE_ACCESS_RULE"
+#: A base rule is created and it replaces an existing current same-issuer rule.
+SUPERSEDE_ACCESS_RULE = "SUPERSEDE_ACCESS_RULE"
+#: A carve-out is attached to a newly or previously published base rule.
+CREATE_RULE_EXCEPTION = "CREATE_RULE_EXCEPTION"
+#: Nothing to do — the candidate is already published.
+NOOP_ALREADY_EXISTS = "NOOP_ALREADY_EXISTS"
+#: Refused, with reasons.
+BLOCKED = "BLOCKED"
+#: Human said HOLD. Never publishable, in this round or any other.
+HOLD_NOT_PUBLISHABLE = "HOLD_NOT_PUBLISHABLE"
+#: Human said REJECTED. Never publishable, in this round or any other.
+REJECTED_NOT_PUBLISHABLE = "REJECTED_NOT_PUBLISHABLE"
+
+#: Types that would write something.
+WRITING_TYPES = frozenset({CREATE_ACCESS_RULE, SUPERSEDE_ACCESS_RULE, CREATE_RULE_EXCEPTION})
+#: Types that are never publishable.
+NEVER_PUBLISHABLE = frozenset({HOLD_NOT_PUBLISHABLE, REJECTED_NOT_PUBLISHABLE})
+
+#: Gate outcome values.
+GATE_PASS = "PASS"
+GATE_BLOCKED = "BLOCKED"
+GATE_NOT_RUN = "NOT_RUN"
 
 
 class Api:
@@ -110,40 +180,524 @@ def _registry_display() -> str:
         return str(DECISIONS)
 
 
+def load_registry() -> dict:
+    return json.loads(DECISIONS.read_text(encoding="utf-8"))
+
+
 def load_rows() -> list[dict]:
-    doc = json.loads(DECISIONS.read_text(encoding="utf-8"))
-    return doc["rows"]
+    return load_registry()["rows"]
 
 
-def fetch_candidate_state(api: Api) -> dict[str, dict]:
-    """candidate_id -> {rule_layer, mandatory_level} straight from the database.
+def signed_reviewer(rows: Sequence[Mapping[str, Any]]) -> str:
+    """The single named human who signed this batch, or "" if not signed."""
+    reviewers = sorted({str(r["reviewer"]) for r in rows if r.get("reviewer")})
+    return reviewers[0] if len(reviewers) == 1 else ""
 
-    The publish endpoint carries whatever the *candidate row* holds, so the
-    signed register is not enough on its own: if the row drifted (e.g. it was
-    ingested before rule_layer existed and still reads OPERATOR_POLICY), a
-    statutory rule would publish without its binding force. Cross-checking the
-    two before any write turns that silent downgrade into a hard refusal.
 
-    Paginates: the endpoint caps ``limit`` at 200, so a single call would silently
-    miss candidates once the queue grows past that.
+# ============================================================ exception bindings
+
+
+@dataclass(frozen=True)
+class ExceptionBinding:
+    """Canonical carve-out metadata for one candidate.
+
+    Read from the register's ``exception_plan`` — which the packet generator
+    derives from the database evidence chain and which is guarded at generation
+    time by ``validate_exception_binding``. **Not** a hardcoded id list: a new
+    carve-out in a future batch is recognised because it carries this metadata,
+    not because someone remembered to add its name here.
+
+    ``bases`` are same-layer only. Anything the layer-blind algorithm would have
+    attached across layers is kept in ``dropped_cross_layer`` as history and is
+    deliberately NOT a dependency — an OPERATOR_POLICY carve-out attached to a
+    LEGAL prohibition would let an operator's "we allow it" out-vote a statute
+    (RULE_EXCEPTION_LAYER_AND_BINDING_CLOSURE).
     """
-    state: dict[str, dict] = {}
-    offset = 0
-    page_size = 200
-    while True:
-        page = api.get(f"/api/v1/admin/candidates?limit={page_size}&offset={offset}")
-        items = page.get("items", [])
-        for item in items:
-            state[item["id"]] = {
-                "rule_layer": item.get("rule_layer"),
-                "mandatory_level": item.get("mandatory_level"),
-                "review_status": item.get("review_status"),
-            }
-        total = page.get("total")
-        offset += len(items)
-        if not items or (isinstance(total, int) and offset >= total):
-            break
-    return state
+
+    rule_id: str
+    bases: tuple[str, ...]
+    layer: str | None
+    dropped_cross_layer: tuple[str, ...] = ()
+
+
+def canonical_exception_bindings(doc: Mapping[str, Any]) -> dict[str, ExceptionBinding]:
+    """Every carve-out in the register, keyed by rule_id, same-layer bindings only."""
+    bindings: dict[str, ExceptionBinding] = {}
+    for entry in doc.get("exception_plan") or []:
+        if entry.get("mode") != "rule_exception":
+            continue
+        same_layer = tuple(
+            str(b.get("rule_id")) for b in entry.get("bases") or [] if b.get("same_layer")
+        )
+        crossed = tuple(
+            str(b.get("rule_id")) for b in entry.get("bases") or [] if not b.get("same_layer")
+        )
+        bindings[str(entry["rule_id"])] = ExceptionBinding(
+            rule_id=str(entry["rule_id"]),
+            bases=same_layer,
+            layer=entry.get("layer"),
+            dropped_cross_layer=crossed
+            + tuple(str(x) for x in entry.get("cross_layer_dropped") or []),
+        )
+    return bindings
+
+
+def binding_closure_problems(doc: Mapping[str, Any]) -> list[str]:
+    """The register must be internally consistent about carve-out bindings.
+
+    Two ways this file could lie: a binding marked same-layer that is not, or a
+    base whose layer disagrees with the carve-out's. Either would let a carve-out
+    be planned against the wrong layer, so both are refusals.
+    """
+    problems: list[str] = []
+    layers = {str(r["rule_id"]): r.get("rule_layer") for r in doc.get("rows") or []}
+    for entry in doc.get("exception_plan") or []:
+        rule_id = str(entry["rule_id"])
+        for base in entry.get("bases") or []:
+            base_id = str(base.get("rule_id"))
+            if not base.get("same_layer"):
+                problems.append(f"{rule_id}: 绑定表含跨层 base {base_id}")
+            elif base.get("layer") != entry.get("layer"):
+                problems.append(
+                    f"{rule_id}: base {base_id} 层={base.get('layer')!r}"
+                    f" 与例外层={entry.get('layer')!r} 不一致"
+                )
+            elif layers.get(base_id) != entry.get("layer"):
+                problems.append(f"{rule_id}: base {base_id} 在登记表中的层与绑定表不一致")
+    return problems
+
+
+# ============================================================ the gate boundary
+
+
+@dataclass(frozen=True)
+class GateOutcome:
+    """What the canonical pre-publish gate said about one candidate."""
+
+    status: str
+    reasons: tuple[str, ...] = ()
+
+    @property
+    def passed(self) -> bool:
+        return self.status == GATE_PASS
+
+
+class Gate(Protocol):
+    """Port for pre-publish validation, so planning stays testable without a DB."""
+
+    def evaluate(self, *, candidate_id: str, rule_id: str) -> GateOutcome: ...
+
+
+class NullGate:
+    """Used only where no database is available; reports NOT_RUN, never PASS."""
+
+    def evaluate(self, *, candidate_id: str, rule_id: str) -> GateOutcome:
+        return GateOutcome(status=GATE_NOT_RUN, reasons=("未连接数据库，未执行发布闸门",))
+
+
+class MappingGate:
+    """Deterministic gate for tests: rule_id -> GateOutcome (default PASS)."""
+
+    def __init__(self, outcomes: Mapping[str, GateOutcome] | None = None, default: str = GATE_PASS):
+        self._outcomes = dict(outcomes or {})
+        self._default = default
+
+    def evaluate(self, *, candidate_id: str, rule_id: str) -> GateOutcome:
+        return self._outcomes.get(rule_id, GateOutcome(status=self._default))
+
+
+class DatabaseGate:
+    """The **real** gate: ``publish_gate.evaluate_for_publish`` on a live session.
+
+    Deliberately not a re-implementation. If this class ever grows checks of its
+    own, the dry-run stops predicting the publish — which is the entire point of
+    running it.
+    """
+
+    def __init__(self, session: Any, *, now: datetime | None = None) -> None:
+        self._session = session
+        self._now = now
+
+    def evaluate(self, *, candidate_id: str, rule_id: str) -> GateOutcome:
+        from app.models import RuleCandidate
+        from app.services.publish_gate import evaluate_for_publish
+
+        candidate = self._session.get(RuleCandidate, candidate_id)
+        if candidate is None:
+            return GateOutcome(status=GATE_BLOCKED, reasons=("库中不存在该候选",))
+        violations = evaluate_for_publish(self._session, candidate, now=self._now)
+        if not violations:
+            return GateOutcome(status=GATE_PASS)
+        return GateOutcome(status=GATE_BLOCKED, reasons=tuple(v.message for v in violations))
+
+
+# ============================================================ authorised planning
+
+
+@dataclass
+class PlanStep:
+    """One row of the publication plan."""
+
+    order: int
+    candidate_id: str
+    rule_id: str
+    place_name: str
+    zone_name: str | None
+    layer: str | None
+    mandatory_level: str | None
+    human_decision: str
+    proposed_decision: str | None
+    human_overrides_ai: bool
+    publication_type: str
+    depends_on: tuple[str, ...] = ()
+    gate_status: str = GATE_NOT_RUN
+    gate_reasons: tuple[str, ...] = ()
+    supersedes: tuple[str, ...] = ()
+    blocked_reasons: tuple[str, ...] = ()
+
+    @property
+    def publishable(self) -> bool:
+        return self.publication_type in WRITING_TYPES
+
+
+@dataclass
+class Plan:
+    revision: str
+    reviewer: str
+    steps: list[PlanStep] = field(default_factory=list)
+    gate_ran: bool = False
+
+    def of(self, *types: str) -> list[PlanStep]:
+        return [s for s in self.steps if s.publication_type in types]
+
+    @property
+    def writable(self) -> list[PlanStep]:
+        return [s for s in self.steps if s.publishable]
+
+    def summary(self) -> dict[str, Any]:
+        counts = Counter(s.publication_type for s in self.steps)
+        evaluated = [s for s in self.steps if s.gate_status != GATE_NOT_RUN]
+        return {
+            "revision": self.revision,
+            "reviewer": self.reviewer,
+            "signed": bool(self.reviewer) and all(s.human_decision for s in self.steps),
+            "gate_ran": self.gate_ran,
+            "total": len(self.steps),
+            "human_decisions": {
+                key: sum(1 for s in self.steps if s.human_decision == key)
+                for key in (APPROVED, APPROVED_WITH_NOTE, HOLD, REJECTED)
+            },
+            "prepublish_evaluated": len(evaluated),
+            "prepublish_pass": sum(1 for s in evaluated if s.gate_status == GATE_PASS),
+            "prepublish_blocked": sum(1 for s in evaluated if s.gate_status == GATE_BLOCKED),
+            "gate_status_counts": dict(Counter(s.gate_status for s in evaluated)),
+            "access_rule_create_count": counts.get(CREATE_ACCESS_RULE, 0),
+            "access_rule_supersede_count": counts.get(SUPERSEDE_ACCESS_RULE, 0),
+            "rule_exception_create_count": counts.get(CREATE_RULE_EXCEPTION, 0),
+            "noop_count": counts.get(NOOP_ALREADY_EXISTS, 0),
+            "blocked_count": counts.get(BLOCKED, 0),
+            "hold_publishable": sum(
+                1
+                for s in self.steps
+                if s.publication_type == HOLD_NOT_PUBLISHABLE and s.publishable
+            ),
+            "rejected_publishable": sum(
+                1
+                for s in self.steps
+                if s.publication_type == REJECTED_NOT_PUBLISHABLE and s.publishable
+            ),
+            "human_overrides_ai": sum(1 for s in self.steps if s.human_overrides_ai),
+            "publication_types": dict(counts),
+        }
+
+
+def machine_agrees(row: Mapping[str, Any]) -> bool:
+    """Does the machine's recommendation match the human's decision?
+
+    Used only to *display* the disagreement. It never authorises anything.
+    """
+    decision = row.get("final_decision")
+    proposed = row.get("proposed_decision")
+    if not proposed:
+        return True
+    if decision in APPROVAL_DECISIONS:
+        return proposed in ("RECOMMEND_APPROVE", "RECOMMEND_APPROVE_WITH_NOTE")
+    if decision == HOLD:
+        return proposed == "RECOMMEND_HOLD"
+    if decision == REJECTED:
+        return proposed == "RECOMMEND_REJECT"
+    return False
+
+
+def authorise(row: Mapping[str, Any]) -> str:
+    """Human authorisation, from ``final_decision`` and from nothing else.
+
+    ``proposed_decision`` is the machine's opinion. It appears in the plan so a
+    reviewer can see where they disagreed with it, and it is never allowed to
+    grant permission: an APPROVED the machine wanted to HOLD gets published, and
+    a HOLD the machine wanted to approve does not.
+    """
+    decision = row.get("final_decision")
+    if decision in APPROVAL_DECISIONS:
+        return "PURSUE"
+    if decision == HOLD:
+        return "HOLD"
+    if decision == REJECTED:
+        return "REJECT"
+    return "UNSIGNED"
+
+
+def _supersede_targets(row: Mapping[str, Any]) -> tuple[str, ...]:
+    return tuple(str(x) for x in row.get("_supersedes_existing") or ())
+
+
+def build_plan(
+    rows: Sequence[Mapping[str, Any]],
+    *,
+    bindings: Mapping[str, ExceptionBinding] | None = None,
+    gate: Gate | None = None,
+    revision: str = "",
+    reviewer: str = "",
+    already_published: Iterable[str] = (),
+) -> Plan:
+    """Turn signed rows into an ordered publication plan.
+
+    Pure with respect to the world: every database fact it needs arrives as an
+    argument (``gate``, ``_supersedes_existing`` on the row, ``already_published``),
+    so the planner is exhaustively unit-testable and the execute path consumes the
+    very same object the dry-run printed.
+
+    Ordering is deterministic and dependency-correct: publishable steps first,
+    bases before the carve-outs that depend on them, ties broken by ``rule_id``.
+    Two runs over one register therefore produce identical plans.
+    """
+    bindings = dict(bindings or {})
+    published = {str(x) for x in already_published}
+    steps: list[PlanStep] = []
+    by_rule: dict[str, PlanStep] = {}
+    layer_of = {str(r["rule_id"]): r.get("rule_layer") for r in rows}
+
+    for row in rows:
+        rule_id = str(row["rule_id"])
+        auth = authorise(row)
+        binding = bindings.get(rule_id)
+        outcome = (
+            gate.evaluate(candidate_id=str(row["candidate_id"]), rule_id=rule_id)
+            if gate is not None and auth == "PURSUE"
+            else GateOutcome(status=GATE_NOT_RUN)
+        )
+        proposed = row.get("proposed_decision")
+        step = PlanStep(
+            order=0,
+            candidate_id=str(row["candidate_id"]),
+            rule_id=rule_id,
+            place_name=str(row.get("place_name") or ""),
+            zone_name=row.get("zone_name"),
+            layer=row.get("rule_layer"),
+            mandatory_level=row.get("mandatory_level"),
+            human_decision=str(row.get("final_decision") or ""),
+            proposed_decision=proposed,
+            human_overrides_ai=bool(proposed) and not machine_agrees(row),
+            publication_type=BLOCKED,
+            gate_status=outcome.status,
+            gate_reasons=outcome.reasons,
+            supersedes=_supersede_targets(row),
+        )
+        if auth == "HOLD":
+            step.publication_type = HOLD_NOT_PUBLISHABLE
+        elif auth == "REJECT":
+            step.publication_type = REJECTED_NOT_PUBLISHABLE
+        elif auth == "UNSIGNED":
+            step.publication_type = BLOCKED
+            step.blocked_reasons = ("未签署（final_decision 不在词表内），不得进入发布计划",)
+        elif str(row["candidate_id"]) in published:
+            step.publication_type = NOOP_ALREADY_EXISTS
+            step.blocked_reasons = ("候选已处于 PUBLISHED，无需重复发布",)
+        elif outcome.status == GATE_BLOCKED:
+            step.publication_type = BLOCKED
+            step.blocked_reasons = outcome.reasons or ("发布前校验未通过",)
+        elif binding is not None:
+            step.publication_type = CREATE_RULE_EXCEPTION
+            step.depends_on = binding.bases
+        elif step.supersedes:
+            step.publication_type = SUPERSEDE_ACCESS_RULE
+        else:
+            step.publication_type = CREATE_ACCESS_RULE
+        steps.append(step)
+        by_rule[rule_id] = step
+
+    # ---- dependency closure: a carve-out may not outlive a missing base -------
+    for step in steps:
+        if step.publication_type != CREATE_RULE_EXCEPTION:
+            continue
+        blocked: list[str] = []
+        if not step.depends_on:
+            blocked.append("例外候选没有同层 base，无法作为 carve-out 发布")
+        for base_id in step.depends_on:
+            base = by_rule.get(base_id)
+            if base is None:
+                blocked.append(f"base {base_id} 不在本批登记表中，且库中无对应现行规则")
+                continue
+            base_layer = layer_of.get(base_id)
+            if base_layer != step.layer:
+                blocked.append(
+                    f"base {base_id} 层={base_layer!r} 与例外层={step.layer!r} 不一致，"
+                    "跨层绑定被拒绝"
+                )
+            elif base.publication_type not in WRITING_TYPES:
+                blocked.append(
+                    f"base {base_id} 不可发布（{base.publication_type}），例外不得被间接带入"
+                )
+        if blocked:
+            step.publication_type = BLOCKED
+            step.blocked_reasons = tuple(blocked)
+
+    # ---- ordering: publishable first, base before exception, ties by rule_id --
+    def sort_key(step: PlanStep) -> tuple[int, int, str]:
+        writable = 0 if step.publishable else 1
+        level = 1 if step.publication_type == CREATE_RULE_EXCEPTION else 0
+        return (writable, level, step.rule_id)
+
+    ordered = sorted(steps, key=sort_key)
+    for index, step in enumerate(ordered, start=1):
+        step.order = index
+
+    return Plan(
+        revision=revision,
+        reviewer=reviewer,
+        steps=ordered,
+        gate_ran=gate is not None and not isinstance(gate, NullGate),
+    )
+
+
+# ============================================================ plan integrity
+
+
+def target_identity(step: PlanStep, rows_by_rule: Mapping[str, Mapping[str, Any]]) -> tuple:
+    """What a step would write, as a collision key.
+
+    Two steps with the same identity would fight over one rule (or one carve-out)
+    — a duplicate publication, not two publications.
+    """
+    row = rows_by_rule.get(step.rule_id, {})
+    owner = row.get("zone_id") or row.get("zone_key") or row.get("place_key")
+    return (
+        step.publication_type,
+        owner,
+        row.get("source_key") or row.get("source_id"),
+        row.get("subject_scope_normalized"),
+        row.get("action"),
+        step.layer,
+        row.get("effect"),
+    )
+
+
+def self_supersede_violations(
+    steps: Sequence[PlanStep], *, created_ids: Iterable[str] = ()
+) -> list[str]:
+    """A publication must never supersede itself.
+
+    Two concrete ways that could happen, both refused here:
+
+    * a step's supersede set contains a rule this same plan is creating —
+      two steps racing over one identity;
+    * literal ``rule_id == supersedes_rule_id`` — a rule recorded as superseding
+      itself, which makes its own history unreadable.
+    """
+    created = {str(x) for x in created_ids}
+    problems: list[str] = []
+    for step in steps:
+        if step.rule_id in step.supersedes:
+            problems.append(f"{step.rule_id}: 规则把自己列为 supersedes 目标")
+        overlap = created.intersection(step.supersedes)
+        if overlap:
+            problems.append(
+                f"{step.rule_id}: supersede 目标包含本批正在创建的规则 {sorted(overlap)}"
+            )
+    return problems
+
+
+def duplicate_plan_violations(
+    steps: Sequence[PlanStep], rows_by_rule: Mapping[str, Mapping[str, Any]]
+) -> list[str]:
+    """No candidate and no write target may appear twice in the plan."""
+    problems: list[str] = []
+    for candidate_id, count in Counter(s.candidate_id for s in steps if s.publishable).items():
+        if count > 1:
+            problems.append(f"候选 {candidate_id} 在计划中出现 {count} 次")
+    seen: dict[tuple, list[str]] = {}
+    for step in steps:
+        if not step.publishable:
+            continue
+        seen.setdefault(target_identity(step, rows_by_rule), []).append(step.rule_id)
+    for _, rule_ids in seen.items():
+        if len(rule_ids) > 1:
+            problems.append(f"同一写入目标被计划多次：{sorted(rule_ids)}")
+    return problems
+
+
+def cross_layer_violations(
+    steps: Sequence[PlanStep], rows_by_rule: Mapping[str, Mapping[str, Any]]
+) -> list[str]:
+    """A carve-out must bind inside its own layer, and only there."""
+    problems: list[str] = []
+    for step in steps:
+        if step.publication_type not in (CREATE_RULE_EXCEPTION, BLOCKED):
+            continue
+        for base_id in step.depends_on:
+            base_layer = rows_by_rule.get(base_id, {}).get("rule_layer")
+            if base_layer != step.layer:
+                problems.append(
+                    f"{step.rule_id}({step.layer}) 绑定 {base_id}({base_layer})：跨层例外绑定"
+                )
+    return problems
+
+
+def supersession_cycles(edges: Mapping[str, str]) -> list[list[str]]:
+    """``supersedes_rule_id`` chains must be a forest, never a loop.
+
+    A cycle makes "which rule is current" unanswerable.
+    """
+    cycles: list[list[str]] = []
+    for start in edges:
+        seen: list[str] = []
+        node: str | None = start
+        while node is not None and node in edges:
+            if node in seen:
+                cycles.append([*seen[seen.index(node) :], node])
+                break
+            seen.append(node)
+            node = edges[node]
+    return cycles
+
+
+def plan_integrity(
+    plan: Plan,
+    *,
+    rows_by_rule: Mapping[str, Mapping[str, Any]],
+    supersession_edges: Mapping[str, str] | None = None,
+    created_ids: Iterable[str] = (),
+) -> dict[str, Any]:
+    """The refusal set that a managed dry-run must report as all zero."""
+    self_supersede = self_supersede_violations(plan.steps, created_ids=created_ids)
+    duplicates = duplicate_plan_violations(plan.steps, rows_by_rule)
+    cross_layer = cross_layer_violations(plan.steps, rows_by_rule)
+    cycles = supersession_cycles(supersession_edges or {})
+    return {
+        "SELF_SUPERSEDE": len(self_supersede),
+        "DUPLICATE_PUBLICATION_PLAN": len(duplicates),
+        "CROSS_LAYER_EXCEPTION": len(cross_layer),
+        "SUPERSESSION_CYCLE": len(cycles),
+        "details": {
+            "self_supersede": self_supersede,
+            "duplicate_plan": duplicates,
+            "cross_layer_exception": cross_layer,
+            "supersession_cycle": [" -> ".join(c) for c in cycles],
+        },
+    }
+
+
+# ============================================================ preflight (register side)
 
 
 def preflight(
@@ -225,7 +779,11 @@ def preflight(
     return problems
 
 
-def run(rows: list[dict], api: Api | None, execute: bool) -> dict:
+# ============================================================ execution
+
+
+def bucketize(plan: Plan) -> dict[str, list[dict]]:
+    """Legacy buckets, derived from the plan so the two views cannot disagree."""
     result: dict[str, list[dict]] = {
         "approved": [],
         "rejected": [],
@@ -233,119 +791,350 @@ def run(rows: list[dict], api: Api | None, execute: bool) -> dict:
         "published": [],
         "failed": [],
     }
-
-    for r in rows:
-        fd = r["final_decision"]
-        if not execute:
-            # dry-run: show what the *proposed* decision would do, clearly labelled
-            planned = {
-                "RECOMMEND_APPROVE": APPROVED,
-                "RECOMMEND_APPROVE_WITH_NOTE": APPROVED_WITH_NOTE,
-                "RECOMMEND_REJECT": REJECTED,
-                "RECOMMEND_HOLD": HOLD,
-            }.get(r["proposed_decision"], HOLD)
-            fd = planned
-        cid, rule_id = r["candidate_id"], r["rule_id"]
-        if fd == HOLD:
-            result["held"].append({"candidate_id": cid, "rule_id": rule_id})
-            continue
-
-        # APPROVED_WITH_NOTE is an approval, not a rejection. The old one-line
-        # ternary here mapped anything that was not exactly "APPROVED" to
-        # "REJECTED", which would have inverted a reviewer's decision.
-        target = APPROVED if fd in APPROVAL_DECISIONS else REJECTED
-        if not execute:
-            result["approved" if target == APPROVED else "rejected"].append(
-                {"candidate_id": cid, "rule_id": rule_id, "layer": r["rule_layer"]}
+    for step in plan.steps:
+        if step.publication_type == HOLD_NOT_PUBLISHABLE:
+            result["held"].append({"candidate_id": step.candidate_id, "rule_id": step.rule_id})
+        elif step.publication_type == REJECTED_NOT_PUBLISHABLE:
+            result["rejected"].append({"candidate_id": step.candidate_id, "rule_id": step.rule_id})
+        elif step.publication_type in (CREATE_ACCESS_RULE, SUPERSEDE_ACCESS_RULE):
+            result["approved"].append(
+                {"candidate_id": step.candidate_id, "rule_id": step.rule_id, "layer": step.layer}
             )
-            continue
+        elif step.publication_type == CREATE_RULE_EXCEPTION:
+            result["approved"].append(
+                {
+                    "candidate_id": step.candidate_id,
+                    "rule_id": step.rule_id,
+                    "layer": step.layer,
+                    "publication_type": CREATE_RULE_EXCEPTION,
+                }
+            )
+    return result
 
-        assert api is not None
+
+def run(
+    rows: list[dict],
+    api: Api | None,
+    execute: bool,
+    *,
+    bindings: Mapping[str, ExceptionBinding] | None = None,
+    gate: Gate | None = None,
+    already_published: Iterable[str] = (),
+) -> dict:
+    """Legacy entry point — a thin wrapper over the one planner.
+
+    Kept because callers (and the governance tests) use it to prove that HOLD rows
+    never fall through into the publish branch. It no longer holds a private copy
+    of the decision logic: the dry-run branch reads ``final_decision`` — via
+    ``build_plan`` — exactly as ``--execute`` does. Planning from the machine's
+    ``proposed_decision`` is what let a signed HOLD stay publishable.
+    """
+    plan = build_plan(rows, bindings=bindings, gate=gate, already_published=already_published)
+    if not execute:
+        return bucketize(plan)
+    return execute_plan(plan, api)
+
+
+def execute_plan(plan: Plan, api: Api | None) -> dict[str, list[dict]]:
+    """Write the plan, in order, base before carve-out.
+
+    A blocked or unsigned row is skipped rather than published; ``main()``
+    refuses to reach this function with a gate that never ran.
+    """
+    result: dict[str, list[dict]] = {
+        "approved": [],
+        "rejected": [],
+        "held": [],
+        "published": [],
+        "failed": [],
+    }
+    for step in plan.steps:
+        if step.publication_type in NEVER_PUBLISHABLE or step.publication_type == BLOCKED:
+            continue
+        if step.publication_type == NOOP_ALREADY_EXISTS:
+            continue
+        assert api is not None, "execute requires an API client"
+        cid = step.candidate_id
         try:
             api.post(
                 f"/api/v1/admin/candidates/{cid}/transition",
-                {"target": target, "note": f"R1 human review by {r['reviewer']}"},
+                {"target": APPROVED, "note": f"human review by {plan.reviewer}"},
             )
         except RuntimeError as exc:
             result["failed"].append(
-                {"candidate_id": cid, "rule_id": rule_id, "stage": target, "error": str(exc)}
+                {
+                    "candidate_id": cid,
+                    "rule_id": step.rule_id,
+                    "stage": "transition",
+                    "error": str(exc),
+                }
             )
             continue
 
-        if target == REJECTED:
-            result["rejected"].append({"candidate_id": cid, "rule_id": rule_id})
+        if step.publication_type == CREATE_RULE_EXCEPTION:
+            base_rule_id = published_base_for(step, result)
+            if base_rule_id is None:
+                result["failed"].append(
+                    {
+                        "candidate_id": cid,
+                        "rule_id": step.rule_id,
+                        "stage": "resolve_base",
+                        "error": f"base {list(step.depends_on)} 尚未发布，无法附加例外",
+                    }
+                )
+                continue
+            try:
+                out = api.post(
+                    f"/api/v1/admin/candidates/{cid}/publish",
+                    {"exception_of_rule_id": base_rule_id},
+                )
+            except RuntimeError as exc:
+                result["failed"].append(
+                    {
+                        "candidate_id": cid,
+                        "rule_id": step.rule_id,
+                        "stage": "publish_exception",
+                        "error": str(exc),
+                    }
+                )
+                continue
+            result["published"].append(
+                {
+                    "candidate_id": cid,
+                    "rule_id": step.rule_id,
+                    "publication_type": CREATE_RULE_EXCEPTION,
+                    "base_rule_id": out.get("published_rule_id"),
+                    "rule_exception_id": out.get("rule_exception_id"),
+                }
+            )
             continue
-        result["approved"].append({"candidate_id": cid, "rule_id": rule_id})
 
         try:
             out = api.post(f"/api/v1/admin/candidates/{cid}/publish")
         except RuntimeError as exc:
             result["failed"].append(
-                {"candidate_id": cid, "rule_id": rule_id, "stage": "publish", "error": str(exc)}
+                {
+                    "candidate_id": cid,
+                    "rule_id": step.rule_id,
+                    "stage": "publish",
+                    "error": str(exc),
+                }
             )
             continue
-
-        rule_id_out = out.get("published_rule_id")
-        after = api.get("/api/v1/admin/candidates?limit=200")
-        row = next((x for x in after.get("items", []) if x["id"] == cid), None)
-        linked = bool(row and row.get("published_rule_id") == rule_id_out)
-        # BLK-LAYER-02 / ADR-023: the published rule must carry the declared
-        # normative layer *and* force — a flattened statutory rule is a silent
-        # correctness regression, so either mismatch fails the run.
-        expected_layer = r.get("rule_layer")
-        published_layer = out.get("rule_layer")
-        layer_ok = expected_layer is None or published_layer == expected_layer
-        expected_ml = r.get("mandatory_level")
-        published_ml = out.get("mandatory_level")
-        force_ok = expected_ml is None or published_ml == expected_ml
+        result["approved"].append({"candidate_id": cid, "rule_id": step.rule_id})
         result["published"].append(
             {
                 "candidate_id": cid,
-                "rule_id": rule_id,
-                "published_rule_id": rule_id_out,
-                "expected_layer": expected_layer,
-                "published_layer": published_layer,
-                "layer_preserved": layer_ok,
-                "expected_mandatory_level": expected_ml,
-                "published_mandatory_level": published_ml,
-                "candidate_linked": linked,
-                "mandatory_preserved": force_ok,
+                "rule_id": step.rule_id,
+                "publication_type": step.publication_type,
+                "published_rule_id": out.get("published_rule_id"),
+                "layer_preserved": out.get("rule_layer") == step.layer,
+                "mandatory_preserved": out.get("mandatory_level") == step.mandatory_level,
             }
         )
-        if not linked:
-            result["failed"].append(
-                {
-                    "candidate_id": cid,
-                    "rule_id": rule_id,
-                    "stage": "verify_link",
-                    "error": "candidate->rule 链接缺失",
-                }
-            )
-        if not layer_ok:
-            result["failed"].append(
-                {
-                    "candidate_id": cid,
-                    "rule_id": rule_id,
-                    "stage": "verify_rule_layer",
-                    "error": (
-                        f"rule_layer 未被保留：expected={expected_layer!r} "
-                        f"published={published_layer!r}"
-                    ),
-                }
-            )
-        if not force_ok:
-            result["failed"].append(
-                {
-                    "candidate_id": cid,
-                    "rule_id": rule_id,
-                    "stage": "verify_mandatory_level",
-                    "error": (
-                        f"mandatory_level 未被保留：expected={expected_ml!r} "
-                        f"published={published_ml!r}"
-                    ),
-                }
-            )
     return result
+
+
+def published_base_for(step: PlanStep, result: Mapping[str, list[dict]]) -> str | None:
+    """Which AccessRule should this carve-out attach to?
+
+    The base published earlier in this same batch. There is no other source: the
+    base is stated by the register's binding, never guessed from place/source.
+    """
+    for base_id in step.depends_on:
+        for entry in result.get("published", []):
+            if entry.get("rule_id") == base_id and entry.get("published_rule_id"):
+                return str(entry["published_rule_id"])
+    return None
+
+
+# ============================================================ reporting
+
+
+def render_plan(plan: Plan, integrity: Mapping[str, Any]) -> str:
+    summary = plan.summary()
+    lines = [
+        "=== DRY RUN PLAN（不写库）===",
+        f"REVISION                    = {summary['revision']}",
+        f"REVIEWER                    = {summary['reviewer']}",
+        f"SIGNED                      = {summary['signed']}",
+        f"TOTAL                       = {summary['total']}",
+        f"APPROVED                    = {summary['human_decisions'][APPROVED]}",
+        f"APPROVED_WITH_NOTE          = {summary['human_decisions'][APPROVED_WITH_NOTE]}",
+        f"HOLD                        = {summary['human_decisions'][HOLD]}",
+        f"REJECTED                    = {summary['human_decisions'][REJECTED]}",
+        "",
+        f"PREPUBLISH_GATE_RAN         = {summary['gate_ran']}",
+        f"PREPUBLISH_APPROVED_EVALUATED = {summary['prepublish_evaluated']}",
+        f"PREPUBLISH_PASS             = {summary['prepublish_pass']}",
+        f"PREPUBLISH_BLOCKED          = {summary['prepublish_blocked']}",
+        "",
+        f"ACCESS_RULE_CREATE_COUNT    = {summary['access_rule_create_count']}",
+        f"ACCESS_RULE_SUPERSEDE_COUNT = {summary['access_rule_supersede_count']}",
+        f"RULE_EXCEPTION_CREATE_COUNT = {summary['rule_exception_create_count']}",
+        f"NOOP_COUNT                  = {summary['noop_count']}",
+        f"BLOCKED_COUNT               = {summary['blocked_count']}",
+        "",
+        f"HOLD_PUBLISHABLE            = {summary['hold_publishable']}",
+        f"REJECTED_PUBLISHABLE        = {summary['rejected_publishable']}",
+        f"CROSS_LAYER_EXCEPTION       = {integrity['CROSS_LAYER_EXCEPTION']}",
+        f"SELF_SUPERSEDE              = {integrity['SELF_SUPERSEDE']}",
+        f"DUPLICATE_PLAN              = {integrity['DUPLICATE_PUBLICATION_PLAN']}",
+        f"SUPERSESSION_CYCLE          = {integrity['SUPERSESSION_CYCLE']}",
+        f"HUMAN_OVERRIDES_AI          = {summary['human_overrides_ai']}",
+        "",
+        f"{'#':>3}  {'rule':<26} {'place':<20} {'layer':<16} {'human':<9} "
+        f"{'publication_type':<22} {'gate':<8} depends_on / reasons",
+    ]
+    for step in plan.steps:
+        reasons = "; ".join(step.gate_reasons or step.blocked_reasons)
+        depends = "dep=" + ",".join(step.depends_on) if step.depends_on else ""
+        extra = " | ".join(x for x in (depends, reasons) if x)
+        place = step.place_name[:18]
+        lines.append(
+            f"{step.order:>3}  {step.rule_id:<26} {place:<20} {str(step.layer):<16} "
+            f"{step.human_decision:<9} {step.publication_type:<22} {step.gate_status:<8} "
+            f"{extra[:64]}"
+        )
+    return "\n".join(lines)
+
+
+def plan_as_json(plan: Plan, integrity: Mapping[str, Any], extra: Mapping[str, Any]) -> dict:
+    return {
+        "summary": {**plan.summary(), **dict(extra)},
+        "integrity": integrity,
+        "plan": [
+            {
+                "order": s.order,
+                "candidate_id": s.candidate_id,
+                "rule_id": s.rule_id,
+                "place": s.place_name,
+                "zone": s.zone_name,
+                "layer": s.layer,
+                "mandatory_level": s.mandatory_level,
+                "human_decision": s.human_decision,
+                "proposed_decision": s.proposed_decision,
+                "human_overrides_ai": s.human_overrides_ai,
+                "publication_type": s.publication_type,
+                "depends_on": list(s.depends_on),
+                "gate_result": s.gate_status,
+                "gate_reasons": list(s.gate_reasons),
+                "supersedes": list(s.supersedes),
+                "blocked_reasons": list(s.blocked_reasons),
+                "publishable": s.publishable,
+            }
+            for s in plan.steps
+        ],
+    }
+
+
+# ============================================================ database plumbing
+
+#: Tables whose row counts prove a dry-run wrote nothing.
+_COUNTED_TABLES = ("access_rule", "rule_exception", "rule_candidate", "audit_log")
+
+
+def build_session(database_url: str | None):
+    """A session for the dry-run's gate evaluation.
+
+    The dry-run never commits and never mutates; the caller compares table counts
+    around it and reports ``DRY_RUN_ZERO_DB_MUTATION``.
+    """
+    sys.path.insert(0, str(REPO / "services" / "api"))
+    from sqlalchemy.orm import sessionmaker
+
+    from app.db.session import make_engine
+
+    return sessionmaker(bind=make_engine(database_url), autoflush=False, expire_on_commit=False)()
+
+
+def table_counts(session) -> dict[str, int]:
+    from sqlalchemy import text
+
+    return {
+        table: int(session.execute(text(f"SELECT count(*) FROM {table}")).scalar_one())
+        for table in _COUNTED_TABLES
+    }
+
+
+def annotate_from_db(rows: Sequence[MutableMapping[str, Any]], session) -> dict[str, str]:
+    """Attach database-derived planning facts to each row, and return supersede edges.
+
+    Done as a separate pass so the planner stays a pure function of its inputs:
+    tests hand it the same facts without a database. Returns ``rule_id ->
+    superseded_rule_id`` for existing rules so supersession cycles can be detected.
+    """
+    from sqlalchemy import select
+
+    from app.models import AccessRule, RuleCandidate
+
+    edges: dict[str, str] = {}
+    for row in rows:
+        candidate = session.get(RuleCandidate, row["candidate_id"])
+        if candidate is None:
+            row["_supersedes_existing"] = []
+            continue
+        row["place_id"] = candidate.place_id
+        row["zone_id"] = candidate.zone_id
+        row["source_id"] = candidate.source_id
+        row["animal_scope"] = candidate.animal_scope
+        row["action"] = candidate.action
+        row["effect"] = candidate.effect
+        row["_db_review_status"] = candidate.review_status
+        row["published_rule_id"] = candidate.published_rule_id
+        owner = (
+            AccessRule.zone_id == candidate.zone_id
+            if candidate.zone_id
+            else AccessRule.place_id == candidate.place_id
+        )
+        found = session.scalars(
+            select(AccessRule).where(
+                owner,
+                AccessRule.status == "current",
+                AccessRule.source_id == candidate.source_id,
+                AccessRule.animal_scope == candidate.animal_scope,
+                AccessRule.action == candidate.action,
+            )
+        ).all()
+        row["_supersedes_existing"] = sorted(str(r.id) for r in found)
+        for existing in found:
+            if existing.supersedes_rule_id:
+                edges[str(existing.id)] = str(existing.supersedes_rule_id)
+    return edges
+
+
+def fetch_candidate_state(api: Api) -> dict[str, dict]:
+    """candidate_id -> {rule_layer, mandatory_level, review_status} from the API.
+
+    The publish endpoint carries whatever the *candidate row* holds, so the
+    signed register is not enough on its own: if the row drifted (e.g. it was
+    ingested before rule_layer existed and still reads OPERATOR_POLICY), a
+    statutory rule would publish without its binding force. Cross-checking the
+    two before any write turns that silent downgrade into a hard refusal.
+
+    Paginates: the endpoint caps ``limit`` at 200, so a single call would silently
+    miss candidates once the queue grows past that.
+    """
+    state: dict[str, dict] = {}
+    offset = 0
+    page_size = 200
+    while True:
+        page = api.get(f"/api/v1/admin/candidates?limit={page_size}&offset={offset}")
+        items = page.get("items", [])
+        for item in items:
+            state[item["id"]] = {
+                "rule_layer": item.get("rule_layer"),
+                "mandatory_level": item.get("mandatory_level"),
+                "review_status": item.get("review_status"),
+            }
+        total = page.get("total")
+        offset += len(items)
+        if not items or (isinstance(total, int) and offset >= total):
+            break
+    return state
+
+
+# ============================================================ CLI
 
 
 def main() -> int:
@@ -360,6 +1149,12 @@ def main() -> int:
         default=None,
         help="评审登记表路径（缺省：按 R2-FINAL → R2 → R1 取最新登记表）",
     )
+    ap.add_argument(
+        "--database-url",
+        default=None,
+        help="发布闸门使用的数据库（缺省：环境变量 DATABASE_URL 或应用设置）",
+    )
+    ap.add_argument("--json", action="store_true", help="额外输出机器可读的完整计划")
     args = ap.parse_args()
 
     global DECISIONS
@@ -371,7 +1166,19 @@ def main() -> int:
         print("必须且只能指定 --dry-run 或 --execute")
         return 2
 
-    rows = load_rows()
+    doc = load_registry()
+    rows = doc["rows"]
+
+    # The register's own binding table must be self-consistent before we trust it
+    # to classify anything as a carve-out.
+    closure = binding_closure_problems(doc)
+    if closure:
+        print("REFUSED — 登记表的 RuleException 绑定表不自洽：")
+        for problem in closure:
+            print(f"  - {problem}")
+        return 4
+
+    bindings = canonical_exception_bindings(doc)
 
     # Build the client first: the DB cross-check is part of the preflight, so a
     # drifted candidate row blocks the run *before* anything is written.
@@ -399,61 +1206,104 @@ def main() -> int:
 
     problems = preflight(rows, args.reviewer, args.max_approve, db_state)
 
-    if args.dry_run:
-        print("=== DRY RUN（不写库）===")
-        if problems:
-            print(f"发布前置条件未满足（{len(problems)} 项）——以下为需要人类评审员处理的事项：")
-            for p in problems:
-                print(f"  - {p}")
-            print(
-                "\n这是设计使然：脚本不会在没有具名人类签署的情况下写库。"
-                f"\n人类评审员须在 {_registry_display()} 中填写"
-                "\nfinal_decision / reviewer / reviewed_at。"
-            )
-        result = run(rows, None, execute=False)
+    # ---- real gate, real database ------------------------------------------
+    session = None
+    before_counts: dict[str, int] = {}
+    edges: dict[str, str] = {}
+    try:
+        session = build_session(args.database_url)
+    except Exception as exc:  # environment dependent
+        print(f"提示：未能连接数据库（{exc}）；发布闸门将以 NOT_RUN 报告。")
+    if session is not None:
+        edges = annotate_from_db(rows, session)
+        before_counts = table_counts(session)
+        gate: Gate = DatabaseGate(session)
+    else:
+        gate = NullGate()
+
+    plan = build_plan(
+        rows,
+        bindings=bindings,
+        gate=gate,
+        revision=str(doc.get("revision") or ""),
+        reviewer=signed_reviewer(rows),
+        already_published={
+            r["candidate_id"]
+            for r in rows
+            if (r.get("_db_review_status") or r.get("review_status")) == "PUBLISHED"
+        },
+    )
+    created_ids: set[str] = set()
+    for row in rows:
+        if row.get("published_rule_id"):
+            created_ids.add(str(row["published_rule_id"]))
+    integrity = plan_integrity(
+        plan,
+        rows_by_rule={str(r["rule_id"]): r for r in rows},
+        supersession_edges=edges,
+        created_ids=created_ids,
+    )
+
+    zero_mutation = True
+    if session is not None:
+        zero_mutation = table_counts(session) == before_counts
+
+    print(render_plan(plan, integrity))
+    print("")
+    if problems:
+        print(f"发布前置条件未满足（{len(problems)} 项）——以下为需要人类评审员处理的事项：")
+        for problem in problems:
+            print(f"  - {problem}")
+    if args.json:
         print(
             json.dumps(
-                {
-                    "summary": {
-                        "mode": "dry-run",
+                plan_as_json(
+                    plan,
+                    integrity,
+                    {
+                        "mode": "dry-run" if args.dry_run else "execute",
                         "at": _now(),
-                        "signed": not problems,
+                        "registry": _registry_display(),
+                        "db_gate": session is not None,
                         "db_cross_checked": db_state is not None,
-                        "planned_counts": {k: len(v) for k, v in result.items()},
+                        "DRY_RUN_ZERO_DB_MUTATION": zero_mutation,
+                        "preflight_problems": problems,
+                        "counts_before": before_counts,
                     },
-                    "planned": result,
-                },
+                ),
                 ensure_ascii=False,
                 indent=2,
             )
         )
+
+    if args.dry_run:
         return 0 if not problems else 3
 
+    # ---- execute: never without the real gate -------------------------------
     if problems:
         print("PREFLIGHT FAILED — 未满足发布前置条件：")
-        for p in problems:
-            print(f"  - {p}")
-        print(
-            "\n这是设计使然：本脚本不会在没有具名人类签署的情况下写库。"
-            f"\n请由人类评审员在 {_registry_display()} 中填写"
-            "\nfinal_decision / reviewer / reviewed_at 后重试。"
-        )
+        for problem in problems:
+            print(f"  - {problem}")
         return 3
+    if not plan.gate_ran:
+        print("REFUSED — 发布闸门未真实执行（数据库不可用），不得写库。")
+        return 4
+    if integrity["SELF_SUPERSEDE"] or integrity["DUPLICATE_PUBLICATION_PLAN"]:
+        print("REFUSED — 计划自检未通过（self-supersede / duplicate plan）")
+        return 4
 
-    result = run(rows, api, execute=args.execute)
+    result = execute_plan(plan, api)
     summary = {
-        "mode": "execute" if args.execute else "dry-run",
+        "mode": "execute",
         "at": _now(),
-        "reviewer": args.reviewer,
+        "reviewer": plan.reviewer,
         "counts": {k: len(v) for k, v in result.items()},
     }
     print(json.dumps({"summary": summary, "detail": result}, ensure_ascii=False, indent=2))
-
-    if args.execute:
-        SNAPSHOT.write_text(
-            json.dumps({"summary": summary, "detail": result}, ensure_ascii=False, indent=2) + "\n",
-            encoding="utf-8",
-        )
+    SNAPSHOT.write_text(
+        json.dumps({"summary": summary, "detail": result}, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
     return 0 if not result["failed"] else 1
 
 

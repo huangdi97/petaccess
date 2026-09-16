@@ -16,7 +16,7 @@ from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from app.core.errors import ApiError
-from app.models import AccessRule, RuleCandidate, Source
+from app.models import AccessRule, RuleCandidate, RuleException, Source
 from app.models.enums import RuleStatus
 from app.models.v05 import CANDIDATE_TRANSITIONS
 
@@ -240,3 +240,108 @@ def publish(
     if note:
         candidate.review_note = note[:500]
     return rule
+
+
+def publish_exception(
+    db: Session,
+    candidate: RuleCandidate,
+    *,
+    base_rule_id: str,
+    reviewer_id: str,
+    note: str | None = None,
+) -> RuleException:
+    """APPROVED → PUBLISHED **as a carve-out on an existing base AccessRule**.
+
+    Why this exists (P0-01 / POST_SIGNATURE_PUBLISHER_CLOSURE_R1)
+    ------------------------------------------------------------
+    Some candidates do not state a rule of their own — they state an *exception*
+    to one: 《上海市养犬管理条例》第二十三条 prohibits dogs in 商场 while its
+    但书 exempts guide dogs, and `RuleException`'s own docstring records what
+    happens if that is modelled as a second standalone rule ("the resolver saw
+    two same-layer rules and silently picked the strictest"). So a candidate
+    that carves out of another rule must NOT be published as an AccessRule.
+
+    Two invariants are enforced **here**, at the write boundary, rather than
+    trusted to the caller's plan:
+
+    1. **Same layer only.** ``rule_exception`` inherits its base rule's layer in
+       the resolver, so an OPERATOR_POLICY carve-out attached to a LEGAL
+       prohibition would launder an operator's "we allow it" into the statute
+       layer and out-vote the law (RULE_EXCEPTION_LAYER_AND_BINDING_CLOSURE).
+       A cross-layer binding is refused, never coerced.
+    2. **Provenance is mandatory.** ``source_id`` is NOT NULL on the table, and
+       the ADR-025 scope layer is copied from the candidate verbatim — publishing
+       must not re-derive or widen the subject scope.
+
+    The candidate is CAS-ed to PUBLISHED with ``published_rule_id`` pointing at
+    the base rule it is now attached to, so the same signed row can never be
+    planned twice.
+    """
+    if candidate.review_status != "APPROVED":
+        raise ApiError("只有 APPROVED 的候选可发布", code="candidate_not_approved")
+
+    base = db.get(AccessRule, base_rule_id)
+    if base is None:
+        raise ApiError("基础规则不存在，例外无法脱离 base 发布", code="exception_base_missing")
+
+    candidate_layer = candidate.rule_layer or "OPERATOR_POLICY"
+    if base.rule_layer != candidate_layer:
+        raise ApiError(
+            f"例外绑定必须层内一致：例外={candidate_layer!r} 基础规则={base.rule_layer!r}"
+            "——运营方豁免不得挂到法规层禁令上（RULE_EXCEPTION_LAYER_AND_BINDING_CLOSURE）",
+            code="cross_layer_exception_binding",
+        )
+    if base.status not in (RuleStatus.CURRENT.value, "current"):
+        raise ApiError(
+            f"基础规则状态为 {base.status!r}，不可作为例外的基础",
+            code="exception_base_not_current",
+        )
+    if db.get(Source, candidate.source_id) is None:
+        raise ApiError("来源不存在", code="source_missing")
+
+    # Pre-Publish Validation still applies to a carve-out: it is a published
+    # normative statement, not a note.
+    from app.services.publish_gate import validate_for_publish
+
+    validate_for_publish(db, candidate)
+
+    exception = RuleException(
+        rule_id=base.id,
+        animal_scope=candidate.animal_scope,
+        effect=candidate.effect,
+        source_id=candidate.source_id,
+        # ADR-025 / ADR-028: the source-faithful scope survives verbatim.
+        source_scope_exact=candidate.source_scope_exact or candidate.animal_scope,
+        subject_scope_normalized=candidate.subject_scope_normalized,
+        normalization_type=candidate.normalization_type,
+        normative_effect=candidate.normative_effect,
+        holder_scope=candidate.holder_scope,
+        status=RuleStatus.CURRENT,
+        note=f"published as carve-out of rule {base.id} from candidate {candidate.id}",
+    )
+    db.add(exception)
+    db.flush()
+
+    # Same compare-and-set discipline as publish(): two writers producing one
+    # carve-out is the failure this prevents, and a loser rolls the whole
+    # transaction back rather than leaving a half-attached exception behind.
+    updated = db.execute(
+        update(RuleCandidate)
+        .where(RuleCandidate.id == candidate.id, RuleCandidate.review_status == "APPROVED")
+        .values(
+            review_status="PUBLISHED",
+            published_rule_id=base.id,
+            reviewer_id=reviewer_id,
+            review_note=(note or "")[:500] or None,
+        )
+    )
+    if getattr(updated, "rowcount", None) != 1:
+        db.rollback()
+        raise ApiError("候选已被并发发布", code="candidate_already_published")
+
+    candidate.review_status = "PUBLISHED"
+    candidate.published_rule_id = base.id
+    candidate.reviewer_id = reviewer_id
+    if note:
+        candidate.review_note = note[:500]
+    return exception
