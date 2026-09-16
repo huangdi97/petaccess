@@ -71,15 +71,14 @@ def recreate_database(admin_url: str, db_name: str) -> None:
         _fail(f"psycopg is not installed ({exc}); run this with the project venv")
 
     # `DROP DATABASE ... WITH (FORCE)` needs PG13+; the compose image is 17.
-    with psycopg.connect(admin_url, autocommit=True) as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                "SELECT pg_terminate_backend(pid) FROM pg_stat_activity "
-                "WHERE datname = %s AND pid <> pg_backend_pid()",
-                (db_name,),
-            )
-            cur.execute(f'DROP DATABASE IF EXISTS "{db_name}" WITH (FORCE)')
-            cur.execute(f'CREATE DATABASE "{db_name}"')
+    with psycopg.connect(admin_url, autocommit=True) as conn, conn.cursor() as cur:
+        cur.execute(
+            "SELECT pg_terminate_backend(pid) FROM pg_stat_activity "
+            "WHERE datname = %s AND pid <> pg_backend_pid()",
+            (db_name,),
+        )
+        cur.execute(f'DROP DATABASE IF EXISTS "{db_name}" WITH (FORCE)')
+        cur.execute(f'CREATE DATABASE "{db_name}"')
     print(f"visual_db_reset: recreated database {db_name}")
 
 
@@ -97,7 +96,9 @@ def run(cmd: list[str], *, database_url: str) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--admin-url", default=os.environ.get("VISUAL_DB_ADMIN_URL", DEFAULT_ADMIN_URL))
+    parser.add_argument(
+        "--admin-url", default=os.environ.get("VISUAL_DB_ADMIN_URL", DEFAULT_ADMIN_URL)
+    )
     parser.add_argument("--db-name", default=os.environ.get("VISUAL_DB_NAME", DB_NAME))
     parser.add_argument(
         "--skip-seed",
