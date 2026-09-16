@@ -64,7 +64,13 @@ test("pet profile requires auth and offers the login path", async ({ page }) => 
   await page.goto("/#/pets");
   // signed out → PERMISSION_DENIED, and no data is ever submitted
   await expect(page.getByText("需要登录")).toBeVisible();
-  await expect(page.getByRole("button", { name: "登录 / 注册" })).toBeVisible();
+  // A link, not a button: it navigates to /onboarding, and it used to be a
+  // `<button>` nested inside a `<RouterLink>` — two controls, two tab stops,
+  // one target too small to hit. Querying by role keeps the test honest about
+  // which it is.
+  const login = page.getByRole("link", { name: "登录 / 注册" });
+  await expect(login).toBeVisible();
+  await expect(login).toHaveCount(1);
 });
 
 test("privacy controls render the data inventory", async ({ page }) => {

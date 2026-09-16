@@ -26,9 +26,18 @@ export default defineConfigWithVueTs(
             "apps/admin/vite.config.ts",
             "apps/client-h5/vite.config.ts",
             "playwright.config.*",
+            "playwright.visual.config.ts",
+            // These root-level tooling files belong to no app tsconfig, so the
+            // typed rules can only reach them through the default project. That
+            // project has a hard cap of 8 files before typescript-eslint starts
+            // refusing outright — 10 files here is not a performance problem,
+            // and pretending otherwise by dropping one from linting is worse.
             "tests/e2e/*.ts",
+            "tests/visual/*.ts",
+            "scripts/*.mjs",
             "eslint.config.js",
           ],
+          maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 20,
         },
       },
     },

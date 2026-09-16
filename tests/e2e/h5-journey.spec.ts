@@ -60,7 +60,35 @@ test("search finds place by fuzzy name", async ({ page }) => {
   await page.goto("/#/search");
   await page.getByTestId("search-input").fill("星河");
   await page.getByTestId("search-btn").click();
-  await expect(page.getByText("星河咖啡·测试店")).toBeVisible();
+  // Not `getByText(name)` on purpose: the same-brand branch row carries the
+  // flagship's name in its 「所属 …」 line, so a plain text query matches twice
+  // and Playwright fails on strict mode rather than on anything real.
+  await expect(page.getByTestId("result-星河咖啡·测试店")).toBeVisible();
+});
+
+test("same-brand branches come back as two labelled rows, answer first", async ({ page }) => {
+  await page.goto("/#/search");
+  await page.getByTestId("search-input").fill("星河咖啡");
+  await page.getByTestId("search-btn").click();
+
+  const flagship = page.getByTestId("result-星河咖啡·测试店");
+  const branch = page.getByTestId("result-星河咖啡·栖霞分店");
+  await expect(flagship).toBeVisible();
+  await expect(branch).toBeVisible();
+
+  // Two rows, not one ambiguous one, and the child says whose it is.
+  await expect(branch.getByTestId("result-branch")).toContainText("星河咖啡·测试店");
+
+  // Each row states how much rule material sits behind it.
+  await expect(flagship.getByTestId("result-rules")).toContainText("生效规则");
+  await expect(branch.getByTestId("result-rules")).toContainText("尚未收录规则");
+
+  // The row that can actually answer comes first — a rule-less branch used to
+  // lead on alphabetical order, so the top hit read 「尚未收录规则」 while the
+  // answer sat one row down.
+  await expect(page.locator("[data-testid^='result-星河']").first()).toContainText(
+    "星河咖啡·测试店",
+  );
 });
 
 test("register → create pet → answer carries pet context → quick confirm", async ({ page }) => {
