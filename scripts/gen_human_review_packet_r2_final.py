@@ -1,4 +1,12 @@
-"""Generate the FINAL GOV-01 sign-off packet (revision **R2-FINAL-R2**).
+"""Generate the FINAL GOV-01 sign-off packet (revision **R2-FINAL-R3**).
+
+``R2-FINAL-R3`` is the human sign-off round. It moves **no business datum**: the
+register, the packet and the quick table are the ``R2-FINAL-R2`` content with the
+revision label aligned to the round the human reviewer actually reviewed and
+signed. The label had been one step behind the round — commit ``086c064`` was
+titled "R2-FINAL-R3" while every artifact still stamped ``R2-FINAL-R2`` — which
+is precisely the drift a signature gate must not tolerate: the authorising
+document named a revision that no artifact carried.
 
 Revision history
 ----------------
@@ -95,7 +103,7 @@ QUICK_TABLE = REPO / "HUMAN_REVIEW_QUICK_TABLE_R2_FINAL.md"
 DECISIONS = REPO / "HUMAN_REVIEW_DECISIONS_R2_FINAL.json"
 
 DB_URL = "postgresql://petaccess:petaccess_dev_only@127.0.0.1:5432/petaccess"
-REVISION = "R2-FINAL-R2"
+REVISION = "R2-FINAL-R3"
 
 WEAK = {"search_snippet", "social_lead"}
 

@@ -1,5 +1,5 @@
 {
-  "revision": "R2-FINAL-R3",
+  "revision": "R2-FINAL-R2",
   "row_count": 37,
   "candidate_ids": [
     "02454820-f30c-47de-851d-894496c36914",
@@ -229,5 +229,5 @@
     "reviewed_at": 0
   },
   "source": "docs/reality_audit/review_decisions_r2_final.json",
-  "sha256": "bceef230915dbc7b07542dfeb4fdc272de41d9793d58b613d4c6d30bfce066c0"
+  "sha256": "ced20de9333940c168d61a96dd3aba2eafadbd6fe42ae6f6a36ae8af61a95711"
 }

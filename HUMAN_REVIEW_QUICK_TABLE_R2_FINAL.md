@@ -1,6 +1,6 @@
 # HUMAN_REVIEW_QUICK_TABLE_R2_FINAL.md
 
-> GOV-01 最终速填表 · 一行一条（R2-FINAL-R2）· 取代 R2 / R1 速填表。
+> GOV-01 最终速填表 · 一行一条（R2-FINAL-R3）· 取代 R2 / R1 速填表。
 > 「我的决定」只能填下列四个值之一，**不存在别名**：
 > `APPROVED` = 批准 ｜ `APPROVED_WITH_NOTE` = 批准（附注意见） ｜ `HOLD` = 挂起（证据不足） ｜ `REJECTED` = 拒绝
 

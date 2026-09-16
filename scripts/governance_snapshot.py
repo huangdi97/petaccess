@@ -8,7 +8,7 @@ assertion.
 
 What is captured
 ----------------
-* ``revision`` — the register revision string (R2-FINAL-R2)
+* ``revision`` — the register revision string (R2-FINAL-R3)
 * ``row_count`` and the **ordered** candidate-id list
 * the recommendation distribution (APPROVE / HOLD / REJECT)
 * every ``RuleException`` binding, as ``(exception -> base, same_layer)`` triples

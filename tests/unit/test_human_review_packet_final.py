@@ -94,7 +94,7 @@ def test_no_row_in_either_file_is_signed(rows):
 
 def test_the_machine_register_marks_human_signoff_as_required(register):
     assert register["human_signoff_required"] is True
-    assert register["revision"] == "R2-FINAL-R2"
+    assert register["revision"] == "R2-FINAL-R3"
     # supersession is stated, so an older register is never mistaken for current
     assert register["supersedes"].endswith("review_decisions_r2.json")
 

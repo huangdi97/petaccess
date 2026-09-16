@@ -1,7 +1,7 @@
 # HUMAN_SIGNATURE_READINESS_AUDIT.md
 
 > 审计对象：`HUMAN_REVIEW_PACKET_R2_FINAL.md` / `HUMAN_REVIEW_QUICK_TABLE_R2_FINAL.md` / `HUMAN_REVIEW_DECISIONS_R2_FINAL.json`
-> 内部 revision：**R2-FINAL-R2** · 机器登记表：`docs/reality_audit/review_decisions_r2_final.json`
+> 内部 revision：**R2-FINAL-R3** · 机器登记表：`docs/reality_audit/review_decisions_r2_final.json`
 > 本文件由 `scripts/gen_signature_readiness_audit_r1.py` 从登记表生成，数字与签署包同源。
 
 ## 1. 推荐分布（全量 37 行）
@@ -161,7 +161,7 @@
 |---|---|
 | 解析顺序 | `review_decisions_r2_final.json` → `review_decisions_r2.json` → `review_decisions_r1.json` |
 | **实际选中** | `docs/reality_audit/review_decisions_r2_final.json` |
-| revision | `R2-FINAL-R2` |
+| revision | `R2-FINAL-R3` |
 | 行数 | 37 |
 
 结论：发布器读取的是**最新 final 登记表**，不会回退到旧 `review_decisions_r2.json`。

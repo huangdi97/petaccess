@@ -1,6 +1,6 @@
 # HUMAN_REVIEW_PACKET_R2_FINAL.md
 
-> GOV-01 最终签署包（**R2-FINAL-R2**）· ADR-025 源忠实 scope / ADR-028 复合词拆分
+> GOV-01 最终签署包（**R2-FINAL-R3**）· ADR-025 源忠实 scope / ADR-028 复合词拆分
 > 取代 `HUMAN_REVIEW_PACKET_R2.md`（R2 与更早的 R1）
 > 机器登记表：`docs/reality_audit/review_decisions_r2_final.json`（共 37 条）
 > **本包逐行直接从数据库证据链生成**，不再引用手工维护的登记表字段，

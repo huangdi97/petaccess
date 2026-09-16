@@ -21,7 +21,7 @@ ROOT = Path(__file__).resolve().parents[2]
 REGISTRY = ROOT / "docs" / "reality_audit" / "review_decisions_r2_final.json"
 SNAPSHOT = ROOT / "scripts" / "governance_snapshot.py"
 
-EXPECTED_REVISION = "R2-FINAL-R2"
+EXPECTED_REVISION = "R2-FINAL-R3"
 EXPECTED_ROWS = 37
 EXPECTED_DISTRIBUTION = {
     "RECOMMEND_APPROVE": 23,
