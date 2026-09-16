@@ -44,6 +44,18 @@
   定位态 `location-label`、拒绝态 `location-denied`、离线横幅 `offline-banner`、底部 sheet。
 - **限制**：`MockMap.vue` 是本地模拟组件，没有接入真实地图 SDK；
   marker 状态由真实评价结果驱动，但地理渲染是模拟的。因此标记 MAP = PASS_WITH_LIMITATIONS。
+- **本轮修复（marker 曾被裁掉一半）**：`.map-pin` 用 `translate(-50%, -100%)` 把 pin 画在锚点
+  **上方**，而 `project()` 只把锚点夹在 8%~88%，没有为 44px 的 pin 高度留空间。
+  实测顶部一排 marker 的盒子落在 `y = -22 … -4`（相对地图容器），即被 `overflow: hidden` 裁掉，
+  其中最高的那个中心点正好落在容器边缘——`elementFromPoint` 返回的是容器 `.map-mock` 而不是 marker，
+  即**手指点 marker 正中打不开底部 sheet**。
+  改为 CSS `clamp(44px, Y%, 88%)` / `clamp(32px, X%, calc(100% - 32px))` 按像素预留，
+  并把 `.lbl` 移到 `.dot` 之前，让**针尖**而不是状态标签落在坐标点上。
+  修复后实测：5 个 marker 中心全部落在容器内，命中目标均为 marker 自身或其子元素。
+- **术语不一致（已知，未改）**：同一个 UNKNOWN 状态，状态徽标写「尚未核验」
+  （`STATUS_SEMANTICS.UNKNOWN.label`，来自 design-tokens），地图图例/图钉/覆盖提示写「信息不足」。
+  地图内部用词自洽（图例、图钉、覆盖提示三处一致），但两套词表并存。
+  改词会影响多个组件且规范未指定以哪套为准，故记录不改。
 
 ### Place Detail / Rule Passport（§44–§45）
 
@@ -81,11 +93,20 @@
 | 2 | ~~A11y 覆盖不完整~~ | **本轮已修**：22 页机器审计 serious/moderate/minor 全为 0，键盘走查无不可见焦点 | — |
 | 3 | ~~无可视化回归基线~~ | **本轮已修**：47 张基线 / 5 视口，比对模式 47 passed | — |
 | 4 | 渐进式条件询问未实现 | 仍一次性展示全部适用条件 | 条件多时首屏偏长（`PROGRESSIVE_QUESTION = FAIL`） |
+| 5 | 地图用词与状态徽标不一致 | 同一 UNKNOWN，地图写「信息不足」，徽标写「尚未核验」 | 地图内部自洽，跨组件词表不统一 |
+| 6 | ~~场所之间切换不刷新~~ | **本轮已修**：`PlaceView` 在 setup 时一次性读取 `route.params.id`，而 Vue Router 会复用同一组件实例——跳到第二个场所后页面仍是第一个场所（标题、地址、答案全是旧的），刷新才正确。已改为响应式参数、参数变化时先清空上一场所的数据再拉取；`MatchExplainView`、`ContributeView`、Admin `PlaceDetailView` 同类问题一并修复，并补功能 E2E 回归用例（含浏览器前进/后退） | — |
+| 7 | ~~原始枚举值直接上屏~~ | **本轮已修**：Home / Map / Place 三页此前把 `place_type` 直接渲染成 `cafe` / `mall` 等原始枚举值（上一轮只修了 Search），现全部经 `placeTypeLabel()` | — |
 
 ## 结论
 
 **Consumer 核心流程 = PASS**（答案优先、UNKNOWN 不误导、条件/设施分离、证据可达、为什么可达）。
 
-原第 2、3 项已在本轮修复并给出可复跑的实测数字（`A11Y_AUDIT.md`、`VISUAL_REGRESSION_BASELINE.md`）。
-剩余两项（Mock 地图、渐进式询问）为已知且不影响治理语义，其中 Area/Lens 的**未实现理由与前置条件**
-写在 `MAP_AREA_LENS.md`——不做一个会在合成坐标上骗人的版本。
+原第 2、3、6、7 项已在本轮修复并给出可复跑的实测数字
+（`A11Y_AUDIT.md`、`VISUAL_REGRESSION_BASELINE.md`，以及 `tests/e2e/h5-journey.spec.ts`
+里新增的「switching between two places re-renders the second one」）。
+第 6 项是这一轮最严重的一条：一个查规则的产品显示了**另一个场所的规则**，
+且它的标题、地址、答案全部来自那个错误的场所——错得毫不显眼。
+
+剩余三项（Mock 地图、渐进式询问、地图用词）为已知且不影响治理语义，
+其中 Area/Lens 的**未实现理由与前置条件**写在 `MAP_AREA_LENS.md`——
+不做一个会在合成坐标上骗人的版本。

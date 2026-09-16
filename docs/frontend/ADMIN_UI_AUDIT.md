@@ -70,6 +70,21 @@ function guard(key: string): boolean {
 视觉回归：Admin 7 页 × 2 视口（768 / 1440）= 14 张基线，比对模式通过。
 见 `VISUAL_REGRESSION_BASELINE.md`。
 
+## 5.1 本轮修复：场所详情页在场所之间切换不刷新
+
+`PlaceDetailView` 在 setup 时一次性读取 `route.params.id`，而 Vue Router 会复用同一组件实例。
+后果比 Consumer 端更重——该页有两个**写操作**：
+
+| 动作 | 旧行为 |
+|---|---|
+| 打开场所 A → 切到场所 B | 页面仍显示 A 的名称/分区/规则/几何 |
+| 在此时点「新建分区」 | `post("/zones", { place_id: <A> })` —— **分区被挂到错误的场所上** |
+| 在此时点「新建几何」 | `post("/geometries", { place_id: <A> })` —— 同上 |
+
+改为响应式 `placeId`，参数变化时先清空 `place/zones/rules/geometries/error` 再重新拉取。
+Consumer 端 `PlaceView`、`MatchExplainView`、`ContributeView` 是同一类问题（见
+`CONSUMER_UI_AUDIT.md` 未达标项 #6），其中 `ContributeView` 的提交载荷同样带 `place_id`。
+
 ## 6. 结论
 
 **Admin 治理工作台 = PASS_WITH_LIMITATIONS**。

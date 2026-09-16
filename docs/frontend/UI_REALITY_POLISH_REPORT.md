@@ -17,6 +17,15 @@
 | `scripts/ui_capture.mjs` | 真实渲染并截图（首屏 + 整页），Consumer / Admin × 多视口 |
 | `scripts/a11y_audit.mjs` | 自动化可访问性审计 + 真实键盘走查 |
 | `playwright.visual.config.ts` + `tests/visual/` | 视觉回归基线（Consumer + Admin，三档视口） |
+| `scripts/visual_db_reset.py` | 视觉套件专用库的每次重建 + 重新播种（§1.16） |
+
+本轮总计修掉 **16 个真实缺陷**（§1.1–§1.16）。其中三个是"看起来已经做完、其实没有"的类型：
+
+- **枚举上屏**上一轮只修了搜索页（§1.12 末尾）；
+- **底部 sheet 的截图**其实拍的是另一个页面（§1.14）；
+- **`place-unknown` 基线**里的页面根本不是 UNKNOWN（§1.15）。
+
+最严重的一条是 §1.13：应用内切换场所时页面显示**上一个场所的规则**，而它此前从未被任何测试碰到过。
 
 三个工具都自带「等页面真的渲染完」的逻辑——这不是洁癖，是因为**第一版审计脚本把骨架屏当成了页面**，报出一堆并不存在的缺陷（见 §4）。
 
@@ -141,6 +150,109 @@ self-contained（现在由 Playwright 托管，运行自包含）」——**注�
 
 Admin 候选表另外修掉：`P: 89bd859e… / Z:`（UUID 片段 + 空的分区行）→ **场所名称 + 「分区 xxx」**，无分区时整行不渲染；空场所显示「未归属具体场所（属地规则）」。
 
+**本轮补修：上一轮的枚举修复只覆盖了 SearchView。** Home / Map / Place 三页仍在直接渲染
+`{{ p.place_type }}`，即屏幕上仍是 `cafe` / `mall` / `residential_community`。
+现全部改为 `placeTypeLabel(...)`，并把 `PlaceView` 的 `place` 类型从手写内联形状换成
+`ApiSchemas["PlaceOut"]`（ADR-011：不手写 DTO）。
+
+### 1.13 场所之间切换不刷新：页面显示**另一个场所**的规则
+
+本轮最严重的一条，且完全不可见。
+
+`PlaceView.vue` 在 setup 时把路由参数读成了普通常量：
+
+```ts
+const placeId = route.params.id as string;   // 读一次，之后再也不变
+onMounted(load);
+```
+
+Vue Router 对 `/place/:id` 只有一条路由记录，**参数变化时复用同一个组件实例**，
+`setup` 不会重跑。于是从场所 A 切到场所 B（应用内跳转、浏览器前进/后退都算）时，
+URL 变了、页面没变：
+
+| 步骤 | 实测 `h1` |
+|---|---|
+| 打开 `#/place/<咖啡店>` | 星河咖啡·测试店 |
+| 跳转到 `#/place/<商场>` | **星河咖啡·测试店** ← 错 |
+| 刷新 | 云栖中心·测试商场 |
+
+标题、地址、答案、证据全都来自那个错误的场所——对一个查规则的产品来说，
+这是"把 B 的规则挂在 A 的门牌下"。
+
+**修复**：`placeId` 改为 `computed`，用 `watch(placeId, ..., { immediate: true })` 取代
+`onMounted`，并在参数变化时先把上一场所的数据清空（否则旧数据会在新请求返回前继续显示）。
+同类问题一并修掉：
+
+| 文件 | 后果 |
+|---|---|
+| `apps/client-h5/src/views/PlaceView.vue` | 显示错误场所的规则 |
+| `apps/client-h5/src/views/MatchExplainView.vue` | 「为什么」页解释错误场所 |
+| `apps/client-h5/src/views/ContributeView.vue` | 提交载荷带 `place_id`，**报告会记到错误场所** |
+| `apps/admin/src/views/PlaceDetailView.vue` | 新建分区/几何带 `place_id`，**写入错误场所** |
+
+回归用例：`tests/e2e/h5-journey.spec.ts` 的
+「switching between two places re-renders the second one」（含 `goBack` / `goForward`）。
+这也解释了为什么它一直没被发现——`page.goto()` 到全新 URL 会整页加载并重新挂载，
+**永远绕过这条路径**。
+
+### 1.14 地图 marker 被裁掉一半，底部 sheet 点不开
+
+底部 sheet 的截图用例叫 `map-sheet`，但它是先点「列表」再点列表行——
+而列表行是 `@click="open(p.id)"`，**直接跳转到场所详情页**。
+于是 `map-sheet` 与 `place-unknown` 在三个视口上 **MD5 完全相同**：
+两个基线名、一张图、底部 sheet 零覆盖。
+
+改走真实入口（点地图 marker）时又发现它点不动，Playwright 原话是
+`.map-mock intercepts pointer events`。实测原因：
+
+- `.map-pin` 用 `translate(-50%, -100%)` 画在锚点**上方**；
+- `project()` 只把锚点夹在 8%~88%，**没有给 44px 的 pin 高度留空间**；
+- 结果顶部一排 marker 的盒子落在 `y = -22 … -4`（相对容器），被 `overflow: hidden` 裁掉一半，
+  最高的那个中心点正好压在容器边缘——`elementFromPoint` 返回容器而不是 marker。
+  手指点 marker 正中会得到同样结果。
+
+顺带还有一处：`.dot` 在 `.lbl` 之前，而 `.map-pin` 是 `justify-content: flex-end`，
+所以落在坐标点上的是**状态标签**而不是针尖。
+
+**修复**：`clamp(44px, Y%, 88%)` / `clamp(32px, X%, calc(100% - 32px))` 按像素预留（宽度交给 CSS 算，
+不在 JS 里猜容器尺寸）；`.lbl` 移到 `.dot` 之前。
+修复后实测：5 个 marker 中心全部在容器内，命中目标均为 marker 自身或其子元素。
+
+### 1.15 基线名与页面内容不符
+
+`place-unknown` 的前置说明写的是「星河咖啡·测试店 — 没有已发布规则，即诚实的 UNKNOWN」。
+实测该场所有 **1 条规则**，答案徽标是「✕ 明确限制」——与文件名字面相反。
+`place-conditional` 同样名不副实：商场页的答案徽标是「✕ 明确限制」，
+CONDITIONAL 只出现在**分区行**上。
+
+逐个实测种子里 5 个场所的场所级答案：
+
+| 场所 | 规则数 | 场所级答案 |
+|---|---|---|
+| 星河咖啡·栖霞分店 | 0 | **UNKNOWN** |
+| 松风社区·演示 | 0 | RESTRICTED |
+| 星河咖啡·测试店 | 1 | RESTRICTED |
+| 青岚公园·演示 | 1 | RESTRICTED |
+| 云栖中心·测试商场 | 2 | RESTRICTED |
+
+**修复**：`place-unknown` 改用真正零规则的栖霞分店，并**断言答案徽标是 `UNKNOWN`**；
+`place-conditional` 正名为 `place-restricted`（并删掉旧文件）。
+夹具里另外一处死引用也顺手修掉：`park` 指向的 `ece60f6d-…` 在种子里**根本不存在**（因为它没被用过，所以从没报错）。
+
+教训是一致的：**基线只有在它真的会失败的时候才有价值**，
+而"名字与内容对不上"的基线属于永远不会失败的那一类。
+
+### 1.16 基线对着一个会长的数据库
+
+47 张基线最初是对着实时开发库截的，生成当天全绿，**第二天比对 8 张 Admin 页全红**——
+不是渲染回归，是数据在长（审计日志、待审队列单调增加）。
+`admin-audit` 在 768 档高度从 130871 涨到 130890 像素，本身已经在 20s 内拍不完。
+
+**修复**：视觉套件改用专用库 `petaccess_visual`，每次运行前由 `scripts/visual_db_reset.py`
+DROP + 迁移 + 播种。脚本带护栏：库名固定、且拒绝在保护名单内的库名上运行
+（`run_demo_seed()` 会清空候选/争议/审计表，跑错库等于销毁治理数据）。
+**开发库与试点数据从未被触碰。**
+
 ---
 
 ## 2. 实测结果
@@ -168,18 +280,23 @@ Admin 候选表另外修掉：`P: 89bd859e… / Z:`（UUID 片段 + 空的分区
 | 基线总数 | **47**（消费者 33 + Admin 14） |
 | 视口 | 5：`h5-390` / `h5-768` / `h5-1440` / `admin-1440` / `admin-768` |
 | 比对模式 | **47 passed** |
-| 生成后复验 | **47 passed**（基线可复现） |
+| 生成后复验 | **47 passed**（基线可复现，连续两轮） |
+| 重复基线 | **0 组**（无任何两张基线是同一张图） |
+| 数据源 | 专用库 `petaccess_visual`，每次运行前重建 + 重新播种 |
 
-详见 `docs/frontend/VISUAL_REGRESSION_BASELINE.md`。
+"47 passed" 这个数字本轮被重新验证过一遍，因为**第一次它是假的**：
+最初的基线对着实时开发库截，生成当天全绿，第二天比对时 Admin 8 张全红——
+审计日志、待审队列这些列表在长，基线自然过期。改用每次重建的专用库后才真正可复现。
+详见 `docs/frontend/VISUAL_REGRESSION_BASELINE.md` §2.1 与 §3.3。
 
 ### 2.4 本轮最终回归数字（全部当场实跑）
 
 | 门 | 命令 | 结果 |
 |---|---|---|
-| pytest | `pytest -q`（`--basetemp` 指向一次性新目录，见下方注） | **517 passed** |
-| 功能 E2E | `playwright test` | **17 passed** |
-| 视觉回归 | `playwright test -c playwright.visual.config.ts` | **47 passed** |
-| a11y | `node scripts/a11y_audit.mjs` | **0 issues** |
+| pytest | `pytest -q`（`--basetemp` 指向一次性新目录 + `PYTHONPATH=`，见下方注） | **517 passed**（EXIT=0） |
+| 功能 E2E | `playwright test` | **18 passed**（新增 1 条路由切换回归用例） |
+| 视觉回归 | `playwright test -c playwright.visual.config.ts` | **47 passed**（生成 + 比对各一轮） |
+| a11y | `node scripts/a11y_audit.mjs` | **0 issues**（22 页 + 键盘走查） |
 | ruff check / format | 167 文件 | 全通过 |
 | mypy（api app） | 75 文件 | 无问题 |
 | eslint / prettier | 全仓 | 全通过 |
@@ -195,6 +312,12 @@ Admin 候选表另外修掉：`P: 89bd859e… / Z:`（UUID 片段 + 空的分区
 >    专门验证"注册表路径在仓库外时展示不崩"；把 `basetemp` 设在仓库内会让它变成假失败（实测 516 passed / 1 failed）。
 > 2. pytest 默认的临时根目录里堆积了早前被中断的 `garbage-*` 目录，每次启动都会试图清理并触发批量删除护栏，
 >    导致收尾失败、**汇总行不打印**。换一个全新的根目录即可绕开。
+>
+> 3. `PYTHONPATH=` 是必需的，否则 517 会变成一次**静默卡死**：本环境的 shell 通过
+>    `PYTHONPATH` 注入了一个 `sitecustomize.py` 文件操作护栏，Hypothesis 首次建立字符表缓存时走
+>    `os.renames` → `os.removedirs`，被该护栏拦截后抛错，整个套件在 41%（216 个用例）处超时挂住，
+>    **没有任何失败摘要**。清空 `PYTHONPATH` 后 47 秒跑完：**517 passed**。
+>    这是环境干扰而非产品缺陷——但"跑到一半不出结果"比"失败"更容易被误读成通过，所以记录在案。
 
 ### 2.5 功能 E2E 的两处失败＝"断言没跟上改进"
 
@@ -222,12 +345,21 @@ Admin 候选表另外修掉：`P: 89bd859e… / Z:`（UUID 片段 + 空的分区
 | Admin 表格 sticky header / 列宽控制 | **FAIL** | 长来源、长引文在窄屏会撑高行高；无 sticky header |
 | Admin 发布前影响范围预览 | **FAIL** | 不展示「将影响 N 条规则 / M 个场所」 |
 | Evidence Detail 独立页（消费者侧） | **NOT_COVERED** | 消费者只有 PlaceView 的第 7 段与证据入口，没有独立证据页；视觉基线里也没有 |
-| RESTRICTED / STALE / NETWORK_ERROR 状态页 | **NOT_COVERED** | 状态词汇有实现，但没有单独出图 |
+| RESTRICTED / STALE / NETWORK_ERROR 状态页 | **NOT_COVERED** | 状态词汇有实现，但没有单独出图（RESTRICTED 现在有一张：`place-restricted`；STALE / NETWORK_ERROR 仍无） |
+| CONDITIONAL **答案态**基线 | **NOT_COVERED** | 种子里没有任何场所的**场所级**答案是 CONDITIONAL（实测 5 个场所：1 个 UNKNOWN、4 个 RESTRICTED）。CONDITIONAL 只出现在分区行上，所以没有 `place-conditional` 基线——不写一个数据本身不成立的用例名 |
+| 基线「文件名 ↔ 页面内容」机器校验 | **NOT_IMPLEMENTED** | 目前靠人工断言（`place-unknown` 断言徽标为 `UNKNOWN`，`place-restricted` 断言为 `RESTRICTED`）。`MD5 去重`这条护栏本轮只是**手工跑过**（0 组重复），没有进 CI |
+| 地图术语统一 | **FAIL（已记录不改）** | 同一 UNKNOWN：徽标写「尚未核验」，地图图例/图钉/覆盖提示写「信息不足」，地图内部自洽但两套词表并存 |
 
 > 更正：「Admin 危险按钮二次确认」上一版记为 PARTIAL（"未见确认弹窗"）——**该结论是错的**。
 > 代码核实 `RuleCandidatesView.vue:86-113` 存在 `guard()` 两次点击确认，发布与驳回都走它，
 > 第一次点击后按钮文案变「再点一次确认发布/驳回」且 class 转 `danger`。
 > 已改为 PASS，并据此修正 `ADMIN_UI_AUDIT.md`。这类"上一版说 PARTIAL、其实已经做了"的结论同样要当场核实。
+>
+> 同类的第二类更正（本轮）：**"上一版说做了、其实没做全"**。
+> 枚举上屏只修了搜索页（§1.12）；`map-sheet` 基线其实拍的是另一个页面（§1.14）；
+> `place-unknown` 基线里的页面根本不是 UNKNOWN（§1.15）。
+> 三类都不能靠读代码或读上一版报告发现，只能在**真渲染 + 真测量**下暴露——
+> 前两个是比对像素才看见的，第三个是读 `data-status` 才看见的。
 
 ## 4. 方法论教训（值得写下来）
 

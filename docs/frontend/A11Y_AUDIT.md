@@ -27,15 +27,44 @@
 命令：`node scripts/a11y_audit.mjs`
 
 ```
-=== consumer ===   12 页     全部 ok
-=== admin ===      10 页     全部 ok
+=== consumer ===
+  ok   home               serious=0 moderate=0 minor=0 controls=23
+  ok   search             serious=0 moderate=0 minor=0 controls=19
+  ok   map                serious=0 moderate=0 minor=0 controls=20
+  ok   place-restricted   serious=0 moderate=0 minor=0 controls=24
+  ok   why                serious=0 moderate=0 minor=0 controls=11
+  ok   place-unknown      serious=0 moderate=0 minor=0 controls=19
+  ok   contribute         serious=0 moderate=0 minor=0 controls=11
+  ok   mine               serious=0 moderate=0 minor=0 controls=5
+  ok   pets               serious=0 moderate=0 minor=0 controls=10
+  ok   settings           serious=0 moderate=0 minor=0 controls=12
+  ok   boundary           serious=0 moderate=0 minor=0 controls=32
+  ok   privacy            serious=0 moderate=0 minor=0 controls=11
+
+=== admin ===
+  ok   login              serious=0 moderate=0 minor=0 controls=21
+  ok   dashboard          serious=0 moderate=0 minor=0 controls=21
+  ok   rule-candidates    serious=0 moderate=0 minor=0 controls=124
+  ok   evidence           serious=0 moderate=0 minor=0 controls=35
+  ok   sources            serious=0 moderate=0 minor=0 controls=21
+  ok   regulations        serious=0 moderate=0 minor=0 controls=85
+  ok   audit              serious=0 moderate=0 minor=0 controls=22
+  ok   places             serious=0 moderate=0 minor=0 controls=24
+  ok   conflicts          serious=0 moderate=0 minor=0 controls=21
+  ok   match-debugger     serious=0 moderate=0 minor=0 controls=28
+
 === keyboard focus walkthrough ===
   ok   consumer:home                tabStops=23 invisibleFocus=0
-  ok   consumer:place               tabStops=9  invisibleFocus=0
+  ok   consumer:place               tabStops=24 invisibleFocus=0
   ok   admin:rule-candidates        tabStops=26 invisibleFocus=0
 
 TOTAL issues: 0  (serious=0 moderate=0 minor=0)
 ```
+
+两处页面名在本轮被更正（页面本身没变，是名字一直不对）：
+审核对象 `place-conditional` 正名为 `place-restricted`——商场页的答案徽标是「明确限制」，
+CONDITIONAL 只出现在分区行上；`place-unknown` 改审**真正零规则**的「星河咖啡·栖霞分店」，
+原来的旗舰店其实有一条规则。见 `UI_REALITY_POLISH_REPORT.md` §1.15。
 
 | | 本轮起始 | 最终 |
 |---|---|---|
