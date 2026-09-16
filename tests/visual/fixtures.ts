@@ -1,13 +1,34 @@
 import { expect, type Page, test } from "@playwright/test";
 
-/** Deterministic seed UUIDs (see `services/api/app/db/seed.py`). */
+/**
+ * Deterministic seed UUIDs (see `services/api/app/db/seed.py`).
+ *
+ * These comments come from reading the rendered pages, not from reading the
+ * seed. The previous version of this block was wrong on every entry, and two
+ * baselines were consequently filed under names their contents did not match:
+ *
+ *   - `cafe` was "a place with no published rules, i.e. the honest UNKNOWN",
+ *     but 星河咖啡·测试店 is seeded WITH a rule and its answer badge reads
+ *     「✕ 明确限制」.
+ *   - `park` pointed at `ece60f6d-…`, a UUID that does not exist in the seed at
+ *     all (it was unused, so nothing ever failed).
+ *
+ * Measured place-level answers on the reseeded database:
+ *   星河咖啡·栖霞分店  rules=0  -> UNKNOWN   「? 尚未核验」
+ *   松风社区·演示      rules=0  -> RESTRICTED
+ *   星河咖啡·测试店    rules=1  -> RESTRICTED
+ *   青岚公园·演示      rules=1  -> RESTRICTED
+ *   云栖中心·测试商场  rules=2  -> RESTRICTED
+ *
+ * No seeded place resolves to CONDITIONAL at place level, which is why there is
+ * no `place-conditional` baseline — that name was a promise the data cannot
+ * keep. CONDITIONAL does appear on individual zone rows.
+ */
 export const FIXTURE = {
-  /** 星河咖啡·测试店 — a place with no published rules, i.e. the honest UNKNOWN. */
-  cafe: "8412b521-5e1c-505d-9dec-568acb860c76",
-  /** 云栖中心·测试商场 — the only seeded place with a real (conditional) rule. */
+  /** 星河咖啡·栖霞分店 — zero rules, so the honest UNKNOWN. */
+  unknown: "3b5a341a-e550-5f0c-b35a-319ed43bd840",
+  /** 云栖中心·测试商场 — the richest page: 2 rules, sources, evidence, history. */
   mall: "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
-  /** 广场公园（黄浦段） */
-  park: "ece60f6d-ab40-4d80-9570-db11b4593fab",
 } as const;
 
 /**

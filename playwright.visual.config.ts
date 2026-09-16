@@ -19,7 +19,27 @@ const venvPython = JSON.stringify(
  * they happened to already be running and `reuseExistingServer` skipped the
  * launch entirely.
  */
-const feEnv = { ...process.env, VITE_API_PROXY: "http://127.0.0.1:8010" };
+const feEnv = { ...process.env, VITE_API_PROXY: "http://127.0.0.1:8011" };
+
+/**
+ * The visual suite does NOT run against the dev database.
+ *
+ * It runs against `petaccess_visual`, dropped and re-seeded from the fixed demo
+ * dataset immediately before the API starts (see `scripts/visual_db_reset.py`).
+ * Reason: the dev database grows. The audit log, the candidate queue and the
+ * observation list all accumulate rows, so a full-page baseline of
+ * `/admin/audit` is stale the moment anything else touches the stack. Re-running
+ * the committed baselines in compare mode failed 8/8 admin list pages — the
+ * audit baseline alone had drifted to 130 890 px tall and no longer finished
+ * capturing inside the 20 s timeout.
+ *
+ * The dev database is never touched: `run_demo_seed()` truncates the candidate,
+ * dispute and audit tables, and the reset script refuses to run against a
+ * protected database name.
+ */
+const visualDbUrl =
+  "postgresql+psycopg://petaccess:petaccess_dev_only@localhost:5432/petaccess_visual";
+const apiEnv = { ...process.env, DATABASE_URL: visualDbUrl };
 
 /**
  * Tablet viewport, Chromium — deliberately NOT `devices["iPad (gen 7)"]`.
@@ -92,11 +112,20 @@ export default defineConfig({
   //     「加载失败」 — see `assertNotErrorState` in tests/visual/fixtures.ts.
   webServer: [
     {
-      command: `${venvPython} -m uvicorn app.main:app --host 127.0.0.1 --port 8010`,
+      // Reset first, then serve — in one command, because Playwright gives no
+      // ordering guarantee between `globalSetup` and `webServer`, and a reset
+      // that lands after the API has connected would drop the database out from
+      // under it.
+      //
+      // `reuseExistingServer: false` is the other half of that: the reset has to
+      // happen on every run, so there is nothing worth reusing. Port 8011 keeps
+      // this instance away from the hand-started dev API on 8010.
+      command: `${venvPython} ${path.resolve(__dirname, "scripts", "visual_db_reset.py")} && ${venvPython} -m uvicorn app.main:app --host 127.0.0.1 --port 8011`,
       cwd: path.resolve(__dirname, "services/api"),
-      url: "http://127.0.0.1:8010/health",
-      reuseExistingServer: true,
-      timeout: 60000,
+      url: "http://127.0.0.1:8011/health",
+      reuseExistingServer: false,
+      timeout: 180000,
+      env: apiEnv,
       stdout: "ignore",
       stderr: "pipe",
     },

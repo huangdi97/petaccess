@@ -5,6 +5,7 @@
 import { expect, test } from "@playwright/test";
 
 const CAFE_ID = "8412b521-5e1c-505d-9dec-568acb860c76"; // deterministic seed UUID
+const BRANCH_ID = "3b5a341a-e550-5f0c-b35a-319ed43bd840"; // 星河咖啡·栖霞分店, 0 rules → UNKNOWN
 
 test("health and decision home render nearby places", async ({ page }) => {
   await page.goto("/");
@@ -54,6 +55,34 @@ test("mode switch re-evaluates: service dog → allowed", async ({ page }) => {
   await expect(page.getByTestId("answer-status")).toHaveText("可以进入");
   await page.getByRole("button", { name: "带宠出行" }).click();
   await expect(page.getByTestId("answer-status")).toHaveText("有条件进入");
+});
+
+/**
+ * Regression: switching between two places must re-render the second one.
+ *
+ * Vue Router reuses `PlaceView` across `/place/:id` changes, and the component
+ * used to read `route.params.id` once at setup — so a param change left the
+ * previous place on screen. The URL said one place, the page showed another:
+ * for a rule-lookup product, another place's rules under this place's name.
+ *
+ * A hash-only navigation is exactly what an in-app link and a back/forward step
+ * produce, so it exercises the path that `page.goto` on a fresh URL never would
+ * (a full load always remounts and hid the bug).
+ */
+test("switching between two places re-renders the second one", async ({ page }) => {
+  await page.goto(`/#/place/${CAFE_ID}`);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("星河咖啡·测试店");
+
+  await page.goto(`/#/place/${BRANCH_ID}`);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("星河咖啡·栖霞分店");
+  // the answer has to belong to the new place too, not just the title
+  await expect(page.getByTestId("answer-ordinary")).toContainText("尚未核验");
+
+  // Same mechanism from the user's side: history back and forward.
+  await page.goBack();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("星河咖啡·测试店");
+  await page.goForward();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("星河咖啡·栖霞分店");
 });
 
 test("search finds place by fuzzy name", async ({ page }) => {
