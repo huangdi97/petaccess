@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import {
   client,
@@ -18,7 +18,7 @@ import AppShell from "../components/AppShell.vue";
  */
 
 const route = useRoute();
-const placeId = route.params.id as string;
+const placeId = computed(() => (route.params.id ? String(route.params.id) : ""));
 
 const resolved = ref<EffectiveRuleSet | null>(null);
 const boundary = ref<BoundaryMatchResult | null>(null);
@@ -56,7 +56,7 @@ async function resolveRules() {
           service_role: session.activePet.service_role ?? "none",
         }
       : { animal: "dog", service_role: session.mode === "service_dog" ? "service_dog" : "none" };
-    resolved.value = await client.effectiveRules(placeId, { ...animal, action: "enter" });
+    resolved.value = await client.effectiveRules(placeId.value, { ...animal, action: "enter" });
   } catch (e) {
     error.value = e instanceof ApiError ? e.message : String(e);
   } finally {
@@ -76,7 +76,7 @@ async function loadBoundary() {
     return;
   }
   try {
-    boundary.value = await client.boundaryMatch(placeId);
+    boundary.value = await client.boundaryMatch(placeId.value);
   } catch (e) {
     // No profile is a normal state, not an error worth a red banner.
     if (
@@ -91,9 +91,19 @@ async function loadBoundary() {
   }
 }
 
-onMounted(async () => {
-  await Promise.all([resolveRules(), loadBoundary()]);
-});
+// Reactive param, and `immediate` in place of `onMounted`: Vue Router reuses
+// this component across `/place/:id/why` changes, so with a one-shot read of
+// `route.params.id` the page kept explaining the previous place — reachable via
+// the browser's back button between two places' "why" pages. Same defect as
+// PlaceView.
+watch(
+  placeId,
+  () => {
+    if (!placeId.value) return;
+    void Promise.all([resolveRules(), loadBoundary()]);
+  },
+  { immediate: true },
+);
 </script>
 
 <template>

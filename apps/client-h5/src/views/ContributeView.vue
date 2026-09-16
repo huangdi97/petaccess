@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { client, session, ApiError } from "@petaccess/client-core";
 import AppShell from "../components/AppShell.vue";
@@ -27,7 +27,10 @@ import { useOnline } from "../composables/useOnline";
 type Step = "entry" | "quick" | "signage" | "rule" | "experience" | "done";
 
 const route = useRoute();
-const placeId = route.params.id as string;
+// Empty string, not the literal "undefined": `/#/contribute` with no id is a
+// real route (the user picks a place first), and `String(undefined)` would be
+// truthy, hiding the picker and fetching zones for a place called "undefined".
+const placeId = computed(() => (route.params.id ? String(route.params.id) : ""));
 const { online } = useOnline();
 
 const step = ref<Step>("entry");
@@ -71,16 +74,29 @@ const conditionOptions = [
 
 const canSubmit = computed(() => online.value && signedIn.value && !busy.value);
 
-onMounted(async () => {
-  await session.restore();
-  signedIn.value = session.signedIn;
-  if (!signedIn.value) return;
-  try {
-    zones.value = await client.zones(placeId);
-  } catch {
-    /* anonymous read is best-effort; the form still works without zones */
-  }
-});
+// Reactive param + `immediate` instead of `onMounted`: Vue Router reuses this
+// component across `/contribute/:id` changes. The stakes here are higher than a
+// stale render — every submit carries `place_id`, so a reused instance left the
+// form pointed at the previous place and would have filed the report against it.
+watch(
+  placeId,
+  async () => {
+    reset();
+    zones.value = [];
+    // Session restore runs first and unconditionally: `/#/contribute` with no
+    // id is a valid entry point and still needs to know whether the visitor is
+    // signed in.
+    await session.restore();
+    signedIn.value = session.signedIn;
+    if (!signedIn.value || !placeId.value) return;
+    try {
+      zones.value = await client.zones(placeId.value);
+    } catch {
+      /* anonymous read is best-effort; the form still works without zones */
+    }
+  },
+  { immediate: true },
+);
 
 function reset() {
   step.value = "entry";
@@ -106,7 +122,7 @@ async function uploadSignage(e: Event) {
   try {
     const media = await client.uploadMedia(file, "signage_evidence", {
       ownerType: "place",
-      ownerId: placeId,
+      ownerId: placeId.value,
     });
     mediaId.value = media.id;
     uploadMsg.value = media.duplicate_of
@@ -148,10 +164,10 @@ async function submitQuick() {
   error.value = "";
   busy.value = true;
   try {
-    const rules = await client.rules(placeId);
+    const rules = await client.rules(placeId.value);
     const target = rules.find((r) => r.status === "current") ?? rules[0];
     await client.verify({
-      place_id: placeId,
+      place_id: placeId.value,
       rule_id: target?.id ?? null,
       event_type: "field_check",
       result: quickResult.value,
@@ -190,7 +206,7 @@ async function submitSignage() {
     if (ocrText.value.trim()) parts.push(`[OCR 待人工核对] ${ocrText.value.trim()}`);
     if (conditions.value.length) parts.push(`条件：${conditions.value.join(",")}`);
     await client.verify({
-      place_id: placeId,
+      place_id: placeId.value,
       zone_id: zone.value || null,
       rule_id: null,
       event_type: "signage_uploaded",
@@ -215,7 +231,7 @@ async function submitKnownRule() {
   busy.value = true;
   try {
     await client.createObservation({
-      place_id: placeId,
+      place_id: placeId.value,
       zone_id: zone.value || null,
       occurred_at: new Date(occurredAt.value).toISOString(),
       occurred_precision: "same_day",
@@ -243,7 +259,7 @@ async function submitObservation() {
   busy.value = true;
   try {
     await client.createObservation({
-      place_id: placeId,
+      place_id: placeId.value,
       zone_id: zone.value || null,
       occurred_at: new Date(occurredAt.value).toISOString(),
       occurred_precision: "same_day",

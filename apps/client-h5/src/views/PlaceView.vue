@@ -13,19 +13,21 @@
  * amenities, entrances, paths, events) come from /places/{id}/extras, and the
  * normative answer from the explainable resolver.
  */
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { type StatusKey } from "@petaccess/design-tokens";
 import {
   client,
   conditionLabel,
   evaluatePlace,
+  placeTypeLabel,
   provenanceSummary,
   session,
   type Answer,
   type BoundaryMatchResult,
   type EffectiveRuleSet,
   type ObservationView,
+  type PlaceDetail,
   type PlaceExtras,
   type RuleView,
   type SourceView,
@@ -38,14 +40,26 @@ import StateMessage from "../components/StateMessage.vue";
 import StatusBadge from "../components/StatusBadge.vue";
 
 const route = useRoute();
-const placeId = route.params.id as string;
 
-const place = ref<{
-  id: string;
-  canonical_name: string;
-  place_type: string;
-  canonical_address: string | null;
-} | null>(null);
+/**
+ * Reactive, and that is load-bearing.
+ *
+ * Vue Router reuses this component across `/place/:id` changes, so reading
+ * `route.params.id` once at setup pinned the page to whichever place was opened
+ * first: navigating to a second place — from a search result, from the map, or
+ * with the browser's back button — kept rendering the *previous* place. Only a
+ * hard reload showed the right one. The probe that caught it:
+ *
+ *     goto   /#/place/<cafe>   -> h1 "星河咖啡·测试店"
+ *     hash -> /#/place/<mall>  -> h1 "星河咖啡·测试店"   <- wrong
+ *     reload                   -> h1 "云栖中心·测试商场"
+ *
+ * For a rule-lookup product that is the worst possible failure: another place's
+ * rules, presented under this place's name and address.
+ */
+const placeId = computed(() => (route.params.id ? String(route.params.id) : ""));
+
+const place = ref<PlaceDetail | null>(null);
 const zones = ref<Zone[]>([]);
 const rules = ref<RuleView[]>([]);
 const observations = ref<ObservationView[]>([]);
@@ -154,13 +168,17 @@ async function evaluate() {
         weight_kg: session.activePet.weight_kg,
       }
     : null;
-  answer.value = await evaluatePlace(session.mode, animal, placeId, zones.value, (body) =>
+  answer.value = await evaluatePlace(session.mode, animal, placeId.value, zones.value, (body) =>
     client.evaluate(body as Parameters<typeof client.evaluate>[0]),
   );
   // Section 1 also shows the "ordinary pet" baseline so the user can separate
   // "what applies to me" from "what applies to a plain dog".
-  ordinaryAnswer.value = await evaluatePlace("restrictions", null, placeId, zones.value, (body) =>
-    client.evaluate(body as Parameters<typeof client.evaluate>[0]),
+  ordinaryAnswer.value = await evaluatePlace(
+    "restrictions",
+    null,
+    placeId.value,
+    zones.value,
+    (body) => client.evaluate(body as Parameters<typeof client.evaluate>[0]),
   );
 }
 
@@ -178,29 +196,29 @@ async function load() {
   partial.value = [];
   const degrade = (label: string) => partial.value.push(label);
   try {
-    place.value = await client.place(placeId);
+    place.value = await client.place(placeId.value);
   } catch (e) {
     error.value = e instanceof Error ? e.message : String(e);
     loading.value = false;
     return;
   }
   try {
-    zones.value = await client.zones(placeId);
+    zones.value = await client.zones(placeId.value);
   } catch {
     degrade("分区域");
   }
   try {
-    rules.value = await client.rules(placeId);
+    rules.value = await client.rules(placeId.value);
   } catch {
     degrade("规则");
   }
   try {
-    observations.value = await client.observations(placeId);
+    observations.value = await client.observations(placeId.value);
   } catch {
     degrade("现场记录");
   }
   try {
-    verifications.value = await client.verifications(placeId);
+    verifications.value = await client.verifications(placeId.value);
   } catch {
     degrade("核验历史");
   }
@@ -212,12 +230,12 @@ async function load() {
     degrade("来源");
   }
   try {
-    extras.value = await client.placeExtras(placeId);
+    extras.value = await client.placeExtras(placeId.value);
   } catch {
     degrade("共处边界/设施");
   }
   try {
-    effective.value = await client.effectiveRules(placeId, {
+    effective.value = await client.effectiveRules(placeId.value, {
       animal: session.activePet?.species ?? "dog",
       service_role: session.activePet?.service_role ?? "none",
     });
@@ -228,7 +246,7 @@ async function load() {
   // a 401 rather than an empty answer. Only call it when there is an account.
   if (session.signedIn) {
     try {
-      boundaryMatch.value = await client.boundaryMatch(placeId);
+      boundaryMatch.value = await client.boundaryMatch(placeId.value);
     } catch {
       boundaryMatch.value = null; // no boundary set is not an error
     }
@@ -241,7 +259,45 @@ async function load() {
   loading.value = false;
 }
 
-onMounted(load);
+/**
+ * Drop every per-place ref before loading the next one.
+ *
+ * `load()` already clears `loading`/`error`/`partial`, but not the data itself.
+ * When the page switches places the old rules would sit on screen under the new
+ * place's name until each request returned — and if a sub-call degraded, the
+ * new place's `partial` list would be seeded by the old place's sections.
+ */
+function resetForPlace() {
+  place.value = null;
+  zones.value = [];
+  rules.value = [];
+  observations.value = [];
+  verifications.value = [];
+  sources.value = [];
+  extras.value = null;
+  effective.value = null;
+  boundaryMatch.value = null;
+  answer.value = null;
+  ordinaryAnswer.value = null;
+  error.value = "";
+  partial.value = [];
+  quickMsg.value = "";
+  zoneAnswer.value = null;
+  zoneEffects.value = {};
+  zoneErrors.value = {};
+}
+
+// `immediate` does the job `onMounted(load)` used to, and also covers the case
+// that was missed: a route-param change on the reused component instance.
+watch(
+  placeId,
+  () => {
+    resetForPlace();
+    if (!placeId.value) return;
+    void load();
+  },
+  { immediate: true },
+);
 
 /** Map a resolver effect onto the neutral status vocabulary. */
 function zoneSemantic(zoneId: string): StatusKey {
@@ -265,7 +321,7 @@ async function toggleZone(zoneId: string) {
   zoneAnswer.value = zoneId;
   if (zoneEffects.value[zoneId] || zoneErrors.value[zoneId]) return;
   try {
-    const res = await client.effectiveRules(placeId, {
+    const res = await client.effectiveRules(placeId.value, {
       animal: session.activePet?.species ?? "dog",
       service_role: session.activePet?.service_role ?? "none",
       zone_id: zoneId,
@@ -281,7 +337,7 @@ async function quickConfirm(ruleId: string, result: "still_valid" | "changed" | 
   quickMsg.value = "";
   try {
     await client.verify({
-      place_id: placeId,
+      place_id: placeId.value,
       rule_id: ruleId,
       result,
       note: "Quick Confirm（现场快捷确认）",
@@ -295,7 +351,7 @@ async function quickConfirm(ruleId: string, result: "still_valid" | "changed" | 
         : result === "changed"
           ? "已记录：规则已变化，进入复核"
           : "已记录：不确定";
-    verifications.value = await client.verifications(placeId);
+    verifications.value = await client.verifications(placeId.value);
   } catch (e) {
     quickMsg.value = e instanceof Error ? `需要登录后才能核验：${e.message}` : String(e);
   }
@@ -304,12 +360,12 @@ async function quickConfirm(ruleId: string, result: "still_valid" | "changed" | 
 async function toggleWatch() {
   try {
     const mine = await client.myWatches();
-    const existing = mine.find((w) => w.target_type === "place" && w.target_id === placeId);
+    const existing = mine.find((w) => w.target_type === "place" && w.target_id === placeId.value);
     if (existing) {
       await client.unwatch(existing.id);
       watching.value = false;
     } else {
-      await client.watch("place", placeId);
+      await client.watch("place", placeId.value);
       watching.value = true;
     }
   } catch (e) {
@@ -338,7 +394,7 @@ async function claimOperator() {
   quickMsg.value = "";
   try {
     await client.submitClaim({
-      place_id: placeId,
+      place_id: placeId.value,
       operator_id: "self-declared",
       verification_method: "operator_self_claim",
       evidence_refs: { note: "管理方认领（需人工核验）" },
@@ -377,8 +433,8 @@ async function claimOperator() {
       <div class="panel">
         <h1>{{ place.canonical_name }}</h1>
         <div class="muted" style="margin-top: 4px">
-          {{ place.place_type }} · {{ place.canonical_address ?? "地址未收录" }} · 生效规则
-          {{ prov.ruleCount }} 条
+          {{ placeTypeLabel(place.place_type) }} · {{ place.canonical_address ?? "地址未收录" }} ·
+          生效规则 {{ prov.ruleCount }} 条
         </div>
         <div class="row" style="margin-top: 10px">
           <button @click="toggleWatch">

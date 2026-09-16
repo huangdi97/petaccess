@@ -92,6 +92,9 @@ export interface AnswerCell {
  */
 export type PlaceSummary = ApiSchemas["PlaceSummary"];
 
+/** Full place record (`GET /places/{id}`), straight from the generated schema. */
+export type PlaceDetail = ApiSchemas["PlaceOut"];
+
 export interface Zone {
   id: string;
   place_id: string;
@@ -374,12 +377,11 @@ export const client = {
     return res.items;
   },
   async place(id: string) {
-    return api.request<{
-      id: string;
-      canonical_name: string;
-      place_type: string;
-      canonical_address: string | null;
-    }>("get", `/places/${id}`);
+    // Derived, not hand-written — same reason as `PlaceSummary` above. The
+    // hand-written copy here had already lost `parent_place_id`,
+    // `lifecycle_status` and the audit timestamps, so anything wanting them
+    // had to re-declare the shape locally (PlaceView did).
+    return api.request<PlaceDetail>("get", `/places/${id}`);
   },
   async zones(placeId: string) {
     return api.request<Zone[]>("get", `/places/${placeId}/zones`);

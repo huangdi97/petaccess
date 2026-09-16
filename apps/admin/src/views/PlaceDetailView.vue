@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { get, post, ApiError } from "../api";
 
@@ -28,7 +28,14 @@ interface Geometry {
 }
 
 const route = useRoute();
-const placeId = route.params.id as string;
+/**
+ * Reactive, because the operator console reuses this component across
+ * `/places/:id` changes. With a one-shot read the inspector kept showing the
+ * previously opened place — and `createZone` / `createGeometry` post
+ * `place_id`, so a reused instance would have attached a new zone or geometry
+ * to the wrong place. Same defect as the consumer `PlaceView`.
+ */
+const placeId = computed(() => (route.params.id ? String(route.params.id) : ""));
 const place = ref<{
   canonical_name: string;
   place_type: string;
@@ -44,10 +51,10 @@ const geoForm = ref({ zone_id: "", geometry_type: "polygon", wkt: "", source_id:
 
 async function load() {
   try {
-    place.value = await get(`/places/${placeId}`);
-    zones.value = await get(`/places/${placeId}/zones`);
-    rules.value = (await get(`/places/${placeId}/rules`)) as unknown as Rule[];
-    geometries.value = await get(`/places/${placeId}/geometries`);
+    place.value = await get(`/places/${placeId.value}`);
+    zones.value = await get(`/places/${placeId.value}/zones`);
+    rules.value = (await get(`/places/${placeId.value}/rules`)) as unknown as Rule[];
+    geometries.value = await get(`/places/${placeId.value}/geometries`);
   } catch (e) {
     error.value = e instanceof ApiError ? e.message : String(e);
   }
@@ -57,7 +64,7 @@ async function createZone() {
   error.value = "";
   try {
     await post("/zones", {
-      place_id: placeId,
+      place_id: placeId.value,
       name: zoneForm.value.name,
       zone_type: zoneForm.value.zone_type,
       floor_ref: zoneForm.value.floor_ref || null,
@@ -74,7 +81,7 @@ async function createGeometry() {
   error.value = "";
   try {
     await post("/geometries", {
-      place_id: geoForm.value.zone_id ? null : placeId,
+      place_id: geoForm.value.zone_id ? null : placeId.value,
       zone_id: geoForm.value.zone_id || null,
       geometry_type: geoForm.value.geometry_type,
       wkt: geoForm.value.wkt,
@@ -86,7 +93,22 @@ async function createGeometry() {
   }
 }
 
-onMounted(load);
+// `immediate` covers the first load, and the param change is the case the old
+// `onMounted(load)` missed entirely. Clear the previous place's data first so
+// it cannot be read as if it belonged to the one now in the address bar.
+watch(
+  placeId,
+  () => {
+    place.value = null;
+    zones.value = [];
+    rules.value = [];
+    geometries.value = [];
+    error.value = "";
+    if (!placeId.value) return;
+    void load();
+  },
+  { immediate: true },
+);
 </script>
 
 <template>

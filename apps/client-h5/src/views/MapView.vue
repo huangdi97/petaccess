@@ -18,6 +18,7 @@ import {
   clusterMarkers,
   coverageHint,
   LOCATION_LABELS,
+  placeTypeLabel,
   session,
   synthDemoCamera,
   synthMarkerPosition,
@@ -299,7 +300,7 @@ function goSearch() {
             <div>
               <strong>{{ p.canonical_name }}</strong>
               <div class="muted">
-                {{ p.place_type }}
+                {{ placeTypeLabel(p.place_type) }}
                 <span v-if="p.distance_m"> · {{ Math.round(p.distance_m) }}m</span>
               </div>
             </div>
@@ -317,7 +318,8 @@ function goSearch() {
     >
       <template v-if="selected">
         <div class="muted">
-          {{ selected.place_type }} · {{ selected.canonical_address ?? "地址未收录" }}
+          {{ placeTypeLabel(selected.place_type) }} ·
+          {{ selected.canonical_address ?? "地址未收录" }}
         </div>
         <div style="margin: 8px 0">
           <StatusBadge :status="statuses[selected.id] ?? 'UNKNOWN'" block />

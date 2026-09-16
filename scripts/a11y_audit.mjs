@@ -23,16 +23,20 @@ const ADMIN = process.env.ADMIN_URL ?? "http://127.0.0.1:5173";
 
 const FIXTURE = {
   mall: "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
-  cafe: "8412b521-5e1c-505d-9dec-568acb860c76",
+  /** 星河咖啡·栖霞分店 — zero rules, so the answer really is UNKNOWN. */
+  unknown: "3b5a341a-e550-5f0c-b35a-319ed43bd840",
 };
 
 const CONSUMER_PAGES = [
   ["home", ""],
   ["search", "#/search"],
   ["map", "#/map"],
-  ["place-conditional", `#/place/${FIXTURE.mall}`],
+  ["place-restricted", `#/place/${FIXTURE.mall}`],
   ["why", `#/place/${FIXTURE.mall}/why`],
-  ["place-unknown", `#/place/${FIXTURE.cafe}`],
+  // Not the flagship: 星河咖啡·测试店 carries a rule and answers 「明确限制」, so
+  // labelling its audit row "place-unknown" made the page list describe
+  // something other than what was on screen.
+  ["place-unknown", `#/place/${FIXTURE.unknown}`],
   ["contribute", "#/contribute"],
   ["mine", "#/mine"],
   ["pets", "#/pets"],

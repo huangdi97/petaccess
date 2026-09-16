@@ -19,7 +19,13 @@
  */
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { client, session, synthDemoCamera, type PlaceSummary } from "@petaccess/client-core";
+import {
+  client,
+  placeTypeLabel,
+  session,
+  synthDemoCamera,
+  type PlaceSummary,
+} from "@petaccess/client-core";
 import AppShell from "../components/AppShell.vue";
 import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
@@ -370,7 +376,7 @@ onMounted(async () => {
         <div class="row" style="justify-content: space-between">
           <div>
             <strong>{{ c.place.canonical_name }}</strong>
-            <div class="muted">{{ c.place.place_type }}</div>
+            <div class="muted">{{ placeTypeLabel(c.place.place_type) }}</div>
             <!-- §12.1 exact verified scope -->
             <div class="muted" :data-testid="'scope-' + c.place.id">已核验：{{ c.scope }}</div>
           </div>
@@ -400,7 +406,7 @@ onMounted(async () => {
         <div class="row" style="justify-content: space-between">
           <div>
             <strong>{{ c.place.canonical_name }}</strong>
-            <div class="muted">{{ c.place.place_type }}</div>
+            <div class="muted">{{ placeTypeLabel(c.place.place_type) }}</div>
           </div>
           <StatusBadge :status="c.status" />
         </div>

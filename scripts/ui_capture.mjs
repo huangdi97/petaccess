@@ -21,9 +21,14 @@ const OUT = path.resolve("artifacts/ui-capture");
 const H5 = process.env.H5_URL ?? "http://127.0.0.1:5175";
 const ADMIN = process.env.ADMIN_URL ?? "http://127.0.0.1:5173";
 
+/**
+ * Measured, not assumed. The mall answers 「明确限制」 at place level, and the
+ * flagship 星河咖啡·测试店 carries a rule — so it is NOT the unknown case. The
+ * only seeded place with zero rules is the sibling branch below.
+ */
 const FIXTURE = {
-  mall: "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e", // conditional
-  cafe: "8412b521-5e1c-505d-9dec-568acb860c76", // unknown
+  mall: "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e", // restricted (2 rules)
+  unknown: "3b5a341a-e550-5f0c-b35a-319ed43bd840", // 星河咖啡·栖霞分店 (0 rules)
 };
 
 const VIEWPORTS = {
@@ -111,12 +116,12 @@ async function runConsumer(browser) {
     await shot("03-map");
 
     await go(`#/place/${FIXTURE.mall}`);
-    await shot("04-place-conditional");
+    await shot("04-place-restricted");
 
     await go(`#/place/${FIXTURE.mall}/why`);
     await shot("05-why");
 
-    await go(`#/place/${FIXTURE.cafe}`);
+    await go(`#/place/${FIXTURE.unknown}`);
     await shot("06-place-unknown");
 
     await go("#/contribute");
