@@ -158,7 +158,10 @@ async function load() {
 
 onMounted(async () => {
   await session.restore();
-  void loadBoundary();
+  // `/boundary-profiles/default` is account-scoped: asking for it while signed
+  // out is a guaranteed 401, not a "no boundary yet" answer. Skip the call
+  // instead of provoking an error the UI then has to swallow.
+  if (session.signedIn) void loadBoundary();
   await load();
 });
 
@@ -227,7 +230,7 @@ function goSearch() {
         {{ session.activePet ? `本次：${session.activePet.display_name}` : "未设置宠物档案" }}
       </div>
       <div class="muted">{{ boundarySummary }}</div>
-      <RouterLink to="/boundary"><button style="margin-top: 8px">设置共处边界</button></RouterLink>
+      <RouterLink class="btn" style="margin-top: 8px" to="/boundary">设置共处边界</RouterLink>
     </div>
 
     <!-- view toggle -->
@@ -282,6 +285,7 @@ function goSearch() {
       </StateMessage>
 
       <template v-else>
+        <h1>规则地图</h1>
         <h2>附近场所</h2>
         <div
           v-for="p in visiblePlaces"

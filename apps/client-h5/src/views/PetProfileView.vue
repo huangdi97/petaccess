@@ -170,6 +170,11 @@ onMounted(load);
       <span>当前无网络连接：可查看已加载档案，保存操作已暂停。</span>
     </div>
 
+    <!-- Page title sits above the state branches: the skeleton, the
+         permission-denied message and the pet list are all "the pet profile
+         page", and only one of them used to carry a heading at all. -->
+    <h1>宠物档案</h1>
+
     <SkeletonList v-if="loading" :rows="3" />
 
     <StateMessage
@@ -178,7 +183,7 @@ onMounted(load);
       description="宠物档案与账号绑定。登录后可新建、修改或删除档案。"
     >
       <template #action>
-        <RouterLink to="/onboarding"><button class="primary">登录 / 注册</button></RouterLink>
+        <RouterLink class="btn primary" to="/onboarding">登录 / 注册</RouterLink>
       </template>
     </StateMessage>
 

@@ -98,6 +98,9 @@ input,
 select,
 textarea {
   width: 100%;
+  /* 10px padding + 15px text lands at 42px on the real box model — two short
+   * of the 44px guideline, which the audit measures rather than assumes. */
+  min-height: var(--pa-layout-touch-target);
   border: 1px solid var(--line);
   border-radius: 10px;
   padding: 10px 12px;
@@ -205,6 +208,14 @@ label {
   transform: translate(-50%, -100%);
   text-align: center;
   cursor: pointer;
+  /* A pin is a control, not decoration: give it a real hit area so it can be
+     tapped on a phone and reached by touch assistive tech. */
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
 }
 .map-pin .dot {
   width: 18px;
@@ -320,8 +331,52 @@ label {
 }
 button,
 .pill,
+a.btn,
+a.btn-inline,
 .tabbar a {
   min-height: var(--pa-layout-touch-target);
+}
+/* A link styled as a button.
+ *
+ * Several call sites were written as `<RouterLink><button>…</button></RouterLink>`,
+ * which nests interactive content inside a link: two overlapping controls, one
+ * announced name, and an outer element that is only as tall as its inline text
+ * (~20px, under the 24px minimum and half the 44px guideline). Styling the link
+ * itself gives one control, one name, one target. */
+a.btn,
+a.btn-inline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 14px;
+  background: var(--panel);
+  color: var(--text);
+  font-size: 14px;
+  text-decoration: none;
+}
+a.btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--pa-color-text-inverse);
+}
+/* Text links that stand alone still need a real tap target. */
+a.btn-inline {
+  padding: 4px 8px;
+  border-color: transparent;
+  background: transparent;
+  color: var(--accent);
+}
+/* `.pill` on an <a> rather than a <button> — same look, one control. */
+a.pill {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  color: var(--text);
+}
+a.pill.active {
+  color: var(--pa-color-text-inverse);
 }
 .tabbar a {
   display: flex;

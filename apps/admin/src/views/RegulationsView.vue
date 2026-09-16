@@ -59,8 +59,8 @@ onMounted(load);
   <div class="panel">
     <div class="row" style="align-items: end">
       <div>
-        <label>审核状态</label>
-        <select v-model="reviewStatusFilter" @change="load">
+        <label for="fld-reviewstatusfilter">审核状态</label>
+        <select v-model="reviewStatusFilter" id="fld-reviewstatusfilter" @change="load">
           <option value="">全部</option>
           <option value="not_reviewed">not_reviewed</option>
           <option value="no_explicit_rule_found">no_explicit_rule_found</option>

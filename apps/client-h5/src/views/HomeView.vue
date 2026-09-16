@@ -264,7 +264,7 @@ onMounted(async () => {
     <div class="row" style="justify-content: space-between">
       <strong data-testid="coverage-area">上海 · 试点</strong>
       <span class="row">
-        <RouterLink to="/map" data-testid="go-map">看地图 &gt;</RouterLink>
+        <RouterLink class="btn-inline" to="/map" data-testid="go-map">看地图 &gt;</RouterLink>
         <RouterLink to="/settings" class="pill" data-testid="coverage-scope">覆盖范围</RouterLink>
       </span>
     </div>
@@ -410,9 +410,9 @@ onMounted(async () => {
     <!-- §12.6 contribution is deliberately a low-priority footer action, and it
          stays available even when the nearby query fails. -->
     <footer>
-      <RouterLink to="/contribute" data-testid="contribute-link">
-        <button>拍规则牌 / 现场核验</button>
-      </RouterLink>
+      <RouterLink class="btn" to="/contribute" data-testid="contribute-link"
+        >拍规则牌 / 现场核验</RouterLink
+      >
       <p class="muted">现场记录与官方规则分开保存；AI/OCR 只生成待审候选，不会自动成为规则。</p>
     </footer>
   </AppShell>

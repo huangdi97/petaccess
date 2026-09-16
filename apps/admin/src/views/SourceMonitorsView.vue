@@ -101,20 +101,30 @@ onMounted(load);
     <h2>新建监控</h2>
     <div class="row">
       <div class="field">
-        <label>来源 ID</label>
-        <input v-model="form.source_id" class="mono" placeholder="source uuid" />
+        <label for="fld-form-source-id">来源 ID</label>
+        <input
+          v-model="form.source_id"
+          id="fld-form-source-id"
+          class="mono"
+          placeholder="source uuid"
+        />
       </div>
       <div class="field">
-        <label>监控 URL</label>
-        <input v-model="form.url" placeholder="https://…" />
+        <label for="fld-form-url">监控 URL</label>
+        <input v-model="form.url" id="fld-form-url" placeholder="https://…" />
       </div>
       <div class="field">
         <label>周期（分钟）</label>
         <input v-model.number="form.schedule_minutes" type="number" min="5" />
       </div>
       <div class="field">
-        <label>关联场所（可选）</label>
-        <input v-model="form.place_id" class="mono" placeholder="place uuid" />
+        <label for="fld-form-place-id">关联场所（可选）</label>
+        <input
+          v-model="form.place_id"
+          id="fld-form-place-id"
+          class="mono"
+          placeholder="place uuid"
+        />
       </div>
     </div>
     <button

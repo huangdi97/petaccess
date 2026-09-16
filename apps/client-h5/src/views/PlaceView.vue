@@ -224,10 +224,14 @@ async function load() {
   } catch {
     degrade("分层解析");
   }
-  try {
-    boundaryMatch.value = await client.boundaryMatch(placeId);
-  } catch {
-    boundaryMatch.value = null; // no boundary set is not an error
+  // Account-scoped: a signed-out visitor has no stored boundary, so asking is
+  // a 401 rather than an empty answer. Only call it when there is an account.
+  if (session.signedIn) {
+    try {
+      boundaryMatch.value = await client.boundaryMatch(placeId);
+    } catch {
+      boundaryMatch.value = null; // no boundary set is not an error
+    }
   }
   try {
     await evaluate();
@@ -441,7 +445,7 @@ async function claimOperator() {
             <div class="notice">{{ boundaryMatch.summary.note }}</div>
           </template>
           <div v-else class="muted">
-            未设置共处边界。<RouterLink to="/boundary">前往设置</RouterLink>
+            未设置共处边界。<RouterLink class="btn-inline" to="/boundary">前往设置</RouterLink>
           </div>
         </div>
         <div class="notice">

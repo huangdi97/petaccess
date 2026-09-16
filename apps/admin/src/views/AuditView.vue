@@ -42,8 +42,8 @@ onMounted(load);
   <div class="panel">
     <div class="row" style="align-items: end">
       <div>
-        <label>目标类型</label>
-        <select v-model="targetType" @change="load">
+        <label for="fld-targettype">目标类型</label>
+        <select v-model="targetType" id="fld-targettype" @change="load">
           <option value="">全部</option>
           <option value="place">place</option>
           <option value="zone">zone</option>

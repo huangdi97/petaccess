@@ -66,6 +66,15 @@ async function resolveRules() {
 
 async function loadBoundary() {
   note.value = "";
+  // Signed-out visitors have no boundary and cannot fetch one — that is a
+  // neutral state, not an error banner. The server answers 401 here, which the
+  // old `no_boundary_profile` branch below never matched, so it leaked an auth
+  // message into the page.
+  if (!session.signedIn) {
+    boundary.value = null;
+    note.value = "尚未设置共处边界，设置后可在此逐项比对。";
+    return;
+  }
   try {
     boundary.value = await client.boundaryMatch(placeId);
   } catch (e) {

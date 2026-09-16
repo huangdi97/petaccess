@@ -124,8 +124,8 @@ onMounted(load);
     <div class="row" style="margin-top: 12px">
       <div><label>新区域名称</label><input v-model="zoneForm.name" /></div>
       <div>
-        <label>类型</label>
-        <select v-model="zoneForm.zone_type">
+        <label for="fld-zoneform-zone-type">类型</label>
+        <select v-model="zoneForm.zone_type" id="fld-zoneform-zone-type">
           <option value="area">area</option>
           <option value="floor">floor</option>
           <option value="children_area">children_area</option>
@@ -140,8 +140,8 @@ onMounted(load);
         <label>楼层引用</label><input v-model="zoneForm.floor_ref" placeholder="如 3F / B1" />
       </div>
       <div>
-        <label>室内/户外</label>
-        <select v-model="zoneForm.indoor_outdoor">
+        <label for="fld-zoneform-indoor-outdoor">室内/户外</label>
+        <select v-model="zoneForm.indoor_outdoor" id="fld-zoneform-indoor-outdoor">
           <option value="indoor">indoor</option>
           <option value="outdoor">outdoor</option>
           <option value="semi_open">semi_open</option>
@@ -221,15 +221,15 @@ onMounted(load);
     </table>
     <div class="row" style="margin-top: 12px">
       <div>
-        <label>归属区域（可空=场所）</label>
-        <select v-model="geoForm.zone_id">
+        <label for="fld-geoform-zone-id">归属区域（可空=场所）</label>
+        <select v-model="geoForm.zone_id" id="fld-geoform-zone-id">
           <option value="">场所本身</option>
           <option v-for="z in zones" :key="z.id" :value="z.id">{{ z.name }}</option>
         </select>
       </div>
       <div>
-        <label>几何类型</label>
-        <select v-model="geoForm.geometry_type">
+        <label for="fld-geoform-geometry-type">几何类型</label>
+        <select v-model="geoForm.geometry_type" id="fld-geoform-geometry-type">
           <option value="polygon">polygon</option>
           <option value="point">point</option>
           <option value="linestring">linestring</option>

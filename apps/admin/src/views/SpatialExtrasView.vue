@@ -165,14 +165,14 @@ onMounted(load);
         ><input v-model="amenityForm.zone_id" class="mono" placeholder="zone uuid" />
       </div>
       <div class="field">
-        <label>设施类型</label>
-        <select v-model="amenityForm.amenity_type">
+        <label for="fld-amenityform-amenity-type">设施类型</label>
+        <select v-model="amenityForm.amenity_type" id="fld-amenityform-amenity-type">
           <option v-for="t in AMENITY_TYPES" :key="t" :value="t">{{ t }}</option>
         </select>
       </div>
       <div class="field">
-        <label>状态</label>
-        <select v-model="amenityForm.status">
+        <label for="fld-amenityform-status">状态</label>
+        <select v-model="amenityForm.status" id="fld-amenityform-status">
           <option value="available">available（可用）</option>
           <option value="unavailable">unavailable（不可用）</option>
           <option value="unknown">unknown（未知）</option>
@@ -208,8 +208,8 @@ onMounted(load);
         <label>名称</label><input v-model="entranceForm.name" placeholder="东门" />
       </div>
       <div class="field">
-        <label>类型</label>
-        <select v-model="entranceForm.entrance_type">
+        <label for="fld-entranceform-entrance-type">类型</label>
+        <select v-model="entranceForm.entrance_type" id="fld-entranceform-entrance-type">
           <option v-for="t in ENTRANCE_TYPES" :key="t" :value="t">{{ t }}</option>
         </select>
       </div>
@@ -270,8 +270,8 @@ onMounted(load);
     </div>
     <div class="row">
       <div class="field">
-        <label>适用动物</label>
-        <select v-model="pathForm.animal_scope">
+        <label for="fld-pathform-animal-scope">适用动物</label>
+        <select v-model="pathForm.animal_scope" id="fld-pathform-animal-scope">
           <option v-for="a in ANIMAL_SCOPES" :key="a" :value="a">{{ a }}</option>
         </select>
       </div>
@@ -284,9 +284,10 @@ onMounted(load);
         ><input v-model="pathForm.source_id" class="mono" placeholder="source uuid" />
       </div>
     </div>
-    <label>路径步骤（JSON 数组）</label>
+    <label for="fld-pathform-stepsjson">路径步骤（JSON 数组）</label>
     <textarea
       v-model="pathForm.stepsJson"
+      id="fld-pathform-stepsjson"
       rows="3"
       class="mono"
       placeholder='[{"instruction":"乘电梯至 3F"}]'

@@ -73,8 +73,8 @@ async function create() {
   <div class="panel">
     <div class="row" style="align-items: end">
       <div style="flex: 2">
-        <label>名称搜索（模糊）</label>
-        <input v-model="q" placeholder="如：星河" @keydown.enter="load" />
+        <label for="fld-q">名称搜索（模糊）</label>
+        <input v-model="q" id="fld-q" placeholder="如：星河" @keydown.enter="load" />
       </div>
       <button style="flex: 0" @click="load">搜索</button>
       <button style="flex: 0" class="primary" @click="creating = !creating">
@@ -85,8 +85,8 @@ async function create() {
       <div class="row">
         <div><label>名称</label><input v-model="form.canonical_name" /></div>
         <div>
-          <label>类型</label>
-          <select v-model="form.place_type">
+          <label for="fld-form-place-type">类型</label>
+          <select v-model="form.place_type" id="fld-form-place-type">
             <option value="cafe">cafe</option>
             <option value="restaurant">restaurant</option>
             <option value="mall">mall</option>

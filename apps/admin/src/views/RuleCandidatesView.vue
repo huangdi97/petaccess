@@ -2,6 +2,14 @@
 import { computed, onMounted, ref } from "vue";
 import { page, post, errText, shortId, ts } from "../api";
 import { CANDIDATE_STATUSES, CANDIDATE_TRANSITIONS, statusTone } from "../v05";
+import {
+  ANIMAL_SCOPE_LABELS,
+  CANDIDATE_STATUS_LABELS,
+  EXTRACTION_METHOD_LABELS,
+  RULE_ACTION_LABELS,
+  RULE_EFFECT_LABELS,
+  label,
+} from "../labels";
 
 interface Candidate {
   id: string;
@@ -108,7 +116,34 @@ async function reject(c: Candidate) {
 
 const pageCount = computed(() => Math.max(1, Math.ceil(total.value / limit)));
 
-onMounted(load);
+/**
+ * Place names for the queue, loaded once.
+ *
+ * Deliberately non-fatal: if this call fails the queue still renders with short
+ * ids rather than erroring, because reviewability matters more than the label.
+ */
+const placeNames = ref<Record<string, string>>({});
+
+async function loadPlaces() {
+  try {
+    const res = await page<{ id: string; canonical_name: string }>("/places", { limit: 100 });
+    const map: Record<string, string> = {};
+    for (const p of res.items) map[p.id] = p.canonical_name;
+    placeNames.value = map;
+  } catch {
+    placeNames.value = {};
+  }
+}
+
+function placeName(id: string | null): string {
+  if (!id) return "未归属具体场所（属地规则）";
+  return placeNames.value[id] ?? `未知场所 ${shortId(id)}`;
+}
+
+onMounted(() => {
+  void loadPlaces();
+  void load();
+});
 </script>
 
 <template>
@@ -124,8 +159,8 @@ onMounted(load);
 
   <div class="toolbar">
     <div class="field">
-      <label>状态筛选</label>
-      <select v-model="statusFilter" @change="load">
+      <label for="fld-statusfilter">状态筛选</label>
+      <select v-model="statusFilter" id="fld-statusfilter" @change="load">
         <option value="">全部</option>
         <option v-for="s in CANDIDATE_STATUSES" :key="s" :value="s">{{ s }}</option>
       </select>
@@ -158,22 +193,26 @@ onMounted(load);
         <template v-for="c in items" :key="c.id">
           <tr>
             <td class="mono">{{ shortId(c.id) }}</td>
-            <td class="mono">
-              P: {{ shortId(c.place_id) }}<br />
-              Z: {{ shortId(c.zone_id) }}
-            </td>
-            <td>{{ c.animal_scope ?? "—" }}</td>
+            <!-- Name, not an opaque id: "P: 89bd859e…" told a reviewer nothing,
+                 and a null zone rendered a bare "Z:" with no value at all. -->
             <td>
-              {{ c.action ?? "—" }} /
-              <span :class="{ muted: !c.effect }">{{ c.effect ?? "—" }}</span>
+              <div>{{ placeName(c.place_id) }}</div>
+              <div v-if="c.zone_id" class="muted">分区 {{ shortId(c.zone_id) }}</div>
+            </td>
+            <td>{{ label(ANIMAL_SCOPE_LABELS, c.animal_scope) }}</td>
+            <td>
+              {{ label(RULE_ACTION_LABELS, c.action) }} /
+              <span :class="{ muted: !c.effect }">{{ label(RULE_EFFECT_LABELS, c.effect) }}</span>
             </td>
             <td class="mono">
-              {{ c.extraction_method
+              {{ label(EXTRACTION_METHOD_LABELS, c.extraction_method)
               }}<span v-if="c.extraction_provider"> · {{ c.extraction_provider }}</span>
             </td>
             <td class="mono">{{ c.internal_confidence ?? "—" }}</td>
             <td>
-              <span class="tag" :class="statusTone(c.review_status)">{{ c.review_status }}</span>
+              <span class="tag" :class="statusTone(c.review_status)">
+                {{ label(CANDIDATE_STATUS_LABELS, c.review_status) }}
+              </span>
             </td>
             <td>
               <div class="actions">
@@ -234,8 +273,12 @@ onMounted(load);
                   <div style="margin-top: 8px" class="muted">抽取原文</div>
                   <div class="quote">{{ c.raw_text }}</div>
                 </template>
-                <label>迁移备注（可选，写入审计）</label>
-                <input v-model="note[c.id]" placeholder="例如：现场牌面与官网冲突，按现场采信" />
+                <label for="fld-note-c-id">迁移备注（可选，写入审计）</label>
+                <input
+                  v-model="note[c.id]"
+                  id="fld-note-c-id"
+                  placeholder="例如：现场牌面与官网冲突，按现场采信"
+                />
               </div>
             </td>
           </tr>

@@ -272,6 +272,12 @@ async function submitObservation() {
       <span>当前无网络连接：离线时不接受提交，以免产生未经确认的记录。</span>
     </div>
 
+    <!-- One h1 for every state of this page: the place-missing prompt, the
+         signed-out prompt and the working form used to be three different
+         "pages" as far as a screen reader was concerned, and only the last one
+         had a heading. -->
+    <h1 class="visually-hidden">现场贡献</h1>
+
     <!-- Consumer UX v1 §21–23: 贡献 is a tab, so it can be opened with no place
          selected. That check comes first — never guess which place is meant. -->
     <StateMessage
@@ -281,13 +287,11 @@ async function submitObservation() {
       description="现场贡献绑定到具体场所与区域。先在搜索或地图里选定一个场所，再从该场所发起。"
     >
       <template #action>
-        <RouterLink to="/search"
-          ><button class="primary" data-testid="contribute-go-search">
-            去搜索场所
-          </button></RouterLink
+        <RouterLink class="btn primary" to="/search" data-testid="contribute-go-search"
+          >去搜索场所</RouterLink
         >
-        <RouterLink to="/map" style="margin-left: 8px"
-          ><button data-testid="contribute-go-map">看地图</button></RouterLink
+        <RouterLink class="btn" to="/map" style="margin-left: 8px" data-testid="contribute-go-map"
+          >看地图</RouterLink
         >
       </template>
     </StateMessage>
@@ -298,12 +302,11 @@ async function submitObservation() {
       description="贡献需要登录后进行，以便记录来源与核验历史。未登录不会提交任何数据。"
     >
       <template #action>
-        <RouterLink to="/onboarding"><button class="primary">登录 / 注册</button></RouterLink>
+        <RouterLink class="btn primary" to="/onboarding">登录 / 注册</RouterLink>
       </template>
     </StateMessage>
 
     <template v-else>
-      <h1>现场贡献</h1>
       <div v-if="error" class="panel" data-testid="contribute-error">{{ error }}</div>
 
       <div class="panel">

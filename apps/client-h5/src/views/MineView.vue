@@ -24,7 +24,7 @@ onMounted(async () => {
     <div v-if="error" class="panel">{{ error }}</div>
     <div v-if="!session.signedIn" class="panel">
       <p>未登录 — 登录后可管理宠物档案、关注规则变化。</p>
-      <RouterLink to="/onboarding"><button class="primary block">登录 / 注册</button></RouterLink>
+      <RouterLink class="btn primary block" to="/onboarding">登录 / 注册</RouterLink>
     </div>
     <template v-else>
       <div class="panel">

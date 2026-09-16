@@ -104,9 +104,9 @@ const EVIDENCE = [
     <div class="panel">
       <strong>相关页面</strong>
       <div class="row" style="margin-top: 8px">
-        <RouterLink to="/boundary"><button class="pill">共处边界</button></RouterLink>
-        <RouterLink to="/privacy"><button class="pill">隐私与数据</button></RouterLink>
-        <RouterLink to="/notifications"><button class="pill">通知</button></RouterLink>
+        <RouterLink class="pill" to="/boundary">共处边界</RouterLink>
+        <RouterLink class="pill" to="/privacy">隐私与数据</RouterLink>
+        <RouterLink class="pill" to="/notifications">通知</RouterLink>
         <RouterLink v-if="signedIn" to="/pets">
           <button class="pill">宠物档案</button>
         </RouterLink>

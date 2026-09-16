@@ -29,11 +29,25 @@ async function submit() {
       <h1>管理后台登录</h1>
       <div v-if="error" class="error-banner">{{ error }}</div>
       <form @submit.prevent="submit">
-        <label>邮箱</label>
-        <input v-model="email" type="email" required autocomplete="username" />
-        <label>密码</label>
-        <input v-model="password" type="password" required autocomplete="current-password" />
-        <button class="primary" style="margin-top: 16px; width: 100%" :disabled="busy">
+        <!-- `for`/`id` pairs, not floating labels: an unassociated <label> looks
+             correct on screen but leaves the input with no accessible name, so
+             a screen reader announces "edit text" for both fields. -->
+        <label for="login-email">邮箱</label>
+        <input id="login-email" v-model="email" type="email" required autocomplete="username" />
+        <label for="login-password">密码</label>
+        <input
+          id="login-password"
+          v-model="password"
+          type="password"
+          required
+          autocomplete="current-password"
+        />
+        <button
+          class="primary"
+          type="submit"
+          style="margin-top: 16px; width: 100%"
+          :disabled="busy"
+        >
           {{ busy ? "登录中…" : "登录" }}
         </button>
       </form>

@@ -189,11 +189,11 @@ onMounted(load);
   <div class="two-col">
     <div class="panel">
       <h2>① 新建组织</h2>
-      <label>名称</label>
-      <input v-model="orgForm.name" placeholder="例如：某某连锁咖啡" />
+      <label for="fld-orgform-name">名称</label>
+      <input v-model="orgForm.name" id="fld-orgform-name" placeholder="例如：某某连锁咖啡" />
       <div class="field" style="margin-top: 10px">
-        <label>类型</label>
-        <select v-model="orgForm.kind">
+        <label for="fld-orgform-kind">类型</label>
+        <select v-model="orgForm.kind" id="fld-orgform-kind">
           <option value="brand">brand（品牌）</option>
           <option value="chain">chain（连锁）</option>
           <option value="operator">operator（经营方）</option>
@@ -213,15 +213,31 @@ onMounted(load);
 
     <div class="panel">
       <h2>③ 绑定到场所</h2>
-      <label>场所 ID</label>
-      <input v-model="bindForm.place_id" class="mono" placeholder="place uuid" />
-      <label>模板 ID</label>
-      <input v-model="bindForm.template_id" class="mono" placeholder="template uuid" />
-      <label>来源 ID（可选）</label>
-      <input v-model="bindForm.source_id" class="mono" placeholder="source uuid" />
-      <label>覆盖项（JSON 数组）</label>
+      <label for="fld-bindform-place-id">场所 ID</label>
+      <input
+        v-model="bindForm.place_id"
+        id="fld-bindform-place-id"
+        class="mono"
+        placeholder="place uuid"
+      />
+      <label for="fld-bindform-template-id">模板 ID</label>
+      <input
+        v-model="bindForm.template_id"
+        id="fld-bindform-template-id"
+        class="mono"
+        placeholder="template uuid"
+      />
+      <label for="fld-bindform-source-id">来源 ID（可选）</label>
+      <input
+        v-model="bindForm.source_id"
+        id="fld-bindform-source-id"
+        class="mono"
+        placeholder="source uuid"
+      />
+      <label for="fld-bindform-overridesjson">覆盖项（JSON 数组）</label>
       <textarea
         v-model="bindForm.overridesJson"
+        id="fld-bindform-overridesjson"
         rows="3"
         class="mono"
         placeholder='[{"animal_scope":"dog","effect":"conditional"}]'
@@ -241,8 +257,8 @@ onMounted(load);
     <h2>② 政策模板</h2>
     <div class="row">
       <div class="field">
-        <label>所属组织</label>
-        <select v-model="tplForm.organization_id">
+        <label for="fld-tplform-organization-id">所属组织</label>
+        <select v-model="tplForm.organization_id" id="fld-tplform-organization-id">
           <option value="">— 选择组织 —</option>
           <option v-for="o in orgs" :key="o.id" :value="o.id">
             {{ o.name }}（{{ shortId(o.id) }}）
@@ -250,12 +266,16 @@ onMounted(load);
         </select>
       </div>
       <div class="field">
-        <label>模板名称</label>
-        <input v-model="tplForm.name" placeholder="例如：标准门店政策 v2" />
+        <label for="fld-tplform-name">模板名称</label>
+        <input v-model="tplForm.name" id="fld-tplform-name" placeholder="例如：标准门店政策 v2" />
       </div>
       <div class="field">
-        <label>适用场馆范围</label>
-        <input v-model="tplForm.venue_scope" placeholder="例如：indoor / outdoor" />
+        <label for="fld-tplform-venue-scope">适用场馆范围</label>
+        <input
+          v-model="tplForm.venue_scope"
+          id="fld-tplform-venue-scope"
+          placeholder="例如：indoor / outdoor"
+        />
       </div>
     </div>
 

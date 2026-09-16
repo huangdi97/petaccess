@@ -165,8 +165,8 @@ onMounted(load);
     </div>
     <div class="row">
       <div class="field">
-        <label>适用动物</label>
-        <select v-model="eventForm.animal_scope">
+        <label for="fld-eventform-animal-scope">适用动物</label>
+        <select v-model="eventForm.animal_scope" id="fld-eventform-animal-scope">
           <option v-for="a in ANIMAL_SCOPES" :key="a" :value="a">{{ a }}</option>
         </select>
       </div>
@@ -174,8 +174,8 @@ onMounted(load);
         <label>动作</label><input v-model="eventForm.action" placeholder="enter" />
       </div>
       <div class="field">
-        <label>效果</label>
-        <select v-model="eventForm.effect">
+        <label for="fld-eventform-effect">效果</label>
+        <select v-model="eventForm.effect" id="fld-eventform-effect">
           <option v-for="e in EFFECTS" :key="e" :value="e">{{ e }}</option>
         </select>
       </div>

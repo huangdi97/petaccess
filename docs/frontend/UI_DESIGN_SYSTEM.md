@@ -64,6 +64,32 @@
 `REQUIRED_COPY` 固定中性表述；`FORBIDDEN_COPY` 含「雷店/雷区/黑榜/红榜/星级/文明指数/遇宠率/爱宠人士…」，
 由 `test_design_tokens.py` 在源码层拦截。
 
+### 枚举展示层（本轮新增）
+
+`packages/client-core/src/labels.ts`：
+
+| 导出 | 作用 |
+|---|---|
+| `PLACE_TYPE_LABELS` / `placeTypeLabel()` | `cafe` → 咖啡馆，`residential_community` → 住宅小区 … |
+| `freshnessLabel()` | `last_verified_at` → 「3 天前核验」这类措辞 |
+
+Admin 侧另有自带的 `apps/admin/src/labels.ts`（动物范围 / 动作 / 效果 / 抽取方式 / 候选状态 / 规则层 /
+证据等级 / 边界判定）。**两边都刻意不引入 `client-core` 依赖**，Admin 是独立构建产物。
+
+关键约定：查找**一律回退到原始枚举值**。新增一个枚举成员时它会以原文出现在界面上——
+这是一个显式的、看得见的"待补映射"信号，而不是悄悄变成空白或 `undefined`。
+
+### 链接式控件（本轮新增）
+
+同一个动作在站内出现两种形态：它可能跳走（`<RouterLink>`），也可能原地提交（`<button>`）。
+把 `<button>` 塞进 `<RouterLink>` 会产生**嵌套交互元素**——Tab 会停两次，读屏会播两遍，
+且内层按钮常常小于触控目标。正确做法是让链接穿上按钮的样式：
+
+`apps/client-h5/src/styles.css` 提供 `a.btn` / `a.btn.primary` / `a.btn-inline` / `a.pill`，
+与按钮同形同高（`min-height: 44px`）。本轮把全站 8 处 `<RouterLink><button>` 全部换成这一类。
+
+`.map-pin` 同样补了 `min-width / min-height: 44px`，使地图图钉满足 `TOUCH_TARGET_PX`。
+
 ## 3. 缺口（本轮实测，未修）
 
 | # | 缺口 | 影响 | 处置 |

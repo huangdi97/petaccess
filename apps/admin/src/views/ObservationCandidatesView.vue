@@ -89,8 +89,8 @@ onMounted(load);
 
   <div class="toolbar">
     <div class="field">
-      <label>状态筛选</label>
-      <select v-model="statusFilter">
+      <label for="fld-statusfilter">状态筛选</label>
+      <select v-model="statusFilter" id="fld-statusfilter">
         <option value="">全部</option>
         <option v-for="s in OBSERVATION_STATUSES" :key="s" :value="s">{{ s }}</option>
       </select>
@@ -172,8 +172,12 @@ onMounted(load);
                   <div class="muted" style="margin-top: 8px">抽取原文</div>
                   <div class="quote">{{ c.raw_text }}</div>
                 </template>
-                <label>迁移备注（可选，写入审计）</label>
-                <input v-model="note[c.id]" placeholder="例如：与同一场所三周内三次目击一致" />
+                <label for="fld-note-c-id">迁移备注（可选，写入审计）</label>
+                <input
+                  v-model="note[c.id]"
+                  id="fld-note-c-id"
+                  placeholder="例如：与同一场所三周内三次目击一致"
+                />
                 <p class="hint">审批后仅形成「观察主张」，不会生成准入规则。</p>
               </div>
             </td>

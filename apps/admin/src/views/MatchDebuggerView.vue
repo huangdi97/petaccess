@@ -92,25 +92,29 @@ function stateTone(state: string): string {
     <h2>输入</h2>
     <div class="row">
       <div class="field">
-        <label>场所 ID</label><input v-model="placeId" class="mono" placeholder="place uuid" />
+        <label for="fld-debug-place">场所 ID</label
+        ><input id="fld-debug-place" v-model="placeId" class="mono" placeholder="place uuid" />
       </div>
       <div class="field">
-        <label>动物</label>
-        <select v-model="animal">
+        <label for="fld-animal">动物</label>
+        <select v-model="animal" id="fld-animal">
           <option v-for="a in ANIMAL_SCOPES" :key="a" :value="a">{{ a }}</option>
         </select>
       </div>
       <div class="field">
-        <label>服务角色</label>
-        <select v-model="serviceRole">
+        <label for="fld-servicerole">服务角色</label>
+        <select v-model="serviceRole" id="fld-servicerole">
           <option value="none">none（普通宠物）</option>
           <option value="service_dog">service_dog（服务犬，独立判定）</option>
         </select>
       </div>
-      <div class="field"><label>动作</label><input v-model="action" placeholder="enter" /></div>
       <div class="field">
-        <label>分区 ID（可选）</label
-        ><input v-model="zoneId" class="mono" placeholder="zone uuid" />
+        <label for="fld-debug-action">动作</label
+        ><input id="fld-debug-action" v-model="action" placeholder="enter" />
+      </div>
+      <div class="field">
+        <label for="fld-debug-zone">分区 ID（可选）</label
+        ><input id="fld-debug-zone" v-model="zoneId" class="mono" placeholder="zone uuid" />
       </div>
     </div>
     <div class="actions" style="margin-top: 10px">

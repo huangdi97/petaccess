@@ -164,8 +164,12 @@ onMounted(() => {
     <div class="panel">
       <h2>① 冻结证据原件</h2>
       <div class="field">
-        <label>采集器</label>
-        <select v-model="form.collector_type" @change="onCollectorChange">
+        <label for="fld-form-collector-type">采集器</label>
+        <select
+          v-model="form.collector_type"
+          id="fld-form-collector-type"
+          @change="onCollectorChange"
+        >
           <option v-for="c in COLLECTOR_TYPES" :key="c.value" :value="c.value">
             {{ c.label }}
           </option>
@@ -176,12 +180,16 @@ onMounted(() => {
       </div>
       <div class="row">
         <div class="field">
-          <label>原件类型</label>
-          <input v-model="form.artifact_type" placeholder="web_page / signage_photo / phone_note" />
+          <label for="fld-form-artifact-type">原件类型</label>
+          <input
+            v-model="form.artifact_type"
+            id="fld-form-artifact-type"
+            placeholder="web_page / signage_photo / phone_note"
+          />
         </div>
         <div class="field">
-          <label>发布者类型</label>
-          <select v-model="form.publisher_type">
+          <label for="fld-form-publisher-type">发布者类型</label>
+          <select v-model="form.publisher_type" id="fld-form-publisher-type">
             <option value="official">official（官方）</option>
             <option value="operator">operator（经营方）</option>
             <option value="third_party">third_party（第三方）</option>
@@ -190,15 +198,21 @@ onMounted(() => {
           </select>
         </div>
       </div>
-      <label>来源 URL</label>
-      <input v-model="form.source_url" placeholder="https://…" />
-      <label>来源 ID（可选，关联 Source 表）</label>
-      <input v-model="form.source_id" class="mono" placeholder="uuid" />
-      <label>内容哈希（可选，用于变更检测）</label>
-      <input v-model="form.content_hash" class="mono" placeholder="sha256…" />
-      <label>抓取摘录</label>
+      <label for="fld-form-source-url">来源 URL</label>
+      <input v-model="form.source_url" id="fld-form-source-url" placeholder="https://…" />
+      <label for="fld-form-source-id">来源 ID（可选，关联 Source 表）</label>
+      <input v-model="form.source_id" id="fld-form-source-id" class="mono" placeholder="uuid" />
+      <label for="fld-form-content-hash">内容哈希（可选，用于变更检测）</label>
+      <input
+        v-model="form.content_hash"
+        id="fld-form-content-hash"
+        class="mono"
+        placeholder="sha256…"
+      />
+      <label for="fld-form-captured-excerpt">抓取摘录</label>
       <textarea
         v-model="form.captured_excerpt"
+        id="fld-form-captured-excerpt"
         rows="3"
         placeholder="页面/照片中与准入相关的原文片段"
       />
@@ -216,31 +230,47 @@ onMounted(() => {
     <!-- ---------------- create a bundle ---------------- -->
     <div class="panel">
       <h2>② 生成可归因证据包</h2>
-      <label>关联证据原件</label>
-      <input v-model="bundleForm.artifact_id" class="mono" placeholder="artifact uuid" />
+      <label for="fld-bundleform-artifact-id">关联证据原件</label>
+      <input
+        v-model="bundleForm.artifact_id"
+        id="fld-bundleform-artifact-id"
+        class="mono"
+        placeholder="artifact uuid"
+      />
       <div class="field" style="margin-top: 10px">
-        <label>证据类别</label>
-        <select v-model="bundleForm.evidence_class">
+        <label for="fld-bundleform-evidence-class">证据类别</label>
+        <select v-model="bundleForm.evidence_class" id="fld-bundleform-evidence-class">
           <option v-for="c in EVIDENCE_CLASSES" :key="c.value" :value="c.value">
             {{ c.label }}
           </option>
         </select>
       </div>
       <div v-if="bundleForm.evidence_class === 'derived'" class="field" style="margin-top: 10px">
-        <label>引用原始证据包 ID（派生必填）</label>
-        <input v-model="bundleForm.derived_from_bundle_id" class="mono" placeholder="bundle uuid" />
+        <label for="fld-bundleform-derived-from-bundle-id">引用原始证据包 ID（派生必填）</label>
+        <input
+          v-model="bundleForm.derived_from_bundle_id"
+          id="fld-bundleform-derived-from-bundle-id"
+          class="mono"
+          placeholder="bundle uuid"
+        />
       </div>
-      <label>引用片段</label>
-      <textarea v-model="bundleForm.quoted_fragment" rows="2" placeholder="逐字引用，保持可追溯" />
-      <label>抽取片段</label>
+      <label for="fld-bundleform-quoted-fragment">引用片段</label>
+      <textarea
+        v-model="bundleForm.quoted_fragment"
+        id="fld-bundleform-quoted-fragment"
+        rows="2"
+        placeholder="逐字引用，保持可追溯"
+      />
+      <label for="fld-bundleform-extracted-fragment">抽取片段</label>
       <textarea
         v-model="bundleForm.extracted_fragment"
+        id="fld-bundleform-extracted-fragment"
         rows="2"
         placeholder="结构化抽取结果（可改写）"
       />
       <div class="field" style="margin-top: 10px">
-        <label>抽取方式</label>
-        <select v-model="bundleForm.extraction_method">
+        <label for="fld-bundleform-extraction-method">抽取方式</label>
+        <select v-model="bundleForm.extraction_method" id="fld-bundleform-extraction-method">
           <option v-for="m in EXTRACTION_METHODS" :key="m" :value="m">{{ m }}</option>
         </select>
       </div>

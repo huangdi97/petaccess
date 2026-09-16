@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { client, ApiError, type BoundaryProfile } from "@petaccess/client-core";
+import { client, ApiError, session, type BoundaryProfile } from "@petaccess/client-core";
 import AppShell from "../components/AppShell.vue";
 import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
@@ -58,6 +58,13 @@ async function load() {
   error.value = "";
   loading.value = true;
   try {
+    // Signed out there is no profile to fetch and the endpoint answers 401;
+    // explain that in plain language instead of surfacing the transport error.
+    if (!session.signedIn) {
+      apply(null);
+      error.value = "共处边界保存在你的账号下：登录后即可设置并同步到各页面。";
+      return;
+    }
     const res = await client.defaultBoundaryProfile();
     apply(res.profile);
   } catch (e) {
@@ -151,7 +158,7 @@ onMounted(load);
           没设置的项保持「未知」，不会被当成允许或禁止。
         </p>
         <label>方案名称</label>
-        <input v-model="profileName" placeholder="我的共处边界" />
+        <input v-model="profileName" aria-label="共处边界名称" placeholder="我的共处边界" />
       </div>
 
       <div v-for="attr in ATTRIBUTES" :key="attr.value" class="panel" data-testid="boundary-attr">

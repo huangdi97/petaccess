@@ -54,8 +54,8 @@ onMounted(load);
   <div class="panel">
     <div class="row" style="align-items: end">
       <div>
-        <label>状态</label>
-        <select v-model="statusFilter" @change="load">
+        <label for="fld-statusfilter">状态</label>
+        <select v-model="statusFilter" id="fld-statusfilter" @change="load">
           <option value="">全部</option>
           <option value="submitted">submitted</option>
           <option value="verifying">verifying</option>
