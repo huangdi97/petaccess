@@ -13,6 +13,10 @@ docs/reality_audit/**/*.json
 # generated sign-off sheet: emit via scripts/gen_human_review_packet_r2_final.py,
 # never hand-edit — Prettier must not fight the generator over it
 HUMAN_REVIEW_DECISIONS_*.json
+# generated publish receipt: written by scripts/publish_reviewed_r1.py on --execute
+# (json.dumps(indent=2)); Prettier would collapse its short arrays, and the two
+# cannot both be satisfied. Generated artifacts do not enter the frontend gate.
+PUBLISHED_RULES_SNAPSHOT_*.json
 # generated fixture: "regenerate via the audit tool, never hand-edit"
 tests/fixtures/*.json
 schemas

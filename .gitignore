@@ -54,3 +54,6 @@ desktop.ini
 *.pem
 *.key
 coverage.json
+
+# agent session state (goal tracking), not project source
+.pi/
