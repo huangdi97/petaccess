@@ -207,3 +207,29 @@ PYTHONPATH= DATABASE_URL="postgresql+psycopg://petaccess:***@127.0.0.1:5432/peta
 - `AUDIT_TARGET_ID_UNUSABLE=4`：`audit_log` 里有 2,647 行 `target_id` 是字面量 `'None'`
   （`source` / `place` / `zone` / `jurisdiction_rule` 四类）。追加式表，不可修。
 - `ORPHAN_SOURCE=2`、`RULES_WITHOUT_PLACE=17`：INFO 级，demoseed 的 zone 级规则。
+
+---
+
+## 9. 遗留项状态更新（PRODUCTION_INTEGRITY_LIMITATION_FINAL_CLOSURE_R1）
+
+上一节列的三项遗留状态已变化，操作前请以本节为准。
+
+| 遗留项 | 旧状态 | 当前 |
+|---|---|---|
+| `CONFLICTING_CURRENT_RULES` / `DUPLICATE_CURRENT_RULE` | 2 / 2（`青岚公园·演示`） | **0 / 0**。取证结论：两条 `current` 均为 `CONFIRMED_DEMO_SEED`（签发方自述虚构、来源域 `demo-gov.example`、无 Evidence / 无 Candidate 血缘、`supersedes` 字段全空——从未存在替代关系）。已随 demo 场所清除。 |
+| `AUDIT_TARGET_ID_UNUSABLE` | 2,647 行「不可修」 | **仍 2,647 行，但缺陷已修**。定性更正：这是**活跃缺陷**（`db.add()` 后未 `flush()` → `str(obj.id)` = `"None"`），不是纯历史。已修三层：13 处调用点补 `db.flush()`、`record_audit` 写入时断言、回归锁。历史行不回填（无确定性来源）。最后一条 `"None"` 行产生于 `2026-09-17 07:40`。 |
+| `ORPHAN_SOURCE` / `RULES_WITHOUT_PLACE` | 2 / 17（INFO） | **0 / 0** |
+
+**新增操作要点**
+
+- 清理顺序是 `mutate → 不变式校验 → COMMIT`（`scripts/demo_closure_cleanup.py::governed_delete`）。
+  不要把 `commit()` 提前：那会产生「日志说已回滚、实际已落库」的假象。
+- Source 只在**无人再引用**时才删；仍被引用的会被保留并写入回执的
+  `sources_retained_shared`（含引用位置）。
+- 审计表只追加。清理本身也要留痕（`governance.cleanup`），历史审计永不物理删除。
+- 取证统一用 `scripts/forensics_provenance.py --rule-id/--place-id`，
+  不要再手写临时 SQL 去猜来源。
+- 收尾检查端口：`netstat -ano | grep LISTENING | grep -E ":(8010|8011|8012) "`。
+  本轮曾在 8010 上发现一个上上轮遗留的、直连生产库的无闸门实例。
+
+**还原点**：`artifacts/integrity_final_closure/petaccess_before_integrity_closure.dump`（`pg_dump -Fc`）。

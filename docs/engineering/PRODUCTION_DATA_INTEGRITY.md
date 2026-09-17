@@ -134,3 +134,35 @@ b8cffbee… / caa28a93… / e94d2259…
 - **没有**回补审计行：那是对已发布对象追加写入，违反 §1/§2 冻结。
 - 待办（下一轮，需人类授权）：让 `candidate_service.publish_exception()`
   自己写 `candidate.publish_exception` 审计，使两条发布路径的审计粒度一致。
+
+---
+
+## 8. 收口后状态（PRODUCTION_INTEGRITY_LIMITATION_FINAL_CLOSURE_R1）
+
+上一节记的待办已结案。全文见
+`docs/governance/PRODUCTION_INTEGRITY_LIMITATION_FINAL_CLOSURE.md`，
+契约全文见 `docs/governance/AUDIT_EVENT_CONTRACT.md`。
+
+**`candidate.publish_exception` 缺失**：已按 §16 以 append-only 方式回填 3 条
+（范围严格限定在 `R2-FINAL-R3-BATCH-01B`，判定依据是登记表 `carve_out_of` 字段，
+不是数组顺序）。回填行自带 `backfilled=true`、
+`reason=CLI_AUDIT_EVENT_CONTRACT_RECONCILIATION` 与 `original_publish_at`；
+`created_at` 用回填当时时刻，不伪造原始时间。既有审计一行未动。
+未放宽校验器——`verify_publish_r3.py` 判定逻辑未改，`AUDIT_LINKAGE` 现为 PASS。
+
+**本轮最新扫描**（23 项，`artifacts/integrity_final_closure/PROD_INTEGRITY_REPORT.json`）：
+
+```
+CRITICAL = 0
+HIGH     = 0
+MEDIUM   = 1   (AUDIT_TARGET_ID_UNUSABLE 2647 行 / 4 组 — 历史行，已解释)
+INFO     = 0
+```
+
+**`AUDIT_TARGET_ID_UNUSABLE` 定性更新**：上一版说「追加式表，不可修」，
+这是不完整的——它当时是**活跃缺陷**（`db.add()` 后未 `flush()` 导致
+`str(obj.id)` 写进 `target_id`）。现已三层修复：调用点补 `db.flush()`、
+`record_audit` 写入时断言、静态 + 运行时回归锁。历史行因无确定性来源不回填（§17）。
+
+**扫描器自身的计数缺陷**：聚合型检查（`select count(*) as n`）会把值 0 报成「发现 1 条」——
+扫描器数的是行数。已改为逐行输出，避免假阳性。

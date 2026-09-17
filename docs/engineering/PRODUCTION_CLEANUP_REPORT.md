@@ -186,3 +186,42 @@ docker exec petaccess-db-1 pg_restore -U petaccess -d petaccess --clean --if-exi
 docker cp artifacts/production_isolation/petaccess_before_cleanup.dump petaccess-db-1:/tmp/r2.dump
 docker exec petaccess-db-1 pg_restore -U petaccess -d petaccess --clean --if-exists /tmp/r2.dump
 ```
+
+---
+
+## 9. 第三批：完整性收口清理（PRODUCTION_INTEGRITY_LIMITATION_FINAL_CLOSURE_R1）
+
+前八节记录的是 R1 轮的两批夹具清理。本轮追加第三批，工具与授权链相同，
+但顺序被改成了 `mutate → 不变式校验 → COMMIT`（`governed_delete`），
+并有独立的还原点 `artifacts/integrity_final_closure/petaccess_before_integrity_closure.dump`。
+
+**第一批（含 demo 场所与法律层规则）**
+
+| 对象 | 数量 |
+|---|---|
+| place | 8（5 demo seed + 3 已定级 fixture） |
+| zone | 15 |
+| access_rule | 23 |
+| rule_candidate | 1 |
+| jurisdiction_rule | 4 |
+| source（仅无人再引用者） | 10 |
+| rule_condition / place_geometry / coexistence_policy 等 | 见回执 |
+
+**第二批（孤儿 demo Source）**：1 条 `演示用户 B` 签发的 Source，
+在夹具清除后无任何引用，随收口一并删除。
+
+回执：`artifacts/integrity_final_closure/DEMO_CLOSURE_RECEIPT.json`、
+`DEMO_CLOSURE_RECEIPT_2.json`。两批 `invariants.verdict = PASS`、
+`audit_rows` 只增不减、`AUDIT_HISTORY_DELETED = 0`。
+
+**不变式（提交前校验，失败即真回滚）**
+
+```
+batch_candidates_published = 8   batch_rules_current = 5   batch_exceptions_current = 3
+batch_sources_intact = 3         batch_evidence_intact = 8  batch_artifacts_intact = 10
+duplicate_current_groups = 0     demo_place_count = 0       demo_jurisdiction_rule_count = 0
+```
+
+> 回滚是否为真，不再靠日志文本判断：
+> `tests/integration/test_production_integrity_closure.py` 会**另开一条连接**去问服务端
+> 那行还在不在。

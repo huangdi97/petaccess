@@ -96,3 +96,24 @@
 
 因此 §0「`petaccess` 只承载真实业务数据」本轮**未 100% 达成**——这是刻意的取舍，
 不是遗漏。要真正达成需要人类决定 demo seed 的去留（见重复审计报告第 2 节的三选项）。
+
+---
+
+## 7. 收口（PRODUCTION_INTEGRITY_LIMITATION_FINAL_CLOSURE_R1）
+
+上一节留下的两类「刻意保留」已在本轮结案，全文见
+`docs/governance/PRODUCTION_INTEGRITY_LIMITATION_FINAL_CLOSURE.md`。
+
+- **5 个 demo seed 场所**：全部命中 canonical seed 注册表 `services/api/app/db/seed.py`，
+  满足清理前提，已全部清除（含其 zone / rule / jurisdiction_rule / source）。
+- **3 个 UNKNOWN 场所**：不再按「UNKNOWN」保留，而是各自取得确定分类
+  `CONFIRMED_TEST_FIXTURE` 后处置。判定依据是属性证据链
+  （机器生成名 / 零真实场所属性 / 无真实来源 / 脚本化爆发 / 零生产依赖），
+  **不是**因为名字难看。它们在注册表中无命中，这一残余不确定性已在收口报告 §4 明示。
+
+当前 `petaccess` 内 10 个场所全部为真实业务场所：
+`TEST_FIXTURE_PLACE_IN_PRODUCTION = 0`、`TEST_FIXTURE_SOURCE_IN_PRODUCTION = 0`、
+`DEMO_SEED_PLACE = 0`、`SUSPICIOUS_UNKNOWN_PLACE = 0`。
+
+§0「只承载真实业务数据」当前达成。剩余的 7 个无规则真实场所属于
+30–50 扩张阶段的输入，不是污染。

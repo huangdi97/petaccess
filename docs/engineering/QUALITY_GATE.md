@@ -97,3 +97,52 @@ node scripts/ui_capture.mjs
 
 `PILOT_REVIEW_PUBLISH_GATE` 仍为 `NOT_RUN`：它还需要真实首批发布、resolver 复核、
 Evidence/Source 复核、rollback、supersession、watch、audit。
+
+---
+
+## 5. 当前状态（PRODUCTION_INTEGRITY_LIMITATION_FINAL_CLOSURE_R1）
+
+测量表与全部证据见 `docs/governance/PRODUCTION_INTEGRITY_LIMITATION_FINAL_CLOSURE.md` §8–§10。
+下列数字是**本轮当次执行**的结果，不得引用更早轮次的值。
+
+| 项 | 结果 |
+|---|---|
+| pytest | 643 passed / 2 skipped |
+| ruff check / ruff format --check | PASS / PASS（195 files） |
+| mypy（canonical 范围） | PASS（79 files） |
+| ESLint / Prettier | PASS / PASS |
+| H5 build / Admin build | PASS / PASS |
+| E2E | 18 passed |
+| Visual | 47 passed |
+| a11y | 0 issues |
+| Publisher critical ×3 | PASS（`AUDIT_LINKAGE = PASS`） |
+| DB isolation proof | 18 passed |
+| 生产库 QA 前后差异 | `ROW_DIFF = 0`、`SEMANTIC_DIFF = 0` |
+
+```
+PRODUCTION_DATA_ISOLATION_GATE = PASS
+PRODUCTION_INTEGRITY_GATE      = PASS
+PRODUCTION_INTEGRITY_CRITICAL  = 0
+PRODUCTION_INTEGRITY_HIGH      = 0
+PRODUCTION_INTEGRITY_MEDIUM    = 1   (AUDIT_TARGET_ID_UNUSABLE，历史行，已解释)
+30_50_PLACE_EXPANSION          = READY_TO_START   # 未启动
+SEMANTIC_REMODEL_ISSUE         = OPEN
+```
+
+**新增的闸门命令**
+
+```bash
+# 审计事件契约与回填标签
+PYTHONPATH= .venv/Scripts/python.exe -m pytest tests/unit/test_audit_event_contract.py -q
+
+# §19/§20/§24 生产完整性锁（需要 TEST 角色库）
+PYTHONPATH= DATABASE_URL="postgresql+psycopg://petaccess:petaccess_dev_only@127.0.0.1:5432/petaccess_test" \
+  DB_ROLE=TEST .venv/Scripts/python.exe -m pytest tests/integration/test_production_integrity_closure.py -q
+
+# a11y（失败语义已收紧：页面没渲染出来标 NA 并以失败退出，不算绿）
+node scripts/a11y_audit.mjs --json artifacts/a11y_audit.json
+```
+
+**a11y 的失败语义变更**：`TOTAL issues: 0` 只有在页面确实渲染出来时才算通过。
+交互元素少于 3 个的页面会被标 `NA` 并让进程退出码非 0——
+在空文档上统计出 0 issues 是最不能接受的一种「绿」。
