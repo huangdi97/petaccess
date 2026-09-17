@@ -79,6 +79,11 @@ asyncio_mode = "auto"
 # `scripts/` holds shared tooling the tests assert on (e.g. the sign-off decision
 # vocabulary); make it importable rather than duplicating the constants in tests.
 pythonpath = ["scripts"]
+# Registered so a typo in a marker is an error rather than a silent no-op.
+markers = [
+    "integration: needs a real (TEST-role) database connection",
+    "e2e: needs a running API server",
+]
 filterwarnings = ["ignore::DeprecationWarning"]
 # Hard per-test ceiling. Without it a missing Celery worker turns 4 media/e2e
 # cases into a multi-minute hang that looks like a dead suite; with it they fail
