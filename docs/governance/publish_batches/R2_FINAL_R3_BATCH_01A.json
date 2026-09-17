@@ -1,0 +1,20 @@
+{
+  "_schema": "publish batch manifest v1 — revision / batch_id / reviewer / candidate_rule_ids (registry rule_id values, in execution dependency order). Permission is NOT stored here: final_decision is read from the signed register.",
+  "revision": "R2-FINAL-R3",
+  "batch_id": "R2-FINAL-R3-BATCH-01A",
+  "reviewer": "huangdi97",
+  "supersedes_batch": "R2-FINAL-R3-BATCH-01",
+  "note": "First real publish batch, narrowed to 10 of the 12 candidates selected in BATCH-01. R2-FINAL-R3-BATCH-01 is kept as rehearsal history and is NOT overwritten. The two Disney rows (dl-pet-ban, dl-sd-op) are removed from this batch and remain APPROVED in the signed register — they are NOT_SELECTED_FOR_BATCH_01A, not HOLD and not REJECTED. Reason: their exception is a dead carve-out under the current domain resolver (ordinary_pet base does not apply to a guide_dog query), and a second evaluate path disagrees with the resolver. That is an engine semantic inconsistency, not a publish-script defect, and it must not be patched by widening ordinary_pet to include guide_dog. See docs/governance/DISNEY_SCOPE_EXCEPTION_SEMANTIC_ISSUE.md (open).",
+  "candidate_rule_ids": [
+    "fp-legal-dog",
+    "fp-sd-legal",
+    "fp-pets-op-firstparty",
+    "fp-sd-op-firstparty",
+    "lib-legal-dog",
+    "lib-sd-legal",
+    "lib-pets-op",
+    "lib-sd-op-guide",
+    "sb-legal-dog",
+    "sb-sd-legal"
+  ]
+}

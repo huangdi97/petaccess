@@ -1,0 +1,21 @@
+{
+  "_schema": "publish batch manifest v1 — revision / batch_id / reviewer / candidate_rule_ids (registry rule_id values, in execution dependency order). Permission is NOT stored here: final_decision is read from the signed register.",
+  "revision": "R2-FINAL-R3",
+  "batch_id": "R2-FINAL-R3-BATCH-01",
+  "reviewer": "huangdi97",
+  "note": "First real publish batch. 12 of the 23 approved candidates: every base rule is immediately followed by the carve-out that binds to it, so the dependency closure is readable straight down the list. The remaining 11 approved candidates are deliberately NOT included.",
+  "candidate_rule_ids": [
+    "dl-pet-ban",
+    "dl-sd-op",
+    "fp-legal-dog",
+    "fp-sd-legal",
+    "fp-pets-op-firstparty",
+    "fp-sd-op-firstparty",
+    "lib-legal-dog",
+    "lib-sd-legal",
+    "lib-pets-op",
+    "lib-sd-op-guide",
+    "sb-legal-dog",
+    "sb-sd-legal"
+  ]
+}

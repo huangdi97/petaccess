@@ -1,0 +1,19 @@
+{
+  "_schema": "publish batch manifest v1 — revision / batch_id / reviewer / candidate_rule_ids (registry rule_id values, in execution dependency order). Permission is NOT stored here: final_decision is read from the signed register.",
+  "revision": "R2-FINAL-R3",
+  "batch_id": "R2-FINAL-R3-BATCH-01B",
+  "reviewer": "huangdi97",
+  "supersedes_batch": "R2-FINAL-R3-BATCH-01A",
+  "deferred": ["dl-pet-ban", "dl-sd-op", "fp-sd-op-firstparty", "lib-sd-op-guide"],
+  "note": "First real publish batch, narrowed to 8 of the 23 approved candidates: 5 AccessRule + 3 RuleException. R2-FINAL-R3-BATCH-01 (12) and R2-FINAL-R3-BATCH-01A (10) are kept as rehearsal history and are NOT overwritten; both are now REFUSED by the upgraded gate because they contain inert carve-outs. The four deferred rules are DEFERRED_APPROVED_SEMANTIC_REMODEL: their human APPROVED decision stands untouched in the signed register and is NOT rewritten to HOLD or REJECTED. They are excluded because each is an operator-layer guide_dog carve-out bound to an ordinary_pet base, and under ADR-025 ordinary_pet covers {ordinary_dog, ordinary_cat, other_pet} — it does not govern guide_dog, so the carve-out can never fire. Publishing a rule that can never apply is worse than not publishing it: it is audited, linked and counted while silently promising access it does not deliver. 'The end-user answer happens to be correct today' is NOT accepted as a reason to publish an unreachable RuleException — that answer is carried by an independent LEGAL-layer rule and is not evidence the carve-out works. The fix is a semantic remodel, which is a human decision recorded in docs/governance/OPERATOR_PET_GUIDE_DOG_SEMANTIC_REMODEL.md; it is deliberately NOT decided in this round.",
+  "candidate_rule_ids": [
+    "fp-legal-dog",
+    "fp-pets-op-firstparty",
+    "fp-sd-legal",
+    "lib-legal-dog",
+    "lib-pets-op",
+    "lib-sd-legal",
+    "sb-legal-dog",
+    "sb-sd-legal"
+  ]
+}
