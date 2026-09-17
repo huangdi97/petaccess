@@ -13,6 +13,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.audit import record_audit
+from app.core.audit_events import AuditEvent
 from app.core.config import get_settings
 from app.core.errors import ApiError, NotFound
 from app.core.security import get_current_user, require_role
@@ -70,12 +71,13 @@ def submit_dispute(
     else:
         obs = db.get(ObservationClaim, body.target_id)
         obs.dispute_status = ObservationDisputeStatus.OPEN  # type: ignore[union-attr]
+    db.flush()
     record_audit(
         db,
         request=None,
         actor_user_id=user.id,
         actor_role=str(user.role),
-        action="dispute.submit",
+        action=AuditEvent.DISPUTE_SUBMIT.value,
         target_type=body.target_type,
         target_id=body.target_id,
         after_state={"dispute_id": str(case.id), "reason_code": body.reason_code},
@@ -172,7 +174,7 @@ def review_dispute(
         request=None,
         actor_user_id=user.id,
         actor_role=str(user.role),
-        action="dispute.review",
+        action=AuditEvent.DISPUTE_REVIEW.value,
         target_type="dispute_case",
         target_id=case_id,
         after_state=changed,
@@ -226,7 +228,7 @@ def resolve_dispute(
         request=None,
         actor_user_id=user.id,
         actor_role=str(user.role),
-        action="dispute.resolve",
+        action=AuditEvent.DISPUTE_RESOLVE.value,
         target_type="dispute_case",
         target_id=case_id,
         after_state=applied,

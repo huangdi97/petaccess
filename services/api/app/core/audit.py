@@ -19,6 +19,16 @@ def record_audit(
     after_state: dict | None = None,
     detail: dict | None = None,
 ) -> None:
+    # Fail loudly at write time. An un-flushed ORM instance has no primary key,
+    # so ``str(obj.id)`` yields the literal "None" and the row names no object —
+    # a defect that is invisible when written and only surfaces later as
+    # ``AUDIT_TARGET_ID_UNUSABLE`` in the integrity scan, by which point the
+    # identity it should have recorded is gone. Callers must ``db.flush()``.
+    if not target_id or target_id == "None":
+        raise ValueError(
+            f"audit row for {action}/{target_type} has no usable target_id "
+            f"({target_id!r}) — db.flush() before recording the audit"
+        )
     db.add(
         AuditLog(
             actor_user_id=actor_user_id,

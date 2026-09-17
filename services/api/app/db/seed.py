@@ -11,6 +11,8 @@ import sys
 import uuid
 from datetime import UTC, datetime, timedelta
 
+from app.core.audit_events import AuditEvent
+
 DEMO_NAMESPACE = uuid.UUID("6ba7b810-9dad-11d1-80b4-00c04fd430c8")  # RFC4122 "URL" ns
 
 
@@ -1410,7 +1412,7 @@ def run_demo_seed() -> dict[str, int]:  # noqa: PLR0915 - linear demo data scrip
             id=uid("audit_claim_approval"),
             actor_user_id=users["admin"].id,
             actor_role=UserRole.ADMIN,
-            action="operator_claim.approve",
+            action=AuditEvent.OPERATOR_CLAIM_APPROVE.value,
             target_type="operator_claim",
             target_id=claim_yunqi.id,
             before_state={"status": "verifying"},

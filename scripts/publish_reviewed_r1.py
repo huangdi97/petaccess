@@ -995,6 +995,86 @@ def execute_plan(
     return result
 
 
+def verify_publish_audit_contract(
+    session: Any,
+    result: MutableMapping[str, list[dict]],
+    *,
+    batch_id: str | None = None,
+) -> dict:
+    """§15 — a publish is not finished until its canonical audit rows exist.
+
+    The CLI publishes *through* the HTTP API, so it does not write audit rows
+    itself; that is the point of the single writer. What it must not do is walk
+    away without checking, because a silent writer (a stale server, a branch
+    that lost its ``record_audit`` call) leaves a published rule with no
+    governance trail and nothing fails until the verifier runs much later.
+
+    The expectation is one canonical event per published object, keyed by the
+    candidate the verifier looks for:
+
+    * ``CREATE_ACCESS_RULE``      → ``candidate.publish``
+    * ``CREATE_RULE_EXCEPTION``   → ``candidate.publish_exception`` (with base)
+
+    Missing rows are reported, never backfilled here — a reconciliation is a
+    deliberate, separately reviewed act (see
+    ``scripts/backfill_publish_exception_audit.py``).
+    """
+    from sqlalchemy import text
+
+    sys.path.insert(0, str(REPO / "services" / "api"))
+    from app.core.audit_events import AuditEvent
+
+    expectations: list[tuple[str, str]] = []
+    for entry in result.get("published", []):
+        cid = str(entry.get("candidate_id"))
+        if entry.get("publication_type") == CREATE_RULE_EXCEPTION:
+            expectations.append((cid, AuditEvent.CANDIDATE_PUBLISH_EXCEPTION.value))
+        else:
+            expectations.append((cid, AuditEvent.CANDIDATE_PUBLISH.value))
+
+    missing: list[dict] = []
+    for cid, action in expectations:
+        found = int(
+            session.execute(
+                text(
+                    "select count(*) from audit_log where action = :action"
+                    " and after_state->>'candidate_id' = :cid"
+                ),
+                {"action": action, "cid": cid},
+            ).scalar()
+            or 0
+        )
+        if found == 0:
+            missing.append(
+                {
+                    "candidate_id": cid,
+                    "expected_action": action,
+                    "batch_id": batch_id,
+                    "remedy": "scripts/backfill_publish_exception_audit.py",
+                }
+            )
+
+    # An exception audit that does not name its base rule cannot prove the
+    # carve-out was attached to the rule the manifest said it would be.
+    base_missing = int(
+        session.execute(
+            text(
+                "select count(*) from audit_log where action = :action"
+                " and after_state->>'base_rule_id' is null"
+            ),
+            {"action": AuditEvent.CANDIDATE_PUBLISH_EXCEPTION.value},
+        ).scalar()
+        or 0
+    )
+    return {
+        "checked": len(expectations),
+        "missing_count": len(missing),
+        "missing": missing,
+        "exception_audit_without_base": base_missing,
+        "verdict": "PASS" if not missing and base_missing == 0 else "FAIL",
+    }
+
+
 def published_base_for(
     step: PlanStep,
     result: Mapping[str, list[dict]],
@@ -1497,6 +1577,31 @@ def main() -> int:
         str(r["rule_id"]): str(r["published_rule_id"]) for r in rows if r.get("published_rule_id")
     }
     result = execute_plan(plan, api, prepublished_bases=prepublished_bases)
+
+    # A publish that wrote rows but left no canonical audit is an incomplete
+    # publish: fail the run loudly instead of discovering it in the next audit.
+    audit_contract: dict = {"verdict": "NOT_CHECKED", "checked": 0}
+    if session is not None and result["published"]:
+        audit_contract = verify_publish_audit_contract(
+            session, result, batch_id=batch.batch_id if batch is not None else None
+        )
+        for miss in audit_contract["missing"]:
+            result["failed"].append(
+                {
+                    "candidate_id": miss["candidate_id"],
+                    "stage": "audit_contract",
+                    "error": f"缺少 canonical 审计 {miss['expected_action']}",
+                }
+            )
+        print(f"CLI_PUBLISH_AUDIT_CONTRACT = {audit_contract['verdict']}")
+        print(
+            f"  checked = {audit_contract['checked']}  missing = {audit_contract['missing_count']}"
+        )
+        if audit_contract["exception_audit_without_base"]:
+            print(
+                f"  exception_audit_without_base = {audit_contract['exception_audit_without_base']}"
+            )
+
     summary = {
         "mode": "execute",
         "at": _now(),
@@ -1504,6 +1609,7 @@ def main() -> int:
         "batch_id": batch.batch_id if batch is not None else None,
         "selection": "manifest" if manifest is not None else "whole-register",
         "counts": {k: len(v) for k, v in result.items()},
+        "audit_contract": audit_contract,
     }
     print(json.dumps({"summary": summary, "detail": result}, ensure_ascii=False, indent=2))
     snapshot = Path(args.snapshot_out) if args.snapshot_out else SNAPSHOT

@@ -13,6 +13,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.audit import record_audit
+from app.core.audit_events import AuditEvent
 from app.core.config import get_settings
 from app.core.errors import ApiError, NotFound, PermissionDenied
 from app.core.security import get_current_user, require_role
@@ -110,7 +111,7 @@ def review_claim(
         request=None,
         actor_user_id=user.id,
         actor_role=str(user.role),
-        action="operator_claim.review",
+        action=AuditEvent.OPERATOR_CLAIM_REVIEW.value,
         target_type="operator_claim",
         target_id=claim_id,
         before_state={"status": str(before_status)},
@@ -195,12 +196,13 @@ def submit_questionnaire(
             db.add(RuleCondition(rule_id=rule.id, **c))
         created_rules.append(rule.id)
 
+    db.flush()
     record_audit(
         db,
         request=None,
         actor_user_id=user.id,
         actor_role=str(user.role),
-        action="operator_questionnaire.submit",
+        action=AuditEvent.OPERATOR_QUESTIONNAIRE_SUBMIT.value,
         target_type="place",
         target_id=claim.place_id,
         after_state={"created_rules": created_rules, "superseded": [r.id for r in prior_rules]},

@@ -10,6 +10,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.audit import record_audit
+from app.core.audit_events import AuditEvent
 from app.core.errors import NotFound
 from app.core.security import get_optional_user, require_role
 from app.db.session import get_db
@@ -82,12 +83,13 @@ def create_regulation(
 ) -> JurisdictionRule:
     reg = JurisdictionRule(**body.model_dump())
     db.add(reg)
+    db.flush()
     record_audit(
         db,
         request=None,
         actor_user_id=user.id,
         actor_role=str(user.role),
-        action="regulation.create",
+        action=AuditEvent.REGULATION_CREATE.value,
         target_type="jurisdiction_rule",
         target_id=str(reg.id),
         after_state={"document_name": body.document_name},
@@ -119,7 +121,7 @@ def review_regulation(
         request=None,
         actor_user_id=user.id,
         actor_role=str(user.role),
-        action="regulation.review",
+        action=AuditEvent.REGULATION_REVIEW.value,
         target_type="jurisdiction_rule",
         target_id=reg_id,
         before_state={"review_status": reg.review_status},

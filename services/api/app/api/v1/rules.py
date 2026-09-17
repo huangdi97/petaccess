@@ -7,6 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from app.core.audit import record_audit
+from app.core.audit_events import AuditEvent
 from app.core.errors import ApiError, NotFound
 from app.core.security import require_role
 from app.db.session import get_db
@@ -215,12 +216,13 @@ def create_rule(
     db.flush()
     for c in body.conditions:
         db.add(type(rule).conditions.property.mapper.class_(rule_id=rule.id, **c.model_dump()))
+    db.flush()
     record_audit(
         db,
         request=None,
         actor_user_id=user.id,
         actor_role=str(user.role),
-        action="rule.create",
+        action=AuditEvent.RULE_CREATE.value,
         target_type="access_rule",
         target_id=str(rule.id),
         after_state={
@@ -256,12 +258,13 @@ def update_rule(
         mapper = type(rule).conditions.property.mapper.class_
         for c in body.conditions:
             db.add(mapper(rule_id=rule.id, **c.model_dump()))
+    db.flush()
     record_audit(
         db,
         request=None,
         actor_user_id=user.id,
         actor_role=str(user.role),
-        action="rule.update",
+        action=AuditEvent.RULE_UPDATE.value,
         target_type="access_rule",
         target_id=rule_id,
         before_state=before,

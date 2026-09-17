@@ -7,6 +7,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.audit import record_audit
+from app.core.audit_events import AuditEvent
 from app.core.security import get_optional_user, require_role
 from app.db.session import get_db
 from app.models import Source, User
@@ -53,12 +54,13 @@ def create_source(
         notes=body.notes,
     )
     db.add(source)
+    db.flush()
     record_audit(
         db,
         request=None,
         actor_user_id=user.id,
         actor_role=str(user.role),
-        action="source.create",
+        action=AuditEvent.SOURCE_CREATE.value,
         target_type="source",
         target_id=str(source.id),
         after_state={"source_type": body.source_type.value, "issuer": body.issuer},

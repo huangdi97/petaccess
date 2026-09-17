@@ -13,6 +13,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.core.audit import record_audit
+from app.core.audit_events import AuditEvent
 from app.core.errors import ApiError, NotFound
 from app.core.security import get_current_user, require_role
 from app.db.session import get_db
@@ -316,7 +317,7 @@ def admin_create_candidate(
         request=None,
         actor_user_id=user.id,
         actor_role=str(user.role),
-        action="candidate.create",
+        action=AuditEvent.CANDIDATE_CREATE.value,
         target_type="rule_candidate",
         target_id=cand.id,
         after_state={
@@ -395,7 +396,7 @@ def admin_set_candidate_scope(
         request=None,
         actor_user_id=user.id,
         actor_role=str(user.role),
-        action="candidate.set_scope",
+        action=AuditEvent.CANDIDATE_SET_SCOPE.value,
         target_type="rule_candidate",
         target_id=cand.id,
         before_state=before,
@@ -423,7 +424,7 @@ def admin_transition_candidate(
         request=None,
         actor_user_id=user.id,
         actor_role=str(user.role),
-        action="candidate.transition",
+        action=AuditEvent.CANDIDATE_TRANSITION.value,
         target_type="rule_candidate",
         target_id=cand.id,
         before_state={"status": before},
@@ -466,7 +467,7 @@ def admin_set_candidate_layer(
         request=None,
         actor_user_id=user.id,
         actor_role=str(user.role),
-        action="candidate.set_rule_layer",
+        action=AuditEvent.CANDIDATE_SET_RULE_LAYER.value,
         target_type="rule_candidate",
         target_id=cand.id,
         before_state={"rule_layer": before},
@@ -513,7 +514,7 @@ def admin_set_candidate_mandatory_level(
         request=None,
         actor_user_id=user.id,
         actor_role=str(user.role),
-        action="candidate.set_mandatory_level",
+        action=AuditEvent.CANDIDATE_SET_MANDATORY_LEVEL.value,
         target_type="rule_candidate",
         target_id=cand.id,
         before_state={"mandatory_level": before},
@@ -557,7 +558,7 @@ def admin_publish_candidate(
             request=None,
             actor_user_id=user.id,
             actor_role=str(user.role),
-            action="candidate.publish_exception",
+            action=AuditEvent.CANDIDATE_PUBLISH_EXCEPTION.value,
             target_type="rule_exception",
             target_id=exc.id,
             after_state={
@@ -586,7 +587,7 @@ def admin_publish_candidate(
         request=None,
         actor_user_id=user.id,
         actor_role=str(user.role),
-        action="candidate.publish",
+        action=AuditEvent.CANDIDATE_PUBLISH.value,
         target_type="access_rule",
         target_id=rule.id,
         after_state={
@@ -746,7 +747,7 @@ def admin_create_rule_exception(
         request=None,
         actor_user_id=user.id,
         actor_role=str(user.role),
-        action="rule_exception.create",
+        action=AuditEvent.RULE_EXCEPTION_CREATE.value,
         target_type="rule_exception",
         target_id=exc.id,
         after_state={
@@ -808,7 +809,7 @@ def admin_transition_rule_exception(
         request=None,
         actor_user_id=user.id,
         actor_role=str(user.role),
-        action="rule_exception.transition",
+        action=AuditEvent.RULE_EXCEPTION_TRANSITION.value,
         target_type="rule_exception",
         target_id=exc.id,
         before_state={"status": before},
@@ -839,7 +840,7 @@ def admin_create_monitor(
         request=None,
         actor_user_id=user.id,
         actor_role=str(user.role),
-        action="monitor.create",
+        action=AuditEvent.MONITOR_CREATE.value,
         target_type="source_monitor",
         target_id=monitor.id,
         after_state={"url": body.url[:120]},
@@ -923,7 +924,7 @@ def admin_check_monitor(
         request=None,
         actor_user_id=user.id,
         actor_role=str(user.role),
-        action="monitor.check",
+        action=AuditEvent.MONITOR_CHECK.value,
         target_type="source_monitor",
         target_id=monitor.id,
         after_state={
@@ -1000,7 +1001,7 @@ def admin_create_org(
         request=None,
         actor_user_id=user.id,
         actor_role=str(user.role),
-        action="organization.create",
+        action=AuditEvent.ORGANIZATION_CREATE.value,
         target_type="organization",
         target_id=org.id,
         after_state={"name": org.name},
@@ -1042,12 +1043,13 @@ def admin_create_template(
                 holder_scope=r.holder_scope,
             )
         )
+    db.flush()
     record_audit(
         db,
         request=None,
         actor_user_id=user.id,
         actor_role=str(user.role),
-        action="policy_template.create",
+        action=AuditEvent.POLICY_TEMPLATE_CREATE.value,
         target_type="policy_template",
         target_id=template.id,
         after_state={"name": body.name, "rules": len(body.rules)},
@@ -1093,7 +1095,7 @@ def admin_create_binding(
         request=None,
         actor_user_id=user.id,
         actor_role=str(user.role),
-        action="place_binding.create",
+        action=AuditEvent.PLACE_BINDING_CREATE.value,
         target_type="place_policy_binding",
         target_id=binding.id,
         after_state={"place_id": body.place_id, "template_id": body.template_id},
@@ -1126,7 +1128,7 @@ def admin_create_amenity(
         request=None,
         actor_user_id=user.id,
         actor_role=str(user.role),
-        action="amenity.create",
+        action=AuditEvent.AMENITY_CREATE.value,
         target_type="amenity",
         target_id=amenity.id,
         after_state={"type": amenity.amenity_type},
@@ -1203,7 +1205,7 @@ def admin_create_event(
         request=None,
         actor_user_id=user.id,
         actor_role=str(user.role),
-        action="event_policy.create",
+        action=AuditEvent.EVENT_POLICY_CREATE.value,
         target_type="event_policy",
         target_id=event.id,
         after_state={"name": body["name"]},
@@ -1234,7 +1236,7 @@ def admin_create_license(
         request=None,
         actor_user_id=user.id,
         actor_role=str(user.role),
-        action="data_license.create",
+        action=AuditEvent.DATA_LICENSE_CREATE.value,
         target_type="data_license",
         target_id=license_.id,
         after_state={"source_id": body["source_id"]},
@@ -1730,12 +1732,13 @@ def upsert_default_boundary_profile(
                 note=pref.note,
             )
         )
+    db.flush()
     record_audit(
         db,
         request=None,
         actor_user_id=user.id,
         actor_role=str(user.role),
-        action="boundary_profile.upsert",
+        action=AuditEvent.BOUNDARY_PROFILE_UPSERT.value,
         target_type="boundary_profile",
         target_id=existing.id,
         after_state={"name": body.name, "preferences": len(seen)},
@@ -2240,7 +2243,7 @@ def admin_create_artifact(
         request=None,
         actor_user_id=user.id,
         actor_role=str(user.role),
-        action="artifact.create",
+        action=AuditEvent.ARTIFACT_CREATE.value,
         target_type="source_artifact",
         target_id=artifact.id,
         after_state={"platform": artifact.source_platform, "type": artifact.artifact_type},
@@ -2299,7 +2302,7 @@ def admin_create_bundle(
         request=None,
         actor_user_id=user.id,
         actor_role=str(user.role),
-        action="evidence_bundle.create",
+        action=AuditEvent.EVIDENCE_BUNDLE_CREATE.value,
         target_type="evidence_bundle",
         target_id=bundle.id,
         after_state={"class": bundle.evidence_class, "artifact_id": artifact.id},
@@ -2379,7 +2382,7 @@ def admin_create_observation_candidate(
         request=None,
         actor_user_id=user.id,
         actor_role=str(user.role),
-        action="observation_candidate.create",
+        action=AuditEvent.OBSERVATION_CANDIDATE_CREATE.value,
         target_type="observation_candidate",
         target_id=cand.id,
         after_state={"status": cand.review_status},
@@ -2447,7 +2450,7 @@ def admin_transition_observation_candidate(
         request=None,
         actor_user_id=user.id,
         actor_role=str(user.role),
-        action="observation_candidate.transition",
+        action=AuditEvent.OBSERVATION_CANDIDATE_TRANSITION.value,
         target_type="observation_candidate",
         target_id=cand.id,
         before_state={"status": before},

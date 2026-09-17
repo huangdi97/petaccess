@@ -18,6 +18,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.audit import record_audit
+from app.core.audit_events import AuditEvent
 from app.core.config import get_settings
 from app.core.errors import ApiError, NotFound, PermissionDenied
 from app.core.security import get_current_user
@@ -131,7 +132,7 @@ async def upload_media(
         request=request,
         actor_user_id=user.id,
         actor_role=str(user.role),
-        action="media.upload",
+        action=AuditEvent.MEDIA_UPLOAD.value,
         target_type="media_object",
         target_id=media.id,
         after_state={
@@ -211,7 +212,7 @@ def delete_media(
         request=request,
         actor_user_id=user.id,
         actor_role=str(user.role),
-        action="media.delete",
+        action=AuditEvent.MEDIA_DELETE.value,
         target_type="media_object",
         target_id=media.id,
         before_state={"upload_status": "stored"},

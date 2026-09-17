@@ -12,6 +12,7 @@ from sqlalchemy import case, func, or_, select, text
 from sqlalchemy.orm import Session, aliased
 
 from app.core.audit import record_audit
+from app.core.audit_events import AuditEvent
 from app.core.errors import NotFound
 from app.core.security import get_current_user, require_role
 from app.db.session import get_db
@@ -274,12 +275,13 @@ def create_place(
     if body.location_wkt:
         place.location = WKTElement(body.location_wkt, srid=4326)
     db.add(place)
+    db.flush()
     record_audit(
         db,
         request=None,
         actor_user_id=user.id,
         actor_role=str(user.role),
-        action="place.create",
+        action=AuditEvent.PLACE_CREATE.value,
         target_type="place",
         target_id=str(place.id),
         after_state={"canonical_name": body.canonical_name},
@@ -311,7 +313,7 @@ def update_place(
         request=None,
         actor_user_id=user.id,
         actor_role=str(user.role),
-        action="place.update",
+        action=AuditEvent.PLACE_UPDATE.value,
         target_type="place",
         target_id=place_id,
         before_state=before,
@@ -351,12 +353,13 @@ def create_zone(
 ) -> Zone:
     zone = Zone(**body.model_dump())
     db.add(zone)
+    db.flush()
     record_audit(
         db,
         request=None,
         actor_user_id=user.id,
         actor_role=str(user.role),
-        action="zone.create",
+        action=AuditEvent.ZONE_CREATE.value,
         target_type="zone",
         target_id=str(zone.id),
         after_state={"name": body.name, "place_id": body.place_id},
@@ -403,12 +406,13 @@ def create_geometry(
         precision=body.precision,
     )
     db.add(geom)
+    db.flush()
     record_audit(
         db,
         request=None,
         actor_user_id=user.id,
         actor_role=str(user.role),
-        action="geometry.create",
+        action=AuditEvent.GEOMETRY_CREATE.value,
         target_type="place_geometry",
         target_id=str(geom.id),
         after_state={"place_id": body.place_id, "zone_id": body.zone_id},
