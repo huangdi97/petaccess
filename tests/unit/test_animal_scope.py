@@ -526,6 +526,122 @@ def test_11b_no_registry_row_is_pre_signed_by_the_agent():
 
 
 # --------------------------------------------------------------------------- #
+# 12 · an ordinary_pet base is semantically independent of guide dogs
+#
+# This is the proof behind the publish gate's reachability rule. An operator
+# writes 「宠物禁止，导盲犬除外」 and we store the ban as `ordinary_pet` and the
+# proviso as `guide_dog`. Under ADR-025 `ordinary_pet` covers
+# {ordinary_dog, ordinary_cat, other_pet} — it does NOT govern a guide dog. The
+# resolver only applies a carve-out to a base that is in scope for the query, so
+# the carve-out can never fire: it is published, linked, audited and inert.
+#
+# The consequence the publisher depends on: shipping the `ordinary_pet` base on
+# its own does **not** create a "guide dog prohibited" user state, so an
+# unreachable approved carve-out must not be allowed to hold the base hostage.
+# --------------------------------------------------------------------------- #
+
+
+def _operator_pet_ban() -> LayeredRule:
+    return LayeredRule(
+        id="op-pet-ban",
+        animal_scope="ordinary_pet",
+        action="enter",
+        effect="prohibited",
+        rule_layer="OPERATOR_POLICY",
+        origin="operator_direct",
+        source_id="src-operator-notice",
+        subject_scope_normalized="ordinary_pet",
+        normalization_type="exact",
+    )
+
+
+def _guide_dog_proviso(base_id: str) -> LayeredException:
+    return LayeredException(
+        id="exc-guide-op",
+        rule_id=base_id,
+        animal_scope="service_dog",
+        effect="allowed",
+        source_id="src-operator-notice",
+        source_scope_exact="导盲犬",
+        subject_scope_normalized=AnimalRole.GUIDE_DOG.value,
+        normalization_type=NormalizationType.EXACT.value,
+        normative_effect="exempt_from_prohibition",
+    )
+
+
+def test_12_ordinary_pet_base_never_governs_a_guide_dog():
+    """The base alone must not answer 'prohibited' to a guide-dog query."""
+    rs = _resolve(
+        [],
+        operator=[_operator_pet_ban()],
+        service_role="working",
+        declared_role=AnimalRole.GUIDE_DOG.value,
+    )
+    assert rs.effect != "prohibited"
+    assert rs.effect == "unknown"
+    assert rs.applied_exceptions == []
+
+
+def test_12b_a_guide_dog_carve_out_of_an_ordinary_pet_base_is_inert():
+    base = _operator_pet_ban()
+    rs = _resolve(
+        [],
+        operator=[base],
+        exceptions=[_guide_dog_proviso(base.id)],
+        service_role="working",
+        declared_role=AnimalRole.GUIDE_DOG.value,
+    )
+    # not allowed → the carve-out did not fire; not prohibited → the base does
+    # not govern. Both halves are what "inert" means, and neither is a guess.
+    assert rs.effect == "unknown"
+    assert rs.applied_exceptions == []
+    assert rs.suppressed_rules == []
+
+
+def test_12c_the_same_carve_out_fires_when_its_base_actually_governs():
+    """The contrast case: the predicate is not 'nothing is ever reachable'.
+
+    A `dog` base legally covers every dog role including guide_dog, so the very
+    same proviso fires. A reachability check that returns 'unreachable' here too
+    would be a broken check, not a careful one.
+    """
+    base = LayeredRule(
+        id="op-dog-ban",
+        animal_scope="dog",
+        action="enter",
+        effect="prohibited",
+        rule_layer="OPERATOR_POLICY",
+        origin="operator_direct",
+        source_id="src-operator-notice",
+        subject_scope_normalized="dog",
+        normalization_type="exact",
+    )
+    rs = _resolve(
+        [],
+        operator=[base],
+        exceptions=[_guide_dog_proviso(base.id)],
+        service_role="working",
+        declared_role=AnimalRole.GUIDE_DOG.value,
+    )
+    assert rs.effect == "allowed"
+    assert rs.applied_exceptions == ["exc-guide-op"]
+
+
+def test_12d_the_ordinary_pet_base_still_governs_ordinary_pets():
+    """Independence is not impotence — the rule must still do its real job."""
+    base = _operator_pet_ban()
+    rs = _resolve(
+        [],
+        operator=[base],
+        exceptions=[_guide_dog_proviso(base.id)],
+        service_role="none",
+        declared_role=AnimalRole.ORDINARY_DOG.value,
+    )
+    assert rs.effect == "prohibited"
+    assert rs.applied_exceptions == []
+
+
+# --------------------------------------------------------------------------- #
 # Property: no input combination may widen a source-specific scope
 # --------------------------------------------------------------------------- #
 

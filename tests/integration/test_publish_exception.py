@@ -410,8 +410,14 @@ def test_the_real_gate_reads_the_signed_register_candidates(session, mod):
     assert "lib-sd-op-military" not in outcomes
 
 
-def test_the_dry_run_writes_nothing(mod, session):
-    """§14: run the real pipeline and prove the database did not move."""
+def test_the_dry_run_writes_nothing(mod, session, pilot_profile):
+    """§14: run the real pipeline and prove the database did not move.
+
+    Needs the pilot profile: the assertion below is about the *signed register*
+    resolving against real rows, so an empty candidate table would make it
+    vacuous. `pilot_profile` skips with the provisioning recipe instead.
+    """
+    assert pilot_profile > 0
     from sqlalchemy import text
 
     def counts():
@@ -440,8 +446,35 @@ def test_the_dry_run_writes_nothing(mod, session):
     assert len(plan.writable) == 23
 
 
-def test_the_cli_dry_run_leaves_the_database_untouched():
-    """The strongest form: the command a human actually runs, end to end."""
+def _exceptions_whose_base_is_created(report: dict) -> int:
+    """How many carve-outs a whole-register run may create, derived not hardcoded.
+
+    The planner refuses to let a carve-out be created by a run that is not also
+    creating its base ("例外不得被间接带入"), so the count is a function of how
+    much of the register is already published. Deriving it keeps this test true
+    before and after the first real publish.
+    """
+    plan = report["plan"]
+    by_rule = {step["rule_id"]: step for step in plan}
+    count = 0
+    for step in plan:
+        if step["publication_type"] != "CREATE_RULE_EXCEPTION":
+            continue
+        bases = step.get("depends_on") or []
+        if bases and all(
+            by_rule.get(base, {}).get("publication_type") == "CREATE_ACCESS_RULE" for base in bases
+        ):
+            count += 1
+    return count
+
+
+def test_the_cli_dry_run_leaves_the_database_untouched(pilot_profile):
+    """The strongest form: the command a human actually runs, end to end.
+
+    `prepublish_pass == 23` counts the signed register's APPROVED rows passing the
+    live gate, so the pilot profile is a precondition rather than a detail.
+    """
+    assert pilot_profile > 0
     from sqlalchemy import text
 
     db = get_session_factory()()
@@ -468,12 +501,32 @@ def test_the_cli_dry_run_leaves_the_database_untouched():
         assert report["summary"]["DRY_RUN_ZERO_DB_MUTATION"] is True
         assert report["summary"]["prepublish_pass"] == 23
         assert report["summary"]["prepublish_blocked"] == 0
-        assert report["summary"]["rule_exception_create_count"] == 11
         assert report["summary"]["hold_publishable"] == 0
         assert report["summary"]["rejected_publishable"] == 0
         assert report["integrity"]["CROSS_LAYER_EXCEPTION"] == 0
         assert report["integrity"]["SELF_SUPERSEDE"] == 0
         assert report["integrity"]["DUPLICATE_PUBLICATION_PLAN"] == 0
+
+        # How many carve-outs the run can create is a function of the database,
+        # not a constant. Before the first real publish it was 11; after
+        # R2-FINAL-R3-BATCH-01B it is 6, because three are already published
+        # (NOOP) and two are blocked now that their base is published — the
+        # planner refuses to let a carve-out be smuggled in by a run that is not
+        # writing its base. Asserting the old 11 here would assert "nothing has
+        # ever been published", which is exactly what the first real publish
+        # invalidates. So assert the invariant instead: a carve-out is created
+        # only when this same run is also creating its base.
+        expected = _exceptions_whose_base_is_created(report)
+        assert report["summary"]["rule_exception_create_count"] == expected
+        # ...and every approved row must be accounted for exactly once: created,
+        # already published, or blocked. HOLD / REJECTED are never publishable,
+        # so they belong to ``total`` but not to ``prepublish_evaluated``.
+        assert (
+            report["summary"]["access_rule_create_count"]
+            + report["summary"]["rule_exception_create_count"]
+            + report["summary"]["noop_count"]
+            + report["summary"]["blocked_count"]
+        ) == report["summary"]["prepublish_evaluated"]
     finally:
         db.rollback()
         db.close()
