@@ -45,6 +45,11 @@ class Settings(BaseSettings):
 
     notification_provider: str = "mock"
 
+    # Background-job isolation (§41): the queue name doubles as the Redis list
+    # key, so a test worker consuming `petaccess_test` cannot pick up a real
+    # production task and vice versa.
+    celery_task_queue: str = "petaccess"
+
     feature_real_map: bool = False
     feature_real_ai: bool = False
     feature_operator_claim: bool = True

@@ -40,6 +40,15 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 API_DIR = REPO_ROOT / "services" / "api"
+for _extra in (str(REPO_ROOT / "scripts"), str(API_DIR)):
+    if _extra not in sys.path:
+        sys.path.insert(0, _extra)
+
+from app.db.safety import (  # noqa: E402
+    DatabaseRole,
+    DatabaseSafetyError,
+    classify_database_name,
+)
 
 DEFAULT_ADMIN_URL = "postgresql://petaccess:petaccess_dev_only@localhost:5432/postgres"
 DB_NAME = "petaccess_visual"
@@ -50,20 +59,30 @@ DB_NAME = "petaccess_visual"
 # driver named explicitly.
 SQLALCHEMY_DRIVER = "+psycopg"
 
-# Guard: `run_demo_seed()` truncates governed tables. If this ever points at the
-# real database the loss is not recoverable from here.
-FORBIDDEN_DB_NAMES = {"petaccess", "petaccess_dev", "petaccess_pilot", "postgres", "template1"}
-
 
 def _fail(msg: str) -> None:
     print(f"visual_db_reset: {msg}", file=sys.stderr)
     raise SystemExit(1)
 
 
+def check_role(db_name: str) -> None:
+    """The single guard (§6/§14): the name must classify as VISUAL, nothing else.
+
+    This used to be a `FORBIDDEN_DB_NAMES` deny list, which can only refuse names
+    somebody thought of — `petaccess_visual_typo` would have been accepted. The
+    role registry is a positive allowlist and it lives in one place.
+    """
+    role = classify_database_name(db_name)
+    if role is not DatabaseRole.VISUAL:
+        _fail(
+            f"拒绝操作 {db_name!r}：角色是 {role.value}，本脚本只服务 VISUAL。\n"
+            "  run_demo_seed() 会清空 candidate / dispute / audit 表；用错库的代价不可逆。"
+        )
+
+
 def recreate_database(admin_url: str, db_name: str) -> None:
     """Drop and recreate `db_name`, terminating any open connections first."""
-    if db_name in FORBIDDEN_DB_NAMES:
-        _fail(f"refusing to reset protected database {db_name!r}")
+    check_role(db_name)
 
     try:
         import psycopg
@@ -84,7 +103,15 @@ def recreate_database(admin_url: str, db_name: str) -> None:
 
 def run(cmd: list[str], *, database_url: str) -> None:
     """Run `cmd` in the API package with DATABASE_URL pointed at the visual DB."""
-    env = {**os.environ, "DATABASE_URL": database_url}
+    env = {
+        **os.environ,
+        "DATABASE_URL": database_url,
+        "DB_ROLE": DatabaseRole.VISUAL.value,
+        # §42: keep the visual run out of the Redis database the resolver and
+        # monitors use.
+        "REDIS_URL": os.environ.get("VISUAL_REDIS_URL", "redis://127.0.0.1:6379/2"),
+        "CELERY_TASK_QUEUE": "petaccess_visual",
+    }
     proc = subprocess.run(cmd, cwd=API_DIR, env=env, capture_output=True, text=True)
     if proc.returncode != 0:
         sys.stderr.write(proc.stdout)
@@ -108,6 +135,10 @@ def main() -> None:
     args = parser.parse_args()
 
     db_name = args.db_name
+    try:
+        check_role(db_name)
+    except DatabaseSafetyError as exc:
+        _fail(str(exc))
     user_url = args.admin_url.rsplit("/", 1)[0] + f"/{db_name}"
     if SQLALCHEMY_DRIVER not in user_url.split("://", 1)[0]:
         user_url = user_url.replace("postgresql://", f"postgresql{SQLALCHEMY_DRIVER}://", 1)

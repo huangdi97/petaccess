@@ -23,6 +23,8 @@ const feEnv = { ...process.env, VITE_API_PROXY: "http://127.0.0.1:8010" };
 export default defineConfig({
   testDir: "./tests/e2e",
   timeout: 30000,
+  // Refuses to run when the API on :8010 is not the E2E instance — see the file.
+  globalSetup: "./tests/e2e/global-setup.ts",
   use: {
     baseURL: "http://127.0.0.1:5175",
     headless: true,
@@ -31,12 +33,24 @@ export default defineConfig({
     {
       // The API used to be started by hand in a spare terminal; when it died the
       // suite went red with "Not Found" and no hint why. Playwright owns it now,
-      // so a run is self-contained (and reuses one that is already listening).
-      command: `${venvPython} -m uvicorn app.main:app --host 127.0.0.1 --port 8010`,
+      // so a run is self-contained.
+      //
+      // It is also where the E2E database boundary is drawn. Before this change
+      // the server inherited the repository `.env`, i.e. `petaccess` — so every
+      // E2E run deposited its fixtures in the production database. The command
+      // below recreates `petaccess_e2e` from migrations, then starts the API
+      // through the launcher that refuses to serve anything whose role does not
+      // match `--role E2E`.
+      //
+      // `reuseExistingServer: false` is deliberate: there is nothing worth
+      // reusing (the database is rebuilt on every run), and silently adopting a
+      // stray dev server is how a suite ends up writing to the wrong database.
+      // If a stale server does hold the port, the global setup above catches it.
+      command: `${venvPython} ${path.resolve(__dirname, "scripts", "isolated_db.py")} --role E2E --reset && ${venvPython} ${path.resolve(__dirname, "scripts", "dev_api_server.py")} --db-name petaccess_e2e --role E2E --port 8010`,
       cwd: path.resolve(__dirname, "services/api"),
       url: "http://127.0.0.1:8010/health",
-      reuseExistingServer: true,
-      timeout: 60000,
+      reuseExistingServer: false,
+      timeout: 180000,
       stdout: "ignore",
       stderr: "pipe",
     },

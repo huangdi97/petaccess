@@ -120,7 +120,7 @@ export default defineConfig({
       // `reuseExistingServer: false` is the other half of that: the reset has to
       // happen on every run, so there is nothing worth reusing. Port 8011 keeps
       // this instance away from the hand-started dev API on 8010.
-      command: `${venvPython} ${path.resolve(__dirname, "scripts", "visual_db_reset.py")} && ${venvPython} -m uvicorn app.main:app --host 127.0.0.1 --port 8011`,
+      command: `${venvPython} ${path.resolve(__dirname, "scripts", "visual_db_reset.py")} && ${venvPython} ${path.resolve(__dirname, "scripts", "dev_api_server.py")} --db-name petaccess_visual --role VISUAL --port 8011`,
       cwd: path.resolve(__dirname, "services/api"),
       url: "http://127.0.0.1:8011/health",
       reuseExistingServer: false,

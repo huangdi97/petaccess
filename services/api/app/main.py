@@ -74,6 +74,29 @@ async def health() -> dict:
     return {"status": "ok", "app": settings.app_name, "env": settings.app_env}
 
 
+@app.get("/health/database", tags=["health"])
+async def health_database() -> dict:
+    """Which database this process is really bound to.
+
+    Exists because the E2E and visual suites must be able to *prove* the API they
+    are talking to is not pointed at production. `reuseExistingServer` means a
+    stray dev server on the expected port would otherwise serve the suite
+    silently; this endpoint turns that into a hard failure in the global setup.
+
+    Reads `current_database()` from the server rather than parsing the URL, and
+    returns only the name and role — never the host, user or credentials.
+    """
+    from app.db.safety import classify_database_name, probe_database_name
+    from app.db.session import get_engine
+
+    name = probe_database_name(get_engine())
+    return {
+        "database": name,
+        "role": classify_database_name(name).value,
+        "app_env": settings.app_env,
+    }
+
+
 @app.get("/health/ready", tags=["health"])
 async def readiness() -> dict:
     """Readiness: DB/PostGIS reachable."""

@@ -23,6 +23,10 @@ celery_app.conf.update(
     result_serializer="json",
     timezone="UTC",
     enable_utc=True,
+    # §41: the default queue is the routing key *and* the Redis list name. Tests
+    # run `CELERY_TASK_QUEUE=petaccess_test`, so a test worker cannot consume a
+    # production task (and a test task cannot reach the production worker).
+    task_default_queue=settings.celery_task_queue,
     # bounded redelivery: visibility_timeout guards against lost workers
     broker_transport_options={"visibility_timeout": 3600},
     beat_schedule={
