@@ -27,9 +27,17 @@ pwsh -File scripts/qa_all.ps1 -SkipPlaywright  # 跳过 E2E（不需要起服务
 
 ## 2. 常用命令
 
-后端（仓库根目录）：
+后端（仓库根目录）。**先固定 PATH 与隔离库环境变量**——现在 pytest 只认 `petaccess_test`，
+指向 `petaccess` 会在第一条用例之前就 exit 4：
 
 ```bash
+export PATH="/c/Program Files/Git/cmd:/c/Program Files/Git/mingw64/bin:/usr/bin:/bin:$PATH"
+export PYTHONPATH=
+export DATABASE_URL="postgresql+psycopg://petaccess:petaccess_dev_only@127.0.0.1:5432/petaccess_test"
+export CELERY_TASK_QUEUE=petaccess_test REDIS_URL="redis://127.0.0.1:6379/1" DB_ROLE=TEST
+export HYPOTHESIS_STORAGE_DIRECTORY="$TEMP/hyp_storage"
+
+.venv/Scripts/python.exe scripts/isolated_db.py --role TEST --reset   # 需要干净库时
 .venv/Scripts/python.exe -m pytest -q
 .venv/Scripts/python.exe -m ruff check services/api services/worker tests scripts
 .venv/Scripts/python.exe -m ruff format services/api services/worker tests scripts
@@ -41,19 +49,30 @@ pwsh -File scripts/qa_all.ps1 -SkipPlaywright  # 跳过 E2E（不需要起服务
 ```
 
 API（**E2E 不需要手动起** —— `playwright.config.ts` 已把它作为第二个 `webServer`，
-以 `/health` 做就绪检查，且 `reuseExistingServer` 会复用已监听的实例。下面这条只在
-你想手动调接口 / 跑 Admin 时才需要）：
+以 `/health` 做就绪检查）。手动起时**必须声明角色**：
 
 ```bash
 cd services/api
-../../.venv/Scripts/python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8010
+PYTHONPATH= ../../.venv/Scripts/python.exe ../../scripts/dev_api_server.py \
+  --db-name petaccess_test --role TEST --port 8010
+
+# 指向生产库需要显式授权，否则被拒
+PYTHONPATH= ../../.venv/Scripts/python.exe ../../scripts/dev_api_server.py \
+  --db-name petaccess --role PRODUCTION --production-confirm --port 8012
 ```
+
+起完确认它连的是谁：`curl -s http://127.0.0.1:<port>/health/database`。
+**指向 `petaccess` 的 dev 服务收工必须杀掉**——本轮就发现一个上轮遗留的
+无闸门实例一直连着生产库。角色表见 `docs/engineering/DATABASE_ENVIRONMENT_MODEL.md`。
 
 Celery worker（**全量 `pytest` 需要**，否则 4 个用例会等到超时）：
 
 ```bash
 cd services/api
-../../.venv/Scripts/python.exe -m celery -A app.worker.celery_app:celery_app worker --pool=solo --loglevel=warning
+DATABASE_URL="postgresql+psycopg://petaccess:petaccess_dev_only@127.0.0.1:5432/petaccess_test" \
+CELERY_TASK_QUEUE=petaccess_test REDIS_URL="redis://127.0.0.1:6379/1" \
+../../.venv/Scripts/python.exe -m celery -A app.worker.celery_app worker \
+  --pool=solo --concurrency=1 -Q petaccess_test
 ```
 
 前端：
@@ -78,6 +97,9 @@ pnpm exec playwright test
 | 临时目录 | `%TEMP%` 含中文用户名 | 脚本内不手写临时路径，交给 `tempfile`/`tmp_path` |
 | H5 构建带了 `VITE_API_BASE` | 打完包后 E2E 全红：bundle 里写死 API 地址，绕过 preview 代理 | **E2E 前用不带 `VITE_API_BASE` 的构建**（`apps/client-h5` 下 `vite build`），让它回落默认的相对 `/api/v1`，由 `playwright.config.ts` 的 `VITE_API_PROXY` 代理到 `:8010` |
 | 全量 pytest 看着像卡死 | 停在 40%–50% 不动 | 缺 Celery worker 时 `test_media.py` / `test_v05_e2e.py` 会一直等到超时（fail-closed 设计）。先起 worker，且 `pyproject.toml` 已配 `timeout = 120` 兜底 |
+| 把 SQLAlchemy URL 喂给 psycopg | `dev_api_server.py` 启动即报无法解析 URL | `postgresql+psycopg://` 是 SQLAlchemy 方言前缀，psycopg 不认。探测角色前要走 `psycopg_url_for()` 转成 `postgresql://` |
+| 后台服务"启动失败"但其实是好的 | 用 `timeout N` 包一层，N 秒后被杀，退出码 124 | 那是超时杀掉了健康进程，不是崩溃。要长跑就直接用后台任务，不要套 `timeout` |
+| 端口被上轮遗留进程占着 | E2E 起不来 / 连到了错误的库 | `netstat -ano \| grep LISTENING \| grep -E ":(8010\|8011\|8012)\b"` 找到 PID，`MSYS_NO_PATHCONV=1 taskkill /PID <pid> /F` |
 
 ## 4. 生成物的编辑规则
 

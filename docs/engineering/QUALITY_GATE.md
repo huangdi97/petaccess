@@ -6,27 +6,51 @@
 
 ## 1. 命令
 
-```powershell
-# Python
-$env:PYTHONPATH=""; uv run pytest -q --basetemp=$env:TEMP\petaccess-pytest
-uv run ruff check services/api services/worker tests scripts
-uv run ruff format --check services/api services/worker tests scripts
-cd services/api; uv run mypy .            # canonical 范围：services/api/app
+在本机 Git Bash 上，`PATH` 首行需要先修掉（否则 `find`/`sort` 会命中 Windows 版本）：
+
+```bash
+export PATH="/c/Program Files/Git/cmd:/c/Program Files/Git/mingw64/bin:/usr/bin:/bin:$PATH"
+cd "E:/AI/宠物管理"
+
+# Python：必须指向 petaccess_test，否则 pytest 在开工前就 exit 4
+export PYTHONPATH=
+export DATABASE_URL="postgresql+psycopg://petaccess:petaccess_dev_only@127.0.0.1:5432/petaccess_test"
+export CELERY_TASK_QUEUE=petaccess_test REDIS_URL="redis://127.0.0.1:6379/1" DB_ROLE=TEST
+export HYPOTHESIS_STORAGE_DIRECTORY="$TEMP/hyp_storage"
+.venv/Scripts/python.exe -m pytest -q
+.venv/Scripts/python.exe -m ruff check services/api services/worker tests scripts
+.venv/Scripts/python.exe -m ruff format --check services/api services/worker tests scripts
+cd services/api && ../../.venv/Scripts/python.exe -m mypy .   # canonical 范围
 
 # 前端
-pnpm lint:fe; pnpm format:check:fe
-$env:VITE_API_BASE="http://127.0.0.1:8010/api/v1"; cd apps/client-h5; pnpm exec vite build
-Remove-Item Env:\VITE_API_BASE
-cd apps/admin; pnpm exec vite build
+pnpm lint:fe && pnpm format:check:fe
+pnpm admin:build
+cd apps/client-h5 && env -u VITE_API_BASE pnpm exec vite build   # 走代理，E2E/视觉共用一份
 
-# E2E / 视觉 / a11y（Playwright 会自己拉起 API 与 preview）
+# E2E / 视觉（Playwright 会自己拉起隔离库与 API）
 pnpm exec playwright test
-node scripts/ui_capture.mjs
-node scripts/a11y_audit.mjs
+pnpm exec playwright test --config playwright.visual.config.ts
 ```
 
-`mypy` 的全称量 repo 有历史错误（集中在旧脚本）；canonical 门禁范围是 `services/api/app`。
+`mypy` 的全称量 repo 有历史错误（集中在旧脚本）；canonical 门禁范围是 `services/api`。
 新增脚本必须自查为 0 错误，不得把旧债扩大。
+
+## 1.1 a11y / UI 采集需要手工拉起三件套
+
+它们不像 Playwright 那样会自己建库，需要先起 VISUAL 角色的 API：
+
+```bash
+cd services/api && PYTHONUNBUFFERED=1 PYTHONPATH= ../../.venv/Scripts/python.exe \
+  ../../scripts/dev_api_server.py --db-name petaccess_visual --role VISUAL --port 8011 &
+cd apps/client-h5 && VITE_API_PROXY="http://127.0.0.1:8011" pnpm exec vite preview --host 127.0.0.1 --port 5175 &
+cd apps/admin    && VITE_API_PROXY="http://127.0.0.1:8011" pnpm exec vite --host 127.0.0.1 --port 5173 &
+
+node scripts/a11y_audit.mjs --json artifacts/a11y_audit.json
+node scripts/ui_capture.mjs
+```
+
+跑完**逐个端口确认关掉**（`8011` / `5173` / `5175`）。
+遗留的 dev 服务是本轮发现的真实泄漏源之一。
 
 ## 2. 失败语义
 
@@ -53,6 +77,18 @@ node scripts/a11y_audit.mjs
 | 计划自检 | `SELF_SUPERSEDE = 0`、`DUPLICATE_PLAN = 0`、`SUPERSESSION_CYCLE = 0` |
 | dry-run 只读 | 子进程级前后行数一致，`DRY_RUN_ZERO_DB_MUTATION = True` |
 | 签署不可变 | 生成器/formatter 不得改动签署；非签署字段对签署前基线 diff = 0 |
+
+## 3.1 数据隔离闸门（PRODUCTION_DATA_ISOLATION_AND_INTEGRITY_CLOSURE_R1）
+
+| 闸门 | 判定 | 证明 |
+| --- | --- | --- |
+| 角色唯一权威 | 服务端 `current_database()` 探针，非 URL 解析 | `app/db/safety.py` |
+| 未知库名拒绝 | `UnknownDatabaseRefused`，不静默放行 | `tests/isolation` |
+| 六种负载 fail-closed | 指向 `petaccess` 必须全部失败 | `tests/isolation/test_production_fail_closed.py`（18 passed） |
+| pytest 开工前拒绝 | 非 TEST 角色 → exit 4 | `tests/conftest.py::pytest_sessionstart` |
+| 全量 QA 零改动 | `PRODUCTION_DB_ROW_DIFF = 0` 且 `SEMANTIC_DIFF = 0` | `PROD_FINGERPRINT_C` vs `_D` |
+| 夹具零残留 | `TEST_FIXTURE_{PLACE,SOURCE}_IN_PRODUCTION = 0`、`TEST_ACCOUNT_IN_PRODUCTION = 0` | `production_integrity_after_batch02.json` |
+| UNKNOWN 不自动删除 | 3 个 UNKNOWN 场所仍在库内 | `PRODUCTION_CLEANUP_REPORT.md` §6 |
 
 ## 4. 当前状态（POST_SIGNATURE_PUBLISHER_CLOSURE_R1）
 

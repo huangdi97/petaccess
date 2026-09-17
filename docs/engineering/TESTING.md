@@ -6,21 +6,56 @@
 
 ## 1. 跑测试
 
-```powershell
+**测试只允许连 `petaccess_test`。** 开工前 `tests/conftest.py` 的 `pytest_sessionstart`
+会读服务端的 `current_database()`；角色不是 `TEST` 就直接 `pytest.exit(..., 4)`，
+一条用例都不会跑。这不是警告，是拒绝——在本机 Git Bash 上：
+
+```bash
+export PATH="/c/Program Files/Git/cmd:/c/Program Files/Git/mingw64/bin:/usr/bin:/bin:$PATH"
+cd "E:/AI/宠物管理"
+
+# 供给隔离库（首次或需要干净状态时）
+PYTHONPATH= .venv/Scripts/python.exe scripts/isolated_db.py --role TEST --reset
+
 # 全量（PYTHONPATH= 是必须的：沙箱 sitecustomize 拦截 os.renames，
 # Hypothesis 建 charmap 缓存会 ENOTEMPTY，表现为中途超时）
-$env:PYTHONPATH=""; uv run pytest -q --basetemp=$env:TEMP\petaccess-pytest
+PYTHONPATH= \
+DATABASE_URL="postgresql+psycopg://petaccess:petaccess_dev_only@127.0.0.1:5432/petaccess_test" \
+CELERY_TASK_QUEUE=petaccess_test REDIS_URL="redis://127.0.0.1:6379/1" DB_ROLE=TEST \
+HYPOTHESIS_STORAGE_DIRECTORY="$TEMP/hyp_storage" \
+  .venv/Scripts/python.exe -m pytest -q
 
 # 单文件
-$env:PYTHONPATH=""; uv run pytest tests/unit/test_publish_plan.py -q
+PYTHONPATH= .venv/Scripts/python.exe -m pytest tests/unit/test_publish_plan.py -q
 
 # 静态门禁
-uv run ruff check services/api services/worker tests scripts
-uv run ruff format --check services/api services/worker tests scripts
-cd services/api; uv run mypy .
+PYTHONPATH= .venv/Scripts/python.exe -m ruff check services/api services/worker tests scripts
+PYTHONPATH= .venv/Scripts/python.exe -m ruff format --check services/api services/worker tests scripts
+cd services/api && PYTHONPATH= ../../.venv/Scripts/python.exe -m mypy .
+```
+
+集成测试（`test_media` / `test_v05_e2e`）需要真实 celery worker，否则全部 `TimeoutError`：
+
+```bash
+cd services/api && \
+DATABASE_URL="postgresql+psycopg://petaccess:petaccess_dev_only@127.0.0.1:5432/petaccess_test" \
+CELERY_TASK_QUEUE=petaccess_test REDIS_URL="redis://127.0.0.1:6379/1" DB_ROLE=TEST \
+  ../../.venv/Scripts/python.exe -m celery -A app.worker.celery_app \
+  worker --pool=solo --concurrency=1 -Q petaccess_test
 ```
 
 `--basetemp` 必须放仓库外，否则临时目录会被当成源码收集。
+
+### 证明隔离仍然有效
+
+```bash
+PYTHONPATH= DATABASE_URL="postgresql+psycopg://petaccess:***@127.0.0.1:5432/petaccess_test" \
+  .venv/Scripts/python.exe -m pytest tests/isolation -q
+```
+
+`tests/isolation/test_production_fail_closed.py` 把 pytest / 集成 / 视觉 / E2E / 演练 /
+清理六种负载**指向 `petaccess`**，断言每一个都被拒绝。它们必须失败才算通过。
+详见 `docs/engineering/TEST_DATABASE_ISOLATION.md`。
 
 ## 2. 断言层级（按价值排序）
 
@@ -55,12 +90,20 @@ cd services/api; uv run mypy .
 
 ## 4. 与 DB 有关的测试
 
+- **绝不允许把夹具写进 `petaccess`**。角色表见 `docs/engineering/DATABASE_ENVIRONMENT_MODEL.md`。
+  任何新脚本，第一件事是拿 `DatabaseSafetyGuard` 判角色，不是自己拼库名黑名单。
 - 需要真实 Postgres：`petaccess-db-1`（PostGIS）。Docker 未起时相关用例会失败，
   这是 `BLOCKED_EXTERNAL`，不是 PASS。
 - 单测优先用 `tests/unit/conftest.py::db_session`（用例结束回滚）。
 - 集成测试若必须 commit（例如要走 HTTP），必须在 `finally` 里删干净自己造的数据，
   **不得触碰签署登记表所描述的 pilot 数据**。
-- 视觉回归必须跑在专用可重置库上（`scripts/visual_db_reset.py`），否则基线永远对不上。
+- 视觉回归必须跑在专用可重置库上（`scripts/visual_db_reset.py`，只允许 `VISUAL` 角色），
+  否则基线永远对不上。
+- E2E 必须跑在 `petaccess_e2e`：`tests/e2e/global-setup.ts` 会打 `/health/database`，
+  角色不是 `E2E` 直接失败。
+- `tests/integration/conftest.py::pilot_profile` 是会话级 fixture：
+  37 条登记表候选不在 TEST 库里时**跳过**并打印供给方法。跳过不是 PASS 也不是 FAIL，
+  需要 pilot 数据的用例不会在一台空库上"恰好绿"。
 
 ## 5. 时间相关断言
 
