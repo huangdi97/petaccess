@@ -363,18 +363,37 @@ CHECKS: tuple[Check, ...] = (
         "ORPHAN_SOURCE",
         "INFO",
         "有多少 Source 已无任何对象引用？",
+        # One row per orphan, not an aggregate: the scanner counts *rows*, so a
+        # bare ``count(*)`` would report "1 found" even when the value is 0.
         """
-        select count(*) as orphan_sources from source s
+        select s.id as source_id, s.source_type, s.issuer
+        from source s
         where not exists (select 1 from evidence_bundle b where b.source_id = s.id)
           and not exists (select 1 from source_artifact a where a.source_id = s.id)
           and not exists (select 1 from rule_candidate c where c.source_id = s.id)
           and not exists (select 1 from access_rule r where r.source_id = s.id)
           and not exists (select 1 from rule_exception e where e.source_id = s.id)
+        order by s.created_at
         """,
     ),
 )
 
 SEVERITY_ORDER = {"CRITICAL": 0, "HIGH": 1, "MEDIUM": 2, "LOW": 3, "INFO": 4}
+
+
+#: Columns that carry a per-group row count. Used only to make a grouped
+#: finding's magnitude visible; never to decide pass/fail.
+_GROUPED_COUNT_COLUMNS = ("n", "rows_with_broken_target_id", "orphan_sources")
+
+
+def _grouped_row_total(rows: list[dict[str, Any]]) -> int | None:
+    """Sum the per-group counts of a grouped check, if it reports any."""
+    if not rows:
+        return None
+    column = next((c for c in _GROUPED_COUNT_COLUMNS if c in rows[0]), None)
+    if column is None:
+        return None
+    return sum(int(r[column]) for r in rows if r.get(column) is not None)
 
 
 def _rows(cur: Any, sql: str, params: dict[str, Any] | None = None) -> list[dict[str, Any]]:
@@ -440,6 +459,13 @@ def scan(conn: Any) -> dict[str, Any]:
                 "status": "FOUND" if count else "CLEAN",
                 "examples": rows[:5],
             }
+            # A grouped check reports one row per group, so ``count`` is the
+            # number of groups, not the number of offending rows. Report both:
+            # "4 target types" and "2,647 rows" are very different findings.
+            total = _grouped_row_total(rows)
+            if total is not None:
+                finding["rows_total"] = total
+                finding["groups"] = len(rows)
             if check.detail_sql and rows:
                 finding["breakdown"] = _rows(cur, check.detail_sql, params)
             findings.append(finding)
@@ -475,9 +501,10 @@ def render(doc: dict[str, Any]) -> str:
     ]
     for finding in doc["findings"]:
         mark = "OK  " if finding["status"] == "CLEAN" else "FOUND"
-        lines.append(
-            f"  [{mark}] {finding['severity']:<8} {finding['code']:<38} {finding['count']}"
-        )
+        shown = f"{finding['count']}"
+        if finding.get("rows_total") is not None:
+            shown = f"{finding['rows_total']} rows / {finding['count']} groups"
+        lines.append(f"  [{mark}] {finding['severity']:<8} {finding['code']:<38} {shown}")
     lines.append(f"  severity_counts = {doc['severity_counts']}")
     return "\n".join(lines)
 
