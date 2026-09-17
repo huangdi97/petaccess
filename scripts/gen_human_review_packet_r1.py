@@ -30,12 +30,19 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 from collections import defaultdict
 from pathlib import Path
 
 import psycopg
 
 REPO = Path(__file__).resolve().parents[1]
+for _extra in (str(REPO / "scripts"), str(REPO / "services" / "api")):
+    if _extra not in sys.path:
+        sys.path.insert(0, _extra)
+
+from app.core.config import psycopg_url  # noqa: E402
+
 AUDIT = REPO / "docs" / "reality_audit"
 DECISIONS = AUDIT / "review_decisions_r1.json"
 EVIDENCE = AUDIT / "real_pilot_evidence.json"
@@ -44,10 +51,10 @@ PACKET = REPO / "HUMAN_REVIEW_PACKET_R1.md"
 DECISION_TEMPLATE = REPO / "HUMAN_REVIEW_DECISIONS_R1.json"
 QUICK_TABLE = REPO / "HUMAN_REVIEW_QUICK_TABLE_R1.md"
 
-DB_URL = os.environ.get(
-    "DATABASE_URL",
-    "postgresql://petaccess:petaccess_dev_only@localhost:5432/petaccess",
-).replace("postgresql+psycopg://", "postgresql://")
+DB_URL = (
+    psycopg_url(os.environ.get("DATABASE_URL"))
+    or "postgresql://petaccess:petaccess_dev_only@localhost:5432/petaccess"
+)
 
 WEAK = {"search_snippet", "social_lead"}
 ATTRIBUTION_ERROR_RULE = "mn-outdoor-media"

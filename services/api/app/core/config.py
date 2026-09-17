@@ -102,3 +102,19 @@ def validate_runtime(settings: Settings) -> None:
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
+
+
+#: SQLAlchemy spells the driver as ``postgresql+psycopg://``; libpq (and
+#: therefore ``psycopg.connect``) rejects that form outright. This is the *only*
+#: place that conversion is written down — ``scripts/dev_api_server.py`` and
+#: every script delegate to it, because a second copy is a second chance for a
+#: driver mismatch to come back as "the server refused to start".
+SQLALCHEMY_PSYCOPG_SCHEME = "postgresql+psycopg://"
+LIBPQ_SCHEME = "postgresql://"
+
+
+def psycopg_url(database_url: str | None) -> str | None:
+    """Return ``database_url`` in the libpq form psycopg accepts."""
+    if not database_url:
+        return None
+    return database_url.replace(SQLALCHEMY_PSYCOPG_SCHEME, LIBPQ_SCHEME, 1)

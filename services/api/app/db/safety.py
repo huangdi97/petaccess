@@ -612,9 +612,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.probe_db:
         import psycopg
 
-        from app.core.config import get_settings
+        from app.core.config import get_settings, psycopg_url
 
-        url = get_settings().database_url.replace("postgresql+psycopg://", "postgresql://", 1)
+        url = psycopg_url(get_settings().database_url)
+        if not url:
+            raise SystemExit("DATABASE_URL 未配置——无法用真实连接探测数据库角色")
         with psycopg.connect(url) as conn:
             guard = guard_for_psycopg(conn)
     elif args.probe_url:

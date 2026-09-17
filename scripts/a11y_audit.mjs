@@ -286,6 +286,56 @@ async function settlePage(page) {
   await page.waitForTimeout(400);
 }
 
+/**
+ * How many interactive elements a page must have before we believe it rendered.
+ *
+ * Below this the page is a skeleton, an error screen, or an empty document —
+ * none of which is a *page*, and all of which report a missing <h1>. Auditing
+ * them invents defects: the first run after a cold API start did exactly that
+ * and produced one "serious" finding that did not exist 30 seconds later.
+ */
+const MIN_INTERACTIVE = 3;
+
+/**
+ * Bring the API up to temperature before the first measurement.
+ *
+ * The first request after a cold start pays for lazy initialisation; the page
+ * renders a loading state, and the audit measures that instead of the real
+ * page. The warm-up is done from inside the page so it travels through the
+ * preview server's proxy exactly as the application's own requests do.
+ */
+async function warmUp(page) {
+  await page.goto(`${H5}/`, { waitUntil: "networkidle" }).catch(() => {});
+  const paths = [
+    "/api/v1/health",
+    `/api/v1/places/${FIXTURE.mall}`,
+    `/api/v1/places/${FIXTURE.unknown}`,
+  ];
+  await page
+    .evaluate(async (list) => {
+      await Promise.all(list.map((p) => fetch(p).catch(() => null)));
+    }, paths)
+    .catch(() => {});
+  await page.waitForTimeout(600);
+}
+
+/**
+ * Record one page's audit — or refuse to.
+ *
+ * "No issues" is only meaningful if there was a page to look at. A render that
+ * never happened must not be allowed to masquerade as either a clean page or a
+ * defective one, so it is recorded separately and counted as a hard failure.
+ */
+function measure(scopeName, scope, name, res, severeCount, unmeasurable) {
+  if (res.stats.interactive < MIN_INTERACTIVE) {
+    res.notAuditable = `page did not render (${res.stats.interactive} interactive elements)`;
+    res.issues = [];
+    unmeasurable.push(`${scopeName}:${name}`);
+  }
+  scope[name] = res;
+  for (const i of res.issues) severeCount[i.severity]++;
+}
+
 async function main() {
   const jsonOut = process.argv.includes("--json")
     ? process.argv[process.argv.indexOf("--json") + 1]
@@ -293,17 +343,18 @@ async function main() {
   const report = { consumer: {}, admin: {}, focus: {} };
   const browser = await chromium.launch();
   const severeCount = { serious: 0, moderate: 0, minor: 0 };
+  const unmeasurable = [];
 
   try {
     // ---- consumer at the narrowest supported width ----
     const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
     const page = await ctx.newPage();
+    await warmUp(page);
     for (const [name, hash] of CONSUMER_PAGES) {
       await page.goto(`${H5}/${hash}`, { waitUntil: "networkidle" }).catch(() => {});
       await settlePage(page);
       const res = await page.evaluate(AUDIT);
-      report.consumer[name] = res;
-      for (const i of res.issues) severeCount[i.severity]++;
+      measure("consumer", report.consumer, name, res, severeCount, unmeasurable);
     }
     // keyboard walkthrough on the two most interaction-dense pages
     for (const [name, hash] of [
@@ -334,8 +385,7 @@ async function main() {
       await apage.goto(`${ADMIN}${pathname}`, { waitUntil: "networkidle" }).catch(() => {});
       await settlePage(apage);
       const res = await apage.evaluate(AUDIT);
-      report.admin[name] = res;
-      for (const i of res.issues) severeCount[i.severity]++;
+      measure("admin", report.admin, name, res, severeCount, unmeasurable);
     }
     report.focus["admin:rule-candidates"] = await FOCUS_CHECK(apage);
     await actx.close();
@@ -352,10 +402,19 @@ async function main() {
       const moderate = res.issues.filter((i) => i.severity === "moderate");
       const minor = res.issues.filter((i) => i.severity === "minor");
       total += res.issues.length;
-      const flag = serious.length ? "FAIL" : moderate.length ? "WARN" : "ok";
+      const flag = res.notAuditable
+        ? "NA  "
+        : serious.length
+          ? "FAIL"
+          : moderate.length
+            ? "WARN"
+            : "ok";
       console.log(
         `  ${flag.padEnd(4)} ${name.padEnd(18)} serious=${serious.length} moderate=${moderate.length} minor=${minor.length} controls=${res.stats.interactive}`,
       );
+      if (res.notAuditable) {
+        console.log(`        - [not auditable] ${res.notAuditable} — 这是测量失败，不是页面缺陷`);
+      }
       for (const i of [...serious, ...moderate].slice(0, 6)) {
         console.log(`        - [${i.severity}] ${i.rule}: ${i.detail} ${i.selector ?? ""}`);
       }
@@ -371,13 +430,18 @@ async function main() {
   console.log(
     `\nTOTAL issues: ${total}  (serious=${severeCount.serious} moderate=${severeCount.moderate} minor=${severeCount.minor})`,
   );
+  if (unmeasurable.length) {
+    console.log(`NOT AUDITABLE: ${unmeasurable.length} — ${unmeasurable.join(", ")}`);
+  }
 
   if (jsonOut) {
     fs.mkdirSync(path.dirname(jsonOut), { recursive: true });
-    fs.writeFileSync(jsonOut, JSON.stringify(report, null, 2));
+    fs.writeFileSync(jsonOut, JSON.stringify({ ...report, unmeasurable }, null, 2));
     console.log("json ->", jsonOut);
   }
-  process.exitCode = severeCount.serious > 0 ? 1 : 0;
+  // A page we could not measure is a failure, not a pass: "0 issues" over an
+  // empty document is the one result that must never be reported as green.
+  process.exitCode = severeCount.serious > 0 || unmeasurable.length > 0 ? 1 : 0;
 }
 
 await main();

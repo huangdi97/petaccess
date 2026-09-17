@@ -59,9 +59,15 @@ def psycopg_url_for(db_name: str | None) -> str | None:
 
     ``psycopg.connect`` rejects ``postgresql+psycopg://`` outright ("missing '='
     after ..."), because the ``+driver`` suffix is a SQLAlchemy convention.
+
+    The conversion itself lives in ``app.core.config.psycopg_url`` — this is a
+    thin wrapper so scripts have one import. Two copies of a scheme swap is two
+    chances for a driver mismatch to resurface as an unexplainable startup
+    failure.
     """
-    url = database_url_for(db_name)
-    return url.replace("postgresql+psycopg://", "postgresql://", 1) if url else None
+    from app.core.config import psycopg_url
+
+    return psycopg_url(database_url_for(db_name))
 
 
 def probe_role(url: str) -> tuple[str, DatabaseRole]:
