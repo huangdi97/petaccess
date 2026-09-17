@@ -55,10 +55,15 @@ Hard gates enforced here (all must hold, otherwise the run aborts):
   5. VERIFY AFTER PUBLISH. Each published candidate is re-read: the rule must
      exist, carry the candidate's rule_layer, be linked back to the candidate,
      and be visible through /effective-rules.
+  6. EXPLICIT SELECTION. ``--execute`` requires ``--batch-file``: the batch is a
+     versioned manifest, never a slice of whatever the register sorts first.
+     ``--max-approve`` is a second-layer safety cap over that batch, not a
+     selector. See ``scripts/publish_batch.py``.
 
 Usage:
     python scripts/publish_reviewed_r1.py --dry-run
-    python scripts/publish_reviewed_r1.py --execute --reviewer "姓名"
+    python scripts/publish_reviewed_r1.py --dry-run --batch-file <manifest> --max-approve 12
+    python scripts/publish_reviewed_r1.py --execute --batch-file <manifest> --reviewer "姓名"
 """
 
 # NOTE: deliberately no ``from __future__ import annotations``. PEP 563 turns
@@ -92,6 +97,16 @@ from human_decisions import (  # noqa: E402
     HOLD,
     HUMAN_DECISIONS,
     REJECTED,
+)
+from publish_batch import (  # noqa: E402
+    BatchManifest,
+    BatchManifestError,
+    BatchValidation,
+    load_manifest,
+    validate_manifest,
+)
+from publish_batch import (
+    approved_exception_map as batch_approved_exception_map,
 )
 
 REPO = Path(__file__).resolve().parents[1]
@@ -192,6 +207,39 @@ def signed_reviewer(rows: Sequence[Mapping[str, Any]]) -> str:
     """The single named human who signed this batch, or "" if not signed."""
     reviewers = sorted({str(r["reviewer"]) for r in rows if r.get("reviewer")})
     return reviewers[0] if len(reviewers) == 1 else ""
+
+
+# ============================================================ batch selection
+
+
+def select_rows(rows: Sequence[Mapping[str, Any]], manifest: BatchManifest) -> list[dict]:
+    """The batch's rows, **in manifest order** — which is also execution order.
+
+    Only rows the manifest names come back. Everything else in the register
+    (the other approved candidates, and every HOLD and REJECTED row) is not
+    planned at all, so there is nothing for it to fall through into. The manifest
+    narrows; it never widens — permission is still read from the register.
+    """
+    by_rule = {str(r["rule_id"]): r for r in rows}
+    selected: list[dict] = []
+    seen: set[str] = set()
+    for rule_id in manifest.rule_ids:
+        if rule_id in seen:
+            continue
+        seen.add(rule_id)
+        row = by_rule.get(rule_id)
+        if row is not None:
+            selected.append(dict(row))
+    return selected
+
+
+def _published_rule_ids(rows: Sequence[Mapping[str, Any]]) -> list[str]:
+    """Rule ids whose candidate the database reports as PUBLISHED."""
+    return [
+        str(r["rule_id"])
+        for r in rows
+        if (r.get("_db_review_status") or r.get("review_status")) == "PUBLISHED"
+    ]
 
 
 # ============================================================ exception bindings
@@ -835,12 +883,24 @@ def run(
     return execute_plan(plan, api)
 
 
-def execute_plan(plan: Plan, api: Api | None) -> dict[str, list[dict]]:
+def execute_plan(
+    plan: Plan,
+    api: Api | None,
+    *,
+    prepublished_bases: Mapping[str, str] | None = None,
+) -> dict[str, list[dict]]:
     """Write the plan, in order, base before carve-out.
 
     A blocked or unsigned row is skipped rather than published; ``main()``
     refuses to reach this function with a gate that never ran.
+
+    ``prepublished_bases`` maps ``rule_id -> access_rule.id`` for bases that were
+    published by an *earlier* batch. The batch validator already proved that such
+    a base satisfies the dependency closure; without this map the executor would
+    have no id to attach the carve-out to and would fail a closure the manifest
+    had already proven closed.
     """
+    prepublished = {str(k): str(v) for k, v in (prepublished_bases or {}).items()}
     result: dict[str, list[dict]] = {
         "approved": [],
         "rejected": [],
@@ -872,7 +932,7 @@ def execute_plan(plan: Plan, api: Api | None) -> dict[str, list[dict]]:
             continue
 
         if step.publication_type == CREATE_RULE_EXCEPTION:
-            base_rule_id = published_base_for(step, result)
+            base_rule_id = published_base_for(step, result, prepublished)
             if base_rule_id is None:
                 result["failed"].append(
                     {
@@ -935,16 +995,25 @@ def execute_plan(plan: Plan, api: Api | None) -> dict[str, list[dict]]:
     return result
 
 
-def published_base_for(step: PlanStep, result: Mapping[str, list[dict]]) -> str | None:
+def published_base_for(
+    step: PlanStep,
+    result: Mapping[str, list[dict]],
+    prepublished: Mapping[str, str] | None = None,
+) -> str | None:
     """Which AccessRule should this carve-out attach to?
 
-    The base published earlier in this same batch. There is no other source: the
-    base is stated by the register's binding, never guessed from place/source.
+    The base published earlier in this same batch, or — when the base was
+    published by an earlier batch — its already-known ``access_rule.id``. There is
+    no other source: the base is stated by the register's binding, never guessed
+    from place/source.
     """
     for base_id in step.depends_on:
         for entry in result.get("published", []):
             if entry.get("rule_id") == base_id and entry.get("published_rule_id"):
                 return str(entry["published_rule_id"])
+        known = (prepublished or {}).get(base_id)
+        if known:
+            return str(known)
     return None
 
 
@@ -1145,6 +1214,14 @@ def main() -> int:
     ap.add_argument("--token", default=None, help="admin JWT；缺省读 .env 的 PILOT_ADMIN_TOKEN")
     ap.add_argument("--max-approve", type=int, default=20)
     ap.add_argument(
+        "--batch-file",
+        default=None,
+        help=(
+            "显式批次清单（docs/governance/publish_batches/*.json）。"
+            "--execute 必须提供；--max-approve 只是其上的第二层 safety cap，不是选择器。"
+        ),
+    )
+    ap.add_argument(
         "--registry",
         default=None,
         help="评审登记表路径（缺省：按 R2-FINAL → R2 → R1 取最新登记表）",
@@ -1154,7 +1231,31 @@ def main() -> int:
         default=None,
         help="发布闸门使用的数据库（缺省：环境变量 DATABASE_URL 或应用设置）",
     )
+    ap.add_argument(
+        "--database-name",
+        default=None,
+        help=(
+            "只改库名（从 .env 的 DATABASE_URL 派生，不回显凭据）。"
+            "rehearsal 演练时用来让闸门与 API 指向同一个库。"
+        ),
+    )
     ap.add_argument("--json", action="store_true", help="额外输出机器可读的完整计划")
+    ap.add_argument(
+        "--production-confirm",
+        action="store_true",
+        help=(
+            "显式确认：--execute 允许打在 PRODUCTION（petaccess）上。"
+            "缺省拒绝——正式库写入必须是显式选择，而不是脚本默认落点（§17）。"
+        ),
+    )
+    ap.add_argument(
+        "--snapshot-out",
+        default=None,
+        help=(
+            "发布回执写到哪里（缺省 PUBLISHED_RULES_SNAPSHOT_R1.json）。"
+            "rehearsal 演练必须指向 artifacts/，否则会把演练结果写成看起来像正式回执的文件。"
+        ),
+    )
     args = ap.parse_args()
 
     global DECISIONS
@@ -1162,12 +1263,72 @@ def main() -> int:
         DECISIONS = Path(args.registry)
     print(f"登记表：{DECISIONS}")
 
+    if args.database_name:
+        # Bookkeeping guard, not a convenience: rehearsing against a cloned
+        # database while the pre-publish gate read the *real* one would make the
+        # rehearsal report a check it never performed.
+        from dev_api_server import database_url_for
+
+        resolved = database_url_for(args.database_name)
+        if resolved is None:
+            print(f"REFUSED — 无法从 .env 解析 DATABASE_URL，不能只改库名到 {args.database_name}")
+            return 4
+        args.database_url = resolved
+        print(f"发布闸门数据库：{args.database_name}")
+
     if not (args.dry_run ^ args.execute):
         print("必须且只能指定 --dry-run 或 --execute")
         return 2
 
+    if args.execute and not args.batch_file:
+        # Checked before the database guard on purpose: this is a usage error and
+        # its message is the actionable one. Reporting "wrong database role" for a
+        # bare `--execute` would send the operator to change their target instead
+        # of telling them the command is incomplete.
+        print(
+            "REFUSED — --execute 必须同时提供 --batch-file。\n"
+            "裸 --execute 会把登记表里所有 APPROVED 一次发出，"
+            "而『发哪几条』必须由人类显式选定（见 docs/governance/PUBLISH_PLAN_MODEL.md）。"
+        )
+        return 4
+
+    if args.execute:
+        # §17: the publish target must be an explicit choice. A rehearsal clone is
+        # allowed (that is what REHEARSAL exists for); anything else is refused, so
+        # a mistyped `--database-name` cannot turn into an unrecoverable write on a
+        # database nobody intended to touch.
+        import os as _os
+
+        from app.db.safety import DatabaseRole, DatabaseSafetyError, guard_for_url
+
+        effective = args.database_url or _os.environ.get("DATABASE_URL")
+        if not effective:
+            from app.core.config import get_settings
+
+            effective = get_settings().database_url
+        try:
+            guard = guard_for_url(effective)
+        except DatabaseSafetyError as exc:
+            print(f"REFUSED — 无法判定发布目标库的角色：{exc}")
+            return 4
+        print(guard.banner("PUBLISH_TARGET_DB"))
+        if guard.role is DatabaseRole.PRODUCTION and not args.production_confirm:
+            print(
+                "REFUSED — 发布目标是 PRODUCTION，但未显式确认。\n"
+                "  正式库写入必须显式加 --production-confirm（§17）。\n"
+                "  演练请指向 REHEARSAL 角色的库。"
+            )
+            return 4
+        if guard.role not in (DatabaseRole.PRODUCTION, DatabaseRole.REHEARSAL):
+            print(
+                f"REFUSED — 发布/演练只允许打在 PRODUCTION 或 REHEARSAL 上，"
+                f"实际是 {guard.role.value}（{guard.database_name!r}）。"
+            )
+            return 4
+
     doc = load_registry()
-    rows = doc["rows"]
+    all_rows = doc["rows"]
+    register_revision = str(doc.get("revision") or "")
 
     # The register's own binding table must be self-consistent before we trust it
     # to classify anything as a carve-out.
@@ -1204,8 +1365,6 @@ def main() -> int:
         print("缺少 admin token（--token 或 .env PILOT_ADMIN_TOKEN）")
         return 4
 
-    problems = preflight(rows, args.reviewer, args.max_approve, db_state)
-
     # ---- real gate, real database ------------------------------------------
     session = None
     before_counts: dict[str, int] = {}
@@ -1215,17 +1374,47 @@ def main() -> int:
     except Exception as exc:  # environment dependent
         print(f"提示：未能连接数据库（{exc}）；发布闸门将以 NOT_RUN 报告。")
     if session is not None:
-        edges = annotate_from_db(rows, session)
+        # Annotate the *whole* register, not just the batch: supersede edges and
+        # "is this base already published" are register-wide facts, and a batch
+        # must not be able to hide a collision by leaving its partner out.
+        edges = annotate_from_db(all_rows, session)
         before_counts = table_counts(session)
         gate: Gate = DatabaseGate(session)
     else:
         gate = NullGate()
 
+    # ---- explicit batch selection (never a slice of the register) -----------
+    manifest: BatchManifest | None = None
+    batch: BatchValidation | None = None
+    if args.batch_file:
+        try:
+            manifest = load_manifest(args.batch_file)
+        except BatchManifestError as exc:
+            print(f"REFUSED — {exc}")
+            return 4
+        batch = validate_manifest(
+            manifest,
+            all_rows,
+            bindings=bindings,
+            register_revision=register_revision,
+            published_rule_ids=_published_rule_ids(all_rows),
+            approved_exception_map=batch_approved_exception_map(doc, all_rows),
+        )
+        print(batch.render())
+        print("")
+        if not batch.ok:
+            print("REFUSED — 批次校验未通过，任何写入都不会发生。")
+            return 4
+
+    rows = select_rows(all_rows, manifest) if manifest is not None else all_rows
+
+    problems = preflight(rows, args.reviewer, args.max_approve, db_state)
+
     plan = build_plan(
         rows,
         bindings=bindings,
         gate=gate,
-        revision=str(doc.get("revision") or ""),
+        revision=register_revision,
         reviewer=signed_reviewer(rows),
         already_published={
             r["candidate_id"]
@@ -1233,10 +1422,18 @@ def main() -> int:
             if (r.get("_db_review_status") or r.get("review_status")) == "PUBLISHED"
         },
     )
-    created_ids: set[str] = set()
-    for row in rows:
-        if row.get("published_rule_id"):
-            created_ids.add(str(row["published_rule_id"]))
+    #: Rules *this plan* would write. Read from the rows, but only for candidates
+    #: the plan actually considers writable: once a batch has run, every candidate
+    #: records the rule it created, and counting those as "created by this plan"
+    #: made a clean NOOP re-run look like six rules racing over their own
+    #: identities (SELF_SUPERSEDE = 6, refusal for the wrong reason). A NOOP step
+    #: writes nothing, so nothing of its own can be a supersede target.
+    writable_candidates = {step.candidate_id for step in plan.writable}
+    created_ids: set[str] = {
+        str(row["published_rule_id"])
+        for row in rows
+        if row.get("published_rule_id") and str(row["candidate_id"]) in writable_candidates
+    }
     integrity = plan_integrity(
         plan,
         rows_by_rule={str(r["rule_id"]): r for r in rows},
@@ -1269,6 +1466,8 @@ def main() -> int:
                         "DRY_RUN_ZERO_DB_MUTATION": zero_mutation,
                         "preflight_problems": problems,
                         "counts_before": before_counts,
+                        "batch": batch.summary() if batch is not None else None,
+                        "selection": "manifest" if manifest is not None else "whole-register",
                     },
                 ),
                 ensure_ascii=False,
@@ -1292,15 +1491,25 @@ def main() -> int:
         print("REFUSED — 计划自检未通过（self-supersede / duplicate plan）")
         return 4
 
-    result = execute_plan(plan, api)
+    # Bases published by an earlier batch are still valid carve-out anchors; the
+    # batch validator proved the closure, so the executor needs their ids.
+    prepublished_bases = {
+        str(r["rule_id"]): str(r["published_rule_id"]) for r in rows if r.get("published_rule_id")
+    }
+    result = execute_plan(plan, api, prepublished_bases=prepublished_bases)
     summary = {
         "mode": "execute",
         "at": _now(),
         "reviewer": plan.reviewer,
+        "batch_id": batch.batch_id if batch is not None else None,
+        "selection": "manifest" if manifest is not None else "whole-register",
         "counts": {k: len(v) for k, v in result.items()},
     }
     print(json.dumps({"summary": summary, "detail": result}, ensure_ascii=False, indent=2))
-    SNAPSHOT.write_text(
+    snapshot = Path(args.snapshot_out) if args.snapshot_out else SNAPSHOT
+    if snapshot.parent and not snapshot.parent.exists():
+        snapshot.parent.mkdir(parents=True, exist_ok=True)
+    snapshot.write_text(
         json.dumps({"summary": summary, "detail": result}, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
