@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session as OrmSession
 
 from app.models import AccessRule, MediaObject, Place, WatchSubscription
@@ -26,6 +26,15 @@ def notify_rule_changes(self) -> dict:  # noqa: ANN001
 
     Idempotency: only rules updated in the last 26h with unnotified watches;
     watch.last_notified_at prevents duplicate sends.
+
+    **The watermark and the timestamp it is compared against come from the same
+    clock.** ``AccessRule.updated_at`` is written by the database; taking ``now``
+    from the worker process instead mixes two time domains, and the drift between
+    them is not hypothetical — a Docker container a few seconds ahead of its host
+    is ordinary. Under that drift ``updated_at > last_notified_at`` stays true
+    after the notification, so every sweep re-notifies the same rules until the
+    clocks agree again. Reading ``now`` from ``SELECT now()`` puts both sides in
+    the database's domain, which is the domain the comparison is made in.
     """
     from app.db.session import get_session_factory
 
@@ -33,10 +42,10 @@ def notify_rule_changes(self) -> dict:  # noqa: ANN001
     provider = get_notification_provider()
     notified = 0
     try:
+        now = session.execute(select(func.now())).scalar_one()
         watches = session.scalars(
             select(WatchSubscription).where(WatchSubscription.status == WatchStatus.ACTIVE)
         ).all()
-        now = datetime.now(UTC)
         for w in watches:
             since = w.last_notified_at or datetime(2020, 1, 1, tzinfo=UTC)
             if w.target_type == WatchTargetType.PLACE:
