@@ -509,18 +509,26 @@ def test_no_inert_carveout_is_selected():
 # same-batch carve-out still reported blocked — which is indistinguishable, from
 # the outside, from "the proviso does not work". These two locks pin the wiring.
 
+
 def test_load_jurisdiction_exceptions_maps_instrument_binding(monkeypatch):
     """Rows come back shaped the way `_attaches_to` and `_exception_layered` read them."""
     import psycopg
-
     import w01_semantic_bridge as bridge
 
     row = (
-        "JPROV-001", "service_dog", "allowed", "f20bdb2c-0000-0000-0000-000000000000",
-        "current", "guide_dog", "exact", "exempt_from_prohibition",
-        "person_with_disability", "instrument",
+        "JPROV-001",
+        "service_dog",
+        "allowed",
+        "f20bdb2c-0000-0000-0000-000000000000",
+        "current",
+        "guide_dog",
+        "exact",
+        "exempt_from_prohibition",
+        "person_with_disability",
+        "instrument",
         ["f20bdb2c-0000-0000-0000-000000000000", "a11aff10-0000-0000-0000-000000000000"],
-        "LEGAL", ["prohibited"],
+        "LEGAL",
+        ["prohibited"],
     )
 
     class _Cur:
@@ -566,7 +574,6 @@ def test_load_jurisdiction_exceptions_maps_instrument_binding(monkeypatch):
 def test_load_jurisdiction_exceptions_fails_closed(monkeypatch):
     """Unreachable database ⇒ no proviso ⇒ bases stay blocked. Never invent one."""
     import psycopg
-
     import w01_semantic_bridge as bridge
 
     def boom(url):
