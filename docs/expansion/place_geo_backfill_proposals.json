@@ -1,0 +1,715 @@
+{
+  "_schema": "place coordinate backfill proposals. `status` is AUTO_MATCHED (venue found by name), ADDRESS_LEVEL (venue absent from OSM; pinned by its own address) or NEEDS_HUMAN (never applied). or NEEDS_HUMAN (never applied). Coordinates come from OpenStreetMap Nominatim; each row keeps its OSM provenance so a reviewer can verify the hit. This file is geometry only — it cannot change any access rule.",
+  "generated_at": "2026-09-18T13:28:36.135561+00:00",
+  "provider": "OpenStreetMap Nominatim (ODbL 1.0)",
+  "bbox": {
+    "lat_min": 30.65,
+    "lat_max": 31.9,
+    "lng_min": 120.8,
+    "lng_max": 122.1
+  },
+  "proposals": [
+    {
+      "lat": 31.2134162,
+      "lon": 121.4723855,
+      "in_bbox": true,
+      "matched_gram": null,
+      "display_name": "中海环宇荟, 卢家湾, 打浦桥街道, 上海市, 黄浦区, 上海市, 中国",
+      "osm_type": "way",
+      "osm_id": 419827010,
+      "class": "landuse",
+      "type": "commercial",
+      "addresstype": "commercial",
+      "importance": 0.08007911268787668,
+      "query": "中海环宇荟",
+      "status": "ADDRESS_LEVEL",
+      "match_method": "address query '中海环宇荟' -> '中海环宇' in display_name",
+      "geocode_basis": "canonical_address",
+      "distance_from_center_km": 1.89,
+      "licence": "Data © OpenStreetMap contributors, ODbL 1.0",
+      "provider": "OpenStreetMap Nominatim",
+      "fetched_at": "2026-09-18T13:28:26.711785+00:00",
+      "attempts": [
+        {
+          "query": "上海市 CHARLIE'S 粉红汉堡（马当路店）",
+          "hits": []
+        },
+        {
+          "query": "上海市 CHARLIE'S 粉红汉堡",
+          "hits": []
+        },
+        {
+          "query": "CHARLIE'S 粉红汉堡",
+          "hits": []
+        },
+        {
+          "query": "上海市黄浦区马当路441号中海环宇荟地上一层L33室",
+          "hits": []
+        },
+        {
+          "query": "中海环宇荟",
+          "hits": [
+            {
+              "lat": 31.2134162,
+              "lon": 121.4723855,
+              "in_bbox": true,
+              "matched_gram": null,
+              "display_name": "中海环宇荟, 卢家湾, 打浦桥街道, 上海市, 黄浦区, 上海市, 中国",
+              "osm_type": "way",
+              "osm_id": 419827010,
+              "class": "landuse",
+              "type": "commercial",
+              "addresstype": "commercial",
+              "importance": 0.08007911268787668,
+              "query": "中海环宇荟",
+              "status": "ADDRESS_LEVEL",
+              "match_method": "address query '中海环宇荟' -> '中海环宇' in display_name",
+              "geocode_basis": "canonical_address",
+              "distance_from_center_km": 1.89,
+              "licence": "Data © OpenStreetMap contributors, ODbL 1.0",
+              "provider": "OpenStreetMap Nominatim",
+              "fetched_at": "2026-09-18T13:28:26.711785+00:00"
+            },
+            {
+              "lat": 36.1304247,
+              "lon": 120.3893113,
+              "in_bbox": false,
+              "matched_gram": null,
+              "display_name": "中海寰宇汇, 小水清沟社区, 河西街道, 市北区, 青岛市, 山东省, 266033, 中国",
+              "osm_type": "way",
+              "osm_id": 1370794872,
+              "class": "landuse",
+              "type": "retail",
+              "addresstype": "retail",
+              "importance": 0.0800707354848554,
+              "query": "中海环宇荟"
+            }
+          ]
+        }
+      ],
+      "place_id": "9fea41d6-ee00-4816-9c69-3c5e3c809727",
+      "canonical_name": "CHARLIE'S 粉红汉堡（马当路店）",
+      "canonical_address": "上海市黄浦区马当路441号中海环宇荟地上一层L33室",
+      "published_rules": 0
+    },
+    {
+      "lat": 31.0383893,
+      "lon": 121.4833742,
+      "in_bbox": true,
+      "matched_gram": " 上海",
+      "display_name": "浦江郊野公园滨江漫步区, 浦江镇, 闵行区, 上海市, 中国",
+      "osm_type": "way",
+      "osm_id": 640826785,
+      "class": "leisure",
+      "type": "park",
+      "addresstype": "park",
+      "importance": 0.08005841229877161,
+      "query": "上海市闵行区浦江郊野公园滨江漫步区",
+      "status": "ADDRESS_LEVEL",
+      "match_method": "address query '上海市闵行区浦江郊野公园滨江漫步区' -> '浦江郊野公园滨江漫步' in display_name",
+      "geocode_basis": "canonical_address",
+      "distance_from_center_km": 21.37,
+      "licence": "Data © OpenStreetMap contributors, ODbL 1.0",
+      "provider": "OpenStreetMap Nominatim",
+      "fetched_at": "2026-09-18T13:28:32.733345+00:00",
+      "attempts": [
+        {
+          "query": "上海市 omitofee 上海首店（浦江郊野公园滨江漫步区）",
+          "hits": []
+        },
+        {
+          "query": "上海市 omitofee 上海首店",
+          "hits": []
+        },
+        {
+          "query": "omitofee 上海首店",
+          "hits": []
+        },
+        {
+          "query": "上海市闵行区浦江郊野公园滨江漫步区",
+          "hits": [
+            {
+              "lat": 31.0383893,
+              "lon": 121.4833742,
+              "in_bbox": true,
+              "matched_gram": " 上海",
+              "display_name": "浦江郊野公园滨江漫步区, 浦江镇, 闵行区, 上海市, 中国",
+              "osm_type": "way",
+              "osm_id": 640826785,
+              "class": "leisure",
+              "type": "park",
+              "addresstype": "park",
+              "importance": 0.08005841229877161,
+              "query": "上海市闵行区浦江郊野公园滨江漫步区",
+              "status": "ADDRESS_LEVEL",
+              "match_method": "address query '上海市闵行区浦江郊野公园滨江漫步区' -> '浦江郊野公园滨江漫步' in display_name",
+              "geocode_basis": "canonical_address",
+              "distance_from_center_km": 21.37,
+              "licence": "Data © OpenStreetMap contributors, ODbL 1.0",
+              "provider": "OpenStreetMap Nominatim",
+              "fetched_at": "2026-09-18T13:28:32.733345+00:00"
+            }
+          ]
+        }
+      ],
+      "place_id": "f1cf386e-5f66-4be6-93ba-822e28464474",
+      "canonical_name": "omitofee 上海首店（浦江郊野公园滨江漫步区）",
+      "canonical_address": "上海市闵行区浦江郊野公园滨江漫步区（闵浦二桥下）",
+      "published_rules": 0
+    },
+    {
+      "lat": 31.1951162,
+      "lon": 121.3579054,
+      "in_bbox": true,
+      "matched_gram": "上海动物园",
+      "display_name": "上海动物园, 2381, 虹桥路, 程家桥街道, 长宁区, 上海市, 201103, 中国",
+      "osm_type": "way",
+      "osm_id": 462007561,
+      "class": "tourism",
+      "type": "zoo",
+      "addresstype": "tourism",
+      "importance": 0.4180592592370329,
+      "query": "上海市 上海动物园",
+      "status": "AUTO_MATCHED",
+      "match_method": "n-gram '上海动物园' in display_name",
+      "geocode_basis": "canonical_name",
+      "distance_from_center_km": 11.69,
+      "licence": "Data © OpenStreetMap contributors, ODbL 1.0",
+      "provider": "OpenStreetMap Nominatim",
+      "fetched_at": "2026-09-18T13:28:32.941467+00:00",
+      "attempts": [
+        {
+          "query": "上海市 上海动物园",
+          "hits": [
+            {
+              "lat": 31.1951162,
+              "lon": 121.3579054,
+              "in_bbox": true,
+              "matched_gram": "上海动物园",
+              "display_name": "上海动物园, 2381, 虹桥路, 程家桥街道, 长宁区, 上海市, 201103, 中国",
+              "osm_type": "way",
+              "osm_id": 462007561,
+              "class": "tourism",
+              "type": "zoo",
+              "addresstype": "tourism",
+              "importance": 0.4180592592370329,
+              "query": "上海市 上海动物园",
+              "status": "AUTO_MATCHED",
+              "match_method": "n-gram '上海动物园' in display_name",
+              "geocode_basis": "canonical_name",
+              "distance_from_center_km": 11.69,
+              "licence": "Data © OpenStreetMap contributors, ODbL 1.0",
+              "provider": "OpenStreetMap Nominatim",
+              "fetched_at": "2026-09-18T13:28:32.941467+00:00"
+            },
+            {
+              "lat": 31.1920985,
+              "lon": 121.3634133,
+              "in_bbox": true,
+              "matched_gram": "上海动物园",
+              "display_name": "上海动物园, 虹桥路, 程家桥街道, 长宁区, 上海市, 201103, 中国",
+              "osm_type": "node",
+              "osm_id": 5306444953,
+              "class": "railway",
+              "type": "station",
+              "addresstype": "railway",
+              "importance": 0.324096928576472,
+              "query": "上海市 上海动物园"
+            },
+            {
+              "lat": 31.1921269,
+              "lon": 121.3634167,
+              "in_bbox": true,
+              "matched_gram": "上海动物园",
+              "display_name": "上海动物园, 虹桥路, 程家桥街道, 长宁区, 上海市, 201103, 中国",
+              "osm_type": "node",
+              "osm_id": 5019791318,
+              "class": "railway",
+              "type": "stop",
+              "addresstype": "railway",
+              "importance": 7.91126878766616e-05,
+              "query": "上海市 上海动物园"
+            },
+            {
+              "lat": 31.1919953,
+              "lon": 121.3608786,
+              "in_bbox": true,
+              "matched_gram": "上海动物园",
+              "display_name": "上海动物园, 虹桥路, 程家桥街道, 长宁区, 上海市, 201103, 中国",
+              "osm_type": "node",
+              "osm_id": 9878490494,
+              "class": "highway",
+              "type": "bus_stop",
+              "addresstype": "highway",
+              "importance": 7.91126878766616e-05,
+              "query": "上海市 上海动物园"
+            },
+            {
+              "lat": 31.1907769,
+              "lon": 121.3631129,
+              "in_bbox": true,
+              "matched_gram": "上海动物园",
+              "display_name": "上海动物园, 虹井路, 程家桥街道, 长宁区, 上海市, 201103, 中国",
+              "osm_type": "node",
+              "osm_id": 9878468493,
+              "class": "highway",
+              "type": "bus_stop",
+              "addresstype": "highway",
+              "importance": 7.91126878766616e-05,
+              "query": "上海市 上海动物园"
+            }
+          ]
+        }
+      ],
+      "place_id": "5eabf910-b348-44f1-a7e9-1b9a5908a5f0",
+      "canonical_name": "上海动物园",
+      "canonical_address": "上海市长宁区虹桥路2381号",
+      "published_rules": 0
+    },
+    {
+      "lat": 31.2221159,
+      "lon": 121.534357,
+      "in_bbox": true,
+      "matched_gram": "上海博物馆东",
+      "display_name": "上海博物馆东馆, 杨高南路, 花木街道, 浦东新区, 上海市, 200127, 中国",
+      "osm_type": "way",
+      "osm_id": 1034667864,
+      "class": "tourism",
+      "type": "museum",
+      "addresstype": "tourism",
+      "importance": 7.91126878766616e-05,
+      "query": "上海市 上海博物馆东馆",
+      "status": "AUTO_MATCHED",
+      "match_method": "n-gram '上海博物馆东' in display_name",
+      "geocode_basis": "canonical_name",
+      "distance_from_center_km": 5.84,
+      "licence": "Data © OpenStreetMap contributors, ODbL 1.0",
+      "provider": "OpenStreetMap Nominatim",
+      "fetched_at": "2026-09-18T13:28:33.149642+00:00",
+      "attempts": [
+        {
+          "query": "上海市 上海博物馆东馆",
+          "hits": [
+            {
+              "lat": 31.2221159,
+              "lon": 121.534357,
+              "in_bbox": true,
+              "matched_gram": "上海博物馆东",
+              "display_name": "上海博物馆东馆, 杨高南路, 花木街道, 浦东新区, 上海市, 200127, 中国",
+              "osm_type": "way",
+              "osm_id": 1034667864,
+              "class": "tourism",
+              "type": "museum",
+              "addresstype": "tourism",
+              "importance": 7.91126878766616e-05,
+              "query": "上海市 上海博物馆东馆",
+              "status": "AUTO_MATCHED",
+              "match_method": "n-gram '上海博物馆东' in display_name",
+              "geocode_basis": "canonical_name",
+              "distance_from_center_km": 5.84,
+              "licence": "Data © OpenStreetMap contributors, ODbL 1.0",
+              "provider": "OpenStreetMap Nominatim",
+              "fetched_at": "2026-09-18T13:28:33.149642+00:00"
+            },
+            {
+              "lat": 31.2213392,
+              "lon": 121.535656,
+              "in_bbox": true,
+              "matched_gram": "上海博物馆东",
+              "display_name": "上海博物馆东馆, 丁香路, 花木街道, 浦东新区, 上海市, 200127, 中国",
+              "osm_type": "node",
+              "osm_id": 12379457638,
+              "class": "highway",
+              "type": "bus_stop",
+              "addresstype": "highway",
+              "importance": 7.91126878766616e-05,
+              "query": "上海市 上海博物馆东馆"
+            }
+          ]
+        }
+      ],
+      "place_id": "ad530324-150d-470e-82fe-91ff6bae8d9f",
+      "canonical_name": "上海博物馆东馆",
+      "canonical_address": "上海市浦东新区世纪大道1952号",
+      "published_rules": 2
+    },
+    {
+      "lat": 31.2237257,
+      "lon": 121.4698926,
+      "in_bbox": true,
+      "matched_gram": "上海新天地朗",
+      "display_name": "上海新天地朗廷酒店, 99, 马当路, 新天地, 淮海中路街道, 上海市, 黄浦区, 上海市, 200021, 中国",
+      "osm_type": "way",
+      "osm_id": 372180396,
+      "class": "building",
+      "type": "hotel",
+      "addresstype": "building",
+      "importance": 7.91126878766616e-05,
+      "query": "上海市 上海新天地朗廷酒店",
+      "status": "AUTO_MATCHED",
+      "match_method": "n-gram '上海新天地朗' in display_name",
+      "geocode_basis": "canonical_name",
+      "distance_from_center_km": 0.83,
+      "licence": "Data © OpenStreetMap contributors, ODbL 1.0",
+      "provider": "OpenStreetMap Nominatim",
+      "fetched_at": "2026-09-18T13:28:33.382228+00:00",
+      "attempts": [
+        {
+          "query": "上海市 上海新天地朗廷酒店",
+          "hits": [
+            {
+              "lat": 31.2237257,
+              "lon": 121.4698926,
+              "in_bbox": true,
+              "matched_gram": "上海新天地朗",
+              "display_name": "上海新天地朗廷酒店, 99, 马当路, 新天地, 淮海中路街道, 上海市, 黄浦区, 上海市, 200021, 中国",
+              "osm_type": "way",
+              "osm_id": 372180396,
+              "class": "building",
+              "type": "hotel",
+              "addresstype": "building",
+              "importance": 7.91126878766616e-05,
+              "query": "上海市 上海新天地朗廷酒店",
+              "status": "AUTO_MATCHED",
+              "match_method": "n-gram '上海新天地朗' in display_name",
+              "geocode_basis": "canonical_name",
+              "distance_from_center_km": 0.83,
+              "licence": "Data © OpenStreetMap contributors, ODbL 1.0",
+              "provider": "OpenStreetMap Nominatim",
+              "fetched_at": "2026-09-18T13:28:33.382228+00:00"
+            }
+          ]
+        }
+      ],
+      "place_id": "d36252b7-8632-4774-8cbb-b9debcc1460c",
+      "canonical_name": "上海新天地朗廷酒店",
+      "canonical_address": "上海市黄浦区马当路99号",
+      "published_rules": 0
+    },
+    {
+      "lat": 31.2443695,
+      "lon": 121.4738737,
+      "in_bbox": true,
+      "matched_gram": "苏河湾万象天",
+      "display_name": "苏河湾万象天地, 苏河湾, 北站街道, 静安区, 上海市, 中国",
+      "osm_type": "way",
+      "osm_id": 1157391759,
+      "class": "landuse",
+      "type": "retail",
+      "addresstype": "retail",
+      "importance": 0.08007911268787668,
+      "query": "上海市 上海苏河湾万象天地",
+      "status": "AUTO_MATCHED",
+      "match_method": "n-gram '苏河湾万象天' in display_name",
+      "geocode_basis": "canonical_name",
+      "distance_from_center_km": 1.55,
+      "licence": "Data © OpenStreetMap contributors, ODbL 1.0",
+      "provider": "OpenStreetMap Nominatim",
+      "fetched_at": "2026-09-18T13:28:33.584810+00:00",
+      "attempts": [
+        {
+          "query": "上海市 上海苏河湾万象天地",
+          "hits": [
+            {
+              "lat": 31.2443695,
+              "lon": 121.4738737,
+              "in_bbox": true,
+              "matched_gram": "苏河湾万象天",
+              "display_name": "苏河湾万象天地, 苏河湾, 北站街道, 静安区, 上海市, 中国",
+              "osm_type": "way",
+              "osm_id": 1157391759,
+              "class": "landuse",
+              "type": "retail",
+              "addresstype": "retail",
+              "importance": 0.08007911268787668,
+              "query": "上海市 上海苏河湾万象天地",
+              "status": "AUTO_MATCHED",
+              "match_method": "n-gram '苏河湾万象天' in display_name",
+              "geocode_basis": "canonical_name",
+              "distance_from_center_km": 1.55,
+              "licence": "Data © OpenStreetMap contributors, ODbL 1.0",
+              "provider": "OpenStreetMap Nominatim",
+              "fetched_at": "2026-09-18T13:28:33.584810+00:00"
+            }
+          ]
+        }
+      ],
+      "place_id": "98b1f01b-83e3-4c39-82bf-2fad421da1c9",
+      "canonical_name": "上海苏河湾万象天地",
+      "canonical_address": "上海市静安区福建北路100号",
+      "published_rules": 0
+    },
+    {
+      "lat": 31.190999,
+      "lon": 121.2715607,
+      "in_bbox": true,
+      "matched_gram": "蟠龙天地",
+      "display_name": "蟠龙天地, 123, 蟠龙, 徐泾镇, 青浦区, 上海市, 中国",
+      "osm_type": "way",
+      "osm_id": 1244930932,
+      "class": "landuse",
+      "type": "retail",
+      "addresstype": "retail",
+      "importance": 0.08005647135118636,
+      "query": "上海市 上海蟠龙天地",
+      "status": "AUTO_MATCHED",
+      "match_method": "n-gram '蟠龙天地' in display_name",
+      "geocode_basis": "canonical_name",
+      "distance_from_center_km": 19.72,
+      "licence": "Data © OpenStreetMap contributors, ODbL 1.0",
+      "provider": "OpenStreetMap Nominatim",
+      "fetched_at": "2026-09-18T13:28:33.791716+00:00",
+      "attempts": [
+        {
+          "query": "上海市 上海蟠龙天地",
+          "hits": [
+            {
+              "lat": 31.190999,
+              "lon": 121.2715607,
+              "in_bbox": true,
+              "matched_gram": "蟠龙天地",
+              "display_name": "蟠龙天地, 123, 蟠龙, 徐泾镇, 青浦区, 上海市, 中国",
+              "osm_type": "way",
+              "osm_id": 1244930932,
+              "class": "landuse",
+              "type": "retail",
+              "addresstype": "retail",
+              "importance": 0.08005647135118636,
+              "query": "上海市 上海蟠龙天地",
+              "status": "AUTO_MATCHED",
+              "match_method": "n-gram '蟠龙天地' in display_name",
+              "geocode_basis": "canonical_name",
+              "distance_from_center_km": 19.72,
+              "licence": "Data © OpenStreetMap contributors, ODbL 1.0",
+              "provider": "OpenStreetMap Nominatim",
+              "fetched_at": "2026-09-18T13:28:33.791716+00:00"
+            }
+          ]
+        }
+      ],
+      "place_id": "dd84fff0-ad05-4332-8050-878674d9c091",
+      "canonical_name": "上海蟠龙天地",
+      "canonical_address": "上海市青浦区蟠鼎路123弄8号",
+      "published_rules": 0
+    },
+    {
+      "lat": 31.2187993,
+      "lon": 121.5486275,
+      "in_bbox": true,
+      "matched_gram": "世纪公园",
+      "display_name": "世纪公园, 1001, 花木街道, 浦东新区, 上海市, 中国",
+      "osm_type": "relation",
+      "osm_id": 1919664,
+      "class": "leisure",
+      "type": "park",
+      "addresstype": "park",
+      "importance": 0.41383259701480163,
+      "query": "上海市 世纪公园",
+      "status": "AUTO_MATCHED",
+      "match_method": "n-gram '世纪公园' in display_name",
+      "geocode_basis": "canonical_name",
+      "distance_from_center_km": 7.24,
+      "licence": "Data © OpenStreetMap contributors, ODbL 1.0",
+      "provider": "OpenStreetMap Nominatim",
+      "fetched_at": "2026-09-18T13:28:34.420086+00:00",
+      "attempts": [
+        {
+          "query": "上海市 世纪公园",
+          "hits": [
+            {
+              "lat": 31.2187993,
+              "lon": 121.5486275,
+              "in_bbox": true,
+              "matched_gram": "世纪公园",
+              "display_name": "世纪公园, 1001, 花木街道, 浦东新区, 上海市, 中国",
+              "osm_type": "relation",
+              "osm_id": 1919664,
+              "class": "leisure",
+              "type": "park",
+              "addresstype": "park",
+              "importance": 0.41383259701480163,
+              "query": "上海市 世纪公园",
+              "status": "AUTO_MATCHED",
+              "match_method": "n-gram '世纪公园' in display_name",
+              "geocode_basis": "canonical_name",
+              "distance_from_center_km": 7.24,
+              "licence": "Data © OpenStreetMap contributors, ODbL 1.0",
+              "provider": "OpenStreetMap Nominatim",
+              "fetched_at": "2026-09-18T13:28:34.420086+00:00"
+            },
+            {
+              "lat": 31.2114185,
+              "lon": 121.5466162,
+              "in_bbox": true,
+              "matched_gram": "世纪公园",
+              "display_name": "世纪公园, 海桐路, 花木街道, 浦东新区, 上海市, 201204, 中国",
+              "osm_type": "way",
+              "osm_id": 619428333,
+              "class": "railway",
+              "type": "station",
+              "addresstype": "railway",
+              "importance": 0.34081317763107843,
+              "query": "上海市 世纪公园"
+            }
+          ]
+        }
+      ],
+      "place_id": "c63f2199-b1e4-4435-b418-f2e86f8fdf45",
+      "canonical_name": "世纪公园",
+      "canonical_address": "上海市浦东新区锦绣路1001号",
+      "published_rules": 0
+    },
+    {
+      "lat": 31.2309816,
+      "lon": 121.4585188,
+      "in_bbox": true,
+      "matched_gram": "兴业太古汇",
+      "display_name": "兴业太古汇, 南京西路街道, 静安区, 上海市, 中国",
+      "osm_type": "way",
+      "osm_id": 1157366233,
+      "class": "landuse",
+      "type": "commercial",
+      "addresstype": "commercial",
+      "importance": 0.08007911268787668,
+      "query": "上海市 兴业太古汇",
+      "status": "AUTO_MATCHED",
+      "match_method": "n-gram '兴业太古汇' in display_name",
+      "geocode_basis": "canonical_name",
+      "distance_from_center_km": 1.44,
+      "licence": "Data © OpenStreetMap contributors, ODbL 1.0",
+      "provider": "OpenStreetMap Nominatim",
+      "fetched_at": "2026-09-18T13:28:34.631220+00:00",
+      "attempts": [
+        {
+          "query": "上海市 兴业太古汇",
+          "hits": [
+            {
+              "lat": 31.2309816,
+              "lon": 121.4585188,
+              "in_bbox": true,
+              "matched_gram": "兴业太古汇",
+              "display_name": "兴业太古汇, 南京西路街道, 静安区, 上海市, 中国",
+              "osm_type": "way",
+              "osm_id": 1157366233,
+              "class": "landuse",
+              "type": "commercial",
+              "addresstype": "commercial",
+              "importance": 0.08007911268787668,
+              "query": "上海市 兴业太古汇",
+              "status": "AUTO_MATCHED",
+              "match_method": "n-gram '兴业太古汇' in display_name",
+              "geocode_basis": "canonical_name",
+              "distance_from_center_km": 1.44,
+              "licence": "Data © OpenStreetMap contributors, ODbL 1.0",
+              "provider": "OpenStreetMap Nominatim",
+              "fetched_at": "2026-09-18T13:28:34.631220+00:00"
+            },
+            {
+              "lat": 31.2309747,
+              "lon": 121.4576796,
+              "in_bbox": true,
+              "matched_gram": "兴业太古汇",
+              "display_name": "兴业太古汇, 石门一路, 南京西路街道, 静安区, 上海市, 200041, 中国",
+              "osm_type": "node",
+              "osm_id": 12025294824,
+              "class": "highway",
+              "type": "bus_stop",
+              "addresstype": "highway",
+              "importance": 7.91126878766616e-05,
+              "query": "上海市 兴业太古汇"
+            }
+          ]
+        }
+      ],
+      "place_id": "1eac2b61-1394-4b6f-b0e3-57a59a818a11",
+      "canonical_name": "兴业太古汇",
+      "canonical_address": "上海市静安区南京西路1266号",
+      "published_rules": 1
+    },
+    {
+      "lat": 31.1623426,
+      "lon": 121.4615928,
+      "in_bbox": true,
+      "matched_gram": "西岸梦中心",
+      "display_name": "西岸梦中心, 龙华街道, 徐汇区, 上海市, 中国",
+      "osm_type": "way",
+      "osm_id": 1527489554,
+      "class": "landuse",
+      "type": "retail",
+      "addresstype": "retail",
+      "importance": 0.08007911268787668,
+      "query": "上海市 西岸梦中心",
+      "status": "AUTO_MATCHED",
+      "match_method": "n-gram '西岸梦中心' in display_name",
+      "geocode_basis": "canonical_name",
+      "distance_from_center_km": 7.65,
+      "licence": "Data © OpenStreetMap contributors, ODbL 1.0",
+      "provider": "OpenStreetMap Nominatim",
+      "fetched_at": "2026-09-18T13:28:36.135561+00:00",
+      "attempts": [
+        {
+          "query": "上海市 西岸梦中心（Gate M）",
+          "hits": []
+        },
+        {
+          "query": "上海市 西岸梦中心",
+          "hits": [
+            {
+              "lat": 31.1623426,
+              "lon": 121.4615928,
+              "in_bbox": true,
+              "matched_gram": "西岸梦中心",
+              "display_name": "西岸梦中心, 龙华街道, 徐汇区, 上海市, 中国",
+              "osm_type": "way",
+              "osm_id": 1527489554,
+              "class": "landuse",
+              "type": "retail",
+              "addresstype": "retail",
+              "importance": 0.08007911268787668,
+              "query": "上海市 西岸梦中心",
+              "status": "AUTO_MATCHED",
+              "match_method": "n-gram '西岸梦中心' in display_name",
+              "geocode_basis": "canonical_name",
+              "distance_from_center_km": 7.65,
+              "licence": "Data © OpenStreetMap contributors, ODbL 1.0",
+              "provider": "OpenStreetMap Nominatim",
+              "fetched_at": "2026-09-18T13:28:36.135561+00:00"
+            },
+            {
+              "lat": 31.1632281,
+              "lon": 121.4621879,
+              "in_bbox": true,
+              "matched_gram": "西岸梦中心",
+              "display_name": "西岸梦中心, 龙腾大道, 龙华街道, 徐汇区, 上海市, 200241, 中国",
+              "osm_type": "way",
+              "osm_id": 863990755,
+              "class": "tourism",
+              "type": "viewpoint",
+              "addresstype": "tourism",
+              "importance": 7.91126878766616e-05,
+              "query": "上海市 西岸梦中心"
+            },
+            {
+              "lat": 31.1615401,
+              "lon": 121.4609369,
+              "in_bbox": true,
+              "matched_gram": "西岸梦中心",
+              "display_name": "西岸梦中心, 龙腾大道, 龙华街道, 徐汇区, 上海市, 200241, 中国",
+              "osm_type": "way",
+              "osm_id": 865171657,
+              "class": "building",
+              "type": "retail",
+              "addresstype": "building",
+              "importance": 7.91126878766616e-05,
+              "query": "上海市 西岸梦中心"
+            }
+          ]
+        }
+      ],
+      "place_id": "347c85c3-cde4-4d99-952c-e04b980e8aec",
+      "canonical_name": "西岸梦中心（Gate M）",
+      "canonical_address": "上海市徐汇区龙腾大道（西岸梦中心/Gate M 滨江开放区域）",
+      "published_rules": 0
+    }
+  ]
+}
