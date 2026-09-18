@@ -23,11 +23,13 @@ import pytest
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / "services" / "api"))
 
+from app.models.enums import HolderScope  # noqa: E402
 from app.rulespec.animal_scope import rule_governs  # noqa: E402
 from app.rulespec.guide_dog_safety import (  # noqa: E402
     REQUIRED_LEGAL_EXCEPTION_NOT_EXECUTABLE,
     probe_guide_dog_safety_path,
 )
+from app.rulespec.holder_scope import HolderContext  # noqa: E402
 from app.rulespec.statutory_proviso import (  # noqa: E402
     JURISDICTION_EXCEPTION_INERT,
     BindingMode,
@@ -105,7 +107,15 @@ def guide_dog_proviso(
     )
 
 
-def _resolve(bases, provisos, *, animal="dog", service_role="working", declared_role="guide_dog"):
+def _resolve(
+    bases,
+    provisos,
+    *,
+    animal="dog",
+    service_role="working",
+    declared_role="guide_dog",
+    holder_context=None,
+):
     return resolve(
         legal=list(bases),
         guidance=[],
@@ -119,7 +129,14 @@ def _resolve(bases, provisos, *, animal="dog", service_role="working", declared_
         now=NOW,
         exceptions=list(provisos),
         declared_role=declared_role,
+        holder_context=holder_context,
     )
+
+
+#: the buts 但书 is 「盲人携带导盲犬」 — the handler the statute actually names.
+MATCHING_HOLDER = HolderContext.of(HolderScope.PERSON_WITH_DISABILITY.value)
+#: a handler who provably is not (context supplied, but empty).
+NON_MATCHING_HOLDER = HolderContext.of()
 
 
 # ---------------------------------------------------------------------------
@@ -222,12 +239,39 @@ def test_inert_proviso_never_turns_unknown_into_allowed():
 
 
 def test_reachable_proviso_does_fire():
-    """The contrast: a `dog` base *does* govern guide dogs, so it is exempted."""
+    """The contrast: a `dog` base *does* govern guide dogs, so it is exempted.
+
+    Fires only with the holder the 但书 names — 「盲人携带导盲犬」. The two
+    halves of that condition are tested in ``test_adr030_holder_scope.py``.
+    """
     base = legal_dog_ban("r-dog")
-    rs = _resolve([base], [guide_dog_proviso()])
+    rs = _resolve([base], [guide_dog_proviso()], holder_context=MATCHING_HOLDER)
     assert rs.effect == "allowed", rs.explanation_steps
     assert rs.applied_exceptions == ["prov-001"]
     assert rs.compliance_state == ComplianceState.CONSISTENT
+
+
+def test_reachable_proviso_is_withheld_without_any_holder_context():
+    """No holder context ⇒ CONDITIONAL, never an unconditional allowance.
+
+    Both wrong answers are refusals here: ``allowed`` would apply a condition
+    that was never evaluated, and ``prohibited`` would hide a statutory right
+    behind a missing input (ADR-031 §7).
+    """
+    base = legal_dog_ban("r-dog")
+    rs = _resolve([base], [guide_dog_proviso()])
+    assert rs.effect == "conditional", rs.explanation_steps
+    assert rs.applied_exceptions == []
+    assert rs.pending_exceptions == ["prov-001"]
+    assert rs.missing_inputs == ["holder_scope"]
+
+
+def test_reachable_proviso_does_not_fire_for_a_non_matching_holder():
+    """A handler the statute does not name falls back to the base prohibition."""
+    base = legal_dog_ban("r-dog")
+    rs = _resolve([base], [guide_dog_proviso()], holder_context=NON_MATCHING_HOLDER)
+    assert rs.effect == "prohibited", rs.explanation_steps
+    assert rs.applied_exceptions == []
 
 
 def test_ordinary_dog_still_prohibited_with_the_proviso_live():

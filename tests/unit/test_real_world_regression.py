@@ -113,6 +113,12 @@ def test_place_queries_match_recorded_outcomes(place):
         assert rs.compliance_state.value == q["expected_compliance"], (
             f"{place['key']} {q}: compliance drift"
         )
+        if "expected_missing_inputs" in q:
+            # A conditional answer must say *what* is missing, otherwise the
+            # consumer cannot resolve it (ADR-031 §21 progressive-question hook).
+            assert rs.missing_inputs == q["expected_missing_inputs"], (
+                f"{place['key']} {q}: missing {rs.missing_inputs}"
+            )
 
 
 def test_fixture_covers_service_dog_exemptions():

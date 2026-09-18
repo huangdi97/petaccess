@@ -181,16 +181,31 @@ def test_exception_lifecycle_and_resolver(client, moderator, rule_and_source):
     assert listed.status_code == 200
     assert any(item["id"] == exc_id for item in listed.json()["items"])
 
-    # working dog now allowed, with an explanation naming the exception
+    # working dog now exempt — once the query names the role *and* the holder
+    # the 但书 names (「盲人携带导盲犬」), with an explanation naming it
     eff1 = client.post(
         f"/api/v1/places/{ids['place_id']}/effective-rules",
-        json={"animal": "dog", "service_role": "working"},
+        json={
+            "animal": "dog",
+            "service_role": "working",
+            "declared_role": "guide_dog",
+            "holder_scopes": ["person_with_disability"],
+        },
     )
     assert eff1.status_code == 200, eff1.text
     body = eff1.json()
     assert body["effect"] == "allowed"
     assert body["applied_exceptions"] == [exc_id]
     assert any(exc_id in step for step in body["explanation_steps"])
+
+    # …and the same query without the holder context is conditional, never an
+    # unconditional allowance (ADR-031 §7)
+    eff1b = client.post(
+        f"/api/v1/places/{ids['place_id']}/effective-rules",
+        json={"animal": "dog", "service_role": "working", "declared_role": "guide_dog"},
+    )
+    assert eff1b.json()["effect"] == "conditional"
+    assert eff1b.json()["missing_inputs"] == ["holder_scope"]
 
     # ordinary dog still prohibited
     eff2 = client.post(
@@ -247,8 +262,25 @@ def test_guide_dog_carve_out_does_not_extend_to_other_service_roles(
             json={"animal": "dog", "service_role": "working", **extra},
         ).json()
 
-    assert effective()["effect"] == "allowed"  # underspecified: carve-out found
-    assert effective(declared_role="guide_dog")["effect"] == "allowed"
+    # ADR-031 §12: an underspecified group query is no longer answered by one
+    # member's allowance. It is withheld, and the API says what is missing.
+    underspecified = effective()
+    assert underspecified["effect"] == "conditional"
+    assert underspecified["applied_exceptions"] == []
+    assert underspecified["missing_inputs"] == ["service_role"]
+    # ADR-031 §7: the role alone is not enough — 「盲人携带导盲犬」 names the
+    # holder too, so with no holder context the answer stays conditional.
+    guide_only = effective(declared_role="guide_dog")
+    assert guide_only["effect"] == "conditional"
+    assert guide_only["missing_inputs"] == ["holder_scope"]
+    # role + holder ⇒ the statutory exemption applies
+    allowed = effective(declared_role="guide_dog", holder_scopes=["person_with_disability"])
+    assert allowed["effect"] == "allowed"
+    assert allowed["applied_exceptions"] == [exc_id]
+    # and a handler the proviso does not name keeps the prohibition
+    other_handler = effective(declared_role="guide_dog", holder_scopes=[])
+    assert other_handler["effect"] == "prohibited"
+    assert other_handler["applied_exceptions"] == []
     # the three roles the proviso does NOT name keep the statutory prohibition
     hearing = effective(declared_role="hearing_dog")
     assert hearing["effect"] == "prohibited"

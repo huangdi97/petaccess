@@ -29,6 +29,13 @@ from datetime import datetime
 from enum import StrEnum
 
 from app.models.enums import MandatoryLevel, normalize_mandatory_level
+from app.rulespec.holder_scope import (
+    MISSING_CONTEXT_HOLDER_SCOPE,
+    MISSING_CONTEXT_SERVICE_ROLE,
+    HolderContext,
+    HolderMatch,
+    evaluate_holder,
+)
 from app.rulespec.statutory_proviso import (
     JURISDICTION_EXCEPTION_INERT,
     BindingMode,
@@ -44,8 +51,14 @@ __all__ = [
     "EffectiveRuleSet",
     "LayeredException",
     "BindingMode",
+    "HolderContext",
+    "HolderMatch",
     "resolve",
 ]
+
+#: Order in which missing context is surfaced to a consumer: ask *what* the
+#: animal is before asking *who* is handling it.
+MISSING_CONTEXT_ORDER = (MISSING_CONTEXT_SERVICE_ROLE, MISSING_CONTEXT_HOLDER_SCOPE)
 
 
 class RuleLayer(StrEnum):
@@ -117,8 +130,16 @@ class EffectiveRuleSet:
     # synthesized answer
     effect: str = "unknown"  # allowed | conditional | prohibited | unknown
     obligations: list[str] = field(default_factory=list)
+    #: what the caller would have to supply for a withheld carve-out to fire
+    #: (``service_role`` / ``holder_scope``). Empty ⇒ the answer is final.
     missing_inputs: list[str] = field(default_factory=list)
     applied_exceptions: list[str] = field(default_factory=list)
+    #: carve-outs that matched but were **withheld** because their conditions
+    #: could not be evaluated from the query as asked. Never applied.
+    pending_exceptions: list[str] = field(default_factory=list)
+    #: carve-outs that claimed a base already carved out with the same effect.
+    #: Provenance only — the legal effect is computed exactly once (ADR-031 §17).
+    duplicate_exceptions: list[str] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -177,6 +198,14 @@ class LayeredException:
         return bool(self.source_id)
 
 
+def _query_subjects(animal: str, service_role: str, declared_role: str | None) -> frozenset[str]:
+    from app.rulespec.animal_scope import QuerySubject, query_subjects
+
+    return query_subjects(
+        QuerySubject(species=animal, service_role=service_role, declared_role=declared_role)
+    )
+
+
 def _scope_matches(
     rule: LayeredRule, animal: str, service_role: str, declared_role: str | None = None
 ) -> bool:
@@ -187,21 +216,41 @@ def _scope_matches(
     stops a 导盲犬 proviso from being applied to every service dog.
 
     The query side still expands a generic "service dog" query to the four
-    assistance roles, so a correctly-modelled guide-dog rule *is* found when the
-    user asks about their service dog. When the user *declares* the role
+    assistance roles, so a statute written of 「犬」 still governs an
+    underspecified service-dog question. When the user *declares* the role
     (``declared_role``), no expansion happens: a hearing-dog query must not
     inherit a guide-dog proviso.
     """
-    from app.rulespec.animal_scope import QuerySubject, query_subjects, rule_governs
+    from app.rulespec.animal_scope import rule_governs
 
-    query = query_subjects(
-        QuerySubject(species=animal, service_role=service_role, declared_role=declared_role)
-    )
+    query = _query_subjects(animal, service_role, declared_role)
     return rule_governs(
         query,
         rule.animal_scope,
         rule.subject_scope_normalized,
         rule.normalization_type,
+    )
+
+
+def _carve_out_covers(
+    exc: LayeredException, animal: str, service_role: str, declared_role: str | None
+) -> bool:
+    """Does this carve-out answer the whole query? (ADR-031 §10-§12)
+
+    Stricter than ``_scope_matches`` on purpose. A prohibition written of 「犬」
+    legitimately governs an underspecified question, but an exemption written of
+    「导盲犬」 does not: it covers one of the four roles the question could be
+    about, so applying it would answer a question the source never answered —
+    the existence semantics "a child of the parent scope hits an exception, so
+    the parent query is allowed".
+    """
+    from app.rulespec.animal_scope import carve_out_covers
+
+    return carve_out_covers(
+        _query_subjects(animal, service_role, declared_role),
+        exc.animal_scope,
+        exc.subject_scope_normalized,
+        exc.normalization_type,
     )
 
 
@@ -238,12 +287,49 @@ def resolve(
     now: datetime,
     exceptions: list[LayeredException] | None = None,
     declared_role: str | None = None,
+    holder_context: HolderContext | None = None,
 ) -> EffectiveRuleSet:
+    """Resolve one access question.
+
+    ``holder_context`` (ADR-031) is the ephemeral, query-time statement about
+    who is handling the animal. It is never persisted and never defaulted: with
+    no context supplied, a carve-out that names a holder condition is *withheld*
+    and the answer becomes ``conditional`` with ``missing_inputs`` — never an
+    unconditional ``allowed``, and never a bare ``prohibited`` that would hide a
+    statutory right behind a missing input.
+    """
     steps: list[str] = []
     suppressed: list[tuple[LayeredRule, str]] = []
     conflicts: list[tuple[LayeredRule, LayeredRule]] = []
     applicable: list[LayeredRule] = []
     applied_exceptions: list[str] = []
+    #: carve-out id → (the context that would have to be supplied for it to
+    #: fire, the base rules it claims). Never applied while pending.
+    pending: dict[str, tuple[str, tuple[str, ...]]] = {}
+    duplicates: list[str] = []
+    #: base rule id → every carve-out claiming it, before any is applied
+    claims: dict[str, list[LayeredException]] = {}
+    #: carve-outs that cover only *part* of the query (underspecified role)
+    role_ambiguous: set[str] = set()
+    #: carve-out id → base rule ids it claims (computed once, in phase A)
+    targets_by_exc: dict[str, tuple[str, ...]] = {}
+
+    def _missing_inputs() -> list[str]:
+        """What a consumer must supply, ordered: what the animal is, then who."""
+        wanted = {token for token, _targets in pending.values()}
+        return [token for token in MISSING_CONTEXT_ORDER if token in wanted]
+
+    def _pending_on_governing_bases(governing_ids: set[str]) -> list[str]:
+        """Withheld carve-outs that claim a base currently producing the answer.
+
+        A carve-out withheld for a base that is *not* governing cannot change
+        this answer, so it must not soften a prohibition into a conditional —
+        that is how an operator-side carve-out would otherwise appear to reopen
+        a mandatory legal ban (ADR-031 §14).
+        """
+        return [
+            exc_id for exc_id, (_token, targets) in pending.items() if set(targets) & governing_ids
+        ]
 
     def in_scope(layer: list[LayeredRule]) -> list[LayeredRule]:
         return [
@@ -261,19 +347,18 @@ def resolve(
     matched: dict[str, LayeredException] = {}
     conflicted_rule_ids: set[str] = set()
 
-    def _attach(exc: LayeredException, base_id: str) -> None:
-        """Record ``exc`` as carving out of ``base_id``, or flag a conflict."""
-        existing = matched.get(base_id)
-        if existing is not None and existing.effect != exc.effect:
-            steps.append(
-                f"exceptions {existing.id} vs {exc.id} conflict on rule "
-                f"{base_id}: REVIEW_REQUIRED, not guessed."
-            )
-            conflicted_rule_ids.add(base_id)
-            return
-        if base_id in conflicted_rule_ids:
-            return
-        matched[base_id] = matched.get(base_id, exc)
+    def _targets(exc: LayeredException) -> tuple[str, ...]:
+        """Which base rules this carve-out claims (ADR-030: by instrument)."""
+        if exc.binding == BindingMode.INSTRUMENT:
+            bound, inert = bind_proviso_to_bases(exc, all_rules)
+            for base_id in inert:
+                steps.append(
+                    f"jurisdiction proviso {exc.id} inert for rule {base_id} "
+                    f"({JURISDICTION_EXCEPTION_INERT}): the base does not govern "
+                    f"{exc.subject_scope_normalized or exc.animal_scope}; not applied."
+                )
+            return tuple(bound)
+        return (exc.rule_id,)
 
     all_rules: list[LayeredRule] = [
         *legal,
@@ -284,6 +369,10 @@ def resolve(
     ]
 
     for exc in exceptions or []:
+        if not exc.has_source():
+            continue
+        if not exc.active_at(now):
+            continue
         probe = LayeredRule(
             id=f"exc-probe-{exc.id}",
             animal_scope=exc.animal_scope,
@@ -297,29 +386,73 @@ def resolve(
             subject_scope_normalized=exc.subject_scope_normalized,
             normalization_type=exc.normalization_type,
         )
-        if not (
-            _scope_matches(probe, animal, service_role, declared_role)
-            and exc.active_at(now)
-            and exc.has_source()
+        targets = _targets(exc)
+        targets_by_exc[exc.id] = targets
+        if not _carve_out_covers(exc, animal, service_role, declared_role) and _scope_matches(
+            probe, animal, service_role, declared_role
         ):
+            # A carve-out that covers *part* of an underspecified group query is
+            # not irrelevant — it is unanswerable as asked. It still *claims*
+            # its base, so a contradiction with another carve-out of that base
+            # is recorded: that dispute is a governance fact and must not be
+            # hidden by the asker's underspecification (ADR-031 §12).
+            role_ambiguous.add(exc.id)
+        # A carve-out that neither covers the query nor touches any of its
+        # subjects is simply off-topic: it must not claim the base at all, or
+        # an ordinary-dog question would be exempted by a guide-dog proviso.
+        if _carve_out_covers(exc, animal, service_role, declared_role) or exc.id in role_ambiguous:
+            for base_id in targets:
+                claims.setdefault(base_id, []).append(exc)
+
+    # --- phase B: per base, decide which carve-out (if any) governs --------
+    for base_id, excs in claims.items():
+        if len({e.effect for e in excs}) > 1:
+            # Two carve-outs of one base disagreeing is a governance fact and
+            # outranks the context withholding below: it is recorded before any
+            # holder evaluation so a missing holder context cannot hide it.
+            steps.append(
+                f"exceptions {excs[0].id} vs {excs[1].id} conflict on rule "
+                f"{base_id}: REVIEW_REQUIRED, not guessed."
+            )
+            conflicted_rule_ids.add(base_id)
             continue
-        if exc.binding == BindingMode.INSTRUMENT:
-            # ADR-030: a statutory proviso is not written of one venue rule — it
-            # carves out of every in-scope prohibition grounded in the same
-            # instrument. Bases it cannot reach are recorded, never applied:
-            # exempting a base that is merely *silent* about this subject would
-            # turn `unknown` into `allowed`, i.e. invent legal effect.
-            bound, inert = bind_proviso_to_bases(exc, all_rules)
-            for base_id in inert:
-                steps.append(
-                    f"jurisdiction proviso {exc.id} inert for rule {base_id} "
-                    f"({JURISDICTION_EXCEPTION_INERT}): the base does not govern "
-                    f"{exc.subject_scope_normalized or exc.animal_scope}; not applied."
-                )
-            for base_id in bound:
-                _attach(exc, base_id)
+        exc = excs[0]
+        for duplicate in excs[1:]:
+            # Same effect: a legacy venue row and the jurisdiction proviso say
+            # the same thing. Provenance only — the effect is computed once.
+            duplicates.append(duplicate.id)
+        if exc.id in role_ambiguous:
+            steps.append(
+                f"exception {exc.id} withheld: it governs "
+                f"{exc.subject_scope_normalized or exc.animal_scope} only, and the query "
+                f"did not name a role ({MISSING_CONTEXT_SERVICE_ROLE} missing)."
+            )
+            pending[exc.id] = (MISSING_CONTEXT_SERVICE_ROLE, targets_by_exc.get(exc.id, ()))
             continue
-        _attach(exc, exc.rule_id)
+        holder_match = evaluate_holder(exc.holder_scope, holder_context)
+        if exc.holder_scope:
+            steps.append(
+                f"exception {exc.id} holder condition '{exc.holder_scope}' "
+                f"({exc.subject_scope_normalized or exc.animal_scope}) evaluated: "
+                f"{holder_match.value}."
+            )
+        if holder_match is HolderMatch.DOES_NOT_MATCH:
+            steps.append(
+                f"exception {exc.id} not applied for rule {base_id}: the holder "
+                f"condition is not satisfied — the base rule governs."
+            )
+            continue
+        if holder_match is HolderMatch.UNKNOWN:
+            pending[exc.id] = (MISSING_CONTEXT_HOLDER_SCOPE, (base_id,))
+            steps.append(
+                f"exception {exc.id} withheld: it is conditional on the holder "
+                f"({exc.holder_scope}) and no holder context was supplied "
+                f"({MISSING_CONTEXT_HOLDER_SCOPE} missing) — not allowed, not prohibited."
+            )
+            continue
+        if base_id in conflicted_rule_ids:
+            continue
+        matched[base_id] = exc
 
     def apply_exceptions(layer: list[LayeredRule]) -> list[LayeredRule]:
         out: list[LayeredRule] = []
@@ -382,6 +515,8 @@ def resolve(
             compliance_state=ComplianceState.UNKNOWN,
             effect="unknown",
             applied_exceptions=applied_exceptions,
+            pending_exceptions=sorted(pending),
+            duplicate_exceptions=sorted(duplicates),
         )
 
     # --- 1. LEGAL layer -----------------------------------------------------
@@ -567,6 +702,30 @@ def resolve(
         effect = "unknown"
         steps.append("no governing rule after resolution: UNKNOWN, never guessed.")
 
+    # --- 7. withheld carve-outs --------------------------------------------
+    # A carve-out that could fire once the caller supplies a role or a holder
+    # status is *not* a prohibition. Answering `prohibited` here would hide a
+    # statutory right behind a missing input; answering `allowed` would apply a
+    # condition that was never evaluated. CONDITIONAL + missing context is the
+    # only honest third option (ADR-031 §7/§12).
+    # Only a carve-out that claims a base *actually producing the prohibition*
+    # can soften it. One withheld for an unrelated base cannot, and saying so
+    # would look like that carve-out had reopened a ban it never touched.
+    relevant = _pending_on_governing_bases({r.id for r in applicable if r.effect == "prohibited"})
+    if (
+        effect == "prohibited"
+        and relevant
+        and not conflicts
+        and not conflicted_rule_ids
+        and not unknown_layer_rules
+    ):
+        effect = "conditional"
+        steps.append(
+            f"effect raised to conditional: {len(relevant)} carve-out(s) withheld "
+            f"pending {', '.join(_missing_inputs())} — supplying them can change "
+            "this answer, so it is not reported as a final prohibition."
+        )
+
     obligations = [str(c.get("condition_type", c)) for c in legal_conditions]
     return EffectiveRuleSet(
         applicable_rules=applicable,
@@ -576,7 +735,10 @@ def resolve(
         compliance_state=compliance,
         effect=effect,
         obligations=obligations,
+        missing_inputs=_missing_inputs() if effect == "conditional" else [],
         applied_exceptions=applied_exceptions,
+        pending_exceptions=sorted(pending),
+        duplicate_exceptions=sorted(duplicates),
     )
 
 

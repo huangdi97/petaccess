@@ -17,6 +17,8 @@ from datetime import UTC, datetime, timedelta
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
+from app.models.enums import HolderScope
+from app.rulespec.holder_scope import HolderContext
 from app.rulespec.v05_resolver import (
     ComplianceState,
     LayeredException,
@@ -68,7 +70,17 @@ def _precise_exception(**kwargs) -> LayeredException:
     return LayeredException(**base)
 
 
-def _resolve(rules, *, animal="dog", service_role="none", exceptions=(), zone_id="indoor", now=NOW):
+def _resolve(
+    rules,
+    *,
+    animal="dog",
+    service_role="none",
+    exceptions=(),
+    zone_id="indoor",
+    now=NOW,
+    declared_role=None,
+    holder_context=None,
+):
     by_layer = {
         "legal": [r for r in rules if r.rule_layer == "LEGAL"],
         "guidance": [r for r in rules if r.rule_layer == "REGULATORY_GUIDANCE"],
@@ -88,6 +100,8 @@ def _resolve(rules, *, animal="dog", service_role="none", exceptions=(), zone_id
         zone_id=zone_id,
         now=now,
         exceptions=list(exceptions),
+        declared_role=declared_role,
+        holder_context=holder_context,
     )
 
 
@@ -101,10 +115,33 @@ def test_ordinary_dog_still_restricted():
 
 
 def test_service_dog_exempt_via_exception():
-    rs = _resolve([STATUTE_BAN], animal="dog", service_role="working", exceptions=[GUIDE_EXEMPTION])
+    """The carve-out fires when the query names the role *and* the holder."""
+    rs = _resolve(
+        [STATUTE_BAN],
+        animal="dog",
+        service_role="working",
+        declared_role="guide_dog",
+        holder_context=HolderContext.of(HolderScope.PERSON_WITH_DISABILITY.value),
+        exceptions=[GUIDE_EXEMPTION],
+    )
     assert rs.effect == "allowed"
     assert rs.applied_exceptions == ["exc-butie"]
     assert any("exempted by exception" in reason for _, reason in rs.suppressed_rules)
+
+
+def test_underspecified_service_dog_query_is_not_allowed_by_a_guide_dog_carve_out():
+    """ADR-031 §12: a group query never inherits one member's allowance.
+
+    The previous behaviour — "a child of the parent scope hits an exception, so
+    the parent query is allowed" — answered a question the source never
+    answered. The honest answer is conditional, with the missing role named, so
+    a consumer can ask 「具体属于哪类工作/服务动物？」 instead.
+    """
+    rs = _resolve([STATUTE_BAN], animal="dog", service_role="working", exceptions=[GUIDE_EXEMPTION])
+    assert rs.effect == "conditional"
+    assert rs.applied_exceptions == []
+    assert rs.pending_exceptions == ["exc-butie"]
+    assert rs.missing_inputs == ["service_role"]
 
 
 def test_expired_exception_falls_back_to_base():
@@ -185,7 +222,14 @@ def test_conditional_exception_works_too():
         effect="conditional",
         conditions=({"condition_type": "leash_required", "value_flag": True},),
     )
-    rs = _resolve([STATUTE_BAN], animal="dog", service_role="working", exceptions=[conditional])
+    rs = _resolve(
+        [STATUTE_BAN],
+        animal="dog",
+        service_role="working",
+        declared_role="guide_dog",
+        holder_context=HolderContext.of(HolderScope.PERSON_WITH_DISABILITY.value),
+        exceptions=[conditional],
+    )
     assert rs.effect == "conditional"
     assert "leash_required" in rs.obligations
 

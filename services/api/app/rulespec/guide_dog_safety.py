@@ -58,8 +58,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
+from app.models.enums import HolderScope
+from app.rulespec.holder_scope import HolderContext
 from app.rulespec.statutory_proviso import BindingMode
 from app.rulespec.v05_resolver import (
+    EffectiveRuleSet,
     LayeredException,
     LayeredRule,
     RuleLayer,
@@ -74,6 +77,15 @@ __all__ = [
 
 #: The state recorded when a base ships without an executable statutory exception.
 REQUIRED_LEGAL_EXCEPTION_NOT_EXECUTABLE = "REQUIRED_LEGAL_EXCEPTION_NOT_EXECUTABLE"
+#: A carve-out that names a holder condition but fires for any handler.
+HOLDER_CONDITION_NOT_ENFORCED = "HOLDER_CONDITION_NOT_ENFORCED"
+#: A holder-conditional carve-out answered ALLOWED without any holder context.
+UNCONDITIONAL_ALLOW_WITHOUT_HOLDER_CONTEXT = "UNCONDITIONAL_ALLOW_WITHOUT_HOLDER_CONTEXT"
+
+#: The statutory holder status of the 条例第二十三条但书 (「盲人携带导盲犬」).
+#: Used only to *measure* the path — the gate never invents this condition, it
+#: reads whether the carve-out row declares one (ADR-031 §14).
+STATUTORY_GUIDE_DOG_HOLDER = HolderScope.PERSON_WITH_DISABILITY.value
 
 
 @dataclass(frozen=True)
@@ -118,6 +130,17 @@ class GuideDogSafetyProbe:
     #: whether *any* executable same-layer exception was found
     exception_source: str = "none"  # batch | published | jurisdiction | none
     explanation: tuple[str, ...] = ()
+    # --- ADR-031: the holder half of the proviso ---------------------------
+    #: the holder condition the applied carve-out declares ("" ⇒ it names none)
+    holder_scope: str = ""
+    #: guide dog + a handler who satisfies the declared holder condition
+    guide_dog_matching_holder_effect: str = ""
+    #: guide dog + a handler who is known not to satisfy it
+    guide_dog_nonmatching_holder_effect: str = ""
+    #: guide dog + no holder context supplied at all
+    guide_dog_unknown_holder_effect: str = ""
+    #: context the resolver says a consumer must supply for the withheld path
+    missing_inputs: tuple[str, ...] = ()
 
     @property
     def has_executable_exception(self) -> bool:
@@ -125,14 +148,54 @@ class GuideDogSafetyProbe:
 
         Judged by the resolver's own output rather than by inspecting the
         exception list, so an exception that exists but is unreachable cannot
-        count as a path.
+        count as a path. Measured with the holder condition *satisfied*: a
+        statutory right that only exists for a class of handlers is still a
+        right, and the gate asks whether that right is executable.
         """
         return bool(self.applied_exceptions)
 
     @property
+    def holder_condition_enforced(self) -> bool:
+        """A declared holder condition must exclude a non-matching handler.
+
+        Only meaningful when the carve-out declares one; a carve-out that names
+        no holder restriction is unrestricted by its own source and is never
+        held to the statute's stricter wording (ADR-031 §14 — layers stay
+        independent, so an OPERATOR_POLICY 「导盲犬可以进入」 is not polluted).
+        """
+        if not self.holder_scope:
+            return True
+        return not self.guide_dog_nonmatching_holder_applies
+
+    @property
+    def guide_dog_nonmatching_holder_applies(self) -> bool:
+        return bool(self.applied_exceptions) and self.guide_dog_nonmatching_holder_effect not in (
+            "prohibited",
+            "unknown",
+        )
+
+    @property
+    def no_unconditional_allow(self) -> bool:
+        """With no holder context, a holder-conditional path must not say ALLOWED."""
+        if not self.holder_scope:
+            return True
+        return self.guide_dog_unknown_holder_effect != "allowed"
+
+    @property
     def safe_to_publish(self) -> bool:
-        """Base ships only if the ordinary dog is prohibited AND the guide dog is not."""
-        return self.ordinary_dog_prohibited and not self.guide_dog_prohibited
+        """Base ships only if the ordinary dog is prohibited AND the guide dog is not.
+
+        "The guide dog is not prohibited" is judged with the holder condition
+        satisfied — and additionally the path must not be an unconditional
+        allowance for a holder-restricted carve-out, nor fire for a handler the
+        statute does not name.
+        """
+        return (
+            self.ordinary_dog_prohibited
+            and not self.guide_dog_prohibited
+            and self.holder_condition_enforced
+            and self.no_unconditional_allow
+        )
 
     @property
     def block_reason(self) -> str:
@@ -140,6 +203,10 @@ class GuideDogSafetyProbe:
             return ""
         if not self.ordinary_dog_prohibited:
             return "BASE_DOES_NOT_GOVERN_ORDINARY_DOG"
+        if not self.holder_condition_enforced:
+            return HOLDER_CONDITION_NOT_ENFORCED
+        if not self.no_unconditional_allow:
+            return UNCONDITIONAL_ALLOW_WITHOUT_HOLDER_CONTEXT
         return REQUIRED_LEGAL_EXCEPTION_NOT_EXECUTABLE
 
 
@@ -251,30 +318,40 @@ def probe_guide_dog_safety_path(
             now=now,
             exceptions=matched,
         )
-        # guide dog: the proviso must apply, so it must not resolve prohibited
-        guide = resolve(
-            legal=[base_rule],
-            guidance=[],
-            template_rules=[],
-            operator_rules=[],
-            event_rules=[],
-            animal="dog",
-            service_role="working",
-            declared_role="guide_dog",
-            action=str(base_rule.action),
-            zone_id=zone_id,
-            now=now,
-            exceptions=matched,
+        # guide dog, three times (ADR-031): the proviso is conditional on the
+        # holder, so one query cannot establish both that it *can* fire and that
+        # it does *not* fire for everyone.
+        #
+        #   matching   — the handler satisfies what the carve-out requires
+        #   nonmatching— a handler who provably does not
+        #   unknown    — no holder context supplied (what a public API sees)
+        declared_holders = {e.holder_scope for e in matched if e.holder_scope}
+        matching_context = (
+            HolderContext.of(*declared_holders)
+            if declared_holders
+            else HolderContext.of(STATUTORY_GUIDE_DOG_HOLDER)
         )
+        guide_match = _guide_dog_query(
+            base_rule, matched, zone_id, now, holder_context=matching_context
+        )
+        guide_nonmatch = _guide_dog_query(
+            base_rule, matched, zone_id, now, holder_context=HolderContext.of()
+        )
+        guide_unknown = _guide_dog_query(base_rule, matched, zone_id, now, holder_context=None)
         probe = GuideDogSafetyProbe(
             base_rule_id=base_rule_id,
             place_name=str(base.get("place_name") or ""),
             ordinary_dog_prohibited=ordinary.effect == "prohibited",
-            guide_dog_prohibited=guide.effect == "prohibited",
-            guide_dog_effect=guide.effect,
-            applied_exceptions=tuple(guide.applied_exceptions),
-            exception_source=label if guide.applied_exceptions else "none",
-            explanation=tuple(guide.explanation_steps),
+            guide_dog_prohibited=guide_match.effect == "prohibited",
+            guide_dog_effect=guide_match.effect,
+            applied_exceptions=tuple(guide_match.applied_exceptions),
+            exception_source=label if guide_match.applied_exceptions else "none",
+            explanation=tuple(guide_match.explanation_steps),
+            holder_scope=next(iter(sorted(declared_holders)), ""),
+            guide_dog_matching_holder_effect=guide_match.effect,
+            guide_dog_nonmatching_holder_effect=guide_nonmatch.effect,
+            guide_dog_unknown_holder_effect=guide_unknown.effect,
+            missing_inputs=tuple(guide_unknown.missing_inputs),
         )
         if probe.has_executable_exception:
             return probe
@@ -293,7 +370,43 @@ def probe_guide_dog_safety_path(
         zone_id=zone_id,
         now=now,
     )
-    guide = resolve(
+    guide_match = _guide_dog_query(base_rule, [], zone_id, now)
+    guide_nonmatch = _guide_dog_query(
+        base_rule, [], zone_id, now, holder_context=HolderContext.of()
+    )
+    guide_unknown = _guide_dog_query(base_rule, [], zone_id, now)
+    return GuideDogSafetyProbe(
+        base_rule_id=base_rule_id,
+        place_name=str(base.get("place_name") or ""),
+        ordinary_dog_prohibited=ordinary.effect == "prohibited",
+        guide_dog_prohibited=guide_match.effect == "prohibited",
+        guide_dog_effect=guide_match.effect,
+        applied_exceptions=(),
+        exception_source="none",
+        explanation=tuple(guide_match.explanation_steps),
+        guide_dog_matching_holder_effect=guide_match.effect,
+        guide_dog_nonmatching_holder_effect=guide_nonmatch.effect,
+        guide_dog_unknown_holder_effect=guide_unknown.effect,
+        missing_inputs=tuple(guide_unknown.missing_inputs),
+    )
+
+
+def _guide_dog_query(
+    base_rule: LayeredRule,
+    exceptions: list[LayeredException],
+    zone_id: str | None,
+    now: datetime,
+    *,
+    holder_context: HolderContext | None = None,
+) -> EffectiveRuleSet:
+    """One guide-dog resolver query against one base (ADR-031 §8/§9/§7).
+
+    The subject is pinned with ``declared_role``: the question is about a guide
+    dog, not about "some service dog", and an underspecified group query would
+    be withheld for a missing role — which would silently empty every gate that
+    measures the statutory path.
+    """
+    return resolve(
         legal=[base_rule],
         guidance=[],
         template_rules=[],
@@ -305,14 +418,6 @@ def probe_guide_dog_safety_path(
         action=str(base_rule.action),
         zone_id=zone_id,
         now=now,
-    )
-    return GuideDogSafetyProbe(
-        base_rule_id=base_rule_id,
-        place_name=str(base.get("place_name") or ""),
-        ordinary_dog_prohibited=ordinary.effect == "prohibited",
-        guide_dog_prohibited=guide.effect == "prohibited",
-        guide_dog_effect=guide.effect,
-        applied_exceptions=(),
-        exception_source="none",
-        explanation=tuple(guide.explanation_steps),
+        exceptions=exceptions,
+        holder_context=holder_context,
     )

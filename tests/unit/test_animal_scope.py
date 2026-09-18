@@ -48,6 +48,7 @@ from app.rulespec.animal_scope import (
     NON_SERVICE_ROLES,
     SERVICE_DOG_QUERY_ROLES,
     QuerySubject,
+    carve_out_covers,
     compound_split_is_exhaustive,
     holder_scope_allows,
     legal_subjects,
@@ -56,6 +57,7 @@ from app.rulespec.animal_scope import (
     query_subjects,
     rule_governs,
 )
+from app.rulespec.holder_scope import HolderContext
 from app.rulespec.v05_resolver import LayeredException, LayeredRule, resolve
 
 NOW = datetime(2026, 9, 15, 12, 0, tzinfo=UTC)
@@ -94,7 +96,15 @@ GUIDE_DOG_CARVE_OUT = LayeredException(
 )
 
 
-def _resolve(legal, operator=(), exceptions=(), *, service_role, declared_role=None):
+def _resolve(
+    legal,
+    operator=(),
+    exceptions=(),
+    *,
+    service_role,
+    declared_role=None,
+    holder_context=None,
+):
     return resolve(
         legal=list(legal),
         guidance=[],
@@ -108,6 +118,7 @@ def _resolve(legal, operator=(), exceptions=(), *, service_role, declared_role=N
         now=NOW,
         exceptions=list(exceptions),
         declared_role=declared_role,
+        holder_context=holder_context,
     )
 
 
@@ -123,11 +134,17 @@ def test_01_ordinary_dog_in_mall_is_prohibited():
 
 
 def test_02_guide_dog_in_mall_gets_the_local_exception():
+    """ADR-031: the 但书 is 「盲人携带导盲犬」 — the holder is part of the norm.
+
+    The carve-out therefore only fires once the holder condition is satisfied;
+    see ``test_adr030_holder_scope.py`` for the unknown / non-matching halves.
+    """
     rs = _resolve(
         [MALL_DOG_BAN],
         exceptions=[GUIDE_DOG_CARVE_OUT],
         service_role="working",
         declared_role=AnimalRole.GUIDE_DOG.value,
+        holder_context=HolderContext.of(HolderScope.PERSON_WITH_DISABILITY.value),
     )
     assert rs.effect == "allowed"
     assert rs.applied_exceptions == ["exc-guide"]
@@ -249,6 +266,29 @@ def test_06b_parent_expansion_is_only_legal_when_the_source_said_the_same_thing(
     assert parent_expansion_is_legal("guide_dog", "guide_dog") is True
     assert parent_expansion_is_legal("guide_dog", "service_dog") is False
     assert parent_expansion_is_legal("导盲犬", "service_dog") is False
+
+
+def test_06b2_a_carve_out_must_cover_the_whole_query_not_just_part_of_it():
+    """ADR-031 §10-§12: existence semantics are not a legal argument.
+
+    A 导盲犬 proviso covers one of the four roles an underspecified service-dog
+    question could be about. ``rule_governs`` (existential) still says the
+    proviso is *about* that group — that is what makes it findable — but
+    ``carve_out_covers`` refuses to let it answer the group question, which is
+    what stops the parent query inheriting one member's allowance.
+    """
+    guide_dog = "service_dog", AnimalRole.GUIDE_DOG.value, "exact"
+    group = query_subjects(QuerySubject("dog", "working", None))
+    assert len(group) > 1
+    assert rule_governs(group, *guide_dog)  # findable…
+    assert not carve_out_covers(group, *guide_dog)  # …but not answerable
+
+    pinned = query_subjects(QuerySubject("dog", "working", AnimalRole.GUIDE_DOG.value))
+    assert carve_out_covers(pinned, *guide_dog)
+
+    # a source that genuinely names the whole group *is* answerable
+    whole_group = "service_dog", "service_dog", "exact"
+    assert carve_out_covers(group, *whole_group)
 
 
 def test_06c_non_exact_normalisation_confers_no_legal_effect():

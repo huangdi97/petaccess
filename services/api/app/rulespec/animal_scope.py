@@ -220,13 +220,45 @@ def rule_governs(
     subject_scope_normalized: str | None,
     normalization_type: str | None,
 ) -> bool:
-    """Does a rule with this recorded scope govern a query about ``query`` subjects?"""
+    """Does a rule with this recorded scope govern a query about ``query`` subjects?
+
+    Existential on purpose: a statute written of 「犬」 governs a question about
+    *any* dog, including one the asker has not narrowed down yet.
+    """
     if not query:
         return False
     scope = legal_subjects(animal_scope, subject_scope_normalized, normalization_type)
     if scope is None:
         return False
     return bool(query & scope)
+
+
+def carve_out_covers(
+    query: frozenset[str],
+    animal_scope: str | None,
+    subject_scope_normalized: str | None,
+    normalization_type: str | None,
+) -> bool:
+    """Does a carve-out answer this query *completely*? (ADR-031)
+
+    The dual of :func:`rule_governs`, and deliberately stricter. A prohibition
+    written of 「犬」 may govern an underspecified service-dog question, but an
+    exemption written of 「导盲犬」 may not: it covers one of the four roles the
+    question could be about, so applying it would answer a question the source
+    never answered.
+
+    That is the *existence semantics* defect: "some child of the parent scope
+    hits an exception, therefore the parent query is allowed". Under this
+    predicate a carve-out fires only when every subject the query might denote
+    is inside it — ``query ⊆ carve-out`` — so a group query never inherits the
+    allowance of one of its members.
+    """
+    if not query:
+        return False
+    scope = legal_subjects(animal_scope, subject_scope_normalized, normalization_type)
+    if scope is None:
+        return False
+    return query <= scope
 
 
 def parent_expansion_is_legal(source_scope: str, stored_scope: str) -> bool:
@@ -244,7 +276,17 @@ def holder_scope_allows(rule_holder_scope: str | None, is_person_with_disability
 
     A rule that names ``person_with_disability`` does not silently extend to any
     handler; a rule that names ``any_handler`` (or names nothing) is unaffected.
+
+    This is the *boolean* form, kept for the duty-side tests: the caller always
+    supplies a truth value, so "unknown" cannot arise. The resolver uses the
+    four-state :func:`app.rulespec.holder_scope.evaluate_holder` instead — one
+    implementation, two shapes.
     """
-    if rule_holder_scope == HolderScope.PERSON_WITH_DISABILITY.value:
-        return is_person_with_disability
-    return True
+    from app.rulespec.holder_scope import HolderContext, HolderMatch, evaluate_holder
+
+    context = (
+        HolderContext.of(HolderScope.PERSON_WITH_DISABILITY.value)
+        if is_person_with_disability
+        else HolderContext.of()
+    )
+    return evaluate_holder(rule_holder_scope, context) != HolderMatch.DOES_NOT_MATCH

@@ -52,6 +52,7 @@ from app.rulespec.animal_scope import (
     SCOPE_SUBJECTS,
     normalization_confers_legal_effect,
 )
+from app.rulespec.holder_scope import HolderContext
 from app.rulespec.v05_boundary import match as boundary_match
 from app.rulespec.v05_resolver import (
     LayeredException,
@@ -1787,14 +1788,23 @@ def effective_rules(
     """v0.5 resolution: layered rules → EffectiveRuleSet (explainable).
 
     Body: {"animal": "dog", "service_role": "none", "action": "enter",
-           "zone_id": null, "declared_role": "guide_dog" (optional)}
+           "zone_id": null, "declared_role": "guide_dog" (optional),
+           "holder_scopes": ["person_with_disability"] (optional)}
 
     ``declared_role`` (ADR-025) pins the query to one precise animal role, so a
     hearing-dog question does not inherit a guide-dog proviso.
+
+    ``holder_scopes`` (ADR-031) is the **ephemeral** statement of who is
+    handling the animal. It is read for this request and never stored:
+    disability status is a sensitive attribute and there is no column for it.
+    Omitting it does not mean "no" — a carve-out that names a holder condition
+    is withheld and the answer becomes conditional with ``missing_inputs``,
+    rather than an unconditional allowance or a bare prohibition.
     """
     if db.get(Place, place_id) is None:
         raise NotFound("场所不存在")
     grouped = _load_layered_rules(db, place_id)
+    holder_scopes = body.get("holder_scopes")
     rs = resolve(
         legal=grouped["legal"],
         guidance=grouped["guidance"],
@@ -1808,6 +1818,9 @@ def effective_rules(
         now=datetime.now(UTC),
         exceptions=grouped["exceptions"],
         declared_role=body.get("declared_role"),
+        # None ⇔ not supplied. An explicit empty list means "supplied, and the
+        # handler holds no statutory status", which is a different state.
+        holder_context=HolderContext.of(*holder_scopes) if holder_scopes is not None else None,
     )
     # ADR-025: the normative-effect layer is additive — `effect` keeps its
     # 3-value contract for existing clients, while these fields carry what the
@@ -1829,6 +1842,13 @@ def effective_rules(
         "explanation_steps": rs.explanation_steps,
         "obligations": rs.obligations,
         "applied_exceptions": rs.applied_exceptions,
+        # --- ADR-031: conditional answers carry what is missing -------------
+        # Progressive-question hook (no UI yet): the backend contract exposes
+        # the context a consumer would have to collect, never the attribute
+        # itself. `pending_exceptions` is provenance for what was *withheld*.
+        "missing_inputs": rs.missing_inputs,
+        "pending_exceptions": rs.pending_exceptions,
+        "duplicate_exceptions": rs.duplicate_exceptions,
         # --- normative effect layer (ADR-025, additive) ---
         "normative_effects": normative_effects,
         "operator_obligations": operator_obligations,

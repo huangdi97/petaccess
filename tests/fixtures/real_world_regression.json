@@ -528,11 +528,13 @@
      "service_role": "working",
      "action": "enter",
      "zone_key": "indoor",
-     "expected_effect": "allowed",
+     "expected_effect": "conditional",
      "expected_compliance": "CONSISTENT",
-     "expected_exceptions": [
-      "exc-gh-legal-dog-sd"
-     ]
+     "expected_exceptions": [],
+     "expected_missing_inputs": [
+      "service_role"
+     ],
+     "note": "ADR-031 §12: the 导盲犬 carve-out covers one of four roles; an underspecified service-dog query is no longer answered 'allowed' by existence semantics — it is withheld pending the concrete role."
     }
    ]
   },
@@ -802,11 +804,13 @@
      "service_role": "working",
      "action": "enter",
      "zone_key": "whole_store",
-     "expected_effect": "allowed",
+     "expected_effect": "conditional",
      "expected_compliance": "CONSISTENT",
-     "expected_exceptions": [
-      "exc-sb-legal-dog-sd"
-     ]
+     "expected_exceptions": [],
+     "expected_missing_inputs": [
+      "service_role"
+     ],
+     "note": "ADR-031 §12: 导盲犬 carve-out withheld — the query did not name a role."
     }
    ]
   },
@@ -1021,11 +1025,13 @@
      "service_role": "working",
      "action": "enter",
      "zone_key": "indoor",
-     "expected_effect": "allowed",
+     "expected_effect": "conditional",
      "expected_compliance": "CONSISTENT",
-     "expected_exceptions": [
-      "exc-xm-legal-dog-sd"
-     ]
+     "expected_exceptions": [],
+     "expected_missing_inputs": [
+      "service_role"
+     ],
+     "note": "ADR-031 §12: 导盲犬 carve-out withheld — the query did not name a role."
     }
    ]
   }
