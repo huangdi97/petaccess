@@ -61,6 +61,23 @@ class Source(Base, PkMixin, TimestampMixin):
     )
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
 
+    # --- Wave 01 (30-50 PLACE EXPANSION): freshness on the source itself -----
+    # "When did we last actually re-read this, and when must we again?" A source
+    # cited by a published rule had no machine-readable answer before; at
+    # expansion scale there is no human who remembers. review_due means
+    # "needs re-verification" — it is NOT a statement that the source is
+    # invalid, and no resolver path may read it as one.
+    last_verified_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    review_due_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    freshness_policy_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("freshness_policy.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+
     rules: Mapped[list["AccessRule"]] = relationship(back_populates="source")
 
 

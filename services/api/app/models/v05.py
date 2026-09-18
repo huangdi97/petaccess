@@ -190,6 +190,15 @@ class RuleCandidate(Base, PkMixin, TimestampMixin):
         nullable=True,
     )  # candidates from the evidence chain cite their bundle (brief §5)
 
+    # --- Wave 01 -------------------------------------------------------------
+    #: which expansion wave produced this candidate
+    expansion_run_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    #: deterministic ingestion guard over (source, content hash, place, zone,
+    #: scope, action, effect). A monitor that re-detects identical content must
+    #: not create a second candidate for the same statement. It is a dedup key,
+    #: NOT an identity claim about the rule.
+    dedup_key: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
+
 
 CANDIDATE_TRANSITIONS: dict[str, set[str]] = {
     "DISCOVERED": {"EXTRACTED", "REJECTED"},
@@ -223,6 +232,10 @@ class DataSourceJob(Base, PkMixin, TimestampMixin):
     result_counts: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     errors: Mapped[list | None] = mapped_column(JSON, nullable=True)
     audit_ref: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    #: which expansion wave this job belonged to (Wave 01: EXP-R1-W01-…). A
+    #: script that finishes without the system knowing which run produced its
+    #: rows leaves unauditable data behind.
+    expansion_run_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
 
 
 class SourceMonitor(Base, PkMixin, TimestampMixin):
@@ -251,6 +264,16 @@ class SourceMonitor(Base, PkMixin, TimestampMixin):
     #: last fetched excerpt, retained so a detected change can be turned into a
     #: traceable EvidenceBundle (brief §6: source changed → diff → bundle)
     last_excerpt: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # --- Wave 01: conditional-GET bookkeeping --------------------------------
+    #: HTTP status of the last sweep. A monitor that starts returning 403 must be
+    #: distinguishable from a page that genuinely did not change — without this
+    #: the two look identical (content_hash simply stays put).
+    last_http_status: Mapped[int | None] = mapped_column(nullable=True)
+    #: wall-clock milliseconds of the last sweep, for rate-limit backoff tuning
+    last_latency_ms: Mapped[int | None] = mapped_column(nullable=True)
+    #: which expansion wave created this monitor (see EXPANSION_RUN_ID)
+    expansion_run_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
 
 
 class FreshnessPolicy(Base, PkMixin, TimestampMixin):

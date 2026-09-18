@@ -17,7 +17,15 @@ from app.core.audit_events import AuditEvent
 from app.core.errors import ApiError, NotFound
 from app.core.security import get_current_user, require_role
 from app.db.session import get_db
-from app.models import AccessRule, Place, RuleException, Source, User, Zone
+from app.models import (
+    AccessRule,
+    JurisdictionException,
+    Place,
+    RuleException,
+    Source,
+    User,
+    Zone,
+)
 from app.models.enums import (
     AnimalScope,
     HolderScope,
@@ -60,7 +68,6 @@ from app.services.candidate_service import (
     transition,
 )
 from app.services.publish_gate import LAYER_VALUES, MANDATORY_LEVEL_VALUES
-from app.services.source_monitor import check_monitor
 
 router = APIRouter(tags=["v05"])
 admin = APIRouter(prefix="/admin", tags=["admin:v05"])
@@ -92,6 +99,12 @@ class CandidateIn(BaseModel):
     normative_effect: str | None = Field(default=None, max_length=32)
     holder_scope: str | None = Field(default=None, max_length=32)
     operator_obligations: list | None = None
+    # --- Wave 01 -------------------------------------------------------------
+    #: which expansion run produced this candidate
+    expansion_run_id: str | None = Field(default=None, max_length=64)
+    #: deterministic ingestion guard; a repeat of the same statement must not
+    #: become a second candidate (it is not an identity claim about the rule)
+    dedup_key: str | None = Field(default=None, max_length=128)
 
 
 #: subject scopes a rule may legally be normalised onto
@@ -311,6 +324,8 @@ def admin_create_candidate(
         normative_effect=body.normative_effect,
         holder_scope=body.holder_scope,
         operator_obligations=body.operator_obligations,
+        expansion_run_id=body.expansion_run_id,
+        dedup_key=body.dedup_key,
     )
     record_audit(
         db,
@@ -615,6 +630,8 @@ class MonitorIn(BaseModel):
     url: str = Field(min_length=10, max_length=500)
     schedule_minutes: int = Field(default=1440, ge=5)
     place_id: str | None = None
+    #: Wave 01: which expansion run initialized this monitor
+    expansion_run_id: str | None = Field(default=None, max_length=64)
 
 
 class RuleExceptionIn(BaseModel):
@@ -819,6 +836,238 @@ def admin_transition_rule_exception(
     return _serialize_rule_exception(exc)
 
 
+class FreshnessPolicyIn(BaseModel):
+    """A named re-verification interval (brief §34).
+
+    review_due means "check this again", NOT "this is invalid". Nothing in the
+    resolver may read an overdue policy as permission to drop evidence or flip
+    a conclusion to allowed/prohibited.
+    """
+
+    name: str = Field(min_length=1, max_length=80)
+    venue_scope: str | None = Field(default=None, max_length=40)
+    rule_layer: str | None = Field(default=None, max_length=30)
+    review_interval_days: int = Field(default=90, ge=1, le=3650)
+
+
+class DataSourceJobIn(BaseModel):
+    """A bounded, auditable production run (brief §39).
+
+    Every Wave 01 collection runs inside one of these so the system — not just
+    the operator's memory — knows where a batch of rows came from.
+    """
+
+    job_type: str = Field(min_length=1, max_length=30)
+    target_scope: dict | None = None
+    provider: str | None = Field(default=None, max_length=60)
+    source_id: str | None = None
+    expansion_run_id: str | None = Field(default=None, max_length=64)
+
+
+class SourceFreshnessIn(BaseModel):
+    """Assign a freshness policy to a source and set its review window."""
+
+    freshness_policy_id: str
+    last_verified_at: datetime | None = None
+    review_due_at: datetime | None = None
+
+
+@admin.post("/freshness-policies", status_code=201)
+def admin_create_freshness_policy(
+    body: FreshnessPolicyIn,
+    user: User = Depends(require_role(UserRole.MODERATOR)),
+    db: Session = Depends(get_db),
+):
+    from app.models.v05 import FreshnessPolicy
+
+    policy = FreshnessPolicy(
+        name=body.name,
+        venue_scope=body.venue_scope,
+        rule_layer=body.rule_layer,
+        review_interval_days=body.review_interval_days,
+    )
+    db.add(policy)
+    db.flush()
+    record_audit(
+        db,
+        request=None,
+        actor_user_id=user.id,
+        actor_role=str(user.role),
+        action=AuditEvent.FRESHNESS_POLICY_CREATE.value,
+        target_type="freshness_policy",
+        target_id=policy.id,
+        after_state={"name": body.name, "review_interval_days": body.review_interval_days},
+    )
+    db.commit()
+    return {
+        "id": policy.id,
+        "name": policy.name,
+        "review_interval_days": policy.review_interval_days,
+    }
+
+
+@admin.get("/freshness-policies", response_model=Page[dict])
+def admin_list_freshness_policies(
+    limit: int = Query(default=50, le=200),
+    offset: int = Query(default=0, ge=0),
+    user: User = Depends(require_role(UserRole.MODERATOR)),
+    db: Session = Depends(get_db),
+):
+    from app.models.v05 import FreshnessPolicy
+
+    stmt = select(FreshnessPolicy).order_by(FreshnessPolicy.created_at.desc())
+    total = db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
+    rows = db.scalars(stmt.limit(limit).offset(offset)).all()
+    return Page(
+        items=[
+            {
+                "id": p.id,
+                "name": p.name,
+                "venue_scope": p.venue_scope,
+                "rule_layer": p.rule_layer,
+                "review_interval_days": p.review_interval_days,
+            }
+            for p in rows
+        ],
+        total=total,
+        limit=limit,
+        offset=offset,
+    )
+
+
+@admin.post("/sources/{source_id}/freshness")
+def admin_assign_source_freshness(
+    source_id: str,
+    body: SourceFreshnessIn,
+    user: User = Depends(require_role(UserRole.MODERATOR)),
+    db: Session = Depends(get_db),
+):
+    from app.models.v05 import FreshnessPolicy
+
+    src = db.get(Source, source_id)
+    if src is None:
+        raise NotFound("来源不存在")
+    if db.get(FreshnessPolicy, body.freshness_policy_id) is None:
+        raise NotFound("新鲜度策略不存在")
+    src.freshness_policy_id = body.freshness_policy_id
+    if body.last_verified_at is not None:
+        src.last_verified_at = body.last_verified_at
+    if body.review_due_at is not None:
+        src.review_due_at = body.review_due_at
+    record_audit(
+        db,
+        request=None,
+        actor_user_id=user.id,
+        actor_role=str(user.role),
+        action=AuditEvent.SOURCE_FRESHNESS_ASSIGN.value,
+        target_type="source",
+        target_id=src.id,
+        after_state={
+            "freshness_policy_id": body.freshness_policy_id,
+            "review_due_at": str(body.review_due_at),
+        },
+    )
+    db.commit()
+    return {
+        "source_id": src.id,
+        "freshness_policy_id": src.freshness_policy_id,
+        "last_verified_at": src.last_verified_at,
+        "review_due_at": src.review_due_at,
+    }
+
+
+@admin.post("/data-source-jobs", status_code=201)
+def admin_create_data_source_job(
+    body: DataSourceJobIn,
+    user: User = Depends(require_role(UserRole.MODERATOR)),
+    db: Session = Depends(get_db),
+):
+    """Open a bounded production run. The caller closes it via the PATCH below."""
+    from app.models.v05 import DataSourceJob
+
+    job = DataSourceJob(
+        job_type=body.job_type,
+        state="RUNNING",
+        target_scope=body.target_scope,
+        actor_user_id=user.id,
+        provider=body.provider,
+        source_id=body.source_id,
+        started_at=datetime.now(UTC),
+        expansion_run_id=body.expansion_run_id,
+    )
+    db.add(job)
+    db.flush()
+    record_audit(
+        db,
+        request=None,
+        actor_user_id=user.id,
+        actor_role=str(user.role),
+        action=AuditEvent.DATA_SOURCE_JOB_CREATE.value,
+        target_type="data_source_job",
+        target_id=job.id,
+        after_state={"job_type": body.job_type, "expansion_run_id": body.expansion_run_id},
+    )
+    db.commit()
+    return {"id": job.id, "job_type": job.job_type, "state": job.state}
+
+
+class DataSourceJobFinishIn(BaseModel):
+    state: str = Field(pattern="^(COMPLETED|FAILED|PARTIAL)$")
+    result_counts: dict | None = None
+    errors: list | None = None
+
+
+@admin.post("/data-source-jobs/{job_id}/finish")
+def admin_finish_data_source_job(
+    job_id: str,
+    body: DataSourceJobFinishIn,
+    user: User = Depends(require_role(UserRole.MODERATOR)),
+    db: Session = Depends(get_db),
+):
+    from app.models.v05 import DataSourceJob
+
+    job = db.get(DataSourceJob, job_id)
+    if job is None:
+        raise NotFound("采集任务不存在")
+    job.state = body.state
+    job.completed_at = datetime.now(UTC)
+    job.result_counts = body.result_counts
+    job.errors = body.errors
+    db.commit()
+    return {"id": job.id, "state": job.state, "completed_at": job.completed_at}
+
+
+@admin.get("/data-source-jobs", response_model=Page[dict])
+def admin_list_data_source_jobs(
+    limit: int = Query(default=50, le=200),
+    offset: int = Query(default=0, ge=0),
+    user: User = Depends(require_role(UserRole.MODERATOR)),
+    db: Session = Depends(get_db),
+):
+    from app.models.v05 import DataSourceJob
+
+    stmt = select(DataSourceJob).order_by(DataSourceJob.created_at.desc())
+    total = db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
+    rows = db.scalars(stmt.limit(limit).offset(offset)).all()
+    return Page(
+        items=[
+            {
+                "id": j.id,
+                "job_type": j.job_type,
+                "state": j.state,
+                "expansion_run_id": j.expansion_run_id,
+                "started_at": j.started_at,
+                "completed_at": j.completed_at,
+                "result_counts": j.result_counts,
+            }
+            for j in rows
+        ],
+        total=total,
+        limit=limit,
+        offset=offset,
+    )
+
+
 @admin.post("/monitors", status_code=201)
 def admin_create_monitor(
     body: MonitorIn,
@@ -832,6 +1081,10 @@ def admin_create_monitor(
         url=body.url,
         schedule_minutes=body.schedule_minutes,
         place_id=body.place_id,
+        expansion_run_id=body.expansion_run_id,
+        # A monitor with no next_check_at is never due, so the fleet would sit
+        # idle until someone swept it by hand. Scheduling starts at creation.
+        next_check_at=db.execute(select(func.now())).scalar_one(),
     )
     db.add(monitor)
     db.flush()
@@ -888,37 +1141,12 @@ def admin_check_monitor(
     (SourceArtifact → EvidenceBundle) and then a RuleCandidate. A rule is never
     written directly — it still has to pass review.
     """
-    from app.services.evidence_service import record_monitor_change
+    from app.services.monitor_sweep import apply_monitor_change
 
     monitor = db.get(SourceMonitor, monitor_id)
     if monitor is None:
         raise NotFound("监控不存在")
-    sweep = check_monitor(monitor)
-    candidate_id = None
-    bundle_id = None
-    artifact_id = None
-    if sweep.outcome == "changed":
-        # source changed → diff artifact → EvidenceBundle (brief §6)
-        recorded = record_monitor_change(
-            db,
-            monitor,
-            fetch_result=sweep.fetch,
-            previous_hash=sweep.previous_hash,
-        )
-        if recorded is not None:
-            artifact, bundle = recorded
-            artifact_id, bundle_id = artifact.id, bundle.id
-        # diff artifact = raw excerpt kept on candidate for review; the
-        # candidate cites the bundle so the publish gate can trace evidence
-        cand = create_from_extraction(
-            db,
-            source_id=monitor.source_id,
-            extraction_method="url_monitor",
-            place_id=monitor.place_id,
-            raw_text=monitor.last_excerpt or "source content changed",
-            evidence_bundle_id=bundle_id,
-        )
-        candidate_id = cand.id
+    res = apply_monitor_change(db, monitor)
     record_audit(
         db,
         request=None,
@@ -928,20 +1156,88 @@ def admin_check_monitor(
         target_type="source_monitor",
         target_id=monitor.id,
         after_state={
-            "outcome": sweep.outcome,
-            "candidate_id": candidate_id,
-            "evidence_bundle_id": bundle_id,
+            "outcome": res["outcome"],
+            "candidate_id": res["candidate_id"],
+            "evidence_bundle_id": res["evidence_bundle_id"],
+            "duplicate_change": res["duplicate_change"],
         },
     )
     db.commit()
     return {
-        "outcome": sweep.outcome,
-        "candidate_id": candidate_id,
-        "artifact_id": artifact_id,
-        "evidence_bundle_id": bundle_id,
+        "outcome": res["outcome"],
+        "candidate_id": res["candidate_id"],
+        "artifact_id": res["artifact_id"],
+        "evidence_bundle_id": res["evidence_bundle_id"],
         "content_hash": (monitor.content_hash or "")[:12],
         "failure_count": monitor.failure_count,
+        "last_http_status": monitor.last_http_status,
+        "duplicate_change": res["duplicate_change"],
     }
+
+
+@admin.post("/monitors/sweep")
+def admin_sweep_due_monitors(
+    limit: int = Query(default=50, ge=1, le=200),
+    user: User = Depends(require_role(UserRole.MODERATOR)),
+    db: Session = Depends(get_db),
+):
+    """Sweep every monitor that is due (§28-§33).
+
+    Without this, ``SourceMonitor`` rows only move when an operator names one
+    explicitly — which is fine for a handful and useless for a fleet.
+    """
+    from app.services.monitor_sweep import sweep_due_monitors
+
+    summary = sweep_due_monitors(db, limit=limit)
+    # One audit row per monitor, not one for the sweep: a sweep-level row would
+    # have no target_id, and an audit event with an empty target is useless when
+    # someone later asks "who changed this source's state and when".
+    for res in summary["results"]:
+        record_audit(
+            db,
+            request=None,
+            actor_user_id=user.id,
+            actor_role=str(user.role),
+            action=AuditEvent.MONITOR_CHECK.value,
+            target_type="source_monitor",
+            target_id=str(res["monitor_id"]),
+            after_state={
+                "outcome": res["outcome"],
+                "candidate_id": res["candidate_id"],
+                "evidence_bundle_id": res["evidence_bundle_id"],
+                "duplicate_change": res["duplicate_change"],
+                "sweep": True,
+            },
+        )
+    db.commit()
+    return summary
+
+
+@admin.get("/monitors/due", response_model=Page[dict])
+def admin_list_due_monitors(
+    limit: int = Query(default=50, le=200),
+    offset: int = Query(default=0, ge=0),
+    user: User = Depends(require_role(UserRole.MODERATOR)),
+    db: Session = Depends(get_db),
+):
+    """What the next sweep would touch, without causing any outbound traffic."""
+    from app.services.monitor_sweep import select_due_monitors
+
+    rows = select_due_monitors(db, limit=limit)
+    items = [
+        {
+            "id": m.id,
+            "source_id": m.source_id,
+            "url": m.url[:120],
+            "status": m.status,
+            "next_check_at": m.next_check_at,
+            "last_checked_at": m.last_checked_at,
+            "failure_count": m.failure_count,
+            "content_hash": (m.content_hash or "")[:12],
+        }
+        for m in rows
+    ]
+    return Page(items=items, total=len(items), limit=limit, offset=offset)
 
 
 # ------------------------------------------------------------------ org/templates
@@ -1440,6 +1736,36 @@ def _load_layered_rules(db: Session, place_id: str) -> dict:
         if rule_ids
         else []
     )
+
+    # ADR-030: statutory provisos are stored once and bind by instrument, so the
+    # 条例第二十三条但书 is not copied into one row per venue. Only a reviewed
+    # AND current proviso is ever applied — an unactivated one binds nothing.
+    for p in db.scalars(
+        select(JurisdictionException).where(
+            JurisdictionException.status == "current",
+            JurisdictionException.review_status == "reviewed_active",
+        )
+    ).all():
+        exceptions.append(
+            LayeredException(
+                id=p.id,
+                rule_id="",  # instrument-bound: no single base rule is named
+                animal_scope=p.animal_scope,
+                effect=p.effect or "allowed",
+                source_id=p.source_id,
+                status=p.status,
+                effective_from=p.effective_from,
+                effective_to=p.effective_to,
+                subject_scope_normalized=p.subject_scope_normalized,
+                normalization_type=p.normalization_type or "exact",
+                normative_effect=p.normative_effect,
+                holder_scope=p.holder_scope,
+                binding=p.binding,
+                instrument_source_ids=tuple(p.instrument_source_ids or ()),
+                applies_to_layer=p.applies_to_layer,
+                applies_to_effects=tuple(p.applies_to_effects or ("prohibited",)),
+            )
+        )
 
     return {
         "legal": legal,
@@ -2166,6 +2492,8 @@ class ArtifactIn(BaseModel):
     redistribution_allowed: bool = False
     evidence_strength: str | None = Field(default=None, max_length=24)
     data_source_job_id: str | None = None
+    #: Wave 01: which expansion run collected this artifact
+    expansion_run_id: str | None = Field(default=None, max_length=64)
 
 
 class BundleIn(BaseModel):
@@ -2180,6 +2508,8 @@ class BundleIn(BaseModel):
     place_match_evidence: dict | None = None
     temporal_evidence: dict | None = None
     privacy_notes: str | None = None
+    #: Wave 01: which expansion run produced this bundle
+    expansion_run_id: str | None = Field(default=None, max_length=64)
 
 
 class ObservationCandidateIn(BaseModel):
@@ -2193,6 +2523,11 @@ class ObservationCandidateIn(BaseModel):
     extraction_method: str | None = None
     raw_text: str | None = None
     derivation_confidence: float | None = None
+    #: Wave 01: which expansion run produced this observation
+    expansion_run_id: str | None = Field(default=None, max_length=64)
+    #: deterministic ingestion guard — a repeat of the same observation must not
+    #: become a second candidate
+    dedup_key: str | None = Field(default=None, max_length=128)
 
 
 @admin.post("/source-artifacts", status_code=201)
@@ -2237,6 +2572,7 @@ def admin_create_artifact(
         source_id=body.source_id,
         data_source_job_id=body.data_source_job_id,
         evidence_strength=strength,
+        expansion_run_id=body.expansion_run_id,
     )
     record_audit(
         db,
@@ -2296,6 +2632,7 @@ def admin_create_bundle(
         place_match_evidence=body.place_match_evidence,
         temporal_evidence=body.temporal_evidence,
         privacy_notes=body.privacy_notes,
+        expansion_run_id=body.expansion_run_id,
     )
     record_audit(
         db,
@@ -2377,6 +2714,13 @@ def admin_create_observation_candidate(
         occurred_at=body.occurred_at,
         raw_text=body.raw_text,
     )
+    # Wave 01 traceability is set after creation: the service signature is
+    # shared with the AI lane, which has no run context.
+    if body.expansion_run_id:
+        cand.expansion_run_id = body.expansion_run_id
+    if body.dedup_key:
+        cand.dedup_key = body.dedup_key
+    db.flush()
     record_audit(
         db,
         request=None,

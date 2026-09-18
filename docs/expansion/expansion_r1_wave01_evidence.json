@@ -1,0 +1,1475 @@
+{
+  "_readme": [
+    "30_50_PLACE_EXPANSION_R1 — WAVE_01 evidence register.",
+    "expansion_run_id = EXP-R1-W01-20260918 ; review revision = EXP-R1-W01-REVIEW-R1.",
+    "Two workstreams: A = 补齐存量无规则场所（不得计入新增 10）；B = 新增恰好 10 个真实 Place。",
+    "capture_method: web_reader_fetch = 本轮由抓取器直取页面原文；search_snippet = 仅取搜索结果返回的片段，页面本身未直抓，按 §12 降级为 secondary/lead-only。",
+    "excerpt / fragments 均为逐字原文（verbatim），不做改写、不做归纳。",
+    "content_hash 由 ingest 脚本对实际使用的 excerpt/fragment 计算 sha256。",
+    "chain: Source -> SourceArtifact -> EvidenceBundle -> RuleCandidate/ObservationCandidate。全部候选停在 REVIEW_PENDING；本轮不发布、不填 human final_decision（§3/§41）。",
+    "geo: 全部新场所 location = null，geo.status = PLACE_GEO_PENDING。来源未公布坐标时不推断坐标（§72-§73）。",
+    "LEGAL 层的适用性是「场所类型落在《上海市养犬管理条例》第二十三条列举清单内」这一事实，写入 bundle.extracted_fragment，由人工复核；OPERATOR_POLICY 永不被写成覆盖 LEGAL。"
+  ],
+  "expansion_run_id": "EXP-R1-W01-20260918",
+  "review_revision": "EXP-R1-W01-REVIEW-R1",
+  "captured_at": "2026-09-18",
+  "admin_email": "expansion-w01-admin@example.com",
+  "wave": "WAVE_01",
+  "jurisdiction": "上海市",
+  "extraction_method": "agent_assisted_extraction_2026_09_18",
+  "extraction_provider": "workbuddy-agent",
+  "workstreams": {
+    "A_existing_7": {
+      "note": "存量 7 个无已发布规则场所的补齐。本轮仅对本轮真正取得新公开来源的场所追加证据；未取得新来源的场所如实标注 NO_NEW_EVIDENCE_THIS_WAVE，不补假证据（§3）。",
+      "augmented": ["dl-disneyland", "qt-taikoo-li", "gh-grand-gateway"],
+      "no_new_evidence": [
+        "mn-kaidi-hongkou",
+        "dj-daji-park",
+        "gc-huangpu-sect",
+        "xm-west-bund-gate-m"
+      ]
+    },
+    "B_new_10": {
+      "count": 10,
+      "place_type_diversity": 8,
+      "keys": [
+        "zoo-shanghai",
+        "mus-shanghai-east",
+        "pk-century",
+        "ml-hk-taikoo",
+        "ml-suhewan-mixc",
+        "sc-panlong-tiandi",
+        "ht-langham-xintiandi",
+        "cafe-omitofee-pujiang",
+        "rest-charlies-madang",
+        "sq-west-bund-gatem"
+      ]
+    }
+  },
+  "shared_sources": [
+    {
+      "key": "sh_dog_regulation_gov",
+      "source_type": "statute_or_regulation",
+      "issuer": "上海市人民政府门户《上海市养犬管理条例》",
+      "issuer_verification": "verified",
+      "source_url": "https://www.shanghai.gov.cn/gwk/affairs/content/0033@641a604d24ef4395a1c2c2ac6871f45a",
+      "published_at": "2011-05-15",
+      "capture_method": "web_reader_fetch",
+      "directness": "direct",
+      "spatial_precision": "unknown",
+      "artifact_type": "web_page_text",
+      "collector_type": "agent_web_reader",
+      "publisher_type": "government_official",
+      "storage_allowed": true,
+      "display_allowed": true,
+      "redistribution_allowed": false,
+      "excerpt": "第二十三条 禁止携带犬只进入办公楼、学校、医院、体育场馆、博物馆、图书馆、文化娱乐场所、候车（机、船）室、餐饮场所、商场、宾馆等场所或者乘坐公共汽车、电车、轨道交通等公共交通工具。前款以外其他场所的管理者可以决定其管理场所是否允许携带犬只进入。禁止犬只进入的，应当设置明显的禁入标识。居民委员会、村民委员会、业主委员会可以根据相关公约或者规约，划定本居住区禁止犬只进入的公共区域。盲人携带导盲犬的，不受本条规定的限制。",
+      "fragments": {
+        "art23_p1": "第二十三条 禁止携带犬只进入办公楼、学校、医院、体育场馆、博物馆、图书馆、文化娱乐场所、候车（机、船）室、餐饮场所、商场、宾馆等场所或者乘坐公共汽车、电车、轨道交通等公共交通工具。",
+        "art23_p2": "前款以外其他场所的管理者可以决定其管理场所是否允许携带犬只进入。禁止犬只进入的，应当设置明显的禁入标识。",
+        "art23_p5": "盲人携带导盲犬的，不受本条规定的限制。",
+        "art44": "第四十四条 违反本条例第二十三条第一款规定，携带犬只进入禁止进入的场所或者公共交通工具且不听劝阻的，由公安部门责令改正，可以处二十元以上二百元以下罚款。",
+        "art59": "第五十九条 军用、警用犬只以及动物园、科研机构等单位特定用途犬只的管理，按照国家相关规定执行。"
+      },
+      "notes": "条例文本为 2011-02-23 通过、2016-02-23 修正版本（市政府门户 2024-08-28 发布）。媒体报道所称「2026 年修订」在本轮未取得官方原文，故不写入，仅作为 needs_verification 线索留档。"
+    }
+  ],
+  "places": [
+    {
+      "key": "zoo-shanghai",
+      "workstream": "B",
+      "canonical_name": "上海动物园",
+      "place_type": "scenic_area",
+      "district": "长宁区",
+      "canonical_address": "上海市长宁区虹桥路2381号",
+      "aliases": ["西郊公园（旧称）", "Shanghai Zoo"],
+      "geo": { "status": "PLACE_GEO_PENDING", "reason": "官方页面未公布坐标；不推断" },
+      "place_match_evidence": {
+        "matched_by": "canonical_name_and_official_domain",
+        "canonical_name": "上海动物园",
+        "canonical_address": "上海市长宁区虹桥路2381号",
+        "official_domain": "shanghaizoo.cn",
+        "spatial_precision": "unknown",
+        "disambiguation": "与上海野生动物园（浦东新区南六公路178号）为不同法人、不同园区的两个场所；本条仅指长宁区虹桥路2381号上海动物园。"
+      },
+      "zones": [
+        { "key": "whole_park", "name": "全园", "zone_type": "area", "indoor_outdoor": "outdoor" }
+      ],
+      "sources": [
+        {
+          "key": "zoo_official",
+          "source_type": "official_operator_policy",
+          "issuer": "上海动物园官网《温馨提示》",
+          "issuer_verification": "verified",
+          "source_url": "https://www.shanghaizoo.cn/sites/shanghaizoo/shanghaizoo_wap/tishi.html",
+          "published_at": null,
+          "capture_method": "web_reader_fetch",
+          "directness": "direct",
+          "spatial_precision": "precise",
+          "artifact_type": "web_page_text",
+          "collector_type": "agent_web_reader",
+          "publisher_type": "operator_official",
+          "storage_allowed": true,
+          "display_allowed": true,
+          "redistribution_allowed": false,
+          "excerpt": "【温馨提示】1、请不要投喂动物 我们有私人订制的科学食谱，你的不要不要啦！2、请不要戏弄动物 动物脆弱的心你们有时不懂，不要吓死宝宝啦！3、请不要携带动物入园 为避免动物间交叉感染，把你的爱宠托了吧！4、请遵守《文明游园守则》 文明游园靠你我他，为自己加油点赞吧！5、禁止携带和使用大功率音响设备、播放高分贝音乐等行为。",
+          "fragments": {
+            "no_animal": "3、请不要携带动物入园 为避免动物间交叉感染，把你的爱宠托了吧！"
+          }
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "zoo-no-animal-enter",
+          "source_key": "zoo_official",
+          "fragment": "no_animal",
+          "zone_key": "whole_park",
+          "animal_scope": "other",
+          "action": "enter",
+          "effect": "prohibited",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "动物",
+          "subject_scope_normalized": "other",
+          "normalization_type": "exact",
+          "normative_effect": "prohibition",
+          "holder_scope": "any_handler",
+          "conditions": [],
+          "confidence": 0.9,
+          "review_note": "来源用词为「动物」（全部动物），非「宠物」/「犬只」。按条例第五十九条动物园特定用途犬只另有国家规定；本条按场所管理方声明记录为 OPERATOR_POLICY，非 LEGAL 层（第二十三条清单不含动物园）。"
+        }
+      ],
+      "observations": []
+    },
+    {
+      "key": "mus-shanghai-east",
+      "workstream": "B",
+      "canonical_name": "上海博物馆东馆",
+      "place_type": "museum",
+      "district": "浦东新区",
+      "canonical_address": "上海市浦东新区世纪大道1952号",
+      "aliases": ["上博东馆", "Shanghai Museum East"],
+      "geo": { "status": "PLACE_GEO_PENDING", "reason": "官方页面未公布坐标；不推断" },
+      "place_match_evidence": {
+        "matched_by": "canonical_name_and_official_domain",
+        "canonical_name": "上海博物馆东馆",
+        "canonical_address": "上海市浦东新区世纪大道1952号",
+        "official_domain": "shanghaimuseum.net",
+        "spatial_precision": "unknown",
+        "disambiguation": "与上海博物馆人民广场馆（黄浦区人民大道201号）为同一法人下的不同馆区，规则分别适用；本条仅指东馆。"
+      },
+      "zones": [
+        { "key": "whole_building", "name": "全馆", "zone_type": "area", "indoor_outdoor": "indoor" }
+      ],
+      "sources": [
+        {
+          "key": "museum_official",
+          "source_type": "official_operator_policy",
+          "issuer": "上海博物馆官网《到访·东馆》参观须知",
+          "issuer_verification": "verified",
+          "source_url": "https://www.shanghaimuseum.net/mu/frontend/pg/m/service/visit-east",
+          "published_at": "2024-09-15",
+          "capture_method": "web_reader_fetch",
+          "directness": "direct",
+          "spatial_precision": "precise",
+          "artifact_type": "web_page_text",
+          "collector_type": "agent_web_reader",
+          "publisher_type": "operator_official",
+          "storage_allowed": true,
+          "display_allowed": true,
+          "redistribution_allowed": false,
+          "excerpt": "其他注意事项：勿触摸文物展品。勿在馆内奔跑、大声喧哗。下列人员谢绝入馆：（1）酗酒者；（2）衣冠不整者；（3）无民事行为能力且无监护人陪同者；（4）携带宠物者。",
+          "fragments": {
+            "no_pet": "下列人员谢绝入馆：（1）酗酒者；（2）衣冠不整者；（3）无民事行为能力且无监护人陪同者；（4）携带宠物者。",
+            "effective": "本须知自2024年9月15日开始实行。"
+          }
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "mus-east-legal-dog-prohibited",
+          "source_key": "shared:sh_dog_regulation_gov",
+          "fragment": "art23_p1",
+          "zone_key": "whole_building",
+          "animal_scope": "dog",
+          "action": "enter",
+          "effect": "prohibited",
+          "rule_layer": "LEGAL",
+          "mandatory_level": "mandatory",
+          "source_scope_exact": "犬只",
+          "subject_scope_normalized": "dog",
+          "normalization_type": "exact",
+          "normative_effect": "prohibition",
+          "holder_scope": "any_handler",
+          "conditions": [],
+          "confidence": 0.95,
+          "statutory_applicability": "场所类型 museum 落在《上海市养犬管理条例》第二十三条第一款列举的「博物馆」之内。",
+          "review_note": "LEGAL 层禁入。适用性证据为场所类型与法条列举项的对应，需人工复核。"
+        },
+        {
+          "rule_id": "mus-east-legal-guidedog-exempt",
+          "source_key": "shared:sh_dog_regulation_gov",
+          "fragment": "art23_p5",
+          "zone_key": "whole_building",
+          "animal_scope": "service_dog",
+          "action": "enter",
+          "effect": "allowed",
+          "is_exception_on": "mus-east-legal-dog-prohibited",
+          "rule_layer": "LEGAL",
+          "mandatory_level": "mandatory",
+          "source_scope_exact": "导盲犬",
+          "subject_scope_normalized": "guide_dog",
+          "normalization_type": "exact",
+          "normative_effect": "exempt_from_prohibition",
+          "holder_scope": "person_with_disability",
+          "conditions": [],
+          "confidence": 0.95,
+          "review_note": "同层 LEGAL carve-out；来源用词为「导盲犬」，scope 不做向「全部服务犬」的泛化（ADR-025）。"
+        },
+        {
+          "rule_id": "mus-east-op-pet-prohibited",
+          "source_key": "museum_official",
+          "fragment": "no_pet",
+          "zone_key": "whole_building",
+          "animal_scope": "ordinary_pet",
+          "action": "enter",
+          "effect": "prohibited",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "携带宠物者",
+          "subject_scope_normalized": "ordinary_pet",
+          "normalization_type": "exact",
+          "normative_effect": "prohibition",
+          "holder_scope": "any_handler",
+          "conditions": [],
+          "confidence": 0.9,
+          "review_note": "场馆自行声明，与 LEGAL 层同向；不得被解读为覆盖 LEGAL。"
+        }
+      ],
+      "observations": []
+    },
+    {
+      "key": "pk-century",
+      "workstream": "B",
+      "canonical_name": "世纪公园",
+      "place_type": "park",
+      "district": "浦东新区",
+      "canonical_address": "上海市浦东新区锦绣路1001号",
+      "aliases": ["上海世纪公园", "Century Park"],
+      "geo": { "status": "PLACE_GEO_PENDING", "reason": "官方口径来源未公布坐标；不推断" },
+      "place_match_evidence": {
+        "matched_by": "canonical_name_and_address",
+        "canonical_name": "世纪公园",
+        "canonical_address": "上海市浦东新区锦绣路1001号",
+        "spatial_precision": "unknown",
+        "disambiguation": "与杭州市萧山区「钱江世纪公园」同名不同地；本条仅指上海浦东世纪公园。"
+      },
+      "zones": [
+        {
+          "key": "pet_park",
+          "name": "世纪宠物乐园（芳花园区域）",
+          "zone_type": "pet_area",
+          "indoor_outdoor": "outdoor"
+        },
+        {
+          "key": "other_areas",
+          "name": "世纪公园其他区域",
+          "zone_type": "area",
+          "indoor_outdoor": "outdoor"
+        }
+      ],
+      "sources": [
+        {
+          "key": "century_petpark_official",
+          "source_type": "government_service",
+          "issuer": "上海市文化和旅游事业发展中心《又一新地标！这个周末，带「毛孩子」来放飞》（转述世纪公园官方口径）",
+          "issuer_verification": "verified",
+          "source_url": "https://www.meet-in-shanghai.net/tc/news/another-new-landmark-this-weekend-bring-the-furry-child-to-fly-966480/",
+          "published_at": null,
+          "capture_method": "search_snippet",
+          "directness": "secondary",
+          "spatial_precision": "approximate",
+          "artifact_type": "web_page_text",
+          "collector_type": "agent_web_reader",
+          "publisher_type": "government_official",
+          "storage_allowed": true,
+          "display_allowed": true,
+          "redistribution_allowed": false,
+          "needs_verification": true,
+          "excerpt": "世纪公园宠物乐园将于3月8日正式开放。这一总面积约1.2万平方米的宠物友好天地，将为宠主和爱宠打造一站式遛宠、社交、养宠服务新场景。该乐园位于世纪公园芳花园区域，用围栏与公园其他区域隔开，确保宠物与游客分区活动。温馨提示：除世纪宠物乐园区域外，世纪公园其他区域仍禁止携带宠物入园。",
+          "fragments": {
+            "pet_park_open": "该乐园位于世纪公园芳花园区域，用围栏与公园其他区域隔开，确保宠物与游客分区活动。",
+            "other_banned": "温馨提示：除世纪宠物乐园区域外，世纪公园其他区域仍禁止携带宠物入园。",
+            "entry_rules": "入园须知：请携带宠物有效证照，配合现场核验；文明养犬，全程看管爱宠，及时清理排泄物。"
+          }
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "century-petpark-allowed",
+          "source_key": "century_petpark_official",
+          "fragment": "pet_park_open",
+          "zone_key": "pet_park",
+          "animal_scope": "ordinary_pet",
+          "action": "enter",
+          "effect": "conditional",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "宠物",
+          "subject_scope_normalized": "ordinary_pet",
+          "normalization_type": "exact",
+          "normative_effect": "conditional_permission",
+          "holder_scope": "any_handler",
+          "conditions": [
+            {
+              "type": "reservation_required",
+              "value": true,
+              "note": "采用预约制，需通过「世纪宠物乐园」小程序登记宠物信息并预约"
+            },
+            {
+              "type": "registration_required",
+              "value": true,
+              "note": "入园请携带宠物有效证照，配合现场核验"
+            },
+            { "type": "time_windows", "value": "09:00-18:00", "note": "乐园开放时间" }
+          ],
+          "confidence": 0.8,
+          "review_note": "Zone-first：局部开放不得写成 Place 级 ALLOWED（§17）。来源为政府文旅平台转述园方口径，needs_verification=true。"
+        },
+        {
+          "rule_id": "century-other-prohibited",
+          "source_key": "century_petpark_official",
+          "fragment": "other_banned",
+          "zone_key": "other_areas",
+          "animal_scope": "ordinary_pet",
+          "action": "enter",
+          "effect": "prohibited",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "宠物",
+          "subject_scope_normalized": "ordinary_pet",
+          "normalization_type": "exact",
+          "normative_effect": "prohibition",
+          "holder_scope": "any_handler",
+          "conditions": [],
+          "confidence": 0.8,
+          "review_note": "公园不在《上海市养犬管理条例》第二十三条第一款列举清单内，管理者可自行决定（第二十三条第二款），故记为 OPERATOR_POLICY。"
+        }
+      ],
+      "observations": []
+    },
+    {
+      "key": "ml-hk-taikoo",
+      "workstream": "B",
+      "canonical_name": "兴业太古汇",
+      "place_type": "mall",
+      "district": "静安区",
+      "canonical_address": "上海市静安区南京西路1266号",
+      "aliases": ["HKRI Taikoo Hui", "兴业太古汇广场"],
+      "geo": { "status": "PLACE_GEO_PENDING", "reason": "来源未公布坐标；不推断" },
+      "place_match_evidence": {
+        "matched_by": "canonical_name_and_address",
+        "canonical_name": "兴业太古汇",
+        "canonical_address": "上海市静安区南京西路1266号",
+        "spatial_precision": "unknown",
+        "disambiguation": "与前滩太古里（浦东东育路500弄）、蟠龙天地、苏河湾万象天地为不同项目；本条仅指南京西路1266号兴业太古汇。"
+      },
+      "zones": [
+        {
+          "key": "indoor_public",
+          "name": "商场室内公共区域",
+          "zone_type": "area",
+          "indoor_outdoor": "indoor"
+        }
+      ],
+      "sources": [
+        {
+          "key": "hkri_news_2026",
+          "source_type": "external_web_reference",
+          "issuer": "青年报《上海部分商场撤除「宠物友好」标识》（记者实地采访，含运营方表态）",
+          "issuer_verification": "verified",
+          "source_url": "http://www.why.com.cn/epublish/qnb/html/2026-03/11/content_122_42304.htm",
+          "published_at": "2026-03-11",
+          "capture_method": "search_snippet",
+          "directness": "secondary",
+          "spatial_precision": "approximate",
+          "artifact_type": "web_page_text",
+          "collector_type": "agent_web_reader",
+          "publisher_type": "news_media",
+          "storage_allowed": true,
+          "display_allowed": false,
+          "redistribution_allowed": false,
+          "needs_verification": true,
+          "excerpt": "港汇恒隆广场、兴业太古汇自今年2月起正式实施全新宠物管理规定，明确禁止除导盲犬等工作犬以外的其他宠物进入商场室内公共区域，全面撤除「宠物友好」相关标识。兴业太古汇方面表示，此次政策调整依据《上海市养犬管理条例》中商场等公共场所禁犬入内的法规要求，叠加此前收到的各类消费者相关投诉，为维护商场公共秩序、优化整体消费环境，决定对「宠物友好」政策予以收紧。",
+          "fragments": {
+            "indoor_ban": "明确禁止除导盲犬等工作犬以外的其他宠物进入商场室内公共区域，全面撤除「宠物友好」相关标识。",
+            "operator_statement": "兴业太古汇方面表示，此次政策调整依据《上海市养犬管理条例》中商场等公共场所禁犬入内的法规要求。"
+          }
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "hkri-legal-dog-prohibited",
+          "source_key": "shared:sh_dog_regulation_gov",
+          "fragment": "art23_p1",
+          "zone_key": "indoor_public",
+          "animal_scope": "dog",
+          "action": "enter",
+          "effect": "prohibited",
+          "rule_layer": "LEGAL",
+          "mandatory_level": "mandatory",
+          "source_scope_exact": "犬只",
+          "subject_scope_normalized": "dog",
+          "normalization_type": "exact",
+          "normative_effect": "prohibition",
+          "holder_scope": "any_handler",
+          "conditions": [],
+          "confidence": 0.95,
+          "statutory_applicability": "场所类型 mall 落在《上海市养犬管理条例》第二十三条第一款列举的「商场」之内。"
+        },
+        {
+          "rule_id": "hkri-legal-guidedog-exempt",
+          "source_key": "shared:sh_dog_regulation_gov",
+          "fragment": "art23_p5",
+          "zone_key": "indoor_public",
+          "animal_scope": "service_dog",
+          "action": "enter",
+          "effect": "allowed",
+          "is_exception_on": "hkri-legal-dog-prohibited",
+          "rule_layer": "LEGAL",
+          "mandatory_level": "mandatory",
+          "source_scope_exact": "导盲犬",
+          "subject_scope_normalized": "guide_dog",
+          "normalization_type": "exact",
+          "normative_effect": "exempt_from_prohibition",
+          "holder_scope": "person_with_disability",
+          "conditions": [],
+          "confidence": 0.95,
+          "review_note": "运营方口径为「导盲犬等工作犬」，宽于法条「导盲犬」。本条只按法条原文记录导盲犬；「等工作犬」未取得法条依据，不得写入（ADR-025）。"
+        },
+        {
+          "rule_id": "hkri-op-other-pet-prohibited",
+          "source_key": "hkri_news_2026",
+          "fragment": "indoor_ban",
+          "zone_key": "indoor_public",
+          "animal_scope": "ordinary_pet",
+          "action": "enter",
+          "effect": "prohibited",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "除导盲犬等工作犬以外的其他宠物",
+          "subject_scope_normalized": "ordinary_pet",
+          "normalization_type": "legal_interpretation_required",
+          "normative_effect": "prohibition",
+          "holder_scope": "any_handler",
+          "conditions": [],
+          "confidence": 0.7,
+          "review_note": "来源为「工作犬以外其他宠物」，与存储 scope ordinary_pet 不完全等价，标记 legal_interpretation_required 交人工判定；且来源为媒体报道，needs_verification=true。"
+        }
+      ],
+      "observations": []
+    },
+    {
+      "key": "ml-suhewan-mixc",
+      "workstream": "B",
+      "canonical_name": "上海苏河湾万象天地",
+      "place_type": "mall",
+      "district": "静安区",
+      "canonical_address": "上海市静安区福建北路100号",
+      "aliases": ["苏河湾万象天地", "MixC Suhewan"],
+      "geo": { "status": "PLACE_GEO_PENDING", "reason": "来源未公布坐标；不推断" },
+      "place_match_evidence": {
+        "matched_by": "canonical_name_and_address",
+        "canonical_name": "上海苏河湾万象天地",
+        "canonical_address": "上海市静安区福建北路100号",
+        "spatial_precision": "unknown",
+        "disambiguation": "与深圳万象天地、上海其他「万象城」系列项目区分；本条仅指静安区福建北路100号苏河湾万象天地。"
+      },
+      "zones": [
+        {
+          "key": "indoor",
+          "name": "室内商铺及公共区域",
+          "zone_type": "area",
+          "indoor_outdoor": "indoor"
+        },
+        {
+          "key": "outdoor",
+          "name": "室外开放区域",
+          "zone_type": "plaza",
+          "indoor_outdoor": "outdoor"
+        }
+      ],
+      "sources": [
+        {
+          "key": "mixc_news_2026",
+          "source_type": "external_web_reference",
+          "issuer": "腾讯新闻《不是退步而是更规范！上海部分商场取消或缩小宠物友好范围》（记者实地探访）",
+          "issuer_verification": "verified",
+          "source_url": "https://news.qq.com/rain/a/20260324A06BG000",
+          "published_at": "2026-03-24",
+          "capture_method": "search_snippet",
+          "directness": "secondary",
+          "spatial_precision": "approximate",
+          "artifact_type": "web_page_text",
+          "collector_type": "agent_web_reader",
+          "publisher_type": "news_media",
+          "storage_allowed": true,
+          "display_allowed": false,
+          "redistribution_allowed": false,
+          "needs_verification": true,
+          "excerpt": "第三类是「精准细化型」，不搞「一刀切」，而是「内外有别」。苏河湾万象天地和前滩太古里就走了这条路线，原本全域宠物友好的商场，如今收紧了室内空间的规定，毛孩子不能再随意进入室内商铺，但室外区域依然对宠物敞开大门。商场户外还保留了宠物推车租赁、宠物「噗噗」收集处、宠物饮水点等设施。",
+          "fragments": {
+            "indoor_tighten": "原本全域宠物友好的商场，如今收紧了室内空间的规定，毛孩子不能再随意进入室内商铺",
+            "outdoor_open": "但室外区域依然对宠物敞开大门。商场户外还保留了宠物推车租赁、宠物「噗噗」收集处、宠物饮水点等设施。"
+          }
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "mixc-legal-dog-prohibited",
+          "source_key": "shared:sh_dog_regulation_gov",
+          "fragment": "art23_p1",
+          "zone_key": "indoor",
+          "animal_scope": "dog",
+          "action": "enter",
+          "effect": "prohibited",
+          "rule_layer": "LEGAL",
+          "mandatory_level": "mandatory",
+          "source_scope_exact": "犬只",
+          "subject_scope_normalized": "dog",
+          "normalization_type": "exact",
+          "normative_effect": "prohibition",
+          "holder_scope": "any_handler",
+          "conditions": [],
+          "confidence": 0.9,
+          "statutory_applicability": "室内商铺属「商场」范畴，落在第二十三条第一款列举之内；室外开放区域是否属「商场」需人工判定，故室外侧仅记 OPERATOR_POLICY。",
+          "review_note": "LEGAL 层只作用于 indoor zone；不得外推到室外。"
+        },
+        {
+          "rule_id": "mixc-op-outdoor-conditional",
+          "source_key": "mixc_news_2026",
+          "fragment": "outdoor_open",
+          "zone_key": "outdoor",
+          "animal_scope": "ordinary_pet",
+          "action": "enter",
+          "effect": "conditional",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "宠物",
+          "subject_scope_normalized": "ordinary_pet",
+          "normalization_type": "exact",
+          "normative_effect": "conditional_permission",
+          "holder_scope": "any_handler",
+          "conditions": [
+            {
+              "type": "leash_required",
+              "value": true,
+              "note": "按《上海市养犬管理条例》第二十二条文明养犬要求；来源未逐字声明，需人工复核"
+            }
+          ],
+          "confidence": 0.65,
+          "review_note": "与 LEGAL 层潜在张力：若室外区域被认定为「商场」的一部分，则 OPERATOR_POLICY 不得放宽 LEGAL。此处如实并存，交人工复核（§20 禁止 OPERATOR 覆盖 LEGAL）。"
+        }
+      ],
+      "observations": []
+    },
+    {
+      "key": "sc-panlong-tiandi",
+      "workstream": "B",
+      "canonical_name": "上海蟠龙天地",
+      "place_type": "scenic_area",
+      "district": "青浦区",
+      "canonical_address": "上海市青浦区蟠鼎路123弄8号",
+      "aliases": ["蟠龙天地", "公园里的新天地", "Panlong Tiandi"],
+      "geo": { "status": "PLACE_GEO_PENDING", "reason": "来源未公布坐标；不推断" },
+      "place_match_evidence": {
+        "matched_by": "canonical_name_and_official_domain_and_gov_source",
+        "canonical_name": "上海蟠龙天地",
+        "canonical_address": "上海市青浦区蟠鼎路123弄8号",
+        "official_domain": "xintiandi.com",
+        "gov_source": "shqp.gov.cn",
+        "spatial_precision": "unknown",
+        "disambiguation": "与上海新天地（黄浦区）同属瑞安系但为不同项目；2025-03 获批上海郊区首个国家级旅游休闲街区。"
+      },
+      "zones": [
+        {
+          "key": "pet_park",
+          "name": "户外宠物公园",
+          "zone_type": "pet_area",
+          "indoor_outdoor": "outdoor"
+        },
+        {
+          "key": "open_street",
+          "name": "开放式商业街区公共区域",
+          "zone_type": "road",
+          "indoor_outdoor": "outdoor"
+        }
+      ],
+      "sources": [
+        {
+          "key": "panlong_official_brand",
+          "source_type": "official_operator_policy",
+          "issuer": "瑞安新天地官网《蟠龙天地品牌官宣》",
+          "issuer_verification": "verified",
+          "source_url": "https://www.xintiandi.com/en/event/%e7%be%8e%e5%a5%bd%e9%9b%86%e5%90%88%ef%bc%8c%e6%8e%a2%e7%b4%a2%e7%94%9f%e6%b4%bb%e7%9a%84%e5%8f%a6%e4%b8%80%e7%a7%8d%e5%86%99%e6%b3%95",
+          "published_at": null,
+          "capture_method": "search_snippet",
+          "directness": "direct",
+          "spatial_precision": "approximate",
+          "artifact_type": "web_page_text",
+          "collector_type": "agent_web_reader",
+          "publisher_type": "operator_official",
+          "storage_allowed": true,
+          "display_allowed": true,
+          "redistribution_allowed": false,
+          "needs_verification": true,
+          "excerpt": "蟠龙天地作为一个宠物友好社区，宠物友好覆盖大部分区域，打造近800m²宠物公园，让毛孩子们尽情撒欢，PetSugar宠物生活体验馆将丰富蟠龙宠物友好生态，从宠物食品到衣物一应俱全，让爱宠享受一站式专业有温度的高质量服务。",
+          "fragments": {
+            "friendly_community": "蟠龙天地作为一个宠物友好社区，宠物友好覆盖大部分区域，打造近800m²宠物公园"
+          }
+        },
+        {
+          "key": "panlong_gov_qingpu",
+          "source_type": "government_service",
+          "issuer": "上海市青浦区人民政府《青浦蟠龙天地荣获2023中国城市更新优秀案例之「五大片区更新奖」》",
+          "issuer_verification": "verified",
+          "source_url": "https://www.shqp.gov.cn/shqp/qpyw/20231218/1152141.html",
+          "published_at": "2023-12-18",
+          "capture_method": "search_snippet",
+          "directness": "direct",
+          "spatial_precision": "approximate",
+          "artifact_type": "web_page_text",
+          "collector_type": "agent_web_reader",
+          "publisher_type": "government_official",
+          "storage_allowed": true,
+          "display_allowed": true,
+          "redistribution_allowed": false,
+          "needs_verification": true,
+          "excerpt": "此外，还设置近1000平方米的宠物公园，为萌宠开辟欢乐天地。",
+          "fragments": {
+            "pet_park_area": "此外，还设置近1000平方米的宠物公园，为萌宠开辟欢乐天地。"
+          }
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "panlong-petpark-allowed",
+          "source_key": "panlong_official_brand",
+          "fragment": "friendly_community",
+          "zone_key": "pet_park",
+          "animal_scope": "ordinary_pet",
+          "action": "enter",
+          "effect": "conditional",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "毛孩子们",
+          "subject_scope_normalized": "ordinary_pet",
+          "normalization_type": "legal_interpretation_required",
+          "normative_effect": "conditional_permission",
+          "holder_scope": "any_handler",
+          "conditions": [
+            {
+              "type": "leash_required",
+              "value": true,
+              "note": "来源未逐字声明牵引要求；按平台默认待人工补充"
+            }
+          ],
+          "confidence": 0.6,
+          "review_note": "来源未给出可逐字引用的准入条件；「宠物友好覆盖大部分区域」不构成 ALLOWED 规则，仅作条件性候选。开放式街区/景区不在第二十三条第一款列举清单内，故为 OPERATOR_POLICY。"
+        },
+        {
+          "rule_id": "panlong-street-conditional",
+          "source_key": "panlong_official_brand",
+          "fragment": "friendly_community",
+          "zone_key": "open_street",
+          "animal_scope": "ordinary_pet",
+          "action": "enter",
+          "effect": "conditional",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "毛孩子们",
+          "subject_scope_normalized": "ordinary_pet",
+          "normalization_type": "legal_interpretation_required",
+          "normative_effect": "conditional_permission",
+          "holder_scope": "any_handler",
+          "conditions": [],
+          "confidence": 0.55,
+          "review_note": "「覆盖大部分区域」为模糊表述，且街区内含餐饮场所（第二十三条第一款独立列举）。本条不宣称全街区可携宠，交人工细化到 zone/店铺粒度。"
+        }
+      ],
+      "observations": []
+    },
+    {
+      "key": "ht-langham-xintiandi",
+      "workstream": "B",
+      "canonical_name": "上海新天地朗廷酒店",
+      "place_type": "hotel",
+      "district": "黄浦区",
+      "canonical_address": "上海市黄浦区马当路99号",
+      "aliases": ["The Langham, Shanghai, Xintiandi", "朗廷酒店（上海新天地）"],
+      "geo": { "status": "PLACE_GEO_PENDING", "reason": "来源未公布坐标；不推断" },
+      "place_match_evidence": {
+        "matched_by": "canonical_name_and_official_domain",
+        "canonical_name": "上海新天地朗廷酒店",
+        "canonical_address": "上海市黄浦区马当路99号",
+        "official_domain": "langhamhotels.com",
+        "spatial_precision": "unknown",
+        "disambiguation": "与上海其他朗廷系酒店（如虹桥）区分；本条为新天地朗廷，宠物条款来自其官网 Pawcation 礼遇页。"
+      },
+      "zones": [
+        {
+          "key": "guest_room",
+          "name": "客房内部",
+          "zone_type": "area",
+          "indoor_outdoor": "indoor"
+        },
+        { "key": "lobby", "name": "大堂", "zone_type": "area", "indoor_outdoor": "indoor" },
+        {
+          "key": "alfresco",
+          "name": "凯旋餐厅室外区域（Al Fresco）",
+          "zone_type": "dining_area",
+          "indoor_outdoor": "outdoor"
+        }
+      ],
+      "sources": [
+        {
+          "key": "langham_pawcation",
+          "source_type": "official_operator_policy",
+          "issuer": "朗廷酒店及度假酒店官网《宠物友好》（上海新天地朗廷酒店 Pawcation 礼遇条款及细则）",
+          "issuer_verification": "verified",
+          "source_url": "https://www.langhamhotels.com/sc/the-langham/shanghai/offers/room-offers/pawcation",
+          "published_at": null,
+          "capture_method": "web_reader_fetch",
+          "directness": "direct",
+          "spatial_precision": "precise",
+          "artifact_type": "web_page_text",
+          "collector_type": "agent_web_reader",
+          "publisher_type": "operator_official",
+          "storage_allowed": true,
+          "display_allowed": true,
+          "redistribution_allowed": false,
+          "excerpt": "套餐包括 包尊享双人早餐 宠物欢饮礼遇 客房内宠物护理系列 客房内宠物沙发 宠物推车租借服务 条款及细则 每间房间最多包含2只爱犬，第二只爱犬将收取525元清洁费。宠物仅限于狗狗，最大体重不超过15公斤，肩高不超过50厘米。当宠物在公共场所出现时，只可以被抱紧、装笼或乘坐宠物推车（宠物推车按实际情况提供租借服务，先到先得）宠物友好区：客房内部，大堂，凯旋餐厅的室外区域（Al Fresco）以上礼遇变更，取消将收取全额房费；预付产品不支持退款；以上礼遇不可与其他优惠同时使用，且不得以积分兑换；房价以每间，每晚，双人入住计算，需加收16.6%服务费及税费，不包含其他收费项目。我们保留随时更改促销详情的权利",
+          "fragments": {
+            "limits": "每间房间最多包含2只爱犬，第二只爱犬将收取525元清洁费。宠物仅限于狗狗，最大体重不超过15公斤，肩高不超过50厘米。",
+            "public_conduct": "当宠物在公共场所出现时，只可以被抱紧、装笼或乘坐宠物推车（宠物推车按实际情况提供租借服务，先到先得）",
+            "friendly_zones": "宠物友好区：客房内部，大堂，凯旋餐厅的室外区域（Al Fresco）"
+          }
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "langham-legal-dog-prohibited",
+          "source_key": "shared:sh_dog_regulation_gov",
+          "fragment": "art23_p1",
+          "zone_key": "guest_room",
+          "animal_scope": "dog",
+          "action": "enter",
+          "effect": "prohibited",
+          "rule_layer": "LEGAL",
+          "mandatory_level": "mandatory",
+          "source_scope_exact": "犬只",
+          "subject_scope_normalized": "dog",
+          "normalization_type": "exact",
+          "normative_effect": "prohibition",
+          "holder_scope": "any_handler",
+          "conditions": [],
+          "confidence": 0.95,
+          "statutory_applicability": "场所类型 hotel 落在《上海市养犬管理条例》第二十三条第一款列举的「宾馆」之内。",
+          "review_note": "与运营方 Pawcation 条款存在明显张力（法条禁止携带犬只进入宾馆）。两者如实并存，OPERATOR_POLICY 不得覆盖 LEGAL，交人工复核（§20）。"
+        },
+        {
+          "rule_id": "langham-op-dog-conditional-room",
+          "source_key": "langham_pawcation",
+          "fragment": "limits",
+          "zone_key": "guest_room",
+          "animal_scope": "dog",
+          "action": "stay_overnight",
+          "effect": "conditional",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "狗狗",
+          "subject_scope_normalized": "dog",
+          "normalization_type": "exact",
+          "normative_effect": "conditional_permission",
+          "holder_scope": "any_handler",
+          "conditions": [
+            { "type": "max_weight_kg", "value": 15 },
+            { "type": "max_shoulder_height_cm", "value": 50 },
+            { "type": "max_count", "value": 2 },
+            { "type": "fee", "value": "第二只爱犬 525 元清洁费" }
+          ],
+          "confidence": 0.9,
+          "review_note": "运营方官方条款，逐字可核；空间范围限于「宠物友好区」。与 LEGAL 层张力见 langham-legal-dog-prohibited。"
+        },
+        {
+          "rule_id": "langham-op-public-conduct",
+          "source_key": "langham_pawcation",
+          "fragment": "public_conduct",
+          "zone_key": "lobby",
+          "animal_scope": "dog",
+          "action": "pass_through",
+          "effect": "conditional",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "宠物",
+          "subject_scope_normalized": "dog",
+          "normalization_type": "exact",
+          "normative_effect": "conditional_permission",
+          "holder_scope": "any_handler",
+          "conditions": [
+            {
+              "type": "carrier_required",
+              "value": true,
+              "note": "只可以被抱紧、装笼或乘坐宠物推车"
+            },
+            { "type": "no_ground", "value": true }
+          ],
+          "confidence": 0.9,
+          "review_note": "结构化条件来自原文「抱紧/装笼/推车」，不得简化为 amenity 备注（§21）。"
+        },
+        {
+          "rule_id": "langham-op-alfresco-conditional",
+          "source_key": "langham_pawcation",
+          "fragment": "friendly_zones",
+          "zone_key": "alfresco",
+          "animal_scope": "dog",
+          "action": "dine",
+          "effect": "conditional",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "宠物",
+          "subject_scope_normalized": "dog",
+          "normalization_type": "exact",
+          "normative_effect": "conditional_permission",
+          "holder_scope": "any_handler",
+          "conditions": [
+            { "type": "carrier_required", "value": true },
+            { "type": "max_weight_kg", "value": 15 }
+          ],
+          "confidence": 0.85,
+          "review_note": "宠物友好区含「凯旋餐厅的室外区域（Al Fresco）」；餐厅属第二十三条第一款列举的「餐饮场所」，室外部分是否落入需人工判定。"
+        }
+      ],
+      "observations": []
+    },
+    {
+      "key": "cafe-omitofee-pujiang",
+      "workstream": "B",
+      "canonical_name": "omitofee 上海首店（浦江郊野公园滨江漫步区）",
+      "place_type": "cafe",
+      "district": "闵行区",
+      "canonical_address": "上海市闵行区浦江郊野公园滨江漫步区（闵浦二桥下）",
+      "aliases": ["omitofee 上海首店", "omitofee 咖啡营"],
+      "geo": {
+        "status": "PLACE_GEO_PENDING",
+        "reason": "来源仅描述「闵浦二桥下」「浦江郊野公园滨江漫步区」，未给出坐标；不推断"
+      },
+      "place_match_evidence": {
+        "matched_by": "canonical_name_and_address_description",
+        "canonical_name": "omitofee 上海首店",
+        "canonical_address": "上海市闵行区浦江郊野公园滨江漫步区",
+        "spatial_precision": "approximate",
+        "disambiguation": "该品牌此前深耕苏州市场，本条为上海首店（闵行浦江郊野公园滨江漫步区），与苏州门店区分。"
+      },
+      "zones": [
+        {
+          "key": "indoor_pet_rest",
+          "name": "室内空间（含专属宠物休憩区）",
+          "zone_type": "dining_area",
+          "indoor_outdoor": "indoor"
+        },
+        {
+          "key": "outdoor_park",
+          "name": "户外宠物乐园",
+          "zone_type": "pet_area",
+          "indoor_outdoor": "outdoor"
+        }
+      ],
+      "sources": [
+        {
+          "key": "omitofee_jfdaily",
+          "source_type": "external_web_reference",
+          "issuer": "上观新闻（解放日报）《5000㎡乐园，人放松、宠撒欢，上海首家人宠共生江边咖啡营开业》",
+          "issuer_verification": "verified",
+          "source_url": "https://m.jfdaily.com/sgh/detail?id=1759343",
+          "published_at": null,
+          "capture_method": "search_snippet",
+          "directness": "secondary",
+          "spatial_precision": "approximate",
+          "artifact_type": "web_page_text",
+          "collector_type": "agent_web_reader",
+          "publisher_type": "news_media",
+          "storage_allowed": true,
+          "display_allowed": false,
+          "redistribution_allowed": false,
+          "needs_verification": true,
+          "excerpt": "走进新店，美式简约工业风的室内空间通透松弛，钢铁质感装修搭配粗壮敦厚的木椅，褪去都市商业的紧绷感，适配全龄段下午茶、社交闲聊、轻食休憩的多元需求。室内设专属宠物休憩区，允许宠物随主人一同入内，顾客可边品尝咖啡享用轻餐，边陪伴爱宠。室外空间更是亮点十足，园区划分双功能宠乐区域，独立小狗乐园仅限小型犬进入，杜绝大型犬冲撞风险，保障幼犬玩耍安全；混合乐园开放全犬种活动，满足不同体型狗狗的运动需求。",
+          "fragments": {
+            "indoor_allowed": "室内设专属宠物休憩区，允许宠物随主人一同入内，顾客可边品尝咖啡享用轻餐，边陪伴爱宠。",
+            "outdoor_zoning": "园区划分双功能宠乐区域，独立小狗乐园仅限小型犬进入，杜绝大型犬冲撞风险，保障幼犬玩耍安全；混合乐园开放全犬种活动，满足不同体型狗狗的运动需求。"
+          }
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "omitofee-legal-dog-prohibited",
+          "source_key": "shared:sh_dog_regulation_gov",
+          "fragment": "art23_p1",
+          "zone_key": "indoor_pet_rest",
+          "animal_scope": "dog",
+          "action": "enter",
+          "effect": "prohibited",
+          "rule_layer": "LEGAL",
+          "mandatory_level": "mandatory",
+          "source_scope_exact": "犬只",
+          "subject_scope_normalized": "dog",
+          "normalization_type": "exact",
+          "normative_effect": "prohibition",
+          "holder_scope": "any_handler",
+          "conditions": [],
+          "confidence": 0.95,
+          "statutory_applicability": "场所类型 cafe 属《上海市养犬管理条例》第二十三条第一款列举的「餐饮场所」。",
+          "review_note": "与运营方「允许宠物随主人一同入内」直接冲突。法条为 LEGAL/mandatory，运营方声明为 OPERATOR_POLICY；如实并存，禁止自动让运营方覆盖法条（§20）。"
+        },
+        {
+          "rule_id": "omitofee-op-indoor-allowed",
+          "source_key": "omitofee_jfdaily",
+          "fragment": "indoor_allowed",
+          "zone_key": "indoor_pet_rest",
+          "animal_scope": "ordinary_pet",
+          "action": "enter",
+          "effect": "conditional",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "宠物",
+          "subject_scope_normalized": "ordinary_pet",
+          "normalization_type": "exact",
+          "normative_effect": "conditional_permission",
+          "holder_scope": "any_handler",
+          "conditions": [],
+          "confidence": 0.6,
+          "review_note": "来源为媒体报道（needs_verification=true），未取得门店官方页面原文；与 LEGAL 层冲突，交人工复核。"
+        },
+        {
+          "rule_id": "omitofee-op-outdoor-zoning",
+          "source_key": "omitofee_jfdaily",
+          "fragment": "outdoor_zoning",
+          "zone_key": "outdoor_park",
+          "animal_scope": "dog",
+          "action": "enter",
+          "effect": "conditional",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "小型犬 / 全犬种",
+          "subject_scope_normalized": "dog",
+          "normalization_type": "legal_interpretation_required",
+          "normative_effect": "conditional_permission",
+          "holder_scope": "any_handler",
+          "conditions": [
+            {
+              "type": "other_structured_note",
+              "value": "独立小狗乐园仅限小型犬；混合乐园开放全犬种",
+              "note": "来源未给出体重/肩高阈值，不可推断"
+            }
+          ],
+          "confidence": 0.6,
+          "review_note": "分区规则需拆分为两个 zone 才能准确表达；本轮先落一条候选并标注需人工细化。"
+        }
+      ],
+      "observations": []
+    },
+    {
+      "key": "rest-charlies-madang",
+      "workstream": "B",
+      "canonical_name": "CHARLIE'S 粉红汉堡（马当路店）",
+      "place_type": "restaurant",
+      "district": "黄浦区",
+      "canonical_address": "上海市黄浦区马当路441号中海环宇荟地上一层L33室",
+      "aliases": ["CHARLIE'S 粉红汉堡", "Charlie's Pink Burger"],
+      "geo": { "status": "PLACE_GEO_PENDING", "reason": "来源未公布坐标；不推断" },
+      "place_match_evidence": {
+        "matched_by": "canonical_name_and_address",
+        "canonical_name": "CHARLIE'S 粉红汉堡（马当路店）",
+        "canonical_address": "上海市黄浦区马当路441号中海环宇荟地上一层L33室",
+        "spatial_precision": "unknown",
+        "disambiguation": "品牌多门店；本条仅指马当路店（中海环宇荟）。"
+      },
+      "zones": [
+        {
+          "key": "indoor",
+          "name": "室内用餐区",
+          "zone_type": "dining_area",
+          "indoor_outdoor": "indoor"
+        },
+        {
+          "key": "outdoor",
+          "name": "室外区域",
+          "zone_type": "dining_area",
+          "indoor_outdoor": "outdoor"
+        }
+      ],
+      "sources": [
+        {
+          "key": "charlies_social_lead",
+          "source_type": "external_web_reference",
+          "issuer": "西五街《宠物友好第27站｜CHARLIE'S 粉红汉堡》（第三方平台内容，lead-only）",
+          "issuer_verification": "unverified",
+          "source_url": "https://m.xwjapp.com/article/show-1334966000.html",
+          "published_at": null,
+          "capture_method": "search_snippet",
+          "directness": "tertiary",
+          "spatial_precision": "precise",
+          "artifact_type": "web_page_text",
+          "collector_type": "agent_web_reader",
+          "publisher_type": "social_platform",
+          "storage_allowed": false,
+          "display_allowed": false,
+          "redistribution_allowed": false,
+          "needs_verification": true,
+          "excerpt": "宠物友好度:⭐⭐⭐⭐ ✅室外友好 ✅室内友好 ✅宠物可落地 ✅提供宠物餐饮 📝店名:CHARLIE'S粉红汉堡(马当路店) 📍地址:黄浦区马当路441号中海环宇荟地上一层L33室 ⏰营业时间:周一至周日 10:00~22:00",
+          "fragments": {
+            "friendly_flags": "✅室外友好 ✅室内友好 ✅宠物可落地 ✅提供宠物餐饮"
+          }
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "charlies-legal-dog-prohibited",
+          "source_key": "shared:sh_dog_regulation_gov",
+          "fragment": "art23_p1",
+          "zone_key": "indoor",
+          "animal_scope": "dog",
+          "action": "enter",
+          "effect": "prohibited",
+          "rule_layer": "LEGAL",
+          "mandatory_level": "mandatory",
+          "source_scope_exact": "犬只",
+          "subject_scope_normalized": "dog",
+          "normalization_type": "exact",
+          "normative_effect": "prohibition",
+          "holder_scope": "any_handler",
+          "conditions": [],
+          "confidence": 0.95,
+          "statutory_applicability": "场所类型 restaurant 属《上海市养犬管理条例》第二十三条第一款列举的「餐饮场所」。"
+        },
+        {
+          "rule_id": "charlies-op-lead-only",
+          "source_key": "charlies_social_lead",
+          "fragment": "friendly_flags",
+          "zone_key": "indoor",
+          "animal_scope": "ordinary_pet",
+          "action": "dine",
+          "effect": "conditional",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "宠物",
+          "subject_scope_normalized": "ordinary_pet",
+          "normalization_type": "legal_interpretation_required",
+          "normative_effect": "conditional_permission",
+          "holder_scope": "any_handler",
+          "conditions": [],
+          "confidence": 0.3,
+          "review_note": "lead-only 社媒/第三方平台内容（§12：social 仅作线索，不得单独成规则）。本条落库仅为待审线索，不得据以发布。"
+        }
+      ],
+      "observations": []
+    },
+    {
+      "key": "sq-west-bund-gatem",
+      "workstream": "B",
+      "canonical_name": "西岸梦中心（Gate M）",
+      "place_type": "square",
+      "district": "徐汇区",
+      "canonical_address": "上海市徐汇区龙腾大道（西岸梦中心/Gate M 滨江开放区域）",
+      "aliases": ["Gate M 西岸梦中心", "西岸梦中心", "West Bund Dream Center"],
+      "geo": { "status": "PLACE_GEO_PENDING", "reason": "来源未公布坐标；不推断" },
+      "place_match_evidence": {
+        "matched_by": "canonical_name_and_address_description",
+        "canonical_name": "西岸梦中心（Gate M）",
+        "canonical_address": "上海市徐汇区龙腾大道",
+        "spatial_precision": "approximate",
+        "disambiguation": "与场内租户「星巴克咖啡（徐汇西岸梦中心店）」为不同层级的实体：后者是独立 Place，本条为所在开放式综合空间。二者规则分别记录，不得相互外推。"
+      },
+      "zones": [
+        {
+          "key": "outdoor_public",
+          "name": "户外空间及外摆区域",
+          "zone_type": "plaza",
+          "indoor_outdoor": "outdoor"
+        },
+        {
+          "key": "indoor_shops",
+          "name": "室内商铺（各店自定）",
+          "zone_type": "area",
+          "indoor_outdoor": "indoor"
+        }
+      ],
+      "sources": [
+        {
+          "key": "westbund_service_desk",
+          "source_type": "external_web_reference",
+          "issuer": "澎湃新闻/九派新闻/劳动报《上海一星巴克要求「给带宠物的让座」》（记者现场实探，含西岸梦中心客服中心回应）",
+          "issuer_verification": "verified",
+          "source_url": "https://view.inews.qq.com/a/20260828A02BX600",
+          "published_at": "2026-08-28",
+          "capture_method": "search_snippet",
+          "directness": "secondary",
+          "spatial_precision": "approximate",
+          "artifact_type": "web_page_text",
+          "collector_type": "agent_web_reader",
+          "publisher_type": "news_media",
+          "storage_allowed": true,
+          "display_allowed": false,
+          "redistribution_allowed": false,
+          "needs_verification": true,
+          "excerpt": "记者当晚也就「哪些门店可以允许宠物入内」咨询了西岸梦中心客服中心。客服人员回应称，从宠物友好的角度出发，西岸梦中心的户外空间和外摆区域是允许宠物活动的，但是否允许宠物进店，则要看每家门店自己的规定，西岸梦中心对此没有统一要求和规定。该客服人员同时表示，从管理角度，会按照《上海市养犬管理条例》、市规大于商场规定的原则来执行。",
+          "fragments": {
+            "outdoor_allowed": "从宠物友好的角度出发，西岸梦中心的户外空间和外摆区域是允许宠物活动的，但是否允许宠物进店，则要看每家门店自己的规定，西岸梦中心对此没有统一要求和规定。",
+            "compliance": "该客服人员同时表示，从管理角度，会按照《上海市养犬管理条例》、市规大于商场规定的原则来执行。"
+          }
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "westbund-op-outdoor-conditional",
+          "source_key": "westbund_service_desk",
+          "fragment": "outdoor_allowed",
+          "zone_key": "outdoor_public",
+          "animal_scope": "ordinary_pet",
+          "action": "enter",
+          "effect": "conditional",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "宠物",
+          "subject_scope_normalized": "ordinary_pet",
+          "normalization_type": "exact",
+          "normative_effect": "conditional_permission",
+          "holder_scope": "any_handler",
+          "conditions": [
+            {
+              "type": "leash_required",
+              "value": true,
+              "note": "来源未逐字声明；按《上海市养犬管理条例》第二十二条文明养犬要求待人工复核"
+            }
+          ],
+          "confidence": 0.6,
+          "review_note": "户外开放空间不在第二十三条第一款列举清单内（非商场室内），管理者可自行决定；来源为客服口头回应（needs_verification=true）。"
+        },
+        {
+          "rule_id": "westbund-indoor-unknown",
+          "source_key": "westbund_service_desk",
+          "fragment": "outdoor_allowed",
+          "zone_key": "indoor_shops",
+          "animal_scope": "ordinary_pet",
+          "action": "enter",
+          "effect": "conditional",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "宠物",
+          "subject_scope_normalized": "ordinary_pet",
+          "normalization_type": "exact",
+          "normative_effect": "conditional_permission",
+          "holder_scope": "any_handler",
+          "conditions": [
+            {
+              "type": "other_structured_note",
+              "value": "各门店自行规定，管理方无统一要求",
+              "note": "场所级无统一规则 → 不得写成 ALLOWED，亦不得写成 PROHIBITED"
+            }
+          ],
+          "confidence": 0.4,
+          "review_note": "管理方明确「没有统一要求和规定」。此场所-分区应落在 PARTIALLY_ANSWERABLE / UNKNOWN 而非强制结论，候选仅作待审线索（§27）。"
+        }
+      ],
+      "observations": []
+    },
+    {
+      "key": "dl-disneyland",
+      "workstream": "A",
+      "existing_place": true,
+      "canonical_name": "上海迪士尼乐园",
+      "place_type": "scenic_area",
+      "district": "浦东新区",
+      "canonical_address": "上海市浦东新区黄赵路310号",
+      "aliases": [],
+      "geo": { "status": "EXISTING", "reason": "存量场所，本轮不改动" },
+      "place_match_evidence": {
+        "matched_by": "existing_place_id",
+        "note": "存量 Place，直接复用；本轮只追加新证据与新候选。"
+      },
+      "zones": [
+        { "key": "whole_park", "name": "全园", "zone_type": "area", "indoor_outdoor": "outdoor" }
+      ],
+      "sources": [
+        {
+          "key": "disney_park_rules_2026",
+          "source_type": "official_operator_policy",
+          "issuer": "上海迪士尼度假区官网《上海迪士尼乐园游客须知》",
+          "issuer_verification": "verified",
+          "source_url": "https://www.shanghaidisneyresort.com/zh-cn/legal/park-rules/",
+          "published_at": null,
+          "capture_method": "web_reader_fetch",
+          "directness": "direct",
+          "spatial_precision": "precise",
+          "artifact_type": "web_page_text",
+          "collector_type": "agent_web_reader",
+          "publisher_type": "operator_official",
+          "storage_allowed": true,
+          "display_allowed": true,
+          "redistribution_allowed": false,
+          "excerpt": "动物（导盲犬除外）。导盲犬须时刻栓有系绳并在主人的看管下。部分游乐项目也可能不允许导盲犬进入。",
+          "fragments": {
+            "no_animal": "动物（导盲犬除外）。",
+            "guide_dog_terms": "导盲犬须时刻栓有系绳并在主人的看管下。部分游乐项目也可能不允许导盲犬进入。"
+          }
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "disney-op-animal-prohibited",
+          "source_key": "disney_park_rules_2026",
+          "fragment": "no_animal",
+          "zone_key": "whole_park",
+          "animal_scope": "other",
+          "action": "enter",
+          "effect": "prohibited",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "动物（导盲犬除外）",
+          "subject_scope_normalized": "other",
+          "normalization_type": "exact",
+          "normative_effect": "prohibition",
+          "holder_scope": "any_handler",
+          "conditions": [],
+          "confidence": 0.9,
+          "review_note": "主题乐园不在第二十三条第一款列举清单内 → OPERATOR_POLICY。来源用词「动物」宽于宠物，逐字保留。"
+        },
+        {
+          "rule_id": "disney-op-guidedog-exempt",
+          "source_key": "disney_park_rules_2026",
+          "fragment": "guide_dog_terms",
+          "zone_key": "whole_park",
+          "animal_scope": "service_dog",
+          "action": "enter",
+          "effect": "conditional",
+          "is_exception_on": "disney-op-animal-prohibited",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "导盲犬",
+          "subject_scope_normalized": "guide_dog",
+          "normalization_type": "exact",
+          "normative_effect": "exempt_from_prohibition",
+          "holder_scope": "person_with_disability",
+          "conditions": [
+            {
+              "type": "leash_required",
+              "value": true,
+              "note": "导盲犬须时刻栓有系绳并在主人的看管下"
+            },
+            { "type": "other_structured_note", "value": "部分游乐项目也可能不允许导盲犬进入" }
+          ],
+          "confidence": 0.9,
+          "review_note": "同层 OPERATOR_POLICY carve-out。base scope 为「动物」含导盲犬 → 该 carve-out 可达（非 inert）。SEMANTIC_REMODEL_ISSUE 本轮不自动修复（§3）。"
+        }
+      ],
+      "observations": []
+    },
+    {
+      "key": "qt-taikoo-li",
+      "workstream": "A",
+      "existing_place": true,
+      "canonical_name": "前滩太古里",
+      "place_type": "mall",
+      "district": "浦东新区",
+      "canonical_address": "上海市浦东新区东育路500弄",
+      "aliases": [],
+      "geo": { "status": "EXISTING", "reason": "存量场所，本轮不改动" },
+      "place_match_evidence": { "matched_by": "existing_place_id", "note": "存量 Place，直接复用" },
+      "zones": [
+        {
+          "key": "indoor",
+          "name": "商场室内空间",
+          "zone_type": "area",
+          "indoor_outdoor": "indoor"
+        },
+        {
+          "key": "outdoor_open",
+          "name": "户外开放区域",
+          "zone_type": "plaza",
+          "indoor_outdoor": "outdoor"
+        }
+      ],
+      "sources": [
+        {
+          "key": "taikooli_news_2026",
+          "source_type": "external_web_reference",
+          "issuer": "腾讯新闻《不是退步而是更规范！上海部分商场取消或缩小宠物友好范围》（记者实地探访）",
+          "issuer_verification": "verified",
+          "source_url": "https://news.qq.com/rain/a/20260324A06BG000",
+          "published_at": "2026-03-24",
+          "capture_method": "search_snippet",
+          "directness": "secondary",
+          "spatial_precision": "approximate",
+          "artifact_type": "web_page_text",
+          "collector_type": "agent_web_reader",
+          "publisher_type": "news_media",
+          "storage_allowed": true,
+          "display_allowed": false,
+          "redistribution_allowed": false,
+          "needs_verification": true,
+          "excerpt": "第三类是「精准细化型」，不搞「一刀切」，而是「内外有别」。苏河湾万象天地和前滩太古里就走了这条路线，原本全域宠物友好的商场，如今收紧了室内空间的规定，毛孩子不能再随意进入室内商铺，但室外区域依然对宠物敞开大门。",
+          "fragments": {
+            "indoor_tighten": "原本全域宠物友好的商场，如今收紧了室内空间的规定，毛孩子不能再随意进入室内商铺",
+            "outdoor_open": "但室外区域依然对宠物敞开大门。"
+          }
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "qiantan-legal-dog-prohibited",
+          "source_key": "shared:sh_dog_regulation_gov",
+          "fragment": "art23_p1",
+          "zone_key": "indoor",
+          "animal_scope": "dog",
+          "action": "enter",
+          "effect": "prohibited",
+          "rule_layer": "LEGAL",
+          "mandatory_level": "mandatory",
+          "source_scope_exact": "犬只",
+          "subject_scope_normalized": "dog",
+          "normalization_type": "exact",
+          "normative_effect": "prohibition",
+          "holder_scope": "any_handler",
+          "conditions": [],
+          "confidence": 0.95,
+          "statutory_applicability": "mall 落在第二十三条第一款列举的「商场」之内。"
+        },
+        {
+          "rule_id": "qiantan-op-indoor-tighten",
+          "source_key": "taikooli_news_2026",
+          "fragment": "indoor_tighten",
+          "zone_key": "indoor",
+          "animal_scope": "ordinary_pet",
+          "action": "enter",
+          "effect": "prohibited",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "毛孩子",
+          "subject_scope_normalized": "ordinary_pet",
+          "normalization_type": "legal_interpretation_required",
+          "normative_effect": "prohibition",
+          "holder_scope": "any_handler",
+          "conditions": [],
+          "confidence": 0.6,
+          "review_note": "与存量官方《宠物友好》页口径（室内需物业同意）方向一致但更严；两者并存交人工裁决哪一版为 current。来源 needs_verification=true。"
+        },
+        {
+          "rule_id": "qiantan-op-outdoor-open",
+          "source_key": "taikooli_news_2026",
+          "fragment": "outdoor_open",
+          "zone_key": "outdoor_open",
+          "animal_scope": "ordinary_pet",
+          "action": "enter",
+          "effect": "conditional",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "宠物",
+          "subject_scope_normalized": "ordinary_pet",
+          "normalization_type": "exact",
+          "normative_effect": "conditional_permission",
+          "holder_scope": "any_handler",
+          "conditions": [],
+          "confidence": 0.6,
+          "review_note": "室外区域与存量官方页口径一致。LEGAL 层仅作用于 indoor zone。"
+        }
+      ],
+      "observations": []
+    },
+    {
+      "key": "gh-grand-gateway",
+      "workstream": "A",
+      "existing_place": true,
+      "canonical_name": "港汇恒隆广场",
+      "place_type": "mall",
+      "district": "徐汇区",
+      "canonical_address": "上海市徐汇区虹桥路1号",
+      "aliases": [],
+      "geo": { "status": "EXISTING", "reason": "存量场所，本轮不改动" },
+      "place_match_evidence": { "matched_by": "existing_place_id", "note": "存量 Place，直接复用" },
+      "zones": [
+        {
+          "key": "indoor",
+          "name": "商场室内公共区域",
+          "zone_type": "area",
+          "indoor_outdoor": "indoor"
+        }
+      ],
+      "sources": [
+        {
+          "key": "gg_news_2026",
+          "source_type": "external_web_reference",
+          "issuer": "青年报《上海部分商场撤除「宠物友好」标识》（记者实地采访，含港汇恒隆表态）",
+          "issuer_verification": "verified",
+          "source_url": "http://www.why.com.cn/epublish/qnb/html/2026-03/11/content_122_42304.htm",
+          "published_at": "2026-03-11",
+          "capture_method": "search_snippet",
+          "directness": "secondary",
+          "spatial_precision": "approximate",
+          "artifact_type": "web_page_text",
+          "collector_type": "agent_web_reader",
+          "publisher_type": "news_media",
+          "storage_allowed": true,
+          "display_allowed": false,
+          "redistribution_allowed": false,
+          "needs_verification": true,
+          "excerpt": "港汇恒隆广场、兴业太古汇自今年2月起正式实施全新宠物管理规定，明确禁止除导盲犬等工作犬以外的其他宠物进入商场室内公共区域，全面撤除「宠物友好」相关标识。港汇恒隆广场同样表示，政策调整严格依据现行法律法规，同时结合政府监管相关要求，为进一步保障全体消费者的人身安全与消费体验，正式终止商场内所有「宠物友好」相关服务与通行许可。",
+          "fragments": {
+            "indoor_ban": "明确禁止除导盲犬等工作犬以外的其他宠物进入商场室内公共区域，全面撤除「宠物友好」相关标识。",
+            "operator_statement": "港汇恒隆广场同样表示，政策调整严格依据现行法律法规，正式终止商场内所有「宠物友好」相关服务与通行许可。"
+          }
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "gg-legal-dog-prohibited",
+          "source_key": "shared:sh_dog_regulation_gov",
+          "fragment": "art23_p1",
+          "zone_key": "indoor",
+          "animal_scope": "dog",
+          "action": "enter",
+          "effect": "prohibited",
+          "rule_layer": "LEGAL",
+          "mandatory_level": "mandatory",
+          "source_scope_exact": "犬只",
+          "subject_scope_normalized": "dog",
+          "normalization_type": "exact",
+          "normative_effect": "prohibition",
+          "holder_scope": "any_handler",
+          "conditions": [],
+          "confidence": 0.95,
+          "statutory_applicability": "mall 落在第二十三条第一款列举的「商场」之内。"
+        },
+        {
+          "rule_id": "gg-op-terminate-friendly",
+          "source_key": "gg_news_2026",
+          "fragment": "operator_statement",
+          "zone_key": "indoor",
+          "animal_scope": "ordinary_pet",
+          "action": "enter",
+          "effect": "prohibited",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "除导盲犬等工作犬以外的其他宠物",
+          "subject_scope_normalized": "ordinary_pet",
+          "normalization_type": "legal_interpretation_required",
+          "normative_effect": "prohibition",
+          "holder_scope": "any_handler",
+          "conditions": [],
+          "confidence": 0.7,
+          "review_note": "存量候选基于解放日报 2025 年报道；本条为 2026-03 更新口径，可能构成 supersede 关系，是否取代由人工判定。"
+        }
+      ],
+      "observations": []
+    }
+  ]
+}

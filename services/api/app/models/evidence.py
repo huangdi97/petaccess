@@ -202,6 +202,8 @@ class SourceArtifact(Base, PkMixin, TimestampMixin):
     data_source_job_id: Mapped[str | None] = mapped_column(
         String(36), ForeignKey("data_source_job.id", ondelete="SET NULL"), nullable=True
     )
+    #: which expansion wave collected this artifact
+    expansion_run_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
 
     bundles: Mapped[list[EvidenceBundle]] = relationship(back_populates="artifact")
 
@@ -270,6 +272,8 @@ class EvidenceBundle(Base, PkMixin, TimestampMixin):
     # --- licence / privacy metadata (copied for audit even if licence changes) ---
     license_metadata: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     privacy_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    #: which expansion wave produced this bundle
+    expansion_run_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
 
     artifact: Mapped[SourceArtifact] = relationship(back_populates="bundles")
 
@@ -321,6 +325,11 @@ class ObservationCandidate(Base, PkMixin, TimestampMixin):
 
     derivation_confidence: Mapped[float | None] = mapped_column(Float, nullable=True)
     duplicate_of_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    #: which expansion wave produced this observation candidate
+    expansion_run_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    #: deterministic ingestion guard (see RuleCandidate.dedup_key) — a repeated
+    #: observation of the same event must not become a second candidate
+    dedup_key: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
 
 
 OBSERVATION_CANDIDATE_TRANSITIONS: dict[str, set[str]] = {

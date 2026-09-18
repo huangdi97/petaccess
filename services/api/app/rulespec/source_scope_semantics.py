@@ -63,6 +63,7 @@ two questions are independent and both must be asked.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 from app.models.enums import NormalizationType
 from app.rulespec.animal_scope import SCOPE_SUBJECTS
@@ -194,21 +195,21 @@ def validate_source_scope_semantic_compatibility(
     reading while still carrying a non-legal ``legal_interpretation_required``.
     """
     if normalization_type not in _LEGAL_NORMALIZATIONS:
-        entry = SOURCE_TERM_READINGS.get((source_scope_exact or "").strip()) or {}
+        non_legal_entry = SOURCE_TERM_READINGS.get((source_scope_exact or "").strip()) or {}
         return SemanticCompatibility(
             compatible=False,
             change="non_legal_type",
             reason=(
                 f"normalization_type={normalization_type!r} 不具备法律效力，不得据此发布（ADR-025）"
             ),
-            reading=entry.get("reading", ""),
-            declared_equivalent=entry.get("equivalent_to"),
+            reading=non_legal_entry.get("reading", ""),
+            declared_equivalent=non_legal_entry.get("equivalent_to"),
             follow_up=SEMANTIC_REMODEL_REQUIRED,
         )
 
     term = (source_scope_exact or "").strip()
-    entry = SOURCE_TERM_READINGS.get(term)
-    if entry is None:
+    entry: dict[str, Any] = SOURCE_TERM_READINGS.get(term) or {}
+    if not entry:
         return SemanticCompatibility(
             compatible=False,
             change="undeclared",

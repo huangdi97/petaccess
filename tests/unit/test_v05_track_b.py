@@ -102,7 +102,7 @@ def test_monitor_rejects_unknown_content_type(monkeypatch):
         def __exit__(self, *a):
             return False
 
-        def stream(self, method, url):
+        def stream(self, method, url, headers=None):
             return FakeResp()
 
     import httpx as _httpx

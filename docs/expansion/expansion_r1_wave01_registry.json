@@ -1,0 +1,668 @@
+{
+  "expansion_run_id": "EXP-R1-W01-20260918",
+  "review_revision": "EXP-R1-W01-REVIEW-R1",
+  "generated_at": "2026-09-18T03:43:17.580156+00:00",
+  "counts": {
+    "place": 20,
+    "zone": 34,
+    "access_rule": 5,
+    "rule_exception": 3,
+    "source": 26,
+    "source_artifact": 37,
+    "evidence_bundle": 53,
+    "rule_candidate": 68,
+    "source_monitor": 13,
+    "freshness_policy": 3,
+    "data_source_job": 4,
+    "amenity": 0,
+    "entrance": 0,
+    "access_path": 0,
+    "place_geometry": 0,
+    "place_wave01": 10
+  },
+  "freshness_coverage": {
+    "sources": 26,
+    "with_policy": 26,
+    "with_last_verified": 26,
+    "with_review_due": 26
+  },
+  "candidates": [
+    {
+      "id": "052d19cc-ba08-4908-a24f-276e9c33f307",
+      "place": "CHARLIE'S 粉红汉堡（马当路店）",
+      "animal_scope": "dog",
+      "effect": "prohibited",
+      "rule_layer": "LEGAL",
+      "subject_scope_normalized": "dog",
+      "review_status": "REVIEW_PENDING",
+      "published_rule_id": null
+    },
+    {
+      "id": "f25e4093-dd66-486a-a860-57a57f3e646f",
+      "place": "CHARLIE'S 粉红汉堡（马当路店）",
+      "animal_scope": "ordinary_pet",
+      "effect": "conditional",
+      "rule_layer": "OPERATOR_POLICY",
+      "subject_scope_normalized": "ordinary_pet",
+      "review_status": "REVIEW_PENDING",
+      "published_rule_id": null
+    },
+    {
+      "id": "7de2f5d7-5b6c-4d19-93ee-92d9b7380667",
+      "place": "omitofee 上海首店（浦江郊野公园滨江漫步区）",
+      "animal_scope": "dog",
+      "effect": "prohibited",
+      "rule_layer": "LEGAL",
+      "subject_scope_normalized": "dog",
+      "review_status": "REVIEW_PENDING",
+      "published_rule_id": null
+    },
+    {
+      "id": "d37afb4d-bf7f-4f88-8c06-1d6d5cb4dfa5",
+      "place": "omitofee 上海首店（浦江郊野公园滨江漫步区）",
+      "animal_scope": "dog",
+      "effect": "conditional",
+      "rule_layer": "OPERATOR_POLICY",
+      "subject_scope_normalized": "dog",
+      "review_status": "REVIEW_PENDING",
+      "published_rule_id": null
+    },
+    {
+      "id": "16b7acc5-6a43-477b-b004-f51e771fc766",
+      "place": "omitofee 上海首店（浦江郊野公园滨江漫步区）",
+      "animal_scope": "ordinary_pet",
+      "effect": "conditional",
+      "rule_layer": "OPERATOR_POLICY",
+      "subject_scope_normalized": "ordinary_pet",
+      "review_status": "REVIEW_PENDING",
+      "published_rule_id": null
+    },
+    {
+      "id": "6f2bfd39-d79d-4f49-83f6-6ae6a9012697",
+      "place": "上海动物园",
+      "animal_scope": "other",
+      "effect": "prohibited",
+      "rule_layer": "OPERATOR_POLICY",
+      "subject_scope_normalized": "other",
+      "review_status": "REVIEW_PENDING",
+      "published_rule_id": null
+    },
+    {
+      "id": "fa5f33f1-22e7-4eb3-8ab7-b7448497aa47",
+      "place": "上海博物馆东馆",
+      "animal_scope": "dog",
+      "effect": "prohibited",
+      "rule_layer": "LEGAL",
+      "subject_scope_normalized": "dog",
+      "review_status": "REVIEW_PENDING",
+      "published_rule_id": null
+    },
+    {
+      "id": "73de8e33-57f4-4750-8946-704289ff8000",
+      "place": "上海博物馆东馆",
+      "animal_scope": "service_dog",
+      "effect": "allowed",
+      "rule_layer": "LEGAL",
+      "subject_scope_normalized": "guide_dog",
+      "review_status": "REVIEW_PENDING",
+      "published_rule_id": null
+    },
+    {
+      "id": "4710a68f-5686-444f-aad1-186ac16cb1b7",
+      "place": "上海博物馆东馆",
+      "animal_scope": "ordinary_pet",
+      "effect": "prohibited",
+      "rule_layer": "OPERATOR_POLICY",
+      "subject_scope_normalized": "ordinary_pet",
+      "review_status": "REVIEW_PENDING",
+      "published_rule_id": null
+    },
+    {
+      "id": "df1645fe-6850-4522-93b1-632fd7716da6",
+      "place": "上海新天地朗廷酒店",
+      "animal_scope": "dog",
+      "effect": "prohibited",
+      "rule_layer": "LEGAL",
+      "subject_scope_normalized": "dog",
+      "review_status": "REVIEW_PENDING",
+      "published_rule_id": null
+    },
+    {
+      "id": "32a1e612-f8a3-4a28-8f2d-8cc5838206a2",
+      "place": "上海新天地朗廷酒店",
+      "animal_scope": "dog",
+      "effect": "conditional",
+      "rule_layer": "OPERATOR_POLICY",
+      "subject_scope_normalized": "dog",
+      "review_status": "REVIEW_PENDING",
+      "published_rule_id": null
+    },
+    {
+      "id": "a3bc8efe-5826-41b0-b36c-a0b30aba8142",
+      "place": "上海新天地朗廷酒店",
+      "animal_scope": "dog",
+      "effect": "conditional",
+      "rule_layer": "OPERATOR_POLICY",
+      "subject_scope_normalized": "dog",
+      "review_status": "REVIEW_PENDING",
+      "published_rule_id": null
+    },
+    {
+      "id": "3ef1f976-79c3-499b-a9a1-7b45fd6fcadc",
+      "place": "上海新天地朗廷酒店",
+      "animal_scope": "dog",
+      "effect": "conditional",
+      "rule_layer": "OPERATOR_POLICY",
+      "subject_scope_normalized": "dog",
+      "review_status": "REVIEW_PENDING",
+      "published_rule_id": null
+    },
+    {
+      "id": "8ba2b49b-01f4-410c-926c-e0bedcb2b52f",
+      "place": "上海苏河湾万象天地",
+      "animal_scope": "dog",
+      "effect": "prohibited",
+      "rule_layer": "LEGAL",
+      "subject_scope_normalized": "dog",
+      "review_status": "REVIEW_PENDING",
+      "published_rule_id": null
+    },
+    {
+      "id": "e8727b00-9fd6-4278-a7bc-6e4447997e61",
+      "place": "上海苏河湾万象天地",
+      "animal_scope": "ordinary_pet",
+      "effect": "conditional",
+      "rule_layer": "OPERATOR_POLICY",
+      "subject_scope_normalized": "ordinary_pet",
+      "review_status": "REVIEW_PENDING",
+      "published_rule_id": null
+    },
+    {
+      "id": "9787b070-3569-4073-84cf-e5d618a76ecf",
+      "place": "上海蟠龙天地",
+      "animal_scope": "ordinary_pet",
+      "effect": "conditional",
+      "rule_layer": "OPERATOR_POLICY",
+      "subject_scope_normalized": "ordinary_pet",
+      "review_status": "REVIEW_PENDING",
+      "published_rule_id": null
+    },
+    {
+      "id": "21bb1b33-14b9-4c5e-82eb-abcc44263e85",
+      "place": "上海蟠龙天地",
+      "animal_scope": "ordinary_pet",
+      "effect": "conditional",
+      "rule_layer": "OPERATOR_POLICY",
+      "subject_scope_normalized": "ordinary_pet",
+      "review_status": "REVIEW_PENDING",
+      "published_rule_id": null
+    },
+    {
+      "id": "3a04d4d1-aaac-4c3d-8364-9d1acf18ef35",
+      "place": "上海迪士尼乐园",
+      "animal_scope": "other",
+      "effect": "prohibited",
+      "rule_layer": "OPERATOR_POLICY",
+      "subject_scope_normalized": "other",
+      "review_status": "REVIEW_PENDING",
+      "published_rule_id": null
+    },
+    {
+      "id": "305fa08c-1edd-4cc9-9b7e-554647e44b0a",
+      "place": "上海迪士尼乐园",
+      "animal_scope": "service_dog",
+      "effect": "conditional",
+      "rule_layer": "OPERATOR_POLICY",
+      "subject_scope_normalized": "guide_dog",
+      "review_status": "REVIEW_PENDING",
+      "published_rule_id": null
+    },
+    {
+      "id": "a3b2d092-4a84-42eb-a9c9-434b3ae28f49",
+      "place": "世纪公园",
+      "animal_scope": "ordinary_pet",
+      "effect": "conditional",
+      "rule_layer": "OPERATOR_POLICY",
+      "subject_scope_normalized": "ordinary_pet",
+      "review_status": "REVIEW_PENDING",
+      "published_rule_id": null
+    },
+    {
+      "id": "4e217d58-1060-4945-9fa1-b9b7e17d7e64",
+      "place": "世纪公园",
+      "animal_scope": "ordinary_pet",
+      "effect": "prohibited",
+      "rule_layer": "OPERATOR_POLICY",
+      "subject_scope_normalized": "ordinary_pet",
+      "review_status": "REVIEW_PENDING",
+      "published_rule_id": null
+    },
+    {
+      "id": "1fb3d7f1-c7e2-4f71-ae6d-96ee27e1d44a",
+      "place": "兴业太古汇",
+      "animal_scope": "dog",
+      "effect": "prohibited",
+      "rule_layer": "LEGAL",
+      "subject_scope_normalized": "dog",
+      "review_status": "REVIEW_PENDING",
+      "published_rule_id": null
+    },
+    {
+      "id": "6482477d-8d90-49bf-ab09-f9f6d90f8a0e",
+      "place": "兴业太古汇",
+      "animal_scope": "service_dog",
+      "effect": "allowed",
+      "rule_layer": "LEGAL",
+      "subject_scope_normalized": "guide_dog",
+      "review_status": "REVIEW_PENDING",
+      "published_rule_id": null
+    },
+    {
+      "id": "b340f06c-e167-4ab1-affa-3b97a7d13769",
+      "place": "兴业太古汇",
+      "animal_scope": "ordinary_pet",
+      "effect": "prohibited",
+      "rule_layer": "OPERATOR_POLICY",
+      "subject_scope_normalized": "ordinary_pet",
+      "review_status": "REVIEW_PENDING",
+      "published_rule_id": null
+    },
+    {
+      "id": "d1aee781-59ee-4954-9d0b-678221619a82",
+      "place": "前滩太古里",
+      "animal_scope": "dog",
+      "effect": "prohibited",
+      "rule_layer": "LEGAL",
+      "subject_scope_normalized": "dog",
+      "review_status": "REVIEW_PENDING",
+      "published_rule_id": null
+    },
+    {
+      "id": "b6af608a-93c1-4b8c-82b1-600f96c00c0e",
+      "place": "前滩太古里",
+      "animal_scope": "ordinary_pet",
+      "effect": "prohibited",
+      "rule_layer": "OPERATOR_POLICY",
+      "subject_scope_normalized": "ordinary_pet",
+      "review_status": "REVIEW_PENDING",
+      "published_rule_id": null
+    },
+    {
+      "id": "0763f68c-be50-49ea-939a-09eedd1785c4",
+      "place": "前滩太古里",
+      "animal_scope": "ordinary_pet",
+      "effect": "conditional",
+      "rule_layer": "OPERATOR_POLICY",
+      "subject_scope_normalized": "ordinary_pet",
+      "review_status": "REVIEW_PENDING",
+      "published_rule_id": null
+    },
+    {
+      "id": "e951785d-1b11-488f-957f-bbe31431bd14",
+      "place": "港汇恒隆广场",
+      "animal_scope": "dog",
+      "effect": "prohibited",
+      "rule_layer": "LEGAL",
+      "subject_scope_normalized": "dog",
+      "review_status": "REVIEW_PENDING",
+      "published_rule_id": null
+    },
+    {
+      "id": "cf3fa538-3eee-4994-8026-904284c00f86",
+      "place": "港汇恒隆广场",
+      "animal_scope": "ordinary_pet",
+      "effect": "prohibited",
+      "rule_layer": "OPERATOR_POLICY",
+      "subject_scope_normalized": "ordinary_pet",
+      "review_status": "REVIEW_PENDING",
+      "published_rule_id": null
+    },
+    {
+      "id": "e3d39839-0dba-4a64-a217-95526dab2d4d",
+      "place": "西岸梦中心（Gate M）",
+      "animal_scope": "ordinary_pet",
+      "effect": "conditional",
+      "rule_layer": "OPERATOR_POLICY",
+      "subject_scope_normalized": "ordinary_pet",
+      "review_status": "REVIEW_PENDING",
+      "published_rule_id": null
+    },
+    {
+      "id": "e9322630-98fd-4b0a-bb9c-a055ad2c22af",
+      "place": "西岸梦中心（Gate M）",
+      "animal_scope": "ordinary_pet",
+      "effect": "conditional",
+      "rule_layer": "OPERATOR_POLICY",
+      "subject_scope_normalized": "ordinary_pet",
+      "review_status": "REVIEW_PENDING",
+      "published_rule_id": null
+    }
+  ],
+  "artifacts": [
+    {
+      "id": "04aadadf-764a-41f7-a183-83fbe34f72da",
+      "source_id": "a11aff10-9658-478f-8c22-abb73485b7e4",
+      "content_hash": "51c58e875c6a8d53add218ce5e87f8afee3bb56028d03f356a459df3b3b10bd9"
+    },
+    {
+      "id": "23242f05-d4d4-4f47-8df0-eec5dcaa0a32",
+      "source_id": "4f5f5d4a-afbc-42ec-8d68-96c2b3f70fe9",
+      "content_hash": "d7ae858931c2bb462e723d55b8e8d1f86d0c487ae7b862715acf5d43d5674ef7"
+    },
+    {
+      "id": "9d4935be-171d-4979-8c97-c6b01a7e9bb7",
+      "source_id": "17f4080a-72bf-4603-aff2-01d59e4db367",
+      "content_hash": "756991a8534995478e03550501076ba0710852d653e123203aa29626f1e3e37f"
+    },
+    {
+      "id": "aadfcee9-83b0-4541-b20e-28a8e0a914d5",
+      "source_id": "ca5b81a7-ca5b-495c-9026-6d8b69dbaea7",
+      "content_hash": "f61ff4e23536524d70f34b60a1b2080af6a99d06eccd58db2448fc49509009a2"
+    },
+    {
+      "id": "b5b8077d-5e14-4b37-be60-1dc3fb70d195",
+      "source_id": "3417d309-aeaa-46a2-871d-503337e32b55",
+      "content_hash": "615e2f1da1d7ed9fe9c0e851bb2ddfeda2361d08f32949ec512a20816a6159fa"
+    },
+    {
+      "id": "17ffd76a-11a8-4ef1-9c2d-a01b0d476513",
+      "source_id": "3f63c9ad-1563-476f-84b8-32f7a424f688",
+      "content_hash": "80150bf432555f39c4e9b4daf95a2f4ccecc3653c95a619e5148bdc8add7703a"
+    },
+    {
+      "id": "2ad00d08-f78b-49d6-becc-2cc98e1567d0",
+      "source_id": "4785e43f-d302-45ef-902c-53a4dca36ea8",
+      "content_hash": "4c594ef4aaea111b6d604a1b69fa0149dd97494da416e07e9f8e1cb18ec895a0"
+    },
+    {
+      "id": "9f48308b-37d9-4d09-9920-3918c4d6c1fe",
+      "source_id": "6bd0e47f-ecc6-47ec-9916-4a5f5cddcf51",
+      "content_hash": "ee4f2fc58dd36fccd4bdc07d6a9a7df7ee2c788589338d7e461b40e2bf2daea4"
+    },
+    {
+      "id": "e6ab9c1c-c64f-4db8-a05e-920a7b06d915",
+      "source_id": "1e0d6c9a-a96e-4ca6-a758-fb7f3d2d48ac",
+      "content_hash": "52f95ba7f67ed55de2b76ce5d7db257d3e3e566eab768675620fc35d11227d79"
+    },
+    {
+      "id": "72b39216-e8f7-4823-b8d2-46c96b8d6ffb",
+      "source_id": "b031af0a-5afe-467f-8e87-dc9cd57ee468",
+      "content_hash": "6890b2d6a24662db77c7f4b7121f72337716d008a2f2c578b516bea13273a12a"
+    },
+    {
+      "id": "59e2c0a1-5db2-41d6-b591-2bdd8e58bf64",
+      "source_id": "0542d479-e79d-4bf7-9b30-2326af275353",
+      "content_hash": "7c9c366b8c51b254bfc0618a46ac07f3f383fdc768ea582d892a1820b6aaa6c4"
+    },
+    {
+      "id": "e720411f-fa5b-43f7-9ae5-78b042f5dc75",
+      "source_id": "0bc744e2-9df0-4124-ae4c-4d5a8a8d4797",
+      "content_hash": "98f50c64465fad74d1f8fefe273f1f8a2968300d23e4b8b7b1deed73e1c8e9ec"
+    },
+    {
+      "id": "c277accb-d75a-45e4-843b-16ba1d790a31",
+      "source_id": "3f63c9ad-1563-476f-84b8-32f7a424f688",
+      "content_hash": "f996eddbd60e5654191dea311d838557b455357f71db5a10c6650b883366be77"
+    },
+    {
+      "id": "48872a40-911f-4a67-bac0-6602437a83ee",
+      "source_id": "3417d309-aeaa-46a2-871d-503337e32b55",
+      "content_hash": "f9875ea35f62b9ff105d070027afddc0de3fd1cb475b628dfc8920085a7991b1"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "47f1a6fc-314c-4099-b03b-ad2296826ac3",
+      "artifact_id": "04aadadf-764a-41f7-a183-83fbe34f72da"
+    },
+    {
+      "id": "76017319-b8a6-4c8d-b3da-39c098ba7014",
+      "artifact_id": "04aadadf-764a-41f7-a183-83fbe34f72da"
+    },
+    {
+      "id": "a11ff7be-71eb-4843-a6e2-f50fc8b5ba27",
+      "artifact_id": "23242f05-d4d4-4f47-8df0-eec5dcaa0a32"
+    },
+    {
+      "id": "09becbec-458a-439b-ad4f-135e917344a8",
+      "artifact_id": "9d4935be-171d-4979-8c97-c6b01a7e9bb7"
+    },
+    {
+      "id": "ccefd2ba-eb6d-4f60-8257-eae11b1007d5",
+      "artifact_id": "aadfcee9-83b0-4541-b20e-28a8e0a914d5"
+    },
+    {
+      "id": "f8b1f6c8-5a43-4fb7-800c-5268ba168449",
+      "artifact_id": "aadfcee9-83b0-4541-b20e-28a8e0a914d5"
+    },
+    {
+      "id": "082a6597-aa80-4085-983a-e8e73170b5b3",
+      "artifact_id": "b5b8077d-5e14-4b37-be60-1dc3fb70d195"
+    },
+    {
+      "id": "3f17fdac-bf39-4452-a995-319d3dea7594",
+      "artifact_id": "17ffd76a-11a8-4ef1-9c2d-a01b0d476513"
+    },
+    {
+      "id": "619fdd32-3c3d-46d5-b3f0-bb7965b16054",
+      "artifact_id": "2ad00d08-f78b-49d6-becc-2cc98e1567d0"
+    },
+    {
+      "id": "a4a741ff-f5b6-4b30-b38a-c869243b3f18",
+      "artifact_id": "9f48308b-37d9-4d09-9920-3918c4d6c1fe"
+    },
+    {
+      "id": "be8286d7-a8e7-4d8d-9c34-96da196917f6",
+      "artifact_id": "9f48308b-37d9-4d09-9920-3918c4d6c1fe"
+    },
+    {
+      "id": "2ad97b4a-74ba-462b-b97c-27d7563daf40",
+      "artifact_id": "9f48308b-37d9-4d09-9920-3918c4d6c1fe"
+    },
+    {
+      "id": "321d5f01-5ab9-4c5d-b706-936f07040464",
+      "artifact_id": "e6ab9c1c-c64f-4db8-a05e-920a7b06d915"
+    },
+    {
+      "id": "2c4c0569-9bff-4bfb-a8cc-78496fb75d4b",
+      "artifact_id": "e6ab9c1c-c64f-4db8-a05e-920a7b06d915"
+    },
+    {
+      "id": "55dd87c3-96a5-4c75-98f6-60068829f393",
+      "artifact_id": "72b39216-e8f7-4823-b8d2-46c96b8d6ffb"
+    },
+    {
+      "id": "5a9ea378-8d53-4e2b-abba-a6b9d9cdb143",
+      "artifact_id": "59e2c0a1-5db2-41d6-b591-2bdd8e58bf64"
+    },
+    {
+      "id": "573cd58f-94fb-4a8d-bd7e-e111905b3b13",
+      "artifact_id": "e720411f-fa5b-43f7-9ae5-78b042f5dc75"
+    },
+    {
+      "id": "c757641b-407b-43cd-96b0-2469eafbfbac",
+      "artifact_id": "e720411f-fa5b-43f7-9ae5-78b042f5dc75"
+    },
+    {
+      "id": "416000a9-1540-4610-b27e-2a06ba11fa31",
+      "artifact_id": "c277accb-d75a-45e4-843b-16ba1d790a31"
+    },
+    {
+      "id": "e1d1df4f-83a8-4221-9f68-bf7a85b1fa39",
+      "artifact_id": "c277accb-d75a-45e4-843b-16ba1d790a31"
+    },
+    {
+      "id": "b34bf009-0569-438b-82d4-be36612d995f",
+      "artifact_id": "48872a40-911f-4a67-bac0-6602437a83ee"
+    }
+  ],
+  "monitors": [
+    {
+      "id": "6f696efd-dfd1-4454-a4ed-d770a52f057a",
+      "url": "https://www.meet-in-shanghai.net/tc/news/another-new-landmark-this-weekend-bring-the-furry-child-to-fly-966480/",
+      "status": "active",
+      "last_http_status": 403,
+      "content_hash": null,
+      "failure_count": 1
+    },
+    {
+      "id": "76e50359-ff17-42cd-b335-a57bfc73fb24",
+      "url": "https://www.shhuangpu.gov.cn/xw/001009/20250902/c7186bba-d3f4-4591-a25b-4d591628f514.html",
+      "status": "active",
+      "last_http_status": 202,
+      "content_hash": "e317adad52ea591b9a74789b2779ac3dbb4c428202182ed3442a7099666b6264",
+      "failure_count": 0
+    },
+    {
+      "id": "b5af39d6-9163-4cf1-8cbd-ad4ef5d58a52",
+      "url": "https://www.fairmont.com/zh/hotels/shanghai/fairmont-peace-hotel/guest-services.html",
+      "status": "active",
+      "last_http_status": 200,
+      "content_hash": "9596d8140d1cfb100bc1b81e1c0fe647518bca728b34d0475cef3c2d853045a3",
+      "failure_count": 0
+    },
+    {
+      "id": "a8f3e051-420b-4df1-a47b-fe597c6735dc",
+      "url": "https://www.langhamhotels.com/sc/the-langham/shanghai/offers/room-offers/pawcation",
+      "status": "active",
+      "last_http_status": 200,
+      "content_hash": "0bfc2a512fc67390f7951daf00c3220bfe217ecb46f1f45c70033b5ddea5e05f",
+      "failure_count": 0
+    },
+    {
+      "id": "ae24f851-27cf-4d3e-abeb-1b3be27b6f43",
+      "url": "https://www.library.sh.cn/guide/xuzhi",
+      "status": "active",
+      "last_http_status": 403,
+      "content_hash": null,
+      "failure_count": 1
+    },
+    {
+      "id": "57a77235-f46a-40af-a072-98130b0d33e1",
+      "url": "https://www.shanghaidisneyresort.com/zh-cn/legal/park-rules/",
+      "status": "active",
+      "last_http_status": 200,
+      "content_hash": "e315e897a95089a3126bf84e641d5625a0167dbeb8052328bab57f8a582b9f76",
+      "failure_count": 0
+    },
+    {
+      "id": "8be54d02-82f9-4ad4-ac0b-b9f41de10179",
+      "url": "https://www.shanghaimuseum.net/mu/frontend/pg/m/service/visit-east",
+      "status": "active",
+      "last_http_status": 200,
+      "content_hash": "77af20315d7d2fcffe894c3988b4c97187b57d5b9e1a64712bdbe96e3f22d509",
+      "failure_count": 0
+    },
+    {
+      "id": "d33affe6-d9a2-43db-8f35-d35d85698a27",
+      "url": "https://www.shanghaizoo.cn/sites/shanghaizoo/shanghaizoo_wap/tishi.html",
+      "status": "active",
+      "last_http_status": 200,
+      "content_hash": "1e678f20343d6a58a11b76e9af50420b97d80c37c86319ea827b41eb27cfbf6b",
+      "failure_count": 0
+    },
+    {
+      "id": "acf1976c-a667-4d31-a25d-b3350c8e1328",
+      "url": "https://www.starbucks.com.cn/en/about/news/starbucks-red-book-activity/",
+      "status": "active",
+      "last_http_status": 200,
+      "content_hash": "4fe6b40f11752e7d5526ab2061341e2fcaa58360567289eb8f0cddec73a3e551",
+      "failure_count": 0
+    },
+    {
+      "id": "63edf1e5-0e17-4b07-82c0-0c83e24f1bfe",
+      "url": "https://www.taikooliqiantan.com/detail/58.html",
+      "status": "active",
+      "last_http_status": 403,
+      "content_hash": null,
+      "failure_count": 1
+    },
+    {
+      "id": "e3b93737-9b49-4bfd-8741-dfacd6ae0190",
+      "url": "https://www.xintiandi.com/en/event/%e7%be%8e%e5%a5%bd%e9%9b%86%e5%90%88%ef%bc%8c%e6%8e%a2%e7%b4%a2%e7%94%9f%e6%b4%bb%e7%9a%84%e5%8f%a6%e4%b8%80%e7%a7%8d%e5%86%99%e6%b3%95",
+      "status": "active",
+      "last_http_status": 200,
+      "content_hash": "5b71c855fc5b0a3e3b7d1b1a43ef1fc2fba74be6dccb2d01d18c2b4147e5fbe1",
+      "failure_count": 0
+    },
+    {
+      "id": "883dce00-38ce-4dba-8ebf-3f3f36082c7e",
+      "url": "https://gaj.sh.gov.cn/shga/wzXxfbGj/detail?pa=eabcee2b5dd4411bf89cd8d0bb43e938",
+      "status": "active",
+      "last_http_status": 403,
+      "content_hash": null,
+      "failure_count": 1
+    },
+    {
+      "id": "2cbccc7a-064e-4de0-84cb-cae8c720182a",
+      "url": "https://www.shanghai.gov.cn/gwk/affairs/content/0033@641a604d24ef4395a1c2c2ac6871f45a",
+      "status": "active",
+      "last_http_status": 403,
+      "content_hash": null,
+      "failure_count": 1
+    }
+  ],
+  "jobs": [
+    {
+      "id": "8bebccca-9277-4226-bbbc-00d58b0db6bf",
+      "job_type": "expansion_wave01",
+      "state": "FAILED",
+      "started_at": "2026-09-18 01:46:13.587472+00:00",
+      "completed_at": "2026-09-18 01:55:53.262795+00:00",
+      "result_counts": {}
+    },
+    {
+      "id": "172de3b8-97f2-420d-b3b9-d320951e9c5d",
+      "job_type": "expansion_wave01",
+      "state": "FAILED",
+      "started_at": "2026-09-18 01:46:47.909438+00:00",
+      "completed_at": "2026-09-18 01:55:53.294607+00:00",
+      "result_counts": {}
+    },
+    {
+      "id": "2c0e44d1-1ced-4fd7-a4ec-445348fa68f4",
+      "job_type": "expansion_wave01",
+      "state": "FAILED",
+      "started_at": "2026-09-18 01:47:27.990413+00:00",
+      "completed_at": "2026-09-18 01:55:53.317941+00:00",
+      "result_counts": {}
+    },
+    {
+      "id": "ef95d162-eea3-449d-816b-eada7e9361a5",
+      "job_type": "expansion_wave01",
+      "state": "COMPLETED",
+      "started_at": "2026-09-18 01:48:29.139215+00:00",
+      "completed_at": "2026-09-18 01:48:36.397690+00:00",
+      "result_counts": {
+        "places": 0,
+        "zones": 0,
+        "sources": 0,
+        "artifacts": 15,
+        "bundles": 21,
+        "rule_candidates": 31,
+        "observation_candidates": 0,
+        "transitions": 31,
+        "monitors": 5,
+        "freshness_policies": 5,
+        "freshness_assignments": 14
+      }
+    }
+  ],
+  "deliverables": [
+    "WAVE01_SCOPE.md",
+    "PLACE_SELECTION.md",
+    "EXISTING_7_GAP_REPORT.md",
+    "NEW_10_PLACE_REPORT.md",
+    "SOURCE_COVERAGE.md",
+    "EVIDENCE_COVERAGE.md",
+    "SOURCE_MONITOR_MATRIX.md",
+    "FRESHNESS_MATRIX.md",
+    "WATCH_READINESS.md",
+    "DATA_QUALITY_REPORT.md",
+    "HUMAN_REVIEW_PACKET.md",
+    "HUMAN_REVIEW_QUICK_TABLE.md",
+    "WAVE01_FINAL_REPORT.md",
+    "review_decisions_expansion_r1_wave01.json",
+    "expansion_r1_wave01_registry.json"
+  ]
+}

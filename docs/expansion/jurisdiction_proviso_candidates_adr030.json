@@ -1,0 +1,61 @@
+{
+  "packet": "JURISDICTION_PROVISO_CANDIDATES",
+  "adr": "ADR-030",
+  "generated_at": "2026-09-18",
+  "status": "AWAITING_HUMAN_REVIEW",
+  "note": "本文件是 AI 产出的【待审候选】，不是已生效规则。写入后默认为 status=proposed / review_status=not_reviewed，resolver 永不读取。激活（置为 current + reviewed_active）是辖区级法律效力变更，必须由 Human Reviewer 显式签署。",
+
+  "why_this_is_a_candidate_and_not_a_fix": [
+    "《上海市养犬管理条例》第二十三条的但书是法律文件自身的一部分，不是任何场所的运营政策。",
+    "当前只有按 rule_id 绑定的 rule_exception，所以每新增一条 LEGAL 禁犬基底都必须再补一条例外。",
+    "Wave01 有 6 条 LEGAL 犬类基底正是因为『没有可执行的法定例外』被判 REQUIRED_LEGAL_EXCEPTION_NOT_EXECUTABLE 拦下。",
+    "本轮只交付机制；是否激活这条但书，属于 Human Decision。"
+  ],
+
+  "instrument_source_ids_note": "《上海市养犬管理条例》在本库中有两个 source 行，且不同场所引用了不同的那一个，因此『同一部法律』必须显式声明，不能按单一 source_id 绑定：",
+  "instrument_source_ids_evidence": {
+    "f20bdb2c-1ec4-445f-9a2f-a8e587c205a8": {
+      "issuer": "上海市人大常委会《上海市养犬管理条例》第二十三条（上海公安网官方转载页）",
+      "cited_by": ["cd9139a1…(和平饭店 LEGAL)", "332f17b6…(上图东馆 LEGAL)", "2d77f4b6…(星巴克烘焙工坊 LEGAL)"]
+    },
+    "a11aff10-9658-478f-8c22-abb73485b7e4": {
+      "issuer": "上海市人民政府门户《上海市养犬管理条例》",
+      "cited_by": ["47a1d679…(兴业太古汇 LEGAL)", "ca0b01c2…(上博东馆 LEGAL)"]
+    }
+  },
+
+  "candidates": [
+    {
+      "candidate_id": "JPROV-001",
+      "jurisdiction_level": "municipal",
+      "jurisdiction_id": "310000",
+      "authority": "上海市人民代表大会常务委员会",
+      "instrument_type": "statute_or_regulation",
+      "document_name": "上海市养犬管理条例",
+      "clause_ref": "第二十三条",
+      "proviso_text_ref": "盲人携带导盲犬的，不受本条规定的限制。",
+      "source_id": "f20bdb2c-1ec4-445f-9a2f-a8e587c205a8",
+      "binding": "instrument",
+      "instrument_source_ids": [
+        "f20bdb2c-1ec4-445f-9a2f-a8e587c205a8",
+        "a11aff10-9658-478f-8c22-abb73485b7e4"
+      ],
+      "applies_to_layer": "LEGAL",
+      "applies_to_effects": ["prohibited"],
+      "animal_scope": "service_dog",
+      "subject_scope_normalized": "guide_dog",
+      "normalization_type": "exact",
+      "normative_effect": "exempt_from_prohibition",
+      "holder_scope": "person_with_disability",
+      "action": "enter",
+      "effect": "allowed",
+      "status": "proposed",
+      "review_status": "not_reviewed",
+      "human_decision": {
+        "final_decision": "",
+        "reviewer": "",
+        "decided_at": ""
+      }
+    }
+  ]
+}

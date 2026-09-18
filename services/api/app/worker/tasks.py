@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from datetime import UTC, datetime
 
 from sqlalchemy import func, select
@@ -76,6 +77,37 @@ def notify_rule_changes(self) -> dict:  # noqa: ANN001
             notified += 1
         session.commit()
         return {"notified_watches": notified}
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()
+
+
+@celery_app.task(
+    name="app.worker.tasks.sweep_due_source_monitors",
+    bind=True,
+    max_retries=3,
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+)
+def sweep_due_source_monitors(self) -> dict:  # noqa: ANN001
+    """Sweep every SourceMonitor that is due (Wave 01 §28-§33).
+
+    A change never writes a rule: it becomes an artifact → bundle → candidate,
+    which still has to pass human review (§41). A failed sweep only raises
+    failure_count and backs off — it never withdraws a published rule and never
+    deletes evidence, because a source going away is not the same as a source
+    having said something different.
+    """
+    from app.db.session import get_session_factory
+    from app.services.monitor_sweep import sweep_due_monitors
+
+    session: OrmSession = get_session_factory()()
+    try:
+        summary = sweep_due_monitors(session, limit=int(os.getenv("MONITOR_SWEEP_LIMIT", "50")))
+        session.commit()
+        return summary
     except Exception:
         session.rollback()
         raise

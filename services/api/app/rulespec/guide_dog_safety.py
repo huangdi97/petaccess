@@ -37,6 +37,13 @@ A. a same-layer APPROVED/executable ``RuleException`` in this batch;
 B. an already-``current`` published same-layer exception for the same venue; or
 C. a jurisdiction-level legal exception the resolver actually applies.
 
+C became reachable in Phase B (ADR-030): a statutory proviso is stored once as a
+``JurisdictionException`` and binds by *instrument* — it claims every LEGAL
+prohibition grounded in the same statute rather than one ``rule_id``. Path C is
+still only ever *measured*: this module never creates or assumes a proviso, and
+an unactivated one (``status != current`` or ``review_status != reviewed_active``)
+simply does not fire.
+
 The two rejected justifications are named in the code so they cannot creep back:
 "the law ought to have one" and "users probably know" are not paths. Missing
 exception ⇒ ``BASE_PUBLISHABLE = false`` with
@@ -51,6 +58,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
+from app.rulespec.statutory_proviso import BindingMode
 from app.rulespec.v05_resolver import (
     LayeredException,
     LayeredRule,
@@ -165,7 +173,30 @@ def _exception_layered(exc: dict) -> LayeredException:
         normalization_type=exc.get("normalization_type"),
         normative_effect=exc.get("normative_effect"),
         holder_scope=exc.get("holder_scope"),
+        # ADR-030: a statutory proviso binds by instrument, not by rule_id.
+        binding=str(exc.get("binding") or BindingMode.RULE),
+        instrument_source_ids=tuple(exc.get("instrument_source_ids") or ()),
+        applies_to_layer=exc.get("applies_to_layer"),
+        applies_to_effects=tuple(exc.get("applies_to_effects") or ("prohibited",)),
     )
+
+
+def _attaches_to(exc: dict, base_rule_id: str, base: dict) -> bool:
+    """Does this carve-out claim this base rule?
+
+    Two ways to claim a base, and only these two:
+    * it names it (``base_rule_id`` / ``rule_id``) — the ordinary case; or
+    * it is an instrument-bound statutory proviso (ADR-030) and the base is
+      grounded in one of the sources it declares as that instrument.
+
+    A carve-out written of *another* rule is not a path for this one, and a
+    proviso for a different instrument is not either.
+    """
+    if str(exc.get("base_rule_id") or exc.get("rule_id") or "") == base_rule_id:
+        return True
+    if str(exc.get("binding") or BindingMode.RULE) != BindingMode.INSTRUMENT:
+        return False
+    return base.get("source_id") in set(exc.get("instrument_source_ids") or ())
 
 
 def probe_guide_dog_safety_path(
@@ -200,7 +231,7 @@ def probe_guide_dog_safety_path(
         matched = [
             _exception_layered(e)
             for e in rows
-            if str(e.get("base_rule_id") or "") == base_rule_id
+            if _attaches_to(e, base_rule_id, base)
             and (e.get("rule_layer") or RuleLayer.LEGAL.value) == RuleLayer.LEGAL.value
         ]
         if not matched:

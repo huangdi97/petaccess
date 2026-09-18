@@ -306,6 +306,7 @@ def record_artifact(
     data_source_job_id: str | None = None,
     now: datetime | None = None,
     evidence_strength: str | None = None,
+    expansion_run_id: str | None = None,
 ) -> SourceArtifact:
     """Freeze a collector's output as an original-evidence row."""
     artifact = SourceArtifact(
@@ -327,6 +328,7 @@ def record_artifact(
         redistribution_allowed=collected.redistribution_allowed,
         retention_until=collected.retention_until,
         data_source_job_id=data_source_job_id,
+        expansion_run_id=expansion_run_id,
     )
     db.add(artifact)
     db.flush()
@@ -350,6 +352,7 @@ def create_bundle(
     license_metadata: dict | None = None,
     privacy_notes: str | None = None,
     now: datetime | None = None,
+    expansion_run_id: str | None = None,
 ) -> EvidenceBundle:
     """Create the attributable evidence statement a candidate will cite.
 
@@ -388,6 +391,7 @@ def create_bundle(
             "redistribution_allowed": artifact.redistribution_allowed,
         },
         privacy_notes=privacy_notes,
+        expansion_run_id=expansion_run_id,
     )
     db.add(bundle)
     db.flush()
@@ -551,6 +555,7 @@ def record_monitor_change(
     fetch_result,
     previous_hash: str | None,
     diff_note: str | None = None,
+    expansion_run_id: str | None = None,
 ) -> tuple[SourceArtifact, EvidenceBundle] | None:
     """Turn a detected source change into traceable evidence (brief §6).
 
@@ -581,6 +586,7 @@ def record_monitor_change(
         display_allowed=False,
         redistribution_allowed=False,
         retention_until=None,
+        expansion_run_id=expansion_run_id,
     )
     db.add(artifact)
     db.flush()
@@ -596,6 +602,7 @@ def record_monitor_change(
             "observed_hash": content_hash,
             "diff_note": diff_note,
         },
+        expansion_run_id=expansion_run_id,
     )
     return artifact, bundle
 

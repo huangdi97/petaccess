@@ -67,6 +67,16 @@ class AuditEvent(StrEnum):
     MONITOR_CHECK = "monitor.check"
     DATA_LICENSE_CREATE = "data_license.create"
 
+    # --- data production / freshness (30-50 PLACE EXPANSION WAVE 01) --------
+    #: A bounded collection run. Without it a finished script leaves rows behind
+    #: that nothing can attribute, which is how unauditable data enters.
+    DATA_SOURCE_JOB_CREATE = "data_source_job.create"
+    DATA_SOURCE_JOB_FINISH = "data_source_job.finish"
+    FRESHNESS_POLICY_CREATE = "freshness_policy.create"
+    #: Attaching a review window to a source. Overdue means "re-verify", never
+    #: "invalid" — the name deliberately says assign, not invalidate.
+    SOURCE_FRESHNESS_ASSIGN = "source.freshness_assign"
+
     # --- observations --------------------------------------------------------
     OBSERVATION_CANDIDATE_CREATE = "observation_candidate.create"
     OBSERVATION_CANDIDATE_TRANSITION = "observation_candidate.transition"

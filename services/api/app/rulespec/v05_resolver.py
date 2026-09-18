@@ -29,6 +29,11 @@ from datetime import datetime
 from enum import StrEnum
 
 from app.models.enums import MandatoryLevel, normalize_mandatory_level
+from app.rulespec.statutory_proviso import (
+    JURISDICTION_EXCEPTION_INERT,
+    BindingMode,
+    bind_proviso_to_bases,
+)
 
 __all__ = [
     "RuleLayer",
@@ -38,6 +43,7 @@ __all__ = [
     "LayeredRule",
     "EffectiveRuleSet",
     "LayeredException",
+    "BindingMode",
     "resolve",
 ]
 
@@ -145,6 +151,20 @@ class LayeredException:
     holder_scope: str | None = None
     effective_from: datetime | None = None
     effective_to: datetime | None = None
+    # ---- ADR-030: jurisdiction-level statutory proviso ----------------------
+    #: How this carve-out finds its base rule. ``"rule"`` (the default) uses
+    #: ``rule_id``; ``"instrument"`` is a statutory proviso that carves out of
+    #: any in-scope prohibition grounded in the same instrument. See
+    #: app.rulespec.statutory_proviso — the binding rule lives there so the
+    #: resolver, the publish gate and the tests cannot drift apart.
+    binding: str = BindingMode.RULE
+    #: Reviewed declaration of which ``source`` rows are the same instrument.
+    #: Empty ⇒ the proviso binds nothing (fail closed).
+    instrument_source_ids: tuple[str, ...] = ()
+    #: Layer the proviso carves out of (normally ``LEGAL``); None ⇒ binds nothing.
+    applies_to_layer: str | None = None
+    #: Effects carved out; a proviso exempts from a *prohibition* by default.
+    applies_to_effects: tuple[str, ...] = ("prohibited",)
 
     def active_at(self, now: datetime) -> bool:
         if self.status != "current":
@@ -240,6 +260,29 @@ def resolve(
     # never apply; conflicting matching exceptions force review, not a guess.
     matched: dict[str, LayeredException] = {}
     conflicted_rule_ids: set[str] = set()
+
+    def _attach(exc: LayeredException, base_id: str) -> None:
+        """Record ``exc`` as carving out of ``base_id``, or flag a conflict."""
+        existing = matched.get(base_id)
+        if existing is not None and existing.effect != exc.effect:
+            steps.append(
+                f"exceptions {existing.id} vs {exc.id} conflict on rule "
+                f"{base_id}: REVIEW_REQUIRED, not guessed."
+            )
+            conflicted_rule_ids.add(base_id)
+            return
+        if base_id in conflicted_rule_ids:
+            return
+        matched[base_id] = matched.get(base_id, exc)
+
+    all_rules: list[LayeredRule] = [
+        *legal,
+        *guidance,
+        *template_rules,
+        *operator_rules,
+        *event_rules,
+    ]
+
     for exc in exceptions or []:
         probe = LayeredRule(
             id=f"exc-probe-{exc.id}",
@@ -260,14 +303,23 @@ def resolve(
             and exc.has_source()
         ):
             continue
-        if exc.rule_id in matched and matched[exc.rule_id].effect != exc.effect:
-            steps.append(
-                f"exceptions {matched[exc.rule_id].id} vs {exc.id} conflict on rule "
-                f"{exc.rule_id}: REVIEW_REQUIRED, not guessed."
-            )
-            conflicted_rule_ids.add(exc.rule_id)
+        if exc.binding == BindingMode.INSTRUMENT:
+            # ADR-030: a statutory proviso is not written of one venue rule — it
+            # carves out of every in-scope prohibition grounded in the same
+            # instrument. Bases it cannot reach are recorded, never applied:
+            # exempting a base that is merely *silent* about this subject would
+            # turn `unknown` into `allowed`, i.e. invent legal effect.
+            bound, inert = bind_proviso_to_bases(exc, all_rules)
+            for base_id in inert:
+                steps.append(
+                    f"jurisdiction proviso {exc.id} inert for rule {base_id} "
+                    f"({JURISDICTION_EXCEPTION_INERT}): the base does not govern "
+                    f"{exc.subject_scope_normalized or exc.animal_scope}; not applied."
+                )
+            for base_id in bound:
+                _attach(exc, base_id)
             continue
-        matched[exc.rule_id] = matched.get(exc.rule_id, exc)
+        _attach(exc, exc.rule_id)
 
     def apply_exceptions(layer: list[LayeredRule]) -> list[LayeredRule]:
         out: list[LayeredRule] = []
@@ -323,7 +375,10 @@ def resolve(
         # applicable may hold exception-derived rules even when every base rule
         # was exempted for this query — those still govern.
         return EffectiveRuleSet(
-            explanation_steps=["no in-scope rules in any layer"],
+            # ADR-030: keep the accumulated steps. A proviso judged inert for
+            # this query is the *reason* nothing is in scope, and dropping it
+            # would make "why is this unknown" unanswerable.
+            explanation_steps=[*steps, "no in-scope rules in any layer"],
             compliance_state=ComplianceState.UNKNOWN,
             effect="unknown",
             applied_exceptions=applied_exceptions,

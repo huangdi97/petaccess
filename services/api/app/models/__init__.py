@@ -1,6 +1,12 @@
 """Entity registry: importing this module registers all tables on Base.metadata."""
 
-from .civic import AuditLog, DisputeCase, JurisdictionRule, WatchSubscription
+from .civic import (
+    AuditLog,
+    DisputeCase,
+    JurisdictionException,
+    JurisdictionRule,
+    WatchSubscription,
+)
 from .evidence import (
     CollectorType,
     EvidenceBundle,
@@ -48,6 +54,7 @@ __all__ = [
     "DataSourceJob",
     "DisputeCase",
     "Entrance",
+    "JurisdictionException",
     "EventPolicy",
     "EvidenceBundle",
     "EvidenceClass",

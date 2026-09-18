@@ -37,6 +37,13 @@ celery_app.conf.update(
             "task": "app.worker.tasks.cleanup_expired_scene_photos",
             "schedule": 3600.0,
         },
+        # source-monitor sweep (Wave 01 §28-§33): picks up every monitor whose
+        # next_check_at has come due, so the fleet is actually observed rather
+        # than merely declared.
+        "source-monitor-sweep": {
+            "task": "app.worker.tasks.sweep_due_source_monitors",
+            "schedule": 3600.0,
+        },
     },
 )
 
