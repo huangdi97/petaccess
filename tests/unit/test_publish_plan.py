@@ -401,6 +401,63 @@ def test_plan_integrity_reports_all_zero_for_a_clean_plan(mod):
     assert integrity["DUPLICATE_PUBLICATION_PLAN"] == 0
     assert integrity["CROSS_LAYER_EXCEPTION"] == 0
     assert integrity["SUPERSESSION_CYCLE"] == 0
+    assert integrity["SELECTED_BUT_BLOCKED"] == 0
+
+
+# ------------------------------------------------- selected-but-blocked ⇒ refuse
+
+
+def test_a_clean_plan_has_nothing_selected_but_blocked(mod):
+    rows = [_row("r-1"), _row("r-2", place_key="place-2")]
+    plan = _plan(mod, rows, gate=mod.MappingGate())
+    integrity = mod.plan_integrity(plan, rows_by_rule={r["rule_id"]: r for r in rows})
+    assert integrity["SELECTED_BUT_BLOCKED"] == 0
+    assert integrity["details"]["selected_but_blocked"] == []
+
+
+def test_an_approved_row_the_gate_refuses_is_selected_but_blocked(mod):
+    """The bug this pins: the executor used to skip BLOCKED steps and report
+    success, so a batch could pass validation and still publish a half state."""
+    gate = mod.MappingGate({"r-1": mod.GateOutcome(mod.GATE_BLOCKED, ("证据超过 90 天",))})
+    rows = [_row("r-1")]
+    plan = _plan(mod, rows, gate=gate)
+    assert _by_rule(plan)["r-1"].publication_type == mod.BLOCKED
+    integrity = mod.plan_integrity(plan, rows_by_rule={r["rule_id"]: r for r in rows})
+    assert integrity["SELECTED_BUT_BLOCKED"] == 1
+    assert any("r-1" in item for item in integrity["details"]["selected_but_blocked"])
+
+
+def test_a_blocked_carve_out_makes_its_whole_batch_unexecutable(mod):
+    """SCOPE-REMODEL-R2, verbatim: the Disney dog base was writable while its
+    approved guide-dog carve-out was blocked. Executing that plan published the
+    prohibition and dropped the exception — the resolver then answered
+    `prohibited` for a guide dog. The refusal must be visible in the plan."""
+    bindings = {"r-exc": _binding(mod, "r-exc", ["r-base"], layer="LEGAL")}
+    gate = mod.MappingGate({"r-exc": mod.GateOutcome(mod.GATE_BLOCKED, ("条件键 schema 不支持",))})
+    rows = [
+        _row("r-base", rule_layer="LEGAL", mandatory_level="mandatory"),
+        _row("r-exc", rule_layer="LEGAL", mandatory_level="mandatory", animal_scope="guide_dog"),
+    ]
+    plan = _plan(mod, rows, bindings=bindings, gate=gate)
+    summary = plan.summary()
+    # ...and this is exactly why a skip is not good enough: the base would write.
+    assert summary["access_rule_create_count"] == 1
+    assert summary["rule_exception_create_count"] == 0
+    integrity = mod.plan_integrity(plan, rows_by_rule={r["rule_id"]: r for r in rows})
+    assert integrity["SELECTED_BUT_BLOCKED"] == 1
+
+
+def test_hold_and_already_published_are_not_selected_but_blocked(mod):
+    """A deliberate non-publication is not a failure to publish."""
+    rows = [
+        _row("r-hold", final_decision="HOLD"),
+        _row("r-done"),
+    ]
+    plan = _plan(mod, rows, gate=mod.MappingGate(), already_published={"cand-r-done"})
+    assert _by_rule(plan)["r-hold"].publication_type == mod.HOLD_NOT_PUBLISHABLE
+    assert _by_rule(plan)["r-done"].publication_type == mod.NOOP_ALREADY_EXISTS
+    integrity = mod.plan_integrity(plan, rows_by_rule={r["rule_id"]: r for r in rows})
+    assert integrity["SELECTED_BUT_BLOCKED"] == 0
 
 
 # ------------------------------------------------------- determinism

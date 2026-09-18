@@ -701,6 +701,32 @@ def cross_layer_violations(
     return problems
 
 
+def selected_but_blocked(plan: Plan) -> list[str]:
+    """Rows the batch selected that the plan cannot write.
+
+    A skipped step is not a harmless omission. The manifest said "publish this
+    row", so a base whose carve-out was silently dropped lands a prohibition
+    without its approved exception — exactly the state the canonical refusals
+    exist to prevent. ``BATCH_VALIDATION = PASS`` says the *closure* is fine; it
+    says nothing about whether every selected row can actually be written.
+
+    HOLD / REJECTED are not blocked (they are deliberately not publishable) and
+    an already-published row is a NOOP, so anything left in ``BLOCKED`` here is
+    a row the operator asked for and the machine cannot deliver.
+    """
+    problems: list[str] = []
+    for step in plan.steps:
+        if step.publication_type != BLOCKED:
+            continue
+        reasons = "；".join(step.blocked_reasons or step.gate_reasons) or "（无原因记录）"
+        human = step.human_decision or "未签署"
+        problems.append(
+            f"{step.rule_id}（候选 {step.candidate_id}，人类决定 {human}）："
+            f"计划不可写 —— {reasons}"
+        )
+    return problems
+
+
 def supersession_cycles(edges: Mapping[str, str]) -> list[list[str]]:
     """``supersedes_rule_id`` chains must be a forest, never a loop.
 
@@ -731,16 +757,19 @@ def plan_integrity(
     duplicates = duplicate_plan_violations(plan.steps, rows_by_rule)
     cross_layer = cross_layer_violations(plan.steps, rows_by_rule)
     cycles = supersession_cycles(supersession_edges or {})
+    unwritable = selected_but_blocked(plan)
     return {
         "SELF_SUPERSEDE": len(self_supersede),
         "DUPLICATE_PUBLICATION_PLAN": len(duplicates),
         "CROSS_LAYER_EXCEPTION": len(cross_layer),
         "SUPERSESSION_CYCLE": len(cycles),
+        "SELECTED_BUT_BLOCKED": len(unwritable),
         "details": {
             "self_supersede": self_supersede,
             "duplicate_plan": duplicates,
             "cross_layer_exception": cross_layer,
             "supersession_cycle": [" -> ".join(c) for c in cycles],
+            "selected_but_blocked": unwritable,
         },
     }
 
@@ -1130,6 +1159,8 @@ def render_plan(plan: Plan, integrity: Mapping[str, Any]) -> str:
         f"SELF_SUPERSEDE              = {integrity['SELF_SUPERSEDE']}",
         f"DUPLICATE_PLAN              = {integrity['DUPLICATE_PUBLICATION_PLAN']}",
         f"SUPERSESSION_CYCLE          = {integrity['SUPERSESSION_CYCLE']}",
+        f"SELECTED_BUT_BLOCKED        = {integrity['SELECTED_BUT_BLOCKED']}"
+        "  ← 非零即不得执行",
         f"HUMAN_OVERRIDES_AI          = {summary['human_overrides_ai']}",
         "",
         f"{'#':>3}  {'rule':<26} {'place':<20} {'layer':<16} {'human':<9} "
@@ -1556,9 +1587,18 @@ def main() -> int:
         )
 
     if args.dry_run:
-        return 0 if not problems else 3
+        return 0 if not problems and not integrity["SELECTED_BUT_BLOCKED"] else 3
 
     # ---- execute: never without the real gate -------------------------------
+    if integrity["SELECTED_BUT_BLOCKED"]:
+        print("REFUSED — 批次里有被选中但计划不可写的行（selected-but-blocked）。")
+        for item in integrity["details"]["selected_but_blocked"]:
+            print(f"  - {item}")
+        print(
+            "  静默跳过会发布出不完整状态（例如 base 已发布而其批准的但书缺失）。"
+            "\n  请把这些行从清单中排除（收窄批次），或先解除它们的阻塞原因。"
+        )
+        return 4
     if problems:
         print("PREFLIGHT FAILED — 未满足发布前置条件：")
         for problem in problems:
