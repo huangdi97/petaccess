@@ -1,13 +1,13 @@
 {
   "revision": "SCOPE-REMODEL-R2",
   "expansion_run_id": "SCOPE-R2-20260918",
-  "generated_at": "2026-09-18T13:56:14.962637+00:00",
+  "generated_at": "2026-09-18T14:13:57.920648+00:00",
   "reviewer": null,
   "decided_at": null,
   "note": "SCOPE-REMODEL-R2 人工审查登记表（**模板**：所有 final_decision 为 null）。对 6 条过宽来源术语拆分候选逐条裁决；签署后方可发布。被取代的冻结候选仍为 APPROVED，不在本表内，不受本表影响。",
   "rows": [
     {
-      "candidate_id": "f2d0afde-006d-4914-8085-85edf0b78572",
+      "candidate_id": "7b595de9-e0c3-4092-aab4-348c4878c296",
       "supersedes_candidate_id": "3a04d4d1-aaac-4c3d-8364-9d1acf18ef35",
       "place_name": "上海迪士尼乐园",
       "zone_name": "全园",
@@ -37,10 +37,26 @@
       "final_decision": null,
       "reviewer": null,
       "decided_at": null,
-      "decision_note": null
+      "decision_note": null,
+      "normalization_semantics": "CURRENT_ONTOLOGY_EXPRESSIBLE_SPLIT",
+      "unmodeled_source_scope_remainder": true,
+      "source_scope_caveat": "CURRENT_ONTOLOGY_EXPRESSIBLE_SPLIT，不是 FULL_SOURCE_DOMAIN_EXHAUSTIVE_SPLIT。来源术语「动物（导盲犬除外）」的语义宽于当前主体词表；本行只表达词表可表达的那一部分。UNMODELED_SOURCE_SCOPE_REMAINDER = YES：鸟类、爬行类及其他非当前词表对象未被任何行覆盖，对它们的查询仍为 UNKNOWN，绝不可读作 ALLOWED。",
+      "legal_applicability_caveat": null,
+      "exception_dependency": "depends_on_exception_proposal=w01-305fa08c1e（挂接本行，仍为提案，未发布）",
+      "ai_recommendation": "APPROVE_AS_SPLIT（建议，非决定）",
+      "ai_reason": "来源原文自带但书「导盲犬除外」，dog 行与既有 carve-out w01-305fa08c1e 配套后可完整表达该但书。",
+      "evidence": {
+        "evidence_class": "original",
+        "publisher_type": "operator_official",
+        "source_type": "official_operator_policy",
+        "issuer": "上海迪士尼度假区官网《上海迪士尼乐园游客须知》",
+        "source_url": "https://www.shanghaidisneyresort.com/zh-cn/legal/park-rules/",
+        "monitor": "url_hash / 1440min / active",
+        "freshness_interval_days": 90
+      }
     },
     {
-      "candidate_id": "a170137b-ca27-431b-b098-df2d89d7269a",
+      "candidate_id": "4580ab21-60c2-4bfb-9a2c-47cde25c5678",
       "supersedes_candidate_id": "3a04d4d1-aaac-4c3d-8364-9d1acf18ef35",
       "place_name": "上海迪士尼乐园",
       "zone_name": "全园",
@@ -70,10 +86,26 @@
       "final_decision": null,
       "reviewer": null,
       "decided_at": null,
-      "decision_note": null
+      "decision_note": null,
+      "normalization_semantics": "CURRENT_ONTOLOGY_EXPRESSIBLE_SPLIT",
+      "unmodeled_source_scope_remainder": true,
+      "source_scope_caveat": "CURRENT_ONTOLOGY_EXPRESSIBLE_SPLIT，不是 FULL_SOURCE_DOMAIN_EXHAUSTIVE_SPLIT。来源术语「动物（导盲犬除外）」的语义宽于当前主体词表；本行只表达词表可表达的那一部分。UNMODELED_SOURCE_SCOPE_REMAINDER = YES：鸟类、爬行类及其他非当前词表对象未被任何行覆盖，对它们的查询仍为 UNKNOWN，绝不可读作 ALLOWED。",
+      "legal_applicability_caveat": null,
+      "exception_dependency": "none",
+      "ai_recommendation": "APPROVE_AS_SPLIT（建议，非决定）",
+      "ai_reason": "来源术语覆盖猫，当前词表可表达。",
+      "evidence": {
+        "evidence_class": "original",
+        "publisher_type": "operator_official",
+        "source_type": "official_operator_policy",
+        "issuer": "上海迪士尼度假区官网《上海迪士尼乐园游客须知》",
+        "source_url": "https://www.shanghaidisneyresort.com/zh-cn/legal/park-rules/",
+        "monitor": "url_hash / 1440min / active",
+        "freshness_interval_days": 90
+      }
     },
     {
-      "candidate_id": "859c5a69-5384-43fe-be23-fd1af7048a16",
+      "candidate_id": "4ca5e55a-6aaf-4ef5-9e0d-cdefbfac98cd",
       "supersedes_candidate_id": "3a04d4d1-aaac-4c3d-8364-9d1acf18ef35",
       "place_name": "上海迪士尼乐园",
       "zone_name": "全园",
@@ -103,10 +135,26 @@
       "final_decision": null,
       "reviewer": null,
       "decided_at": null,
-      "decision_note": null
+      "decision_note": null,
+      "normalization_semantics": "CURRENT_ONTOLOGY_EXPRESSIBLE_SPLIT",
+      "unmodeled_source_scope_remainder": true,
+      "source_scope_caveat": "CURRENT_ONTOLOGY_EXPRESSIBLE_SPLIT，不是 FULL_SOURCE_DOMAIN_EXHAUSTIVE_SPLIT。来源术语「动物（导盲犬除外）」的语义宽于当前主体词表；本行只表达词表可表达的那一部分。UNMODELED_SOURCE_SCOPE_REMAINDER = YES：鸟类、爬行类及其他非当前词表对象未被任何行覆盖，对它们的查询仍为 UNKNOWN，绝不可读作 ALLOWED。",
+      "legal_applicability_caveat": null,
+      "exception_dependency": "none",
+      "ai_recommendation": "APPROVE_AS_SPLIT（建议，非决定）",
+      "ai_reason": "other = {other_pet}；仅覆盖词表内的「其他宠物」，不等于来源术语全域。",
+      "evidence": {
+        "evidence_class": "original",
+        "publisher_type": "operator_official",
+        "source_type": "official_operator_policy",
+        "issuer": "上海迪士尼度假区官网《上海迪士尼乐园游客须知》",
+        "source_url": "https://www.shanghaidisneyresort.com/zh-cn/legal/park-rules/",
+        "monitor": "url_hash / 1440min / active",
+        "freshness_interval_days": 90
+      }
     },
     {
-      "candidate_id": "2ab6f11b-f18a-480e-b7a8-d66dab8dc4f7",
+      "candidate_id": "a4e2ba26-f542-4ee6-a088-c073096db733",
       "supersedes_candidate_id": "6f2bfd39-d79d-4f49-83f6-6ae6a9012697",
       "place_name": "上海动物园",
       "zone_name": "全园",
@@ -136,10 +184,26 @@
       "final_decision": null,
       "reviewer": null,
       "decided_at": null,
-      "decision_note": null
+      "decision_note": null,
+      "normalization_semantics": "CURRENT_ONTOLOGY_EXPRESSIBLE_SPLIT",
+      "unmodeled_source_scope_remainder": true,
+      "source_scope_caveat": "CURRENT_ONTOLOGY_EXPRESSIBLE_SPLIT，不是 FULL_SOURCE_DOMAIN_EXHAUSTIVE_SPLIT。来源术语「动物」的语义宽于当前主体词表；本行只表达词表可表达的那一部分。UNMODELED_SOURCE_SCOPE_REMAINDER = YES：鸟类、爬行类及其他非当前词表对象未被任何行覆盖，对它们的查询仍为 UNKNOWN，绝不可读作 ALLOWED。",
+      "legal_applicability_caveat": "LEGAL_APPLICABILITY_UNRESOLVED：OPERATOR_POLICY 来源说「禁止」；导盲犬是否因上位法而例外 = 未解决，需人工裁决。JPROV-001 的 applies_to_layer=LEGAL 不适用于本行层。",
+      "exception_dependency": "none",
+      "ai_recommendation": "APPROVE_WITH_LEGAL_CAVEAT（建议，非决定）",
+      "ai_reason": "来源原文无但书，拆分后导盲犬由 unknown 变 prohibited；但是否受更高层法律/法定权利影响属法律判断，不由本建议认定。",
+      "evidence": {
+        "evidence_class": "original",
+        "publisher_type": "operator_official",
+        "source_type": "official_operator_policy",
+        "issuer": "上海动物园官网《温馨提示》",
+        "source_url": "https://www.shanghaizoo.cn/sites/shanghaizoo/shanghaizoo_wap/tishi.html",
+        "monitor": "url_hash / 1440min / active",
+        "freshness_interval_days": 90
+      }
     },
     {
-      "candidate_id": "4825e9eb-9446-4cec-a0d0-a5e7ecbc84f9",
+      "candidate_id": "27893d75-aa05-422f-9797-2120e81db2ec",
       "supersedes_candidate_id": "6f2bfd39-d79d-4f49-83f6-6ae6a9012697",
       "place_name": "上海动物园",
       "zone_name": "全园",
@@ -169,10 +233,26 @@
       "final_decision": null,
       "reviewer": null,
       "decided_at": null,
-      "decision_note": null
+      "decision_note": null,
+      "normalization_semantics": "CURRENT_ONTOLOGY_EXPRESSIBLE_SPLIT",
+      "unmodeled_source_scope_remainder": true,
+      "source_scope_caveat": "CURRENT_ONTOLOGY_EXPRESSIBLE_SPLIT，不是 FULL_SOURCE_DOMAIN_EXHAUSTIVE_SPLIT。来源术语「动物」的语义宽于当前主体词表；本行只表达词表可表达的那一部分。UNMODELED_SOURCE_SCOPE_REMAINDER = YES：鸟类、爬行类及其他非当前词表对象未被任何行覆盖，对它们的查询仍为 UNKNOWN，绝不可读作 ALLOWED。",
+      "legal_applicability_caveat": null,
+      "exception_dependency": "none",
+      "ai_recommendation": "APPROVE_AS_SPLIT（建议，非决定）",
+      "ai_reason": "来源术语覆盖猫，当前词表可表达。",
+      "evidence": {
+        "evidence_class": "original",
+        "publisher_type": "operator_official",
+        "source_type": "official_operator_policy",
+        "issuer": "上海动物园官网《温馨提示》",
+        "source_url": "https://www.shanghaizoo.cn/sites/shanghaizoo/shanghaizoo_wap/tishi.html",
+        "monitor": "url_hash / 1440min / active",
+        "freshness_interval_days": 90
+      }
     },
     {
-      "candidate_id": "d8a9a59a-b4f7-4f23-859c-bc1e23f7b24b",
+      "candidate_id": "2a3de3ab-de8d-4074-a4d0-3039c715893d",
       "supersedes_candidate_id": "6f2bfd39-d79d-4f49-83f6-6ae6a9012697",
       "place_name": "上海动物园",
       "zone_name": "全园",
@@ -202,7 +282,23 @@
       "final_decision": null,
       "reviewer": null,
       "decided_at": null,
-      "decision_note": null
+      "decision_note": null,
+      "normalization_semantics": "CURRENT_ONTOLOGY_EXPRESSIBLE_SPLIT",
+      "unmodeled_source_scope_remainder": true,
+      "source_scope_caveat": "CURRENT_ONTOLOGY_EXPRESSIBLE_SPLIT，不是 FULL_SOURCE_DOMAIN_EXHAUSTIVE_SPLIT。来源术语「动物」的语义宽于当前主体词表；本行只表达词表可表达的那一部分。UNMODELED_SOURCE_SCOPE_REMAINDER = YES：鸟类、爬行类及其他非当前词表对象未被任何行覆盖，对它们的查询仍为 UNKNOWN，绝不可读作 ALLOWED。",
+      "legal_applicability_caveat": null,
+      "exception_dependency": "none",
+      "ai_recommendation": "APPROVE_AS_SPLIT（建议，非决定）",
+      "ai_reason": "other = {other_pet}；仅覆盖词表内的「其他宠物」，不等于来源术语全域。",
+      "evidence": {
+        "evidence_class": "original",
+        "publisher_type": "operator_official",
+        "source_type": "official_operator_policy",
+        "issuer": "上海动物园官网《温馨提示》",
+        "source_url": "https://www.shanghaizoo.cn/sites/shanghaizoo/shanghaizoo_wap/tishi.html",
+        "monitor": "url_hash / 1440min / active",
+        "freshness_interval_days": 90
+      }
     }
   ],
   "exception_plan": [
@@ -212,7 +308,7 @@
       "layer": null,
       "bases": [
         {
-          "rule_id": "f2d0afde-006d-4914-8085-85edf0b78572",
+          "rule_id": "7b595de9-e0c3-4092-aab4-348c4878c296",
           "same_layer": true,
           "layer": null
         }
@@ -220,5 +316,13 @@
       "cross_layer_dropped": [],
       "note": "该 carve-out 改挂到新 revision 的 dog 基底；原基底（3a04d4d1-aaac-4c3d-8364-9d1acf18ef35）scope 为 other，该例外在其上不可达。"
     }
-  ]
+  ],
+  "normalization_semantics": {
+    "claim": "CURRENT_ONTOLOGY_EXPRESSIBLE_SPLIT",
+    "not_claimed": "FULL_SOURCE_DOMAIN_EXHAUSTIVE_SPLIT",
+    "unmodeled_source_scope_remainder": true,
+    "note": "compound_term_split 仅表示：从宽泛来源术语中拆出当前系统可表达的多个规范 scope。不表示 dog ∪ cat ∪ other_pet == 来源「动物」的现实世界全集。未建模动物的答案是 UNKNOWN / unsupported，不是 ALLOWED。"
+  },
+  "ai_advisory_notice": "`ai_recommendation` / `ai_reason` 是建议，不是决定；不得被复制进 `final_decision`。本表所有 final_decision / reviewer / decided_at / decision_note 均为 null。",
+  "advisory_annotation": "caveat / advisory 字段由本轮脚本后处理写入（生成器本身只产空决策单元）；未做 schema 迁移。"
 }

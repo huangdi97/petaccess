@@ -1,7 +1,7 @@
 {
   "revision": "SCOPE-REMODEL-R2",
   "run_id": "SCOPE-R2-20260918",
-  "db": "petaccess_publish_rehearsal_sr2",
+  "db": "petaccess",
   "created": [
     {
       "place": "上海迪士尼乐园",
@@ -32,7 +32,7 @@
         "dedup_key": "f0cb00a76f44a3c6419322a44966d1c923486f5b4dce634abe8925fbabd19ef3",
         "raw_text": "SCOPE-REMODEL-R2 拆分自冻结候选 3a04d4d1-aaac-4c3d-8364-9d1acf18ef35：来源术语「动物（导盲犬除外）」归一为 dog（compound_term_split），逐字保留原术语。原候选仍为 APPROVED 且未发布；本行为新 revision 待审候选。"
       },
-      "candidate_id": "f2d0afde-006d-4914-8085-85edf0b78572"
+      "candidate_id": "7b595de9-e0c3-4092-aab4-348c4878c296"
     },
     {
       "place": "上海迪士尼乐园",
@@ -63,7 +63,7 @@
         "dedup_key": "aa2d4bac5470f9372a6762d5f72357c5dcdf628292ad1d936b27f01678cae541",
         "raw_text": "SCOPE-REMODEL-R2 拆分自冻结候选 3a04d4d1-aaac-4c3d-8364-9d1acf18ef35：来源术语「动物（导盲犬除外）」归一为 cat（compound_term_split），逐字保留原术语。原候选仍为 APPROVED 且未发布；本行为新 revision 待审候选。"
       },
-      "candidate_id": "a170137b-ca27-431b-b098-df2d89d7269a"
+      "candidate_id": "4580ab21-60c2-4bfb-9a2c-47cde25c5678"
     },
     {
       "place": "上海迪士尼乐园",
@@ -94,7 +94,7 @@
         "dedup_key": "bd6c1e60717485668cb1a804af3cd23d3ef3fa0581ce508b9121e5d280d29b78",
         "raw_text": "SCOPE-REMODEL-R2 拆分自冻结候选 3a04d4d1-aaac-4c3d-8364-9d1acf18ef35：来源术语「动物（导盲犬除外）」归一为 other（compound_term_split），逐字保留原术语。原候选仍为 APPROVED 且未发布；本行为新 revision 待审候选。"
       },
-      "candidate_id": "859c5a69-5384-43fe-be23-fd1af7048a16"
+      "candidate_id": "4ca5e55a-6aaf-4ef5-9e0d-cdefbfac98cd"
     },
     {
       "place": "上海动物园",
@@ -125,7 +125,7 @@
         "dedup_key": "989c85deb487438acf7fb9b978239ba148b31913af007457c2e70b38cd758a7d",
         "raw_text": "SCOPE-REMODEL-R2 拆分自冻结候选 6f2bfd39-d79d-4f49-83f6-6ae6a9012697：来源术语「动物」归一为 dog（compound_term_split），逐字保留原术语。原候选仍为 APPROVED 且未发布；本行为新 revision 待审候选。"
       },
-      "candidate_id": "2ab6f11b-f18a-480e-b7a8-d66dab8dc4f7"
+      "candidate_id": "a4e2ba26-f542-4ee6-a088-c073096db733"
     },
     {
       "place": "上海动物园",
@@ -156,7 +156,7 @@
         "dedup_key": "bea52e2cad92dcf2630e0afaadf5ada8feba31465ada5519f9739226640b3071",
         "raw_text": "SCOPE-REMODEL-R2 拆分自冻结候选 6f2bfd39-d79d-4f49-83f6-6ae6a9012697：来源术语「动物」归一为 cat（compound_term_split），逐字保留原术语。原候选仍为 APPROVED 且未发布；本行为新 revision 待审候选。"
       },
-      "candidate_id": "4825e9eb-9446-4cec-a0d0-a5e7ecbc84f9"
+      "candidate_id": "27893d75-aa05-422f-9797-2120e81db2ec"
     },
     {
       "place": "上海动物园",
@@ -187,7 +187,7 @@
         "dedup_key": "9d5b0f99c9647127cf6b2bd582dab3276f6dad6c1a667f642dd26eace664d1aa",
         "raw_text": "SCOPE-REMODEL-R2 拆分自冻结候选 6f2bfd39-d79d-4f49-83f6-6ae6a9012697：来源术语「动物」归一为 other（compound_term_split），逐字保留原术语。原候选仍为 APPROVED 且未发布；本行为新 revision 待审候选。"
       },
-      "candidate_id": "d8a9a59a-b4f7-4f23-859c-bc1e23f7b24b"
+      "candidate_id": "2a3de3ab-de8d-4074-a4d0-3039c715893d"
     }
   ]
 }
