@@ -2,7 +2,7 @@
   "_readme": "Projected from docs/expansion/review_decisions_expansion_r1_wave01.json by scripts/expansion_w01_publish_register.py. Gate fields are derived from the live evidence chain using the canonical R2 derivations. The human signature (final_decision / reviewer / reviewed_at) is COPIED, never computed here.",
   "revision": "EXP-R1-W01-REVIEW-R1",
   "expansion_run_id": "EXP-R1-W01-20260918",
-  "generated_at": "2026-09-18T07:40:00.049282+00:00",
+  "generated_at": "2026-09-18T07:53:04.665044+00:00",
   "human_signoff_required": true,
   "human_decisions": [
     "APPROVED",

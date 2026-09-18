@@ -15,10 +15,9 @@ Governance contract (WAVE01_HUMAN_REVIEW_SIGNATURE_AND_PREPUBLISH_CONTINUATION_R
 from __future__ import annotations
 
 import argparse
-import io
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 REGISTRY = Path("docs/expansion/review_decisions_expansion_r1_wave01.json")
@@ -152,10 +151,13 @@ def main() -> int:
                 row.get("rule_layer"),
             )
             if got != (exp_place, exp_scope, exp_effect, exp_layer):
-                fail(f"#{ordinal:02d} anchor mismatch: {got} != {(exp_place, exp_scope, exp_effect, exp_layer)}")
+                fail(
+                    f"#{ordinal:02d} anchor mismatch: {got} != "
+                    f"{(exp_place, exp_scope, exp_effect, exp_layer)}"
+                )
         planned.append((row["candidate_id"], decision, note))
 
-    decided_at = args.decided_at or datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+    decided_at = args.decided_at or datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
     print(f"revision   : {doc['revision']}")
     print(f"run_id     : {doc['expansion_run_id']}")

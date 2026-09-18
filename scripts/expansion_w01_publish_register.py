@@ -243,7 +243,11 @@ def main() -> int:
 
     # The projector must never become a way to skip a human: every row must
     # already carry a complete signature before it is projected.
-    unsigned = [r["candidate_id"] for r in srows if not (r.get("final_decision") and r.get("reviewer") and r.get("decided_at"))]
+    unsigned = [
+        r["candidate_id"]
+        for r in srows
+        if not (r.get("final_decision") and r.get("reviewer") and r.get("decided_at"))
+    ]
     if unsigned:
         fail(f"{len(unsigned)} row(s) lack a complete signature: {unsigned[:3]}")
 
@@ -295,7 +299,11 @@ def main() -> int:
             "artifact_id": st.get("artifact_id"),
             "artifact_url": st.get("artifact_url"),
             "artifact_type": st.get("artifact_type"),
-            "snapshot_ref": st.get("snapshot_ref") or st.get("artifact_snapshot_ref") or st.get("source_snapshot_ref"),
+            "snapshot_ref": (
+                st.get("snapshot_ref")
+                or st.get("artifact_snapshot_ref")
+                or st.get("source_snapshot_ref")
+            ),
             "source_content_id": st.get("source_content_id"),
             "content_hash": st.get("content_hash"),
             "quoted_fragment": st.get("quoted_fragment"),
@@ -317,7 +325,9 @@ def main() -> int:
             "license_problems": license_problems,
             "place_match_evidence": st.get("place_match_evidence"),
             "applicability": applicability,
-            "last_verified_at": st.get("observed_at") or st.get("collected_at") or st.get("captured_at"),
+            "last_verified_at": (
+                st.get("observed_at") or st.get("collected_at") or st.get("captured_at")
+            ),
             # ---- human signature, copied verbatim, never minted here ------
             "final_decision": sr["final_decision"],
             "reviewer": sr["reviewer"],
@@ -386,7 +396,8 @@ def main() -> int:
     print(f"distribution    : {dict(dist)}")
     print(f"carve-outs      : {len(exception_plan)}")
     print(f"carve-out reach : {dict(reach)}")
-    print(f"weak evidence   : {sum(1 for r in rows if r['evidence_strength'] in {'search_snippet', 'social_lead'})}")
+    weak = sum(1 for r in rows if r["evidence_strength"] in {"search_snippet", "social_lead"})
+    print(f"weak evidence   : {weak}")
     print(f"license problems: {sum(1 for r in rows if r['license_problems'])}")
     print(f"out             : {out}")
 
@@ -394,7 +405,8 @@ def main() -> int:
         print("DRY-RUN: no changes written (pass --execute to write)")
         return 0
 
-    out.write_text(json.dumps(doc, ensure_ascii=False, indent=2, default=str) + "\n", encoding="utf-8", newline="\n")
+    payload = json.dumps(doc, ensure_ascii=False, indent=2, default=str) + "\n"
+    out.write_text(payload, encoding="utf-8", newline="\n")
     print(f"WROTE {out}")
     return 0
 
