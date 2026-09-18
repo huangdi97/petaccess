@@ -1,0 +1,224 @@
+{
+  "revision": "SCOPE-REMODEL-R2",
+  "expansion_run_id": "SCOPE-R2-20260918",
+  "generated_at": "2026-09-18T13:56:14.962637+00:00",
+  "reviewer": null,
+  "decided_at": null,
+  "note": "SCOPE-REMODEL-R2 人工审查登记表（**模板**：所有 final_decision 为 null）。对 6 条过宽来源术语拆分候选逐条裁决；签署后方可发布。被取代的冻结候选仍为 APPROVED，不在本表内，不受本表影响。",
+  "rows": [
+    {
+      "candidate_id": "f2d0afde-006d-4914-8085-85edf0b78572",
+      "supersedes_candidate_id": "3a04d4d1-aaac-4c3d-8364-9d1acf18ef35",
+      "place_name": "上海迪士尼乐园",
+      "zone_name": "全园",
+      "zone_id": "2c868f71-96d3-40d9-894b-aec9315d7948",
+      "animal_scope": "dog",
+      "subject_scope_normalized": "dog",
+      "normalization_type": "compound_term_split",
+      "effect": "prohibited",
+      "rule_layer": "OPERATOR_POLICY",
+      "mandatory_level": "operator_discretion",
+      "source_scope_exact": "动物（导盲犬除外）",
+      "normative_effect": "prohibition",
+      "evidence_bundle_id": "c757641b-407b-43cd-96b0-2469eafbfbac",
+      "source_type": "official_operator_policy",
+      "answer_before": {
+        "普通犬": "unknown",
+        "导盲犬": "unknown",
+        "猫": "unknown",
+        "其他宠物": "prohibited"
+      },
+      "answer_after": {
+        "普通犬": "prohibited",
+        "导盲犬": "conditional",
+        "猫": "prohibited",
+        "其他宠物": "prohibited"
+      },
+      "final_decision": null,
+      "reviewer": null,
+      "decided_at": null,
+      "decision_note": null
+    },
+    {
+      "candidate_id": "a170137b-ca27-431b-b098-df2d89d7269a",
+      "supersedes_candidate_id": "3a04d4d1-aaac-4c3d-8364-9d1acf18ef35",
+      "place_name": "上海迪士尼乐园",
+      "zone_name": "全园",
+      "zone_id": "2c868f71-96d3-40d9-894b-aec9315d7948",
+      "animal_scope": "cat",
+      "subject_scope_normalized": "cat",
+      "normalization_type": "compound_term_split",
+      "effect": "prohibited",
+      "rule_layer": "OPERATOR_POLICY",
+      "mandatory_level": "operator_discretion",
+      "source_scope_exact": "动物（导盲犬除外）",
+      "normative_effect": "prohibition",
+      "evidence_bundle_id": "c757641b-407b-43cd-96b0-2469eafbfbac",
+      "source_type": "official_operator_policy",
+      "answer_before": {
+        "普通犬": "unknown",
+        "导盲犬": "unknown",
+        "猫": "unknown",
+        "其他宠物": "prohibited"
+      },
+      "answer_after": {
+        "普通犬": "prohibited",
+        "导盲犬": "conditional",
+        "猫": "prohibited",
+        "其他宠物": "prohibited"
+      },
+      "final_decision": null,
+      "reviewer": null,
+      "decided_at": null,
+      "decision_note": null
+    },
+    {
+      "candidate_id": "859c5a69-5384-43fe-be23-fd1af7048a16",
+      "supersedes_candidate_id": "3a04d4d1-aaac-4c3d-8364-9d1acf18ef35",
+      "place_name": "上海迪士尼乐园",
+      "zone_name": "全园",
+      "zone_id": "2c868f71-96d3-40d9-894b-aec9315d7948",
+      "animal_scope": "other",
+      "subject_scope_normalized": "other",
+      "normalization_type": "compound_term_split",
+      "effect": "prohibited",
+      "rule_layer": "OPERATOR_POLICY",
+      "mandatory_level": "operator_discretion",
+      "source_scope_exact": "动物（导盲犬除外）",
+      "normative_effect": "prohibition",
+      "evidence_bundle_id": "c757641b-407b-43cd-96b0-2469eafbfbac",
+      "source_type": "official_operator_policy",
+      "answer_before": {
+        "普通犬": "unknown",
+        "导盲犬": "unknown",
+        "猫": "unknown",
+        "其他宠物": "prohibited"
+      },
+      "answer_after": {
+        "普通犬": "prohibited",
+        "导盲犬": "conditional",
+        "猫": "prohibited",
+        "其他宠物": "prohibited"
+      },
+      "final_decision": null,
+      "reviewer": null,
+      "decided_at": null,
+      "decision_note": null
+    },
+    {
+      "candidate_id": "2ab6f11b-f18a-480e-b7a8-d66dab8dc4f7",
+      "supersedes_candidate_id": "6f2bfd39-d79d-4f49-83f6-6ae6a9012697",
+      "place_name": "上海动物园",
+      "zone_name": "全园",
+      "zone_id": "ba951b98-34bb-409f-a2ba-bc1176c0528c",
+      "animal_scope": "dog",
+      "subject_scope_normalized": "dog",
+      "normalization_type": "compound_term_split",
+      "effect": "prohibited",
+      "rule_layer": "OPERATOR_POLICY",
+      "mandatory_level": "operator_discretion",
+      "source_scope_exact": "动物",
+      "normative_effect": "prohibition",
+      "evidence_bundle_id": "a11ff7be-71eb-4843-a6e2-f50fc8b5ba27",
+      "source_type": "official_operator_policy",
+      "answer_before": {
+        "普通犬": "unknown",
+        "导盲犬": "unknown",
+        "猫": "unknown",
+        "其他宠物": "prohibited"
+      },
+      "answer_after": {
+        "普通犬": "prohibited",
+        "导盲犬": "prohibited",
+        "猫": "prohibited",
+        "其他宠物": "prohibited"
+      },
+      "final_decision": null,
+      "reviewer": null,
+      "decided_at": null,
+      "decision_note": null
+    },
+    {
+      "candidate_id": "4825e9eb-9446-4cec-a0d0-a5e7ecbc84f9",
+      "supersedes_candidate_id": "6f2bfd39-d79d-4f49-83f6-6ae6a9012697",
+      "place_name": "上海动物园",
+      "zone_name": "全园",
+      "zone_id": "ba951b98-34bb-409f-a2ba-bc1176c0528c",
+      "animal_scope": "cat",
+      "subject_scope_normalized": "cat",
+      "normalization_type": "compound_term_split",
+      "effect": "prohibited",
+      "rule_layer": "OPERATOR_POLICY",
+      "mandatory_level": "operator_discretion",
+      "source_scope_exact": "动物",
+      "normative_effect": "prohibition",
+      "evidence_bundle_id": "a11ff7be-71eb-4843-a6e2-f50fc8b5ba27",
+      "source_type": "official_operator_policy",
+      "answer_before": {
+        "普通犬": "unknown",
+        "导盲犬": "unknown",
+        "猫": "unknown",
+        "其他宠物": "prohibited"
+      },
+      "answer_after": {
+        "普通犬": "prohibited",
+        "导盲犬": "prohibited",
+        "猫": "prohibited",
+        "其他宠物": "prohibited"
+      },
+      "final_decision": null,
+      "reviewer": null,
+      "decided_at": null,
+      "decision_note": null
+    },
+    {
+      "candidate_id": "d8a9a59a-b4f7-4f23-859c-bc1e23f7b24b",
+      "supersedes_candidate_id": "6f2bfd39-d79d-4f49-83f6-6ae6a9012697",
+      "place_name": "上海动物园",
+      "zone_name": "全园",
+      "zone_id": "ba951b98-34bb-409f-a2ba-bc1176c0528c",
+      "animal_scope": "other",
+      "subject_scope_normalized": "other",
+      "normalization_type": "compound_term_split",
+      "effect": "prohibited",
+      "rule_layer": "OPERATOR_POLICY",
+      "mandatory_level": "operator_discretion",
+      "source_scope_exact": "动物",
+      "normative_effect": "prohibition",
+      "evidence_bundle_id": "a11ff7be-71eb-4843-a6e2-f50fc8b5ba27",
+      "source_type": "official_operator_policy",
+      "answer_before": {
+        "普通犬": "unknown",
+        "导盲犬": "unknown",
+        "猫": "unknown",
+        "其他宠物": "prohibited"
+      },
+      "answer_after": {
+        "普通犬": "prohibited",
+        "导盲犬": "prohibited",
+        "猫": "prohibited",
+        "其他宠物": "prohibited"
+      },
+      "final_decision": null,
+      "reviewer": null,
+      "decided_at": null,
+      "decision_note": null
+    }
+  ],
+  "exception_plan": [
+    {
+      "mode": "carve_out",
+      "rule_id": "w01-305fa08c1e",
+      "layer": null,
+      "bases": [
+        {
+          "rule_id": "f2d0afde-006d-4914-8085-85edf0b78572",
+          "same_layer": true,
+          "layer": null
+        }
+      ],
+      "cross_layer_dropped": [],
+      "note": "该 carve-out 改挂到新 revision 的 dog 基底；原基底（3a04d4d1-aaac-4c3d-8364-9d1acf18ef35）scope 为 other，该例外在其上不可达。"
+    }
+  ]
+}
