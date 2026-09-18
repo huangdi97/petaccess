@@ -294,3 +294,33 @@ docs/governance/LEGACY_EXCEPTION_MIGRATION_PLAN.md   新增
 
 质量门：`pytest` 单元 600 passed · 集成 124 passed（含 worker）· `ruff check/format` PASS ·
 `mypy` 86 文件 Success。
+
+## 12. 追加：OPERATOR_POLICY 层实测（SCOPE-REMODEL-R2-BATCH-03 发布后）
+
+前面 §8 的真实运行时矩阵覆盖的是 **LEGAL 层**的 11 个基底（JPROV-001 辖区级法定 but 书）。
+本节补上此前缺失的一半：**OPERATOR_POLICY 层、且 but 书来自运营方自己**的场景
+（上海迪士尼乐园 dog 基底 `892643b0…` + 例外 `a9f564bb…`，2026-09-18 16:36 UTC 发布）。
+
+探针：`scripts/verify_scope_r2_disney_matrix.py`，走真实消费路径
+`POST /api/v1/places/{place_id}/effective-rules`（生产库）。
+
+| 查询 | effect | applied_exceptions | missing_inputs |
+|---|---|---|---|
+| 普通犬 | `prohibited` | 0 | — |
+| 导盲犬，**未提供 holder** | `conditional` | 0 | `['holder_scope']` |
+| 导盲犬 + `person_with_disability` | `conditional`（例外**已应用**） | 1（`a9f564bb…`） | — |
+| generic `service_dog`（未点名角色） | `prohibited` | 0 | — |
+| `police_dog` | `prohibited` | 0 | — |
+| `military_working_dog` | `prohibited` | 0 | — |
+
+三点值得单独记录：
+
+1. **holder 未知 ⇒ conditional，不是 allowed 也不是 prohibited** —— 与 §7-C 一致，
+   且这次发生在 OPERATOR_POLICY 层，证明语义不是 LEGAL 层的特例。
+2. **holder 满足时 effect 仍是 `conditional` 而不是 `allowed`** —— 因为这份 but 书自带条件
+   （须栓系绳、部分游乐项目可能不允许）。「例外已应用」与「无条件允许」是两件事：
+   `applied_exceptions` 里有它就说明应用了，条件仍然成立。消费者**不得**把 conditional 渲染成 allowed。
+3. **generic `service_dog` 在此处是 `prohibited` 而不是 `conditional`** —— 与 §7-D 的
+   `conditional` 不同，因为这里的基底是「禁止」而非「有条件的法定豁免」：
+   例外没有完整覆盖查询（`query ⊄ carve-out`），所以基底的禁止照常生效。
+   P0-02 修的是「存在性语义导致整体 allowed」，不是「所有未点名查询都必须 conditional」。
