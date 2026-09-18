@@ -1,0 +1,88 @@
+{
+  "_schema": "publish batch manifest v1 — revision / batch_id / reviewer / candidate_rule_ids (registry rule_id values, in execution dependency order). Permission is NOT stored here: final_decision is read from the signed register.",
+  "revision": "EXP-R1-W01-REVIEW-R1",
+  "batch_id": "EXP-R1-W01-REVIEW-R1-BATCH-01A",
+  "reviewer": "huangdi97",
+  "supersedes_planning_manifest": "EXP_R1_W01_REVIEW_R1_BATCH_01.json",
+  "supersede_reason": "PRE_REAL_PUBLISH_SEMANTIC_BRIDGE",
+  "note": "Wave-01 safe batch after the pre-real-publish semantic bridge. 5 of the 15 human-APPROVED candidates (3 AccessRule + 2 RuleException). 10 approved rows are not executable and are excluded — none of which reverses a human decision; every excluded row stays APPROVED in the signed register. Exclusions and their measured reasons are listed in `excluded_approved`. The base-before-exception ordering is the execution order.",
+  "excluded_approved": [
+    {
+      "rule_id": "w01-052d19ccba",
+      "place_name": "CHARLIE'S 粉红汉堡（马当路店）",
+      "human_decision": "APPROVED",
+      "reason": "REQUIRED_LEGAL_EXCEPTION_NOT_EXECUTABLE",
+      "detail": "ordinary_dog_prohibited=True, guide_dog_effect=prohibited, applied_exceptions=()"
+    },
+    {
+      "rule_id": "w01-7de2f5d75b",
+      "place_name": "omitofee 上海首店（浦江郊野公园滨江漫步区）",
+      "human_decision": "APPROVED",
+      "reason": "REQUIRED_LEGAL_EXCEPTION_NOT_EXECUTABLE",
+      "detail": "ordinary_dog_prohibited=True, guide_dog_effect=prohibited, applied_exceptions=()"
+    },
+    {
+      "rule_id": "w01-6f2bfd39d7",
+      "place_name": "上海动物园",
+      "human_decision": "APPROVED",
+      "reason": "SOURCE_SCOPE_NORMALIZATION_NOT_SEMANTICALLY_EQUIVALENT",
+      "detail": "来源术语「动物」「动物」指全部动物（全域），而 other 仅覆盖 {other_pet}（宠物一类）。归一为 'other' 属于 narrowing，但被标为 'exact'（声称等价）——把全域归一为 other_pet 是收窄，不是等价。"
+    },
+    {
+      "rule_id": "w01-df1645fe68",
+      "place_name": "上海新天地朗廷酒店",
+      "human_decision": "APPROVED",
+      "reason": "REQUIRED_LEGAL_EXCEPTION_NOT_EXECUTABLE",
+      "detail": "ordinary_dog_prohibited=True, guide_dog_effect=prohibited, applied_exceptions=()"
+    },
+    {
+      "rule_id": "w01-8ba2b49b01",
+      "place_name": "上海苏河湾万象天地",
+      "human_decision": "APPROVED",
+      "reason": "REQUIRED_LEGAL_EXCEPTION_NOT_EXECUTABLE",
+      "detail": "ordinary_dog_prohibited=True, guide_dog_effect=prohibited, applied_exceptions=()"
+    },
+    {
+      "rule_id": "w01-3a04d4d1aa",
+      "place_name": "上海迪士尼乐园",
+      "human_decision": "APPROVED",
+      "reason": "SOURCE_SCOPE_NORMALIZATION_NOT_SEMANTICALLY_EQUIVALENT",
+      "detail": "来源术语「动物（导盲犬除外）」「动物（导盲犬除外）」= 全部动物减去导盲犬；基底仍是全域。归一为 'other' 属于 narrowing，但被标为 'exact'（声称等价）——收窄，且内嵌但书未建模为 RuleException——双重缺陷。"
+    },
+    {
+      "rule_id": "w01-305fa08c1e",
+      "place_name": "上海迪士尼乐园",
+      "human_decision": "APPROVED",
+      "reason": "INREACHABLE_APPROVED_CARVE_OUT",
+      "detail": ""
+    },
+    {
+      "rule_id": "w01-4e217d5810",
+      "place_name": "世纪公园",
+      "human_decision": "APPROVED",
+      "reason": "ADR021_UNVERIFIED_SEARCH_SNIPPET",
+      "detail": ""
+    },
+    {
+      "rule_id": "w01-d1aee78159",
+      "place_name": "前滩太古里",
+      "human_decision": "APPROVED",
+      "reason": "REQUIRED_LEGAL_EXCEPTION_NOT_EXECUTABLE",
+      "detail": "ordinary_dog_prohibited=True, guide_dog_effect=prohibited, applied_exceptions=()"
+    },
+    {
+      "rule_id": "w01-e951785d1b",
+      "place_name": "港汇恒隆广场",
+      "human_decision": "APPROVED",
+      "reason": "REQUIRED_LEGAL_EXCEPTION_NOT_EXECUTABLE",
+      "detail": "ordinary_dog_prohibited=True, guide_dog_effect=prohibited, applied_exceptions=()"
+    }
+  ],
+  "candidate_rule_ids": [
+    "w01-fa5f33f122",
+    "w01-73de8e3357",
+    "w01-4710a68f56",
+    "w01-1fb3d7f1c7",
+    "w01-6482477d8d"
+  ]
+}

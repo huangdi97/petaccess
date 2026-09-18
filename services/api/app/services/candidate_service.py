@@ -19,6 +19,7 @@ from app.core.errors import ApiError
 from app.models import AccessRule, RuleCandidate, RuleException, Source
 from app.models.enums import RuleStatus
 from app.models.v05 import CANDIDATE_TRANSITIONS
+from app.services.condition_ingest import normalize_conditions
 
 
 def transition(
@@ -63,10 +64,20 @@ def create_from_extraction(
     normative_effect: str | None = None,
     holder_scope: str | None = None,
     operator_obligations: list | None = None,
+    # --- Wave 01 -------------------------------------------------------------
+    expansion_run_id: str | None = None,
+    dedup_key: str | None = None,
 ) -> RuleCandidate:
     """Entry point for OCR/AI/monitor/import outputs. Creates the candidate in
     MATCH_PENDING when extraction already produced structured fields (the next
-    human step is REVIEW), else EXTRACTED."""
+    human step is REVIEW), else EXTRACTED.
+
+    ``proposed_conditions`` arrives from *outside* the platform (an extractor, a
+    spreadsheet import), so it is normalised to the canonical
+    ``condition_type`` key here and nowhere else (ADR-029). A condition list the
+    platform cannot read is refused at the door rather than discovered at
+    publish time, long after a human approved it.
+    """
     status = "MATCH_PENDING" if (animal_scope and action and effect) else "EXTRACTED"
     candidate = RuleCandidate(
         source_id=source_id,
@@ -77,7 +88,7 @@ def create_from_extraction(
         effect=effect,
         rule_layer=rule_layer or "OPERATOR_POLICY",
         mandatory_level=mandatory_level,
-        proposed_conditions=proposed_conditions,
+        proposed_conditions=normalize_conditions(proposed_conditions),
         extraction_method=extraction_method,
         extraction_provider=extraction_provider,
         internal_confidence=internal_confidence,
@@ -94,6 +105,8 @@ def create_from_extraction(
         normative_effect=normative_effect,
         holder_scope=holder_scope,
         operator_obligations=operator_obligations,
+        expansion_run_id=expansion_run_id,
+        dedup_key=dedup_key,
     )
     db.add(candidate)
     db.flush()
@@ -215,7 +228,7 @@ def publish(
             RuleCondition(
                 rule_id=rule.id,
                 **{
-                    "condition_type": cond.get("condition_type") or cond.get("type"),
+                    "condition_type": cond["condition_type"],
                     "value_flag": cond.get(
                         "value_flag",
                         cond.get("value") if isinstance(cond.get("value"), bool) else None,

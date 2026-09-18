@@ -77,14 +77,14 @@ def compute_answerability(
     )
 
     # conditions
+    # Canonical key only: ingest translated legacy `type` to `condition_type` at
+    # the boundary (ADR-029), so a reader that also tolerated `type` would keep
+    # a second canonical key alive in the domain layer forever.
     def cond_answer(key: str, ctype: str) -> None:
         matched = [
             r
             for r in ordinary
-            if any(
-                (c.get("condition_type") or c.get("type")) == ctype
-                for c in (r.get("conditions") or [])
-            )
+            if any(c.get("condition_type") == ctype for c in (r.get("conditions") or []))
         ]
         cells.append(
             stale_cell(key, freshest(matched))

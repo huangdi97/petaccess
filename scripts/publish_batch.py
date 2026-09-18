@@ -83,7 +83,22 @@ BATCH_DIR = REPO / "docs" / "governance" / "publish_batches"
 REQUIRED_KEYS = ("revision", "batch_id", "reviewer", "candidate_rule_ids")
 
 #: Optional keys, allowed so a manifest can explain itself without a schema change.
-OPTIONAL_KEYS = ("note", "_schema", "supersedes_batch", "deferred")
+#: ``supersedes_planning_manifest`` / ``supersede_reason`` record that this batch
+#: replaced an earlier *planning* artefact, and ``excluded_approved`` lists the
+#: human-approved rows that measurement found non-executable. All three are
+#: explanatory: none can widen the selection, because the selection is still the
+#: ``candidate_rule_ids`` list and permission still comes from the signed
+#: register. Refusing to allow them would push the reasoning out of the artefact
+#: that reviewers actually read, which is worse than the small schema growth.
+OPTIONAL_KEYS = (
+    "note",
+    "_schema",
+    "supersedes_batch",
+    "supersedes_planning_manifest",
+    "supersede_reason",
+    "excluded_approved",
+    "deferred",
+)
 
 #: The follow-up state for an approved carve-out that can never fire. Recorded,
 #: never repaired here: the fix is a semantic remodel of the animal-scope model,
