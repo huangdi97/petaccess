@@ -59,12 +59,38 @@ SELECT ar.id, ar.animal_scope, ar.effect, ar.rule_layer, ar.mandatory_level,
  WHERE ar.id = ANY(%s)
 """
 
+#: A carve-out candidate does not become an ``access_rule``: it becomes a
+#: ``rule_exception`` hanging off the base rule. Its ``published_rule_id``
+#: therefore points at the *base*, and comparing the base's scope triple against
+#: the carve-out candidate's reports drift that does not exist. Resolve those
+#: rows from ``rule_exception`` instead — the publisher leaves the candidate id
+#: in the note, which is the only back-reference there is.
+EXCEPTION_SQL = """
+SELECT re.id, re.animal_scope, re.effect, NULL::text AS rule_layer,
+       NULL::text AS mandatory_level, NULL::uuid AS zone_id, NULL::uuid AS place_id,
+       re.source_id, re.status,
+       re.source_scope_exact, re.subject_scope_normalized, re.normalization_type,
+       re.normative_effect, NULL::uuid AS projection_of_rule_id,
+       s.source_type, s.issuer, s.source_url, s.source_availability,
+       eb.id AS bundle_id, eb.evidence_class, eb.publisher_type, eb.snapshot_ref,
+       art.storage_allowed, art.display_allowed, art.redistribution_allowed,
+       rc.id AS candidate_id, rc.review_status
+  FROM rule_exception re
+  LEFT JOIN source s ON s.id = re.source_id
+  LEFT JOIN rule_candidate rc ON rc.id = %s
+  LEFT JOIN evidence_bundle eb ON eb.id = rc.evidence_bundle_id
+  LEFT JOIN source_artifact art ON art.id = eb.artifact_id
+ WHERE re.note LIKE %s
+"""
+
 AUDIT_SQL = """
 SELECT action, target_type, target_id, actor_role, created_at
   FROM audit_log
  WHERE target_id = ANY(%s)
  ORDER BY created_at
 """
+
+CARVE_OUT_EFFECT = "exempt_from_prohibition"
 
 
 def main() -> int:
@@ -112,6 +138,23 @@ def main() -> int:
         cols2 = [c.name for c in cur.description]
         detailed = [dict(zip(cols2, row, strict=True)) for row in cur.fetchall()]
 
+        by_candidate = {str(r.get("candidate_id")): r for r in registry["rows"]}
+        resolved: list[dict] = []
+        for row in detailed:
+            cid = str(row.get("candidate_id"))
+            if by_candidate.get(cid, {}).get("normative_effect") != CARVE_OUT_EFFECT:
+                resolved.append(row)
+                continue
+            cur.execute(EXCEPTION_SQL, (cid, f"%from candidate {cid}%"))
+            cols3 = [c.name for c in cur.description]
+            exceptions = [dict(zip(cols3, r, strict=True)) for r in cur.fetchall()]
+            if not exceptions:
+                findings.append(f"{cid}: 例外候选未找到对应 rule_exception 行")
+                resolved.append(row)
+                continue
+            resolved.extend(exceptions)
+        detailed = resolved
+
         cur.execute(AUDIT_SQL, ([str(r["id"]) for r in rules] + expected_candidates,))
         audits = cur.fetchall()
 
@@ -142,8 +185,9 @@ def main() -> int:
             {},
         )
         print(
-            f"  {str(row['id'])[:8]} {row['animal_scope']:<6} {row['effect']:<10} "
-            f"{row['rule_layer']:<16} status={row['status']}"
+            f"  {str(row['id'])[:8]} {str(row['animal_scope']):<6} "
+            f"{str(row['effect']):<10} {str(row['rule_layer']):<16} "
+            f"status={row['status']}"
         )
         print(f"      source      = {row['issuer']}")
         print(f"      source_url  = {row['source_url']}")

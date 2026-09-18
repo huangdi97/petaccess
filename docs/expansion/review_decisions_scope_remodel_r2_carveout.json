@@ -35,10 +35,10 @@
         }
       ],
       "carve_out_of": "sr2-7b595de9e0",
-      "final_decision": null,
-      "reviewer": null,
-      "decided_at": null,
-      "decision_note": null
+      "final_decision": "APPROVED",
+      "reviewer": "huangdi97",
+      "decided_at": "2026-09-19T00:01:16+08:00",
+      "decision_note": "维持本人对 w01-305fa08c1e（上海迪士尼乐园／导盲犬例外）的原有批准：该冻结候选因 proposed_conditions 使用遗留键 'type' 而无法通过 canonical 发布闸门，ADR-029 §9 禁止原地改写已签署候选，故就同一实质内容另立新候选重签。新候选与冻结候选在来源、证据包、作用域三列、层级、效果、holder_scope 与条件语义上逐字一致，唯一改动为条件键规范化（type -> condition_type，走 canonical normalize_conditions）。发布约束：必须与基底 sr2-7b595de9e0（迪士尼 dog 禁令）同批发布，不得先发布基底而把已批准的例外留在批外。"
     }
   ],
   "exception_plan": [
@@ -57,5 +57,14 @@
       "cross_layer_dropped": [],
       "note": "该 carve-out 挂到 SCOPE-REMODEL-R2 的迪士尼 dog 基底 sr2-7b595de9e0；发布时必须与基底同批，否则禁令会带着未发布的已批准例外上线。"
     }
-  ]
+  ],
+  "reviewer": "huangdi97",
+  "decided_at": "2026-09-19T00:01:16+08:00",
+  "decision_summary": {
+    "signed_rows": 1,
+    "counts": {
+      "APPROVED": 1
+    },
+    "note": "计数直接来自授权决定本身，不是二次推断。"
+  }
 }

@@ -1,0 +1,224 @@
+{
+  "_readme": "Projected by scripts/scope_remodel_r2_carveout_publish_register.py from the signed SCOPE-REMODEL-R2 register (Disney dog base) and the signed carve-out register (remediated guide-dog exception). Both signatures are COPIED, never computed. The frozen carve-out w01-305fa08c1e is deliberately absent: it is blocked by the canonical gate and importing it would make this batch unexecutable.",
+  "revision": "SCOPE-REMODEL-R2",
+  "generated_at": "2026-09-18T14:13:57.920648+00:00",
+  "human_signoff_required": true,
+  "rows": [
+    {
+      "candidate_id": "7b595de9-e0c3-4092-aab4-348c4878c296",
+      "rule_id": "sr2-7b595de9e0",
+      "place_key": null,
+      "place_name": "上海迪士尼乐园",
+      "place_id": "d85a4c00-3be9-48a5-ac31-d0486451ba69",
+      "zone_key": null,
+      "zone_id": "2c868f71-96d3-40d9-894b-aec9315d7948",
+      "zone_name": "全园",
+      "zone_type": "area",
+      "indoor_outdoor": "unknown",
+      "place_address": "上海市浦东新区川沙新镇申迪北路753号",
+      "place_type": "scenic_area",
+      "source_key": null,
+      "source_id": "0bc744e2-9df0-4124-ae4c-4d5a8a8d4797",
+      "source_url": "https://www.shanghaidisneyresort.com/zh-cn/legal/park-rules/",
+      "source_type": "official_operator_policy",
+      "issuer": "上海迪士尼度假区官网《上海迪士尼乐园游客须知》",
+      "issuer_verification": "verified",
+      "rule_layer": "OPERATOR_POLICY",
+      "mandatory_level": "operator_discretion",
+      "animal_scope": "dog",
+      "action": "enter",
+      "effect": "prohibited",
+      "conditions": [],
+      "source_scope_exact": "动物（导盲犬除外）",
+      "subject_scope_normalized": "dog",
+      "normalization_type": "compound_term_split",
+      "normative_effect": "prohibition",
+      "holder_scope": "any_handler",
+      "evidence_bundle_id": "c757641b-407b-43cd-96b0-2469eafbfbac",
+      "bundle_url": "https://www.shanghaidisneyresort.com/zh-cn/legal/park-rules/",
+      "artifact_id": "e720411f-fa5b-43f7-9ae5-78b042f5dc75",
+      "artifact_url": "https://www.shanghaidisneyresort.com/zh-cn/legal/park-rules/",
+      "artifact_type": "web_page_text",
+      "snapshot_ref": null,
+      "source_content_id": null,
+      "content_hash": "98f50c64465fad74d1f8fefe273f1f8a2968300d23e4b8b7b1deed73e1c8e9ec",
+      "quoted_fragment": "动物（导盲犬除外）。",
+      "raw_text": "SCOPE-REMODEL-R2 拆分自冻结候选 3a04d4d1-aaac-4c3d-8364-9d1acf18ef35：来源术语「动物（导盲犬除外）」归一为 dog（compound_term_split），逐字保留原术语。原候选仍为 APPROVED 且未发布；本行为新 revision 待审候选。",
+      "captured_at": "2026-09-18 01:47:43.108610+00:00",
+      "evidence_strength": "primary_direct",
+      "strength_notes": [],
+      "evidence_strength_claimed": null,
+      "directness": "direct",
+      "spatial_precision": "precise",
+      "source_availability": "available_online",
+      "license_metadata": {
+        "storage_allowed": true,
+        "display_allowed": true,
+        "redistribution_allowed": false
+      },
+      "artifact_license": {
+        "storage_allowed": true,
+        "display_allowed": true,
+        "redistribution_allowed": false
+      },
+      "license_problems": [],
+      "place_match_evidence": {
+        "matched_by": "existing_place_id",
+        "note": "存量 Place，直接复用；本轮只追加新证据与新候选。"
+      },
+      "applicability": {
+        "place_type": "scenic_area",
+        "statutory_category": null,
+        "status": "NOT_EVIDENCED",
+        "venue_scope": null,
+        "note": "场所类型 place_type=scenic_area 不属于第二十三条枚举的任一类别（办公楼/学校/医院/体育场馆/博物馆/图书馆/文化娱乐场所/候车（机、船）室/餐饮场所/商场/宾馆）；将其纳入该法条适用范围属法律解释，需显式证据支撑。"
+      },
+      "last_verified_at": "2026-09-13 00:00:00+00:00",
+      "final_decision": "APPROVED",
+      "reviewer": "huangdi97",
+      "reviewed_at": "2026-09-18T22:42:35+08:00",
+      "review_note": "CURRENT_ONTOLOGY_EXPRESSIBLE_SPLIT = YES；SOURCE_SCOPE_FULL_REAL_WORLD_EXHAUSTIVE = NO；UNMODELED_SOURCE_SCOPE_REMAINDER = YES。未建模的鸟类、爬行类等必须继续保持 UNKNOWN / unsupported，不得解释为 ALLOWED。",
+      "proposed_decision": null,
+      "proposed_reason": null,
+      "carve_out_of": [
+        "sr2-69e0916a2f"
+      ],
+      "exception_binding_required": true,
+      "reachable": true,
+      "review_status": "REVIEW_PENDING",
+      "supersedes_candidate_id": "3a04d4d1-aaac-4c3d-8364-9d1acf18ef35",
+      "_imported_dependency": false
+    },
+    {
+      "candidate_id": "69e0916a-2f13-4b1e-b601-f8731e6869d1",
+      "rule_id": "sr2-69e0916a2f",
+      "place_key": null,
+      "place_name": "上海迪士尼乐园",
+      "place_id": "d85a4c00-3be9-48a5-ac31-d0486451ba69",
+      "zone_key": null,
+      "zone_id": "2c868f71-96d3-40d9-894b-aec9315d7948",
+      "zone_name": "全园",
+      "zone_type": "area",
+      "indoor_outdoor": "unknown",
+      "place_address": "上海市浦东新区川沙新镇申迪北路753号",
+      "place_type": "scenic_area",
+      "source_key": null,
+      "source_id": "0bc744e2-9df0-4124-ae4c-4d5a8a8d4797",
+      "source_url": "https://www.shanghaidisneyresort.com/zh-cn/legal/park-rules/",
+      "source_type": "official_operator_policy",
+      "issuer": "上海迪士尼度假区官网《上海迪士尼乐园游客须知》",
+      "issuer_verification": "verified",
+      "rule_layer": "OPERATOR_POLICY",
+      "mandatory_level": "operator_discretion",
+      "animal_scope": "service_dog",
+      "action": "enter",
+      "effect": "conditional",
+      "conditions": [
+        {
+          "condition_type": "leash_required",
+          "value": true,
+          "note": "导盲犬须时刻栓有系绳并在主人的看管下"
+        },
+        {
+          "condition_type": "other_structured_note",
+          "value": "部分游乐项目也可能不允许导盲犬进入"
+        }
+      ],
+      "source_scope_exact": "导盲犬",
+      "subject_scope_normalized": "guide_dog",
+      "normalization_type": "exact",
+      "normative_effect": "exempt_from_prohibition",
+      "holder_scope": "person_with_disability",
+      "evidence_bundle_id": "573cd58f-94fb-4a8d-bd7e-e111905b3b13",
+      "bundle_url": "https://www.shanghaidisneyresort.com/zh-cn/legal/park-rules/",
+      "artifact_id": "e720411f-fa5b-43f7-9ae5-78b042f5dc75",
+      "artifact_url": "https://www.shanghaidisneyresort.com/zh-cn/legal/park-rules/",
+      "artifact_type": "web_page_text",
+      "snapshot_ref": null,
+      "source_content_id": null,
+      "content_hash": "98f50c64465fad74d1f8fefe273f1f8a2968300d23e4b8b7b1deed73e1c8e9ec",
+      "quoted_fragment": "导盲犬须时刻栓有系绳并在主人的看管下。部分游乐项目也可能不允许导盲犬进入。",
+      "raw_text": "SCOPE-REMODEL-R2 导盲犬 carve-out 救济候选：克隆自已签署候选 305fa08c-1edd-4cc9-9b7e-554647e44b0a（该候选因 proposed_conditions 使用遗留键 'type' 被 canonical 闸门拒绝；ADR-029 §9 禁止原地改写已签署候选）。本行唯一的改动是在 ingest 边界把条件键归一为 'condition_type'，其余字段逐字搬运。原候选保持原样、仍为 APPROVED；本行为新 revision 待审候选，base 为新迪士尼 dog 基底 7b595de9-e0c3-4092-aab4-348c4878c296。",
+      "captured_at": "2026-09-18 01:47:43.022223+00:00",
+      "evidence_strength": "primary_direct",
+      "strength_notes": [],
+      "evidence_strength_claimed": null,
+      "directness": "direct",
+      "spatial_precision": "precise",
+      "source_availability": "available_online",
+      "license_metadata": {
+        "storage_allowed": true,
+        "display_allowed": true,
+        "redistribution_allowed": false
+      },
+      "artifact_license": {
+        "storage_allowed": true,
+        "display_allowed": true,
+        "redistribution_allowed": false
+      },
+      "license_problems": [],
+      "place_match_evidence": {
+        "matched_by": "existing_place_id",
+        "note": "存量 Place，直接复用；本轮只追加新证据与新候选。"
+      },
+      "applicability": {
+        "place_type": "scenic_area",
+        "statutory_category": null,
+        "status": "NOT_EVIDENCED",
+        "venue_scope": null,
+        "note": "场所类型 place_type=scenic_area 不属于第二十三条枚举的任一类别（办公楼/学校/医院/体育场馆/博物馆/图书馆/文化娱乐场所/候车（机、船）室/餐饮场所/商场/宾馆）；将其纳入该法条适用范围属法律解释，需显式证据支撑。"
+      },
+      "last_verified_at": "2026-09-13 00:00:00+00:00",
+      "final_decision": "APPROVED",
+      "reviewer": "huangdi97",
+      "reviewed_at": "2026-09-19T00:01:16+08:00",
+      "review_note": "维持本人对 w01-305fa08c1e（上海迪士尼乐园／导盲犬例外）的原有批准：该冻结候选因 proposed_conditions 使用遗留键 'type' 而无法通过 canonical 发布闸门，ADR-029 §9 禁止原地改写已签署候选，故就同一实质内容另立新候选重签。新候选与冻结候选在来源、证据包、作用域三列、层级、效果、holder_scope 与条件语义上逐字一致，唯一改动为条件键规范化（type -> condition_type，走 canonical normalize_conditions）。发布约束：必须与基底 sr2-7b595de9e0（迪士尼 dog 禁令）同批发布，不得先发布基底而把已批准的例外留在批外。",
+      "proposed_decision": null,
+      "proposed_reason": null,
+      "carve_out_of": null,
+      "exception_binding_required": false,
+      "reachable": null,
+      "review_status": "REVIEW_PENDING",
+      "supersedes_candidate_id": null,
+      "_imported_dependency": false,
+      "_remediates": "w01-305fa08c1e"
+    }
+  ],
+  "exception_plan": [
+    {
+      "rule_id": "sr2-69e0916a2f",
+      "candidate_id": "69e0916a-2f13-4b1e-b601-f8731e6869d1",
+      "place_name": "上海迪士尼乐园",
+      "zone_name": "全园",
+      "layer": "OPERATOR_POLICY",
+      "effect": "conditional",
+      "mandatory_level": "operator_discretion",
+      "subject_scope_normalized": "guide_dog",
+      "normalization_type": "exact",
+      "normative_effect": "exempt_from_prohibition",
+      "decision": "APPROVED",
+      "mode": "rule_exception",
+      "bases": [
+        {
+          "rule_id": "sr2-7b595de9e0",
+          "layer": "OPERATOR_POLICY",
+          "decision": "APPROVED",
+          "same_layer": true,
+          "executable": true
+        }
+      ],
+      "cross_layer_dropped": [],
+      "reachable": true,
+      "reachability_verdict": "reachable",
+      "replaces": "w01-305fa08c1e"
+    }
+  ],
+  "exception_binding": {
+    "sr2-69e0916a2f": {
+      "bases": [
+        "sr2-7b595de9e0"
+      ],
+      "cross_layer_dropped": []
+    }
+  }
+}

@@ -325,7 +325,11 @@ def main() -> int:
     for k, v in m_out.items():
         print(f"  {k} = {v}")
     audit = out["published_legal_guide_exceptions"]
-    for k in ("EXISTING_LEGAL_GUIDE_EXCEPTIONS", "WITH_CORRECT_HOLDER_SCOPE", "MISSING_HOLDER_SCOPE"):
+    for k in (
+        "EXISTING_LEGAL_GUIDE_EXCEPTIONS",
+        "WITH_CORRECT_HOLDER_SCOPE",
+        "MISSING_HOLDER_SCOPE",
+    ):
         print(f"  {k} = {audit[k]}")
     for prob in problems[:20]:
         print(f"  PROBLEM: {prob}")

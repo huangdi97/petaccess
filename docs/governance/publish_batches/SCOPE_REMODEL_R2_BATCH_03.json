@@ -1,0 +1,12 @@
+{
+  "revision": "SCOPE-REMODEL-R2",
+  "batch_id": "SCOPE-REMODEL-R2-BATCH-03",
+  "reviewer": "huangdi97",
+  "candidate_rule_ids": [
+    "sr2-7b595de9e0",
+    "sr2-69e0916a2f"
+  ],
+  "supersedes_batch": "SCOPE-REMODEL-R2-BATCH-02",
+  "supersede_reason": "BATCH-02 收窄时把 sr2-7b595de9e0 与其例外一并推迟，因为当时唯一已批准的导盲犬例外 w01-305fa08c1e 被 canonical 闸门 BLOCKED。本批是该项的解封：例外以新候选 sr2-69e0916a2f 重做（唯一改动为条件键 type -> condition_type）并通过新的 huangdi97 审查（2026-09-19T00:01:16+08:00 APPROVED），现在与基底同批发布，构成 dependency-closed。",
+  "note": "登记表：docs/expansion/review_decisions_scope_remodel_r2_dog_publishable.json（由 scope_remodel_r2_carveout_publish_register.py 投影，基底与例外的签名均为逐字复制）。本批 = 基底 sr2-7b595de9e0（huangdi97 2026-09-18T22:42:35+08:00 APPROVED）+ 救济后的导盲犬例外 sr2-69e0916a2f（huangdi97 2026-09-19T00:01:16+08:00 APPROVED）。依赖闭包：例外挂在同一 OPERATOR_POLICY 层的基底上，reachable=true、same_layer=true，且必须在基底之后并同批发布——若基底先发布而例外留在批外，导盲犬会得到错误禁止答案（canonical refusal 4）。替代关系：本例外取代 w01-305fa08c1e；冻结候选的 proposed_conditions 使用遗留键 'type'，canonical 闸门无法读取，ADR-029 §9 禁止原地改写已签署候选，故另立新候选。冻结行本身未被修改，其 APPROVED 决定也未被推翻——它只是不可执行。来源范围限定随基底一并记录：CURRENT_ONTOLOGY_EXPRESSIBLE_SPLIT = YES；SOURCE_SCOPE_FULL_REAL_WORLD_EXHAUSTIVE = NO；UNMODELED_SOURCE_SCOPE_REMAINDER = YES——鸟类、爬行类等未建模对象必须继续保持 UNKNOWN / unsupported，不得解释为 ALLOWED。上海动物园 dog（sr2-a4e2ba26f5）仍为 HOLD，不在本批，publishable=0。"
+}
