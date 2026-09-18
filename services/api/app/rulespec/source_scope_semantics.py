@@ -102,12 +102,16 @@ SOURCE_TERM_READINGS: dict[str, dict] = {
         "verdict": "narrowing",
         "reading": "「动物」指全部动物（全域），而 other 仅覆盖 {other_pet}（宠物一类）。",
         "note": "把全域归一为 other_pet 是收窄，不是等价。",
+        # A declared decomposition exists (see broad_term_split): the fix is a
+        # compound_term_split, not a re-reading of `other`.
+        "remodel": "compound_term_split",
     },
     "动物（导盲犬除外）": {
         "equivalent_to": None,
         "verdict": "narrowing",
         "reading": "「动物（导盲犬除外）」= 全部动物减去导盲犬；基底仍是全域。",
         "note": "收窄，且内嵌但书未建模为 RuleException——双重缺陷。",
+        "remodel": "compound_term_split",
     },
     # --- not legally readable --------------------------------------------------
     "毛孩子": {
@@ -161,6 +165,13 @@ class SemanticCompatibility:
     follow_up: str = ""
 
 
+def _declared_split_reading(source_scope_exact: str | None) -> str:
+    from app.rulespec.broad_term_split import declared_split
+
+    split = declared_split(source_scope_exact)
+    return split.reading if split is not None else ""
+
+
 def classify_source_term_reading(source_scope_exact: str | None) -> str:
     """The declared shape of a source term, without judging publishability.
 
@@ -205,6 +216,22 @@ def validate_source_scope_semantic_compatibility(
             reading=non_legal_entry.get("reading", ""),
             declared_equivalent=non_legal_entry.get("equivalent_to"),
             follow_up=SEMANTIC_REMODEL_REQUIRED,
+        )
+
+    # A `compound_term_split` row is not claiming an equivalence at all — it is
+    # claiming membership of a declared decomposition. Testing it against
+    # SOURCE_TERM_READINGS would refuse every split (a split term has no
+    # `equivalent_to` by construction), so it is answered by the split module.
+    if normalization_type == NormalizationType.COMPOUND_TERM_SPLIT.value:
+        from app.rulespec.broad_term_split import validate_split_row
+
+        row = validate_split_row(source_scope_exact, subject_scope_normalized, normalization_type)
+        return SemanticCompatibility(
+            compatible=row.ok,
+            change="compound_term_split" if row.ok else "split_not_declared",
+            reason=row.reason,
+            reading=(_declared_split_reading(source_scope_exact)),
+            follow_up="" if row.ok else SEMANTIC_REMODEL_REQUIRED,
         )
 
     term = (source_scope_exact or "").strip()

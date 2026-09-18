@@ -1,0 +1,251 @@
+{
+  "generated_at": "2026-09-18T10:50:14.458513+00:00",
+  "source_db": "petaccess (read-only)",
+  "mutations": 0,
+  "targets": [
+    {
+      "place": "上海迪士尼乐园",
+      "candidate_rule_id": "w01-3a04d4d1aa",
+      "candidate_uuid": "3a04d4d1-aaac-4c3d-8364-9d1acf18ef35",
+      "source_scope_exact": "动物（导盲犬除外）",
+      "current": {
+        "animal_scope": "other",
+        "subject_scope_normalized": "other",
+        "normalization_type": "exact",
+        "gate": {
+          "compatible": false,
+          "change": "narrowing",
+          "reason": "来源术语「动物（导盲犬除外）」「动物（导盲犬除外）」= 全部动物减去导盲犬；基底仍是全域。归一为 'other' 属于 narrowing，但被标为 'exact'（声称等价）——收窄，且内嵌但书未建模为 RuleException——双重缺陷。"
+        }
+      },
+      "proposed_rows": [
+        {
+          "source_scope_exact": "动物（导盲犬除外）",
+          "subject_scope_normalized": "dog",
+          "normalization_type": "compound_term_split"
+        },
+        {
+          "source_scope_exact": "动物（导盲犬除外）",
+          "subject_scope_normalized": "cat",
+          "normalization_type": "compound_term_split"
+        },
+        {
+          "source_scope_exact": "动物（导盲犬除外）",
+          "subject_scope_normalized": "other",
+          "normalization_type": "compound_term_split"
+        }
+      ],
+      "proposed_carve_out": {
+        "candidate_rule_id": "w01-305fa08c1e",
+        "subject_scope_normalized": "guide_dog",
+        "attaches_to": "dog"
+      },
+      "group_verdict": {
+        "ok": true,
+        "reason": "来源术语「动物（导盲犬除外）」的拆分完整：['dog', 'cat', 'other']，且内嵌但书已由 carve-out ['guide_dog'] 覆盖。",
+        "missing_members": [],
+        "missing_proviso": []
+      },
+      "declared_coverage": [
+        "assistance_dog",
+        "guide_dog",
+        "hearing_dog",
+        "military_working_dog",
+        "ordinary_cat",
+        "ordinary_dog",
+        "other_pet",
+        "other_service_dog",
+        "police_dog"
+      ],
+      "before": [
+        {
+          "query": "普通犬",
+          "effect": "unknown",
+          "applied_exceptions": [],
+          "applicable_rule_ids": []
+        },
+        {
+          "query": "导盲犬",
+          "effect": "unknown",
+          "applied_exceptions": [],
+          "applicable_rule_ids": []
+        },
+        {
+          "query": "猫",
+          "effect": "unknown",
+          "applied_exceptions": [],
+          "applicable_rule_ids": []
+        },
+        {
+          "query": "其他宠物",
+          "effect": "prohibited",
+          "applied_exceptions": [],
+          "applicable_rule_ids": [
+            "3a04d4d1-aaac-4c3d-8364-9d1acf18ef35"
+          ]
+        }
+      ],
+      "after": [
+        {
+          "query": "普通犬",
+          "effect": "prohibited",
+          "applied_exceptions": [],
+          "applicable_rule_ids": [
+            "3a04d4d1-aaac-4c3d-8364-9d1acf18ef35#dog"
+          ]
+        },
+        {
+          "query": "导盲犬",
+          "effect": "conditional",
+          "applied_exceptions": [
+            "305fa08c-1edd-4cc9-9b7e-554647e44b0a"
+          ],
+          "applicable_rule_ids": [
+            "exc-305fa08c-1edd-4cc9-9b7e-554647e44b0a"
+          ]
+        },
+        {
+          "query": "猫",
+          "effect": "prohibited",
+          "applied_exceptions": [],
+          "applicable_rule_ids": [
+            "3a04d4d1-aaac-4c3d-8364-9d1acf18ef35#cat"
+          ]
+        },
+        {
+          "query": "其他宠物",
+          "effect": "prohibited",
+          "applied_exceptions": [],
+          "applicable_rule_ids": [
+            "3a04d4d1-aaac-4c3d-8364-9d1acf18ef35#other"
+          ]
+        }
+      ]
+    },
+    {
+      "place": "上海动物园",
+      "candidate_rule_id": "w01-6f2bfd39d7",
+      "candidate_uuid": "6f2bfd39-d79d-4f49-83f6-6ae6a9012697",
+      "source_scope_exact": "动物",
+      "current": {
+        "animal_scope": "other",
+        "subject_scope_normalized": "other",
+        "normalization_type": "exact",
+        "gate": {
+          "compatible": false,
+          "change": "narrowing",
+          "reason": "来源术语「动物」「动物」指全部动物（全域），而 other 仅覆盖 {other_pet}（宠物一类）。归一为 'other' 属于 narrowing，但被标为 'exact'（声称等价）——把全域归一为 other_pet 是收窄，不是等价。"
+        }
+      },
+      "proposed_rows": [
+        {
+          "source_scope_exact": "动物",
+          "subject_scope_normalized": "dog",
+          "normalization_type": "compound_term_split"
+        },
+        {
+          "source_scope_exact": "动物",
+          "subject_scope_normalized": "cat",
+          "normalization_type": "compound_term_split"
+        },
+        {
+          "source_scope_exact": "动物",
+          "subject_scope_normalized": "other",
+          "normalization_type": "compound_term_split"
+        }
+      ],
+      "proposed_carve_out": null,
+      "group_verdict": {
+        "ok": true,
+        "reason": "来源术语「动物」的拆分完整：['dog', 'cat', 'other']。",
+        "missing_members": [],
+        "missing_proviso": []
+      },
+      "declared_coverage": [
+        "assistance_dog",
+        "guide_dog",
+        "hearing_dog",
+        "military_working_dog",
+        "ordinary_cat",
+        "ordinary_dog",
+        "other_pet",
+        "other_service_dog",
+        "police_dog"
+      ],
+      "before": [
+        {
+          "query": "普通犬",
+          "effect": "unknown",
+          "applied_exceptions": [],
+          "applicable_rule_ids": []
+        },
+        {
+          "query": "导盲犬",
+          "effect": "unknown",
+          "applied_exceptions": [],
+          "applicable_rule_ids": []
+        },
+        {
+          "query": "猫",
+          "effect": "unknown",
+          "applied_exceptions": [],
+          "applicable_rule_ids": []
+        },
+        {
+          "query": "其他宠物",
+          "effect": "prohibited",
+          "applied_exceptions": [],
+          "applicable_rule_ids": [
+            "6f2bfd39-d79d-4f49-83f6-6ae6a9012697"
+          ]
+        }
+      ],
+      "after": [
+        {
+          "query": "普通犬",
+          "effect": "prohibited",
+          "applied_exceptions": [],
+          "applicable_rule_ids": [
+            "6f2bfd39-d79d-4f49-83f6-6ae6a9012697#dog"
+          ]
+        },
+        {
+          "query": "导盲犬",
+          "effect": "prohibited",
+          "applied_exceptions": [],
+          "applicable_rule_ids": [
+            "6f2bfd39-d79d-4f49-83f6-6ae6a9012697#dog"
+          ]
+        },
+        {
+          "query": "猫",
+          "effect": "prohibited",
+          "applied_exceptions": [],
+          "applicable_rule_ids": [
+            "6f2bfd39-d79d-4f49-83f6-6ae6a9012697#cat"
+          ]
+        },
+        {
+          "query": "其他宠物",
+          "effect": "prohibited",
+          "applied_exceptions": [],
+          "applicable_rule_ids": [
+            "6f2bfd39-d79d-4f49-83f6-6ae6a9012697#other"
+          ]
+        }
+      ]
+    }
+  ],
+  "open_questions": [
+    {
+      "id": "ZOO_GUIDE_DOG_AFTER_REMODEL",
+      "question": "上海动物园「动物」拆分后，导盲犬将由 unknown 变为 prohibited（来源原文无但书）。该结论是否受《无障碍环境建设法》等上位法影响，属法律判断，须人工确认。",
+      "action": "HUMAN_DECISION"
+    },
+    {
+      "id": "VOCABULARY_NON_PET_ANIMALS",
+      "question": "「动物」含平台主体词表未建模的动物（如观赏鸟、爬行类）。拆分只覆盖词表内 9 个主体；超出部分平台继续沉默（unknown），不算允许。",
+      "action": "DOCUMENTED_LIMITATION"
+    }
+  ]
+}
