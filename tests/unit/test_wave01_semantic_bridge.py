@@ -499,3 +499,114 @@ def test_no_inert_carveout_is_selected():
     manifest = json.loads(BATCH_01A.read_text(encoding="utf-8"))
     assert "w01-305fa08c1e" not in manifest["candidate_rule_ids"]
     assert "w01-305fa08c1e" in {e["rule_id"] for e in manifest["excluded_approved"]}
+
+
+# --- ADR-030 path C: the bridge must hand the gate the activated proviso ----
+#
+# The gate in guide_dog_safety has always accepted a third provenance for the
+# guide-dog path, but the bridge never passed one in. With the proviso activated
+# in the database and the wiring missing, every LEGAL dog base without a
+# same-batch carve-out still reported blocked — which is indistinguishable, from
+# the outside, from "the proviso does not work". These two locks pin the wiring.
+
+def test_load_jurisdiction_exceptions_maps_instrument_binding(monkeypatch):
+    """Rows come back shaped the way `_attaches_to` and `_exception_layered` read them."""
+    import psycopg
+
+    import w01_semantic_bridge as bridge
+
+    row = (
+        "JPROV-001", "service_dog", "allowed", "f20bdb2c-0000-0000-0000-000000000000",
+        "current", "guide_dog", "exact", "exempt_from_prohibition",
+        "person_with_disability", "instrument",
+        ["f20bdb2c-0000-0000-0000-000000000000", "a11aff10-0000-0000-0000-000000000000"],
+        "LEGAL", ["prohibited"],
+    )
+
+    class _Cur:
+        def execute(self, q, params=None):
+            self.sql = q
+
+        def fetchall(self):
+            return [row]
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+    class _Conn:
+        def cursor(self):
+            return _Cur()
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+    monkeypatch.setattr(psycopg, "connect", lambda url: _Conn())
+    out = bridge.load_jurisdiction_exceptions()
+
+    assert len(out) == 1
+    proviso = out[0]
+    assert proviso["binding"] == "instrument"
+    assert proviso["instrument_source_ids"] == [
+        "f20bdb2c-0000-0000-0000-000000000000",
+        "a11aff10-0000-0000-0000-000000000000",
+    ]
+    assert proviso["applies_to_layer"] == "LEGAL"
+    assert proviso["applies_to_effects"] == ["prohibited"]
+    # `rule_id` is what `_attaches_to` compares against; leaving it empty would
+    # make an instrument-bound proviso indistinguishable from an unbound one.
+    assert proviso["rule_id"] == "JPROV-001"
+
+
+def test_load_jurisdiction_exceptions_fails_closed(monkeypatch):
+    """Unreachable database ⇒ no proviso ⇒ bases stay blocked. Never invent one."""
+    import psycopg
+
+    import w01_semantic_bridge as bridge
+
+    def boom(url):
+        raise RuntimeError("db down")
+
+    monkeypatch.setattr(psycopg, "connect", boom)
+    assert bridge.load_jurisdiction_exceptions() == []
+
+
+def test_proviso_is_a_guide_dog_path_for_a_grounded_base():
+    """Path C actually fires: same source ⇒ the base is exempted, not blocked."""
+    base = {
+        "rule_id": "w01-testbase00",
+        "animal_scope": "dog",
+        "effect": "prohibited",
+        "rule_layer": "LEGAL",
+        "action": "enter",
+        "mandatory_level": "mandatory",
+        "source_id": "f20bdb2c-0000-0000-0000-000000000000",
+        "subject_scope_normalized": "dog",
+        "normalization_type": "exact",
+    }
+    proviso = {
+        "rule_id": "JPROV-001",
+        "animal_scope": "service_dog",
+        "effect": "allowed",
+        "source_id": "f20bdb2c-0000-0000-0000-000000000000",
+        "status": "current",
+        "subject_scope_normalized": "guide_dog",
+        "normalization_type": "exact",
+        "normative_effect": "exempt_from_prohibition",
+        "holder_scope": "person_with_disability",
+        "binding": "instrument",
+        "instrument_source_ids": ["f20bdb2c-0000-0000-0000-000000000000"],
+        "applies_to_layer": "LEGAL",
+        "applies_to_effects": ["prohibited"],
+    }
+    probe = probe_guide_dog_safety_path(
+        base=base, candidate_exceptions=[], jurisdiction_exceptions=[proviso]
+    )
+    assert probe.exception_source == "jurisdiction"
+    assert probe.safe_to_publish
+    assert probe.applied_exceptions == ("JPROV-001",)

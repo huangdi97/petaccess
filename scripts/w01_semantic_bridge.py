@@ -116,6 +116,61 @@ def load_published_rule_ids() -> set[str]:
         return set()
 
 
+def load_jurisdiction_exceptions(db_url: str = PRODUCTION_DB) -> list[dict]:
+    """Activated statutory provisos (ADR-030), read-only, as §10 path C.
+
+    The gate in ``guide_dog_safety`` has always accepted a third provenance for
+    the guide-dog path — a jurisdiction-level proviso that binds by instrument
+    rather than by ``rule_id`` — but nothing ever handed it one, so every LEGAL
+    dog base without a same-batch carve-out was reported blocked even after
+    ``JPROV-001`` was activated. The mechanism and the data were both there; the
+    wiring was not, and the missing wiring looked exactly like "the proviso does
+    not work".
+
+    Only ``current`` + ``reviewed_active`` rows are returned: an unactivated
+    proviso binds nothing, and returning it here would invent legal effect.
+    An unreachable production degrades to "no proviso", which blocks — the
+    conservative direction.
+    """
+    try:
+        import psycopg
+
+        with psycopg.connect(db_url) as conn, conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT id, animal_scope, effect, source_id, status,
+                       subject_scope_normalized, normalization_type,
+                       normative_effect, holder_scope, binding,
+                       instrument_source_ids, applies_to_layer, applies_to_effects
+                FROM jurisdiction_exception
+                WHERE status = 'current' AND review_status = 'reviewed_active'
+                ORDER BY id
+                """
+            )
+            return [
+                {
+                    "rule_id": r[0],
+                    "id": r[0],
+                    "animal_scope": r[1],
+                    "effect": r[2] or "allowed",
+                    "source_id": str(r[3]) if r[3] is not None else None,
+                    "status": r[4],
+                    "subject_scope_normalized": r[5],
+                    "normalization_type": r[6] or "exact",
+                    "normative_effect": r[7],
+                    "holder_scope": r[8],
+                    "binding": r[9] or "rule",
+                    "instrument_source_ids": list(r[10] or ()),
+                    "applies_to_layer": r[11],
+                    "applies_to_effects": list(r[12] or ("prohibited",)),
+                }
+                for r in cur.fetchall()
+            ]
+    except Exception as exc:  # pragma: no cover - environment dependent
+        print(f"note: 无法读取辖区级法定例外（{exc}）；§10 路径 C 视为不存在")
+        return []
+
+
 #: carve-out bindings from the projected register's exception_plan, keyed by the
 #: exception's rule_id → the base rule_id it was written of.
 def load_bindings(projected: dict) -> dict[str, str]:
@@ -175,12 +230,28 @@ class BridgeVerdict:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--report", action="store_true", help="evaluate and print, write nothing")
+    ap.add_argument("--out", default=str(NEW_MANIFEST), help="manifest to write")
+    ap.add_argument("--batch-id", default="EXP-R1-W01-REVIEW-R1-BATCH-01A")
+    ap.add_argument("--supersedes", default=OLD_MANIFEST.name)
+    ap.add_argument(
+        "--supersede-reason",
+        default="PRE_REAL_PUBLISH_SEMANTIC_BRIDGE",
+    )
+    ap.add_argument(
+        "--exclude-published",
+        action="store_true",
+        help="drop rows an earlier batch already shipped (for a follow-up batch)",
+    )
     args = ap.parse_args()
 
     signed = json.loads(SIGNED_REGISTER.read_text(encoding="utf-8"))
     projected = json.loads(PROJECTED_REGISTER.read_text(encoding="utf-8"))
     bindings = load_bindings(projected)
     PUBLISHED_RULE_IDS = load_published_rule_ids()
+    # ADR-030 §10 path C. Read here, not at call time, so one load serves every
+    # base and a failure is reported once instead of per-row.
+    JURISDICTION_EXCEPTIONS = load_jurisdiction_exceptions()
+    print(f"jurisdiction_provisos_active={len(JURISDICTION_EXCEPTIONS)}")
 
     proj_rows = {r["rule_id"]: r for r in projected["rows"]}
     signed_rows = {}
@@ -324,10 +395,18 @@ def main() -> None:
         probe = probe_guide_dog_safety_path(
             base=base,
             candidate_exceptions=[exc] if exc else [],
+            jurisdiction_exceptions=JURISDICTION_EXCEPTIONS,
         )
         if probe.safe_to_publish:
             v.guide_dog_check = "PASS"
-            v.guide_dog_reason = f"可执行法定导盲犬例外来自同批：{probe.applied_exceptions}"
+            source_label = {
+                "batch": "同批",
+                "published": "已发布",
+                "jurisdiction": "辖区级法定但书",
+            }.get(probe.exception_source, probe.exception_source)
+            v.guide_dog_reason = (
+                f"可执行法定导盲犬例外来自{source_label}：{probe.applied_exceptions}"
+            )
         else:
             v.guide_dog_check = "BLOCKED"
             v.guide_dog_reason = (
@@ -378,6 +457,13 @@ def main() -> None:
 
     # ---- build the manifest in dependency order ----------------------------
     executable = [v for v in verdicts if v.executable]
+    if args.exclude_published:
+        # A later batch of the same revision ships only what the earlier one did
+        # not. Re-publishing is a no-op at the publisher, but listing it again
+        # would make the manifest claim to do work it does not do.
+        executable = [v for v in executable if v.rule_id not in PUBLISHED_RULE_IDS]
+        removed = len([v for v in verdicts if v.executable]) - len(executable)
+        print(f"already_published_removed={removed}")
     bases = [v for v in executable if not v.is_exception]
     exceptions = [v for v in executable if v.is_exception]
 
@@ -421,6 +507,42 @@ def main() -> None:
         if not v.executable
     ]
 
+    # `excluded_approved` distinguishes the two ways an approved row can be left
+    # out: it is not executable (with the measured reason), or an earlier batch
+    # already shipped it. Collapsing those into one list without the reason is
+    # how "excluded" starts to read like "rejected".
+    def _detail(v: BridgeVerdict) -> str:
+        if v.scope_check == "FAIL":
+            return v.scope_reason
+        if v.guide_dog_reason:
+            return v.guide_dog_reason
+        return v.execution_reason or v.block_reason
+
+    excluded = [
+        {
+            "rule_id": v.rule_id,
+            "place_name": v.place_name,
+            "human_decision": v.decision,
+            "reason": v.block_reason,
+            "detail": _detail(v),
+        }
+        for v in verdicts
+        if not v.executable
+    ]
+    already_shipped = [v for v in verdicts if v.executable and v.rule_id in PUBLISHED_RULE_IDS]
+    if args.exclude_published:
+        excluded.extend(
+            {
+                "rule_id": v.rule_id,
+                "place_name": v.place_name,
+                "human_decision": v.decision,
+                "reason": "ALREADY_PUBLISHED_IN_EARLIER_BATCH",
+                "detail": _detail(v) or "已由前序批次发布",
+            }
+            for v in already_shipped
+        )
+    excluded_count = len(excluded)
+
     manifest = {
         "_schema": (
             "publish batch manifest v1 — revision / batch_id / reviewer / "
@@ -429,27 +551,27 @@ def main() -> None:
             "signed register."
         ),
         "revision": REVISION,
-        "batch_id": "EXP-R1-W01-REVIEW-R1-BATCH-01A",
+        "batch_id": args.batch_id,
         "reviewer": REVIEWER,
-        "supersedes_planning_manifest": OLD_MANIFEST.name,
-        "supersede_reason": "PRE_REAL_PUBLISH_SEMANTIC_BRIDGE",
+        "supersedes_planning_manifest": args.supersedes,
+        "supersede_reason": args.supersede_reason,
         "note": (
-            f"Wave-01 safe batch after the pre-real-publish semantic bridge. "
-            f"{len(ordered)} of the 15 human-APPROVED candidates "
-            f"({len(bases)} AccessRule + {len(exceptions)} RuleException). "
-            f"{len(excluded)} approved rows are not executable and are excluded — "
+            f"Wave-01 safe batch. {len(ordered)} of the {len(verdicts)} human-APPROVED "
+            f"candidates ({len(bases)} AccessRule + {len(exceptions)} RuleException); "
+            f"{excluded_count} approved rows are not in this batch "
+            f"({len(already_shipped)} already shipped, "
+            f"{len([v for v in verdicts if not v.executable])} not executable) — "
             "none of which reverses a human decision; every excluded row stays "
-            "APPROVED in the signed register. Exclusions and their measured "
-            "reasons are listed in `excluded_approved`. The base-before-exception "
-            "ordering is the execution order."
+            "APPROVED in the signed register. "
+            "Exclusions and their measured reasons are listed in `excluded_approved`. "
+            "The base-before-exception ordering is the execution order."
         ),
         "excluded_approved": excluded,
         "candidate_rule_ids": ordered,
     }
-    NEW_MANIFEST.write_text(
-        json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
-    )
-    print(f"\nwrote {NEW_MANIFEST.relative_to(REPO)} size={len(ordered)}")
+    out_path = Path(args.out).resolve()
+    out_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    print(f"\nwrote {out_path.relative_to(REPO)} size={len(ordered)}")
 
 
 def _exception_effect(sr: dict) -> str:
