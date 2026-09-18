@@ -1,0 +1,61 @@
+{
+  "_readme": "SCOPE-REMODEL-R2 导盲犬 carve-out 救济候选的人工审查登记表（**模板**：final_decision 为 null）。被救济的冻结候选 w01-305fa08c1e 仍是已签署的 APPROVED，不在本表内、不受本表影响；本表只裁决新候选是否可作为它的替代被发布。签署后还需把本行与 sr2 迪士尼 dog 基底投影进同一张可发布登记表，才能构成 dependency-closed 的批次。",
+  "revision": "SCOPE-REMODEL-R2",
+  "expansion_run_id": "SCOPE-R2-CARVEOUT-20260918",
+  "generated_at": "2026-09-18T15:39:54.567365+00:00",
+  "remediates_candidate_id": "305fa08c-1edd-4cc9-9b7e-554647e44b0a",
+  "note": "冻结候选 w01-305fa08c1e 的 proposed_conditions 使用遗留键 'type'，canonical 发布闸门无法读取（ADR-029 §1）；§9 禁止原地改写已签署候选，因此本行为新候选，等待新的人工审查。",
+  "rows": [
+    {
+      "candidate_id": "69e0916a-2f13-4b1e-b601-f8731e6869d1",
+      "rule_id": "sr2-69e0916a2f",
+      "place_name": "上海迪士尼乐园",
+      "zone_name": "全园",
+      "zone_id": "2c868f71-96d3-40d9-894b-aec9315d7948",
+      "animal_scope": "service_dog",
+      "subject_scope_normalized": "guide_dog",
+      "normalization_type": "exact",
+      "effect": "conditional",
+      "rule_layer": "OPERATOR_POLICY",
+      "mandatory_level": "operator_discretion",
+      "source_scope_exact": "导盲犬",
+      "normative_effect": "exempt_from_prohibition",
+      "holder_scope": "person_with_disability",
+      "evidence_bundle_id": "573cd58f-94fb-4a8d-bd7e-e111905b3b13",
+      "source_type": "official_operator_policy",
+      "conditions": [
+        {
+          "condition_type": "leash_required",
+          "value": true,
+          "note": "导盲犬须时刻栓有系绳并在主人的看管下"
+        },
+        {
+          "condition_type": "other_structured_note",
+          "value": "部分游乐项目也可能不允许导盲犬进入"
+        }
+      ],
+      "carve_out_of": "sr2-7b595de9e0",
+      "final_decision": null,
+      "reviewer": null,
+      "decided_at": null,
+      "decision_note": null
+    }
+  ],
+  "exception_plan": [
+    {
+      "mode": "rule_exception",
+      "rule_id": "sr2-69e0916a2f",
+      "candidate_id": "69e0916a-2f13-4b1e-b601-f8731e6869d1",
+      "layer": "OPERATOR_POLICY",
+      "bases": [
+        {
+          "rule_id": "sr2-7b595de9e0",
+          "layer": "OPERATOR_POLICY",
+          "same_layer": true
+        }
+      ],
+      "cross_layer_dropped": [],
+      "note": "该 carve-out 挂到 SCOPE-REMODEL-R2 的迪士尼 dog 基底 sr2-7b595de9e0；发布时必须与基底同批，否则禁令会带着未发布的已批准例外上线。"
+    }
+  ]
+}

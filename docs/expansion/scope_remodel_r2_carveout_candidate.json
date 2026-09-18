@@ -1,0 +1,66 @@
+{
+  "revision": "SCOPE-REMODEL-R2",
+  "run_id": "SCOPE-R2-CARVEOUT-20260918",
+  "db": "petaccess",
+  "created": {
+    "frozen_candidate_id": "305fa08c-1edd-4cc9-9b7e-554647e44b0a",
+    "base_candidate_id": "7b595de9-e0c3-4092-aab4-348c4878c296",
+    "conditions_before": [
+      {
+        "type": "leash_required",
+        "value": true,
+        "note": "导盲犬须时刻栓有系绳并在主人的看管下"
+      },
+      {
+        "type": "other_structured_note",
+        "value": "部分游乐项目也可能不允许导盲犬进入"
+      }
+    ],
+    "conditions_after": [
+      {
+        "condition_type": "leash_required",
+        "value": true,
+        "note": "导盲犬须时刻栓有系绳并在主人的看管下"
+      },
+      {
+        "condition_type": "other_structured_note",
+        "value": "部分游乐项目也可能不允许导盲犬进入"
+      }
+    ],
+    "body": {
+      "place_id": "d85a4c00-3be9-48a5-ac31-d0486451ba69",
+      "zone_id": "2c868f71-96d3-40d9-894b-aec9315d7948",
+      "source_id": "0bc744e2-9df0-4124-ae4c-4d5a8a8d4797",
+      "animal_scope": "service_dog",
+      "action": "enter",
+      "effect": "conditional",
+      "rule_layer": "OPERATOR_POLICY",
+      "mandatory_level": "operator_discretion",
+      "normative_effect": "exempt_from_prohibition",
+      "holder_scope": "person_with_disability",
+      "evidence_bundle_id": "573cd58f-94fb-4a8d-bd7e-e111905b3b13",
+      "internal_confidence": 0.9,
+      "source_scope_exact": "导盲犬",
+      "subject_scope_normalized": "guide_dog",
+      "normalization_type": "exact",
+      "proposed_conditions": [
+        {
+          "condition_type": "leash_required",
+          "value": true,
+          "note": "导盲犬须时刻栓有系绳并在主人的看管下"
+        },
+        {
+          "condition_type": "other_structured_note",
+          "value": "部分游乐项目也可能不允许导盲犬进入"
+        }
+      ],
+      "extraction_method": "signed_row_remediation_2026_09_18",
+      "extraction_provider": "workbuddy-agent",
+      "projection_of_rule_id": "305fa08c-1edd-4cc9-9b7e-554647e44b0a",
+      "expansion_run_id": "SCOPE-R2-CARVEOUT-20260918",
+      "dedup_key": "c92edcb91d1d0b0306050c77af5a8de8b213090722768d0ca7184f7eb9392d39",
+      "raw_text": "SCOPE-REMODEL-R2 导盲犬 carve-out 救济候选：克隆自已签署候选 305fa08c-1edd-4cc9-9b7e-554647e44b0a（该候选因 proposed_conditions 使用遗留键 'type' 被 canonical 闸门拒绝；ADR-029 §9 禁止原地改写已签署候选）。本行唯一的改动是在 ingest 边界把条件键归一为 'condition_type'，其余字段逐字搬运。原候选保持原样、仍为 APPROVED；本行为新 revision 待审候选，base 为新迪士尼 dog 基底 7b595de9-e0c3-4092-aab4-348c4878c296。"
+    },
+    "candidate_id": "69e0916a-2f13-4b1e-b601-f8731e6869d1"
+  }
+}

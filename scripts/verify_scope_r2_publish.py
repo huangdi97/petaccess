@@ -30,7 +30,7 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "scripts"))
 sys.path.insert(0, str(str(REPO / "services" / "api")))
 
-from dev_api_server import database_url_for  # noqa: E402
+from dev_api_server import psycopg_url_for  # noqa: E402
 
 #: Canonical audit vocabulary — a literal action string is a governance defect
 #: (core/audit_events.py is the only place they are declared).
@@ -75,13 +75,10 @@ def main() -> int:
     ap.add_argument("--json-out", default=None)
     args = ap.parse_args()
 
-    url = database_url_for(args.db_name)
+    url = psycopg_url_for(args.db_name)
     if url is None:
         print(f"REFUSED — 无法解析 {args.db_name} 的 DATABASE_URL")
         return 4
-    # ``database_url_for`` returns the SQLAlchemy URL (postgresql+psycopg://);
-    # libpq wants the plain scheme.
-    url = url.replace("postgresql+psycopg://", "postgresql://")
 
     manifest = json.loads(Path(args.batch_file).read_text(encoding="utf-8"))
     registry = json.loads(Path(args.registry).read_text(encoding="utf-8"))
