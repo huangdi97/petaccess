@@ -1,0 +1,15 @@
+{
+  "_BLOCKED_DO_NOT_EXECUTE": "本清单通过批次校验，但真执行会产生禁止的用户状态（已实测），不得 execute。详见 note。",
+  "revision": "SCOPE-REMODEL-R2",
+  "batch_id": "SCOPE-REMODEL-R2-BATCH-01-BLOCKED",
+  "reviewer": "huangdi97",
+  "candidate_rule_ids": [
+    "sr2-7b595de9e0",
+    "sr2-4580ab2160",
+    "sr2-4ca5e55a6a",
+    "sr2-27893d75aa",
+    "sr2-2a3de3abde",
+    "w01-305fa08c1e"
+  ],
+  "note": "【已被实测阻断，禁止执行】这是 huangdi97 签署 SCOPE-REMODEL-R2 后按『Disney dog 必须与已批准 guide_dog carve-out 形成可达且 dependency-closed 的发布计划』构造的原意清单：5 条 APPROVED 基底 + 1 条跨 revision 导入的依赖例外 w01-305fa08c1e（base 在前，例外在后）。批次校验确实 PASS（BATCH_DEPENDENCY_CLOSED=PASS、ZERO_INERT_RULES=PASS、CROSS_LAYER_EXCEPTION=0），可达性也确实成立（新 dog 基底 governs guide_dog，carve-out 不再惰性）。但演练库真执行证明该清单不可用：w01-305fa08c1e 自身被 canonical pre-publish 闸门 BLOCKED（schema_unsupported —— 它是已签署候选，proposed_conditions 用的是遗留键 'type' 而非 'condition_type'；ADR-029 §9 规定已签署候选不得原地改写，正确救济是『新候选 + 新人工审查』），发布器把它静默跳过而不是拒绝整批，于是 sr2-7b595de9e0（迪士尼 dog 禁令）被发布而其已批准的导盲犬例外缺失 —— 正是 canonical refusal 4 要阻止的错误状态。实测解析器：上海迪士尼乐园 / 导盲犬 = prohibited（应为 conditional）。本清单仅作证据保留；可执行的清单是 SCOPE_REMODEL_R2_BATCH_02.json ｜ 原始说明：SCOPE-REMODEL-R2 首批：huangdi97 于 2026-09-18T22:42:35+08:00 签署的 5 条 APPROVED 基底（迪士尼 dog/cat/other、动物园 cat/other）+ 1 条跨 revision 导入的依赖例外 w01-305fa08c1e（迪士尼导盲犬 carve-out，签署于 EXP-R1-W01-REVIEW-R1，签名原样搬运、未被改写）。位置即执行顺序：base（迪士尼 dog）在例外之前，依赖闭包由位置保证。上海动物园 dog（sr2-a4e2ba26f5）人类决定为 HOLD，不在本批——原因 HIGHER_LEVEL_GUIDE_DOG_LEGAL_APPLICABILITY_UNRESOLVED：其 OPERATOR_POLICY 犬类禁令若发布可能对 guide_dog 给出错误禁止答案，而 JPROV-001 属 LEGAL layer，不得跨层替代该未解决的法律适用性问题。来源范围限定：CURRENT_ONTOLOGY_EXPRESSIBLE_SPLIT = YES，SOURCE_SCOPE_FULL_REAL_WORLD_EXHAUSTIVE = NO，UNMODELED_SOURCE_SCOPE_REMAINDER = YES——鸟类、爬行类等未建模对象必须继续保持 UNKNOWN / unsupported，不得解释为 ALLOWED。"
+}

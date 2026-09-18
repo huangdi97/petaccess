@@ -1,0 +1,38 @@
+{
+  "revision": "SCOPE-REMODEL-R2",
+  "batch_id": "SCOPE-REMODEL-R2-BATCH-02",
+  "reviewer": "huangdi97",
+  "candidate_rule_ids": [
+    "sr2-4580ab2160",
+    "sr2-4ca5e55a6a",
+    "sr2-27893d75aa",
+    "sr2-2a3de3abde"
+  ],
+  "supersedes_batch": "SCOPE-REMODEL-R2-BATCH-01-BLOCKED",
+  "supersede_reason": "BATCH-01（6 条）在演练库真执行后被实测阻断：依赖例外 w01-305fa08c1e 被 canonical pre-publish 闸门 BLOCKED（遗留条件键 'type'，已签署候选不可原地改，ADR-029 §9），发布器静默跳过它，导致迪士尼 dog 禁令发布而其已批准导盲犬例外缺失（实测 导盲犬=prohibited）。本批在其基础上收窄：只包含不依赖该例外、且自身闸门 PASS 的 4 条。收窄不是推翻决定——sr2-7b595de9e0 与 w01-305fa08c1e 的人类 APPROVED 全部保留，未发布而已。",
+  "excluded_approved": [
+    "sr2-7b595de9e0",
+    "w01-305fa08c1e"
+  ],
+  "deferred": [
+    {
+      "rule_id": "sr2-7b595de9e0",
+      "candidate_id": "7b595de9-e0c3-4092-aab4-348c4878c296",
+      "place": "上海迪士尼乐园 / 全园",
+      "scope": "dog",
+      "human_decision": "APPROVED",
+      "why": "其唯一已批准且语义可达的导盲犬 carve-out（w01-305fa08c1e）本轮不可发布；若单独发布本条，导盲犬会得到错误禁止答案（canonical refusal 4）。",
+      "unblock_when": "w01-305fa08c1e 以新候选形式重做（条件键规范化为 condition_type）并通过新人工审查后，与本条同批发布。"
+    },
+    {
+      "rule_id": "w01-305fa08c1e",
+      "candidate_id": "305fa08c-1edd-4cc9-9b7e-554647e44b0a",
+      "place": "上海迪士尼乐园 / 全园",
+      "scope": "service_dog / guide_dog",
+      "human_decision": "APPROVED",
+      "why": "canonical pre-publish 闸门 BLOCKED：schema_unsupported —— proposed_conditions 使用遗留键 'type' 而非 'condition_type'。ADR-029 §9：已签署候选不得原地改写，救济是新候选 + 新人工审查。",
+      "unblock_when": "以新候选重新摄取（condition_ingest.normalize_conditions 会翻译键名）并重新签署。"
+    }
+  ],
+  "note": "SCOPE-REMODEL-R2 可执行批次：huangdi97 于 2026-09-18T22:42:35+08:00 签署的 5 条 APPROVED 中，4 条不依赖被阻断例外的基底（迪士尼 cat/other、动物园 cat/other）。上海动物园 dog（sr2-a4e2ba26f5）人类决定为 HOLD，不在本批且 publishable=0——原因 HIGHER_LEVEL_GUIDE_DOG_LEGAL_APPLICABILITY_UNRESOLVED：其 OPERATOR_POLICY 犬类禁令若发布可能对 guide_dog 给出错误禁止答案，而 JPROV-001 属 LEGAL layer，不得跨层替代该未解决的法律适用性问题。来源范围限定（随每条 APPROVED 一并记录）：CURRENT_ONTOLOGY_EXPRESSIBLE_SPLIT = YES；SOURCE_SCOPE_FULL_REAL_WORLD_EXHAUSTIVE = NO；UNMODELED_SOURCE_SCOPE_REMAINDER = YES——鸟类、爬行类等未建模对象必须继续保持 UNKNOWN / unsupported，不得解释为 ALLOWED。"
+}

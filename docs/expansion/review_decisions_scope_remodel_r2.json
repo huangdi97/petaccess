@@ -2,8 +2,8 @@
   "revision": "SCOPE-REMODEL-R2",
   "expansion_run_id": "SCOPE-R2-20260918",
   "generated_at": "2026-09-18T14:13:57.920648+00:00",
-  "reviewer": null,
-  "decided_at": null,
+  "reviewer": "huangdi97",
+  "decided_at": "2026-09-18T22:42:35+08:00",
   "note": "SCOPE-REMODEL-R2 人工审查登记表（**模板**：所有 final_decision 为 null）。对 6 条过宽来源术语拆分候选逐条裁决；签署后方可发布。被取代的冻结候选仍为 APPROVED，不在本表内，不受本表影响。",
   "rows": [
     {
@@ -34,10 +34,10 @@
         "猫": "prohibited",
         "其他宠物": "prohibited"
       },
-      "final_decision": null,
-      "reviewer": null,
-      "decided_at": null,
-      "decision_note": null,
+      "final_decision": "APPROVED",
+      "reviewer": "huangdi97",
+      "decided_at": "2026-09-18T22:42:35+08:00",
+      "decision_note": "CURRENT_ONTOLOGY_EXPRESSIBLE_SPLIT = YES；SOURCE_SCOPE_FULL_REAL_WORLD_EXHAUSTIVE = NO；UNMODELED_SOURCE_SCOPE_REMAINDER = YES。未建模的鸟类、爬行类等必须继续保持 UNKNOWN / unsupported，不得解释为 ALLOWED。",
       "normalization_semantics": "CURRENT_ONTOLOGY_EXPRESSIBLE_SPLIT",
       "unmodeled_source_scope_remainder": true,
       "source_scope_caveat": "CURRENT_ONTOLOGY_EXPRESSIBLE_SPLIT，不是 FULL_SOURCE_DOMAIN_EXHAUSTIVE_SPLIT。来源术语「动物（导盲犬除外）」的语义宽于当前主体词表；本行只表达词表可表达的那一部分。UNMODELED_SOURCE_SCOPE_REMAINDER = YES：鸟类、爬行类及其他非当前词表对象未被任何行覆盖，对它们的查询仍为 UNKNOWN，绝不可读作 ALLOWED。",
@@ -83,10 +83,10 @@
         "猫": "prohibited",
         "其他宠物": "prohibited"
       },
-      "final_decision": null,
-      "reviewer": null,
-      "decided_at": null,
-      "decision_note": null,
+      "final_decision": "APPROVED",
+      "reviewer": "huangdi97",
+      "decided_at": "2026-09-18T22:42:35+08:00",
+      "decision_note": "CURRENT_ONTOLOGY_EXPRESSIBLE_SPLIT = YES；SOURCE_SCOPE_FULL_REAL_WORLD_EXHAUSTIVE = NO；UNMODELED_SOURCE_SCOPE_REMAINDER = YES。未建模的鸟类、爬行类等必须继续保持 UNKNOWN / unsupported，不得解释为 ALLOWED。",
       "normalization_semantics": "CURRENT_ONTOLOGY_EXPRESSIBLE_SPLIT",
       "unmodeled_source_scope_remainder": true,
       "source_scope_caveat": "CURRENT_ONTOLOGY_EXPRESSIBLE_SPLIT，不是 FULL_SOURCE_DOMAIN_EXHAUSTIVE_SPLIT。来源术语「动物（导盲犬除外）」的语义宽于当前主体词表；本行只表达词表可表达的那一部分。UNMODELED_SOURCE_SCOPE_REMAINDER = YES：鸟类、爬行类及其他非当前词表对象未被任何行覆盖，对它们的查询仍为 UNKNOWN，绝不可读作 ALLOWED。",
@@ -132,10 +132,10 @@
         "猫": "prohibited",
         "其他宠物": "prohibited"
       },
-      "final_decision": null,
-      "reviewer": null,
-      "decided_at": null,
-      "decision_note": null,
+      "final_decision": "APPROVED",
+      "reviewer": "huangdi97",
+      "decided_at": "2026-09-18T22:42:35+08:00",
+      "decision_note": "CURRENT_ONTOLOGY_EXPRESSIBLE_SPLIT = YES；SOURCE_SCOPE_FULL_REAL_WORLD_EXHAUSTIVE = NO；UNMODELED_SOURCE_SCOPE_REMAINDER = YES。未建模的鸟类、爬行类等必须继续保持 UNKNOWN / unsupported，不得解释为 ALLOWED。",
       "normalization_semantics": "CURRENT_ONTOLOGY_EXPRESSIBLE_SPLIT",
       "unmodeled_source_scope_remainder": true,
       "source_scope_caveat": "CURRENT_ONTOLOGY_EXPRESSIBLE_SPLIT，不是 FULL_SOURCE_DOMAIN_EXHAUSTIVE_SPLIT。来源术语「动物（导盲犬除外）」的语义宽于当前主体词表；本行只表达词表可表达的那一部分。UNMODELED_SOURCE_SCOPE_REMAINDER = YES：鸟类、爬行类及其他非当前词表对象未被任何行覆盖，对它们的查询仍为 UNKNOWN，绝不可读作 ALLOWED。",
@@ -181,10 +181,10 @@
         "猫": "prohibited",
         "其他宠物": "prohibited"
       },
-      "final_decision": null,
-      "reviewer": null,
-      "decided_at": null,
-      "decision_note": null,
+      "final_decision": "HOLD",
+      "reviewer": "huangdi97",
+      "decided_at": "2026-09-18T22:42:35+08:00",
+      "decision_note": "HIGHER_LEVEL_GUIDE_DOG_LEGAL_APPLICABILITY_UNRESOLVED：这不是否认运营方「动物禁止」的来源事实，而是因为当前 OPERATOR_POLICY dog prohibition 若直接发布，可能对 guide_dog 给出错误禁止答案；现有 JPROV-001 属 LEGAL layer，不得跨层替代这一未解决的法律适用性问题。",
       "normalization_semantics": "CURRENT_ONTOLOGY_EXPRESSIBLE_SPLIT",
       "unmodeled_source_scope_remainder": true,
       "source_scope_caveat": "CURRENT_ONTOLOGY_EXPRESSIBLE_SPLIT，不是 FULL_SOURCE_DOMAIN_EXHAUSTIVE_SPLIT。来源术语「动物」的语义宽于当前主体词表；本行只表达词表可表达的那一部分。UNMODELED_SOURCE_SCOPE_REMAINDER = YES：鸟类、爬行类及其他非当前词表对象未被任何行覆盖，对它们的查询仍为 UNKNOWN，绝不可读作 ALLOWED。",
@@ -230,10 +230,10 @@
         "猫": "prohibited",
         "其他宠物": "prohibited"
       },
-      "final_decision": null,
-      "reviewer": null,
-      "decided_at": null,
-      "decision_note": null,
+      "final_decision": "APPROVED",
+      "reviewer": "huangdi97",
+      "decided_at": "2026-09-18T22:42:35+08:00",
+      "decision_note": "CURRENT_ONTOLOGY_EXPRESSIBLE_SPLIT = YES；SOURCE_SCOPE_FULL_REAL_WORLD_EXHAUSTIVE = NO；UNMODELED_SOURCE_SCOPE_REMAINDER = YES。未建模的鸟类、爬行类等必须继续保持 UNKNOWN / unsupported，不得解释为 ALLOWED。",
       "normalization_semantics": "CURRENT_ONTOLOGY_EXPRESSIBLE_SPLIT",
       "unmodeled_source_scope_remainder": true,
       "source_scope_caveat": "CURRENT_ONTOLOGY_EXPRESSIBLE_SPLIT，不是 FULL_SOURCE_DOMAIN_EXHAUSTIVE_SPLIT。来源术语「动物」的语义宽于当前主体词表；本行只表达词表可表达的那一部分。UNMODELED_SOURCE_SCOPE_REMAINDER = YES：鸟类、爬行类及其他非当前词表对象未被任何行覆盖，对它们的查询仍为 UNKNOWN，绝不可读作 ALLOWED。",
@@ -279,10 +279,10 @@
         "猫": "prohibited",
         "其他宠物": "prohibited"
       },
-      "final_decision": null,
-      "reviewer": null,
-      "decided_at": null,
-      "decision_note": null,
+      "final_decision": "APPROVED",
+      "reviewer": "huangdi97",
+      "decided_at": "2026-09-18T22:42:35+08:00",
+      "decision_note": "CURRENT_ONTOLOGY_EXPRESSIBLE_SPLIT = YES；SOURCE_SCOPE_FULL_REAL_WORLD_EXHAUSTIVE = NO；UNMODELED_SOURCE_SCOPE_REMAINDER = YES。未建模的鸟类、爬行类等必须继续保持 UNKNOWN / unsupported，不得解释为 ALLOWED。",
       "normalization_semantics": "CURRENT_ONTOLOGY_EXPRESSIBLE_SPLIT",
       "unmodeled_source_scope_remainder": true,
       "source_scope_caveat": "CURRENT_ONTOLOGY_EXPRESSIBLE_SPLIT，不是 FULL_SOURCE_DOMAIN_EXHAUSTIVE_SPLIT。来源术语「动物」的语义宽于当前主体词表；本行只表达词表可表达的那一部分。UNMODELED_SOURCE_SCOPE_REMAINDER = YES：鸟类、爬行类及其他非当前词表对象未被任何行覆盖，对它们的查询仍为 UNKNOWN，绝不可读作 ALLOWED。",
@@ -324,5 +324,13 @@
     "note": "compound_term_split 仅表示：从宽泛来源术语中拆出当前系统可表达的多个规范 scope。不表示 dog ∪ cat ∪ other_pet == 来源「动物」的现实世界全集。未建模动物的答案是 UNKNOWN / unsupported，不是 ALLOWED。"
   },
   "ai_advisory_notice": "`ai_recommendation` / `ai_reason` 是建议，不是决定；不得被复制进 `final_decision`。本表所有 final_decision / reviewer / decided_at / decision_note 均为 null。",
-  "advisory_annotation": "caveat / advisory 字段由本轮脚本后处理写入（生成器本身只产空决策单元）；未做 schema 迁移。"
+  "advisory_annotation": "caveat / advisory 字段由本轮脚本后处理写入（生成器本身只产空决策单元）；未做 schema 迁移。",
+  "decision_summary": {
+    "signed_rows": 6,
+    "counts": {
+      "APPROVED": 5,
+      "HOLD": 1
+    },
+    "note": "计数直接来自授权决定本身，不是二次推断。"
+  }
 }
