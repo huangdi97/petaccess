@@ -340,6 +340,17 @@ HUMAN_DECISION_REWRITTEN      = 0
 `post_publish_verify.json` · `integrity_post.json` · `guard_recheck.txt` ·
 `counterfactual_relist_superseded.json` · `wave01_disposition_audit_post.json`
 
+**质量基线（本轮实测）**
+
+```
+PYTEST      = 806 passed / 2 skipped   （与 ad936d7 基线一致；本轮未改任何源文件或测试文件）
+RUFF        = 新增 2 个脚本 All checks passed
+RUFF(全量)  = FAIL 3 项 —— 全部位于 ad936d7 引入的
+              tests/unit/test_superseded_semantics_and_evidence_acceptance.py（E501 ×3，既有问题，见 §11-5）
+MYPY        = NOT_RUN（本轮未改 services/api 下任何文件）
+COMMIT      = 17209cd
+```
+
 **未做（刻意）**
 
 - 没有重新打开任何已关闭的旧问题；没有改写任何人类决定（`HUMAN_DECISION_REWRITTEN = 0`）
@@ -360,6 +371,12 @@ HUMAN_DECISION_REWRITTEN      = 0
 3. `answerability` 的 `ordinary_dog_entry` 因 `last_verified_at` NULL 报 unknown（历史存量）。
 4. 低危观察：`POST /api/v1/rules/evaluate` 的 `matched_rules` 对同一规则重复列出两次：
    `['149828d0-…','149828d0-…']`（占位级重复，不影响 effect 判定；未修，避免本轮扩大范围）。
+5. **既有 lint 失败，本轮发现并如实记录**：`ruff check services/api services/worker tests scripts`
+   报 3 项 `E501`，全部在 `tests/unit/test_superseded_semantics_and_evidence_acceptance.py`
+   （第 37 / 39 / 370 行，均为 101–107 字符），该文件由上一轮 `ad936d7` 引入且未再修改
+   （`git status` 干净 ⇒ 提交版本即含此问题）。**这与 Round 6 报告里 `RUFF = PASS` 的写法不一致** ——
+   经实测，该断言不成立。本轮**不修改**该文件（不重开已关闭轮次的产物），仅登记为
+   `WAVE01_FINAL_CLOSURE_FINDING_R1`，交由 Kaiser 决定是否单独修一轮 lint。
 
 ### 下一步（需要 Kaiser 授权，本报告不自行推进）
 

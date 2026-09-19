@@ -192,6 +192,27 @@
     "rules/evaluate 的 matched_rules 对同一规则重复列出两次（占位级，不影响 effect；本轮未修）"
   ],
 
+  "findings": [
+    {
+      "id": "WAVE01_FINAL_CLOSURE_FINDING_R1",
+      "severity": "LOW_LINT",
+      "what": "ruff check services/api services/worker tests scripts 报 3 项 E501，全部位于 tests/unit/test_superseded_semantics_and_evidence_acceptance.py（第 37/39/370 行）",
+      "introduced_by": "ad936d7",
+      "contradicts": "docs/governance/ROUND6_DISPOSITION_AND_CENTURY_PARK_EXECUTION_REPORT.md 中的 RUFF = PASS",
+      "fixed_in_this_round": false,
+      "reason_not_fixed": "不重开已关闭轮次的产物；仅登记，交由 Kaiser 决定是否单独修一轮"
+    }
+  ],
+
+  "quality_baseline": {
+    "PYTEST": "806 passed / 2 skipped",
+    "PYTEST_BASELINE_UNCHANGED": true,
+    "RUFF_NEW_SCRIPTS": "PASS",
+    "RUFF_FULL": "FAIL（3 项 E501，既有问题，见 findings）",
+    "MYPY": "NOT_RUN",
+    "commit": "17209cd"
+  },
+
   "atomic_front_gate": {
     "note": "canonical 前取消闸门是否 PASS 不是放行条据；本批依赖 Evidence Acceptance 具名放行，且未升级证据强度",
     "baseline_commit": "ad936d7",
