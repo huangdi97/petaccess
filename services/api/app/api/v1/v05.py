@@ -1857,6 +1857,181 @@ def effective_rules(
     }
 
 
+@router.post("/places/{place_id}/access-answer")
+def access_answer(place_id: str, body: dict, db: Session = Depends(get_db)):
+    """The **unified answer model** (design §10) — every surface reads this one.
+
+    Body is the same shape as ``effective-rules``::
+
+        {"animal": "dog", "service_role": "none", "action": "enter",
+         "zone_id": null, "declared_role": "guide_dog" (optional),
+         "holder_scopes": ["person_with_disability"] (optional)}
+
+    Why a second endpoint rather than more fields on ``effective-rules``:
+    ``effective-rules`` answers a *resolver* question (layered rules → effect) and
+    its contract is consumed by existing clients. This endpoint answers a
+    *consumer* question — what may I show the reader, and where did it come from —
+    and it is the only place allowed to assemble that (「禁止页面自行算 Rule」:
+    首页 / Search / Map Card / Place Detail / H5 Share / Watch all read this).
+
+    What it will not do: turn "no rule in scope" into an allowance, flatten a zone
+    rule into a place verdict, or describe a government platform relaying the
+    operator as the operator's own confirmation. See
+    ``app.rulespec.access_answer`` for why those are structural, not stylistic.
+    """
+    from app.models import Zone
+    from app.rulespec.access_answer import (
+        PlaceFacts,
+        ZoneFacts,
+        as_plain,
+        build_access_answer,
+    )
+
+    place = db.get(Place, place_id)
+    if place is None:
+        raise NotFound("场所不存在")
+
+    zone: Zone | None = None
+    if body.get("zone_id"):
+        zone = db.get(Zone, body["zone_id"])
+        if zone is not None and zone.place_id != place_id:
+            # A zone from another place would silently resolve against this
+            # place's rules — refuse instead of answering a different question.
+            raise NotFound("区域不属于该场所")
+
+    grouped = _load_layered_rules(db, place_id)
+    holder_scopes = body.get("holder_scopes")
+    rs = resolve(
+        legal=grouped["legal"],
+        guidance=grouped["guidance"],
+        template_rules=grouped["template"],
+        operator_rules=grouped["operator"],
+        event_rules=grouped["events"],
+        animal=body.get("animal", "dog"),
+        service_role=body.get("service_role", "none"),
+        action=body.get("action", "enter"),
+        zone_id=body.get("zone_id"),
+        now=datetime.now(UTC),
+        exceptions=grouped["exceptions"],
+        declared_role=body.get("declared_role"),
+        holder_context=HolderContext.of(*holder_scopes) if holder_scopes is not None else None,
+    )
+
+    rule_facts = _load_rule_facts(db, [str(r.id) for r in rs.applicable_rules])
+
+    answer = build_access_answer(
+        query={
+            "place_id": place_id,
+            "zone_id": body.get("zone_id"),
+            "animal": body.get("animal", "dog"),
+            "service_role": body.get("service_role", "none"),
+            "declared_role": body.get("declared_role"),
+            "action": body.get("action", "enter"),
+            "holder_scopes_supplied": holder_scopes,
+        },
+        place=PlaceFacts(
+            id=place.id, canonical_name=place.canonical_name, place_type=place.place_type
+        ),
+        zone=ZoneFacts(id=zone.id, name=zone.name, zone_type=zone.zone_type) if zone else None,
+        rule_set=rs,
+        rule_facts=rule_facts,
+    )
+    return as_plain(answer)
+
+
+def _load_rule_facts(db: Session, rule_ids: list[str]) -> dict:
+    """Provenance + validity for each governing rule.
+
+    The evidence strength comes from **this rule's own** published chain
+    (``rule_candidate.published_rule_id → evidence_bundle → source_artifact``)
+    rather than from any artifact that happens to share the source — a venue with
+    two sources would otherwise report the strongest of them for a rule that used
+    the weakest.
+    """
+    from app.models import EvidenceBundle, Source, SourceArtifact
+    from app.rulespec.access_answer import RuleFacts
+
+    if not rule_ids:
+        return {}
+
+    rules = {
+        str(r.id): r
+        for r in db.scalars(select(AccessRule).where(AccessRule.id.in_(rule_ids))).all()
+    }
+
+    #: This rule's own publication chain. Joined in one statement so a rule with
+    #: no chain simply yields no row rather than a half-filled one.
+    chain: dict[str, dict] = {}
+    if rules:
+        rows = db.execute(
+            select(
+                RuleCandidate.published_rule_id,
+                Source.source_type,
+                Source.issuer,
+                Source.directness,
+                Source.issuer_verification,
+                Source.source_url,
+                SourceArtifact.evidence_strength,
+            )
+            .join(Source, Source.id == RuleCandidate.source_id)
+            .outerjoin(EvidenceBundle, EvidenceBundle.id == RuleCandidate.evidence_bundle_id)
+            .outerjoin(SourceArtifact, SourceArtifact.id == EvidenceBundle.artifact_id)
+            .where(RuleCandidate.published_rule_id.in_(list(rules)))
+        ).all()
+        for row in rows:
+            chain[str(row[0])] = {
+                "source_type": row[1],
+                "issuer": row[2],
+                "directness": row[3],
+                "issuer_verification": row[4],
+                "source_url": row[5],
+                "evidence_strength": row[6],
+            }
+
+    source_ids = [str(r.source_id) for r in rules.values() if r.source_id]
+    sources = (
+        {str(s.id): s for s in db.scalars(select(Source).where(Source.id.in_(source_ids))).all()}
+        if source_ids
+        else {}
+    )
+
+    def pick(chain_row: dict, src: object, field_name: str):
+        """Chain first, source row second, None last.
+
+        The chain is preferred because it is *this rule's* provenance; the bare
+        source row is the fallback for rules published before the chain was
+        recorded (and for jurisdiction rows, which have no candidate).
+        """
+        value = chain_row.get(field_name)
+        if value is not None:
+            return value
+        return getattr(src, field_name, None) if src is not None else None
+
+    out: dict[str, RuleFacts] = {}
+    for rid, r in rules.items():
+        chain_row = chain.get(rid) or {}
+        src = sources.get(str(r.source_id)) if r.source_id else None
+        out[rid] = RuleFacts(
+            rule_id=rid,
+            rule_layer=r.rule_layer,
+            mandatory_level=r.mandatory_level,
+            source_id=str(r.source_id) if r.source_id else None,
+            source_type=pick(chain_row, src, "source_type"),
+            issuer=pick(chain_row, src, "issuer"),
+            directness=pick(chain_row, src, "directness"),
+            issuer_verification=pick(chain_row, src, "issuer_verification"),
+            evidence_strength=chain_row.get("evidence_strength"),
+            source_url=pick(chain_row, src, "source_url"),
+            effective_from=r.effective_from,
+            effective_to=r.effective_to,
+            supersedes_rule_id=str(r.supersedes_rule_id) if r.supersedes_rule_id else None,
+            source_scope_exact=r.source_scope_exact,
+            subject_scope_normalized=r.subject_scope_normalized,
+            normalization_type=r.normalization_type,
+        )
+    return out
+
+
 @router.get("/places/{place_id}/extras")
 def place_extras(place_id: str, db: Session = Depends(get_db)):
     """Public read-only extras for the Place Detail page (spec §2.4 §4/§5/§6).

@@ -45,6 +45,85 @@ export interface EffectiveRuleSet {
   obligations: string[];
 }
 
+/**
+ * The unified answer model (design §10). Every consumer surface renders this —
+ * none of them re-derives scope, conditions or provenance from the raw rules.
+ *
+ * `evidence_state` is the part that must not be paraphrased: it is derived on the
+ * server from the source row plus the rule's own publication chain, so a
+ * government platform relaying the operator can never render as the operator's
+ * own confirmation.
+ */
+export interface AccessAnswerEvidence {
+  rule_id: string;
+  source_id: string | null;
+  source_type: string | null;
+  /** Human-adjudicated meaning. `null` when nobody adjudicated that source type —
+   *  the UI must then show the raw value rather than invent a sentence. */
+  source_type_semantics: string | null;
+  issuer: string | null;
+  directness: string | null;
+  issuer_verification: string | null;
+  evidence_strength: string | null;
+  source_url: string | null;
+  first_party_operator_source_pending: boolean;
+  provenance_statement: string;
+}
+
+export interface AccessAnswer {
+  query_context: Record<string, unknown>;
+  normative_result: {
+    effect: string;
+    compliance_state: string;
+    summary: string;
+    governing_rule_ids: string[];
+    governing_layer: string[];
+    mandatory_levels: string[];
+  };
+  condition_evaluation: {
+    conditions: Record<string, unknown>[];
+    unmet: unknown[];
+    missing_inputs: string[];
+    pending_exceptions: string[];
+  };
+  scope_summary: {
+    place: { id: string; name: string; place_type: string };
+    zone: { id: string; name: string; zone_type: string } | null;
+    zone_requested: boolean;
+    /** Which level actually decided the answer — never a flattening. */
+    scope_level: "zone" | "place" | "jurisdiction" | "mixed" | "none";
+    zone_scoped_rule_count: number;
+    animal_scope_requested: string | null;
+    declared_role: string | null;
+  };
+  evidence_state: {
+    rules: AccessAnswerEvidence[];
+    first_party_operator_source_pending: boolean;
+    first_party_operator_source_count: number;
+    weakest_directness: string | null;
+    acceptance_required: boolean;
+  };
+  conflict_state: {
+    has_conflict: boolean;
+    compliance_state: string;
+    unresolved_conflicts: string[][];
+    suppressed: { rule: string; reason: string }[];
+  };
+  rights_information: {
+    normative_effects: string[];
+    operator_obligations: string[];
+    facilitation_required: boolean;
+    holder_scopes: string[];
+  };
+  matched_rule_versions: Record<string, unknown>[];
+  explanation_items: string[];
+  next_actions: string[];
+  evaluated_at: string;
+  valid_until: string | null;
+  valid_from?: string | null;
+  evaluation_version: string;
+}
+
 export interface BoundaryPreference {
   id?: string;
   attribute: string;
@@ -541,6 +620,29 @@ export const client = {
     },
   ) {
     return api.request<EffectiveRuleSet>("post", `/places/${placeId}/effective-rules`, { body });
+  },
+  /**
+   * The unified answer model — the surface-facing call.
+   *
+   * Prefer this over `effectiveRules` for anything a reader sees: it carries the
+   * scope level that actually governs, the condition evaluation, and the
+   * provenance (`evidence_state`) that `effectiveRules` deliberately omits.
+   */
+  async accessAnswer(
+    placeId: string,
+    body: {
+      animal: string;
+      service_role?: string;
+      action?: string;
+      zone_id?: string | null;
+      declared_role?: string | null;
+      /** ADR-031: ephemeral, read for this request and never stored. Omitting it
+       *  does not mean "no" — the answer comes back `conditional` with
+       *  `missing_inputs` instead. */
+      holder_scopes?: string[];
+    },
+  ) {
+    return api.request<AccessAnswer>("post", `/places/${placeId}/access-answer`, { body });
   },
   async boundaryProfiles() {
     return api.request<{ items: BoundaryProfile[] }>("get", "/boundary-profiles");

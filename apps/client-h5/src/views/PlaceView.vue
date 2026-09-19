@@ -23,6 +23,7 @@ import {
   placeTypeLabel,
   provenanceSummary,
   session,
+  type AccessAnswer,
   type Answer,
   type BoundaryMatchResult,
   type EffectiveRuleSet,
@@ -70,6 +71,13 @@ const effective = ref<EffectiveRuleSet | null>(null);
 const boundaryMatch = ref<BoundaryMatchResult | null>(null);
 const answer = ref<Answer | null>(null);
 const ordinaryAnswer = ref<Answer | null>(null);
+/**
+ * The unified answer model (design §10). Section 1 and Section 7 render their
+ * "where did this come from" lines from *this*, not from the raw rule list: only
+ * the server knows whether the evidence is a first-party operator source, and a
+ * page that guessed would either hide the gap or invent a comforting sentence.
+ */
+const accessAnswer = ref<AccessAnswer | null>(null);
 const error = ref("");
 const loading = ref(true);
 const partial = ref<string[]>([]);
@@ -242,6 +250,14 @@ async function load() {
   } catch {
     degrade("分层解析");
   }
+  try {
+    accessAnswer.value = await client.accessAnswer(placeId.value, {
+      animal: session.activePet?.species ?? "dog",
+      service_role: session.activePet?.service_role ?? "none",
+    });
+  } catch {
+    degrade("来源状态");
+  }
   // Account-scoped: a signed-out visitor has no stored boundary, so asking is
   // a 401 rather than an empty answer. Only call it when there is an account.
   if (session.signedIn) {
@@ -279,6 +295,7 @@ function resetForPlace() {
   boundaryMatch.value = null;
   answer.value = null;
   ordinaryAnswer.value = null;
+  accessAnswer.value = null;
   error.value = "";
   partial.value = [];
   quickMsg.value = "";
@@ -512,6 +529,30 @@ async function claimOperator() {
           }}
           · 最近核验：{{ prov.latestVerified ? prov.latestVerified.slice(0, 10) : "暂无" }}
         </div>
+        <!--
+          Scope and provenance come from the unified answer model. The scope line
+          exists so a zone-scoped rule is never read as a venue-wide verdict; the
+          provenance line exists so a government platform relaying the operator
+          is never rendered as the operator's own confirmation.
+        -->
+        <div v-if="accessAnswer" class="notice" data-testid="answer-scope">
+          适用范围：{{
+            accessAnswer.scope_summary.scope_level === "zone"
+              ? (accessAnswer.scope_summary.zone?.name ?? "该区域")
+              : accessAnswer.scope_summary.scope_level === "none"
+                ? "尚无已发布规则覆盖本次查询（未知 ≠ 允许）"
+                : accessAnswer.scope_summary.scope_level === "jurisdiction"
+                  ? "辖区法规"
+                  : "场所整体"
+          }}
+        </div>
+        <div
+          v-if="accessAnswer?.evidence_state.rules.length"
+          class="notice"
+          data-testid="answer-provenance"
+        >
+          {{ accessAnswer.evidence_state.rules[0].provenance_statement }}
+        </div>
       </div>
 
       <!-- Section 2 — where -->
@@ -616,6 +657,21 @@ async function claimOperator() {
             <StatusBadge :effect="r.effect" />
             <StatusBadge v-if="isStale(r)" semantic="STALE" />
           </span>
+        </div>
+        <!--
+          Per-rule provenance, straight from the unified answer. Rendered verbatim
+          rather than re-worded: `source_type_semantics` is only filled in for
+          source types a named reviewer actually adjudicated, and when it is empty
+          the raw enum value is what the reader sees.
+        -->
+        <div
+          v-if="accessAnswer?.evidence_state.rules.length"
+          class="provenance"
+          data-testid="source-provenance"
+        >
+          <div v-for="e in accessAnswer.evidence_state.rules" :key="e.rule_id" class="muted">
+            · {{ e.provenance_statement }}
+          </div>
         </div>
         <div v-if="effective?.compliance_state === 'POTENTIAL_CONFLICT'" class="notice">
           来源存在不一致：<StatusBadge semantic="CONFLICT" />
