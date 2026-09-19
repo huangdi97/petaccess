@@ -1,0 +1,124 @@
+{
+  "_schema": "Wave-02 start / R2-FINAL-R3 backlog ledger v1 — 机器可读。每个数字都必须能在 artifacts/ 的实测产物或库中实读里找到出处；本文件不引入新判据。",
+  "round": "WAVE02_START_AND_R2FINALR3_BACKLOG_R1",
+  "baseline_commit": "743dc2c",
+  "database": "petaccess",
+  "database_role": "PRODUCTION",
+  "alembic_head": "f2a1c7d9e034",
+  "production_writes_this_round": 0,
+  "production_fingerprint_before": "67f7b19ef3c310ad6b07df749ac76fe4862f82653aa723ed900a4cbc083e853d",
+  "production_fingerprint_after": "67f7b19ef3c310ad6b07df749ac76fe4862f82653aa723ed900a4cbc083e853d",
+
+  "access_answer": {
+    "implemented": true,
+    "module": "services/api/app/rulespec/access_answer.py",
+    "endpoint": "POST /api/v1/places/{place_id}/access-answer",
+    "version": "access-answer/1",
+    "required_fields_present": "13/13",
+    "unit_tests": 12,
+    "integration_tests": 7,
+    "real_data_verification": "PASS",
+    "real_cases": {
+      "ordinary_pet_in_rule_zone": {"effect": "prohibited", "scope_level": "zone", "governing_rules": 1},
+      "ordinary_pet_in_uncovered_zone": {"effect": "unknown", "scope_level": "none", "governing_rules": 0},
+      "ordinary_pet_place_level_no_zone": {"effect": "unknown", "scope_level": "none", "governing_rules": 0},
+      "guide_dog_in_rule_zone": {"effect": "unknown", "scope_level": "none", "governing_rules": 0}
+    },
+    "real_provenance_statement": "来源：上海市文化和旅游事业发展中心《又一新地标！这个周末，带「毛孩子」来放飞》（转述世纪公园官方口径）；source_type=government_service；（政府平台转述园方口径）；directness=secondary；未取得运营方一手来源（first-party operator source pending）。",
+    "forbidden_confirmation_claims_absent": true,
+    "forbidden_claims_checked": ["官方已确认", "官方确认", "运营方已确认", "operator first-party verified", "first-party verified", "一手来源已核验"],
+    "structural_refusals": [
+      "no field can express 官方已确认; assert_no_unbacked_first_party_claim fires when first_party_operator_source_count == 0",
+      "zone rule never flattens to a place verdict; no_rule_in_scope never becomes allowed",
+      "withheld carve-out stays conditional with missing_inputs (ADR-031)"
+    ],
+    "note_official_operator_policy_not_banned": "official_operator_policy 是合法 source_type 取值（上海动物园即运营方官网），禁的是「声称」不是「词汇」",
+    "consumer_surfaces_migrated": ["Place Detail (client-h5)"],
+    "consumer_surfaces_pending": ["Home", "Search", "MatchExplain", "Share", "Watch"]
+  },
+
+  "wave01_closure_scope_correction": {
+    "previous_claim": "CURRENT_EXECUTABLE = 0",
+    "correct_scope": "EXP-R1-W01-REVIEW-R1（31 行）",
+    "project_wide_approved_unpublished": 18,
+    "breakdown": {
+      "SUPERSEDED_NON_EXECUTABLE": 3,
+      "R2_FINAL_R3_gate_pass_unpublished": 13,
+      "R2_FINAL_R3_publish_blocked": 2
+    },
+    "disclosed_in_previous_round": false
+  },
+
+  "r2_final_r3_disposition": {
+    "approved_total": 23,
+    "already_published": 8,
+    "gate_pass_unpublished": 13,
+    "publish_blocked": 2,
+    "evidence": "artifacts/r2_final_r3_disposition_post.json"
+  },
+
+  "plan_level_narrowing": {
+    "input": 13,
+    "plan_writable": 11,
+    "unreachable": ["dl-sd-op", "qt-sd-op"],
+    "unreachable_reason": "SEMANTIC_REMODEL_REQUIRED — OPERATOR_POLICY ordinary_pet base 不可达 service_dog 例外",
+    "evidence": "artifacts/r2_final_r3_executable_probe.out / _narrowed.out"
+  },
+
+  "rehearsal": {
+    "database": "petaccess_publish_rehearsal_w02",
+    "clone_source": "petaccess",
+    "attempt_11": {
+      "published": 11,
+      "failed": 0,
+      "integrity_high": ["DUPLICATE_CURRENT_RULE 2 rows / 1 group"],
+      "duplicate_detail": "前滩太古里 zone 12690b48 LEGAL dog enter prohibited —— 既有 42c9a35e 与 qt-indoor-legal 新建的 a9124d56",
+      "verdict": "FAIL"
+    },
+    "safe_9": {
+      "rule_ids": ["dl-pet-ban", "gh-legal-dog", "gh-sd-legal", "mn-legal-dog", "mn-sd-legal", "qt-indoor-op", "qt-outdoor-op", "xm-legal-dog", "xm-sd-legal"],
+      "batch_validation": "PASS",
+      "dependency_closed": "PASS",
+      "published": 9,
+      "access_rule_created": 6,
+      "rule_exception_created": 3,
+      "failed": 0,
+      "audit_contract": "PASS",
+      "second_execute_noop": 9,
+      "second_execute_new_writes": 0,
+      "fingerprint_before": "4844b7af5b99836014cce50e2bf3954b1641d038a3c292577ffd8b7ab96d90de",
+      "fingerprint_after": "b4cfa2af40218073d6a8519b36296353735797297aaecc4f15e752ec40e5c7eb",
+      "counts_after": {"access_rule": 26, "rule_exception": 9, "rule_candidate": 75, "audit_log": 9686},
+      "integrity": {"critical": 0, "high": 0, "medium": 1, "duplicate_current_groups": 0},
+      "verdict": "PASS"
+    },
+    "production_touched": false
+  },
+
+  "gates": {
+    "ANIMAL_SCOPE_REMODEL_GATE": "PASS",
+    "PILOT_REVIEW_PUBLISH_GATE": "PASS",
+    "30_50_PLACE_EXPANSION": "ALLOWED",
+    "wave02_place_collection_started": false,
+    "wave02_place_collection_reason": "先落地已批准的 13 行遗留（当前 20 个场所仅 14 个有现行规则），再扩量"
+  },
+
+  "blocked": {
+    "SAFE_9_PRODUCTION_PUBLISH": {"status": "AWAITING_AUTHORIZATION", "authorization_string": "REAL_PUBLISH_AUTHORIZATION_FOR_R3_SAFE_9_BATCH", "reason": "授权 §4 将发布范围限定为世纪公园单条；9 行超出该范围且属破坏性操作"},
+    "dl_sd_op": {"status": "SEMANTIC_REMODEL_REQUIRED", "reason": "但书基底 scope 不可达"},
+    "qt_sd_op": {"status": "SEMANTIC_REMODEL_REQUIRED", "reason": "但书基底 scope 不可达"},
+    "fp_sd_op_firstparty": {"status": "PUBLISH_BLOCKED"},
+    "lib_sd_op_guide": {"status": "PUBLISH_BLOCKED"}
+  },
+
+  "quality_baseline": {
+    "PYTEST": "825 passed / 2 skipped",
+    "RUFF_NEW_FILES": "PASS",
+    "RUFF_REPO": "3 既有 E501（ad936d7 引入，WAVE01_FINAL_CLOSURE_FINDING_R1）",
+    "MYPY": "Success (87 files)",
+    "H5_BUILD": "PASS",
+    "ESLINT": 0,
+    "PRETTIER": "PASS",
+    "commit": "f074ae9"
+  }
+}

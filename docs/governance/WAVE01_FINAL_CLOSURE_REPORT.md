@@ -291,6 +291,12 @@ OLD_HUMAN_REVIEW_DIFF = 0                         （本轮 git 无任何已跟�
 
 ## 8. Wave01 最终闭环分类（授权 §12）
 
+> **⚠️ 口径声明（2026-09-19 补，见 `WAVE02_START_AND_R2FINALR3_BACKLOG_REPORT.md` §2）**
+> 下表的 `CURRENT_EXECUTABLE = 0` **只对 `EXP-R1-W01-REVIEW-R1` 这 31 行成立**。
+> 项目级并非 0：`R2-FINAL-R3` 登记表另有 **13 行「单行 gate=PASS 且未发布」**
+> （另 2 行 publish blocked），加上本表 3 条 SUPERSEDED 与 2 条 REJECTED，
+> 全局「APPROVED 且未发布」= 18。本表不能被读成项目级闭环。
+
 登记表 `EXP-R1-W01-REVIEW-R1` 共 **31** 行，按处置分桶（发布后重新实测，非复述）：
 
 | 分类 | 条数 | 说明 |
