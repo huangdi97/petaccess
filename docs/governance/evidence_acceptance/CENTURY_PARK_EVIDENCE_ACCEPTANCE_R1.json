@@ -1,0 +1,40 @@
+{
+  "_schema": "Evidence acceptance v1 — 具名人类评审员在知情前提下接受一条弱证据并把缺口一并入档。它 **不提升证据强度**：`evidence_strength` 仍为 `search_snippet`，登记表和计划里都照实记录。它只是把 ADR-021 的拒绝，替换成一位署名人类对该具体 source 的、**可机器复核的**放行授权。",
+  "_authority": "huangdi97 于 2026-09-19 的 CENTURY_PARK_4e217d58 决定，逐字转录：『接受当前政府发布来源作为可发布 Evidence，但必须准确标识 source_type = government_service，语义=政府平台转述园方口径；不得标成 official_operator_policy；不得声称 operator first-party verified；如果现有模型支持，记录 FIRST_PARTY_OPERATOR_SOURCE_PENDING = YES 或 canonical 等价 metadata。该缺口不再作为 Publish blocker。以后取得世纪公园运营方一手来源时：走 Evidence upgrade / new EvidenceBundle / 必要时 Supersession。重新跑当次 Pre-Publish Gate；如果仍 PASS，可进入新的显式 Publish Batch。』",
+  "acceptance_id": "CENTURY_PARK_EVIDENCE_ACCEPTANCE_R1",
+  "revision": "EXP-R1-W01-REVIEW-R1",
+  "reviewer": "huangdi97",
+  "decided_at": "2026-09-19T00:00:00+08:00",
+  "entries": [
+    {
+      "acceptance_id": "CENTURY_PARK_EVIDENCE_ACCEPTANCE_R1",
+      "reviewer": "huangdi97",
+      "decided_at": "2026-09-19T00:00:00+08:00",
+      "candidate_id": "4e217d58-1060-4945-9fa1-b9b7e17d7e64",
+      "rule_id": "w01-4e217d5810",
+      "source_id": "ca5b81a7-ca5b-495c-9026-6d8b69dbaea7",
+      "place_name": "世纪公园",
+      "declared_source_type": "government_service",
+      "declared_source_type_semantics": "政府平台转述园方口径",
+      "evidence_strength_unchanged": "search_snippet",
+      "accepted_despite_evidence_strength": "search_snippet",
+      "operator_first_party_verified": false,
+      "first_party_operator_source_pending": true,
+      "forbidden_claims": [
+        "official_operator_policy",
+        "operator first-party verified"
+      ],
+      "decision_note": "huangdi97 明示：接受政府发布的转述来源作为可发布 Evidence；语义为『政府平台转述园方口径』；不得标为一手运营方政策；不得声称已完成第一方核验；缺口以 FIRST_PARTY_OPERATOR_SOURCE_PENDING=YES 入档，不再作为 Publish blocker。取得运营方一手来源时走 Evidence upgrade / new EvidenceBundle / 必要时 Supersession，并重跑 Pre-Publish Gate。",
+      "upgrade_path": "取得世纪公园运营方一手来源 → Evidence upgrade / new EvidenceBundle / 必要时 Supersession → 重新跑当次 Pre-Publish Gate → 仍 PASS 方可进入新的显式 Publish Batch",
+      "measured_source_facts": {
+        "source_type": "government_service",
+        "issuer": "上海市文化和旅游事业发展中心《又一新地标！这个周末，带「毛孩子」来放飞》（转述世纪公园官方口径）",
+        "issuer_verification": "verified",
+        "directness": "secondary",
+        "source_availability": "available_online",
+        "notes": "capture_method=search_snippet; needs_verification=True",
+        "source_url": "https://www.meet-in-shanghai.net/tc/news/another-new-landmark-this-weekend-bring-the-furry-child-to-fly-966480/"
+      }
+    }
+  ]
+}

@@ -89,6 +89,7 @@ import httpx
 # Kept resolvable when this file is loaded by path (tests do exactly that), where
 # the script directory would otherwise not be on sys.path.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import evidence_acceptance
 from human_decisions import (  # noqa: E402
     APPROVAL_DECISIONS,
     APPROVED,
@@ -107,6 +108,9 @@ from publish_batch import (  # noqa: E402
 )
 from publish_batch import (
     approved_exception_map as batch_approved_exception_map,
+)
+from publish_batch import (  # noqa: E402
+    load_superseded_semantics as _batch_load_superseded_semantics,
 )
 
 REPO = Path(__file__).resolve().parents[1]
@@ -145,11 +149,18 @@ BLOCKED = "BLOCKED"
 HOLD_NOT_PUBLISHABLE = "HOLD_NOT_PUBLISHABLE"
 #: Human said REJECTED. Never publishable, in this round or any other.
 REJECTED_NOT_PUBLISHABLE = "REJECTED_NOT_PUBLISHABLE"
+#: The human approval stands, but a later revision replaced this row's *semantics*.
+#: Classifying it as a publish type would let the old scope supersede the new one
+#: (measured: Wave-01's ``other`` bases planned to supersede Scope Remodel R2's
+#: ``dog``/``cat``/``other`` rules). Never publishable, whatever a manifest says.
+SUPERSEDED_NON_EXECUTABLE = "SUPERSEDED_NON_EXECUTABLE"
 
 #: Types that would write something.
 WRITING_TYPES = frozenset({CREATE_ACCESS_RULE, SUPERSEDE_ACCESS_RULE, CREATE_RULE_EXCEPTION})
 #: Types that are never publishable.
-NEVER_PUBLISHABLE = frozenset({HOLD_NOT_PUBLISHABLE, REJECTED_NOT_PUBLISHABLE})
+NEVER_PUBLISHABLE = frozenset(
+    {HOLD_NOT_PUBLISHABLE, REJECTED_NOT_PUBLISHABLE, SUPERSEDED_NON_EXECUTABLE}
+)
 
 #: Gate outcome values.
 GATE_PASS = "PASS"
@@ -441,6 +452,7 @@ class Plan:
             "gate_status_counts": dict(Counter(s.gate_status for s in evaluated)),
             "access_rule_create_count": counts.get(CREATE_ACCESS_RULE, 0),
             "access_rule_supersede_count": counts.get(SUPERSEDE_ACCESS_RULE, 0),
+            "superseded_non_executable_count": counts.get(SUPERSEDED_NON_EXECUTABLE, 0),
             "rule_exception_create_count": counts.get(CREATE_RULE_EXCEPTION, 0),
             "noop_count": counts.get(NOOP_ALREADY_EXISTS, 0),
             "blocked_count": counts.get(BLOCKED, 0),
@@ -457,6 +469,37 @@ class Plan:
             "human_overrides_ai": sum(1 for s in self.steps if s.human_overrides_ai),
             "publication_types": dict(counts),
         }
+
+
+def _source_rows(session, entries: list[dict]) -> dict[str, dict[str, Any]]:
+    """``source_id -> {source_type, issuer, ...}`` for the accepted sources.
+
+    The acceptance asserts something about a source; re-reading the row here is
+    what makes that assertion checkable instead of merely recorded. No session
+    means no verification, which is deliberately *not* "verified".
+    """
+    if session is None or not entries:
+        return {}
+    from app.models import Source
+
+    out: dict[str, dict[str, Any]] = {}
+    for entry in entries:
+        source_id = entry.get("source_id")
+        if not source_id:
+            continue
+        try:
+            row = session.get(Source, source_id)
+        except Exception:  # malformed uuid / missing table — reported as drift
+            row = None
+        if row is None:
+            continue
+        out[str(source_id)] = {
+            "source_type": getattr(row, "source_type", None),
+            "issuer": getattr(row, "issuer", None),
+            "directness": getattr(row, "directness", None),
+            "notes": getattr(row, "notes", None),
+        }
+    return out
 
 
 def machine_agrees(row: Mapping[str, Any]) -> bool:
@@ -499,6 +542,16 @@ def _supersede_targets(row: Mapping[str, Any]) -> tuple[str, ...]:
     return tuple(str(x) for x in row.get("_supersedes_existing") or ())
 
 
+def _load_superseded_semantics() -> dict[str, dict[str, Any]]:
+    """Rows whose semantics were replaced by a later revision.
+
+    Swallows nothing: a malformed register must stop the run, because silently
+    ignoring it would restore exactly the supersede-the-replacement behaviour it
+    exists to prevent.
+    """
+    return _batch_load_superseded_semantics()
+
+
 def build_plan(
     rows: Sequence[Mapping[str, Any]],
     *,
@@ -507,6 +560,7 @@ def build_plan(
     revision: str = "",
     reviewer: str = "",
     already_published: Iterable[str] = (),
+    superseded_semantics: Mapping[str, Mapping[str, Any]] | None = None,
 ) -> Plan:
     """Turn signed rows into an ordered publication plan.
 
@@ -521,6 +575,14 @@ def build_plan(
     """
     bindings = dict(bindings or {})
     published = {str(x) for x in already_published}
+    #: Rows whose semantics a later revision replaced. Read from the same register
+    #: the batch loader refuses on, so the planner and the batch layer cannot
+    #: disagree about what "superseded" means.
+    superseded_semantics = (
+        dict(superseded_semantics)
+        if superseded_semantics is not None
+        else _load_superseded_semantics()
+    )
     steps: list[PlanStep] = []
     by_rule: dict[str, PlanStep] = {}
     layer_of = {str(r["rule_id"]): r.get("rule_layer") for r in rows}
@@ -555,6 +617,20 @@ def build_plan(
             step.publication_type = HOLD_NOT_PUBLISHABLE
         elif auth == "REJECT":
             step.publication_type = REJECTED_NOT_PUBLISHABLE
+        elif str(rule_id) in superseded_semantics:
+            #: Checked before every publish path, including SUPERSEDE_ACCESS_RULE:
+            #: this row's semantics were replaced, so the only thing it could do
+            #: here is overwrite its own replacement. The human decision is left
+            #: untouched — ``HUMAN_DECISION`` above still reads APPROVED.
+            record = superseded_semantics[str(rule_id)]
+            replaced_by = record.get("superseded_by") or []
+            target = "、".join(str(x) for x in replaced_by) if replaced_by else "未知"
+            step.publication_type = SUPERSEDED_NON_EXECUTABLE
+            step.blocked_reasons = (
+                f"{SUPERSEDED_NON_EXECUTABLE}：语义已被 {target} 取代"
+                f"（{record.get('reason') or ''}），人类决定保持 "
+                f"{row.get('final_decision')}，但永久不得执行",
+            )
         elif auth == "UNSIGNED":
             step.publication_type = BLOCKED
             step.blocked_reasons = ("未签署（final_decision 不在词表内），不得进入发布计划",)
@@ -782,7 +858,18 @@ def preflight(
     reviewer: str | None,
     max_approve: int,
     db_state: dict[str, dict] | None = None,
+    *,
+    released_weak_evidence: set[str] | None = None,
+    notes: list[str] | None = None,
 ) -> list[str]:
+    """Everything the human must fix before this run may write.
+
+    ``released_weak_evidence`` holds rule ids whose weak evidence a *named* human
+    accepted through a signed acceptance record (``scripts/evidence_acceptance.py``).
+    Only those exact ids skip the ADR-021 refusal — the strength itself is not
+    upgraded anywhere, so the plan and the audit still say ``search_snippet``.
+    """
+    released = set(released_weak_evidence or ())
     problems: list[str] = []
     # Both approval spellings count toward the batch cap: publishing either one
     # creates a rule, so counting only "APPROVED" would understate the batch.
@@ -808,10 +895,24 @@ def preflight(
                 "review_note（附带意见要随决定一起留痕）"
             )
         if fd in APPROVAL_DECISIONS and r["evidence_strength"] in WEAK:
-            problems.append(
-                f"{r['candidate_id']} {r['rule_id']}: 弱证据({r['evidence_strength']})"
-                f"不得 {fd}（ADR-021）"
-            )
+            if str(r["rule_id"]) in released:
+                #: Released by a named human, not regraded. This is a *note*, not
+                #: a problem: putting it in ``problems`` would make every dry-run
+                #: exit non-zero and every execute abort, which is a different
+                #: message from the one it means. Silence would be worse, though —
+                #: it has to be visible next to the plan it lets through.
+                if notes is not None:
+                    notes.append(
+                        f"EVIDENCE_ACCEPTANCE: {r['rule_id']} 弱证据"
+                        f"({r['evidence_strength']})已由具名人类评审员通过 signed "
+                        "evidence acceptance 接受放行；证据强度未提升，"
+                        "FIRST_PARTY_OPERATOR_SOURCE_PENDING 仍为真。"
+                    )
+            else:
+                problems.append(
+                    f"{r['candidate_id']} {r['rule_id']}: 弱证据({r['evidence_strength']})"
+                    f"不得 {fd}（ADR-021）"
+                )
         if fd in APPROVAL_DECISIONS:
             # BLK-LAYER-02 / ADR-023: a LEGAL rule without an explicit mandatory
             # level cannot become the resolver floor — refuse, never default it.
@@ -1149,6 +1250,7 @@ def render_plan(plan: Plan, integrity: Mapping[str, Any]) -> str:
         "",
         f"ACCESS_RULE_CREATE_COUNT    = {summary['access_rule_create_count']}",
         f"ACCESS_RULE_SUPERSEDE_COUNT = {summary['access_rule_supersede_count']}",
+        f"SUPERSEDED_NON_EXECUTABLE   = {summary['superseded_non_executable_count']}",
         f"RULE_EXCEPTION_CREATE_COUNT = {summary['rule_exception_create_count']}",
         f"NOOP_COUNT                  = {summary['noop_count']}",
         f"BLOCKED_COUNT               = {summary['blocked_count']}",
@@ -1360,6 +1462,15 @@ def main() -> int:
         ),
     )
     ap.add_argument(
+        "--evidence-acceptance",
+        action="append",
+        default=None,
+        help=(
+            "已签署的 evidence acceptance 文件（可多次给出）。"
+            "缺省不加载任何接受记录：ADR-021 的弱证据拒绝保持原样。"
+        ),
+    )
+    ap.add_argument(
         "--snapshot-out",
         default=None,
         help=(
@@ -1452,6 +1563,11 @@ def main() -> int:
 
     bindings = canonical_exception_bindings(doc)
 
+    #: Rows whose semantics a later revision replaced. Read before the batch and
+    #: the planner so both refuse identically, and so a missing register surfaces
+    #: as a run-stopping error rather than as a silently-executable old row.
+    superseded_semantics = _load_superseded_semantics()
+
     # Build the client first: the DB cross-check is part of the preflight, so a
     # drifted candidate row blocks the run *before* anything is written.
     api: Api | None = None
@@ -1494,6 +1610,34 @@ def main() -> int:
     else:
         gate = NullGate()
 
+    #: Evidence acceptance is opt-in per run: the operator names the acceptance
+    #: files they intend to rely on, so no stray record can widen a batch. It is
+    #: read *after* the session exists because an acceptance asserts facts about
+    #: a source row, and an unverified assertion is exactly what it must not be.
+    released_weak_evidence: set[str] = set()
+    evidence_notes: list[str] = []
+    for extra in args.evidence_acceptance or ():
+        try:
+            acceptances = evidence_acceptance.load_acceptances(extra)
+        except evidence_acceptance.EvidenceAcceptanceError as exc:
+            #: A malformed acceptance is a refusal, never a traceback: whatever it
+            #: tried to release must not be released by accident on any path.
+            print(f"REFUSED — {exc}")
+            return 4
+        released, issues = evidence_acceptance.released_weak_evidence_rows(
+            all_rows, acceptances, _source_rows(session, list(acceptances.values()))
+        )
+        if issues:
+            print("REFUSED — evidence acceptance 在当前库状态下不成立：")
+            for issue in issues:
+                print(f"  - {issue}")
+            return 4
+        released_weak_evidence |= released
+        evidence_notes.append(
+            f"EVIDENCE_ACCEPTANCE_FILES = {len(args.evidence_acceptance)}"
+            f"（放行 {len(released)} 行弱证据；接受记录每次都要与库重新比对）"
+        )
+
     # ---- explicit batch selection (never a slice of the register) -----------
     manifest: BatchManifest | None = None
     batch: BatchValidation | None = None
@@ -1510,6 +1654,7 @@ def main() -> int:
             register_revision=register_revision,
             published_rule_ids=_published_rule_ids(all_rows),
             approved_exception_map=batch_approved_exception_map(doc, all_rows),
+            superseded_semantics=superseded_semantics,
         )
         print(batch.render())
         print("")
@@ -1519,8 +1664,17 @@ def main() -> int:
 
     rows = select_rows(all_rows, manifest) if manifest is not None else all_rows
 
-    problems = preflight(rows, args.reviewer, args.max_approve, db_state)
+    problems = preflight(
+        rows,
+        args.reviewer,
+        args.max_approve,
+        db_state,
+        released_weak_evidence=released_weak_evidence,
+        notes=evidence_notes,
+    )
 
+    #: Read once above and handed to both layers, so the batch refusal and the
+    #: planner refusal answer from the same table.
     plan = build_plan(
         rows,
         bindings=bindings,
@@ -1532,6 +1686,7 @@ def main() -> int:
             for r in rows
             if (r.get("_db_review_status") or r.get("review_status")) == "PUBLISHED"
         },
+        superseded_semantics=superseded_semantics,
     )
     #: Rules *this plan* would write. Read from the rows, but only for candidates
     #: the plan actually considers writable: once a batch has run, every candidate
@@ -1558,6 +1713,10 @@ def main() -> int:
 
     print(render_plan(plan, integrity))
     print("")
+    for note in evidence_notes:
+        print(note)
+    if evidence_notes:
+        print("")
     if problems:
         print(f"发布前置条件未满足（{len(problems)} 项）——以下为需要人类评审员处理的事项：")
         for problem in problems:

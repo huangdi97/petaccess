@@ -1,0 +1,324 @@
+{
+  "audit_id": "WAVE01_APPROVED_DISPOSITION_AUDIT_R1",
+  "revision": "EXP-R1-W01-REVIEW-R1",
+  "reviewer": "huangdi97",
+  "at": "2026-09-19T02:46:28.383195+00:00",
+  "database": "127.0.0.1:5432/petaccess",
+  "gate_ran": true,
+  "zero_db_mutation": true,
+  "approved_total": 15,
+  "SUPERSEDED_APPROVED": 3,
+  "CURRENTLY_EXECUTABLE_APPROVED": 1,
+  "PUBLISH_BLOCKED_APPROVED": 0,
+  "ALREADY_PUBLISHED_APPROVED": 11,
+  "items": [
+    {
+      "rule_id": "w01-305fa08c1e",
+      "candidate_id": "305fa08c-1edd-4cc9-9b7e-554647e44b0a",
+      "place_name": "上海迪士尼乐园",
+      "zone_name": "全园",
+      "layer": "OPERATOR_POLICY",
+      "animal_scope": "service_dog",
+      "source_scope_exact": "导盲犬",
+      "source_type": "official_operator_policy",
+      "evidence_strength": "primary_direct",
+      "human_decision": "APPROVED",
+      "human_decision_unchanged": true,
+      "disposition": "SUPERSEDED_BY_SCOPE_REMODEL",
+      "execution_status": "SUPERSEDED_BY_SCOPE_REMODEL_R2",
+      "publication_type": "SUPERSEDED_NON_EXECUTABLE",
+      "gate_status": "BLOCKED",
+      "reasons": [
+        "SUPERSEDED_BY_SCOPE_REMODEL_R2",
+        "取代方：sr2-69e0916a2f",
+        "2026-09-19 生产只读 dry-run：该行 publication_type=BLOCKED，gate=BLOCKED（候选字段超出 schema 支持 —— proposed_conditions 用遗留键 'type' 而非 'condition_type'）。ADR-029 §9 禁止原地改写已签署候选，正确救济是『新候选 + 新人工审查』；该救济候选 sr2-69e0916a2f 已经 huangdi97 于 2026-09-19T00:01:16+08:00 APPROVED，并随 SCOPE-REMODEL-R2-BATCH-03 发布（rule_exception a9f564bb，挂在 base rule 892643b0=sr2-7b595de9e0 下）。原 Carve-out 的救济已完成落地。"
+      ]
+    },
+    {
+      "rule_id": "w01-3a04d4d1aa",
+      "candidate_id": "3a04d4d1-aaac-4c3d-8364-9d1acf18ef35",
+      "place_name": "上海迪士尼乐园",
+      "zone_name": "全园",
+      "layer": "OPERATOR_POLICY",
+      "animal_scope": "other",
+      "source_scope_exact": "动物（导盲犬除外）",
+      "source_type": "official_operator_policy",
+      "evidence_strength": "primary_direct",
+      "human_decision": "APPROVED",
+      "human_decision_unchanged": true,
+      "disposition": "SUPERSEDED_BY_SCOPE_REMODEL",
+      "execution_status": "SUPERSEDED_BY_SCOPE_REMODEL_R2",
+      "publication_type": "SUPERSEDED_NON_EXECUTABLE",
+      "gate_status": "PASS",
+      "reasons": [
+        "SUPERSEDED_BY_SCOPE_REMODEL_R2",
+        "取代方：sr2-7b595de9e0、sr2-4580ab2160、sr2-4ca5e55a6a",
+        "2026-09-19 生产只读 dry-run：该行 publication_type=SUPERSEDE_ACCESS_RULE，supersedes=['0d2f70f8-b712-4d43-858f-f32a5f535df6']，而 0d2f70f8 正是 SCOPE-REMODEL-R2 的 sr2-4ca5e55a6a 发布出来的迪士尼 other 规则（access_rule 现行、current）。换言之：一旦重新执行旧行，旧的全域+内嵌但书语义会覆盖 Scope Remodel R2 的拆分语义。"
+      ]
+    },
+    {
+      "rule_id": "w01-6f2bfd39d7",
+      "candidate_id": "6f2bfd39-d79d-4f49-83f6-6ae6a9012697",
+      "place_name": "上海动物园",
+      "zone_name": "全园",
+      "layer": "OPERATOR_POLICY",
+      "animal_scope": "other",
+      "source_scope_exact": "动物",
+      "source_type": "official_operator_policy",
+      "evidence_strength": "primary_direct",
+      "human_decision": "APPROVED",
+      "human_decision_unchanged": true,
+      "disposition": "SUPERSEDED_BY_SCOPE_REMODEL",
+      "execution_status": "SUPERSEDED_BY_SCOPE_REMODEL_R2",
+      "publication_type": "SUPERSEDED_NON_EXECUTABLE",
+      "gate_status": "PASS",
+      "reasons": [
+        "SUPERSEDED_BY_SCOPE_REMODEL_R2",
+        "取代方：sr2-a4e2ba26f5、sr2-27893d75aa、sr2-2a3de3abde",
+        "2026-09-19 生产只读 dry-run：该行 publication_type=SUPERSEDE_ACCESS_RULE，supersedes=['352f6e0f-414f-4683-a548-56d44b48200e']，而 352f6e0f 正是 SCOPE-REMODEL-R2 的 sr2-2a3de3abde 发布出来的动物园 other 规则（current）。同批的 cat 规则 b1981b0d←sr2-27893d75aa 亦已发布。"
+      ]
+    },
+    {
+      "rule_id": "w01-4e217d5810",
+      "candidate_id": "4e217d58-1060-4945-9fa1-b9b7e17d7e64",
+      "place_name": "世纪公园",
+      "zone_name": "世纪公园其他区域",
+      "layer": "OPERATOR_POLICY",
+      "animal_scope": "ordinary_pet",
+      "source_scope_exact": "宠物",
+      "source_type": "government_service",
+      "evidence_strength": "search_snippet",
+      "human_decision": "APPROVED",
+      "human_decision_unchanged": true,
+      "disposition": "CURRENTLY_EXECUTABLE",
+      "execution_status": "EXECUTABLE",
+      "publication_type": "CREATE_ACCESS_RULE",
+      "gate_status": "PASS",
+      "reasons": [
+        "实跑 publication_type=CREATE_ACCESS_RULE",
+        "gate=PASS",
+        " Evidence / Freshness / License / Source Scope / ADR-030 / ADR-031 / Jurisdiction proviso / Holder scope / Service role / Supersession / Execution contract 全部实测通过"
+      ]
+    },
+    {
+      "rule_id": "w01-052d19ccba",
+      "candidate_id": "052d19cc-ba08-4908-a24f-276e9c33f307",
+      "place_name": "CHARLIE'S 粉红汉堡（马当路店）",
+      "zone_name": "室内用餐区",
+      "layer": "LEGAL",
+      "animal_scope": "dog",
+      "source_scope_exact": "犬只",
+      "source_type": "statute_or_regulation",
+      "evidence_strength": "primary_direct",
+      "human_decision": "APPROVED",
+      "human_decision_unchanged": true,
+      "disposition": "ALREADY_PUBLISHED",
+      "execution_status": "EXECUTABLE",
+      "publication_type": "NOOP_ALREADY_EXISTS",
+      "gate_status": "PASS",
+      "reasons": [
+        "候选已处于 PUBLISHED，无需重复发布"
+      ]
+    },
+    {
+      "rule_id": "w01-1fb3d7f1c7",
+      "candidate_id": "1fb3d7f1-c7e2-4f71-ae6d-96ee27e1d44a",
+      "place_name": "兴业太古汇",
+      "zone_name": "商场室内公共区域",
+      "layer": "LEGAL",
+      "animal_scope": "dog",
+      "source_scope_exact": "犬只",
+      "source_type": "statute_or_regulation",
+      "evidence_strength": "primary_direct",
+      "human_decision": "APPROVED",
+      "human_decision_unchanged": true,
+      "disposition": "ALREADY_PUBLISHED",
+      "execution_status": "EXECUTABLE",
+      "publication_type": "NOOP_ALREADY_EXISTS",
+      "gate_status": "PASS",
+      "reasons": [
+        "候选已处于 PUBLISHED，无需重复发布"
+      ]
+    },
+    {
+      "rule_id": "w01-4710a68f56",
+      "candidate_id": "4710a68f-5686-444f-aad1-186ac16cb1b7",
+      "place_name": "上海博物馆东馆",
+      "zone_name": "全馆",
+      "layer": "OPERATOR_POLICY",
+      "animal_scope": "ordinary_pet",
+      "source_scope_exact": "携带宠物者",
+      "source_type": "official_operator_policy",
+      "evidence_strength": "primary_direct",
+      "human_decision": "APPROVED",
+      "human_decision_unchanged": true,
+      "disposition": "ALREADY_PUBLISHED",
+      "execution_status": "EXECUTABLE",
+      "publication_type": "NOOP_ALREADY_EXISTS",
+      "gate_status": "PASS",
+      "reasons": [
+        "候选已处于 PUBLISHED，无需重复发布"
+      ]
+    },
+    {
+      "rule_id": "w01-6482477d8d",
+      "candidate_id": "6482477d-8d90-49bf-ab09-f9f6d90f8a0e",
+      "place_name": "兴业太古汇",
+      "zone_name": "商场室内公共区域",
+      "layer": "LEGAL",
+      "animal_scope": "service_dog",
+      "source_scope_exact": "导盲犬",
+      "source_type": "statute_or_regulation",
+      "evidence_strength": "primary_direct",
+      "human_decision": "APPROVED",
+      "human_decision_unchanged": true,
+      "disposition": "ALREADY_PUBLISHED",
+      "execution_status": "EXECUTABLE",
+      "publication_type": "NOOP_ALREADY_EXISTS",
+      "gate_status": "PASS",
+      "reasons": [
+        "候选已处于 PUBLISHED，无需重复发布"
+      ]
+    },
+    {
+      "rule_id": "w01-73de8e3357",
+      "candidate_id": "73de8e33-57f4-4750-8946-704289ff8000",
+      "place_name": "上海博物馆东馆",
+      "zone_name": "全馆",
+      "layer": "LEGAL",
+      "animal_scope": "service_dog",
+      "source_scope_exact": "导盲犬",
+      "source_type": "statute_or_regulation",
+      "evidence_strength": "primary_direct",
+      "human_decision": "APPROVED",
+      "human_decision_unchanged": true,
+      "disposition": "ALREADY_PUBLISHED",
+      "execution_status": "EXECUTABLE",
+      "publication_type": "NOOP_ALREADY_EXISTS",
+      "gate_status": "PASS",
+      "reasons": [
+        "候选已处于 PUBLISHED，无需重复发布"
+      ]
+    },
+    {
+      "rule_id": "w01-7de2f5d75b",
+      "candidate_id": "7de2f5d7-5b6c-4d19-93ee-92d9b7380667",
+      "place_name": "omitofee 上海首店（浦江郊野公园滨江漫步区）",
+      "zone_name": "室内空间（含专属宠物休憩区）",
+      "layer": "LEGAL",
+      "animal_scope": "dog",
+      "source_scope_exact": "犬只",
+      "source_type": "statute_or_regulation",
+      "evidence_strength": "primary_direct",
+      "human_decision": "APPROVED",
+      "human_decision_unchanged": true,
+      "disposition": "ALREADY_PUBLISHED",
+      "execution_status": "EXECUTABLE",
+      "publication_type": "NOOP_ALREADY_EXISTS",
+      "gate_status": "PASS",
+      "reasons": [
+        "候选已处于 PUBLISHED，无需重复发布"
+      ]
+    },
+    {
+      "rule_id": "w01-8ba2b49b01",
+      "candidate_id": "8ba2b49b-01f4-410c-926c-e0bedcb2b52f",
+      "place_name": "上海苏河湾万象天地",
+      "zone_name": "室内商铺及公共区域",
+      "layer": "LEGAL",
+      "animal_scope": "dog",
+      "source_scope_exact": "犬只",
+      "source_type": "statute_or_regulation",
+      "evidence_strength": "primary_direct",
+      "human_decision": "APPROVED",
+      "human_decision_unchanged": true,
+      "disposition": "ALREADY_PUBLISHED",
+      "execution_status": "EXECUTABLE",
+      "publication_type": "NOOP_ALREADY_EXISTS",
+      "gate_status": "PASS",
+      "reasons": [
+        "候选已处于 PUBLISHED，无需重复发布"
+      ]
+    },
+    {
+      "rule_id": "w01-d1aee78159",
+      "candidate_id": "d1aee781-59ee-4954-9d0b-678221619a82",
+      "place_name": "前滩太古里",
+      "zone_name": "商场室内空间",
+      "layer": "LEGAL",
+      "animal_scope": "dog",
+      "source_scope_exact": "犬只",
+      "source_type": "statute_or_regulation",
+      "evidence_strength": "primary_direct",
+      "human_decision": "APPROVED",
+      "human_decision_unchanged": true,
+      "disposition": "ALREADY_PUBLISHED",
+      "execution_status": "EXECUTABLE",
+      "publication_type": "NOOP_ALREADY_EXISTS",
+      "gate_status": "PASS",
+      "reasons": [
+        "候选已处于 PUBLISHED，无需重复发布"
+      ]
+    },
+    {
+      "rule_id": "w01-df1645fe68",
+      "candidate_id": "df1645fe-6850-4522-93b1-632fd7716da6",
+      "place_name": "上海新天地朗廷酒店",
+      "zone_name": "客房内部",
+      "layer": "LEGAL",
+      "animal_scope": "dog",
+      "source_scope_exact": "犬只",
+      "source_type": "statute_or_regulation",
+      "evidence_strength": "primary_direct",
+      "human_decision": "APPROVED",
+      "human_decision_unchanged": true,
+      "disposition": "ALREADY_PUBLISHED",
+      "execution_status": "EXECUTABLE",
+      "publication_type": "NOOP_ALREADY_EXISTS",
+      "gate_status": "PASS",
+      "reasons": [
+        "候选已处于 PUBLISHED，无需重复发布"
+      ]
+    },
+    {
+      "rule_id": "w01-e951785d1b",
+      "candidate_id": "e951785d-1b11-488f-957f-bbe31431bd14",
+      "place_name": "港汇恒隆广场",
+      "zone_name": "商场室内公共区域",
+      "layer": "LEGAL",
+      "animal_scope": "dog",
+      "source_scope_exact": "犬只",
+      "source_type": "statute_or_regulation",
+      "evidence_strength": "primary_direct",
+      "human_decision": "APPROVED",
+      "human_decision_unchanged": true,
+      "disposition": "ALREADY_PUBLISHED",
+      "execution_status": "EXECUTABLE",
+      "publication_type": "NOOP_ALREADY_EXISTS",
+      "gate_status": "PASS",
+      "reasons": [
+        "候选已处于 PUBLISHED，无需重复发布"
+      ]
+    },
+    {
+      "rule_id": "w01-fa5f33f122",
+      "candidate_id": "fa5f33f1-22e7-4eb3-8ab7-b7448497aa47",
+      "place_name": "上海博物馆东馆",
+      "zone_name": "全馆",
+      "layer": "LEGAL",
+      "animal_scope": "dog",
+      "source_scope_exact": "犬只",
+      "source_type": "statute_or_regulation",
+      "evidence_strength": "primary_direct",
+      "human_decision": "APPROVED",
+      "human_decision_unchanged": true,
+      "disposition": "ALREADY_PUBLISHED",
+      "execution_status": "EXECUTABLE",
+      "publication_type": "NOOP_ALREADY_EXISTS",
+      "gate_status": "PASS",
+      "reasons": [
+        "候选已处于 PUBLISHED，无需重复发布"
+      ]
+    }
+  ]
+}

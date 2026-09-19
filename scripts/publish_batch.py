@@ -17,7 +17,15 @@ does this batch contain* — and nothing else. It deliberately does **not** repe
 (``--registry``), so a manifest can never upgrade a HOLD into a publish. Editing a
 manifest cannot widen authority; it can only narrow the selection.
 
-This module owns five refusals, which is why it is separate from the planner:
+6. **Superseded semantics are never republished** — a row whose meaning was
+   replaced by a later revision (for example Wave-01's ``other`` bases, which
+   Scope Remodel R2 split into ``dog`` / ``cat`` / ``other``) may still carry a
+   valid human APPROVED, and yet may be executed by nobody, ever. Publishing
+   it again would make the old scope supersede the new rules, silently undoing
+   the remodel. The obsolete rows are named in
+   ``docs/governance/superseded_semantics.json`` and refused on sight.
+
+This module owns six refusals, which is why it is separate from the planner:
 
 1. **Identity** — the manifest must name the revision the register is signed at,
    the reviewer who signed it, and a batch id. A manifest for R2-FINAL-R2 pointed
@@ -47,7 +55,7 @@ This module owns five refusals, which is why it is separate from the planner:
    publishing it: it is audited, linked and counted, and it silently promises
    access it does not deliver.
 
-All five are *refusals*, never automatic repairs.
+All six are *refusals*, never automatic repairs.
 """
 
 # NOTE: no ``from __future__ import annotations``. ``@dataclass`` resolves string
@@ -99,6 +107,26 @@ OPTIONAL_KEYS = (
     "excluded_approved",
     "deferred",
 )
+
+#: A planning artefact that has been retired must stay retired. Wave-01's original
+#: planning manifests describe an animal scope (``other``) that Scope Remodel R2
+#: later split into ``dog`` / ``cat`` / ``other``; re-running them today would let
+#: the old semantics supersede the new rules. Marking the file is not enough on
+#: its own — the *loader* has to refuse, because "I did not know it was obsolete"
+#: is not a defence once a real rule has been overwritten.
+MANIFEST_STATUS_KEY = "execution_status"
+NON_EXECUTABLE_MANIFEST_STATUSES = frozenset(
+    {"OBSOLETE", "NON_EXECUTABLE", "OBSOLETE_NON_EXECUTABLE", "SUPERSEDED_NON_EXECUTABLE"}
+)
+
+#: Disposition state for an approved row whose semantics were replaced by a newer
+#: revision. It is deliberately **not** HOLD and **not** REJECTED and **not** a
+#: writing type: the human approval stands, and nothing may be published from it.
+SUPERSEDED_NON_EXECUTABLE = "SUPERSEDED_NON_EXECUTABLE"
+
+#: Human-maintained register of rows whose *semantics* were replaced. Readable by
+#: anyone, writable by nobody in code: it records what the C-slots decided.
+SUPERSEDED_SEMANTICS_FILE = REPO / "docs" / "governance" / "superseded_semantics.json"
 
 #: The follow-up state for an approved carve-out that can never fire. Recorded,
 #: never repaired here: the fix is a semantic remodel of the animal-scope model,
@@ -239,6 +267,58 @@ def carve_out_reachability(
     return out
 
 
+def load_superseded_semantics(
+    path: str | Path = SUPERSEDED_SEMANTICS_FILE,
+) -> dict[str, dict[str, Any]]:
+    """``rule_id -> record`` for rows whose semantics were replaced.
+
+    Absent file means "nothing superseded", not an error — this is an opt-in
+    register, and the absence of a record must never block a legitimate batch.
+    Every record is human-authored: it states *which newer rows* replaced this
+    one and why, so the refusal can name its own justification instead of being
+    an unexplained veto.
+    """
+    p = Path(path)
+    if not p.exists():
+        return {}
+    try:
+        doc = json.loads(p.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise BatchManifestError(f"作废语义登记表不是合法 JSON：{p} ({exc})") from exc
+    records = doc.get("records") if isinstance(doc, dict) else None
+    if not isinstance(records, list):
+        raise BatchManifestError(f"作废语义登记表缺少 records 数组：{p}")
+    out: dict[str, dict[str, Any]] = {}
+    for entry in records:
+        if not isinstance(entry, dict) or not entry.get("rule_id"):
+            raise BatchManifestError(f"作废语义登记表存在缺 rule_id 的记录：{p}")
+        out[str(entry["rule_id"])] = entry
+    return out
+
+
+def superseded_semantics_selected(
+    selected: Sequence[str],
+    table: Mapping[str, Mapping[str, Any]] | None = None,
+    *,
+    path: str | Path = SUPERSEDED_SEMANTICS_FILE,
+) -> tuple[tuple[str, str], ...]:
+    """``(rule_id, reason)`` for every selected row whose semantics were replaced.
+
+    This is the machine half of "planner 必须永久拒绝重新发布这些旧语义". The
+    marker on the old manifest is the human-facing half; without this check a new
+    manifest could simply re-list the same ids and undo the remodel silently.
+    """
+    register = table if table is not None else load_superseded_semantics(path)
+    found: list[tuple[str, str]] = []
+    for rule_id in selected:
+        record = register.get(str(rule_id))
+        if record is None:
+            continue
+        reason = str(record.get("reason") or SUPERSEDED_NON_EXECUTABLE)
+        found.append((str(rule_id), reason))
+    return tuple(found)
+
+
 def carve_out_state(
     reach: Mapping[str, Mapping[str, Any]],
     exception_id: str,
@@ -297,6 +377,17 @@ def load_manifest(path: str | Path) -> BatchManifest:
     missing = [k for k in REQUIRED_KEYS if k not in doc]
     if missing:
         raise BatchManifestError(f"批次清单缺少必需字段 {missing}：{p}")
+
+    #: Retired planning artefacts are refused here rather than "skipped", because
+    #: the whole point of the marker is that executing it does damage — loading
+    #: it at all must fail loudly, in dry-run and execute alike.
+    status = doc.get(MANIFEST_STATUS_KEY)
+    if isinstance(status, str) and status.strip().upper() in NON_EXECUTABLE_MANIFEST_STATUSES:
+        raise BatchManifestError(
+            f"该批次清单已被标记为不可执行（{MANIFEST_STATUS_KEY}={status!r}）：{p}\n"
+            "  作废的 planning artifact 不得被重新执行——它会让旧语义 supersede 现行规则。\n"
+            "  如需发布同一批业务对象，请另立新的 dependency-closed 清单。"
+        )
 
     ids = doc["candidate_rule_ids"]
     if not isinstance(ids, list) or not ids:
@@ -403,6 +494,9 @@ class BatchValidation:
     unevaluable_approved_carve_outs: tuple[str, ...] = ()
     #: Selected carve-outs that cannot fire. A hard refusal — see refusal 5.
     inert_selected_exceptions: tuple[str, ...] = ()
+    #: Selected rows whose *semantics* were replaced by a later revision. Refusal
+    #: 6: publishing them would let the old scope supersede the new one.
+    superseded_semantics: tuple[tuple[str, str], ...] = ()
     problems: list[str] = field(default_factory=list)
 
     @property
@@ -433,6 +527,7 @@ class BatchValidation:
             ],
             "unevaluable_approved_carve_outs": len(self.unevaluable_approved_carve_outs),
             "inert_selected_exceptions": len(self.inert_selected_exceptions),
+            "superseded_semantics_selected": [ pair for pair, _ in self.superseded_semantics ],
             "problems": list(self.problems),
         }
 
@@ -451,6 +546,7 @@ class BatchValidation:
             f"BASE_WITHOUT_APPROVED_EXCEPTION = {len(self.bases_missing_approved_exception)}",
             f"UNREACHABLE_SELECTED        = {len(self.inert_selected_exceptions)}",
             f"ZERO_INERT_RULES               = {'PASS' if self.zero_inert_rules else 'FAIL'}",
+            f"SUPERSEDED_SEMANTICS_SELECTED  = {len(self.superseded_semantics)}",
         ]
         if self.dependency_order:
             checks.append("BATCH_EXECUTION_ORDER        = " + " -> ".join(self.dependency_order))
@@ -478,6 +574,7 @@ def validate_manifest(
     published_rule_ids: Sequence[str] = (),
     approved_exception_map: Mapping[str, Sequence[str]] | None = None,
     require_base_exception: bool = True,
+    superseded_semantics: Mapping[str, Mapping[str, Any]] | None = None,
 ) -> BatchValidation:
     """Check the manifest against the signed register and the database.
 
@@ -513,6 +610,28 @@ def validate_manifest(
     if len(signed_reviewers) == 1 and manifest.reviewer != signed_reviewers[0]:
         problems.append(
             f"清单 reviewer={manifest.reviewer!r} 与登记表署名={signed_reviewers[0]!r} 不一致"
+        )
+
+    # ---- 6. no publication of superseded semantics -------------------------
+    #: Checked *before* selection so an obsolete row is refused even when every
+    #: other refusal would have let it through. This is what makes
+    #: "OLD_PLANNING_MANIFEST = NON_EXECUTABLE" enforceable rather than advisory:
+    #: a new manifest listing the same ids gets the same answer.
+    register_table = (
+        dict(superseded_semantics)
+        if superseded_semantics is not None
+        else load_superseded_semantics()
+    )
+    result.superseded_semantics = superseded_semantics_selected(
+        manifest.rule_ids, register_table
+    )
+    for rule_id, reason in result.superseded_semantics:
+        record = register_table.get(rule_id) or {}
+        detail = record.get("superseded_by")
+        target = f"，已被 {detail} 取代" if detail else ""
+        problems.append(
+            f"{rule_id}: {reason}{target}——该行语义已被更新的 revision 取代，"
+            "永久不得作为发布源。人类的 APPROVED 决定保持有效，只是不再可执行。"
         )
 
     # ---- 2. selection ---------------------------------------------------------
