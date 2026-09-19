@@ -83,9 +83,9 @@ DISPOSITION_ORDER = (
 )
 
 
-def _reason_for(step: Any, row: dict, *,
-                superseded: dict[str, dict],
-                preflight_problems: list[str]) -> tuple[str, list[str]]:
+def _reason_for(
+    step: Any, row: dict, *, superseded: dict[str, dict], preflight_problems: list[str]
+) -> tuple[str, list[str]]:
     """Measured reasons a row landed where it did. Never an interpretation."""
     rule_id = step.rule_id
     if rule_id in superseded:
@@ -103,9 +103,7 @@ def _reason_for(step: Any, row: dict, *,
     #: the human decision plus the gate; the preflight refusals live in their own
     #: pass, so a row can plan as CREATE and still be unpublishable. Taking the
     #: planner's word first is how a blocked row would be reported as executable.
-    refusals: list[str] = [
-        "preflight: " + p.strip() for p in preflight_problems if rule_id in p
-    ]
+    refusals: list[str] = ["preflight: " + p.strip() for p in preflight_problems if rule_id in p]
     if step.gate_status == "BLOCKED":
         refusals.extend(str(x) for x in step.gate_reasons if x)
     refusals.extend(str(x) for x in step.blocked_reasons if x)

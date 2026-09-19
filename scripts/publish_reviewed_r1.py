@@ -797,8 +797,7 @@ def selected_but_blocked(plan: Plan) -> list[str]:
         reasons = "；".join(step.blocked_reasons or step.gate_reasons) or "（无原因记录）"
         human = step.human_decision or "未签署"
         problems.append(
-            f"{step.rule_id}（候选 {step.candidate_id}，人类决定 {human}）："
-            f"计划不可写 —— {reasons}"
+            f"{step.rule_id}（候选 {step.candidate_id}，人类决定 {human}）：计划不可写 —— {reasons}"
         )
     return problems
 
@@ -1261,8 +1260,7 @@ def render_plan(plan: Plan, integrity: Mapping[str, Any]) -> str:
         f"SELF_SUPERSEDE              = {integrity['SELF_SUPERSEDE']}",
         f"DUPLICATE_PLAN              = {integrity['DUPLICATE_PUBLICATION_PLAN']}",
         f"SUPERSESSION_CYCLE          = {integrity['SUPERSESSION_CYCLE']}",
-        f"SELECTED_BUT_BLOCKED        = {integrity['SELECTED_BUT_BLOCKED']}"
-        "  ← 非零即不得执行",
+        f"SELECTED_BUT_BLOCKED        = {integrity['SELECTED_BUT_BLOCKED']}  ← 非零即不得执行",
         f"HUMAN_OVERRIDES_AI          = {summary['human_overrides_ai']}",
         "",
         f"{'#':>3}  {'rule':<26} {'place':<20} {'layer':<16} {'human':<9} "

@@ -173,9 +173,7 @@ def diff(before: dict, after: dict) -> dict:
         result["problems"].append(f"已发布例外被重写：{changed_exc}")
 
     changed_mon = [
-        mid
-        for mid, sha in before["monitor_rows"].items()
-        if after["monitor_rows"].get(mid) != sha
+        mid for mid, sha in before["monitor_rows"].items() if after["monitor_rows"].get(mid) != sha
     ]
     result["monitor_rows_changed"] = changed_mon
     if changed_mon:

@@ -129,9 +129,7 @@ def main() -> int:
         rules = [dict(zip(cols, row, strict=True)) for row in cur.fetchall()]
 
         rule_ids = [str(r["published_rule_id"]) for r in rules if r.get("published_rule_id")]
-        missing_rule = [
-            str(r["id"]) for r in rules if not r.get("published_rule_id")
-        ]
+        missing_rule = [str(r["id"]) for r in rules if not r.get("published_rule_id")]
         if missing_rule:
             findings.append(f"候选未记录 published_rule_id：{missing_rule}")
         cur.execute(RULES_SQL, (rule_ids,))
@@ -166,20 +164,14 @@ def main() -> int:
     print(f"rules found            = {len(rules)} / expected {len(expected_candidates)}")
 
     if len(rules) != len(expected_candidates):
-        findings.append(
-            f"发布规则数 {len(rules)} != 清单条数 {len(expected_candidates)}"
-        )
+        findings.append(f"发布规则数 {len(rules)} != 清单条数 {len(expected_candidates)}")
 
     print("")
     print("== 规则 → 来源 / 证据 / scope 三列 ==")
     for row in detailed:
         rule = by_rule.get(
             next(
-                (
-                    r
-                    for r in selected
-                    if by_rule[r]["candidate_id"] == str(row["candidate_id"])
-                ),
+                (r for r in selected if by_rule[r]["candidate_id"] == str(row["candidate_id"])),
                 "",
             ),
             {},
@@ -207,9 +199,7 @@ def main() -> int:
         if row["bundle_id"] is None:
             findings.append(f"{row['id']}: 证据链断开（无 evidence_bundle）")
         if row["evidence_class"] != "original":
-            findings.append(
-                f"{row['id']}: evidence_class={row['evidence_class']!r}，非一手证据"
-            )
+            findings.append(f"{row['id']}: evidence_class={row['evidence_class']!r}，非一手证据")
         if row["storage_allowed"] is not True:
             findings.append(f"{row['id']}: artifact.storage_allowed != True")
         # The frozen scope triple must survive candidate -> rule, or the rule

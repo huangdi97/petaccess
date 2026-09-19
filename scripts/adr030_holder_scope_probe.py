@@ -223,9 +223,7 @@ def main() -> int:
             rules = load_rules(cur, place_id)
             place_exceptions = load_exceptions(cur, place_id)
             modes = {
-                mode: {
-                    q.label: _entry(_resolve(rules, excs, q, zone_id, now)) for q in QUESTIONS
-                }
+                mode: {q.label: _entry(_resolve(rules, excs, q, zone_id, now)) for q in QUESTIONS}
                 for mode, excs in (
                     ("full", list(place_exceptions) + list(provisos)),
                     ("no_place_exception", list(provisos)),
@@ -310,9 +308,7 @@ def main() -> int:
     m_out["HOLDER_CONDITION_ACTIVE_ON_PROVISOS"] = sum(
         1 for q in out["active_provisos"] if q["holder_scope"]
     )
-    m_out["ADR030_HOLDER_SCOPE_RUNTIME_GATE"] = (
-        "PASS" if not any(counters.values()) else "FAIL"
-    )
+    m_out["ADR030_HOLDER_SCOPE_RUNTIME_GATE"] = "PASS" if not any(counters.values()) else "FAIL"
 
     dest = Path(args.out)
     dest.parent.mkdir(parents=True, exist_ok=True)

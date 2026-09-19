@@ -1,30 +1,23 @@
 /**
- * Query mode → evaluator input mapping + user-facing answer synthesis
- * (design #4, #6, #12; UI 目标：先给一句答案).
+ * Query-mode wording and rule-material summaries (design #4, #6, #12).
+ *
+ * This module used to also hold `evaluatePlace`: a client-side combiner that
+ * asked the v1 evaluator once per zone and took the most favourable result,
+ * inverting the framing again for "restrictions" mode. That was the client
+ * deciding a normative result — the very thing design §10 forbids, and worse,
+ * it flattened zones into a place verdict (a mall with one pet-friendly zone
+ * read as enterable overall). Rule conclusions now come only from
+ * `POST /places/{id}/access-answer`; what is left here is wording and the
+ * "is there anything to read here" summary, neither of which is a conclusion.
  */
-import type { EvaluateView, RuleView, Zone } from "../api/client";
+import type { RuleView } from "../api/client";
 import type { QueryMode } from "../stores/session";
-
-export interface AnimalQuery {
-  species: string;
-  service_role?: string;
-  weight_kg?: number | null;
-  count?: number | null;
-}
 
 export const MODE_LABELS: Record<QueryMode, string> = {
   with_pet: "带宠出行",
   restrictions: "普通宠物限制",
   service_dog: "服务犬通行",
   rules_only: "规则地图",
-};
-
-export const STATUS_LABELS: Record<EvaluateView["status"], string> = {
-  MATCH: "可以进入",
-  CONDITIONAL: "有条件进入",
-  RESTRICTED: "普通宠物明示限制",
-  UNKNOWN: "信息不足",
-  CONFLICT: "来源冲突待复核",
 };
 
 export const CONDITION_LABELS: Record<string, string> = {
@@ -51,127 +44,12 @@ export const CONDITION_LABELS: Record<string, string> = {
   room_restriction: "房型限制",
 };
 
-/** Build the evaluator request for a mode (design #4). */
-export function modeQuery(
-  mode: QueryMode,
-  animal: AnimalQuery | null,
-): {
-  animal: AnimalQuery;
-  intended_action: string;
-} {
-  switch (mode) {
-    case "service_dog":
-      return { animal: { species: "dog", service_role: "working" }, intended_action: "enter" };
-    case "restrictions":
-      return { animal: { species: "dog", service_role: "none" }, intended_action: "enter" };
-    case "rules_only":
-      return {
-        animal: animal ?? { species: "other", service_role: "none" },
-        intended_action: "enter",
-      };
-    case "with_pet":
-    default:
-      return {
-        animal: animal ?? { species: "dog", service_role: "none" },
-        intended_action: "enter",
-      };
-  }
-}
-
-/** THE one-sentence answer (design #48). */
-export interface Answer {
-  headline: string;
-  status: EvaluateView["status"];
-  /** per-zone breakdown; empty when evaluated place-wide */
-  zones: ZoneAnswer[];
-  obligations: string[];
-  unknownInputs: string[];
-  needsPetInfo: boolean;
-}
-
-export interface ZoneAnswer {
-  zone: Zone;
-  status: EvaluateView["status"];
-  obligations: string[];
-}
-
+/**
+ * A condition's wording. A lookup, not a conclusion: the condition itself is
+ * already decided by the server and arrives inside the answer.
+ */
 export function conditionLabel(type: string): string {
   return CONDITION_LABELS[type] ?? type;
-}
-
-/** Evaluate across all zones + place level and synthesize the answer. */
-export async function evaluatePlace(
-  mode: QueryMode,
-  animal: AnimalQuery | null,
-  placeId: string,
-  zones: Zone[],
-  evaluateFn: (body: {
-    animal: AnimalQuery;
-    place_id: string;
-    zone_id?: string | null;
-    intended_action: string;
-  }) => Promise<EvaluateView>,
-): Promise<Answer> {
-  const q = modeQuery(mode, animal);
-  const zoneAnswers: ZoneAnswer[] = [];
-  const obligations = new Set<string>();
-  const unknownInputs = new Set<string>();
-  let overall: EvaluateView["status"] = "UNKNOWN";
-
-  const rank: Record<EvaluateView["status"], number> = {
-    MATCH: 0,
-    CONDITIONAL: 1,
-    CONFLICT: 3,
-    UNKNOWN: 2,
-    RESTRICTED: 4,
-  };
-  // Overall answer = the most favorable applicable determination among zones
-  // (a place with an allowed pet zone is enterable, with zone caveats shown).
-  let best: EvaluateView["status"] = "UNKNOWN";
-  // One place-level query plus one per zone. These used to run one after the
-  // other — a 7-zone mall cost 8 sequential round-trips per answer, and the
-  // detail page asks for two answers, so a single page load spent double-digit
-  // requests queueing behind each other. Fire them together and fold the
-  // results in zone order so the outcome stays deterministic.
-  const [evaluated, ...zoneResults] = await Promise.all([
-    evaluateFn({ ...q, place_id: placeId, zone_id: null }),
-    ...zones.map((zone) => evaluateFn({ ...q, place_id: placeId, zone_id: zone.id })),
-  ]);
-  for (const u of evaluated.unknown_inputs) unknownInputs.add(u.input);
-  for (const c of evaluated.unmet_conditions) obligations.add(conditionLabel(c.condition_type));
-  if (evaluated.status !== "UNKNOWN") best = evaluated.status;
-
-  for (const [i, zone] of zones.entries()) {
-    const r = zoneResults[i];
-    for (const u of r.unknown_inputs) unknownInputs.add(u.input);
-    for (const c of r.unmet_conditions) {
-      obligations.add(conditionLabel(c.condition_type));
-    }
-    if (r.status !== "UNKNOWN" && rank[r.status] < rank[best]) best = r.status;
-    if (r.status !== "UNKNOWN") {
-      zoneAnswers.push({
-        zone,
-        status: r.status,
-        obligations: r.unmet_conditions.map((c) => conditionLabel(c.condition_type)),
-      });
-    }
-  }
-  overall = best;
-  if (mode === "restrictions") {
-    // Restriction mode inverts the framing: the answer highlights explicit limits
-    overall =
-      zoneAnswers.some((z) => z.status === "RESTRICTED") || evaluated.status === "RESTRICTED"
-        ? "RESTRICTED"
-        : "UNKNOWN";
-  }
-  return {
-    headline: STATUS_LABELS[overall],
-    status: overall,
-    zones: zoneAnswers.sort((a, b) => rank[a.status] - rank[b.status]),
-    obligations: [...obligations],
-    unknownInputs: [...unknownInputs],
-    needsPetInfo: animal === null && mode !== "rules_only",
-  };
 }
 
 /** Latest verification + source summary for the place header. */

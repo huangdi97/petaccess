@@ -9,13 +9,24 @@
  * map home shell behaves identically on Mock and on Tencent.
  */
 
+/**
+ * The neutral presentation vocabulary, shared with the rest of the app.
+ *
+ * These are the SAME keys the answer model's effect maps onto
+ * (`@petaccess/design-tokens`), not a map-only set: a marker used to speak a
+ * second dialect ("MATCH") for the same rule the search row called "ALLOWED",
+ * which is precisely the split the unified answer model removes.
+ */
+export type MarkerStatus =
+  "ALLOWED" | "CONDITIONAL" | "RESTRICTED" | "UNKNOWN" | "CONFLICT" | "STALE";
+
 export interface MapMarker {
   id: string;
   lat: number;
   lng: number;
   label: string;
   /** neutral status glyph, never moral red/green coding (design #34) */
-  status: "MATCH" | "CONDITIONAL" | "RESTRICTED" | "UNKNOWN" | "CONFLICT";
+  status: MarkerStatus;
 }
 
 export interface MapPolygon {
@@ -42,11 +53,12 @@ export interface MapAdapter {
 }
 
 export const STATUS_GLYPHS: Record<string, string> = {
-  MATCH: "✔ 可进入",
+  ALLOWED: "✔ 可进入",
   CONDITIONAL: "△ 有条件",
   RESTRICTED: "◼ 限制",
   UNKNOWN: "? 信息不足",
   CONFLICT: "⚠ 冲突",
+  STALE: "⟳ 待复核",
 };
 
 export function synthDemoCamera(): MapCamera {
@@ -70,8 +82,9 @@ const STATUS_PRIORITY: MapMarker["status"][] = [
   "CONFLICT",
   "RESTRICTED",
   "CONDITIONAL",
-  "MATCH",
+  "ALLOWED",
   "UNKNOWN",
+  "STALE",
 ];
 
 /**

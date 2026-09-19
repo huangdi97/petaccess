@@ -27,6 +27,7 @@ import httpx
 
 DISNEY_ZONE = "2c868f71-96d3-40d9-894b-aec9315d7948"
 
+
 #: label -> (body, check). A check returns None when satisfied, else a reason.
 def _expect_effect(wanted: str):
     return lambda r: None if r["effect"] == wanted else f"effect={r['effect']!r}，期望 {wanted!r}"

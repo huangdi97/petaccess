@@ -5,22 +5,23 @@ import {
   client,
   ApiError,
   session,
+  type AccessAnswer,
   type BoundaryMatchResult,
-  type EffectiveRuleSet,
 } from "@petaccess/client-core";
 import AppShell from "../components/AppShell.vue";
+import { answerExplanation, answerVerdictLabel } from "../answer";
 
 /**
  * 可解释解析：为什么是「允许 / 有条件 / 禁止 / 未知」。
  *
- * 展示分层解析结果与逐步解释，并叠加使用者自己的共处边界（逐项判定）。
- * 不给总分，不猜测：证据不足时明确显示「未知」。
+ * 展示统一答案模型的推导过程与来源，并叠加使用者自己的共处边界（逐项判定）。
+ * 不给总分，不猜测：证据不足时明确显示「未知」，并说明还缺什么才能判定。
  */
 
 const route = useRoute();
 const placeId = computed(() => (route.params.id ? String(route.params.id) : ""));
 
-const resolved = ref<EffectiveRuleSet | null>(null);
+const resolved = ref<AccessAnswer | null>(null);
 const boundary = ref<BoundaryMatchResult | null>(null);
 const error = ref("");
 const note = ref("");
@@ -32,6 +33,9 @@ const COMPLIANCE_TEXT: Record<string, string> = {
   REVIEW_REQUIRED: "需人工复核",
   UNKNOWN: "信息不足",
 };
+
+/** §19 — 「为什么」的真实内容来自 resolver 的解释步骤，不在这里重算。 */
+const steps = computed(() => answerExplanation(resolved.value));
 
 const VERDICT_TEXT: Record<string, string> = {
   MATCH: "符合",
@@ -46,6 +50,11 @@ const STANCE_TEXT: Record<string, string> = {
   prefer: "希望提供",
 };
 
+const MISSING_INPUT_TEXT: Record<string, string> = {
+  holder_scope: "同行人身份（是否为残障人士）",
+  service_role: "动物角色（导盲犬 / 助听犬 / 其他服务犬）",
+};
+
 async function resolveRules() {
   error.value = "";
   busy.value = true;
@@ -54,9 +63,10 @@ async function resolveRules() {
       ? {
           animal: session.activePet.species,
           service_role: session.activePet.service_role ?? "none",
+          declared_role: session.activePet.declared_role ?? null,
         }
       : { animal: "dog", service_role: session.mode === "service_dog" ? "service_dog" : "none" };
-    resolved.value = await client.effectiveRules(placeId.value, { ...animal, action: "enter" });
+    resolved.value = await client.accessAnswer(placeId.value, { ...animal, action: "enter" });
   } catch (e) {
     error.value = e instanceof ApiError ? e.message : String(e);
   } finally {
@@ -124,50 +134,75 @@ watch(
     <div v-if="resolved" class="panel" data-testid="effective-rules">
       <div class="muted">生效结论</div>
       <div style="font-size: 22px; font-weight: 700; margin: 4px 0" data-testid="effective-effect">
-        {{
-          resolved.effect === "allowed"
-            ? "可进入"
-            : resolved.effect === "prohibited"
-              ? "不可进入"
-              : resolved.effect === "conditional"
-                ? "有条件可进入"
-                : "信息不足"
-        }}
+        {{ answerVerdictLabel(resolved) }}
       </div>
       <div class="muted">
-        合规状态：{{ COMPLIANCE_TEXT[resolved.compliance_state] ?? resolved.compliance_state }} ·
-        适用规则 {{ resolved.applicable_rules.length }} 条
+        合规状态：{{
+          COMPLIANCE_TEXT[resolved.normative_result.compliance_state] ??
+          resolved.normative_result.compliance_state
+        }}
+        · 适用规则 {{ resolved.normative_result.governing_rule_ids.length }} 条 · 范围：{{
+          resolved.scope_summary.scope_level === "zone"
+            ? (resolved.scope_summary.zone?.name ?? "该区域")
+            : resolved.scope_summary.scope_level === "none"
+              ? "尚无规则覆盖"
+              : "场所整体"
+        }}
       </div>
 
-      <template v-if="resolved.obligations.length">
+      <template v-if="resolved.rights_information.operator_obligations.length">
         <h2>附加条件</h2>
-        <div class="muted">{{ resolved.obligations.join(" · ") }}</div>
+        <div class="muted">
+          {{ resolved.rights_information.operator_obligations.join(" · ") }}
+        </div>
+      </template>
+
+      <template v-if="resolved.condition_evaluation.missing_inputs.length">
+        <h2>还缺什么</h2>
+        <div class="muted">
+          补充{{
+            resolved.condition_evaluation.missing_inputs
+              .map((m) => MISSING_INPUT_TEXT[m] ?? m)
+              .join("、")
+          }}后可得到更确定的结论 —— 现在不是「允许」。
+        </div>
       </template>
 
       <h2>推导过程</h2>
       <ol style="padding-left: 18px; margin: 6px 0">
-        <li
-          v-for="(s, i) in resolved.explanation_steps"
-          :key="i"
-          class="muted"
-          style="margin-bottom: 4px"
-        >
+        <li v-for="(s, i) in steps" :key="i" class="muted" style="margin-bottom: 4px">
           {{ s }}
         </li>
-        <li v-if="!resolved.explanation_steps.length" class="muted">无解释步骤</li>
+        <li v-if="!steps.length" class="muted">无解释步骤</li>
       </ol>
 
-      <template v-if="resolved.suppressed.length">
+      <template v-if="resolved.evidence_state.rules.length">
+        <h2>来源</h2>
+        <div
+          v-for="e in resolved.evidence_state.rules"
+          :key="e.rule_id"
+          class="muted"
+          data-testid="trace-provenance"
+        >
+          · {{ e.provenance_statement }}
+        </div>
+      </template>
+
+      <template v-if="resolved.conflict_state.suppressed.length">
         <h2>被抑制的规则</h2>
-        <div v-for="s in resolved.suppressed" :key="s.rule" class="zone-row">
+        <div v-for="s in resolved.conflict_state.suppressed" :key="s.rule" class="zone-row">
           <span class="muted">{{ s.rule.slice(0, 8) }}…</span>
           <span class="muted">{{ s.reason }}</span>
         </div>
       </template>
 
-      <template v-if="resolved.unresolved_conflicts.length">
+      <template v-if="resolved.conflict_state.unresolved_conflicts.length">
         <h2>未解冲突（需人工复核）</h2>
-        <div v-for="(pair, i) in resolved.unresolved_conflicts" :key="i" class="zone-row">
+        <div
+          v-for="(pair, i) in resolved.conflict_state.unresolved_conflicts"
+          :key="i"
+          class="zone-row"
+        >
           <span class="muted">{{ pair[0]?.slice(0, 8) }}… ↔ {{ pair[1]?.slice(0, 8) }}…</span>
           <span class="muted">不做自动裁决</span>
         </div>

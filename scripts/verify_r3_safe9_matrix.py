@@ -107,8 +107,11 @@ def main() -> int:
 
     if args.out:
         Path(args.out).write_text(
-            json.dumps({"base_url": args.base_url, "matrix": matrix, "problems": problems},
-                       ensure_ascii=False, indent=2),
+            json.dumps(
+                {"base_url": args.base_url, "matrix": matrix, "problems": problems},
+                ensure_ascii=False,
+                indent=2,
+            ),
             encoding="utf-8",
         )
 

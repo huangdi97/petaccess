@@ -24,21 +24,23 @@ import {
   placeTypeLabel,
   session,
   synthDemoCamera,
+  type AccessAnswer,
   type PlaceSummary,
 } from "@petaccess/client-core";
+import { type StatusKey } from "@petaccess/design-tokens";
 import AppShell from "../components/AppShell.vue";
 import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
 import StatusBadge from "../components/StatusBadge.vue";
+import { ANSWERED_STATUSES, answerConditions, answerScopeLabel, answerStatusKey } from "../answer";
 import { useOnline } from "../composables/useOnline";
 
 type Perspective = "rules" | "animal" | "coexist";
-/** Neutral evaluation states — never a ranking, never a score. */
-type Known = "MATCH" | "CONDITIONAL" | "RESTRICTED" | "UNKNOWN" | "CONFLICT";
 
 interface Card {
   place: PlaceSummary;
-  status: Known;
+  /** Neutral status key from the unified answer model — never a score. */
+  status: StatusKey;
   /** §12.1 — the exact scope the verification covers, e.g. 普通犬 · 南侧草坪 */
   scope: string;
   /** §12.4 — 「进入前需满足」 */
@@ -96,15 +98,9 @@ const filtered = computed(() => {
   );
 });
 /** Places that actually carry a rule we can stand behind. */
-const verified = computed(() =>
-  filtered.value.filter(
-    (c) => c.status === "MATCH" || c.status === "CONDITIONAL" || c.status === "RESTRICTED",
-  ),
-);
+const verified = computed(() => filtered.value.filter((c) => ANSWERED_STATUSES.includes(c.status)));
 /** §12.2 — known to exist, but we have no rule: 「规则待核实」. */
-const pending = computed(() =>
-  filtered.value.filter((c) => c.status === "UNKNOWN" || c.status === "CONFLICT"),
-);
+const pending = computed(() => filtered.value.filter((c) => !ANSWERED_STATUSES.includes(c.status)));
 
 function setPerspective(p: Perspective) {
   perspective.value = p;
@@ -177,60 +173,45 @@ const CONDITION_ZH: Record<string, string> = {
 };
 
 /**
- * Bounded-concurrency enrichment.
+ * Bounded-concurrency enrichment through the **unified answer model**.
  *
- * For each nearby place we ask the resolver for a status, and — only for places
- * that HAVE a rule — for the effective rule set so the card can name its exact
- * scope (§12.1) and its 「进入前需满足」 conditions (§12.4).
+ * Previously this asked two engines (`/rules/evaluate` for the status, then
+ * `effective-rules` for scope and conditions) and patched the scope label from a
+ * separate zone lookup — three round trips, three chances to disagree, and a page
+ * deciding for itself what the scope was. One call now returns the conclusion,
+ * the level that actually governs, and the conditions, so the card renders what
+ * the server decided instead of re-deriving it (design §10).
  */
 async function enrich(list: PlaceSummary[]) {
   const limit = 4;
   const queue = [...list];
   const out: Card[] = new Array(list.length);
   const index = new Map(list.map((p, i) => [p.id, i]));
-  const animal = {
-    species: session.activePet?.species ?? "dog",
-    service_role: session.activePet?.service_role ?? "none",
-    weight_kg: session.activePet?.weight_kg ?? null,
-  };
 
   const worker = async () => {
     for (;;) {
       const p = queue.shift();
       if (!p) return;
-      let status: Known = "UNKNOWN";
+      let answer: AccessAnswer | null = null;
       try {
-        status = (await client.evaluate({ animal, place_id: p.id, intended_action: "enter" }))
-          .status as Known;
+        answer = await client.accessAnswer(p.id, {
+          animal: session.activePet?.species ?? "dog",
+          service_role: session.activePet?.service_role ?? "none",
+          // ADR-025: declare the role when the profile pins one, so a hearing-dog
+          // question does not inherit a guide-dog proviso.
+          declared_role: declaredRole.value,
+        });
       } catch {
-        status = "UNKNOWN"; // a failed lookup is information-insufficient, never a verdict
+        // A failed lookup is information-insufficient, never a verdict: the
+        // status falls through to UNKNOWN, which is exactly "we don't know".
+        answer = null;
       }
-      let scope = `${speciesLabel.value} · 场所整体`;
-      let conditions: string[] = [];
-      if (status !== "UNKNOWN") {
-        try {
-          // ADR-025: declare the role when the profile pins one.
-          const eff = await client.effectiveRules(p.id, {
-            animal: animal.species,
-            service_role: animal.service_role,
-            declared_role: declaredRole.value,
-          });
-          const obligations = (eff.obligations ?? []).map((o) => CONDITION_ZH[o] ?? o);
-          conditions = obligations;
-          // name the zone only when the place has exactly one pet-designated
-          // area — otherwise "场所整体" is the honest description.
-          try {
-            const zones = await client.zones(p.id);
-            const petAreas = zones.filter((z) => z.zone_type === "pet_area");
-            if (petAreas.length === 1) scope = `${speciesLabel.value} · ${petAreas[0].name}`;
-          } catch {
-            /* zone lookup is a nicety; never block the answer on it */
-          }
-        } catch {
-          /* the status already came from a successful evaluate; keep it */
-        }
-      }
-      out[index.get(p.id)!] = { place: p, status, scope, conditions };
+      out[index.get(p.id)!] = {
+        place: p,
+        status: answerStatusKey(answer),
+        scope: answerScopeLabel(answer, speciesLabel.value),
+        conditions: answerConditions(answer, CONDITION_ZH),
+      };
     }
   };
 
@@ -381,7 +362,7 @@ onMounted(async () => {
             <div class="muted" :data-testid="'scope-' + c.place.id">已核验：{{ c.scope }}</div>
           </div>
           <!-- §12.3 neutral status -->
-          <StatusBadge :status="c.status" />
+          <StatusBadge :semantic="c.status" />
         </div>
         <!-- §12.4 conditions -->
         <p v-if="c.conditions.length" class="notice" :data-testid="'conditions-' + c.place.id">
@@ -408,7 +389,7 @@ onMounted(async () => {
             <strong>{{ c.place.canonical_name }}</strong>
             <div class="muted">{{ placeTypeLabel(c.place.place_type) }}</div>
           </div>
-          <StatusBadge :status="c.status" />
+          <StatusBadge :semantic="c.status" />
         </div>
       </div>
     </template>

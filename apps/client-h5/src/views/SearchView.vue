@@ -17,6 +17,7 @@ import {
   placeTypeLabel,
   session,
   synthDemoCamera,
+  type AccessAnswer,
   type BoundaryProfile,
   type PlaceSummary,
 } from "@petaccess/client-core";
@@ -25,6 +26,7 @@ import FilterChips from "../components/FilterChips.vue";
 import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
 import StatusBadge from "../components/StatusBadge.vue";
+import { answerStatusKey } from "../answer";
 import { useOnline } from "../composables/useOnline";
 
 const router = useRouter();
@@ -82,6 +84,19 @@ function ruleSummary(p: PlaceSummary): string {
   return `生效规则 ${p.rule_count} 条 · ${freshnessLabel(p.last_verified_at)}`;
 }
 
+/**
+ * Per-row signals, all read from the **unified answer model**.
+ *
+ * The status badge and the conflict flag used to come from `/rules/evaluate`
+ * plus `effective-rules` — two engines for one row. The answer model returns both
+ * (the conclusion and `conflict_state`), so the page renders a decision instead of
+ * combining two of them.
+ *
+ * Two signals are deliberately NOT taken from the answer and are not conclusions
+ * either: `verified` is a freshness fact about the row, and `service_dog` is a
+ * filter meaning "a service-dog rule is on file" — a listing question, not a
+ * verdict. Both stay on the plain rule listing; nothing here interprets them.
+ */
 async function enrich(list: PlaceSummary[]) {
   const status: Record<string, string> = {};
   const ver: Record<string, boolean> = {};
@@ -93,20 +108,20 @@ async function enrich(list: PlaceSummary[]) {
 
   await Promise.all(
     list.map(async (p) => {
+      let answer: AccessAnswer | null = null;
       try {
-        const r = await client.evaluate({
-          animal: {
-            species: session.activePet?.species ?? "dog",
-            service_role: session.activePet?.service_role ?? "none",
-            weight_kg: session.activePet?.weight_kg ?? null,
-          },
-          place_id: p.id,
-          intended_action: "enter",
+        answer = await client.accessAnswer(p.id, {
+          animal: session.activePet?.species ?? "dog",
+          service_role: session.activePet?.service_role ?? "none",
+          declared_role: session.activePet?.declared_role ?? null,
         });
-        status[p.id] = r.status;
       } catch {
-        status[p.id] = "UNKNOWN";
+        // An unreachable answer is information-insufficient: UNKNOWN, never a
+        // silent "no rules here".
+        answer = null;
       }
+      status[p.id] = answerStatusKey(answer);
+      conflict[p.id] = Boolean(answer?.conflict_state?.has_conflict);
       if (needRules) {
         try {
           const rules = await client.rules(p.id);
@@ -124,12 +139,6 @@ async function enrich(list: PlaceSummary[]) {
         } catch {
           zone[p.id] = false;
         }
-      }
-      try {
-        const eff = await client.effectiveRules(p.id, { animal: "dog" });
-        conflict[p.id] = eff.compliance_state === "POTENTIAL_CONFLICT";
-      } catch {
-        conflict[p.id] = false;
       }
     }),
   );

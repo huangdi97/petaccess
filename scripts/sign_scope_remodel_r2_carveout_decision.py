@@ -97,10 +97,7 @@ def _digest(obj: object) -> str:
 
 
 def frozen_digest(registry: dict) -> str:
-    rows = [
-        {k: v for k, v in row.items() if k not in SIGNED_FIELDS}
-        for row in registry["rows"]
-    ]
+    rows = [{k: v for k, v in row.items() if k not in SIGNED_FIELDS} for row in registry["rows"]]
     top = {k: v for k, v in registry.items() if k not in (*SIGNED_TOP_FIELDS, "rows")}
     return _digest({"rows": rows, "top": top})
 
@@ -192,9 +189,7 @@ def main() -> int:
         return 3
 
     base_reg = json.loads(BASE_REGISTRY.read_text(encoding="utf-8"))
-    base_row = next(
-        r for r in base_reg["rows"] if r.get("candidate_id") == BASE_CANDIDATE_ID
-    )
+    base_row = next(r for r in base_reg["rows"] if r.get("candidate_id") == BASE_CANDIDATE_ID)
 
     print("== 硬闸门 ==")
     print(f"  revision          = {registry['revision']}")

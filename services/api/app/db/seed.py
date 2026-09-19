@@ -133,6 +133,7 @@ def run_demo_seed() -> dict[str, int]:  # noqa: PLR0915 - linear demo data scrip
         JurisdictionLevel,
         JurisdictionReviewStatus,
         MandatoryLevel,
+        NormalizationType,
         ObservationDisputeStatus,
         ObservationStaffAction,
         OccurredPrecision,
@@ -604,6 +605,30 @@ def run_demo_seed() -> dict[str, int]:  # noqa: PLR0915 - linear demo data scrip
     session.add_all(geometries)
     session.flush()
 
+    #: What the demo signage literally says, per scope. Demo rules used to be
+    #: created with these three columns NULL, which mattered more than it looks:
+    #: ADR-025 decides legal effect from ``subject_scope_normalized`` +
+    #: ``normalization_type``, so a row that declares neither governs nothing —
+    #: the v5 resolver matched none of the demo rules, while the older v1
+    #: evaluator matched them on the coarse ``animal_scope`` alone. That split is
+    #: exactly why the H5 suite could assert one answer while the shipped
+    #: resolver gave another. Declaring them makes the fixture say what the
+    #: publish gate already requires of every real rule.
+    #:
+    #: ``OTHER`` is deliberately NOT in the map: the only Chinese word for it
+    #: would be 「动物」, and claiming ``other`` (= other_pet) is an exact match
+    #: for 「动物」 (all animals) is the narrowing-as-exact false equivalence the
+    #: superseded-semantics guard exists to refuse. No demo rule uses OTHER
+    #: today; if one ever needs to, it must go through the normal candidate
+    #: pipeline where ADR-025 plus the source-scope gates decide the honest
+    #: normalization type.
+    SOURCE_SCOPE = {
+        AnimalScope.ORDINARY_PET: "宠物",
+        AnimalScope.DOG: "犬只",
+        AnimalScope.CAT: "猫",
+        AnimalScope.SERVICE_DOG: "服务犬",
+    }
+
     def rule(
         key: str,
         *,
@@ -640,6 +665,17 @@ def run_demo_seed() -> dict[str, int]:  # noqa: PLR0915 - linear demo data scrip
             review_due_at=review_due_at,
             supersedes_rule_id=supersedes,
             note=note,
+            # Source-faithful scope: for the scopes the demo actually uses, the
+            # signage names them exactly, so ``exact`` is true. A scope outside
+            # ``SOURCE_SCOPE`` (only OTHER, unused) must NOT fall back to a
+            # false ``exact`` claim — ADR-025 refuses it as a legal reading.
+            source_scope_exact=SOURCE_SCOPE.get(scope, str(scope)),
+            subject_scope_normalized=str(scope),
+            normalization_type=(
+                NormalizationType.EXACT.value
+                if scope in SOURCE_SCOPE
+                else NormalizationType.LEGAL_INTERPRETATION_REQUIRED.value
+            ),
         )
 
     def cond(key: str, rule_: AccessRule, ctype: RuleConditionType, **values) -> RuleCondition:

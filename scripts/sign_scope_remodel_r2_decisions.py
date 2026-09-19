@@ -126,10 +126,7 @@ def _digest(obj: object) -> str:
 
 def frozen_digest(registry: dict) -> str:
     """Digest of everything the signature must NOT touch."""
-    rows = [
-        {k: v for k, v in row.items() if k not in SIGNED_FIELDS}
-        for row in registry["rows"]
-    ]
+    rows = [{k: v for k, v in row.items() if k not in SIGNED_FIELDS} for row in registry["rows"]]
     top = {k: v for k, v in registry.items() if k not in (*SIGNED_TOP_FIELDS, "rows")}
     return _digest({"rows": rows, "top": top})
 
@@ -172,20 +169,14 @@ def preflight(registry: dict) -> list[str]:
     held = sorted(cid for cid, (d, _) in AUTHORISED.items() if d == HOLD)
     if held != [HOLD_ROW]:
         problems.append(f"HOLD 行集合={held}，授权只允许 {[HOLD_ROW]}")
-    flagged = sorted(
-        cid for cid, r in by_id.items() if r.get("legal_applicability_caveat")
-    )
+    flagged = sorted(cid for cid, r in by_id.items() if r.get("legal_applicability_caveat"))
     if flagged != [HOLD_ROW]:
         problems.append(f"带 legal_applicability_caveat 的行={flagged}，与 HOLD 不一致")
     if HOLD_ROW in by_id and AUTHORISED[HOLD_ROW][0] == APPROVED:
         problems.append("HOLD_ROW 被标记为 APPROVED")
 
     # Gate 6: exception dependencies must be closed on approved, same-layer bases.
-    approved = {
-        cid
-        for cid, (d, _) in AUTHORISED.items()
-        if d in (APPROVED, APPROVED_WITH_NOTE)
-    }
+    approved = {cid for cid, (d, _) in AUTHORISED.items() if d in (APPROVED, APPROVED_WITH_NOTE)}
     for entry in registry.get("exception_plan") or []:
         for base in entry.get("bases") or []:
             base_id = base.get("rule_id")

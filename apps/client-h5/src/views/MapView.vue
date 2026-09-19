@@ -35,6 +35,7 @@ import MockMap from "../components/MockMap.vue";
 import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
 import StatusBadge from "../components/StatusBadge.vue";
+import { answerStatusKey } from "../answer";
 import { useOnline } from "../composables/useOnline";
 
 const router = useRouter();
@@ -115,7 +116,13 @@ function locate() {
   );
 }
 
-/** Bounded-concurrency evaluation so markers carry a real neutral status. */
+/**
+ * Bounded-concurrency evaluation so markers carry a real neutral status.
+ *
+ * Reads the **unified answer model**, like every other surface. This used to call
+ * `/rules/evaluate` — a second engine giving the map its own vocabulary for the
+ * same rule, which is exactly the split the unified answer exists to remove.
+ */
 async function deriveStatuses(list: PlaceSummary[]) {
   const limit = 6;
   const queue = [...list];
@@ -125,16 +132,12 @@ async function deriveStatuses(list: PlaceSummary[]) {
       const p = queue.shift();
       if (!p) return;
       try {
-        const r = await client.evaluate({
-          animal: {
-            species: session.activePet?.species ?? "dog",
-            service_role: session.activePet?.service_role ?? "none",
-            weight_kg: session.activePet?.weight_kg ?? null,
-          },
-          place_id: p.id,
-          intended_action: "enter",
+        const answer = await client.accessAnswer(p.id, {
+          animal: session.activePet?.species ?? "dog",
+          service_role: session.activePet?.service_role ?? "none",
+          declared_role: session.activePet?.declared_role ?? null,
         });
-        out[p.id] = r.status;
+        out[p.id] = answerStatusKey(answer);
       } catch {
         out[p.id] = "UNKNOWN"; // never guess: an error is information-insufficient
       }
@@ -304,7 +307,7 @@ function goSearch() {
                 <span v-if="p.distance_m"> · {{ Math.round(p.distance_m) }}m</span>
               </div>
             </div>
-            <StatusBadge :status="statuses[p.id] ?? 'UNKNOWN'" />
+            <StatusBadge :semantic="statuses[p.id] ?? 'UNKNOWN'" />
           </div>
         </div>
       </template>
@@ -322,7 +325,7 @@ function goSearch() {
           {{ selected.canonical_address ?? "地址未收录" }}
         </div>
         <div style="margin: 8px 0">
-          <StatusBadge :status="statuses[selected.id] ?? 'UNKNOWN'" block />
+          <StatusBadge :semantic="statuses[selected.id] ?? 'UNKNOWN'" block />
         </div>
         <div class="row">
           <button class="primary" data-testid="sheet-open-detail" @click="open(selected.id)">

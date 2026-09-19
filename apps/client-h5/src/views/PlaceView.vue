@@ -19,14 +19,11 @@ import { type StatusKey } from "@petaccess/design-tokens";
 import {
   client,
   conditionLabel,
-  evaluatePlace,
   placeTypeLabel,
   provenanceSummary,
   session,
   type AccessAnswer,
-  type Answer,
   type BoundaryMatchResult,
-  type EffectiveRuleSet,
   type ObservationView,
   type PlaceDetail,
   type PlaceExtras,
@@ -39,6 +36,7 @@ import SkeletonList from "../components/SkeletonList.vue";
 import SourceBadge from "../components/SourceBadge.vue";
 import StateMessage from "../components/StateMessage.vue";
 import StatusBadge from "../components/StatusBadge.vue";
+import { answerConditions, answerStatusKey, answerVerdictLabel } from "../answer";
 
 const route = useRoute();
 
@@ -67,17 +65,20 @@ const observations = ref<ObservationView[]>([]);
 const verifications = ref<{ occurred_at: string; result: string; note: string | null }[]>([]);
 const sources = ref<SourceView[]>([]);
 const extras = ref<PlaceExtras | null>(null);
-const effective = ref<EffectiveRuleSet | null>(null);
 const boundaryMatch = ref<BoundaryMatchResult | null>(null);
-const answer = ref<Answer | null>(null);
-const ordinaryAnswer = ref<Answer | null>(null);
 /**
- * The unified answer model (design §10). Section 1 and Section 7 render their
- * "where did this come from" lines from *this*, not from the raw rule list: only
- * the server knows whether the evidence is a first-party operator source, and a
- * page that guessed would either hide the gap or invent a comforting sentence.
+ * The unified answer model (design §10) — this page's ONLY source of a rule
+ * conclusion, scope and provenance.
+ *
+ * Two answers are held because Section 1 shows the visitor's own result next to
+ * the plain-dog baseline; both come from the server. Nothing here folds zones
+ * into a place verdict, which the previous implementation did: it asked the v1
+ * evaluator once per zone and then took the most favourable result, so a mall
+ * with one pet-friendly zone read as enterable overall. That is the zone →
+ * place flattening the domain forbids.
  */
-const accessAnswer = ref<AccessAnswer | null>(null);
+const answer = ref<AccessAnswer | null>(null);
+const ordinaryAnswer = ref<AccessAnswer | null>(null);
 const error = ref("");
 const loading = ref(true);
 const partial = ref<string[]>([]);
@@ -88,8 +89,11 @@ const zoneAnswer = ref<string | null>(null);
 // answer: the cafe's indoor dining area is `prohibited` while the place-level
 // result is `unknown`, so reusing the place-level set here would tell a user
 // "尚未核验" about a zone that is explicitly restricted.
-const zoneEffects = ref<Record<string, EffectiveRuleSet>>({});
+const zoneAnswers = ref<Record<string, AccessAnswer>>({});
 const zoneErrors = ref<Record<string, boolean>>({});
+
+/** §12.4 — 「进入前需满足」, assembled by the answer adapter. */
+const answerConditionList = computed(() => answerConditions(answer.value));
 
 const sourceMap = computed(() => {
   const m = new Map<string, SourceView>();
@@ -169,25 +173,25 @@ const COEXISTENCE_LABELS: Record<string, string> = {
 };
 
 async function evaluate() {
-  const animal = session.activePet
-    ? {
-        species: session.activePet.species,
-        service_role: session.activePet.service_role,
-        weight_kg: session.activePet.weight_kg,
-      }
-    : null;
-  answer.value = await evaluatePlace(session.mode, animal, placeId.value, zones.value, (body) =>
-    client.evaluate(body as Parameters<typeof client.evaluate>[0]),
-  );
+  const animal = session.activePet?.species ?? "dog";
+  const serviceRole = session.activePet?.service_role ?? "none";
+  // ADR-025: declare the role when the profile pins one, so a hearing-dog
+  // question never inherits a guide-dog proviso.
+  const declaredRole = session.activePet?.declared_role ?? null;
+
+  answer.value = await client.accessAnswer(placeId.value, {
+    animal,
+    service_role: serviceRole,
+    declared_role: declaredRole,
+    action: "enter",
+  });
   // Section 1 also shows the "ordinary pet" baseline so the user can separate
   // "what applies to me" from "what applies to a plain dog".
-  ordinaryAnswer.value = await evaluatePlace(
-    "restrictions",
-    null,
-    placeId.value,
-    zones.value,
-    (body) => client.evaluate(body as Parameters<typeof client.evaluate>[0]),
-  );
+  ordinaryAnswer.value = await client.accessAnswer(placeId.value, {
+    animal: "dog",
+    service_role: "none",
+    action: "enter",
+  });
 }
 
 watch(
@@ -242,22 +246,7 @@ async function load() {
   } catch {
     degrade("共处边界/设施");
   }
-  try {
-    effective.value = await client.effectiveRules(placeId.value, {
-      animal: session.activePet?.species ?? "dog",
-      service_role: session.activePet?.service_role ?? "none",
-    });
-  } catch {
-    degrade("分层解析");
-  }
-  try {
-    accessAnswer.value = await client.accessAnswer(placeId.value, {
-      animal: session.activePet?.species ?? "dog",
-      service_role: session.activePet?.service_role ?? "none",
-    });
-  } catch {
-    degrade("来源状态");
-  }
+  // One fetch, inside evaluate(), now covers conclusion + scope + provenance.
   // Account-scoped: a signed-out visitor has no stored boundary, so asking is
   // a 401 rather than an empty answer. Only call it when there is an account.
   if (session.signedIn) {
@@ -291,16 +280,14 @@ function resetForPlace() {
   verifications.value = [];
   sources.value = [];
   extras.value = null;
-  effective.value = null;
   boundaryMatch.value = null;
   answer.value = null;
   ordinaryAnswer.value = null;
-  accessAnswer.value = null;
   error.value = "";
   partial.value = [];
   quickMsg.value = "";
   zoneAnswer.value = null;
-  zoneEffects.value = {};
+  zoneAnswers.value = {};
   zoneErrors.value = {};
 }
 
@@ -316,17 +303,9 @@ watch(
   { immediate: true },
 );
 
-/** Map a resolver effect onto the neutral status vocabulary. */
+/** A zone's neutral status — from that zone's own answer, never the place's. */
 function zoneSemantic(zoneId: string): StatusKey {
-  const e = zoneEffects.value[zoneId];
-  if (!e) return "UNKNOWN";
-  return e.effect === "prohibited"
-    ? "RESTRICTED"
-    : e.effect === "conditional"
-      ? "CONDITIONAL"
-      : e.effect === "allowed"
-        ? "ALLOWED"
-        : "UNKNOWN";
+  return answerStatusKey(zoneAnswers.value[zoneId]);
 }
 
 /** Expand a zone and resolve it for this visitor (cached after the first call). */
@@ -336,14 +315,16 @@ async function toggleZone(zoneId: string) {
     return;
   }
   zoneAnswer.value = zoneId;
-  if (zoneEffects.value[zoneId] || zoneErrors.value[zoneId]) return;
+  if (zoneAnswers.value[zoneId] || zoneErrors.value[zoneId]) return;
   try {
-    const res = await client.effectiveRules(placeId.value, {
+    const res = await client.accessAnswer(placeId.value, {
       animal: session.activePet?.species ?? "dog",
       service_role: session.activePet?.service_role ?? "none",
+      declared_role: session.activePet?.declared_role ?? null,
       zone_id: zoneId,
+      action: "enter",
     });
-    zoneEffects.value = { ...zoneEffects.value, [zoneId]: res };
+    zoneAnswers.value = { ...zoneAnswers.value, [zoneId]: res };
   } catch {
     // an unresolved zone is reported as UNKNOWN, never guessed
     zoneErrors.value = { ...zoneErrors.value, [zoneId]: true };
@@ -468,8 +449,8 @@ async function claimOperator() {
       <div class="panel" data-testid="section-answer">
         <div v-if="ordinaryAnswer" class="sub-answer" data-testid="answer-ordinary">
           <div class="muted">普通宠物（基线）</div>
-          <StatusBadge :status="ordinaryAnswer.status" block />
-          <div class="muted">{{ ordinaryAnswer.headline }}</div>
+          <StatusBadge :semantic="answerStatusKey(ordinaryAnswer)" block />
+          <div class="muted">{{ answerVerdictLabel(ordinaryAnswer) }}</div>
         </div>
         <div v-if="answer" class="sub-answer" data-testid="answer">
           <div class="muted">
@@ -486,13 +467,26 @@ async function claimOperator() {
                     : "规则地图"
             }}
           </div>
-          <StatusBadge :status="answer.status" block />
-          <div class="status" data-testid="answer-status">{{ answer.headline }}</div>
-          <div v-if="answer.obligations.length" class="muted">
-            条件：{{ answer.obligations.join(" · ") }}
+          <StatusBadge :semantic="answerStatusKey(answer)" block />
+          <div class="status" data-testid="answer-status">{{ answerVerdictLabel(answer) }}</div>
+          <div v-if="answerConditionList.length" class="muted" data-testid="answer-conditions">
+            条件：{{ answerConditionList.join(" · ") }}
           </div>
-          <div v-if="answer.unknownInputs.length" class="muted">
-            需要补充：{{ answer.unknownInputs.join("、") }}（不猜测）
+          <div
+            v-if="answer.condition_evaluation.missing_inputs.length"
+            class="muted"
+            data-testid="answer-missing-inputs"
+          >
+            需要补充：{{
+              answer.condition_evaluation.missing_inputs.join("、")
+            }}（不猜测；现在不是「允许」）
+          </div>
+          <div
+            v-if="answer.scope_summary.scope_level === 'none'"
+            class="muted"
+            data-testid="answer-uncovered"
+          >
+            本次查询范围内没有已发布规则 —— 未知 ≠ 允许。
           </div>
         </div>
         <div class="sub-answer" data-testid="answer-boundary">
@@ -535,23 +529,23 @@ async function claimOperator() {
           provenance line exists so a government platform relaying the operator
           is never rendered as the operator's own confirmation.
         -->
-        <div v-if="accessAnswer" class="notice" data-testid="answer-scope">
+        <div v-if="answer" class="notice" data-testid="answer-scope">
           适用范围：{{
-            accessAnswer.scope_summary.scope_level === "zone"
-              ? (accessAnswer.scope_summary.zone?.name ?? "该区域")
-              : accessAnswer.scope_summary.scope_level === "none"
+            answer.scope_summary.scope_level === "zone"
+              ? (answer.scope_summary.zone?.name ?? "该区域")
+              : answer.scope_summary.scope_level === "none"
                 ? "尚无已发布规则覆盖本次查询（未知 ≠ 允许）"
-                : accessAnswer.scope_summary.scope_level === "jurisdiction"
+                : answer.scope_summary.scope_level === "jurisdiction"
                   ? "辖区法规"
                   : "场所整体"
           }}
         </div>
         <div
-          v-if="accessAnswer?.evidence_state.rules.length"
+          v-if="answer?.evidence_state.rules.length"
           class="notice"
           data-testid="answer-provenance"
         >
-          {{ accessAnswer.evidence_state.rules[0].provenance_statement }}
+          {{ answer?.evidence_state.rules[0].provenance_statement }}
         </div>
       </div>
 
@@ -665,24 +659,29 @@ async function claimOperator() {
           the raw enum value is what the reader sees.
         -->
         <div
-          v-if="accessAnswer?.evidence_state.rules.length"
+          v-if="answer?.evidence_state.rules.length"
           class="provenance"
           data-testid="source-provenance"
         >
-          <div v-for="e in accessAnswer.evidence_state.rules" :key="e.rule_id" class="muted">
+          <div v-for="e in answer.evidence_state.rules" :key="e.rule_id" class="muted">
             · {{ e.provenance_statement }}
           </div>
         </div>
-        <div v-if="effective?.compliance_state === 'POTENTIAL_CONFLICT'" class="notice">
+        <div
+          v-if="answer?.normative_result.compliance_state === 'POTENTIAL_CONFLICT'"
+          class="notice"
+        >
           来源存在不一致：<StatusBadge semantic="CONFLICT" />
           已保留全部规则，按最严结论展示，等待复核。
         </div>
-        <div v-if="effective?.compliance_state === 'REVIEW_REQUIRED'" class="notice">
+        <div v-if="answer?.normative_result.compliance_state === 'REVIEW_REQUIRED'" class="notice">
           部分规则缺少分层信息，需要人工复核（不猜测）。
         </div>
-        <div v-if="effective?.suppressed.length" class="notice">
-          被遮蔽的规则（{{ effective.suppressed.length }} 条）：
-          <div v-for="s in effective.suppressed" :key="s.rule" class="muted">· {{ s.reason }}</div>
+        <div v-if="answer?.conflict_state.suppressed.length" class="notice">
+          被遮蔽的规则（{{ answer.conflict_state.suppressed.length }} 条）：
+          <div v-for="s in answer.conflict_state.suppressed" :key="s.rule" class="muted">
+            · {{ s.reason }}
+          </div>
         </div>
       </div>
 
