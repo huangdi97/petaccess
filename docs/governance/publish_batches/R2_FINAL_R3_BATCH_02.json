@@ -1,0 +1,18 @@
+{
+  "_schema": "publish batch manifest v1 — revision / batch_id / reviewer / candidate_rule_ids (registry rule_id values, in execution dependency order). Permission is NOT stored here: final_decision is read from the signed register.",
+  "revision": "R2-FINAL-R3",
+  "batch_id": "R2-FINAL-R3-BATCH-02",
+  "reviewer": "huangdi97",
+  "note": "R2-FINAL-R3 遗留批准行的落地批。登记表 review_decisions_r2_final.json（37 行，huangdi97 全签）。本批是 23 条 APPROVED 里尚未发布部分的**收窄后**清单：不发布 HOLD(9)、不发布 REJECTED(5)、不发布已发布(8)。经过三层收窄 —— (1) 单行 canonical gate 通过 13 条；(2) 计划层拒掉 2 条不可达但书（dl-sd-op / qt-sd-op，SEMANTIC_REMODEL_REQUIRED，本批不含）；(3) 演练库实测 11 条会新建一条与既有 current LEGAL dog/prohibited 重复的规则（qt-indoor-legal），其 base 依赖方 qt-sd-legal 一并排除 —— 收窄后 9 条。(2)(3) 两层都写进本 note 而不是塞进顶层键（未知字段会被 publish_batch 拒绝，见陷阱 #103）。本批已在克隆库 petaccess_publish_rehearsal_w02 上完整演练：发布 9 行 failed=0、审计契约 PASS、二次 execute NOOP=9、post-integrity CRITICAL 0 / HIGH 0 / duplicate_current_groups 0。生产执行前生产指纹 67f7b19e…。",
+  "candidate_rule_ids": [
+    "dl-pet-ban",
+    "gh-legal-dog",
+    "gh-sd-legal",
+    "mn-legal-dog",
+    "mn-sd-legal",
+    "qt-indoor-op",
+    "qt-outdoor-op",
+    "xm-legal-dog",
+    "xm-sd-legal"
+  ]
+}

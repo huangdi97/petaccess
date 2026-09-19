@@ -491,7 +491,7 @@ def test_the_real_register_plans_deterministically(mod, register):
 # ------------------------------------------------------- the real register, end to end
 
 
-def test_the_signed_register_plans_twelve_rules_and_eleven_carve_outs(mod, register):
+def test_the_signed_register_plans_eleven_rules_and_ten_carve_outs(mod, register):
     plan = _plan(
         mod,
         [dict(r) for r in register["rows"]],
@@ -508,8 +508,17 @@ def test_the_signed_register_plans_twelve_rules_and_eleven_carve_outs(mod, regis
         "HOLD": 9,
         "REJECTED": 5,
     }
-    assert summary["access_rule_create_count"] + summary["rule_exception_create_count"] == 23
-    assert summary["rule_exception_create_count"] == 11
+    # Two of the 23 APPROVED rows are permanently non-executable: the
+    # superseded-semantics register retires them because their substance is
+    # already live (qt-indoor-legal was published from another register as
+    # w01-d1aee78159; qt-sd-legal's registered base is that same row). The
+    # human decisions are untouched — only executability changed. Pinning the
+    # ids here keeps the count from silently drifting back to 23.
+    retired = {s.rule_id for s in plan.steps if s.publication_type == mod.SUPERSEDED_NON_EXECUTABLE}
+    assert retired == {"qt-indoor-legal", "qt-sd-legal"}
+    assert summary["access_rule_create_count"] == 11
+    assert summary["rule_exception_create_count"] == 10
+    assert summary["access_rule_create_count"] + summary["rule_exception_create_count"] == 21
     assert summary["hold_publishable"] == 0
     assert summary["rejected_publishable"] == 0
     assert summary["blocked_count"] == 0

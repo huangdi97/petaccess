@@ -1,0 +1,142 @@
+{
+  "_schema": "R2-FINAL-R3-BATCH-02 execution ledger v1 — 机器可读。每个数字都可在 artifacts/wave02/ 的实测产物里找到出处。",
+  "round": "R2_FINAL_R3_BATCH_02_EXECUTION_AND_BACKLOG_CLOSURE_R1",
+  "baseline_commit": "a3e7dae",
+  "database": "petaccess",
+  "database_role": "PRODUCTION",
+  "alembic_head": "f2a1c7d9e034",
+  "reviewer": "huangdi97",
+  "batch_id": "R2-FINAL-R3-BATCH-02",
+  "manifest": "docs/governance/publish_batches/R2_FINAL_R3_BATCH_02.json",
+
+  "selection_narrowing": {
+    "single_row_gate_pass": 13,
+    "plan_level_writable": 11,
+    "batch_safe_after_rehearsal": 9,
+    "dropped_by_plan_level": ["dl-sd-op", "qt-sd-op"],
+    "dropped_by_rehearsal": ["qt-indoor-legal", "qt-sd-legal"]
+  },
+
+  "publish": {
+    "REAL_PUBLISH_EXECUTED": "YES",
+    "BATCH_SELECTED": 9,
+    "ACCESS_RULE_CREATED": 6,
+    "RULE_EXCEPTION_CREATED": 3,
+    "FAILED": 0,
+    "audit_contract": "PASS",
+    "SECOND_EXECUTE_NOOP": 9,
+    "SECOND_EXECUTE_NEW_WRITES": 0,
+    "published_rule_ids": ["dl-pet-ban", "gh-legal-dog", "mn-legal-dog", "qt-indoor-op", "qt-outdoor-op", "xm-legal-dog"],
+    "published_exception_ids": ["gh-sd-legal", "mn-sd-legal", "xm-sd-legal"]
+  },
+
+  "fingerprint": {
+    "pre": "67f7b19ef3c310ad6b07df749ac76fe4862f82653aa723ed900a4cbc083e853d",
+    "post": "0712cc3c9709d54c723ba71a2c0e68f098e6be3b658390987eccaeec8eb03b3c",
+    "diff": {
+      "access_rule": "20 -> 26 (+6 -0 ~0)",
+      "rule_exception": "6 -> 9 (+3 -0 ~0)",
+      "rule_condition": "0 -> 3",
+      "audit_log": "9668 -> 9686 (+18 -0 ~0)",
+      "rule_candidate": "75 -> 75 (+0 -0 ~9)",
+      "duplicate_current_groups": "0 -> 0"
+    }
+  },
+
+  "integrity": {
+    "PRODUCTION_INTEGRITY_SCAN": "PASS",
+    "CRITICAL": 0,
+    "HIGH": 0,
+    "MEDIUM": 1,
+    "medium_items": ["AUDIT_TARGET_ID_UNUSABLE 2647 rows / 4 groups（历史项）"],
+    "DUPLICATE_CURRENT_RULE": 0
+  },
+
+  "resolver_matrix": {
+    "cases": 90,
+    "runs": ["clone petaccess_publish_rehearsal_w02", "production petaccess after publish"],
+    "comparison": "semantic projection (effect / compliance_state / normative_effects / missing_inputs / rule_count / applied_exception_count)",
+    "semantic_diffs": 0,
+    "REHEARSAL_PREDICTS_PRODUCTION": "PASS",
+    "MATRIX": "PASS",
+    "problems": [],
+    "invariants_checked": [
+      "generic_service_dog / police_dog 永不 allowed（但书不外溢）",
+      "guide_dog 未声明 holder 时不出现无条件 allowed",
+      "place 级查询永不被判 prohibited（zone 不压平成 place）"
+    ]
+  },
+
+  "backlog_closure": {
+    "R2-FINAL-R3": {
+      "APPROVED_TOTAL": 23,
+      "ALREADY_PUBLISHED": 17,
+      "SUPERSEDED": 2,
+      "PUBLISH_BLOCKED": 4,
+      "CURRENT_EXECUTABLE": 0
+    },
+    "EXP-R1-W01-REVIEW-R1": {
+      "APPROVED_TOTAL": 15,
+      "ALREADY_PUBLISHED": 12,
+      "SUPERSEDED": 3,
+      "PUBLISH_BLOCKED": 0,
+      "CURRENT_EXECUTABLE": 0
+    }
+  },
+
+  "new_register_entries": [
+    {
+      "rule_id": "qt-indoor-legal",
+      "execution_status": "ALREADY_SATISFIED_BY_PRIOR_PUBLICATION",
+      "superseded_by": ["42c9a35e-a5c3-4fd3-ab5c-9c211e1ffda5"],
+      "evidence": "同 zone 同规范陈述的 current 规则已由另一登记表的 w01-d1aee78159（候选 d1aee781-…）发布；克隆实测发布本行 → HIGH DUPLICATE_CURRENT_RULE = 2 rows / 1 group",
+      "human_decision_unchanged": true
+    },
+    {
+      "rule_id": "qt-sd-legal",
+      "execution_status": "BASE_ALREADY_SATISFIED_NON_EXECUTABLE",
+      "superseded_by": ["exc-JPROV-001"],
+      "evidence": "基底 qt-indoor-legal 不可执行；且其效果已由 JPROV-001（applies_to_layer=LEGAL）在该 zone 提供 —— 生产实测 guide_dog+person_with_disability → allowed, applied_exceptions=['JPROV-001']",
+      "human_decision_unchanged": true
+    }
+  ],
+
+  "genuinely_blocked": {
+    "reason": "SEMANTIC_REMODEL_REQUIRED",
+    "items": ["dl-sd-op", "qt-sd-op", "fp-sd-op-firstparty", "lib-sd-op-guide"],
+    "detail": "但书基底为 OPERATOR_POLICY 且 scope 够不到但书主体，发布后永不生效（惰性规则）。需语义改造 + 新候选 + 新人工审查。",
+    "probe_evidence": "artifacts/wave02/probe_carveouts.out（UNREACHABLE_SELECTED=4, exit 4）"
+  },
+
+  "findings": [
+    {
+      "id": "WAVE02_FINDING_R1",
+      "what": "发布器的重复检查只比对本计划内部的写，不比对库中是否有等价现行规则，因此跨登记表的同实质候选不会被拦下",
+      "impact": "BATCH_VALIDATION = PASS 但实际会造出重复现行规则（HIGH），第三层演练是当前唯一发现手段",
+      "fixed": false
+    },
+    {
+      "id": "WAVE02_FINDING_R2",
+      "what": "wave01_approved_disposition_audit.py 对 4 条阻塞行的理由串写成「base 不可发布（NOOP_ALREADY_EXISTS）」，那是第二次 execute 的 NOOP 态而非真实原因（UNREACHABLE）",
+      "impact": "分桶结果正确，理由串误导",
+      "fixed": false
+    }
+  ],
+
+  "wave02": {
+    "ANIMAL_SCOPE_REMODEL_GATE": "PASS",
+    "PILOT_REVIEW_PUBLISH_GATE": "PASS",
+    "30_50_PLACE_EXPANSION": "ALLOWED",
+    "places_total": 20,
+    "places_with_current_rule": 16,
+    "place_collection_started": false,
+    "place_collection_blocked_by": "BLOCKED_HUMAN（每批新场所必然以人工审查收尾）+ 需真实可核验来源采集"
+  },
+
+  "quality_baseline": {
+    "PYTEST": "825 passed / 2 skipped",
+    "RUFF": "改动文件全绿；全仓 3 项既有 E501",
+    "MYPY": "Success",
+    "guards_rechecked": "旧 manifest 3/3 + 反事实重列 → exit 4（4/4）"
+  }
+}

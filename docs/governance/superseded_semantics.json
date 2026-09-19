@@ -65,6 +65,46 @@
       "reason": "SUPERSEDED_BY_SCOPE_REMODEL_R2",
       "measured_evidence": "2026-09-19 生产只读 dry-run：该行 publication_type=BLOCKED，gate=BLOCKED（候选字段超出 schema 支持 —— proposed_conditions 用遗留键 'type' 而非 'condition_type'）。ADR-029 §9 禁止原地改写已签署候选，正确救济是『新候选 + 新人工审查』；该救济候选 sr2-69e0916a2f 已经 huangdi97 于 2026-09-19T00:01:16+08:00 APPROVED，并随 SCOPE-REMODEL-R2-BATCH-03 发布（rule_exception a9f564bb，挂在 base rule 892643b0=sr2-7b595de9e0 下）。原 Carve-out 的救济已完成落地。",
       "notes": "冻结候选本身未被修改（ADR-029 §9），其 APPROVED 决定也未被推翻——它只是不可执行，且已被替代对象实现。"
+    },
+    {
+      "rule_id": "qt-indoor-legal",
+      "revision": "R2-FINAL-R3",
+      "candidate_id": "8151db71-3622-429d-81bc-0a0212f23290",
+      "place_name": "前滩太古里",
+      "animal_scope": "dog",
+      "subject_scope_normalized": "dog",
+      "normalization_type": "exact",
+      "source_scope_exact": "犬只",
+      "rule_layer": "LEGAL",
+      "human_decision": "APPROVED",
+      "decision_unchanged": true,
+      "execution_status": "ALREADY_SATISFIED_BY_PRIOR_PUBLICATION",
+      "superseded_by": [
+        "42c9a35e-a5c3-4fd3-ab5c-9c211e1ffda5"
+      ],
+      "reason": "ALREADY_SATISFIED_BY_PRIOR_PUBLICATION",
+      "measured_evidence": "2026-09-19 克隆库真执行（petaccess_publish_rehearsal_w02）：发布本行后 HIGH DUPLICATE_CURRENT_RULE = 2 rows / 1 group —— 前滩太古里 zone 12690b48 上存在两条 current (LEGAL, dog, enter, prohibited)：既有 42c9a35e-a5c3-4fd3-ab5c-9c211e1ffda5（由候选 d1aee781-59ee-4954-9d0b-678221619a82 发布，该候选即 EXP-R1-W01-REVIEW-R1 登记表的 w01-d1aee78159）与本行新建的那条。两条来自同一法源、同一作用域、同一规范效果，即『同一条规范陈述被两个登记表各批了一次』。生产复查（2026-09-19 发布后）：zone 12690b48 现行 LEGAL dog/prohibited 只有 42c9a35e 一条，且它的 substance 已在运行时生效。",
+      "notes": "本记录不改变任何人类决定（仍为 APPROVED），只让它永久不可执行。发布它会产生重复现行规则并触发完整性 HIGH；不发布不损失任何消费者可见的结论（42c9a35e 已提供同一禁令）。根因：发布器的重复检查只比对**本计划内部**的写，不比对『库中是否已有等价现行规则』，因此跨登记表的同实质候选不会被拦下。"
+    },
+    {
+      "rule_id": "qt-sd-legal",
+      "revision": "R2-FINAL-R3",
+      "candidate_id": "958d4d4c-6cd5-467e-9bc4-5eae2f67630e",
+      "place_name": "前滩太古里",
+      "animal_scope": "service_dog",
+      "subject_scope_normalized": "service_dog",
+      "normalization_type": "exact",
+      "source_scope_exact": "导盲犬",
+      "rule_layer": "LEGAL",
+      "human_decision": "APPROVED",
+      "decision_unchanged": true,
+      "execution_status": "BASE_ALREADY_SATISFIED_NON_EXECUTABLE",
+      "superseded_by": [
+        "exc-JPROV-001"
+      ],
+      "reason": "BASE_ALREADY_SATISFIED_NON_EXECUTABLE",
+      "measured_evidence": "两个独立理由：(1) 本行登记的基底是 qt-indoor-legal，而该基底已因同实质规则 42c9a35e 先行发布而不可执行（见上一条），照登记表发布会在计划层失去基底；(2) 它想给予的效果已经由更高的法律层提供 —— 生产实测（2026-09-19）前滩太古里 zone 12690b48，「导盲犬 + person_with_disability」由 JPROV-001（applies_to_layer=LEGAL）给出 allowed，applied_exceptions=['JPROV-001']；不带 holder 时为 conditional + missing=['holder_scope']。即消费者可见结论已经是正确的，本行不提供任何新增结论。",
+      "notes": "同样不改变人类决定（仍为 APPROVED）。若未来要把这条运营层但书作为**独立于 JPROV-001** 的声明发布，正确路径是新建候选并把基底显式绑定到已发布的 42c9a35e（重新投影）+ 新人工审查，而不是让本行按旧基底执行。"
     }
   ]
 }

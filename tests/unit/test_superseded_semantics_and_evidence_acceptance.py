@@ -34,9 +34,15 @@ PUBLISHER = REPO / "scripts" / "publish_reviewed_r1.py"
 ACCEPTANCE_MODULE = REPO / "scripts" / "evidence_acceptance.py"
 
 SUPERSEDED_REGISTER = REPO / "docs" / "governance" / "superseded_semantics.json"
-OBSOLETE_MANIFEST = REPO / "docs" / "governance" / "publish_batches" / "EXP_R1_W01_REVIEW_R1_BATCH_01.json"
+OBSOLETE_MANIFEST = (
+    REPO / "docs" / "governance" / "publish_batches" / "EXP_R1_W01_REVIEW_R1_BATCH_01.json"
+)
 CENTURY_PARK_ACCEPTANCE = (
-    REPO / "docs" / "governance" / "evidence_acceptance" / "CENTURY_PARK_EVIDENCE_ACCEPTANCE_R1.json"
+    REPO
+    / "docs"
+    / "governance"
+    / "evidence_acceptance"
+    / "CENTURY_PARK_EVIDENCE_ACCEPTANCE_R1.json"
 )
 
 SOURCE_ID = "ca5b81a7-ca5b-495c-9026-6d8b69dbaea7"
@@ -104,12 +110,39 @@ def test_a_live_manifest_is_not_refused(batch, tmp_path):
     assert manifest.rule_ids == ("w01-4e217d5810",)
 
 
-def test_the_register_names_the_three_rows_it_retired(batch):
+def test_the_register_names_every_row_it_retired(batch):
+    """Every retired row states its own reason — the refusal has to justify itself.
+
+    Two kinds of retirement live here, and they must not be conflated: a row whose
+    semantics a later revision *replaced*, and a row whose substance was already
+    published under another register. The first sends the reader looking for a
+    replacement; the second tells them there is nothing to look for.
+    """
     table = batch.load_superseded_semantics(SUPERSEDED_REGISTER)
-    assert set(table) == {"w01-3a04d4d1aa", "w01-6f2bfd39d7", "w01-305fa08c1e"}
-    for record in table.values():
-        assert record["reason"] == "SUPERSEDED_BY_SCOPE_REMODEL_R2"
-        assert record["superseded_by"], "a replaced row must name its replacement"
+    assert set(table) == {
+        "w01-3a04d4d1aa",
+        "w01-6f2bfd39d7",
+        "w01-305fa08c1e",
+        "qt-indoor-legal",
+        "qt-sd-legal",
+    }
+    for rule_id, record in table.items():
+        assert record["reason"], f"{rule_id} 未说明作废理由"
+        assert record["superseded_by"], f"{rule_id} 未指明取代方/实现方"
+        assert record["measured_evidence"], f"{rule_id} 未记录实测依据"
+        assert record["human_decision"] == "APPROVED", f"{rule_id} 的人类决定不应被本表改写"
+    replaced = {
+        rule_id
+        for rule_id, record in table.items()
+        if record["reason"] == "SUPERSEDED_BY_SCOPE_REMODEL_R2"
+    }
+    assert replaced == {"w01-3a04d4d1aa", "w01-6f2bfd39d7", "w01-305fa08c1e"}
+    already_live = {
+        rule_id
+        for rule_id, record in table.items()
+        if record["reason"].startswith(("ALREADY_SATISFIED", "BASE_ALREADY_SATISFIED"))
+    }
+    assert already_live == {"qt-indoor-legal", "qt-sd-legal"}
 
 
 def test_a_new_manifest_that_relists_retired_rows_is_refused(batch, tmp_path):
@@ -358,16 +391,16 @@ def test_adr021_still_refuses_every_unaccepted_weak_row(pub):
 
 
 def test_an_accepted_row_is_no_longer_refused(pub):
-    problems = pub.preflight(
-        [_weak_row(RULE_ID)], None, 20, None, released_weak_evidence={RULE_ID}
-    )
+    problems = pub.preflight([_weak_row(RULE_ID)], None, 20, None, released_weak_evidence={RULE_ID})
     assert problems == []
 
 
 def test_acceptance_is_reported_not_silent(pub):
     """A release nobody can see is indistinguishable from a bug."""
     notes: list[str] = []
-    pub.preflight([_weak_row(RULE_ID)], None, 20, None, released_weak_evidence={RULE_ID}, notes=notes)
+    pub.preflight(
+        [_weak_row(RULE_ID)], None, 20, None, released_weak_evidence={RULE_ID}, notes=notes
+    )
     assert any("EVIDENCE_ACCEPTANCE" in n for n in notes)
     assert any(RULE_ID in n for n in notes)
 

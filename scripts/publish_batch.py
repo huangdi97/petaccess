@@ -296,6 +296,36 @@ def load_superseded_semantics(
     return out
 
 
+#: Why a row in the superseded-semantics register can never be published, phrased
+#: for the reader of the refusal. Two different facts lead to the same verdict,
+#: and saying "superseded" about a row that was simply *already published under
+#: another register* would send the operator looking for a replacement that does
+#: not exist.
+_NON_EXECUTABLE_TAILS = (
+    (
+        ("ALREADY_SATISFIED", "BASE_ALREADY_SATISFIED"),
+        "该行语义已由先前的发布实现，再次发布会产生重复现行规则，"
+        "永久不得作为发布源。人类的 APPROVED 决定保持有效，只是不再可执行。",
+    ),
+    (
+        ("SUPERSEDED",),
+        "该行语义已被更新的 revision 取代，永久不得作为发布源。"
+        "人类的 APPROVED 决定保持有效，只是不再可执行。",
+    ),
+)
+
+_NON_EXECUTABLE_TAIL_DEFAULT = (
+    "该行按治理登记表永久不得作为发布源。人类的 APPROVED 决定保持有效，只是不再可执行。"
+)
+
+
+def _non_executable_tail(reason: str) -> str:
+    for prefixes, tail in _NON_EXECUTABLE_TAILS:
+        if str(reason).startswith(prefixes):
+            return tail
+    return _NON_EXECUTABLE_TAIL_DEFAULT
+
+
 def superseded_semantics_selected(
     selected: Sequence[str],
     table: Mapping[str, Mapping[str, Any]] | None = None,
@@ -527,7 +557,7 @@ class BatchValidation:
             ],
             "unevaluable_approved_carve_outs": len(self.unevaluable_approved_carve_outs),
             "inert_selected_exceptions": len(self.inert_selected_exceptions),
-            "superseded_semantics_selected": [ pair for pair, _ in self.superseded_semantics ],
+            "superseded_semantics_selected": [pair for pair, _ in self.superseded_semantics],
             "problems": list(self.problems),
         }
 
@@ -622,17 +652,12 @@ def validate_manifest(
         if superseded_semantics is not None
         else load_superseded_semantics()
     )
-    result.superseded_semantics = superseded_semantics_selected(
-        manifest.rule_ids, register_table
-    )
+    result.superseded_semantics = superseded_semantics_selected(manifest.rule_ids, register_table)
     for rule_id, reason in result.superseded_semantics:
         record = register_table.get(rule_id) or {}
         detail = record.get("superseded_by")
         target = f"，已被 {detail} 取代" if detail else ""
-        problems.append(
-            f"{rule_id}: {reason}{target}——该行语义已被更新的 revision 取代，"
-            "永久不得作为发布源。人类的 APPROVED 决定保持有效，只是不再可执行。"
-        )
+        problems.append(f"{rule_id}: {reason}{target}——{_non_executable_tail(reason)}")
 
     # ---- 2. selection ---------------------------------------------------------
     for rule_id in duplicate_ids(manifest):

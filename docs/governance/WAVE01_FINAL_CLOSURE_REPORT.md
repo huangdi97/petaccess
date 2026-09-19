@@ -383,6 +383,9 @@ COMMIT      = 17209cd
    （`git status` 干净 ⇒ 提交版本即含此问题）。**这与 Round 6 报告里 `RUFF = PASS` 的写法不一致** ——
    经实测，该断言不成立。本轮**不修改**该文件（不重开已关闭轮次的产物），仅登记为
    `WAVE01_FINAL_CLOSURE_FINDING_R1`，交由 Kaiser 决定是否单独修一轮 lint。
+   > **已关闭（2026-09-19 同日）**：该文件因 `superseded_semantics.json` 新增条目必须被编辑，
+   > 编辑时随 `ruff format` 折行，3 项 E501 消失。`ruff check .` 现为全仓 All checks passed。
+   > 详见 `R2_FINAL_R3_BATCH_02_EXECUTION_AND_BACKLOG_CLOSURE.md` §8。
 
 ### 下一步（需要 Kaiser 授权，本报告不自行推进）
 
