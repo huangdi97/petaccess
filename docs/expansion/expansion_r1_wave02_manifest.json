@@ -1,0 +1,111 @@
+{
+  "run": {
+    "expansion_run_id": "EXP-R1-W02-20260919",
+    "review_revision": "EXP-R1-W02-REVIEW-R1",
+    "data_source_job_id": "4b50c4de-0f9b-4b32-ab00-7ddafb449d1f"
+  },
+  "places": {
+    "park-shanghai-botanical": "8ec7730e-5456-48d3-bcc8-6d139058c1e5",
+    "park-gongqing": "ea5e1da8-b44b-4c92-b613-9f273a4b9896",
+    "park-expo": "f1325e25-62c8-4980-aeb8-4b4502edf48d",
+    "attraction-yuyuan": "eb3d5fec-696a-4859-9f2f-0f3ed5406750",
+    "museum-natural-history": "315503ed-bf38-4bf8-952f-f72c3b9ead2b",
+    "zoo-wild-animal": "24229c50-df7a-4df3-a8c0-56202ded8397",
+    "park-chenshan": "469a6358-c01d-4da2-9c5e-c7b1d73f26a7",
+    "park-heping": "ee5407dc-25d5-4e12-bb54-f1b82f5532b3",
+    "park-kunshan": "cff32b83-3649-44c8-a055-bff2bce52881",
+    "park-gucun": "ce2e6af9-12c7-48e6-8db6-aaf998058b25"
+  },
+  "zones": {
+    "park-shanghai-botanical:whole_park": "4701915e-ce94-4ffa-b462-3f4159859127",
+    "park-gongqing:whole_park": "fe9b542d-20ca-44c1-ace5-353b10876f4e",
+    "park-expo:whole_park": "7f5f8924-4eef-4080-8b76-bc415d856fc4",
+    "attraction-yuyuan:whole_garden": "033ef45b-23f9-41c5-8191-ee1291f55c13",
+    "museum-natural-history:whole_museum": "6de6fdbc-4a47-44db-86b6-a35940de26a1",
+    "zoo-wild-animal:whole_park": "55d83d5e-b8ed-4015-a2e2-9e3807953c51",
+    "park-chenshan:whole_garden": "9b661f03-1fdd-480e-9fa6-19c5ac9c8ef9",
+    "park-heping:pet_pilot_area": "a3c2b701-3602-44e1-ad53-c4b63a43a474",
+    "park-kunshan:pet_pilot_area": "11aef41a-7c66-484d-af08-a0344497e8f2",
+    "park-gucun:whole_park": "c9313a22-bd2b-432e-80d5-2b89cdae7b4f"
+  },
+  "sources": {
+    "shared:shanghai_park_civil_rules_2018": "8b125912-8cc9-472e-9ae7-54b9a00504b0",
+    "park-shanghai-botanical:shbg_official_rules": "e60eb8a0-7a7f-4b4c-a9b3-d9c7f230a35e",
+    "park-gongqing:gongqing_official_rules": "a7d10dbf-d449-4c88-b52a-9e90f33a042e",
+    "park-expo:expo_official_rules": "11aa63d4-fba4-429a-bb9c-c929f007d479",
+    "attraction-yuyuan:yuyuan_official_notice": "422ee27c-b0e8-4d55-805c-1aee9fbc7745",
+    "museum-natural-history:snhm_official_rules": "4fd14339-e963-4ffa-a844-e9efb620eb24",
+    "zoo-wild-animal:shwzoo_official_guide": "9af1c39a-4925-42dd-b868-1d9254addfe6",
+    "park-chenshan:csn_official_guide": "9db13417-bc2d-4046-94d1-6bc2dfde3a3f",
+    "park-heping:hongkou_pilot_notice": "ee605132-0b82-4db9-9ee9-8be213996baf",
+    "park-kunshan:hongkou_pilot_notice_shared": "ee605132-0b82-4db9-9ee9-8be213996baf",
+    "park-gucun:gucun_secondary_rules": "2bf5a93a-3444-4445-859e-680af0c608dc"
+  },
+  "artifacts": {
+    "shared:shanghai_park_civil_rules_2018:artifact": "c4c3d7f2-8ac3-425d-8c36-dcd9ea08d61d",
+    "park-shanghai-botanical:shbg_official_rules:artifact": "67473676-24ee-41bd-afe7-e1e24a02201a",
+    "park-gongqing:gongqing_official_rules:artifact": "47c0d6a4-20da-41e3-926e-11df3a36457c",
+    "park-expo:expo_official_rules:artifact": "caced517-64d7-4b1c-8dd3-29d84982ac0b",
+    "attraction-yuyuan:yuyuan_official_notice:artifact": "a3a15630-1660-49ec-a80b-fb0bdd4bdc55",
+    "museum-natural-history:snhm_official_rules:artifact": "3aadcc29-bfa6-4234-9104-a8602ba595fd",
+    "zoo-wild-animal:shwzoo_official_guide:artifact": "c528b4d6-f8f1-4b8e-96b2-59419a960d36",
+    "park-chenshan:csn_official_guide:artifact": "eb820729-38b6-43c1-9c04-9f60af16546b",
+    "park-heping:hongkou_pilot_notice:artifact": "296390e2-580f-4f3f-885e-8b7c85aad813",
+    "park-kunshan:hongkou_pilot_notice_shared:artifact": "f8b996bf-140b-4937-ab7a-956e2b99578f",
+    "park-gucun:gucun_secondary_rules:artifact": "05f44f45-2fb6-4428-9c63-0bdf35bc7004"
+  },
+  "bundles": {
+    "shared:shanghai_park_civil_rules_2018:bundle:no_animals_without_permission": "487b18dc-e07e-4fe4-9715-3ce9ac9086ad",
+    "park-gongqing:gongqing_official_rules:bundle:no_animals": "7869b9cf-1f73-4d34-a2b1-fcdc763db55f",
+    "park-expo:expo_official_rules:bundle:no_animals_except_houtan": "6a54fd30-f5d7-42b6-830b-ef952b8a089a",
+    "attraction-yuyuan:yuyuan_official_notice:bundle:no_pets_except_guide_dog": "0f2c647a-e8d3-4d68-abbe-c1afdb832855",
+    "museum-natural-history:snhm_official_rules:bundle:no_pets": "e2a1cc19-ce5d-49ff-bae7-c5a97f0f6742",
+    "zoo-wild-animal:shwzoo_official_guide:bundle:no_pets": "ae53ab55-411b-49d1-8a90-1a89ff92fb0f",
+    "park-chenshan:csn_official_guide:bundle:no_pets": "1fab6943-16aa-4cb7-bf26-aed4529ba207",
+    "park-heping:hongkou_pilot_notice:bundle:pilot_pet_rule": "fa85fc03-e8bd-424c-aed7-d9db8ea96ae0",
+    "park-kunshan:hongkou_pilot_notice_shared:bundle:pilot_pet_rule": "d672304b-e024-4cf7-afc8-81bb22750a31",
+    "park-gucun:gucun_secondary_rules:bundle:no_animals": "e713bb40-bc7a-4df3-a465-944bc6461a52"
+  },
+  "rule_candidates": {
+    "park-shanghai-botanical:shbg-no-dog-enter": "97d564fa-4de4-418a-bc40-ddcca0c1e8ea",
+    "park-shanghai-botanical:shbg-no-dog-cat-enter": "4b4b4e07-73e9-4a47-8728-cff6b3e1488a",
+    "park-shanghai-botanical:shbg-no-dog-other-enter": "630e1c0d-c9b6-4a15-ad8d-d31e3268b126",
+    "park-gongqing:gq-no-dog-enter": "c111a1a1-6660-43fe-a663-dd19e0c1d6eb",
+    "park-gongqing:gq-no-dog-cat-enter": "ec883c91-5c80-4754-8309-f6791ec9e565",
+    "park-gongqing:gq-no-dog-other-enter": "eba1843a-46d2-4aab-9553-9efcbf74a5c5",
+    "park-expo:expo-no-dog-rounded": "7774a487-dbe4-462a-9c36-433803a3563e",
+    "park-expo:expo-no-dog-cat-enter": "f80c6071-28f0-4fe7-837d-41d6752ed0a4",
+    "park-expo:expo-no-dog-other-enter": "afe409b1-3a21-41a5-bd3c-aa0996477c44",
+    "attraction-yuyuan:yy-no-pet-enter": "5f22e9a1-fd74-44a2-a0d4-312d98939ba2",
+    "attraction-yuyuan:yy-guide-dog-carveout": "91970069-b691-4c3f-bd48-c4fca505e349",
+    "museum-natural-history:snhm-no-pet-enter": "700dcd4d-6e15-4d87-bf13-5b77cab049cb",
+    "zoo-wild-animal:swzoo-no-pet-enter": "237512f7-6ce0-43cb-a207-4481dd6e9056",
+    "park-chenshan:csn-no-pet-enter": "81eca767-c5dc-4c60-b165-a38e5db0aecd",
+    "park-heping:hp-pilot-dog-conditional": "98d2b355-4fc1-4c15-ac7a-6b44188636ea",
+    "park-heping:hp-pilot-cat-conditional": "da0c270c-71b1-4163-bb4a-095ba6bfe8d7",
+    "park-kunshan:kp-pilot-dog-conditional": "d5551907-08dc-4d66-a6b7-50631c81581e",
+    "park-gucun:park_gucun-no-animal-dog-enter": "36f6382f-ecd9-4b89-8109-db341f3876fa",
+    "park-gucun:park_gucun-no-animal-cat-enter": "c6c5b74d-86ec-45e8-b412-2db94e934969",
+    "park-gucun:park_gucun-no-animal-other-enter": "b6abed36-993c-4861-981b-b392f917a07d"
+  },
+  "observation_candidates": {},
+  "monitors": {
+    "park-shanghai-botanical:shbg_official_rules:monitor": "6f9cc966-bfec-42c7-97e7-713718ba3c44",
+    "park-gongqing:gongqing_official_rules:monitor": "6ff96d5e-c6c5-4ee1-b103-a49e76a1832a",
+    "park-expo:expo_official_rules:monitor": "490d3ca9-5f33-44f0-b8c4-da7049602f3b",
+    "attraction-yuyuan:yuyuan_official_notice:monitor": "96a9ef77-ce39-48a1-851b-154953ea49ca",
+    "museum-natural-history:snhm_official_rules:monitor": "9f148a97-dc70-4098-a143-a9c2f41a39e6",
+    "zoo-wild-animal:shwzoo_official_guide:monitor": "111a6b0b-cbb2-49e7-83c2-c792ae8ad31d",
+    "park-chenshan:csn_official_guide:monitor": "104c86d8-f5e9-41cd-87f0-b352ea6a2ec8",
+    "park-heping:hongkou_pilot_notice:monitor": "56ef9c01-b6e1-4e35-853c-41b07841dc47",
+    "park-kunshan:hongkou_pilot_notice_shared:monitor": "8c72c3f9-b542-4540-913d-2a77a64eee73",
+    "shared:shanghai_park_civil_rules_2018:monitor": "23e944bf-32ef-4f59-bc46-3ed75e45bca0"
+  },
+  "freshness_policies": {
+    "policy:statute_or_regulation": "ea6bde42-17c6-42fe-813d-f6badfb32404",
+    "policy:government_service": "736a594d-c87e-4b59-8ec0-3721ed8bb667",
+    "policy:official_operator_policy": "728e3293-bc05-4989-b50f-4a55ee3c8c21",
+    "policy:onsite_signage": "0bde4f33-9ddd-4e84-8574-0c4e1b39a750",
+    "policy:external_web_reference": "386fb7e2-8cf3-43e2-807b-3913b8d96643"
+  }
+}

@@ -83,6 +83,8 @@ def test_genuine_equivalences_still_pass():
     """
     for term, scope in (
         ("犬只", "dog"),
+        ("犬类", "dog"),
+        ("猫类", "cat"),
         ("导盲犬", "guide_dog"),
         ("宠物", "ordinary_pet"),
     ):

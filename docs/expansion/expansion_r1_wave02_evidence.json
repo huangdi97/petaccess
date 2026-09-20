@@ -1,0 +1,1224 @@
+{
+  "_readme": "Wave02 expansion evidence: 10 NEW real Shanghai places collected 2026-09-19. Coordinates from OpenStreetMap Nominatim (ODbL) with full provenance; quotes captured live from the cited official pages. No human decision is recorded anywhere in this file. [reconciled 2026-09-20 to the live DB/manifest: rule scopes now match the corrected ingest verbatim — 20 REVIEW_PENDING candidates. Fragments/source/zone keys derived from the manifest, not from memory.]",
+  "expansion_run_id": "EXP-R1-W02-20260919",
+  "review_revision": "EXP-R1-W02-REVIEW-R1",
+  "captured_at": "2026-09-19",
+  "admin_email": "admin@demo-petaccess.com",
+  "wave": "WAVE_02",
+  "jurisdiction": "上海市",
+  "extraction_method": "agent_assisted_extraction_2026_09_19",
+  "extraction_provider": "workbuddy-agent",
+  "workstreams": {
+    "B_new_10": {
+      "count": 10,
+      "place_type_diversity": 3,
+      "keys": [
+        "park-shanghai-botanical",
+        "park-gongqing",
+        "park-expo",
+        "attraction-yuyuan",
+        "museum-natural-history",
+        "zoo-wild-animal",
+        "park-chenshan",
+        "park-heping",
+        "park-kunshan",
+        "park-gucun"
+      ]
+    }
+  },
+  "shared_sources": [
+    {
+      "key": "shanghai_park_civil_rules_2018",
+      "source_type": "government_service",
+      "issuer": "上海市绿化和市容管理局《上海市公园文明游园守则》（2018版）",
+      "issuer_verification": "verified",
+      "source_url": "https://www.shanghai.gov.cn/nw12344/20200813/0001-12344_54837.html",
+      "published_at": "2018-01-04",
+      "capture_method": "web_reader_fetch",
+      "directness": "direct",
+      "spatial_precision": "precise",
+      "artifact_type": "web_page_text",
+      "collector_type": "agent_web_reader",
+      "publisher_type": "government_official",
+      "storage_allowed": true,
+      "display_allowed": true,
+      "redistribution_allowed": false,
+      "excerpt": " 上海市绿化和市容管理局关于发布《上海市公园文明游园守则》（2018版）的通知 首页 信息公开 近期信息公开 上海市绿化和市容管理局关于发布《上海市公园文明游园守则》（2018版）的通知 发布日期：2018-01-19&nbsp;&nbsp;&nbsp;&nbsp; 字号： 大 中 小 各区绿化市容局、浦东新区环保市容局，局直属各公园： 《上海市公园文明游园守则》（以下简称《守则》）施行5年来，在公园管理部门的有效管理和广大游客的自觉遵守下，文明游园行为基本得到保障。但近年来，随着公园数量增加、开放时间延长，以及公园各方面功能的拓展，现行《守则》中的部分条款已不能适应现状。经听取多方意见，对《守则》作了适当修改，现发布《上海市公园文明游园守则》（2018版），于2018年3月1日起正式实施。原2012版《守则》同步废止。 请各公园做好《守则》的更新工作，并做好宣传贯彻。 特此通知。 附件:《上海市公园文明游园守则》（2018版） 上海市绿化和市容管理局 2018年1月4日 《上海市公园文明游园守则》 （2018版） 一、自觉遵守入园规定。售票公园凭门票或相关凭证入园。1.3米以下儿童和精神疾病患者应在监护人陪同下游园。自觉遵守公园出入口、园内设置的各类标识规定。遵守开闭园时间，闭园前应自觉离园。 二、自觉保持公园整洁。垃圾分类，不乱扔垃圾。不随地便溺。不随地吐痰、口香糖，不乱丢烟头。不在禁烟区吸烟。 三、共同爱护动植物。不践踏、攀折、损坏园内植物。不在树木上刻划。不擅自挖取野菜、树根、竹笋和种植土。不采摘花卉、果实、种子。不捕捉野生动物，不随意放生。不在公园水体中钓鱼捕虾（规定水域除外）。 四、共同爱护公共设施。不攀爬、涂写刻划、搬移、拆损园内座椅、亭廊、假山、雕塑和文物等公共设施。 五、自觉维护游园秩序。不随意卧躺。不赤膊游园。不翻越围墙和栅栏。不吵架斗殴。不随意圈划活动场地，不乞讨卖艺。不开展影响、伤害他人或阻塞交通的活动。不开展封建迷信、赌博及其他违法活动。开展健身、娱乐等活动，不干扰他人正常生活。未经许可，不携带动物入园，不使用大功率音响设备，不在园内及出入口进行设摊、张贴散发广告等经营活动。 六、共同维护游园安全。不进行燃放烟花爆竹、烧烤、宿营、放风筝和搭建帐篷等活动（规定场所除外）。不携带枪支弹药、管制刀具和易燃易爆物品以及其他危险品入园。不在公园水体中游泳嬉水。除老年人、残疾人、婴儿专用车和特种车辆外，各种车辆未经允许不得驶入园内，经允许入园车辆须在限定区域内按规定行驶。 不进行其他法律法规明文规定的公共场所禁止的活动，共建公园文明窗口。 分享： 打印 --> ",
+      "fragments": {
+        "no_animals_without_permission": "未经许可，不携带动物入园，不使用大功率音响设备，不在园内及出入口进行设摊、张贴散发广告等经营活动。"
+      },
+      "notes": "上海市绿化和市容管理局2018年1月4日发布、2018年3月1日施行的公园文明游园统一守则；适用于本市各公园。来源层级为政府规范性文件（priority 2）；对各公园具体执行的层析由候选 note 说明。"
+    }
+  ],
+  "monitorable_source_keys": [
+    "attraction-yuyuan:yuyuan_official_notice",
+    "museum-natural-history:snhm_official_rules",
+    "park-chenshan:csn_official_guide",
+    "park-expo:expo_official_rules",
+    "park-gongqing:gongqing_official_rules",
+    "park-heping:hongkou_pilot_notice",
+    "park-kunshan:hongkou_pilot_notice_shared",
+    "park-shanghai-botanical:shbg_official_rules",
+    "shared:shanghai_park_civil_rules_2018",
+    "zoo-wild-animal:shwzoo_official_guide"
+  ],
+  "places": [
+    {
+      "key": "park-shanghai-botanical",
+      "workstream": "B",
+      "canonical_name": "上海植物园",
+      "place_type": "park",
+      "district": "徐汇区",
+      "canonical_address": "上海市徐汇区龙吴路1111号",
+      "aliases": [
+        "上海植物园（龙吴路1111号）",
+        "Shanghai Botanical Garden"
+      ],
+      "geo": {
+        "status": "REAL_OSM_NOMINATIM",
+        "lat": 31.1498128,
+        "lon": 121.4404241,
+        "osm_type": "way",
+        "osm_id": 47005216,
+        "name": "上海植物园",
+        "display_name": "上海植物园, 长桥街道, 徐汇区, 上海市, 中国",
+        "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+        "provider": "OpenStreetMap Nominatim",
+        "fetched_at": "2026-09-19T13:36:26.738106+00:00",
+        "query": "上海植物园",
+        "match_quality": "AUTO_MATCHED",
+        "manual_verified": false,
+        "canonical_address": "上海市徐汇区龙吴路997号",
+        "location_wkt": "POINT(121.4404241 31.1498128)"
+      },
+      "place_match_evidence": {
+        "matched_by": "canonical_name_and_osm",
+        "canonical_name": "上海植物园",
+        "canonical_address": "上海市徐汇区龙吴路997号",
+        "osm_type": "way",
+        "osm_id": 47005216,
+        "display_name": "上海植物园, 长桥街道, 徐汇区, 上海市, 中国",
+        "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+        "manual_verified": false,
+        "disambiguation": ""
+      },
+      "zones": [
+        {
+          "key": "whole_park",
+          "name": "全园",
+          "zone_type": "area",
+          "indoor_outdoor": "outdoor"
+        }
+      ],
+      "sources": [
+        {
+          "key": "shbg_official_rules",
+          "source_type": "official_operator_policy",
+          "issuer": "上海植物园官网《游园守则》",
+          "issuer_verification": "verified",
+          "source_url": "https://www.shbg.org/sites/zhiwuyuan/InfoContent.aspx?ctgId=2645a2aa-f97c-4e83-ae58-411aad0b1983",
+          "published_at": null,
+          "capture_method": "web_reader_fetch",
+          "directness": "direct",
+          "spatial_precision": "precise",
+          "artifact_type": "web_page_text",
+          "collector_type": "agent_web_reader",
+          "publisher_type": "operator_official",
+          "storage_allowed": true,
+          "display_allowed": true,
+          "redistribution_allowed": false,
+          "excerpt": " 上海植物园 × 首 页 新闻动态 展览活动 当前花事 科普报道 科研动态 园内动态 媒体聚焦 最新通告 一旬一兰 走进植物园 植物园概况 园内动态 历史沿革 规划建设 荣誉称号 组织人事 组织机构 人才招聘 党群园地 文化建设 “不忘初心、牢记使命”主题教育 “四史”学习教育 学习贯彻习近平新时代中国特色社会主义思想主题教育 植物园出版物 园艺之家 植物园年报 上海花展画册 其他出版物 参观导览 AI上植 四季导览 全年展览活动 全年花事 门票及开放时间 来园交通 导览地图 游园守则 游园服务 常见问题 园艺体验 园区花事 当前花事 全年花事 主题花展 专类园区 植物目录 被子植物门 蕨类植物门 裸子植物门 养护管理 养护工作 植保管理 科普教育 科普活动 科普品牌 家庭园艺DIY项目 暗访夜精灵 播种春天 二期课改进科普教育基地 快乐之旅 自然导赏员 科普套餐 科普成果 科普获奖 论文出版物 科普乐园 求知馆 生态馆 园艺馆 科普报道 科学研究 科研简介 科研动态 科研平台 科研团队 科研项目 科研成果 科研论文 科研专著 科研专利 科研获奖 科研新品种 植物园之友 志愿者园地 志愿者品牌 志愿者招募 志愿者招募 志愿者服务项目 历年活动 树木认养 树木认养办法 历年活动 关闭 --> 植物园概况 上海植物园位于上海市中心城区南部地区，占地面积81.86公顷，1974年起筹建，1978年正式对外开放，是一个以植物引种驯化、植物学研究、科学传播、园艺展示为主的综合性城市植物园...... 最新通告 志愿者招募 树木认养 媒体聚焦 要闻推荐 更多>> 沪上植物园专家高原献策 共筑国家植物园体... 8月24日至26日，2026年中国植物园学术年会在青海西宁召开。上海植物园副园长张守锋同志带队，上海... · 上海植物园第一党支部组织召开主题党日活动 2026-08-28 · 树牢正确政绩观笃行实干担使命 ——上海植... 2026-08-27 · 上海植物园党委开展中心组（扩大）学习会暨... 2026-08-26 · 以草木为邻，与自然共生——上海植物园亮相... 2026-08-17 游园信息 开闭园时间 ： 1号门（龙吴路1111号）：11月～次年4月7:00-17:00，5月～10月7:00-18:00； 3号门（百色路940号）、4号门（罗城路151号）：11月～次年4月6:00-17:00，5月～10月6:00-18:00。 门票价格 ： 免大门票，售票专类园票价维持原票价不变、优惠不变。 当前花事 更多>> 四季导览 植物目录 游园服务 常见问题 园长信箱 联系我们 | 友情链接： 国内植物园 杭州植物园 沈阳植物园 秦岭国家植物园 上海辰山植物园 中国科学院西双版纳热带植物园 昆山水生植物园 重庆南山植物园 深圳仙湖植物园 中国科学院武汉植物园 中国科学院研究所植物园 福山植物园 天津热带植物园 西安植物园 中国科学院华南植物园 国外植物园 The UCSC Arboretum Desert Botanical Garden – Papago Park 国际和平园（International Peace Garden Canada and USA） 美国国家树木园（US National Arboretum） 亚特兰大植物园（Atlanta Botanical Garden） 英国皇家植物园-邱园（Royal Botanical Gardens, Kew） 芝加哥植物园（Chicago Botanic Garden） 加拿大UBC植物园 菲普斯温室植物园（Phipps Conservatory and Botanical Gardens） 美国布鲁克林植物园（Brooklyn Botanic Garden） 美国仙童热带植物园（Fairchild Tropical Botanic Garden） 柏林大莱植物园（Botanischer Garten und Botanisches Museum Berlin-Dahlem） 埃及孟菲斯植物园（Memphis Botanic Garden） 新奥尔良植物园（New Orleans Botanical Garden） 阿诺德树木园（The Arnold Arboretum ",
+          "fragments": {
+            "no_animals": "上海植物园游园守则（转引《上海市公园文明游园守则》2018版）：未经许可，不携带动物入园。"
+          }
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "shbg-no-dog-enter",
+          "source_key": "shared:shanghai_park_civil_rules_2018",
+          "fragment": "no_animals_without_permission",
+          "zone_key": "whole_park",
+          "animal_scope": "dog",
+          "action": "enter",
+          "effect": "prohibited",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "动物",
+          "subject_scope_normalized": "dog",
+          "normalization_type": "compound_term_split",
+          "normative_effect": "prohibition",
+          "holder_scope": "any_handler",
+          "conditions": [],
+          "confidence": 0.85,
+          "review_note": "来源原文覆盖「动物」全域；本条仅表意 ontology 可表达子集 dog（compound_term_split）。"
+        },
+        {
+          "rule_id": "shbg-no-dog-cat-enter",
+          "source_key": "shared:shanghai_park_civil_rules_2018",
+          "fragment": "no_animals_without_permission",
+          "zone_key": "whole_park",
+          "animal_scope": "cat",
+          "action": "enter",
+          "effect": "prohibited",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "动物",
+          "subject_scope_normalized": "cat",
+          "normalization_type": "compound_term_split",
+          "normative_effect": "prohibition",
+          "holder_scope": "any_handler",
+          "conditions": [],
+          "confidence": 0.85,
+          "review_note": "来源原文「动物」；本条为已声明拆分（compound_term_split）的 cat 成员，未建模动物保持 UNKNOWN（不得自动 ALLOWED）。"
+        },
+        {
+          "rule_id": "shbg-no-dog-other-enter",
+          "source_key": "shared:shanghai_park_civil_rules_2018",
+          "fragment": "no_animals_without_permission",
+          "zone_key": "whole_park",
+          "animal_scope": "other",
+          "action": "enter",
+          "effect": "prohibited",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "动物",
+          "subject_scope_normalized": "other",
+          "normalization_type": "compound_term_split",
+          "normative_effect": "prohibition",
+          "holder_scope": "any_handler",
+          "conditions": [],
+          "confidence": 0.85,
+          "review_note": "来源原文「动物」；本条为已声明拆分（compound_term_split）的 other 成员，未建模动物保持 UNKNOWN（不得自动 ALLOWED）。"
+        }
+      ],
+      "observations": []
+    },
+    {
+      "key": "park-gongqing",
+      "workstream": "B",
+      "canonical_name": "共青森林公园",
+      "place_type": "park",
+      "district": "杨浦区",
+      "canonical_address": "上海市杨浦区军工路2000号",
+      "aliases": [
+        "共青森林公园（军工路2000号）"
+      ],
+      "geo": {
+        "status": "REAL_OSM_NOMINATIM",
+        "lat": 31.3208192,
+        "lon": 121.5479883,
+        "osm_type": "way",
+        "osm_id": 39176862,
+        "name": "共青森林公园",
+        "display_name": "共青森林公园, 2000号, 殷行街道, 杨浦区, 上海市, 中国",
+        "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+        "provider": "OpenStreetMap Nominatim",
+        "fetched_at": "2026-09-19T13:36:28.777439+00:00",
+        "query": "共青森林公园",
+        "match_quality": "AUTO_MATCHED",
+        "manual_verified": false,
+        "canonical_address": "上海市杨浦区军工路2000号",
+        "location_wkt": "POINT(121.5479883 31.3208192)"
+      },
+      "place_match_evidence": {
+        "matched_by": "canonical_name_and_osm",
+        "canonical_name": "共青森林公园",
+        "canonical_address": "上海市杨浦区军工路2000号",
+        "osm_type": "way",
+        "osm_id": 39176862,
+        "display_name": "共青森林公园, 2000号, 殷行街道, 杨浦区, 上海市, 中国",
+        "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+        "manual_verified": false,
+        "disambiguation": ""
+      },
+      "zones": [
+        {
+          "key": "whole_park",
+          "name": "全园",
+          "zone_type": "area",
+          "indoor_outdoor": "outdoor"
+        }
+      ],
+      "sources": [
+        {
+          "key": "gongqing_official_rules",
+          "source_type": "official_operator_policy",
+          "issuer": "共青森林公园官网《文明游园守则》",
+          "issuer_verification": "verified",
+          "source_url": "https://www.shgqsl.com/sites/gongqingsl/index.ashx",
+          "published_at": null,
+          "capture_method": "web_reader_fetch",
+          "directness": "direct",
+          "spatial_precision": "precise",
+          "artifact_type": "web_page_text",
+          "collector_type": "agent_web_reader",
+          "publisher_type": "operator_official",
+          "storage_allowed": true,
+          "display_allowed": true,
+          "redistribution_allowed": false,
+          "excerpt": " 共青森林公园 &#8211; 官网 首页 公园简介 新闻动态 主题文化活动 公园特色景点 公园植物 乔木植物 公园小乔木与灌木 草本植物 四季花展 游乐项目 照片墙 公园视频 开放时间 来园路线 游园须知 文明游园守则 视频简介 共青森林公园位于上海市杨浦区，东濒黄浦江，西临军工路，全园总占地1965亩，开放公共绿地1870.6亩，其中北园“共青森林公园”1631亩，南园“万竹园”239.6亩，共种植200余种树木，总数达30多万株。公园分为南北两园，北园占地1631亩称为共青森林公园，南园占地239.6亩称为万竹园。南北园风格各异，北园着重森林景色，有丘陵湖泊草地，南园则小桥流水一派南国风光。除观景之外，游人也可在园内骑马，烧烤和垂钓…… 开放时间 冬季： 6：00——17：00 夏季： 6：00——17：30 --> 东门、南门、北门、万竹园：5:00-18:00 西门：5:00-19:30（18:00后只限西门大草坪区域开放） 售票时间： 6：00-16:00 --> 来园路线 公园周边道路因市政工程正在施工，公园及周边停车资源有限，请大家尽量选择绿色出行。 地址：上海市杨浦区军工路2000号 交通： ◆ 公交车 102路、124路、147路可直达 ◆ 轨道交通8/10号线四平路站换乘147路，8号线翔殷路站换乘102路、市光路站换乘537路 ◆ 自驾车 市域北部：逸仙路高架-军工路，市域东部：五洲大道-翔殷路隧道-军工路； 市域中西部：内环线-中环线-军工路，市域南部：中环线-军工路（1月10日晚24:00起，中环高架民星路上下匝道将封闭施工施工预计将持续到2025年5月） 共青森林公园 — 地图导览、 360全景 文明游园守则 一、自觉遵守入园规定。1.3米以下儿童和精神疾病患者应有监护人陪同。自觉遵守公园各类标识规定。未经允许，不自带桌椅板凳等大件物品入园。 二、自觉保持公园整洁。垃圾分类投放，不随地便溺、不随地吐痰、口香糖。自觉遵守公共场所禁烟条例。 三、共同爱护动植物。不践踏、攀折、挖取园内植物和植土。不捕捉野生动物，不随意放生。禁止钓鱼捕虾。 四、共同爱护公共设施。不攀爬、涂写刻划、搬移、拆损园内座椅、亭廊、假山、雕塑和文物等公共设施。 五、自觉维护游园秩序。不在公园座椅上踩踏、卧躺。不赤膊游园。不翻越围墙和栅栏。不得圈划场地，不乞讨卖艺。不使用大功率音响设备 (70分贝以下)。不携带动物入园。不乱设摊、张贴散发广告。 六、共同维护游园安全。不携带枪支弹药、管制刀具和易燃易爆物品以及其他危险品入园。不在公园水体中游泳嬉水。除老年人、残疾人、婴儿专用车和特种车辆外，各种车辆未经允许不得驶入园内。经允许入园车辆须在限定区域内慢速行驶，禁止驶入草坪。 七、不进行其他法律法规明文规定的公共场所禁止的活动，共建公园文明窗口。 --> 游园须知 · 请游客在游园期间保持社交距离，自觉遵守游园守则，不破坏绿化、不携带动物入园，做到文明游园 · 公园周边道路因市政工程正在施工，公园及周边停车资源有限，请大家尽量选择绿色出行。 共青森林公园 四季花展 花展期间开展“树木认养”、“科普爱鸟周”、“亲子花田”、“爱情交友”等多项主题文化活动…… 主题文化活动 狂欢节充分利用都市森林资源，与新闻媒体、旅游、文化和区政府尝试多方跨界合作模式…… 公园植物 垂柳的树干通常是笔直的，但共青的柳树大多比较弯曲，有的甚至直接平躺在岸边…… 新闻动态 关于电动滑道停运的通知 2023-12-29 462 4bffeb2e-3de1-4610-bf49-9a7e1b2b06fb 0 65 上海共青森林公园7月1日起正式对外免费开放 2021-08-10 1848 82292911-1869-4334-8ea4-ea0f1e12b6ce 0 219 白玉兰盛放，我们在春天里等你！ 2021-02-23 347 f2d0488d-f985-4eea-a3fa-5f731458fccd 0 46 查看更多 主题文化活动 2025新春市民水仙花展圆满落幕 2025-02-25 2 d3d47654-6790-4c2f-9e42-d4925fe44180 0 4 2023年上海共青森林公园八仙花展开幕 2023-06-06 2 45e02771-8b18-427",
+          "fragments": {
+            "no_animals": "五、自觉维护游园秩序。…不使用大功率音响设备 (70分贝以下)。不携带动物入园。不乱设摊、张贴散发广告。"
+          }
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "gq-no-dog-enter",
+          "source_key": "gongqing_official_rules",
+          "fragment": "no_animals",
+          "zone_key": "whole_park",
+          "animal_scope": "dog",
+          "action": "enter",
+          "effect": "prohibited",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "动物",
+          "subject_scope_normalized": "dog",
+          "normalization_type": "compound_term_split",
+          "normative_effect": "prohibition",
+          "holder_scope": "any_handler",
+          "conditions": [],
+          "confidence": 0.85,
+          "review_note": "来源覆盖「动物」全域；本条仅表意 dog 子集。"
+        },
+        {
+          "rule_id": "gq-no-dog-cat-enter",
+          "source_key": "gongqing_official_rules",
+          "fragment": "no_animals",
+          "zone_key": "whole_park",
+          "animal_scope": "cat",
+          "action": "enter",
+          "effect": "prohibited",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "动物",
+          "subject_scope_normalized": "cat",
+          "normalization_type": "compound_term_split",
+          "normative_effect": "prohibition",
+          "holder_scope": "any_handler",
+          "conditions": [],
+          "confidence": 0.85,
+          "review_note": "来源原文「动物」；本条为已声明拆分（compound_term_split）的 cat 成员，未建模动物保持 UNKNOWN（不得自动 ALLOWED）。"
+        },
+        {
+          "rule_id": "gq-no-dog-other-enter",
+          "source_key": "gongqing_official_rules",
+          "fragment": "no_animals",
+          "zone_key": "whole_park",
+          "animal_scope": "other",
+          "action": "enter",
+          "effect": "prohibited",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "动物",
+          "subject_scope_normalized": "other",
+          "normalization_type": "compound_term_split",
+          "normative_effect": "prohibition",
+          "holder_scope": "any_handler",
+          "conditions": [],
+          "confidence": 0.85,
+          "review_note": "来源原文「动物」；本条为已声明拆分（compound_term_split）的 other 成员，未建模动物保持 UNKNOWN（不得自动 ALLOWED）。"
+        }
+      ],
+      "observations": []
+    },
+    {
+      "key": "park-expo",
+      "workstream": "B",
+      "canonical_name": "上海世博文化公园",
+      "place_type": "park",
+      "district": "浦东新区",
+      "canonical_address": "上海市浦东新区济坤路100号",
+      "aliases": [
+        "世博文化公园",
+        "Expo Culture Park"
+      ],
+      "geo": {
+        "status": "REAL_OSM_NOMINATIM",
+        "lat": 31.1815535,
+        "lon": 121.4736515,
+        "osm_type": "relation",
+        "osm_id": 18069663,
+        "name": "世博文化公园",
+        "display_name": "世博文化公园, 100, 上钢新村街道, 浦东新区, 上海市, 中国",
+        "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+        "provider": "OpenStreetMap Nominatim",
+        "fetched_at": "2026-09-19T13:36:30.427237+00:00",
+        "query": "上海世博文化公园",
+        "match_quality": "AUTO_MATCHED",
+        "manual_verified": false,
+        "canonical_address": "上海市浦东新区济坤路100号",
+        "location_wkt": "POINT(121.4736515 31.1815535)"
+      },
+      "place_match_evidence": {
+        "matched_by": "canonical_name_and_osm",
+        "canonical_name": "上海世博文化公园",
+        "canonical_address": "上海市浦东新区济坤路100号",
+        "osm_type": "relation",
+        "osm_id": 18069663,
+        "display_name": "世博文化公园, 100, 上钢新村街道, 浦东新区, 上海市, 中国",
+        "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+        "manual_verified": false,
+        "disambiguation": ""
+      },
+      "zones": [
+        {
+          "key": "whole_park",
+          "name": "全园（后滩滨江区域除外）",
+          "zone_type": "area",
+          "indoor_outdoor": "outdoor"
+        }
+      ],
+      "sources": [
+        {
+          "key": "expo_official_rules",
+          "source_type": "official_operator_policy",
+          "issuer": "上海世博文化公园官网《游园须知》",
+          "issuer_verification": "verified",
+          "source_url": "https://www.expoculturepark.cn/faq",
+          "published_at": null,
+          "capture_method": "web_reader_fetch",
+          "directness": "direct",
+          "spatial_precision": "precise",
+          "artifact_type": "web_page_text",
+          "collector_type": "agent_web_reader",
+          "publisher_type": "operator_official",
+          "storage_allowed": true,
+          "display_allowed": true,
+          "redistribution_allowed": false,
+          "excerpt": " 游园须知-上海世博文化公园-可以望江、赏湖、爬“山”的城市中央公园 首页 景点观光 双子山 上海温室花园 世界花艺园 保留场馆 舞动广场 静谧森林 时光印记大道 世博花园 音乐之林 中心湖 后滩滨江 申园 精彩体验 文化演出 艺术展览 特色活动 狗GO乐园 探索公园 摄影佳作 景点美照 云摄影作品展示 志愿者风采 宠物萌照 影视欣赏 周边信息 公园文创 公园标志 申园漫游 保留场馆 植物花卉 公园萌宠 十一孔桥 园宠频道 游客服务 畅游指南 交通出行 游园须知 投诉与建议 关于我们 公园概况 新闻资讯 公告公示 园区动态 媒体资讯 联系我们 商务合作 商务合作 搜索 我要预约 首页 景点观光 双子山 上海温室花园 世界花艺园 保留场馆 舞动广场 静谧森林 时光印记大道 世博花园 音乐之林 中心湖 后滩滨江 申园 精彩体验 文化演出 艺术展览 特色活动 狗GO乐园 探索公园 摄影佳作 影视欣赏 周边信息 公园文创 园宠频道 游客服务 畅游指南 交通出行 游园须知 投诉与建议 关于我们 公园概况 新闻资讯 联系我们 商务合作 游园须知 首页 游客服务 游园须知 --> --> --> --> --> 游览上海世博文化公园需要注意什么？ --> --> --> --> --> --> --> --> --> --> --> --> --> 1. 自觉遵守入园规定。 上海世博文化公园为开放型城市中心公园，特定区域根据规定凭门票或相关凭证入园。身高 1.3 米以下儿童和精神疾病患者应在监护人陪同下游园。自觉遵守公园出入口及园内各类标识的规定。特定区域遵守开闭园时间，闭园前应自觉离园。 2. 自觉保持公园整洁。 垃圾分类，不乱扔垃圾。不随地便溺。不随地吐痰，不乱丢烟头、口香糖。不在禁烟区吸烟。 3. 共同爱护动植物。 不践踏、攀折、损坏园内植物。不在树木上刻划。不擅自挖取野菜、树根、竹笋和种植土。不采摘花卉、果实、种子。不捕捉野生动物，不随意放生。不在公园水体中钓鱼捕虾。 4. 共同爱护公共设施。 不攀爬、涂写刻划、搬移、拆损园内座椅、亭廊、假山、雕塑、文物和建筑等公共设施。 5. 自觉维护游园秩序。 不随意卧躺。不赤膊游园。不翻越围墙和栅栏。不吵架斗殴。不随意圈划活动场地。不乞讨卖艺。不开展影响、伤害他人或阻塞交通的活动。不开展封建迷信、赌博及其他违法活动。开展健身、娱乐等活动时，不干扰他人正常生活和游园活动。除后滩滨江区域外，未经许可，不携带动物入园。不使用大功率音响设备，不在园内及出入口进行设摊、张贴散发广告等经营活动。 6. 共同维护游园安全。 不进行燃放烟花爆竹、烧烤、宿营、放风筝和搭建帐篷等活动（规定场所除外）。不携带枪支弹药、管制刀具和易燃易爆物品以及其他危险品入园。不在公园水体中游泳嬉水。除滨江骑行道外，一切非机动车禁止进入世博文化公园。除老年人、残疾人、婴儿专用车和特种车辆外，各种车辆未经允许不得驶入园内，经允许入园车辆须在限定区域内按规定行驶。不进行其他法律法规明文规定的公共场所禁止的活动，共建公园文明窗口。 景点观光 双子山 上海温室花园 世界花艺园 保留场馆 舞动广场 静谧森林 时光印记大道 世博花园 音乐之林 中心湖 后滩滨江 申园 精彩体验 文化演出 艺术展览 特色活动 狗GO乐园 探索世园 摄影佳作 影视欣赏 世博周边 公园文创 园宠频道 游客服务 畅游指南 交通出行 游园须知 投诉与建议 关于我们 公园概况 新闻资讯 联系我们 商务合作 Copyright c 2021-2022&nbsp; &nbsp; 沪ICP备2021034357号-1 &nbsp; &nbsp;&nbsp; &nbsp; 沪公网安备 31011502018674号 &nbsp; &nbsp;&nbsp; 上海世博文化公园 版权所有 ",
+          "fragments": {
+            "no_animals_except_houtan": "5. 自觉维护游园秩序。…除后滩滨江区域外，未经许可，不携带动物入园。…"
+          }
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "expo-no-dog-rounded",
+          "source_key": "expo_official_rules",
+          "fragment": "no_animals_except_houtan",
+          "zone_key": "whole_park",
+          "animal_scope": "dog",
+          "action": "enter",
+          "effect": "prohibited",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "动物",
+          "subject_scope_normalized": "dog",
+          "normalization_type": "compound_term_split",
+          "normative_effect": "prohibition",
+          "holder_scope": "any_handler",
+          "conditions": [],
+          "confidence": 0.85,
+          "review_note": "同上述；本条仅 dog 子集。后滩滨江区域与狗GO乐园的例外待人工核验。"
+        },
+        {
+          "rule_id": "expo-no-dog-cat-enter",
+          "source_key": "expo_official_rules",
+          "fragment": "no_animals_except_houtan",
+          "zone_key": "whole_park",
+          "animal_scope": "cat",
+          "action": "enter",
+          "effect": "prohibited",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "动物",
+          "subject_scope_normalized": "cat",
+          "normalization_type": "compound_term_split",
+          "normative_effect": "prohibition",
+          "holder_scope": "any_handler",
+          "conditions": [],
+          "confidence": 0.85,
+          "review_note": "来源原文「动物」；本条为已声明拆分（compound_term_split）的 cat 成员，未建模动物保持 UNKNOWN（不得自动 ALLOWED）。"
+        },
+        {
+          "rule_id": "expo-no-dog-other-enter",
+          "source_key": "expo_official_rules",
+          "fragment": "no_animals_except_houtan",
+          "zone_key": "whole_park",
+          "animal_scope": "other",
+          "action": "enter",
+          "effect": "prohibited",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "动物",
+          "subject_scope_normalized": "other",
+          "normalization_type": "compound_term_split",
+          "normative_effect": "prohibition",
+          "holder_scope": "any_handler",
+          "conditions": [],
+          "confidence": 0.85,
+          "review_note": "来源原文「动物」；本条为已声明拆分（compound_term_split）的 other 成员，未建模动物保持 UNKNOWN（不得自动 ALLOWED）。"
+        }
+      ],
+      "observations": []
+    },
+    {
+      "key": "attraction-yuyuan",
+      "workstream": "B",
+      "canonical_name": "豫园",
+      "place_type": "scenic_area",
+      "district": "黄浦区",
+      "canonical_address": "上海市黄浦区福佑路168号",
+      "aliases": [
+        "豫园（福佑路168号）",
+        "Yu Garden"
+      ],
+      "geo": {
+        "status": "REAL_OSM_NOMINATIM",
+        "lat": 31.2289274,
+        "lon": 121.4879752,
+        "osm_type": "way",
+        "osm_id": 40036584,
+        "name": "豫园",
+        "display_name": "豫园, 小北门, 豫园街道, 上海市, 黄浦区, 上海市, 中国",
+        "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+        "provider": "OpenStreetMap Nominatim",
+        "fetched_at": "2026-09-19T13:36:31.948545+00:00",
+        "query": "豫园",
+        "match_quality": "AUTO_MATCHED",
+        "manual_verified": false,
+        "canonical_address": "上海市黄浦区福佑路168号",
+        "location_wkt": "POINT(121.4879752 31.2289274)"
+      },
+      "place_match_evidence": {
+        "matched_by": "canonical_name_and_osm",
+        "canonical_name": "豫园",
+        "canonical_address": "上海市黄浦区福佑路168号",
+        "osm_type": "way",
+        "osm_id": 40036584,
+        "display_name": "豫园, 小北门, 豫园街道, 上海市, 黄浦区, 上海市, 中国",
+        "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+        "manual_verified": false,
+        "disambiguation": ""
+      },
+      "zones": [
+        {
+          "key": "whole_garden",
+          "name": "全园",
+          "zone_type": "area",
+          "indoor_outdoor": "outdoor"
+        }
+      ],
+      "sources": [
+        {
+          "key": "yuyuan_official_notice",
+          "source_type": "official_operator_policy",
+          "issuer": "豫园官网《游园须知》",
+          "issuer_verification": "verified",
+          "source_url": "https://www.yugarden.com.cn/Page/ArticleView/notice.html",
+          "published_at": null,
+          "capture_method": "web_reader_fetch",
+          "directness": "direct",
+          "spatial_precision": "precise",
+          "artifact_type": "web_page_text",
+          "collector_type": "agent_web_reader",
+          "publisher_type": "operator_official",
+          "storage_allowed": true,
+          "display_allowed": true,
+          "redistribution_allowed": false,
+          "excerpt": "﻿ 豫园简体中文版 首&emsp;页 最新资讯 游览指南 游览须知 参观信息 交通信息 设施信息 文明公约 美景揽胜 --> 名园风采 美景荟萃 视频集锦 馆藏鉴赏 历年展事 重要接待 --> 重要接待 习近平在豫园 政要 名人 文脉渊源 古园春秋 书画善会 昆曲幽兰 姐妹园林 您当前的位置： 游览指南 > 游览须知 豫园是全国重点文物保护单位、国家AAAA级旅游景区，为营造安全有序、优美和谐的游园环境，让每位游客获得更好的参观体验，请您仔细阅读并知悉下述游园须知： 1 请在豫园官方销售渠道购票，避免不必要的经济损失。 2 请主动出示优惠票相关证件，配合园方售、检票工作。 3 请遵守豫园开闭园时间，合理安排您的游览行程，配合园方闭园清场工作。 4 禁止携带下列物品入园：危险品（枪支弹药、易燃易爆品、管制刀具、化学制剂等）；宠物（符合规定的导盲犬除外）。 5 禁止在园内进行下列不安全、不文明行为和违法违规行为：吸烟（含电子烟）、饮酒、使用明火、升放无人机、攀爬古建假山、翻越围栏、进入危险及非开放区域、损坏文物、破坏展品、涂写刻画、毁坏景观、损害古树名木、攀摘花果、乱丢杂物、悬拉横幅、散发广告、非法集会等。 6 摄影（像）规定：园内谢绝拍摄婚纱、写真或开展其他盈利性拍摄活动，请勿使用大型摄像机、闪光灯、反光板等器材或长时间占用游览空间，未经相关部门批准，禁止在园内进行视听作品与录像制品等的拍摄和宣传推广活动。 7 为保障豫园正常开放运营，任何组织或个人，未经豫园官方备案许可，不得在园内擅自实施设摊、卖艺、兜售、营销宣传、问卷调查、测量测绘、规模写生等行为。 8 园内生态环境较好，偶有野生小动物出没，禁止追捉、触碰，建议绕行避让，避免发生人身意外伤害事故。 9 古典园林内步道不平，台阶、石桥、坡道、池塘、假山、山洞、低矮树杈、苔藓等区域较多，请留意园内各处的安全警示标牌，随时注意游览安全，小心磕碰及落水。建议老、弱、病、残、孕、未成年人、醉酒等游客，在监护人或其他陪同人员陪护下入园参观。 10 雨雪天气时，园内步道非常湿滑，避免滑倒受伤；强风、雷暴等恶劣天气时，不要在树下或屋檐下停留，避免坠物或雷击伤害。 11 豫园适合步行参观，如确需使用儿童推车或轮椅，请随时注意使用安全。如遇到园内古建筑修缮、园艺养护、部分景点临时封闭时，请根据园方指示的安全通道行走。 12 因条件限制，园方暂时无法提供行李寄存服务，请妥善保管好随身物品，避免财物损失。 13 由于游客、导游违反游览须知的安全提示或因自身原因、过失所引起的安全事故，园区恕不负责，给园区造成损害的，我园有权根据相关规定要求其赔偿并追究其法律责任，涉及违法犯罪的，我园将联系相关部门进行处理。 14 如遇各类突发事件或紧急情况，可就近寻求园方工作人员帮助。咨询电话：021-63260830 以上内容由上海豫园管理处负责解释。感谢您的理解与配合，祝您游园愉快！ 上海豫园管理处 ",
+          "fragments": {
+            "no_pets_except_guide_dog": "4 禁止携带下列物品入园：危险品（枪支弹药、易燃易爆品、管制刀具、化学制剂等）；宠物（符合规定的导盲犬除外）。"
+          }
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "yy-no-pet-enter",
+          "source_key": "yuyuan_official_notice",
+          "fragment": "no_pets_except_guide_dog",
+          "zone_key": "whole_garden",
+          "animal_scope": "ordinary_pet",
+          "action": "enter",
+          "effect": "prohibited",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "宠物",
+          "subject_scope_normalized": "ordinary_pet",
+          "normalization_type": "exact",
+          "normative_effect": "prohibition",
+          "holder_scope": "any_handler",
+          "conditions": [],
+          "confidence": 0.85,
+          "review_note": "官网游园须知原文「宠物（符合规定的导盲犬除外）」。base 禁止普通宠物入园；导盲犬为明示同层例外（见 yy-guide-dog 候选），不得泛化为所有服务犬（ADR-025/031）。"
+        },
+        {
+          "rule_id": "yy-guide-dog-carveout",
+          "source_key": "yuyuan_official_notice",
+          "fragment": "no_pets_except_guide_dog",
+          "zone_key": "whole_garden",
+          "animal_scope": "service_dog",
+          "action": "enter",
+          "effect": "conditional",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "导盲犬",
+          "subject_scope_normalized": "guide_dog",
+          "normalization_type": "exact",
+          "normative_effect": "exempt_from_prohibition",
+          "holder_scope": "person_with_disability",
+          "conditions": [
+            {
+              "condition_type": "other_structured_note",
+              "value_note": "符合规定：持有效导盲犬身份证明及在役使用"
+            }
+          ],
+          "confidence": 0.85,
+          "review_note": "明示例外仅限「符合规定的导盲犬」。guide_dog 例外不得推广至 hearing/assistance/other service dog（ADR-025 来源保真）；holder_scope=person_with_disability 需人工复核是否超出园方原文。"
+        }
+      ],
+      "observations": []
+    },
+    {
+      "key": "museum-natural-history",
+      "workstream": "B",
+      "canonical_name": "上海自然博物馆",
+      "place_type": "museum",
+      "district": "静安区",
+      "canonical_address": "上海市静安区北京西路510号",
+      "aliases": [
+        "上海自然博物馆（北京西路510号）",
+        "Shanghai Natural History Museum"
+      ],
+      "geo": {
+        "status": "REAL_OSM_NOMINATIM",
+        "lat": 31.2368655,
+        "lon": 121.4577002,
+        "osm_type": "way",
+        "osm_id": 425762388,
+        "name": "上海自然博物馆",
+        "display_name": "上海自然博物馆, 510, 北京西路, 张家宅, 王家厍, 石门二路街道, 静安区, 上海市, 200041, 中国",
+        "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+        "provider": "OpenStreetMap Nominatim",
+        "fetched_at": "2026-09-19T13:36:33.966330+00:00",
+        "query": "上海自然博物馆",
+        "match_quality": "AUTO_MATCHED",
+        "manual_verified": false,
+        "canonical_address": "上海市静安区北京西路510号",
+        "location_wkt": "POINT(121.4577002 31.2368655)"
+      },
+      "place_match_evidence": {
+        "matched_by": "canonical_name_and_osm",
+        "canonical_name": "上海自然博物馆",
+        "canonical_address": "上海市静安区北京西路510号",
+        "osm_type": "way",
+        "osm_id": 425762388,
+        "display_name": "上海自然博物馆, 510, 北京西路, 张家宅, 王家厍, 石门二路街道, 静安区, 上海市, 200041, 中国",
+        "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+        "manual_verified": false,
+        "disambiguation": ""
+      },
+      "zones": [
+        {
+          "key": "whole_museum",
+          "name": "全馆",
+          "zone_type": "area",
+          "indoor_outdoor": "indoor"
+        }
+      ],
+      "sources": [
+        {
+          "key": "snhm_official_rules",
+          "source_type": "official_operator_policy",
+          "issuer": "上海自然博物馆官网《参观须知》",
+          "issuer_verification": "verified",
+          "source_url": "https://www.snhm.org.cn/cgfw/cgzx.htm",
+          "published_at": null,
+          "capture_method": "web_reader_fetch",
+          "directness": "direct",
+          "spatial_precision": "precise",
+          "artifact_type": "web_page_text",
+          "collector_type": "agent_web_reader",
+          "publisher_type": "operator_official",
+          "storage_allowed": true,
+          "display_allowed": true,
+          "redistribution_allowed": false,
+          "excerpt": " 参观咨询 ●馆内瞬时承载量达5700人时启动临时限流预案 ●APP和微信请在来馆前通过官方网站下载 上海自然博物馆 &nbsp; 首 页 常设展览 临展电影 教育活动 藏品精粹 参观服务 博物馆之友 参观服务 参观服务 参观咨询 地图 开放时间 9:00-17:00（16:00停止入馆）（周二休馆，国定假日除外）。 如有调整或其他安排，我馆将另行公告 交通信息 地址 上海市静安区北京西路510号（静安雕塑公园内） 公交线路 36路、19路、64路、136路、955路、41路、109路、301路、927路、324路、104路等 轨道交通 轨道交通1号线新闸路站（1号口）、轨道交通2号线南京西路站（2号口）、地铁13号线自然博物馆站 馆内无公众停车场，请尽量搭乘公共交通。 参观票价目表 个人票 票 种 票价 适用范围 成人参观票 30元 18周岁以上成人 老年参观票 25元 60至69周岁老年人 （凭本人有效证件入场） 学生参观票 12元 1.3米以上儿童以及全日制大学本科及以下学历学生 （凭本人学生证购票入场） 现役军人家属票 25元 现役军人家属(含现役军人的配偶、不能独立生活的成年子女、父母（扶养人））入场检票时，需出示相关身份证明 免费人群 类 型 免费人群（凭有效证件入场） 公示免票人群 离休干部、70周岁及以上的老年人 现役军人 残疾人 烈士家属 1.3米（含）以下儿童或6周岁（含）以下儿童 国家综合性消防救援人员 因公牺牲军人遗属、病故军人遗属 在职、退休、残疾消防救援人员（含政府专职消防员）和消防救援院校学员 军队文职人员、在职公安民警 四维影院票价:30元/人 时间 片名 时长 价格 类型 10:00-10:17 非洲大草原 17分钟 30元 4D 11:00-11:17 熊猫滚滚 17分钟 30元 4D 13:00-13:17 蛟龙入海 17分钟 30元 4D 14:00-14:19 荧火 19分钟 30元 4D 15:00-15:17 熊猫滚滚 17分钟 30元 4D 16:00-16:19 荧火 19分钟 30元 4D 1、四维影院一人一票,儿童全票； 2、有严重心脏病、高血压、腰椎病、颈椎病的患者及老人、孕妇不宜观看；婴幼儿谢绝观看； 3、请勿将食品、饮料带入影院内享用； 4、当天实际放映场次、片名以影院排片为准。谢谢您的配合。 参观须知 1、上海自然博物馆（上海科技馆分馆）全面实行“线上实名制购票和现场身份证检票”，观众请携带二代身份证原件，并配合接受安检及验票。 2、入馆时请勿携带易燃易爆物品、有毒有害物品、管制刀具及宠物等。 3、拍照留念时请注意自身、他人及展品、标本安全，勿在馆内使用自拍杆、摄像三脚架拍照。 4、身高1米3以下儿童、高龄老人及行动不便者请在亲友的陪同下入馆参观。 5、有意观看宇宙大爆炸剧场、逃出白垩纪剧场和参加探索中心活动的观众，请通过官方网站或在现场提前预约。 6、本馆为禁烟场所，请关爱自身与他人的健康。 7、请自觉保持馆内清洁卫生，勿将开启的饮料和食品带入展区和影院。 8、参观时请尽量保持安静，不在馆内奔跑、嬉戏或大声喧哗。 9、请爱护公共设施，避免与标本、模型的亲密接触，操作展品时请按照提示或咨询工作人员。 10、如遇各类突发事件，请服从现场工作人员的引导，按指定线路撤离。感谢您的理解与支持。 团队预订 点击进入：https://ticket.sstm.org.cn/teamadmin/index.html#/login 团队咨询电话：（021）62620280 团体咨询传真：（021）62620160 探索中心 探索中心的各类主题教育活动，您可以通过上海自然博物馆馆方网站和微信公众号进行预约，体验形式多样的教育活动。其中化石挖掘的参与方式为现场预约。 主题教育活动预约 分为团队预约和个人预约两种，分别有不同的预约方式和时间安排，具体如下： 团队预约： 面向学校团体，每周二至周五可提供预约。预约电话：021-62620261、021-68622000转5038 个人预约： 面向社会个人,可通过上海自然博物馆官方网站和微信公众号进行预约，每周六开放预约下周课程，额满为止。预约成功后请于活动开始前15分钟到现场确认，否则视为违约。 化石挖掘区预约: 化石挖掘区周二到周五每日开放3场，国",
+          "fragments": {
+            "no_pets": "2、入馆时请勿携带易燃易爆物品、有毒有害物品、管制刀具及宠物等。"
+          }
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "snhm-no-pet-enter",
+          "source_key": "snhm_official_rules",
+          "fragment": "no_pets",
+          "zone_key": "whole_museum",
+          "animal_scope": "ordinary_pet",
+          "action": "enter",
+          "effect": "prohibited",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "宠物",
+          "subject_scope_normalized": "ordinary_pet",
+          "normalization_type": "exact",
+          "normative_effect": "prohibition",
+          "holder_scope": "any_handler",
+          "conditions": [],
+          "confidence": 0.85,
+          "review_note": "官网参观须知原文「请勿携带…宠物等」。来源保真：宠物=ordinary_pet exact；导盲犬/服务犬例外未见原文，不臆造（ADR-030 proviso 仅在 legal provision 成立时适用）。"
+        }
+      ],
+      "observations": []
+    },
+    {
+      "key": "zoo-wild-animal",
+      "workstream": "B",
+      "canonical_name": "上海野生动物园",
+      "place_type": "scenic_area",
+      "district": "浦东新区",
+      "canonical_address": "上海市浦东新区南六公路178号",
+      "aliases": [
+        "上海野生动物园（南六公路178号）",
+        "Shanghai Wild Animal Park"
+      ],
+      "geo": {
+        "status": "REAL_OSM_NOMINATIM",
+        "lat": 31.0573825,
+        "lon": 121.7166359,
+        "osm_type": "way",
+        "osm_id": 182969057,
+        "name": "上海野生动物园",
+        "display_name": "上海野生动物园, 南六公路, 三灶, 宣桥镇, 浦东新区, 上海市, 201399, 中国",
+        "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+        "provider": "OpenStreetMap Nominatim",
+        "fetched_at": "2026-09-19T13:36:35.508631+00:00",
+        "query": "上海野生动物园",
+        "match_quality": "AUTO_MATCHED",
+        "manual_verified": false,
+        "canonical_address": "上海市浦东新区南六公路178号",
+        "location_wkt": "POINT(121.7166359 31.0573825)"
+      },
+      "place_match_evidence": {
+        "matched_by": "canonical_name_and_osm",
+        "canonical_name": "上海野生动物园",
+        "canonical_address": "上海市浦东新区南六公路178号",
+        "osm_type": "way",
+        "osm_id": 182969057,
+        "display_name": "上海野生动物园, 南六公路, 三灶, 宣桥镇, 浦东新区, 上海市, 201399, 中国",
+        "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+        "manual_verified": false,
+        "disambiguation": ""
+      },
+      "zones": [
+        {
+          "key": "whole_park",
+          "name": "全园",
+          "zone_type": "area",
+          "indoor_outdoor": "outdoor"
+        }
+      ],
+      "sources": [
+        {
+          "key": "shwzoo_official_guide",
+          "source_type": "official_operator_policy",
+          "issuer": "上海野生动物园官网《游园指南》",
+          "issuer_verification": "verified",
+          "source_url": "https://www.swap-shendi.com/index.do?guide=",
+          "published_at": null,
+          "capture_method": "web_reader_fetch",
+          "directness": "direct",
+          "spatial_precision": "precise",
+          "artifact_type": "web_page_text",
+          "collector_type": "agent_web_reader",
+          "publisher_type": "operator_official",
+          "storage_allowed": true,
+          "display_allowed": true,
+          "redistribution_allowed": false,
+          "excerpt": " 游园指南-上海野生动物园 公告 中文 English --> 切换导航 --> 立即订票 网站首页 门票与年卡 乐游上野 科普教育 游园指南 精彩视频 关于我们 立即订票 公告 我知道了 × --> 票价 地图 --> 时间 开放时间具体以现场公告为准 常规(2-6月，9月平日，国庆节后-11月30日) 9:00-17:00 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 夜公园：7-8月，9月双休日，节假日，国庆期间 9:00-21:00 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 12月-1月 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 9:00-16:30 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 客服 电话：021-58036000 顶部 首页 游园指南 游园须知 游园须知 交通指南 园内服务 常见问题 时间公示（具体以现场公告为准） 售检票时间 常规(2-6月，9月平日，国庆节后-11月30日) 9:00-16:00 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 夜公园：7-8月，9月双休日及节假日，国庆期间 9:00-19:30 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 12月-1月 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 9:00-15:30 车入区、水域探秘运行时间 常规(2-6月，9月平日，国庆节后-11月30日) 9:15-16:30 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 夜公园：7-8月，9月双休日，节假日，国庆期间 9:15-20:30 (车入区) 9:15-19:00 (水域探秘) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 12月-1月 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 9:15-16:00 开放时间 常规(2-6月，9月平日，国庆节后-11月30日) 9:00-17:00 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 夜公园：7-8月，9月双休日，节假日，国庆期间 9:00-21:00 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 12月-1月 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 9:00-16:30 备注：若游客较多时，将适当延长运营时间，请以当天园内通知为准。 重要须知 游园告知 一、我们将不时的在园区采集人与动物和谐互动的影像音频，并合理使用这些可能包含游客肖像和/或声音的影像和/或录音用以宣传等而无需支付任何费用。 二、为保护动物健康及福利，园区可能短期或暂时关闭部分动物展区或取消部分动物互动、剧场展示等项目，以及调整部分动物展出、互动、剧场展示的时间而无需为此承担任何责任。 三、为保障游园秩序及安全，园区可能会提前关闭各剧场的入口，控制剧场的游客数量而无需为此承担任何责任。 四、请自行妥善保管好您的随身携带以及放置在停车场内机动车上的财物，我们不对游客财物的损坏或损失负责。 五、针对持有优待证的退役军人和其他优抚对象（三属人员），凭有效证件享受以下优惠待遇： ①65岁周岁以上（含65周岁）享受门票五折优惠（按上海野生动物园票务政策执行）； ②60周岁至64周岁（含60周岁）享受门票九折优惠（按上海野生动物园票务政策执行）； ③八月份享受门票八折优惠。 六、免票规定 现役军官证、现役士兵证、离休干部证、文职证、军队离退休证、武装警察部队警官证、革命军人伤残证、革命烈士家属证、残疾证、消防员证等凭有效证件享受免票。 一名成年人凭当日门票可免费携带一名6周岁以下或1.3米以下儿童入园。 不得携带以下物品入园 一、不得携带易燃易爆物品(如鞭炮)、枪支、仿真枪支及管制刀具等危险品入园。 二、不得携带宠物入园。 三、不得将电动残疾车、电瓶车、电动滑板车、电动轮椅、电动平衡车、自行车驶入园内(含儿童自行车)，不得携带滑板(含儿童小型滑板车)、早冰鞋等玩乐装备入园。 四、不得携带相关法律禁止的物品及其他具有危险性或破坏性的物品入园。 五、不得外带快餐、盒饭入园。 六、不得携带无人机入园，不得在园区内使用无人机。 不得从事以下活动 一、未经园区许可，不得从事任何商业活动；销售、交换物品或服务；分发、展示任何形式的印刷品或录制品，或使用任何旗帜、横幅或标牌；进行集会、主题活动、演出或演讲。 二、未经园区许可，不得进行商业目的摄影、摄像、录音或妨碍他人的摄影活动及向公众传播的直播活动。 三、不得在园区内追跑打闹，不得惊吓、追逐和捕捉动物。 四、不得在园区给动物投喂自带的食物。 五、不得在车入区内擅自超车、下车、开窗或中途停车。 六、任何危险行为或可能危害园区动物、运营设施以及人身安全的行为。 七、不得使用闪光灯拍摄动物或手电激光照射动物，以免动物受到惊吓。 游客须知 为了能够拥有安全愉快的游览体验，游客应了解并遵守以下规定： 一、30座以上的客车可直接驶入车入区；20座以上不满30座的客车须在本园收费导游的陪同下驶入车入区；旅行社团队10座（含）以上20座以下的客车可以驶入园内停车场，但不得驶入车入区；除旅行社外，其他20座以下的客车及货运车一律不",
+          "fragments": {
+            "no_pets": "不得携带以下物品入园 一、不得携带易燃易爆物品(如鞭炮)、枪支、仿真枪支及管制刀具等危险品入园。 二、不得携带宠物入园。"
+          }
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "swzoo-no-pet-enter",
+          "source_key": "shwzoo_official_guide",
+          "fragment": "no_pets",
+          "zone_key": "whole_park",
+          "animal_scope": "ordinary_pet",
+          "action": "enter",
+          "effect": "prohibited",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "宠物",
+          "subject_scope_normalized": "ordinary_pet",
+          "normalization_type": "exact",
+          "normative_effect": "prohibition",
+          "holder_scope": "any_handler",
+          "conditions": [],
+          "confidence": 0.85,
+          "review_note": "官网游园指南原文「二、不得携带宠物入园」。与上海动物园（长宁区虹桥路2381号）为不同法人/不同园区的另一场所；本条仅指浦东新区南六公路178号上海野生动物园。"
+        }
+      ],
+      "observations": []
+    },
+    {
+      "key": "park-chenshan",
+      "workstream": "B",
+      "canonical_name": "上海辰山植物园",
+      "place_type": "park",
+      "district": "松江区",
+      "canonical_address": "上海市松江区辰花公路3888号",
+      "aliases": [
+        "辰山植物园",
+        "Chenshan Botanical Garden"
+      ],
+      "geo": {
+        "status": "REAL_OSM_NOMINATIM",
+        "lat": 31.0715239,
+        "lon": 121.1754575,
+        "osm_type": "node",
+        "osm_id": 11980409158,
+        "name": "上海辰山植物园",
+        "display_name": "上海辰山植物园, 辰花路, 广富林街道, 松江区, 上海市, 201602, 中国",
+        "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+        "provider": "OpenStreetMap Nominatim",
+        "fetched_at": "2026-09-19T13:36:37.647455+00:00",
+        "query": "上海辰山植物园",
+        "match_quality": "AUTO_MATCHED",
+        "manual_verified": false,
+        "canonical_address": "上海市松江区辰花公路3888号",
+        "location_wkt": "POINT(121.1754575 31.0715239)"
+      },
+      "place_match_evidence": {
+        "matched_by": "canonical_name_and_osm",
+        "canonical_name": "上海辰山植物园",
+        "canonical_address": "上海市松江区辰花公路3888号",
+        "osm_type": "node",
+        "osm_id": 11980409158,
+        "display_name": "上海辰山植物园, 辰花路, 广富林街道, 松江区, 上海市, 201602, 中国",
+        "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+        "manual_verified": false,
+        "disambiguation": ""
+      },
+      "zones": [
+        {
+          "key": "whole_garden",
+          "name": "全园",
+          "zone_type": "area",
+          "indoor_outdoor": "outdoor"
+        }
+      ],
+      "sources": [
+        {
+          "key": "csn_official_guide",
+          "source_type": "official_operator_policy",
+          "issuer": "上海辰山植物园官网《游园指南》",
+          "issuer_verification": "verified",
+          "source_url": "https://www.csnbgsh.cn/sites/chenshan2020/static/zhinan.ashx",
+          "published_at": null,
+          "capture_method": "web_reader_fetch",
+          "directness": "secondary",
+          "spatial_precision": "precise",
+          "artifact_type": "web_page_text",
+          "collector_type": "agent_web_reader",
+          "publisher_type": "operator_official",
+          "storage_allowed": true,
+          "display_allowed": true,
+          "redistribution_allowed": false,
+          "excerpt": " 上海辰山植物园 门票信息 推荐线路 便民服务 园内餐饮 园内交通 公共交通 首 页 园况介绍 园区简介 形象标识 组织机构 最新动态 最新消息 主题活动 --> 诚聘英才 游园指南 门票信息 推荐路线 便民服务 园内餐饮 园内交通 公共交通 科普教育 科普场馆 科普展示 科普视频 云赏花 游客互动 植物学专著 24节气 辰山园艺 专类园区 辰山花讯 媒体报道 央级媒体 市级媒体 区级媒体 首页 > &nbsp;&nbsp;&nbsp; 游园指南 游园指南 欢迎来到上海辰山植物园 门票信息 1、上海辰山植物园全面开放。门票每张60元人民币。 2、门票实行一人一票制，-经售出。不可退票，不可重复使用。 3、 辰山植物园开放时间 ：3月1日-10月31日，8:00-17:30 ，11月1日至2月28（29）日，8:00-17:00。 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 展览温室开放时间 ：3月1日至11月31日：8:30-17:00 每年11月1日至2月28或29日：8:00-16:30 --> 如遇园内主题活动等特殊情况调整开闭园时间，请关注上海辰山植物园网站或入口处公告。 购票须知 网上购票 团体接待 推荐路线 綜合楼-->售票大厅- ->春景园-->月季园-->矿坑花园-->岩石和药用植物园-->盲人植物园--温室-->裸子园-->槭树园-->王莲池-->水生植物园 --> 便民服务 便民热线：37792288-800 轮椅租借 婴儿手推车租借 拐杖租借 雨伞租借 园内问询 针线包 哺乳室 供应开水 导游手册 无线网络覆盖 便民商店 便民充电站 导游图 公共厕所 VR游园 便民餐饮 咖啡馆 位于1号门综合楼一层，提供冷热饮和西点。 小卖部 园区设小卖部，售卖饮料和零食。 园内交通 观光车 上海辰山植物园内有观光电瓶车13辆、（应急）小火车3辆，沿途设立8站，全程运营时间约30分钟。票价5元/人次。上车投币/扫码购票。途中站点下车后再次乘坐需另行投币/扫码购票，乘客到终点站(A、B)必须全部下车。 运行线路安排为： A线：1号门综合楼起点站——儿童植物园站——矿坑花园内站——岩生植物园站——展览温室终点站 B线：展览温室站——华东区系园站——水生植物园站——1号门综合楼终点站。 注：票价为统一价5元/人次，1.3米以下儿童可享受免票，但不能占坐。如遇双休日、节假日及园内活动大客流期间，观光车实行区间运营。具体运行线路根据实际游客量及园内活动安排。 游船 上海辰山植物园在园内西湖东岸设有游船码头，向游客提供游船租赁服务。4人座船12艘，6人座船4艘。 公共交通 公共交通 1、轨道交通9号线洞泾站换乘松江19路、96路至1号门； 或可在佘山站换乘松江95路至1号门。 2、公交松江95路、松朱线可至2号门。 3、公交松江95路可至3号门。 自驾车 1、G60 沪昆高速公路松江新城出口沿嘉松公路向北至辰花路左转到达1号门，至沈砖公路左转到佘天昆公路左转到达2号门。 2、G50沪渝高速公路赵巷出口左转沿嘉松公路向南至辰花路右转到达1号门，至沈砖公路右转到佘天昆公路左转到达2号门。 联系我们 微信 微博 咨询电话：021-37792288-800 应急电话：021-67657770 投诉电话：021-67657812 CopyRight©上海辰山植物园 沪ICP备10031748-15 沪公网安备 31011702007317号 技术支持： 上海创正信息技术有限公司（创正信息化） ",
+          "fragments": {
+            "no_pets": "上海辰山植物园禁止携带宠物、滑板、轮滑车、儿童自行车、溜冰鞋、活力板等助步器具入园。（入园须知第九条）"
+          }
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "csn-no-pet-enter",
+          "source_key": "csn_official_guide",
+          "fragment": "no_pets",
+          "zone_key": "whole_garden",
+          "animal_scope": "ordinary_pet",
+          "action": "enter",
+          "effect": "prohibited",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "宠物",
+          "subject_scope_normalized": "ordinary_pet",
+          "normalization_type": "exact",
+          "normative_effect": "prohibition",
+          "holder_scope": "any_handler",
+          "conditions": [],
+          "confidence": 0.85,
+          "review_note": "官网《游园指南》页面存在且可达；「禁止携带宠物…入园」句为外部收录的入园须知第九条表述，注明 needs_verification=True（以官网原页逐字核验为准）；本条按普通宠物 exact 表述，不做「动物」全域声明。"
+        }
+      ],
+      "observations": []
+    },
+    {
+      "key": "park-heping",
+      "workstream": "B",
+      "canonical_name": "和平公园",
+      "place_type": "park",
+      "district": "虹口区",
+      "canonical_address": "上海市虹口区大连路1131号",
+      "aliases": [
+        "和平公园（虹口区）",
+        "Heping Park"
+      ],
+      "geo": {
+        "status": "REAL_OSM_NOMINATIM",
+        "lat": 31.2727705,
+        "lon": 121.4980256,
+        "osm_type": "relation",
+        "osm_id": 6262916,
+        "name": "和平公园",
+        "display_name": "和平公园, 虹镇, 嘉兴路街道, 虹口区, 上海市, 中国",
+        "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+        "provider": "OpenStreetMap Nominatim",
+        "fetched_at": "2026-09-19T13:36:40.041673+00:00",
+        "query": "和平公园 虹口",
+        "match_quality": "AUTO_MATCHED",
+        "manual_verified": false,
+        "canonical_address": "上海市虹口区大连路1131号",
+        "location_wkt": "POINT(121.4980256 31.2727705)"
+      },
+      "place_match_evidence": {
+        "matched_by": "canonical_name_and_osm",
+        "canonical_name": "和平公园",
+        "canonical_address": "上海市虹口区大连路1131号",
+        "osm_type": "relation",
+        "osm_id": 6262916,
+        "display_name": "和平公园, 虹镇, 嘉兴路街道, 虹口区, 上海市, 中国",
+        "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+        "manual_verified": false,
+        "disambiguation": ""
+      },
+      "zones": [
+        {
+          "key": "pet_pilot_area",
+          "name": "携宠试点区域（部分区域）",
+          "zone_type": "pet_area",
+          "indoor_outdoor": "outdoor"
+        }
+      ],
+      "sources": [
+        {
+          "key": "hongkou_pilot_notice",
+          "source_type": "government_service",
+          "issuer": "上海市虹口区绿化和市容管理局《搭帐篷、带宠物…虹口的公园9月1日起试点》",
+          "issuer_verification": "verified",
+          "source_url": "https://www.shhk.gov.cn/xwzx/002014/20250901/e660ce0a-30ac-443c-b8d3-f342a909b4b3.html",
+          "published_at": "2025-09-01",
+          "capture_method": "web_reader_fetch",
+          "directness": "direct",
+          "spatial_precision": "precise",
+          "artifact_type": "web_page_text",
+          "collector_type": "agent_web_reader",
+          "publisher_type": "government_official",
+          "storage_allowed": true,
+          "display_allowed": true,
+          "redistribution_allowed": false,
+          "excerpt": "﻿ 搭帐篷、带宠物……虹口的公园9月1日起试点-上海市虹口区人民政府 当前位置： 首页 &gt; 新闻中心 &gt; 便民提示 搭帐篷、带宠物……虹口的公园9月1日起试点 【 信息来源： &nbsp; 信息时间：2025-09-01 &nbsp; 】 【字号: 大 中 小 】 【 打印 】 【 关闭 】 搭帐篷、带宠物……虹口的公园9月1日起试点 《上海市公园绿地开放管理指导意见》新鲜出炉。虹口区部分公园自9月1日起开展试点，细化帐篷区、宠物入园、残疾车等管理规定，让你的游园体验更安全、更舒适、更有趣！详见区绿化市容局公告↓ 尊敬的市民游客： 近日，为进一步提升公园绿地服务水平，营造更安全、舒适、文明的游园环境，上海市绿化和市容管理局制定了《关于加强本市公园绿地开放管理的指导意见》，并将于2025年9月1日起施行。虹口区绿化和市容管理局根据《指导意见》，结合虹口城市公园实际，将于9月1日起开展部分试点工作，现向广大市民游客通告如下： 一、细化帐篷区管理 新增周末试点区域 鲁迅公园、和平公园部分草坪区域逢周末、节假日试行开放帐篷搭建，帐篷区可搭时间为8:00-17:00（草坪养护期除外）。 1、鲁迅公园&quot;中日友好钟座”区域草坪 2、和平公园6号口“躺坪草坪” 和平公园6号口“躺坪草坪” (2).jpg 温馨提示：由于目前试开放的草坪面积有限，出于安全考虑，上述2处草坪均不允许使用天幕；禁止使用风绳、地钉固定帐篷，帐篷占地范围不大于5㎡；和平公园帐篷区上限为15顶，鲁迅公园帐篷区上限为8顶，公园管理方将根据现场承载量实行动态控流；请市民游客服从现场管理，共同维护草坪环境。 二、加强宠物入园管理 新增携宠入园试点 和平公园部分区域、昆山公园试行限时携宠入园。 1、和平公园（1号口）下沉广场限定区域 2、昆山公园全园 温馨提示：限时入园时间为每日8:00-20:00；允许入园宠物限犬类、猫类；请为肩高≥45cm的大型宠物佩戴嘴套；宠物须全程牵引，使用长度≤1.5m的刚性牵引绳，禁止使用伸缩绳；开放区域禁止宠物随地便溺，如需排泄，须自备尿垫、拾便袋等，并投入宠物专用垃圾桶；请携宠人遵守公园管理规定，主动避让老、幼、孕及怕宠人群，共同维护友好游园环境。和平公园原萌宠狗乐园管理规定不变。 三、完善夜间配套服务 新增24小时开放厕所 新增24小时开放厕所2座： 1、四川北路公园1座 2、昆山公园1座 现已24小时开放厕所： 1、和平公园内4座（1号卫生间、2号卫生间、3号卫生间、儿童乐园卫生间） 2、江湾公园内1座 四、规范入园车辆管理 为进一步保障游园安全，虹口区所有城市公园禁止无牌残疾车入园；禁止残疾车在园内从事非法营运；残疾车园内限速5公里/小时，禁止鸣号；临时停放应将车辆熄火，服从公园方管理。 小编提示：市民游客作为自身安全行为责任人，应提高安全游园意识，入园后遵守各项公园管理制度，文明游览，防范各类安全事故发生。 感谢您的理解与支持！ 分享到： --> --> --> --> 智能标签: 上一篇： 2025上海优秀社区长者食堂揭晓，虹口区这6家食堂上榜！ 下一篇： “上海慈善周”来袭，虹口区精彩活动抢先看 ",
+          "fragments": {
+            "pilot_pet_rule": "和平公园部分区域、昆山公园试行限时携宠入园。限时入园时间为每日8:00-20:00；允许入园宠物限犬类、猫类；请为肩高≥45cm的大型宠物佩戴嘴套；宠物须全程牵引，使用长度≤1.5m的刚性牵引绳，禁止使用伸缩绳；开放区域禁止宠物随地便溺…"
+          }
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "hp-pilot-dog-conditional",
+          "source_key": "hongkou_pilot_notice_shared",
+          "fragment": "pilot_pet_rule",
+          "zone_key": "pet_pilot_area",
+          "animal_scope": "dog",
+          "action": "enter",
+          "effect": "conditional",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "犬类",
+          "subject_scope_normalized": "dog",
+          "normalization_type": "exact",
+          "normative_effect": "conditional_permission",
+          "holder_scope": "any_handler",
+          "conditions": [
+            {
+              "condition_type": "time_windows",
+              "value_note": "每日8:00-20:00"
+            },
+            {
+              "condition_type": "leash_required",
+              "value_flag": true
+            },
+            {
+              "condition_type": "other_structured_note",
+              "value_note": "刚性牵引绳长度≤1.5m，禁止伸缩绳；肩高≥45cm需佩戴嘴套"
+            }
+          ],
+          "confidence": 0.85,
+          "review_note": "政府试点公告（2025-09-01 起）原文：限时8:00-20:00、仅犬类/猫类、全程牵引、≤1.5m 刚性牵引绳、禁伸缩绳、大型犬（肩高≥45cm）戴嘴套、禁随地便溺。试点区域为部分区域（pet_area zone），非全园无条件允许；试点性质与期限需人工确认。"
+        },
+        {
+          "rule_id": "hp-pilot-cat-conditional",
+          "source_key": "hongkou_pilot_notice_shared",
+          "fragment": "pilot_pet_rule",
+          "zone_key": "pet_pilot_area",
+          "animal_scope": "cat",
+          "action": "enter",
+          "effect": "conditional",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "猫类",
+          "subject_scope_normalized": "cat",
+          "normalization_type": "exact",
+          "normative_effect": "conditional_permission",
+          "holder_scope": "any_handler",
+          "conditions": [
+            {
+              "condition_type": "time_windows",
+              "value_note": "每日8:00-20:00"
+            },
+            {
+              "condition_type": "other_structured_note",
+              "value_note": "牵引用具按公园规定；禁随地便溺；应避让老幼孕及怕宠人群"
+            }
+          ],
+          "confidence": 0.85,
+          "review_note": "同政府试点公告；猫类允许入园限试点区域与时段。"
+        }
+      ],
+      "observations": []
+    },
+    {
+      "key": "park-kunshan",
+      "workstream": "B",
+      "canonical_name": "昆山公园",
+      "place_type": "park",
+      "district": "虹口区",
+      "canonical_address": "上海市虹口区四川北路1933号",
+      "aliases": [
+        "昆山公园（虹口区）"
+      ],
+      "geo": {
+        "status": "REAL_OSM_NOMINATIM",
+        "lat": 31.2509117,
+        "lon": 121.4822225,
+        "osm_type": "way",
+        "osm_id": 744525771,
+        "name": "昆山公园",
+        "display_name": "昆山公园, 三角地, 北外滩街道, 虹口区, 上海市, 中国",
+        "licence": "Data (c) OpenStreetMap contributors, ODbL 1.0",
+        "provider": "OpenStreetMap Nominatim",
+        "fetched_at": "2026-09-19T13:45:18.071809+00:00",
+        "query": "昆山公园 上海虹口",
+        "match_quality": "AUTO_MATCHED",
+        "manual_verified": false,
+        "canonical_address": "上海市虹口区四川北路/昆山路",
+        "location_wkt": "POINT(121.4822225 31.2509117)"
+      },
+      "place_match_evidence": {
+        "matched_by": "canonical_name_and_osm",
+        "canonical_name": "昆山公园",
+        "canonical_address": "上海市虹口区四川北路/昆山路",
+        "osm_type": "way",
+        "osm_id": 744525771,
+        "display_name": "昆山公园, 三角地, 北外滩街道, 虹口区, 上海市, 中国",
+        "licence": "Data (c) OpenStreetMap contributors, ODbL 1.0",
+        "manual_verified": false,
+        "disambiguation": ""
+      },
+      "zones": [
+        {
+          "key": "pet_pilot_area",
+          "name": "携宠试点区域（部分区域）",
+          "zone_type": "pet_area",
+          "indoor_outdoor": "outdoor"
+        }
+      ],
+      "sources": [
+        {
+          "key": "hongkou_pilot_notice_shared",
+          "source_type": "government_service",
+          "issuer": "上海市虹口区绿化和市容管理局《搭帐篷、带宠物…虹口的公园9月1日起试点》",
+          "issuer_verification": "verified",
+          "source_url": "https://www.shhk.gov.cn/xwzx/002014/20250901/e660ce0a-30ac-443c-b8d3-f342a909b4b3.html",
+          "published_at": "2025-09-01",
+          "capture_method": "web_reader_fetch",
+          "directness": "direct",
+          "spatial_precision": "precise",
+          "artifact_type": "web_page_text",
+          "collector_type": "agent_web_reader",
+          "publisher_type": "government_official",
+          "storage_allowed": true,
+          "display_allowed": true,
+          "redistribution_allowed": false,
+          "excerpt": "﻿ 搭帐篷、带宠物……虹口的公园9月1日起试点-上海市虹口区人民政府 当前位置： 首页 &gt; 新闻中心 &gt; 便民提示 搭帐篷、带宠物……虹口的公园9月1日起试点 【 信息来源： &nbsp; 信息时间：2025-09-01 &nbsp; 】 【字号: 大 中 小 】 【 打印 】 【 关闭 】 搭帐篷、带宠物……虹口的公园9月1日起试点 《上海市公园绿地开放管理指导意见》新鲜出炉。虹口区部分公园自9月1日起开展试点，细化帐篷区、宠物入园、残疾车等管理规定，让你的游园体验更安全、更舒适、更有趣！详见区绿化市容局公告↓ 尊敬的市民游客： 近日，为进一步提升公园绿地服务水平，营造更安全、舒适、文明的游园环境，上海市绿化和市容管理局制定了《关于加强本市公园绿地开放管理的指导意见》，并将于2025年9月1日起施行。虹口区绿化和市容管理局根据《指导意见》，结合虹口城市公园实际，将于9月1日起开展部分试点工作，现向广大市民游客通告如下： 一、细化帐篷区管理 新增周末试点区域 鲁迅公园、和平公园部分草坪区域逢周末、节假日试行开放帐篷搭建，帐篷区可搭时间为8:00-17:00（草坪养护期除外）。 1、鲁迅公园&quot;中日友好钟座”区域草坪 2、和平公园6号口“躺坪草坪” 和平公园6号口“躺坪草坪” (2).jpg 温馨提示：由于目前试开放的草坪面积有限，出于安全考虑，上述2处草坪均不允许使用天幕；禁止使用风绳、地钉固定帐篷，帐篷占地范围不大于5㎡；和平公园帐篷区上限为15顶，鲁迅公园帐篷区上限为8顶，公园管理方将根据现场承载量实行动态控流；请市民游客服从现场管理，共同维护草坪环境。 二、加强宠物入园管理 新增携宠入园试点 和平公园部分区域、昆山公园试行限时携宠入园。 1、和平公园（1号口）下沉广场限定区域 2、昆山公园全园 温馨提示：限时入园时间为每日8:00-20:00；允许入园宠物限犬类、猫类；请为肩高≥45cm的大型宠物佩戴嘴套；宠物须全程牵引，使用长度≤1.5m的刚性牵引绳，禁止使用伸缩绳；开放区域禁止宠物随地便溺，如需排泄，须自备尿垫、拾便袋等，并投入宠物专用垃圾桶；请携宠人遵守公园管理规定，主动避让老、幼、孕及怕宠人群，共同维护友好游园环境。和平公园原萌宠狗乐园管理规定不变。 三、完善夜间配套服务 新增24小时开放厕所 新增24小时开放厕所2座： 1、四川北路公园1座 2、昆山公园1座 现已24小时开放厕所： 1、和平公园内4座（1号卫生间、2号卫生间、3号卫生间、儿童乐园卫生间） 2、江湾公园内1座 四、规范入园车辆管理 为进一步保障游园安全，虹口区所有城市公园禁止无牌残疾车入园；禁止残疾车在园内从事非法营运；残疾车园内限速5公里/小时，禁止鸣号；临时停放应将车辆熄火，服从公园方管理。 小编提示：市民游客作为自身安全行为责任人，应提高安全游园意识，入园后遵守各项公园管理制度，文明游览，防范各类安全事故发生。 感谢您的理解与支持！ 分享到： --> --> --> --> 智能标签: 上一篇： 2025上海优秀社区长者食堂揭晓，虹口区这6家食堂上榜！ 下一篇： “上海慈善周”来袭，虹口区精彩活动抢先看 ",
+          "fragments": {
+            "pilot_pet_rule": "和平公园部分区域、昆山公园试行限时携宠入园。限时入园时间为每日8:00-20:00；允许入园宠物限犬类、猫类；请为肩高≥45cm的大型宠物佩戴嘴套；宠物须全程牵引，使用长度≤1.5m的刚性牵引绳，禁止使用伸缩绳…"
+          }
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "kp-pilot-dog-conditional",
+          "source_key": "hongkou_pilot_notice_shared",
+          "fragment": "pilot_pet_rule",
+          "zone_key": "pet_pilot_area",
+          "animal_scope": "dog",
+          "action": "enter",
+          "effect": "conditional",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "犬类",
+          "subject_scope_normalized": "dog",
+          "normalization_type": "exact",
+          "normative_effect": "conditional_permission",
+          "holder_scope": "any_handler",
+          "conditions": [
+            {
+              "condition_type": "time_windows",
+              "value_note": "每日8:00-20:00"
+            },
+            {
+              "condition_type": "leash_required",
+              "value_flag": true
+            },
+            {
+              "condition_type": "other_structured_note",
+              "value_note": "刚性牵引绳≤1.5m；肩高≥45cm需嘴套"
+            }
+          ],
+          "confidence": 0.85,
+          "review_note": "同 2025-09-01 虹口区政府试点公告；昆山公园为试点公园之一。地址按区级公开信息录入四川北路1933号，门牌级人工核验状态=False。"
+        }
+      ],
+      "observations": []
+    },
+    {
+      "key": "park-gucun",
+      "workstream": "B",
+      "canonical_name": "顾村公园",
+      "place_type": "park",
+      "district": "宝山区",
+      "canonical_address": "上海市宝山区沪太路4788号",
+      "aliases": [
+        "顾村公园（沪太路4788号）"
+      ],
+      "geo": {
+        "status": "REAL_OSM_NOMINATIM",
+        "lat": 31.3429177,
+        "lon": 121.3705066,
+        "osm_type": "way",
+        "osm_id": 266615881,
+        "name": "顾村公园",
+        "display_name": "顾村公园, 刘行, 顾村镇, 宝山区, 上海市, 中国",
+        "licence": "Data (c) OpenStreetMap contributors, ODbL 1.0",
+        "provider": "OpenStreetMap Nominatim",
+        "fetched_at": "2026-09-19T13:45:22.098487+00:00",
+        "query": "顾村公园",
+        "match_quality": "AUTO_MATCHED",
+        "manual_verified": false,
+        "canonical_address": "上海市宝山区沪太路4788号",
+        "location_wkt": "POINT(121.3705066 31.3429177)"
+      },
+      "place_match_evidence": {
+        "matched_by": "canonical_name_and_osm",
+        "canonical_name": "顾村公园",
+        "canonical_address": "上海市宝山区沪太路4788号",
+        "osm_type": "way",
+        "osm_id": 266615881,
+        "display_name": "顾村公园, 刘行, 顾村镇, 宝山区, 上海市, 中国",
+        "licence": "Data (c) OpenStreetMap contributors, ODbL 1.0",
+        "manual_verified": false,
+        "disambiguation": ""
+      },
+      "zones": [
+        {
+          "key": "whole_park",
+          "name": "全园",
+          "zone_type": "area",
+          "indoor_outdoor": "outdoor"
+        }
+      ],
+      "sources": [
+        {
+          "key": "gucun_secondary_rules",
+          "source_type": "external_web_reference",
+          "issuer": "本地宝《顾村公园樱花节宠物入园政策》（转述顾村公园游园须知）",
+          "issuer_verification": "self_declared",
+          "source_url": "https://m.sh.bendibao.com/tour/295393.html",
+          "published_at": "2025-03-11",
+          "capture_method": "web_reader_fetch",
+          "directness": "secondary",
+          "spatial_precision": "precise",
+          "artifact_type": "web_page_text",
+          "collector_type": "agent_web_reader",
+          "publisher_type": "third_party_aggregator",
+          "storage_allowed": true,
+          "display_allowed": true,
+          "redistribution_allowed": false,
+          "excerpt": " 顾村公园樱花节宠物入园政策- 上海本地宝 打开本地宝APP 顾村公园樱花节宠物入园政策 2025-03-11 13:56 顾村公园 导语 顾村公园游园须知明确，未经许可，不得携带各种动物入园。不得随意破坏树木、花卉生长，不得随意采摘、挖掘果实、种籽、泥土和捕捞水生植物等。 顾村公园樱花节宠物入园政策 顾村公园 明确，未经许可，不得携带各种动物入园。所以不要带宠物入园哦。 顾村 公园 这些行为不可以 1、 首次夜间开放持续1个月，禁止长梯、高凳入园。 2、不得随地便溺、乱招贴、涂写刻划、搬移拆损园内设施设备。不得赤膊和随意卧躺、洗晒衣物、拾荒行乞。不得攀爬假山等设施。不得在河池中嬉水、游泳。不得擅自进行球类、放风筝等活动(除规定场所外)。 3、不得嬉弄、惊吓、捕捉鸟类、蟋蟀、鱼虾(经营项目除外)、蝉类等各种动物。未经许可，不得携带各种动物入园。不得随意破坏树木、花卉生长，不得随意采摘、挖掘果实、种籽、泥土和捕捞水生植物等。 4、不得携带枪 支弹 药、易燃易爆物品以及其他危险物品进园。不得进行燃放 烟花 爆竹 、烧烤、宿营等活动(除规定场所外)。 5、游客游园时的自身行为不得影响他人游园。任何团体活动必须服从公园有关管理部门的管理，不得擅自进行聚众演讲、集会、募捐等活动，不准搞封建迷信、赌博及法律、法规明令禁止的一切活动。不得随意进行设摊、兜售、行医及散发广告宣传品等经营活动。 6、各种车辆未经许可不得进入园内(残疾人专用车除外)，经许可进园的车辆必须慢速度缓行。 推荐阅读： 2025上海顾村公园樱花节门票价格+购票方式 --> 温馨提示：微信搜索公众号【上海本地宝】，关注后在对话框回复【花展】查看2025上海花展时间表，各类花展活动、春季赏花地推荐(梅花+樱花+油菜花+郁金香）等。 分享本文到： 关闭 旅游 旅游专题 上海赏花好去处 正文结束 内容来源上海本地宝 上海本地宝 + 关注 分享 返回首页 相关推荐 2026年第36届上海桃花节3月下旬举办 2026-03-19 11:28 2026上海奉贤菜花节时间+地点+活动+交通 2026-03-18 13:57 上海辰山植物园赏花攻略（门票+交通） 2026-03-10 09:56 2026上海顾村公园樱花节交通出行攻略(地铁+公交+自驾） 2026-03-06 17:20 2026上海顾村公园樱花节夜间开放时间+门票价格+赏花区域 2026-03-03 17:44 2026上海顾村公园樱花节开放时间+门票价格+交通指南 2026-03-03 15:46 热点推荐 2026上海旅游节花车巡游路线和时间 2026-09-14 2026年上海国际光影节虹口分会场时间+亮点+交通路线 2026-09-14 2026年上海国际光影节举办地点一览 2026-09-14 2026年上海国际光影节宝山分会场时间+地点+活动亮点 2026-09-14 2026年第三届上海国际光影节闵行分会场时间+地点+亮点 2026-09-14 2026年上海国际光影节嘉定分会场时间+地点+活动亮点 2026-09-14 最新阅读 2026年上海国际光影节虹口分会场时间+亮点+交通路线 2026-09-14 2026年上海国际光影节举办地点一览 2026-09-14 2026年上海国际光影节宝山分会场时间+地点+活动亮点 2026-09-14 2026年第三届上海国际光影节闵行分会场时间+地点+亮点 2026-09-14 2026年上海国际光影节嘉定分会场时间+地点+活动亮点 2026-09-14 2026年上海国际光影节长宁分会场时间+地点+活动亮点 2026-09-14 本地宝产品 活动大全 好玩推荐 重磅特色 主题游 节庆攻略 特惠优选 周末去哪玩 产品导航 移动版 | 电脑版 | 意见建议 | 联系我们 | 本地宝",
+          "fragments": {
+            "no_animals": "顾村公园游园须知明确，未经许可，不得携带各种动物入园。不得随意破坏树木、花卉生长，不得随意采摘、挖掘果实、种籽、泥土和捕捞水生植物等。"
+          }
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "park_gucun-no-animal-dog-enter",
+          "source_key": "gucun_secondary_rules",
+          "fragment": "no_animals",
+          "zone_key": "whole_park",
+          "animal_scope": "dog",
+          "action": "enter",
+          "effect": "prohibited",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "动物",
+          "subject_scope_normalized": "dog",
+          "normalization_type": "compound_term_split",
+          "normative_effect": "prohibition",
+          "holder_scope": "any_handler",
+          "conditions": [],
+          "confidence": 0.85,
+          "review_note": "来源（本地宝 2025-03-11 转述顾村公园游园须知）原文「未经许可，不得携带各种动物入园」；本条为已声明拆分（compound_term_split）的 dog 成员，未建模动物保持 UNKNOWN。二级来源仅作 lead，needs_verification=True，不得静默升级（§27）。"
+        },
+        {
+          "rule_id": "park_gucun-no-animal-cat-enter",
+          "source_key": "gucun_secondary_rules",
+          "fragment": "no_animals",
+          "zone_key": "whole_park",
+          "animal_scope": "cat",
+          "action": "enter",
+          "effect": "prohibited",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "动物",
+          "subject_scope_normalized": "cat",
+          "normalization_type": "compound_term_split",
+          "normative_effect": "prohibition",
+          "holder_scope": "any_handler",
+          "conditions": [],
+          "confidence": 0.85,
+          "review_note": "来源（本地宝 2025-03-11 转述顾村公园游园须知）原文「未经许可，不得携带各种动物入园」；本条为已声明拆分（compound_term_split）的 cat 成员，未建模动物保持 UNKNOWN。二级来源仅作 lead，needs_verification=True，不得静默升级（§27）。"
+        },
+        {
+          "rule_id": "park_gucun-no-animal-other-enter",
+          "source_key": "gucun_secondary_rules",
+          "fragment": "no_animals",
+          "zone_key": "whole_park",
+          "animal_scope": "other",
+          "action": "enter",
+          "effect": "prohibited",
+          "rule_layer": "OPERATOR_POLICY",
+          "mandatory_level": "operator_discretion",
+          "source_scope_exact": "动物",
+          "subject_scope_normalized": "other",
+          "normalization_type": "compound_term_split",
+          "normative_effect": "prohibition",
+          "holder_scope": "any_handler",
+          "conditions": [],
+          "confidence": 0.85,
+          "review_note": "来源（本地宝 2025-03-11 转述顾村公园游园须知）原文「未经许可，不得携带各种动物入园」；本条为已声明拆分（compound_term_split）的 other 成员，未建模动物保持 UNKNOWN。二级来源仅作 lead，needs_verification=True，不得静默升级（§27）。"
+        }
+      ],
+      "observations": []
+    }
+  ]
+}

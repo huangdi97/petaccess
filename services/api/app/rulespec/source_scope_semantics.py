@@ -92,6 +92,14 @@ SOURCE_TERM_READINGS: dict[str, dict] = {
     # --- equivalences: the term names exactly the stored scope -----------------
     "犬只": {"equivalent_to": "dog", "note": "「犬只」即犬类，含全部犬类角色。"},
     "犬": {"equivalent_to": "dog", "note": "「犬」即犬类。"},
+    "犬类": {
+        "equivalent_to": "dog",
+        "note": "「犬类」即犬类（虹口区携宠试点公告用语，2026-09-19 声明），语义同 dog。",
+    },
+    "猫类": {
+        "equivalent_to": "cat",
+        "note": "「猫类」即猫（虹口区携宠试点公告用语，2026-09-19 声明），语义同 cat。",
+    },
     "狗狗": {"equivalent_to": "dog", "note": "「狗狗」为犬只的口语表述，语义同 dog。"},
     "宠物": {"equivalent_to": "ordinary_pet", "note": "「宠物」即普通宠物（不含服务犬）。"},
     "携带宠物者": {"equivalent_to": "ordinary_pet", "note": "「携带宠物者」指携带普通宠物的人。"},
