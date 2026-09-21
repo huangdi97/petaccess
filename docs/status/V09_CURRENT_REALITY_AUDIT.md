@@ -275,3 +275,35 @@ HUMAN_ACTION_REQUIRED = WAVE02_FINAL_DECISIONS
 
 Phase 0（本审计）完成；Phase 1（20 条候选 AI 审核与签署建议表）见：
 `docs/expansion/WAVE02_REVIEW_RECOMMENDATIONS.md`
+
+---
+
+## 8. 发布后状态更新（2026-09-21 追加，只读复核）
+
+> 本审计记录的是 Wave02 人类决策**签署前**的实时快照（20 条 REVIEW_PENDING / 26 条
+> access_rule / 无发布）。此后按正式流程发生了事实演进，现追加更新如下，**不改写**
+> 上文任何已记录历史结论，也不回滚已完成发布：
+
+1. `huangdi97` 完成签署：`docs/expansion/review_decisions_expansion_r1_wave02.json`
+   （16 APPROVED / 4 HOLD，`decided_at=2026-09-21T12:12:09.577578Z`，commit `a1c6e2d`）。
+2. 真实发布（**REAL_PUBLISH_EXECUTED = YES**，`2026-09-21T13:20:04Z`）：
+   批次 `EXP-R1-W02-REVIEW-R1-BATCH-01` 16 条 `access_rule` 落库（26 → **42**），
+   16 条候选 `REVIEW_PENDING → PUBLISHED`（`published_rule_id` 非空），
+   4 条 HOLD（辰山 + 顾村 ×3）保持 `REVIEW_PENDING` 未发布。
+   三方一致证据：`artifacts/wave02_publish_receipt.json` + audit_log
+   （16 candidate.transition + 16 candidate.publish）+ DB 快照。
+3. 发布后验证（本会话实测）：
+   - second execute（同一发布器 dry-run 重放）= **16/16 NOOP**，零写入；
+   - canonical resolver 逐条 16/16 效应一致（含豫园导盲犬豁免 conditional）；
+   - 生产完整性扫描 **CRITICAL=0 / HIGH=0**（MEDIUM 仅历史存量
+     `AUDIT_TARGET_ID_UNUSABLE`）。
+4. 全部事实与明细见：
+   - `docs/expansion/WAVE02_RULE_PUBLISH_EXECUTION_REPORT.md`
+   - `docs/expansion/WAVE02_RULE_POSTPUBLISH_VERIFY.md`
+   - `docs/expansion/WAVE02_RULE_CLOSURE_REPORT.md`
+
+```diff
+- HUMAN_ACTION_REQUIRED = WAVE02_FINAL_DECISIONS          （本审计终止态，历史）
++ WAVE02_RULE_TRACK     = CLOSED                          （发布后状态）
++ 下一 Human Checkpoint = PUBLIC_BETA_RELEASE_AUTHORIZATION（按母版推进至工程阶段后）
+```
