@@ -1,0 +1,26 @@
+{
+  "_schema": "publish batch manifest v1 — Wave-02 safe batch (proposed, NOT executed)",
+  "revision": "EXP-R1-W02-REVIEW-R1",
+  "batch_id": "EXP-R1-W02-REVIEW-R1-BATCH-01",
+  "reviewer": "huangdi97",
+  "candidate_ids": [
+    "7774a487-dbe4-462a-9c36-433803a3563e",
+    "afe409b1-3a21-41a5-bd3c-aa0996477c44",
+    "f80c6071-28f0-4fe7-837d-41d6752ed0a4",
+    "4b4b4e07-73e9-4a47-8728-cff6b3e1488a",
+    "630e1c0d-c9b6-4a15-ad8d-d31e3268b126",
+    "97d564fa-4de4-418a-bc40-ddcca0c1e8ea",
+    "700dcd4d-6e15-4d87-bf13-5b77cab049cb",
+    "237512f7-6ce0-43cb-a207-4481dd6e9056",
+    "c111a1a1-6660-43fe-a663-dd19e0c1d6eb",
+    "eba1843a-46d2-4aab-9553-9efcbf74a5c5",
+    "ec883c91-5c80-4754-8309-f6791ec9e565",
+    "98d2b355-4fc1-4c15-ac7a-6b44188636ea",
+    "da0c270c-71b1-4163-bb4a-095ba6bfe8d7",
+    "d5551907-08dc-4d66-a6b7-50631c81581e",
+    "5f22e9a1-fd74-44a2-a0d4-312d98939ba2",
+    "91970069-b691-4c3f-bd48-c4fca505e349"
+  ],
+  "execution_status": "PROPOSED_DRY_RUN_ONLY",
+  "note": "PROPOSED manifest for the REAL_PUBLISH_AUTHORIZATION checkpoint. It names the 16 human-APPROVED Wave-02 candidates that PASSED the live pre-publish gate (evaluate_for_publish). Permission is NOT stored here; final_decision is read from the signed registry. Execution requires huangdi97 explicit REAL_PUBLISH_AUTHORIZATION."
+}

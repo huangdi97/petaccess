@@ -2,8 +2,8 @@
   "revision": "EXP-R1-W02-REVIEW-R1",
   "expansion_run_id": "EXP-R1-W02-20260919",
   "generated_at": "2026-09-20T05:42:34.102699+00:00",
-  "reviewer": "",
-  "decided_at": "",
+  "reviewer": "huangdi97",
+  "decided_at": "2026-09-21T12:12:09.577578Z",
   "note": "人工决策字段必须留空由复核人填写；本文件由生成器产出，不得预填 final_decision（§3, §42-§45）。",
   "rows": [
     {
@@ -21,9 +21,9 @@
       "mandatory_level": "operator_discretion",
       "evidence_bundle_id": "6a54fd30-f5d7-42b6-830b-ef952b8a089a",
       "source_type": "official_operator_policy",
-      "final_decision": null,
-      "reviewer": "",
-      "decided_at": null,
+      "final_decision": "APPROVED",
+      "reviewer": "huangdi97",
+      "decided_at": "2026-09-21T12:12:09.577578Z",
       "decision_note": ""
     },
     {
@@ -41,9 +41,9 @@
       "mandatory_level": "operator_discretion",
       "evidence_bundle_id": "6a54fd30-f5d7-42b6-830b-ef952b8a089a",
       "source_type": "official_operator_policy",
-      "final_decision": null,
-      "reviewer": "",
-      "decided_at": null,
+      "final_decision": "APPROVED",
+      "reviewer": "huangdi97",
+      "decided_at": "2026-09-21T12:12:09.577578Z",
       "decision_note": ""
     },
     {
@@ -61,9 +61,9 @@
       "mandatory_level": "operator_discretion",
       "evidence_bundle_id": "6a54fd30-f5d7-42b6-830b-ef952b8a089a",
       "source_type": "official_operator_policy",
-      "final_decision": null,
-      "reviewer": "",
-      "decided_at": null,
+      "final_decision": "APPROVED",
+      "reviewer": "huangdi97",
+      "decided_at": "2026-09-21T12:12:09.577578Z",
       "decision_note": ""
     },
     {
@@ -81,9 +81,9 @@
       "mandatory_level": "operator_discretion",
       "evidence_bundle_id": "487b18dc-e07e-4fe4-9715-3ce9ac9086ad",
       "source_type": "government_service",
-      "final_decision": null,
-      "reviewer": "",
-      "decided_at": null,
+      "final_decision": "APPROVED",
+      "reviewer": "huangdi97",
+      "decided_at": "2026-09-21T12:12:09.577578Z",
       "decision_note": ""
     },
     {
@@ -101,9 +101,9 @@
       "mandatory_level": "operator_discretion",
       "evidence_bundle_id": "487b18dc-e07e-4fe4-9715-3ce9ac9086ad",
       "source_type": "government_service",
-      "final_decision": null,
-      "reviewer": "",
-      "decided_at": null,
+      "final_decision": "APPROVED",
+      "reviewer": "huangdi97",
+      "decided_at": "2026-09-21T12:12:09.577578Z",
       "decision_note": ""
     },
     {
@@ -121,9 +121,9 @@
       "mandatory_level": "operator_discretion",
       "evidence_bundle_id": "487b18dc-e07e-4fe4-9715-3ce9ac9086ad",
       "source_type": "government_service",
-      "final_decision": null,
-      "reviewer": "",
-      "decided_at": null,
+      "final_decision": "APPROVED",
+      "reviewer": "huangdi97",
+      "decided_at": "2026-09-21T12:12:09.577578Z",
       "decision_note": ""
     },
     {
@@ -141,9 +141,9 @@
       "mandatory_level": "operator_discretion",
       "evidence_bundle_id": "e2a1cc19-ce5d-49ff-bae7-c5a97f0f6742",
       "source_type": "official_operator_policy",
-      "final_decision": null,
-      "reviewer": "",
-      "decided_at": null,
+      "final_decision": "APPROVED",
+      "reviewer": "huangdi97",
+      "decided_at": "2026-09-21T12:12:09.577578Z",
       "decision_note": ""
     },
     {
@@ -161,10 +161,10 @@
       "mandatory_level": "operator_discretion",
       "evidence_bundle_id": "1fab6943-16aa-4cb7-bf26-aed4529ba207",
       "source_type": "official_operator_policy",
-      "final_decision": null,
-      "reviewer": "",
-      "decided_at": null,
-      "decision_note": ""
+      "final_decision": "HOLD",
+      "reviewer": "huangdi97",
+      "decided_at": "2026-09-21T12:12:09.577578Z",
+      "decision_note": "OFFICIAL_PAGE_VERBATIM_VERIFICATION_REQUIRED"
     },
     {
       "candidate_id": "237512f7-6ce0-43cb-a207-4481dd6e9056",
@@ -181,9 +181,9 @@
       "mandatory_level": "operator_discretion",
       "evidence_bundle_id": "ae53ab55-411b-49d1-8a90-1a89ff92fb0f",
       "source_type": "official_operator_policy",
-      "final_decision": null,
-      "reviewer": "",
-      "decided_at": null,
+      "final_decision": "APPROVED",
+      "reviewer": "huangdi97",
+      "decided_at": "2026-09-21T12:12:09.577578Z",
       "decision_note": ""
     },
     {
@@ -201,9 +201,9 @@
       "mandatory_level": "operator_discretion",
       "evidence_bundle_id": "7869b9cf-1f73-4d34-a2b1-fcdc763db55f",
       "source_type": "official_operator_policy",
-      "final_decision": null,
-      "reviewer": "",
-      "decided_at": null,
+      "final_decision": "APPROVED",
+      "reviewer": "huangdi97",
+      "decided_at": "2026-09-21T12:12:09.577578Z",
       "decision_note": ""
     },
     {
@@ -221,9 +221,9 @@
       "mandatory_level": "operator_discretion",
       "evidence_bundle_id": "7869b9cf-1f73-4d34-a2b1-fcdc763db55f",
       "source_type": "official_operator_policy",
-      "final_decision": null,
-      "reviewer": "",
-      "decided_at": null,
+      "final_decision": "APPROVED",
+      "reviewer": "huangdi97",
+      "decided_at": "2026-09-21T12:12:09.577578Z",
       "decision_note": ""
     },
     {
@@ -241,9 +241,9 @@
       "mandatory_level": "operator_discretion",
       "evidence_bundle_id": "7869b9cf-1f73-4d34-a2b1-fcdc763db55f",
       "source_type": "official_operator_policy",
-      "final_decision": null,
-      "reviewer": "",
-      "decided_at": null,
+      "final_decision": "APPROVED",
+      "reviewer": "huangdi97",
+      "decided_at": "2026-09-21T12:12:09.577578Z",
       "decision_note": ""
     },
     {
@@ -261,9 +261,9 @@
       "mandatory_level": "operator_discretion",
       "evidence_bundle_id": "fa85fc03-e8bd-424c-aed7-d9db8ea96ae0",
       "source_type": "government_service",
-      "final_decision": null,
-      "reviewer": "",
-      "decided_at": null,
+      "final_decision": "APPROVED",
+      "reviewer": "huangdi97",
+      "decided_at": "2026-09-21T12:12:09.577578Z",
       "decision_note": ""
     },
     {
@@ -281,9 +281,9 @@
       "mandatory_level": "operator_discretion",
       "evidence_bundle_id": "fa85fc03-e8bd-424c-aed7-d9db8ea96ae0",
       "source_type": "government_service",
-      "final_decision": null,
-      "reviewer": "",
-      "decided_at": null,
+      "final_decision": "APPROVED",
+      "reviewer": "huangdi97",
+      "decided_at": "2026-09-21T12:12:09.577578Z",
       "decision_note": ""
     },
     {
@@ -301,9 +301,9 @@
       "mandatory_level": "operator_discretion",
       "evidence_bundle_id": "d672304b-e024-4cf7-afc8-81bb22750a31",
       "source_type": "government_service",
-      "final_decision": null,
-      "reviewer": "",
-      "decided_at": null,
+      "final_decision": "APPROVED",
+      "reviewer": "huangdi97",
+      "decided_at": "2026-09-21T12:12:09.577578Z",
       "decision_note": ""
     },
     {
@@ -321,9 +321,9 @@
       "mandatory_level": "operator_discretion",
       "evidence_bundle_id": "0f2c647a-e8d3-4d68-abbe-c1afdb832855",
       "source_type": "official_operator_policy",
-      "final_decision": null,
-      "reviewer": "",
-      "decided_at": null,
+      "final_decision": "APPROVED",
+      "reviewer": "huangdi97",
+      "decided_at": "2026-09-21T12:12:09.577578Z",
       "decision_note": ""
     },
     {
@@ -341,9 +341,9 @@
       "mandatory_level": "operator_discretion",
       "evidence_bundle_id": "0f2c647a-e8d3-4d68-abbe-c1afdb832855",
       "source_type": "official_operator_policy",
-      "final_decision": null,
-      "reviewer": "",
-      "decided_at": null,
+      "final_decision": "APPROVED",
+      "reviewer": "huangdi97",
+      "decided_at": "2026-09-21T12:12:09.577578Z",
       "decision_note": ""
     },
     {
@@ -361,10 +361,10 @@
       "mandatory_level": "operator_discretion",
       "evidence_bundle_id": "e713bb40-bc7a-4df3-a465-944bc6461a52",
       "source_type": "external_web_reference",
-      "final_decision": null,
-      "reviewer": "",
-      "decided_at": null,
-      "decision_note": ""
+      "final_decision": "HOLD",
+      "reviewer": "huangdi97",
+      "decided_at": "2026-09-21T12:12:09.577578Z",
+      "decision_note": "SECONDARY_SOURCE_NEEDS_FIRST_PARTY_CONFIRMATION"
     },
     {
       "candidate_id": "b6abed36-993c-4861-981b-b392f917a07d",
@@ -381,10 +381,10 @@
       "mandatory_level": "operator_discretion",
       "evidence_bundle_id": "e713bb40-bc7a-4df3-a465-944bc6461a52",
       "source_type": "external_web_reference",
-      "final_decision": null,
-      "reviewer": "",
-      "decided_at": null,
-      "decision_note": ""
+      "final_decision": "HOLD",
+      "reviewer": "huangdi97",
+      "decided_at": "2026-09-21T12:12:09.577578Z",
+      "decision_note": "SECONDARY_SOURCE_NEEDS_FIRST_PARTY_CONFIRMATION"
     },
     {
       "candidate_id": "c6c5b74d-86ec-45e8-b412-2db94e934969",
@@ -401,10 +401,10 @@
       "mandatory_level": "operator_discretion",
       "evidence_bundle_id": "e713bb40-bc7a-4df3-a465-944bc6461a52",
       "source_type": "external_web_reference",
-      "final_decision": null,
-      "reviewer": "",
-      "decided_at": null,
-      "decision_note": ""
+      "final_decision": "HOLD",
+      "reviewer": "huangdi97",
+      "decided_at": "2026-09-21T12:12:09.577578Z",
+      "decision_note": "SECONDARY_SOURCE_NEEDS_FIRST_PARTY_CONFIRMATION"
     }
   ]
 }
