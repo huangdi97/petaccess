@@ -37,15 +37,15 @@ CANONICAL_DECISIONS = {"APPROVED", "APPROVED_WITH_NOTE", "HOLD", "REJECTED"}
 # Notes reuse the reason labels from the recommendation document; no new
 # business reasoning is invented here.
 DECISIONS: dict[int, tuple[str, str]] = {
-    1: ("APPROVED", ""),   # 7774a487 世博 dog
-    2: ("APPROVED", ""),   # afe409b1 世博 other
-    3: ("APPROVED", ""),   # f80c6071 世博 cat
-    4: ("APPROVED", ""),   # 4b4b4e07 植物园 cat
-    5: ("APPROVED", ""),   # 630e1c0d 植物园 other
-    6: ("APPROVED", ""),   # 97d564fa 植物园 dog
-    7: ("APPROVED", ""),   # 700dcd4d 自然博物馆
-    8: ("HOLD", "OFFICIAL_PAGE_VERBATIM_VERIFICATION_REQUIRED"),   # 81eca767 辰山
-    9: ("APPROVED", ""),   # 237512f7 野生动物园
+    1: ("APPROVED", ""),  # 7774a487 世博 dog
+    2: ("APPROVED", ""),  # afe409b1 世博 other
+    3: ("APPROVED", ""),  # f80c6071 世博 cat
+    4: ("APPROVED", ""),  # 4b4b4e07 植物园 cat
+    5: ("APPROVED", ""),  # 630e1c0d 植物园 other
+    6: ("APPROVED", ""),  # 97d564fa 植物园 dog
+    7: ("APPROVED", ""),  # 700dcd4d 自然博物馆
+    8: ("HOLD", "OFFICIAL_PAGE_VERBATIM_VERIFICATION_REQUIRED"),  # 81eca767 辰山
+    9: ("APPROVED", ""),  # 237512f7 野生动物园
     10: ("APPROVED", ""),  # c111a1a1 共青 dog
     11: ("APPROVED", ""),  # eba1843a 共青 other
     12: ("APPROVED", ""),  # ec883c91 共青 cat

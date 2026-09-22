@@ -30,6 +30,12 @@ const navV05 = [
   { to: "/match-debugger", label: "解析调试 / 可答性" },
 ];
 
+const navReality = [
+  { to: "/reality", label: "Reality 总览" },
+  { to: "/reality/candidates", label: "Reality 候选审核" },
+  { to: "/reality/claims", label: "Reality Claims" },
+];
+
 function onLogout() {
   logout();
   router.push({ name: "login" });
@@ -43,6 +49,8 @@ function onLogout() {
       <RouterLink v-for="n in nav" :key="n.to" :to="n.to">{{ n.label }}</RouterLink>
       <div class="nav-section">v0.5 域模型</div>
       <RouterLink v-for="n in navV05" :key="n.to" :to="n.to">{{ n.label }}</RouterLink>
+      <div class="nav-section">v0.9-R1 Reality 层</div>
+      <RouterLink v-for="n in navReality" :key="n.to" :to="n.to">{{ n.label }}</RouterLink>
       <div class="spacer"></div>
       <button style="margin: 0 16px; width: calc(100% - 32px)" @click="onLogout">退出登录</button>
     </aside>

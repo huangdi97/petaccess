@@ -62,4 +62,21 @@ export const routes: RouteRecordRaw[] = [
     name: "match-debugger",
     component: () => import("./views/MatchDebuggerView.vue"),
   },
+
+  // ---- v0.9-R1: Reality Layer admin surfaces (AC11) ----
+  {
+    path: "/reality",
+    name: "reality-dashboard",
+    component: () => import("./views/RealityDashboardView.vue"),
+  },
+  {
+    path: "/reality/candidates",
+    name: "reality-candidates",
+    component: () => import("./views/RealityCandidateQueueView.vue"),
+  },
+  {
+    path: "/reality/claims",
+    name: "reality-claims",
+    component: () => import("./views/RealityClaimsView.vue"),
+  },
 ];

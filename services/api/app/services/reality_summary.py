@@ -142,7 +142,6 @@ def summarize(
     in_window = [r for r in rows if r.observed_at >= cutoff]
     expired = [r for r in rows if r.expired(now)]
 
-
     # all observed rows considered for last-seen
     all_rows = sorted(rows, key=lambda r: r.observed_at, reverse=True)
 

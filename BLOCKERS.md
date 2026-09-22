@@ -218,3 +218,34 @@ Template per GOAL §2: 缺什么 / 为什么 / 用户要做什么 / 拿到后执
 
 `BLK-LEGAL-01`（法律文本未经执业律师审阅）、`BLK-PLAT-01`（平台审核未提交）、
 `B-01…B-07`（工具链 / 凭证 / 资质）——**均只阻塞各自对应的 Gate**，不阻塞 A / C。
+
+---
+
+## 2026-09-22 会话追加（v0.9-R1 Reality Layer 六阶段推进）
+
+### LOCAL_DOCKER_DESKTOP_ENGINE_UNSTABLE —— Docker daemon 不可达（当前）
+
+> 状态：BLOCKED_EXTERNAL（本轮只探测与记录，不做启动循环；契约边界 #2）
+
+- Type: 执行环境
+- Affected gate: AC2–AC5（Reality DB Migration Verification / 真实持久化 /
+  Migration Drill / 验证文档 PASS）、PostgreSQL 集成、全量 pytest
+  （root conftest fail-closed 需要 TEST DB）、Playwright
+- 实测（2026-09-22 12:44 UTC+8，原始输出存档 scratch `ac1-docker-probe/`）:
+  - `docker version` → client 29.2.1 OK，daemon 连接失败
+    （npipe `//./pipe/dockerDesktopLinuxEngine` 找不到，exit 1）
+  - `docker ps -a` → 同上（exit 1）
+  - named pipe 探测：`\\.\pipe\docker_engine` = False、
+    `\\.\pipe\dockerDesktopLinuxEngine` = False
+- 历史对照: ENV-01（2026-09-14）曾 RESOLVED（PostgreSQL 17.5 + PostGIS healthy、
+  alembic up/down/up 通过、319 passed）；本会话实测再次不可达。
+- Work completed without DB: Reality 静态审计（migration↔ORM 对照）、
+  ruff + mypy + 非 DB 测试子集 28 passed、AC5 文档（NOT_VERIFIED）、
+  测试盘点、Divergence / CoexistenceSnapshot / Consumer / Admin 代码推进。
+- Exact user action: 启动/修复 Docker Desktop（本会话按契约不代做启动尝试）；
+  daemon 稳定后执行 `alembic upgrade head` + `docs/reality/REALITY_DB_MIGRATION_VERIFICATION.md`
+  的执行步骤。
+- Exact verification after resolution: `docker ps` 正常 →
+  `uv run python scripts/isolated_db.py --role TEST --reset` →
+  `DATABASE_URL=…petaccess_test uv run pytest -q` 全量绿；
+  `docs/reality/REALITY_DB_MIGRATION_VERIFICATION.md` 结论改 PASS。

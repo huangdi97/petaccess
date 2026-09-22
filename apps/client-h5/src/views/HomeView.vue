@@ -119,6 +119,20 @@ function submitSearch() {
   void router.push({ name: "search", query: { q } });
 }
 
+// ---- v0.9-R1 home entries: 「你更想先看什么？」 (master §30) ----
+const HOME_ENTRIES: { key: string; label: string; hint: string }[] = [
+  { key: "presence", label: "现场是否有动物出现", hint: "看近期现场记录" },
+  { key: "indoor", label: "室内空间情况", hint: "商场 · 餐厅 · 场馆室内" },
+  { key: "dining", label: "餐饮区域情况", hint: "堂食区 · 户外座位" },
+  { key: "rules", label: "完整规则", hint: "场所全部规则与来源" },
+];
+
+function goEntry(key: string) {
+  // All entries route into the unified search surface with a lens;
+  // the search view renders the matching reality/rule emphasis.
+  void router.push({ name: "search", query: { lens: key } });
+}
+
 function open(id: string) {
   remember(id);
   void router.push({ name: "place", params: { id } });
@@ -256,7 +270,24 @@ onMounted(async () => {
       </span>
     </div>
 
-    <h1 data-testid="home-title">去之前，查清规则</h1>
+    <h1 data-testid="home-title">你更想先看什么？</h1>
+    <p class="muted" style="margin: 4px 0 12px">
+      了解规则，也参考真实的现场情况
+    </p>
+
+    <!-- v0.9-R1 §30 — four first-level entries, not a pet-friendly map -->
+    <div class="home-entries" role="list" aria-label="一级入口">
+      <button
+        v-for="e in HOME_ENTRIES"
+        :key="e.key"
+        class="entry"
+        :data-testid="'entry-' + e.key"
+        @click="goEntry(e.key)"
+      >
+        <span class="entry-label">{{ e.label }}</span>
+        <span class="entry-hint">{{ e.hint }}</span>
+      </button>
+    </div>
 
     <!-- §9.1 search-first -->
     <form class="panel" data-testid="home-search" @submit.prevent="submitSearch">
@@ -404,3 +435,36 @@ onMounted(async () => {
     </footer>
   </AppShell>
 </template>
+
+<style scoped>
+.home-entries {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  margin: 4px 0 16px;
+}
+.entry {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+  padding: 12px;
+  border: 1px solid var(--border, #ddd);
+  border-radius: 10px;
+  background: var(--bg, #fff);
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+}
+.entry:hover {
+  border-color: var(--accent, #2f6fed);
+}
+.entry-label {
+  font-weight: 600;
+  font-size: 14px;
+}
+.entry-hint {
+  font-size: 12px;
+  color: #777;
+}
+</style>

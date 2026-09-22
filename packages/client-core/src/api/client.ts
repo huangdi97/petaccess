@@ -154,6 +154,70 @@ export interface BoundaryMatchResult {
   summary: { match: number; conflict: number; unknown: number; note: string };
 }
 
+/**
+ * v0.9-R1 Reality Layer consumer types.
+ *
+ * Shape mirrors the backend schemas (app/schemas/reality.py) and the
+ * coexistence snapshot service (app/services/coexistence_snapshot.py).
+ * Reality = what was OBSERVED on site — never a rule, never a score.
+ */
+export interface StaffResponseSummaryItem {
+  response_action: string;
+  count: number;
+}
+
+export interface FacilitySummaryItem {
+  facility_type: string;
+  count: number;
+  operational_state: string;
+  last_verified_at: string | null;
+}
+
+export interface RealityAnswer {
+  /** One of the six RealitySummary states (OBSERVED_RECENTLY / ... / DISPUTED). */
+  state: string;
+  last_seen_at: string | null;
+  evidence_count: number;
+  distinct_source_count: number;
+  observed_zones: string[];
+  observed_actions: string[];
+  staff_response_summary: StaffResponseSummaryItem[];
+  facility_summary: FacilitySummaryItem[];
+  freshness_state: string | null;
+  verification_state: string | null;
+  recent_count_7d: number;
+  recent_count_30d: number;
+  days_since_last_seen: number | null;
+  note: string | null;
+}
+
+export interface RuleRealityDivergence {
+  state: string;
+  rule_effect: string;
+  reality_state: string;
+  note: string;
+}
+
+export interface EvidenceSummary {
+  rule_evidence: AccessAnswerEvidence[];
+  rule_first_party_pending: boolean;
+  reality_evidence_count: number;
+  reality_distinct_source_count: number;
+  reality_verification_state: string | null;
+}
+
+export interface CoexistenceSnapshot {
+  place_id: string;
+  generated_at: string;
+  version: string;
+  rule_answer: AccessAnswer;
+  reality_answer: RealityAnswer;
+  staff_response_summary: StaffResponseSummaryItem[];
+  facility_summary: FacilitySummaryItem[];
+  divergence: RuleRealityDivergence;
+  evidence_summary: EvidenceSummary;
+}
+
 export interface AnswerCell {
   question: string;
   state: string;
@@ -644,6 +708,26 @@ export const client = {
   ) {
     return api.request<AccessAnswer>("post", `/places/${placeId}/access-answer`, { body });
   },
+  /**
+   * v0.9-R1: a signed-in visitor contributes an on-site reality fact (§25.2).
+   * Lands as a REVIEW_PENDING candidate; AI never sets reality_decision.
+   */
+  async submitRealityContribution(
+    placeId: string,
+    body: {
+      candidate_type: "observed_presence" | "staff_response" | "animal_facility";
+      zone_id?: string | null;
+      animal_scope?: string | null;
+      observed_at?: string | null;
+      payload?: Record<string, unknown> | null;
+    },
+  ) {
+    return api.request<{ id: string }>(
+      "post",
+      `/places/${placeId}/reality/contributions`,
+      { body },
+    );
+  },
   async boundaryProfiles() {
     return api.request<{ items: BoundaryProfile[] }>("get", "/boundary-profiles");
   },
@@ -668,5 +752,30 @@ export const client = {
   },
   async placeExtras(placeId: string) {
     return api.request<PlaceExtras>("get", `/places/${placeId}/extras`);
+  },
+  async placeReality(placeId: string) {
+    return api.request<RealityAnswer>("get", `/places/${placeId}/reality`);
+  },
+  /**
+   * CoexistenceSnapshot — the ONE aggregate every consumer surface reads
+   * (v0.9 §9 / AC9). Home / Search / Map / Place must call this instead of
+   * recomputing rule or reality themselves.
+   */
+  async coexistenceSnapshot(
+    placeId: string,
+    body: {
+      animal?: string;
+      service_role?: string;
+      action?: string;
+      zone_id?: string | null;
+      declared_role?: string | null;
+      holder_scopes?: string[];
+    } = {},
+  ) {
+    return api.request<CoexistenceSnapshot>(
+      "post",
+      `/places/${placeId}/coexistence`,
+      { body },
+    );
   },
 };

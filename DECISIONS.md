@@ -259,3 +259,45 @@
   人为裁决红线）；`pytest` 28 passed；`ruff` / `mypy` 0 errors。
 - Migration impact: additive（`2c7ea6ca8e30`，4 表 + FK + 索引，downgrade 完整）。
 - Status: accepted.
+
+---
+
+## ADR-029 — 统一消费快照：CoexistenceSnapshot 是 Home/Search/Map/Place 的唯一聚合，
+  Divergence 只描述差异、永不改写规则与现实
+
+- Context: v0.9-R1 消费端必须同时呈现规则面（AccessAnswer）与现实面
+  （RealityAnswer）。若每个页面各自调用两个端点再自行拼装，会出现两类漂移：
+  (a) 同一状态在 Home、Map、Place 被三套话术描述；(b) 页面「自己算」规则结论
+  （AGENTS 红线「禁止页面自行算 Rule」）。此外「规则说禁止但现场有动物」这类
+  跨层差异此前没有统一词汇，页面只能各自发明。
+- Decision:
+  (1) 新增 `app/services/coexistence_snapshot.py`：纯函数 `build_coexistence_snapshot`
+      把 RuleAnswer + RealityAnswer + StaffResponseSummary + FacilitySummary +
+      RuleRealityDivergence + EvidenceSummary 装进一个不可变快照（含 version 字段）；
+      `to_plain` 负责 JSON 安全序列化。Home / Search / Map / Place 一律消费
+      `POST /api/v1/places/{id}/coexistence` 这一端点，禁止各自重新计算。
+  (2) 新增 `app/services/rule_reality_divergence.py`：六状态词汇冷冻
+      （RULE_REALITY_ALIGNED / RULE_PROHIBITS_BUT_OBSERVED /
+      RULE_ALLOWS_BUT_NO_RECENT_RECORD / RULE_UNKNOWN_BUT_OBSERVED /
+      RULE_CONDITIONAL_AND_OBSERVED / INSUFFICIENT_DATA）。Divergence **只描述
+      差异**：它从 rule_answer/reality_answer 派生、echo 输入、绝不修改任何一层；
+      NO_RECENT_RECORD 一律带「≠ 没有动物」措辞；UNKNOWN 规则 + 观察到 =
+      RULE_UNKNOWN_BUT_OBSERVED，绝不转成允许/禁止；DISPUTED / 未核验 → INSUFFICIENT_DATA。
+  (3) 现实贡献独立于规则贡献：新增 `POST /api/v1/places/{id}/reality/contributions`
+      （登录即可，不要求 MODERATOR），三条结构化分支
+      （observed_presence / staff_response / animal_facility）落成 REVIEW_PENDING
+      候选，`verification_status=UNVERIFIED`，`reality_decision` 保持空 —— AI 永不写。
+  (4) Admin 侧 Reality 三页面（Dashboard / CandidateQueue / Claims）直连既有
+      `/admin/reality/*` 端点；候选裁决唯一入口是人工决策端点。
+- Alternatives: 让每个页面自行组合 AccessAnswer + RealityAnswer（拒绝：页面再解释
+  一次状态就多一份无审查解释）；把 Divergence 并入 RealitySummary（拒绝：Divergence
+  是规则×现实的双层关系，不属于任何一层）；贡献直接写发布表（拒绝：违反 ADR-028
+  人工裁决纪律）。
+- Evidence: `services/api/tests/test_rule_reality_divergence.py`（37 用例：六状态
+  全可达 + 24 组笛卡尔积完备且确定性 + 红线）；`test_coexistence_snapshot.py`
+  （10 用例：六合一捆绑、to_plain JSON 安全、Divergence 只描述）；本会话非 DB
+  门禁：pytest 75 passed / ruff 全绿 / mypy 96 files 0 errors / H5·Admin
+  vue-tsc + build 通过（全量 DB 回归待 Docker 恢复后执行，见
+  `docs/reality/TEST_TREE_INVENTORY.md`）。
+- Migration impact: 无（纯代码 + 既有 Reality 表）。
+- Status: accepted.

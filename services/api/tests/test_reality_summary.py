@@ -91,6 +91,7 @@ def test_empty_record_is_not_no_animal():
     # absence of a record is never evidence of absence
     assert s.note and "≠" in s.note  # 暂无记录（≠ 没有动物）
 
+
 def test_single_recent_observation_does_not_become_recurrence():
     s = summarize([row(days_ago=1)], now=NOW)
     assert s.state == OBSERVED_RECENTLY

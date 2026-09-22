@@ -1,7 +1,8 @@
 # PROJECT_STATE.md
 
 ## Current phase
-v0.9-R1 Reality Layer 落地中（后端 P0 完成：schema + freshness 引擎 + 人工裁决 API；前端消费面后续）
+v0.9-R1 Reality Layer 落地中（后端 P0 完成；本会话新增 Divergence /
+CoexistenceSnapshot / 前端 Reality 消费面 / Admin Reality；DB 侧 BLOCKED_EXTERNAL）
 
 ## Reality Layer (v0.9-R1)
 - M3 `4841d66`：枚举 + 4 表（reality_candidate / observed_presence /
@@ -11,16 +12,21 @@ v0.9-R1 Reality Layer 落地中（后端 P0 完成：schema + freshness 引擎 +
 - `24b08ce`：create 候选审计链补全（flush → record_audit）+ ADR-028
 - 红线（测试钉死）：AI 永不写 reality_decision；空记录 ≠ 没有动物；单观察 ≠ 频率；
   过期事实不呈现为近期；staff 身份只存 actor_role；Observation ≠ Rule
-- 测试：`services/api/tests/test_reality_summary.py` 28 用例全过；
-  ruff / mypy 0 errors；迁移 head = `2c7ea6ca8e30`
-- 待办：DB 环境就绪后 `alembic upgrade head` 真实验证（本轮 Postgres 未运行，
-  为 BLOCKED_EXTERNAL）；前端 RealityAnswer / 候选队列页面
+- **2026-09-22 会话（本会话）新增**：
+  - AC8 RuleRealityDivergence（六状态，纯函数 + 37 测试）
+  - AC9 CoexistenceSnapshot 统一聚合（service + `POST /places/{id}/coexistence`
+    端点 + 10 测试）；Home/Search/Map/Place 一律消费同一快照
+  - AC10 H5 消费面：Home 一级入口（你更想先看什么？）、Place 第一屏 RealityPanel、
+    Search lens、Contribute Reality 三分支（我刚刚看到动物 / 工作人员怎么处理 /
+    动物相关设施）→ `POST /places/{id}/reality/contributions`
+  - AC11 Admin Reality：Dashboard / CandidateQueue / Claims 三页面 + 路由 + 导航
+  - client-core 新增 RealityAnswer / CoexistenceSnapshot 类型与 4 个 API 方法
+  - 非 DB 测试子集：**75 passed**（28 存量 + 47 新增）；ruff 全绿；
+    mypy 96 files / 0 errors；H5/Admin vue-tsc + build 通过
+- 待办：DB 环境就绪后 `alembic upgrade head` 真实验证（本轮 Docker daemon 不可达，
+  为 BLOCKED_EXTERNAL，见 BLOCKERS.md LOCAL_DOCKER_DESKTOP_ENGINE_UNSTABLE）；
+  Playwright / 全量 pytest / 30-Place Reality Audit 等 DB 依赖项
 
-## Current phase
-RC-READY（Stage A 本地垂直切片完成；Stage C 真实 Provider 等外部凭证）
-
-## Last verified
-2026-09-12
 
 ## Completed（全部 13 个 Phase 的本地可实现部分）
 - Phase 0: monorepo（uv workspace + pnpm workspace）、docker compose（PostGIS/Redis/MinIO）、

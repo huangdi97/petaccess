@@ -24,7 +24,7 @@ from sqlalchemy.orm import Session
 
 from app.core.audit import record_audit
 from app.core.audit_events import AuditEvent
-from app.core.errors import NotFound
+from app.core.errors import ApiError, NotFound
 from app.core.security import get_optional_user, require_role
 from app.db.session import get_db
 from app.models import (
@@ -61,6 +61,7 @@ from app.services.reality_summary import (
 
 router = APIRouter(tags=["reality"])
 admin = APIRouter(tags=["admin:reality"])
+
 
 def _freshness_state(observed_at: datetime | None) -> RealityFreshnessState | None:
     """Map a summary-bucket string onto the stored enum value."""
@@ -180,6 +181,77 @@ def place_reality(
         days_since_last_seen=summary.days_since_last_seen,
         note=summary.note,
     )
+
+
+# ---------------------------------------------------------------------------
+# Consumer — Reality contribution (v0.9 §25.2, AC10)
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/places/{place_id}/reality/contributions",
+    response_model=RealityCandidateOut,
+    status_code=201,
+)
+def contribute_reality(
+    place_id: str,
+    body: RealityCandidateIn,
+    db: Session = Depends(get_db),
+    user: User | None = Depends(get_optional_user),
+) -> RealityCandidate:
+    """A signed-in visitor contributes an on-site reality fact (v0.9 §25.2).
+
+    Three structured branches map onto the three candidate types:
+
+    - ``observed_presence`` — 「我刚刚看到动物」 (animal, where, count, action)
+    - ``staff_response``    — 「我看到工作人员怎么处理」
+    - ``animal_facility``   — 「我发现这里有动物相关设施」
+
+    The entry lands as a REVIEW_PENDING candidate with ``reality_decision``
+    untouched — AI never sets it. Reviewer role lives on the admin endpoint.
+    Unknown never becomes allowed; a contribution never becomes a rule.
+    """
+    if user is None:
+        raise ApiError("请先登录再贡献现场情况", code="auth_required", status_code=401)
+    if db.get(Place, place_id) is None:
+        raise NotFound("场所不存在")
+
+    cand = RealityCandidate(
+        candidate_type=body.candidate_type,
+        place_id=place_id,
+        zone_id=body.zone_id,
+        source_id=body.source_id,
+        evidence_bundle_id=body.evidence_bundle_id,
+        animal_scope=body.animal_scope.value if body.animal_scope else None,
+        observed_at=body.observed_at,
+        captured_at=body.captured_at,
+        payload=body.payload,
+        review_status="REVIEW_PENDING",
+        verification_status=RealityVerificationStatus.UNVERIFIED,
+    )
+    if cand.observed_at is not None:
+        cand.freshness_state = _freshness_state(cand.observed_at)
+    db.add(cand)
+    db.flush()
+    record_audit(
+        db,
+        request=None,
+        actor_user_id=user.id,
+        actor_role=str(user.role),
+        action=AuditEvent.REALITY_CANDIDATE_CREATE.value,
+        target_type="reality_candidate",
+        target_id=str(cand.id),
+        after_state={
+            "candidate_type": cand.candidate_type,
+            "place_id": cand.place_id,
+            "review_status": cand.review_status,
+            "verification_status": cand.verification_status.value,
+            "submitted_by_contributor": True,
+        },
+    )
+    db.commit()
+    db.refresh(cand)
+    return cand
 
 
 # ---------------------------------------------------------------------------
@@ -447,3 +519,199 @@ def admin_list_facilities(
     total = db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
     rows = db.scalars(stmt.limit(limit).offset(offset)).all()
     return Page(items=rows, total=total, limit=limit, offset=offset)
+
+
+# ---------------------------------------------------------------------------
+# CoexistenceSnapshot — the one aggregate every consumer surface reads (v0.9 §9, AC9)
+# ---------------------------------------------------------------------------
+
+
+@router.post("/places/{place_id}/coexistence")
+def coexistence_snapshot(place_id: str, body: dict, db: Session = Depends(get_db)) -> dict:
+    """Assemble the single CoexistenceSnapshot for a place (v0.9 §9 / AC9).
+
+    Body is the same shape as ``POST /places/{place_id}/access-answer``:
+
+        {"animal": "dog", "service_role": "none", "action": "enter",
+         "zone_id": null, "declared_role": "guide_dog" (optional),
+         "holder_scopes": [...] (optional)}
+
+    The response bundles, in one object:
+
+    - ``rule_answer``           — full AccessAnswer (unified rule model)
+    - ``reality_answer``        — RealityAnswer (six-state reality summary)
+    - ``staff_response_summary``— action counts (facts only)
+    - ``facility_summary``      — facility facts with verified freshness
+    - ``divergence``            — RuleRealityDivergence (describes only)
+    - ``evidence_summary``      — rule evidence + reality evidence side by side
+
+    Home / Search / Map / Place must all read this endpoint instead of
+    recomputing rule or reality themselves (「禁止页面自行算 Rule」).
+    """
+    from app.models import Zone
+    from app.rulespec.access_answer import (
+        PlaceFacts,
+        ZoneFacts,
+        as_plain,
+        build_access_answer,
+    )
+    from app.rulespec.holder_scope import HolderContext
+    from app.rulespec.v05_resolver import resolve
+    from app.services.coexistence_snapshot import build_coexistence_snapshot, to_plain
+
+    place = db.get(Place, place_id)
+    if place is None:
+        raise NotFound("场所不存在")
+
+    zone: Zone | None = None
+    if body.get("zone_id"):
+        zone = db.get(Zone, body["zone_id"])
+        if zone is not None and zone.place_id != place_id:
+            raise NotFound("区域不属于该场所")
+
+    from app.api.v1.v05 import _load_layered_rules, _load_rule_facts
+
+    grouped = _load_layered_rules(db, place_id)
+    holder_scopes = body.get("holder_scopes")
+    now = datetime.now(UTC)
+    rs = resolve(
+        legal=grouped["legal"],
+        guidance=grouped["guidance"],
+        template_rules=grouped["template"],
+        operator_rules=grouped["operator"],
+        event_rules=grouped["events"],
+        animal=body.get("animal", "dog"),
+        service_role=body.get("service_role", "none"),
+        action=body.get("action", "enter"),
+        zone_id=body.get("zone_id"),
+        now=now,
+        exceptions=grouped["exceptions"],
+        declared_role=body.get("declared_role"),
+        holder_context=HolderContext.of(*holder_scopes) if holder_scopes is not None else None,
+    )
+    rule_facts = _load_rule_facts(db, [str(r.id) for r in rs.applicable_rules])
+    rule_answer = as_plain(
+        build_access_answer(
+            query={
+                "place_id": place_id,
+                "zone_id": body.get("zone_id"),
+                "animal": body.get("animal", "dog"),
+                "service_role": body.get("service_role", "none"),
+                "declared_role": body.get("declared_role"),
+                "action": body.get("action", "enter"),
+                "holder_scopes_supplied": holder_scopes,
+            },
+            place=PlaceFacts(
+                id=place.id, canonical_name=place.canonical_name, place_type=place.place_type
+            ),
+            zone=ZoneFacts(id=zone.id, name=zone.name, zone_type=zone.zone_type) if zone else None,
+            rule_set=rs,
+            rule_facts=rule_facts,
+        )
+    )
+
+    reality_answer = _reality_answer_for_place(db, place_id, now)
+
+    snapshot = build_coexistence_snapshot(
+        place_id=place_id,
+        rule_answer=rule_answer,
+        reality_answer=reality_answer,
+        staff_response_summary=reality_answer.get("staff_response_summary", []),
+        facility_summary=reality_answer.get("facility_summary", []),
+        now=now,
+    )
+    return to_plain(snapshot)
+
+
+def _reality_answer_for_place(db: Session, place_id: str, now: datetime) -> dict:
+    """Build the consumer RealityAnswer dict (same logic as GET /reality)."""
+    from app.services.reality_summary import _Row, summarize
+
+    claims = db.scalars(
+        select(ObservedPresence)
+        .where(
+            ObservedPresence.place_id == place_id,
+            ObservedPresence.verification_status.in_(
+                [
+                    RealityVerificationStatus.HUMAN_VERIFIED.value,
+                    RealityVerificationStatus.HUMAN_VERIFIED_WITH_NOTE.value,
+                ]
+            ),
+        )
+        .order_by(ObservedPresence.observed_at.asc())
+    ).all()
+    rows = [
+        _Row(
+            observed_at=c.observed_at,
+            source_id=c.source_id,
+            evidence_id=c.evidence_bundle_id,
+            zone_name=None,
+            action=c.observed_action.value if c.observed_action else None,
+            human_verified=True,
+        )
+        for c in claims
+    ]
+    summary = summarize(rows, now=now)
+
+    srows = db.execute(
+        select(StaffResponseObservation.response_action, func.count())
+        .where(
+            StaffResponseObservation.place_id == place_id,
+            StaffResponseObservation.verification_status.in_(
+                [
+                    RealityVerificationStatus.HUMAN_VERIFIED.value,
+                    RealityVerificationStatus.HUMAN_VERIFIED_WITH_NOTE.value,
+                ]
+            ),
+        )
+        .group_by(StaffResponseObservation.response_action)
+    ).all()
+    staff_summary = [
+        {"response_action": a, "count": n} for a, n in sorted(srows, key=lambda x: str(x[0])) if a
+    ]
+
+    frows = db.execute(
+        select(
+            AnimalFacility.facility_type,
+            AnimalFacility.operational_state,
+            func.count(),
+            func.max(AnimalFacility.last_verified_at),
+        )
+        .where(
+            AnimalFacility.place_id == place_id,
+            AnimalFacility.verification_status.in_(
+                [
+                    RealityVerificationStatus.HUMAN_VERIFIED.value,
+                    RealityVerificationStatus.HUMAN_VERIFIED_WITH_NOTE.value,
+                ]
+            ),
+            AnimalFacility.operational_state != "removed",
+        )
+        .group_by(AnimalFacility.facility_type, AnimalFacility.operational_state)
+    ).all()
+    facility_summary = [
+        {
+            "facility_type": ft,
+            "count": n,
+            "operational_state": st,
+            "last_verified_at": maxv,
+        }
+        for ft, st, n, maxv in frows
+    ]
+
+    return {
+        "state": summary.state,
+        "last_seen_at": summary.last_seen_at,
+        "evidence_count": summary.evidence_count,
+        "distinct_source_count": summary.distinct_source_count,
+        "observed_zones": list(summary.observed_zones),
+        "observed_actions": list(summary.observed_actions),
+        "staff_response_summary": staff_summary,
+        "facility_summary": facility_summary,
+        "freshness_state": summary.freshness_state,
+        "verification_state": summary.verification_state,
+        "recent_count_7d": summary.recent_count_7d,
+        "recent_count_30d": summary.recent_count_30d,
+        "days_since_last_seen": summary.days_since_last_seen,
+        "note": summary.note,
+    }

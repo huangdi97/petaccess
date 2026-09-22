@@ -24,7 +24,7 @@ import { useOnline } from "../composables/useOnline";
  * - Raw GPS is never sent; only the on-site proximity buckets (ADR-012).
  */
 
-type Step = "entry" | "quick" | "signage" | "rule" | "experience" | "done";
+type Step = "entry" | "quick" | "signage" | "rule" | "experience" | "reality" | "done";
 
 const route = useRoute();
 // Empty string, not the literal "undefined": `/#/contribute` with no id is a
@@ -279,6 +279,69 @@ async function submitObservation() {
     busy.value = false;
   }
 }
+
+// ---- v0.9-R1 §25.2 Reality contribution — three structured branches ----
+type RealityKind = "observed_presence" | "staff_response" | "animal_facility";
+const realityKind = ref<RealityKind | "">("");
+const realityAnimal = ref("dog");
+const realityZone = ref("");
+const realityCount = ref("");
+const realityAction = ref("");
+const realityContext = ref("");
+const realityStaffAction = ref("");
+const realityStaffOutcome = ref("");
+const realityFacilityType = ref("");
+const realityFacilityOperational = ref("active");
+
+const REALITY_KIND_LABELS: Record<RealityKind, string> = {
+  observed_presence: "我刚刚看到动物",
+  staff_response: "我看到工作人员怎么处理",
+  animal_facility: "我发现这里有动物相关设施",
+};
+
+function startReality(kind: RealityKind) {
+  realityKind.value = kind;
+  step.value = "reality";
+}
+
+async function submitReality() {
+  if (!realityKind.value || !canSubmit.value) return;
+  error.value = "";
+  busy.value = true;
+  try {
+    const kind = realityKind.value;
+    const payload: Record<string, unknown> = {};
+    if (kind === "observed_presence") {
+      payload.animal_scope = realityAnimal.value;
+      payload.animal_count_estimate = realityCount.value ? Number(realityCount.value) : null;
+      payload.observed_action = realityAction.value || "present";
+      payload.observed_context = realityContext.value.trim() || null;
+    } else if (kind === "staff_response") {
+      payload.actor_role = "staff";
+      payload.trigger_context = realityContext.value.trim() || null;
+      payload.response_action = realityStaffAction.value || "provided_guidance";
+      payload.response_outcome = realityStaffOutcome.value.trim() || null;
+    } else {
+      payload.facility_type = realityFacilityType.value || "waiting_area";
+      payload.operator_provided = false;
+      payload.operational_state = realityFacilityOperational.value;
+    }
+    await client.submitRealityContribution(placeId.value, {
+      candidate_type: kind,
+      zone_id: (realityZone.value || zone.value) || null,
+      animal_scope: kind === "observed_presence" ? realityAnimal.value : null,
+      observed_at: new Date(occurredAt.value).toISOString(),
+      payload,
+    });
+    msg.value =
+      "现场情况已提交，进入人工审核队列。AI 不会自动裁定 —— 审核通过后才作为现场事实展示。";
+    step.value = "done";
+  } catch (e) {
+    error.value = e instanceof ApiError ? e.message : String(e);
+  } finally {
+    busy.value = false;
+  }
+}
 </script>
 
 <template>
@@ -342,6 +405,20 @@ async function submitObservation() {
               我有现场经历
             </button>
           </div>
+          <div class="row" style="margin-top: 10px; border-top: 1px dashed var(--border, #ddd); padding-top: 10px">
+            <button
+              v-for="(label, kind) in REALITY_KIND_LABELS"
+              :key="kind"
+              class="pill"
+              :data-testid="'entry-reality-' + kind"
+              @click="startReality(kind as RealityKind)"
+            >
+              {{ label }}
+            </button>
+          </div>
+          <p class="muted" style="margin-top: 6px">
+            v0.9 现场贡献：只回答结构化问题；提交进入人工审核队列，AI 不会自动裁定。
+          </p>
         </template>
 
         <!-- ------------------------------------------------------ quick check -->
@@ -574,6 +651,99 @@ async function submitObservation() {
               @click="submitObservation"
             >
               {{ busy ? "提交中…" : "提交现场记录" }}
+            </button>
+            <button :disabled="busy" @click="reset">返回</button>
+          </div>
+        </template>
+
+        <!-- ------------------------------------------------- reality (v0.9 §25.2) -->
+        <template v-else-if="step === 'reality'">
+          <strong>{{ REALITY_KIND_LABELS[realityKind as RealityKind] }}</strong>
+          <p class="muted" style="margin-top: 4px">
+            只回答结构化问题。提交进入人工审核队列，AI 不会自动裁定。
+          </p>
+
+          <div v-if="zones.length" class="row" style="margin-top: 10px">
+            <label class="muted" style="margin-right: 8px">区域：</label>
+            <select v-model="realityZone">
+              <option value="">（未指定区域）</option>
+              <option v-for="z in zones" :key="z.id" :value="z.id">{{ z.name }}</option>
+            </select>
+          </div>
+
+          <template v-if="realityKind === 'observed_presence'">
+            <div class="row" style="margin-top: 10px">
+              <label class="muted" style="margin-right: 8px">动物：</label>
+              <select v-model="realityAnimal">
+                <option value="dog">犬</option>
+                <option value="cat">猫</option>
+                <option value="other">其他</option>
+              </select>
+              <label class="muted" style="margin: 0 8px">大概几只：</label>
+              <input v-model="realityCount" type="number" min="1" placeholder="1" style="width: 72px" />
+            </div>
+            <div class="row" style="margin-top: 10px">
+              <label class="muted" style="margin-right: 8px">在做什么：</label>
+              <select v-model="realityAction">
+                <option value="present">在场</option>
+                <option value="walking">行走</option>
+                <option value="waiting">等待</option>
+                <option value="entering">进入</option>
+                <option value="dining">用餐</option>
+              </select>
+            </div>
+          </template>
+
+          <template v-else-if="realityKind === 'staff_response'">
+            <div class="row" style="margin-top: 10px">
+              <label class="muted" style="margin-right: 8px">工作人员做了什么：</label>
+              <select v-model="realityStaffAction">
+                <option value="provided_guidance">引导 / 说明</option>
+                <option value="asked_to_leave">要求离开</option>
+                <option value="offered_assistance">提供协助</option>
+                <option value="no_interaction">未与顾客互动</option>
+              </select>
+            </div>
+          </template>
+
+          <template v-else>
+            <div class="row" style="margin-top: 10px">
+              <label class="muted" style="margin-right: 8px">设施类型：</label>
+              <select v-model="realityFacilityType">
+                <option value="waiting_area">宠物等候区 / 笼</option>
+                <option value="water_station">饮水点 / 水碗</option>
+                <option value="pet_elevator">宠物电梯</option>
+                <option value="designated_zone">专用活动区</option>
+                <option value="other_facility">其他设施</option>
+              </select>
+            </div>
+            <div class="row" style="margin-top: 10px">
+              <label class="muted" style="margin-right: 8px">状态：</label>
+              <select v-model="realityFacilityOperational">
+                <option value="active">正常可用</option>
+                <option value="removed">已拆除</option>
+                <option value="out_of_service">停用</option>
+              </select>
+            </div>
+          </template>
+
+          <div class="row" style="margin-top: 10px">
+            <label class="muted" style="margin-right: 8px">补充（可选）：</label>
+            <input
+              v-model="realityContext"
+              placeholder="一两句话即可，不填也可以"
+              style="flex: 1"
+            />
+          </div>
+
+          <div class="row" style="margin-top: 12px">
+            <button
+              class="primary"
+              :disabled="!canSubmit || busy"
+              data-testid="reality-submit"
+              @click="submitReality"
+            >
+              {{ busy ? "提交中…" : "提交现场情况" }}
             </button>
             <button :disabled="busy" @click="reset">返回</button>
           </div>

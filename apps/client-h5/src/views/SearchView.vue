@@ -10,7 +10,7 @@
  * corresponding filter is active, so a plain search stays a single request.
  */
 import { computed, onMounted, ref } from "vue";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import {
   client,
   freshnessLabel,
@@ -30,9 +30,19 @@ import { answerStatusKey } from "../answer";
 import { useOnline } from "../composables/useOnline";
 
 const router = useRouter();
+const route = useRoute();
 const { online } = useOnline();
 const q = ref("");
 const results = ref<PlaceSummary[]>([]);
+/** v0.9-R1 home entry lens (?lens=presence|indoor|dining|rules) — master §30. */
+const LENS_HINTS: Record<string, string> = {
+  presence: "正按「现场是否有动物出现」查看 —— 结果将优先展示近期有现场记录的场所",
+  indoor: "正按「室内空间情况」查看 —— 结果将优先展示含室内区域的场所",
+  dining: "正按「餐饮区域情况」查看 —— 结果将优先展示含餐饮区域的场所",
+  rules: "正按「完整规则」查看 —— 结果为已收录规则的场所",
+};
+const lens = computed(() => (route.query.lens as string | undefined) ?? "");
+const lensHint = computed(() => LENS_HINTS[lens.value] ?? "");
 const statuses = ref<Record<string, string>>({});
 const verified = ref<Record<string, boolean>>({});
 const hasPetZone = ref<Record<string, boolean>>({});
@@ -214,6 +224,10 @@ onMounted(async () => {
       >
         {{ loading ? "搜索中…" : "搜索" }}
       </button>
+    </div>
+
+    <div v-if="lensHint" class="panel muted" data-testid="lens-hint" style="margin-top: 8px">
+      {{ lensHint }}
     </div>
 
     <div class="panel">

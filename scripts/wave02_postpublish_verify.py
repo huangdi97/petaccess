@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import json
 import sys
-from collections import Counter
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -176,7 +175,7 @@ def main() -> int:
 
         # ---- probe every published rule through the canonical resolver ----
         seen: set[tuple[str, str]] = set()
-        for ar_id, animal_scope, effect, zone_id, source_id, subject, place_name in published:
+        for _ar_id, animal_scope, effect, zone_id, source_id, subject, place_name in published:
             key = (place_name, animal_scope)
             if key in seen:
                 continue  # duplicate scope per place (single publish window row)
@@ -203,8 +202,11 @@ def main() -> int:
             entry = {
                 "place": place_name,
                 "zone_id": zone_id_probe,
-                "query": {"animal": animal, "service_role": service_role, "declared_role": declared_role},
-                "published_rule_id": ar_id,
+                "query": {
+                    "animal": animal,
+                    "service_role": service_role,
+                    "declared_role": declared_role,
+                },
                 "source_id": source_id,
                 "effects": {"published": effect, "resolved": res.effect},
                 "compliance_state": str(res.compliance_state),

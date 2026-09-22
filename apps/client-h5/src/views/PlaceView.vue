@@ -31,6 +31,7 @@ import {
   type SourceView,
   type Zone,
 } from "@petaccess/client-core";
+import RealityPanel from "../components/RealityPanel.vue";
 import AppShell from "../components/AppShell.vue";
 import SkeletonList from "../components/SkeletonList.vue";
 import SourceBadge from "../components/SourceBadge.vue";
@@ -92,6 +93,9 @@ const zoneAnswer = ref<string | null>(null);
 const zoneAnswers = ref<Record<string, AccessAnswer>>({});
 const zoneErrors = ref<Record<string, boolean>>({});
 
+// ---- v0.9-R1 Reality Layer: the ONE snapshot for the passport (AC9/AC10) ----
+const coexistence = ref<import("@petaccess/client-core").CoexistenceSnapshot | null>(null);
+const coexistenceLoaded = ref(false);
 /** §12.4 — 「进入前需满足」, assembled by the answer adapter. */
 const answerConditionList = computed(() => answerConditions(answer.value));
 
@@ -261,6 +265,18 @@ async function load() {
   } catch {
     degrade("当前答案");
   }
+  // v0.9-R1: the CoexistenceSnapshot powers the Reality panel. It degrades
+  // gracefully when the reality layer is absent (BLOCKED / not yet populated).
+  try {
+    coexistence.value = await client.coexistenceSnapshot(placeId.value, {
+      animal: "dog",
+      service_role: "none",
+      action: "enter",
+    });
+  } catch {
+    coexistence.value = null;
+  }
+  coexistenceLoaded.value = true;
   loading.value = false;
 }
 
@@ -289,6 +305,8 @@ function resetForPlace() {
   zoneAnswer.value = null;
   zoneAnswers.value = {};
   zoneErrors.value = {};
+  coexistence.value = null;
+  coexistenceLoaded.value = false;
 }
 
 // `immediate` does the job `onMounted(load)` used to, and also covers the case
@@ -549,7 +567,10 @@ async function claimOperator() {
         </div>
       </div>
 
-      <!-- Section 2 — where -->
+      <!-- v0.9-R1: Reality panel -- the observed layer of the passport (AC10) -->
+      <RealityPanel :snapshot="coexistence" :loading="!coexistenceLoaded" />
+
+      <!-- Section 2 -- where -->
       <h2>2. 哪里可以 / 不可以</h2>
       <div class="panel" data-testid="zones">
         <div v-if="!zones.length" class="muted">暂无分区域信息（信息不足 ≠ 允许）</div>
