@@ -98,6 +98,12 @@ class AuditEvent(StrEnum):
     # --- media ---------------------------------------------------------------
     MEDIA_UPLOAD = "media.upload"
     MEDIA_DELETE = "media.delete"
+    # --- reality (v0.9-R1 §7.4) -------------------------------------------
+    #: Human-only reality review decision. Vanished from nowhere: ``reality_decision``
+    #: is never written by AI, so the audit trail is the authoritative record of who
+    #: decided, what they decided, and which claim (if any) was published.
+    REALITY_DECISION = "reality.decision"
+    REALITY_CANDIDATE_CREATE = "reality_candidate.create"
 
     # --- governance ----------------------------------------------------------
     #: Appended by the governed production cleanup. Never a substitute for the

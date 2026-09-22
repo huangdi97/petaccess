@@ -20,6 +20,7 @@ from .evidence import (
 from .media import MediaObject
 from .observation import ObservationClaim, VerificationEvent
 from .place import ExternalPlaceRef, Operator, OperatorClaim, Place, PlaceGeometry, Zone
+from .reality import AnimalFacility, ObservedPresence, RealityCandidate, StaffResponseObservation
 from .rule import AccessRule, RuleCondition, RuleException, Source
 from .user import PetProfile, User
 from .v05 import (
@@ -45,6 +46,7 @@ __all__ = [
     "AccessPath",
     "AccessRule",
     "Amenity",
+    "AnimalFacility",
     "AuditLog",
     "BoundaryPreference",
     "BoundaryProfile",
@@ -62,11 +64,13 @@ __all__ = [
     "ExtractionMethod",
     "FreshnessPolicy",
     "ObservationCandidate",
+    "ObservedPresence",
     "Organization",
     "PlacePolicyBinding",
     "PolicyTemplate",
     "PolicyTemplateRule",
     "PublisherType",
+    "RealityCandidate",
     "RuleCandidate",
     "RuleException",
     "SourceArtifact",
@@ -82,6 +86,7 @@ __all__ = [
     "PlaceGeometry",
     "RuleCondition",
     "Source",
+    "StaffResponseObservation",
     "User",
     "VerificationEvent",
     "WatchSubscription",

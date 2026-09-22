@@ -505,3 +505,160 @@ class RuleConditionType(StrEnum):
     FEE = "fee"
     ROOM_RESTRICTION = "room_restriction"
     OTHER_STRUCTURED_NOTE = "other_structured_note"
+
+
+# ---------------------------------------------------------------------------
+# v0.9-R1 Reality Layer (design v0.9 §7) — parallel fact, never normative
+#
+# Reality = what is *observed* on site. ObservedPresence / StaffResponse /
+# AnimalFacility are parallel facts: they co-exist with rules, never mutate
+# them, and never feed the deterministic evaluator.
+# ---------------------------------------------------------------------------
+
+
+class RealityCandidateType(StrEnum):
+    """What kind of reality fact a candidate carries (single-table subtype)."""
+
+    OBSERVED_PRESENCE = "observed_presence"
+    STAFF_RESPONSE = "staff_response"
+    ANIMAL_FACILITY = "animal_facility"
+
+
+class RealityDecision(StrEnum):
+    """Human reality-review decision — VERIFIED is human-only, never AI (v0.9 §7.4)."""
+
+    VERIFIED = "verified"
+    VERIFIED_WITH_NOTE = "verified_with_note"
+    HOLD = "hold"
+    REJECTED = "rejected"
+
+
+#: Decisions that make a reality candidate publishable as a RealityClaim.
+REALITY_VERIFIED_DECISIONS: frozenset[str] = frozenset(
+    {RealityDecision.VERIFIED.value, RealityDecision.VERIFIED_WITH_NOTE.value}
+)
+
+
+class RealityFreshnessState(StrEnum):
+    """Age bucket of a reality fact (v0.9 §7.5).
+
+    ``EXPIRED_FOR_SUMMARY`` means the fact must be excluded from any "recent"
+    consumer summary. It is NOT "no animal" — absence of a record is never
+    evidence of absence.
+    """
+
+    FRESH = "fresh"
+    RECENT = "recent"
+    AGING = "aging"
+    HISTORICAL = "historical"
+    EXPIRED_FOR_SUMMARY = "expired_for_summary"
+
+
+class ObservedAction(StrEnum):
+    """Observable actions of an animal at a place (v0.9 §7.1)."""
+
+    ENTERED = "entered"
+    PRESENT = "present"
+    STAYED = "stayed"
+    DINED_NEAR_TABLE = "dined_near_table"
+    ON_CUSTOMER_SEAT = "on_customer_seat"
+    ON_TABLE_SURFACE = "on_table_surface"
+    NEAR_FOOD_SERVICE = "near_food_service"
+    IN_SELF_SERVICE_FOOD_AREA = "in_self_service_food_area"
+    LEASHED = "leashed"
+    OFF_LEASH = "off_leash"
+    IN_CARRIER = "in_carrier"
+    IN_STROLLER = "in_stroller"
+
+
+class StaffActorRole(StrEnum):
+    """Role of the staff member — role only, never personal identity (v0.9 §7.2)."""
+
+    OWNER = "owner"
+    MANAGER = "manager"
+    FRONTLINE_STAFF = "frontline_staff"
+    SERVER = "server"
+    SECURITY = "security"
+    CLEANING_STAFF = "cleaning_staff"
+    FRONT_DESK = "front_desk"
+    UNKNOWN_STAFF = "unknown_staff"
+
+
+class StaffResponseAction(StrEnum):
+    """What staff actually did in a concrete event — never an attitude score.
+
+    A StaffResponseObservation documents one behaviour; it is NOT an operator
+    policy, and repeated observations never become rules.
+    """
+
+    PROACTIVE_ACCOMMODATION = "proactive_accommodation"
+    PROVIDE_WATER = "provide_water"
+    PROVIDE_CONTAINER_OR_STROLLER = "provide_container_or_stroller"
+    DIRECT_TO_ALLOWED_ZONE = "direct_to_allowed_zone"
+    REMIND_LEASH = "remind_leash"
+    REQUIRE_CARRIER = "require_carrier"
+    REQUEST_RELOCATION = "request_relocation"
+    REQUEST_WAIT_OUTSIDE = "request_wait_outside"
+    DENY_ENTRY = "deny_entry"
+    REQUEST_EXIT = "request_exit"
+    POLICY_EXPLANATION = "policy_explanation"
+    ESCALATE_TO_MANAGER = "escalate_to_manager"
+    NO_INTERVENTION_OBSERVED = "no_intervention_observed"
+    UNKNOWN = "unknown"
+
+
+class AnimalFacilityType(StrEnum):
+    """Physical animal-related facility at a place (v0.9 §7.3).
+
+    A facility being present NEVER implies an entry policy: an outdoor holding
+    cage does not mean "indoor pets prohibited".
+    """
+
+    OUTDOOR_HOLDING_CAGE = "outdoor_holding_cage"
+    KENNEL = "kennel"
+    TETHER_POINT = "tether_point"
+    PET_WAITING_AREA = "pet_waiting_area"
+    PET_PARKING = "pet_parking"
+    WATER_BOWL = "water_bowl"
+    PET_STROLLER = "pet_stroller"
+    CARRIER_STORAGE = "carrier_storage"
+    PET_ENTRANCE = "pet_entrance"
+    PET_ELEVATOR = "pet_elevator"
+    DEDICATED_PET_ZONE = "dedicated_pet_zone"
+    WASTE_BAG_STATION = "waste_bag_station"
+    CLEANING_STATION = "cleaning_station"
+    WASHING_POINT = "washing_point"
+    DEDICATED_PET_TABLEWARE = "dedicated_pet_tableware"
+    OTHER = "other"
+
+
+class FacilityOperationalState(StrEnum):
+    """Operational status of a facility (v0.9 §7.3)."""
+
+    ACTIVE = "active"
+    TEMPORARILY_UNAVAILABLE = "temporarily_unavailable"
+    REMOVED = "removed"
+    UNKNOWN = "unknown"
+
+
+class FacilityAccessMode(StrEnum):
+    """Who may use the facility (v0.9 §7.3)."""
+
+    OPERATOR_PROVIDED = "operator_provided"
+    SELF_SERVICE = "self_service"
+    STAFF_ASSISTED = "staff_assisted"
+    UNKNOWN = "unknown"
+
+
+class RealityVerificationStatus(StrEnum):
+    """Verification posture of a published reality claim (v0.9 §7.4).
+
+    Consumer-visible reality claims must carry Evidence + Review + Freshness;
+    this status tracks how far the review went. ``DERIVED_AI_ONLY`` marks
+    extraction that must still pass human review before becoming visible.
+    """
+
+    HUMAN_VERIFIED = "human_verified"
+    HUMAN_VERIFIED_WITH_NOTE = "human_verified_with_note"
+    DERIVED_AI_ONLY = "derived_ai_only"
+    UNVERIFIED = "unverified"
