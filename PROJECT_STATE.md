@@ -1,6 +1,22 @@
 # PROJECT_STATE.md
 
 ## Current phase
+v0.9-R1 Reality Layer 落地中（后端 P0 完成：schema + freshness 引擎 + 人工裁决 API；前端消费面后续）
+
+## Reality Layer (v0.9-R1)
+- M3 `4841d66`：枚举 + 4 表（reality_candidate / observed_presence /
+  staff_response_observation / animal_facility，迁移 `2c7ea6ca8e30` additive）+ 纯
+  确定性 freshness 引擎 + RealityAnswer 消费聚合 + admin 候选队列与人工裁决端点
+  （MODERATOR 角色、reviewer/decided_at 落库、`reality.decision` 审计）
+- `24b08ce`：create 候选审计链补全（flush → record_audit）+ ADR-028
+- 红线（测试钉死）：AI 永不写 reality_decision；空记录 ≠ 没有动物；单观察 ≠ 频率；
+  过期事实不呈现为近期；staff 身份只存 actor_role；Observation ≠ Rule
+- 测试：`services/api/tests/test_reality_summary.py` 28 用例全过；
+  ruff / mypy 0 errors；迁移 head = `2c7ea6ca8e30`
+- 待办：DB 环境就绪后 `alembic upgrade head` 真实验证（本轮 Postgres 未运行，
+  为 BLOCKED_EXTERNAL）；前端 RealityAnswer / 候选队列页面
+
+## Current phase
 RC-READY（Stage A 本地垂直切片完成；Stage C 真实 Provider 等外部凭证）
 
 ## Last verified
