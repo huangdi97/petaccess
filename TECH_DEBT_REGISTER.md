@@ -116,3 +116,12 @@
 | T-06 | `docs/reality_audit/review_decisions_r1.json` 与 `_r2.json` 并存，容易误读"哪份有效" | 低 | **MITIGATED** | R2 登记表带 `revision` + `supersedes` 字段；`publish_reviewed_r1.py` 默认读 R2（`--registry` 可覆盖）；R2 包文本首行声明"取代 R1" |
 | T-07 | Consumer UX Baseline v1 的 6 项 PARTIAL：渐进式携宠询问（§14）、搜索别名/旧名/消歧（§16）、Map Area/Lens 与手动选区（§20）、App（uni-app x）IA 同步（§22–23）、a11y 系统审计（§26）、视觉回归截图基线（§27） | 低 | **OPEN** | 均不触及冻结方向；逐条明列于 `CONSUMER_UX_BASELINE_V1_IMPLEMENTATION_REPORT.md` §4 |
 | T-08 | `scripts/lint.sh` 覆盖范围与 `ruff` 手工调用不一致的风险（本轮已手工跑 `ruff check services/api services/worker tests scripts`） | 低 | **FIXED（流程）** | 本轮明确把 `scripts/` 纳入 lint 命令；建议后续固化进 CI / `lint.sh` |
+
+---
+
+## 2026-09-22 会话新增（v0.9-R1 Reality Layer）
+
+| ID | 内容 | 严重性 | 状态 | 备注 |
+|---|---|---|---|---|
+| R-01 | Reality migration `2c7ea6ca8e30` 的 `fk_staff_response_observation_evidence_bundle_id_evidence_bundle` 名超 63 字符，PostgreSQL 截断为 `..._eviden_d504`（语义 SET NULL 不受影响，但 alembic autogenerate 可见名称漂移） | 中 | **OPEN** | 真实 DB 核验发现（`docs/reality/REALITY_DB_MIGRATION_VERIFICATION.md` 附言 A.4）；处置：新增幂等修复迁移 rename constraint（ADR-026，不修改已应用迁移），待 Docker 稳定后落库 + 回归 |
+| R-02 | AC4 downgrade→re-upgrade drill 未完成：Docker daemon 在本会话窗口内两次崩溃（恢复约 17 分钟后再次消失），persistence drill 的 candidate RESTRICT / zone SET NULL 两项与 downgrade drill 被中断 | 中 | **OPEN（BLOCKED_EXTERNAL）** | 脚本 `scripts/reality_db_persistence_drill.py` 已改 savepoint 版可重跑；列入 `REALITY_DB_MIGRATION_VERIFICATION.md` 附言 A.5 清单 |

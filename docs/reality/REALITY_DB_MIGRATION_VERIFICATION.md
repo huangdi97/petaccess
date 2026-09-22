@@ -114,3 +114,80 @@ alembic upgrade head
 
 每次真实验证的执行输出（命令 + 原始 stdout/stderr）以附言形式追加到本文件，
 不改写历史结论；或链接到 `docs/status/` 下带时间戳的验证报告。
+
+---
+
+## 附言 A — 2026-09-22 实际 DB 验证记录（Docker 短暂恢复窗口内实测）
+
+> 本会话中 Docker daemon 曾短暂恢复（约 17 分钟窗口），期间执行了真实 DB
+> 验证；随后 daemon 再次崩溃（npipe 消失）。以下输出均为真实执行记录。
+> 状态升级为 **PARTIAL**（结构验证 PASS / 持久化核心 PASS / drill 未全部完成）。
+
+### A.1 环境与 alembic（2026-09-22 实测）
+
+```
+docker compose ps
+petaccess-db-1    postgis/postgis:17-3.5   Up (healthy)      0.0.0.0:5432->5432
+petaccess-redis-1 redis:7-alpine           Up (healthy)      0.0.0.0:6379->6379
+petaccess-minio-1 minio/minio:latest       Up                0.0.0.0:9000-9001
+
+uv run alembic current  -> 2c7ea6ca8e30 (head)
+uv run alembic heads    -> 2c7ea6ca8e30 (head)
+```
+
+`REALITY_DB_MIGRATION = PARTIAL`（此前 NOT_VERIFIED）。
+
+### A.2 表结构验证（`scripts/reality_db_structure_probe.py`，真实输出摘要）
+
+- 4 张 Reality 表全部存在：`reality_candidate` / `observed_presence` /
+  `staff_response_observation` / `animal_facility`
+- 列数：21 / 17 / 18 / 24，与 ORM 模型一一对应
+- FK 13 个：place→CASCADE、zone/source/evidence_bundle→SET NULL、
+  candidate_id→RESTRICT —— 全部符合模型声明
+- 索引全部存在：`ix_reality_candidate_place_status` /
+  `ix_reality_candidate_type_status` / `ix_observed_presence_place_time` /
+  `ix_observed_presence_freshness` / `ix_staff_response_place_time` /
+  `ix_staff_response_freshness` / `ix_animal_facility_place_type` /
+  `ix_animal_facility_state` + PK 索引
+- CHECK constraint：0（枚举以 String + 应用层校验实现，符合现状）
+
+### A.3 持久化 drill（`scripts/reality_db_persistence_drill.py`，真实输出摘要，事务回滚）
+
+```
+CANDIDATE_CREATED   = id=4fb6b16c… status=REVIEW_PENDING verif=derived_ai_only decision=None
+CLAIM_CREATED       = id=a91fb59a… scope=dog action=walking verif=human_verified freshness=RECENT
+CLAIM_UPDATED       = freshness=FRESH last_verified=True
+CONSUMER_VISIBLE    = 1 human-verified rows（AI-derived 行不计入消费聚合）
+AI_DERIVED_ROWS     = 0
+PLACE_FK            = PASS（伪造 place 被 FK 拒绝）
+```
+
+已完成：candidate create / claim create（observed_presence）/ update /
+consumer query（仅 human-verified）/ Place FK。**未完成**（daemon 崩溃中断）：
+candidate→claim RESTRICT 删除保护、zone FK SET NULL 行为 —— 待 Docker 稳定后
+重跑同一脚本补全（脚本已修复 savepoint，可直接重跑）。
+
+### A.4 真实缺陷：FK 约束名超长被 PostgreSQL 截断
+
+```
+声明名: fk_staff_response_observation_evidence_bundle_id_evidence_bundle (65 字符)
+实际名: fk_staff_response_observation_evidence_bundle_id_eviden_d504
+```
+
+- 超过 PostgreSQL 63 字符标识符上限 → 自动截断加后缀，**约束语义不受影响**
+  （仍是 evidence_bundle_id→evidence_bundle.id ON DELETE SET NULL）。
+- 影响：alembic autogenerate 会看到名称漂移；与 ADR-024/ADR-026 历史同类。
+- 处置建议：新增幂等修复迁移（rename constraint 至 63 字符内合法名），
+  遵循 ADR-026（不修改已应用迁移）。列为 ENGINEERING OPEN，待 Docker 稳定后
+  落修复迁移 + 回归。
+
+### A.5 下次 Docker 恢复后的执行清单（增量）
+
+1. 重跑 `scripts/reality_db_persistence_drill.py`（savepoint 版）补全
+   RESTRICT / SET NULL 两项；
+2. `alembic downgrade -1` → `alembic upgrade head`（AC4 drill，TEST 或
+   isolated DB 上执行，不碰 production 数据）；
+3. 处理 A.4 FK 名截断（新增修复迁移）；
+4. `scripts/isolated_db.py --role TEST --reset` → 全量 pytest；
+5. Playwright；
+6. 本文件结论最终更新为 `REALITY_DB_MIGRATION = PASS`。
