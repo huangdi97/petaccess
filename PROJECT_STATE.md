@@ -26,7 +26,12 @@ CoexistenceSnapshot / 前端 Reality 消费面 / Admin Reality；DB 侧 BLOCKED_
 - 待办：DB 环境就绪后 `alembic upgrade head` 真实验证（本轮 Docker daemon 不可达，
   为 BLOCKED_EXTERNAL，见 BLOCKERS.md LOCAL_DOCKER_DESKTOP_ENGINE_UNSTABLE）；
   Playwright / 全量 pytest / 30-Place Reality Audit 等 DB 依赖项
-
+- DB 核验（2026-09-22 Docker 短暂恢复窗口实测，随后 daemon 再崩溃）：
+  `alembic current == heads == 2c7ea6ca8e30`（真实）；4 表存在、13 FK 语义正确、
+  索引齐全；持久化 drill 核心 PASS（candidate/claim/update/query/Place FK）；
+  **REALITY_DB_MIGRATION = PARTIAL**（RESTRICT/SET NULL 与 downgrade drill 待补）；
+  发现 R-01 FK 名超长截断缺陷（见 `docs/reality/REALITY_DB_MIGRATION_VERIFICATION.md`
+  附言 A + TECH_DEBT_REGISTER R-01）
 
 ## Completed（全部 13 个 Phase 的本地可实现部分）
 - Phase 0: monorepo（uv workspace + pnpm workspace）、docker compose（PostGIS/Redis/MinIO）、
