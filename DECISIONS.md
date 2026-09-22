@@ -229,3 +229,33 @@
   Prettier、vue-tsc 0；`pytest` 349 passed。
 - Migration impact: 无（前端 + `client-core` 类型）。
 - Status: accepted.
+
+## ADR-028 — Reality Layer：观察事实经人工裁决成为消费端可见声明，AI 永不写 reality_decision
+
+- Context: v0.9-R1 需要把「现实观察」（动物在场、工作人员反应、设施状态）与
+  规则（place → zone → access_rule）分开呈现，但项目此前只有规则面，观察只能
+  以 ObservationClaim 存在且 ADR-004 禁止其自动转规则。消费端「现实怎么样」没有
+  独立、可展示、带时效的答案模型。
+- Decision:
+  (1) 新增四张表（`reality_candidate` / `observed_presence` /
+      `staff_response_observation` / `animal_facility`，迁移 `2c7ea6ca8e30`，
+      additive-only）：candidate 是待审队列（AI 可产出，`DERIVED_AI_ONLY`），
+      发布表只承载人工 VERIFIED 声明，三者共用 Evidence + Review + Freshness 姿态。
+  (2) **reality_decision 只允许人类写入**（MODERATOR 角色端点为唯一入口，
+      reviewer/decided_at 落库 + `reality.decision` 审计）；VERIFIED /
+      VERIFIED_WITH_NOTE 才发布 claim，HOLD / REJECTED 不发布。
+  (3) 新鲜度是一等事实：`reality_summary.freshness_for` 按显式阈值分桶
+      （7/30/90/365 天），过期事实绝不呈现为「近期」；`FRESH→fresh` 等在
+      API 边界映射为枚举存入。
+  (4) 摘要词汇冷冻：空记录 = `INSUFFICIENT_OBSERVATION ≠ 没有动物`；
+      单次观察永不上升为「经常/高频」（需要多来源阈值，未定义前只报计数与
+      last-seen）；存在未人工核验记录时摘要降级 `INSUFFICIENT_OBSERVATION`。
+  (5) 工作人员身份永不暴露：`staff_response_observation` 只存 `actor_role`。
+  (6) Observation ≠ Rule（ADR-004 不变）：reality 表永不写入 evaluator 输入。
+- Alternatives: 复用 ObservationClaim + 元数据补时效；直接在 place 上加观察枚举列。
+  前者语义混用（claim 是用户声明的争议可撤销事实，非可发布的核验声明）、后者
+  使「观察」退化为属性、两者都无法表达「谁核验的、何时核验、新鲜度如何」。
+- Evidence: `tests/test_reality_summary.py`（新鲜度边界、摘要状态机、
+  人为裁决红线）；`pytest` 28 passed；`ruff` / `mypy` 0 errors。
+- Migration impact: additive（`2c7ea6ca8e30`，4 表 + FK + 索引，downgrade 完整）。
+- Status: accepted.

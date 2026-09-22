@@ -233,6 +233,22 @@ def create_reality_candidate(
     if cand.observed_at is not None:
         cand.freshness_state = _freshness_state(cand.observed_at)
     db.add(cand)
+    db.flush()  # PkMixin id is a DB-side default; record_audit refuses a bare "None" target_id
+    record_audit(
+        db,
+        request=None,
+        actor_user_id=user.id,
+        actor_role=str(user.role),
+        action=AuditEvent.REALITY_CANDIDATE_CREATE.value,
+        target_type="reality_candidate",
+        target_id=str(cand.id),
+        after_state={
+            "candidate_type": cand.candidate_type,
+            "place_id": cand.place_id,
+            "review_status": cand.review_status,
+            "verification_status": cand.verification_status.value,
+        },
+    )
     db.commit()
     db.refresh(cand)
     return cand
