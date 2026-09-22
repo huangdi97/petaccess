@@ -7,6 +7,7 @@ inside a rolled-back transaction so production stays untouched.
 Also compares the applied FK names against the migration source (op.f() names)
 to flag any truncated/legacy constraint naming (ADR-024 history).
 """
+
 from __future__ import annotations
 
 import os
@@ -28,11 +29,17 @@ with psycopg.connect(psycopg_url(os.environ["DATABASE_URL"])) as conn:
     cur = conn.cursor()
 
     # ---------- 1. FK name comparison against migration source ----------
-    src = open(
-        os.path.join(os.path.dirname(__file__), "..", "services", "api", "migrations", "versions",
-                     "2c7ea6ca8e30_v09_reality_layer.py"),
-        encoding="utf-8",
-    ).read()
+    mig_path = os.path.join(
+        os.path.dirname(__file__),
+        "..",
+        "services",
+        "api",
+        "migrations",
+        "versions",
+        "2c7ea6ca8e30_v09_reality_layer.py",
+    )
+    with open(mig_path, encoding="utf-8") as fh:
+        src = fh.read()
     declared = set(re.findall(r'name=op\.f\("([^"]+)"\)', src))
     applied = set()
     for t in TABLES:
@@ -69,15 +76,27 @@ with psycopg.connect(psycopg_url(os.environ["DATABASE_URL"])) as conn:
                (id, candidate_type, place_id, animal_scope, observed_at, captured_at,
                 review_status, verification_status, payload, created_at, updated_at)
                VALUES (%s,%s,%s,%s,%s,%s,'REVIEW_PENDING','derived_ai_only',%s,%s,%s)""",
-            (cand_id, "observed_presence", place_id, "dog", observed_at, now,
-             '{"observed_action":"walking"}', now, now),
+            (
+                cand_id,
+                "observed_presence",
+                place_id,
+                "dog",
+                observed_at,
+                now,
+                '{"observed_action":"walking"}',
+                now,
+                now,
+            ),
         )
         cur.execute(
-            "SELECT review_status, verification_status, reality_decision FROM reality_candidate WHERE id=%s",
+            "SELECT review_status, verification_status, reality_decision ",
+            "FROM reality_candidate WHERE id=%s",
             (cand_id,),
         )
         c = cur.fetchone()
-        print(f"\nCANDIDATE_CREATED   = id={cand_id[:8]}… status={c[0]} verif={c[1]} decision={c[2]}")
+        print(
+            f"\nCANDIDATE_CREATED   = id={cand_id[:8]}… status={c[0]} verif={c[1]} decision={c[2]}"
+        )
 
         # 2b. publish a claim (human-verified posture) - ObservedPresence
         cur.execute(
@@ -94,8 +113,10 @@ with psycopg.connect(psycopg_url(os.environ["DATABASE_URL"])) as conn:
             (claim_id,),
         )
         p = cur.fetchone()
-        print(f"CLAIM_CREATED       = id={claim_id[:8]}… scope={p[0]} action={p[1]} "
-              f"verif={p[2]} freshness={p[3]}")
+        print(
+            f"CLAIM_CREATED       = id={claim_id[:8]}… scope={p[0]} action={p[1]} "
+            f"verif={p[2]} freshness={p[3]}"
+        )
 
         # 2c. update: bump freshness posture via re-verification
         cur.execute(
@@ -103,21 +124,27 @@ with psycopg.connect(psycopg_url(os.environ["DATABASE_URL"])) as conn:
                WHERE id=%s""",
             (now, claim_id),
         )
-        cur.execute("SELECT freshness_state, last_verified_at FROM observed_presence WHERE id=%s",
-                    (claim_id,))
+        cur.execute(
+            "SELECT freshness_state, last_verified_at FROM observed_presence WHERE id=%s",
+            (claim_id,),
+        )
         u = cur.fetchone()
         print(f"CLAIM_UPDATED       = freshness={u[0]} last_verified={u[1] is not None}")
 
         # 2d. query: consumer view must exclude AI-derived rows (only human-verified)
         cur.execute(
             """SELECT count(*) FROM observed_presence
-               WHERE place_id=%s AND verification_status IN ('human_verified','human_verified_with_note')""",
+               WHERE place_id=%s
+                 AND verification_status IN
+                     ('human_verified','human_verified_with_note')""",
             (place_id,),
         )
         visible = cur.fetchone()[0]
         print(f"CONSUMER_VISIBLE    = {visible} human-verified rows for place {place_id[:8]}…")
         cur.execute(
-            """SELECT count(*) FROM observed_presence WHERE verification_status='derived_ai_only'""",
+            """SELECT count(*)
+               FROM observed_presence
+               WHERE verification_status='derived_ai_only'""",
         )
         ai_rows = cur.fetchone()[0]
         print(f"AI_DERIVED_ROWS     = {ai_rows} (must be excluded from consumer aggregate)")
@@ -127,8 +154,11 @@ with psycopg.connect(psycopg_url(os.environ["DATABASE_URL"])) as conn:
             sp = conn.savepoint()
             cur.execute(
                 """INSERT INTO reality_candidate
-                   (id, candidate_type, place_id, review_status, verification_status, created_at, updated_at)
-                   VALUES (%s,'observed_presence','no-such-place','REVIEW_PENDING','unverified',%s,%s)""",
+                   (id, candidate_type, place_id, review_status,
+                    verification_status, created_at, updated_at)
+                   VALUES
+                   (%s,'observed_presence','no-such-place',
+                    'REVIEW_PENDING','unverified',%s,%s)""",
                 (str(uuid4()), now, now),
             )
             print("PLACE_FK            = FAIL (bogus place accepted!)")
@@ -161,8 +191,10 @@ with psycopg.connect(psycopg_url(os.environ["DATABASE_URL"])) as conn:
                 "UPDATE zone SET id=%s WHERE id=%s",
                 (f"{zone_id}-replaced", zone_id),
             )
-            print(f"ZONE_FK_SETNULL     = drill executed (zone {zone_id[:8]}… replaced); "
-                  "SET NULL verified if no error above")
+            print(
+                f"ZONE_FK_SETNULL     = drill executed (zone {zone_id[:8]}… replaced); "
+                "SET NULL verified if no error above"
+            )
 
     conn.rollback()
     print("\nDRILL_ROLLED_BACK   = production untouched")

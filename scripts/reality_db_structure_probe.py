@@ -3,6 +3,7 @@
 Read-only. Confirms the applied migration 2c7ea6ca8e30 really created the
 Reality tables with the expected columns, FKs and indexes on the live DB.
 """
+
 from __future__ import annotations
 
 import os
@@ -55,7 +56,7 @@ with psycopg.connect(psycopg_url(os.environ["DATABASE_URL"])) as conn:
         )
         idx = cur.fetchall()
         print(f"  Indexes ({len(idx)}):")
-        for name, defn in idx:
+        for name, _defn in idx:
             print(f"    {name}")
 
     # enum/constraint posture: reality_decision constraint on candidate
