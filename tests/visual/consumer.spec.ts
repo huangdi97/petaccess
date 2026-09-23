@@ -57,17 +57,17 @@ test("place detail — UNKNOWN (no published rule)", async ({ page }) => {
   await shot(page, "place-unknown");
 });
 
-test("place detail — RESTRICTED (real seeded rules)", async ({ page }) => {
+test("place detail — CONDITIONAL (real seeded rules)", async ({ page }) => {
   await page.goto(`/#/place/${FIXTURE.mall}`);
   await settle(page);
-  // Named for what the page actually answers. It used to be
-  // `place-conditional`, but no seeded place resolves to CONDITIONAL at place
-  // level: the mall's answer badge is 「✕ 明确限制」, and CONDITIONAL only shows
-  // up on individual zone rows.
+  // Named for what the page actually answers. The mall's place-level answer
+  // resolves CONDITIONAL (carrier required) via its governing template rule;
+  // the old RESTRICTED baseline predated the AccessAnswer migration that
+  // stopped flattening zone rules into a place verdict.
   await expect(
-    page.locator("[data-testid='answer-ordinary'] [data-status='RESTRICTED']"),
+    page.locator("[data-testid='answer-ordinary'] [data-status='CONDITIONAL']"),
   ).toBeVisible();
-  await shot(page, "place-restricted");
+  await shot(page, "place-conditional");
 });
 
 test("rule trace — 为什么？", async ({ page }) => {
