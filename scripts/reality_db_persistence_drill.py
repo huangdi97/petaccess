@@ -22,25 +22,48 @@ import psycopg  # noqa: E402
 
 from app.core.config import psycopg_url  # noqa: E402
 
-TABLES = ["reality_candidate", "observed_presence", "staff_response_observation", "animal_facility"]
+TABLES = [
+    "reality_candidate",
+    "observed_presence",
+    "staff_response_observation",
+    "animal_facility",
+    "reality_report",
+    "observation_effort",
+    "reality_confirmation",
+    "external_content_reference",
+]
 
 with psycopg.connect(psycopg_url(os.environ["DATABASE_URL"])) as conn:
     conn.autocommit = False
     cur = conn.cursor()
 
     # ---------- 1. FK name comparison against migration source ----------
-    mig_path = os.path.join(
-        os.path.dirname(__file__),
-        "..",
-        "services",
-        "api",
-        "migrations",
-        "versions",
+    # Collect op.f() FK names declared across every Reality migration so the
+    # comparison covers the R-01 rename (c3a9e5f7d1b2) and the report-parent
+    # additions (d4e7b2a8c9f1), not just the original 2c7ea6ca8e30 layer.
+    mig_files = [
         "2c7ea6ca8e30_v09_reality_layer.py",
-    )
-    with open(mig_path, encoding="utf-8") as fh:
-        src = fh.read()
-    declared = set(re.findall(r'name=op\.f\("([^"]+)"\)', src))
+        "c3a9e5f7d1b2_fix_reality_fk_name_truncation.py",
+        "d4e7b2a8c9f1_reality_report_parent_and_state_models.py",
+    ]
+    declared: set[str] = set()
+    for mig_name in mig_files:
+        mig_path = os.path.join(
+            os.path.dirname(__file__),
+            "..",
+            "services",
+            "api",
+            "migrations",
+            "versions",
+            mig_name,
+        )
+        with open(mig_path, encoding="utf-8") as fh:
+            src = fh.read()
+        declared.update(re.findall(r'name=op\.f\("([^"]+)"\)', src))
+        # op.create_foreign_key("name", ...) declares the name as its first
+        # positional argument rather than via op.f(); capture those too (the
+        # name may sit on the line after the opening parenthesis).
+        declared.update(re.findall(r'create_foreign_key\(\s*"([^"]+)"', src))
     applied = set()
     for t in TABLES:
         cur.execute(
@@ -48,7 +71,17 @@ with psycopg.connect(psycopg_url(os.environ["DATABASE_URL"])) as conn:
             (t,),
         )
         applied.update(r[0] for r in cur.fetchall())
-    declared_fks = {n for n in declared if n.startswith("fk_")}
+    # R-01: c3a9e5f7d1b2 renamed the evidence_bundle FK on
+    # staff_response_observation to a deterministic <=63-char name; the old
+    # convention name no longer exists by design. Map old -> new so the
+    # declared/applied comparison stays exact (no phantom missing/extra).
+    RENAME = {
+        "fk_staff_response_observation_evidence_bundle_id_evidence_bundle": (
+            "fk_staff_response_observation_evidence_bundle"
+        )
+    }
+    declared_mapped = {RENAME.get(n, n) for n in declared}
+    declared_fks = {n for n in declared_mapped if n.startswith("fk_")}
     print("DECLARED_FK_NAMES  =", sorted(declared_fks))
     print("APPLIED_FK_NAMES   =", sorted(applied))
     missing = declared_fks - applied
@@ -89,7 +122,7 @@ with psycopg.connect(psycopg_url(os.environ["DATABASE_URL"])) as conn:
             ),
         )
         cur.execute(
-            "SELECT review_status, verification_status, reality_decision ",
+            "SELECT review_status, verification_status, reality_decision "
             "FROM reality_candidate WHERE id=%s",
             (cand_id,),
         )
@@ -151,7 +184,7 @@ with psycopg.connect(psycopg_url(os.environ["DATABASE_URL"])) as conn:
 
         # 2e. Place FK behavior: candidate with a bogus place must fail
         try:
-            sp = conn.savepoint()
+            cur.execute("SAVEPOINT drill_sp")
             cur.execute(
                 """INSERT INTO reality_candidate
                    (id, candidate_type, place_id, review_status,
@@ -163,23 +196,26 @@ with psycopg.connect(psycopg_url(os.environ["DATABASE_URL"])) as conn:
             )
             print("PLACE_FK            = FAIL (bogus place accepted!)")
         except psycopg.errors.ForeignKeyViolation:
-            conn.rollback(sp)
+            cur.execute("ROLLBACK TO SAVEPOINT drill_sp")
             print("PLACE_FK            = PASS (bogus place rejected)")
 
         # 2f. candidate->claim RESTRICT: cannot delete a candidate that has a claim
         try:
-            sp = conn.savepoint()
+            cur.execute("SAVEPOINT drill_sp2")
             cur.execute("DELETE FROM reality_candidate WHERE id=%s", (cand_id,))
             print("CANDIDATE_RESTRICT  = FAIL (candidate deleted despite claim)")
         except psycopg.errors.ForeignKeyViolation:
-            conn.rollback(sp)
+            cur.execute("ROLLBACK TO SAVEPOINT drill_sp2")
             print("CANDIDATE_RESTRICT  = PASS (claim blocks candidate delete)")
         # 2g. Zone FK SET NULL
-        zone_id = None
-        cur.execute("SELECT id FROM zone WHERE place_id=%s LIMIT 1", (place_id,))
-        zrow = cur.fetchone()
-        if zrow:
-            zone_id = zrow[0]
+        zone_id = str(uuid4())
+        try:
+            cur.execute(
+                "INSERT INTO zone (id, place_id, name, zone_type, indoor_outdoor,"
+                " created_at, updated_at)"
+                " VALUES (%s,%s,%s,%s,%s,%s,%s)",
+                (zone_id, place_id, "drill-setnull-zone", "general", "indoor", now, now),
+            )
             cur.execute(
                 """INSERT INTO observed_presence
                    (id, candidate_id, place_id, zone_id, animal_scope, observed_action,
@@ -187,14 +223,21 @@ with psycopg.connect(psycopg_url(os.environ["DATABASE_URL"])) as conn:
                    VALUES (%s,%s,%s,%s,'cat','present',%s,%s,'human_verified',%s,%s)""",
                 (str(uuid4()), cand_id, place_id, zone_id, now, now, now, now),
             )
+            # Deleting the zone must SET NULL the FK, not block the delete and
+            # not cascade into the claim.
+            cur.execute("DELETE FROM zone WHERE id=%s", (zone_id,))
             cur.execute(
-                "UPDATE zone SET id=%s WHERE id=%s",
-                (f"{zone_id}-replaced", zone_id),
+                "SELECT zone_id FROM observed_presence WHERE candidate_id=%s"
+                " AND animal_scope='cat' ORDER BY created_at DESC LIMIT 1",
+                (cand_id,),
             )
-            print(
-                f"ZONE_FK_SETNULL     = drill executed (zone {zone_id[:8]}… replaced); "
-                "SET NULL verified if no error above"
-            )
+            z = cur.fetchone()
+            if z is not None and z[0] is None:
+                print("ZONE_FK_SETNULL     = PASS (claim survives, zone_id nulled)")
+            else:
+                print(f"ZONE_FK_SETNULL     = FAIL (zone_id = {z!r} after zone delete)")
+        except psycopg.errors.ForeignKeyViolation as exc:
+            print(f"ZONE_FK_SETNULL     = FAIL ({exc})")
 
     conn.rollback()
     print("\nDRILL_ROLLED_BACK   = production untouched")

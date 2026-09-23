@@ -97,18 +97,18 @@ alembic upgrade head
 
 ## 验证清单（真实 DB 通过后勾选）
 
-- [ ] PostgreSQL healthy（`SELECT 1` / `/health/components`）
-- [ ] Redis healthy
-- [ ] DB URL 正确；TEST DB != production DB
-- [ ] `alembic current` == `alembic heads` == `2c7ea6ca8e30`
-- [ ] 4 张 Reality 表存在，列齐全
-- [ ] FK 如模型声明（ondelete CASCADE / SET NULL / RESTRICT）
-- [ ] 索引存在（6 + 候选 2）
-- [ ] enum/constraint 正确（若无独立 enum 类型，则 String 约束 + 应用层校验已核对）
-- [ ] downgrade 可执行（或记录不能安全 downgrade 的原因 + isolated drill 输出）
-- [ ] ObservedPresence / StaffResponseObservation / AnimalFacility 真实 CRUD
-- [ ] Reality Review（candidate 决策）→ publication 链路真实可用
-- [ ] 本文件结论更新为 `REALITY_DB_MIGRATION = PASS`
+- [x] PostgreSQL healthy（`SELECT 1` / /health/components）
+- [x] Redis healthy
+- [x] DB URL 正确；TEST DB != production DB
+- [x] `alembic current` == `alembic heads` == `e9f2c1d4a5b6`（2026-09-23 实测）
+- [x] Reality 表存在，列齐全（含 RealityReport 父对象 4 新表）
+- [x] FK 如模型声明（ondelete CASCADE / SET NULL / RESTRICT；R-01 确定性命名）
+- [x] 索引存在（8 Reality + 新增 ix_source_freshness_policy_id 等）
+- [x] enum/constraint 正确（String 约束 + 应用层校验已核对）
+- [x] downgrade 可执行（isolated TEST DB 上 downgrade → inspect → re-upgrade 全通过）
+- [x] ObservedPresence / StaffResponseObservation / AnimalFacility 真实 CRUD（drill PASS）
+- [x] Reality Review（candidate 决策）→ publication 链路真实可用
+- [x] 本文件结论更新为 `REALITY_DB_MIGRATION = PASS`（2026-09-23）
 
 ## 记录方式
 
@@ -191,3 +191,61 @@ candidate→claim RESTRICT 删除保护、zone FK SET NULL 行为 —— 待 Doc
 4. `scripts/isolated_db.py --role TEST --reset` → 全量 pytest；
 5. Playwright；
 6. 本文件结论最终更新为 `REALITY_DB_MIGRATION = PASS`。
+---
+
+## 附言 B — 2026-09-23 完整 DB Closure 验证记录（真实 PostgreSQL，Docker healthy）
+
+> 本轮 Docker daemon 可用：`petaccess-db-1` healthy / `petaccess-redis-1` healthy /
+> `petaccess-minio-1` running；5432 / 6379 / 9000 均监听。所有命令本轮真实执行。
+
+### B.1 环境
+
+```
+alembic current -> e9f2c1d4a5b6 (head)   # 主 DB petaccess 与 TEST DB petaccess_test 一致
+alembic heads   -> e9f2c1d4a5b6 (head)
+alembic check   -> No new upgrade operations detected.   # Alembic no drift（F1 闭合）
+```
+
+### B.2 RealityReport 建模落库（migration d4e7b2a8c9f1，additive）
+
+- 新表真实存在：`reality_report` / `observation_effort` / `reality_confirmation` /
+  `external_content_reference`；`reality_candidate.report_id` FK 落库。
+- 全部新 FK 名称 ≤63 字符；R-01 修复迁移 c3a9e5f7d1b2 缺陷已修（原实现会把
+  staff_response_observation 上 5 个 FK 全部改名到同一目标而失败；改为只匹配
+  evidence_bundle FK），主 DB 上该 FK 现为确定性名 `fk_staff_response_observation_evidence_bundle`。
+
+### B.3 Persistence drill（scripts/reality_db_persistence_drill.py，事务回滚）
+
+```
+DECLARED_FK_NAMES / APPLIED_FK_NAMES：29 FK 全部一致（MISSING=none EXTRA=none）
+CANDIDATE_CREATED   = status=REVIEW_PENDING verif=derived_ai_only decision=None
+CLAIM_CREATED       = scope=dog action=walking verif=human_verified freshness=RECENT
+CLAIM_UPDATED       = freshness=FRESH last_verified=True
+CONSUMER_VISIBLE    = 1 human-verified rows（AI-derived 行不计入消费聚合）
+AI_DERIVED_ROWS     = 0
+PLACE_FK            = PASS（bogus place 被 FK 拒绝）
+CANDIDATE_RESTRICT  = PASS（claim 阻止 candidate 删除）
+ZONE_FK_SETNULL     = PASS（zone 删除后 claim 存活、zone_id 置 NULL）
+DRILL_ROLLED_BACK   = production untouched
+```
+
+### B.4 Migration drill（isolated TEST DB petaccess_test）
+
+```
+upgrade head（e9f2c1d4a5b6）
+  -> structure probe PASS（reality 4+4 表列/索引齐全）
+  -> persistence drill PASS
+downgrade -1（e9f2c1d4a5b6 -> d4e7b2a8c9f1）
+  -> inspect：reality_report / observation_effort / reality_confirmation /
+     external_content_reference 全部消失；reality_candidate.report_id 列消失（正确）
+re-upgrade head
+  -> structure probe PASS / persistence drill PASS（重复 probe 全绿）
+```
+
+### B.5 结论
+
+```
+REALITY_DB_MIGRATION = PASS   （schema 探测 + 迁移链 + R-01 闭合 + Alembic no drift）
+REALITY_PERSISTENCE  = PASS   （CRUD / freshness / review / verified-only / RESTRICT / SET NULL / rollback）
+MIGRATION_DRILL      = PASS   （upgrade -> probe -> downgrade -> inspect -> re-upgrade -> probe）
+```

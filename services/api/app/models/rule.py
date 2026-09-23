@@ -70,7 +70,9 @@ class Source(Base, PkMixin, TimestampMixin):
     last_verified_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
-    review_due_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    review_due_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, index=True
+    )
     freshness_policy_id: Mapped[str | None] = mapped_column(
         String(36),
         ForeignKey("freshness_policy.id", ondelete="SET NULL"),

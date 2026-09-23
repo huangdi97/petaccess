@@ -56,6 +56,17 @@ class Place(Base, PkMixin, TimestampMixin):
         # Denormalized representative point for PostGIS nearby queries;
         # full geometry lives in place_geometry (ADR-017).
         Index("ix_place_location_gist", "location", postgresql_using="gist"),
+        # CJK-friendly fuzzy name search (pg_trgm) — created in
+        # 864ffcfc7ccb as a hand-written functional index. Declared here so
+        # alembic autogenerate reports no drift (F1 "Alembic no drift").
+        Index(
+            "ix_place_canonical_name_trgm",
+            "canonical_name",
+            postgresql_using="gin",
+            postgresql_ops={"canonical_name": "gin_trgm_ops"},
+        ),
+        # JSONB alias-name lookup (a7c4e1b90d33), hand-written GIN index.
+        Index("ix_place_alias_names_gin", "alias_names", postgresql_using="gin"),
     )
 
     canonical_name: Mapped[str] = mapped_column(String(200), nullable=False)
