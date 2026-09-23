@@ -72,7 +72,7 @@ defineProps<{ snapshot: CoexistenceSnapshot | null; loading?: boolean }>();
 
 <style scoped>
 .panel {
-  border: 1px solid var(--border, #ddd);
+  border: 1px solid var(--line);
   border-radius: 10px;
   padding: 14px;
   margin-top: 12px;
@@ -89,16 +89,16 @@ defineProps<{ snapshot: CoexistenceSnapshot | null; loading?: boolean }>();
   font-size: 13px;
 }
 .badge.info {
-  background: #e8f0fe;
-  color: #1a5276;
+  background: var(--pa-color-accent-weak);
+  color: var(--pa-color-accent);
 }
 .badge.warn {
-  background: #fef3e2;
-  color: #8a6d1a;
+  background: var(--pa-color-status-conditional-bg);
+  color: var(--pa-color-status-conditional);
 }
 .badge.neutral {
-  background: #eef1f4;
-  color: #4a5568;
+  background: var(--pa-color-bg-sunken);
+  color: var(--pa-color-text-secondary);
 }
 .facts {
   margin: 6px 0;
@@ -108,7 +108,7 @@ defineProps<{ snapshot: CoexistenceSnapshot | null; loading?: boolean }>();
   margin: 2px 0;
 }
 .muted {
-  color: #777;
+  color: var(--muted);
 }
 .small {
   font-size: 12px;

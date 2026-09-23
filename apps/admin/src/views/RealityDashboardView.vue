@@ -165,7 +165,7 @@ onMounted(load);
   gap: 12px;
 }
 .card {
-  border: 1px solid var(--border, #ddd);
+  border: 1px solid var(--line);
   border-radius: 8px;
   padding: 16px;
   text-align: center;
@@ -176,7 +176,7 @@ onMounted(load);
 }
 .lbl {
   font-size: 13px;
-  color: #777;
+  color: var(--muted);
   margin-top: 4px;
 }
 table {
@@ -186,16 +186,16 @@ table {
 }
 th,
 td {
-  border: 1px solid var(--border, #ddd);
+  border: 1px solid var(--line);
   padding: 6px 8px;
   text-align: left;
 }
 .muted {
-  color: #777;
+  color: var(--muted);
 }
 .error {
-  color: #c0392b;
-  background: #fdecea;
+  color: var(--danger);
+  background: var(--pa-color-status-restricted-bg);
   padding: 8px 12px;
   border-radius: 6px;
 }

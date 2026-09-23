@@ -405,7 +405,7 @@ async function submitReality() {
               我有现场经历
             </button>
           </div>
-          <div class="row" style="margin-top: 10px; border-top: 1px dashed var(--border, #ddd); padding-top: 10px">
+          <div class="row" style="margin-top: 10px; border-top: 1px dashed var(--line); padding-top: 10px">
             <button
               v-for="(label, kind) in REALITY_KIND_LABELS"
               :key="kind"

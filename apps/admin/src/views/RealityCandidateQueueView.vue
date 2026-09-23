@@ -232,15 +232,15 @@ onMounted(load);
   gap: 8px;
 }
 .code {
-  background: #f6f8fa;
-  border: 1px solid #e1e4e8;
+  background: var(--pa-color-bg-app);
+  border: 1px solid var(--line);
   border-radius: 6px;
   padding: 10px;
   overflow-x: auto;
   font-size: 12px;
 }
 .detail {
-  border: 1px solid var(--border, #ddd);
+  border: 1px solid var(--line);
   border-radius: 8px;
   padding: 12px;
   margin-top: 12px;
@@ -248,7 +248,7 @@ onMounted(load);
 input {
   width: 100%;
   padding: 6px 8px;
-  border: 1px solid var(--border, #ddd);
+  border: 1px solid var(--line);
   border-radius: 6px;
 }
 .pager {
@@ -257,19 +257,19 @@ input {
   margin-top: 12px;
 }
 .ok {
-  color: #1e7e34;
-  background: #e6f4ea;
+  color: var(--ok);
+  background: var(--pa-color-status-allowed-bg);
   padding: 8px 12px;
   border-radius: 6px;
 }
 .error {
-  color: #c0392b;
-  background: #fdecea;
+  color: var(--danger);
+  background: var(--pa-color-status-restricted-bg);
   padding: 8px 12px;
   border-radius: 6px;
 }
 .muted {
-  color: #777;
+  color: var(--muted);
 }
 button.link {
   background: none;

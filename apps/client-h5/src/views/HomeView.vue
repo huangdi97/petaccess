@@ -449,15 +449,15 @@ onMounted(async () => {
   gap: 4px;
   align-items: flex-start;
   padding: 12px;
-  border: 1px solid var(--border, #ddd);
+  border: 1px solid var(--line);
   border-radius: 10px;
-  background: var(--bg, #fff);
+  background: var(--panel);
   cursor: pointer;
   text-align: left;
   font: inherit;
 }
 .entry:hover {
-  border-color: var(--accent, #2f6fed);
+  border-color: var(--accent);
 }
 .entry-label {
   font-weight: 600;
@@ -465,6 +465,6 @@ onMounted(async () => {
 }
 .entry-hint {
   font-size: 12px;
-  color: #777;
+  color: var(--muted);
 }
 </style>

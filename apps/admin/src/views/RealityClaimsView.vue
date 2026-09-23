@@ -99,12 +99,12 @@ onMounted(() => {
 }
 input {
   padding: 6px 8px;
-  border: 1px solid var(--border, #ddd);
+  border: 1px solid var(--line);
   border-radius: 6px;
   min-width: 260px;
 }
 .card {
-  border: 1px solid var(--border, #ddd);
+  border: 1px solid var(--line);
   border-radius: 8px;
   padding: 12px;
   margin-bottom: 10px;
@@ -112,7 +112,7 @@ input {
 .card h3 {
   margin: 0 0 8px;
   font-size: 14px;
-  color: #444;
+  color: var(--text);
 }
 .grid {
   display: grid;
@@ -125,20 +125,20 @@ input {
   font-size: 13px;
 }
 .k {
-  color: #888;
+  color: var(--muted);
   min-width: 120px;
 }
 .v {
   word-break: break-all;
 }
 .error {
-  color: #c0392b;
-  background: #fdecea;
+  color: var(--danger);
+  background: var(--pa-color-status-restricted-bg);
   padding: 8px 12px;
   border-radius: 6px;
   margin: 8px 0;
 }
 .muted {
-  color: #777;
+  color: var(--muted);
 }
 </style>
