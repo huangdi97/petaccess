@@ -1,211 +1,198 @@
 # V010_REPOSITORY_BASELINE.md
 
-# v0.1.0 Phase A — 全仓只读审计 · 仓库基线
+# v0.1.0 Phase A 鈥?鍏ㄤ粨鍙瀹¤ 路 浠撳簱鍩虹嚎
 
-> 生成日期:2026-09-23(基于仓库实际只读盘点,非历史报告复制)
-> 状态标记:CURRENT VERIFIED(本次实测) / HISTORICAL(历史记录,未重跑) / NOT RERUN(本轮未重跑) / BLOCKED(外部条件缺失)
+> 鐢熸垚鏃ユ湡:2026-09-23(鍩轰簬浠撳簱瀹為檯鍙鐩樼偣,闈炲巻鍙叉姤鍛婂鍒?
+> 鐘舵€佹爣璁?CURRENT VERIFIED(鏈瀹炴祴) / HISTORICAL(鍘嗗彶璁板綍,鏈噸璺? / NOT RERUN(鏈疆鏈噸璺? / BLOCKED(澶栭儴鏉′欢缂哄け)
 
 ---
 
-## 1. 基线核验结果
+## 1. 鍩虹嚎鏍搁獙缁撴灉
 
-| 项目 | 声称值 | 实测值 | 状态 |
+| 椤圭洰 | 澹扮О鍊?| 瀹炴祴鍊?| 鐘舵€?|
 |---|---|---|---|
-| Git HEAD | `6079847` | `6079847` (master) | CURRENT VERIFIED |
-| Worktree | — | clean (0 changed) | CURRENT VERIFIED |
-| MIGRATION_HEAD | `e9f2c1d4a5b6` | alembic head `e9f2c1d4a5b6`(单 head,链完整,初始 revision `864ffcfc7ccb`) | CURRENT VERIFIED |
-| pytest | 889 passed / 2 skipped | 未重跑(Phase B/X 重跑) | NOT RERUN |
-| ruff / format | PASS | 未重跑(Phase B 重跑) | NOT RERUN |
-| mypy | 97 files / 0 errors | 未重跑(Phase B 重跑) | NOT RERUN |
-| H5 / Admin vue-tsc + build | PASS | 未重跑(Phase B 重跑) | NOT RERUN |
-| Playwright | 18 passed | 未重跑 | NOT RERUN |
-| Visual | 17 baselines PASS | 未重跑 | NOT RERUN |
-| Reality DB migration/persistence | PASS | alembic head 已实测;drill 未重跑 | PARTIAL |
-| Security Critical/High = 0 | PASS | 未重跑(Phase Z 重跑) | NOT RERUN |
-| Backup/Restore | PASS | 未重跑 | NOT RERUN |
-| Observability | basic endpoints PASS | 未重跑 | NOT RERUN |
+| Git HEAD | `6079847` | `d4e7e66` (master, M10) | CURRENT VERIFIED |
+| Worktree | 鈥?| clean (0 changed) | CURRENT VERIFIED |
+| MIGRATION_HEAD | `e9f2c1d4a5b6` | alembic head `e9f2c1d4a5b6`(鍗?head,閾惧畬鏁?鍒濆 revision `864ffcfc7ccb`) | CURRENT VERIFIED |
+| pytest | 889 passed / 2 skipped | 鏈噸璺?Phase B/X 閲嶈窇) | NOT RERUN |
+| ruff / format | PASS | 鏈噸璺?Phase B 閲嶈窇) | NOT RERUN |
+| mypy | 97 files / 0 errors | 鏈噸璺?Phase B 閲嶈窇) | NOT RERUN |
+| H5 / Admin vue-tsc + build | PASS | 鏈噸璺?Phase B 閲嶈窇) | NOT RERUN |
+| Playwright | 18 passed | 鏈噸璺?| NOT RERUN |
+| Visual | 17 baselines PASS | 鏈噸璺?| NOT RERUN |
+| Reality DB migration/persistence | PASS | alembic head 宸插疄娴?drill 鏈噸璺?| PARTIAL |
+| Security Critical/High = 0 | PASS | 鏈噸璺?Phase Z 閲嶈窇) | NOT RERUN |
+| Backup/Restore | PASS | 鏈噸璺?| NOT RERUN |
+| Observability | basic endpoints PASS | 鏈噸璺?| NOT RERUN |
 
-关键差异记录:
-- `e9f2c1d4a5b6` 是 **alembic revision**,不是 git commit;git 中不存在同名 commit(初查误判,已澄清)。
-- 历史质量数字全部按 NOT RERUN 对待,Phase B(工程 gate)起逐项重验。
-
+鍏抽敭宸紓璁板綍:
+- `e9f2c1d4a5b6` 鏄?**alembic revision**,涓嶆槸 git commit;git 涓笉瀛樺湪鍚屽悕 commit(鍒濇煡璇垽,宸叉緞娓?銆?- 鍘嗗彶璐ㄩ噺鏁板瓧鍏ㄩ儴鎸?NOT RERUN 瀵瑰緟,Phase B(宸ョ▼ gate)璧烽€愰」閲嶉獙銆?
 ---
 
-## 2. 仓库结构
+## 2. 浠撳簱缁撴瀯
 
 ```
-E:\AI\宠物管理
-├─ apps/
-│  ├─ client/        uni-app x 客户端(.uvue,7 页 + tabBar,14 文件)
-│  ├─ client-h5/     Vue 3 H5 消费者端(86 文件;src: 25 .vue + 6 .ts)
-│  └─ admin/         Vue 3 管理端(102 文件;src: 29 .vue + 6 .ts)
-├─ services/
-│  ├─ api/           FastAPI 后端(290 文件;app 93 .py + migrations 24 versions + 独立 tests 4)
-│  └─ worker/        Celery worker(仅 pyproject.toml,无 .py)
-├─ packages/
-│  ├─ api-client/    OpenAPI 生成 TS client(schema.d.ts 7042 行生成代码 + index.ts)
-│  ├─ client-core/   手写 API client(728 行)+ platform adapter
-│  ├─ design-tokens/ 语义 tokens(index.ts 291 行 + tokens.css)
-│  └─ rule-spec/     JSON schema + fixtures(无 src)
-├─ tests/            unit(43) / integration(23) / contract(4) / isolation(2) / e2e(1) / fixtures / visual
-├─ scripts/          89 个 .py 运维/一次性脚本
-├─ docs/             16 个子目录(adr 2, engineering 16, governance 47, reality_audit 26, ...) + audit(新建)
-├─ infra/            docker/initdb/01-extensions.sql
-├─ schemas/          petaccessjson-0.1.example.json 等
-├─ .github/          不存在(全仓 0 CI 配置)
-└─ 根: pyproject.toml, package.json(pnpm workspace), docker-compose.yml(db/redis/minio),
-      AGENTS.md, DECISIONS.md, GOAL.md, 产品母版 md
+E:\AI\瀹犵墿绠＄悊
+鈹溾攢 apps/
+鈹? 鈹溾攢 client/        uni-app x 瀹㈡埛绔?.uvue,7 椤?+ tabBar,14 鏂囦欢)
+鈹? 鈹溾攢 client-h5/     Vue 3 H5 娑堣垂鑰呯(86 鏂囦欢;src: 25 .vue + 6 .ts)
+鈹? 鈹斺攢 admin/         Vue 3 绠＄悊绔?102 鏂囦欢;src: 29 .vue + 6 .ts)
+鈹溾攢 services/
+鈹? 鈹溾攢 api/           FastAPI 鍚庣(290 鏂囦欢;app 93 .py + migrations 24 versions + 鐙珛 tests 4)
+鈹? 鈹斺攢 worker/        Celery worker(浠?pyproject.toml,鏃?.py)
+鈹溾攢 packages/
+鈹? 鈹溾攢 api-client/    OpenAPI 鐢熸垚 TS client(schema.d.ts 7042 琛岀敓鎴愪唬鐮?+ index.ts)
+鈹? 鈹溾攢 client-core/   鎵嬪啓 API client(728 琛?+ platform adapter
+鈹? 鈹溾攢 design-tokens/ 璇箟 tokens(index.ts 291 琛?+ tokens.css)
+鈹? 鈹斺攢 rule-spec/     JSON schema + fixtures(鏃?src)
+鈹溾攢 tests/            unit(43) / integration(23) / contract(4) / isolation(2) / e2e(1) / fixtures / visual
+鈹溾攢 scripts/          89 涓?.py 杩愮淮/涓€娆℃€ц剼鏈?鈹溾攢 docs/             16 涓瓙鐩綍(adr 2, engineering 16, governance 47, reality_audit 26, ...) + audit(鏂板缓)
+鈹溾攢 infra/            docker/initdb/01-extensions.sql
+鈹溾攢 schemas/          petaccessjson-0.1.example.json 绛?鈹溾攢 .github/          涓嶅瓨鍦?鍏ㄤ粨 0 CI 閰嶇疆)
+鈹斺攢 鏍? pyproject.toml, package.json(pnpm workspace), docker-compose.yml(db/redis/minio),
+      AGENTS.md, DECISIONS.md, GOAL.md, 浜у搧姣嶇増 md
 ```
 
-后端分层(app/):`api/v1`(17) / `core`(10) / `db`(5) / `models`(11) / `providers`(7) / `rulespec`(13) / `schemas`(8) / `services`(13) / `worker`(3) / `tools`(2)。分层边界清晰,符合 UI→App→Domain→Ports 方向。
-
+鍚庣鍒嗗眰(app/):`api/v1`(17) / `core`(10) / `db`(5) / `models`(11) / `providers`(7) / `rulespec`(13) / `schemas`(8) / `services`(13) / `worker`(3) / `tools`(2)銆傚垎灞傝竟鐣屾竻鏅?绗﹀悎 UI鈫扐pp鈫扗omain鈫扨orts 鏂瑰悜銆?
 ---
 
-## 3. 文件数量统计
+## 3. 鏂囦欢鏁伴噺缁熻
 
-| 类别 | 数量 |
+| 绫诲埆 | 鏁伴噺 |
 |---|---|
 | backend app .py | 93 |
-| tests .py(根 tests/) | 75(另 services/api/tests 4 个疑似重复职责) |
+| tests .py(鏍?tests/) | 75(鍙?services/api/tests 4 涓枒浼奸噸澶嶈亴璐? |
 | alembic migration versions | 24 |
 | scripts .py | 89 |
 | client-h5 .vue / .ts | 25 / 6 |
 | admin .vue / .ts | 29 / 6 |
 | uni-app .uvue / .ts | 9 / 1 |
-| 手写 TS 大文件 | client.ts 728 行(>300) |
-| 生成 TS | schema.d.ts 7042 行(豁免) |
+| 鎵嬪啓 TS 澶ф枃浠?| client.ts 728 琛?>300) |
+| 鐢熸垚 TS | schema.d.ts 7042 琛?璞佸厤) |
 
 ---
 
-## 4. 行数 / 复杂度超标(工程规范门禁现状)
+## 4. 琛屾暟 / 澶嶆潅搴﹁秴鏍?宸ョ▼瑙勮寖闂ㄧ鐜扮姸)
 
-### 4.1 Python app(>250 / >300 行)
-- >300 行:**24 个**;>250 行:**27 个**
-- 最严重:`api/v1/v05.py` **3103**、`db/seed.py` **1494**、`models/enums.py` **848**、`rulespec/v05_resolver.py` **747**、`api/v1/reality.py` **718**、`tools/reality_audit.py` **705**、`db/safety.py` **651**、`services/evidence_service.py` **649**
-- migrations >250:4 个(豁免项,但 864ffcfc7ccb 达 832 行)
+### 4.1 Python app(>250 / >300 琛?
+- >300 琛?**24 涓?*;>250 琛?**27 涓?*
+- 鏈€涓ラ噸:`api/v1/v05.py` **3103**銆乣db/seed.py` **1494**銆乣models/enums.py` **848**銆乣rulespec/v05_resolver.py` **747**銆乣api/v1/reality.py` **718**銆乣tools/reality_audit.py` **705**銆乣db/safety.py` **651**銆乣services/evidence_service.py` **649**
+- migrations >250:4 涓?璞佸厤椤?浣?864ffcfc7ccb 杈?832 琛?
 
-### 4.2 tests(>300 行)
-- **21 个**;最大 `unit/test_animal_scope.py` 752
+### 4.2 tests(>300 琛?
+- **21 涓?*;鏈€澶?`unit/test_animal_scope.py` 752
 
-### 4.3 前端 .vue/.uvue
-- >150:**20 个**;>200:**16 个**
-- 最严重:`client-h5/views/PlaceView.vue` 723、`ContributeView.vue` 700、`HomeView.vue` 427、admin `SpatialExtrasView.vue` 397、`OrganizationsView.vue` 389
-- uni-app .uvue 全部 ≤137,合规
+### 4.3 鍓嶇 .vue/.uvue
+- >150:**20 涓?*;>200:**16 涓?*
+- 鏈€涓ラ噸:`client-h5/views/PlaceView.vue` 723銆乣ContributeView.vue` 700銆乣HomeView.vue` 427銆乤dmin `SpatialExtrasView.vue` 397銆乣OrganizationsView.vue` 389
+- uni-app .uvue 鍏ㄩ儴 鈮?37,鍚堣
 
-### 4.4 函数与复杂度
-- 函数体 >60 行:**168 个**(top: `db/seed.py:run_demo_seed` 1378、`v05_resolver.py:resolve` 467)
-- McCabe 复杂度 >10:**160 个**(top: `v05_resolver.py:resolve` **109**、`access_answer.py:build_access_answer` 36)
-- 集中在核心判定链路(v05 系列 / access_answer / publish_gate)
+### 4.4 鍑芥暟涓庡鏉傚害
+- 鍑芥暟浣?>60 琛?**168 涓?*(top: `db/seed.py:run_demo_seed` 1378銆乣v05_resolver.py:resolve` 467)
+- McCabe 澶嶆潅搴?>10:**160 涓?*(top: `v05_resolver.py:resolve` **109**銆乣access_answer.py:build_access_answer` 36)
+- 闆嗕腑鍦ㄦ牳蹇冨垽瀹氶摼璺?v05 绯诲垪 / access_answer / publish_gate)
 
 ---
 
-## 5. 类型纪律
+## 5. 绫诲瀷绾緥
 
-| 项 | 数量 | 分布 |
+| 椤?| 鏁伴噺 | 鍒嗗竷 |
 |---|---|---|
-| `# noqa` | 194(scripts/tests 为主;app 内 7) | worker/tasks.py 4, celery_app 2, seed 1 |
-| `cast(` | 3 | core/idempotency、observability、ratelimit 各 1 |
-| `# type: ignore` | 13(app 内 11) | **evidence_service.py 7**、answerability 2、disputes 2 |
-| `Any`(app 非 import) | 49 次使用 / 65 含 import | coexistence_snapshot 13、access_answer 11、safety 8、storage 7、tencent_map 6 |
-| 前端 `any` | 4 | admin/RealityClaimsView.vue ×3 + 生成代码 1 |
-| 前端 ts-ignore 家族 | 0 | — |
+| `# noqa` | 194(scripts/tests 涓轰富;app 鍐?7) | worker/tasks.py 4, celery_app 2, seed 1 |
+| `cast(` | 3 | core/idempotency銆乷bservability銆乺atelimit 鍚?1 |
+| `# type: ignore` | 13(app 鍐?11) | **evidence_service.py 7**銆乤nswerability 2銆乨isputes 2 |
+| `Any`(app 闈?import) | 49 娆′娇鐢?/ 65 鍚?import | coexistence_snapshot 13銆乤ccess_answer 11銆乻afety 8銆乻torage 7銆乼encent_map 6 |
+| 鍓嶇 `any` | 4 | admin/RealityClaimsView.vue 脳3 + 鐢熸垚浠ｇ爜 1 |
+| 鍓嶇 ts-ignore 瀹舵棌 | 0 | 鈥?|
 
-结论:前端纪律好;后端核心域存在集中类型逃逸(证据/答案判定),违反强类型规则。
-
+缁撹:鍓嶇绾緥濂?鍚庣鏍稿績鍩熷瓨鍦ㄩ泦涓被鍨嬮€冮€?璇佹嵁/绛旀鍒ゅ畾),杩濆弽寮虹被鍨嬭鍒欍€?
 ---
 
-## 6. TODO / 死代码 / 日志
+## 6. TODO / 姝讳唬鐮?/ 鏃ュ織
 
-| 项 | 结果 |
+| 椤?| 缁撴灉 |
 |---|---|
-| 裸 TODO/FIXME/HACK/XXX(Python) | **0** |
-| 裸 TODO/FIXME/HACK/XXX(前端 src) | **0** |
-| `console.log(` 前端 src | **0** |
-| `print(` backend app | **10**(`db/safety.py` 7 —— 安全敏感模块用 print 而非结构化日志) |
-| 死路由/死组件 | 未发现明显死路由;uni-app 与 client-h5 存在功能重复实现(StatusBadge/ModeBar 两套) |
-| i18n | 无(v0.1.0 不要求) |
+| 瑁?TODO/FIXME/HACK/XXX(Python) | **0** |
+| 瑁?TODO/FIXME/HACK/XXX(鍓嶇 src) | **0** |
+| `console.log(` 鍓嶇 src | **0** |
+| `print(` backend app | **10**(`db/safety.py` 7 鈥斺€?瀹夊叏鏁忔劅妯″潡鐢?print 鑰岄潪缁撴瀯鍖栨棩蹇? |
+| 姝昏矾鐢?姝荤粍浠?| 鏈彂鐜版槑鏄炬璺敱;uni-app 涓?client-h5 瀛樺湪鍔熻兘閲嶅瀹炵幇(StatusBadge/ModeBar 涓ゅ) |
+| i18n | 鏃?v0.1.0 涓嶈姹? |
 
 ---
 
-## 7. 配置 / Env / Secret
+## 7. 閰嶇疆 / Env / Secret
 
-| 项 | 结果 |
+| 椤?| 缁撴灉 |
 |---|---|
-| 集中 Settings | 有:`app/core/config.py` `class Settings(BaseSettings)`(pydantic-settings v2,env_file 根 .env) |
-| 散落 env 读取 | `os.getenv` 9 处(app 1 + tests 1 + scripts 7);`import.meta.env` 2 处重复默认值 `/api/v1` |
-| .env.example | 37 行,全 dev 占位值,**无真实 secret**;.env 29 键与 example 完全一致 |
-| 可疑默认值 | config.py 内嵌 dev JWT_SECRET / DB / S3 明文默认(生产需 fail-fast 覆盖) |
-| Secret 扫描 | **无任何扫描配置**(gitleaks/detect-secrets 均无);全仓 1 个疑似 secret 命中文件:`docs/governance/FIRST_REAL_PUBLISH_BATCH_01A_CLOSURE.md`(**需人工核实**) |
-| docker-compose | db(postgis)/redis/minio,全部 `${VAR:-default}` 插值,无硬编码凭据 |
-| .gitignore | 完整(含 .env、密钥后缀 *.p12/*.jks/*.pem/*.key、agent 输出目录) |
+| 闆嗕腑 Settings | 鏈?`app/core/config.py` `class Settings(BaseSettings)`(pydantic-settings v2,env_file 鏍?.env) |
+| 鏁ｈ惤 env 璇诲彇 | `os.getenv` 9 澶?app 1 + tests 1 + scripts 7);`import.meta.env` 2 澶勯噸澶嶉粯璁ゅ€?`/api/v1` |
+| .env.example | 37 琛?鍏?dev 鍗犱綅鍊?**鏃犵湡瀹?secret**;.env 29 閿笌 example 瀹屽叏涓€鑷?|
+| 鍙枒榛樿鍊?| config.py 鍐呭祵 dev JWT_SECRET / DB / S3 鏄庢枃榛樿(鐢熶骇闇€ fail-fast 瑕嗙洊) |
+| Secret 鎵弿 | **鏃犱换浣曟壂鎻忛厤缃?*(gitleaks/detect-secrets 鍧囨棤);鍏ㄤ粨 1 涓枒浼?secret 鍛戒腑鏂囦欢:`docs/governance/FIRST_REAL_PUBLISH_BATCH_01A_CLOSURE.md`(**闇€浜哄伐鏍稿疄**) |
+| docker-compose | db(postgis)/redis/minio,鍏ㄩ儴 `${VAR:-default}` 鎻掑€?鏃犵‖缂栫爜鍑嵁 |
+| .gitignore | 瀹屾暣(鍚?.env銆佸瘑閽ュ悗缂€ *.p12/*.jks/*.pem/*.key銆乤gent 杈撳嚭鐩綍) |
 
 ---
 
-## 8. CI / 发布基建
+## 8. CI / 鍙戝竷鍩哄缓
 
-| 项 | 现状 |
+| 椤?| 鐜扮姸 |
 |---|---|
-| GitHub workflows | **不存在**(无 .github) |
-| 任何 CI 载体 | **0**(仅本地 scripts/dev.sh test.sh lint.sh typecheck.sh + qa_all.ps1) |
-| Secret 扫描 CI | 无 |
-| Tauri / Android 工程 | **不存在**(无 src-tauri / Cargo.toml / tauri.conf.json / AndroidManifest)——Phase Q–U 待建 |
-| GitHub remote / release | 无 remote、无 tag(v0.5-quality-freeze 为历史本地 tag) |
-| docs/release | 6 个文档,最新 V09_FINAL_REPORT;`docs/audit` 原为空(本次 Phase A 填充) |
+| GitHub workflows | **涓嶅瓨鍦?*(鏃?.github) |
+| 浠讳綍 CI 杞戒綋 | **0**(浠呮湰鍦?scripts/dev.sh test.sh lint.sh typecheck.sh + qa_all.ps1) |
+| Secret 鎵弿 CI | 鏃?|
+| Tauri / Android 宸ョ▼ | **涓嶅瓨鍦?*(鏃?src-tauri / Cargo.toml / tauri.conf.json / AndroidManifest)鈥斺€擯hase Q鈥揢 寰呭缓 |
+| GitHub remote / release | 鏃?remote銆佹棤 tag(v0.5-quality-freeze 涓哄巻鍙叉湰鍦?tag) |
+| docs/release | 6 涓枃妗?鏈€鏂?V09_FINAL_REPORT;`docs/audit` 鍘熶负绌?鏈 Phase A 濉厖) |
 
 ---
 
-## 9. Version SSOT(Phase AE 预检)
+## 9. Version SSOT(Phase AE 棰勬)
 
-| 位置 | version |
+| 浣嶇疆 | version |
 |---|---|
-| package.json(根) + apps/admin + client-h5 + client + packages/client-core + api-client | 0.1.0(6 处一致) |
-| pyproject.toml(根) + services/api + services/worker | 0.1.0(3 处一致) |
-| **packages/design-tokens/package.json** | **0.6.0-beta.1(唯一漂移)** |
-| 发布轮次文档 | 已到 v0.9-R1(代码版本号未随轮次推进) |
+| package.json(鏍? + apps/admin + client-h5 + client + packages/client-core + api-client | 0.1.0(6 澶勪竴鑷? |
+| pyproject.toml(鏍? + services/api + services/worker | 0.1.0(3 澶勪竴鑷? |
+| **packages/design-tokens/package.json** | **0.6.0-beta.1(鍞竴婕傜Щ)** |
+| 鍙戝竷杞鏂囨。 | 宸插埌 v0.9-R1(浠ｇ爜鐗堟湰鍙锋湭闅忚疆娆℃帹杩? |
 
-现状:漂移点 1 处(design-tokens);v0.1.0 目标要求 VERSION_DRIFT = 0,Phase AE 收口。
-
+鐜扮姸:婕傜Щ鐐?1 澶?design-tokens);v0.1.0 鐩爣瑕佹眰 VERSION_DRIFT = 0,Phase AE 鏀跺彛銆?
 ---
 
-## 10. Phase A 全清单核对(目标项 → 发现)
+## 10. Phase A 鍏ㄦ竻鍗曟牳瀵?鐩爣椤?鈫?鍙戠幇)
 
-| 检查项 | 结果 |
+| 妫€鏌ラ」 | 缁撴灉 |
 |---|---|
-| 文件总数 / production source / tests / generated | ✓ 见 §3 |
-| >250 / >300 行人工源码 | ✓ 24 个 >300(app),21 个 tests >300 |
-| UI component >200 行 | ✓ 16 个 |
-| function >60 行 | ✓ 168 个 |
-| complexity >10 / >15 | ✓ 160 个 >10(app 内 63 个 >15 级候选) |
-| deep nesting | 未单列扫描(随复杂度项覆盖),Phase B gate 补 |
-| high parameter count | 未单列扫描(需 Phase D 抽查) |
-| circular dependency | 未发现(app 依赖方向单向);Phase C 用工具验证 |
-| duplicate domain model | services/api/tests 4 文件与根 tests 疑似重复职责(未确认重复逻辑) |
-| any / cast / ignore / noqa | ✓ §5 |
-| TODO/FIXME/HACK/TEMP | ✓ 0(前端与后端) |
-| dead route / dead component | 未发现死路由;uni-app 与 H5 双实现是最大重复面 |
-| dead env / dead dependency | 未发现明显死 env;依赖死项未单列扫描(Phase B 补) |
-| duplicated config | 前端 env 默认值 2 处重复(§7);后端 config 集中良好 |
-| scattered process.env / os.getenv | ✓ 少量(9 + 2),可控 |
-| hardcoded colors | ✓ 28 处全在 uni-app(.uvue);client-h5/admin 的 .vue 为 0(全走 tokens) |
-| hardcoded spacing | 未发现(设计 tokens 已覆盖 client-h5/admin) |
-| raw magic status | 未系统扫描(需 Phase D 抽点);tokens 已提供 STATUS_SEMANTICS |
-| silent catch / broad exception | ✓ 17 宽捕获 + 18 可疑 silent catch(app 10) |
-| logging privacy issues | 未发现敏感正文日志;db/safety.py 用 print 是结构性问题 |
-| N+1 / unbounded query | 未系统扫描(Phase D 需逐查询审计) |
-| synchronous heavy media | 未发现(媒体走 storage provider,无同步重媒体) |
-| missing idempotency | 已有 core/idempotency.py;其内部 2 处 silent catch 需修 |
-| unsafe transaction | 未发现明显越界 commit;Phase D 审计 |
-| API/client drift | schema.d.ts 为生成代码(SSOT=OpenAPI);手写 client.ts 728 行与生成 client 并存,需 Phase G 核对漂移 |
+| 鏂囦欢鎬绘暟 / production source / tests / generated | 鉁?瑙?搂3 |
+| >250 / >300 琛屼汉宸ユ簮鐮?| 鉁?24 涓?>300(app),21 涓?tests >300 |
+| UI component >200 琛?| 鉁?16 涓?|
+| function >60 琛?| 鉁?168 涓?|
+| complexity >10 / >15 | 鉁?160 涓?>10(app 鍐?63 涓?>15 绾у€欓€? |
+| deep nesting | 鏈崟鍒楁壂鎻?闅忓鏉傚害椤硅鐩?,Phase B gate 琛?|
+| high parameter count | 鏈崟鍒楁壂鎻?闇€ Phase D 鎶芥煡) |
+| circular dependency | 鏈彂鐜?app 渚濊禆鏂瑰悜鍗曞悜);Phase C 鐢ㄥ伐鍏烽獙璇?|
+| duplicate domain model | services/api/tests 4 鏂囦欢涓庢牴 tests 鐤戜技閲嶅鑱岃矗(鏈‘璁ら噸澶嶉€昏緫) |
+| any / cast / ignore / noqa | 鉁?搂5 |
+| TODO/FIXME/HACK/TEMP | 鉁?0(鍓嶇涓庡悗绔? |
+| dead route / dead component | 鏈彂鐜版璺敱;uni-app 涓?H5 鍙屽疄鐜版槸鏈€澶ч噸澶嶉潰 |
+| dead env / dead dependency | 鏈彂鐜版槑鏄炬 env;渚濊禆姝婚」鏈崟鍒楁壂鎻?Phase B 琛? |
+| duplicated config | 鍓嶇 env 榛樿鍊?2 澶勯噸澶?搂7);鍚庣 config 闆嗕腑鑹ソ |
+| scattered process.env / os.getenv | 鉁?灏戦噺(9 + 2),鍙帶 |
+| hardcoded colors | 鉁?28 澶勫叏鍦?uni-app(.uvue);client-h5/admin 鐨?.vue 涓?0(鍏ㄨ蛋 tokens) |
+| hardcoded spacing | 鏈彂鐜?璁捐 tokens 宸茶鐩?client-h5/admin) |
+| raw magic status | 鏈郴缁熸壂鎻?闇€ Phase D 鎶界偣);tokens 宸叉彁渚?STATUS_SEMANTICS |
+| silent catch / broad exception | 鉁?17 瀹芥崟鑾?+ 18 鍙枒 silent catch(app 10) |
+| logging privacy issues | 鏈彂鐜版晱鎰熸鏂囨棩蹇?db/safety.py 鐢?print 鏄粨鏋勬€ч棶棰?|
+| N+1 / unbounded query | 鏈郴缁熸壂鎻?Phase D 闇€閫愭煡璇㈠璁? |
+| synchronous heavy media | 鏈彂鐜?濯掍綋璧?storage provider,鏃犲悓姝ラ噸濯掍綋) |
+| missing idempotency | 宸叉湁 core/idempotency.py;鍏跺唴閮?2 澶?silent catch 闇€淇?|
+| unsafe transaction | 鏈彂鐜版槑鏄捐秺鐣?commit;Phase D 瀹¤ |
+| API/client drift | schema.d.ts 涓虹敓鎴愪唬鐮?SSOT=OpenAPI);鎵嬪啓 client.ts 728 琛屼笌鐢熸垚 client 骞跺瓨,闇€ Phase G 鏍稿婕傜Щ |
 
 ---
 
-## 11. 结论
+## 11. 缁撹
 
-- **健康面**:结构分层清晰、配置集中、零裸 TODO、零前端类型逃逸、tokens 覆盖到位、alembic 单 head、.env 无真实 secret。
-- **主要风险面**(按影响排序):
-  1. **无 CI / 无 secret 扫描 / 无 GitHub remote** —— 发布管线完全缺失(Phase AC 前不可发布)。
-  2. **规模失控集中在核心判定链路** —— v05.py 3103 行、resolve() McCabe 109、seed.py 1494 行,直接违反 300 行/60 行/复杂度门禁(Phase B/C/D 收口)。
-  3. **错误吞噬位于幂等/安全边界** —— idempotency / security / worker 的 silent catch(Phase D 必修)。
-  4. **类型逃逸集中在证据/答案判定域** —— evidence_service 7 处 type:ignore、49 处 Any 使用(Phase C/D 收口)。
-  5. **uni-app 客户端游离于设计体系** —— 28 处硬编码色、无 env/离线/错误处理(Phase I/J 收口)。
-- 下一步:Phase B(工程规范自动 gate 落地) → Phase C(架构审计) → Phase D(后端 review),逐项从 NOT RERUN 转 CURRENT VERIFIED。
+- **鍋ュ悍闈?*:缁撴瀯鍒嗗眰娓呮櫚銆侀厤缃泦涓€侀浂瑁?TODO銆侀浂鍓嶇绫诲瀷閫冮€搞€乼okens 瑕嗙洊鍒颁綅銆乤lembic 鍗?head銆?env 鏃犵湡瀹?secret銆?- **涓昏椋庨櫓闈?*(鎸夊奖鍝嶆帓搴?:
+  1. **鏃?CI / 鏃?secret 鎵弿 / 鏃?GitHub remote** 鈥斺€?鍙戝竷绠＄嚎瀹屽叏缂哄け(Phase AC 鍓嶄笉鍙彂甯?銆?  2. **瑙勬ā澶辨帶闆嗕腑鍦ㄦ牳蹇冨垽瀹氶摼璺?* 鈥斺€?v05.py 3103 琛屻€乺esolve() McCabe 109銆乻eed.py 1494 琛?鐩存帴杩濆弽 300 琛?60 琛?澶嶆潅搴﹂棬绂?Phase B/C/D 鏀跺彛)銆?  3. **閿欒鍚炲櫖浣嶄簬骞傜瓑/瀹夊叏杈圭晫** 鈥斺€?idempotency / security / worker 鐨?silent catch(Phase D 蹇呬慨)銆?  4. **绫诲瀷閫冮€搁泦涓湪璇佹嵁/绛旀鍒ゅ畾鍩?* 鈥斺€?evidence_service 7 澶?type:ignore銆?9 澶?Any 浣跨敤(Phase C/D 鏀跺彛)銆?  5. **uni-app 瀹㈡埛绔父绂讳簬璁捐浣撶郴** 鈥斺€?28 澶勭‖缂栫爜鑹层€佹棤 env/绂荤嚎/閿欒澶勭悊(Phase I/J 鏀跺彛)銆?- 涓嬩竴姝?Phase B(宸ョ▼瑙勮寖鑷姩 gate 钀藉湴) 鈫?Phase C(鏋舵瀯瀹¤) 鈫?Phase D(鍚庣 review),閫愰」浠?NOT RERUN 杞?CURRENT VERIFIED銆?

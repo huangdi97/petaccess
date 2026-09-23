@@ -1,0 +1,5 @@
+# v0.1.0 release artifacts — SHA256SUMS (2026-09-24)
+# Source: artifacts/v0.1.0/SHA256SUMS.txt (re-verified by Get-FileHash)
+
+d9e3acf4cb1241c7c068942f98d6bbd59511b9fd3697e5097ea8aa1ec0e592bb  PetAccess_0.1.0-android-universal.apk
+a0a2f61b62c3eefd44acbefe5d42b35f2f68fb9c96a848af5f1de086da4f7501  PetAccess_0.1.0_x64-setup.exe

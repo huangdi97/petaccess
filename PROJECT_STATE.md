@@ -1,37 +1,60 @@
-﻿# PROJECT_STATE.md
+# PROJECT_STATE.md
 
 ## Current phase
-v0.9-R1 Reality Contribution 深化 → Public Beta RC 冻结（2026-09-23）
+v0.1.0 Early Preview — RC 冻结（2026-09-24）
 
-## Reality Layer (v0.9-R1) — 已闭环
-- Reality DB Final Closure: 8 表 / 29 FK / Alembic no drift（head `e9f2c1d4a5b6`）;
-  persistence drill（RESTRICT/SET NULL/downgrade-re-upgrade）真实 PASS
-- RealityReport 父模型 + 7 状态枚举 + ObservationEffort + Confirmation + ExternalContentReference
-  （migration `d4e7b2a8c9f1`，additive）+ reality_contribution 服务（防滥用: rate limit/dup/old-video/place mismatch）
-- R-01 FK 截断：确定性名 `fk_staff_response_observation_evidence_bundle` 已落库，无 drift
-- 不变量固定：content_published_at ≠ observed_at；FIRST_HAND_NO_MEDIA 保持 review-pending；
-  animal_observed=false 只生成 ObservationEffort；AI 永不写 reality_decision
-- 前端：RealityPanel / Contribute / Home / Admin Dashboard/Queue/Claims design-token 合规
-## 质量基线（2026-09-23 全实测）
-- pytest 889 passed / 2 skipped（TEST DB + Celery worker；fail-closed 生效）
-- ruff / format PASS；mypy 97 files / 0 errors（canonical services/api）
-- H5 + Admin vue-tsc + build PASS；Playwright 18 passed；Visual 17 基线 PASS；a11y 0 缺陷
-- Security CRITICAL=0 / HIGH=0（EXIF 剥离 + staff 仅 actor_role）；Backup/Restore drill PASS
-- Observability: /health /metrics /health/components 实测可用（`docs/ops/OBSERVABILITY_REPORT.md`）
-## 数据（DB 实测）
-- 30 real places（上海中心城区）/ 42 rules（LEGAL 14 + OPERATOR_POLICY 28）/ 36 sources / 22 monitors / 44 zones
-- Reality 各表 0 行（INSUFFICIENT_OBSERVATION，未造数）; data_license 0 行（FAIL 记录）
-## 发布状态
-- READY_FOR_PUBLIC_BETA = NO（Reality 0 / License 0 / Map Key / Staging / UAT / Production / Compliance 阻塞）
-- PUBLIC_BETA_RELEASED = NO（未经 huangdi97 授权，不伪造）
-- RC 冻结报告: docs/release/PUBLIC_BETA_RC_REPORT.md / FINAL_PRODUCTION_READINESS_REPORT.md / FINAL_RELEASE_CHECKLIST.md / V09_FINAL_REPORT.md
-## Known environment notes
-- Docker daemon 29.2.1 可用（petaccess-db/redis/minio healthy）；Celery worker 测试期按需启动
-- .env 使用 127.0.0.1 避免 localhost→::1 瞬时连接问题
-## Current blockers
-- B-04 腾讯地图 Key（真实地图）；B-05 AI/OCR Key；B-07 域名/备案/合规
-- 新增：PUBLIC_BETA_RELEASE_AUTHORIZATION（huangdi97，Phase 35）
-## Next action
-- Reality 真实数据采集（禁造数）→ License 回填 → 地图 Key → Staging → UAT → 生产部署（需人类授权）
+## v0.1.0 状态
+- **V0_1_0_RELEASED = NO**
+- **HUMAN_ACTION_REQUIRED = RELEASE_V0_1_0_AUTHORIZATION**（huangdi97）
+- GitHub 阶段 BLOCKED：无 git remote；未创建 tag；未发布 Release（边界遵守，未授权不伪造）
+- 发布就绪门槛全部实测 PASS（见 docs/release/V010_RELEASE_READINESS_REPORT.md）
+
+## 质量基线（2026-09-24 全实测, CURRENT VERIFIED）
+- pytest 916 passed / 2 skipped（TEST DB + Celery worker）
+- ruff / format PASS；mypy services/api/app 93 files / 0 errors
+- Engineering gate：0 FAIL / 58 REVIEW / 24 WARN（豁免均引用 TD-00x）
+- Secret scan（worktree + history）：0 findings
+- VERSION_DRIFT = 0（scripts/check_version_drift.py，含 design-tokens 0.6.0-beta.1→0.1.0 修正）
+- H5 + Admin vue-tsc + build PASS；Playwright E2E 21 passed（18 + 3 empty-state）
+- Visual 47 PASS（17 基线家族 × viewports；Empty-First 文案改动后基线重生成一次，compare 全绿）
+- A11y：0 issues（consumer + admin 全页, 键盘焦点走查 0 invisible）
+- 依赖扫描：pip-audit / pnpm audit 均 0 known vulnerabilities（Critical=0 / High=0）
+
+## v0.1.0 产品（Early Preview, Empty-First）
+- 允许数据为空：Places/Rules/RealityClaims/StaffResponses/AnimalFacilities = 0 也完整可用
+- Home「当前还没有已发布的场所数据」+ 探索地图/贡献线索；Search「没有找到已收录场所」
+- 不变量：UNKNOWN ≠ ALLOWED；Observation ≠ Rule；AI ≠ final judge；无 fake 数据入 release
+
+## 平台产物（实测构建并冒烟）
+- Windows：`artifacts/v0.1.0/PetAccess_0.1.0_x64-setup.exe`（NSIS, 未签名→SmartScreen 提示）
+  install→launch→relaunch→uninstall 冒烟 PASS（WebView2 渲染确认）
+- Android：`artifacts/v0.1.0/PetAccess_0.1.0-android-universal.apk`（release keystore 签名 v2/v3,
+  com.petaccess.map, versionName 0.1.0, versionCode 1000, minSdk 24, 仅 INTERNET）
+  模拟器 API 35 冒烟 PASS（install→launch 实拍渲染→relaunch→uninstall）
+- SHA256SUMS.txt 双产物逐项校验一致
+
+## 架构
+- UI（Vue3+H5/Admin, design-tokens）→ App（client-core）→ Domain（FastAPI app/）→ Ports
+- Infrastructure implements Ports；dependency cycles = 0（gate 检测）
+- Tauri 2 壳（src-tauri, additive）：仅 window/lifecycle/IPC/security；Domain 不写入 Rust
+- Provider 全部 interface + adapter（map/ai/ocr/storage/notification, 默认 mock）
+
+## CI
+- .github/workflows/pr-ci.yml（M1, committed）+ release-ci.yml（M9/M10, committed）
+- 远程 CI 未执行：BLOCKED（无 remote, 发布未授权）— 不得伪造 PASS
+
+## 环境备注
+- Docker Desktop 29.2.1（WMI 持久启动）；postgis 17 + redis + minio healthy
+- Celery worker（Redis db 1, queue petaccess_test）供 test_media/test_v05_e2e 消费
+- Rust 1.97.1 + 便携 VS2022 MSVC（D:）经 vcvars 环境构建
+- Android 构建需 ASCII 路径：仓库路径含 CJK 触发 AGP 拒绝 → 使用 git worktree
+  C:\petaccess-worktree（记录于 V010_ANDROID_REPORT.md）
+
+## Blocker / 下一步
+- **RELEASE_V0_1_0_AUTHORIZATION**（唯一人类关卡）
+- 授权后：加 remote → 推 master → 打 v0.1.0 tag → release-ci 跑 → 建 GitHub Release
+  → 从 Release 页重下产物并校验 SHA256/签名/安装（Phase AH）
+- 远期（非 v0.1.0）：真实地图 key / AI key / 数据扩充 / 商店上架
+
 ## Truth rule
-Never infer PASS.
+Never infer PASS。
