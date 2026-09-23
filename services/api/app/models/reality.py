@@ -172,7 +172,18 @@ class StaffResponseObservation(Base, PkMixin, TimestampMixin):
         String(36), ForeignKey("source.id", ondelete="SET NULL"), nullable=True
     )
     evidence_bundle_id: Mapped[str | None] = mapped_column(
-        String(36), ForeignKey("evidence_bundle.id", ondelete="SET NULL"), nullable=True
+        String(36),
+        ForeignKey(
+            "evidence_bundle.id",
+            ondelete="SET NULL",
+            # R-01: the convention-generated name
+            # fk_staff_response_observation_evidence_bundle_id_evidence_bundle
+            # exceeds PostgreSQL's 63-char identifier limit and gets truncated
+            # non-deterministically. Migration c3a9e5f7d1b2 renames it to this
+            # deterministic name; naming it here keeps alembic autogenerate clean.
+            name="fk_staff_response_observation_evidence_bundle",
+        ),
+        nullable=True,
     )
     verification_status: Mapped[RealityVerificationStatus] = mapped_column(
         String(24), nullable=False, default=RealityVerificationStatus.UNVERIFIED
