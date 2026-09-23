@@ -1,4 +1,4 @@
-﻿"""add_missing_source_freshness_policy_index
+"""add_missing_source_freshness_policy_index
 
 Revision ID: e9f2c1d4a5b6
 Revises: d4e7b2a8c9f1
@@ -24,7 +24,6 @@ the ORM metadata (place.py / rule.py) so autogenerate reports no drift either.
 
 from collections.abc import Sequence
 
-import sqlalchemy as sa
 from alembic import op
 
 revision: str = "e9f2c1d4a5b6"

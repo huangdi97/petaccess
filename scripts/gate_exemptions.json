@@ -1,0 +1,396 @@
+{
+  "_comment": "petaccess engineering quality gate exemption registry (M1 baseline).",
+  "_policy": "Each entry silences ONE rule for ONE path and references a documented reason id in docs/audit/V010_TECH_DEBT_REGISTER.md. These entries track PLANNED fixes (M2-M5); they are removed as the issue is fixed. No blanket ignores.",
+  "exemptions": [
+    {
+      "rule": "file>300",
+      "path": "api/v1/admin.py",
+      "reason": "planned backend split (M2); see V010_TECH_DEBT_REGISTER #TD-010",
+      "reference": "TD-010"
+    },
+    {
+      "rule": "file>300",
+      "path": "api/v1/places.py",
+      "reason": "planned backend split (M2); see V010_TECH_DEBT_REGISTER #TD-010",
+      "reference": "TD-010"
+    },
+    {
+      "rule": "file>300",
+      "path": "api/v1/reality.py",
+      "reason": "planned backend split (M2); see V010_TECH_DEBT_REGISTER #TD-010",
+      "reference": "TD-010"
+    },
+    {
+      "rule": "file>300",
+      "path": "api/v1/v05.py",
+      "reason": "planned backend split (M2); see V010_TECH_DEBT_REGISTER #TD-010",
+      "reference": "TD-010"
+    },
+    {
+      "rule": "file>300",
+      "path": "db/safety.py",
+      "reason": "planned backend split (M2); see V010_TECH_DEBT_REGISTER #TD-010",
+      "reference": "TD-010"
+    },
+    {
+      "rule": "file>300",
+      "path": "db/seed.py",
+      "reason": "planned backend split (M2); see V010_TECH_DEBT_REGISTER #TD-010",
+      "reference": "TD-010"
+    },
+    {
+      "rule": "file>300",
+      "path": "models/enums.py",
+      "reason": "planned backend split (M2); see V010_TECH_DEBT_REGISTER #TD-010",
+      "reference": "TD-010"
+    },
+    {
+      "rule": "file>300",
+      "path": "models/evidence.py",
+      "reason": "planned backend split (M2); see V010_TECH_DEBT_REGISTER #TD-010",
+      "reference": "TD-010"
+    },
+    {
+      "rule": "file>300",
+      "path": "models/reality.py",
+      "reason": "planned backend split (M2); see V010_TECH_DEBT_REGISTER #TD-010",
+      "reference": "TD-010"
+    },
+    {
+      "rule": "file>300",
+      "path": "models/v05.py",
+      "reason": "planned backend split (M2); see V010_TECH_DEBT_REGISTER #TD-010",
+      "reference": "TD-010"
+    },
+    {
+      "rule": "file>300",
+      "path": "rulespec/access_answer.py",
+      "reason": "planned backend split (M2); see V010_TECH_DEBT_REGISTER #TD-010",
+      "reference": "TD-010"
+    },
+    {
+      "rule": "file>300",
+      "path": "rulespec/broad_term_split.py",
+      "reason": "planned backend split (M2); see V010_TECH_DEBT_REGISTER #TD-010",
+      "reference": "TD-010"
+    },
+    {
+      "rule": "file>300",
+      "path": "rulespec/evaluator.py",
+      "reason": "planned backend split (M2); see V010_TECH_DEBT_REGISTER #TD-010",
+      "reference": "TD-010"
+    },
+    {
+      "rule": "file>300",
+      "path": "rulespec/guide_dog_safety.py",
+      "reason": "planned backend split (M2); see V010_TECH_DEBT_REGISTER #TD-010",
+      "reference": "TD-010"
+    },
+    {
+      "rule": "file>300",
+      "path": "rulespec/source_scope_semantics.py",
+      "reason": "planned backend split (M2); see V010_TECH_DEBT_REGISTER #TD-010",
+      "reference": "TD-010"
+    },
+    {
+      "rule": "file>300",
+      "path": "rulespec/v05_resolver.py",
+      "reason": "planned backend split (M2); see V010_TECH_DEBT_REGISTER #TD-010",
+      "reference": "TD-010"
+    },
+    {
+      "rule": "file>300",
+      "path": "schemas/civic.py",
+      "reason": "planned backend split (M2); see V010_TECH_DEBT_REGISTER #TD-010",
+      "reference": "TD-010"
+    },
+    {
+      "rule": "file>300",
+      "path": "schemas/reality.py",
+      "reason": "planned backend split (M2); see V010_TECH_DEBT_REGISTER #TD-010",
+      "reference": "TD-010"
+    },
+    {
+      "rule": "file>300",
+      "path": "services/candidate_service.py",
+      "reason": "planned backend split (M2); see V010_TECH_DEBT_REGISTER #TD-010",
+      "reference": "TD-010"
+    },
+    {
+      "rule": "file>300",
+      "path": "services/evidence_service.py",
+      "reason": "planned backend split (M2); see V010_TECH_DEBT_REGISTER #TD-010",
+      "reference": "TD-010"
+    },
+    {
+      "rule": "file>300",
+      "path": "services/publish_gate.py",
+      "reason": "planned backend split (M2); see V010_TECH_DEBT_REGISTER #TD-010",
+      "reference": "TD-010"
+    },
+    {
+      "rule": "file>300",
+      "path": "services/reality_contribution.py",
+      "reason": "planned backend split (M2); see V010_TECH_DEBT_REGISTER #TD-010",
+      "reference": "TD-010"
+    },
+    {
+      "rule": "file>300",
+      "path": "services/source_monitor.py",
+      "reason": "planned backend split (M2); see V010_TECH_DEBT_REGISTER #TD-010",
+      "reference": "TD-010"
+    },
+    {
+      "rule": "file>300",
+      "path": "tools/reality_audit.py",
+      "reason": "planned backend split (M2); see V010_TECH_DEBT_REGISTER #TD-010",
+      "reference": "TD-010"
+    },
+    {
+      "rule": "ts>300",
+      "path": "api/client.ts",
+      "reason": "planned API client refactor (M2); see V010_TECH_DEBT_REGISTER #TD-017",
+      "reference": "TD-017"
+    },
+    {
+      "rule": "type-escape",
+      "path": "apps/admin/src/views/RealityClaimsView.vue",
+      "reason": "planned type tightening (M2/M5); see V010_TECH_DEBT_REGISTER #TD-016",
+      "reference": "TD-016"
+    },
+    {
+      "rule": "type-escape",
+      "path": "services/api/app/api/v1/disputes.py",
+      "reason": "planned type tightening (M2/M5); see V010_TECH_DEBT_REGISTER #TD-009",
+      "reference": "TD-009"
+    },
+    {
+      "rule": "type-escape",
+      "path": "services/api/app/core/idempotency.py",
+      "reason": "planned type tightening (M2/M5); see V010_TECH_DEBT_REGISTER #TD-009",
+      "reference": "TD-009"
+    },
+    {
+      "rule": "type-escape",
+      "path": "services/api/app/core/observability.py",
+      "reason": "planned type tightening (M2/M5); see V010_TECH_DEBT_REGISTER #TD-009",
+      "reference": "TD-009"
+    },
+    {
+      "rule": "type-escape",
+      "path": "services/api/app/core/ratelimit.py",
+      "reason": "planned type tightening (M2/M5); see V010_TECH_DEBT_REGISTER #TD-009",
+      "reference": "TD-009"
+    },
+    {
+      "rule": "type-escape",
+      "path": "services/api/app/db/safety.py",
+      "reason": "planned type tightening (M2/M5); see V010_TECH_DEBT_REGISTER #TD-009",
+      "reference": "TD-009"
+    },
+    {
+      "rule": "type-escape",
+      "path": "services/api/app/db/seed.py",
+      "reason": "planned type tightening (M2/M5); see V010_TECH_DEBT_REGISTER #TD-003",
+      "reference": "TD-003"
+    },
+    {
+      "rule": "type-escape",
+      "path": "services/api/app/db/session.py",
+      "reason": "planned type tightening (M2/M5); see V010_TECH_DEBT_REGISTER #TD-009",
+      "reference": "TD-009"
+    },
+    {
+      "rule": "type-escape",
+      "path": "services/api/app/providers/ai_guard.py",
+      "reason": "planned type tightening (M2/M5); see V010_TECH_DEBT_REGISTER #TD-009",
+      "reference": "TD-009"
+    },
+    {
+      "rule": "type-escape",
+      "path": "services/api/app/providers/base.py",
+      "reason": "planned type tightening (M2/M5); see V010_TECH_DEBT_REGISTER #TD-009",
+      "reference": "TD-009"
+    },
+    {
+      "rule": "type-escape",
+      "path": "services/api/app/providers/storage.py",
+      "reason": "planned type tightening (M2/M5); see V010_TECH_DEBT_REGISTER #TD-009",
+      "reference": "TD-009"
+    },
+    {
+      "rule": "type-escape",
+      "path": "services/api/app/providers/tencent_map.py",
+      "reason": "planned type tightening (M2/M5); see V010_TECH_DEBT_REGISTER #TD-009",
+      "reference": "TD-009"
+    },
+    {
+      "rule": "type-escape",
+      "path": "services/api/app/rulespec/access_answer.py",
+      "reason": "planned type tightening (M2/M5); see V010_TECH_DEBT_REGISTER #TD-009",
+      "reference": "TD-009"
+    },
+    {
+      "rule": "type-escape",
+      "path": "services/api/app/rulespec/petaccessjson.py",
+      "reason": "planned type tightening (M2/M5); see V010_TECH_DEBT_REGISTER #TD-009",
+      "reference": "TD-009"
+    },
+    {
+      "rule": "type-escape",
+      "path": "services/api/app/rulespec/source_scope_semantics.py",
+      "reason": "planned type tightening (M2/M5); see V010_TECH_DEBT_REGISTER #TD-009",
+      "reference": "TD-009"
+    },
+    {
+      "rule": "type-escape",
+      "path": "services/api/app/services/answerability.py",
+      "reason": "planned type tightening (M2/M5); see V010_TECH_DEBT_REGISTER #TD-009",
+      "reference": "TD-009"
+    },
+    {
+      "rule": "type-escape",
+      "path": "services/api/app/services/coexistence_snapshot.py",
+      "reason": "planned type tightening (M2/M5); see V010_TECH_DEBT_REGISTER #TD-009",
+      "reference": "TD-009"
+    },
+    {
+      "rule": "type-escape",
+      "path": "services/api/app/services/condition_ingest.py",
+      "reason": "planned type tightening (M2/M5); see V010_TECH_DEBT_REGISTER #TD-009",
+      "reference": "TD-009"
+    },
+    {
+      "rule": "type-escape",
+      "path": "services/api/app/services/evidence_service.py",
+      "reason": "planned type tightening (M2/M5); see V010_TECH_DEBT_REGISTER #TD-004",
+      "reference": "TD-004"
+    },
+    {
+      "rule": "type-escape",
+      "path": "services/api/app/services/reality_contribution.py",
+      "reason": "planned type tightening (M2/M5); see V010_TECH_DEBT_REGISTER #TD-009",
+      "reference": "TD-009"
+    },
+    {
+      "rule": "type-escape",
+      "path": "services/api/app/worker/celery_app.py",
+      "reason": "planned type tightening (M2/M5); see V010_TECH_DEBT_REGISTER #TD-007",
+      "reference": "TD-007"
+    },
+    {
+      "rule": "type-escape",
+      "path": "services/api/app/worker/tasks.py",
+      "reason": "planned type tightening (M2/M5); see V010_TECH_DEBT_REGISTER #TD-007",
+      "reference": "TD-007"
+    },
+    {
+      "rule": "vue>200",
+      "path": "views/ContributeView.vue",
+      "reason": "planned component split (M3/M4); see V010_TECH_DEBT_REGISTER #TD-015",
+      "reference": "TD-015"
+    },
+    {
+      "rule": "vue>200",
+      "path": "views/DashboardView.vue",
+      "reason": "planned component split (M3/M4); see V010_TECH_DEBT_REGISTER #TD-015",
+      "reference": "TD-015"
+    },
+    {
+      "rule": "vue>200",
+      "path": "views/EventRulesView.vue",
+      "reason": "planned component split (M3/M4); see V010_TECH_DEBT_REGISTER #TD-015",
+      "reference": "TD-015"
+    },
+    {
+      "rule": "vue>200",
+      "path": "views/EvidenceView.vue",
+      "reason": "planned component split (M3/M4); see V010_TECH_DEBT_REGISTER #TD-015",
+      "reference": "TD-015"
+    },
+    {
+      "rule": "vue>200",
+      "path": "views/HomeView.vue",
+      "reason": "planned component split (M3/M4); see V010_TECH_DEBT_REGISTER #TD-015",
+      "reference": "TD-015"
+    },
+    {
+      "rule": "vue>200",
+      "path": "views/MapView.vue",
+      "reason": "planned component split (M3/M4); see V010_TECH_DEBT_REGISTER #TD-015",
+      "reference": "TD-015"
+    },
+    {
+      "rule": "vue>200",
+      "path": "views/MatchDebuggerView.vue",
+      "reason": "planned component split (M3/M4); see V010_TECH_DEBT_REGISTER #TD-015",
+      "reference": "TD-015"
+    },
+    {
+      "rule": "vue>200",
+      "path": "views/MatchExplainView.vue",
+      "reason": "planned component split (M3/M4); see V010_TECH_DEBT_REGISTER #TD-015",
+      "reference": "TD-015"
+    },
+    {
+      "rule": "vue>200",
+      "path": "views/ObservationCandidatesView.vue",
+      "reason": "planned component split (M3/M4); see V010_TECH_DEBT_REGISTER #TD-015",
+      "reference": "TD-015"
+    },
+    {
+      "rule": "vue>200",
+      "path": "views/OrganizationsView.vue",
+      "reason": "planned component split (M3/M4); see V010_TECH_DEBT_REGISTER #TD-015",
+      "reference": "TD-015"
+    },
+    {
+      "rule": "vue>200",
+      "path": "views/PetProfileView.vue",
+      "reason": "planned component split (M3/M4); see V010_TECH_DEBT_REGISTER #TD-015",
+      "reference": "TD-015"
+    },
+    {
+      "rule": "vue>200",
+      "path": "views/PlaceDetailView.vue",
+      "reason": "planned component split (M3/M4); see V010_TECH_DEBT_REGISTER #TD-015",
+      "reference": "TD-015"
+    },
+    {
+      "rule": "vue>200",
+      "path": "views/PlaceView.vue",
+      "reason": "planned component split (M3/M4); see V010_TECH_DEBT_REGISTER #TD-015",
+      "reference": "TD-015"
+    },
+    {
+      "rule": "vue>200",
+      "path": "views/RealityCandidateQueueView.vue",
+      "reason": "planned component split (M3/M4); see V010_TECH_DEBT_REGISTER #TD-015",
+      "reference": "TD-015"
+    },
+    {
+      "rule": "vue>200",
+      "path": "views/RealityDashboardView.vue",
+      "reason": "planned component split (M3/M4); see V010_TECH_DEBT_REGISTER #TD-015",
+      "reference": "TD-015"
+    },
+    {
+      "rule": "vue>200",
+      "path": "views/RuleCandidatesView.vue",
+      "reason": "planned component split (M3/M4); see V010_TECH_DEBT_REGISTER #TD-015",
+      "reference": "TD-015"
+    },
+    {
+      "rule": "vue>200",
+      "path": "views/SearchView.vue",
+      "reason": "planned component split (M3/M4); see V010_TECH_DEBT_REGISTER #TD-015",
+      "reference": "TD-015"
+    },
+    {
+      "rule": "vue>200",
+      "path": "views/SpatialExtrasView.vue",
+      "reason": "planned component split (M3/M4); see V010_TECH_DEBT_REGISTER #TD-015",
+      "reference": "TD-015"
+    }
+  ]
+}

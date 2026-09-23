@@ -1,0 +1,175 @@
+name: PR CI
+
+on:
+  pull_request:
+  push:
+    branches: [master, main]
+
+concurrency:
+  group: pr-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  engineering-gate:
+    name: Engineering quality gate (M1)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Sync Python deps
+        run: uv sync --dev
+
+      - name: Secret scan (worktree + history)
+        run: uv run python scripts/scan_secrets.py
+
+      - name: Engineering quality gate
+        run: uv run python scripts/check_engineering_quality.py
+
+      - name: Ruff lint
+        run: uv run ruff check services/api services/worker tests scripts
+
+      - name: Ruff format check
+        run: uv run ruff format --check services/api services/worker tests scripts
+
+  backend:
+    name: Backend mypy + tests
+    runs-on: windows-latest
+    needs: engineering-gate
+    services:
+      postgres:
+        image: postgis/postgis:17-3.5
+        env:
+          POSTGRES_USER: petaccess
+          POSTGRES_PASSWORD: petaccess_dev_only
+          POSTGRES_DB: petaccess
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U petaccess"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+    env:
+      DATABASE_URL: postgresql+psycopg://petaccess:petaccess_dev_only@localhost:5432/petaccess_test
+      CELERY_TASK_QUEUE: petaccess_test
+      REDIS_URL: redis://127.0.0.1:6379/0
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Sync Python deps
+        run: uv sync --dev
+
+      - name: Provision TEST database
+        run: uv run python scripts/isolated_db.py --role TEST --reset
+
+      - name: mypy
+        run: uv run mypy services/api/app
+
+      - name: pytest
+        run: uv run pytest -q
+
+      - name: Alembic migration check
+        working-directory: services/api
+        run: uv run alembic current
+
+  frontend:
+    name: Frontend typecheck + build
+    runs-on: windows-latest
+    needs: engineering-gate
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install pnpm
+        run: corepack enable
+
+      - name: Install frontend deps
+        run: pnpm install --frozen-lockfile
+
+      - name: ESLint
+        run: pnpm lint:fe
+
+      - name: Prettier check
+        run: pnpm format:check:fe
+
+      - name: client-h5 typecheck + build
+        run: pnpm --filter @petaccess/client-h5 build
+
+      - name: admin typecheck + build
+        run: pnpm --filter @petaccess/admin build
+
+  e2e:
+    name: Playwright subset (shell)
+    runs-on: windows-latest
+    needs: [backend, frontend]
+    services:
+      postgres:
+        image: postgis/postgis:17-3.5
+        env:
+          POSTGRES_USER: petaccess
+          POSTGRES_PASSWORD: petaccess_dev_only
+          POSTGRES_DB: petaccess
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U petaccess"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+      - run: uv sync --dev
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+
+      - name: Provision E2E database
+        run: uv run python scripts/isolated_db.py --role E2E --reset
+
+      - name: Install Playwright chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Playwright shell subset
+        run: pnpm exec playwright test tests/e2e/h5-shell.spec.ts

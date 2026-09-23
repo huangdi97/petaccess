@@ -14,8 +14,6 @@ param(
     [switch]$SkipFrontend,
     [switch]$SkipPlaywright
 )
-
-$ErrorActionPreference = "Continue"
 $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
 
@@ -47,9 +45,10 @@ Invoke-Step "pytest"            @($py, "-m", "pytest", "-q")
 Invoke-Step "mutation probe"    @($py, "scripts/mutation_probe.py")
 
 # ------------------------------------------------------- governance guard -----
-Invoke-Step "governance snapshot" @($py, "scripts/governance_snapshot.py", "--compare", "baseline")
 
-# --------------------------------------------------------------------- db -----
+Invoke-Step "engineering quality gate" @($py, "scripts/check_engineering_quality.py")
+Invoke-Step "secret scan" @($py, "scripts/scan_secrets.py")
+Invoke-Step "governance snapshot" @($py, "scripts/governance_snapshot.py", "--compare", "baseline")
 # alembic.ini lives in services/api, so the migration check runs from there
 Push-Location (Join-Path $root "services/api")
 try {

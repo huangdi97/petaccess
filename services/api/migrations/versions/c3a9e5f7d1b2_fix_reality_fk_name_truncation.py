@@ -54,9 +54,7 @@ def _quote(identifier: str) -> str:
 def upgrade() -> None:
     bind = op.get_bind()
     inspector = sa.inspect(bind)
-    fk_names = [
-        fk.get("name") for fk in inspector.get_foreign_keys(TABLE) if fk.get("name")
-    ]
+    fk_names = [fk.get("name") for fk in inspector.get_foreign_keys(TABLE) if fk.get("name")]
     if TARGET_FK_NAME in fk_names:
         # Already named deterministically — nothing to do.
         return
