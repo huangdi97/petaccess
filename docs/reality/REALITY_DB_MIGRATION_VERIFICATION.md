@@ -6,13 +6,17 @@
 
 ## 结论
 
-**REALITY_DB_MIGRATION = NOT_VERIFIED**
+**REALITY_DB_MIGRATION = PASS**（2026-09-23 真实 PostgreSQL closure 验证通过，证据见附件 B；本行由 PI-Desktop 本轮实测更新）
 
-原因（BLOCKED_EXTERNAL）：
 
-```
-LOCAL_DOCKER_DESKTOP_ENGINE_UNSTABLE
-```
+<!-- errata 2026-09-23：以下「原因（BLOCKED_EXTERNAL）」为 2026-09-22 的
+     历史 NOT_VERIFIED 记录，已被附件 B 的本轮真实 closure 验证取代。 -->
+
+ 原因（BLOCKED_EXTERNAL）：
+
+ ```
+ LOCAL_DOCKER_DESKTOP_ENGINE_UNSTABLE
+ ```
 
 本会话实测（2026-09-22 12:44 UTC+8，原始输出存档于会话 scratch
 `ac1-docker-probe/`）：
