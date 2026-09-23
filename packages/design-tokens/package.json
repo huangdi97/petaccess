@@ -1,16 +1,16 @@
 {
-  "name": "@petaccess/design-tokens",
-  "version": "0.6.0-beta.1",
-  "private": true,
-  "type": "module",
-  "description": "Neutral, evidence-first design tokens for the pet access map (UI_UX_IMPLEMENTATION_SPEC §9). Single source of truth for colour, spacing, type, elevation and status semantics across apps/client (uni-app x), apps/client-h5 and apps/admin.",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
-  "exports": {
-    ".": "./src/index.ts",
-    "./tokens.css": "./src/tokens.css"
-  },
-  "files": [
-    "src"
-  ]
+    "name":  "@petaccess/design-tokens",
+    "version":  "0.1.0",
+    "private":  true,
+    "type":  "module",
+    "description":  "Neutral, evidence-first design tokens for the pet access map (UI_UX_IMPLEMENTATION_SPEC 搂9). Single source of truth for colour, spacing, type, elevation and status semantics across apps/client (uni-app x), apps/client-h5 and apps/admin.",
+    "main":  "./src/index.ts",
+    "types":  "./src/index.ts",
+    "exports":  {
+                    ".":  "./src/index.ts",
+                    "./tokens.css":  "./src/tokens.css"
+                },
+    "files":  [
+                  "src"
+              ]
 }

@@ -1,0 +1,208 @@
+name: Release CI (v0.1.0)
+
+# Tag v* triggers the full release pipeline: verify version -> tests -> build
+# H5 -> Windows NSIS -> Android APK (signed via Secrets) -> checksums -> SBOM.
+# A build failure here MUST NOT create a GitHub Release (the release job only
+# runs on success, and no release is created unless huangdi97 authorizes it —
+# this workflow only produces artifacts and uploads them as workflow run
+# artifacts, not as a GitHub Release).
+on:
+  push:
+    tags:
+      - "v*"
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Verify tag version == 0.1.0
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --dev
+      - name: Version SSOT gate (VERSION_DRIFT must be 0)
+        run: uv run python scripts/check_version_drift.py
+      - name: Tag matches package version
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          PKG=$(python -c "import json;print(json.load(open('package.json'))['version'])")
+          echo "tag=$TAG pkg=$PKG"
+          [ "$TAG" = "v${PKG}" ] || { echo "tag/version mismatch"; exit 1; }
+
+  quality:
+    name: Engineering gate + backend
+    runs-on: windows-latest
+    needs: verify
+    services:
+      postgres:
+        image: postgis/postgis:17-3.5
+        env:
+          POSTGRES_USER: petaccess
+          POSTGRES_PASSWORD: petaccess_dev_only
+          POSTGRES_DB: petaccess
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U petaccess" --health-interval 5s
+          --health-timeout 5s --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+    env:
+      DATABASE_URL: postgresql+psycopg://petaccess:petaccess_dev_only@localhost:5432/petaccess_test
+      CELERY_TASK_QUEUE: petaccess_test
+      REDIS_URL: redis://127.0.0.1:6379/0
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --dev
+      - run: uv run python scripts/scan_secrets.py
+      - run: uv run python scripts/check_engineering_quality.py
+      - run: uv run ruff check services/api services/worker tests scripts
+      - run: uv run ruff format --check services/api services/worker tests scripts
+      - run: uv run python scripts/isolated_db.py --role TEST --reset
+      - name: Start Celery worker
+        shell: bash
+        run: |
+          cd services/api
+          ../../.venv/Scripts/python.exe -m celery -A app.worker.celery_app worker \
+            --pool=solo --concurrency=1 -Q petaccess_test &
+      - run: uv run mypy services/api/app
+      - run: uv run pytest -q
+
+  frontend:
+    name: Frontend typecheck + build
+    runs-on: windows-latest
+    needs: verify
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22", cache: pnpm }
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint:fe
+      - run: pnpm format:check:fe
+      - run: pnpm --filter @petaccess/client-h5 build
+      - run: pnpm --filter @petaccess/admin build
+      - name: Upload H5 dist (consumed by Tauri Windows/Android)
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-h5-dist
+          path: apps/client-h5/dist
+
+  windows:
+    name: Windows NSIS installer
+    runs-on: windows-latest
+    needs: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22", cache: pnpm }
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            apps/client-h5/src-tauri/target
+          key: cargo-windows-${{ hashFiles('apps/client-h5/src-tauri/Cargo.lock') }}
+      - run: pnpm --filter @petaccess/client-h5 build
+      - name: Build Windows bundle
+        run: pnpm --filter @petaccess/client-h5 exec tauri build
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: petaccess-0.1.0-windows-x64-setup.exe
+          path: apps/client-h5/src-tauri/target/release/bundle/nsis/*-setup.exe
+
+  android:
+    name: Android signed APK
+    runs-on: windows-latest
+    needs: frontend
+    env:
+      ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22", cache: pnpm }
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - name: Install Rust + Android targets
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+      - name: Set up Android SDK/NDK
+        uses: android-actions/setup-android@v3
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            apps/client-h5/src-tauri/target
+          key: cargo-android-${{ hashFiles('apps/client-h5/src-tauri/Cargo.lock') }}
+      - run: pnpm --filter @petaccess/client-h5 build
+      - name: Tauri android init (generated project not committed)
+        run: pnpm --filter @petaccess/client-h5 exec tauri android init
+      - name: Build Android release APK
+        run: pnpm --filter @petaccess/client-h5 exec tauri android build --target aarch64,armv7,i686,x86_64
+      - name: Sign APK with release keystore (Secrets)
+        shell: bash
+        run: |
+          APK=$(find apps/client-h5/src-tauri/gen/android -name "*-unsigned.apk" | head -1)
+          echo "unsigned: $APK"
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.keystore"
+          OUT="PetAccess_0.1.0-android-universal.apk"
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner.bat" sign \
+            --ks "$RUNNER_TEMP/release.keystore" \
+            --ks-key-alias "$ANDROID_KEY_ALIAS" \
+            --ks-pass "pass:$ANDROID_KEYSTORE_PASSWORD" \
+            --key-pass "pass:$ANDROID_KEY_PASSWORD" \
+            --out "$OUT" "$APK"
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner.bat" verify --verbose "$OUT"
+      - name: Upload signed APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: petaccess-0.1.0-android-universal.apk
+          path: PetAccess_0.1.0-android-universal.apk
+
+  artifacts:
+    name: Checksums + SBOM
+    runs-on: windows-latest
+    needs: [windows, android]
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+      - name: SHA256SUMS.txt
+        shell: bash
+        run: |
+          cd artifacts
+          sha256sum * > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+      - name: Verify hashes
+        shell: bash
+        run: cd artifacts && sha256sum -c SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v0.1.0-release-assets
+          path: artifacts
+
+  # NOTE: no release job here. Creating the GitHub Release / tag v0.1.0 is a
+  # human-gated step (RELEASE_V0_1_0_AUTHORIZATION by huangdi97). This
+  # workflow proves CI can produce the artifacts; publishing them happens in a
+  # later, explicitly authorized workflow.

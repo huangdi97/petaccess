@@ -31,7 +31,12 @@ SKIP_PARTS = (
     ".mypy_cache",
     ".ruff_cache",
     "target",
+    # The scanner's own unit test deliberately embeds fake secrets to prove
+    # each pattern fires. Scanning it would always report them — excluding
+    # the fixture keeps the gate meaningful (see tests/unit/test_scan_secrets.py).
+    "test_scan_secrets.py",
 )
+
 DEV_MARKERS = (
     "dev_only",
     "dev-only",
@@ -185,6 +190,9 @@ def scan_history() -> list[dict]:
         if raw.startswith("+") and not raw.startswith("+++"):
             line = raw[1:]
             line_no += 1
+            # Skip the scanner's own fixture file (deliberate fake secrets)
+            if any(part in SKIP_PARTS for part in current_file.split("/")):
+                continue
             if is_dev_line(line):
                 continue
             for name, rx in PATTERNS:
