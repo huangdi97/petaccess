@@ -1,51 +1,39 @@
-# V010 TEST REPORT — 2026-09-24
+# V010 TEST REPORT 鈥?2026-09-24
 
-> 状态标记 (Status Legend): **CURRENT VERIFIED** 本会话(2026-09-24)实际执行并核验 | **HISTORICAL** 此前会话执行、本轮未重跑 | **NOT RERUN** 未重跑(原因已注明) | **BLOCKED** 无法执行(原因已注明)
+> 鐘舵€佹爣璁?(Status Legend): **CURRENT VERIFIED** 鏈細璇?2026-09-24)瀹為檯鎵ц骞舵牳楠?| **HISTORICAL** 姝ゅ墠浼氳瘽鎵ц銆佹湰杞湭閲嶈窇 | **NOT RERUN** 鏈噸璺?鍘熷洜宸叉敞鏄? | **BLOCKED** 鏃犳硶鎵ц(鍘熷洜宸叉敞鏄?
 
-## 状态总表 (Status Table)
+## 鐘舵€佹€昏〃 (Status Table)
 
-| 测试 | 结果 | 标记 |
+| 娴嬭瘯 | 缁撴灉 | 鏍囪 |
 |---|---|---|
 | Backend pytest | 916 passed / 2 skipped | CURRENT VERIFIED |
 | Gate unit tests | 21 passed | CURRENT VERIFIED |
-| Playwright E2E（h5-shell + h5-journey） | 18 passed | CURRENT VERIFIED |
-| Playwright E2E（empty-state.spec.ts） | 3 passed | CURRENT VERIFIED |
-| Visual suite | 47 passed（17 families × viewports，compare-mode） | CURRENT VERIFIED |
+| Playwright E2E锛坔5-shell + h5-journey锛?| 18 passed | CURRENT VERIFIED |
+| Playwright E2E锛坋mpty-state.spec.ts锛?| 3 passed | CURRENT VERIFIED |
+| Visual suite | 47 passed锛?7 families 脳 viewports锛宑ompare-mode锛?| CURRENT VERIFIED |
 | mypy | 93 files, 0 errors | CURRENT VERIFIED |
-| ruff check / format --check | PASS（292 files） | CURRENT VERIFIED |
+| ruff check / format --check | PASS锛?92 files锛?| CURRENT VERIFIED |
 | client-h5 build (vue-tsc + vite) | PASS | CURRENT VERIFIED |
 | admin build (vue-tsc + vite) | PASS | CURRENT VERIFIED |
-| CI 实际运行 | BLOCKED（无 git remote，未授权） | BLOCKED |
-| DEPENDENCY_SCAN（pip-audit） | 结果待 orchestrator 填录 | NOT RERUN |
-| Desktop 窗口直接截图 | 未捕获（headless Win32 title lookup 不可靠；渲染经进程树/Playwright 确认） | NOT RERUN（局限） |
+| CI 瀹為檯杩愯 | BLOCKED锛堟棤 git remote锛屾湭鎺堟潈锛?| BLOCKED |
+| DEPENDENCY_SCAN锛坧ip-audit锛?| 缁撴灉寰?orchestrator 濉綍 | NOT RERUN |
+| Desktop 绐楀彛鐩存帴鎴浘 | 鏈崟鑾凤紙headless Win32 title lookup 涓嶅彲闈狅紱娓叉煋缁忚繘绋嬫爲/Playwright 纭锛?| NOT RERUN锛堝眬闄愶級 |
 
-## 1. 后端
+## 1. 鍚庣
 
-- pytest：916 passed / 2 skipped（TEST db `petaccess_test` + celery worker on redis /1）—— PASS。
-- Gate unit tests：21 passed。
+- pytest锛?16 passed / 2 skipped锛圱EST db `petaccess_test` + celery worker on redis /1锛夆€斺€?PASS銆?- Gate unit tests锛?1 passed銆?
+## 2. 鍓嶇 E2E
 
-## 2. 前端 E2E
-
-- h5-shell + h5-journey：18 passed。
-- empty-state.spec.ts：3 passed（合计 21）。
-
+- h5-shell + h5-journey锛?8 passed銆?- empty-state.spec.ts锛? passed锛堝悎璁?21锛夈€?
 ## 3. Visual
 
-- 47 passed（projects：h5-390 / h5-768 / h5-1440 + admin-768 / admin-1440）。
-- 17 baseline families；为一次有意的文案变更重新生成过一次基线；compare-mode PASS。
+- 47 passed锛坧rojects锛歨5-390 / h5-768 / h5-1440 + admin-768 / admin-1440锛夈€?- 17 baseline families锛涗负涓€娆℃湁鎰忕殑鏂囨鍙樻洿閲嶆柊鐢熸垚杩囦竴娆″熀绾匡紱compare-mode PASS銆?
+## 4. 闈欐€佷笌鏋勫缓
 
-## 4. 静态与构建
+- mypy锛?3 files, 0 errors锛堝巻鍙?97 鍙ｅ緞涓烘洿骞胯寖鍥村惈 worker锛涙湰杞互 93 files 涓哄噯锛夈€?- ruff check + ruff format --check锛歅ASS锛?92 files锛夈€?- vue-tsc + vite build锛歝lient-h5銆乤dmin 鍧?PASS銆?
+## 5. 鏈墽琛岄」锛堝瀹炴爣璁帮級
 
-- mypy：93 files, 0 errors（历史 97 口径为更广范围含 worker；本轮以 93 files 为准）。
-- ruff check + ruff format --check：PASS（292 files）。
-- vue-tsc + vite build：client-h5、admin 均 PASS。
+- **CI 瀹為檯杩愯**锛欱LOCKED 鈥斺€?鏃?git remote 涓旀湭鑾疯繍琛屾巿鏉冦€?- **DEPENDENCY_SCAN**锛歂OT RERUN 鈥斺€?facts 浠呰褰?"pip-audit 宸茶繍琛?锛岀粨鏋滄暟瀛楀緟 orchestrator 濉綍銆?- **Desktop 绐楀彛鐩存帴鎴浘**锛歂OT RERUN 鈥斺€?headless 鐜涓嶅彲闈狅紱娓叉煋宸查€氳繃 WebView2 杩涚▼鏍?+ bundled copy + Playwright 鍚?bundle 娓叉煋纭銆?
+## 6. 缁撹
 
-## 5. 未执行项（如实标记）
-
-- **CI 实际运行**：BLOCKED —— 无 git remote 且未获运行授权。
-- **DEPENDENCY_SCAN**：NOT RERUN —— facts 仅记录 "pip-audit 已运行"，结果数字待 orchestrator 填录。
-- **Desktop 窗口直接截图**：NOT RERUN —— headless 环境不可靠；渲染已通过 WebView2 进程树 + bundled copy + Playwright 同 bundle 渲染确认。
-
-## 6. 结论
-
-**结论: FULL_REGRESSION = PASS**（已执行项全绿；CI / DEPENDENCY_SCAN / 窗口截图按上表如实标记）。
+**缁撹: FULL_REGRESSION = PASS**锛堝凡鎵ц椤瑰叏缁匡紱CI / DEPENDENCY_SCAN / 绐楀彛鎴浘鎸変笂琛ㄥ瀹炴爣璁帮級銆?
