@@ -21,6 +21,7 @@ from app.core.audit import record_audit
 from app.core.audit_events import AuditEvent
 from app.core.config import get_settings
 from app.core.errors import ApiError, NotFound, PermissionDenied
+from app.core.media_sanitize import strip_image_metadata
 from app.core.security import get_current_user
 from app.db.session import get_db
 from app.models import MediaObject, User
@@ -93,6 +94,12 @@ async def upload_media(
     if ext and declared == "image/webp" and ext != ".webp":
         raise ApiError("扩展名与 MIME 不一致", code="extension_mime_mismatch", status_code=415)
 
+    # Privacy (SECURITY_FINAL_REPORT Phase 26): strip embedded EXIF/XMP/PNG-text
+    # metadata BEFORE the blob reaches storage, so GPS / camera / timestamp
+    # metadata never lands in the object store. The sanitizer is conservative:
+    # an unparsable image is stored unchanged (``stripped=False``), never
+    # corrupted; the sha256 below is computed on the stored bytes.
+    data, meta_stripped = strip_image_metadata(data)
     sha256 = hashlib.sha256(data).hexdigest()
 
     # duplicate basic check: identical hash from same user, still stored
