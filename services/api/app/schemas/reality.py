@@ -12,14 +12,26 @@ from pydantic import BaseModel, ConfigDict, Field
 from app.models.enums import (
     AnimalFacilityType,
     AnimalScope,
+    ContributionAbuseFlag,
+    ExternalContentPlatform,
     FacilityAccessMode,
     FacilityOperationalState,
+    FactEvidenceState,
+    ObservationEffortDurationBucket,
+    ObservationOrigin,
     ObservedAction,
+    PlaceMatchEvidenceType,
+    PlaceMatchState,
+    RealityConfirmationType,
     RealityDecision,
     RealityFreshnessState,
+    RealityReportModerationState,
+    RealityReportPrivacyState,
     RealityVerificationStatus,
     StaffActorRole,
     StaffResponseAction,
+    TimeCertainty,
+    TimeEvidenceState,
 )
 
 # ---------------------------------------------------------------------------
@@ -181,3 +193,115 @@ class RealityAnswer(BaseModel):
     recent_count_30d: int = 0
     days_since_last_seen: int | None = None
     note: str | None = None
+
+
+# ---------------------------------------------------------------------------
+# RealityReport parent + state models (addendum PHASE 3-11)
+# ---------------------------------------------------------------------------
+
+
+class RealityReportIn(BaseModel):
+    """User contribution payload — one report, possibly several candidates.
+
+    ``origin`` is set from the UI branch, never exposed as a raw enum to the
+    user. Media defaults to private; a no-media first-hand report is
+    ``FIRST_HAND_NO_MEDIA`` and stays review-pending (never auto-rejected).
+    """
+
+    origin: ObservationOrigin
+    place_id: str | None = None
+    container_place_id: str | None = None
+    subject_place_id: str | None = None
+    place_match_state: PlaceMatchState = PlaceMatchState.UNRESOLVED
+    place_match_evidence_types: list[PlaceMatchEvidenceType] | None = None
+    time_evidence_state: TimeEvidenceState = TimeEvidenceState.UNKNOWN
+    content_published_at: datetime | None = None
+    claimed_event_at: datetime | None = None
+    observed_at: datetime | None = None
+    time_certainty: TimeCertainty = TimeCertainty.UNKNOWN
+    fact_evidence_state: FactEvidenceState = FactEvidenceState.INSUFFICIENT
+    privacy_state: RealityReportPrivacyState = RealityReportPrivacyState.PRIVATE
+    media_refs: list[dict] | None = None
+    source_url: str | None = None
+    source_platform: ExternalContentPlatform | None = None
+    content_hash: str | None = None
+    media_hash: str | None = None
+    external_keyframe_ref: str | None = None
+    ocr_text: str | None = None
+    abuse_flags: list[ContributionAbuseFlag] | None = None
+
+
+class RealityReportOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    reporter_id: str | None
+    anonymous_token: str | None
+    origin: ObservationOrigin
+    place_id: str | None
+    container_place_id: str | None
+    subject_place_id: str | None
+    place_match_state: PlaceMatchState
+    place_match_evidence_types: list | None
+    time_evidence_state: TimeEvidenceState
+    content_published_at: datetime | None
+    claimed_event_at: datetime | None
+    observed_at: datetime | None
+    time_certainty: TimeCertainty
+    fact_evidence_state: FactEvidenceState
+    privacy_state: RealityReportPrivacyState
+    media_refs: list | None
+    source_url: str | None
+    source_platform: ExternalContentPlatform | None
+    content_hash: str | None
+    media_hash: str | None
+    moderation_state: RealityReportModerationState
+    abuse_flags: list | None
+    created_at: datetime
+    submitted_at: datetime | None
+
+
+class ObservationEffortIn(BaseModel):
+    """\"Was on site and did not see an animal\" — effort only, never a claim."""
+
+    place_id: str
+    duration_bucket: ObservationEffortDurationBucket
+    covered_zone_ids: list[str] | None = None
+    animal_observed: bool = False
+    observed_at: datetime | None = None
+    source_id: str | None = None
+
+
+class RealityConfirmationIn(BaseModel):
+    """Lightweight on-site confirmation — evidence, never a deletion."""
+
+    confirmation_type: RealityConfirmationType
+    place_id: str
+    target_claim_id: str | None = None
+    target_candidate_id: str | None = None
+    observed_at: datetime | None = None
+
+
+class RealityConfirmationOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    confirmation_type: RealityConfirmationType
+    place_id: str
+    target_claim_id: str | None
+    target_candidate_id: str | None
+    observed_at: datetime | None
+    created_at: datetime
+
+
+class ExternalContentReferenceIn(BaseModel):
+    """External post/video reference with dedup-relevant metadata (addendum P8)."""
+
+    source_url: str
+    platform: ExternalContentPlatform | None = None
+    published_at: datetime | None = None
+    place_metadata: dict | None = None
+    keyframe_ref: str | None = None
+    ocr_text: str | None = None
+    content_hash: str | None = None
+    media_hash: str | None = None

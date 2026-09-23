@@ -104,6 +104,12 @@ class AuditEvent(StrEnum):
     #: decided, what they decided, and which claim (if any) was published.
     REALITY_DECISION = "reality.decision"
     REALITY_CANDIDATE_CREATE = "reality_candidate.create"
+    REALITY_REPORT_CREATE = "reality_report.create"
+    REALITY_REPORT_SUBMIT = "reality_report.submit"
+    REALITY_CONFIRMATION_CREATE = "reality_confirmation.create"
+    OBSERVATION_EFFORT_CREATE = "observation_effort.create"
+    EXTERNAL_CONTENT_REF_CREATE = "external_content_ref.create"
+    REALITY_REPORT_FLAG = "reality_report.flag"
 
     # --- governance ----------------------------------------------------------
     #: Appended by the governed production cleanup. Never a substitute for the

@@ -104,6 +104,7 @@ def test_all_reality_foreign_keys_use_ondelete_semantics() -> None:
     """Every Reality FK keeps its designed ondelete action (R-01 must not change it)."""
     expected: dict[str, str] = {
         "reality_candidate": {
+            "report_id": "SET NULL",
             "place_id": "CASCADE",
             "zone_id": "SET NULL",
             "source_id": "SET NULL",

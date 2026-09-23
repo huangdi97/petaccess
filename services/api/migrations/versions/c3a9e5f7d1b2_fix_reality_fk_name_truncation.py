@@ -60,15 +60,24 @@ def upgrade() -> None:
     if TARGET_FK_NAME in fk_names:
         # Already named deterministically — nothing to do.
         return
-    offenders = [n for n in fk_names if n and n.startswith("fk_staff_response_observation")]
+    # Match only the evidence_bundle FK. The convention-generated name is
+    # ``fk_staff_response_observation_evidence_bundle_id_evidence_bundle``
+    # (truncated by PostgreSQL to ``..._id_eviden_d504``); every other FK on
+    # this table legitimately shares the ``fk_staff_response_observation``
+    # prefix, so a broad ``startswith`` match would try to rename all of them
+    # to the same target and fail. Scope to the evidence_bundle column.
+    offenders = [
+        n
+        for n in fk_names
+        if n
+        and n.startswith("fk_staff_response_observation_evidence_bundle")
+        and n != TARGET_FK_NAME
+    ]
     if not offenders:
         # No FK on the table at all (fresh/odd DB) — nothing to rename. The
         # convention-generated name would be created on later migrations; this
         # migration stays a no-op for such databases.
         return
-    # Rename every convention-generated variant of this FK to the deterministic
-    # name. In practice there is exactly one (evidence_bundle_id); the loop
-    # guards against any future extra FK also exceeding the limit.
     for name in offenders:
         op.execute(
             f"ALTER TABLE {_quote(TABLE)} RENAME CONSTRAINT {_quote(name)} "

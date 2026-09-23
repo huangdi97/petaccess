@@ -20,7 +20,16 @@ from .evidence import (
 from .media import MediaObject
 from .observation import ObservationClaim, VerificationEvent
 from .place import ExternalPlaceRef, Operator, OperatorClaim, Place, PlaceGeometry, Zone
-from .reality import AnimalFacility, ObservedPresence, RealityCandidate, StaffResponseObservation
+from .reality import (
+    AnimalFacility,
+    ExternalContentReference,
+    ObservationEffort,
+    ObservedPresence,
+    RealityCandidate,
+    RealityConfirmation,
+    RealityReport,
+    StaffResponseObservation,
+)
 from .rule import AccessRule, RuleCondition, RuleException, Source
 from .user import PetProfile, User
 from .v05 import (
@@ -60,17 +69,23 @@ __all__ = [
     "EventPolicy",
     "EvidenceBundle",
     "EvidenceClass",
+    "ExternalContentReference",
     "ExternalPlaceRef",
     "ExtractionMethod",
     "FreshnessPolicy",
     "ObservationCandidate",
+    "ObservationEffort",
+    "ObservationClaim",
     "ObservedPresence",
     "Organization",
+    "Operator",
     "PlacePolicyBinding",
     "PolicyTemplate",
     "PolicyTemplateRule",
     "PublisherType",
     "RealityCandidate",
+    "RealityConfirmation",
+    "RealityReport",
     "RuleCandidate",
     "RuleException",
     "SourceArtifact",

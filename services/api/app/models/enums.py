@@ -662,3 +662,186 @@ class RealityVerificationStatus(StrEnum):
     HUMAN_VERIFIED_WITH_NOTE = "human_verified_with_note"
     DERIVED_AI_ONLY = "derived_ai_only"
     UNVERIFIED = "unverified"
+
+
+# ---------------------------------------------------------------------------
+# v0.9-R1 Reality Contribution deepening (goal addendum, 2026-09-22) —
+# RealityReport parent + ten new state models. All additive.
+# ---------------------------------------------------------------------------
+
+
+class ObservationOrigin(StrEnum):
+    """Where a reality report came from (addendum PHASE 4).
+
+    The UI never exposes this technical enum; it drives how strongly the
+    report's time/place evidence may be trusted downstream.
+    """
+
+    ON_SITE_NOW = "on_site_now"  # user is currently on site
+    ON_SITE_PAST = "on_site_past"  # user was there before, reporting late
+    EXTERNAL_ONLINE_CONTENT = "external_online_content"  # seen on social/web
+    OPERATOR_PROVIDED = "operator_provided"  # submitted by the venue itself
+    OFFICIAL_PUBLIC_CONTENT = "official_public_content"  # official public video/notice
+
+
+class PlaceMatchState(StrEnum):
+    """Precision of the place match for a report (addendum PHASE 5).
+
+    ``PARENT_PLACE_ONLY`` means we know the container (e.g. a mall) but not the
+    exact tenant — this must never be presented as a whole-venue fact.
+    """
+
+    EXACT_PLACE = "exact_place"
+    EXACT_SUBPLACE = "exact_subplace"
+    PARENT_PLACE_ONLY = "parent_place_only"
+    AREA_ONLY = "area_only"
+    UNRESOLVED = "unresolved"
+    CONFLICTED = "conflicted"
+
+
+class PlaceMatchEvidenceType(StrEnum):
+    """Evidence kinds that justify a place match (addendum PHASE 5, ≥6 kinds)."""
+
+    GPS_PROXIMITY = "gps_proximity"
+    POI_METADATA = "poi_metadata"
+    VIDEO_CHECK_IN = "video_check_in"
+    OCR_TEXT = "ocr_text"
+    ADDRESS_TEXT = "address_text"
+    USER_CONFIRMATION = "user_confirmation"
+    OPERATOR_METADATA = "operator_metadata"
+    SOURCE_URL = "source_url"
+
+
+class TimeEvidenceState(StrEnum):
+    """Precision of *when* the event happened (addendum PHASE 6).
+
+    Publication time is never automatically treated as event time: a video
+    published on 9-20 must be described as "observed in a video published on
+    9-20", never "present on site on 9-20", unless event time is separately
+    evidenced.
+    """
+
+    LIVE_DEVICE_TIME = "live_device_time"
+    EXACT_EVENT_TIME = "exact_event_time"
+    EXACT_EVENT_DATE = "exact_event_date"
+    APPROXIMATE_DATE = "approximate_date"
+    PUBLICATION_TIME_ONLY = "publication_time_only"
+    UNKNOWN = "unknown"
+
+
+class TimeCertainty(StrEnum):
+    """Separate certainty axis for the claimed event time."""
+
+    EXACT = "exact"
+    APPROXIMATE = "approximate"
+    UNKNOWN = "unknown"
+
+
+class FactEvidenceState(StrEnum):
+    """Multi-axis evidence classification — never a single "credibility 87" (addendum PHASE 7)."""
+
+    DIRECT_MEDIA = "direct_media"  # first-party raw media captured by the reporter
+    FIRST_HAND_NO_MEDIA = "first_hand_no_media"  # first-hand account, no media
+    EXTERNAL_MEDIA = "external_media"  # media from an external post/video
+    TEXT_ONLY_EXTERNAL = "text_only_external"  # external post, text only
+    OPERATOR_STATEMENT = "operator_statement"  # venue operator statement
+    OFFICIAL_STATEMENT = "official_statement"  # official public statement
+    INFERRED_FROM_CONTEXT = "inferred_from_context"  # contextual inference
+    INSUFFICIENT = "insufficient"
+
+
+class ObservationEffortDurationBucket(StrEnum):
+    """How long the observer was on site (addendum PHASE 8)."""
+
+    LT_10_MIN = "lt_10_min"
+    MIN_10_30 = "min_10_30"
+    MIN_30_120 = "min_30_120"
+    GT_120_MIN = "gt_120_min"
+    UNKNOWN = "unknown"
+
+
+class StaffAwarenessState(StrEnum):
+    """Whether staff were *observed* to be aware of the animal (addendum PHASE 9).
+
+    Only ``AWARENESS_CONFIRMED`` combined with a no-intervention response action
+    may be phrased as "staff saw it and did not intervene further"; everything
+    else stays "no staff intervention was observed in this record".
+    """
+
+    AWARENESS_CONFIRMED = "awareness_confirmed"
+    AWARENESS_LIKELY = "awareness_likely"
+    AWARENESS_UNKNOWN = "awareness_unknown"
+
+
+class FacilityPurposeState(StrEnum):
+    """How confidently the purpose of a facility is established (addendum PHASE 10).
+
+    A cage photographed outside a shop with no sign and no staff statement must
+    stay "疑似动物安置设施，用途待核验" — never "confirmed outdoor holding cage".
+    """
+
+    PURPOSE_CONFIRMED = "purpose_confirmed"
+    PURPOSE_STAFF_STATED = "purpose_staff_stated"
+    PURPOSE_SIGNAGE_SUPPORTED = "purpose_signage_supported"
+    PURPOSE_USER_INFERRED = "purpose_user_inferred"
+    PURPOSE_UNKNOWN = "purpose_unknown"
+
+
+class RealityConfirmationType(StrEnum):
+    """Lightweight on-site confirmation of a published reality fact (addendum PHASE 11).
+
+    A confirmation is evidence, never a deletion: ``NOT_SEEN_NOW`` adds a new
+    observation and must NOT remove the older one.
+    """
+
+    STILL_PRESENT = "still_present"
+    NOT_SEEN_NOW = "not_seen_now"
+    FACILITY_STILL_PRESENT = "facility_still_present"
+    FACILITY_REMOVED = "facility_removed"
+    SIGN_STILL_PRESENT = "sign_still_present"
+    SIGN_CHANGED = "sign_changed"
+
+
+class RealityReportPrivacyState(StrEnum):
+    """Media/report privacy (addendum P7: media is private by default)."""
+
+    PRIVATE = "private"
+    PUBLIC = "public"
+    RESTRICTED = "restricted"
+
+
+class RealityReportModerationState(StrEnum):
+    """Moderation posture of a report (addendum PHASE 12–13 Anti-Abuse)."""
+
+    PENDING = "pending"
+    FLAGGED = "flagged"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    REMOVED = "removed"
+
+
+class ExternalContentPlatform(StrEnum):
+    """Platform of an external online content source (addendum P8)."""
+
+    DOUYIN = "douyin"
+    XIAOHONGSHU = "xiaohongshu"
+    DIANPING = "dianping"
+    WEIBO = "weibo"
+    BILIBILI = "bilibili"
+    WEB = "web"
+    OTHER = "other"
+
+
+class ContributionAbuseFlag(StrEnum):
+    """Anti-abuse flags attached to a report (addendum PHASE 13)."""
+
+    NONE = "none"
+    RATE_LIMITED = "rate_limited"
+    DUPLICATE = "duplicate"
+    NEAR_DUPLICATE = "near_duplicate"
+    SPAM = "spam"
+    PLACE_MISMATCH = "place_mismatch"
+    OLD_VIDEO = "old_video"
+    RECYCLED_CONTENT = "recycled_content"
+    MEDIA_MANIPULATION = "media_manipulation"
+    MALICIOUS_MASS_REPORT = "malicious_mass_report"
