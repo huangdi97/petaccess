@@ -176,9 +176,18 @@ const COEXISTENCE_LABELS: Record<string, string> = {
   zone_separation: "区域分隔",
 };
 
+/** Query role for the current mode: service-dog mode asks as a working
+ * (assistance) dog even without a pet profile; other modes use the active
+ * pet's declared role (ADR-025). Mirrors the pre-AccessAnswer modeQuery
+ * mapping so the mode switch keeps meaning "evaluate as a service dog". */
+function queryServiceRole(): string {
+  if (session.mode === "service_dog") return "working";
+  return session.activePet?.service_role ?? "none";
+}
+
 async function evaluate() {
   const animal = session.activePet?.species ?? "dog";
-  const serviceRole = session.activePet?.service_role ?? "none";
+  const serviceRole = queryServiceRole();
   // ADR-025: declare the role when the profile pins one, so a hearing-dog
   // question never inherits a guide-dog proviso.
   const declaredRole = session.activePet?.declared_role ?? null;
@@ -337,7 +346,7 @@ async function toggleZone(zoneId: string) {
   try {
     const res = await client.accessAnswer(placeId.value, {
       animal: session.activePet?.species ?? "dog",
-      service_role: session.activePet?.service_role ?? "none",
+      service_role: queryServiceRole(),
       declared_role: session.activePet?.declared_role ?? null,
       zone_id: zoneId,
       action: "enter",

@@ -32,8 +32,13 @@ test("place detail shows one-sentence answer with zones and provenance", async (
   // design #48: actionable answer + obligations + source + last verification
   // anonymous visit → no pet profile yet (explicit, never guessed)
   await expect(answer).toContainText("我的宠物：未设置");
-  await expect(page.getByTestId("answer-status")).toContainText("有条件进入");
-  await expect(answer).toContainText("需牵引");
+  // AccessAnswer contract (design §10): zone rules are NEVER flattened into a
+  // place verdict — a plain dog with only zone-scoped rules reads UNKNOWN at
+  // place level, and the page points at the zones instead of inventing one.
+  await expect(page.getByTestId("answer-status")).toContainText("信息不足");
+  await expect(answer).toContainText("本次查询范围内没有已发布规则 —— 未知 ≠ 允许。");
+  // the outdoor zone's leash condition is surfaced in the conditions panel
+  await expect(page.getByTestId("conditions")).toContainText("需牵引");
   // provenance is rendered by section 1 as a whole, not by the answer block
   await expect(page.getByTestId("section-answer")).toContainText("最近核验：");
   // zone breakdown: every zone is listed, and its status is computed on demand
@@ -44,17 +49,23 @@ test("place detail shows one-sentence answer with zones and provenance", async (
   const indoor = zones.locator(".zone-row").filter({ hasText: "室内堂食区" });
   await indoor.getByRole("button", { name: "查看" }).click();
   await expect(indoor).toContainText("明确限制");
+  // outdoor zone resolves to conditional (leash) — still zone-scoped
+  const outdoor = zones.locator(".zone-row").filter({ hasText: "户外座位区" });
+  await outdoor.getByRole("button", { name: "查看" }).click();
+  await expect(outdoor).toContainText("有条件");
   // observations coexist with rules but do not change the answer
   await expect(page.getByText("no_interaction_observed").first()).toBeVisible();
 });
 
 test("mode switch re-evaluates: service dog → allowed", async ({ page }) => {
   await page.goto(`/#/place/${CAFE_ID}`);
-  await expect(page.getByTestId("answer-status")).toHaveText("有条件进入");
+  // plain dog at place level: no place-scoped ordinary-pet rule → UNKNOWN
+  await expect(page.getByTestId("answer-status")).toHaveText("信息不足");
   await page.getByRole("button", { name: "服务犬通行" }).click();
+  // service-dog mode asks as a working (assistance) dog → place-level allowed
   await expect(page.getByTestId("answer-status")).toHaveText("可以进入");
   await page.getByRole("button", { name: "带宠出行" }).click();
-  await expect(page.getByTestId("answer-status")).toHaveText("有条件进入");
+  await expect(page.getByTestId("answer-status")).toHaveText("信息不足");
 });
 
 /**
