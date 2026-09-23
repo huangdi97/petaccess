@@ -44,13 +44,13 @@ defineProps<{ snapshot: CoexistenceSnapshot | null; loading?: boolean }>();
       <ul v-if="staffResponseLines(snapshot.staff_response_summary).length" class="facts">
         <li v-for="(l, i) in staffResponseLines(snapshot.staff_response_summary)" :key="i">{{ l }}</li>
       </ul>
-      <p v-else class="muted">暂无已核验的工作人员处理记录（≠ 未处理）。</p>
+      <p v-else class="muted">暂无经核验的处理记录（≠ 未处理）。</p>
 
       <h3>动物相关设施</h3>
       <ul v-if="facilityLines(snapshot.facility_summary).length" class="facts">
         <li v-for="(l, i) in facilityLines(snapshot.facility_summary)" :key="i">{{ l }}</li>
       </ul>
-      <p v-else class="muted">暂无已核验的动物设施记录（设施 ≠ 入场政策）。</p>
+      <p v-else class="muted">暂无经核验的设施记录（设施 ≠ 入场政策）。</p>
 
       <h3>规则与现场差异</h3>
       <p>
@@ -66,7 +66,7 @@ defineProps<{ snapshot: CoexistenceSnapshot | null; loading?: boolean }>();
       </ul>
       <p class="muted small">所有现实事实经人工核验后才展示；过期事实不呈现为近期。</p>
     </template>
-    <p v-else class="muted">暂无现场数据（暂无记录 ≠ 没有动物）。</p>
+    <p v-else class="muted">暂无足够现场记录（暂无记录 ≠ 没有动物）。</p>
   </section>
 </template>
 

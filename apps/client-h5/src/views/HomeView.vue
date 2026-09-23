@@ -365,6 +365,20 @@ onMounted(async () => {
     </StateMessage>
 
     <template v-else>
+      <!-- v0.1.0 Empty-First (Phase K): a world with no published places at all
+           still answers — the global empty branch is the first child of v-else. -->
+      <StateMessage
+        v-if="!loading && !error && !places.length"
+        kind="EMPTY"
+        data-testid="home-empty"
+        title="当前还没有已发布的场所数据"
+        description="你仍可浏览产品功能，或提交第一个现场/规则线索。"
+      >
+        <template #action>
+          <RouterLink class="primary" to="/map" data-testid="home-empty-map">探索地图</RouterLink>
+          <RouterLink class="secondary" to="/contribute" data-testid="home-empty-contribute">贡献线索</RouterLink>
+        </template>
+      </StateMessage>
       <h2>附近已核验</h2>
       <p class="muted">
         已核验 = 有规则依据。核验范围写清楚（动物 · 区域），不写成对整个场所的结论。

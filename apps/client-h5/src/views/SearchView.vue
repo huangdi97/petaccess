@@ -253,10 +253,11 @@ onMounted(async () => {
     <StateMessage
       v-else-if="searched && !visible.length"
       kind="PARTIAL"
+      data-testid="search-empty"
       :description="
         results.length
           ? '当前筛选下没有结果。清除筛选可查看全部（含信息不足的场所）。'
-          : '没有匹配的场所。未收录不代表该场所没有规则。'
+          : '没有找到已收录场所。未收录不代表该场所没有规则。'
       "
     >
       <template #action>

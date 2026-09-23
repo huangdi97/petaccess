@@ -665,7 +665,7 @@ async function claimOperator() {
       <!-- Section 7 — sources & freshness -->
       <h2>7. 来源与时效</h2>
       <div class="panel" data-testid="sources">
-        <div v-if="!currentRules.length" class="muted">暂无已收录规则</div>
+        <div v-if="!currentRules.length" class="muted">暂无可靠规则结论（未收录 ≠ 没有规则）。</div>
         <div v-for="r in currentRules" :key="r.id" class="zone-row">
           <span>
             {{ sourceMap.get(r.source_id)?.issuer ?? "来源 " + r.source_id.slice(0, 8) }}
@@ -727,7 +727,7 @@ async function claimOperator() {
           >
           <span class="muted">{{ o.staff_action }}</span>
         </div>
-        <div v-if="!observations.length" class="muted">暂无现场记录</div>
+        <div v-if="!observations.length" class="muted">暂无足够现场记录（暂无记录 ≠ 没有动物）。</div>
       </div>
 
       <!-- Section 9 — history -->

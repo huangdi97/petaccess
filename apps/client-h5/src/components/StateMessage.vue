@@ -16,20 +16,24 @@ import { PAGE_STATES, type PageStateKey } from "@petaccess/design-tokens";
 const props = withDefaults(
   defineProps<{
     kind: Exclude<PageStateKey, "LOADING">;
+    /** Override the default title when the view has a more precise headline. */
+    title?: string | null;
     /** Override the default sentence when the view has something more precise. */
     description?: string | null;
   }>(),
-  { description: null },
+  { title: null, description: null },
 );
 
 const state = computed(() => PAGE_STATES[props.kind]);
+const headline = computed(() => props.title ?? state.value.title);
 const body = computed(() => props.description ?? state.value.description);
+
 </script>
 
 <template>
   <div class="state-message" :data-state="state.key" role="status">
     <div class="state-message__icon" aria-hidden="true">{{ state.icon }}</div>
-    <div class="state-message__title">{{ state.title }}</div>
+    <div class="state-message__title">{{ headline }}</div>
     <p class="state-message__body">{{ body }}</p>
     <div v-if="$slots.action" class="state-message__action">
       <slot name="action" />
