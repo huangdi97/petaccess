@@ -25,7 +25,7 @@ jobs:
         with:
           python-version: "3.12"
       - uses: astral-sh/setup-uv@v5
-      - run: uv sync --dev
+      - run: uv sync --dev --all-packages
       - name: Version SSOT gate (VERSION_DRIFT must be 0)
         run: uv run python scripts/check_version_drift.py
       - name: Tag matches package version
@@ -63,7 +63,7 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
       - uses: astral-sh/setup-uv@v5
-      - run: uv sync --dev
+      - run: uv sync --dev --all-packages
       - run: uv run python scripts/scan_secrets.py
       - run: uv run python scripts/check_engineering_quality.py
       - run: uv run ruff check services/api services/worker tests scripts
@@ -87,9 +87,10 @@ jobs:
     needs: verify
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 12.4.1 }
       - uses: actions/setup-node@v4
         with: { node-version: "22", cache: pnpm }
-      - run: corepack enable
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint:fe
       - run: pnpm format:check:fe
@@ -105,11 +106,12 @@ jobs:
     name: Windows NSIS installer
     runs-on: windows-latest
     needs: frontend
-    steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 12.4.1 }
       - uses: actions/setup-node@v4
         with: { node-version: "22", cache: pnpm }
-      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
       - run: pnpm install --frozen-lockfile
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -140,9 +142,10 @@ jobs:
       ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 12.4.1 }
       - uses: actions/setup-node@v4
         with: { node-version: "22", cache: pnpm }
-      - run: corepack enable
       - run: pnpm install --frozen-lockfile
       - name: Install Rust + Android targets
         uses: dtolnay/rust-toolchain@stable

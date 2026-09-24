@@ -25,7 +25,7 @@ jobs:
         uses: astral-sh/setup-uv@v5
 
       - name: Sync Python deps
-        run: uv sync --dev
+        run: uv sync --dev --all-packages
 
       - name: Secret scan (worktree + history)
         run: uv run python scripts/scan_secrets.py
@@ -77,13 +77,22 @@ jobs:
         uses: astral-sh/setup-uv@v5
 
       - name: Sync Python deps
-        run: uv sync --dev
+        run: uv sync --dev --all-packages
 
       - name: Provision TEST database
         run: uv run python scripts/isolated_db.py --role TEST --reset
 
       - name: mypy
         run: uv run mypy services/api/app
+
+      - name: Start Celery worker (media/v05 tests need a live consumer)
+        shell: bash
+        run: |
+          cd services/api
+          PYTHON_BIN="../../.venv/Scripts/python.exe"
+          [ -x "$PYTHON_BIN" ] || PYTHON_BIN="../../.venv/bin/python"
+          "$PYTHON_BIN" -m celery -A app.worker.celery_app worker \
+            --pool=solo --concurrency=1 -Q petaccess_test &
 
       - name: pytest
         run: uv run pytest -q
@@ -99,14 +108,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up pnpm (corepack shims are unreliable on Windows runners)
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.4.1
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: pnpm
-
-      - name: Install pnpm
-        run: corepack enable
 
       - name: Install frontend deps
         run: pnpm install --frozen-lockfile
@@ -155,14 +165,17 @@ jobs:
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
-      - run: uv sync --dev
+      - run: uv sync --dev --all-packages
 
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.4.1
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: pnpm
-      - run: corepack enable
       - run: pnpm install --frozen-lockfile
 
       - name: Provision E2E database
