@@ -53,18 +53,6 @@ jobs:
       redis:
         image: redis:7-alpine
         ports: ["6379:6379"]
-      minio:
-        image: quay.io/minio/minio:latest
-        command: ["server", "/data"]
-        env:
-          MINIO_ROOT_USER: minio
-          MINIO_ROOT_PASSWORD: minio_dev_only
-        ports:
-          - "9000:9000"
-          - "9001:9001"
-        options: >-
-          --health-cmd "curl -sf http://localhost:9000/minio/health/live || exit 1"
-          --health-interval 5s --health-timeout 5s --health-retries 20
     env:
       DATABASE_URL: postgresql+psycopg://petaccess:petaccess_dev_only@localhost:5432/petaccess_test
       CELERY_TASK_QUEUE: petaccess_test
@@ -89,6 +77,19 @@ jobs:
           [ -x "$PYTHON_BIN" ] || PYTHON_BIN="../../.venv/bin/python"
           "$PYTHON_BIN" -m celery -A app.worker.celery_app worker \
             --pool=solo --concurrency=1 -Q petaccess_test &
+      - name: Start MinIO (S3 dependency for media tests)
+        shell: bash
+        run: |
+          docker run -d --name minio -p 9000:9000 -p 9001:9001 \
+            -e MINIO_ROOT_USER=minio \
+            -e MINIO_ROOT_PASSWORD=minio_dev_only \
+            quay.io/minio/minio:latest server /data
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:9000/minio/health/live >/dev/null && break
+            sleep 2
+          done
+          curl -sf http://localhost:9000/minio/health/live || { echo "minio did not become healthy"; exit 1; }
+      - run: uv run mypy services/api/app
       - run: uv run mypy services/api/app
       - run: uv run pytest -q
 
