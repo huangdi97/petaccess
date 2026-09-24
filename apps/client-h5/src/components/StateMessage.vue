@@ -27,7 +27,6 @@ const props = withDefaults(
 const state = computed(() => PAGE_STATES[props.kind]);
 const headline = computed(() => props.title ?? state.value.title);
 const body = computed(() => props.description ?? state.value.description);
-
 </script>
 
 <template>

@@ -4,12 +4,7 @@
   "expansion_run_id": "EXP-R1-W02-20260919",
   "generated_at": "2026-09-21T13:10:17.604849+00:00",
   "human_signoff_required": true,
-  "human_decisions": [
-    "APPROVED",
-    "APPROVED_WITH_NOTE",
-    "HOLD",
-    "REJECTED"
-  ],
+  "human_decisions": ["APPROVED", "APPROVED_WITH_NOTE", "HOLD", "REJECTED"],
   "exception_plan": [],
   "exception_binding": {},
   "rows": [

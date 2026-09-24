@@ -85,15 +85,43 @@
     "ZONE_SCOPE_PRESERVED": "PASS",
     "UNcovered_ZONE_NOT_AUTO_ALLOWED": "PASS",
     "cases": {
-      "ordinary_pet_in_rule_zone": {"zone": "aee59c64-a9b2-4a69-acd6-1a922f55d127", "effect": "prohibited", "compliance_state": "CONSISTENT"},
-      "ordinary_cat_in_rule_zone": {"zone": "aee59c64-a9b2-4a69-acd6-1a922f55d127", "effect": "prohibited", "compliance_state": "CONSISTENT"},
-      "guide_dog_in_rule_zone": {"zone": "aee59c64-a9b2-4a69-acd6-1a922f55d127", "effect": "unknown", "compliance_state": "UNKNOWN"},
-      "ordinary_pet_in_uncovered_zone": {"zone": "ae0003a8-e7ad-4d32-b29d-f8f21892e35b", "effect": "unknown", "compliance_state": "UNKNOWN"},
-      "ordinary_pet_place_level_no_zone": {"zone": null, "effect": "unknown", "compliance_state": "UNKNOWN"}
+      "ordinary_pet_in_rule_zone": {
+        "zone": "aee59c64-a9b2-4a69-acd6-1a922f55d127",
+        "effect": "prohibited",
+        "compliance_state": "CONSISTENT"
+      },
+      "ordinary_cat_in_rule_zone": {
+        "zone": "aee59c64-a9b2-4a69-acd6-1a922f55d127",
+        "effect": "prohibited",
+        "compliance_state": "CONSISTENT"
+      },
+      "guide_dog_in_rule_zone": {
+        "zone": "aee59c64-a9b2-4a69-acd6-1a922f55d127",
+        "effect": "unknown",
+        "compliance_state": "UNKNOWN"
+      },
+      "ordinary_pet_in_uncovered_zone": {
+        "zone": "ae0003a8-e7ad-4d32-b29d-f8f21892e35b",
+        "effect": "unknown",
+        "compliance_state": "UNKNOWN"
+      },
+      "ordinary_pet_place_level_no_zone": {
+        "zone": null,
+        "effect": "unknown",
+        "compliance_state": "UNKNOWN"
+      }
     },
     "second_engine_rules_evaluate": {
-      "zone_level": {"status": "RESTRICTED", "reason_codes": ["explicit_prohibition"], "source_refs": ["ca5b81a7-ca5b-495c-9026-6d8b69dbaea7"]},
-      "place_level": {"status": "UNKNOWN", "reason_codes": ["no_rule_in_scope"], "source_refs": []}
+      "zone_level": {
+        "status": "RESTRICTED",
+        "reason_codes": ["explicit_prohibition"],
+        "source_refs": ["ca5b81a7-ca5b-495c-9026-6d8b69dbaea7"]
+      },
+      "place_level": {
+        "status": "UNKNOWN",
+        "reason_codes": ["no_rule_in_scope"],
+        "source_refs": []
+      }
     },
     "evidence": "artifacts/wave01_closure_r1/post_publish_verify.json"
   },
@@ -125,8 +153,22 @@
   "consumer": {
     "CONSUMER_NO_FORBIDDEN_CLAIM": "PASS",
     "forbidden_claim_hits": [],
-    "forbidden_claims_checked": ["官方已确认", "official_operator_policy", "operator first-party verified", "first-party verified", "一手来源已核验"],
-    "surfaces_checked": ["place_detail", "place_rules", "zone_rules", "regulations", "extras", "answerability", "sources"],
+    "forbidden_claims_checked": [
+      "官方已确认",
+      "official_operator_policy",
+      "operator first-party verified",
+      "first-party verified",
+      "一手来源已核验"
+    ],
+    "surfaces_checked": [
+      "place_detail",
+      "place_rules",
+      "zone_rules",
+      "regulations",
+      "extras",
+      "answerability",
+      "sources"
+    ],
     "provenance_reachable_from_public_read_path": true,
     "unified_access_answer_surface_implemented": false,
     "limitation": "统一 AccessAnswer 面仍是 master-goal 存量项；本项断言只覆盖已发布 surface 与来源读路径"
@@ -159,7 +201,11 @@
     "w01-3a04d4d1aa": "SUPERSEDED_NON_EXECUTABLE",
     "w01-6f2bfd39d7": "SUPERSEDED_NON_EXECUTABLE",
     "w01-305fa08c1e": "SUPERSEDED_NON_EXECUTABLE",
-    "old_planning_manifests": ["EXP_R1_W01_REVIEW_R1_BATCH_01", "EXP_R1_W01_REVIEW_R1_BATCH_01A", "EXP_R1_W01_REVIEW_R1_BATCH_02"],
+    "old_planning_manifests": [
+      "EXP_R1_W01_REVIEW_R1_BATCH_01",
+      "EXP_R1_W01_REVIEW_R1_BATCH_01A",
+      "EXP_R1_W01_REVIEW_R1_BATCH_02"
+    ],
     "old_planning_manifests_status": "OBSOLETE_NON_EXECUTABLE",
     "old_manifest_replay": "REFUSED exit 4（3/3）",
     "new_manifest_relisting_attempt": "REFUSED exit 4（SUPERSEDED_SEMANTICS_SELECTED=2, BATCH_VALIDATION=FAIL）",
@@ -180,9 +226,28 @@
   },
 
   "open_items": {
-    "SHANGHAI_ZOO_DOG": {"final_decision": "HOLD", "candidate": "a4e2ba26-f542-4ee6-a088-c073096db733", "review_status": "REVIEW_PENDING", "published_rule_id": null, "zoo_dog_access_rule_count": 0, "jprov001_applies_to_layer": "LEGAL", "register_sha256_prefix": "ce97d75e2e2e5295"},
-    "B5": {"status": "PUBLIC_BETA_REAL_MAP_DATA_QUALITY_ITEM", "places_with_coordinates": "20/20", "places_missing_coordinates": 0, "address_level_pending": 2, "blocks_wave01_closure": false},
-    "ADR032": {"status": "INDEPENDENT_ENGINEERING_TRACK", "migration_generated": false, "existing_rows_touched": 0, "blocks_wave02": false}
+    "SHANGHAI_ZOO_DOG": {
+      "final_decision": "HOLD",
+      "candidate": "a4e2ba26-f542-4ee6-a088-c073096db733",
+      "review_status": "REVIEW_PENDING",
+      "published_rule_id": null,
+      "zoo_dog_access_rule_count": 0,
+      "jprov001_applies_to_layer": "LEGAL",
+      "register_sha256_prefix": "ce97d75e2e2e5295"
+    },
+    "B5": {
+      "status": "PUBLIC_BETA_REAL_MAP_DATA_QUALITY_ITEM",
+      "places_with_coordinates": "20/20",
+      "places_missing_coordinates": 0,
+      "address_level_pending": 2,
+      "blocks_wave01_closure": false
+    },
+    "ADR032": {
+      "status": "INDEPENDENT_ENGINEERING_TRACK",
+      "migration_generated": false,
+      "existing_rows_touched": 0,
+      "blocks_wave02": false
+    }
   },
 
   "limitations": [

@@ -80,9 +80,7 @@
           "query": "其他宠物",
           "effect": "prohibited",
           "applied_exceptions": [],
-          "applicable_rule_ids": [
-            "3a04d4d1-aaac-4c3d-8364-9d1acf18ef35"
-          ]
+          "applicable_rule_ids": ["3a04d4d1-aaac-4c3d-8364-9d1acf18ef35"]
         }
       ],
       "after": [
@@ -90,35 +88,25 @@
           "query": "普通犬",
           "effect": "prohibited",
           "applied_exceptions": [],
-          "applicable_rule_ids": [
-            "3a04d4d1-aaac-4c3d-8364-9d1acf18ef35#dog"
-          ]
+          "applicable_rule_ids": ["3a04d4d1-aaac-4c3d-8364-9d1acf18ef35#dog"]
         },
         {
           "query": "导盲犬",
           "effect": "conditional",
-          "applied_exceptions": [
-            "305fa08c-1edd-4cc9-9b7e-554647e44b0a"
-          ],
-          "applicable_rule_ids": [
-            "exc-305fa08c-1edd-4cc9-9b7e-554647e44b0a"
-          ]
+          "applied_exceptions": ["305fa08c-1edd-4cc9-9b7e-554647e44b0a"],
+          "applicable_rule_ids": ["exc-305fa08c-1edd-4cc9-9b7e-554647e44b0a"]
         },
         {
           "query": "猫",
           "effect": "prohibited",
           "applied_exceptions": [],
-          "applicable_rule_ids": [
-            "3a04d4d1-aaac-4c3d-8364-9d1acf18ef35#cat"
-          ]
+          "applicable_rule_ids": ["3a04d4d1-aaac-4c3d-8364-9d1acf18ef35#cat"]
         },
         {
           "query": "其他宠物",
           "effect": "prohibited",
           "applied_exceptions": [],
-          "applicable_rule_ids": [
-            "3a04d4d1-aaac-4c3d-8364-9d1acf18ef35#other"
-          ]
+          "applicable_rule_ids": ["3a04d4d1-aaac-4c3d-8364-9d1acf18ef35#other"]
         }
       ]
     },
@@ -195,9 +183,7 @@
           "query": "其他宠物",
           "effect": "prohibited",
           "applied_exceptions": [],
-          "applicable_rule_ids": [
-            "6f2bfd39-d79d-4f49-83f6-6ae6a9012697"
-          ]
+          "applicable_rule_ids": ["6f2bfd39-d79d-4f49-83f6-6ae6a9012697"]
         }
       ],
       "after": [
@@ -205,33 +191,25 @@
           "query": "普通犬",
           "effect": "prohibited",
           "applied_exceptions": [],
-          "applicable_rule_ids": [
-            "6f2bfd39-d79d-4f49-83f6-6ae6a9012697#dog"
-          ]
+          "applicable_rule_ids": ["6f2bfd39-d79d-4f49-83f6-6ae6a9012697#dog"]
         },
         {
           "query": "导盲犬",
           "effect": "prohibited",
           "applied_exceptions": [],
-          "applicable_rule_ids": [
-            "6f2bfd39-d79d-4f49-83f6-6ae6a9012697#dog"
-          ]
+          "applicable_rule_ids": ["6f2bfd39-d79d-4f49-83f6-6ae6a9012697#dog"]
         },
         {
           "query": "猫",
           "effect": "prohibited",
           "applied_exceptions": [],
-          "applicable_rule_ids": [
-            "6f2bfd39-d79d-4f49-83f6-6ae6a9012697#cat"
-          ]
+          "applicable_rule_ids": ["6f2bfd39-d79d-4f49-83f6-6ae6a9012697#cat"]
         },
         {
           "query": "其他宠物",
           "effect": "prohibited",
           "applied_exceptions": [],
-          "applicable_rule_ids": [
-            "6f2bfd39-d79d-4f49-83f6-6ae6a9012697#other"
-          ]
+          "applicable_rule_ids": ["6f2bfd39-d79d-4f49-83f6-6ae6a9012697#other"]
         }
       ]
     }

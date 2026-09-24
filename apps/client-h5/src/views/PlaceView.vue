@@ -727,7 +727,9 @@ async function claimOperator() {
           >
           <span class="muted">{{ o.staff_action }}</span>
         </div>
-        <div v-if="!observations.length" class="muted">暂无足够现场记录（暂无记录 ≠ 没有动物）。</div>
+        <div v-if="!observations.length" class="muted">
+          暂无足够现场记录（暂无记录 ≠ 没有动物）。
+        </div>
       </div>
 
       <!-- Section 9 — history -->

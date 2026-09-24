@@ -19,14 +19,33 @@
     "integration_tests": 7,
     "real_data_verification": "PASS",
     "real_cases": {
-      "ordinary_pet_in_rule_zone": {"effect": "prohibited", "scope_level": "zone", "governing_rules": 1},
-      "ordinary_pet_in_uncovered_zone": {"effect": "unknown", "scope_level": "none", "governing_rules": 0},
-      "ordinary_pet_place_level_no_zone": {"effect": "unknown", "scope_level": "none", "governing_rules": 0},
-      "guide_dog_in_rule_zone": {"effect": "unknown", "scope_level": "none", "governing_rules": 0}
+      "ordinary_pet_in_rule_zone": {
+        "effect": "prohibited",
+        "scope_level": "zone",
+        "governing_rules": 1
+      },
+      "ordinary_pet_in_uncovered_zone": {
+        "effect": "unknown",
+        "scope_level": "none",
+        "governing_rules": 0
+      },
+      "ordinary_pet_place_level_no_zone": {
+        "effect": "unknown",
+        "scope_level": "none",
+        "governing_rules": 0
+      },
+      "guide_dog_in_rule_zone": { "effect": "unknown", "scope_level": "none", "governing_rules": 0 }
     },
     "real_provenance_statement": "来源：上海市文化和旅游事业发展中心《又一新地标！这个周末，带「毛孩子」来放飞》（转述世纪公园官方口径）；source_type=government_service；（政府平台转述园方口径）；directness=secondary；未取得运营方一手来源（first-party operator source pending）。",
     "forbidden_confirmation_claims_absent": true,
-    "forbidden_claims_checked": ["官方已确认", "官方确认", "运营方已确认", "operator first-party verified", "first-party verified", "一手来源已核验"],
+    "forbidden_claims_checked": [
+      "官方已确认",
+      "官方确认",
+      "运营方已确认",
+      "operator first-party verified",
+      "first-party verified",
+      "一手来源已核验"
+    ],
     "structural_refusals": [
       "no field can express 官方已确认; assert_no_unbacked_first_party_claim fires when first_party_operator_source_count == 0",
       "zone rule never flattens to a place verdict; no_rule_in_scope never becomes allowed",
@@ -76,7 +95,17 @@
       "verdict": "FAIL"
     },
     "safe_9": {
-      "rule_ids": ["dl-pet-ban", "gh-legal-dog", "gh-sd-legal", "mn-legal-dog", "mn-sd-legal", "qt-indoor-op", "qt-outdoor-op", "xm-legal-dog", "xm-sd-legal"],
+      "rule_ids": [
+        "dl-pet-ban",
+        "gh-legal-dog",
+        "gh-sd-legal",
+        "mn-legal-dog",
+        "mn-sd-legal",
+        "qt-indoor-op",
+        "qt-outdoor-op",
+        "xm-legal-dog",
+        "xm-sd-legal"
+      ],
       "batch_validation": "PASS",
       "dependency_closed": "PASS",
       "published": 9,
@@ -88,8 +117,13 @@
       "second_execute_new_writes": 0,
       "fingerprint_before": "4844b7af5b99836014cce50e2bf3954b1641d038a3c292577ffd8b7ab96d90de",
       "fingerprint_after": "b4cfa2af40218073d6a8519b36296353735797297aaecc4f15e752ec40e5c7eb",
-      "counts_after": {"access_rule": 26, "rule_exception": 9, "rule_candidate": 75, "audit_log": 9686},
-      "integrity": {"critical": 0, "high": 0, "medium": 1, "duplicate_current_groups": 0},
+      "counts_after": {
+        "access_rule": 26,
+        "rule_exception": 9,
+        "rule_candidate": 75,
+        "audit_log": 9686
+      },
+      "integrity": { "critical": 0, "high": 0, "medium": 1, "duplicate_current_groups": 0 },
       "verdict": "PASS"
     },
     "production_touched": false
@@ -104,11 +138,15 @@
   },
 
   "blocked": {
-    "SAFE_9_PRODUCTION_PUBLISH": {"status": "AWAITING_AUTHORIZATION", "authorization_string": "REAL_PUBLISH_AUTHORIZATION_FOR_R3_SAFE_9_BATCH", "reason": "授权 §4 将发布范围限定为世纪公园单条；9 行超出该范围且属破坏性操作"},
-    "dl_sd_op": {"status": "SEMANTIC_REMODEL_REQUIRED", "reason": "但书基底 scope 不可达"},
-    "qt_sd_op": {"status": "SEMANTIC_REMODEL_REQUIRED", "reason": "但书基底 scope 不可达"},
-    "fp_sd_op_firstparty": {"status": "PUBLISH_BLOCKED"},
-    "lib_sd_op_guide": {"status": "PUBLISH_BLOCKED"}
+    "SAFE_9_PRODUCTION_PUBLISH": {
+      "status": "AWAITING_AUTHORIZATION",
+      "authorization_string": "REAL_PUBLISH_AUTHORIZATION_FOR_R3_SAFE_9_BATCH",
+      "reason": "授权 §4 将发布范围限定为世纪公园单条；9 行超出该范围且属破坏性操作"
+    },
+    "dl_sd_op": { "status": "SEMANTIC_REMODEL_REQUIRED", "reason": "但书基底 scope 不可达" },
+    "qt_sd_op": { "status": "SEMANTIC_REMODEL_REQUIRED", "reason": "但书基底 scope 不可达" },
+    "fp_sd_op_firstparty": { "status": "PUBLISH_BLOCKED" },
+    "lib_sd_op_guide": { "status": "PUBLISH_BLOCKED" }
   },
 
   "quality_baseline": {

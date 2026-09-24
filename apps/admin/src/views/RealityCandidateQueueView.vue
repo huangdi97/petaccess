@@ -98,7 +98,6 @@ const payloadLines = (c: RealityCandidate) => {
     .map(([k, v]) => `${k}: ${typeof v === "object" ? JSON.stringify(v) : String(v)}`);
 };
 
-
 onMounted(load);
 </script>
 
@@ -106,8 +105,8 @@ onMounted(load);
   <section>
     <h1>Reality Candidate Queue</h1>
     <p class="muted">
-      人工审核队列 —— 裁决仅由具名人类评审员做出（AI 永不写 reality_decision）。
-      VERIFIED / VERIFIED_WITH_NOTE 发布 claim；HOLD / REJECTED 不发布。
+      人工审核队列 —— 裁决仅由具名人类评审员做出（AI 永不写 reality_decision）。 VERIFIED /
+      VERIFIED_WITH_NOTE 发布 claim；HOLD / REJECTED 不发布。
     </p>
 
     <div class="toolbar">
@@ -163,9 +162,14 @@ onMounted(load);
           </td>
           <td>
             <div v-if="c.review_status !== 'REVIEWED'" class="row">
-              <select :value="''" @change="(e) => e.target && decide(c, (e.target as HTMLSelectElement).value)">
+              <select
+                :value="''"
+                @change="(e) => e.target && decide(c, (e.target as HTMLSelectElement).value)"
+              >
                 <option value="" disabled>选择裁决…</option>
-                <option v-for="d in DECISIONS" :key="d.value" :value="d.value">{{ d.label }}</option>
+                <option v-for="d in DECISIONS" :key="d.value" :value="d.value">
+                  {{ d.label }}
+                </option>
               </select>
             </div>
             <span v-else class="muted">已处理</span>
@@ -178,32 +182,65 @@ onMounted(load);
     </table>
 
     <div v-if="expanded" class="detail">
-      <h3>候选详情（{{ (items.find((i) => i.id === expanded) as RealityCandidate | undefined)?.id }}）</h3>
+      <h3>
+        候选详情（{{ (items.find((i) => i.id === expanded) as RealityCandidate | undefined)?.id }}）
+      </h3>
       <template v-if="items.find((i) => i.id === expanded)">
         <div class="grid">
           <div><b>review_status</b>: {{ items.find((i) => i.id === expanded)!.review_status }}</div>
-          <div><b>verification_status</b>: {{ items.find((i) => i.id === expanded)!.verification_status }}</div>
-          <div><b>freshness_state</b>: {{ items.find((i) => i.id === expanded)!.freshness_state ?? "—" }}</div>
+          <div>
+            <b>verification_status</b>:
+            {{ items.find((i) => i.id === expanded)!.verification_status }}
+          </div>
+          <div>
+            <b>freshness_state</b>:
+            {{ items.find((i) => i.id === expanded)!.freshness_state ?? "—" }}
+          </div>
           <div><b>zone_id</b>: {{ items.find((i) => i.id === expanded)!.zone_id ?? "—" }}</div>
           <div><b>source_id</b>: {{ items.find((i) => i.id === expanded)!.source_id ?? "—" }}</div>
-          <div><b>evidence_bundle_id</b>: {{ items.find((i) => i.id === expanded)!.evidence_bundle_id ?? "—" }}</div>
-          <div><b>published_claim_id</b>: {{ items.find((i) => i.id === expanded)!.published_claim_id ?? "—" }}</div>
-          <div><b>published_at</b>: {{ ts(items.find((i) => i.id === expanded)!.published_at) }}</div>
-          <div><b>decision_note</b>: {{ items.find((i) => i.id === expanded)!.decision_note ?? "—" }}</div>
+          <div>
+            <b>evidence_bundle_id</b>:
+            {{ items.find((i) => i.id === expanded)!.evidence_bundle_id ?? "—" }}
+          </div>
+          <div>
+            <b>published_claim_id</b>:
+            {{ items.find((i) => i.id === expanded)!.published_claim_id ?? "—" }}
+          </div>
+          <div>
+            <b>published_at</b>: {{ ts(items.find((i) => i.id === expanded)!.published_at) }}
+          </div>
+          <div>
+            <b>decision_note</b>: {{ items.find((i) => i.id === expanded)!.decision_note ?? "—" }}
+          </div>
         </div>
         <h4>Payload</h4>
-        <pre class="code">{{ JSON.stringify(items.find((i) => i.id === expanded)!.payload ?? {}, null, 2) }}</pre>
+        <pre class="code">{{
+          JSON.stringify(items.find((i) => i.id === expanded)!.payload ?? {}, null, 2)
+        }}</pre>
         <h4>审核备注</h4>
-        <input
-          v-model="notes[expanded]"
-          placeholder="决策附注（VERIFIED_WITH_NOTE 必填理由）"
-        />
+        <input v-model="notes[expanded]" placeholder="决策附注（VERIFIED_WITH_NOTE 必填理由）" />
       </template>
     </div>
 
     <div class="pager">
-      <button :disabled="offset === 0" @click="offset -= limit; load()">上一页</button>
-      <button :disabled="offset + limit >= total" @click="offset += limit; load()">下一页</button>
+      <button
+        :disabled="offset === 0"
+        @click="
+          offset -= limit;
+          load();
+        "
+      >
+        上一页
+      </button>
+      <button
+        :disabled="offset + limit >= total"
+        @click="
+          offset += limit;
+          load();
+        "
+      >
+        下一页
+      </button>
     </div>
   </section>
 </template>

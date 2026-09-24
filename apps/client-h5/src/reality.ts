@@ -74,12 +74,14 @@ export function staffResponseLines(staff: { response_action: string; count: numb
 }
 
 /** Facility facts with verified freshness. */
-export function facilityLines(facilities: {
-  facility_type: string;
-  count: number;
-  operational_state: string;
-  last_verified_at: string | null;
-}[]): string[] {
+export function facilityLines(
+  facilities: {
+    facility_type: string;
+    count: number;
+    operational_state: string;
+    last_verified_at: string | null;
+  }[],
+): string[] {
   return facilities.map((f) => {
     const op = f.operational_state === "active" ? "" : `（${f.operational_state}）`;
     const fresh = f.last_verified_at ? `，最近核验 ${f.last_verified_at.slice(0, 10)}` : "";

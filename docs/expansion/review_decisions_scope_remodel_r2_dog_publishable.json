@@ -80,9 +80,7 @@
       "review_note": "CURRENT_ONTOLOGY_EXPRESSIBLE_SPLIT = YES；SOURCE_SCOPE_FULL_REAL_WORLD_EXHAUSTIVE = NO；UNMODELED_SOURCE_SCOPE_REMAINDER = YES。未建模的鸟类、爬行类等必须继续保持 UNKNOWN / unsupported，不得解释为 ALLOWED。",
       "proposed_decision": null,
       "proposed_reason": null,
-      "carve_out_of": [
-        "sr2-69e0916a2f"
-      ],
+      "carve_out_of": ["sr2-69e0916a2f"],
       "exception_binding_required": true,
       "reachable": true,
       "review_status": "REVIEW_PENDING",
@@ -215,9 +213,7 @@
   ],
   "exception_binding": {
     "sr2-69e0916a2f": {
-      "bases": [
-        "sr2-7b595de9e0"
-      ],
+      "bases": ["sr2-7b595de9e0"],
       "cross_layer_dropped": []
     }
   }

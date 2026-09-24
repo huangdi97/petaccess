@@ -227,7 +227,7 @@
               "class": "railway",
               "type": "stop",
               "addresstype": "railway",
-              "importance": 7.91126878766616e-05,
+              "importance": 7.91126878766616e-5,
               "query": "上海市 上海动物园"
             },
             {
@@ -241,7 +241,7 @@
               "class": "highway",
               "type": "bus_stop",
               "addresstype": "highway",
-              "importance": 7.91126878766616e-05,
+              "importance": 7.91126878766616e-5,
               "query": "上海市 上海动物园"
             },
             {
@@ -255,7 +255,7 @@
               "class": "highway",
               "type": "bus_stop",
               "addresstype": "highway",
-              "importance": 7.91126878766616e-05,
+              "importance": 7.91126878766616e-5,
               "query": "上海市 上海动物园"
             }
           ]
@@ -277,7 +277,7 @@
       "class": "tourism",
       "type": "museum",
       "addresstype": "tourism",
-      "importance": 7.91126878766616e-05,
+      "importance": 7.91126878766616e-5,
       "query": "上海市 上海博物馆东馆",
       "status": "AUTO_MATCHED",
       "match_method": "n-gram '上海博物馆东' in display_name",
@@ -301,7 +301,7 @@
               "class": "tourism",
               "type": "museum",
               "addresstype": "tourism",
-              "importance": 7.91126878766616e-05,
+              "importance": 7.91126878766616e-5,
               "query": "上海市 上海博物馆东馆",
               "status": "AUTO_MATCHED",
               "match_method": "n-gram '上海博物馆东' in display_name",
@@ -322,7 +322,7 @@
               "class": "highway",
               "type": "bus_stop",
               "addresstype": "highway",
-              "importance": 7.91126878766616e-05,
+              "importance": 7.91126878766616e-5,
               "query": "上海市 上海博物馆东馆"
             }
           ]
@@ -344,7 +344,7 @@
       "class": "building",
       "type": "hotel",
       "addresstype": "building",
-      "importance": 7.91126878766616e-05,
+      "importance": 7.91126878766616e-5,
       "query": "上海市 上海新天地朗廷酒店",
       "status": "AUTO_MATCHED",
       "match_method": "n-gram '上海新天地朗' in display_name",
@@ -368,7 +368,7 @@
               "class": "building",
               "type": "hotel",
               "addresstype": "building",
-              "importance": 7.91126878766616e-05,
+              "importance": 7.91126878766616e-5,
               "query": "上海市 上海新天地朗廷酒店",
               "status": "AUTO_MATCHED",
               "match_method": "n-gram '上海新天地朗' in display_name",
@@ -615,7 +615,7 @@
               "class": "highway",
               "type": "bus_stop",
               "addresstype": "highway",
-              "importance": 7.91126878766616e-05,
+              "importance": 7.91126878766616e-5,
               "query": "上海市 兴业太古汇"
             }
           ]
@@ -686,7 +686,7 @@
               "class": "tourism",
               "type": "viewpoint",
               "addresstype": "tourism",
-              "importance": 7.91126878766616e-05,
+              "importance": 7.91126878766616e-5,
               "query": "上海市 西岸梦中心"
             },
             {
@@ -700,7 +700,7 @@
               "class": "building",
               "type": "retail",
               "addresstype": "building",
-              "importance": 7.91126878766616e-05,
+              "importance": 7.91126878766616e-5,
               "query": "上海市 西岸梦中心"
             }
           ]

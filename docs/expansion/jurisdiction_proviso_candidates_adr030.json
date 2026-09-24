@@ -16,7 +16,11 @@
   "instrument_source_ids_evidence": {
     "f20bdb2c-1ec4-445f-9a2f-a8e587c205a8": {
       "issuer": "上海市人大常委会《上海市养犬管理条例》第二十三条（上海公安网官方转载页）",
-      "cited_by": ["cd9139a1…(和平饭店 LEGAL)", "332f17b6…(上图东馆 LEGAL)", "2d77f4b6…(星巴克烘焙工坊 LEGAL)"]
+      "cited_by": [
+        "cd9139a1…(和平饭店 LEGAL)",
+        "332f17b6…(上图东馆 LEGAL)",
+        "2d77f4b6…(星巴克烘焙工坊 LEGAL)"
+      ]
     },
     "a11aff10-9658-478f-8c22-abb73485b7e4": {
       "issuer": "上海市人民政府门户《上海市养犬管理条例》",

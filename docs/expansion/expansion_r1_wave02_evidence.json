@@ -70,10 +70,7 @@
       "place_type": "park",
       "district": "徐汇区",
       "canonical_address": "上海市徐汇区龙吴路1111号",
-      "aliases": [
-        "上海植物园（龙吴路1111号）",
-        "Shanghai Botanical Garden"
-      ],
+      "aliases": ["上海植物园（龙吴路1111号）", "Shanghai Botanical Garden"],
       "geo": {
         "status": "REAL_OSM_NOMINATIM",
         "lat": 31.1498128,
@@ -201,9 +198,7 @@
       "place_type": "park",
       "district": "杨浦区",
       "canonical_address": "上海市杨浦区军工路2000号",
-      "aliases": [
-        "共青森林公园（军工路2000号）"
-      ],
+      "aliases": ["共青森林公园（军工路2000号）"],
       "geo": {
         "status": "REAL_OSM_NOMINATIM",
         "lat": 31.3208192,
@@ -331,10 +326,7 @@
       "place_type": "park",
       "district": "浦东新区",
       "canonical_address": "上海市浦东新区济坤路100号",
-      "aliases": [
-        "世博文化公园",
-        "Expo Culture Park"
-      ],
+      "aliases": ["世博文化公园", "Expo Culture Park"],
       "geo": {
         "status": "REAL_OSM_NOMINATIM",
         "lat": 31.1815535,
@@ -462,10 +454,7 @@
       "place_type": "scenic_area",
       "district": "黄浦区",
       "canonical_address": "上海市黄浦区福佑路168号",
-      "aliases": [
-        "豫园（福佑路168号）",
-        "Yu Garden"
-      ],
+      "aliases": ["豫园（福佑路168号）", "Yu Garden"],
       "geo": {
         "status": "REAL_OSM_NOMINATIM",
         "lat": 31.2289274,
@@ -579,10 +568,7 @@
       "place_type": "museum",
       "district": "静安区",
       "canonical_address": "上海市静安区北京西路510号",
-      "aliases": [
-        "上海自然博物馆（北京西路510号）",
-        "Shanghai Natural History Museum"
-      ],
+      "aliases": ["上海自然博物馆（北京西路510号）", "Shanghai Natural History Museum"],
       "geo": {
         "status": "REAL_OSM_NOMINATIM",
         "lat": 31.2368655,
@@ -672,10 +658,7 @@
       "place_type": "scenic_area",
       "district": "浦东新区",
       "canonical_address": "上海市浦东新区南六公路178号",
-      "aliases": [
-        "上海野生动物园（南六公路178号）",
-        "Shanghai Wild Animal Park"
-      ],
+      "aliases": ["上海野生动物园（南六公路178号）", "Shanghai Wild Animal Park"],
       "geo": {
         "status": "REAL_OSM_NOMINATIM",
         "lat": 31.0573825,
@@ -765,10 +748,7 @@
       "place_type": "park",
       "district": "松江区",
       "canonical_address": "上海市松江区辰花公路3888号",
-      "aliases": [
-        "辰山植物园",
-        "Chenshan Botanical Garden"
-      ],
+      "aliases": ["辰山植物园", "Chenshan Botanical Garden"],
       "geo": {
         "status": "REAL_OSM_NOMINATIM",
         "lat": 31.0715239,
@@ -858,10 +838,7 @@
       "place_type": "park",
       "district": "虹口区",
       "canonical_address": "上海市虹口区大连路1131号",
-      "aliases": [
-        "和平公园（虹口区）",
-        "Heping Park"
-      ],
+      "aliases": ["和平公园（虹口区）", "Heping Park"],
       "geo": {
         "status": "REAL_OSM_NOMINATIM",
         "lat": 31.2727705,
@@ -992,9 +969,7 @@
       "place_type": "park",
       "district": "虹口区",
       "canonical_address": "上海市虹口区四川北路1933号",
-      "aliases": [
-        "昆山公园（虹口区）"
-      ],
+      "aliases": ["昆山公园（虹口区）"],
       "geo": {
         "status": "REAL_OSM_NOMINATIM",
         "lat": 31.2509117,
@@ -1097,9 +1072,7 @@
       "place_type": "park",
       "district": "宝山区",
       "canonical_address": "上海市宝山区沪太路4788号",
-      "aliases": [
-        "顾村公园（沪太路4788号）"
-      ],
+      "aliases": ["顾村公园（沪太路4788号）"],
       "geo": {
         "status": "REAL_OSM_NOMINATIM",
         "lat": 31.3429177,

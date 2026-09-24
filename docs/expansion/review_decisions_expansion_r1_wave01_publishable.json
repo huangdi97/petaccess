@@ -4,12 +4,7 @@
   "expansion_run_id": "EXP-R1-W01-20260918",
   "generated_at": "2026-09-18T07:53:04.665044+00:00",
   "human_signoff_required": true,
-  "human_decisions": [
-    "APPROVED",
-    "APPROVED_WITH_NOTE",
-    "HOLD",
-    "REJECTED"
-  ],
+  "human_decisions": ["APPROVED", "APPROVED_WITH_NOTE", "HOLD", "REJECTED"],
   "exception_plan": [
     {
       "rule_id": "w01-73de8e3357",
@@ -37,9 +32,7 @@
           "executable": true
         }
       ],
-      "cross_layer_dropped": [
-        "w01-4710a68f56"
-      ],
+      "cross_layer_dropped": ["w01-4710a68f56"],
       "reachable": true
     },
     {
@@ -89,28 +82,18 @@
           "executable": true
         }
       ],
-      "cross_layer_dropped": [
-        "w01-b340f06ce1"
-      ],
+      "cross_layer_dropped": ["w01-b340f06ce1"],
       "reachable": true
     }
   ],
   "exception_binding": {
     "w01-73de8e3357": {
-      "bases": [
-        "w01-fa5f33f122"
-      ],
-      "cross_layer_dropped": [
-        "w01-4710a68f56"
-      ]
+      "bases": ["w01-fa5f33f122"],
+      "cross_layer_dropped": ["w01-4710a68f56"]
     },
     "w01-6482477d8d": {
-      "bases": [
-        "w01-1fb3d7f1c7"
-      ],
-      "cross_layer_dropped": [
-        "w01-b340f06ce1"
-      ]
+      "bases": ["w01-1fb3d7f1c7"],
+      "cross_layer_dropped": ["w01-b340f06ce1"]
     }
   },
   "rows": [
@@ -769,9 +752,7 @@
       "review_note": null,
       "proposed_decision": null,
       "proposed_reason": null,
-      "carve_out_of": [
-        "w01-fa5f33f122"
-      ],
+      "carve_out_of": ["w01-fa5f33f122"],
       "exception_binding_required": true,
       "review_status": "REVIEW_PENDING",
       "reachable": true
@@ -2018,9 +1999,7 @@
       "review_note": null,
       "proposed_decision": null,
       "proposed_reason": null,
-      "carve_out_of": [
-        "w01-1fb3d7f1c7"
-      ],
+      "carve_out_of": ["w01-1fb3d7f1c7"],
       "exception_binding_required": true,
       "review_status": "REVIEW_PENDING",
       "reachable": true

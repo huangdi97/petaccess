@@ -4,12 +4,7 @@
   "expansion_run_id": "SCOPE-R2-20260918",
   "generated_at": "2026-09-18T14:53:44.705036+00:00",
   "human_signoff_required": true,
-  "human_decisions": [
-    "APPROVED",
-    "APPROVED_WITH_NOTE",
-    "HOLD",
-    "REJECTED"
-  ],
+  "human_decisions": ["APPROVED", "APPROVED_WITH_NOTE", "HOLD", "REJECTED"],
   "imported_dependency_rows": [
     {
       "rule_id": "w01-305fa08c1e",
@@ -53,9 +48,7 @@
   ],
   "exception_binding": {
     "w01-305fa08c1e": {
-      "bases": [
-        "sr2-7b595de9e0"
-      ],
+      "bases": ["sr2-7b595de9e0"],
       "cross_layer_dropped": []
     }
   },
@@ -142,9 +135,7 @@
       "review_note": "CURRENT_ONTOLOGY_EXPRESSIBLE_SPLIT = YES；SOURCE_SCOPE_FULL_REAL_WORLD_EXHAUSTIVE = NO；UNMODELED_SOURCE_SCOPE_REMAINDER = YES。未建模的鸟类、爬行类等必须继续保持 UNKNOWN / unsupported，不得解释为 ALLOWED。",
       "proposed_decision": null,
       "proposed_reason": null,
-      "carve_out_of": [
-        "w01-305fa08c1e"
-      ],
+      "carve_out_of": ["w01-305fa08c1e"],
       "exception_binding_required": true,
       "reachable": true,
       "review_status": "REVIEW_PENDING",

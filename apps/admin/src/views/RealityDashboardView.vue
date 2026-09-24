@@ -70,7 +70,8 @@ const verified = () =>
     (c) => c.reality_decision === "VERIFIED" || c.reality_decision === "VERIFIED_WITH_NOTE",
   ).length;
 const published = () =>
-  candidates.value.filter((c) => c.published_claim_id != null && c.published_claim_id !== "").length;
+  candidates.value.filter((c) => c.published_claim_id != null && c.published_claim_id !== "")
+    .length;
 
 onMounted(load);
 </script>
@@ -143,7 +144,13 @@ onMounted(load);
             <td>{{ c.animal_scope ?? "—" }}</td>
             <td>{{ ts(c.observed_at) }}</td>
             <td>{{ STATUS_LABELS[c.review_status] ?? c.review_status }}</td>
-            <td>{{ c.reality_decision ? (DECISION_LABELS[c.reality_decision] ?? c.reality_decision) : "—" }}</td>
+            <td>
+              {{
+                c.reality_decision
+                  ? (DECISION_LABELS[c.reality_decision] ?? c.reality_decision)
+                  : "—"
+              }}
+            </td>
             <td>{{ c.reviewer ?? "—" }}</td>
             <td>{{ c.freshness_state ?? "—" }}</td>
           </tr>

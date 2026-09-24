@@ -328,7 +328,7 @@ async function submitReality() {
     }
     await client.submitRealityContribution(placeId.value, {
       candidate_type: kind,
-      zone_id: (realityZone.value || zone.value) || null,
+      zone_id: realityZone.value || zone.value || null,
       animal_scope: kind === "observed_presence" ? realityAnimal.value : null,
       observed_at: new Date(occurredAt.value).toISOString(),
       payload,
@@ -405,7 +405,10 @@ async function submitReality() {
               我有现场经历
             </button>
           </div>
-          <div class="row" style="margin-top: 10px; border-top: 1px dashed var(--line); padding-top: 10px">
+          <div
+            class="row"
+            style="margin-top: 10px; border-top: 1px dashed var(--line); padding-top: 10px"
+          >
             <button
               v-for="(label, kind) in REALITY_KIND_LABELS"
               :key="kind"
@@ -680,7 +683,13 @@ async function submitReality() {
                 <option value="other">其他</option>
               </select>
               <label class="muted" style="margin: 0 8px">大概几只：</label>
-              <input v-model="realityCount" type="number" min="1" placeholder="1" style="width: 72px" />
+              <input
+                v-model="realityCount"
+                type="number"
+                min="1"
+                placeholder="1"
+                style="width: 72px"
+              />
             </div>
             <div class="row" style="margin-top: 10px">
               <label class="muted" style="margin-right: 8px">在做什么：</label>

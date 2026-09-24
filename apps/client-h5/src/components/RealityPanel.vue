@@ -42,7 +42,9 @@ defineProps<{ snapshot: CoexistenceSnapshot | null; loading?: boolean }>();
 
       <h3>工作人员处理（计数，仅事实）</h3>
       <ul v-if="staffResponseLines(snapshot.staff_response_summary).length" class="facts">
-        <li v-for="(l, i) in staffResponseLines(snapshot.staff_response_summary)" :key="i">{{ l }}</li>
+        <li v-for="(l, i) in staffResponseLines(snapshot.staff_response_summary)" :key="i">
+          {{ l }}
+        </li>
       </ul>
       <p v-else class="muted">暂无经核验的处理记录（≠ 未处理）。</p>
 
@@ -60,9 +62,13 @@ defineProps<{ snapshot: CoexistenceSnapshot | null; loading?: boolean }>();
 
       <h3>证据</h3>
       <ul class="facts">
-        <li>现实证据：{{ snapshot.evidence_summary.reality_evidence_count }} 条 /
-          {{ snapshot.evidence_summary.reality_distinct_source_count }} 个独立来源</li>
-        <li>现实核验状态：{{ snapshot.evidence_summary.reality_verification_state ?? "未记录" }}</li>
+        <li>
+          现实证据：{{ snapshot.evidence_summary.reality_evidence_count }} 条 /
+          {{ snapshot.evidence_summary.reality_distinct_source_count }} 个独立来源
+        </li>
+        <li>
+          现实核验状态：{{ snapshot.evidence_summary.reality_verification_state ?? "未记录" }}
+        </li>
       </ul>
       <p class="muted small">所有现实事实经人工核验后才展示；过期事实不呈现为近期。</p>
     </template>

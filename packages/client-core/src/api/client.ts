@@ -722,11 +722,9 @@ export const client = {
       payload?: Record<string, unknown> | null;
     },
   ) {
-    return api.request<{ id: string }>(
-      "post",
-      `/places/${placeId}/reality/contributions`,
-      { body },
-    );
+    return api.request<{ id: string }>("post", `/places/${placeId}/reality/contributions`, {
+      body,
+    });
   },
   async boundaryProfiles() {
     return api.request<{ items: BoundaryProfile[] }>("get", "/boundary-profiles");
@@ -772,10 +770,6 @@ export const client = {
       holder_scopes?: string[];
     } = {},
   ) {
-    return api.request<CoexistenceSnapshot>(
-      "post",
-      `/places/${placeId}/coexistence`,
-      { body },
-    );
+    return api.request<CoexistenceSnapshot>("post", `/places/${placeId}/coexistence`, { body });
   },
 };

@@ -65,9 +65,7 @@ onMounted(() => {
 <template>
   <section>
     <h1>Reality Claims</h1>
-    <p class="muted">
-      已发布（人工核验）claim 查看 —— 员工身份只以角色呈现，不落库、不展示。
-    </p>
+    <p class="muted">已发布（人工核验）claim 查看 —— 员工身份只以角色呈现，不落库、不展示。</p>
 
     <div class="toolbar">
       <input v-model="placeId" placeholder="场所 ID" />

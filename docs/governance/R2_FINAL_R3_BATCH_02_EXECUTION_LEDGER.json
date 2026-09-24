@@ -26,7 +26,14 @@
     "audit_contract": "PASS",
     "SECOND_EXECUTE_NOOP": 9,
     "SECOND_EXECUTE_NEW_WRITES": 0,
-    "published_rule_ids": ["dl-pet-ban", "gh-legal-dog", "mn-legal-dog", "qt-indoor-op", "qt-outdoor-op", "xm-legal-dog"],
+    "published_rule_ids": [
+      "dl-pet-ban",
+      "gh-legal-dog",
+      "mn-legal-dog",
+      "qt-indoor-op",
+      "qt-outdoor-op",
+      "xm-legal-dog"
+    ],
     "published_exception_ids": ["gh-sd-legal", "mn-sd-legal", "xm-sd-legal"]
   },
 

@@ -271,9 +271,7 @@ onMounted(async () => {
     </div>
 
     <h1 data-testid="home-title">你更想先看什么？</h1>
-    <p class="muted" style="margin: 4px 0 12px">
-      了解规则，也参考真实的现场情况
-    </p>
+    <p class="muted" style="margin: 4px 0 12px">了解规则，也参考真实的现场情况</p>
 
     <!-- v0.9-R1 §30 — four first-level entries, not a pet-friendly map -->
     <div class="home-entries" role="list" aria-label="一级入口">
@@ -376,7 +374,9 @@ onMounted(async () => {
       >
         <template #action>
           <RouterLink class="primary" to="/map" data-testid="home-empty-map">探索地图</RouterLink>
-          <RouterLink class="secondary" to="/contribute" data-testid="home-empty-contribute">贡献线索</RouterLink>
+          <RouterLink class="secondary" to="/contribute" data-testid="home-empty-contribute"
+            >贡献线索</RouterLink
+          >
         </template>
       </StateMessage>
       <h2>附近已核验</h2>

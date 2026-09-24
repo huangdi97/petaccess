@@ -116,9 +116,7 @@
       "execution_status": "EXECUTABLE",
       "publication_type": "NOOP_ALREADY_EXISTS",
       "gate_status": "PASS",
-      "reasons": [
-        "候选已处于 PUBLISHED，无需重复发布"
-      ]
+      "reasons": ["候选已处于 PUBLISHED，无需重复发布"]
     },
     {
       "rule_id": "w01-1fb3d7f1c7",
@@ -136,9 +134,7 @@
       "execution_status": "EXECUTABLE",
       "publication_type": "NOOP_ALREADY_EXISTS",
       "gate_status": "PASS",
-      "reasons": [
-        "候选已处于 PUBLISHED，无需重复发布"
-      ]
+      "reasons": ["候选已处于 PUBLISHED，无需重复发布"]
     },
     {
       "rule_id": "w01-4710a68f56",
@@ -156,9 +152,7 @@
       "execution_status": "EXECUTABLE",
       "publication_type": "NOOP_ALREADY_EXISTS",
       "gate_status": "PASS",
-      "reasons": [
-        "候选已处于 PUBLISHED，无需重复发布"
-      ]
+      "reasons": ["候选已处于 PUBLISHED，无需重复发布"]
     },
     {
       "rule_id": "w01-6482477d8d",
@@ -176,9 +170,7 @@
       "execution_status": "EXECUTABLE",
       "publication_type": "NOOP_ALREADY_EXISTS",
       "gate_status": "PASS",
-      "reasons": [
-        "候选已处于 PUBLISHED，无需重复发布"
-      ]
+      "reasons": ["候选已处于 PUBLISHED，无需重复发布"]
     },
     {
       "rule_id": "w01-73de8e3357",
@@ -196,9 +188,7 @@
       "execution_status": "EXECUTABLE",
       "publication_type": "NOOP_ALREADY_EXISTS",
       "gate_status": "PASS",
-      "reasons": [
-        "候选已处于 PUBLISHED，无需重复发布"
-      ]
+      "reasons": ["候选已处于 PUBLISHED，无需重复发布"]
     },
     {
       "rule_id": "w01-7de2f5d75b",
@@ -216,9 +206,7 @@
       "execution_status": "EXECUTABLE",
       "publication_type": "NOOP_ALREADY_EXISTS",
       "gate_status": "PASS",
-      "reasons": [
-        "候选已处于 PUBLISHED，无需重复发布"
-      ]
+      "reasons": ["候选已处于 PUBLISHED，无需重复发布"]
     },
     {
       "rule_id": "w01-8ba2b49b01",
@@ -236,9 +224,7 @@
       "execution_status": "EXECUTABLE",
       "publication_type": "NOOP_ALREADY_EXISTS",
       "gate_status": "PASS",
-      "reasons": [
-        "候选已处于 PUBLISHED，无需重复发布"
-      ]
+      "reasons": ["候选已处于 PUBLISHED，无需重复发布"]
     },
     {
       "rule_id": "w01-d1aee78159",
@@ -256,9 +242,7 @@
       "execution_status": "EXECUTABLE",
       "publication_type": "NOOP_ALREADY_EXISTS",
       "gate_status": "PASS",
-      "reasons": [
-        "候选已处于 PUBLISHED，无需重复发布"
-      ]
+      "reasons": ["候选已处于 PUBLISHED，无需重复发布"]
     },
     {
       "rule_id": "w01-df1645fe68",
@@ -276,9 +260,7 @@
       "execution_status": "EXECUTABLE",
       "publication_type": "NOOP_ALREADY_EXISTS",
       "gate_status": "PASS",
-      "reasons": [
-        "候选已处于 PUBLISHED，无需重复发布"
-      ]
+      "reasons": ["候选已处于 PUBLISHED，无需重复发布"]
     },
     {
       "rule_id": "w01-e951785d1b",
@@ -296,9 +278,7 @@
       "execution_status": "EXECUTABLE",
       "publication_type": "NOOP_ALREADY_EXISTS",
       "gate_status": "PASS",
-      "reasons": [
-        "候选已处于 PUBLISHED，无需重复发布"
-      ]
+      "reasons": ["候选已处于 PUBLISHED，无需重复发布"]
     },
     {
       "rule_id": "w01-fa5f33f122",
@@ -316,9 +296,7 @@
       "execution_status": "EXECUTABLE",
       "publication_type": "NOOP_ALREADY_EXISTS",
       "gate_status": "PASS",
-      "reasons": [
-        "候选已处于 PUBLISHED，无需重复发布"
-      ]
+      "reasons": ["候选已处于 PUBLISHED，无需重复发布"]
     }
   ]
 }

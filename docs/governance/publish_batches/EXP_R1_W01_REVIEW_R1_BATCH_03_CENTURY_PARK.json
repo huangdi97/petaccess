@@ -4,7 +4,5 @@
   "batch_id": "EXP-R1-W01-REVIEW-R1-BATCH-03-CENTURY-PARK",
   "reviewer": "huangdi97",
   "note": "huangdi97 2026-09-19 CENTURY_PARK_4e217d58 决定的落地批：仅一条 —— w01-4e217d5810（世纪公园 / ordinary_pet / OPERATOR_POLICY / prohibition）。它此前无法通过 ADR-021（evidence_strength=search_snippet），现在由 docs/governance/evidence_acceptance/CENTURY_PARK_EVIDENCE_ACCEPTANCE_R1.json 具名放行。**这不是证据升级**：source ca5b81a7 仍是 source_type=government_service、issuer=上海市文化和旅游事业发展中心《又一新地标！这个周末，带「毛孩子」来放飞》（转述世纪公园官方口径）、directness=secondary、capture_method=search_snippet，登记表中的 evidence_strength 仍为 search_snippet，照实记录。放行改变的是『是否有署名人类在知情前提下接受这条弱证据』，不是『这条证据变成一手』。附随约束（同一次性写成，不可拆分执行）：(1) 不得把 source_type 标成 official_operator_policy；(2) 不得声称 operator first-party verified；(3) FIRST_PARTY_OPERATOR_SOURCE_PENDING = YES 随接受意见入档；(4) 取得世纪公园运营方一手来源时，走 Evidence upgrade / new EvidenceBundle / 必要时 Supersession，并重跑 Pre-Publish Gate。本批刻意不含任何其他 Wave-01 APPROVED：其余 11 条已发布、3 条已被 SCOPE-REMODEL-R2 取代且永久不可执行（docs/governance/superseded_semantics.json）。本批是新立的 dependency-closed 清单，不复用也不继承任何已作废的 planning artifact。",
-  "candidate_rule_ids": [
-    "w01-4e217d5810"
-  ]
+  "candidate_rule_ids": ["w01-4e217d5810"]
 }

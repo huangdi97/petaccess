@@ -20,10 +20,7 @@
       "accepted_despite_evidence_strength": "search_snippet",
       "operator_first_party_verified": false,
       "first_party_operator_source_pending": true,
-      "forbidden_claims": [
-        "official_operator_policy",
-        "operator first-party verified"
-      ],
+      "forbidden_claims": ["official_operator_policy", "operator first-party verified"],
       "decision_note": "huangdi97 明示：接受政府发布的转述来源作为可发布 Evidence；语义为『政府平台转述园方口径』；不得标为一手运营方政策；不得声称已完成第一方核验；缺口以 FIRST_PARTY_OPERATOR_SOURCE_PENDING=YES 入档，不再作为 Publish blocker。取得运营方一手来源时走 Evidence upgrade / new EvidenceBundle / 必要时 Supersession，并重跑 Pre-Publish Gate。",
       "upgrade_path": "取得世纪公园运营方一手来源 → Evidence upgrade / new EvidenceBundle / 必要时 Supersession → 重新跑当次 Pre-Publish Gate → 仍 PASS 方可进入新的显式 Publish Batch",
       "measured_source_facts": {

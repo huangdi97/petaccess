@@ -2,18 +2,10 @@
   "revision": "SCOPE-REMODEL-R2",
   "batch_id": "SCOPE-REMODEL-R2-BATCH-02",
   "reviewer": "huangdi97",
-  "candidate_rule_ids": [
-    "sr2-4580ab2160",
-    "sr2-4ca5e55a6a",
-    "sr2-27893d75aa",
-    "sr2-2a3de3abde"
-  ],
+  "candidate_rule_ids": ["sr2-4580ab2160", "sr2-4ca5e55a6a", "sr2-27893d75aa", "sr2-2a3de3abde"],
   "supersedes_batch": "SCOPE-REMODEL-R2-BATCH-01-BLOCKED",
   "supersede_reason": "BATCH-01（6 条）在演练库真执行后被实测阻断：依赖例外 w01-305fa08c1e 被 canonical pre-publish 闸门 BLOCKED（遗留条件键 'type'，已签署候选不可原地改，ADR-029 §9），发布器静默跳过它，导致迪士尼 dog 禁令发布而其已批准导盲犬例外缺失（实测 导盲犬=prohibited）。本批在其基础上收窄：只包含不依赖该例外、且自身闸门 PASS 的 4 条。收窄不是推翻决定——sr2-7b595de9e0 与 w01-305fa08c1e 的人类 APPROVED 全部保留，未发布而已。",
-  "excluded_approved": [
-    "sr2-7b595de9e0",
-    "w01-305fa08c1e"
-  ],
+  "excluded_approved": ["sr2-7b595de9e0", "w01-305fa08c1e"],
   "deferred": [
     {
       "rule_id": "sr2-7b595de9e0",
