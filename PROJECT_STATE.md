@@ -1,7 +1,7 @@
 # PROJECT_STATE.md
 
 ## Current phase
-v0.1.0 Early Preview — 已发布（2026-09-24, GitHub Release v0.1.0）｜进行中：v0.2.0 M2 已完结（M2-A..M2-G，Product Experience Foundation，见 docs/v0.2/）；下一 milestone：V020_M3_CONSUMER_CORE
+v0.1.0 Early Preview — 已发布（2026-09-24, GitHub Release v0.1.0）｜进行中：v0.2.0 M3 已完结（V020_M3_CONSUMER_CORE，见 docs/v0.2/）；下一 milestone：V020_M4_MAP_AND_PASSPORT
 
 ## v0.1.0 状态
 - **V0_1_0_RELEASED = YES（2026-09-24 已发布 https://github.com/huangdi97/petaccess/releases/tag/v0.1.0）**
@@ -19,6 +19,15 @@ v0.1.0 Early Preview — 已发布（2026-09-24, GitHub Release v0.1.0）｜进�
 - A11y：0 issues（consumer + admin 全页, 键盘焦点走查 0 invisible）
 - 依赖扫描：pip-audit / pnpm audit 均 0 known vulnerabilities（Critical=0 / High=0）
 
+
+## v0.2.0 M3 质量基线（2026-09-24 全实测, CURRENT VERIFIED）
+- Route/query foundation：404 catch-all + NotFoundView、route meta.title（afterEach）、scrollBehavior；Search 深链 ?q=/?lens= 回填、back/forward 同步（e2e A1/A3/B1/B2 全绿）
+- CoexistenceSnapshot 统一消费兑现（ADR-029）：Search 桌面 split-view（PlacePreview 第一轮，client.coexistenceSnapshot），行级 rule 摘要收敛为共享 ruleSummaryLabel；PlacePreview 纯 props 呈现、无第二套模型
+- 统一错误呈现收口：新增 presentDescription（errors.ts）；Home/MatchExplain/Mine 接线 StateMessage；e2e E2 断言页面不泄漏 SQLAlchemy/FastAPI/psycopg2 等内部字样
+- E1 视图状态守卫扩展：REQUIRED_PER_VIEW 覆盖全部数据驱动视图 + DECLARED_STATIC（@ui-static/@ui-form 显式声明），断言每个路由视图必须落入其一（unit 8 passed）
+- A11y：M3 新增/变更面 axe 0 critical / 0 serious（顺带修复桌面 rail 版本标签对比度）；移动端 6 家族复扫 0/0
+- 门禁全绿：eng gate 0 FAIL / 60 REVIEW / 29 WARN；ruff / format PASS；mypy 96·0；backend 回归 DISCOVERED 946 = 944 passed / 2 skipped / 0 failed；e2e 75 passed；visual 42 passed；eslint / prettier PASS；H5 + Admin build PASS
+- 后端零改动；性能无退化（SearchView 10.0 kB，+0.1 kB split 逻辑）
 ## v0.2.0 M2 质量基线（2026-09-24 全实测, CURRENT VERIFIED）
 - Engineering gate：0 FAIL / 60 REVIEW / 28 WARN（PASS）；ruff / format PASS；mypy 96 files / 0 errors
 - Backend pytest 全量重跑：DISCOVERED 946 = PASSED 944 / SKIPPED 2 / FAILED 0（TEST DB + Celery + MinIO）
