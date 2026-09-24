@@ -3,7 +3,7 @@ name: Release CI (v0.1.0)
 # Tag v* triggers the full release pipeline: verify version -> tests -> build
 # H5 -> Windows NSIS -> Android APK (signed via Secrets) -> checksums -> SBOM.
 # A build failure here MUST NOT create a GitHub Release (the release job only
-# runs on success, and no release is created unless huangdi97 authorizes it 鈥?# this workflow only produces artifacts and uploads them as workflow run
+# runs on success, and no release is created unless huangdi97 authorizes it 閳?# this workflow only produces artifacts and uploads them as workflow run
 # artifacts, not as a GitHub Release).
 on:
   push:
@@ -55,6 +55,7 @@ jobs:
         ports: ["6379:6379"]
       minio:
         image: quay.io/minio/minio:latest
+        command: ["server", "/data"]
         env:
           MINIO_ROOT_USER: minio
           MINIO_ROOT_PASSWORD: minio_dev_only
