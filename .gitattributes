@@ -1,0 +1,17 @@
+# Normalize line endings: the repo stores LF and must check out LF on every
+# platform. Without this, Windows runners (core.autocrlf=true default) check
+# out CRLF and `prettier --check` with endOfLine:"lf" fails on every file.
+* text=auto eol=lf
+
+# Generated / binary files that must never be renormalized.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.icns binary
+*.woff binary
+*.woff2 binary
+*.apk binary
+*.exe binary
+*.dump binary

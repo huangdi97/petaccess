@@ -62,7 +62,7 @@ jobs:
         ports:
           - 6379:6379
       minio:
-        image: minio/minio:latest
+        image: quay.io/minio/minio:latest
         env:
           MINIO_ROOT_USER: minio
           MINIO_ROOT_PASSWORD: minio_dev_only
@@ -167,7 +167,7 @@ jobs:
         ports:
           - 6379:6379
       minio:
-        image: minio/minio:latest
+        image: quay.io/minio/minio:latest
         env:
           MINIO_ROOT_USER: minio
           MINIO_ROOT_PASSWORD: minio_dev_only
