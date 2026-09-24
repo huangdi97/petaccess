@@ -32,10 +32,8 @@ PAGE_STATE_KEYS = [
     "PERMISSION_DENIED",
 ]
 
-# Every core page must be able to render these. `loading` is expressed as a
-# skeleton component, the rest as the shared state block.
-# Every core page must be able to render these. `loading` is expressed as a
-# skeleton component, the rest as the shared state block. Offline is a shell
+# Every core data-driven page must wire its data states — `loading` via a
+# skeleton component, the rest via the shared StateMessage. Offline is a shell
 # responsibility since M2 (V020 §29 GlobalOfflineBanner): the shell wires it
 # once and every view inherits it, so it is asserted on the shell below, not
 # per view.
@@ -43,7 +41,26 @@ REQUIRED_PER_VIEW = {
     "HomeView.vue": ("SkeletonList", "StateMessage"),
     "SearchView.vue": ("SkeletonList", "StateMessage"),
     "PlaceView.vue": ("SkeletonList", "StateMessage"),
+    "MapView.vue": ("SkeletonList", "StateMessage"),
+    "ContributeView.vue": ("StateMessage",),
+    "MineView.vue": ("StateMessage",),
+    "PetProfileView.vue": ("SkeletonList", "StateMessage"),
+    "NotificationsView.vue": ("SkeletonList", "StateMessage"),
     "BoundaryView.vue": ("SkeletonList", "StateMessage"),
+    "MatchExplainView.vue": ("StateMessage",),
+}
+
+# Views whose rendered content carries no data fetch (static pages, auth flow,
+# form entry) declare the reason instead of bolting on a fake loading state
+# (M3 E1): `@ui-static` = no data load; `@ui-form` = submit-flow errors are
+# inline. Every route view must be in exactly one of the two maps.
+DECLARED_STATIC = {
+    "AboutView.vue": "@ui-static",
+    "PrivacyView.vue": "@ui-static",
+    "SettingsView.vue": "@ui-static",
+    "OnboardingView.vue": "@ui-static",
+    "NotFoundView.vue": "@ui-static",
+    "PetNewView.vue": "@ui-form",
 }
 
 
@@ -96,6 +113,13 @@ def test_skeleton_is_announced_and_has_a_card_and_line_variant():
 
 def test_core_views_wire_their_loading_error_and_offline_states():
     missing: list[str] = []
+    covered = set(REQUIRED_PER_VIEW) | set(DECLARED_STATIC)
+    # Every route view must pick one strategy — a new view that does neither
+    # fails here instead of silently rendering a blank page on failure.
+    for view in sorted(H5_VIEWS.glob("*.vue")):
+        name = view.name
+        if name not in covered:
+            missing.append(f"{name}: no state strategy (REQUIRED_PER_VIEW / DECLARED_STATIC)")
     for name, needles in REQUIRED_PER_VIEW.items():
         path = H5_VIEWS / name
         assert path.exists(), f"core view {name} missing"
@@ -103,6 +127,10 @@ def test_core_views_wire_their_loading_error_and_offline_states():
         for needle in needles:
             if needle not in src:
                 missing.append(f"{name}: {needle}")
+    for name, marker in DECLARED_STATIC.items():
+        src = _read(H5_VIEWS / name)
+        if marker not in src:
+            missing.append(f"{name}: missing {marker}")
     # Offline is a shell-level concern (M2 §29): the global banner renders once
     # in ConsumerAppShell and covers every route; per-view offline duplication
     # would defeat the global offline foundation.

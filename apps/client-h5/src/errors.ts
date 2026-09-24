@@ -62,3 +62,9 @@ export const ALL_ERROR_KINDS: readonly DomainErrorKind[] = [
   "CONTENT_NOT_FOUND",
   "UNKNOWN_ERROR",
 ];
+
+/** Convenience: the reader copy of a thrown value's presentation. */
+export function presentDescription(e: unknown): string {
+  const p = presentError(e);
+  return p.description || p.title;
+}

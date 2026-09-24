@@ -13,32 +13,36 @@
  * element), and recent searches (localStorage pa.searchRecent.v1) are
  * local-only, capped at 5 and clearable.
  */
-import { computed, onMounted, ref } from "vue";
-import { useRoute } from "vue-router";
+import { computed, onMounted, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import {
   client,
-  freshnessLabel,
   placeTypeLabel,
+  ruleSummaryLabel,
   session,
   synthDemoCamera,
   type AccessAnswer,
   type BoundaryProfile,
+  type CoexistenceSnapshot,
   type PlaceSummary,
 } from "@petaccess/client-core";
 import { EMPTY_STATE_COPY } from "@petaccess/design-tokens";
 import AppShell from "../components/AppShell.vue";
 import DesktopContentContainer from "../components/layout/DesktopContentContainer.vue";
 import FilterChips from "../components/FilterChips.vue";
+import PlacePreview from "../components/domain/PlacePreview.vue";
 import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
 import StatusBadge from "../components/StatusBadge.vue";
 import PaIcon from "../components/ui/PaIcon.vue";
 import { answerStatusKey } from "../answer";
+import { useBreakpoint } from "../composables/useBreakpoint";
 import { useOnline } from "../composables/useOnline";
-
+import { presentDescription } from "../errors";
 const route = useRoute();
+const router = useRouter();
 const { online } = useOnline();
-const q = ref("");
+const q = ref(typeof route.query.q === "string" ? route.query.q : "");
 const results = ref<PlaceSummary[]>([]);
 /** v0.9-R1 home entry lens (?lens=presence|indoor|dining|rules) — master §30. */
 const LENS_HINTS: Record<string, string> = {
@@ -58,6 +62,21 @@ const boundary = ref<BoundaryProfile | null>(null);
 const searched = ref(false);
 const loading = ref(false);
 const error = ref("");
+
+/** M3 D2 — desktop split preview: which row is previewed, and its snapshot. */
+const { desktop: isDesktop } = useBreakpoint();
+const selectedId = ref<string | null>(null);
+const preview = ref<{
+  snapshot: CoexistenceSnapshot | null;
+  loading: boolean;
+  error: string;
+}>({ snapshot: null, loading: false, error: "" });
+const selectedPlace = computed(() => results.value.find((p) => p.id === selectedId.value) ?? null);
+const selectedStatus = computed(() =>
+  selectedId.value && statuses.value[selectedId.value] !== undefined
+    ? statuses.value[selectedId.value]
+    : null,
+);
 
 const FILTERS = [
   { key: "MATCH", label: "明确允许" },
@@ -89,16 +108,9 @@ const visible = computed(() =>
 );
 
 /**
- * What rule material sits behind this row, and how fresh it is.
- *
- * Not a verdict — the verdict is the status badge, which comes from the
- * resolver. This is the "is there anything to read here" line, so a user can
- * tell 「尚未收录规则」 from 「有 7 条规则，最近核验于上季度」 before tapping in.
+ * Row rule-material line comes from the shared client-core vocabulary
+ * (ruleSummaryLabel), so the list and PlacePreview word it identically (M3 C1).
  */
-function ruleSummary(p: PlaceSummary): string {
-  if (!p.rule_count) return "尚未收录规则";
-  return `生效规则 ${p.rule_count} 条 · ${freshnessLabel(p.last_verified_at)}`;
-}
 
 /**
  * Per-row signals, all read from the **unified answer model**.
@@ -179,13 +191,65 @@ async function search() {
       ? await client.searchPlaces(q.value)
       : await client.nearby(synthDemoCamera().lat, synthDemoCamera().lng, 5000);
     await enrich(results.value);
-    if (query) rememberRecent(query);
+    if (query) {
+      rememberRecent(query);
+      syncRouteQuery(query);
+    } else {
+      syncRouteQuery("");
+    }
+    // M3 D2: on desktop, preview the first hit so the pane starts populated.
+    if (isDesktop.value && results.value.length) {
+      const first = results.value[0];
+      if (!selectedId.value || !results.value.some((p) => p.id === selectedId.value)) {
+        void selectPlace(first);
+      }
+    }
   } catch (e) {
-    error.value = e instanceof Error ? e.message : String(e);
+    error.value = presentDescription(e);
   } finally {
     loading.value = false;
   }
 }
+
+/** M3: keep the URL query in sync with what the user searched (B1/B2). */
+function syncRouteQuery(query: string) {
+  const current = typeof route.query.q === "string" ? route.query.q : "";
+  if (current === query) return;
+  void router.push({ query: { ...route.query, q: query || undefined } });
+}
+
+/** M3 B/D2: fetch the one CoexistenceSnapshot for the previewed place. */
+async function selectPlace(p: PlaceSummary) {
+  selectedId.value = p.id;
+  if (!isDesktop.value) return;
+  preview.value = { snapshot: null, loading: true, error: "" };
+  try {
+    preview.value = {
+      snapshot: await client.coexistenceSnapshot(p.id, {
+        animal: session.activePet?.species ?? "dog",
+        service_role: session.activePet?.service_role ?? "none",
+        action: "enter",
+      }),
+      loading: false,
+      error: "",
+    };
+  } catch (e) {
+    preview.value = { snapshot: null, loading: false, error: presentDescription(e) };
+  }
+}
+
+// Back/forward or an external deep link changes route.query.q → re-run the
+// search with that value (B1/B2); the syncRouteQuery guard keeps this from
+// looping when it was our own push.
+watch(
+  () => route.query.q,
+  (v) => {
+    const next = typeof v === "string" ? v : "";
+    if (next === q.value) return;
+    q.value = next;
+    void search();
+  },
+);
 
 async function applyFilters() {
   if (searched.value) await enrich(results.value);
@@ -262,148 +326,173 @@ onMounted(async () => {
 
 <template>
   <AppShell>
-    <DesktopContentContainer mode="single-column">
-      <!-- The search field is the page's headline action, but a field is not a
+    <DesktopContentContainer :mode="isDesktop ? 'split' : 'single-column'">
+      <div class="search-pane">
+        <!-- The search field is the page's headline action, but a field is not a
            heading: without this, screen-reader users get no page title at all. -->
-      <h1 class="visually-hidden">搜索场所规则</h1>
-      <div class="panel">
-        <div class="search-field">
-          <input
-            v-model="q"
-            aria-label="搜索场所"
-            placeholder="搜索场所、商圈或地址"
-            data-testid="search-input"
-            @keydown.enter="search"
-          />
-          <button
-            v-if="q"
-            type="button"
-            class="search-clear"
-            aria-label="清除"
-            data-testid="search-clear"
-            @click="clearSearch"
-          >
-            <PaIcon name="close" size="sm" />
-          </button>
-        </div>
-        <button
-          type="button"
-          class="primary block"
-          style="margin-top: var(--pa-space-2)"
-          :disabled="loading"
-          @click="search"
-          data-testid="search-btn"
-        >
-          {{ loading ? "搜索中…" : "搜索" }}
-        </button>
-      </div>
-
-      <!-- Recent searches (M2 §11): local-only, capped, clearable. -->
-      <div v-if="recent.length" class="recent-bar" data-testid="search-recent">
-        <div class="row" style="justify-content: space-between">
-          <span class="muted">最近搜索</span>
-          <button type="button" class="pill" data-testid="clear-search-recent" @click="clearRecent">
-            清除
-          </button>
-        </div>
-        <div class="row">
-          <button
-            v-for="t in recent"
-            :key="t"
-            type="button"
-            class="pill"
-            :data-testid="'recent-search-' + t"
-            @click="useRecent(t)"
-          >
-            {{ t }}
-          </button>
-        </div>
-      </div>
-
-      <div
-        v-if="lensHint"
-        class="panel muted"
-        data-testid="lens-hint"
-        style="margin-top: var(--pa-space-2)"
-      >
-        {{ lensHint }}
-      </div>
-
-      <div class="panel">
-        <div class="muted">
-          {{ session.activePet ? `本次：${session.activePet.display_name}` : "未设置宠物档案" }}
-          · {{ boundary ? `共处边界「${boundary.name}」` : "未设置共处边界" }}
-        </div>
-      </div>
-
-      <FilterChips
-        v-model="active"
-        :options="FILTERS"
-        hint="默认不过滤“信息不足”。筛选只影响显示，不改变任何结论。"
-        @update:model-value="applyFilters"
-      />
-
-      <SkeletonList v-if="loading" :rows="3" />
-      <StateMessage v-else-if="error" kind="ERROR" :description="error">
-        <template #action>
-          <button type="button" class="primary" @click="search">重试</button>
-        </template>
-      </StateMessage>
-      <StateMessage
-        v-else-if="searched && !visible.length"
-        kind="PARTIAL"
-        data-testid="search-empty"
-        :title="EMPTY_STATE_COPY.SEARCH.title"
-        :description="emptyDescription"
-      >
-        <template #action>
-          <div class="row" style="justify-content: center">
-            <RouterLink class="btn primary" to="/contribute" data-testid="search-empty-contribute">
-              提交场所线索
-            </RouterLink>
-            <button v-if="active.length" type="button" class="pill" @click="active = []">
-              清除筛选
+        <h1 class="visually-hidden">搜索场所规则</h1>
+        <div class="panel">
+          <div class="search-field">
+            <input
+              v-model="q"
+              aria-label="搜索场所"
+              placeholder="搜索场所、商圈或地址"
+              data-testid="search-input"
+              @keydown.enter="search"
+            />
+            <button
+              v-if="q"
+              type="button"
+              class="search-clear"
+              aria-label="清除"
+              data-testid="search-clear"
+              @click="clearSearch"
+            >
+              <PaIcon name="close" size="sm" />
             </button>
           </div>
-        </template>
-      </StateMessage>
-      <template v-else>
-        <RouterLink
-          v-for="p in visible"
-          :key="p.id"
-          class="panel result-card"
-          :to="{ name: 'place', params: { id: p.id } }"
-          :data-testid="'result-' + p.canonical_name"
-        >
+          <button
+            type="button"
+            class="primary block"
+            style="margin-top: var(--pa-space-2)"
+            :disabled="loading"
+            @click="search"
+            data-testid="search-btn"
+          >
+            {{ loading ? "搜索中…" : "搜索" }}
+          </button>
+        </div>
+
+        <!-- Recent searches (M2 §11): local-only, capped, clearable. -->
+        <div v-if="recent.length" class="recent-bar" data-testid="search-recent">
           <div class="row" style="justify-content: space-between">
-            <strong>{{ p.canonical_name }}</strong>
-            <StatusBadge :status="statuses[p.id] ?? 'UNKNOWN'" />
+            <span class="muted">最近搜索</span>
+            <button
+              type="button"
+              class="pill"
+              data-testid="clear-search-recent"
+              @click="clearRecent"
+            >
+              清除
+            </button>
           </div>
-          <!-- Branch first: two rows of one brand must be separable at a glance,
+          <div class="row">
+            <button
+              v-for="t in recent"
+              :key="t"
+              type="button"
+              class="pill"
+              :data-testid="'recent-search-' + t"
+              @click="useRecent(t)"
+            >
+              {{ t }}
+            </button>
+          </div>
+        </div>
+
+        <div
+          v-if="lensHint"
+          class="panel muted"
+          data-testid="lens-hint"
+          style="margin-top: var(--pa-space-2)"
+        >
+          {{ lensHint }}
+        </div>
+
+        <div class="panel">
+          <div class="muted">
+            {{ session.activePet ? `本次：${session.activePet.display_name}` : "未设置宠物档案" }}
+            · {{ boundary ? `共处边界「${boundary.name}」` : "未设置共处边界" }}
+          </div>
+        </div>
+
+        <FilterChips
+          v-model="active"
+          :options="FILTERS"
+          hint="默认不过滤“信息不足”。筛选只影响显示，不改变任何结论。"
+          @update:model-value="applyFilters"
+        />
+
+        <SkeletonList v-if="loading" :rows="3" />
+        <StateMessage v-else-if="error" kind="ERROR" :description="error">
+          <template #action>
+            <button type="button" class="primary" @click="search">重试</button>
+          </template>
+        </StateMessage>
+        <StateMessage
+          v-else-if="searched && !visible.length"
+          kind="PARTIAL"
+          data-testid="search-empty"
+          :title="EMPTY_STATE_COPY.SEARCH.title"
+          :description="emptyDescription"
+        >
+          <template #action>
+            <div class="row" style="justify-content: center">
+              <RouterLink
+                class="btn primary"
+                to="/contribute"
+                data-testid="search-empty-contribute"
+              >
+                提交场所线索
+              </RouterLink>
+              <button v-if="active.length" type="button" class="pill" @click="active = []">
+                清除筛选
+              </button>
+            </div>
+          </template>
+        </StateMessage>
+        <template v-else>
+          <RouterLink
+            v-for="p in visible"
+            :key="p.id"
+            class="panel result-card"
+            :to="{ name: 'place', params: { id: p.id } }"
+            :aria-current="selectedId === p.id ? 'true' : undefined"
+            :data-testid="'result-' + p.canonical_name"
+            @mouseenter="selectPlace(p)"
+            @focus="selectPlace(p)"
+          >
+            <div class="row" style="justify-content: space-between">
+              <strong>{{ p.canonical_name }}</strong>
+              <StatusBadge :status="statuses[p.id] ?? 'UNKNOWN'" />
+            </div>
+            <!-- Branch first: two rows of one brand must be separable at a glance,
                otherwise a branch's rules get read as the whole brand's.
                "所属" and not "位于" — the parent may be a brand (分店) or a
                container (商场里的店铺), and only "所属" is true for both. -->
-          <div v-if="p.parent_place_name" class="muted" data-testid="result-branch">
-            所属 {{ p.parent_place_name }}
-          </div>
-          <div class="muted" data-testid="result-meta">
-            {{ placeTypeLabel(p.place_type) }} ·
-            {{ p.canonical_address ?? "地址待补充" }}
-          </div>
-          <!-- Why a place the user never named came back. -->
-          <div v-if="p.matched_alias" class="muted" data-testid="result-alias">
-            以「{{ p.matched_alias }}」匹配（曾用名／别称）
-          </div>
-          <div class="muted" data-testid="result-rules">{{ ruleSummary(p) }}</div>
-          <div class="row" style="margin-top: var(--pa-space-1h)">
-            <span v-if="verified[p.id]" class="tag">已核验</span>
-            <span v-if="hasPetZone[p.id]" class="tag">独立携宠区</span>
-            <span v-if="serviceDogInfo[p.id]" class="tag">含服务犬信息</span>
-            <span v-if="p.rule_count === 0" class="tag">尚未收录规则</span>
-            <StatusBadge v-if="conflicts[p.id]" semantic="CONFLICT" />
-          </div>
-        </RouterLink>
-      </template>
+            <div v-if="p.parent_place_name" class="muted" data-testid="result-branch">
+              所属 {{ p.parent_place_name }}
+            </div>
+            <div class="muted" data-testid="result-meta">
+              {{ placeTypeLabel(p.place_type) }} ·
+              {{ p.canonical_address ?? "地址待补充" }}
+            </div>
+            <!-- Why a place the user never named came back. -->
+            <div v-if="p.matched_alias" class="muted" data-testid="result-alias">
+              以「{{ p.matched_alias }}」匹配（曾用名／别称）
+            </div>
+            <div class="muted" data-testid="result-rules">{{ ruleSummaryLabel(p) }}</div>
+            <div class="row" style="margin-top: var(--pa-space-1h)">
+              <span v-if="verified[p.id]" class="tag">已核验</span>
+              <span v-if="hasPetZone[p.id]" class="tag">独立携宠区</span>
+              <span v-if="serviceDogInfo[p.id]" class="tag">含服务犬信息</span>
+              <span v-if="p.rule_count === 0" class="tag">尚未收录规则</span>
+              <StatusBadge v-if="conflicts[p.id]" semantic="CONFLICT" />
+            </div>
+          </RouterLink>
+        </template>
+      </div>
+
+      <!-- M3 D2 — desktop split pane: the previewed place's summary. -->
+      <PlacePreview
+        v-if="isDesktop"
+        class="search-preview"
+        :place="selectedPlace"
+        :status="selectedStatus"
+        :snapshot="preview.snapshot"
+        :loading="preview.loading"
+        :error="preview.error"
+      />
     </DesktopContentContainer>
   </AppShell>
 </template>
@@ -441,5 +530,15 @@ onMounted(async () => {
 }
 .recent-bar {
   margin: 0 0 var(--pa-space-3);
+}
+
+/* M3 D2 — split layout: the list pane wraps, the preview sticks to the top. */
+.search-pane {
+  min-width: 0;
+}
+
+.search-preview {
+  position: sticky;
+  top: var(--pa-space-4);
 }
 </style>

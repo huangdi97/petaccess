@@ -56,3 +56,19 @@ export function freshnessLabel(iso: string | null | undefined, now = new Date())
   if (days < 365) return `${Math.floor(days / 30)} 个月前核验`;
   return `${Math.floor(days / 365)} 年前核验`;
 }
+
+/**
+ * One rule-material summary line for a place row (Search / PlacePreview).
+ *
+ * Answering "is there anything to read here" — deliberately NOT a verdict:
+ * the verdict always comes from the answer model, this only counts what rule
+ * material exists and how fresh it is. Single vocabulary shared by every
+ * surface (M3 C1), so a list row and a preview can never word it differently.
+ */
+export function ruleSummaryLabel(place: {
+  rule_count?: number | null;
+  last_verified_at?: string | null;
+}): string {
+  if (!place.rule_count) return "尚未收录规则";
+  return `生效规则 ${place.rule_count} 条 · ${freshnessLabel(place.last_verified_at)}`;
+}

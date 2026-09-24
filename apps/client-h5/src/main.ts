@@ -12,5 +12,22 @@ bindStorage({
 });
 configureApi((import.meta.env.VITE_API_BASE as string | undefined) ?? "/api/v1");
 
-const router = createRouter({ history: createWebHashHistory(), routes });
+const router = createRouter({
+  history: createWebHashHistory(),
+  routes,
+  // M3 (A2): back/forward restores the exact scroll position; fresh navigation
+  // starts at the top so a deep link never lands mid-page.
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) return savedPosition;
+    if (to.hash) return { el: to.hash, top: 0 };
+    return { top: 0 };
+  },
+});
+
+// M3 (A3): every route carries meta.title; the document title echoes the
+// current surface so tab-switching and history entries stay identifiable.
+router.afterEach((to) => {
+  document.title = to.meta.title ? `${String(to.meta.title)} · PetAccess` : "PetAccess";
+});
+
 createApp(App).use(router).mount("#app");

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { client, session } from "@petaccess/client-core";
+import StateMessage from "../components/StateMessage.vue";
+import { presentDescription } from "../errors";
 
 const pets = ref<Awaited<ReturnType<typeof client.myPets>>>([]);
 const watches = ref<Awaited<ReturnType<typeof client.myWatches>>>([]);
@@ -13,7 +15,7 @@ onMounted(async () => {
     pets.value = await client.myPets();
     watches.value = await client.myWatches();
   } catch (e) {
-    error.value = e instanceof Error ? e.message : String(e);
+    error.value = presentDescription(e);
   }
 });
 </script>
@@ -21,7 +23,7 @@ onMounted(async () => {
 <template>
   <div class="page">
     <h1>我的</h1>
-    <div v-if="error" class="panel">{{ error }}</div>
+    <StateMessage v-if="error" kind="ERROR" :description="error" data-testid="mine-error" />
     <div v-if="!session.signedIn" class="panel">
       <p>未登录 — 登录后可管理宠物档案、关注规则变化。</p>
       <RouterLink class="btn primary block" to="/onboarding">登录 / 注册</RouterLink>

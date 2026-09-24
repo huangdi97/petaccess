@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// @ui-static OnboardingView — 登录/注册流程页，自有表单状态（M3 E1 静态声明）。
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { session } from "@petaccess/client-core";

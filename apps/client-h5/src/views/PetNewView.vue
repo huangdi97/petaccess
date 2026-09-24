@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// @ui-form PetNewView — 表单页：提交流错误内联呈现，无列表加载（M3 E1 表单声明）。
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { client, session } from "@petaccess/client-core";

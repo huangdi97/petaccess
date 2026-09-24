@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// @ui-static AboutView — 静态信息页，无数据加载（M3 E1 静态声明）。
 /**
  * AboutView — 关于: what PetAccess is, what it is not, and version info.
  * Desktop rail 关于 destination (V020_APP_SHELL_SPEC §16).

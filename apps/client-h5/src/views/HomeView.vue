@@ -34,6 +34,7 @@ import StateMessage from "../components/StateMessage.vue";
 import StatusBadge from "../components/StatusBadge.vue";
 import PaIcon from "../components/ui/PaIcon.vue";
 import { ANSWERED_STATUSES, answerConditions, answerScopeLabel, answerStatusKey } from "../answer";
+import { presentDescription } from "../errors";
 
 type Perspective = "rules" | "animal" | "coexist";
 
@@ -239,7 +240,7 @@ async function load() {
     places.value = await client.nearby(cam.lat, cam.lng, 5000);
     await enrich(places.value);
   } catch (e) {
-    error.value = e instanceof Error ? e.message : String(e);
+    error.value = presentDescription(e);
   } finally {
     loading.value = false;
   }
@@ -346,7 +347,7 @@ onMounted(async () => {
     </div>
 
     <SkeletonList v-if="loading" :rows="3" />
-    <StateMessage v-else-if="error" kind="ERROR" :description="`未能取得附近场所：${error}`">
+    <StateMessage v-else-if="error" kind="ERROR" title="未能取得附近场所" :description="error">
       <template #action>
         <button class="primary" @click="load">重试</button>
       </template>

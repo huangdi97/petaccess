@@ -193,6 +193,6 @@ const envLabel = import.meta.env.DEV ? "development" : "production";
 
 .desktop-rail__version-env {
   font-size: var(--pa-font-size-xs);
-  color: var(--pa-color-text-disabled);
+  color: var(--pa-color-text-muted);
 }
 </style>

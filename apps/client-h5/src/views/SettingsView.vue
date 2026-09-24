@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// @ui-static SettingsView — 设置入口页，无列表数据加载（M3 E1 静态声明）。
 import { onMounted, ref } from "vue";
 import { session } from "@petaccess/client-core";
 import { REQUIRED_COPY } from "@petaccess/design-tokens";

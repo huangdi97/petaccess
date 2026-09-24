@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// @ui-static PrivacyView — 静态隐私说明页（M3 E1 静态声明）。
 /**
  * Privacy / Data Controls (spec §2.4-adjacent; Master Goal §7 privacy).
  *

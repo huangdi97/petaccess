@@ -10,6 +10,8 @@ import {
 } from "@petaccess/client-core";
 import AppShell from "../components/AppShell.vue";
 import { answerExplanation, answerVerdictLabel } from "../answer";
+import StateMessage from "../components/StateMessage.vue";
+import { presentDescription } from "../errors";
 
 /**
  * 可解释解析：为什么是「允许 / 有条件 / 禁止 / 未知」。
@@ -68,7 +70,7 @@ async function resolveRules() {
       : { animal: "dog", service_role: session.mode === "service_dog" ? "service_dog" : "none" };
     resolved.value = await client.accessAnswer(placeId.value, { ...animal, action: "enter" });
   } catch (e) {
-    error.value = e instanceof ApiError ? e.message : String(e);
+    error.value = presentDescription(e);
   } finally {
     busy.value = false;
   }
@@ -97,7 +99,7 @@ async function loadBoundary() {
       note.value = "尚未设置共处边界，设置后可在此逐项比对。";
       return;
     }
-    note.value = e instanceof ApiError ? e.message : String(e);
+    note.value = presentDescription(e);
   }
 }
 
@@ -118,7 +120,11 @@ watch(
 
 <template>
   <AppShell>
-    <div v-if="error" class="panel" data-testid="match-error">{{ error }}</div>
+    <StateMessage v-if="error" kind="ERROR" :description="error" data-testid="match-error">
+      <template #action>
+        <button type="button" class="primary" @click="resolveRules">重试</button>
+      </template>
+    </StateMessage>
 
     <div class="panel">
       <h1>为什么是这个结果</h1>
