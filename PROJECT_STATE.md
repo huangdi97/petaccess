@@ -1,14 +1,13 @@
 # PROJECT_STATE.md
 
 ## Current phase
-v0.1.0 Early Preview — RC 冻结（2026-09-24）
+v0.1.0 Early Preview — 已发布（2026-09-24, GitHub Release v0.1.0）
 
 ## v0.1.0 状态
-- **V0_1_0_RELEASED = NO**
-- **HUMAN_ACTION_REQUIRED = RELEASE_V0_1_0_AUTHORIZATION**（huangdi97）
-- GitHub 阶段 BLOCKED：无 git remote；未创建 tag；未发布 Release（边界遵守，未授权不伪造）
+- **V0_1_0_RELEASED = YES（2026-09-24 已发布 https://github.com/huangdi97/petaccess/releases/tag/v0.1.0）**
+- **HUMAN_ACTION_REQUIRED = 无**（RELEASE_V0_1_0_AUTHORIZATION 已由 huangdi97 于 2026-09-24 授权并完成发布）
+- GitHub 阶段 DONE：remote=origin（huangdi97/petaccess）；tag v0.1.0；GitHub Release 已发布（Early Preview，非 Public Beta）；双产物已重下载并通过 SHA256/签名/安装校验（Phase AH）
 - 发布就绪门槛全部实测 PASS（见 docs/release/V010_RELEASE_READINESS_REPORT.md）
-
 ## 质量基线（2026-09-24 全实测, CURRENT VERIFIED）
 - pytest 916 passed / 2 skipped（TEST DB + Celery worker）
 - ruff / format PASS；mypy services/api/app 93 files / 0 errors
@@ -51,10 +50,8 @@ v0.1.0 Early Preview — RC 冻结（2026-09-24）
   C:\petaccess-worktree（记录于 V010_ANDROID_REPORT.md）
 
 ## Blocker / 下一步
-- **RELEASE_V0_1_0_AUTHORIZATION**（唯一人类关卡）
-- 授权后：加 remote → 推 master → 打 v0.1.0 tag → release-ci 跑 → 建 GitHub Release
-  → 从 Release 页重下产物并校验 SHA256/签名/安装（Phase AH）
-- 远期（非 v0.1.0）：真实地图 key / AI key / 数据扩充 / 商店上架
+- **v0.1.0 已发布（2026-09-24）**；RELEASE_V0_1_0_AUTHORIZATION 已授权并完成：remote + tag + Release CI 全绿 + GitHub Release + 重下载 SHA256/签名/安装校验全 PASS
+- 远期（非 v0.1.0）：真实地图 key / AI key / 数据扩充 / 商店上架 / Public Beta 数据版
 
 ## Truth rule
 Never infer PASS。
