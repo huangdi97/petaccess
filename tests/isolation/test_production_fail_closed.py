@@ -181,8 +181,17 @@ class TestTheCommandsActuallyRefuseProduction:
         assert proc.returncode != 0
         assert "REFUSED" in (proc.stdout + proc.stderr)
 
-    def test_cleanup_execute_cannot_target_a_test_database(self) -> None:
+    def test_cleanup_execute_cannot_target_a_test_database(self, tmp_path) -> None:
         """The governed entry point is for production only — not a way to drop a test DB."""
+        # The guard refuses BEFORE validating backup contents, but AFTER checking
+        # the files exist (safety.py assert_production_cleanup_allowed). CI
+        # checkouts have no committed artifacts/, so create the two required
+        # placeholder files in a temp dir — the refusal we assert is the
+        # database-role one, not a missing-file error.
+        backup = tmp_path / "backup.dump"
+        plan = tmp_path / "plan.json"
+        backup.write_text("placeholder", encoding="utf-8")
+        plan.write_text("{}", encoding="utf-8")
         proc = _run(
             [
                 sys.executable,
@@ -193,9 +202,9 @@ class TestTheCommandsActuallyRefuseProduction:
                 "--confirm-database",
                 "petaccess_test",
                 "--backup",
-                "artifacts/production_isolation/petaccess_after_batch01.dump",
+                str(backup),
                 "--i-reviewed-the-dry-run",
-                "artifacts/production_isolation/CLEANUP_PLAN_BATCH02_DRYRUN.json",
+                str(plan),
             ]
         )
         assert proc.returncode != 0

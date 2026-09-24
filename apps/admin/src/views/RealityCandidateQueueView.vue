@@ -6,7 +6,7 @@
  * human here — the AI layer never calls this endpoint. VERIFIED /
  * VERIFIED_WITH_NOTE publish the claim; HOLD / REJECTED keep it unpublished.
  */
-import { computed, onMounted, ref } from "vue";
+import { onMounted, ref } from "vue";
 import { errText, page, post, ts } from "../api";
 
 interface RealityCandidate {
@@ -98,9 +98,6 @@ const payloadLines = (c: RealityCandidate) => {
     .map(([k, v]) => `${k}: ${typeof v === "object" ? JSON.stringify(v) : String(v)}`);
 };
 
-const filteredTypes = computed(() =>
-  typeFilter.value ? [typeFilter.value] : Object.keys(TYPE_LABELS),
-);
 
 onMounted(load);
 </script>

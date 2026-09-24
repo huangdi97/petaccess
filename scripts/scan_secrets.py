@@ -130,7 +130,12 @@ def iter_tracked_files() -> list[Path]:
         p = ROOT / rel
         if any(part in SKIP_PARTS for part in p.parts):
             continue
-        if p.is_file() and p.suffix not in (
+        try:
+            is_file = p.is_file()
+        except OSError:
+            # Unreadable/vanishing path (e.g. CI checkout quirks) — skip.
+            continue
+        if is_file and p.suffix not in (
             ".png",
             ".jpg",
             ".jpeg",

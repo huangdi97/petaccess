@@ -54,6 +54,17 @@ jobs:
       redis:
         image: redis:7-alpine
         ports: ["6379:6379"]
+      minio:
+        image: minio/minio:latest
+        env:
+          MINIO_ROOT_USER: minio
+          MINIO_ROOT_PASSWORD: minio_dev_only
+        ports:
+          - "9000:9000"
+          - "9001:9001"
+        options: >-
+          --health-cmd "curl -sf http://localhost:9000/minio/health/live || exit 1"
+          --health-interval 5s --health-timeout 5s --health-retries 20
     env:
       DATABASE_URL: postgresql+psycopg://petaccess:petaccess_dev_only@localhost:5432/petaccess_test
       CELERY_TASK_QUEUE: petaccess_test

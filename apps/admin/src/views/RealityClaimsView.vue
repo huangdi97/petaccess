@@ -7,11 +7,15 @@
  * Evidence Viewer surface; staff identity stays role-only here.
  */
 import { onMounted, ref } from "vue";
-import { errText, page, ts } from "../api";
+import { errText, page } from "../api";
 
 const placeId = ref("");
 const tab = ref<"observed" | "staff" | "facility">("observed");
-const items = ref<any[]>([]);
+// Admin read-only viewer: the reality claim endpoints are not part of the
+// generated client types yet, so rows are treated as an opaque key/value map
+// rather than `any` (unjustified type escape stays out).
+type ClaimRow = Record<string, unknown>;
+const items = ref<ClaimRow[]>([]);
 const total = ref(0);
 const error = ref("");
 const loaded = ref(false);
@@ -36,7 +40,7 @@ async function load() {
         : tab.value === "staff"
           ? `/admin/places/${placeId.value}/reality/staff-responses`
           : `/admin/places/${placeId.value}/reality/facilities`;
-    const res = await page<any>(path, { limit: 100 });
+    const res = await page<ClaimRow>(path, { limit: 100 });
     items.value = res.items;
     total.value = res.total;
     loaded.value = true;
@@ -46,7 +50,7 @@ async function load() {
 }
 
 /** Keep the payload surface honest: show facts, never a score. */
-const factRows = (row: any) => {
+const factRows = (row: ClaimRow) => {
   const skip = new Set(["id", "place_id", "candidate_id", "created_at", "updated_at"]);
   return Object.entries(row)
     .filter(([k, v]) => !skip.has(k) && v !== null && v !== undefined && v !== "")
@@ -76,7 +80,7 @@ onMounted(() => {
     <div v-if="error" class="error">{{ error }}</div>
     <div v-if="loaded" class="muted">共 {{ total }} 条（{{ TYPE_LABELS[tab] }}）</div>
 
-    <div v-for="row in items" :key="row.id" class="card">
+    <div v-for="row in items" :key="String(row.id)" class="card">
       <h3>{{ row.id }}</h3>
       <div class="grid">
         <div v-for="(r, i) in factRows(row)" :key="i" class="fact">

@@ -43,12 +43,21 @@ from app.db.safety import (  # noqa: E402
 def database_url_for(db_name: str | None) -> str | None:
     """The repo's DATABASE_URL, repointed at ``db_name`` when one is given."""
     env_file = REPO / ".env"
-    if not env_file.exists():
-        return None
-    match = re.search(r"^DATABASE_URL=(.*)$", env_file.read_text(encoding="utf-8"), re.MULTILINE)
-    if not match:
-        return None
-    url = match.group(1).strip()
+    if env_file.exists():
+        match = re.search(
+            r"^DATABASE_URL=(.*)$", env_file.read_text(encoding="utf-8"), re.MULTILINE
+        )
+        if match:
+            url = match.group(1).strip()
+        else:
+            # CI runners have no committed .env; fall back to the environment.
+            url = os.environ.get("DATABASE_URL")
+            if not url:
+                return None
+    else:
+        url = os.environ.get("DATABASE_URL")
+        if not url:
+            return None
     if db_name:
         url = re.sub(r"/[^/?]+$", f"/{db_name}", url)
     return url
