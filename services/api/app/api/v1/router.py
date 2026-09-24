@@ -13,6 +13,7 @@ from . import (
     pets,
     places,
     reality,
+    reality_reports,
     regulations,
     rules,
     sources,
@@ -33,6 +34,7 @@ api_router.include_router(sources.admin)
 api_router.include_router(observations.router)
 api_router.include_router(reality.router)
 api_router.include_router(reality.admin)
+api_router.include_router(reality_reports.router)
 api_router.include_router(verifications.router)
 api_router.include_router(operators.router)
 api_router.include_router(operators.admin)

@@ -24,6 +24,34 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/health/database": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Health Database
+         * @description Which database this process is really bound to.
+         *
+         *     Exists because the E2E and visual suites must be able to *prove* the API they
+         *     are talking to is not pointed at production. `reuseExistingServer` means a
+         *     stray dev server on the expected port would otherwise serve the suite
+         *     silently; this endpoint turns that into a hard failure in the global setup.
+         *
+         *     Reads `current_database()` from the server rather than parsing the URL, and
+         *     returns only the name and role — never the host, user or credentials.
+         */
+        get: operations["health_database_health_database_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health/ready": {
         parameters: {
             query?: never;
@@ -506,6 +534,238 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/places/{place_id}/reality": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Place Reality
+         * @description The reality half of a CoexistenceSnapshot, per place (v0.9 §9).
+         */
+        get: operations["place_reality_api_v1_places__place_id__reality_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/places/{place_id}/reality/contributions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Contribute Reality
+         * @description A signed-in visitor contributes an on-site reality fact (v0.9 §25.2).
+         *
+         *     Three structured branches map onto the three candidate types:
+         *
+         *     - ``observed_presence`` — 「我刚刚看到动物」 (animal, where, count, action)
+         *     - ``staff_response``    — 「我看到工作人员怎么处理」
+         *     - ``animal_facility``   — 「我发现这里有动物相关设施」
+         *
+         *     The entry lands as a REVIEW_PENDING candidate with ``reality_decision``
+         *     untouched — AI never sets it. Reviewer role lives on the admin endpoint.
+         *     Unknown never becomes allowed; a contribution never becomes a rule.
+         */
+        post: operations["contribute_reality_api_v1_places__place_id__reality_contributions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/places/{place_id}/coexistence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Coexistence Snapshot
+         * @description Assemble the single CoexistenceSnapshot for a place (v0.9 §9 / AC9).
+         *
+         *     Body is the same shape as ``POST /places/{place_id}/access-answer``:
+         *
+         *         {"animal": "dog", "service_role": "none", "action": "enter",
+         *          "zone_id": null, "declared_role": "guide_dog" (optional),
+         *          "holder_scopes": [...] (optional)}
+         *
+         *     The response bundles, in one object:
+         *
+         *     - ``rule_answer``           — full AccessAnswer (unified rule model)
+         *     - ``reality_answer``        — RealityAnswer (six-state reality summary)
+         *     - ``staff_response_summary``— action counts (facts only)
+         *     - ``facility_summary``      — facility facts with verified freshness
+         *     - ``divergence``            — RuleRealityDivergence (describes only)
+         *     - ``evidence_summary``      — rule evidence + reality evidence side by side
+         *
+         *     Home / Search / Map / Place must all read this endpoint instead of
+         *     recomputing rule or reality themselves (「禁止页面自行算 Rule」).
+         */
+        post: operations["coexistence_snapshot_api_v1_places__place_id__coexistence_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reality/candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Reality Candidates */
+        get: operations["list_reality_candidates_api_v1_reality_candidates_get"];
+        put?: never;
+        /**
+         * Create Reality Candidate
+         * @description Ingest a candidate (AI-derivable). Decision remains empty; AI never VERIFIES.
+         */
+        post: operations["create_reality_candidate_api_v1_reality_candidates_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reality/candidates/{candidate_id}/decision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Decide Reality Candidate
+         * @description Human-only reality decision (v0.9 §7.4). AI may never call this.
+         *
+         *     VERIFIED / VERIFIED_WITH_NOTE publish the claim; HOLD / REJECTED keep it
+         *     unpublished. The reviewer is recorded; ordinary staff identity is never
+         *     exposed to consumers.
+         */
+        post: operations["decide_reality_candidate_api_v1_reality_candidates__candidate_id__decision_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/places/{place_id}/reality/observed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin List Observed */
+        get: operations["admin_list_observed_api_v1_places__place_id__reality_observed_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/places/{place_id}/reality/staff-responses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin List Staff Responses */
+        get: operations["admin_list_staff_responses_api_v1_places__place_id__reality_staff_responses_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/places/{place_id}/reality/facilities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin List Facilities */
+        get: operations["admin_list_facilities_api_v1_places__place_id__reality_facilities_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/places/{place_id}/reality/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Reality Reports
+         * @description List reports for a place (consumer Reality Trace surface).
+         */
+        get: operations["list_reality_reports_api_v1_places__place_id__reality_reports_get"];
+        put?: never;
+        /**
+         * Create Reality Report
+         * @description Create one parent-flow Contribution (report + candidates + optional extras).
+         */
+        post: operations["create_reality_report_api_v1_places__place_id__reality_reports_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/places/{place_id}/reality/trace": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Reality Trace
+         * @description Reality Trace — the fact, and how the platform verified it (§14).
+         *
+         *     Fact sections describe what was observed; review sections describe the
+         *     verification posture. The user can always tell the fact from the
+         *     platform's verification work.
+         */
+        get: operations["reality_trace_api_v1_places__place_id__reality_trace_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/places/{place_id}/verifications": {
         parameters: {
             query?: never;
@@ -941,12 +1201,58 @@ export interface paths {
          * @description v0.5 resolution: layered rules → EffectiveRuleSet (explainable).
          *
          *     Body: {"animal": "dog", "service_role": "none", "action": "enter",
-         *            "zone_id": null, "declared_role": "guide_dog" (optional)}
+         *            "zone_id": null, "declared_role": "guide_dog" (optional),
+         *            "holder_scopes": ["person_with_disability"] (optional)}
          *
          *     ``declared_role`` (ADR-025) pins the query to one precise animal role, so a
          *     hearing-dog question does not inherit a guide-dog proviso.
+         *
+         *     ``holder_scopes`` (ADR-031) is the **ephemeral** statement of who is
+         *     handling the animal. It is read for this request and never stored:
+         *     disability status is a sensitive attribute and there is no column for it.
+         *     Omitting it does not mean "no" — a carve-out that names a holder condition
+         *     is withheld and the answer becomes conditional with ``missing_inputs``,
+         *     rather than an unconditional allowance or a bare prohibition.
          */
         post: operations["effective_rules_api_v1_places__place_id__effective_rules_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/places/{place_id}/access-answer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Access Answer
+         * @description The **unified answer model** (design §10) — every surface reads this one.
+         *
+         *     Body is the same shape as ``effective-rules``::
+         *
+         *         {"animal": "dog", "service_role": "none", "action": "enter",
+         *          "zone_id": null, "declared_role": "guide_dog" (optional),
+         *          "holder_scopes": ["person_with_disability"] (optional)}
+         *
+         *     Why a second endpoint rather than more fields on ``effective-rules``:
+         *     ``effective-rules`` answers a *resolver* question (layered rules → effect) and
+         *     its contract is consumed by existing clients. This endpoint answers a
+         *     *consumer* question — what may I show the reader, and where did it come from —
+         *     and it is the only place allowed to assemble that (「禁止页面自行算 Rule」:
+         *     首页 / Search / Map Card / Place Detail / H5 Share / Watch all read this).
+         *
+         *     What it will not do: turn "no rule in scope" into an allowance, flatten a zone
+         *     rule into a place verdict, or describe a government platform relaying the
+         *     operator as the operator's own confirmation. See
+         *     ``app.rulespec.access_answer`` for why those are structural, not stylistic.
+         */
+        post: operations["access_answer_api_v1_places__place_id__access_answer_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1238,6 +1544,79 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/freshness-policies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin List Freshness Policies */
+        get: operations["admin_list_freshness_policies_api_v1_admin_freshness_policies_get"];
+        put?: never;
+        /** Admin Create Freshness Policy */
+        post: operations["admin_create_freshness_policy_api_v1_admin_freshness_policies_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/sources/{source_id}/freshness": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Admin Assign Source Freshness */
+        post: operations["admin_assign_source_freshness_api_v1_admin_sources__source_id__freshness_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/data-source-jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin List Data Source Jobs */
+        get: operations["admin_list_data_source_jobs_api_v1_admin_data_source_jobs_get"];
+        put?: never;
+        /**
+         * Admin Create Data Source Job
+         * @description Open a bounded production run. The caller closes it via the PATCH below.
+         */
+        post: operations["admin_create_data_source_job_api_v1_admin_data_source_jobs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/data-source-jobs/{job_id}/finish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Admin Finish Data Source Job */
+        post: operations["admin_finish_data_source_job_api_v1_admin_data_source_jobs__job_id__finish_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/monitors": {
         parameters: {
             query?: never;
@@ -1274,6 +1653,49 @@ export interface paths {
          *     written directly — it still has to pass review.
          */
         post: operations["admin_check_monitor_api_v1_admin_monitors__monitor_id__check_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/monitors/sweep": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Admin Sweep Due Monitors
+         * @description Sweep every monitor that is due (§28-§33).
+         *
+         *     Without this, ``SourceMonitor`` rows only move when an operator names one
+         *     explicitly — which is fine for a handful and useless for a fleet.
+         */
+        post: operations["admin_sweep_due_monitors_api_v1_admin_monitors_sweep_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/monitors/due": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Admin List Due Monitors
+         * @description What the next sweep would touch, without causing any outbound traffic.
+         */
+        get: operations["admin_list_due_monitors_api_v1_admin_monitors_due_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1728,6 +2150,55 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AnimalFacilityOut */
+        AnimalFacilityOut: {
+            /** Id */
+            id: string;
+            /** Place Id */
+            place_id: string;
+            /** Zone Id */
+            zone_id: string | null;
+            facility_type: components["schemas"]["AnimalFacilityType"];
+            /** Operator Provided */
+            operator_provided: boolean;
+            access_mode: components["schemas"]["FacilityAccessMode"];
+            /** Capacity */
+            capacity: number | null;
+            /** Size Limit */
+            size_limit: string | null;
+            /** Weather Protection */
+            weather_protection: boolean | null;
+            /** Shade */
+            shade: boolean | null;
+            /** Ventilation */
+            ventilation: boolean | null;
+            /** Water Available */
+            water_available: boolean | null;
+            /** Supervision State */
+            supervision_state: string | null;
+            /** Security Or Lock State */
+            security_or_lock_state: string | null;
+            operational_state: components["schemas"]["FacilityOperationalState"];
+            /** Observed At */
+            observed_at: string | null;
+            /** Last Verified At */
+            last_verified_at: string | null;
+            /** Source Id */
+            source_id: string | null;
+            /** Evidence Bundle Id */
+            evidence_bundle_id: string | null;
+            verification_status: components["schemas"]["RealityVerificationStatus"];
+            freshness_state: components["schemas"]["RealityFreshnessState"] | null;
+        };
+        /**
+         * AnimalFacilityType
+         * @description Physical animal-related facility at a place (v0.9 §7.3).
+         *
+         *     A facility being present NEVER implies an entry policy: an outdoor holding
+         *     cage does not mean "indoor pets prohibited".
+         * @enum {string}
+         */
+        AnimalFacilityType: "outdoor_holding_cage" | "kennel" | "tether_point" | "pet_waiting_area" | "pet_parking" | "water_bowl" | "pet_stroller" | "carrier_storage" | "pet_entrance" | "pet_elevator" | "dedicated_pet_zone" | "waste_bag_station" | "cleaning_station" | "washing_point" | "dedicated_pet_tableware" | "other";
         /** AnimalIn */
         AnimalIn: {
             /** Species */
@@ -1804,6 +2275,8 @@ export interface components {
             evidence_strength?: string | null;
             /** Data Source Job Id */
             data_source_job_id?: string | null;
+            /** Expansion Run Id */
+            expansion_run_id?: string | null;
         };
         /** AuditOut */
         AuditOut: {
@@ -1916,6 +2389,8 @@ export interface components {
             } | null;
             /** Privacy Notes */
             privacy_notes?: string | null;
+            /** Expansion Run Id */
+            expansion_run_id?: string | null;
         };
         /** CandidateIn */
         CandidateIn: {
@@ -1961,6 +2436,10 @@ export interface components {
             holder_scope?: string | null;
             /** Operator Obligations */
             operator_obligations?: unknown[] | null;
+            /** Expansion Run Id */
+            expansion_run_id?: string | null;
+            /** Dedup Key */
+            dedup_key?: string | null;
         };
         /** CandidateLayerIn */
         CandidateLayerIn: {
@@ -2039,10 +2518,48 @@ export interface components {
             /** Rule Id */
             rule_id: string;
         };
+        /**
+         * ContributionAbuseFlag
+         * @description Anti-abuse flags attached to a report (addendum PHASE 13).
+         * @enum {string}
+         */
+        ContributionAbuseFlag: "none" | "rate_limited" | "duplicate" | "near_duplicate" | "spam" | "place_mismatch" | "old_video" | "recycled_content" | "media_manipulation" | "malicious_mass_report";
         /** CounterStatementIn */
         CounterStatementIn: {
             /** Counter Statement */
             counter_statement: string;
+        };
+        /** DataSourceJobFinishIn */
+        DataSourceJobFinishIn: {
+            /** State */
+            state: string;
+            /** Result Counts */
+            result_counts?: {
+                [key: string]: unknown;
+            } | null;
+            /** Errors */
+            errors?: unknown[] | null;
+        };
+        /**
+         * DataSourceJobIn
+         * @description A bounded, auditable production run (brief §39).
+         *
+         *     Every Wave 01 collection runs inside one of these so the system — not just
+         *     the operator's memory — knows where a batch of rows came from.
+         */
+        DataSourceJobIn: {
+            /** Job Type */
+            job_type: string;
+            /** Target Scope */
+            target_scope?: {
+                [key: string]: unknown;
+            } | null;
+            /** Provider */
+            provider?: string | null;
+            /** Source Id */
+            source_id?: string | null;
+            /** Expansion Run Id */
+            expansion_run_id?: string | null;
         };
         /**
          * DisputeCaseStatus
@@ -2153,6 +2670,35 @@ export interface components {
             /** Source Refs */
             source_refs: string[];
         };
+        /**
+         * ExternalContentPlatform
+         * @description Platform of an external online content source (addendum P8).
+         * @enum {string}
+         */
+        ExternalContentPlatform: "douyin" | "xiaohongshu" | "dianping" | "weibo" | "bilibili" | "web" | "other";
+        /**
+         * ExternalContentReferenceIn
+         * @description External post/video reference with dedup-relevant metadata (addendum P8).
+         */
+        ExternalContentReferenceIn: {
+            /** Source Url */
+            source_url: string;
+            platform?: components["schemas"]["ExternalContentPlatform"] | null;
+            /** Published At */
+            published_at?: string | null;
+            /** Place Metadata */
+            place_metadata?: {
+                [key: string]: unknown;
+            } | null;
+            /** Keyframe Ref */
+            keyframe_ref?: string | null;
+            /** Ocr Text */
+            ocr_text?: string | null;
+            /** Content Hash */
+            content_hash?: string | null;
+            /** Media Hash */
+            media_hash?: string | null;
+        };
         /** ExternalRefIn */
         ExternalRefIn: {
             /** Place Id */
@@ -2163,6 +2709,57 @@ export interface components {
             external_id: string;
             /** @default restricted */
             persistence_permission: components["schemas"]["PersistencePermission"];
+        };
+        /**
+         * FacilityAccessMode
+         * @description Who may use the facility (v0.9 §7.3).
+         * @enum {string}
+         */
+        FacilityAccessMode: "operator_provided" | "self_service" | "staff_assisted" | "unknown";
+        /**
+         * FacilityOperationalState
+         * @description Operational status of a facility (v0.9 §7.3).
+         * @enum {string}
+         */
+        FacilityOperationalState: "active" | "temporarily_unavailable" | "removed" | "unknown";
+        /**
+         * FacilitySummaryItem
+         * @description One animal facility, with its verified freshness (facts only).
+         */
+        FacilitySummaryItem: {
+            facility_type: components["schemas"]["AnimalFacilityType"];
+            /** Count */
+            count: number;
+            operational_state: components["schemas"]["FacilityOperationalState"];
+            /** Last Verified At */
+            last_verified_at: string | null;
+        };
+        /**
+         * FactEvidenceState
+         * @description Multi-axis evidence classification — never a single "credibility 87" (addendum PHASE 7).
+         * @enum {string}
+         */
+        FactEvidenceState: "direct_media" | "first_hand_no_media" | "external_media" | "text_only_external" | "operator_statement" | "official_statement" | "inferred_from_context" | "insufficient";
+        /**
+         * FreshnessPolicyIn
+         * @description A named re-verification interval (brief §34).
+         *
+         *     review_due means "check this again", NOT "this is invalid". Nothing in the
+         *     resolver may read an overdue policy as permission to drop evidence or flip
+         *     a conclusion to allowed/prohibited.
+         */
+        FreshnessPolicyIn: {
+            /** Name */
+            name: string;
+            /** Venue Scope */
+            venue_scope?: string | null;
+            /** Rule Layer */
+            rule_layer?: string | null;
+            /**
+             * Review Interval Days
+             * @default 90
+             */
+            review_interval_days: number;
         };
         /** GeometryIn */
         GeometryIn: {
@@ -2273,6 +2870,8 @@ export interface components {
             schedule_minutes: number;
             /** Place Id */
             place_id?: string | null;
+            /** Expansion Run Id */
+            expansion_run_id?: string | null;
         };
         /** ObservationCandidateIn */
         ObservationCandidateIn: {
@@ -2296,12 +2895,42 @@ export interface components {
             raw_text?: string | null;
             /** Derivation Confidence */
             derivation_confidence?: number | null;
+            /** Expansion Run Id */
+            expansion_run_id?: string | null;
+            /** Dedup Key */
+            dedup_key?: string | null;
         };
         /**
          * ObservationDisputeStatus
          * @enum {string}
          */
         ObservationDisputeStatus: "none" | "open" | "under_review" | "resolved";
+        /**
+         * ObservationEffortDurationBucket
+         * @description How long the observer was on site (addendum PHASE 8).
+         * @enum {string}
+         */
+        ObservationEffortDurationBucket: "lt_10_min" | "min_10_30" | "min_30_120" | "gt_120_min" | "unknown";
+        /**
+         * ObservationEffortIn
+         * @description "Was on site and did not see an animal" — effort only, never a claim.
+         */
+        ObservationEffortIn: {
+            /** Place Id */
+            place_id: string;
+            duration_bucket: components["schemas"]["ObservationEffortDurationBucket"];
+            /** Covered Zone Ids */
+            covered_zone_ids?: string[] | null;
+            /**
+             * Animal Observed
+             * @default false
+             */
+            animal_observed: boolean;
+            /** Observed At */
+            observed_at?: string | null;
+            /** Source Id */
+            source_id?: string | null;
+        };
         /** ObservationIn */
         ObservationIn: {
             /** Place Id */
@@ -2332,6 +2961,15 @@ export interface components {
             /** Accuracy Bucket */
             accuracy_bucket?: string | null;
         };
+        /**
+         * ObservationOrigin
+         * @description Where a reality report came from (addendum PHASE 4).
+         *
+         *     The UI never exposes this technical enum; it drives how strongly the
+         *     report's time/place evidence may be trusted downstream.
+         * @enum {string}
+         */
+        ObservationOrigin: "on_site_now" | "on_site_past" | "external_online_content" | "operator_provided" | "official_public_content";
         /** ObservationOut */
         ObservationOut: {
             /** Id */
@@ -2377,6 +3015,45 @@ export interface components {
          * @enum {string}
          */
         ObservationStaffAction: "explicitly_allowed" | "explicitly_refused" | "asked_to_remove" | "no_interaction_observed" | "interaction_unknown";
+        /**
+         * ObservedAction
+         * @description Observable actions of an animal at a place (v0.9 §7.1).
+         * @enum {string}
+         */
+        ObservedAction: "entered" | "present" | "stayed" | "dined_near_table" | "on_customer_seat" | "on_table_surface" | "near_food_service" | "in_self_service_food_area" | "leashed" | "off_leash" | "in_carrier" | "in_stroller";
+        /** ObservedPresenceOut */
+        ObservedPresenceOut: {
+            /** Id */
+            id: string;
+            /** Place Id */
+            place_id: string;
+            /** Zone Id */
+            zone_id: string | null;
+            animal_scope: components["schemas"]["AnimalScope"];
+            /** Animal Count Estimate */
+            animal_count_estimate: number | null;
+            observed_action: components["schemas"]["ObservedAction"];
+            /** Observed Context */
+            observed_context: string | null;
+            /**
+             * Observed At
+             * Format: date-time
+             */
+            observed_at: string;
+            /**
+             * Captured At
+             * Format: date-time
+             */
+            captured_at: string;
+            /** Source Id */
+            source_id: string | null;
+            /** Evidence Bundle Id */
+            evidence_bundle_id: string | null;
+            verification_status: components["schemas"]["RealityVerificationStatus"];
+            freshness_state: components["schemas"]["RealityFreshnessState"] | null;
+            /** Last Verified At */
+            last_verified_at: string | null;
+        };
         /**
          * OccurredPrecision
          * @enum {string}
@@ -2460,6 +3137,17 @@ export interface components {
                 [key: string]: unknown;
             }[];
         };
+        /** Page[AnimalFacilityOut] */
+        Page_AnimalFacilityOut_: {
+            /** Items */
+            items: components["schemas"]["AnimalFacilityOut"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
         /** Page[AuditOut] */
         Page_AuditOut_: {
             /** Items */
@@ -2486,6 +3174,17 @@ export interface components {
         Page_ObservationOut_: {
             /** Items */
             items: components["schemas"]["ObservationOut"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
+        /** Page[ObservedPresenceOut] */
+        Page_ObservedPresenceOut_: {
+            /** Items */
+            items: components["schemas"]["ObservedPresenceOut"][];
             /** Total */
             total: number;
             /** Limit */
@@ -2526,6 +3225,28 @@ export interface components {
             /** Offset */
             offset: number;
         };
+        /** Page[RealityCandidateOut] */
+        Page_RealityCandidateOut_: {
+            /** Items */
+            items: components["schemas"]["RealityCandidateOut"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
+        /** Page[RealityReportOut] */
+        Page_RealityReportOut_: {
+            /** Items */
+            items: components["schemas"]["RealityReportOut"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
         /** Page[RegulationOut] */
         Page_RegulationOut_: {
             /** Items */
@@ -2552,6 +3273,17 @@ export interface components {
         Page_SourceOut_: {
             /** Items */
             items: components["schemas"]["SourceOut"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
+        /** Page[StaffResponseObservationOut] */
+        Page_StaffResponseObservationOut_: {
+            /** Items */
+            items: components["schemas"]["StaffResponseObservationOut"][];
             /** Total */
             total: number;
             /** Limit */
@@ -2700,6 +3432,21 @@ export interface components {
             /** Location Wkt */
             location_wkt?: string | null;
         };
+        /**
+         * PlaceMatchEvidenceType
+         * @description Evidence kinds that justify a place match (addendum PHASE 5, ≥6 kinds).
+         * @enum {string}
+         */
+        PlaceMatchEvidenceType: "gps_proximity" | "poi_metadata" | "video_check_in" | "ocr_text" | "address_text" | "user_confirmation" | "operator_metadata" | "source_url";
+        /**
+         * PlaceMatchState
+         * @description Precision of the place match for a report (addendum PHASE 5).
+         *
+         *     ``PARENT_PLACE_ONLY`` means we know the container (e.g. a mall) but not the
+         *     exact tenant — this must never be presented as a whole-venue fact.
+         * @enum {string}
+         */
+        PlaceMatchState: "exact_place" | "exact_subplace" | "parent_place_only" | "area_only" | "unresolved" | "conflicted";
         /** PlaceOut */
         PlaceOut: {
             /** Id */
@@ -2779,6 +3526,431 @@ export interface components {
             /** Alias Names */
             alias_names?: string[] | null;
         };
+        /**
+         * PublishIn
+         * @description Optional publish mode.
+         *
+         *     Absent (or empty) means "publish this candidate as an AccessRule", which is
+         *     the historical behaviour. ``exception_of_rule_id`` means "this candidate is a
+         *     carve-out of that base rule", and the publish becomes a ``RuleException``
+         *     instead — see ``candidate_service.publish_exception``. The caller states the
+         *     base explicitly because a candidate row carries no base-rule pointer of its
+         *     own; the API will not guess one, and it refuses a cross-layer binding.
+         */
+        PublishIn: {
+            /** Exception Of Rule Id */
+            exception_of_rule_id?: string | null;
+        };
+        /**
+         * RealityAnswer
+         * @description RealityAnswer — the reality half of a CoexistenceSnapshot (v0.9 §9).
+         */
+        RealityAnswer: {
+            /** State */
+            state: string;
+            /** Last Seen At */
+            last_seen_at?: string | null;
+            /**
+             * Evidence Count
+             * @default 0
+             */
+            evidence_count: number;
+            /**
+             * Distinct Source Count
+             * @default 0
+             */
+            distinct_source_count: number;
+            /**
+             * Observed Zones
+             * @default []
+             */
+            observed_zones: string[];
+            /**
+             * Observed Actions
+             * @default []
+             */
+            observed_actions: string[];
+            /**
+             * Staff Response Summary
+             * @default []
+             */
+            staff_response_summary: components["schemas"]["StaffResponseSummaryItem"][];
+            /**
+             * Facility Summary
+             * @default []
+             */
+            facility_summary: components["schemas"]["FacilitySummaryItem"][];
+            /** Freshness State */
+            freshness_state?: string | null;
+            /** Verification State */
+            verification_state?: string | null;
+            /**
+             * Recent Count 7D
+             * @default 0
+             */
+            recent_count_7d: number;
+            /**
+             * Recent Count 30D
+             * @default 0
+             */
+            recent_count_30d: number;
+            /** Days Since Last Seen */
+            days_since_last_seen?: number | null;
+            /** Note */
+            note?: string | null;
+        };
+        /**
+         * RealityCandidateBrief
+         * @description Candidate receipt returned after creation (no internal fields).
+         */
+        RealityCandidateBrief: {
+            /** Id */
+            id: string;
+            /** Candidate Type */
+            candidate_type: string;
+            /** Place Id */
+            place_id: string;
+            /** Zone Id */
+            zone_id?: string | null;
+            animal_scope?: components["schemas"]["AnimalScope"] | null;
+            /** Observed At */
+            observed_at?: string | null;
+            /** Review Status */
+            review_status: string;
+            /** Verification Status */
+            verification_status: string;
+        };
+        /**
+         * RealityCandidateDraft
+         * @description Candidate inside a parent-flow report — place resolves from the report.
+         *
+         *     ``place_id`` is optional here because the report's place-match context
+         *     supplies it (`_candidate_place` enforces that a PARENT_PLACE_ONLY report
+         *     never pins a candidate to a tenant place).
+         */
+        RealityCandidateDraft: {
+            /** Candidate Type */
+            candidate_type: string;
+            /** Place Id */
+            place_id?: string | null;
+            /** Zone Id */
+            zone_id?: string | null;
+            animal_scope?: components["schemas"]["AnimalScope"] | null;
+            /** Observed At */
+            observed_at?: string | null;
+            /** Payload */
+            payload?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /** RealityCandidateIn */
+        RealityCandidateIn: {
+            /** Candidate Type */
+            candidate_type: string;
+            /** Place Id */
+            place_id: string;
+            /** Zone Id */
+            zone_id?: string | null;
+            /** Source Id */
+            source_id?: string | null;
+            /** Evidence Bundle Id */
+            evidence_bundle_id?: string | null;
+            animal_scope?: components["schemas"]["AnimalScope"] | null;
+            /** Observed At */
+            observed_at?: string | null;
+            /** Captured At */
+            captured_at?: string | null;
+            /** Payload */
+            payload?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /** RealityCandidateOut */
+        RealityCandidateOut: {
+            /** Id */
+            id: string;
+            /** Candidate Type */
+            candidate_type: string;
+            /** Place Id */
+            place_id: string;
+            /** Zone Id */
+            zone_id: string | null;
+            /** Source Id */
+            source_id: string | null;
+            /** Evidence Bundle Id */
+            evidence_bundle_id: string | null;
+            /** Animal Scope */
+            animal_scope: string | null;
+            /** Observed At */
+            observed_at: string | null;
+            /** Captured At */
+            captured_at: string | null;
+            /** Review Status */
+            review_status: string;
+            reality_decision: components["schemas"]["RealityDecision"] | null;
+            /** Reviewer */
+            reviewer: string | null;
+            /** Decided At */
+            decided_at: string | null;
+            /** Decision Note */
+            decision_note: string | null;
+            freshness_state: components["schemas"]["RealityFreshnessState"] | null;
+            verification_status: components["schemas"]["RealityVerificationStatus"];
+            /** Payload */
+            payload: {
+                [key: string]: unknown;
+            } | null;
+            /** Published Claim Id */
+            published_claim_id: string | null;
+            /** Published At */
+            published_at: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * RealityConfirmationIn
+         * @description Lightweight on-site confirmation — evidence, never a deletion.
+         */
+        RealityConfirmationIn: {
+            confirmation_type: components["schemas"]["RealityConfirmationType"];
+            /** Place Id */
+            place_id: string;
+            /** Target Claim Id */
+            target_claim_id?: string | null;
+            /** Target Candidate Id */
+            target_candidate_id?: string | null;
+            /** Observed At */
+            observed_at?: string | null;
+        };
+        /**
+         * RealityConfirmationType
+         * @description Lightweight on-site confirmation of a published reality fact (addendum PHASE 11).
+         *
+         *     A confirmation is evidence, never a deletion: ``NOT_SEEN_NOW`` adds a new
+         *     observation and must NOT remove the older one.
+         * @enum {string}
+         */
+        RealityConfirmationType: "still_present" | "not_seen_now" | "facility_still_present" | "facility_removed" | "sign_still_present" | "sign_changed";
+        /**
+         * RealityContributionIn
+         * @description The full contribution payload — one report, several shared candidates.
+         */
+        RealityContributionIn: {
+            report: components["schemas"]["RealityReportIn"];
+            /** Candidates */
+            candidates?: components["schemas"]["RealityCandidateDraft"][];
+            effort?: components["schemas"]["ObservationEffortIn"] | null;
+            confirmation?: components["schemas"]["RealityConfirmationIn"] | null;
+            external_content?: components["schemas"]["ExternalContentReferenceIn"] | null;
+        };
+        /**
+         * RealityContributionOut
+         * @description Receipt of a completed parent-flow contribution.
+         *
+         *     ``anonymous_token`` is returned exactly once so the caller can persist it;
+         *     it is never echoed back later by any consumer endpoint.
+         */
+        RealityContributionOut: {
+            report: components["schemas"]["RealityReportOut"];
+            /** Candidates */
+            candidates: components["schemas"]["RealityCandidateBrief"][];
+            /** Effort Id */
+            effort_id?: string | null;
+            /** Confirmation Id */
+            confirmation_id?: string | null;
+            /** External Content Id */
+            external_content_id?: string | null;
+            /** Abuse Flags */
+            abuse_flags?: string[];
+            /** @default pending */
+            moderation_state: components["schemas"]["RealityReportModerationState"];
+        };
+        /**
+         * RealityDecision
+         * @description Human reality-review decision — VERIFIED is human-only, never AI (v0.9 §7.4).
+         * @enum {string}
+         */
+        RealityDecision: "verified" | "verified_with_note" | "hold" | "rejected";
+        /**
+         * RealityDecisionIn
+         * @description Human-only reality review decision (v0.9 §7.4).
+         */
+        RealityDecisionIn: {
+            reality_decision: components["schemas"]["RealityDecision"];
+            /** Decision Note */
+            decision_note?: string | null;
+        };
+        /**
+         * RealityFreshnessState
+         * @description Age bucket of a reality fact (v0.9 §7.5).
+         *
+         *     ``EXPIRED_FOR_SUMMARY`` means the fact must be excluded from any "recent"
+         *     consumer summary. It is NOT "no animal" — absence of a record is never
+         *     evidence of absence.
+         * @enum {string}
+         */
+        RealityFreshnessState: "fresh" | "recent" | "aging" | "historical" | "expired_for_summary";
+        /**
+         * RealityReportIn
+         * @description User contribution payload — one report, possibly several candidates.
+         *
+         *     ``origin`` is set from the UI branch, never exposed as a raw enum to the
+         *     user. Media defaults to private; a no-media first-hand report is
+         *     ``FIRST_HAND_NO_MEDIA`` and stays review-pending (never auto-rejected).
+         */
+        RealityReportIn: {
+            origin: components["schemas"]["ObservationOrigin"];
+            /** Place Id */
+            place_id?: string | null;
+            /** Container Place Id */
+            container_place_id?: string | null;
+            /** Subject Place Id */
+            subject_place_id?: string | null;
+            /** @default unresolved */
+            place_match_state: components["schemas"]["PlaceMatchState"];
+            /** Place Match Evidence Types */
+            place_match_evidence_types?: components["schemas"]["PlaceMatchEvidenceType"][] | null;
+            /** @default unknown */
+            time_evidence_state: components["schemas"]["TimeEvidenceState"];
+            /** Content Published At */
+            content_published_at?: string | null;
+            /** Claimed Event At */
+            claimed_event_at?: string | null;
+            /** Observed At */
+            observed_at?: string | null;
+            /** @default unknown */
+            time_certainty: components["schemas"]["TimeCertainty"];
+            /** @default insufficient */
+            fact_evidence_state: components["schemas"]["FactEvidenceState"];
+            /** @default private */
+            privacy_state: components["schemas"]["RealityReportPrivacyState"];
+            /** Media Refs */
+            media_refs?: {
+                [key: string]: unknown;
+            }[] | null;
+            /** Source Url */
+            source_url?: string | null;
+            source_platform?: components["schemas"]["ExternalContentPlatform"] | null;
+            /** Content Hash */
+            content_hash?: string | null;
+            /** Media Hash */
+            media_hash?: string | null;
+            /** External Keyframe Ref */
+            external_keyframe_ref?: string | null;
+            /** Ocr Text */
+            ocr_text?: string | null;
+            /** Abuse Flags */
+            abuse_flags?: components["schemas"]["ContributionAbuseFlag"][] | null;
+        };
+        /**
+         * RealityReportModerationState
+         * @description Moderation posture of a report (addendum PHASE 12–13 Anti-Abuse).
+         * @enum {string}
+         */
+        RealityReportModerationState: "pending" | "flagged" | "approved" | "rejected" | "removed";
+        /** RealityReportOut */
+        RealityReportOut: {
+            /** Id */
+            id: string;
+            /** Reporter Id */
+            reporter_id: string | null;
+            /** Anonymous Token */
+            anonymous_token: string | null;
+            origin: components["schemas"]["ObservationOrigin"];
+            /** Place Id */
+            place_id: string | null;
+            /** Container Place Id */
+            container_place_id: string | null;
+            /** Subject Place Id */
+            subject_place_id: string | null;
+            place_match_state: components["schemas"]["PlaceMatchState"];
+            /** Place Match Evidence Types */
+            place_match_evidence_types: unknown[] | null;
+            time_evidence_state: components["schemas"]["TimeEvidenceState"];
+            /** Content Published At */
+            content_published_at: string | null;
+            /** Claimed Event At */
+            claimed_event_at: string | null;
+            /** Observed At */
+            observed_at: string | null;
+            time_certainty: components["schemas"]["TimeCertainty"];
+            fact_evidence_state: components["schemas"]["FactEvidenceState"];
+            privacy_state: components["schemas"]["RealityReportPrivacyState"];
+            /** Media Refs */
+            media_refs: unknown[] | null;
+            /** Source Url */
+            source_url: string | null;
+            source_platform: components["schemas"]["ExternalContentPlatform"] | null;
+            /** Content Hash */
+            content_hash: string | null;
+            /** Media Hash */
+            media_hash: string | null;
+            moderation_state: components["schemas"]["RealityReportModerationState"];
+            /** Abuse Flags */
+            abuse_flags: unknown[] | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Submitted At */
+            submitted_at: string | null;
+        };
+        /**
+         * RealityReportPrivacyState
+         * @description Media/report privacy (addendum P7: media is private by default).
+         * @enum {string}
+         */
+        RealityReportPrivacyState: "private" | "public" | "restricted";
+        /**
+         * RealityTraceOut
+         * @description Reality Trace payload — fact and how the platform verifies it.
+         */
+        RealityTraceOut: {
+            /** Place Id */
+            place_id: string;
+            /** Summary */
+            summary: string;
+            /** Fact Sections */
+            fact_sections?: components["schemas"]["RealityTraceSection"][];
+            /** Review Sections */
+            review_sections?: components["schemas"]["RealityTraceSection"][];
+            /**
+             * Evidence Count
+             * @default 0
+             */
+            evidence_count: number;
+        };
+        /**
+         * RealityTraceSection
+         * @description One trace section for the Reality Trace page (Master Goal §14).
+         */
+        RealityTraceSection: {
+            /** Label */
+            label: string;
+            /** Value */
+            value?: string | null;
+            /** Note */
+            note?: string | null;
+        };
+        /**
+         * RealityVerificationStatus
+         * @description Verification posture of a published reality claim (v0.9 §7.4).
+         *
+         *     Consumer-visible reality claims must carry Evidence + Review + Freshness;
+         *     this status tracks how far the review went. ``DERIVED_AI_ONLY`` marks
+         *     extraction that must still pass human review before becoming visible.
+         * @enum {string}
+         */
+        RealityVerificationStatus: "human_verified" | "human_verified_with_note" | "derived_ai_only" | "unverified";
         /** RegisterIn */
         RegisterIn: {
             /** Display Name */
@@ -3023,6 +4195,18 @@ export interface components {
          * @enum {string}
          */
         ServiceRole: "none" | "in_training" | "working" | "unknown";
+        /**
+         * SourceFreshnessIn
+         * @description Assign a freshness policy to a source and set its review window.
+         */
+        SourceFreshnessIn: {
+            /** Freshness Policy Id */
+            freshness_policy_id: string;
+            /** Last Verified At */
+            last_verified_at?: string | null;
+            /** Review Due At */
+            review_due_at?: string | null;
+        };
         /** SourceIn */
         SourceIn: {
             source_type: components["schemas"]["SourceType"];
@@ -3096,6 +4280,65 @@ export interface components {
          * @enum {string}
          */
         SpatialPrecision: "precise" | "approximate" | "unknown";
+        /**
+         * StaffActorRole
+         * @description Role of the staff member — role only, never personal identity (v0.9 §7.2).
+         * @enum {string}
+         */
+        StaffActorRole: "owner" | "manager" | "frontline_staff" | "server" | "security" | "cleaning_staff" | "front_desk" | "unknown_staff";
+        /**
+         * StaffResponseAction
+         * @description What staff actually did in a concrete event — never an attitude score.
+         *
+         *     A StaffResponseObservation documents one behaviour; it is NOT an operator
+         *     policy, and repeated observations never become rules.
+         * @enum {string}
+         */
+        StaffResponseAction: "proactive_accommodation" | "provide_water" | "provide_container_or_stroller" | "direct_to_allowed_zone" | "remind_leash" | "require_carrier" | "request_relocation" | "request_wait_outside" | "deny_entry" | "request_exit" | "policy_explanation" | "escalate_to_manager" | "no_intervention_observed" | "unknown";
+        /** StaffResponseObservationOut */
+        StaffResponseObservationOut: {
+            /** Id */
+            id: string;
+            /** Place Id */
+            place_id: string;
+            /** Zone Id */
+            zone_id: string | null;
+            actor_role: components["schemas"]["StaffActorRole"];
+            /** Trigger Context */
+            trigger_context: string | null;
+            response_action: components["schemas"]["StaffResponseAction"];
+            /** Response Outcome */
+            response_outcome: string | null;
+            /** Policy Statement Verbatim */
+            policy_statement_verbatim: string | null;
+            /**
+             * Observed At
+             * Format: date-time
+             */
+            observed_at: string;
+            /**
+             * Captured At
+             * Format: date-time
+             */
+            captured_at: string;
+            /** Source Id */
+            source_id: string | null;
+            /** Evidence Bundle Id */
+            evidence_bundle_id: string | null;
+            verification_status: components["schemas"]["RealityVerificationStatus"];
+            freshness_state: components["schemas"]["RealityFreshnessState"] | null;
+            /** Last Verified At */
+            last_verified_at: string | null;
+        };
+        /**
+         * StaffResponseSummaryItem
+         * @description Counts of one observed staff response action (facts only).
+         */
+        StaffResponseSummaryItem: {
+            response_action: components["schemas"]["StaffResponseAction"];
+            /** Count */
+            count: number;
+        };
         /** TemplateIn */
         TemplateIn: {
             /** Organization Id */
@@ -3138,6 +4381,23 @@ export interface components {
          * @enum {string}
          */
         TemporaryAction: "none" | "mark_unverified" | "mark_disputed" | "hide_content";
+        /**
+         * TimeCertainty
+         * @description Separate certainty axis for the claimed event time.
+         * @enum {string}
+         */
+        TimeCertainty: "exact" | "approximate" | "unknown";
+        /**
+         * TimeEvidenceState
+         * @description Precision of *when* the event happened (addendum PHASE 6).
+         *
+         *     Publication time is never automatically treated as event time: a video
+         *     published on 9-20 must be described as "observed in a video published on
+         *     9-20", never "present on site on 9-20", unless event time is separately
+         *     evidenced.
+         * @enum {string}
+         */
+        TimeEvidenceState: "live_device_time" | "exact_event_time" | "exact_event_date" | "approximate_date" | "publication_time_only" | "unknown";
         /** TokenOut */
         TokenOut: {
             /** Access Token */
@@ -3359,6 +4619,28 @@ export interface components {
 export type $defs = Record<string, never>;
 export interface operations {
     health_health_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    health_database_health_database_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -4383,6 +5665,415 @@ export interface operations {
             };
         };
     };
+    place_reality_api_v1_places__place_id__reality_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                place_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RealityAnswer"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    contribute_reality_api_v1_places__place_id__reality_contributions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                place_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RealityCandidateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RealityCandidateOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    coexistence_snapshot_api_v1_places__place_id__coexistence_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                place_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_reality_candidates_api_v1_reality_candidates_get: {
+        parameters: {
+            query?: {
+                candidate_type?: string | null;
+                review_status?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_RealityCandidateOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_reality_candidate_api_v1_reality_candidates_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RealityCandidateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RealityCandidateOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    decide_reality_candidate_api_v1_reality_candidates__candidate_id__decision_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                candidate_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RealityDecisionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RealityCandidateOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_list_observed_api_v1_places__place_id__reality_observed_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                place_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_ObservedPresenceOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_list_staff_responses_api_v1_places__place_id__reality_staff_responses_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                place_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_StaffResponseObservationOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_list_facilities_api_v1_places__place_id__reality_facilities_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                place_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_AnimalFacilityOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_reality_reports_api_v1_places__place_id__reality_reports_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                place_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_RealityReportOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_reality_report_api_v1_places__place_id__reality_reports_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                place_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RealityContributionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RealityContributionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reality_trace_api_v1_places__place_id__reality_trace_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                place_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RealityTraceOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_place_verifications_api_v1_places__place_id__verifications_get: {
         parameters: {
             query?: {
@@ -5326,6 +7017,43 @@ export interface operations {
             };
         };
     };
+    access_answer_api_v1_places__place_id__access_answer_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                place_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     place_extras_api_v1_places__place_id__extras_get: {
         parameters: {
             query?: never;
@@ -5707,7 +7435,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PublishIn"] | null;
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -5830,6 +7562,206 @@ export interface operations {
             };
         };
     };
+    admin_list_freshness_policies_api_v1_admin_freshness_policies_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_dict_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_create_freshness_policy_api_v1_admin_freshness_policies_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FreshnessPolicyIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_assign_source_freshness_api_v1_admin_sources__source_id__freshness_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SourceFreshnessIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_list_data_source_jobs_api_v1_admin_data_source_jobs_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_dict_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_create_data_source_job_api_v1_admin_data_source_jobs_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DataSourceJobIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_finish_data_source_job_api_v1_admin_data_source_jobs__job_id__finish_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DataSourceJobFinishIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     admin_list_monitors_api_v1_admin_monitors_get: {
         parameters: {
             query?: {
@@ -5913,6 +7845,69 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_sweep_due_monitors_api_v1_admin_monitors_sweep_post: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_list_due_monitors_api_v1_admin_monitors_due_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_dict_"];
                 };
             };
             /** @description Validation Error */

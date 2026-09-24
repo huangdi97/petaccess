@@ -773,3 +773,91 @@ export const client = {
     return api.request<CoexistenceSnapshot>("post", `/places/${placeId}/coexistence`, { body });
   },
 };
+
+  /**
+   * v0.2.0 parent-flow Contribution (Master Goal §15–§27): one RealityReport
+   * plus zero-or-more candidates sharing origin / place-match / time / media /
+   * source / privacy. Always lands REVIEW_PENDING — proximity never verifies.
+   */
+  async createRealityReport(
+    placeId: string,
+    body: {
+      report: {
+        origin: "on_site_now" | "on_site_past" | "external_online_content" | "operator_provided" | "official_public_content";
+        place_id?: string | null;
+        container_place_id?: string | null;
+        subject_place_id?: string | null;
+        place_match_state?: string | null;
+        place_match_evidence_types?: string[] | null;
+        time_evidence_state?: string | null;
+        content_published_at?: string | null;
+        claimed_event_at?: string | null;
+        observed_at?: string | null;
+        time_certainty?: string | null;
+        fact_evidence_state?: string | null;
+        privacy_state?: string | null;
+        media_refs?: Record<string, unknown>[] | null;
+        source_url?: string | null;
+        source_platform?: string | null;
+        content_hash?: string | null;
+        media_hash?: string | null;
+        external_keyframe_ref?: string | null;
+        ocr_text?: string | null;
+      };
+      candidates?: {
+        candidate_type: "observed_presence" | "staff_response" | "animal_facility";
+        place_id?: string | null;
+        zone_id?: string | null;
+        animal_scope?: string | null;
+        observed_at?: string | null;
+        payload?: Record<string, unknown> | null;
+      }[];
+      effort?: {
+        place_id: string;
+        duration_bucket: string;
+        covered_zone_ids?: string[] | null;
+        animal_observed?: boolean;
+        observed_at?: string | null;
+        source_id?: string | null;
+      } | null;
+      confirmation?: {
+        confirmation_type: string;
+        place_id: string;
+        target_claim_id?: string | null;
+        target_candidate_id?: string | null;
+        observed_at?: string | null;
+      } | null;
+      external_content?: {
+        source_url: string;
+        platform?: string | null;
+        published_at?: string | null;
+        place_metadata?: Record<string, unknown> | null;
+        keyframe_ref?: string | null;
+        ocr_text?: string | null;
+        content_hash?: string | null;
+        media_hash?: string | null;
+      } | null;
+    },
+  ) {
+    return api.request<{
+      report: Record<string, unknown>;
+      candidates: { id: string; candidate_type: string }[];
+      effort_id?: string | null;
+      confirmation_id?: string | null;
+      external_content_id?: string | null;
+      abuse_flags?: string[];
+      moderation_state: string;
+    }>("post", `/places/${placeId}/reality/reports`, { body });
+  },
+
+  /** Reality Trace — the fact and how the platform verified it (§14). */
+  async realityTrace(placeId: string) {
+    return api.request<{
+      place_id: string;
+      summary: string;
+      fact_sections: { label: string; value: string | null; note?: string | null }[];
+      review_sections: { label: string; value: string | null; note?: string | null }[];
+      evidence_count: number;
+    }>("get", `/places/${placeId}/reality/trace`);
+  },
+};

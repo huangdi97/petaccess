@@ -108,7 +108,7 @@ def place_reality(
             source_id=c.source_id,
             evidence_id=c.evidence_bundle_id,
             zone_name=None,  # zone name resolved by caller if needed
-            action=c.observed_action.value if c.observed_action else None,
+            action=c.observed_action if c.observed_action else None,
             human_verified=True,
         )
         for c in claims
@@ -382,6 +382,10 @@ def _publish_claim(db: Session, cand: RealityCandidate):
     Consumer-visible reality claims must carry Evidence + Review + Freshness.
     The claim copies the source/evidence linkage and verification posture from
     the candidate; it never asserts anything the candidate review did not.
+
+    ``captured_at`` is NOT NULL on the published claim tables, so it falls back
+    to the observed-at time when the candidate never recorded a capture time
+    (e.g. contributions that carry only ``observed_at``).
     """
     payload = cand.payload or {}
     status = (
@@ -389,6 +393,7 @@ def _publish_claim(db: Session, cand: RealityCandidate):
         if cand.decision_note
         else RealityVerificationStatus.HUMAN_VERIFIED
     )
+    captured_at = cand.captured_at or cand.observed_at
     claim: ObservedPresence | StaffResponseObservation | AnimalFacility
     if cand.candidate_type == "observed_presence":
         claim = ObservedPresence(
@@ -400,7 +405,7 @@ def _publish_claim(db: Session, cand: RealityCandidate):
             observed_action=payload.get("observed_action"),
             observed_context=payload.get("observed_context"),
             observed_at=cand.observed_at,
-            captured_at=cand.captured_at,
+            captured_at=captured_at,
             source_id=cand.source_id,
             evidence_bundle_id=cand.evidence_bundle_id,
             verification_status=status,
@@ -418,7 +423,7 @@ def _publish_claim(db: Session, cand: RealityCandidate):
             response_outcome=payload.get("response_outcome"),
             policy_statement_verbatim=payload.get("policy_statement_verbatim"),
             observed_at=cand.observed_at,
-            captured_at=cand.captured_at,
+            captured_at=captured_at,
             source_id=cand.source_id,
             evidence_bundle_id=cand.evidence_bundle_id,
             verification_status=status,
@@ -646,7 +651,7 @@ def _reality_answer_for_place(db: Session, place_id: str, now: datetime) -> dict
             source_id=c.source_id,
             evidence_id=c.evidence_bundle_id,
             zone_name=None,
-            action=c.observed_action.value if c.observed_action else None,
+            action=c.observed_action if c.observed_action else None,
             human_verified=True,
         )
         for c in claims

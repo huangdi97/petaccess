@@ -1,0 +1,393 @@
+"""RealityReport parent-flow API contract tests (Master Goal v0.2.0 §15–§27).
+
+Covers the one-Contribution-many-candidates contract:
+
+- ON_SITE_NOW contribution creates a parent report + candidates, all
+  REVIEW_PENDING / UNVERIFIED (one-shot proximity never auto-verifies).
+- ON_SITE_PAST without an explicit ``observed_at`` is rejected 422 (the
+  submission time must never become the event time).
+- EXTERNAL_ONLINE_CONTENT without any time evidence is rejected 422;
+  content_published_at and observed_at stay separate fields.
+- PARENT_PLACE_ONLY reports cannot attach a candidate to a tenant place
+  (mall-level fact must not masquerade as a restaurant-level fact).
+- ObservationEffort with animal_observed=false creates an effort row only,
+  never a NO_ANIMAL_PRESENCE claim.
+- A RealityConfirmation is an append; verified claims are never deleted.
+- Anonymous (tokenless) reports are allowed and get a one-time token.
+- Idempotency-Key returns the same receipt for a repeated call.
+"""
+
+import uuid
+from datetime import UTC, datetime, timedelta
+
+import pytest
+from fastapi.testclient import TestClient
+
+from app.main import app
+
+ON_SITE_ORIGINS = [
+    "on_site_now",
+    "on_site_past",
+    "external_online_content",
+    "operator_provided",
+    "official_public_content",
+]
+
+@pytest.fixture(scope="module", autouse=True)
+def _reset_rate_limits():
+    """Clear rate-limit/idempotency counters before the module runs.
+
+    All anonymous requests share the same IP key, so repeated test runs would
+    otherwise trip the 20/hour contribution limit on db 1 (test-dedicated).
+    """
+    import redis as redis_lib
+
+    from app.core.config import get_settings
+
+    r = redis_lib.Redis.from_url(get_settings().redis_url, decode_responses=True)
+    try:
+        for key in r.scan_iter(match="ratelimit:*"):
+            r.delete(key)
+        for key in r.scan_iter(match="idem:*"):
+            r.delete(key)
+    except redis_lib.RedisError:
+        pass  # dev infra may be absent; rate limit then fails open anyway
+    yield
+
+
+@pytest.fixture(scope="module")
+def client():
+    with TestClient(app) as c:
+        yield c
+
+def _iso_equal(actual: str | None, expected: str | None) -> bool:
+    """Compare ISO datetimes regardless of UTC suffix form (+00:00 vs Z)."""
+    if actual is None or expected is None:
+        return actual is expected
+    from datetime import datetime as dt
+
+    try:
+        return dt.fromisoformat(actual.replace("Z", "+00:00")) == dt.fromisoformat(
+            expected.replace("Z", "+00:00")
+        )
+    except ValueError:
+        return actual == expected
+
+
+@pytest.fixture(scope="module")
+def place_id(client):
+    """A place the demo seed guarantees (星河咖啡·测试店)."""
+    r = client.get("/api/v1/places", params={"q": "星河"})
+    assert r.status_code == 200, r.text
+    items = r.json().get("items", [])
+    assert items, "demo seed must contain 星河咖啡·测试店"
+    return items[0]["id"]
+
+
+@pytest.fixture(scope="module")
+def signed_user(client) -> dict:
+    email = f"rr-{uuid.uuid4().hex[:8]}@example.com"
+    r = client.post(
+        "/api/v1/auth/register",
+        json={"display_name": "现实记录者", "email": email, "password": "passw0rd123"},
+    )
+    assert r.status_code in (200, 201), r.text
+    tok = client.post(
+        "/api/v1/auth/login", json={"email": email, "password": "passw0rd123"}
+    ).json()["access_token"]
+    return {"Authorization": f"Bearer {tok}"}
+
+
+def _presence_candidate() -> dict:
+    return {
+        "candidate_type": "observed_presence",
+        "animal_scope": "dog",
+        "observed_at": (datetime.now(UTC) - timedelta(hours=1)).isoformat(),
+        "payload": {"observed_action": "enter", "observed_context": "室内入口"},
+    }
+
+
+def _report(origin: str, **overrides) -> dict:
+    base: dict = {
+        "origin": origin,
+        "place_match_evidence_types": ["user_confirmation"],
+        "time_evidence_state": "exact_event_time",
+        "place_match_state": "exact_place",
+        "fact_evidence_state": "insufficient",
+        "privacy_state": "private",
+        "observed_at": (datetime.now(UTC) - timedelta(hours=2)).isoformat(),
+        "time_certainty": "approximate",
+    }
+    base.update(overrides)
+    return base
+
+
+def test_anonymous_on_site_now_report_with_candidate_never_verifies(client, place_id):
+    """AC5/§18: one-shot proximity proves device nearby, never event_verified."""
+    r = client.post(
+        f"/api/v1/places/{place_id}/reality/reports",
+        json={
+            "report": _report("on_site_now"),
+            "candidates": [_presence_candidate()],
+        },
+    )
+    assert r.status_code == 201, r.text
+    body = r.json()
+    assert body["moderation_state"] == "pending"
+    assert body["abuse_flags"] == []
+    assert len(body["candidates"]) == 1
+    cand = body["candidates"][0]
+    assert cand["candidate_type"] == "observed_presence"
+    assert cand["review_status"] == "REVIEW_PENDING"
+    assert cand["verification_status"] == "unverified"
+    # anonymous token is returned exactly once for the caller to persist
+    assert body["report"]["anonymous_token"]
+
+
+def test_on_site_past_without_observed_at_is_rejected(client, place_id):
+    """§19: ON_SITE_PAST must state when it happened; never default to submit time."""
+    r = client.post(
+        f"/api/v1/places/{place_id}/reality/reports",
+        json={
+            "report": _report("on_site_past", observed_at=None),
+            "candidates": [_presence_candidate()],
+        },
+    )
+    assert r.status_code == 422, r.text
+    assert r.json()["error"]["code"] == "on_site_past_time_required"
+
+
+def test_external_content_requires_time_evidence(client, place_id):
+    """§20: external content without published/event time cannot invent a date."""
+    r = client.post(
+        f"/api/v1/places/{place_id}/reality/reports",
+        json={
+            "report": _report(
+                "external_online_content",
+                content_published_at=None,
+                claimed_event_at=None,
+                observed_at=None,
+            ),
+            "candidates": [_presence_candidate()],
+        },
+    )
+    assert r.status_code == 422, r.text
+    assert r.json()["error"]["code"] == "external_time_required"
+
+
+def test_external_content_keeps_published_and_event_time_separate(client, place_id, signed_user):
+    """§20: content_published_at stays distinct from observed_at in the record."""
+    published = (datetime.now(UTC) - timedelta(days=3)).isoformat()
+    observed = (datetime.now(UTC) - timedelta(days=1)).isoformat()
+    r = client.post(
+        f"/api/v1/places/{place_id}/reality/reports",
+        headers=signed_user,
+        json={
+            "report": _report(
+                "external_online_content",
+                content_published_at=published,
+                claimed_event_at=observed,
+                observed_at=observed,
+                time_certainty="approximate",
+            ),
+            "candidates": [_presence_candidate()],
+            "external_content": {
+                "source_url": "https://example.com/pet-post-1",
+                "platform": "xiaohongshu",
+                "published_at": published,
+            },
+        },
+    )
+    assert r.status_code == 201, r.text
+    body = r.json()
+    assert _iso_equal(body["report"]["content_published_at"], published)
+    assert _iso_equal(body["report"]["observed_at"], observed)
+    assert not _iso_equal(body["report"]["observed_at"], published)
+    assert body["external_content_id"]
+
+
+def test_parent_place_only_cannot_pin_candidate_to_tenant(client, place_id):
+    """§21: mall-level matches must not surface tenant-level reality."""
+    r = client.post(
+        f"/api/v1/places/{place_id}/reality/reports",
+        json={
+            "report": _report(
+                "on_site_now",
+                place_match_state="parent_place_only",
+                container_place_id=place_id,
+                subject_place_id=None,
+            ),
+            # a candidate pinned to a *different* tenant than the container
+            "candidates": [
+                {
+                    "candidate_type": "observed_presence",
+                    "place_id": "00000000-0000-0000-0000-000000000099",
+                    "payload": {"observed_action": "enter"},
+                }
+            ],
+        },
+    )
+    assert r.status_code == 422, r.text
+    assert r.json()["error"]["code"] == "parent_place_escalation"
+
+
+def test_effort_never_becomes_no_animal_presence_claim(client, place_id, signed_user):
+    """§24: animal_observed=false forms only an ObservationEffort row."""
+    before = client.get(f"/api/v1/places/{place_id}/reality").json()
+    r = client.post(
+        f"/api/v1/places/{place_id}/reality/reports",
+        headers=signed_user,
+        json={
+            "report": _report("on_site_now"),
+            "effort": {
+                "place_id": place_id,
+                "duration_bucket": "min_10_30",
+                "covered_zone_ids": [],
+                "animal_observed": False,
+                "observed_at": (datetime.now(UTC) - timedelta(hours=2)).isoformat(),
+            },
+        },
+    )
+    assert r.status_code == 201, r.text
+    assert r.json()["effort_id"]
+    # consumer reality answer is unchanged (still no claim rows created)
+    after = client.get(f"/api/v1/places/{place_id}/reality").json()
+    assert after["evidence_count"] == before["evidence_count"]
+
+
+def test_confirmation_is_append_never_delete(client, place_id, signed_user):
+    """§25: a confirmation adds a record; it never removes older facts."""
+    # Publish a verified presence first (admin path), then confirm NOT_SEEN_NOW.
+    cand_id = _make_verified_presence(client, place_id, signed_user)
+    r = client.post(
+        f"/api/v1/places/{place_id}/reality/reports",
+        headers=signed_user,
+        json={
+            "report": _report("on_site_now"),
+            "confirmation": {
+                "confirmation_type": "not_seen_now",
+                "place_id": place_id,
+                "target_candidate_id": cand_id,
+                "observed_at": (datetime.now(UTC) - timedelta(minutes=5)).isoformat(),
+            },
+        },
+    )
+    assert r.status_code == 201, r.text
+    assert r.json()["confirmation_id"]
+    # the older published claim still exists in the full reality answer
+    reality = client.get(f"/api/v1/places/{place_id}/reality").json()
+    assert reality["state"] != "no_data"
+
+
+def test_statff_awareness_unknown_is_stored(client, place_id, signed_user):
+    """§22: staff response with awareness UNKNOWN stays 'no observed handling'."""
+    r = client.post(
+        f"/api/v1/places/{place_id}/reality/reports",
+        headers=signed_user,
+        json={
+            "report": _report("on_site_now"),
+            "candidates": [
+                {
+                    "candidate_type": "staff_response",
+                    "payload": {
+                        "actor_role": "waiter",
+                        "response_action": "no_intervention_observed",
+                        "staff_awareness_state": "awareness_unknown",
+                    },
+                }
+            ],
+        },
+    )
+    assert r.status_code == 201, r.text
+    cand = r.json()["candidates"][0]
+    assert cand["verification_status"] == "unverified"
+    # as「本次记录未观察到工作人员处理」— never「工作人员未干预」.
+
+
+def test_idempotency_key_returns_same_receipt(client, place_id, signed_user):
+    """Idempotent retries must not create duplicate reports."""
+    idem = f"idem-{uuid.uuid4().hex}"
+    payload = {
+        "report": _report(
+            "on_site_now",
+            observed_at=(datetime.now(UTC) - timedelta(hours=1)).isoformat(),
+        ),
+        "candidates": [_presence_candidate()],
+    }
+    r1 = client.post(
+        f"/api/v1/places/{place_id}/reality/reports",
+        headers={**signed_user, "Idempotency-Key": idem},
+        json=payload,
+    )
+    r2 = client.post(
+        f"/api/v1/places/{place_id}/reality/reports",
+        headers={**signed_user, "Idempotency-Key": idem},
+        json=payload,
+    )
+    assert r1.status_code == 201 and r2.status_code == 201, (r1.text, r2.text)
+    assert r1.json()["report"]["id"] == r2.json()["report"]["id"]
+    assert r1.json()["candidates"][0]["id"] == r2.json()["candidates"][0]["id"]
+
+
+def test_reality_trace_distinguishes_fact_from_review(client, place_id):
+    """§14: the trace must show the fact and the verification posture separately."""
+    r = client.get(f"/api/v1/places/{place_id}/reality/trace")
+    assert r.status_code == 200, r.text
+    body = r.json()
+    labels = {s["label"] for s in body["fact_sections"]}
+    review_labels = {s["label"] for s in body["review_sections"]}
+    assert "现场摘要" in labels
+    assert "核验" in review_labels
+    # summary is consumer copy, never a raw internal enum
+    assert body["summary"] not in {
+        "OBSERVED_RECENTLY",
+        "OBSERVED_HISTORICALLY",
+        "MULTI_EVIDENCE_OBSERVED",
+        "NO_RECENT_RECORD",
+        "INSUFFICIENT_OBSERVATION",
+        "DISPUTED",
+    }
+
+
+def _make_verified_presence(client, place_id, auth) -> str:
+    """Create + human-verify one observed-presence candidate (v0.9 §7.4)."""
+    r = client.post(
+        f"/api/v1/places/{place_id}/reality/contributions",
+        headers=auth,
+        json={
+            "candidate_type": "observed_presence",
+            "place_id": place_id,
+            "animal_scope": "dog",
+            "observed_at": (datetime.now(UTC) - timedelta(days=1)).isoformat(),
+            "payload": {"observed_action": "enter", "observed_context": "室内"},
+        },
+    )
+    assert r.status_code == 201, r.text
+    cand_id = r.json()["id"]
+
+    # Promote the signed-in contributor to admin, then human-verify (v0.9 §7.4:
+    # reality_decision is human-only; AI may never write it).
+    from app.db.session import get_session_factory
+    from app.models import User
+
+    s = get_session_factory()()
+    try:
+        user = s.query(User).order_by(User.created_at.desc()).first()
+        assert user is not None, "seed must contain at least one user"
+        user.role = "admin"
+        s.commit()
+        email = user.email
+    finally:
+        s.close()
+
+    tok = client.post(
+        "/api/v1/auth/login",
+        json={"email": email, "password": "passw0rd123"},
+    ).json()["access_token"]
+    decision = client.post(
+        f"/api/v1/reality/candidates/{cand_id}/decision",
+        headers={"Authorization": f"Bearer {tok}"},
+        json={"reality_decision": "verified", "decision_note": None},
+    )
+    assert decision.status_code == 200, decision.text
+    return cand_id
