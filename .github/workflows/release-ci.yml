@@ -38,7 +38,7 @@ jobs:
 
   quality:
     name: Engineering gate + backend
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     needs: verify
     services:
       postgres:
@@ -73,7 +73,10 @@ jobs:
         shell: bash
         run: |
           cd services/api
-          ../../.venv/Scripts/python.exe -m celery -A app.worker.celery_app worker \
+          # venv layout differs per OS runner (Scripts on Windows, bin on POSIX)
+          PYTHON_BIN="../../.venv/Scripts/python.exe"
+          [ -x "$PYTHON_BIN" ] || PYTHON_BIN="../../.venv/bin/python"
+          "$PYTHON_BIN" -m celery -A app.worker.celery_app worker \
             --pool=solo --concurrency=1 -Q petaccess_test &
       - run: uv run mypy services/api/app
       - run: uv run pytest -q
@@ -128,7 +131,7 @@ jobs:
 
   android:
     name: Android signed APK
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     needs: frontend
     env:
       ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
@@ -145,8 +148,20 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
-      - name: Set up Android SDK/NDK
+      - name: Set up Android SDK (cmdline-tools + sdkmanager on PATH)
         uses: android-actions/setup-android@v3
+      - name: Set up Java 17 (Gradle/AGP)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Install Android SDK components (platform 35 / build-tools 35 / NDK 27.1)
+        shell: bash
+        run: |
+          echo "y" | sdkmanager --licenses >/dev/null 2>&1 || true
+          sdkmanager "platform-tools" "platforms;android-35" \
+            "build-tools;35.0.0" "ndk;27.1.12297006"
+          echo "NDK_HOME=$ANDROID_HOME/ndk/27.1.12297006" >> "$GITHUB_ENV"
       - name: Cache cargo
         uses: actions/cache@v4
         with:
@@ -166,13 +181,15 @@ jobs:
           echo "unsigned: $APK"
           printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.keystore"
           OUT="PetAccess_0.1.0-android-universal.apk"
-          "$ANDROID_HOME/build-tools/35.0.0/apksigner.bat" sign \
+          APKSIGNER="${ANDROID_HOME}/build-tools/35.0.0/apksigner"
+          if [ ! -x "$APKSIGNER" ]; then APKSIGNER="${ANDROID_HOME}/build-tools/35.0.0/apksigner.bat"; fi
+          "$APKSIGNER" sign \
             --ks "$RUNNER_TEMP/release.keystore" \
             --ks-key-alias "$ANDROID_KEY_ALIAS" \
             --ks-pass "pass:$ANDROID_KEYSTORE_PASSWORD" \
             --key-pass "pass:$ANDROID_KEY_PASSWORD" \
             --out "$OUT" "$APK"
-          "$ANDROID_HOME/build-tools/35.0.0/apksigner.bat" verify --verbose "$OUT"
+          "$APKSIGNER" verify --verbose "$OUT"
       - name: Upload signed APK
         uses: actions/upload-artifact@v4
         with:

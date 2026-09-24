@@ -41,7 +41,7 @@ jobs:
 
   backend:
     name: Backend mypy + tests
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     needs: engineering-gate
     services:
       postgres:
@@ -125,7 +125,7 @@ jobs:
 
   e2e:
     name: Playwright subset (shell)
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     needs: [backend, frontend]
     services:
       postgres:
