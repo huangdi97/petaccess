@@ -237,7 +237,11 @@ jobs:
         shell: bash
         run: |
           cd artifacts
-          sha256sum * > SHA256SUMS.txt
+          # Only hash the release files (exe/apk); merged artifact dirs like
+          # client-h5-dist are not release assets.
+          for f in *.exe *.apk; do
+            [ -f "$f" ] && sha256sum "$f" || true
+          done > SHA256SUMS.txt
           cat SHA256SUMS.txt
       - name: Verify hashes
         shell: bash
