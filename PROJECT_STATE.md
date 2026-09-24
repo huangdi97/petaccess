@@ -1,7 +1,7 @@
 # PROJECT_STATE.md
 
 ## Current phase
-v0.1.0 Early Preview — 已发布（2026-09-24, GitHub Release v0.1.0）
+v0.1.0 Early Preview — 已发布（2026-09-24, GitHub Release v0.1.0）｜进行中：v0.2.0 M1（Master Goal §40 工程门禁全量补齐，见 docs/audit/V020_GLOBAL_CODE_AUDIT.md）
 
 ## v0.1.0 状态
 - **V0_1_0_RELEASED = YES（2026-09-24 已发布 https://github.com/huangdi97/petaccess/releases/tag/v0.1.0）**
@@ -9,9 +9,9 @@ v0.1.0 Early Preview — 已发布（2026-09-24, GitHub Release v0.1.0）
 - GitHub 阶段 DONE：remote=origin（huangdi97/petaccess）；tag v0.1.0；GitHub Release 已发布（Early Preview，非 Public Beta）；双产物已重下载并通过 SHA256/签名/安装校验（Phase AH）
 - 发布就绪门槛全部实测 PASS（见 docs/release/V010_RELEASE_READINESS_REPORT.md）
 ## 质量基线（2026-09-24 全实测, CURRENT VERIFIED）
-- pytest 916 passed / 2 skipped（TEST DB + Celery worker）
+- pytest 938 passed / 2 skipped（TEST DB + Celery worker）
 - ruff / format PASS；mypy services/api/app 93 files / 0 errors
-- Engineering gate：0 FAIL / 58 REVIEW / 24 WARN（豁免均引用 TD-00x）
+- Engineering gate：0 FAIL / 60 REVIEW / 26 WARN；§40 四新项（silent-catch / magic-status / dead-code / duplicate-config）已接入 collect()，修复后 RESULT: PASS
 - Secret scan（worktree + history）：0 findings
 - VERSION_DRIFT = 0（scripts/check_version_drift.py，含 design-tokens 0.6.0-beta.1→0.1.0 修正）
 - H5 + Admin vue-tsc + build PASS；Playwright E2E 21 passed（18 + 3 empty-state）
