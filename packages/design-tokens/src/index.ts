@@ -278,7 +278,7 @@ export const FORBIDDEN_COPY: readonly string[] = [
   "星级",
 ] as const;
 
-/* --------------------------------------------------------------------- misc */
+/* -------------------------------------------------------------------- misc */
 
 export const MOTION = {
   fast: "--pa-motion-fast",
@@ -289,3 +289,42 @@ export const MOTION = {
 
 /** Minimum interactive target size (UI_UX_IMPLEMENTATION_SPEC §10). */
 export const TOUCH_TARGET_PX = 44;
+
+/* ------------------------------------------------------------------- sizes */
+/** Component sizing ladder (M2 §6: component sizing tokens). */
+export const CONTROL_SIZES = {
+  sm: "--pa-size-control-sm",
+  md: "--pa-size-control-md",
+  lg: "--pa-size-control-lg",
+} as const;
+
+export type ControlSize = keyof typeof CONTROL_SIZES;
+
+/** Icon size ladder. */
+export const ICON_SIZES = {
+  xs: "--pa-size-icon-xs",
+  sm: "--pa-size-icon-sm",
+  md: "--pa-size-icon-md",
+  lg: "--pa-size-icon-lg",
+  xl: "--pa-size-icon-xl",
+} as const;
+
+export type IconSize = keyof typeof ICON_SIZES;
+
+/* ---------------------------------------------------------------- z-index */
+
+/** One z-index ladder for the whole app (see tokens.css --pa-z-*). */
+export const Z_INDEX = {
+  sticky: "--pa-z-sticky",
+  tabbar: "--pa-z-tabbar",
+  banner: "--pa-z-banner",
+  sheet: "--pa-z-sheet",
+  modal: "--pa-z-modal",
+  toast: "--pa-z-toast",
+} as const;
+
+/* -------------------------------------------------------------- re-exports */
+
+export * from "./copy";
+export * from "./copy-empty";
+export * from "./icons";

@@ -1,0 +1,171 @@
+<script setup lang="ts">
+import PaIcon from "./PaIcon.vue";
+import type { IconName } from "@petaccess/design-tokens";
+
+defineOptions({ name: "PaButton" });
+
+type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
+type ButtonSize = "sm" | "md" | "lg";
+
+withDefaults(
+  defineProps<{
+    variant?: ButtonVariant;
+    size?: ButtonSize;
+    loading?: boolean;
+    disabled?: boolean;
+    block?: boolean;
+    icon?: IconName;
+    /** Accessible name for icon-only usage; slot text is used otherwise. */
+    ariaLabel?: string;
+  }>(),
+  { variant: "primary", size: "lg", loading: false, disabled: false, block: false },
+);
+
+const emit = defineEmits<{ click: [event: MouseEvent] }>();
+</script>
+
+<template>
+  <button
+    type="button"
+    class="pa-button"
+    :class="[
+      `pa-button--${variant}`,
+      `pa-button--${size}`,
+      { 'pa-button--block': block, 'pa-button--loading': loading },
+    ]"
+    :disabled="disabled || loading"
+    :aria-disabled="disabled || loading"
+    :aria-busy="loading || undefined"
+    :aria-label="ariaLabel"
+    @click="emit('click', $event)"
+  >
+    <span v-if="loading" class="pa-button__spinner" aria-hidden="true"></span>
+    <PaIcon v-if="icon && !loading" :name="icon" class="pa-button__icon" aria-hidden="true" />
+    <span class="pa-button__label"><slot /></span>
+  </button>
+</template>
+
+<style scoped>
+.pa-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--pa-space-2);
+  padding-inline: var(--pa-space-4);
+  font-family: var(--pa-font-family);
+  font-size: var(--pa-font-size-base);
+  font-weight: var(--pa-font-weight-medium);
+  line-height: var(--pa-line-height-base);
+  border: var(--pa-border-width) solid transparent;
+  border-radius: var(--pa-radius-control);
+  cursor: pointer;
+  transition:
+    background-color var(--pa-motion-fast) var(--pa-motion-ease),
+    border-color var(--pa-motion-fast) var(--pa-motion-ease),
+    color var(--pa-motion-fast) var(--pa-motion-ease);
+}
+
+.pa-button:focus-visible {
+  outline: 2px solid var(--pa-color-border-focus);
+  outline-offset: 2px;
+}
+
+.pa-button--primary {
+  background: var(--pa-color-accent);
+  color: var(--pa-color-text-inverse);
+}
+.pa-button--primary:hover:not(:disabled) {
+  background: var(--pa-color-accent-hover);
+}
+.pa-button--primary:active:not(:disabled) {
+  background: var(--pa-color-accent-active);
+}
+
+.pa-button--secondary {
+  background: var(--pa-color-surface);
+  color: var(--pa-color-text-primary);
+  border-color: var(--pa-color-border-strong);
+}
+.pa-button--secondary:hover:not(:disabled) {
+  background: var(--pa-color-surface-interactive);
+}
+.pa-button--secondary:active:not(:disabled) {
+  background: var(--pa-color-surface-muted);
+}
+
+.pa-button--ghost {
+  background: transparent;
+  color: var(--pa-color-text-primary);
+}
+.pa-button--ghost:hover:not(:disabled) {
+  background: var(--pa-color-surface-muted);
+}
+.pa-button--ghost:active:not(:disabled) {
+  background: var(--pa-color-surface-interactive);
+}
+
+.pa-button--danger {
+  background: var(--pa-color-status-restricted);
+  color: var(--pa-color-text-inverse);
+}
+.pa-button--danger:hover:not(:disabled) {
+  filter: brightness(0.92);
+}
+.pa-button--danger:active:not(:disabled) {
+  filter: brightness(0.85);
+}
+
+.pa-button--sm {
+  min-height: var(--pa-size-control-sm);
+  padding-inline: var(--pa-space-3);
+  font-size: var(--pa-font-size-sm);
+}
+.pa-button--md {
+  min-height: var(--pa-size-control-md);
+}
+.pa-button--lg {
+  min-height: var(--pa-size-control-lg);
+}
+
+.pa-button--block {
+  width: 100%;
+}
+
+.pa-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.pa-button__icon {
+  flex-shrink: 0;
+}
+
+.pa-button--loading .pa-button__label {
+  visibility: hidden;
+}
+
+.pa-button__spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--pa-size-icon-md);
+  height: var(--pa-size-icon-md);
+  border: var(--pa-border-width-strong) solid currentColor;
+  border-top-color: transparent;
+  border-radius: var(--pa-radius-pill);
+  animation: pa-rotate 0.8s linear infinite;
+}
+
+@keyframes pa-rotate {
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pa-button__spinner {
+    animation-duration: 1.5s;
+  }
+}
+</style>

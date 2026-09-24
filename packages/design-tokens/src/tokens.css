@@ -4,6 +4,10 @@
  * Light is the shipped theme; the tokens are defined once so a dark theme can be
  * added by overriding :root under a [data-theme="dark"] selector without touching
  * any component.
+ *
+ * M2 (V020_DESIGN_SYSTEM_SPEC): this file is the token SSOT. Page-level .vue
+ * files must not hard-code hex / rgb / hsl / spacing numbers / radius numbers
+ * unless a documented visual exception is registered in the design-system spec.
  */
 
 :root {
@@ -13,19 +17,31 @@
   --pa-color-bg-sunken: #eef1f4;
   --pa-color-bg-overlay: rgba(20, 28, 36, 0.44);
 
+  /* Surface vocabulary (Design System §7): every layer of the app is a named
+   * surface token, so components never invent another grey. */
+  --pa-color-surface: #ffffff;
+  --pa-color-surface-raised: #ffffff;
+  --pa-color-surface-muted: #eef1f4;
+  --pa-color-surface-interactive: #e7eef5;
+
   /* --- colour: text ------------------------------------------------------ */
   --pa-color-text-primary: #1d2733;
   --pa-color-text-secondary: #4a5560;
   --pa-color-text-muted: #69747f;
+  --pa-color-text-disabled: #9aa4ad;
   --pa-color-text-inverse: #ffffff;
 
   /* --- colour: lines ----------------------------------------------------- */
   --pa-color-border: #e4e8ec;
+  --pa-color-border-subtle: #eef2f5;
   --pa-color-border-strong: #c8d0d8;
   --pa-color-focus: #34618e;
+  --pa-color-border-focus: #34618e;
 
   /* --- colour: brand / action -------------------------------------------- */
   --pa-color-accent: #34618e;
+  --pa-color-accent-hover: #2b5379;
+  --pa-color-accent-active: #244763;
   --pa-color-accent-weak: #e7eef5;
 
   /* --- colour: map ------------------------------------------------------- */
@@ -39,6 +55,8 @@
   --pa-color-map-label-bg: rgba(255, 255, 255, 0.92);
 
   /* --- colour: status (semantic; never the ONLY signal) ------------------ */
+  /* Rule status palette. ALLOWED is a calm green, never a wall of bright green;
+   * PROHIBITED is a muted brick, never a danger screen; UNKNOWN stays neutral. */
   --pa-color-status-allowed: #2e7d52;
   --pa-color-status-allowed-bg: #e8f3ec;
   --pa-color-status-conditional: #8a5f18;
@@ -52,18 +70,52 @@
   --pa-color-status-stale: #8a5f18;
   --pa-color-status-stale-bg: #faf1df;
 
+  /* --- colour: reality (现场事实维度) -------------------------------------- */
+  /* Reality is a fact dimension, not a verdict: observed reads as calm blue,
+   * insufficiency and history stay neutral grey, dispute uses the warm warning
+   * (never alarm red). See Design System §7 and V020_DESIGN_SYSTEM_SPEC. */
+  --pa-color-reality-observed: #2f6e8c;
+  --pa-color-reality-observed-bg: #e6f0f5;
+  --pa-color-reality-historical: #69747f;
+  --pa-color-reality-historical-bg: #eef1f4;
+  --pa-color-reality-insufficient: #5c6873;
+  --pa-color-reality-insufficient-bg: #eceff2;
+  --pa-color-reality-disputed: #8a5f18;
+  --pa-color-reality-disputed-bg: #faf1df;
+
+  /* --- colour: facility --------------------------------------------------- */
+  --pa-color-facility-confirmed: #2f6d5e;
+  --pa-color-facility-confirmed-bg: #e7f2ee;
+  --pa-color-facility-unverified: #69747f;
+  --pa-color-facility-unverified-bg: #eef1f4;
+
+  /* --- colour: evidence --------------------------------------------------- */
+  --pa-color-evidence-verified: #2f6e8c;
+  --pa-color-evidence-verified-bg: #e6f0f5;
+  --pa-color-evidence-pending: #5c6873;
+  --pa-color-evidence-pending-bg: #eceff2;
+  --pa-color-evidence-disputed: #8a5f18;
+  --pa-color-evidence-disputed-bg: #faf1df;
+  --pa-color-evidence-historical: #69747f;
+  --pa-color-evidence-historical-bg: #eef1f4;
+
   /* --- colour: async states ---------------------------------------------- */
   /* Sheen swept across a skeleton placeholder. Shared so the H5 and admin
    * loading states shimmer identically. */
   --pa-color-skeleton-sheen: rgba(255, 255, 255, 0.6);
 
-  /* --- spacing (4px base) ------------------------------------------------ */
+  /* --- spacing (4px base; finite scale) ----------------------------------- */
+  /* Limited scale: 4 8 12 16 20 24 32 40 48. Page code must not invent values
+   * outside this set (e.g. 13px / 17px / 23px / 29px are forbidden). */
   --pa-space-1: 4px;
+  --pa-space-1h: 6px; /* only for fine icon/text alignment inside ≥8px contexts */
   --pa-space-2: 8px;
   --pa-space-3: 12px;
   --pa-space-4: 16px;
+  --pa-space-20: 20px;
   --pa-space-5: 24px;
   --pa-space-6: 32px;
+  --pa-space-40: 40px;
   --pa-space-7: 48px;
 
   /* --- radius ------------------------------------------------------------ */
@@ -75,8 +127,14 @@
   --pa-radius-lg: 12px; /* sheets / modals */
   --pa-radius-pill: 999px;
 
+  /* --- border ------------------------------------------------------------ */
+  --pa-border-width: 1px;
+  --pa-border-width-strong: 2px;
+  --pa-border-width-focus: 2px;
+
   /* --- typography -------------------------------------------------------- */
   --pa-font-family: "PingFang SC", "Microsoft YaHei", "Segoe UI", system-ui, sans-serif;
+  --pa-font-family-numeric: "Segoe UI", "SF Pro Text", system-ui, sans-serif;
   --pa-font-size-xs: 11px;
   --pa-font-size-sm: 12px;
   --pa-font-size-md: 13px;
@@ -84,11 +142,16 @@
   --pa-font-size-lg: 16px;
   --pa-font-size-xl: 18px;
   --pa-font-size-2xl: 20px;
+  --pa-font-size-3xl: 24px;
+  --pa-font-size-4xl: 32px;
   --pa-font-weight-regular: 400;
   --pa-font-weight-medium: 500;
   --pa-font-weight-bold: 700;
   --pa-line-height-tight: 1.25;
   --pa-line-height-base: 1.5;
+  --pa-letter-spacing-tight: -0.01em;
+  --pa-letter-spacing-normal: 0;
+  --pa-letter-spacing-wide: 0.02em;
 
   /* --- elevation --------------------------------------------------------- */
   --pa-elevation-0: none;
@@ -102,18 +165,59 @@
   --pa-motion-slow: 320ms;
   --pa-motion-ease: cubic-bezier(0.2, 0, 0.2, 1);
 
+  /* --- z-index ----------------------------------------------------------- */
+  /* One ladder for the whole app, so overlays can never collide. */
+  --pa-z-sticky: 100;
+  --pa-z-tabbar: 200;
+  --pa-z-banner: 300;
+  --pa-z-sheet: 400;
+  --pa-z-modal: 500;
+  --pa-z-toast: 600;
+
+  /* --- safe area (notches / home indicators / Android nav bars) ---------- */
+  --pa-safe-top: env(safe-area-inset-top, 0px);
+  --pa-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --pa-safe-left: env(safe-area-inset-left, 0px);
+  --pa-safe-right: env(safe-area-inset-right, 0px);
+  /* Content clearance above a bottom bar that itself consumes safe area. */
+  --pa-safe-total-bottom: calc(var(--pa-safe-bottom) + var(--pa-layout-tabbar-height));
+
+  /* --- component sizing ---------------------------------------------------- */
+  /* Controls: the 44px touch target is the guideline floor for anything a
+   * finger can tap; compact and relaxed sizes are explicit so no page has to
+   * invent heights. */
+  --pa-size-control-sm: 32px;
+  --pa-size-control-md: 40px;
+  --pa-size-control-lg: 44px;
+  --pa-size-icon-xs: 14px;
+  --pa-size-icon-sm: 16px;
+  --pa-size-icon-md: 20px;
+  --pa-size-icon-lg: 24px;
+  --pa-size-icon-xl: 32px;
+
   /* --- layout ------------------------------------------------------------ */
+  /* `--pa-layout-max-width` is the legacy mobile-reader measure. Desktop uses
+   * the M2 DesktopContentContainer widths instead (see V020_APP_SHELL_SPEC). */
   --pa-layout-max-width: 480px;
   --pa-layout-touch-target: 44px;
   --pa-layout-tabbar-height: 56px;
+  --pa-layout-rail-width: 232px;
+  --pa-layout-header-height: 56px;
+  --pa-layout-content-max: 1200px;
+  --pa-layout-content-narrow: 640px;
+  --pa-layout-content-gutter: 24px;
 }
 
 /* Breakpoints are consumed in JS (see src/index.ts) because CSS custom
  * properties cannot be used inside @media conditions. Documented here so the
- * two stay in sync:
- *   sm 0–479   mobile portrait
- *   md 480–767 mobile landscape / small tablet
- *   lg 768–1023 tablet
+ * two stay in sync. M2 covers these viewports:
+ *   mobile  320 / 360 / 390 / 430
+ *   tablet  768
+ *   desktop 1024 / 1280 / 1440 / 1920
+ * Range table:
+ *   sm 0–479    mobile portrait
+ *   md 480–767  mobile landscape / small tablet
+ *   lg 768–1023 tablet        (navigation rail starts here)
  *   xl 1024+    desktop H5 / admin
  */
 
