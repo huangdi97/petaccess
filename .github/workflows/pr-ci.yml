@@ -168,6 +168,10 @@ jobs:
         image: redis:7-alpine
         ports:
           - 6379:6379
+    env:
+      DATABASE_URL: postgresql+psycopg://petaccess:petaccess_dev_only@localhost:5432/petaccess_e2e
+      CELERY_TASK_QUEUE: petaccess_e2e
+      REDIS_URL: redis://127.0.0.1:6379/0
     steps:
       - uses: actions/checkout@v4
 
