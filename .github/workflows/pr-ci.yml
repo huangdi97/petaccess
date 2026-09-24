@@ -198,6 +198,9 @@ jobs:
       - name: Provision E2E database
         run: uv run python scripts/isolated_db.py --role E2E --reset
 
+      - name: Build H5 (vite preview needs dist/)
+        run: pnpm --filter @petaccess/client-h5 build
+
       - name: Install Playwright chromium
         run: pnpm exec playwright install --with-deps chromium
 

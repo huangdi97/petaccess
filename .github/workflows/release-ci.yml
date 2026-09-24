@@ -201,7 +201,7 @@ jobs:
       - name: Tauri android init (generated project not committed)
         run: pnpm --filter @petaccess/client-h5 exec tauri android init
       - name: Build Android release APK
-        run: pnpm --filter @petaccess/client-h5 exec tauri android build --target aarch64,armv7,i686,x86_64
+        run: pnpm --filter @petaccess/client-h5 exec tauri android build --target aarch64 --target armv7 --target i686 --target x86_64
       - name: Sign APK with release keystore (Secrets)
         shell: bash
         run: |
