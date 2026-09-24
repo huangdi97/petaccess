@@ -1,7 +1,7 @@
 """SQLAlchemy declarative base, naming conventions and shared mixins."""
 
 import uuid
-from datetime import UTC, datetime
+from datetime import datetime
 
 from sqlalchemy import DateTime, MetaData, String, func
 from sqlalchemy import Numeric as SANumeric
@@ -14,10 +14,6 @@ NAMING_CONVENTION = {
     "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
     "pk": "pk_%(table_name)s",
 }
-
-
-def utcnow() -> datetime:
-    return datetime.now(UTC)
 
 
 class Base(DeclarativeBase):
@@ -39,18 +35,6 @@ class TimestampMixin:
         onupdate=func.now(),
         nullable=False,
     )
-
-
-class SoftDeleteMixin:
-    """Lifecycle deletion: history is preserved, never hard-deleted (design #40)."""
-
-    deleted_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True, default=None
-    )
-
-    @property
-    def is_deleted(self) -> bool:
-        return self.deleted_at is not None
 
 
 # Numeric columns use SANumeric via helper for consistent scale

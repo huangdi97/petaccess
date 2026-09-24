@@ -28,7 +28,8 @@ Severity:CRITICAL(閸欐垵绔烽梼璇差敚) / HIGH(閸欐垵绔烽崜宥呯�
 | TD-012 | LOW | app/config.py 閸愬懎绁?dev JWT/DB/S3 姒涙顓婚崐?| 閻㈢喍楠囬悳顖氼暔缂傜儤妯夊?fail-fast | 閻㈢喍楠囩拠顖滄暏 dev 閸戭厽宓?| 閻㈢喍楠囧Ο鈥崇础(AAPP_ENV=production)鐎佃鏅遍幇鐔煎帳缂冾喖宸遍崚鑸垫▔瀵繑褰佹笟?缂傚搫銇戦崡鍐叉儙閸斻劌銇戠拹?| 閻㈢喍楠囧Ο鈥崇础閸氼垰濮╁ù瀣槸 | OPEN |
 | TD-013 | LOW | migrations/versions/e9f2c1d4a5b6_*.py | UTF-8 BOM | 宸ュ叿閾捐В鏋愬け璐?| 鍘婚櫎 BOM锛圡1 宸插仛, 鍐呭涓嶅彉锛?| ast 鍙В鏋? alembic 鏃?drift | DONE (M1) |
 | TD-014 | LOW | scripts/(89 娑擃亙绔村▎鈩冣偓?鏉╂劗娣懘姘拱) | 婢堆囧櫤妤傛ê顦查弶鍌氬娑撯偓濞嗏剝鈧嗗壖閺堫剚绮搁悾娆庣波鎼?| 鐎孤ゎ吀閸ｎ亪鐓堕妴浣烘樊閹躲倛绀嬮幏?| 瑜版帗銆傞懛?scripts/archive 閹存牗妲戠涵顔界垼鐠侀绔村▎鈩冣偓?娑撳秴寮稉?production gate | gate 閹烘帡娅庨懘姘拱閻╊喖缍?閺傚洦銆傜拠瀛樻 | OPEN |
-
+| TD-028 | LOW | services/api/app 的 FastAPI/Celery/中间件 装饰器注册入口（api/v1/*、main.py、worker/*） | 文本语料式 dead-code 扫描无法从 @router.get / @app.get / @celery_app.task 装饰器看出注册引用，误报为 dead-code | 非真实死代码：装饰器即运行期引用（FastAPI 聚合、Celery 字符串任务名、中间件注入） | 按符号逐条在 gate_exemptions.json 注册（rule=dead-code, symbol=<name>），引用本 TD；不允许整路径豁免 | gate PASS; dead-code 无未豁免 FAIL | DONE (M1 v0.2.0) |
+| TD-029 | LOW | models/enums.py StaffAwarenessState/FacilityPurposeState; providers/factory.py get_map_provider | 文档化领域枚举与规划中的 Map adapter 工厂尚未接线，文本扫描报 dead-code | 删除会丢失文档化领域词汇（addendum PHASE 9/10 与 Map 计划） | 按符号逐条注册（rule=dead-code），接线随对应 phase 落地 | gate PASS; 接线后移除豁免 | DONE (M1 v0.2.0) |
 ---
 
 ## 閸撳秶顏?apps/, packages/)

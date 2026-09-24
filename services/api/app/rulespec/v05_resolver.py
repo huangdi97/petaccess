@@ -28,7 +28,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import StrEnum
 
-from app.models.enums import MandatoryLevel, normalize_mandatory_level
+from app.models.enums import MandatoryLevel, RuleEffect, normalize_mandatory_level
 from app.rulespec.holder_scope import (
     MISSING_CONTEXT_HOLDER_SCOPE,
     MISSING_CONTEXT_SERVICE_ROLE,
@@ -537,8 +537,8 @@ def resolve(
         applicable.extend(legal_other)
         steps.append(f"LEGAL non-mandatory rules included ({len(legal_other)}).")
 
-    mandatory_prohibited = [r for r in legal_mandatory if r.effect == "prohibited"]
-    mandatory_conditional = [r for r in legal_mandatory if r.effect == "conditional"]
+    mandatory_prohibited = [r for r in legal_mandatory if r.effect == RuleEffect.PROHIBITED]
+    mandatory_conditional = [r for r in legal_mandatory if r.effect == RuleEffect.CONDITIONAL]
     mandatory_conditions = [c for r in mandatory_conditional for c in r.conditions]
 
     # --- 2. lower layers: conflict-with-legal handling -----------------------
@@ -553,11 +553,13 @@ def resolve(
     ):
         for r in group:
             relaxes_prohibition = bool(mandatory_prohibited) and r.effect in (
-                "allowed",
-                "conditional",
+                RuleEffect.ALLOWED,
+                RuleEffect.CONDITIONAL,
             )
             drops_obligation = (
-                bool(mandatory_conditional) and not mandatory_prohibited and r.effect == "allowed"
+                bool(mandatory_conditional)
+                and not mandatory_prohibited
+                and r.effect == RuleEffect.ALLOWED
             )
             if relaxes_prohibition:
                 suppressed.append(
@@ -626,10 +628,14 @@ def resolve(
 
     # --- 5. same-scope conflicts among applicable lower-layer rules ----------
     allowed = [
-        r for r in applicable if r.effect == "allowed" and r.rule_layer != RuleLayer.LEGAL.value
+        r
+        for r in applicable
+        if r.effect == RuleEffect.ALLOWED and r.rule_layer != RuleLayer.LEGAL.value
     ]
     prohibited = [
-        r for r in applicable if r.effect == "prohibited" and r.rule_layer != RuleLayer.LEGAL.value
+        r
+        for r in applicable
+        if r.effect == RuleEffect.PROHIBITED and r.rule_layer != RuleLayer.LEGAL.value
     ]
     if allowed and prohibited:
         conflicts.append((prohibited[0], allowed[0]))
@@ -683,13 +689,13 @@ def resolve(
         steps.append("effect: prohibited (legal floor).")
     elif applicable:
         effects = {r.effect for r in governing}
-        if "prohibited" in effects:
+        if RuleEffect.PROHIBITED in effects:
             effect = "prohibited"
-        elif effects == {"allowed"}:
+        elif effects == {RuleEffect.ALLOWED}:
             effect = "allowed"
         else:
             effect = "conditional"
-        if effect == "allowed" and mandatory_conditional:
+        if effect == RuleEffect.ALLOWED and mandatory_conditional:
             # a mandatory legal condition is not relaxable: an operator's plain
             # "allowed" cannot erase the statutory obligation.
             effect = "conditional"
@@ -711,9 +717,11 @@ def resolve(
     # Only a carve-out that claims a base *actually producing the prohibition*
     # can soften it. One withheld for an unrelated base cannot, and saying so
     # would look like that carve-out had reopened a ban it never touched.
-    relevant = _pending_on_governing_bases({r.id for r in applicable if r.effect == "prohibited"})
+    relevant = _pending_on_governing_bases(
+        {r.id for r in applicable if r.effect == RuleEffect.PROHIBITED}
+    )
     if (
-        effect == "prohibited"
+        effect == RuleEffect.PROHIBITED
         and relevant
         and not conflicts
         and not conflicted_rule_ids
@@ -735,12 +743,8 @@ def resolve(
         compliance_state=compliance,
         effect=effect,
         obligations=obligations,
-        missing_inputs=_missing_inputs() if effect == "conditional" else [],
+        missing_inputs=_missing_inputs() if effect == RuleEffect.CONDITIONAL else [],
         applied_exceptions=applied_exceptions,
         pending_exceptions=sorted(pending),
         duplicate_exceptions=sorted(duplicates),
     )
-
-
-def _unused() -> None:  # pragma: no cover - keeps imports referenced for clarity
-    _by_specificity([])

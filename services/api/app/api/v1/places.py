@@ -14,10 +14,10 @@ from sqlalchemy.orm import Session, aliased
 from app.core.audit import record_audit
 from app.core.audit_events import AuditEvent
 from app.core.errors import NotFound
-from app.core.security import get_current_user, require_role
+from app.core.security import require_role
 from app.db.session import get_db
 from app.models import AccessRule, ExternalPlaceRef, Place, PlaceGeometry, User, Zone
-from app.models.enums import UserRole
+from app.models.enums import LifecycleStatus, UserRole
 from app.schemas.common import Page
 from app.schemas.places import (
     ExternalRefIn,
@@ -139,7 +139,7 @@ def list_places(
 ) -> Page[PlaceSummary]:
     parent_place_name, rule_count, last_verified_at = _disambiguation_projection()
     stmt = select(Place, parent_place_name, rule_count, last_verified_at).where(
-        Place.lifecycle_status == "active"
+        Place.lifecycle_status == LifecycleStatus.ACTIVE
     )
     if q:
         # pg_trgm similarity + ILIKE fallback in one OR for CJK friendliness.
@@ -188,7 +188,7 @@ def nearby_places(
             last_verified_at,
         )
         .where(
-            Place.lifecycle_status == "active",
+            Place.lifecycle_status == LifecycleStatus.ACTIVE,
             Place.location.isnot(None),
             func.ST_DWithin(Place.location, point, radius_m),
         )
@@ -427,7 +427,3 @@ def create_geometry(
     out = GeometryOut.model_validate(row[0])
     out.geojson = json_loads_safe(row[1])
     return out
-
-
-def current_user_dep():
-    return get_current_user

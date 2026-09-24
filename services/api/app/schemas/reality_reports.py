@@ -25,8 +25,6 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.enums import (
     AnimalScope,
-    ExternalContentPlatform,
-    ObservationEffortDurationBucket,
     RealityConfirmationType,
     RealityReportModerationState,
 )
@@ -96,18 +94,6 @@ class RealityContributionOut(BaseModel):
     moderation_state: RealityReportModerationState = RealityReportModerationState.PENDING
 
 
-class ObservationEffortOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: str
-    place_id: str
-    duration_bucket: ObservationEffortDurationBucket
-    covered_zone_ids: list | None = None
-    animal_observed: bool
-    observed_at: datetime | None = None
-    created_at: datetime
-
-
 class RealityConfirmationOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -118,21 +104,6 @@ class RealityConfirmationOut(BaseModel):
     target_candidate_id: str | None = None
     observed_at: datetime | None = None
     created_at: datetime
-
-
-class ExternalContentReferenceOut(BaseModel):
-    """External reference with dedup metadata (never raw media)."""
-
-    model_config = ConfigDict(from_attributes=True)
-
-    id: str
-    report_id: str | None = None
-    source_url: str
-    platform: ExternalContentPlatform | None = None
-    published_at: datetime | None = None
-    place_metadata: dict | None = None
-    keyframe_ref: str | None = None
-    ocr_text: str | None = None
 
 
 class RealityTraceSection(BaseModel):

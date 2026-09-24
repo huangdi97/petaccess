@@ -26,8 +26,16 @@ def check_rate_limit(bucket: str, key: str, limit: int, window_seconds: int) -> 
         count = cast(int, r.incr(redis_key))
         if count == 1:
             r.expire(redis_key, window_seconds)
-    except redis.RedisError:
-        # Redis unavailable: fail open (dev infra), never block the whole API
+    except redis.RedisError as exc:
+        # Fail open: with Redis unavailable, rate limiting cannot be enforced.
+        # A busy API must not become a 500 storm because its limiter is down;
+        # the outage is logged so operators see it rather than silently
+        # letting traffic through unthrottled.
+        import logging
+
+        logging.getLogger("petaccess.ratelimit").debug(
+            "rate-limit counter unavailable (non-fatal, fail-open): %s", exc
+        )
         return
     if count > limit:
         raise RateLimited(f"操作过于频繁，请 {window_seconds // 60} 分钟后再试")

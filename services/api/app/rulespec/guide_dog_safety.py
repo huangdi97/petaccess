@@ -58,7 +58,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
-from app.models.enums import HolderScope
+from app.models.enums import HolderScope, RuleEffect
 from app.rulespec.holder_scope import HolderContext
 from app.rulespec.statutory_proviso import BindingMode
 from app.rulespec.v05_resolver import (
@@ -179,7 +179,7 @@ class GuideDogSafetyProbe:
         """With no holder context, a holder-conditional path must not say ALLOWED."""
         if not self.holder_scope:
             return True
-        return self.guide_dog_unknown_holder_effect != "allowed"
+        return self.guide_dog_unknown_holder_effect != RuleEffect.ALLOWED
 
     @property
     def safe_to_publish(self) -> bool:
@@ -341,8 +341,8 @@ def probe_guide_dog_safety_path(
         probe = GuideDogSafetyProbe(
             base_rule_id=base_rule_id,
             place_name=str(base.get("place_name") or ""),
-            ordinary_dog_prohibited=ordinary.effect == "prohibited",
-            guide_dog_prohibited=guide_match.effect == "prohibited",
+            ordinary_dog_prohibited=ordinary.effect == RuleEffect.PROHIBITED,
+            guide_dog_prohibited=guide_match.effect == RuleEffect.PROHIBITED,
             guide_dog_effect=guide_match.effect,
             applied_exceptions=tuple(guide_match.applied_exceptions),
             exception_source=label if guide_match.applied_exceptions else "none",
@@ -378,8 +378,8 @@ def probe_guide_dog_safety_path(
     return GuideDogSafetyProbe(
         base_rule_id=base_rule_id,
         place_name=str(base.get("place_name") or ""),
-        ordinary_dog_prohibited=ordinary.effect == "prohibited",
-        guide_dog_prohibited=guide_match.effect == "prohibited",
+        ordinary_dog_prohibited=ordinary.effect == RuleEffect.PROHIBITED,
+        guide_dog_prohibited=guide_match.effect == RuleEffect.PROHIBITED,
         guide_dog_effect=guide_match.effect,
         applied_exceptions=(),
         exception_source="none",

@@ -391,6 +391,922 @@
       "path": "views/SpatialExtrasView.vue",
       "reason": "planned component split (M3/M4); see V010_TECH_DEBT_REGISTER #TD-015",
       "reference": "TD-015"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/admin.py",
+      "symbol": "ai_extraction_queue",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/admin.py",
+      "symbol": "conflict_review",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/admin.py",
+      "symbol": "list_all_observations",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/admin.py",
+      "symbol": "list_audit",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/admin.py",
+      "symbol": "list_users",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/admin.py",
+      "symbol": "quality_dashboard",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/admin.py",
+      "symbol": "worker_job_visibility",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/ai.py",
+      "symbol": "map_config",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/ai.py",
+      "symbol": "ocr_signage",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/disputes.py",
+      "symbol": "list_disputes",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/disputes.py",
+      "symbol": "my_disputes",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/disputes.py",
+      "symbol": "resolve_dispute",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/disputes.py",
+      "symbol": "review_dispute",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/disputes.py",
+      "symbol": "submit_counter_statement",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/disputes.py",
+      "symbol": "submit_dispute",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/media.py",
+      "symbol": "delete_media",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/media.py",
+      "symbol": "media_meta",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/media.py",
+      "symbol": "media_url",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/media.py",
+      "symbol": "upload_media",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/observations.py",
+      "symbol": "create_observation",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/observations.py",
+      "symbol": "list_place_observations",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/observations.py",
+      "symbol": "withdraw_observation",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/operators.py",
+      "symbol": "list_claims",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/operators.py",
+      "symbol": "review_claim",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/operators.py",
+      "symbol": "submit_claim",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/operators.py",
+      "symbol": "submit_questionnaire",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/pets.py",
+      "symbol": "create_pet",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/pets.py",
+      "symbol": "delete_pet",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/pets.py",
+      "symbol": "list_my_pets",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/pets.py",
+      "symbol": "update_pet",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/places.py",
+      "symbol": "attach_external_ref",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/places.py",
+      "symbol": "create_geometry",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/places.py",
+      "symbol": "create_place",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/places.py",
+      "symbol": "create_zone",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/places.py",
+      "symbol": "get_place",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/places.py",
+      "symbol": "list_place_geometries",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/places.py",
+      "symbol": "list_place_zones",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/places.py",
+      "symbol": "list_places",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/places.py",
+      "symbol": "list_zone_geometries",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/places.py",
+      "symbol": "nearby_places",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/places.py",
+      "symbol": "update_place",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/places.py",
+      "symbol": "update_zone",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/reality.py",
+      "symbol": "admin_list_facilities",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/reality.py",
+      "symbol": "admin_list_observed",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/reality.py",
+      "symbol": "admin_list_staff_responses",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/reality.py",
+      "symbol": "contribute_reality",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/reality.py",
+      "symbol": "create_reality_candidate",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/reality.py",
+      "symbol": "decide_reality_candidate",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/reality.py",
+      "symbol": "list_reality_candidates",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/reality.py",
+      "symbol": "place_reality",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/reality_reports.py",
+      "symbol": "create_reality_report",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/reality_reports.py",
+      "symbol": "list_reality_reports",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/reality_reports.py",
+      "symbol": "reality_trace",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/regulations.py",
+      "symbol": "create_regulation",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/regulations.py",
+      "symbol": "list_regulations",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/regulations.py",
+      "symbol": "place_regulations",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/regulations.py",
+      "symbol": "review_regulation",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/rules.py",
+      "symbol": "create_rule",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/rules.py",
+      "symbol": "evaluate_rules",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/rules.py",
+      "symbol": "list_place_rules",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/rules.py",
+      "symbol": "list_zone_rules",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/rules.py",
+      "symbol": "update_rule",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/sources.py",
+      "symbol": "create_source",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/sources.py",
+      "symbol": "list_sources",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_assign_source_freshness",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_check_monitor",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_classify",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_create_access_path",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_create_amenity",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_create_artifact",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_create_binding",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_create_bundle",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_create_candidate",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_create_data_source_job",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_create_entrance",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_create_event",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_create_freshness_policy",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_create_license",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_create_observation_candidate",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_create_org",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_create_rule_exception",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_create_template",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_finish_data_source_job",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_list_access_paths",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_list_amenities",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_list_artifacts",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_list_bindings",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_list_bundles",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_list_candidates",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_list_coexistence",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_list_data_licenses",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_list_data_source_jobs",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_list_due_monitors",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_list_entrances",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_list_event_policies",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_list_freshness_policies",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_list_monitors",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_list_observation_candidates",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_list_organizations",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_list_rule_exceptions",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_list_templates",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_publish_candidate",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_reality_audit",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_set_candidate_layer",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_set_candidate_mandatory_level",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_set_candidate_scope",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_sweep_due_monitors",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_transition_candidate",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_transition_observation_candidate",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "admin_transition_rule_exception",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "boundary_match_endpoint",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "effective_rules",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "get_default_boundary_profile",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "list_my_boundary_profiles",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "list_place_candidates",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "place_answerability",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "place_extras",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "upsert_default_boundary_profile",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/verifications.py",
+      "symbol": "create_verification",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/verifications.py",
+      "symbol": "list_place_verifications",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/watches.py",
+      "symbol": "my_watches",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/watches.py",
+      "symbol": "subscribe",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "main.py",
+      "symbol": "health_components",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "main.py",
+      "symbol": "health_database",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "main.py",
+      "symbol": "metrics_snapshot",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "main.py",
+      "symbol": "request_id_middleware",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "worker/celery_app.py",
+      "symbol": "_on_task_failure",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "models/enums.py",
+      "symbol": "StaffAwarenessState",
+      "reason": "documented domain vocabulary / planned adapter, wiring deferred",
+      "reference": "TD-029"
+    },
+    {
+      "rule": "dead-code",
+      "path": "models/enums.py",
+      "symbol": "FacilityPurposeState",
+      "reason": "documented domain vocabulary / planned adapter, wiring deferred",
+      "reference": "TD-029"
+    },
+    {
+      "rule": "dead-code",
+      "path": "providers/factory.py",
+      "symbol": "get_map_provider",
+      "reason": "documented domain vocabulary / planned adapter, wiring deferred",
+      "reference": "TD-029"
+    },
+    {
+      "rule": "file>300",
+      "path": "api/v1/reality_reports.py",
+      "reason": "planned backend split (M2); sibling of api/v1/reality.py — see V010_TECH_DEBT_REGISTER #TD-010",
+      "reference": "TD-010"
     }
   ]
 }

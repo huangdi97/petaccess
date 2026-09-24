@@ -36,6 +36,8 @@ from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from typing import Any
 
+from app.models.enums import RuleEffect
+
 #: Bump when the shape or the derivation rules change. Consumers key off this
 #: instead of guessing from the presence of fields.
 ACCESS_ANSWER_VERSION = "access-answer/1"
@@ -199,7 +201,7 @@ def _next_actions(
             )
         elif scope_level == "none":
             actions.append("可以现场拍摄规则牌提交核验。")
-    if effect == "conditional":
+    if effect == RuleEffect.CONDITIONAL:
         actions.append("结论附有条件，进入前请逐条确认。")
     return actions
 
@@ -208,11 +210,11 @@ def _normative_summary(
     *, effect: str, place_name: str, zone_name: str | None, governing: list[Any]
 ) -> str:
     where = f"{place_name}·{zone_name}" if zone_name else place_name
-    if effect == "prohibited":
+    if effect == RuleEffect.PROHIBITED:
         return f"{where}：禁止。"
-    if effect == "allowed":
+    if effect == RuleEffect.ALLOWED:
         return f"{where}：允许。"
-    if effect == "conditional":
+    if effect == RuleEffect.CONDITIONAL:
         return f"{where}：有条件允许 —— 条件见 condition_evaluation。"
     return f"{where}：规则未知（未覆盖），不得据此认为允许。"
 

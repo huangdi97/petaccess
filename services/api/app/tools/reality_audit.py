@@ -123,7 +123,15 @@ def _parse_dt(value: str | None) -> datetime | None:
         return None
     try:
         return datetime.fromisoformat(value)
-    except ValueError:
+    except ValueError as exc:
+        # Malformed timestamp in audit data: absent ("None") is honest — the
+        # sample simply has no usable time. Log at debug so data-quality
+        # problems are traceable without making the audit unreadable.
+        import logging
+
+        logging.getLogger("petaccess.reality_audit").debug(
+            "unparseable timestamp (treated as none): %s", exc
+        )
         return None
 
 

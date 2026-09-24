@@ -13,7 +13,7 @@ from app.core.config import get_settings
 from app.core.errors import NotFound, PermissionDenied, Unauthorized
 from app.db.session import get_db
 from app.models import User
-from app.models.enums import UserRole
+from app.models.enums import UserRole, UserStatus
 
 _bearer = HTTPBearer(auto_error=False)
 
@@ -74,7 +74,7 @@ def get_current_user(
         raise Unauthorized("缺少认证凭证")
     payload = decode_token(credentials.credentials)
     user = db.get(User, payload["sub"])
-    if user is None or user.status != "active":
+    if user is None or user.status != UserStatus.ACTIVE:
         raise Unauthorized("用户不可用")
     request.state.actor_user_id = user.id
     request.state.actor_role = str(user.role)
@@ -90,7 +90,13 @@ def get_optional_user(
         return None
     try:
         return get_current_user(request, credentials, db)
-    except (Unauthorized, NotFound):
+    except (Unauthorized, NotFound) as exc:
+        # Optional-auth endpoints: an invalid/expired credential or a deleted
+        # user simply means "no user", never an error for the caller. Log at
+        # debug so a misbehaving client is observable without spamming INFO.
+        import logging
+
+        logging.getLogger("petaccess.security").debug("optional auth resolved to no user: %s", exc)
         return None
 
 

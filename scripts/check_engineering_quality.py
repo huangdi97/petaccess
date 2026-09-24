@@ -1,10 +1,18 @@
 #!/usr/bin/env python3
-"""Engineering quality gate for petaccess v0.1.0 (M1) — entry point.
+"""Engineering quality gate for petaccess (M1 + v0.2.0 M1 §40) — entry point.
 
-Aggregates the check functions from `engineering_quality_checks.py` and
-applies the explicit exemption registry (`scripts/gate_exemptions.json`).
-Every exemption must reference a documented reason in
-docs/audit/V010_TECH_DEBT_REGISTER.md — no path-based blanket ignores.
+Aggregates the check functions from `engineering_quality_checks.py`,
+`engineering_quality_scan.py`, `engineering_quality_scan2.py`
+(silent-catch, magic-status) and `engineering_quality_scan3.py`
+(dead-code, duplicate-config), and applies the explicit exemption registry
+(`scripts/gate_exemptions.json`). Every exemption must reference a documented
+reason in docs/audit/V010_TECH_DEBT_REGISTER.md — no path-based blanket
+ignores.
+
+Rules enforced (Master Goal §40):
+file>300 / file>250 / vue>200 / vue>150 / ts>300 / fn>60 / cyclo>15 /
+cyclo>10 / cycle / type-escape / todo / hardcoded-color /
+silent-catch / magic-status / dead-code / duplicate-config
 
 Usage:
     uv run python scripts/check_engineering_quality.py            # full gate
@@ -23,6 +31,8 @@ from pathlib import Path
 
 from engineering_quality_checks import check_functions, check_size, dependency_cycles
 from engineering_quality_scan import check_todos, check_ts_colors, check_type_escapes
+from engineering_quality_scan2 import check_magic_status, check_silent_catches
+from engineering_quality_scan3 import check_dead_code, check_duplicate_config
 
 ROOT = Path(__file__).resolve().parent.parent
 EXEMPTIONS_FILE = ROOT / "scripts" / "gate_exemptions.json"
@@ -49,6 +59,10 @@ def collect() -> list[dict]:
     out += check_type_escapes(exemptions, PY_ROOTS, TS_ROOTS)
     out += check_todos(exemptions, PY_ROOTS, TS_ROOTS)
     out += check_ts_colors(exemptions, TS_ROOTS)
+    out += check_silent_catches(exemptions, PY_ROOTS, TS_ROOTS)
+    out += check_magic_status(exemptions, PY_ROOTS)
+    out += check_dead_code(exemptions, PY_ROOTS)
+    out += check_duplicate_config(exemptions)
     return out
 
 
@@ -65,7 +79,7 @@ def render_human(violations: list[dict]) -> str:
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="petaccess engineering quality gate (M1)")
+    ap = argparse.ArgumentParser(description="petaccess engineering quality gate (M1 + §40)")
     ap.add_argument("--json", action="store_true", help="emit machine-readable report")
     ap.add_argument("--dump", action="store_true", help="print every violation")
     args = ap.parse_args()

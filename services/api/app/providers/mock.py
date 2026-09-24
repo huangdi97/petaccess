@@ -90,13 +90,17 @@ class MockNotificationProvider:
             r = _redis.Redis.from_url(get_settings().redis_url, decode_responses=True)
             r.rpush("mock:notifications", json.dumps(item, ensure_ascii=False))
             r.expire("mock:notifications", 86400)
-        except Exception:
+        except Exception as exc:
             # Local dev convenience only: if Redis is not running the mock
             # provider still has to return a delivered-looking result, because
             # its whole purpose is to let the app run without infrastructure.
             # Note the returned status is `sent_mock` — it never claims a real
             # delivery, so swallowing here cannot misreport anything to a user.
-            pass
+            import logging
+
+            logging.getLogger("petaccess.mocks").debug(
+                "mock notification sink unavailable (non-fatal): %s", exc
+            )
         return {"status": "sent_mock", "item": item}
 
 

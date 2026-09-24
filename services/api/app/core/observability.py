@@ -93,13 +93,17 @@ def record_failed_job(task_name: str, task_id: str, error: str) -> None:
         )
         r.lpush(FAILED_JOBS_KEY, entry)
         r.ltrim(FAILED_JOBS_KEY, 0, MAX_FAILED_JOBS_KEPT - 1)
-    except Exception:
+    except Exception as exc:
         # Best-effort bookkeeping: the failed-jobs list is a convenience view
         # for operators, and losing an entry must never turn a task failure
         # into a different, confusing failure. The task's own exception is
         # what callers see. Errors here have no channel to report to without
         # recursing into the same failure.
-        pass
+        import logging
+
+        logging.getLogger("petaccess.observability").debug(
+            "failed-jobs bookkeeping error (non-fatal): %s", exc
+        )
 
 
 def list_failed_jobs(limit: int = 50) -> list[dict]:
@@ -113,5 +117,15 @@ def list_failed_jobs(limit: int = 50) -> list[dict]:
         r = _redis.Redis.from_url(get_settings().redis_url, decode_responses=True)
         rows = cast("list[str]", r.lrange(FAILED_JOBS_KEY, 0, max(0, limit - 1)))
         return [json.loads(x) for x in rows]
-    except Exception:
+    except Exception as exc:
+        # Best-effort read: the failed-jobs list is a convenience view for
+        # operators and the admin UI must keep working when Redis is down.
+        # The empty list is a truthful "nothing recorded" (never a fabricated
+        # entry), and there is no reporting channel here that would not recurse
+        # into the same failure.
+        import logging
+
+        logging.getLogger("petaccess.observability").debug(
+            "failed-jobs list unavailable (non-fatal): %s", exc
+        )
         return []

@@ -14,6 +14,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from app.models.enums import RuleEffect
+
 # attributes where a missing value can be derived from the effective access
 # rules (indoor/outdoor entry) instead of UNKNOWN-with-no-hint
 _DERIVABLE = {
@@ -53,11 +55,11 @@ def match(
         value = coexistence.get(attribute)
 
         if value is None and attribute in _DERIVABLE:
-            if effective_effect == "allowed":
+            if effective_effect == RuleEffect.ALLOWED:
                 value = "allowed"
-            elif effective_effect == "prohibited":
+            elif effective_effect == RuleEffect.PROHIBITED:
                 value = "prohibited"
-            elif effective_effect == "conditional":
+            elif effective_effect == RuleEffect.CONDITIONAL:
                 value = "conditional"
 
         if value is None:
@@ -79,9 +81,9 @@ def match(
             else:
                 verdict, reason = "UNKNOWN", f"属性={value}，需人工判断"
         elif stance == "require_prohibited":
-            if value == "prohibited":
+            if value == RuleEffect.PROHIBITED:
                 verdict, reason = "MATCH", "场所明确禁止，符合你的要求"
-            elif value == "allowed":
+            elif value == RuleEffect.ALLOWED:
                 verdict, reason = "CONFLICT", "场所允许，与你的硬性要求冲突"
             else:
                 verdict, reason = "UNKNOWN", f"属性={value}，没有明确禁止（不当作禁止）"

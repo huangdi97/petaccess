@@ -6,7 +6,6 @@ Stores the serialized response of the first successful execution in Redis for
 
 import hashlib
 import json
-from contextlib import suppress
 from typing import cast
 
 import redis
@@ -37,7 +36,16 @@ def get_cached(scope: str, idem_key: str) -> dict | None:
         return None
     try:
         raw = cast("str | None", _redis().get(_key(scope, idem_key)))
-    except redis.RedisError:
+    except redis.RedisError as exc:
+        # Fail-open: idempotency is a safety net, never a hard dependency. A
+        # Redis outage must not turn an otherwise valid request into a 500 or
+        # (worse) a silently re-executed write that looks idempotent — the
+        # caller just proceeds and stores nothing.
+        import logging
+
+        logging.getLogger("petaccess.idempotency").debug(
+            "idempotency cache read failed (non-fatal, fail-open): %s", exc
+        )
         return None
     return json.loads(raw) if raw else None
 
@@ -45,8 +53,17 @@ def get_cached(scope: str, idem_key: str) -> dict | None:
 def store(scope: str, idem_key: str, response_body: dict) -> None:
     if not idem_key:
         return
-    with suppress(redis.RedisError):
+    try:
         _redis().set(_key(scope, idem_key), json.dumps(response_body), ex=TTL_SECONDS)
+    except redis.RedisError as exc:
+        # Fail-open: losing the stored replay must not fail the write that just
+        # succeeded. Idempotency degrades to "no cache" during the outage; the
+        # caller never sees a 500 from the bookkeeping step itself.
+        import logging
+
+        logging.getLogger("petaccess.idempotency").debug(
+            "idempotency store failed (non-fatal, fail-open): %s", exc
+        )
 
 
 def check_inflight(scope: str, idem_key: str) -> None:
@@ -57,5 +74,14 @@ def check_inflight(scope: str, idem_key: str) -> None:
     try:
         if not r.set(_key(scope, idem_key) + ":inflight", "1", nx=True, ex=60):
             raise Conflict("相同幂等键的请求正在处理中")
-    except redis.RedisError:
+    except redis.RedisError as exc:
+        # Fail-open: the in-flight guard is best-effort; losing it must not
+        # reject a request when Redis is down. Idempotency still holds for the
+        # stored-response path; this only weakens duplicate-concurrency
+        # prevention during the outage.
+        import logging
+
+        logging.getLogger("petaccess.idempotency").debug(
+            "in-flight reservation failed (non-fatal, fail-open): %s", exc
+        )
         return

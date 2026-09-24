@@ -88,7 +88,16 @@ class MinioStorageProvider:
 
         try:
             st = self._client.stat_object(bucket or self._bucket_default, key)
-        except S3Error:
+        except S3Error as exc:
+            # stat_object raises S3Error for both "no such object" and real
+            # storage failures; the API contract here folds both into None.
+            # Log at debug so genuine outages are observable while a missing
+            # object (the common case) stays quiet.
+            import logging
+
+            logging.getLogger("petaccess.storage").debug(
+                "stat_object unavailable (returns None): %s", exc
+            )
             return None
         return {
             "size": st.size,

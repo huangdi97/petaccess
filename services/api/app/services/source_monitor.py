@@ -83,7 +83,15 @@ def _parse_retry_after(value: str | None) -> int | None:
         from email.utils import parsedate_to_datetime
 
         when = parsedate_to_datetime(raw)
-    except (TypeError, ValueError):
+    except (TypeError, ValueError) as exc:
+        # Unparseable Retry-After (e.g. a delta-seconds or a bogus date): treat
+        # as "no retry-after" rather than failing the whole sweep. Log at debug
+        # so a persistently malformed header is visible to operators.
+        import logging
+
+        logging.getLogger("petaccess.source_monitor").debug(
+            "unparseable retry-after header (treated as none): %s", exc
+        )
         return None
     if when is None:
         return None

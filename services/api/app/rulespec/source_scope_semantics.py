@@ -66,7 +66,6 @@ from dataclasses import dataclass
 from typing import Any
 
 from app.models.enums import NormalizationType
-from app.rulespec.animal_scope import SCOPE_SUBJECTS
 
 __all__ = [
     "SemanticCompatibility",
@@ -290,14 +289,3 @@ def validate_source_scope_semantic_compatibility(
         reading=entry.get("reading", ""),
         follow_up=SEMANTIC_REMODEL_REQUIRED,
     )
-
-
-def declared_scope_subjects(scope: str | None) -> frozenset[str] | None:
-    """The subjects a stored scope covers — re-exported for the report layer.
-
-    Thin passthrough so a caller building a human-readable explanation does not
-    have to reach into two modules to say "other covers {other_pet}".
-    """
-    if scope is None:
-        return None
-    return SCOPE_SUBJECTS.get(scope)

@@ -17,6 +17,7 @@ from app.core.ratelimit import check_rate_limit
 from app.core.security import get_current_user, get_optional_user
 from app.db.session import get_db
 from app.models import ObservationClaim, Place, User
+from app.models.enums import ObservationDisputeStatus
 from app.schemas.civic import ObservationIn, ObservationOut
 from app.schemas.common import Page
 
@@ -36,7 +37,7 @@ def list_place_observations(
         .where(
             ObservationClaim.place_id == place_id,
             ObservationClaim.withdrawn_at.is_(None),
-            ObservationClaim.dispute_status != "open",
+            ObservationClaim.dispute_status != ObservationDisputeStatus.OPEN,
         )
         .order_by(ObservationClaim.reported_at.desc())
     )

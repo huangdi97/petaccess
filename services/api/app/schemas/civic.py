@@ -19,7 +19,6 @@ from app.models.enums import (
     PlaceConfidence,
     RuleAction,
     RuleEffect,
-    RuleStatus,
     SourceType,
     TemporaryAction,
     VerificationEventType,
@@ -323,10 +322,3 @@ class AuditOut(BaseModel):
     after_state: dict | None
     request_id: str | None
     created_at: datetime
-
-
-class RuleStatusChange(BaseModel):
-    """Admin conflict-resolution / lifecycle action on a rule."""
-
-    status: RuleStatus
-    note: str | None = None

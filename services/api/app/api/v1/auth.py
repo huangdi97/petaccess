@@ -8,7 +8,7 @@ from app.core.errors import Conflict, Unauthorized
 from app.core.security import create_access_token, get_current_user, hash_password, verify_password
 from app.db.session import get_db
 from app.models import User
-from app.models.enums import UserRole
+from app.models.enums import UserRole, UserStatus
 from app.schemas.auth import LoginIn, RegisterIn, TokenOut, UserOut
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -36,7 +36,7 @@ def login(body: LoginIn, db: Session = Depends(get_db)) -> TokenOut:
     user = db.scalar(select(User).where(User.email == body.email))
     if user is None or not verify_password(body.password, user.password_hash):
         raise Unauthorized("邮箱或密码不正确")
-    if user.status != "active":
+    if user.status != UserStatus.ACTIVE:
         raise Unauthorized("账号不可用")
     token, expires_at = create_access_token(user.id, str(user.role))
     return TokenOut(access_token=token, expires_at=expires_at)
