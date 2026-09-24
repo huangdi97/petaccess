@@ -152,6 +152,82 @@ class TestProductionIsClassifiedAsProduction:
 
 
 # --------------------------------------------------------------------------- #
+# DEV_FIXTURE_MODE: fail-closed for production (M2 §H)
+# --------------------------------------------------------------------------- #
+class TestDevFixtureModeIsFailClosedForProduction:
+    """DEV_FIXTURE_MODE may only serve demo data off production.
+
+    Even when the env flag is set to 1, the gate must stay closed whenever the
+    runtime looks like production: APP_ENV production/prod/staging, or the
+    configured database classified as PRODUCTION. Nothing in the API layer may
+    consult the fixture dataset under those conditions.
+    """
+
+    def _settings(self, **overrides: object):
+        sys.path.insert(0, str(ROOT / "services" / "api"))
+        from app.core.config import Settings
+
+        return Settings(**overrides)
+
+    def test_refused_in_production_app_env_even_with_flag_set(self) -> None:
+        from app.services.dev_fixture import dev_fixture_active
+
+        s = self._settings(
+            app_env="production",
+            dev_fixture_mode=True,
+            database_url="postgresql+psycopg://petaccess:x@127.0.0.1:5432/petaccess",
+        )
+        assert dev_fixture_active(s) is False
+
+    def test_refused_on_production_database_role(self) -> None:
+        from app.services.dev_fixture import dev_fixture_active
+
+        s = self._settings(
+            app_env="development",
+            dev_fixture_mode=True,
+            database_url="postgresql+psycopg://petaccess:x@127.0.0.1:5432/petaccess",
+        )
+        assert dev_fixture_active(s) is False
+
+    def test_refused_when_flag_is_off(self) -> None:
+        from app.services.dev_fixture import dev_fixture_active
+
+        s = self._settings(
+            app_env="development",
+            dev_fixture_mode=False,
+            database_url="postgresql+psycopg://petaccess:x@127.0.0.1:5432/petaccess_test",
+        )
+        assert dev_fixture_active(s) is False
+
+    def test_staging_is_treated_as_production(self) -> None:
+        from app.services.dev_fixture import dev_fixture_active
+
+        s = self._settings(
+            app_env="staging",
+            dev_fixture_mode=True,
+            database_url="postgresql+psycopg://petaccess:x@127.0.0.1:5432/petaccess_test",
+        )
+        assert dev_fixture_active(s) is False
+
+    def test_allowed_only_on_non_production(self) -> None:
+        """The gate is not always-closed: dev/test DB + dev env + flag opens it."""
+        from app.services.dev_fixture import dev_fixture_active
+
+        s = self._settings(
+            app_env="development",
+            dev_fixture_mode=True,
+            database_url="postgresql+psycopg://petaccess:x@127.0.0.1:5432/petaccess_test",
+        )
+        assert dev_fixture_active(s) is True
+
+    def test_fixture_places_are_clearly_labelled_demo(self) -> None:
+        """Fixture data must never be mistaken for governed records."""
+        from app.services.dev_fixture import fixture_place_summaries
+
+        rows = fixture_place_summaries()
+        assert rows
+        assert all("演示" in r.canonical_name for r in rows)
+# --------------------------------------------------------------------------- #
 # Out-of-process: the real commands, pointed at production
 # --------------------------------------------------------------------------- #
 class TestTheCommandsActuallyRefuseProduction:

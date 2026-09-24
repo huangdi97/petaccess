@@ -22,6 +22,13 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+psycopg://petaccess:petaccess_dev_only@localhost:5432/petaccess"
     redis_url: str = "redis://localhost:6379/0"
 
+    # DEV_FIXTURE_MODE: demo-only fixture payloads for dev/test/visual runs.
+    # Fail-closed: ignored unless APP_ENV is non-production AND the database
+    # role is not PRODUCTION (see app/services/dev_fixture.py). Never set in
+    # production — the isolation suite proves production stays closed.
+    dev_fixture_mode: bool = False
+
+
     s3_endpoint: str = "http://localhost:9000"
     s3_access_key: str = "minio"
     s3_secret_key: str = "minio_dev_only"

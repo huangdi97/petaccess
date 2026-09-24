@@ -772,7 +772,7 @@ export const client = {
   ) {
     return api.request<CoexistenceSnapshot>("post", `/places/${placeId}/coexistence`, { body });
   },
-};
+
 
   /**
    * v0.2.0 parent-flow Contribution (Master Goal §15–§27): one RealityReport

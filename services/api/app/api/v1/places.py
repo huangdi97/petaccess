@@ -31,6 +31,12 @@ from app.schemas.places import (
     ZoneOut,
     ZoneUpdate,
 )
+from app.services.dev_fixture import (
+    dev_fixture_active,
+    fixture_place_out,
+    fixture_place_summaries,
+    is_fixture_place_id,
+)
 
 router = APIRouter(tags=["places"])
 admin = APIRouter(tags=["admin:places"])
@@ -164,6 +170,12 @@ def list_places(
     order = _search_order(q, rule_count, last_verified_at) if q else (Place.canonical_name,)
     rows = db.execute(stmt.order_by(*order).limit(limit).offset(offset)).all()
     items = [_to_summary(row, q) for row in rows]
+    if not items and dev_fixture_active():
+        # DEV_FIXTURE_MODE (dev/test/visual only): the DB has zero published
+        # places; serve clearly-labelled demo data so Home/Search can be built
+        # and visual-tested. Production can never reach here (fail-closed).
+        fixtures = fixture_place_summaries(q)
+        return Page(items=fixtures, total=len(fixtures), limit=limit, offset=offset)
     return Page(items=items, total=total, limit=limit, offset=offset)
 
 
@@ -201,6 +213,9 @@ def nearby_places(
         summary = _to_summary((row[0], row[2], row[3], row[4]))
         summary.distance_m = round(float(row[1] or 0), 1)
         items.append(summary)
+    if not items and dev_fixture_active():
+        fixtures = fixture_place_summaries()
+        return Page(items=fixtures, total=len(fixtures), limit=limit, offset=offset)
     return Page(items=items, total=total, limit=limit, offset=offset)
 
 
@@ -208,7 +223,11 @@ def nearby_places(
 def get_place(place_id: str, db: Session = Depends(get_db)) -> Place:
     place = db.get(Place, place_id)
     if place is None:
-        raise NotFound("场所不存在")
+        if dev_fixture_active() and is_fixture_place_id(place_id):
+            fixture = fixture_place_out(place_id)
+            if fixture is not None:
+                return fixture
+        raise NotFound("鍦烘墍涓嶅瓨鍦?")
     return place
 
 
