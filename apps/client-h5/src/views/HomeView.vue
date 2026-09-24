@@ -27,13 +27,13 @@ import {
   type AccessAnswer,
   type PlaceSummary,
 } from "@petaccess/client-core";
-import { type StatusKey } from "@petaccess/design-tokens";
+import { type IconName, type StatusKey } from "@petaccess/design-tokens";
 import AppShell from "../components/AppShell.vue";
 import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
 import StatusBadge from "../components/StatusBadge.vue";
+import PaIcon from "../components/ui/PaIcon.vue";
 import { ANSWERED_STATUSES, answerConditions, answerScopeLabel, answerStatusKey } from "../answer";
-import { useOnline } from "../composables/useOnline";
 
 type Perspective = "rules" | "animal" | "coexist";
 
@@ -51,8 +51,6 @@ const RECENT_KEY = "pa.recent.v1";
 const MAX_RECENT = 3;
 
 const router = useRouter();
-const { online } = useOnline();
-
 const loading = ref(true);
 const error = ref("");
 const places = ref<PlaceSummary[]>([]);
@@ -120,11 +118,11 @@ function submitSearch() {
 }
 
 // ---- v0.9-R1 home entries: 「你更想先看什么？」 (master §30) ----
-const HOME_ENTRIES: { key: string; label: string; hint: string }[] = [
-  { key: "presence", label: "现场是否有动物出现", hint: "看近期现场记录" },
-  { key: "indoor", label: "室内空间情况", hint: "商场 · 餐厅 · 场馆室内" },
-  { key: "dining", label: "餐饮区域情况", hint: "堂食区 · 户外座位" },
-  { key: "rules", label: "完整规则", hint: "场所全部规则与来源" },
+const HOME_ENTRIES: { key: string; label: string; hint: string; icon: IconName }[] = [
+  { key: "presence", label: "现场是否有动物出现", hint: "看近期现场记录", icon: "eye" },
+  { key: "indoor", label: "室内空间情况", hint: "商场 · 餐厅 · 场馆室内", icon: "building" },
+  { key: "dining", label: "餐饮区域情况", hint: "堂食区 · 户外座位", icon: "map" },
+  { key: "rules", label: "完整规则", hint: "场所全部规则与来源", icon: "document" },
 ];
 
 function goEntry(key: string) {
@@ -256,22 +254,34 @@ onMounted(async () => {
 
 <template>
   <AppShell>
-    <div v-if="!online" class="offline-banner" data-testid="offline-banner">
-      <span aria-hidden="true">⊘</span>
-      <span>当前无网络连接：已加载内容仍可查看，提交类操作已暂停。</span>
-    </div>
 
     <!-- coverage header — the map link lives here so it survives an API failure -->
-    <div class="row" style="justify-content: space-between">
+    <div class="home-topline">
       <strong data-testid="coverage-area">上海 · 试点</strong>
-      <span class="row">
+      <span class="row home-topline__actions">
         <RouterLink class="btn-inline" to="/map" data-testid="go-map">看地图 &gt;</RouterLink>
         <RouterLink to="/settings" class="pill" data-testid="coverage-scope">覆盖范围</RouterLink>
       </span>
     </div>
 
-    <h1 data-testid="home-title">你更想先看什么？</h1>
-    <p class="muted" style="margin: 4px 0 12px">了解规则，也参考真实的现场情况</p>
+    <!-- FIRST SCREEN: title → subtitle → search → four first-level entries -->
+    <h1 data-testid="home-title">去之前，先看看这里的规则和现场。</h1>
+    <p class="muted home-subtitle" data-testid="home-subtitle">
+      了解场所规则，也参考经核验的现场记录。
+    </p>
+
+    <!-- §9.1 search-first -->
+    <form class="panel home-search" data-testid="home-search" @submit.prevent="submitSearch">
+      <label class="visually-hidden" for="home-q">搜索场所、商圈或地址</label>
+      <input
+        id="home-q"
+        v-model="query"
+        data-testid="home-search-input"
+        placeholder="搜索场所、商圈或地址"
+        autocomplete="off"
+      />
+      <button class="primary home-search__submit" type="submit">查询</button>
+    </form>
 
     <!-- v0.9-R1 §30 — four first-level entries, not a pet-friendly map -->
     <div class="home-entries" role="list" aria-label="一级入口">
@@ -282,26 +292,14 @@ onMounted(async () => {
         :data-testid="'entry-' + e.key"
         @click="goEntry(e.key)"
       >
+        <PaIcon :name="e.icon" size="lg" class="entry-icon" />
         <span class="entry-label">{{ e.label }}</span>
         <span class="entry-hint">{{ e.hint }}</span>
       </button>
     </div>
 
-    <!-- §9.1 search-first -->
-    <form class="panel" data-testid="home-search" @submit.prevent="submitSearch">
-      <label class="muted" for="home-q">搜索场所名、分店或地址</label>
-      <input
-        id="home-q"
-        v-model="query"
-        data-testid="home-search-input"
-        placeholder="例如：星巴克臻选 / 前滩太古里 / 某路 123 号"
-        autocomplete="off"
-      />
-      <button class="primary" type="submit" style="margin-top: 8px">查询规则</button>
-    </form>
-
-    <!-- §13 three perspectives -->
-    <div class="row" role="group" aria-label="查询视角" style="margin: 8px 0">
+    <!-- §13 three perspectives — the query mode stays one tap away from the entries -->
+    <div class="row home-toolbar" role="group" aria-label="查询视角">
       <button
         v-for="p in PERSPECTIVES"
         :key="p.key"
@@ -315,24 +313,17 @@ onMounted(async () => {
       </button>
     </div>
 
-    <!-- §12.2 wording, stated up front — not only once data happens to load. -->
-    <p class="notice" data-testid="home-semantics">
-      「规则待核实」＝ 尚未核验，<strong>不等于允许或禁止</strong>。已核验的结论会写明范围（动物 ·
-      区域），不对整个场所下结论。
-    </p>
-
-    <!-- §17 recent — only when there is something to show -->
+    <!-- SECOND LAYER: 近期信息 — recent history first, then nearby data -->
     <section v-if="recent.length" data-testid="recent-section">
-      <div class="row" style="justify-content: space-between">
-        <h2>最近查看</h2>
+      <div class="home-section-header">
+        <h2 class="home-section-title">最近查看</h2>
         <button class="pill" data-testid="clear-recent" @click="clearRecent">清空</button>
       </div>
       <p class="muted">打开时重新求值 —— 规则更新后会以最新结果呈现，不复用旧答案。</p>
       <div
         v-for="r in recent"
         :key="r.id"
-        class="panel"
-        style="cursor: pointer"
+        class="panel home-recent__item"
         :data-testid="'recent-' + r.id"
         @click="open(r.id)"
       >
@@ -341,7 +332,7 @@ onMounted(async () => {
     </section>
 
     <!-- categories -->
-    <div class="row" role="group" aria-label="类别" style="margin: 8px 0">
+    <div class="row home-toolbar" role="group" aria-label="类别">
       <button
         v-for="c in CATEGORIES"
         :key="c.key"
@@ -366,11 +357,11 @@ onMounted(async () => {
       <!-- v0.1.0 Empty-First (Phase K): a world with no published places at all
            still answers — the global empty branch is the first child of v-else. -->
       <StateMessage
-        v-if="!loading && !error && !places.length"
+        v-if="!places.length"
         kind="EMPTY"
         data-testid="home-empty"
         title="当前还没有已发布的场所数据"
-        description="你仍可浏览产品功能，或提交第一个现场/规则线索。"
+        description="你仍然可以了解 PetAccess 如何区分规则与现场，或者提交第一条线索。"
       >
         <template #action>
           <RouterLink class="primary" to="/map" data-testid="home-empty-map">探索地图</RouterLink>
@@ -379,69 +370,76 @@ onMounted(async () => {
           >
         </template>
       </StateMessage>
-      <h2>附近已核验</h2>
-      <p class="muted">
-        已核验 = 有规则依据。核验范围写清楚（动物 · 区域），不写成对整个场所的结论。
-      </p>
 
-      <StateMessage
-        v-if="!verified.length"
-        kind="PARTIAL"
-        data-testid="verified-empty"
-        description="这一区域暂无已核验场所。可切换类别、看地图，或改用搜索指定场所名。"
-      />
-
-      <div
-        v-for="c in verified"
-        :key="c.place.id"
-        class="panel"
-        :data-testid="'verified-' + c.place.id"
-        style="cursor: pointer"
-        @click="open(c.place.id)"
-      >
-        <div class="row" style="justify-content: space-between">
-          <div>
-            <strong>{{ c.place.canonical_name }}</strong>
-            <div class="muted">{{ placeTypeLabel(c.place.place_type) }}</div>
-            <!-- §12.1 exact verified scope -->
-            <div class="muted" :data-testid="'scope-' + c.place.id">已核验：{{ c.scope }}</div>
-          </div>
-          <!-- §12.3 neutral status -->
-          <StatusBadge :semantic="c.status" />
-        </div>
-        <!-- §12.4 conditions -->
-        <p v-if="c.conditions.length" class="notice" :data-testid="'conditions-' + c.place.id">
-          进入前需满足：{{ c.conditions.join("、") }}
+      <template v-else>
+        <h2 class="home-section-title home-section-title--stacked">附近已核验</h2>
+        <p class="muted">
+          已核验 = 有规则依据。核验范围写清楚（动物 · 区域），不写成对整个场所的结论。
         </p>
-        <!-- §12.5 why -->
-        <button class="pill" :data-testid="'why-' + c.place.id" @click.stop="why(c.place.id)">
-          为什么？
-        </button>
-      </div>
 
-      <h2>规则待核实</h2>
-      <p class="muted">尚未核验 ≠ 允许或禁止。这些场所我们目前没有足够依据下结论。</p>
-      <div
-        v-for="c in pending"
-        :key="c.place.id"
-        class="panel"
-        :data-testid="'pending-' + c.place.id"
-        style="cursor: pointer"
-        @click="open(c.place.id)"
-      >
-        <div class="row" style="justify-content: space-between">
-          <div>
-            <strong>{{ c.place.canonical_name }}</strong>
-            <div class="muted">{{ placeTypeLabel(c.place.place_type) }}</div>
+        <StateMessage
+          v-if="!verified.length"
+          kind="PARTIAL"
+          data-testid="verified-empty"
+          description="这一区域暂无已核验场所。可切换类别、看地图，或改用搜索指定场所名。"
+        />
+
+        <div
+          v-for="c in verified"
+          :key="c.place.id"
+          class="panel home-card"
+          :data-testid="'verified-' + c.place.id"
+          @click="open(c.place.id)"
+        >
+          <div class="row home-card__head">
+            <div class="home-card__main">
+              <strong>{{ c.place.canonical_name }}</strong>
+              <div class="muted">{{ placeTypeLabel(c.place.place_type) }}</div>
+              <!-- §12.1 exact verified scope -->
+              <div class="muted" :data-testid="'scope-' + c.place.id">已核验：{{ c.scope }}</div>
+            </div>
+            <!-- §12.3 neutral status -->
+            <StatusBadge :semantic="c.status" />
           </div>
-          <StatusBadge :semantic="c.status" />
+          <!-- §12.4 conditions -->
+          <p v-if="c.conditions.length" class="notice" :data-testid="'conditions-' + c.place.id">
+            进入前需满足：{{ c.conditions.join("、") }}
+          </p>
+          <!-- §12.5 why -->
+          <button class="pill" :data-testid="'why-' + c.place.id" @click.stop="why(c.place.id)">
+            为什么？
+          </button>
         </div>
-      </div>
+
+        <h2 class="home-section-title home-section-title--stacked">规则待核实</h2>
+        <p class="muted">尚未核验 ≠ 允许或禁止。这些场所我们目前没有足够依据下结论。</p>
+        <div
+          v-for="c in pending"
+          :key="c.place.id"
+          class="panel home-card"
+          :data-testid="'pending-' + c.place.id"
+          @click="open(c.place.id)"
+        >
+          <div class="row home-card__head">
+            <div class="home-card__main">
+              <strong>{{ c.place.canonical_name }}</strong>
+              <div class="muted">{{ placeTypeLabel(c.place.place_type) }}</div>
+            </div>
+            <StatusBadge :semantic="c.status" />
+          </div>
+        </div>
+      </template>
     </template>
+
+    <!-- THIRD LAYER: explainability — what 「规则待核实」 means, above the footer -->
+    <p class="notice home-semantics" data-testid="home-semantics">
+      「规则待核实」＝ 尚未核验，<strong>不等于允许或禁止</strong>。已核验的结论会写明范围（动物 ·
+      区域），不对整个场所下结论。
+    </p>
 
     <!-- §12.6 contribution is deliberately a low-priority footer action, and it
          stays available even when the nearby query fails. -->
-    <footer>
+    <footer class="home-footer">
       <RouterLink class="btn" to="/contribute" data-testid="contribute-link"
         >拍规则牌 / 现场核验</RouterLink
       >
@@ -451,34 +449,135 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.home-topline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--pa-space-2);
+  margin-bottom: var(--pa-space-4);
+}
+
+.home-subtitle {
+  margin: var(--pa-space-1) 0 var(--pa-space-4);
+}
+
+.home-search {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-2);
+  margin-bottom: var(--pa-space-5);
+}
+
 .home-entries {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 10px;
-  margin: 4px 0 16px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--pa-space-2);
+  margin: var(--pa-space-2) 0 var(--pa-space-4);
 }
+
 .entry {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--pa-space-1);
   align-items: flex-start;
-  padding: 12px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: var(--panel);
+  padding: var(--pa-space-3);
+  border: var(--pa-border-width) solid var(--pa-color-border);
+  border-radius: var(--pa-radius-md);
+  background: var(--pa-color-surface);
   cursor: pointer;
   text-align: left;
   font: inherit;
 }
+
 .entry:hover {
-  border-color: var(--accent);
+  border-color: var(--pa-color-accent);
 }
+
+.entry-icon {
+  color: var(--pa-color-accent);
+  margin-bottom: var(--pa-space-1);
+}
+
 .entry-label {
-  font-weight: 600;
-  font-size: 14px;
+  font-size: var(--pa-font-size-base);
+  font-weight: var(--pa-font-weight-medium);
+  color: var(--pa-color-text-primary);
 }
+
 .entry-hint {
-  font-size: 12px;
-  color: var(--muted);
+  font-size: var(--pa-font-size-sm);
+  color: var(--pa-color-text-muted);
+}
+
+.home-toolbar {
+  margin: var(--pa-space-1) 0 var(--pa-space-4);
+}
+
+.home-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pa-space-3);
+  padding: var(--pa-space-2) 0;
+}
+
+.home-section-title {
+  margin: 0;
+  font-size: var(--pa-font-size-2xl);
+  font-weight: var(--pa-font-weight-medium);
+  line-height: var(--pa-line-height-tight);
+  color: var(--pa-color-text-primary);
+}
+
+.home-section-title--stacked {
+  margin: var(--pa-space-5) 0 var(--pa-space-2);
+}
+
+.home-recent__item {
+  cursor: pointer;
+}
+
+.home-card {
+  cursor: pointer;
+}
+
+.home-card__head {
+  justify-content: space-between;
+}
+
+.home-semantics {
+  margin-top: var(--pa-space-5);
+}
+
+.home-footer {
+  margin-top: var(--pa-space-5);
+}
+
+.home-footer p {
+  margin-bottom: 0;
+}
+
+/* M2 desktop: the shell main is already full-width after the rail; the entry
+ * grid grows to a four-in-row row instead of a centred mobile column. */
+@media (min-width: 768px) {
+  .home-entries {
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--pa-space-4);
+  }
+
+  .home-search {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .home-search input {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .home-search__submit {
+    flex-shrink: 0;
+    margin-top: var(--pa-space-1);
+  }
 }
 </style>

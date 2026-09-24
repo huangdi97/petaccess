@@ -3,14 +3,18 @@
  * Search — place name / category / nearby, with the spec §2.2 filters.
  *
  * Filters are applied client-side over the search results. Unknown results are
- * NEVER filtered out unless the user explicitly asks for a status; the hint says
- * so, and clearing filters is one tap.
+ * NEVER filtered out unless the user explicitly asks for a status; the hint
+ * says so, and clearing filters is one tap.
  *
- * Expensive per-place signals (extras, conflict state) are only fetched when the
- * corresponding filter is active, so a plain search stays a single request.
+ * Expensive per-place signals (extras, conflict state) are only fetched when
+ * the corresponding filter is active, so a plain search stays a single request.
+ *
+ * M2: each result row is ONE RouterLink control (no nested interactive
+ * element), and recent searches (localStorage pa.searchRecent.v1) are
+ * local-only, capped at 5 and clearable.
  */
 import { computed, onMounted, ref } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { useRoute } from "vue-router";
 import {
   client,
   freshnessLabel,
@@ -21,15 +25,17 @@ import {
   type BoundaryProfile,
   type PlaceSummary,
 } from "@petaccess/client-core";
+import { EMPTY_STATE_COPY } from "@petaccess/design-tokens";
 import AppShell from "../components/AppShell.vue";
+import DesktopContentContainer from "../components/layout/DesktopContentContainer.vue";
 import FilterChips from "../components/FilterChips.vue";
 import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
 import StatusBadge from "../components/StatusBadge.vue";
+import PaIcon from "../components/ui/PaIcon.vue";
 import { answerStatusKey } from "../answer";
 import { useOnline } from "../composables/useOnline";
 
-const router = useRouter();
 const route = useRoute();
 const { online } = useOnline();
 const q = ref("");
@@ -164,14 +170,16 @@ async function search() {
     error.value = "当前无网络连接，搜索需要联网。";
     return;
   }
+  const query = q.value.trim();
   error.value = "";
   loading.value = true;
   searched.value = true;
   try {
-    results.value = q.value.trim()
+    results.value = query
       ? await client.searchPlaces(q.value)
       : await client.nearby(synthDemoCamera().lat, synthDemoCamera().lng, 5000);
     await enrich(results.value);
+    if (query) rememberRecent(query);
   } catch (e) {
     error.value = e instanceof Error ? e.message : String(e);
   } finally {
@@ -183,8 +191,62 @@ async function applyFilters() {
   if (searched.value) await enrich(results.value);
 }
 
+/** M2 §11 — recent searches: local-only, capped, clearable, signed-out safe. */
+const SEARCH_RECENT_KEY = "pa.searchRecent.v1";
+const MAX_SEARCH_RECENT = 5;
+const recent = ref<string[]>([]);
+
+function saveRecent() {
+  try {
+    localStorage.setItem(SEARCH_RECENT_KEY, JSON.stringify(recent.value));
+  } catch {
+    /* storage unavailable (private mode): history simply does not persist */
+  }
+}
+
+function rememberRecent(text: string) {
+  recent.value = [text, ...recent.value.filter((t) => t !== text)].slice(0, MAX_SEARCH_RECENT);
+  saveRecent();
+}
+
+function clearRecent() {
+  recent.value = [];
+  try {
+    localStorage.removeItem(SEARCH_RECENT_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+function loadRecent() {
+  try {
+    const raw = localStorage.getItem(SEARCH_RECENT_KEY);
+    recent.value = raw ? (JSON.parse(raw) as string[]).slice(0, MAX_SEARCH_RECENT) : [];
+  } catch {
+    recent.value = [];
+  }
+}
+
+function useRecent(text: string) {
+  q.value = text;
+  void search();
+}
+
+/** Clear the field; re-query (nearby) only when a search already ran. */
+function clearSearch() {
+  q.value = "";
+  if (searched.value) void search();
+}
+
+const emptyDescription = computed(() =>
+  results.value.length
+    ? "当前筛选下没有结果。清除筛选可查看全部（含信息不足的场所）。"
+    : EMPTY_STATE_COPY.SEARCH.description,
+);
+
 onMounted(async () => {
   await session.restore();
+  loadRecent();
   // Account-scoped, so a signed-out visitor gets a 401 rather than an empty
   // profile. Only ask when there is an account to ask about.
   if (session.signedIn) {
@@ -200,78 +262,119 @@ onMounted(async () => {
 
 <template>
   <AppShell>
-    <div v-if="!online" class="offline-banner" data-testid="offline-banner">
-      <span aria-hidden="true">⊘</span>
-      <span>当前无网络连接：搜索需要联网，提交类操作已暂停。</span>
-    </div>
-    <!-- The search field is the page's headline action, but a field is not a
-         heading: without this, screen-reader users get no page title at all. -->
-    <h1 class="visually-hidden">搜索场所规则</h1>
-    <div class="panel">
-      <input
-        v-model="q"
-        aria-label="搜索场所"
-        placeholder="搜索场所名称 / 类别 / 附近（留空则查附近）"
-        data-testid="search-input"
-        @keydown.enter="search"
-      />
-      <button
-        class="primary block"
-        style="margin-top: 8px"
-        :disabled="loading"
-        @click="search"
-        data-testid="search-btn"
-      >
-        {{ loading ? "搜索中…" : "搜索" }}
-      </button>
-    </div>
-
-    <div v-if="lensHint" class="panel muted" data-testid="lens-hint" style="margin-top: 8px">
-      {{ lensHint }}
-    </div>
-
-    <div class="panel">
-      <div class="muted">
-        {{ session.activePet ? `本次：${session.activePet.display_name}` : "未设置宠物档案" }}
-        · {{ boundary ? `共处边界「${boundary.name}」` : "未设置共处边界" }}
+    <DesktopContentContainer mode="single-column">
+      <!-- The search field is the page's headline action, but a field is not a
+           heading: without this, screen-reader users get no page title at all. -->
+      <h1 class="visually-hidden">搜索场所规则</h1>
+      <div class="panel">
+        <div class="search-field">
+          <input
+            v-model="q"
+            aria-label="搜索场所"
+            placeholder="搜索场所、商圈或地址"
+            data-testid="search-input"
+            @keydown.enter="search"
+          />
+          <button
+            v-if="q"
+            type="button"
+            class="search-clear"
+            aria-label="清除"
+            data-testid="search-clear"
+            @click="clearSearch"
+          >
+            <PaIcon name="close" size="sm" />
+          </button>
+        </div>
+        <button
+          type="button"
+          class="primary block"
+          style="margin-top: var(--pa-space-2)"
+          :disabled="loading"
+          @click="search"
+          data-testid="search-btn"
+        >
+          {{ loading ? "搜索中…" : "搜索" }}
+        </button>
       </div>
-    </div>
 
-    <FilterChips
-      v-model="active"
-      :options="FILTERS"
-      hint="默认不过滤“信息不足”。筛选只影响显示，不改变任何结论。"
-      @update:model-value="applyFilters"
-    />
+      <!-- Recent searches (M2 §11): local-only, capped, clearable. -->
+      <div v-if="recent.length" class="recent-bar" data-testid="search-recent">
+        <div class="row" style="justify-content: space-between">
+          <span class="muted">最近搜索</span>
+          <button type="button" class="pill" data-testid="clear-search-recent" @click="clearRecent">
+            清除
+          </button>
+        </div>
+        <div class="row">
+          <button
+            v-for="t in recent"
+            :key="t"
+            type="button"
+            class="pill"
+            :data-testid="'recent-search-' + t"
+            @click="useRecent(t)"
+          >
+            {{ t }}
+          </button>
+        </div>
+      </div>
 
-    <SkeletonList v-if="loading" :rows="3" />
-    <StateMessage v-else-if="error" kind="ERROR" :description="error">
-      <template #action>
-        <button class="primary" @click="search">重试</button>
-      </template>
-    </StateMessage>
-    <StateMessage
-      v-else-if="searched && !visible.length"
-      kind="PARTIAL"
-      data-testid="search-empty"
-      :description="
-        results.length
-          ? '当前筛选下没有结果。清除筛选可查看全部（含信息不足的场所）。'
-          : '没有找到已收录场所。未收录不代表该场所没有规则。'
-      "
-    >
-      <template #action>
-        <button v-if="active.length" class="primary" @click="active = []">清除筛选</button>
-      </template>
-    </StateMessage>
-    <template v-else>
       <div
-        v-for="p in visible"
-        :key="p.id"
-        class="panel"
-        :data-testid="'result-' + p.canonical_name"
+        v-if="lensHint"
+        class="panel muted"
+        data-testid="lens-hint"
+        style="margin-top: var(--pa-space-2)"
       >
-        <div style="cursor: pointer" @click="router.push({ name: 'place', params: { id: p.id } })">
+        {{ lensHint }}
+      </div>
+
+      <div class="panel">
+        <div class="muted">
+          {{ session.activePet ? `本次：${session.activePet.display_name}` : "未设置宠物档案" }}
+          · {{ boundary ? `共处边界「${boundary.name}」` : "未设置共处边界" }}
+        </div>
+      </div>
+
+      <FilterChips
+        v-model="active"
+        :options="FILTERS"
+        hint="默认不过滤“信息不足”。筛选只影响显示，不改变任何结论。"
+        @update:model-value="applyFilters"
+      />
+
+      <SkeletonList v-if="loading" :rows="3" />
+      <StateMessage v-else-if="error" kind="ERROR" :description="error">
+        <template #action>
+          <button type="button" class="primary" @click="search">重试</button>
+        </template>
+      </StateMessage>
+      <StateMessage
+        v-else-if="searched && !visible.length"
+        kind="PARTIAL"
+        data-testid="search-empty"
+        :title="EMPTY_STATE_COPY.SEARCH.title"
+        :description="emptyDescription"
+      >
+        <template #action>
+          <div class="row" style="justify-content: center">
+            <RouterLink class="btn primary" to="/contribute" data-testid="search-empty-contribute">
+              提交场所线索
+            </RouterLink>
+            <button v-if="active.length" type="button" class="pill" @click="active = []">
+              清除筛选
+            </button>
+          </div>
+        </template>
+      </StateMessage>
+      <template v-else>
+        <RouterLink
+          v-for="p in visible"
+          :key="p.id"
+          class="panel result-card"
+          :to="{ name: 'place', params: { id: p.id } }"
+          :data-testid="'result-' + p.canonical_name"
+        >
           <div class="row" style="justify-content: space-between">
             <strong>{{ p.canonical_name }}</strong>
             <StatusBadge :status="statuses[p.id] ?? 'UNKNOWN'" />
@@ -292,15 +395,51 @@ onMounted(async () => {
             以「{{ p.matched_alias }}」匹配（曾用名／别称）
           </div>
           <div class="muted" data-testid="result-rules">{{ ruleSummary(p) }}</div>
-          <div class="row" style="margin-top: 6px">
+          <div class="row" style="margin-top: var(--pa-space-1h)">
             <span v-if="verified[p.id]" class="tag">已核验</span>
             <span v-if="hasPetZone[p.id]" class="tag">独立携宠区</span>
             <span v-if="serviceDogInfo[p.id]" class="tag">含服务犬信息</span>
             <span v-if="p.rule_count === 0" class="tag">尚未收录规则</span>
             <StatusBadge v-if="conflicts[p.id]" semantic="CONFLICT" />
           </div>
-        </div>
-      </div>
-    </template>
+        </RouterLink>
+      </template>
+    </DesktopContentContainer>
   </AppShell>
 </template>
+
+<style scoped>
+/* M2 style constraint: token values only (no hex/rgb/hsl/hard px). */
+.search-field {
+  position: relative;
+}
+.search-field input {
+  padding-right: var(--pa-size-control-lg);
+}
+.search-clear {
+  position: absolute;
+  top: var(--pa-space-1);
+  bottom: var(--pa-space-1);
+  right: var(--pa-space-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--pa-size-control-sm);
+  min-height: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--pa-color-text-muted);
+  cursor: pointer;
+}
+.search-clear:hover {
+  color: var(--pa-color-text-secondary);
+}
+/* Each result row is a single link control (M2 §9). */
+.result-card {
+  display: block;
+}
+.recent-bar {
+  margin: 0 0 var(--pa-space-3);
+}
+</style>
