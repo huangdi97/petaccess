@@ -32,6 +32,8 @@ export const routes: RouteRecordRaw[] = [
     component: () => import("./views/NotificationsView.vue"),
   },
   { path: "/settings", name: "settings", component: () => import("./views/SettingsView.vue") },
+  // ---- v0.2.0 M2: 关于 page (desktop rail 关于 destination) ----
+  { path: "/about", name: "about", component: () => import("./views/AboutView.vue") },
   // ---- v0.5: explainable match + user coexistence boundary ----
   { path: "/boundary", name: "boundary", component: () => import("./views/BoundaryView.vue") },
   {

@@ -1,11 +1,16 @@
 /* Design tokens are the single source of truth (packages/design-tokens).
  * The short local names below are aliases kept for readability in this file —
- * every value resolves to a token, so changing the token changes the app. */
+ * every value resolves to a token, so changing the token changes the app.
+ *
+ * M2 (V020_APP_SHELL_SPEC): the old 480px-centered reader (`#app` max-width)
+ * is gone — the ConsumerAppShell owns the frame (mobile bottom tabs, desktop
+ * rail) and DesktopContentContainer owns content width. Pages must not
+ * hard-code colors / spacing / radius here or in their scoped styles. */
 @import "@petaccess/design-tokens/tokens.css";
 
 :root {
   --bg: var(--pa-color-bg-app);
-  --panel: var(--pa-color-bg-surface);
+  --panel: var(--pa-color-surface);
   --line: var(--pa-color-border);
   --text: var(--pa-color-text-primary);
   --muted: var(--pa-color-text-muted);
@@ -21,12 +26,10 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-size: 15px;
-  font-family: "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+  font-size: var(--pa-font-size-base);
+  font-family: var(--pa-font-family);
 }
 #app {
-  max-width: 480px;
-  margin: 0 auto;
   min-height: 100vh;
   background: var(--bg);
   position: relative;
@@ -36,39 +39,39 @@ a {
   text-decoration: none;
 }
 h1 {
-  font-size: 20px;
+  font-size: var(--pa-font-size-2xl);
   margin: 0;
 }
 h2 {
-  font-size: 16px;
-  margin: 18px 0 8px;
+  font-size: var(--pa-font-size-lg);
+  margin: var(--pa-space-5) 0 var(--pa-space-2);
 }
 .page {
-  padding: 16px 16px 88px;
+  padding: var(--pa-space-4) var(--pa-space-4) var(--pa-space-6);
 }
 .panel {
   background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 14px;
-  margin-bottom: 12px;
+  border: var(--pa-border-width) solid var(--line);
+  border-radius: var(--pa-radius-md);
+  padding: var(--pa-space-4);
+  margin-bottom: var(--pa-space-3);
 }
 .muted {
   color: var(--muted);
-  font-size: 13px;
+  font-size: var(--pa-font-size-md);
 }
 .row {
   display: flex;
-  gap: 10px;
+  gap: var(--pa-space-2);
   align-items: center;
   flex-wrap: wrap;
 }
 .pill {
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  padding: 6px 14px;
+  border: var(--pa-border-width) solid var(--line);
+  border-radius: var(--pa-radius-pill);
+  padding: var(--pa-space-1) var(--pa-space-3);
   background: var(--panel);
-  font-size: 13px;
+  font-size: var(--pa-font-size-md);
   cursor: pointer;
 }
 .pill.active {
@@ -77,13 +80,14 @@ h2 {
   border-color: var(--accent);
 }
 button {
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 10px 14px;
+  border: var(--pa-border-width) solid var(--line);
+  border-radius: var(--pa-radius-control);
+  padding: var(--pa-space-2) var(--pa-space-3);
   background: var(--panel);
-  font-size: 14px;
+  font-size: var(--pa-font-size-base);
   cursor: pointer;
   color: var(--text);
+  font-family: inherit;
 }
 button.primary {
   background: var(--accent);
@@ -98,35 +102,33 @@ input,
 select,
 textarea {
   width: 100%;
-  /* 10px padding + 15px text lands at 42px on the real box model — two short
-   * of the 44px guideline, which the audit measures rather than assumes. */
-  min-height: var(--pa-layout-touch-target);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 10px 12px;
-  font-size: 15px;
-  background: var(--pa-color-bg-surface);
+  min-height: var(--pa-size-control-lg);
+  border: var(--pa-border-width) solid var(--line);
+  border-radius: var(--pa-radius-control);
+  padding: var(--pa-space-2) var(--pa-space-3);
+  font-size: var(--pa-font-size-base);
+  background: var(--pa-color-surface);
   color: var(--text);
-  margin: 4px 0;
+  margin: var(--pa-space-1) 0;
   font-family: inherit;
 }
 label {
-  font-size: 12px;
+  font-size: var(--pa-font-size-sm);
   color: var(--muted);
   display: block;
-  margin-top: 10px;
+  margin-top: var(--pa-space-2);
 }
 
 .answer {
-  border-radius: 12px;
-  padding: 14px;
-  border: 1px solid var(--line);
+  border-radius: var(--pa-radius-md);
+  padding: var(--pa-space-4);
+  border: var(--pa-border-width) solid var(--line);
   background: var(--panel);
 }
 .answer .status {
-  font-size: 18px;
-  font-weight: 700;
-  margin: 6px 0;
+  font-size: var(--pa-font-size-xl);
+  font-weight: var(--pa-font-weight-bold);
+  margin: var(--pa-space-1) 0;
 }
 .answer.s-MATCH .status {
   color: var(--ok);
@@ -154,41 +156,17 @@ label {
 .zone-row {
   display: flex;
   justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--line);
+  padding: var(--pa-space-2) 0;
+  border-bottom: var(--pa-border-width) solid var(--line);
 }
 .zone-row:last-child {
   border-bottom: none;
 }
 
-.tabbar {
-  position: fixed;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  max-width: 480px;
-  background: var(--panel);
-  border-top: 1px solid var(--line);
-  display: flex;
-  z-index: 10;
-}
-.tabbar a {
-  flex: 1;
-  text-align: center;
-  padding: 12px 0 14px;
-  font-size: 13px;
-  color: var(--muted);
-}
-.tabbar a.router-link-active {
-  color: var(--accent);
-  font-weight: 600;
-}
-
 .map-mock {
   height: 260px;
-  border-radius: 12px;
-  border: 1px solid var(--line);
+  border-radius: var(--pa-radius-md);
+  border: var(--pa-border-width) solid var(--line);
   background:
     repeating-linear-gradient(
       0deg,
@@ -208,10 +186,8 @@ label {
   transform: translate(-50%, -100%);
   text-align: center;
   cursor: pointer;
-  /* A pin is a control, not decoration: give it a real hit area so it can be
-     tapped on a phone and reached by touch assistive tech. */
-  min-width: 44px;
-  min-height: 44px;
+  min-width: var(--pa-layout-touch-target);
+  min-height: var(--pa-layout-touch-target);
   display: inline-flex;
   flex-direction: column;
   align-items: center;
@@ -227,9 +203,9 @@ label {
   box-shadow: var(--pa-elevation-2);
 }
 .map-pin .lbl {
-  font-size: 11px;
+  font-size: var(--pa-font-size-xs);
   background: var(--pa-color-map-label-bg);
-  border-radius: 6px;
+  border-radius: var(--pa-radius-sm);
   padding: 1px 5px;
   margin-top: 2px;
   white-space: nowrap;
@@ -255,24 +231,22 @@ label {
 }
 
 .notice {
-  font-size: 12px;
+  font-size: var(--pa-font-size-sm);
   color: var(--muted);
   background: var(--pa-color-bg-sunken);
   border-radius: var(--pa-radius-control);
-  padding: 8px 10px;
-  margin-top: 10px;
+  padding: var(--pa-space-2) var(--pa-space-3);
+  margin-top: var(--pa-space-2);
 }
 .tag {
   display: inline-block;
-  border: 1px solid var(--line);
+  border: var(--pa-border-width) solid var(--line);
   border-radius: var(--pa-radius-sm);
-  padding: 1px 6px;
+  padding: 1px var(--pa-space-2);
   font-size: var(--pa-font-size-sm);
   color: var(--muted);
-  margin-right: 4px;
+  margin-right: var(--pa-space-1);
 }
-/* Tag sitting on a filled status chip: the fill already carries the semantic
- * colour, so the text must switch to the inverse token and drop its border. */
 .tag--on-solid {
   color: var(--pa-color-text-inverse);
   border: none;
@@ -287,11 +261,11 @@ label {
   align-items: center;
   gap: var(--pa-space-1);
   border-radius: var(--pa-radius-sm);
-  padding: 2px 8px;
+  padding: 2px var(--pa-space-2);
   font-size: var(--pa-font-size-md);
   font-weight: var(--pa-font-weight-medium);
   line-height: var(--pa-line-height-tight);
-  border: 1px solid currentColor;
+  border: var(--pa-border-width) solid currentColor;
   white-space: nowrap;
 }
 .status-badge .status-badge__icon {
@@ -302,7 +276,7 @@ label {
   display: flex;
   width: 100%;
   justify-content: flex-start;
-  padding: 6px 10px;
+  padding: var(--pa-space-1) var(--pa-space-3);
   font-size: var(--pa-font-size-base);
 }
 
@@ -311,9 +285,9 @@ label {
   display: inline-flex;
   align-items: center;
   gap: var(--pa-space-1);
-  border: 1px solid var(--line);
+  border: var(--pa-border-width) solid var(--line);
   border-radius: var(--pa-radius-sm);
-  padding: 1px 6px;
+  padding: 1px var(--pa-space-2);
   font-size: var(--pa-font-size-sm);
   color: var(--muted);
   margin-right: var(--pa-space-1);
@@ -326,34 +300,27 @@ label {
  * UI_UX_IMPLEMENTATION_SPEC §10: keyboard focus must be visible, and touch
  * targets must be at least 44px. */
 :focus-visible {
-  outline: 2px solid var(--pa-color-focus);
+  outline: 2px solid var(--pa-color-border-focus);
   outline-offset: 2px;
 }
 button,
 .pill,
 a.btn,
-a.btn-inline,
-.tabbar a {
+a.btn-inline {
   min-height: var(--pa-layout-touch-target);
 }
-/* A link styled as a button.
- *
- * Several call sites were written as `<RouterLink><button>…</button></RouterLink>`,
- * which nests interactive content inside a link: two overlapping controls, one
- * announced name, and an outer element that is only as tall as its inline text
- * (~20px, under the 24px minimum and half the 44px guideline). Styling the link
- * itself gives one control, one name, one target. */
+/* A link styled as a button (see V010 note: never nest <button> in <RouterLink>). */
 a.btn,
 a.btn-inline {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 10px 14px;
+  border: var(--pa-border-width) solid var(--line);
+  border-radius: var(--pa-radius-control);
+  padding: var(--pa-space-2) var(--pa-space-3);
   background: var(--panel);
   color: var(--text);
-  font-size: 14px;
+  font-size: var(--pa-font-size-base);
   text-decoration: none;
 }
 a.btn.primary {
@@ -361,14 +328,12 @@ a.btn.primary {
   border-color: var(--accent);
   color: var(--pa-color-text-inverse);
 }
-/* Text links that stand alone still need a real tap target. */
 a.btn-inline {
-  padding: 4px 8px;
+  padding: var(--pa-space-1) var(--pa-space-2);
   border-color: transparent;
   background: transparent;
   color: var(--accent);
 }
-/* `.pill` on an <a> rather than a <button> — same look, one control. */
 a.pill {
   display: inline-flex;
   align-items: center;
@@ -377,11 +342,6 @@ a.pill {
 }
 a.pill.active {
   color: var(--pa-color-text-inverse);
-}
-.tabbar a {
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 .visually-hidden {
   position: absolute;
@@ -435,13 +395,13 @@ a.pill.active {
 
 .state-message {
   background: var(--panel);
-  border: 1px solid var(--line);
+  border: var(--pa-border-width) solid var(--line);
   border-radius: var(--pa-radius-lg);
   padding: var(--pa-space-5) var(--pa-space-4);
   text-align: center;
 }
 .state-message__icon {
-  font-size: 22px;
+  font-size: var(--pa-font-size-2xl);
   line-height: 1;
   color: var(--muted);
 }
@@ -467,12 +427,20 @@ a.pill.active {
   align-items: center;
   gap: var(--pa-space-2);
   background: var(--pa-color-status-stale-bg);
-  border: 1px solid var(--pa-color-status-stale);
+  border: var(--pa-border-width) solid var(--pa-color-status-stale);
   color: var(--pa-color-status-stale);
   border-radius: var(--pa-radius-md);
   padding: var(--pa-space-2) var(--pa-space-3);
   font-size: var(--pa-font-size-sm);
   margin-bottom: var(--pa-space-3);
+}
+
+/* -------------------------------------------------------------- desktop body
+ * The shell (ConsumerAppShell) owns the frame; pages keep content semantics. */
+@media (min-width: 768px) {
+  .page {
+    padding: var(--pa-space-5) var(--pa-space-6) var(--pa-space-7);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
