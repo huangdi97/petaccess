@@ -17,6 +17,7 @@ export default defineConfigWithVueTs(
       // app source — linting them only produces "not found by project service".
       "apps/client-h5/src-tauri/**",
     ],
+  },
   pluginVue.configs["flat/essential"],
   vueTsConfigs.recommended,
   {
