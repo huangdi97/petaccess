@@ -25,6 +25,7 @@ Hard rules enforced here on top of the service layer:
 from __future__ import annotations
 
 import uuid
+from collections.abc import Sequence
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, Query, Request
@@ -376,9 +377,9 @@ def reality_trace(
 
 
 def _source_type_label(
-    claims: list[ObservedPresence],
-    staff_rows: list[StaffResponseObservation],
-    facility_rows: list[AnimalFacility],
+    claims: Sequence[ObservedPresence],
+    staff_rows: Sequence[StaffResponseObservation],
+    facility_rows: Sequence[AnimalFacility],
 ) -> str:
     """Label the observed source contexts (facts only, no raw URLs)."""
     parts: list[str] = []

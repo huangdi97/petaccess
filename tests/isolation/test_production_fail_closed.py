@@ -227,6 +227,8 @@ class TestDevFixtureModeIsFailClosedForProduction:
         rows = fixture_place_summaries()
         assert rows
         assert all("演示" in r.canonical_name for r in rows)
+
+
 # --------------------------------------------------------------------------- #
 # Out-of-process: the real commands, pointed at production
 # --------------------------------------------------------------------------- #

@@ -71,10 +71,10 @@ CURRENT_RUNTIME_USAGE         = ACTIVE   （上一轮：DEAD —— 只有 holde
 
 ```python
 class HolderMatch(StrEnum):
-    NOT_REQUIRED   = "not_required"     # 规范没有 holder 限定
-    MATCHES        = "matches"          # 有限定，且上下文满足
-    DOES_NOT_MATCH = "does_not_match"   # 有限定，上下文明确不满足
-    UNKNOWN        = "unknown"          # 有限定，但根本没有给出上下文
+    NOT_REQUIRED = "not_required"  # 规范没有 holder 限定
+    MATCHES = "matches"  # 有限定，且上下文满足
+    DOES_NOT_MATCH = "does_not_match"  # 有限定，上下文明确不满足
+    UNKNOWN = "unknown"  # 有限定，但根本没有给出上下文
 ```
 
 关键区分：**未提供 ≠ 不满足**。`HolderContext.of()`（给了但为空）是 `DOES_NOT_MATCH`；

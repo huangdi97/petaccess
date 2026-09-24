@@ -116,10 +116,16 @@ export async function assertRendered(page: Page) {
   }
 }
 
-/** Screenshot with the shared determinism knobs already applied. */
-export async function shot(page: Page, name: string) {
+/**
+ * Screenshot with the shared determinism knobs already applied.
+ *
+ * `allowErrorState` is for the M2 Error/Offline baselines ONLY: those pages
+ * are *supposed* to be in an error state, and `assertNotErrorState` would
+ * refuse them. Every other shot keeps the guard.
+ */
+export async function shot(page: Page, name: string, opts: { allowErrorState?: boolean } = {}) {
   await assertRendered(page);
-  await assertNotErrorState(page);
+  if (!opts.allowErrorState) await assertNotErrorState(page);
   await expect(page).toHaveScreenshot(`${name}.png`, { fullPage: true });
 }
 

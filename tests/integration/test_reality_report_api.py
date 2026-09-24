@@ -33,6 +33,7 @@ ON_SITE_ORIGINS = [
     "official_public_content",
 ]
 
+
 @pytest.fixture(scope="module", autouse=True)
 def _reset_rate_limits():
     """Clear rate-limit/idempotency counters before the module runs.
@@ -59,6 +60,7 @@ def _reset_rate_limits():
 def client():
     with TestClient(app) as c:
         yield c
+
 
 def _iso_equal(actual: str | None, expected: str | None) -> bool:
     """Compare ISO datetimes regardless of UTC suffix form (+00:00 vs Z)."""

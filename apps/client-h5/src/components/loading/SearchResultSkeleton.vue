@@ -13,7 +13,9 @@ withDefaults(defineProps<{ rows?: number }>(), { rows: 5 });
     <div v-for="i in rows" :key="i" class="search-result-skeleton__row">
       <div class="skeleton skeleton--card search-result-skeleton__title" />
       <div class="skeleton skeleton--line search-result-skeleton__meta" />
-      <div class="skeleton skeleton--line search-result-skeleton__meta search-result-skeleton__meta--short" />
+      <div
+        class="skeleton skeleton--line search-result-skeleton__meta search-result-skeleton__meta--short"
+      />
     </div>
   </div>
 </template>

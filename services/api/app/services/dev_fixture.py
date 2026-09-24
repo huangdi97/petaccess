@@ -15,7 +15,7 @@ The mode is active ONLY when:
   * ``APP_ENV`` is NOT production / prod / staging, AND
   * the classified database role is NOT PRODUCTION.
 
-Any of those conditions failing forces the mode OFF — production can never
+If any of those conditions fails, the mode is forced OFF — production can never
 receive fixture payloads, even if somebody sets the env var by mistake. The
 isolation suite (``tests/isolation/test_production_fail_closed.py``) asserts
 this exactly.
@@ -30,7 +30,8 @@ from datetime import UTC, datetime
 
 from app.core.config import Settings, get_settings
 from app.db.safety import DatabaseRole, classify_database_name, database_name_from_url
-from app.schemas.places import PlaceSummary
+from app.models.enums import LifecycleStatus, PlaceType
+from app.schemas.places import PlaceOut, PlaceSummary
 
 #: Fixed fixture ids — stable across runs so visual baselines are reproducible.
 _FIXTURE_PLACES: tuple[dict[str, object], ...] = (
@@ -94,7 +95,7 @@ def fixture_place_summaries(q: str | None = None) -> list[PlaceSummary]:
                 parent_place_name=None,
                 matched_alias=None,
                 alias_names=[],
-                rule_count=int(row["rule_count"]),
+                rule_count=int(str(row["rule_count"])),
                 last_verified_at=datetime.fromisoformat(str(row["last_verified_at"])).replace(
                     tzinfo=UTC
                 ),
@@ -107,23 +108,23 @@ def is_fixture_place_id(place_id: str) -> bool:
     return any(str(row["id"]) == place_id for row in _FIXTURE_PLACES)
 
 
-def fixture_place_out(place_id: str) -> dict[str, object] | None:
-    """A PlaceOut-compatible dict for a fixture id, else None."""
+def fixture_place_out(place_id: str) -> PlaceOut | None:
+    """A PlaceOut payload for a fixture id, else None."""
     for row in _FIXTURE_PLACES:
         if str(row["id"]) != place_id:
             continue
         now = datetime.now(UTC)
-        return {
-            "id": str(row["id"]),
-            "canonical_name": str(row["canonical_name"]),
-            "place_type": str(row["place_type"]),
-            "parent_place_id": None,
-            "operator_id": None,
-            "canonical_address": str(row["canonical_address"]) or None,
-            "lifecycle_status": "active",
-            "created_at": now,
-            "updated_at": now,
-        }
+        return PlaceOut(
+            id=str(row["id"]),
+            canonical_name=str(row["canonical_name"]),
+            place_type=PlaceType(str(row["place_type"])),
+            parent_place_id=None,
+            operator_id=None,
+            canonical_address=str(row["canonical_address"]) or None,
+            lifecycle_status=LifecycleStatus.ACTIVE,
+            created_at=now,
+            updated_at=now,
+        )
     return None
 
 

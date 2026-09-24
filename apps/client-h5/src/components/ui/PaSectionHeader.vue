@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * PaSectionHeader â€?section heading with an optional link-style action
+ * PaSectionHeader â€”section heading with an optional link-style action
  * (V020 catalog #29). The action renders only when actionLabel is provided.
  */
 import PaButton from "./PaButton.vue";

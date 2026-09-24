@@ -24,7 +24,10 @@ const bootFailed = ref(false);
 
 // Router readiness is immediate for hash history, but keep the hook so the
 // boundary is honest when navigation ever starts slow (lazy route chunks).
-router.isReady().then(() => (appReady.value = true)).catch(() => (bootFailed.value = true));
+router
+  .isReady()
+  .then(() => (appReady.value = true))
+  .catch(() => (bootFailed.value = true));
 
 onErrorCaptured((err) => {
   boundaryError.value = err;
@@ -51,7 +54,12 @@ function retryBoot() {
       <PaIcon class="app-boundary__icon" name="warning" size="xl" />
       <h1 class="app-boundary__title">{{ presentation.title }}</h1>
       <p class="app-boundary__desc">{{ presentation.description }}</p>
-      <button v-if="presentation.retryLabel" class="app-boundary__retry" type="button" @click="reload">
+      <button
+        v-if="presentation.retryLabel"
+        class="app-boundary__retry"
+        type="button"
+        @click="reload"
+      >
         {{ presentation.retryLabel }}
       </button>
     </div>

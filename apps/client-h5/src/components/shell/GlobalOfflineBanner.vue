@@ -30,9 +30,7 @@ function reconnect() {
   >
     <PaIcon class="global-offline-banner__icon" name="offline" size="sm" />
     <span class="global-offline-banner__text">当前离线，部分内容可能不是最新状态。</span>
-    <button class="global-offline-banner__retry" type="button" @click="reconnect">
-      重连
-    </button>
+    <button class="global-offline-banner__retry" type="button" @click="reconnect">重连</button>
   </div>
 </template>
 

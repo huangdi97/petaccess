@@ -45,9 +45,9 @@ URL 会错、会过期、会从 shell profile 里继承。唯一权威是
 ```python
 from app.db.safety import guard_for_psycopg, classify_database_name
 
-classify_database_name("petaccess")         # PRODUCTION
-classify_database_name("petaccess_test_42") # TEST
-classify_database_name("petaccess_typo")    # UNKNOWN  -> 拒绝，不是容忍
+classify_database_name("petaccess")  # PRODUCTION
+classify_database_name("petaccess_test_42")  # TEST
+classify_database_name("petaccess_typo")  # UNKNOWN  -> 拒绝，不是容忍
 ```
 
 `DB_ROLE` 环境变量只是**声明**，一旦与服务端事实不一致就 `RoleMismatchRefused`
@@ -61,8 +61,8 @@ classify_database_name("petaccess_typo")    # UNKNOWN  -> 拒绝，不是容忍
 ```python
 guard.assert_production_cleanup_allowed(
     "生产库夹具清理",
-    backup_path=...,        # 必须已存在的物理备份
-    reviewed_plan_path=..., # 必须已存在的已审阅 dry-run
+    backup_path=...,  # 必须已存在的物理备份
+    reviewed_plan_path=...,  # 必须已存在的已审阅 dry-run
 )
 ```
 

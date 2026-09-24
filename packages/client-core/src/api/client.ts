@@ -773,7 +773,6 @@ export const client = {
     return api.request<CoexistenceSnapshot>("post", `/places/${placeId}/coexistence`, { body });
   },
 
-
   /**
    * v0.2.0 parent-flow Contribution (Master Goal §15–§27): one RealityReport
    * plus zero-or-more candidates sharing origin / place-match / time / media /
@@ -783,7 +782,12 @@ export const client = {
     placeId: string,
     body: {
       report: {
-        origin: "on_site_now" | "on_site_past" | "external_online_content" | "operator_provided" | "official_public_content";
+        origin:
+          | "on_site_now"
+          | "on_site_past"
+          | "external_online_content"
+          | "operator_provided"
+          | "official_public_content";
         place_id?: string | null;
         container_place_id?: string | null;
         subject_place_id?: string | null;

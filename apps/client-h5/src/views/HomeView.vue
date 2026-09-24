@@ -254,7 +254,6 @@ onMounted(async () => {
 
 <template>
   <AppShell>
-
     <!-- coverage header — the map link lives here so it survives an API failure -->
     <div class="home-topline">
       <strong data-testid="coverage-area">上海 · 试点</strong>
@@ -284,7 +283,7 @@ onMounted(async () => {
     </form>
 
     <!-- v0.9-R1 §30 — four first-level entries, not a pet-friendly map -->
-    <div class="home-entries" role="list" aria-label="一级入口">
+    <div class="home-entries">
       <button
         v-for="e in HOME_ENTRIES"
         :key="e.key"

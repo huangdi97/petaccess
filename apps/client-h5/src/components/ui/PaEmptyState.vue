@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * PaEmptyState â€?unified empty state (V020 catalog #24). Folded-in successor of
+ * PaEmptyState â€”unified empty state (V020 catalog #24). Folded-in successor of
  * the legacy StateMessage; buttons render only when their label is provided.
  */
 import type { IconName } from "@petaccess/design-tokens";

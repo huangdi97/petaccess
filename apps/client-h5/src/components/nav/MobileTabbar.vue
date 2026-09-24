@@ -31,7 +31,12 @@ function isActive(to: string): boolean {
 </script>
 
 <template>
-  <nav class="mobile-tabbar" data-testid="mobile-tabbar" :style="{ zIndex: `var(${Z_INDEX.tabbar})` }" aria-label="主导航">
+  <nav
+    class="mobile-tabbar"
+    data-testid="mobile-tabbar"
+    :style="{ zIndex: `var(${Z_INDEX.tabbar})` }"
+    aria-label="主导航"
+  >
     <RouterLink
       v-for="tab in TABS"
       :key="tab.to"

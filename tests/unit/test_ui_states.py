@@ -34,11 +34,16 @@ PAGE_STATE_KEYS = [
 
 # Every core page must be able to render these. `loading` is expressed as a
 # skeleton component, the rest as the shared state block.
+# Every core page must be able to render these. `loading` is expressed as a
+# skeleton component, the rest as the shared state block. Offline is a shell
+# responsibility since M2 (V020 §29 GlobalOfflineBanner): the shell wires it
+# once and every view inherits it, so it is asserted on the shell below, not
+# per view.
 REQUIRED_PER_VIEW = {
-    "HomeView.vue": ("SkeletonList", "StateMessage", "offline-banner"),
-    "SearchView.vue": ("SkeletonList", "StateMessage", "offline-banner"),
+    "HomeView.vue": ("SkeletonList", "StateMessage"),
+    "SearchView.vue": ("SkeletonList", "StateMessage"),
     "PlaceView.vue": ("SkeletonList", "StateMessage"),
-    "BoundaryView.vue": ("SkeletonList", "StateMessage", "offline-banner"),
+    "BoundaryView.vue": ("SkeletonList", "StateMessage"),
 }
 
 
@@ -98,6 +103,12 @@ def test_core_views_wire_their_loading_error_and_offline_states():
         for needle in needles:
             if needle not in src:
                 missing.append(f"{name}: {needle}")
+    # Offline is a shell-level concern (M2 §29): the global banner renders once
+    # in ConsumerAppShell and covers every route; per-view offline duplication
+    # would defeat the global offline foundation.
+    shell = _read(H5_COMPONENTS / "shell" / "ConsumerAppShell.vue")
+    if "GlobalOfflineBanner" not in shell:
+        missing.append("ConsumerAppShell.vue: GlobalOfflineBanner")
     assert not missing, "core views are missing UI states: " + "; ".join(missing)
 
 

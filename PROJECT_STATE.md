@@ -1,7 +1,7 @@
 # PROJECT_STATE.md
 
 ## Current phase
-v0.1.0 Early Preview — 已发布（2026-09-24, GitHub Release v0.1.0）｜进行中：v0.2.0 M1（Master Goal §40 工程门禁全量补齐，见 docs/audit/V020_GLOBAL_CODE_AUDIT.md）
+v0.1.0 Early Preview — 已发布（2026-09-24, GitHub Release v0.1.0）｜进行中：v0.2.0 M2 已完结（M2-A..M2-G，Product Experience Foundation，见 docs/v0.2/）；下一 milestone：V020_M3_CONSUMER_CORE
 
 ## v0.1.0 状态
 - **V0_1_0_RELEASED = YES（2026-09-24 已发布 https://github.com/huangdi97/petaccess/releases/tag/v0.1.0）**
@@ -18,6 +18,16 @@ v0.1.0 Early Preview — 已发布（2026-09-24, GitHub Release v0.1.0）｜进�
 - Visual 47 PASS（17 基线家族 × viewports；Empty-First 文案改动后基线重生成一次，compare 全绿）
 - A11y：0 issues（consumer + admin 全页, 键盘焦点走查 0 invisible）
 - 依赖扫描：pip-audit / pnpm audit 均 0 known vulnerabilities（Critical=0 / High=0）
+
+## v0.2.0 M2 质量基线（2026-09-24 全实测, CURRENT VERIFIED）
+- Engineering gate：0 FAIL / 60 REVIEW / 28 WARN（PASS）；ruff / format PASS；mypy 96 files / 0 errors
+- Backend pytest 全量重跑：DISCOVERED 946 = PASSED 944 / SKIPPED 2 / FAILED 0（TEST DB + Celery + MinIO）
+- H5 + Admin vue-tsc + build PASS；ESLint / Prettier PASS（29 个 M2 文件补 prettier，见工程报告 §6）
+- Playwright e2e 70 passed；Visual 42 passed（14 基线家族 × 390/768/1440，a11y 修复后重生成）
+- A11y（axe-core 4.10 六家族机器扫描）：0 critical / 0 serious
+- 性能基线（§50）：main 134.39 kB（gzip 51.94）；HomeView 10.19 kB；SearchView 9.99 kB；记录于 V020_M2_ENGINEERING_REPORT.md
+- Windows Tauri / Android 真机 DPI QA：PARTIAL（推迟 M8/M9），见工程报告 §7
+- 8 份 §56 交付文档齐备（docs/v0.2/）；DECISIONS.md 记录 ADR-031（DEV_FIXTURE_MODE fail-closed）
 
 ## v0.1.0 产品（Early Preview, Empty-First）
 - 允许数据为空：Places/Rules/RealityClaims/StaffResponses/AnimalFacilities = 0 也完整可用

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * PaMetadataRow â€?one key/value line (V020 catalog #28). A border-bottom
+ * PaMetadataRow â€”one key/value line (V020 catalog #28). A border-bottom
  * divider separates stacked rows; the divider is dropped on the last row.
  * `mono` switches numeric values to the numeric font family.
  */

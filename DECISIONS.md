@@ -301,3 +301,24 @@
   `docs/reality/TEST_TREE_INVENTORY.md`）。
 - Migration impact: 无（纯代码 + 既有 Reality 表）。
 - Status: accepted.
+
+---
+
+## ADR-031 — DEV_FIXTURE_MODE：演示数据只服务于开发/测试/视觉，生产必 fail-closed
+
+- Context: M2 的 Home/Search 成品化需要“有数据状态”可看，而 v0.2.0 禁止在
+  生产库 seed 假场所（M2 Goal §40）。需要一个与生产数据严格隔离的演示数据通道。
+- Decision:
+  (1) 新增 `app/services/dev_fixture.py`：小且明确虚构的演示数据集（名称带
+      「·演示」），从 API 层直接返回，绝不写入 Postgres（无 DB seed）。
+  (2) 激活条件三要件同时成立才生效：环境变量 `DEV_FIXTURE_MODE` 为真、且
+      `APP_ENV` 非 production/prod/staging、且数据库角色非 PRODUCTION
+      （`classify_database_name`）。任一失败 ⇒ 强制 OFF（fail-closed）。
+  (3) 生产构建必须 fail closed：即使用户误设环境变量，生产也永远收不到
+      fixture 载荷。`tests/isolation/test_production_fail_closed.py` 固化该不变量。
+- Alternatives: 启动时 seed 演示场所（拒绝：违反 §40 生产不自动 seed 假数据）；
+  纯前端 mock（拒绝：绕过真实 API contract，视觉回归将不再等于真实契约）。
+- Evidence: `tests/isolation/test_production_fail_closed.py`；visual 基线
+  home-fixture / search-fixture 基于该通道渲染。
+- Migration impact: 无（纯代码 + 环境变量开关）。
+- Status: accepted.

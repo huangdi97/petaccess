@@ -19,7 +19,9 @@ test("mobile shows the four bottom tabs and no rail", async ({ page }) => {
   await expect(tabbar.getByRole("link", { name: "搜索" })).toHaveCount(0);
   await expect(page.getByTestId("desktop-rail")).toHaveCount(0);
   // tap targets: each tab link is ≥ 44px tall
-  const height = await tabbar.getByRole("link", { name: "首页" }).evaluate((el) => el.getBoundingClientRect().height);
+  const height = await tabbar
+    .getByRole("link", { name: "首页" })
+    .evaluate((el) => el.getBoundingClientRect().height);
   expect(height).toBeGreaterThanOrEqual(44);
 });
 

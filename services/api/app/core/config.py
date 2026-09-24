@@ -28,7 +28,6 @@ class Settings(BaseSettings):
     # production — the isolation suite proves production stays closed.
     dev_fixture_mode: bool = False
 
-
     s3_endpoint: str = "http://localhost:9000"
     s3_access_key: str = "minio"
     s3_secret_key: str = "minio_dev_only"

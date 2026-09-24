@@ -78,8 +78,10 @@ export const REALITY_STATE_COPY: Readonly<Record<RealityStateKey, RealityStateCo
 
 /** Caller-safe accessor: unknown states degrade to the neutral "no record". */
 export function realityCopyFor(state: string | null | undefined): RealityStateCopy {
-  return REALITY_STATE_COPY[(state as RealityStateKey) ?? "NO_RECENT_RECORD"] ??
-    REALITY_STATE_COPY.NO_RECENT_RECORD;
+  return (
+    REALITY_STATE_COPY[(state as RealityStateKey) ?? "NO_RECENT_RECORD"] ??
+    REALITY_STATE_COPY.NO_RECENT_RECORD
+  );
 }
 
 /* ------------------------------------------------------------------ evidence */

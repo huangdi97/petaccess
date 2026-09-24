@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * PaPageHeader â€?sticky page header (V020 catalog #30). Back button renders
+ * PaPageHeader â€”sticky page header (V020 catalog #30). Back button renders
  * only when `back` is true and emits `back`. The header sticks below the top
  * of the page with the app background, so scrolled content never bleeds
  * through it.

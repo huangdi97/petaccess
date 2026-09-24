@@ -220,7 +220,7 @@ def nearby_places(
 
 
 @router.get("/places/{place_id}", response_model=PlaceOut)
-def get_place(place_id: str, db: Session = Depends(get_db)) -> Place:
+def get_place(place_id: str, db: Session = Depends(get_db)) -> Place | PlaceOut:
     place = db.get(Place, place_id)
     if place is None:
         if dev_fixture_active() and is_fixture_place_id(place_id):

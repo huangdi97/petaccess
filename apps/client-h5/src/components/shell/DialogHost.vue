@@ -21,7 +21,12 @@ function cancel() {
   <Teleport to="body">
     <div v-if="dialog" class="dialog-host" data-testid="dialog-host">
       <div class="dialog-host__overlay" @click="cancel" />
-      <div class="dialog-host__panel" role="dialog" aria-modal="true" :aria-label="dialog.options.title">
+      <div
+        class="dialog-host__panel"
+        role="dialog"
+        aria-modal="true"
+        :aria-label="dialog.options.title"
+      >
         <div class="dialog-host__title">
           <PaIcon class="dialog-host__title-icon" name="warning" size="md" />
           {{ dialog.options.title }}

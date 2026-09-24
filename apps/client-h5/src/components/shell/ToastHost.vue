@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * ToastHost �?renders the global toast stack (V020_APP_SHELL_SPEC §toast-host).
+ * ToastHost —renders the global toast stack (V020_APP_SHELL_SPEC §toast-host).
  * ConsumerAppShell mounts exactly one ToastHost; pages use `useUi().toast()`
  * and never render their own toast/alert stack.
  */
@@ -16,7 +16,6 @@ const KIND_ICONS: Record<string, IconName> = {
   warning: "warning",
   error: "x-circle",
 };
-
 </script>
 
 <template>

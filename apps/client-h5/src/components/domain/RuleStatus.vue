@@ -55,7 +55,12 @@ const ICON_BY_KEY: Record<StatusKey, IconName> = {
     :data-status="semantics.key"
     role="status"
   >
-    <PaIcon class="rule-status__icon" :name="ICON_BY_KEY[semantics.key]" size="sm" aria-hidden="true" />
+    <PaIcon
+      class="rule-status__icon"
+      :name="ICON_BY_KEY[semantics.key]"
+      size="sm"
+      aria-hidden="true"
+    />
     <span class="rule-status__label">{{ semantics.label }}</span>
     <span class="visually-hidden">{{ semantics.ariaLabel }}</span>
   </span>

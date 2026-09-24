@@ -52,7 +52,7 @@
 ## 3. 为什么不可达（机制）
 
 ```python
-ORDINARY_PET_SUBJECTS = {ordinary_dog, ordinary_cat, other_pet}   # 不含 guide_dog
+ORDINARY_PET_SUBJECTS = {ordinary_dog, ordinary_cat, other_pet}  # 不含 guide_dog
 ```
 
 domain resolver 的规则：**只有 base 对当前查询 subject 成立时，才应用其 RuleException。**

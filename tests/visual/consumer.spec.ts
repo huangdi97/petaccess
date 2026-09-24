@@ -1,9 +1,11 @@
 /**
- * Consumer H5 — real render, real data, three viewports.
+ * Consumer H5 — real render, real data, three viewports (390 / 768 / 1440).
  *
- * These are the pages a real user would land on. Nothing here is mocked: the
- * API is the same one the E2E suite uses, so an empty list means the data is
- * empty, not that the harness is.
+ * M2 baseline families (V020 goal §48): Home empty / Home fixture / Search
+ * empty / Search fixture / Offline / Error, on both mobile and desktop, light
+ * theme. "Fixture" shots render the reseeded visual database; "empty" shots
+ * intercept the API to force zero published places; Offline and Error force
+ * the edge states directly. Nothing here invents production data.
  */
 import { expect } from "@playwright/test";
 
@@ -13,30 +15,73 @@ test.beforeEach(async ({ page }) => {
   await freezeClock(page);
 });
 
-test("home — decision home, search-first", async ({ page }) => {
+// ------------------------------------------------------------------ home ----
+test("home-fixture — decision home, search-first, real seeded data", async ({ page }) => {
   await page.goto("/");
   await settle(page);
-  await shot(page, "home");
+  await shot(page, "home-fixture");
 });
 
-test("search — results", async ({ page }) => {
+test("home-empty — zero published places renders the product empty state", async ({ page }) => {
+  await page.route("**/api/v1/places/nearby**", (route) =>
+    route.fulfill({ json: { items: [], total: 0, limit: 20, offset: 0 } }),
+  );
+  await page.route("**/api/v1/places?**", (route) =>
+    route.fulfill({ json: { items: [], total: 0, limit: 20, offset: 0 } }),
+  );
+  await page.goto("/");
+  await settle(page);
+  await expect(page.getByTestId("home-empty")).toBeVisible();
+  await shot(page, "home-empty");
+});
+
+test("offline — global offline banner over the home", async ({ page }) => {
+  // Load the shell first, THEN drop the network: navigator.onLine flips and the
+  // shell's GlobalOfflineBanner must appear. Setting offline before goto() would
+  // block the page load itself.
+  await page.goto("/");
+  await page.context().setOffline(true);
+  await page.evaluate(() => window.dispatchEvent(new Event("offline")));
+  await settle(page);
+  await expect(page.getByTestId("global-offline-banner")).toBeVisible();
+  await shot(page, "offline", { allowErrorState: true });
+});
+
+test("error — service failure renders the unified error state, never a crash", async ({ page }) => {
+  await page.route("**/api/v1/places/nearby**", (route) =>
+    route.fulfill({
+      status: 500,
+      contentType: "application/json",
+      body: JSON.stringify({ error: {} }),
+    }),
+  );
+  await page.goto("/");
+  await settle(page);
+  await expect(page.locator('[data-state="ERROR"]').first()).toBeVisible();
+  await shot(page, "error", { allowErrorState: true });
+});
+
+// ---------------------------------------------------------------- search ----
+test("search-fixture — results with rule + reality metadata", async ({ page }) => {
   await page.goto("/#/search");
   await settle(page);
   await page.getByTestId("search-input").fill("咖啡");
   await page.getByTestId("search-btn").click();
   await settle(page);
-  await shot(page, "search-results");
+  await shot(page, "search-fixture");
 });
 
-test("search — empty result", async ({ page }) => {
+test("search-empty — required copy, not a fake empty", async ({ page }) => {
   await page.goto("/#/search");
   await settle(page);
   await page.getByTestId("search-input").fill("不存在的场所zzz");
   await page.getByTestId("search-btn").click();
   await settle(page);
+  await expect(page.getByTestId("search-empty")).toContainText("没有找到已收录场所");
   await shot(page, "search-empty");
 });
 
+// ------------------------------------------------------------- other pages ----
 test("map — tab shell and list fallback", async ({ page }) => {
   await page.goto("/#/map");
   await settle(page);
@@ -61,9 +106,7 @@ test("place detail — CONDITIONAL (real seeded rules)", async ({ page }) => {
   await page.goto(`/#/place/${FIXTURE.mall}`);
   await settle(page);
   // Named for what the page actually answers. The mall's place-level answer
-  // resolves CONDITIONAL (carrier required) via its governing template rule;
-  // the old RESTRICTED baseline predated the AccessAnswer migration that
-  // stopped flattening zone rules into a place verdict.
+  // resolves CONDITIONAL (carrier required) via its governing template rule.
   await expect(
     page.locator("[data-testid='answer-ordinary'] [data-status='CONDITIONAL']"),
   ).toBeVisible();
@@ -98,12 +141,7 @@ test("map bottom sheet", async ({ page }) => {
   await page.goto("/#/map");
   await settle(page);
 
-  // The sheet opens by selecting a marker. It does NOT open from a list row —
-  // a list row is `@click="open(p.id)"` and navigates straight to the place
-  // page. This test used to tap a list row, which made `map-sheet` a
-  // byte-identical copy of `place-unknown` (same MD5 at all three viewports):
-  // two baselines, one image, and zero coverage of the sheet.
-  //
+  // The sheet opens by selecting a marker. It does NOT open from a list row.
   // A multi-member cluster zooms instead of selecting, so zoom until single
   // pins appear. The visual database is reset to a fixed dataset before every
   // run, so this takes the same number of clicks every time.

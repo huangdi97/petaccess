@@ -40,8 +40,17 @@ const envLabel = import.meta.env.DEV ? "development" : "production";
 </script>
 
 <template>
-  <aside class="desktop-rail" data-testid="desktop-rail" :style="{ zIndex: `var(${Z_INDEX.sticky})` }" aria-label="主导航">
-    <RouterLink to="/" class="desktop-rail__brand" :class="{ 'desktop-rail__item--active': route.path === '/' }">
+  <aside
+    class="desktop-rail"
+    data-testid="desktop-rail"
+    :style="{ zIndex: `var(${Z_INDEX.sticky})` }"
+    aria-label="主导航"
+  >
+    <RouterLink
+      to="/"
+      class="desktop-rail__brand"
+      :class="{ 'desktop-rail__item--active': route.path === '/' }"
+    >
       <span class="desktop-rail__brand-mark" aria-hidden="true">PA</span>
       <span class="desktop-rail__brand-name">PetAccess</span>
     </RouterLink>

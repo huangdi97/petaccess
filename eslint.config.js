@@ -12,6 +12,9 @@ export default defineConfigWithVueTs(
       "test-results/**",
       "apps/client/**",
       ".venv/**",
+      // Local agent scratch dir — never app source; prevents the project
+      // service from choking on transient scripts written there.
+      ".tmp/**",
       "**/*.d.ts",
       // Tauri build outputs: cargo fingerprints/gen are machine-written JS, not
       // app source — linting them only produces "not found by project service".
