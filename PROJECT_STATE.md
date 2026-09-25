@@ -1,7 +1,7 @@
 # PROJECT_STATE.md
 
 ## Current phase
-v0.1.0 Early Preview — 已发布（2026-09-24, GitHub Release v0.1.0）｜进行中：v0.2.0 M5 已完结（V020_M5_REALITY_TRACE_AND_EVIDENCE，见 docs/v0.2/）；下一 milestone：V020_M7_CONTRIBUTION_UX
+# v0.1.0 Early Preview — 已发布（2026-09-24, GitHub Release v0.1.0）｜进行中：v0.2.0 M7 已完结（V020_M7_CONTRIBUTION_UX，见 docs/v0.2/）；下一 milestone：V020_M8_DESKTOP_FINAL（M6 空缺）
 
 ## v0.1.0 状态
 - **V0_1_0_RELEASED = YES（2026-09-24 已发布 https://github.com/huangdi97/petaccess/releases/tag/v0.1.0）**
@@ -44,6 +44,13 @@ v0.1.0 Early Preview — 已发布（2026-09-24, GitHub Release v0.1.0）｜进�
 - A11y：trace 页（桌面+移动）axe 0 critical / 0 serious
 - 门禁全绿：eng gate 0 FAIL / 60 REVIEW / 30 WARN；ruff / format（470 文件）PASS；mypy 96·0；backend 回归重跑 944 passed / 2 skipped / 0 failed；e2e 87 passed；visual 45 passed；eslint / prettier PASS
 - 后端零改动；无新架构决策
+## v0.2.0 M7 质量基线（2026-09-25 全实测, CURRENT VERIFIED）
+- 贡献向导重建（769 行旧单体 → 171 行编排器 + 8 个步骤组件，全部 vue ≤200）：entry/quick/signage/rule/experience/reality/done 7 步状态机；placeId+signedIn 门禁（未选场所/未登录双 CTA）；TD-015 豁免关闭
+- 现实贡献走父流 createRealityReport（candidates + effort + privacy private，ADR-029）；规则/拍照/快速确认保持旧端点不迁移
+- 贡献历史：新端点 GET /api/v1/me/reality-contributions（仅本人数据 50 上限，匿名 401，复用 RealityReport/RealityCandidate 无新模型）+ MineView「我的贡献」区块（CANDIDATE_TYPE_LABELS/CONTRIBUTION_STATUS_LABELS 字典，无原始枚举上屏）
+- A11y：contribute 全态（signed-out/entry/reality-form 桌面+移动）+ mine axe 0 critical / 0 serious（顺带修复全部表单 label/select 程序化关联）
+- 门禁全绿：eng gate 0 FAIL / 60 REVIEW / 34 WARN；ruff / format PASS；mypy 96·0；backend 回归重跑 945 passed / 2 skipped / 0 failed（+1 贡献历史集成测试）；e2e 90 passed（+3 contribute-wizard）；visual 59 passed（contribute-h5-390 重生成）；eslint / prettier PASS；client-h5 build PASS
+- 后端改动仅 1 新端点（UI 所需 contract gap）+ 集成测试；死代码豁免新增仅 TD-028 decorator-registered 类别
 ## v0.2.0 M2 质量基线（2026-09-24 全实测, CURRENT VERIFIED）
 - Engineering gate：0 FAIL / 60 REVIEW / 28 WARN（PASS）；ruff / format PASS；mypy 96 files / 0 errors
 - Backend pytest 全量重跑：DISCOVERED 946 = PASSED 944 / SKIPPED 2 / FAILED 0（TEST DB + Celery + MinIO）
