@@ -1,9 +1,4 @@
 <script setup lang="ts">
-/**
- * RealityTraceView — M5 Reality Trace + Evidence surface (§14).
- * Renders fact + verification from `client.realityTrace` / `client.observations`.
- * No raw enums reach the page; rule provenance stays in Passport §7 (M5 B3).
- */
 import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { client, freshnessLabel, type ObservationView } from "@petaccess/client-core";
@@ -15,8 +10,6 @@ import StateMessage from "../components/StateMessage.vue";
 import EvidenceMeta from "../components/domain/EvidenceMeta.vue";
 import EvidenceStatus from "../components/domain/EvidenceStatus.vue";
 import { presentDescription } from "../errors";
-
-defineOptions({ name: "RealityTraceView" });
 
 const route = useRoute();
 const placeId = computed(() => (route.params.id ? String(route.params.id) : ""));
@@ -38,14 +31,12 @@ const observations = ref<ObservationView[]>([]);
 const loading = ref(true);
 const error = ref("");
 
-/** M5 B1 — observation dispute → the shared evidence vocabulary. */
 function evidenceStateFor(o: ObservationView): "verified" | "pending" | "disputed" | "historical" {
   if (o.dispute_status === "DISPUTED") return "disputed";
   if (o.dispute_status && o.dispute_status !== "NONE") return "pending";
   return "verified";
 }
 
-/** fact vs review rendered by one loop; review sits on the sunken surface. */
 const traceGroups = computed(() =>
   trace.value
     ? [
@@ -83,7 +74,6 @@ async function load() {
   }
 }
 
-// Reactive param: Vue Router reuses the component across /place/:id/reality changes.
 watch(placeId, () => void load(), { immediate: true });
 </script>
 
@@ -91,14 +81,12 @@ watch(placeId, () => void load(), { immediate: true });
   <AppShell>
     <DesktopContentContainer mode="single-column">
       <h1 class="visually-hidden">现场轨迹</h1>
-
       <SkeletonList v-if="loading" :rows="4" />
       <StateMessage v-else-if="error" kind="ERROR" title="未能取得现场轨迹" :description="error">
         <template #action>
           <button class="primary" @click="load">重试</button>
         </template>
       </StateMessage>
-
       <template v-else-if="trace">
         <header class="panel" data-testid="trace-summary">
           <h2>现场轨迹（≠ 规则）</h2>
@@ -111,7 +99,6 @@ watch(placeId, () => void load(), { immediate: true });
             :evidence-count="trace.evidence_count"
           />
         </header>
-
         <section
           v-for="g in traceGroups"
           :key="g.key"
@@ -128,7 +115,6 @@ watch(placeId, () => void load(), { immediate: true });
             </div>
           </div>
         </section>
-
         <section class="trace-timeline" data-testid="trace-observations">
           <h2>现场记录时间线</h2>
           <div v-for="o in observations" :key="o.id" class="trace-row">
@@ -160,6 +146,7 @@ watch(placeId, () => void load(), { immediate: true });
     </DesktopContentContainer>
   </AppShell>
 </template>
+
 <style scoped>
 .trace-summary__state {
   font-size: var(--pa-font-size-xl);
@@ -167,20 +154,13 @@ watch(placeId, () => void load(), { immediate: true });
   color: var(--pa-color-text-primary);
   margin: var(--pa-space-2) 0;
 }
-.trace-facts,
-.trace-review,
-.trace-timeline {
-  margin-top: var(--pa-space-4);
-}
 .trace-facts h2,
 .trace-review h2,
 .trace-timeline h2 {
   font-size: var(--pa-font-size-lg);
   color: var(--pa-color-text-primary);
-  margin: 0 0 var(--pa-space-2);
+  margin: var(--pa-space-4) 0 var(--pa-space-2);
 }
-/* Review sits on the sunken surface so fact vs verification posture is
- * distinguishable without colour alone (§14 / §7). */
 .trace-review {
   background: var(--pa-color-bg-sunken);
   border-radius: var(--pa-radius-md);

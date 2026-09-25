@@ -88,3 +88,27 @@ export function facilityLines(
     return `${f.facility_type}${op}：${f.count} 处${fresh}`;
   });
 }
+
+/** M7 — contribution history vocabulary (candidate type + review posture). */
+export const CANDIDATE_TYPE_LABELS: Record<string, string> = {
+  observed_presence: "现场出现记录",
+  staff_response: "工作人员处理记录",
+  animal_facility: "动物设施记录",
+};
+
+/** Review posture of a reality candidate (REVIEW_PENDING default; decisions human-only). */
+export const CONTRIBUTION_STATUS_LABELS: Record<string, string> = {
+  REVIEW_PENDING: "等待人工核验",
+  VERIFIED: "已核验",
+  VERIFIED_WITH_NOTE: "已核验（附注）",
+  HOLD: "待定",
+  REJECTED: "已驳回",
+};
+
+export function contributionStatusLabel(candidate: {
+  review_status: string;
+  reality_decision: string | null;
+}): string {
+  const key = candidate.reality_decision ?? candidate.review_status;
+  return CONTRIBUTION_STATUS_LABELS[key] ?? key;
+}

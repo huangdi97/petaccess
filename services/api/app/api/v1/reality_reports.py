@@ -42,6 +42,7 @@ from app.models import (
     AnimalFacility,
     ObservedPresence,
     Place,
+    RealityCandidate,
     RealityReport,
     StaffResponseObservation,
     User,
@@ -374,6 +375,58 @@ def reality_trace(
         review_sections=review_sections,
         evidence_count=summary.evidence_count,
     )
+
+
+@router.get("/me/reality-contributions")
+def my_reality_contributions(
+    user: User | None = Depends(get_optional_user),
+    db: Session = Depends(get_db),
+) -> list[dict]:
+    """The signed-in user's own reality reports + candidate statuses (M7 B1).
+
+    Returns only the caller's own data (deny-by-default); candidates link to
+    their report. Review/verification states are exposed as stable machine
+    codes — the UI maps them through the shared dictionary.
+    """
+    if not user:
+        raise ApiError(
+            "登录后才能查看贡献历史",
+            code="auth_required",
+            status_code=401,
+        )
+    reports = db.scalars(
+        select(RealityReport)
+        .where(RealityReport.reporter_id == user.id)
+        .order_by(RealityReport.created_at.desc())
+        .limit(50)
+    ).all()
+    out: list[dict] = []
+    for r in reports:
+        candidates = db.scalars(
+            select(RealityCandidate)
+            .where(RealityCandidate.report_id == r.id)
+            .order_by(RealityCandidate.created_at.asc())
+        ).all()
+        out.append(
+            {
+                "report_id": r.id,
+                "place_id": r.place_id,
+                "origin": str(r.origin),
+                "moderation_state": r.moderation_state,
+                "created_at": r.created_at.isoformat() if r.created_at else None,
+                "candidates": [
+                    {
+                        "candidate_type": str(c.candidate_type),
+                        "review_status": c.review_status,
+                        "verification_status": str(c.verification_status),
+                        "reality_decision": str(c.reality_decision) if c.reality_decision else None,
+                        "observed_at": c.observed_at.isoformat() if c.observed_at else None,
+                    }
+                    for c in candidates
+                ],
+            }
+        )
+    return out
 
 
 def _source_type_label(

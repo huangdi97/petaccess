@@ -1,0 +1,200 @@
+<script setup lang="ts">
+/** ContributeRealityForm — M7 reality contribution on the parent-flow API (A2). */
+import { computed, ref } from "vue";
+import { client } from "@petaccess/client-core";
+import { isoAt, realityPayload, reportOrigin } from "./contributeSupport";
+import { presentDescription } from "../../errors";
+defineOptions({ name: "ContributeRealityForm" });
+const props = defineProps<{
+  placeId: string;
+  zones: { id: string; name: string }[];
+  online: boolean;
+  signedIn: boolean;
+  kind: "observed_presence" | "staff_response" | "animal_facility";
+}>();
+const emit = defineEmits<{ done: [msg: string]; back: [] }>();
+const KIND_LABELS: Record<string, string> = {
+  observed_presence: "我刚刚看到动物",
+  staff_response: "我看到工作人员怎么处理",
+  animal_facility: "我发现这里有动物相关设施",
+};
+
+const occurredAt = ref(new Date().toISOString().slice(0, 10));
+const zone = ref("");
+const animal = ref("dog");
+const count = ref("");
+const action = ref("");
+const staffAction = ref("");
+const staffOutcome = ref("");
+const facilityType = ref("");
+const facilityOperational = ref("active");
+const context = ref("");
+const effortBucket = ref("lt_10_min");
+
+const EFFORT_LABELS: Record<string, string> = {
+  lt_10_min: "不到 10 分钟",
+  min_10_30: "10–30 分钟",
+  min_30_120: "30 分钟 – 2 小时",
+  gt_120_min: "超过 2 小时",
+  unknown: "不确定",
+};
+
+const busy = ref(false);
+const error = ref("");
+const canSubmit = computed(() => props.online && props.signedIn && !busy.value);
+
+async function submit() {
+  if (!canSubmit.value || !props.placeId) return;
+  error.value = "";
+  busy.value = true;
+  try {
+    const kind = props.kind;
+    const at = isoAt(occurredAt.value);
+    const { payload, animalScope } = realityPayload(props.kind, {
+      animal: animal.value,
+      count: count.value,
+      action: action.value,
+      context: context.value,
+      staffAction: staffAction.value,
+      staffOutcome: staffOutcome.value,
+      facilityType: facilityType.value,
+      facilityOperational: facilityOperational.value,
+    });
+    const res = await client.createRealityReport(props.placeId, {
+      report: {
+        origin: reportOrigin(occurredAt.value),
+        place_id: props.placeId,
+        observed_at: at,
+        privacy_state: "private",
+      },
+      candidates: [
+        {
+          candidate_type: kind,
+          zone_id: zone.value || null,
+          animal_scope: animalScope,
+          observed_at: at,
+          payload,
+        },
+      ],
+      effort: {
+        place_id: props.placeId,
+        duration_bucket: effortBucket.value,
+        observed_at: at,
+        animal_observed: kind === "observed_presence" ? true : undefined,
+      },
+      confirmation: null,
+      external_content: null,
+    });
+    const pending = res.moderation_state === "pending" || res.moderation_state === "flagged";
+    emit(
+      "done",
+      pending
+        ? "现场情况已提交，进入人工审核队列。AI 不会自动裁定 —— 审核通过后才作为现场事实展示。"
+        : "现场情况已提交并记录。审核通过后才会作为现场事实展示。",
+    );
+  } catch (e) {
+    error.value = presentDescription(e);
+  } finally {
+    busy.value = false;
+  }
+}
+</script>
+
+<template>
+  <div>
+    <strong>{{ KIND_LABELS[kind] }}</strong>
+    <p class="muted" style="margin-top: 4px">
+      只回答结构化问题。提交进入人工审核队列，AI 不会自动裁定。
+    </p>
+
+    <div v-if="error" class="notice" data-testid="reality-error">{{ error }}</div>
+
+    <label for="reality-date">日期</label>
+    <input v-model="occurredAt" type="date" id="reality-date" data-testid="reality-date" />
+
+    <label for="reality-effort">在场时长（帮助核验，可选）</label>
+    <select v-model="effortBucket" id="reality-effort" data-testid="reality-effort">
+      <option v-for="(label, key) in EFFORT_LABELS" :key="key" :value="key">{{ label }}</option>
+    </select>
+
+    <label for="reality-zone">适用区域</label>
+    <select v-model="zone" id="reality-zone">
+      <option value="">全场 / 不确定</option>
+      <option v-for="z in zones" :key="z.id" :value="z.id">{{ z.name }}</option>
+    </select>
+
+    <template v-if="kind === 'observed_presence'">
+      <label for="reality-animal">动物</label>
+      <select v-model="animal" id="reality-animal">
+        <option value="dog">犬</option>
+        <option value="cat">猫</option>
+        <option value="other">其他</option>
+      </select>
+      <label for="reality-count">大概几只</label>
+      <input
+        v-model="count"
+        type="number"
+        min="1"
+        placeholder="1"
+        id="reality-count"
+        data-testid="reality-count"
+      />
+      <label for="reality-action">在做什么</label>
+      <select v-model="action" id="reality-action">
+        <option value="present">在场</option>
+        <option value="walking">行走</option>
+        <option value="waiting">等待</option>
+        <option value="entering">进入</option>
+        <option value="dining">用餐</option>
+      </select>
+    </template>
+
+    <template v-else-if="kind === 'staff_response'">
+      <label for="reality-staff-action">工作人员做了什么</label>
+      <select v-model="staffAction" id="reality-staff-action">
+        <option value="provided_guidance">引导 / 说明</option>
+        <option value="asked_to_leave">要求离开</option>
+        <option value="offered_assistance">提供协助</option>
+        <option value="no_interaction">未与顾客互动</option>
+      </select>
+      <label for="reality-staff-outcome">结果（可选）</label>
+      <input
+        v-model="staffOutcome"
+        placeholder="一两句话即可，不填也可以"
+        id="reality-staff-outcome"
+      />
+    </template>
+
+    <template v-else>
+      <label for="reality-facility-type">设施类型</label>
+      <select v-model="facilityType" id="reality-facility-type">
+        <option value="waiting_area">宠物等候区 / 笼</option>
+        <option value="water_station">饮水点 / 水碗</option>
+        <option value="pet_elevator">宠物电梯</option>
+        <option value="designated_zone">专用活动区</option>
+        <option value="other_facility">其他设施</option>
+      </select>
+      <label for="reality-facility-status">状态</label>
+      <select v-model="facilityOperational" id="reality-facility-status">
+        <option value="active">正常可用</option>
+        <option value="removed">已拆除</option>
+        <option value="out_of_service">停用</option>
+      </select>
+    </template>
+
+    <label for="reality-context">补充（可选，非评论区）</label>
+    <input
+      v-model="context"
+      id="reality-context"
+      placeholder="一两句话即可，不填也可以"
+      data-testid="reality-context"
+    />
+
+    <div class="row" style="margin-top: 14px">
+      <button class="primary" :disabled="!canSubmit" data-testid="reality-submit" @click="submit">
+        {{ busy ? "提交中…" : "提交现场情况" }}
+      </button>
+      <button :disabled="busy" @click="emit('back')">返回</button>
+    </div>
+  </div>
+</template>

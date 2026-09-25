@@ -286,12 +286,6 @@
     },
     {
       "rule": "vue>200",
-      "path": "views/ContributeView.vue",
-      "reason": "planned component split (M3/M4); see V010_TECH_DEBT_REGISTER #TD-015",
-      "reference": "TD-015"
-    },
-    {
-      "rule": "vue>200",
       "path": "views/DashboardView.vue",
       "reason": "planned component split (M3/M4); see V010_TECH_DEBT_REGISTER #TD-015",
       "reference": "TD-015"
@@ -760,6 +754,13 @@
       "rule": "dead-code",
       "path": "api/v1/reality_reports.py",
       "symbol": "reality_trace",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/reality_reports.py",
+      "symbol": "my_reality_contributions",
       "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
       "reference": "TD-028"
     },

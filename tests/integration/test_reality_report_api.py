@@ -393,3 +393,29 @@ def _make_verified_presence(client, place_id, auth) -> str:
     )
     assert decision.status_code == 200, decision.text
     return cand_id
+
+
+def test_my_reality_contributions_lists_only_own_reports(client, signed_user, place_id):
+    """M7 B1 — GET /me/reality-contributions returns only the caller's own reports."""
+    r = client.post(
+        f"/api/v1/places/{place_id}/reality/reports",
+        headers=signed_user,
+        json={
+            "report": _report("on_site_now"),
+            "candidates": [_presence_candidate()],
+        },
+    )
+    assert r.status_code == 201, r.text
+    report_id = r.json()["report"]["id"]
+
+    got = client.get("/api/v1/me/reality-contributions", headers=signed_user)
+    assert got.status_code == 200, got.text
+    rows = got.json()
+    mine = next((row for row in rows if row["report_id"] == report_id), None)
+    assert mine is not None, "the just-created report must appear in my contributions"
+    assert mine["place_id"] == place_id
+    assert mine["candidates"][0]["candidate_type"] == "observed_presence"
+    assert mine["candidates"][0]["review_status"] == "REVIEW_PENDING"
+
+    anon = client.get("/api/v1/me/reality-contributions")
+    assert anon.status_code == 401, anon.text

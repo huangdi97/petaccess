@@ -864,4 +864,24 @@ export const client = {
       evidence_count: number;
     }>("get", `/places/${placeId}/reality/trace`);
   },
+
+  /** M7 B2 — the signed-in user's own reality reports + candidate statuses. */
+  async myRealityContributions() {
+    return api.request<
+      {
+        report_id: string;
+        place_id: string | null;
+        origin: string;
+        moderation_state: string;
+        created_at: string | null;
+        candidates: {
+          candidate_type: string;
+          review_status: string;
+          verification_status: string;
+          reality_decision: string | null;
+          observed_at: string | null;
+        }[];
+      }[]
+    >("get", "/me/reality-contributions");
+  },
 };

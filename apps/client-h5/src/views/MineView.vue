@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { client, session } from "@petaccess/client-core";
+import { EMPTY_STATE_COPY } from "@petaccess/design-tokens";
 import StateMessage from "../components/StateMessage.vue";
+import { CANDIDATE_TYPE_LABELS, contributionStatusLabel } from "../reality";
 import { presentDescription } from "../errors";
 
 const pets = ref<Awaited<ReturnType<typeof client.myPets>>>([]);
 const watches = ref<Awaited<ReturnType<typeof client.myWatches>>>([]);
+const contributions = ref<Awaited<ReturnType<typeof client.myRealityContributions>>>([]);
 const error = ref("");
 
 onMounted(async () => {
@@ -14,6 +17,7 @@ onMounted(async () => {
   try {
     pets.value = await client.myPets();
     watches.value = await client.myWatches();
+    contributions.value = await client.myRealityContributions();
   } catch (e) {
     error.value = presentDescription(e);
   }
@@ -70,6 +74,36 @@ onMounted(async () => {
           通知中心
         </button>
       </RouterLink>
+
+      <h2>我的贡献</h2>
+      <div
+        class="panel"
+        v-for="c in contributions"
+        :key="c.report_id"
+        data-testid="contribution-row"
+      >
+        <div class="muted">
+          {{ new Date(c.created_at ?? 0).toLocaleDateString("zh-CN") }} · 场所
+          {{ c.place_id ? c.place_id.slice(0, 8) : "—" }}…
+        </div>
+        <div
+          v-for="cand in c.candidates"
+          :key="cand.candidate_type + (cand.observed_at ?? '')"
+          class="row"
+          style="margin-top: 4px"
+        >
+          <span class="tag">{{
+            CANDIDATE_TYPE_LABELS[cand.candidate_type] ?? cand.candidate_type
+          }}</span>
+          <span class="muted">{{ contributionStatusLabel(cand) }}</span>
+        </div>
+      </div>
+      <div class="panel" v-if="!contributions.length" data-testid="contributions-empty">
+        <span class="muted"
+          >{{ EMPTY_STATE_COPY.CONTRIBUTION_HISTORY.title }} —
+          {{ EMPTY_STATE_COPY.CONTRIBUTION_HISTORY.description }}</span
+        >
+      </div>
 
       <h2>我的共处边界</h2>
       <div class="panel">
