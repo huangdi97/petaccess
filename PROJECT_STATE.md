@@ -1,7 +1,7 @@
 # PROJECT_STATE.md
 
 ## Current phase
-v0.1.0 Early Preview — 已发布（2026-09-24, GitHub Release v0.1.0）｜进行中：v0.2.0 M4 已完结（V020_M4_MAP_AND_PASSPORT，见 docs/v0.2/）；下一 milestone：V020_M5_REALITY_TRACE_AND_EVIDENCE
+v0.1.0 Early Preview — 已发布（2026-09-24, GitHub Release v0.1.0）｜进行中：v0.2.0 M5 已完结（V020_M5_REALITY_TRACE_AND_EVIDENCE，见 docs/v0.2/）；下一 milestone：V020_M7_CONTRIBUTION_UX
 
 ## v0.1.0 状态
 - **V0_1_0_RELEASED = YES（2026-09-24 已发布 https://github.com/huangdi97/petaccess/releases/tag/v0.1.0）**
@@ -36,6 +36,14 @@ v0.1.0 Early Preview — 已发布（2026-09-24, GitHub Release v0.1.0）｜进�
 - A11y：map / place 表面 axe 0 critical / 0 serious（顺带修复 ALLOWED 徽章对比度 #2e7d52→#277348，tint 上 4.38→5.06:1）；移动端 6 家族复扫 0/0
 - 门禁全绿：eng gate 0 FAIL / 60 REVIEW / 29 WARN；ruff / format PASS；mypy 96·0；backend 回归重跑 944 passed / 2 skipped / 0 failed；e2e 82 passed；visual 42 passed；eslint / prettier PASS
 - 后端零改动；真实腾讯地图无 Key → 如实记录 BLOCKED_EXTERNAL（MockMap 交付，不假接线）
+
+## v0.2.0 M5 质量基线（2026-09-24 全实测, CURRENT VERIFIED）
+- Reality Trace 独立路由 `/#/place/:id/reality`（meta.title「现场轨迹」+ 深链 + Passport RealityPanel「查看现场轨迹」CTA）；fact/review 分区渲染（sunken 表面区分，非仅颜色），note 保留
+- 观察时间线（client.observations：时效/动物范围/动作/工作人员/note/争议）+ 空态 REALITY copy；状态完备（SkeletonList/StateMessage/presentError/shell offline）
+- 统一 Evidence 呈现：EvidenceStatus（dispute 映射 verified/pending/disputed/historical）+ EvidenceMeta + freshness，无原始枚举上屏（顺带修复 RealityPanel 原 verification 枚举泄漏）；规则 provenance 留 Passport §7 未复制
+- A11y：trace 页（桌面+移动）axe 0 critical / 0 serious
+- 门禁全绿：eng gate 0 FAIL / 60 REVIEW / 30 WARN；ruff / format（470 文件）PASS；mypy 96·0；backend 回归重跑 944 passed / 2 skipped / 0 failed；e2e 87 passed；visual 45 passed；eslint / prettier PASS
+- 后端零改动；无新架构决策
 ## v0.2.0 M2 质量基线（2026-09-24 全实测, CURRENT VERIFIED）
 - Engineering gate：0 FAIL / 60 REVIEW / 28 WARN（PASS）；ruff / format PASS；mypy 96 files / 0 errors
 - Backend pytest 全量重跑：DISCOVERED 946 = PASSED 944 / SKIPPED 2 / FAILED 0（TEST DB + Celery + MinIO）
