@@ -1,7 +1,7 @@
 # PROJECT_STATE.md
 
 ## Current phase
-v0.1.0 Early Preview — 已发布（2026-09-24, GitHub Release v0.1.0）｜进行中：v0.2.0 M3 已完结（V020_M3_CONSUMER_CORE，见 docs/v0.2/）；下一 milestone：V020_M4_MAP_AND_PASSPORT
+v0.1.0 Early Preview — 已发布（2026-09-24, GitHub Release v0.1.0）｜进行中：v0.2.0 M4 已完结（V020_M4_MAP_AND_PASSPORT，见 docs/v0.2/）；下一 milestone：V020_M5_REALITY_TRACE_AND_EVIDENCE
 
 ## v0.1.0 状态
 - **V0_1_0_RELEASED = YES（2026-09-24 已发布 https://github.com/huangdi97/petaccess/releases/tag/v0.1.0）**
@@ -28,6 +28,14 @@ v0.1.0 Early Preview — 已发布（2026-09-24, GitHub Release v0.1.0）｜进�
 - A11y：M3 新增/变更面 axe 0 critical / 0 serious（顺带修复桌面 rail 版本标签对比度）；移动端 6 家族复扫 0/0
 - 门禁全绿：eng gate 0 FAIL / 60 REVIEW / 29 WARN；ruff / format PASS；mypy 96·0；backend 回归 DISCOVERED 946 = 944 passed / 2 skipped / 0 failed；e2e 75 passed；visual 42 passed；eslint / prettier PASS；H5 + Admin build PASS
 - 后端零改动；性能无退化（SearchView 10.0 kB，+0.1 kB split 逻辑）
+
+## v0.2.0 M4 质量基线（2026-09-24 全实测, CURRENT VERIFIED）
+- Map 桌面 split-view（DesktopContentContainer split：地图 + PlacePreview 详情面板）+ `/map?place=` 深链与 back/forward 同步（e2e A1/A4 全绿；visual map-split 家族）
+- Map 状态收口：empty（EMPTY_STATE_COPY.MAP + 返回首页）、error 走 presentError（修复原始泄漏）、offline 由 shell GlobalOfflineBanner 单一承担（移除本地 banner）
+- Place Passport 收口（10 段骨架未重建）：桌面阅读列（single-column）、Section 7 证据视觉语言（EvidenceStatus/EvidenceMeta/FreshnessStatus，无原始枚举上屏）、统一错误呈现（4 处 quickMsg + 主错误）；e2e B1/B2/B3/B5 全绿
+- A11y：map / place 表面 axe 0 critical / 0 serious（顺带修复 ALLOWED 徽章对比度 #2e7d52→#277348，tint 上 4.38→5.06:1）；移动端 6 家族复扫 0/0
+- 门禁全绿：eng gate 0 FAIL / 60 REVIEW / 29 WARN；ruff / format PASS；mypy 96·0；backend 回归重跑 944 passed / 2 skipped / 0 failed；e2e 82 passed；visual 42 passed；eslint / prettier PASS
+- 后端零改动；真实腾讯地图无 Key → 如实记录 BLOCKED_EXTERNAL（MockMap 交付，不假接线）
 ## v0.2.0 M2 质量基线（2026-09-24 全实测, CURRENT VERIFIED）
 - Engineering gate：0 FAIL / 60 REVIEW / 28 WARN（PASS）；ruff / format PASS；mypy 96 files / 0 errors
 - Backend pytest 全量重跑：DISCOVERED 946 = PASSED 944 / SKIPPED 2 / FAILED 0（TEST DB + Celery + MinIO）
