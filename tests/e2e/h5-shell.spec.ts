@@ -109,5 +109,5 @@ test("place detail degrades to an explicit error state, never a guessed verdict"
 }) => {
   // no API → the page must show an ERROR state rather than inventing a status
   await page.goto("/#/place/00000000-0000-0000-0000-000000000000");
-  await expect(page.getByText("加载失败").first()).toBeVisible();
+  await expect(page.getByText("未能取得场所信息").first()).toBeVisible();
 });

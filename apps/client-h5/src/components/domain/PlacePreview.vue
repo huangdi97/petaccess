@@ -1,8 +1,7 @@
 <script setup lang="ts">
 /**
  * PlacePreview — first-round place summary pane (M3 D1, V020 goal §33).
- * Data flows IN as props (SearchView fetches CoexistenceSnapshot via the
- * generated client — M3 C1); this component never computes a rule/reality
+ * Data flows IN as props (SearchView fetches CoexistenceSnapshot via the generated
  * model itself, it presents values through the shared vocabularies.
  */
 import { computed } from "vue";

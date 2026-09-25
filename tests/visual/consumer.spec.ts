@@ -137,23 +137,32 @@ test("boundary — coexistence preference", async ({ page }) => {
   await shot(page, "boundary");
 });
 
-test("map bottom sheet", async ({ page }) => {
+test("map bottom sheet (mobile) / split preview (desktop)", async ({ page }) => {
   await page.goto("/#/map");
   await settle(page);
 
-  // The sheet opens by selecting a marker. It does NOT open from a list row.
-  // A multi-member cluster zooms instead of selecting, so zoom until single
-  // pins appear. The visual database is reset to a fixed dataset before every
-  // run, so this takes the same number of clicks every time.
+  // The sheet (mobile) opens by selecting a marker; on desktop the same click
+  // feeds the split preview pane. A multi-member cluster zooms instead of
+  // selecting, so zoom until single pins appear. The visual database is reset
+  // to a fixed dataset before every run, so this takes the same number of
+  // clicks every time.
   for (let i = 0; i < 4 && (await page.locator("[data-testid^='pin-']").count()) === 0; i += 1) {
     await page.locator("[data-testid^='cluster-']").first().click();
     await page.waitForTimeout(200);
   }
   await page.locator("[data-testid^='pin-']").first().click();
-
-  // If the sheet never opened, fail here rather than quietly writing another
-  // baseline of the wrong page.
-  await expect(page.getByTestId("sheet-open-detail")).toBeVisible();
   await page.waitForTimeout(600);
-  await shot(page, "map-sheet");
+
+  const width = page.viewportSize()?.width ?? 390;
+  if (width >= 768) {
+    // M4 A1: desktop renders the split preview pane instead of a bottom sheet.
+    await expect(page.getByTestId("place-preview")).toBeVisible();
+    await shot(page, "map-split");
+  } else {
+    // If the sheet never opened, fail here rather than quietly writing another
+    // baseline of the wrong page.
+    await expect(page.getByTestId("sheet-open-detail")).toBeVisible();
+    await shot(page, "map-sheet");
+  }
+  await settle(page);
 });

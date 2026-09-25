@@ -57,7 +57,7 @@
   /* --- colour: status (semantic; never the ONLY signal) ------------------ */
   /* Rule status palette. ALLOWED is a calm green, never a wall of bright green;
    * PROHIBITED is a muted brick, never a danger screen; UNKNOWN stays neutral. */
-  --pa-color-status-allowed: #2e7d52;
+  --pa-color-status-allowed: #277348;
   --pa-color-status-allowed-bg: #e8f3ec;
   --pa-color-status-conditional: #8a5f18;
   --pa-color-status-conditional-bg: #faf1df;
