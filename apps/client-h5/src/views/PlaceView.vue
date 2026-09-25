@@ -606,7 +606,7 @@ async function claimOperator() {
         </div>
 
         <!-- v0.9-R1: Reality panel -- the observed layer of the passport (AC10) -->
-        <RealityPanel :snapshot="coexistence" :loading="!coexistenceLoaded" />
+        <RealityPanel :snapshot="coexistence" :loading="!coexistenceLoaded" :place-id="placeId" />
 
         <!-- Section 2 -- where -->
         <h2>2. 哪里可以 / 不可以</h2>

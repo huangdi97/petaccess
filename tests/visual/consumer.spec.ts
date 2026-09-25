@@ -166,3 +166,11 @@ test("map bottom sheet (mobile) / split preview (desktop)", async ({ page }) => 
   }
   await settle(page);
 });
+
+test("reality trace — fact and verification, distinct from rules", async ({ page }) => {
+  await page.goto(`/#/place/${FIXTURE.mall}/reality`);
+  await settle(page);
+  await expect(page.getByTestId("trace-summary")).toBeVisible();
+  await expect(page.getByTestId("trace-facts")).toBeVisible();
+  await shot(page, "reality-trace");
+});

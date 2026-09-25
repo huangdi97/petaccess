@@ -100,6 +100,13 @@ export const routes: RouteRecordRaw[] = [
     component: () => import("./views/MatchExplainView.vue"),
     meta: { title: "为什么" },
   },
+  // M5: Reality Trace — the fact and how the platform verified it (§14).
+  {
+    path: "/place/:id/reality",
+    name: "reality-trace",
+    component: () => import("./views/RealityTraceView.vue"),
+    meta: { title: "现场轨迹" },
+  },
   // M3: unknown paths land on the unified NotFound state instead of a blank
   // router warning (A1). Order matters: catch-all must be last.
   {

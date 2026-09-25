@@ -48,6 +48,7 @@ REQUIRED_PER_VIEW = {
     "NotificationsView.vue": ("SkeletonList", "StateMessage"),
     "BoundaryView.vue": ("SkeletonList", "StateMessage"),
     "MatchExplainView.vue": ("StateMessage",),
+    "RealityTraceView.vue": ("SkeletonList", "StateMessage"),
 }
 
 # Views whose rendered content carries no data fetch (static pages, auth flow,

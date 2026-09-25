@@ -16,7 +16,29 @@ import {
   staffResponseLines,
 } from "../reality";
 
-defineProps<{ snapshot: CoexistenceSnapshot | null; loading?: boolean }>();
+import EvidenceStatus from "./domain/EvidenceStatus.vue";
+import { computed } from "vue";
+
+const props = withDefaults(
+  defineProps<{
+    snapshot: CoexistenceSnapshot | null;
+    loading?: boolean;
+    placeId?: string | null;
+  }>(),
+  { loading: false, placeId: null },
+);
+
+/** M5 B1 — map the raw verification enum to the shared evidence vocabulary. */
+const verification = computed(() => {
+  const raw = props.snapshot?.evidence_summary.reality_verification_state;
+  return raw === "VERIFIED"
+    ? "verified"
+    : raw === "DISPUTED"
+      ? "disputed"
+      : raw === "HISTORICAL"
+        ? "historical"
+        : "pending";
+});
 </script>
 
 <template>
@@ -67,10 +89,21 @@ defineProps<{ snapshot: CoexistenceSnapshot | null; loading?: boolean }>();
           {{ snapshot.evidence_summary.reality_distinct_source_count }} 个独立来源
         </li>
         <li>
-          现实核验状态：{{ snapshot.evidence_summary.reality_verification_state ?? "未记录" }}
+          现实核验状态：
+          <EvidenceStatus :state="verification" />
         </li>
       </ul>
       <p class="muted small">所有现实事实经人工核验后才展示；过期事实不呈现为近期。</p>
+      <footer class="reality-panel__foot">
+        <RouterLink
+          v-if="placeId"
+          class="btn"
+          :to="`/place/${placeId}/reality`"
+          data-testid="open-reality-trace"
+        >
+          查看现场轨迹
+        </RouterLink>
+      </footer>
     </template>
     <p v-else class="muted">暂无足够现场记录（暂无记录 ≠ 没有动物）。</p>
   </section>
@@ -118,5 +151,8 @@ defineProps<{ snapshot: CoexistenceSnapshot | null; loading?: boolean }>();
 }
 .small {
   font-size: 12px;
+}
+.reality-panel__foot {
+  margin-top: var(--pa-space-3);
 }
 </style>
