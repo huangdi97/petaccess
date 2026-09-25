@@ -1,7 +1,7 @@
 # PROJECT_STATE.md
 
 ## Current phase
-# v0.1.0 Early Preview — 已发布（2026-09-24, GitHub Release v0.1.0）｜进行中：v0.2.0 M7 已完结（V020_M7_CONTRIBUTION_UX，见 docs/v0.2/）；下一 milestone：V020_M8_DESKTOP_FINAL（M6 空缺）
+# v0.1.0 Early Preview — 已发布（2026-09-24, GitHub Release v0.1.0）｜进行中：v0.2.0 M8 已完结（V020_M8_DESKTOP_FINAL，见 docs/v0.2/）；下一 milestone：V020_M9_ANDROID_FINAL
 
 ## v0.1.0 状态
 - **V0_1_0_RELEASED = YES（2026-09-24 已发布 https://github.com/huangdi97/petaccess/releases/tag/v0.1.0）**
@@ -51,6 +51,12 @@
 - A11y：contribute 全态（signed-out/entry/reality-form 桌面+移动）+ mine axe 0 critical / 0 serious（顺带修复全部表单 label/select 程序化关联）
 - 门禁全绿：eng gate 0 FAIL / 60 REVIEW / 34 WARN；ruff / format PASS；mypy 96·0；backend 回归重跑 945 passed / 2 skipped / 0 failed（+1 贡献历史集成测试）；e2e 90 passed（+3 contribute-wizard）；visual 59 passed（contribute-h5-390 重生成）；eslint / prettier PASS；client-h5 build PASS
 - 后端改动仅 1 新端点（UI 所需 contract gap）+ 集成测试；死代码豁免新增仅 TD-028 decorator-registered 类别
+## v0.2.0 M8 质量基线（2026-09-25 全实测, CURRENT VERIFIED）
+- Windows DPI 矩阵收口（M2 §7 延期项）：新增 tests/e2e/desktop-dpi.spec.ts，3 物理分辨率 × DPI 100/125/150% = 9 组（逻辑 CSS 视口 = physical/scale + deviceScaleFactor 模拟），×6 主页面 54 条：渲染非空/无横向溢出/desktop-rail 可见/DSF 实际生效
+- 真实壳冒烟：tauri build（vcvars+MSVC）1m25s → petaccess.exe + NSIS 安装包；install/launch（WebView2 子进程渲染确认）/relaunch/uninstall 全 PASS；产物 artifacts/v0.2/PetAccess_v0.2-desktop_x64-setup.exe（SHA256 be1e8c6a…）
+- Android 模拟器冒烟并入 M8（用户拍板）：worktree reset 至 master → tauri android build（补装 platform-36/build-tools-36）→ apksigner release 签名 → emulator API35 install/launch（截屏 2743 色真实渲染）/force-stop/relaunch（2753 色）/uninstall 全 PASS；PetAccess_v0.2-android-universal.apk（SHA256 c1600cc9…）
+- 门禁全绿：eng gate 0 FAIL / 60 REVIEW / 34 WARN；ruff / format PASS；mypy 96·0；backend 回归重跑 945 passed / 2 skipped / 0 failed；e2e 144 passed（+54 DPI 矩阵）；visual 59 passed；eslint / prettier PASS（eslint.config.js projectService 上限 20→25，非豁免）
+- 壳配置审计无变更（窗口 1000×760 / min 640×480 / CSP deny-by-default / capabilities 仅 core:default）；tauri.conf 版本号沿用 0.1.0，v0.2.0 发布轮再升
 ## v0.2.0 M2 质量基线（2026-09-24 全实测, CURRENT VERIFIED）
 - Engineering gate：0 FAIL / 60 REVIEW / 28 WARN（PASS）；ruff / format PASS；mypy 96 files / 0 errors
 - Backend pytest 全量重跑：DISCOVERED 946 = PASSED 944 / SKIPPED 2 / FAILED 0（TEST DB + Celery + MinIO）
