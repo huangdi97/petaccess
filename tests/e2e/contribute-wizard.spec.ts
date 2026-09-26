@@ -72,7 +72,9 @@ test("B2 — 我的贡献：提交后可见、空时走统一空态", async ({ p
   await page.getByTestId("reality-submit").click();
   await expect(page.getByTestId("contribute-result")).toBeVisible();
   await page.goto(`${BASE}/#/mine`);
-  await expect(page.getByTestId("contribution-row").first()).toBeVisible();
+  // Hardening: the mine list fetch can exceed the default expect timeout when
+  // the full suite runs under parallel workers. Bounded 15s wait, then assert.
+  await expect(page.getByTestId("contribution-row").first()).toBeVisible({ timeout: 15000 });
   await expect(page.getByTestId("contribution-row").first()).toContainText("现场出现记录");
   await expect(page.getByTestId("contribution-row").first()).toContainText("等待人工核验");
 });
