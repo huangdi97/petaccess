@@ -58,6 +58,7 @@ A（官方 Release APK）与 B（v0.1.0 重建）在本 Goal 统一工具链下�
 
 ### 9. 为什么这个修复正确？
 - REG-003 修复方向由确定性证据定锚：vite.config 自述 H5 依赖 proxy + packaged 无 proxy + Empty-First 掩盖数据面失败；修复使 packaged 按运行形态解析显式端点，并以单测覆盖三种运行形态与 10.0.2.2 不泄漏到 WEB/desktop（断言）。
+- 升级路径补证（13:40 实测）：官方 v0.1.0 Windows setup（SHA256=adb8e984… 校验通过）安装 → 当前修复构建覆盖升级 exit=0 → launch/relaunch PASS → 卸载清理 PASS；连同 Android 同签名升级（终态门禁 03 步），§90 双端升级路径均实证。（此前"Windows 旧→新演练未跑"的备注由此更新为已跑。）
 - fail-before→pass-after 已演示（模块缺失→5/5 通过）；Android 实机 5 阶段 boot 标记、升级/重启/卸载全 PASS（最终门禁）。
 - CSP 最小放行（仅 10.0.2.2 connect），未关闭任何安全机制；bootTrace 编译期门控，生产不泄漏。
 - 环境类根因的处置（统一 adb/ASCII worktree/截图编码）使整套验证可在同一会话内稳定复现（F03/F10/F13）。
