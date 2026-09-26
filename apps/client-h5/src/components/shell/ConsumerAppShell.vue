@@ -16,6 +16,7 @@
  */
 import { onMounted, ref } from "vue";
 import { useBreakpoint } from "../../composables/useBreakpoint";
+import { bootStage } from "../../config/bootTrace";
 import AppBoundary from "./AppBoundary.vue";
 import DesktopRail from "../nav/DesktopRail.vue";
 import MobileTabbar from "../nav/MobileTabbar.vue";
@@ -32,6 +33,7 @@ const theme = ref<"light" | "dark">("light");
 
 onMounted(() => {
   document.documentElement.dataset.theme = theme.value;
+  bootStage("APP_SHELL_MOUNTED");
 });
 </script>
 

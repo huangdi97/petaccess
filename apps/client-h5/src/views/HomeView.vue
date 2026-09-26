@@ -34,6 +34,7 @@ import StateMessage from "../components/StateMessage.vue";
 import StatusBadge from "../components/StatusBadge.vue";
 import PaIcon from "../components/ui/PaIcon.vue";
 import { ANSWERED_STATUSES, answerConditions, answerScopeLabel, answerStatusKey } from "../answer";
+import { bootStage } from "../config/bootTrace";
 import { presentDescription } from "../errors";
 
 type Perspective = "rules" | "animal" | "coexist";
@@ -250,6 +251,7 @@ onMounted(async () => {
   await session.restore();
   loadRecent();
   await load();
+  bootStage("HOME_READY");
 });
 </script>
 
