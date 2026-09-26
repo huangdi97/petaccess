@@ -14,6 +14,10 @@
 ## 2. 检查方式与结论（non像素diff：以实机证据为准）
 
 - **灰屏排除**：Android fix-release Home 截图像素统计（System.Drawing，step2 采样）colors=201、亮度高、含品牌元素；resume 后同画面 → 非灰屏、非白屏。
+
+## 补充：H5 多宽度实拍（2026-09-26 追加）
+
+`artifacts/forensics/F13/`：h5-home-360（720×1480@dsf2）、h5-home-390（780×1480）、h5-home-430（860×1480），均以 `[data-testid="home-title"]` 就绪后截图，pageerror=0；像素统计（step-4 采样）150/148/148 色 = 渲染中 UI（非空白/非灰屏）。加上 Android fix-release 320×640（171 色）与 e2e desktop-dpi/responsive（149 passed）覆盖 DPI 与 1920 无溢出，多尺寸证据链完整。
 - **渲染一致性**：A(v0.1.0)/B(v0.1.0重建)=193 色、C/修复版=201 色——版本间差异仅为 v0.2 设计演进，非渲染失败。
 - **Boot 链**：debug 构建 logcat 5 阶段标记齐全（INDEX_LOADED→HOME_READY），无 AndroidRuntime FATAL/Uncaught。
 - **Windows**：NSIS 安装 exit=0，进程存活，主窗口标题正确，relaunch 后窗口重现，卸载 exit=0 且目录/注册表清理干净。

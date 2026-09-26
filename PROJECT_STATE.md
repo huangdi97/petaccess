@@ -3,6 +3,16 @@
 ## Current phase
 # v0.1.0 Early Preview — 已发布（2026-09-24, GitHub Release v0.1.0）｜进行中：v0.2.0 M8 已完结（V020_M8_DESKTOP_FINAL，见 docs/v0.2/）；下一 milestone：V020_M9_ANDROID_FINAL
 
+## 取证审计基线（2026-09-26 全实测, CURRENT VERIFIED — 见 docs/forensics/）
+- 结论：PETACCESS_GLOBAL_FORENSIC_AUDIT = PASS（FINAL_ROOT_CAUSE_REPORT.md / GLOBAL_CODE_AUDIT_FINAL_REPORT.md；F00–F13 全量落盘）
+- 三矩阵（F03）：A=GitHub Release v0.1.0（SHA256 e236f193…）／B=v0.1.0 重建／C=HEAD，同机同 SDK 同 emulator 统一 adb 全链 PASS；情况 4 判定（A/B/C 全 PASS）→ 原始异常归因为环境/自动化（ADB churn REG-001、PS 截图编码 REG-002、并发会话 REG-005、ASCII 路径 REG-007），非 boot/渲染代码回归
+- 产品缺陷修复（REG-003，commit 1d93942）：packaged API base 按运行形态解析（endpoints.ts），不再依赖 Vite proxy；CSP 最小 +10.0.2.2（Android 模拟器 dev）
+- Backend pytest：**945 passed / 2 skipped / 0 failed**（修复后重跑与传统基线 938/944 均为历史值）
+- Engineering gate：0 FAIL / 60 REVIEW / 34 WARN；ruff / format PASS（299 文件）；mypy 96 files / 0 errors；secret scan 0 findings；alembic 单头 e9f2c1d4a5b6（downgrade→upgrade 链实测通过）
+- H5+Admin build PASS；Playwright e2e **149 passed**（全量重跑确认；contribute-wizard B2 并行抖动已加固）
+- Windows 运行时 PASS（NSIS install/launch/窗口/relaunch/uninstall 全清）；Android 终态门禁 PASS（A→修复版同签名升级、PETACCESS_BOOT 5 阶段链 logcat 实证、uninstall 后设备干净）
+- 遗留（tracked）：FF-003/FF-004/FF-006/FF-007（维护性债务，见 FORENSIC_FINDINGS_REGISTER.md）；M3_RESUME_ALLOWED = YES（恢复条件已满足，恢复动作由用户决定）
+
 ## v0.1.0 状态
 - **V0_1_0_RELEASED = YES（2026-09-24 已发布 https://github.com/huangdi97/petaccess/releases/tag/v0.1.0）**
 - **HUMAN_ACTION_REQUIRED = 无**（RELEASE_V0_1_0_AUTHORIZATION 已由 huangdi97 于 2026-09-24 授权并完成发布）
