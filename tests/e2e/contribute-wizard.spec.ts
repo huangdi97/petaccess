@@ -31,7 +31,10 @@ test("A1/A4 — 向导入口与现场记录表单渲染（已登录）", async (
   await page.evaluate((t) => localStorage.setItem("pa_token", t), token);
 
   await page.goto(`${BASE}/#/contribute/${MALL_ID}`);
-  await expect(page.getByTestId("entry-reality-observed_presence")).toBeVisible();
+  // Hardening (same pattern as B2, commit a8bab37): under 6 parallel workers
+  // the lazy-loaded ContributeView chunk can exceed the default 5s expect
+  // timeout on first load. Bounded 15s wait, then assert visibility.
+  await expect(page.getByTestId("entry-reality-observed_presence")).toBeVisible({ timeout: 15000 });
   await expect(page.getByTestId("entry-quick")).toBeVisible();
   await page.getByTestId("entry-reality-observed_presence").click();
   await expect(page.getByTestId("reality-submit")).toBeVisible();

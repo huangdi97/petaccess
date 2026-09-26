@@ -58,6 +58,28 @@ def test_health(client):
     assert "USE_GEOS" in r.json()["db"]["postgis"]
 
 
+def test_tauri_webview_origin_is_cors_allowed(client):
+    """Android (and desktop) Tauri WebViews fetch from http://tauri.localhost.
+
+    Without a matching Access-Control-Allow-Origin the packaged app's every
+    data request is blocked by the browser (observed on Android API 35); the
+    response must echo the Tauri origin so the WebView can read it.
+    """
+    r = client.get(
+        "/api/v1/regulations?limit=1",
+        headers={"Origin": "http://tauri.localhost"},
+    )
+    assert r.status_code == 200
+    assert r.headers.get("access-control-allow-origin") == "http://tauri.localhost"
+
+    r2 = client.get(
+        "/api/v1/regulations?limit=1",
+        headers={"Origin": "https://tauri.localhost"},
+    )
+    assert r2.status_code == 200
+    assert r2.headers.get("access-control-allow-origin") == "https://tauri.localhost"
+
+
 def test_pet_crud(client, user):
     r = client.post(
         "/api/v1/pets",

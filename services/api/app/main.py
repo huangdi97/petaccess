@@ -44,6 +44,12 @@ app.add_middleware(
         "http://localhost:4173",
         "http://localhost:8080",
         "http://localhost:3000",
+        # Tauri WebView origin (desktop + Android). The packaged app serves its
+        # frontend from http://tauri.localhost, so API responses must carry CORS
+        # headers for that origin or every data fetch fails in the WebView
+        # (observed on Android API 35; regression-tested in test_api.py).
+        "http://tauri.localhost",
+        "https://tauri.localhost",
     ],
     allow_credentials=True,
     allow_methods=["*"],

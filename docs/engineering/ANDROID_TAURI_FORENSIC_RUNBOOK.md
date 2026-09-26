@@ -67,3 +67,11 @@
 - 主工作区不可直接 Android 构建 → 用 ASCII worktree。
 - 后端回归需要 PostgreSQL/Redis/MinIO（docker compose up -d db redis minio）与 celery worker。
 - tauri.conf.json version 仍为 0.1.0（v0.2 未发布）——非漂移。
+
+## 8. 2026-09-26 Android 全光谱验收新增已验证约束（追加，不改旧节）
+
+- **Android WebView 的 CORS**：打包 App 的前端 origin 是 `http://tauri.localhost`（/ `https://…`）。API 的 `CORSMiddleware.allow_origins` 必须包含这两个 origin，否则 WebView 的每次数据请求被浏览器按 CORS 拦截（表现为 Home “未能取得附近场所”），且修复必须带回归测试（`test_tauri_webview_origin_is_cors_allowed`）。已有本地开发端口（5173–5175 等）不覆盖打包 origin。
+- **SVG 尺寸必须走 style**：`ICON_SIZES` 是 CSS 变量（`--pa-size-icon-*`）；`<svg width="var(...)">` 属性形式被浏览器拒绝（“attribute width: Expected length”），必须用 `:style`。回归规格：`tests/e2e/pa-icon-size.spec.ts`。
+- **debug 包 WebView 远程调试（取证可用）**：debug APK 启用了 WebView devtools（`/proc/net/unix` 可见 `webview_devtools_remote_<pid>` 抽象 socket）。`adb forward tcp:<port> localabstract:webview_devtools_remote_<pid>` 后可用 CDP 读取 DOM/console；release 包无该 socket（非缺陷）。
+- **celery worker 必须显式指向测试库**：WMI/分离启动 celery 时若不设 `DATABASE_URL`，会从 `.env` 解析到生产库 `petaccess` 而 pytest 的 `.delay()` 消息排队到 `petaccess_test` 找不到任务（表现为 3 条 media/ocr 超时）。启动 worker 前必须 `DATABASE_URL=…petaccess_test` 与 `CELERY_TASK_QUEUE=petaccess_test` 同环境设置。
+- **并发 churn 自愈**：外部 agent 周期性调用旧 adb（1.0.32）会重启 5037 server；本机工具对每次设备命令做有限退避重试（≥8 次），并避免依赖单次 `am start -W` 退出码（以 boot-trace/截图为准）。
