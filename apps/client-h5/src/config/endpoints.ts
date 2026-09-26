@@ -34,10 +34,7 @@ export function detectRuntimeKind(
   return /android/i.test(userAgent) ? "TAURI_ANDROID" : "TAURI_DESKTOP";
 }
 
-export function resolveApiEndpoint(
-  env: EndpointEnv,
-  kind: PetAccessRuntimeKind,
-): string {
+export function resolveApiEndpoint(env: EndpointEnv, kind: PetAccessRuntimeKind): string {
   const strip = (v: string | undefined): string | undefined => v?.replace(/\/$/, "");
   switch (kind) {
     case "TAURI_ANDROID":

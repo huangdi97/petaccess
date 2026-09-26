@@ -8,10 +8,7 @@
  * module-resolution error, then passes after implementation.
  */
 import { expect, test } from "@playwright/test";
-import {
-  detectRuntimeKind,
-  resolveApiEndpoint,
-} from "../../apps/client-h5/src/config/endpoints";
+import { detectRuntimeKind, resolveApiEndpoint } from "../../apps/client-h5/src/config/endpoints";
 
 test("runtime kind is detected from webview UA + tauri internals", () => {
   expect(detectRuntimeKind("Mozilla/5.0 (Windows NT 10.0; Win64; x64)", false)).toBe("WEB");
