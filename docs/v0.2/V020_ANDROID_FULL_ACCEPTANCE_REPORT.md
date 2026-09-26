@@ -14,6 +14,8 @@
 | Release-like APK | `current-release-signed.apk` 11,642,245 B · SHA256 `584413C8…D33DA` · 签名 `CN=PetAccess…`（v2 scheme，1 signer）· 同 keystore 身份 |
 | 签名 | apksigner + `~/.petaccess-keystore/petaccess-release.keystore`（runbook 规则：不传 `--key-pass`） |
 
+> 诚实说明（续）：**Empty-state** 由 Playwright `empty-state.spec.ts`（151 条全绿，同一 H5 bundle）验证“当前还没有已发布的场所数据”＋双出口（地图/贡献）＋无 ERROR banner；设备档本次以富数据运行。**视频证据（§112 A–D）未录制**（模拟器已在本轮末尾关闭）→ 记 NOT_RUN，不冒充 PASS。Device Sizes 仅 PHONE-M；A11Y 记 PARTIAL（WebView a11y 树限制）。据此终态为 `ANDROID_FULL_ACCEPTANCE = PASS*`（3 项如实 PARTIAL/NOT_RUN 非阻塞记录），`M3_RESUME_ALLOWED` 由人工按此裁定。
+
 ## 2. 测试环境与隔离
 
 - 自有 AVD：`petaccess_test_360`（API 35，1080×2340 @440dpi → 393×851dp 逻辑视口）。
