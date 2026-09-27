@@ -25,7 +25,9 @@ async function collectConsoleErrors(page: import("@playwright/test").Page) {
 
 test("no SVG width/height attribute length errors from icons", async ({ page }) => {
   const errors = await collectConsoleErrors(page);
-  const svgLength = errors.filter((e) => e.includes("attribute width") || e.includes("attribute height"));
+  const svgLength = errors.filter(
+    (e) => e.includes("attribute width") || e.includes("attribute height"),
+  );
   expect(svgLength).toEqual([]);
 });
 
