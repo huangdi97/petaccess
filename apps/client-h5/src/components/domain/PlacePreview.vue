@@ -178,6 +178,10 @@ const facilityLinesOut = computed(() => facilityLines(props.snapshot?.facility_s
   font-size: var(--pa-font-size-md);
   color: var(--pa-color-text-primary);
   line-height: var(--pa-line-height-base);
+  /* Grid child of `.place-preview__row` (5rem 1fr): without min-width: 0 a long
+     value forces the 1fr track wider than the container, overflowing the page
+     on split-layout widths (observed at 800dp tablet, §85). */
+  min-width: 0;
 }
 .place-preview__value p {
   margin: 0 0 var(--pa-space-1);

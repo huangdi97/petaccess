@@ -89,17 +89,18 @@
 |---|---|---|---|
 | P1-001 | P1 | Android WebView 请求被 CORS 阻断（`tauri.localhost` 不在 allow_origins）→ Home 无法取数 | **已修复** `services/api/app/main.py`（加入 `http://tauri.localhost` / `https://tauri.localhost`）＋回归测试 `test_tauri_webview_origin_is_cors_allowed`；模拟器实测 CORS 0 拦截 |
 | VIS-001 | P1（运行时控制台） | `PaIcon` 把 CSS 变量绑定到 SVG width/height **属性**，浏览器报 “Expected length” | **已修复** `apps/client-h5/src/components/ui/PaIcon.vue`（改 inline style）＋回归规格 `tests/e2e/pa-icon-size.spec.ts`；模拟器实测 SVG 错误 0 |
-| TEST-001 | 测试工具 | contribute-wizard A1/A4 在 6 并行 worker 下 5s 超时（已知 load flake，仓库 a8bab37 已对 B2 加固） | **已修复** 按相同模式加 15s 有界等待；最终 Playwright 151/151 |
+| VIS-002 | P1（视觉/溢出） | tablet 分栏下搜索页右侧预览 `.place-preview` 的 grid 子项缺 `min-width:0`，长文本把页面撑出横向滚动（800dp 下 document 805>800） | **已修复** `apps/client-h5/src/components/domain/PlacePreview.vue`（grid 子项加 `min-width:0`）＋回归规格 `tests/e2e/place-preview-overflow.spec.ts`；模拟器实测 800dp 无溢出（800==800） |
+| TEST-001 | 测试工具 | contribute-wizard A1/A4/A2 在 6 并行 worker 下 5s 超时（已知 load flake，仓库 a8bab37 已对 B2 加固） | **已修复** 按相同模式加 15s 有界等待；最终 Playwright 153/153 |
 
 ## 11. 回归（真实计数，§104）
 
 | 套件 | DISCOVERED | EXECUTED | PASS | FAIL | SKIP |
 |---|---|---|---|---|---|
 | Backend pytest | 948 collected | 948 | **946** | 0 | 2 |
-| Playwright E2E | 151 | 151 | **151** | 0 | 0 |
+| Playwright E2E | 153 | 153 | **153** | 0 | 0 |
 
 - pytest 基线 runbook §6 为 945+2；本轮 946（多出的 1 个是 DB 内容相关的条件跳过转收集后通过，见 `pytest_backend_r3.log`）。
-- Playwright 含新增 2 条 PaIcon 回归；`playwright_final.log` 显示 `151 passed (47.9s)`。
+- Playwright 于既有 151 条基线外新增 4 条回归规格（PaIcon×2、PlacePreview 溢出×2），最终 `153 passed (47.4s)`（`playwright_final.log` 计入同一文档基线；本轮完整跑出 153/153）。
 
 ## 12. Logcat Gate
 
@@ -117,11 +118,11 @@
 | PERMISSION_MATRIX | NOT_RUN（无运行时权限，不适用） |
 | LIFECYCLE | PASS |
 | UPGRADE_FROM_V010 | PASS |
-| VISUAL | PASS（截图证据 + 运行时修复闭环） |
+| VISUAL | PASS（截图 + 多宽度 + 运行时修复闭环） |
 | A11Y | PARTIAL（WebView a11y 树限制，如实记录） |
 | STRESS / SOAK | PASS |
 | CRASH / ANR / UNCAUGHT_RUNTIME_ERROR | 0 / 0 / 0 |
-| P0 / P1 | 0 / 0（P1-001、VIS-001 已修复并回归） |
+| P0 / P1 | 0 / 0（P1-001、VIS-001、VIS-002 已修复并回归） |
 
-> 诚实说明：**Device Sizes 仅 PHONE-M 全量执行**（PHONE-S/L/tablet wm-size 档位未在本次执行），因此覆盖矩阵 Device Sizes 记 **PARTIAL**；A11Y 记 **PARTIAL**。据此：
-> `ANDROID_FULL_ACCEPTANCE = PASS*`（带 2 项如实记录的非阻塞 PARTIAL），`M3_RESUME_ALLOWED = YES` 由人工按此报告裁定。
+> 诚实说明：**Device Sizes 已覆盖 PHONE-S(360dp)/PHONE-M/PHONE-L(430dp)/TABLET(800dp)**，各档重装/重启、截图、无横向溢出断言（`width_matrix.json`）；在此基础上修复了 **VIS-002**（tablet 搜索页右侧预览 grid 溢出 805>800，`PlacePreview.vue` 加 `min-width:0`，Playwright 回归 2 条）。**字体缩放 1.0/1.3/1.5 在 Home/Search/Place/Contribute 无横溢与截断**（`font_scale_matrix.json`）。**§112 四段录屏已完成**（A 冷启→首页→搜索、B 贡献/地图、C 离线→恢复、D v0.1.0→升级→启动，见 `videos/`）。A11Y 仍记 PARTIAL（WebView a11y 树限制）。据此：
+> `ANDROID_FULL_ACCEPTANCE = PASS*`（唯一非阻塞 PARTIAL 为 A11Y），`M3_RESUME_ALLOWED` 由人工按此裁定。

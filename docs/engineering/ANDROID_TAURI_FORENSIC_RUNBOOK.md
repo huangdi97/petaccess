@@ -75,3 +75,5 @@
 - **debug 包 WebView 远程调试（取证可用）**：debug APK 启用了 WebView devtools（`/proc/net/unix` 可见 `webview_devtools_remote_<pid>` 抽象 socket）。`adb forward tcp:<port> localabstract:webview_devtools_remote_<pid>` 后可用 CDP 读取 DOM/console；release 包无该 socket（非缺陷）。
 - **celery worker 必须显式指向测试库**：WMI/分离启动 celery 时若不设 `DATABASE_URL`，会从 `.env` 解析到生产库 `petaccess` 而 pytest 的 `.delay()` 消息排队到 `petaccess_test` 找不到任务（表现为 3 条 media/ocr 超时）。启动 worker 前必须 `DATABASE_URL=…petaccess_test` 与 `CELERY_TASK_QUEUE=petaccess_test` 同环境设置。
 - **并发 churn 自愈**：外部 agent 周期性调用旧 adb（1.0.32）会重启 5037 server；本机工具对每次设备命令做有限退避重试（≥8 次），并避免依赖单次 `am start -W` 退出码（以 boot-trace/截图为准）。
+- **grid 子项必须 `min-width: 0`**：`.place-preview__row`（`5rem 1fr`）在 ≥768dp 分栏布局里，长文本会让 `1fr` 轨道把页面撑出横向滚动条（800dp 下 document 805>800）。grid 子项需显式 `min-width: 0`（`PlacePreview.vue`）。回归规格：`tests/e2e/place-preview-overflow.spec.ts`。
+- **响应式宽度用 wm size 覆盖**：360dp=990×2200px@440、430dp=1183×2563px@440、800dp（tablet）=2200×3520px@440；每次切换后必须重启 App 再取证据（`width_matrix.json`）。

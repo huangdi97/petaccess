@@ -48,7 +48,12 @@ test("A2 — 现场记录经父流提交，候选进入人工审核队列", asyn
   await page.evaluate((t) => localStorage.setItem("pa_token", t), token);
 
   await page.goto(`${BASE}/#/contribute/${MALL_ID}`);
+  // Hardening (same pattern as B2/A1, commit a8bab37): the entry is lazy-
+  // loaded and can appear late under parallel workers; wait before clicking.
+  await expect(page.getByTestId("entry-reality-observed_presence")).toBeVisible({ timeout: 15000 });
   await page.getByTestId("entry-reality-observed_presence").click();
+  await expect(page.getByTestId("reality-date")).toBeVisible({ timeout: 15000 });
+  await page.getByTestId("reality-date").fill("2026-09-20");
   await page.getByTestId("reality-date").fill("2026-09-20");
   await page.getByTestId("reality-count").fill("2");
   await page.getByTestId("reality-submit").click();
