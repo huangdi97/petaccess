@@ -18,6 +18,7 @@ import MockMap from "../components/MockMap.vue";
 import PlacePreview from "../components/domain/PlacePreview.vue";
 import QueryContextBar from "../components/domain/QueryContextBar.vue";
 import StatusBadge from "../components/StatusBadge.vue";
+import StateMessage from "../components/StateMessage.vue";
 import { placeTypeLabel } from "@petaccess/client-core";
 import { useMapWorkspace } from "../composables/useMapWorkspace";
 import { useRouter } from "vue-router";
@@ -54,6 +55,7 @@ function goHome() {
 
 <template>
   <div class="map-workspace" data-testid="map-workspace">
+    <h1 class="visually-hidden">规则地图</h1>
     <QueryContextBar />
 
     <div class="map-viewbar" role="group" aria-label="视图切换">
@@ -95,7 +97,19 @@ function goHome() {
 
       <!-- 主画布：地图是页面的主导表面 -->
       <section v-if="view === 'map'" class="map-canvas" data-testid="map" aria-label="规则地图">
+        <StateMessage
+          v-if="error && !isDesktop"
+          kind="ERROR"
+          data-testid="map-provider-error"
+          title="未能取得附近场所"
+          :description="error"
+        >
+          <template #action>
+            <button type="button" class="primary" @click="load">重试</button>
+          </template>
+        </StateMessage>
         <MockMap
+          v-else
           :camera="camera"
           :clusters="clusters"
           :selected-id="selected?.id ?? null"

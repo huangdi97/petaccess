@@ -45,21 +45,29 @@ export default defineConfig({
     },
   ],
   projects: [
-    { name: "ui-360", testMatch: /capture.*\.spec\.ts/, use: { viewport: { width: 360, height: 740 } } },
-    { name: "ui-430", testMatch: /capture.*\.spec\.ts/, use: { viewport: { width: 430, height: 740 } } },
+    {
+      name: "ui-360",
+      testMatch: /(capture|a11y-gate|phase[13]-gate)\.spec\.ts/,
+      use: { viewport: { width: 360, height: 740 } },
+    },
+    {
+      name: "ui-430",
+      testMatch: /(capture|a11y-gate|phase[13]-gate)\.spec\.ts/,
+      use: { viewport: { width: 430, height: 740 } },
+    },
     {
       name: "ui-800",
-      testMatch: /capture.*\.spec\.ts/,
+      testMatch: /(capture|a11y-gate|phase[13]-gate)\.spec\.ts/,
       use: { viewport: { width: 800, height: 900 }, isMobile: false, hasTouch: true },
     },
     {
       name: "ui-1280",
-      testMatch: /capture.*\.spec\.ts/,
+      testMatch: /(capture|a11y-gate|phase[13]-gate)\.spec\.ts/,
       use: { ...devices["Desktop Chrome"], viewport: { width: 1280, height: 800 } },
     },
     {
       name: "ui-1440",
-      testMatch: /capture.*\.spec\.ts/,
+      testMatch: /(capture|a11y-gate|phase[13]-gate)\.spec\.ts/,
       use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } },
     },
   ],

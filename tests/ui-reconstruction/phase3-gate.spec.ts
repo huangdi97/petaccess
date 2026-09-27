@@ -15,7 +15,7 @@
  */
 import { expect, test, type APIRequestContext } from "@playwright/test";
 
-const API = "http://127.0.0.1:8010/api/v1";
+const API = `http://127.0.0.1:${process.env.API_PORT ?? "8010"}/api/v1`;
 /** 云栖中心·测试商场 — seeded place with rules, sources and reality. */
 const MALL_ID = "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e";
 
@@ -89,7 +89,9 @@ test("evidence route renders provenance, items and the permanent disclaimer", as
   await page.route("**/api/v1/places/*/observations", (route) =>
     route.fulfill({ json: { items: MOCK_OBSERVATIONS.items, total: 1, offset: 0, limit: 20 } }),
   );
-  await page.route("**/api/v1/places/*/reality/trace", (route) => route.fulfill({ json: MOCK_TRACE }));
+  await page.route("**/api/v1/places/*/reality/trace", (route) =>
+    route.fulfill({ json: MOCK_TRACE }),
+  );
   await page.route("**/api/v1/sources", (route) =>
     route.fulfill({ json: { items: MOCK_SOURCES.items, total: 1, offset: 0, limit: 20 } }),
   );
@@ -97,7 +99,9 @@ test("evidence route renders provenance, items and the permanent disclaimer", as
   await expect(page.getByTestId("evidence-provenance")).toBeVisible();
   await expect(page.getByTestId("evidence-items")).toBeVisible();
   await expect(page.getByTestId("evidence-sources")).toBeVisible();
-  await expect(page.getByTestId("evidence-disclaimer")).toContainText("现场事实不代表正式准入规则。");
+  await expect(page.getByTestId("evidence-disclaimer")).toContainText(
+    "现场事实不代表正式准入规则。",
+  );
   // Provenance chain has exactly the five frozen steps.
   await expect(page.getByTestId("evidence-provenance").locator(".surface-row")).toHaveCount(5);
   await expect(page.getByTestId("query-context")).toBeVisible();

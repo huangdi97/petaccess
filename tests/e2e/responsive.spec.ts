@@ -21,10 +21,15 @@ const VIEWPORTS: { name: string; width: number; height: number }[] = [
   { name: "1920", width: 1920, height: 1080 },
 ];
 
+const PLACE_ID = "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e"; // 云栖中心·测试商场 (richest seed)
+
 const PAGES: { name: string; path: string }[] = [
   { name: "home", path: "/" },
   { name: "search", path: "/#/search" },
   { name: "map", path: "/#/map" },
+  { name: "place", path: `/#/place/${PLACE_ID}` },
+  { name: "reality", path: `/#/place/${PLACE_ID}/reality` },
+  { name: "evidence", path: `/#/place/${PLACE_ID}/evidence` },
   { name: "contribute", path: "/#/contribute" },
   { name: "settings", path: "/#/settings" },
 ];

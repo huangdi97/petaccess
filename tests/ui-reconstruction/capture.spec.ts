@@ -50,6 +50,7 @@ const READY_PAGES: [string, string][] = [
   ["map", "/#/map"],
   ["place", `/#/place/${FIXTURE_PLACE}`],
   ["reality", `/#/place/${FIXTURE_PLACE}/reality`],
+  ["evidence", `/#/place/${FIXTURE_PLACE}/evidence`],
   ["contribute", "/#/contribute"],
   ["mine", "/#/mine"],
 ];
@@ -79,7 +80,9 @@ test("home-loading", async ({ page }, testInfo) => {
 
 test("home-empty", async ({ page }, testInfo) => {
   const viewport = testInfo.project.name;
-  await page.route("**/api/v1/places/nearby**", (route) => route.fulfill({ json: JSON_EMPTY_PAGE }));
+  await page.route("**/api/v1/places/nearby**", (route) =>
+    route.fulfill({ json: JSON_EMPTY_PAGE }),
+  );
   await page.goto("/");
   await settle(page);
   await expect(page.getByTestId("home-empty")).toBeVisible();
@@ -89,7 +92,11 @@ test("home-empty", async ({ page }, testInfo) => {
 test("home-error", async ({ page }, testInfo) => {
   const viewport = testInfo.project.name;
   await page.route("**/api/v1/places/nearby**", (route) =>
-    route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ error: {} }) }),
+    route.fulfill({
+      status: 500,
+      contentType: "application/json",
+      body: JSON.stringify({ error: {} }),
+    }),
   );
   await page.goto("/");
   await settle(page);
@@ -135,7 +142,11 @@ test("search-empty", async ({ page }, testInfo) => {
 test("search-error", async ({ page }, testInfo) => {
   const viewport = testInfo.project.name;
   await page.route("**/api/v1/places?**", (route) =>
-    route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ error: {} }) }),
+    route.fulfill({
+      status: 500,
+      contentType: "application/json",
+      body: JSON.stringify({ error: {} }),
+    }),
   );
   await page.goto("/#/search");
   await page.getByTestId("search-input").fill("咖啡");
@@ -167,7 +178,11 @@ test("place-unknown", async ({ page }, testInfo) => {
 test("map-provider-error", async ({ page }, testInfo) => {
   const viewport = testInfo.project.name;
   await page.route("**/api/v1/places/nearby**", (route) =>
-    route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ error: {} }) }),
+    route.fulfill({
+      status: 500,
+      contentType: "application/json",
+      body: JSON.stringify({ error: {} }),
+    }),
   );
   await page.goto("/#/map");
   await settle(page);
