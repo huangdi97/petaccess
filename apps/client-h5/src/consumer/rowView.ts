@@ -1,14 +1,19 @@
 /**
- * Row view helpers — M3 (V020_M3_CONSUMER_CORE).
+ * Row view helpers — M3.1 corrective closure (UI_RECONSTRUCTION_GOAL §8.5).
  *
- * The presentation strings for a result row's Reality 摘要 / Evidence 元数据.
- * They read ONLY from the server-provided RealityAnswer (or the snapshot's
- * reality_answer) and reuse the shared vocabulary in `reality.ts`; no domain
- * semantics are invented here. Null answer → the honest "暂无记录 ≠ 没有动物"
- * line, never a fabricated "没有动物".
+ * Presentation strings for a result row's Rule / Reality 摘要, plus the Lens
+ * projection (§8.5). Everything here reads ONLY from server-provided values
+ * (the CoexistenceSnapshot's rule_answer / reality_answer) and the shared
+ * vocabulary in `reality.ts`; no domain semantics are invented.
+ *
+ * A lens changes CONSUMER PRESENTATION only — which layer is headlined and in
+ * what order rows sort — never the facts the server returned and never the
+ * request. "暂无记录 ≠ 没有动物" is preserved verbatim.
  */
-import type { RealityAnswer } from "@petaccess/client-core";
+import type { AccessAnswer, RealityAnswer } from "@petaccess/client-core";
 import { REALITY_STATE_LABELS } from "../reality";
+
+export type ConsumerLens = "" | "presence" | "rules" | "indoor" | "dining";
 
 /** One-line reality headline for a row. */
 export function realityLineFor(reality: RealityAnswer | null | undefined): string {
@@ -26,4 +31,82 @@ export function evidenceLineFor(reality: RealityAnswer | null | undefined): stri
     parts.push(`${reality.days_since_last_seen} 天前最近记录`);
   }
   return parts.join(" · ");
+}
+
+/**
+ * Lens projection for a row. Returns which layer is headlined and, for the
+ * indoor / dining lenses, the observed zones to surface — all server facts.
+ *
+ *   presence → Reality-first (headline = reality line)
+ *   rules    → Rule-first (headline = rule conclusion)
+ *   indoor   → zone facts surfaced from reality_answer.observed_zones
+ *   dining   → zone facts surfaced from reality_answer.observed_zones
+ */
+export interface LensProjection {
+  headline: "rule" | "reality";
+  realityLine: string;
+  evidenceLine: string;
+  /** Zones to surface under indoor / dining lenses (server facts only). */
+  zoneFacts: string[];
+}
+
+export function lensProjection(
+  lens: ConsumerLens,
+  answer: AccessAnswer | null | undefined,
+  reality: RealityAnswer | null | undefined,
+): LensProjection {
+  const ruleFirst = lens === "rules";
+  const zoneFacts = lens === "indoor" || lens === "dining" ? (reality?.observed_zones ?? []) : [];
+  return {
+    headline: ruleFirst ? "rule" : "reality",
+    realityLine: realityLineFor(reality),
+    evidenceLine: evidenceLineFor(reality),
+    zoneFacts,
+  };
+}
+
+/**
+ * Presentation-only sort score for a lens. Higher sorts earlier.
+ *
+ *   presence → most recent on-site record first (null recency = last)
+ *   rules    → places with an answered rule conclusion first
+ *   indoor / dining → places with observed zones first, then by name
+ *   (default) → no reordering (server order)
+ */
+export function lensOrderScore(
+  lens: ConsumerLens,
+  answer: AccessAnswer | null | undefined,
+  reality: RealityAnswer | null | undefined,
+): number {
+  switch (lens) {
+    case "presence": {
+      const days = reality?.days_since_last_seen;
+      if (days == null) return 0;
+      // newest record (smallest days) sorts first within the presence group
+      return 1000 - Math.min(days, 1000);
+    }
+    case "rules":
+      return answer ? 1 : 0;
+    case "indoor":
+    case "dining":
+      return (reality?.observed_zones.length ?? 0) > 0 ? 1 : 0;
+    default:
+      return 0;
+  }
+}
+
+/** Human-readable freshness line for a stale / cached entry (C4). */
+export function freshnessLineFor(
+  stale: boolean,
+  fetchedAtMs: number | null,
+  offline: boolean,
+): string {
+  if (offline) return "当前离线 · 显示最近一次成功获取的结果";
+  if (stale && fetchedAtMs != null) {
+    const d = new Date(fetchedAtMs);
+    const hh = `${d.getHours()}`.padStart(2, "0");
+    const mm = `${d.getMinutes()}`.padStart(2, "0");
+    return `内容可能不是最新 · 上次获取 ${hh}:${mm}`;
+  }
+  return "";
 }

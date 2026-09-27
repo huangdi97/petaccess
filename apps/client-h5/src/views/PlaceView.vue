@@ -43,7 +43,7 @@ import EvidenceStatus from "../components/domain/EvidenceStatus.vue";
 import FreshnessStatus from "../components/domain/FreshnessStatus.vue";
 import { answerConditions, answerStatusKey, answerVerdictLabel } from "../answer";
 import { presentDescription } from "../errors";
-
+import { snapshotFor } from "../consumer/repository";
 const route = useRoute();
 
 /**
@@ -302,12 +302,11 @@ async function load() {
   }
   // v0.9-R1: the CoexistenceSnapshot powers the Reality panel. It degrades
   // gracefully when the reality layer is absent (BLOCKED / not yet populated).
+  // M3.1: routed through the consumer repository so rows and the dossier share
+  // the SAME cached snapshot and query context (SSOT, UI_RECONSTRUCTION_GOAL
+  // §8.1) — never a second client-side resolver.
   try {
-    coexistence.value = await client.coexistenceSnapshot(placeId.value, {
-      animal: "dog",
-      service_role: "none",
-      action: "enter",
-    });
+    coexistence.value = (await snapshotFor(placeId.value)).snapshot;
   } catch {
     coexistence.value = null;
   }

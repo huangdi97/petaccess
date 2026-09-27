@@ -24,9 +24,9 @@ test("search rows show reality summary + evidence metadata", async ({ page }) =>
   await expect(page.getByTestId("result-reality").first()).toBeVisible();
 });
 
-test("search row answer failure is explicit, not UNKNOWN-as-truth", async ({ page }) => {
+test("search row snapshot failure is explicit, not UNKNOWN-as-truth", async ({ page }) => {
   // places 列表 mock 用正则只匹配 `/places?`（字面问号），避免 `?` 被当成
-  // 单字符通配符而吞掉下方的 access-answer / reality 路由。
+  // 单字符通配符而吞掉下方的 coexistence 路由。
   await page.route(/\/api\/v1\/places\?/, (route) =>
     route.fulfill({
       json: {
@@ -44,29 +44,13 @@ test("search row answer failure is explicit, not UNKNOWN-as-truth", async ({ pag
       },
     }),
   );
-  // 行级 answer 失败（transport error）→ 显式标记，绝不伪装成 UNKNOWN。
-  await page.route("**/access-answer**", (route) =>
-    route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ error: {} }) }),
-  );
-  // reality 成功返回 NO_RECENT_RECORD（domain 事实，非 transport error）。
-  await page.route("**/places/*/reality", (route) =>
+  // M3.1：行级事实 = CoexistenceSnapshot SSOT；snapshot 失败（transport error）
+  // → 显式标记，绝不伪装成 UNKNOWN，也绝不写入缓存。
+  await page.route("**/coexistence", (route) =>
     route.fulfill({
-      json: {
-        state: "NO_RECENT_RECORD",
-        last_seen_at: null,
-        evidence_count: 0,
-        distinct_source_count: 0,
-        observed_zones: [],
-        observed_actions: [],
-        staff_response_summary: [],
-        facility_summary: [],
-        freshness_state: null,
-        verification_state: null,
-        recent_count_7d: 0,
-        recent_count_30d: 0,
-        days_since_last_seen: null,
-        note: "测试",
-      },
+      status: 500,
+      contentType: "application/json",
+      body: JSON.stringify({ error: {} }),
     }),
   );
   await page.goto("/#/search");

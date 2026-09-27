@@ -63,7 +63,20 @@ export class ConsumerCache {
     this.store.set(key, { value, fetchedAt: Date.now() });
   }
 
-  /** Remove one key. */
+  /** Milliseconds since the last successful fetch; null when absent. */
+  fetchedAtMs(key: string): number | null {
+    const e = this.store.get(key);
+    return e ? e.fetchedAt : null;
+  }
+
+  /** True when an entry exists but is older than its TTL. */
+  isStale(key: string): boolean {
+    const e = this.store.get(key);
+    if (!e) return false;
+    return Date.now() - e.fetchedAt > this.ttlMs;
+  }
+
+  /** Remove one key (in-flight promise too). */
   delete(key: string): void {
     this.store.delete(key);
     this.inflight.delete(key);

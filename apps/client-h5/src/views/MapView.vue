@@ -41,6 +41,7 @@ import { EMPTY_STATE_COPY } from "@petaccess/design-tokens";
 import { answerStatusKey } from "../answer";
 import { useBreakpoint } from "../composables/useBreakpoint";
 import { presentDescription } from "../errors";
+import { enrichRows, nearbyPlaces, snapshotFor } from "../consumer/repository";
 
 const router = useRouter();
 const route = useRoute();
@@ -125,35 +126,15 @@ function locate() {
     { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 },
   );
 }
-
 /**
- * Bounded-concurrency evaluation so markers carry a real neutral status.
- *
- * Reads the **unified answer model**, like every other surface. This used to call
- * `/rules/evaluate` — a second engine giving the map its own vocabulary for the
- * same rule, which is exactly the split the unified answer exists to remove.
+ * Marker statuses, derived from the SAME CoexistenceSnapshot rows the other
+ * surfaces read (SSOT, UI_RECONSTRUCTION_GOAL §8.1) via the consumer
+ * repository's bounded-concurrency enrichment. Never a second resolver.
  */
 async function deriveStatuses(list: PlaceSummary[]) {
-  const limit = 6;
-  const queue = [...list];
+  const facts = await enrichRows(list);
   const out: Record<string, MapMarker["status"]> = {};
-  const worker = async () => {
-    for (;;) {
-      const p = queue.shift();
-      if (!p) return;
-      try {
-        const answer = await client.accessAnswer(p.id, {
-          animal: session.activePet?.species ?? "dog",
-          service_role: session.activePet?.service_role ?? "none",
-          declared_role: session.activePet?.declared_role ?? null,
-        });
-        out[p.id] = answerStatusKey(answer);
-      } catch {
-        out[p.id] = "UNKNOWN"; // never guess: an error is information-insufficient
-      }
-    }
-  };
-  await Promise.all(Array.from({ length: Math.min(limit, list.length) }, worker));
+  for (const [id, row] of facts) out[id] = answerStatusKey(row.answer);
   statuses.value = out;
 }
 
@@ -161,7 +142,8 @@ async function load() {
   loading.value = true;
   error.value = "";
   try {
-    places.value = await client.nearby(camera.value.lat, camera.value.lng, 3000);
+    const res = await nearbyPlaces();
+    places.value = res.items;
     await deriveStatuses(places.value);
     resolveSelection();
   } catch (e) {
@@ -172,6 +154,7 @@ async function load() {
 }
 
 onMounted(async () => {
+  await session.restore();
   await session.restore();
   // `/boundary-profiles/default` is account-scoped: asking for it while signed
   // out is a guaranteed 401, not a "no boundary yet" answer. Skip the call
@@ -232,20 +215,14 @@ function resolveSelection() {
   }
 }
 
-/** M4 A1 — desktop pane fetches the ONE CoexistenceSnapshot for the place. */
+/** M4 A1 — desktop pane fetches the ONE CoexistenceSnapshot for the place
+ *  via the consumer repository (SSOT, same cache as rows). */
 async function selectPlace(p: PlaceSummary) {
   if (!isDesktop.value) return;
   preview.value = { snapshot: null, loading: true, error: "" };
   try {
-    preview.value = {
-      snapshot: await client.coexistenceSnapshot(p.id, {
-        animal: session.activePet?.species ?? "dog",
-        service_role: session.activePet?.service_role ?? "none",
-        action: "enter",
-      }),
-      loading: false,
-      error: "",
-    };
+    const { snapshot } = await snapshotFor(p.id);
+    preview.value = { snapshot, loading: false, error: "" };
   } catch (e) {
     preview.value = { snapshot: null, loading: false, error: presentDescription(e) };
   }

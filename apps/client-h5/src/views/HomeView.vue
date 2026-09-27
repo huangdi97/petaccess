@@ -26,6 +26,8 @@ import PlaceResultRow from "../components/domain/PlaceResultRow.vue";
 import { ANSWERED_STATUSES, answerConditions, answerScopeLabel, answerStatusKey } from "../answer";
 import { bootStage } from "../config/bootTrace";
 import { presentDescription } from "../errors";
+import { useOnline } from "../composables/useOnline";
+import { freshnessLineFor } from "../consumer/rowView";
 import { createEpoch, enrichRows, nearbyPlaces, type RowFacts } from "../consumer/repository";
 
 type Perspective = "rules" | "animal" | "coexist";
@@ -48,6 +50,9 @@ const places = ref<PlaceSummary[]>([]);
 const cards = ref<Card[]>([]);
 const perspective = ref<Perspective>("rules");
 const category = ref("");
+const listStale = ref(false);
+const nearbyFetchedAtMs = ref<number | null>(null);
+const { online } = useOnline();
 const query = ref("");
 const recent = ref<{ id: string; name: string }[]>([]);
 const epoch = createEpoch();
@@ -165,8 +170,13 @@ async function load() {
   const n = epoch.begin();
   loading.value = true;
   error.value = "";
+  listStale.value = false;
   try {
-    places.value = await nearbyPlaces();
+    const res = await nearbyPlaces();
+    if (!epoch.isCurrent(n)) return; // a newer load superseded this one
+    places.value = res.items;
+    listStale.value = res.stale;
+    nearbyFetchedAtMs.value = res.fetchedAtMs;
     const facts = await enrichRows(places.value);
     if (!epoch.isCurrent(n)) return; // a newer load superseded this one
     cards.value = places.value.map((p) => {
@@ -175,6 +185,8 @@ async function load() {
         answerError: true,
         reality: null,
         realityError: true,
+        stale: false,
+        fetchedAtMs: null,
       };
       return {
         place: p,
@@ -315,6 +327,15 @@ onMounted(async () => {
         </StateMessage>
 
         <template v-else>
+          <p
+            v-if="freshnessLineFor(listStale, nearbyFetchedAtMs, !online)"
+            class="muted"
+            data-testid="home-freshness"
+            style="margin: 0 0 var(--pa-space-2)"
+          >
+            {{ freshnessLineFor(listStale, nearbyFetchedAtMs, !online) }}
+          </p>
+
           <h2 class="home-section-title home-section-title--stacked">附近已核验</h2>
           <p class="muted">
             已核验 = 有规则依据。核验范围写清楚（动物 · 区域），不写成对整个场所的结论。

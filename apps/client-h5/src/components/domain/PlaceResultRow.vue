@@ -19,7 +19,12 @@ import {
 import StatusBadge from "../StatusBadge.vue";
 import PaDivider from "../ui/PaDivider.vue";
 import { answerConditions, answerScopeLabel, answerStatusKey } from "../../answer";
-import { evidenceLineFor, realityLineFor } from "../../consumer/rowView";
+import {
+  evidenceLineFor,
+  lensProjection,
+  realityLineFor,
+  type ConsumerLens,
+} from "../../consumer/rowView";
 
 const props = withDefaults(
   defineProps<{
@@ -32,6 +37,8 @@ const props = withDefaults(
     divergence?: string;
     speciesLabel: string;
     conditionsLabel: Record<string, string>;
+    /** Consumer lens — changes presentation only, never the facts (M3.1 §8.5). */
+    lens?: ConsumerLens;
   }>(),
   {
     answer: null,
@@ -39,6 +46,7 @@ const props = withDefaults(
     reality: null,
     realityError: false,
     divergence: "",
+    lens: "",
   },
 );
 
@@ -47,6 +55,7 @@ const scope = computed(() => answerScopeLabel(props.answer, props.speciesLabel))
 const conditions = computed(() => answerConditions(props.answer, props.conditionsLabel));
 const realityLine = computed(() => realityLineFor(props.reality));
 const evidenceLine = computed(() => evidenceLineFor(props.reality));
+const projection = computed(() => lensProjection(props.lens, props.answer, props.reality));
 </script>
 
 <template>
@@ -66,6 +75,28 @@ const evidenceLine = computed(() => evidenceLineFor(props.reality));
         >
       </div>
       <StatusBadge :semantic="status" class="place-result-row__badge" />
+    </div>
+
+    <!-- M3.1 lens projection：真实改变 Consumer 呈现（rule-first / reality-first），
+         不改变任何 domain 事实；indoor/dining 仅上浮服务端返回的 observed_zones。 -->
+    <div v-if="lens" class="place-result-row__lens" data-testid="row-lens">
+      <p
+        v-if="projection.headline === 'rule' && answer"
+        class="place-result-row__rule"
+        data-testid="row-lens-headline"
+      >
+        {{ answer.normative_result.summary || "已核验：" + scope }}
+      </p>
+      <p v-else class="place-result-row__reality-line" data-testid="row-lens-headline">
+        {{ projection.realityLine }}
+      </p>
+      <p
+        v-if="projection.zoneFacts.length"
+        class="place-result-row__meta"
+        data-testid="row-lens-zones"
+      >
+        相关区域：{{ projection.zoneFacts.join("、") }}
+      </p>
     </div>
 
     <!-- transport error ≠ domain fact：明确说“暂时无法取得”，不是“尚未核验” -->

@@ -25,7 +25,7 @@ import {
   type CoexistenceSnapshot,
   type PlaceSummary,
 } from "@petaccess/client-core";
-import { EMPTY_STATE_COPY } from "@petaccess/design-tokens";
+import { EMPTY_STATE_COPY, type StatusKey } from "@petaccess/design-tokens";
 import DesktopContentContainer from "../components/layout/DesktopContentContainer.vue";
 import FilterChips from "../components/FilterChips.vue";
 import PlacePreview from "../components/domain/PlacePreview.vue";
@@ -33,11 +33,12 @@ import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
 import StatusBadge from "../components/StatusBadge.vue";
 import PaIcon from "../components/ui/PaIcon.vue";
-import { answerStatusKey } from "../answer";
+import { answerScopeLabel, answerStatusKey } from "../answer";
+import { lensOrderScore, lensProjection, type ConsumerLens } from "../consumer/rowView";
+import { evidenceLineFor, freshnessLineFor, realityLineFor } from "../consumer/rowView";
 import { useBreakpoint } from "../composables/useBreakpoint";
 import { useOnline } from "../composables/useOnline";
 import { presentDescription } from "../errors";
-import { evidenceLineFor, realityLineFor } from "../consumer/rowView";
 import {
   createEpoch,
   enrichRows,
@@ -52,7 +53,8 @@ const { online } = useOnline();
 const q = ref(typeof route.query.q === "string" ? route.query.q : "");
 const results = ref<PlaceSummary[]>([]);
 const facts = ref<Map<string, RowFacts>>(new Map());
-
+const listStale = ref(false);
+const listFetchedAtMs = ref<number | null>(null);
 /** v0.9-R1 home entry lens (?lens=presence|indoor|dining|rules) — master §30. */
 const LENS_HINTS: Record<string, string> = {
   presence: "正按「现场是否有动物出现」查看 —— 结果将优先展示近期有现场记录的场所",
@@ -60,9 +62,7 @@ const LENS_HINTS: Record<string, string> = {
   dining: "正按「餐饮区域情况」查看 —— 结果将优先展示含餐饮区域的场所",
   rules: "正按「完整规则」查看 —— 结果为已收录规则的场所",
 };
-const lens = computed(() => (route.query.lens as string | undefined) ?? "");
-const lensHint = computed(() => LENS_HINTS[lens.value] ?? "");
-const statuses = ref<Record<string, string>>({});
+const statuses = ref<Record<string, StatusKey>>({});
 const boundary = ref<BoundaryProfile | null>(null);
 const searched = ref(false);
 const loading = ref(false);
@@ -72,6 +72,15 @@ const epoch = createEpoch();
 /** M3 D2 — desktop split preview. */
 const { desktop: isDesktop } = useBreakpoint();
 const selectedId = ref<string | null>(null);
+const speciesLabel = computed(() => {
+  const s = session.activePet?.species ?? "dog";
+  if (session.activePet?.service_role === "working") return "服务犬";
+  return s === "dog" ? "普通犬" : s === "cat" ? "猫" : "其他宠物";
+});
+function lensProjectionFor(p: PlaceSummary) {
+  const f = facts.value.get(p.id);
+  return lensProjection(lensKey.value, f?.answer, f?.reality);
+}
 const preview = ref<{ snapshot: CoexistenceSnapshot | null; loading: boolean; error: string }>({
   snapshot: null,
   loading: false,
@@ -94,8 +103,11 @@ const FILTERS = [
 ];
 const active = ref<string[]>([]);
 
-const visible = computed(() =>
-  results.value.filter((p) => {
+const lens = computed(() => (route.query.lens as string | undefined) ?? "");
+const lensHint = computed(() => LENS_HINTS[lens.value] ?? "");
+const lensKey = computed(() => (lens.value as ConsumerLens) || "");
+const visible = computed(() => {
+  const filtered = results.value.filter((p) => {
     if (!active.value.length) return true;
     const statusFilters = active.value.filter((k) => k !== "verified");
     const checks: boolean[] = [];
@@ -104,8 +116,18 @@ const visible = computed(() =>
     }
     if (active.value.includes("verified")) checks.push(Boolean(p.rule_count > 0));
     return checks.every(Boolean);
-  }),
-);
+  });
+  // M3.1 lens ordering — presentation-only sort on server facts.
+  if (!lensKey.value) return filtered;
+  return [...filtered].sort((a, b) => {
+    const fa = facts.value.get(a.id);
+    const fb = facts.value.get(b.id);
+    return (
+      lensOrderScore(lensKey.value, fb?.answer, fb?.reality) -
+      lensOrderScore(lensKey.value, fa?.answer, fa?.reality)
+    );
+  });
+});
 
 async function search() {
   if (!online.value) {
@@ -119,11 +141,14 @@ async function search() {
   searched.value = true;
   try {
     const list = query ? await searchPlaces(query) : await searchPlaces("");
-    results.value = list;
-    const f = await enrichRows(list);
+    if (!epoch.isCurrent(n)) return; // a newer search superseded this one
+    results.value = list.items;
+    listStale.value = list.stale;
+    listFetchedAtMs.value = list.fetchedAtMs;
+    const f = await enrichRows(list.items);
     if (!epoch.isCurrent(n)) return; // a newer search superseded this one
     facts.value = f;
-    const st: Record<string, string> = {};
+    const st: Record<string, StatusKey> = {};
     for (const [id, row] of f) st[id] = answerStatusKey(row.answer);
     statuses.value = st;
     if (query) {
@@ -132,9 +157,9 @@ async function search() {
     } else {
       syncRouteQuery("");
     }
-    if (isDesktop.value && list.length) {
-      const first = list[0];
-      if (!selectedId.value || !list.some((p) => p.id === selectedId.value)) {
+    if (isDesktop.value && list.items.length) {
+      const first = list.items[0];
+      if (!selectedId.value || !list.items.some((p) => p.id === selectedId.value)) {
         void selectPlace(first);
       }
     }
@@ -158,7 +183,11 @@ async function selectPlace(p: PlaceSummary) {
   if (!isDesktop.value) return;
   preview.value = { snapshot: null, loading: true, error: "" };
   try {
-    preview.value = { snapshot: await snapshotFor(p.id), loading: false, error: "" };
+    preview.value = {
+      snapshot: (await snapshotFor(p.id)).snapshot,
+      loading: false,
+      error: "",
+    };
   } catch (e) {
     preview.value = { snapshot: null, loading: false, error: presentDescription(e) };
   }
@@ -345,6 +374,14 @@ onMounted(async () => {
           </div>
         </template>
       </StateMessage>
+      <p
+        v-if="freshnessLineFor(listStale, listFetchedAtMs, !online)"
+        class="muted"
+        data-testid="search-freshness"
+        style="margin: 0 0 var(--pa-space-2)"
+      >
+        {{ freshnessLineFor(listStale, listFetchedAtMs, !online) }}
+      </p>
       <template v-else>
         <RouterLink
           v-for="p in visible"
@@ -358,7 +395,7 @@ onMounted(async () => {
         >
           <div class="row" style="justify-content: space-between">
             <strong>{{ p.canonical_name }}</strong>
-            <StatusBadge :status="statuses[p.id] ?? 'UNKNOWN'" />
+            <StatusBadge :semantic="statuses[p.id] ?? 'UNKNOWN'" />
           </div>
           <p
             v-if="facts.get(p.id)?.answerError"
@@ -377,6 +414,31 @@ onMounted(async () => {
             以「{{ p.matched_alias }}」匹配（曾用名／别称）
           </div>
           <div class="muted" data-testid="result-rules">{{ ruleSummaryLabel(p) }}</div>
+
+          <!-- M3.1 lens projection：真实改变 Consumer 呈现（rule-first / reality-first），
+               不改变任何 domain 事实；indoor/dining 仅上浮服务端返回的 observed_zones。 -->
+          <template v-if="lensKey">
+            <p
+              v-if="lensProjectionFor(p).headline === 'rule' && facts.get(p.id)?.answer"
+              class="result-rule"
+              data-testid="row-lens-headline"
+            >
+              {{
+                facts.get(p.id)?.answer?.normative_result.summary ||
+                "已核验：" + answerScopeLabel(facts.get(p.id)?.answer, speciesLabel)
+              }}
+            </p>
+            <p v-else class="result-reality__line" data-testid="row-lens-headline">
+              {{ lensProjectionFor(p).realityLine }}
+            </p>
+            <p
+              v-if="lensProjectionFor(p).zoneFacts.length"
+              class="muted"
+              data-testid="row-lens-zones"
+            >
+              相关区域：{{ lensProjectionFor(p).zoneFacts.join("、") }}
+            </p>
+          </template>
 
           <!-- M3：移动端也可见 Reality 摘要 + Evidence/Freshness 元数据 -->
           <div class="result-reality" data-testid="result-reality">
