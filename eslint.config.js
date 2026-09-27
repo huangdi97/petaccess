@@ -22,6 +22,7 @@ export default defineConfigWithVueTs(
       // app source; belongs to no app tsconfig and predates the project-service
       // allowlist (baseline lint already refused it).
       "scripts/android_acceptance/cdp_journey.cjs",
+      "scripts/android_acceptance/cdp_probe.cjs",
     ],
   },
   pluginVue.configs["flat/essential"],
@@ -45,10 +46,12 @@ export default defineConfigWithVueTs(
             "tests/e2e/*.ts",
             "tests/visual/*.ts",
             "tests/ui-audit/*.ts",
+            "tests/ui-reconstruction/*.ts",
+            "playwright.ui-reconstruction.config.ts",
             "scripts/*.mjs",
             "eslint.config.js",
           ],
-          maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 30,
+          maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 60,
         },
       },
     },

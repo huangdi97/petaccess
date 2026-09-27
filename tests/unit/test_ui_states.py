@@ -49,6 +49,7 @@ REQUIRED_PER_VIEW = {
     "BoundaryView.vue": ("SkeletonList", "StateMessage"),
     "MatchExplainView.vue": ("StateMessage",),
     "RealityTraceView.vue": ("SkeletonList", "StateMessage"),
+    "EvidenceView.vue": ("SkeletonList", "StateMessage"),
 }
 
 # Views whose rendered content carries no data fetch (static pages, auth flow,
@@ -67,6 +68,24 @@ DECLARED_STATIC = {
 
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
+
+
+def _view_plus_imports(path: Path) -> str:
+    """Source of the view plus every local component it imports.
+
+    Since the spatial-dossier split, state wiring legitimately lives in
+    composed subcomponents (Home's HomeNearbySection, Map's MapResultPane,
+    Evidence's EvidenceProvenance). The requirement stays the same — the
+    page's component tree wires loading/error/offline — so the needles are
+    checked against the view file AND its direct component imports.
+    """
+    parts = [_read(path)]
+    for match in re.finditer(r'from "(\.[^"]+\.vue)"', parts[0]):
+        candidate = path.parent / Path(match.group(1))
+        if candidate.exists() and H5_SRC in candidate.parents:
+            parts.append(_read(candidate))
+    return "\n".join(parts)
+
 
 
 # ------------------------------------------------------------- §5.5 vocabulary
@@ -115,8 +134,6 @@ def test_skeleton_is_announced_and_has_a_card_and_line_variant():
 def test_core_views_wire_their_loading_error_and_offline_states():
     missing: list[str] = []
     covered = set(REQUIRED_PER_VIEW) | set(DECLARED_STATIC)
-    # Every route view must pick one strategy — a new view that does neither
-    # fails here instead of silently rendering a blank page on failure.
     for view in sorted(H5_VIEWS.glob("*.vue")):
         name = view.name
         if name not in covered:
@@ -124,7 +141,7 @@ def test_core_views_wire_their_loading_error_and_offline_states():
     for name, needles in REQUIRED_PER_VIEW.items():
         path = H5_VIEWS / name
         assert path.exists(), f"core view {name} missing"
-        src = _read(path)
+        src = _view_plus_imports(path)
         for needle in needles:
             if needle not in src:
                 missing.append(f"{name}: {needle}")

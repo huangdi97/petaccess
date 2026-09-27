@@ -8,7 +8,9 @@ import path from "node:path";
 function pngs(stage, vp) {
   const dir = path.resolve("artifacts/ui-audit", stage, vp);
   if (!existsSync(dir)) return [];
-  return readdirSync(dir).filter((f) => f.endsWith(".png")).sort();
+  return readdirSync(dir)
+    .filter((f) => f.endsWith(".png"))
+    .sort();
 }
 
 const viewports = ["ui-360", "ui-430", "ui-800", "ui-1280", "ui-1440"];
@@ -66,10 +68,22 @@ const changes = {
     why: "Offline 下搜索不可提交，诚实提示。",
     rule: "Offline ≠ unusable；读操作可导航（§75）",
   },
-  "map-ready": { what: "仅共享层自然影响（AppShell/Token）。", why: "Map 属 M4 范围。", rule: "不吞并 M4（契约 §57）" },
+  "map-ready": {
+    what: "仅共享层自然影响（AppShell/Token）。",
+    why: "Map 属 M4 范围。",
+    rule: "不吞并 M4（契约 §57）",
+  },
   "place-ready": { what: "仅共享层自然影响。", why: "Place Passport 属 M4。", rule: "不吞并 M4" },
-  "contribute-ready": { what: "仅共享层自然影响（AppShell 保留旧框架）。", why: "Contribution 属 M7。", rule: "不吞并 M7" },
-  "mine-ready": { what: "无变化（FINAL 页面）。", why: "Mine 已收口（M2/M7）。", rule: "不扩大范围" },
+  "contribute-ready": {
+    what: "仅共享层自然影响（AppShell 保留旧框架）。",
+    why: "Contribution 属 M7。",
+    rule: "不吞并 M7",
+  },
+  "mine-ready": {
+    what: "无变化（FINAL 页面）。",
+    why: "Mine 已收口（M2/M7）。",
+    rule: "不扩大范围",
+  },
 };
 
 const fallback = { what: "视觉随共享层自然变化。", why: "见 DESIGN.md。", rule: "DESIGN.md" };

@@ -12,7 +12,6 @@ import { useRoute, useRouter } from "vue-router";
 import {
   clusterMarkers,
   coverageHint,
-  LOCATION_LABELS,
   session,
   synthDemoCamera,
   synthMarkerPosition,

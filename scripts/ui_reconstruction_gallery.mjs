@@ -18,7 +18,9 @@ const BEFORE = "baseline";
 function pngs(stage, vp) {
   const dir = path.resolve("artifacts/ui-reconstruction", stage, vp);
   if (!existsSync(dir)) return [];
-  return readdirSync(dir).filter((f) => f.endsWith(".png")).sort();
+  return readdirSync(dir)
+    .filter((f) => f.endsWith(".png"))
+    .sort();
 }
 
 const viewports = ["ui-360", "ui-430", "ui-800", "ui-1280", "ui-1440"];
@@ -31,9 +33,10 @@ const vpLabel = {
 };
 
 const stateLabel = (name) => {
-  const m = /^(home|search|map|place|reality|contribute|mine)-(ready|loading|empty|error|offline|unknown)$/.exec(
-    name,
-  );
+  const m =
+    /^(home|search|map|place|reality|contribute|mine)-(ready|loading|empty|error|offline|unknown)$/.exec(
+      name,
+    );
   if (!m) return name;
   return `${m[1]} · ${m[2]}`;
 };
@@ -84,7 +87,9 @@ const changes = {
 function cell(name, vp) {
   const before = `../artifacts/ui-reconstruction/${BEFORE}/${vp}/${name}.png`;
   const after = `../artifacts/ui-reconstruction/${AFTER}/${vp}/${name}.png`;
-  const bExists = existsSync(path.resolve("artifacts/ui-reconstruction", BEFORE, vp, `${name}.png`));
+  const bExists = existsSync(
+    path.resolve("artifacts/ui-reconstruction", BEFORE, vp, `${name}.png`),
+  );
   const aExists = existsSync(path.resolve("artifacts/ui-reconstruction", AFTER, vp, `${name}.png`));
   const c = changes[name] ?? {
     what: "见页面具体 diff。",
@@ -159,4 +164,6 @@ writeFileSync(
   html,
   "utf-8",
 );
-console.log(`wrote UI_RECONSTRUCTION_BEFORE_AFTER_GALLERY.html with ${rows.length} cells (${BEFORE} → ${AFTER})`);
+console.log(
+  `wrote UI_RECONSTRUCTION_BEFORE_AFTER_GALLERY.html with ${rows.length} cells (${BEFORE} → ${AFTER})`,
+);
