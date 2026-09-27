@@ -49,12 +49,44 @@ h2 {
 .page {
   padding: var(--pa-space-4) var(--pa-space-4) var(--pa-space-6);
 }
+
+/* Surface model (UI_RECONSTRUCTION_DESIGN_FREEZE §5): lists / sections /
+ * inspector / timeline are NOT cards. `.panel` keeps a quiet primary-surface
+ * skin — flat, divider-led, no big radius — so a wall of them never reads as
+ * a card wall. Floating surfaces (map preview / dialog / sheet) use elevation. */
 .panel {
   background: var(--panel);
   border: var(--pa-border-width) solid var(--line);
-  border-radius: var(--pa-radius-md);
+  border-radius: 0;
   padding: var(--pa-space-4);
   margin-bottom: var(--pa-space-3);
+}
+
+/* Divider-led row used by list / dossier / timeline sections. */
+.surface-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--pa-space-3);
+  padding: var(--pa-space-3) 0;
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.surface-row:last-child {
+  border-bottom: none;
+}
+
+/* Workspace panes: the Search result pane and the Map result pane share a
+ * quiet left column that reads as a pane, not as cards. */
+.workspace-pane {
+  min-width: 0;
+  border-right: var(--pa-border-width) solid var(--pa-color-border);
+  padding-right: var(--pa-space-5);
+}
+
+.workspace-pane:last-child {
+  border-right: none;
+  padding-right: 0;
 }
 .muted {
   color: var(--muted);

@@ -195,13 +195,18 @@
   --pa-size-icon-lg: 24px;
   --pa-size-icon-xl: 32px;
 
-  /* --- layout ------------------------------------------------------------ */
   /* `--pa-layout-max-width` is the legacy mobile-reader measure. Desktop uses
    * the M2 DesktopContentContainer widths instead (see V020_APP_SHELL_SPEC). */
   --pa-layout-max-width: 480px;
   --pa-layout-touch-target: 44px;
   --pa-layout-tabbar-height: 56px;
-  --pa-layout-rail-width: 232px;
+  /* UI reconstruction (Design Freeze §4): desktop navigation is a 64–72px icon
+   * rail, never a wide sidebar. Pages must read this token, not invent widths. */
+  --pa-layout-rail-width: 68px;
+  /* Search workspace: 360–420px result pane; the inspector gets the rest. */
+  --pa-layout-result-pane: 400px;
+  /* Sticky decision inspector width on the Place dossier. */
+  --pa-layout-inspector: 320px;
   --pa-layout-header-height: 56px;
   --pa-layout-content-max: 1200px;
   --pa-layout-content-narrow: 640px;

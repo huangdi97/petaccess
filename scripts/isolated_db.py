@@ -95,7 +95,10 @@ def recreate(conn: Any, db_name: str) -> None:
 
 def run(cmd: list[str], *, database_url: str, env_extra: dict[str, str]) -> None:
     env = {**os.environ, "DATABASE_URL": database_url, **env_extra}
-    proc = subprocess.run(cmd, cwd=API_DIR, env=env, capture_output=True, text=True)
+    # Same Windows GBK guard as visual_db_reset: subprocess output may be UTF-8
+    # (alembic/seed logs); decode with replacement so a reader-thread crash does
+    # not tear down the DB reset after the database was already recreated.
+    proc = subprocess.run(cmd, cwd=API_DIR, env=env, capture_output=True, text=True, encoding="utf-8", errors="replace")
     if proc.returncode != 0:
         sys.stderr.write(proc.stdout)
         sys.stderr.write(proc.stderr)

@@ -1,8 +1,9 @@
 <script setup lang="ts">
 /**
- * DesktopRail — navigation rail for viewports >= 768px
- * (V020_APP_SHELL_SPEC §16). Primary group: 首页 / 搜索 / 地图 / 贡献; secondary
- * group: 我的 / 设置 / 关于. Version info lives at the rail bottom.
+ * DesktopRail — 68px icon navigation rail for viewports >= 768px
+ * (UI_RECONSTRUCTION_DESIGN_FREEZE §4). Primary: 首页 / 搜索 / 地图 / 贡献;
+ * secondary: 我的 / 设置. About has moved INTO Settings (no first-level slot).
+ * Labels appear as tooltips so the rail stays an icon rail, not a sidebar.
  */
 import { useRoute } from "vue-router";
 import { Z_INDEX, type IconName } from "@petaccess/design-tokens";
@@ -26,7 +27,6 @@ const PRIMARY: RailItem[] = [
 const SECONDARY: RailItem[] = [
   { to: "/mine", icon: "user", label: "我的" },
   { to: "/settings", icon: "settings", label: "设置" },
-  { to: "/about", icon: "info", label: "关于" },
 ];
 
 const route = useRoute();
@@ -46,13 +46,8 @@ const envLabel = import.meta.env.DEV ? "development" : "production";
     :style="{ zIndex: `var(${Z_INDEX.sticky})` }"
     aria-label="主导航"
   >
-    <RouterLink
-      to="/"
-      class="desktop-rail__brand"
-      :class="{ 'desktop-rail__item--active': route.path === '/' }"
-    >
+    <RouterLink to="/" class="desktop-rail__brand" aria-label="PetAccess 首页">
       <span class="desktop-rail__brand-mark" aria-hidden="true">PA</span>
-      <span class="desktop-rail__brand-name">PetAccess</span>
     </RouterLink>
 
     <nav class="desktop-rail__group" aria-label="主要页面">
@@ -63,9 +58,10 @@ const envLabel = import.meta.env.DEV ? "development" : "production";
         class="desktop-rail__item"
         :class="{ 'desktop-rail__item--active': isActive(item.to) }"
         :aria-current="isActive(item.to) ? 'page' : undefined"
+        :aria-label="item.label"
       >
-        <PaIcon class="desktop-rail__icon" :name="item.icon" size="md" />
-        <span class="desktop-rail__label">{{ item.label }}</span>
+        <PaIcon class="desktop-rail__icon" :name="item.icon" size="lg" />
+        <span class="desktop-rail__tip" aria-hidden="true">{{ item.label }}</span>
       </RouterLink>
     </nav>
 
@@ -79,15 +75,16 @@ const envLabel = import.meta.env.DEV ? "development" : "production";
         class="desktop-rail__item"
         :class="{ 'desktop-rail__item--active': isActive(item.to) }"
         :aria-current="isActive(item.to) ? 'page' : undefined"
+        :aria-label="item.label"
       >
-        <PaIcon class="desktop-rail__icon" :name="item.icon" size="md" />
-        <span class="desktop-rail__label">{{ item.label }}</span>
+        <PaIcon class="desktop-rail__icon" :name="item.icon" size="lg" />
+        <span class="desktop-rail__tip" aria-hidden="true">{{ item.label }}</span>
       </RouterLink>
     </nav>
 
     <div class="desktop-rail__version" data-testid="app-version">
       <span class="desktop-rail__version-name">PetAccess v{{ version }}</span>
-      <span class="desktop-rail__version-env">{{ envLabel }}</span>
+      <span class="desktop-rail__version-env" aria-hidden="true">{{ envLabel }}</span>
     </div>
   </aside>
 </template>
@@ -103,30 +100,26 @@ const envLabel = import.meta.env.DEV ? "development" : "production";
   width: var(--pa-layout-rail-width);
   background: var(--pa-color-surface-raised);
   border-right: var(--pa-border-width) solid var(--pa-color-border);
-  padding: var(--pa-space-4) var(--pa-space-3) var(--pa-safe-bottom);
+  padding: var(--pa-space-4) 0 var(--pa-safe-bottom);
   overflow-y: auto;
 }
 
 .desktop-rail__brand {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: var(--pa-space-2);
-  padding: var(--pa-space-2) var(--pa-space-3);
+  justify-content: center;
+  padding: var(--pa-space-2) 0;
   margin-bottom: var(--pa-space-4);
-  border-radius: var(--pa-radius-control);
   color: var(--pa-color-text-primary);
   text-decoration: none;
-  font-weight: var(--pa-font-weight-bold);
-  font-size: var(--pa-font-size-base);
-  min-height: var(--pa-layout-touch-target);
 }
 
 .desktop-rail__brand-mark {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border-radius: var(--pa-radius-control);
   background: var(--pa-color-accent);
   color: var(--pa-color-text-inverse);
@@ -137,25 +130,27 @@ const envLabel = import.meta.env.DEV ? "development" : "production";
 .desktop-rail__group {
   display: flex;
   flex-direction: column;
-  gap: var(--pa-space-0);
+  align-items: center;
+  gap: var(--pa-space-1);
 }
 
 .desktop-rail__divider {
   border: none;
   border-top: var(--pa-border-width) solid var(--pa-color-border);
-  margin: var(--pa-space-4) var(--pa-space-3);
+  width: calc(100% - var(--pa-space-6));
+  margin: var(--pa-space-4) auto;
 }
 
 .desktop-rail__item {
-  display: flex;
+  position: relative;
+  display: inline-flex;
   align-items: center;
-  gap: var(--pa-space-3);
-  min-height: var(--pa-layout-touch-target);
-  padding: 0 var(--pa-space-3);
+  justify-content: center;
+  width: var(--pa-layout-touch-target);
+  height: var(--pa-layout-touch-target);
   border-radius: var(--pa-radius-control);
   color: var(--pa-color-text-secondary);
   text-decoration: none;
-  font-size: var(--pa-font-size-base);
 }
 
 .desktop-rail__item:hover {
@@ -166,7 +161,6 @@ const envLabel = import.meta.env.DEV ? "development" : "production";
 .desktop-rail__item--active {
   background: var(--pa-color-surface-interactive);
   color: var(--pa-color-accent);
-  font-weight: var(--pa-font-weight-medium);
 }
 
 .desktop-rail__item:focus-visible {
@@ -178,12 +172,34 @@ const envLabel = import.meta.env.DEV ? "development" : "production";
   color: currentColor;
 }
 
+/* Tooltip label — appears on hover/focus, never takes rail space. */
+.desktop-rail__tip {
+  position: absolute;
+  left: calc(100% + var(--pa-space-2));
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  padding: var(--pa-space-1) var(--pa-space-2);
+  border-radius: var(--pa-radius-sm);
+  background: var(--pa-color-text-primary);
+  color: var(--pa-color-text-inverse);
+  font-size: var(--pa-font-size-sm);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--pa-motion-fast) var(--pa-motion-ease);
+  z-index: var(--pa-z-sticky);
+}
+
+.desktop-rail__item:hover .desktop-rail__tip,
+.desktop-rail__item:focus-visible .desktop-rail__tip {
+  opacity: 1;
+}
+
 .desktop-rail__version {
   margin-top: auto;
-  padding: var(--pa-space-4) var(--pa-space-3) 0;
   display: flex;
-  flex-direction: column;
-  gap: var(--pa-space-1);
+  justify-content: center;
+  padding-top: var(--pa-space-4);
 }
 
 .desktop-rail__version-name {

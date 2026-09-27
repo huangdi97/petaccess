@@ -1,12 +1,9 @@
 /**
- * PlacePreview grid overflow regression (VIS-002, found on tablet 800dp).
+ * Search workspace overflow regression (VIS-002 lineage, UI reconstruction).
  *
- * `.place-preview__row` is `display:grid; grid-template-columns: 5rem 1fr`.
- * Without `min-width: 0` on the grid child, a long value (rule summary /
- * address) forces the `1fr` track wider than its container, so the document
- * overflows horizontally on split-layout widths (>= lg). Only reachable when a
- * search produced results AND the right-side preview panel rendered — the
- * plain empty-search responsive spec never exercised it.
+ * `.result-row__reality` and the DecisionInspector rows must not force the
+ * document wider than the viewport on split-layout widths. The right-side
+ * inspector is the new `decision-inspector` surface (Design Freeze §9).
  */
 import { expect, test } from "@playwright/test";
 
@@ -20,12 +17,10 @@ test("search with results does not overflow horizontally on split-layout widths"
   await page.getByTestId("search-input").fill("星河");
   await page.getByTestId("search-btn").click();
 
-  // One result row must render (demo DB has 星河咖啡·测试店 / 栖霞分店).
   const result = page.getByTestId("result-星河咖啡·测试店");
   await expect(result).toBeVisible({ timeout: 15000 });
-  // The right-pane preview must have mounted for the overflow scenario.
-  const preview = page.getByTestId("place-preview");
-  await expect(preview).toBeVisible({ timeout: 15000 });
+  // The detail inspector must have mounted for the overflow scenario.
+  await expect(page.getByTestId("decision-inspector")).toBeVisible({ timeout: 15000 });
 
   const overflow = await page.evaluate(() => ({
     scrollWidth: document.documentElement.scrollWidth,
@@ -33,11 +28,11 @@ test("search with results does not overflow horizontally on split-layout widths"
   }));
   expect(
     overflow.scrollWidth,
-    `search+preview overflow at ${overflow.innerWidth}px`,
+    `search+inspector overflow at ${overflow.innerWidth}px`,
   ).toBeLessThanOrEqual(overflow.innerWidth + 1);
 });
 
-test("no horizontal overflow at each split-layout viewport once preview is populated", async ({
+test("no horizontal overflow at each split-layout viewport once inspector is populated", async ({
   page,
 }) => {
   for (const width of SPLIT_WIDTHS) {
@@ -45,7 +40,7 @@ test("no horizontal overflow at each split-layout viewport once preview is popul
     await page.goto("/#/search");
     await page.getByTestId("search-input").fill("星河");
     await page.getByTestId("search-btn").click();
-    await expect(page.getByTestId("place-preview")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId("decision-inspector")).toBeVisible({ timeout: 15000 });
 
     const overflow = await page.evaluate(() => ({
       scrollWidth: document.documentElement.scrollWidth,

@@ -1,18 +1,17 @@
 <script setup lang="ts">
 /**
- * Search — M3 深化收口 (V020_M3_CONSUMER_CORE, DESIGN.md).
+ * Search — List–Detail Workspace (UI_RECONSTRUCTION_DESIGN_FREEZE §9).
  *
- * 变更（相对 M3 基线）：
- *   • 数据统一走 Consumer repository：search/nearby 列表缓存 + 行级
- *     Rule 结论（accessAnswer）+ Reality 摘要（placeReality）经 bounded
- *     concurrency 获取（不再 N×无界 Promise.all）。
- *   • 请求 epoch 保护：慢旧请求不覆盖快新请求（快速输入/深链/back-forward）。
- *   • 结果行：identity → Rule → Reality 摘要 → Freshness/Evidence 元数据 →
- *     仅相关 divergence；关键标签减负（conflict 显式，其余并入 meta）。
- *   • 桌面 split preview（PlacePreview + CoexistenceSnapshot）保留。
+ * Desktop: rail + 360–420px result pane + remaining detail inspector.
+ * Result rows are divider-led (identity/distance → conclusion/conditions →
+ * recent reality + sources); the selected row gets a subtle tint; the filter
+ * is a light panel ("筛选 N"), never a pill wall. Mobile: results → tap →
+ * place, no squeezed two-pane.
  *
- * 既有行为（保留）：?q=/?lens= 深链与回填、back/forward 同步、最近搜索
- * （localStorage, 上限 5, 可清空）、筛选不改变任何结论。
+ * Data: the ONLY consumer source is the repository (CoexistenceSnapshot SSOT,
+ * bounded concurrency, cache with full query-context keys, epoch guard). The
+ * Query Context primitive sits on top and changes session.mode → cache keys →
+ * refetches. Lens (?lens=) changes Consumer presentation only (§8.5).
  */
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
@@ -26,13 +25,11 @@ import {
   type PlaceSummary,
 } from "@petaccess/client-core";
 import { EMPTY_STATE_COPY, type StatusKey } from "@petaccess/design-tokens";
-import DesktopContentContainer from "../components/layout/DesktopContentContainer.vue";
-import FilterChips from "../components/FilterChips.vue";
-import PlacePreview from "../components/domain/PlacePreview.vue";
+import DecisionInspector from "../components/domain/DecisionInspector.vue";
+import QueryContextBar from "../components/domain/QueryContextBar.vue";
 import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
 import StatusBadge from "../components/StatusBadge.vue";
-import PaIcon from "../components/ui/PaIcon.vue";
 import { answerScopeLabel, answerStatusKey } from "../answer";
 import { lensOrderScore, lensProjection, type ConsumerLens } from "../consumer/rowView";
 import { evidenceLineFor, freshnessLineFor, realityLineFor } from "../consumer/rowView";
@@ -55,6 +52,7 @@ const results = ref<PlaceSummary[]>([]);
 const facts = ref<Map<string, RowFacts>>(new Map());
 const listStale = ref(false);
 const listFetchedAtMs = ref<number | null>(null);
+
 /** v0.9-R1 home entry lens (?lens=presence|indoor|dining|rules) — master §30. */
 const LENS_HINTS: Record<string, string> = {
   presence: "正按「现场是否有动物出现」查看 —— 结果将优先展示近期有现场记录的场所",
@@ -68,10 +66,6 @@ const searched = ref(false);
 const loading = ref(false);
 const error = ref("");
 const epoch = createEpoch();
-
-/** M3 D2 — desktop split preview. */
-const { desktop: isDesktop } = useBreakpoint();
-const selectedId = ref<string | null>(null);
 const speciesLabel = computed(() => {
   const s = session.activePet?.species ?? "dog";
   if (session.activePet?.service_role === "working") return "服务犬";
@@ -102,10 +96,12 @@ const FILTERS = [
   { key: "verified", label: "已核验" },
 ];
 const active = ref<string[]>([]);
+const filterOpen = ref(false);
 
 const lens = computed(() => (route.query.lens as string | undefined) ?? "");
 const lensHint = computed(() => LENS_HINTS[lens.value] ?? "");
 const lensKey = computed(() => (lens.value as ConsumerLens) || "");
+
 const visible = computed(() => {
   const filtered = results.value.filter((p) => {
     if (!active.value.length) return true;
@@ -268,267 +264,459 @@ onMounted(async () => {
   }
   await search();
 });
+
+const { desktop: isDesktop } = useBreakpoint();
+const selectedId = ref<string | null>(null);
 </script>
 
 <template>
-  <DesktopContentContainer :mode="isDesktop ? 'split' : 'single-column'">
-    <div class="search-pane page">
-      <h1 class="visually-hidden">搜索场所规则</h1>
+  <div class="search-workspace" data-testid="search-workspace">
+    <QueryContextBar />
 
-      <div class="panel">
-        <div class="search-field">
-          <input
-            v-model="q"
-            aria-label="搜索场所"
-            placeholder="搜索场所、商圈或地址"
-            data-testid="search-input"
-            @keydown.enter="search"
-          />
-          <button
-            v-if="q"
-            type="button"
-            class="search-clear"
-            aria-label="清除"
-            data-testid="search-clear"
-            @click="clearSearch"
-          >
-            <PaIcon name="close" size="sm" />
-          </button>
-        </div>
-        <button
-          type="button"
-          class="primary block"
-          style="margin-top: var(--pa-space-2)"
-          :disabled="loading"
-          @click="search"
-          data-testid="search-btn"
-        >
-          {{ loading ? "搜索中…" : "搜索" }}
-        </button>
-      </div>
+    <div class="search-workspace__body" :class="{ 'search-workspace__body--split': isDesktop }">
+      <!-- result pane -->
+      <section class="search-result-pane" aria-label="搜索结果">
+        <header class="search-result-pane__head">
+          <h1 class="visually-hidden">搜索场所规则</h1>
+          <form class="search-field" @submit.prevent="search">
+            <input
+              v-model="q"
+              aria-label="搜索场所"
+              placeholder="搜索场所、商圈或地址"
+              data-testid="search-input"
+              @keydown.enter="search"
+            />
+            <button
+              v-if="q"
+              type="button"
+              class="search-clear"
+              aria-label="清除"
+              data-testid="search-clear"
+              @click="clearSearch"
+            >
+              ×
+            </button>
+            <button
+              type="submit"
+              class="primary search-submit"
+              :disabled="loading"
+              data-testid="search-btn"
+            >
+              {{ loading ? "搜索中…" : "搜索" }}
+            </button>
+          </form>
+        </header>
 
-      <div v-if="recent.length" class="recent-bar" data-testid="search-recent">
-        <div class="row" style="justify-content: space-between">
-          <span class="muted">最近搜索</span>
-          <button type="button" class="pill" data-testid="clear-search-recent" @click="clearRecent">
-            清除
-          </button>
-        </div>
-        <div class="row">
-          <button
-            v-for="t in recent"
-            :key="t"
-            type="button"
-            class="pill"
-            :data-testid="'recent-search-' + t"
-            @click="useRecent(t)"
-          >
-            {{ t }}
-          </button>
-        </div>
-      </div>
-
-      <div
-        v-if="lensHint"
-        class="panel muted"
-        data-testid="lens-hint"
-        style="margin-top: var(--pa-space-2)"
-      >
-        {{ lensHint }}
-      </div>
-
-      <div class="panel">
-        <div class="muted">
-          {{ session.activePet ? `本次：${session.activePet.display_name}` : "未设置宠物档案" }}
-          · {{ boundary ? `共处边界「${boundary.name}」` : "未设置共处边界" }}
-        </div>
-      </div>
-
-      <FilterChips
-        v-model="active"
-        :options="FILTERS"
-        hint="默认不过滤“信息不足”。筛选只影响显示，不改变任何结论。"
-      />
-
-      <SkeletonList v-if="loading" :rows="3" />
-      <StateMessage v-else-if="error" kind="ERROR" :description="error">
-        <template #action>
-          <button type="button" class="primary" @click="search">重试</button>
-        </template>
-      </StateMessage>
-      <StateMessage
-        v-else-if="searched && !visible.length"
-        kind="PARTIAL"
-        data-testid="search-empty"
-        :title="EMPTY_STATE_COPY.SEARCH.title"
-        :description="emptyDescription"
-      >
-        <template #action>
-          <div class="row" style="justify-content: center">
-            <RouterLink class="btn primary" to="/contribute" data-testid="search-empty-contribute">
-              提交场所线索
-            </RouterLink>
-            <button v-if="active.length" type="button" class="pill" @click="active = []">
-              清除筛选
+        <div v-if="recent.length" class="recent-bar" data-testid="search-recent">
+          <div class="recent-bar__row">
+            <span class="muted">最近搜索</span>
+            <button
+              type="button"
+              class="pill"
+              data-testid="clear-search-recent"
+              @click="clearRecent"
+            >
+              清除
             </button>
           </div>
-        </template>
-      </StateMessage>
-      <p
-        v-if="freshnessLineFor(listStale, listFetchedAtMs, !online)"
-        class="muted"
-        data-testid="search-freshness"
-        style="margin: 0 0 var(--pa-space-2)"
-      >
-        {{ freshnessLineFor(listStale, listFetchedAtMs, !online) }}
-      </p>
-      <template v-else>
-        <RouterLink
-          v-for="p in visible"
-          :key="p.id"
-          class="panel result-card"
-          :to="{ name: 'place', params: { id: p.id } }"
-          :aria-current="selectedId === p.id ? 'true' : undefined"
-          :data-testid="'result-' + p.canonical_name"
-          @mouseenter="selectPlace(p)"
-          @focus="selectPlace(p)"
-        >
-          <div class="row" style="justify-content: space-between">
-            <strong>{{ p.canonical_name }}</strong>
-            <StatusBadge :semantic="statuses[p.id] ?? 'UNKNOWN'" />
+          <div class="recent-bar__items">
+            <button
+              v-for="t in recent"
+              :key="t"
+              type="button"
+              class="pill"
+              :data-testid="'recent-search-' + t"
+              @click="useRecent(t)"
+            >
+              {{ t }}
+            </button>
           </div>
-          <p
-            v-if="facts.get(p.id)?.answerError"
-            class="result-answer-error"
-            data-testid="row-answer-error"
+        </div>
+
+        <div v-if="lensHint" class="lens-line muted" data-testid="lens-hint">
+          {{ lensHint }}
+        </div>
+
+        <!-- filter: a light panel, never a pill wall -->
+        <div class="filter-bar">
+          <button
+            type="button"
+            class="filter-toggle"
+            data-testid="filter-toggle"
+            :aria-expanded="filterOpen"
+            @click="filterOpen = !filterOpen"
           >
-            规则结论暂时无法取得 —— 请检查网络后重试。
-          </p>
-          <div v-if="p.parent_place_name" class="muted" data-testid="result-branch">
-            所属 {{ p.parent_place_name }}
+            筛选{{ active.length ? ` ${active.length}` : "" }}
+          </button>
+          <button
+            v-if="active.length"
+            type="button"
+            class="pill"
+            data-testid="filter-clear"
+            @click="active = []"
+          >
+            清除筛选
+          </button>
+        </div>
+        <div v-if="filterOpen" class="filter-panel">
+          <div class="filter-panel__option" v-for="f in FILTERS" :key="f.key">
+            <label>
+              <input
+                type="checkbox"
+                :checked="active.includes(f.key)"
+                @change="
+                  active = active.includes(f.key)
+                    ? active.filter((k) => k !== f.key)
+                    : [...active, f.key]
+                "
+              />
+              {{ f.label }}
+            </label>
           </div>
-          <div class="muted" data-testid="result-meta">
-            {{ placeTypeLabel(p.place_type) }} · {{ p.canonical_address ?? "地址待补充" }}
-          </div>
-          <div v-if="p.matched_alias" class="muted" data-testid="result-alias">
-            以「{{ p.matched_alias }}」匹配（曾用名／别称）
-          </div>
-          <div class="muted" data-testid="result-rules">{{ ruleSummaryLabel(p) }}</div>
+          <p class="muted filter-panel__hint">筛选只影响显示，不改变任何结论。</p>
+        </div>
 
-          <!-- M3.1 lens projection：真实改变 Consumer 呈现（rule-first / reality-first），
-               不改变任何 domain 事实；indoor/dining 仅上浮服务端返回的 observed_zones。 -->
-          <template v-if="lensKey">
-            <p
-              v-if="lensProjectionFor(p).headline === 'rule' && facts.get(p.id)?.answer"
-              class="result-rule"
-              data-testid="row-lens-headline"
-            >
-              {{
-                facts.get(p.id)?.answer?.normative_result.summary ||
-                "已核验：" + answerScopeLabel(facts.get(p.id)?.answer, speciesLabel)
-              }}
-            </p>
-            <p v-else class="result-reality__line" data-testid="row-lens-headline">
-              {{ lensProjectionFor(p).realityLine }}
-            </p>
-            <p
-              v-if="lensProjectionFor(p).zoneFacts.length"
-              class="muted"
-              data-testid="row-lens-zones"
-            >
-              相关区域：{{ lensProjectionFor(p).zoneFacts.join("、") }}
-            </p>
+        <SkeletonList v-if="loading" :rows="3" />
+        <StateMessage v-else-if="error" kind="ERROR" :description="error">
+          <template #action>
+            <button type="button" class="primary" @click="search">重试</button>
           </template>
+        </StateMessage>
+        <StateMessage
+          v-else-if="searched && !visible.length"
+          kind="PARTIAL"
+          data-testid="search-empty"
+          :title="EMPTY_STATE_COPY.SEARCH.title"
+          :description="emptyDescription"
+        >
+          <template #action>
+            <div class="row" style="justify-content: center">
+              <RouterLink
+                class="btn primary"
+                to="/contribute"
+                data-testid="search-empty-contribute"
+              >
+                提交场所线索
+              </RouterLink>
+              <button v-if="active.length" type="button" class="pill" @click="active = []">
+                清除筛选
+              </button>
+            </div>
+          </template>
+        </StateMessage>
+        <template v-else>
+          <p
+            v-if="freshnessLineFor(listStale, listFetchedAtMs, !online)"
+            class="muted search-freshness"
+            data-testid="search-freshness"
+          >
+            {{ freshnessLineFor(listStale, listFetchedAtMs, !online) }}
+          </p>
+          <ul class="result-list" role="list">
+            <li
+              v-for="p in visible"
+              :key="p.id"
+              class="result-row"
+              :class="{ 'result-row--selected': selectedId === p.id }"
+              :aria-current="selectedId === p.id ? 'true' : undefined"
+            >
+              <RouterLink
+                :to="{ name: 'place', params: { id: p.id } }"
+                class="result-row__link"
+                :data-testid="'result-' + p.canonical_name"
+                @mouseenter="selectPlace(p)"
+                @focus="selectPlace(p)"
+              >
+                <div class="result-row__head">
+                  <div class="result-row__identity">
+                    <strong class="result-row__name">{{ p.canonical_name }}</strong>
+                    <span class="muted result-row__meta">
+                      {{ placeTypeLabel(p.place_type) }} ·
+                      {{ p.canonical_address ?? "地址待补充" }}
+                      <span v-if="p.distance_m"> · {{ Math.round(p.distance_m) }}m</span>
+                    </span>
+                  </div>
+                  <StatusBadge :semantic="statuses[p.id] ?? 'UNKNOWN'" />
+                </div>
 
-          <!-- M3：移动端也可见 Reality 摘要 + Evidence/Freshness 元数据 -->
-          <div class="result-reality" data-testid="result-reality">
-            <p v-if="facts.get(p.id)?.realityError" class="result-reality__error">
-              现场信息暂时无法取得 —— 请检查网络后重试。
-            </p>
-            <template v-else>
-              <p>{{ realityLineFor(facts.get(p.id)?.reality) }}</p>
-              <p v-if="evidenceLineFor(facts.get(p.id)?.reality)" class="muted">
-                {{ evidenceLineFor(facts.get(p.id)?.reality) }}
-              </p>
-            </template>
-          </div>
+                <!-- M3.1 lens projection：真实改变 Consumer 呈现（rule-first / reality-first），
+                     不改变任何 domain 事实；indoor/dining 仅上浮服务端返回的 observed_zones。 -->
+                <template v-if="lensKey">
+                  <p
+                    v-if="lensProjectionFor(p).headline === 'rule' && facts.get(p.id)?.answer"
+                    class="result-row__conclusion"
+                    data-testid="row-lens-headline"
+                  >
+                    {{
+                      facts.get(p.id)?.answer?.normative_result.summary ||
+                      "已核验：" + answerScopeLabel(facts.get(p.id)?.answer, speciesLabel)
+                    }}
+                  </p>
+                  <p v-else class="result-row__conclusion" data-testid="row-lens-headline">
+                    {{ lensProjectionFor(p).realityLine }}
+                  </p>
+                  <p
+                    v-if="lensProjectionFor(p).zoneFacts.length"
+                    class="muted"
+                    data-testid="row-lens-zones"
+                  >
+                    相关区域：{{ lensProjectionFor(p).zoneFacts.join("、") }}
+                  </p>
+                </template>
 
-          <div v-if="p.rule_count === 0" class="muted result-notes">尚未收录规则</div>
-          <StatusBadge
-            v-if="facts.get(p.id)?.answer?.conflict_state?.has_conflict"
-            semantic="CONFLICT"
-          />
-        </RouterLink>
-      </template>
+                <!-- transport error ≠ domain fact -->
+                <p
+                  v-if="facts.get(p.id)?.answerError"
+                  class="result-row__error"
+                  data-testid="row-answer-error"
+                >
+                  规则结论暂时无法取得 —— 请检查网络后重试。
+                </p>
+                <template v-else-if="facts.get(p.id)?.answer">
+                  <p class="result-row__conclusion" data-testid="row-rule">
+                    已核验：{{ answerScopeLabel(facts.get(p.id)?.answer, speciesLabel) }}
+                  </p>
+                  <p
+                    v-if="facts.get(p.id)?.answer?.condition_evaluation?.conditions?.length"
+                    class="muted"
+                  >
+                    条件：{{ answerScopeLabel(facts.get(p.id)?.answer, speciesLabel) }}
+                  </p>
+                </template>
+
+                <div v-if="p.parent_place_name" class="muted" data-testid="result-branch">
+                  所属 {{ p.parent_place_name }}
+                </div>
+                <div v-if="p.matched_alias" class="muted" data-testid="result-alias">
+                  以「{{ p.matched_alias }}」匹配（曾用名／别称）
+                </div>
+                <div class="muted" data-testid="result-rules">{{ ruleSummaryLabel(p) }}</div>
+
+                <!-- Reality 摘要 + Evidence/Freshness 元数据 -->
+                <div class="result-row__reality" data-testid="result-reality">
+                  <p v-if="facts.get(p.id)?.realityError" class="result-row__error">
+                    现场信息暂时无法取得 —— 请检查网络后重试。
+                  </p>
+                  <template v-else>
+                    <p>{{ realityLineFor(facts.get(p.id)?.reality) }}</p>
+                    <p v-if="evidenceLineFor(facts.get(p.id)?.reality)" class="muted">
+                      {{ evidenceLineFor(facts.get(p.id)?.reality) }}
+                    </p>
+                  </template>
+                </div>
+              </RouterLink>
+            </li>
+          </ul>
+        </template>
+      </section>
+
+      <!-- detail inspector (desktop only) -->
+      <aside v-if="isDesktop" class="search-inspector" aria-label="场所详情">
+        <DecisionInspector
+          :place="selectedPlace"
+          :status="selectedStatus"
+          :answer="selectedPlace ? (facts.get(selectedPlace.id)?.answer ?? null) : null"
+          :answer-error="selectedPlace ? Boolean(facts.get(selectedPlace.id)?.answerError) : false"
+          :reality="selectedPlace ? (facts.get(selectedPlace.id)?.reality ?? null) : null"
+          :reality-error="
+            selectedPlace ? Boolean(facts.get(selectedPlace.id)?.realityError) : false
+          "
+          :snapshot="preview.snapshot"
+          :stale="selectedPlace ? Boolean(facts.get(selectedPlace.id)?.stale) : false"
+          :fetched-at-ms="selectedPlace ? (facts.get(selectedPlace.id)?.fetchedAtMs ?? null) : null"
+          :offline="!online"
+          :species-label="speciesLabel"
+        />
+      </aside>
     </div>
-
-    <PlacePreview
-      v-if="isDesktop"
-      class="search-preview"
-      :place="selectedPlace"
-      :status="selectedStatus"
-      :snapshot="preview.snapshot"
-      :loading="preview.loading"
-      :error="preview.error"
-    />
-  </DesktopContentContainer>
+  </div>
 </template>
 
 <style scoped>
-/* M2 style constraint: token values only (no hex/rgb/hsl/hard px). */
-.search-field {
-  position: relative;
+.search-workspace {
+  min-height: 100%;
 }
-.search-field input {
-  padding-right: var(--pa-size-control-lg);
-}
-.search-clear {
-  position: absolute;
-  top: var(--pa-space-1);
-  bottom: var(--pa-space-1);
-  right: var(--pa-space-2);
+
+.search-workspace__body {
   display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-5);
+  padding: var(--pa-space-4);
+  max-width: var(--pa-layout-content-narrow);
+  margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+  .search-workspace__body--split {
+    flex-direction: row;
+    align-items: flex-start;
+    max-width: none;
+  }
+
+  .search-result-pane {
+    flex: 0 0 var(--pa-layout-result-pane);
+    border-right: var(--pa-border-width) solid var(--pa-color-border);
+    padding-right: var(--pa-space-5);
+  }
+
+  .search-inspector {
+    flex: 1 1 auto;
+    min-width: 0;
+    position: sticky;
+    top: var(--pa-space-4);
+  }
+}
+
+.search-field {
+  display: flex;
+  gap: var(--pa-space-2);
   align-items: center;
-  justify-content: center;
-  width: var(--pa-size-control-sm);
-  min-height: 0;
-  padding: 0;
+}
+
+.search-field input {
+  flex: 1;
+  min-width: 0;
+}
+
+.search-submit {
+  flex-shrink: 0;
+}
+
+.search-clear {
   border: none;
   background: transparent;
   color: var(--pa-color-text-muted);
   cursor: pointer;
+  font-size: var(--pa-font-size-xl);
+  line-height: 1;
+  padding: var(--pa-space-1) var(--pa-space-2);
 }
-.search-clear:hover {
-  color: var(--pa-color-text-secondary);
-}
-.result-card {
-  display: block;
-}
+
 .recent-bar {
-  margin: 0 0 var(--pa-space-3);
+  margin: var(--pa-space-4) 0 var(--pa-space-2);
 }
-.search-pane {
-  min-width: 0;
+
+.recent-bar__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
-.result-reality {
+
+.recent-bar__items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pa-space-2);
   margin-top: var(--pa-space-2);
-  font-size: var(--pa-font-size-md);
+}
+
+.lens-line {
+  margin: var(--pa-space-2) 0;
+}
+
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--pa-space-2);
+  margin: var(--pa-space-2) 0;
+}
+
+.filter-toggle {
+  border: var(--pa-border-width) solid var(--pa-color-border);
+  border-radius: var(--pa-radius-control);
+  background: var(--pa-color-surface);
   color: var(--pa-color-text-primary);
-  line-height: var(--pa-line-height-base);
-  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
-  padding-top: var(--pa-space-2);
+  padding: var(--pa-space-1) var(--pa-space-3);
+  font-size: var(--pa-font-size-md);
+  cursor: pointer;
 }
-.result-reality p {
-  margin: 0 0 var(--pa-space-1);
+
+.filter-panel {
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border);
+  padding-bottom: var(--pa-space-3);
+  margin-bottom: var(--pa-space-2);
 }
-.result-reality__error {
-  color: var(--pa-color-text-secondary);
+
+.filter-panel__option {
+  min-height: var(--pa-size-control-md);
+  display: flex;
+  align-items: center;
 }
-.result-notes {
+
+.filter-panel__option input {
+  width: auto;
+  margin-right: var(--pa-space-2);
+}
+
+.filter-panel__hint {
+  margin: var(--pa-space-2) 0 0;
+}
+
+.search-freshness {
+  margin: var(--pa-space-2) 0;
+}
+
+.result-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.result-row {
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.result-row--selected {
+  background: var(--pa-color-accent-weak);
+}
+
+.result-row__link {
+  display: block;
+  padding: var(--pa-space-3) var(--pa-space-2);
+  text-decoration: none;
+  color: inherit;
+}
+
+.result-row__link:hover {
+  background: var(--pa-color-surface-interactive);
+}
+
+.result-row__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--pa-space-3);
+}
+
+.result-row__name {
+  font-size: var(--pa-font-size-lg);
+  font-weight: var(--pa-font-weight-medium);
+  color: var(--pa-color-text-primary);
+}
+
+.result-row__meta {
+  display: block;
   margin-top: var(--pa-space-1);
 }
-.search-preview {
-  position: sticky;
-  top: var(--pa-space-4);
+
+.result-row__conclusion {
+  margin: var(--pa-space-2) 0 0;
+  font-weight: var(--pa-font-weight-medium);
+  color: var(--pa-color-text-primary);
+}
+
+.result-row__error {
+  margin: var(--pa-space-2) 0 0;
+  color: var(--pa-color-text-secondary);
+}
+
+.result-row__reality {
+  margin-top: var(--pa-space-2);
+  padding-top: var(--pa-space-2);
+  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  font-size: var(--pa-font-size-md);
+}
+
+.result-row__reality p {
+  margin: 0 0 var(--pa-space-1);
 }
 </style>

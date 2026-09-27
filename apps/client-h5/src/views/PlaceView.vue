@@ -32,8 +32,8 @@ import {
   type Zone,
 } from "@petaccess/client-core";
 import RealityPanel from "../components/RealityPanel.vue";
-import AppShell from "../components/AppShell.vue";
-import DesktopContentContainer from "../components/layout/DesktopContentContainer.vue";
+import DecisionInspector from "../components/domain/DecisionInspector.vue";
+import QueryContextBar from "../components/domain/QueryContextBar.vue";
 import SkeletonList from "../components/SkeletonList.vue";
 import SourceBadge from "../components/SourceBadge.vue";
 import StateMessage from "../components/StateMessage.vue";
@@ -43,6 +43,7 @@ import EvidenceStatus from "../components/domain/EvidenceStatus.vue";
 import FreshnessStatus from "../components/domain/FreshnessStatus.vue";
 import { answerConditions, answerStatusKey, answerVerdictLabel } from "../answer";
 import { presentDescription } from "../errors";
+import { useBreakpoint } from "../composables/useBreakpoint";
 import { snapshotFor } from "../consumer/repository";
 const route = useRoute();
 
@@ -63,6 +64,23 @@ const route = useRoute();
  * rules, presented under this place's name and address.
  */
 const placeId = computed(() => (route.params.id ? String(route.params.id) : ""));
+
+const { desktop: isDesktop } = useBreakpoint();
+const speciesLabel = computed(() => {
+  const s = session.activePet?.species ?? "dog";
+  if (session.activePet?.service_role === "working") return "服务犬";
+  return s === "dog" ? "普通犬" : s === "cat" ? "猫" : "其他宠物";
+});
+const CONDITION_ZH: Record<string, string> = {
+  leash_required: "全程牵引",
+  muzzle_required: "佩戴嘴套",
+  carrier_required: "装载（笼/包）",
+  stroller_required: "使用推车",
+  no_ground: "不可落地",
+  vaccination_required: "免疫证明",
+  registration_required: "登记证明",
+  reservation_required: "需预约",
+};
 
 const place = ref<PlaceDetail | null>(null);
 const zones = ref<Zone[]>([]);
@@ -457,369 +475,448 @@ async function claimOperator() {
 </script>
 
 <template>
-  <AppShell>
-    <DesktopContentContainer mode="single-column">
-      <SkeletonList v-if="loading" :rows="4" />
-      <StateMessage v-else-if="error" kind="ERROR" title="未能取得场所信息" :description="error">
-        <template #action>
-          <button class="primary" @click="load">重试</button>
-        </template>
-      </StateMessage>
-      <StateMessage
-        v-else-if="!place"
-        kind="EMPTY"
-        description="该场所尚未收录，或已被移除。未收录不代表该场所没有规则。"
-      />
-      <template v-else>
-        <StateMessage
-          v-if="partial.length"
-          kind="PARTIAL"
-          :description="`部分板块未能加载：${partial.join('、')}。已加载内容仍可查看，缺失部分不代表无规则。`"
-        >
+  <div class="place-workspace" data-testid="place-workspace">
+    <QueryContextBar />
+    <div class="place-workspace__body" :class="{ 'place-workspace__body--split': isDesktop }">
+      <!-- main dossier -->
+      <main class="place-dossier" aria-label="场所档案">
+        <SkeletonList v-if="loading" :rows="4" />
+        <StateMessage v-else-if="error" kind="ERROR" title="未能取得场所信息" :description="error">
           <template #action>
-            <button class="primary" @click="load">重新加载</button>
+            <button class="primary" @click="load">重试</button>
           </template>
         </StateMessage>
-
-        <div class="panel">
-          <h1>{{ place.canonical_name }}</h1>
-          <div class="muted" style="margin-top: 4px">
-            {{ placeTypeLabel(place.place_type) }} · {{ place.canonical_address ?? "地址未收录" }} ·
-            生效规则 {{ prov.ruleCount }} 条
-          </div>
-          <div class="row" style="margin-top: 10px">
-            <button @click="toggleWatch">
-              {{ watching ? "已关注规则变化 ✓（点击取消）" : "关注此场所规则变化" }}
-            </button>
-            <RouterLink :to="`/place/${placeId}/why`">
-              <button class="primary" data-testid="open-why">为什么是这个结果</button>
-            </RouterLink>
-          </div>
-        </div>
-
-        <!-- Section 1 — current answer -->
-        <h2>1. 当前答案</h2>
-        <div class="panel" data-testid="section-answer">
-          <div v-if="ordinaryAnswer" class="sub-answer" data-testid="answer-ordinary">
-            <div class="muted">普通宠物（基线）</div>
-            <StatusBadge :semantic="answerStatusKey(ordinaryAnswer)" block />
-            <div class="muted">{{ answerVerdictLabel(ordinaryAnswer) }}</div>
-          </div>
-          <div v-if="answer" class="sub-answer" data-testid="answer">
-            <div class="muted">
-              {{
-                session.activePet
-                  ? `我的宠物：${session.activePet.display_name}`
-                  : "我的宠物：未设置"
-              }}
-              · 模式：{{
-                session.mode === "with_pet"
-                  ? "带宠出行"
-                  : session.mode === "restrictions"
-                    ? "普通宠物限制"
-                    : session.mode === "service_dog"
-                      ? "服务犬通行"
-                      : "规则地图"
-              }}
-            </div>
-            <StatusBadge :semantic="answerStatusKey(answer)" block />
-            <div class="status" data-testid="answer-status">{{ answerVerdictLabel(answer) }}</div>
-            <div v-if="answerConditionList.length" class="muted" data-testid="answer-conditions">
-              条件：{{ answerConditionList.join(" · ") }}
-            </div>
-            <div
-              v-if="answer.condition_evaluation.missing_inputs.length"
-              class="muted"
-              data-testid="answer-missing-inputs"
-            >
-              需要补充：{{
-                answer.condition_evaluation.missing_inputs.join("、")
-              }}（不猜测；现在不是「允许」）
-            </div>
-            <div
-              v-if="answer.scope_summary.scope_level === 'none'"
-              class="muted"
-              data-testid="answer-uncovered"
-            >
-              本次查询范围内没有已发布规则 —— 未知 ≠ 允许。
-            </div>
-          </div>
-          <div class="sub-answer" data-testid="answer-boundary">
-            <div class="muted">我的共处边界</div>
-            <template v-if="boundaryMatch">
-              <div class="muted">
-                符合 {{ boundaryMatch.summary.match }} · 冲突 {{ boundaryMatch.summary.conflict }} ·
-                未知
-                {{ boundaryMatch.summary.unknown }}
-              </div>
-              <div v-for="r in boundaryMatch.results" :key="r.attribute" class="zone-row">
-                <span>{{ COEXISTENCE_LABELS[r.attribute] ?? r.attribute }}</span>
-                <StatusBadge
-                  :semantic="
-                    r.verdict === 'MATCH'
-                      ? 'ALLOWED'
-                      : r.verdict === 'CONFLICT'
-                        ? 'RESTRICTED'
-                        : 'UNKNOWN'
-                  "
-                />
-              </div>
-              <div class="notice">{{ boundaryMatch.summary.note }}</div>
+        <StateMessage
+          v-else-if="!place"
+          kind="EMPTY"
+          description="该场所尚未收录，或已被移除。未收录不代表该场所没有规则。"
+        />
+        <template v-else>
+          <StateMessage
+            v-if="partial.length"
+            kind="PARTIAL"
+            :description="`部分板块未能加载：${partial.join('、')}。已加载内容仍可查看，缺失部分不代表无规则。`"
+          >
+            <template #action>
+              <button class="primary" @click="load">重新加载</button>
             </template>
-            <div v-else class="muted">
-              未设置共处边界。<RouterLink class="btn-inline" to="/boundary">前往设置</RouterLink>
-            </div>
-          </div>
-          <div class="notice">
-            来源：{{
-              currentRules[0]
-                ? (sourceMap.get(currentRules[0].source_id)?.issuer ?? "待收录")
-                : "待收录"
-            }}
-            · 最近核验：{{ prov.latestVerified ? prov.latestVerified.slice(0, 10) : "暂无" }}
-          </div>
-          <!--
-          Scope and provenance come from the unified answer model. The scope line
-          exists so a zone-scoped rule is never read as a venue-wide verdict; the
-          provenance line exists so a government platform relaying the operator
-          is never rendered as the operator's own confirmation.
-        -->
-          <div v-if="answer" class="notice" data-testid="answer-scope">
-            适用范围：{{
-              answer.scope_summary.scope_level === "zone"
-                ? (answer.scope_summary.zone?.name ?? "该区域")
-                : answer.scope_summary.scope_level === "none"
-                  ? "尚无已发布规则覆盖本次查询（未知 ≠ 允许）"
-                  : answer.scope_summary.scope_level === "jurisdiction"
-                    ? "辖区法规"
-                    : "场所整体"
-            }}
-          </div>
-          <div
-            v-if="answer?.evidence_state.rules.length"
-            class="notice"
-            data-testid="answer-provenance"
-          >
-            {{ answer?.evidence_state.rules[0].provenance_statement }}
-          </div>
-        </div>
+          </StateMessage>
 
-        <!-- v0.9-R1: Reality panel -- the observed layer of the passport (AC10) -->
-        <RealityPanel :snapshot="coexistence" :loading="!coexistenceLoaded" :place-id="placeId" />
-
-        <!-- Section 2 -- where -->
-        <h2>2. 哪里可以 / 不可以</h2>
-        <div class="panel" data-testid="zones">
-          <div v-if="!zones.length" class="muted">暂无分区域信息（信息不足 ≠ 允许）</div>
-          <div v-for="z in zones" :key="z.id" class="zone-row">
-            <span>
-              {{ z.name }}
-              <span v-if="z.floor_ref" class="tag" style="margin-left: 6px">{{ z.floor_ref }}</span>
-              <span class="tag" style="margin-left: 6px">{{ z.zone_type }}</span>
-            </span>
-            <span>
-              <template v-if="zoneAnswer === z.id">
-                <StatusBadge :semantic="zoneSemantic(z.id)" />
-                <span v-if="zoneErrors[z.id]" class="muted" style="margin-left: 6px">
-                  该分区未能取得结论
-                </span>
-              </template>
-              <button
-                style="padding: 4px 8px"
-                :data-testid="`zone-toggle-${z.id}`"
-                @click="toggleZone(z.id)"
-              >
-                {{ zoneAnswer === z.id ? "收起" : "查看" }}
+          <header class="place-dossier__head">
+            <h1 class="place-dossier__name">{{ place.canonical_name }}</h1>
+            <p class="muted">
+              {{ placeTypeLabel(place.place_type) }} ·
+              {{ place.canonical_address ?? "地址未收录" }} · 生效规则 {{ prov.ruleCount }} 条
+            </p>
+            <div class="row">
+              <button @click="toggleWatch">
+                {{ watching ? "已关注规则变化 ✓（点击取消）" : "关注此场所规则变化" }}
               </button>
-            </span>
-          </div>
-        </div>
+              <RouterLink :to="`/place/${placeId}/why`">
+                <button class="primary" data-testid="open-why">为什么是这个结果</button>
+              </RouterLink>
+            </div>
+          </header>
 
-        <!-- Section 3 — conditions -->
-        <h2>3. 条件</h2>
-        <div class="panel" data-testid="conditions">
-          <div v-if="!conditions.length" class="muted">暂无明确条件（未收录条件 ≠ 无限制）</div>
-          <div v-else class="row">
-            <span v-for="c in conditions" :key="c" class="tag">{{ c }}</span>
-          </div>
-        </div>
-
-        <!-- Section 4 — coexistence boundary -->
-        <h2>4. 共处边界</h2>
-        <div class="panel" data-testid="coexistence">
-          <div v-if="!extras?.coexistence.length" class="muted">暂无共处边界结构化记录</div>
-          <div v-for="c in extras?.coexistence ?? []" :key="c.id" class="zone-row">
-            <span>{{ COEXISTENCE_LABELS[c.attribute] ?? c.attribute }}</span>
-            <span class="muted"
-              >{{ c.value
-              }}<span v-if="c.verified_at"> · {{ c.verified_at.slice(0, 10) }}</span></span
+          <!-- Section 1 — current answer -->
+          <section class="place-section" data-testid="section-answer">
+            <h2 class="place-section__title">当前答案</h2>
+            <div v-if="ordinaryAnswer" class="sub-answer" data-testid="answer-ordinary">
+              <div class="muted">普通宠物（基线）</div>
+              <StatusBadge :semantic="answerStatusKey(ordinaryAnswer)" block />
+              <div class="muted">{{ answerVerdictLabel(ordinaryAnswer) }}</div>
+            </div>
+            <div v-if="answer" class="sub-answer" data-testid="answer">
+              <div class="muted">
+                {{
+                  session.activePet
+                    ? `我的宠物：${session.activePet.display_name}`
+                    : "我的宠物：未设置"
+                }}
+                · 模式：{{
+                  session.mode === "with_pet"
+                    ? "带宠出行"
+                    : session.mode === "restrictions"
+                      ? "普通宠物限制"
+                      : session.mode === "service_dog"
+                        ? "服务犬通行"
+                        : "规则地图"
+                }}
+              </div>
+              <StatusBadge :semantic="answerStatusKey(answer)" block />
+              <div class="status" data-testid="answer-status">{{ answerVerdictLabel(answer) }}</div>
+              <div v-if="answerConditionList.length" class="muted" data-testid="answer-conditions">
+                条件：{{ answerConditionList.join(" · ") }}
+              </div>
+              <div
+                v-if="answer.condition_evaluation.missing_inputs.length"
+                class="muted"
+                data-testid="answer-missing-inputs"
+              >
+                需要补充：{{
+                  answer.condition_evaluation.missing_inputs.join("、")
+                }}（不猜测；现在不是「允许」）
+              </div>
+              <div
+                v-if="answer.scope_summary.scope_level === 'none'"
+                class="muted"
+                data-testid="answer-uncovered"
+              >
+                本次查询范围内没有已发布规则 —— 未知 ≠ 允许。
+              </div>
+            </div>
+            <div class="sub-answer" data-testid="answer-boundary">
+              <div class="muted">我的共处边界</div>
+              <template v-if="boundaryMatch">
+                <div class="muted">
+                  符合 {{ boundaryMatch.summary.match }} · 冲突
+                  {{ boundaryMatch.summary.conflict }} · 未知
+                  {{ boundaryMatch.summary.unknown }}
+                </div>
+                <div v-for="r in boundaryMatch.results" :key="r.attribute" class="zone-row">
+                  <span>{{ COEXISTENCE_LABELS[r.attribute] ?? r.attribute }}</span>
+                  <StatusBadge
+                    :semantic="
+                      r.verdict === 'MATCH'
+                        ? 'ALLOWED'
+                        : r.verdict === 'CONFLICT'
+                          ? 'RESTRICTED'
+                          : 'UNKNOWN'
+                    "
+                  />
+                </div>
+                <div class="notice">{{ boundaryMatch.summary.note }}</div>
+              </template>
+              <div v-else class="muted">
+                未设置共处边界。<RouterLink class="btn-inline" to="/boundary">前往设置</RouterLink>
+              </div>
+            </div>
+            <div class="notice">
+              来源：{{
+                currentRules[0]
+                  ? (sourceMap.get(currentRules[0].source_id)?.issuer ?? "待收录")
+                  : "待收录"
+              }}
+              · 最近核验：{{ prov.latestVerified ? prov.latestVerified.slice(0, 10) : "暂无" }}
+            </div>
+            <div v-if="answer" class="notice" data-testid="answer-scope">
+              适用范围：{{
+                answer.scope_summary.scope_level === "zone"
+                  ? (answer.scope_summary.zone?.name ?? "该区域")
+                  : answer.scope_summary.scope_level === "none"
+                    ? "尚无已发布规则覆盖本次查询（未知 ≠ 允许）"
+                    : answer.scope_summary.scope_level === "jurisdiction"
+                      ? "辖区法规"
+                      : "场所整体"
+              }}
+            </div>
+            <div
+              v-if="answer?.evidence_state.rules.length"
+              class="notice"
+              data-testid="answer-provenance"
             >
-          </div>
-          <div class="notice">共处边界是来自来源的空间事实，不对人作评价。</div>
-        </div>
+              {{ answer?.evidence_state.rules[0].provenance_statement }}
+            </div>
+          </section>
 
-        <!-- Section 5 — how to get in -->
-        <h2>5. 怎么进入</h2>
-        <div class="panel" data-testid="entrances">
-          <div v-if="!extras?.entrances.length && !extras?.access_paths.length" class="muted">
-            暂无入口 / 路径信息
-          </div>
-          <div v-for="e in extras?.entrances ?? []" :key="e.id" class="zone-row">
-            <span
-              >{{ e.name
-              }}<span class="tag" style="margin-left: 6px">{{
-                ENTRANCE_LABELS[e.entrance_type] ?? e.entrance_type
-              }}</span></span
-            >
-            <span class="muted">{{ e.access_notes ?? "" }}</span>
-          </div>
-          <div v-for="p in extras?.access_paths ?? []" :key="p.id" class="zone-row">
-            <span>{{ p.from_node }} → {{ p.to_node }}</span>
-            <span class="muted">{{ p.name }}</span>
-          </div>
-        </div>
-
-        <!-- Section 6 — facilities -->
-        <h2>6. 设施</h2>
-        <div class="panel" data-testid="amenities">
-          <div v-if="!extras?.amenities.length" class="muted">暂无设施记录</div>
-          <div class="row">
-            <span v-for="a in extras?.amenities ?? []" :key="a.id" class="tag">
-              {{ AMENITY_LABELS[a.amenity_type] ?? a.amenity_type }} · {{ a.status }}
-            </span>
-          </div>
-        </div>
-
-        <!-- Section 7 — sources & freshness -->
-        <h2>7. 来源与时效</h2>
-        <div
-          v-if="passportEvidence"
-          class="row"
-          data-testid="passport-evidence"
-          style="margin: 8px 0"
-        >
-          <EvidenceStatus :state="passportEvidence.state" />
-          <span class="muted">
-            <EvidenceMeta
-              :evidence-count="passportEvidence.ruleCount + passportEvidence.realityCount"
-              :distinct-source-count="passportEvidence.sources"
+          <!-- v0.9-R1: Reality panel -->
+          <section class="place-section">
+            <RealityPanel
+              :snapshot="coexistence"
+              :loading="!coexistenceLoaded"
+              :place-id="placeId"
             />
-          </span>
-          <FreshnessStatus :last-verified-at="prov.latestVerified" />
-        </div>
-        <div class="panel" data-testid="sources">
-          <div v-if="!currentRules.length" class="muted">
-            暂无可靠规则结论（未收录 ≠ 没有规则）。
-          </div>
-          <div v-for="r in currentRules" :key="r.id" class="zone-row">
-            <span>
-              {{ sourceMap.get(r.source_id)?.issuer ?? "来源 " + r.source_id.slice(0, 8) }}
-              <SourceBadge :source-type="sourceMap.get(r.source_id)?.source_type" />
-              <span v-if="r.rule_layer" class="tag" style="margin-left: 6px">
-                {{ layerLabel[r.rule_layer] ?? r.rule_layer }}
-              </span>
-              <span v-if="r.mandatory_level" class="tag" style="margin-left: 4px">
-                {{ forceLabel[r.mandatory_level] ?? r.mandatory_level }}
-              </span>
-            </span>
-            <span>
-              <StatusBadge :effect="r.effect" />
-              <StatusBadge v-if="isStale(r)" semantic="STALE" />
-            </span>
-          </div>
-          <!--
-          Per-rule provenance, straight from the unified answer. Rendered verbatim
-          rather than re-worded: `source_type_semantics` is only filled in for
-          source types a named reviewer actually adjudicated, and when it is empty
-          the raw enum value is what the reader sees.
-        -->
-          <div
-            v-if="answer?.evidence_state.rules.length"
-            class="provenance"
-            data-testid="source-provenance"
-          >
-            <div v-for="e in answer.evidence_state.rules" :key="e.rule_id" class="muted">
-              · {{ e.provenance_statement }}
-            </div>
-          </div>
-          <div
-            v-if="answer?.normative_result.compliance_state === 'POTENTIAL_CONFLICT'"
-            class="notice"
-          >
-            来源存在不一致：<StatusBadge semantic="CONFLICT" />
-            已保留全部规则，按最严结论展示，等待复核。
-          </div>
-          <div
-            v-if="answer?.normative_result.compliance_state === 'REVIEW_REQUIRED'"
-            class="notice"
-          >
-            部分规则缺少分层信息，需要人工复核（不猜测）。
-          </div>
-          <div v-if="answer?.conflict_state.suppressed.length" class="notice">
-            被遮蔽的规则（{{ answer.conflict_state.suppressed.length }} 条）：
-            <div v-for="s in answer.conflict_state.suppressed" :key="s.rule" class="muted">
-              · {{ s.reason }}
-            </div>
-          </div>
-        </div>
+          </section>
 
-        <!-- Section 8 — field records -->
-        <h2>8. 现场记录</h2>
-        <div class="panel" data-testid="observations">
-          <div class="notice" data-testid="observation-disclaimer">
-            现场记录 ≠ 场所正式政策。以下为用户/现场记录，不构成规则。
-          </div>
-          <div v-for="o in observations" :key="o.id" class="zone-row">
-            <span
-              >{{ o.occurred_at.slice(0, 10) }} · {{ o.animal_scope }} {{ o.observed_action }}</span
+          <!-- Section 2 — where -->
+          <section class="place-section" data-testid="zones">
+            <h2 class="place-section__title">空间与区域</h2>
+            <p v-if="!zones.length" class="muted">暂无分区域信息（信息不足 ≠ 允许）</p>
+            <div v-for="z in zones" :key="z.id" class="zone-row">
+              <span>
+                {{ z.name }}
+                <span v-if="z.floor_ref" class="tag" style="margin-left: 6px">{{
+                  z.floor_ref
+                }}</span>
+                <span class="tag" style="margin-left: 6px">{{ z.zone_type }}</span>
+              </span>
+              <span>
+                <template v-if="zoneAnswer === z.id">
+                  <StatusBadge :semantic="zoneSemantic(z.id)" />
+                  <span v-if="zoneErrors[z.id]" class="muted" style="margin-left: 6px">
+                    该分区未能取得结论
+                  </span>
+                </template>
+                <button
+                  style="padding: 4px 8px"
+                  :data-testid="`zone-toggle-${z.id}`"
+                  @click="toggleZone(z.id)"
+                >
+                  {{ zoneAnswer === z.id ? "收起" : "查看" }}
+                </button>
+              </span>
+            </div>
+          </section>
+
+          <!-- Section 3 — conditions -->
+          <section class="place-section" data-testid="conditions">
+            <h2 class="place-section__title">条件</h2>
+            <div v-if="!conditions.length" class="muted">暂无明确条件（未收录条件 ≠ 无限制）</div>
+            <div v-else class="row">
+              <span v-for="c in conditions" :key="c" class="tag">{{ c }}</span>
+            </div>
+          </section>
+
+          <!-- Section 4 — coexistence boundary -->
+          <section class="place-section" data-testid="coexistence">
+            <h2 class="place-section__title">共处边界</h2>
+            <div v-if="!extras?.coexistence.length" class="muted">暂无共处边界结构化记录</div>
+            <div v-for="c in extras?.coexistence ?? []" :key="c.id" class="zone-row">
+              <span>{{ COEXISTENCE_LABELS[c.attribute] ?? c.attribute }}</span>
+              <span class="muted"
+                >{{ c.value
+                }}<span v-if="c.verified_at"> · {{ c.verified_at.slice(0, 10) }}</span></span
+              >
+            </div>
+            <div class="notice">共处边界是来自来源的空间事实，不对人作评价。</div>
+          </section>
+
+          <!-- Section 5 — how to get in -->
+          <section class="place-section" data-testid="entrances">
+            <h2 class="place-section__title">怎么进入</h2>
+            <div v-if="!extras?.entrances.length && !extras?.access_paths.length" class="muted">
+              暂无入口 / 路径信息
+            </div>
+            <div v-for="e in extras?.entrances ?? []" :key="e.id" class="zone-row">
+              <span
+                >{{ e.name
+                }}<span class="tag" style="margin-left: 6px">{{
+                  ENTRANCE_LABELS[e.entrance_type] ?? e.entrance_type
+                }}</span></span
+              >
+              <span class="muted">{{ e.access_notes ?? "" }}</span>
+            </div>
+            <div v-for="p in extras?.access_paths ?? []" :key="p.id" class="zone-row">
+              <span>{{ p.from_node }} → {{ p.to_node }}</span>
+              <span class="muted">{{ p.name }}</span>
+            </div>
+          </section>
+
+          <!-- Section 6 — facilities -->
+          <section class="place-section" data-testid="amenities">
+            <h2 class="place-section__title">设施</h2>
+            <div v-if="!extras?.amenities.length" class="muted">暂无设施记录</div>
+            <div class="row">
+              <span v-for="a in extras?.amenities ?? []" :key="a.id" class="tag">
+                {{ AMENITY_LABELS[a.amenity_type] ?? a.amenity_type }} · {{ a.status }}
+              </span>
+            </div>
+          </section>
+
+          <!-- Section 7 — sources & freshness -->
+          <section class="place-section">
+            <h2 class="place-section__title">来源与时效</h2>
+            <div
+              v-if="passportEvidence"
+              class="row"
+              data-testid="passport-evidence"
+              style="margin: 8px 0"
             >
-            <span class="muted">{{ o.staff_action }}</span>
-          </div>
-          <div v-if="!observations.length" class="muted">
-            暂无足够现场记录（暂无记录 ≠ 没有动物）。
-          </div>
-        </div>
+              <EvidenceStatus :state="passportEvidence.state" />
+              <span class="muted">
+                <EvidenceMeta
+                  :evidence-count="passportEvidence.ruleCount + passportEvidence.realityCount"
+                  :distinct-source-count="passportEvidence.sources"
+                />
+              </span>
+              <FreshnessStatus :last-verified-at="prov.latestVerified" />
+            </div>
+            <div data-testid="sources">
+              <div v-if="!currentRules.length" class="muted">
+                暂无可靠规则结论（未收录 ≠ 没有规则）。
+              </div>
+              <div v-for="r in currentRules" :key="r.id" class="zone-row">
+                <span>
+                  {{ sourceMap.get(r.source_id)?.issuer ?? "来源 " + r.source_id.slice(0, 8) }}
+                  <SourceBadge :source-type="sourceMap.get(r.source_id)?.source_type" />
+                  <span v-if="r.rule_layer" class="tag" style="margin-left: 6px">
+                    {{ layerLabel[r.rule_layer] ?? r.rule_layer }}
+                  </span>
+                  <span v-if="r.mandatory_level" class="tag" style="margin-left: 4px">
+                    {{ forceLabel[r.mandatory_level] ?? r.mandatory_level }}
+                  </span>
+                </span>
+                <span>
+                  <StatusBadge :effect="r.effect" />
+                  <StatusBadge v-if="isStale(r)" semantic="STALE" />
+                </span>
+              </div>
+              <div
+                v-if="answer?.evidence_state.rules.length"
+                class="provenance"
+                data-testid="source-provenance"
+              >
+                <div v-for="e in answer.evidence_state.rules" :key="e.rule_id" class="muted">
+                  · {{ e.provenance_statement }}
+                </div>
+              </div>
+              <div
+                v-if="answer?.normative_result.compliance_state === 'POTENTIAL_CONFLICT'"
+                class="notice"
+              >
+                来源存在不一致：<StatusBadge semantic="CONFLICT" />
+                已保留全部规则，按最严结论展示，等待复核。
+              </div>
+              <div
+                v-if="answer?.normative_result.compliance_state === 'REVIEW_REQUIRED'"
+                class="notice"
+              >
+                部分规则缺少分层信息，需要人工复核（不猜测）。
+              </div>
+              <div v-if="answer?.conflict_state.suppressed.length" class="notice">
+                被遮蔽的规则（{{ answer.conflict_state.suppressed.length }} 条）：
+                <div v-for="s in answer.conflict_state.suppressed" :key="s.rule" class="muted">
+                  · {{ s.reason }}
+                </div>
+              </div>
+            </div>
+          </section>
 
-        <!-- Section 9 — history -->
-        <h2>9. 历史版本</h2>
-        <div class="panel" data-testid="history">
-          <div v-if="!historyRules.length" class="muted">暂无历史版本</div>
-          <div v-for="r in historyRules" :key="r.id" class="zone-row">
-            <span>{{ r.animal_scope }} · {{ r.action }}</span>
-            <span class="muted">
-              <StatusBadge :effect="r.effect" />
-              <span class="tag" style="margin-left: 6px">{{ r.status }}</span>
-            </span>
-          </div>
-        </div>
+          <!-- Section 8 — field records -->
+          <section class="place-section" data-testid="observations">
+            <h2 class="place-section__title">现场记录</h2>
+            <div class="notice" data-testid="observation-disclaimer">
+              现场记录 ≠ 场所正式政策。以下为用户/现场记录，不构成规则。
+            </div>
+            <div v-for="o in observations" :key="o.id" class="zone-row">
+              <span
+                >{{ o.occurred_at.slice(0, 10) }} · {{ o.animal_scope }}
+                {{ o.observed_action }}</span
+              >
+              <span class="muted">{{ o.staff_action }}</span>
+            </div>
+            <div v-if="!observations.length" class="muted">
+              暂无足够现场记录（暂无记录 ≠ 没有动物）。
+            </div>
+          </section>
 
-        <!-- Section 10 — corrections -->
-        <h2>10. 纠错 / 补充</h2>
-        <div class="panel" data-testid="corrections">
-          <div class="row">
-            <RouterLink :to="`/contribute/${placeId}`" class="pill">报告规则 / 贡献</RouterLink>
-            <button @click="disputeFirstRule">对此处规则提出异议</button>
-            <button @click="claimOperator">我是管理方（认领）</button>
-          </div>
-          <div class="muted" style="margin-top: 8px">
-            管理方声明与用户观察并存：认领后管理方规则标注来源，用户仍可提交现场记录。
-          </div>
-        </div>
+          <!-- Section 9 — history -->
+          <section class="place-section" data-testid="history">
+            <h2 class="place-section__title">历史版本</h2>
+            <div v-if="!historyRules.length" class="muted">暂无历史版本</div>
+            <div v-for="r in historyRules" :key="r.id" class="zone-row">
+              <span>{{ r.animal_scope }} · {{ r.action }}</span>
+              <span class="muted">
+                <StatusBadge :effect="r.effect" />
+                <span class="tag" style="margin-left: 6px">{{ r.status }}</span>
+              </span>
+            </div>
+          </section>
 
-        <!-- Quick confirm -->
-        <h2>快速确认</h2>
-        <div class="panel" data-testid="quick-confirm">
-          <div class="muted">页面显示当前规则，目前仍然如此吗？</div>
-          <div class="row" style="margin-top: 8px">
-            <button @click="quickConfirm(currentRules[0]?.id ?? '', 'still_valid')">
-              仍然如此
-            </button>
-            <button @click="quickConfirm(currentRules[0]?.id ?? '', 'changed')">已变化</button>
-            <button @click="quickConfirm(currentRules[0]?.id ?? '', 'uncertain')">不确定</button>
-          </div>
-          <div v-if="quickMsg" class="notice" data-testid="quick-msg">{{ quickMsg }}</div>
-        </div>
-      </template>
-    </DesktopContentContainer>
-  </AppShell>
+          <!-- Section 10 — corrections -->
+          <section class="place-section" data-testid="corrections">
+            <h2 class="place-section__title">纠错 / 补充</h2>
+            <div class="row">
+              <RouterLink :to="`/contribute/${placeId}`" class="pill">报告规则 / 贡献</RouterLink>
+              <button @click="disputeFirstRule">对此处规则提出异议</button>
+              <button @click="claimOperator">我是管理方（认领）</button>
+            </div>
+            <div class="muted" style="margin-top: 8px">
+              管理方声明与用户观察并存：认领后管理方规则标注来源，用户仍可提交现场记录。
+            </div>
+          </section>
+
+          <!-- Quick confirm -->
+          <section class="place-section" data-testid="quick-confirm">
+            <h2 class="place-section__title">快速确认</h2>
+            <div class="muted">页面显示当前规则，目前仍然如此吗？</div>
+            <div class="row" style="margin-top: 8px">
+              <button @click="quickConfirm(currentRules[0]?.id ?? '', 'still_valid')">
+                仍然如此
+              </button>
+              <button @click="quickConfirm(currentRules[0]?.id ?? '', 'changed')">已变化</button>
+              <button @click="quickConfirm(currentRules[0]?.id ?? '', 'uncertain')">不确定</button>
+            </div>
+            <div v-if="quickMsg" class="notice" data-testid="quick-msg">{{ quickMsg }}</div>
+          </section>
+        </template>
+      </main>
+
+      <!-- sticky decision inspector (desktop only) -->
+      <aside v-if="isDesktop && place" class="place-inspector" aria-label="当前决策">
+        <DecisionInspector
+          :place="{ ...place, canonical_address: place.canonical_address ?? null }"
+          :answer="answer"
+          :answer-error="!coexistenceLoaded && !answer"
+          :reality="coexistence?.reality_answer ?? null"
+          :reality-error="coexistenceLoaded && !coexistence?.reality_answer"
+          :snapshot="coexistence"
+          :species-label="speciesLabel"
+          :conditions-label="CONDITION_ZH"
+        />
+      </aside>
+    </div>
+  </div>
 </template>
+<style scoped>
+.place-workspace {
+  min-height: 100%;
+}
+
+.place-workspace__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-5);
+  padding: var(--pa-space-4);
+  max-width: var(--pa-layout-content-narrow);
+  margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+  .place-workspace__body--split {
+    flex-direction: row;
+    align-items: flex-start;
+    max-width: var(--pa-layout-content-max);
+  }
+
+  .place-dossier {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .place-inspector {
+    flex: 0 0 var(--pa-layout-inspector);
+    min-width: 0;
+    position: sticky;
+    top: var(--pa-space-4);
+  }
+}
+
+.place-dossier__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-2);
+  padding-bottom: var(--pa-space-4);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border);
+  margin-bottom: var(--pa-space-4);
+}
+
+.place-dossier__name {
+  margin: 0;
+  font-size: var(--pa-font-size-3xl);
+  font-weight: var(--pa-font-weight-medium);
+  line-height: var(--pa-line-height-tight);
+  color: var(--pa-color-text-primary);
+}
+
+.place-section {
+  margin-bottom: var(--pa-space-6);
+}
+
+.place-section__title {
+  margin: 0 0 var(--pa-space-3);
+  font-size: var(--pa-font-size-lg);
+  font-weight: var(--pa-font-weight-medium);
+  color: var(--pa-color-text-primary);
+}
+</style>

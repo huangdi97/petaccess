@@ -70,7 +70,7 @@ test("B1/B2 — Place Passport 关键段齐备且规则/现场分层清晰", asy
   // Rule dimension: answer section with verdict.
   await expect(page.getByTestId("section-answer")).toBeVisible();
   await expect(page.getByTestId("sources")).toBeVisible();
-  await expect(page.getByText("7. 来源与时效")).toBeVisible();
+  await expect(page.getByText("来源与时效")).toBeVisible();
   // Reality dimension: Reality panel + field records, structurally distinct.
   await expect(page.getByTestId("reality-panel")).toBeVisible();
   await expect(page.getByTestId("observations")).toBeVisible();
@@ -88,10 +88,10 @@ test("B3 — Passport 证据视觉语言（EvidenceStatus/EvidenceMeta/Freshness
   }
 });
 
-test("B5 — Search PlacePreview 查看完整场所 → Place Passport", async ({ page }) => {
+test("B5 — Search DecisionInspector 查看完整场所 → Place Passport", async ({ page }) => {
   await page.goto(`${BASE}/#/search?q=星河`);
-  await expect(page.getByTestId("place-preview")).toBeVisible();
-  await page.getByTestId("preview-open").click();
+  await expect(page.getByTestId("decision-inspector")).toBeVisible();
+  await page.getByTestId("inspector-open").click();
   await expect(page.getByTestId("section-answer")).toBeVisible();
   await expect(page.getByTestId("reality-panel")).toBeVisible();
 });

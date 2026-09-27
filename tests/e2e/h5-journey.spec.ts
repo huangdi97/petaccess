@@ -61,10 +61,13 @@ test("mode switch re-evaluates: service dog → allowed", async ({ page }) => {
   await page.goto(`/#/place/${CAFE_ID}`);
   // plain dog at place level: no place-scoped ordinary-pet rule → UNKNOWN
   await expect(page.getByTestId("answer-status")).toHaveText("信息不足");
+  // Query Context primitive: open the editor and switch to service-dog mode.
+  await page.getByTestId("query-context-edit").click();
   await page.getByRole("button", { name: "服务犬通行" }).click();
   // service-dog mode asks as a working (assistance) dog → place-level allowed
   await expect(page.getByTestId("answer-status")).toHaveText("可以进入");
-  await page.getByRole("button", { name: "带宠出行" }).click();
+  await page.getByTestId("query-context-edit").click();
+  await page.getByRole("button", { name: "普通携带" }).click();
   await expect(page.getByTestId("answer-status")).toHaveText("信息不足");
 });
 

@@ -14,6 +14,7 @@ import AppShell from "../components/AppShell.vue";
  * verdict.
  */
 
+const appVersion = import.meta.env.VITE_APP_VERSION ?? "0.2.0-dev";
 const signedIn = ref(false);
 onMounted(async () => {
   await session.restore();
@@ -112,6 +113,13 @@ const EVIDENCE = [
           <button class="pill">宠物档案</button>
         </RouterLink>
       </div>
+    </div>
+    <div class="panel" data-testid="about-section">
+      <strong>关于</strong>
+      <p class="muted" style="margin-top: 4px">
+        PetAccess v{{ appVersion }} —— 城市公共空间动物通行规则与现场事实查询工具。
+        <RouterLink class="btn-inline" to="/about">查看产品说明与版本</RouterLink>
+      </p>
     </div>
 
     <div class="panel">

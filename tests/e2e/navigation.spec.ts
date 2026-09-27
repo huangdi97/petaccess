@@ -31,11 +31,13 @@ test("desktop shows the rail with both groups and no bottom tabs", async ({ page
   const rail = page.getByTestId("desktop-rail");
   await expect(rail).toBeVisible();
   for (const label of ["首页", "搜索", "地图", "贡献"]) {
-    await expect(rail.getByRole("link", { name: label })).toBeVisible();
+    await expect(rail.getByRole("link", { name: label, exact: true })).toBeVisible();
   }
-  for (const label of ["我的", "设置", "关于"]) {
-    await expect(rail.getByRole("link", { name: label })).toBeVisible();
+  // About moved INTO Settings (UI reconstruction freeze §4): no first-level slot.
+  for (const label of ["我的", "设置"]) {
+    await expect(rail.getByRole("link", { name: label, exact: true })).toBeVisible();
   }
+  await expect(rail.getByRole("link", { name: "关于" })).toHaveCount(0);
   await expect(page.getByTestId("mobile-tabbar")).toHaveCount(0);
   // version info lives in the rail footer
   await expect(rail.getByTestId("app-version")).toContainText("PetAccess v");
