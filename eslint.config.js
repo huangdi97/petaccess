@@ -17,8 +17,11 @@ export default defineConfigWithVueTs(
       ".tmp/**",
       "**/*.d.ts",
       // Tauri build outputs: cargo fingerprints/gen are machine-written JS, not
-      // app source — linting them only produces "not found by project service".
       "apps/client-h5/src-tauri/**",
+      // Android acceptance tooling (CDP driver) — machine-run automation, not
+      // app source; belongs to no app tsconfig and predates the project-service
+      // allowlist (baseline lint already refused it).
+      "scripts/android_acceptance/cdp_journey.cjs",
     ],
   },
   pluginVue.configs["flat/essential"],
@@ -33,6 +36,7 @@ export default defineConfigWithVueTs(
             "apps/client-h5/vite.config.ts",
             "playwright.config.*",
             "playwright.visual.config.ts",
+            "playwright.ui-audit.config.ts",
             // These root-level tooling files belong to no app tsconfig, so the
             // typed rules can only reach them through the default project. That
             // project has a hard cap of 8 files before typescript-eslint starts
@@ -40,10 +44,11 @@ export default defineConfigWithVueTs(
             // and pretending otherwise by dropping one from linting is worse.
             "tests/e2e/*.ts",
             "tests/visual/*.ts",
+            "tests/ui-audit/*.ts",
             "scripts/*.mjs",
             "eslint.config.js",
           ],
-          maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 25,
+          maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 30,
         },
       },
     },
