@@ -1,7 +1,22 @@
 # PROJECT_STATE.md
 
-## Current phase
-# v0.1.0 Early Preview — 已发布（2026-09-24, GitHub Release v0.1.0）｜进行中：v0.2.0 M8 已完结（V020_M8_DESKTOP_FINAL，见 docs/v0.2/）；下一 milestone：V020_M9_ANDROID_FINAL
+## Current phase（2026-09-27 当前会话实测 — M3 Consumer Core 深化收口）
+# v0.1.0 Early Preview — 已发布（2026-09-24）｜v0.2.0 M1–M8 已完成｜**V020 M3 Consumer Core 深化收口 = PASS（本轮完成）**｜下一 milestone：V020_M9_ANDROID_FINAL
+
+## M3 深化收口基线（2026-09-27 全实测, CURRENT VERIFIED — 见 docs/reports/V020_M3_FINAL_REPORT.md）
+- 定位（用户确认）：M3 深化收口——基于现有实现做 UI/UX 全量设计收口，不吞并 M4/M5/M7；Canonical Master = v0.10-R1（2026-09-27）。
+- 方向 FREEZE：Structured Utility（Calm/Neutral/Urban/Evidence-first）；DESIGN.md + docs/ui/V020_M3_UI_DIRECTION_DECISION.md；候选 A/C 归档 artifacts/ui-audit/concepts/。
+- Consumer 架构：新增 consumer/{cache,repository,rowView}.ts — bounded concurrency（Search 原 N×无界 Promise.all → 4 worker）+ ConsumerCache（TTL/stale/offline/coalesce）+ request epoch（race 保护）+ transport error ≠ domain fact（answerError/realityError 显式）。
+- CoexistenceSnapshot SSOT：Search/Home 行级 Reality+Freshness+Evidence（PlaceResultRow）；无页面级第二套 Rule/Reality truth。
+- Home/Search/AppShell：移除旧 AppShell 双层 chrome（Home/Search 直接 ConsumerAppShell 框架）；行级信息 = identity→Rule→Reality→Freshness/Evidence；桌面 wide/split 分层。
+- 测试（本轮实测）：backend pytest **961 passed / 2 skipped**；vue-tsc/build/eslint/prettier 全 PASS；Playwright e2e **157/158**（1 = 既有 TEST-001 flake，stash 到基线 HEAD 复现同样失败、单独跑 3/3 绿，与 M3 无关）；visual **59/59**（12 张 consumer 基线按 M3 视觉重生成）；新增 m3-consumer-core.spec（5 tests）全绿。
+- 截图取证：current（BEFORE）70 张 + m3-final（AFTER）70 张 + UI_CURRENT_STATE_GALLERY / UI_M3_FINAL_GALLERY / UI_M3_BEFORE_AFTER_GALLERY（140 图 0 broken）；根目录 artifacts/ui-audit/。
+- Android FAST：PASS（launch/home/search 21 results/nav/offline/recovery/short lifecycle，debug APK CDP DOM 证据；见 docs/reports/V020_M3_ANDROID_FAST_REPORT.md）。
+- Windows smoke：PASS（NSIS install/launch/home/search/split-preview/navigation/offline/recovery，截图 + accessibility 树；见 docs/reports/V020_M3_WINDOWS_SMOKE_REPORT.md）。
+- 遗留（tracked）：TEST-001 contribution wizard 并行 flake（既有冻结；基线复现）；Home/Search 文件体积 >300 行（既有大型页面，数据逻辑已抽 repository，M4 可继续拆）；Android WebView uiautomator 文本可见性 PLATFORM_LIMITED（既有）。
+- LOCAL git：baseline 049fc39；M3 分支 feat/v020-m3-consumer-core（8 commits）；origin/master 5b1dd05 未变（纯 fast-forward descendant，待最终 FF 集成与 push）。
+
+## Current phase（历史记录 — 2026-09-25 M8 基线，保留作 provenance）
 
 ## 取证审计基线（2026-09-26 全实测, CURRENT VERIFIED — 见 docs/forensics/）
 - 结论：PETACCESS_GLOBAL_FORENSIC_AUDIT = PASS（FINAL_ROOT_CAUSE_REPORT.md / GLOBAL_CODE_AUDIT_FINAL_REPORT.md；F00–F13 全量落盘）
