@@ -9,8 +9,7 @@
 import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { client, session } from "@petaccess/client-core";
-import AppShell from "../components/AppShell.vue";
-import DesktopContentContainer from "../components/layout/DesktopContentContainer.vue";
+import QueryContextBar from "../components/domain/QueryContextBar.vue";
 import StateMessage from "../components/StateMessage.vue";
 import ContributeEntry from "../components/contribute/ContributeEntry.vue";
 import ContributeQuickForm from "../components/contribute/ContributeQuickForm.vue";
@@ -72,9 +71,10 @@ function done(m: string) {
 </script>
 
 <template>
-  <AppShell>
-    <h1 class="visually-hidden">现场贡献</h1>
-    <DesktopContentContainer mode="single-column">
+  <div class="contribute-workspace" data-testid="contribute-workspace">
+    <QueryContextBar v-if="placeId" />
+    <div class="contribute-workspace__body">
+      <h1 class="visually-hidden">现场贡献</h1>
       <StateMessage
         v-if="!placeId"
         kind="PARTIAL"
@@ -102,70 +102,78 @@ function done(m: string) {
       </StateMessage>
 
       <template v-else>
-        <div class="panel">
-          <ContributeEntry
-            v-if="step === 'entry'"
-            @select="step = $event"
-            @reality="startReality"
-          />
-          <ContributeQuickForm
-            v-else-if="step === 'quick'"
-            :place-id="placeId"
-            :online="online"
-            :signed-in="signedIn"
-            @done="done"
-            @back="reset"
-          />
-          <ContributeSignageForm
-            v-else-if="step === 'signage'"
-            :place-id="placeId"
-            :zones="zones"
-            :online="online"
-            :signed-in="signedIn"
-            @done="done"
-            @back="reset"
-          />
-          <ContributeRuleForm
-            v-else-if="step === 'rule'"
-            :place-id="placeId"
-            :zones="zones"
-            :online="online"
-            :signed-in="signedIn"
-            @done="done"
-            @back="reset"
-          />
-          <ContributeObservationForm
-            v-else-if="step === 'experience'"
-            :place-id="placeId"
-            :zones="zones"
-            :online="online"
-            :signed-in="signedIn"
-            @done="done"
-            @back="reset"
-          />
-          <ContributeRealityForm
-            v-else-if="step === 'reality'"
-            :place-id="placeId"
-            :zones="zones"
-            :online="online"
-            :signed-in="signedIn"
-            :kind="realityKind"
-            @done="done"
-            @back="reset"
-          />
-          <ContributeDone
-            v-else-if="step === 'done'"
-            :msg="msg"
-            :place-id="placeId"
-            @continue="reset"
-          />
-        </div>
+        <ContributeEntry v-if="step === 'entry'" @select="step = $event" @reality="startReality" />
+        <ContributeQuickForm
+          v-else-if="step === 'quick'"
+          :place-id="placeId"
+          :online="online"
+          :signed-in="signedIn"
+          @done="done"
+          @back="reset"
+        />
+        <ContributeSignageForm
+          v-else-if="step === 'signage'"
+          :place-id="placeId"
+          :zones="zones"
+          :online="online"
+          :signed-in="signedIn"
+          @done="done"
+          @back="reset"
+        />
+        <ContributeRuleForm
+          v-else-if="step === 'rule'"
+          :place-id="placeId"
+          :zones="zones"
+          :online="online"
+          :signed-in="signedIn"
+          @done="done"
+          @back="reset"
+        />
+        <ContributeObservationForm
+          v-else-if="step === 'experience'"
+          :place-id="placeId"
+          :zones="zones"
+          :online="online"
+          :signed-in="signedIn"
+          @done="done"
+          @back="reset"
+        />
+        <ContributeRealityForm
+          v-else-if="step === 'reality'"
+          :place-id="placeId"
+          :zones="zones"
+          :online="online"
+          :signed-in="signedIn"
+          :kind="realityKind"
+          @done="done"
+          @back="reset"
+        />
+        <ContributeDone
+          v-else-if="step === 'done'"
+          :msg="msg"
+          :place-id="placeId"
+          @continue="reset"
+        />
 
-        <div class="notice">
+        <div class="contribute-workspace__notice">
           位置仅记录分桶后的现场核验结果（距离/精度），不保存原始 GPS 轨迹（ADR-012）。
           高频提交会被限流。证据媒体不公开，仅审核可见。
         </div>
       </template>
-    </DesktopContentContainer>
-  </AppShell>
+    </div>
+  </div>
 </template>
+
+<style scoped>
+.contribute-workspace {
+  min-height: 100%;
+}
+.contribute-workspace__body {
+  padding: var(--pa-space-4);
+  max-width: var(--pa-layout-content-narrow);
+  margin: 0 auto;
+}
+.contribute-workspace__notice {
+  margin-top: var(--pa-space-5);
+}
+</style>
