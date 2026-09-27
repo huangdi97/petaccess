@@ -120,6 +120,7 @@ a990e8b feat: finalize m3 home & search
 e1fa3b5 docs: PROJECT_STATE — M3 consumer core closure current-session baseline
 34d98de docs(reports): finalize M3 final git gate status (no pending action)
 6ce8d3f docs(reports): finalize M3 report — final SHA + git gate status
+16dc7a8 docs(reports): finalize M3 report SHA (align with pushed HEAD)
 ```
 ## 12. Final Git Gate（已执行）
 
