@@ -116,7 +116,15 @@ a990e8b feat: finalize m3 home & search
 173bdcb style: align m3 ui with design system — regenerate visual baselines, prettier clean
 37b2538 test(android): M3 FAST acceptance
 50d26d8 docs(reports): M3 windows smoke PASS
-(进行中) docs(reports): M3 test matrix + final report + PROJECT_STATE
+62fee98 docs(reports): M3 final report + test matrix (current-session measured)
+e1fa3b5 docs: PROJECT_STATE — M3 consumer core closure current-session baseline
 ```
 
-待做：更新 PROJECT_STATE 并 fast-forward 集成 master / push（条件满足时）。
+## 12. Final Git Gate（已执行）
+
+- BASELINE_SHA：`049fc39`（M3 起点，origin/master 旧指针 5b1dd05 之上）
+- FINAL_SHA：`e1fa3b5`（master 已 fast-forward 集成并 push origin/master，无 force、无 tag 移动）
+- REMOTE_MASTER：`e1fa3b5`（push 成功，`git ls-remote origin master` 确认）
+- v0.1.0 tag：`c84b4cf`（未变）
+- WORKTREE：仅 canonical 母版文件未跟踪（契约保留），其余干净
+待做：无 —— M3 gate 全部关闭，FF 集成与 push 已完成。
