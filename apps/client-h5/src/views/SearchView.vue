@@ -1,17 +1,18 @@
 <script setup lang="ts">
 /**
- * Search — place name / category / nearby, with the spec §2.2 filters.
+ * Search — M3 深化收口 (V020_M3_CONSUMER_CORE, DESIGN.md).
  *
- * Filters are applied client-side over the search results. Unknown results are
- * NEVER filtered out unless the user explicitly asks for a status; the hint
- * says so, and clearing filters is one tap.
+ * 变更（相对 M3 基线）：
+ *   • 数据统一走 Consumer repository：search/nearby 列表缓存 + 行级
+ *     Rule 结论（accessAnswer）+ Reality 摘要（placeReality）经 bounded
+ *     concurrency 获取（不再 N×无界 Promise.all）。
+ *   • 请求 epoch 保护：慢旧请求不覆盖快新请求（快速输入/深链/back-forward）。
+ *   • 结果行：identity → Rule → Reality 摘要 → Freshness/Evidence 元数据 →
+ *     仅相关 divergence；关键标签减负（conflict 显式，其余并入 meta）。
+ *   • 桌面 split preview（PlacePreview + CoexistenceSnapshot）保留。
  *
- * Expensive per-place signals (extras, conflict state) are only fetched when
- * the corresponding filter is active, so a plain search stays a single request.
- *
- * M2: each result row is ONE RouterLink control (no nested interactive
- * element), and recent searches (localStorage pa.searchRecent.v1) are
- * local-only, capped at 5 and clearable.
+ * 既有行为（保留）：?q=/?lens= 深链与回填、back/forward 同步、最近搜索
+ * （localStorage, 上限 5, 可清空）、筛选不改变任何结论。
  */
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
@@ -20,14 +21,11 @@ import {
   placeTypeLabel,
   ruleSummaryLabel,
   session,
-  synthDemoCamera,
-  type AccessAnswer,
   type BoundaryProfile,
   type CoexistenceSnapshot,
   type PlaceSummary,
 } from "@petaccess/client-core";
 import { EMPTY_STATE_COPY } from "@petaccess/design-tokens";
-import AppShell from "../components/AppShell.vue";
 import DesktopContentContainer from "../components/layout/DesktopContentContainer.vue";
 import FilterChips from "../components/FilterChips.vue";
 import PlacePreview from "../components/domain/PlacePreview.vue";
@@ -39,11 +37,22 @@ import { answerStatusKey } from "../answer";
 import { useBreakpoint } from "../composables/useBreakpoint";
 import { useOnline } from "../composables/useOnline";
 import { presentDescription } from "../errors";
+import { evidenceLineFor, realityLineFor } from "../consumer/rowView";
+import {
+  createEpoch,
+  enrichRows,
+  searchPlaces,
+  snapshotFor,
+  type RowFacts,
+} from "../consumer/repository";
+
 const route = useRoute();
 const router = useRouter();
 const { online } = useOnline();
 const q = ref(typeof route.query.q === "string" ? route.query.q : "");
 const results = ref<PlaceSummary[]>([]);
+const facts = ref<Map<string, RowFacts>>(new Map());
+
 /** v0.9-R1 home entry lens (?lens=presence|indoor|dining|rules) — master §30. */
 const LENS_HINTS: Record<string, string> = {
   presence: "正按「现场是否有动物出现」查看 —— 结果将优先展示近期有现场记录的场所",
@@ -54,23 +63,20 @@ const LENS_HINTS: Record<string, string> = {
 const lens = computed(() => (route.query.lens as string | undefined) ?? "");
 const lensHint = computed(() => LENS_HINTS[lens.value] ?? "");
 const statuses = ref<Record<string, string>>({});
-const verified = ref<Record<string, boolean>>({});
-const hasPetZone = ref<Record<string, boolean>>({});
-const serviceDogInfo = ref<Record<string, boolean>>({});
-const conflicts = ref<Record<string, boolean>>({});
 const boundary = ref<BoundaryProfile | null>(null);
 const searched = ref(false);
 const loading = ref(false);
 const error = ref("");
+const epoch = createEpoch();
 
-/** M3 D2 — desktop split preview: which row is previewed, and its snapshot. */
+/** M3 D2 — desktop split preview. */
 const { desktop: isDesktop } = useBreakpoint();
 const selectedId = ref<string | null>(null);
-const preview = ref<{
-  snapshot: CoexistenceSnapshot | null;
-  loading: boolean;
-  error: string;
-}>({ snapshot: null, loading: false, error: "" });
+const preview = ref<{ snapshot: CoexistenceSnapshot | null; loading: boolean; error: string }>({
+  snapshot: null,
+  loading: false,
+  error: "",
+});
 const selectedPlace = computed(() => results.value.find((p) => p.id === selectedId.value) ?? null);
 const selectedStatus = computed(() =>
   selectedId.value && statuses.value[selectedId.value] !== undefined
@@ -85,97 +91,21 @@ const FILTERS = [
   { key: "UNKNOWN", label: "信息不足" },
   { key: "CONFLICT", label: "来源不一致" },
   { key: "verified", label: "已核验" },
-  { key: "pet_zone", label: "有独立携宠区" },
-  { key: "service_dog", label: "含服务犬信息" },
 ];
 const active = ref<string[]>([]);
 
 const visible = computed(() =>
   results.value.filter((p) => {
     if (!active.value.length) return true;
-    const statusFilters = active.value.filter(
-      (k) => !["verified", "pet_zone", "service_dog"].includes(k),
-    );
+    const statusFilters = active.value.filter((k) => k !== "verified");
     const checks: boolean[] = [];
     if (statusFilters.length) {
       checks.push(statusFilters.includes(statuses.value[p.id] ?? "UNKNOWN"));
     }
-    if (active.value.includes("verified")) checks.push(Boolean(verified.value[p.id]));
-    if (active.value.includes("pet_zone")) checks.push(Boolean(hasPetZone.value[p.id]));
-    if (active.value.includes("service_dog")) checks.push(Boolean(serviceDogInfo.value[p.id]));
+    if (active.value.includes("verified")) checks.push(Boolean(p.rule_count > 0));
     return checks.every(Boolean);
   }),
 );
-
-/**
- * Row rule-material line comes from the shared client-core vocabulary
- * (ruleSummaryLabel), so the list and PlacePreview word it identically (M3 C1).
- */
-
-/**
- * Per-row signals, all read from the **unified answer model**.
- *
- * The status badge and the conflict flag used to come from `/rules/evaluate`
- * plus `effective-rules` — two engines for one row. The answer model returns both
- * (the conclusion and `conflict_state`), so the page renders a decision instead of
- * combining two of them.
- *
- * Two signals are deliberately NOT taken from the answer and are not conclusions
- * either: `verified` is a freshness fact about the row, and `service_dog` is a
- * filter meaning "a service-dog rule is on file" — a listing question, not a
- * verdict. Both stay on the plain rule listing; nothing here interprets them.
- */
-async function enrich(list: PlaceSummary[]) {
-  const status: Record<string, string> = {};
-  const ver: Record<string, boolean> = {};
-  const zone: Record<string, boolean> = {};
-  const sd: Record<string, boolean> = {};
-  const conflict: Record<string, boolean> = {};
-  const needExtras = active.value.includes("pet_zone");
-  const needRules = active.value.includes("verified") || active.value.includes("service_dog");
-
-  await Promise.all(
-    list.map(async (p) => {
-      let answer: AccessAnswer | null = null;
-      try {
-        answer = await client.accessAnswer(p.id, {
-          animal: session.activePet?.species ?? "dog",
-          service_role: session.activePet?.service_role ?? "none",
-          declared_role: session.activePet?.declared_role ?? null,
-        });
-      } catch {
-        // An unreachable answer is information-insufficient: UNKNOWN, never a
-        // silent "no rules here".
-        answer = null;
-      }
-      status[p.id] = answerStatusKey(answer);
-      conflict[p.id] = Boolean(answer?.conflict_state?.has_conflict);
-      if (needRules) {
-        try {
-          const rules = await client.rules(p.id);
-          ver[p.id] = rules.some((r) => Boolean(r.last_verified_at));
-          sd[p.id] = rules.some((r) => r.animal_scope === "service_dog");
-        } catch {
-          ver[p.id] = false;
-          sd[p.id] = false;
-        }
-      }
-      if (needExtras) {
-        try {
-          const ex = await client.placeExtras(p.id);
-          zone[p.id] = ex.coexistence.some((c) => c.attribute === "dedicated_pet_zone");
-        } catch {
-          zone[p.id] = false;
-        }
-      }
-    }),
-  );
-  statuses.value = status;
-  verified.value = ver;
-  hasPetZone.value = zone;
-  serviceDogInfo.value = sd;
-  conflicts.value = conflict;
-}
 
 async function search() {
   if (!online.value) {
@@ -183,35 +113,39 @@ async function search() {
     return;
   }
   const query = q.value.trim();
+  const n = epoch.begin();
   error.value = "";
   loading.value = true;
   searched.value = true;
   try {
-    results.value = query
-      ? await client.searchPlaces(q.value)
-      : await client.nearby(synthDemoCamera().lat, synthDemoCamera().lng, 5000);
-    await enrich(results.value);
+    const list = query ? await searchPlaces(query) : await searchPlaces("");
+    results.value = list;
+    const f = await enrichRows(list);
+    if (!epoch.isCurrent(n)) return; // a newer search superseded this one
+    facts.value = f;
+    const st: Record<string, string> = {};
+    for (const [id, row] of f) st[id] = answerStatusKey(row.answer);
+    statuses.value = st;
     if (query) {
       rememberRecent(query);
       syncRouteQuery(query);
     } else {
       syncRouteQuery("");
     }
-    // M3 D2: on desktop, preview the first hit so the pane starts populated.
-    if (isDesktop.value && results.value.length) {
-      const first = results.value[0];
-      if (!selectedId.value || !results.value.some((p) => p.id === selectedId.value)) {
+    if (isDesktop.value && list.length) {
+      const first = list[0];
+      if (!selectedId.value || !list.some((p) => p.id === selectedId.value)) {
         void selectPlace(first);
       }
     }
   } catch (e) {
-    error.value = presentDescription(e);
+    if (epoch.isCurrent(n)) error.value = presentDescription(e);
   } finally {
-    loading.value = false;
+    if (epoch.isCurrent(n)) loading.value = false;
   }
 }
 
-/** M3: keep the URL query in sync with what the user searched (B1/B2). */
+/** Keep the URL query in sync with what the user searched (B1/B2). */
 function syncRouteQuery(query: string) {
   const current = typeof route.query.q === "string" ? route.query.q : "";
   if (current === query) return;
@@ -224,23 +158,13 @@ async function selectPlace(p: PlaceSummary) {
   if (!isDesktop.value) return;
   preview.value = { snapshot: null, loading: true, error: "" };
   try {
-    preview.value = {
-      snapshot: await client.coexistenceSnapshot(p.id, {
-        animal: session.activePet?.species ?? "dog",
-        service_role: session.activePet?.service_role ?? "none",
-        action: "enter",
-      }),
-      loading: false,
-      error: "",
-    };
+    preview.value = { snapshot: await snapshotFor(p.id), loading: false, error: "" };
   } catch (e) {
     preview.value = { snapshot: null, loading: false, error: presentDescription(e) };
   }
 }
 
-// Back/forward or an external deep link changes route.query.q → re-run the
-// search with that value (B1/B2); the syncRouteQuery guard keeps this from
-// looping when it was our own push.
+/** Back/forward or an external deep link changes route.query.q → re-run. */
 watch(
   () => route.query.q,
   (v) => {
@@ -250,10 +174,6 @@ watch(
     void search();
   },
 );
-
-async function applyFilters() {
-  if (searched.value) await enrich(results.value);
-}
 
 /** M2 §11 — recent searches: local-only, capped, clearable, signed-out safe. */
 const SEARCH_RECENT_KEY = "pa.searchRecent.v1";
@@ -296,7 +216,6 @@ function useRecent(text: string) {
   void search();
 }
 
-/** Clear the field; re-query (nearby) only when a search already ran. */
 function clearSearch() {
   q.value = "";
   if (searched.value) void search();
@@ -311,8 +230,6 @@ const emptyDescription = computed(() =>
 onMounted(async () => {
   await session.restore();
   loadRecent();
-  // Account-scoped, so a signed-out visitor gets a 401 rather than an empty
-  // profile. Only ask when there is an account to ask about.
   if (session.signedIn) {
     try {
       boundary.value = (await client.defaultBoundaryProfile()).profile;
@@ -325,176 +242,174 @@ onMounted(async () => {
 </script>
 
 <template>
-  <AppShell>
-    <DesktopContentContainer :mode="isDesktop ? 'split' : 'single-column'">
-      <div class="search-pane">
-        <!-- The search field is the page's headline action, but a field is not a
-           heading: without this, screen-reader users get no page title at all. -->
-        <h1 class="visually-hidden">搜索场所规则</h1>
-        <div class="panel">
-          <div class="search-field">
-            <input
-              v-model="q"
-              aria-label="搜索场所"
-              placeholder="搜索场所、商圈或地址"
-              data-testid="search-input"
-              @keydown.enter="search"
-            />
-            <button
-              v-if="q"
-              type="button"
-              class="search-clear"
-              aria-label="清除"
-              data-testid="search-clear"
-              @click="clearSearch"
-            >
-              <PaIcon name="close" size="sm" />
-            </button>
-          </div>
+  <DesktopContentContainer :mode="isDesktop ? 'split' : 'single-column'">
+    <div class="search-pane page">
+      <h1 class="visually-hidden">搜索场所规则</h1>
+
+      <div class="panel">
+        <div class="search-field">
+          <input
+            v-model="q"
+            aria-label="搜索场所"
+            placeholder="搜索场所、商圈或地址"
+            data-testid="search-input"
+            @keydown.enter="search"
+          />
           <button
+            v-if="q"
             type="button"
-            class="primary block"
-            style="margin-top: var(--pa-space-2)"
-            :disabled="loading"
-            @click="search"
-            data-testid="search-btn"
+            class="search-clear"
+            aria-label="清除"
+            data-testid="search-clear"
+            @click="clearSearch"
           >
-            {{ loading ? "搜索中…" : "搜索" }}
+            <PaIcon name="close" size="sm" />
           </button>
         </div>
-
-        <!-- Recent searches (M2 §11): local-only, capped, clearable. -->
-        <div v-if="recent.length" class="recent-bar" data-testid="search-recent">
-          <div class="row" style="justify-content: space-between">
-            <span class="muted">最近搜索</span>
-            <button
-              type="button"
-              class="pill"
-              data-testid="clear-search-recent"
-              @click="clearRecent"
-            >
-              清除
-            </button>
-          </div>
-          <div class="row">
-            <button
-              v-for="t in recent"
-              :key="t"
-              type="button"
-              class="pill"
-              :data-testid="'recent-search-' + t"
-              @click="useRecent(t)"
-            >
-              {{ t }}
-            </button>
-          </div>
-        </div>
-
-        <div
-          v-if="lensHint"
-          class="panel muted"
-          data-testid="lens-hint"
+        <button
+          type="button"
+          class="primary block"
           style="margin-top: var(--pa-space-2)"
+          :disabled="loading"
+          @click="search"
+          data-testid="search-btn"
         >
-          {{ lensHint }}
-        </div>
-
-        <div class="panel">
-          <div class="muted">
-            {{ session.activePet ? `本次：${session.activePet.display_name}` : "未设置宠物档案" }}
-            · {{ boundary ? `共处边界「${boundary.name}」` : "未设置共处边界" }}
-          </div>
-        </div>
-
-        <FilterChips
-          v-model="active"
-          :options="FILTERS"
-          hint="默认不过滤“信息不足”。筛选只影响显示，不改变任何结论。"
-          @update:model-value="applyFilters"
-        />
-
-        <SkeletonList v-if="loading" :rows="3" />
-        <StateMessage v-else-if="error" kind="ERROR" :description="error">
-          <template #action>
-            <button type="button" class="primary" @click="search">重试</button>
-          </template>
-        </StateMessage>
-        <StateMessage
-          v-else-if="searched && !visible.length"
-          kind="PARTIAL"
-          data-testid="search-empty"
-          :title="EMPTY_STATE_COPY.SEARCH.title"
-          :description="emptyDescription"
-        >
-          <template #action>
-            <div class="row" style="justify-content: center">
-              <RouterLink
-                class="btn primary"
-                to="/contribute"
-                data-testid="search-empty-contribute"
-              >
-                提交场所线索
-              </RouterLink>
-              <button v-if="active.length" type="button" class="pill" @click="active = []">
-                清除筛选
-              </button>
-            </div>
-          </template>
-        </StateMessage>
-        <template v-else>
-          <RouterLink
-            v-for="p in visible"
-            :key="p.id"
-            class="panel result-card"
-            :to="{ name: 'place', params: { id: p.id } }"
-            :aria-current="selectedId === p.id ? 'true' : undefined"
-            :data-testid="'result-' + p.canonical_name"
-            @mouseenter="selectPlace(p)"
-            @focus="selectPlace(p)"
-          >
-            <div class="row" style="justify-content: space-between">
-              <strong>{{ p.canonical_name }}</strong>
-              <StatusBadge :status="statuses[p.id] ?? 'UNKNOWN'" />
-            </div>
-            <!-- Branch first: two rows of one brand must be separable at a glance,
-               otherwise a branch's rules get read as the whole brand's.
-               "所属" and not "位于" — the parent may be a brand (分店) or a
-               container (商场里的店铺), and only "所属" is true for both. -->
-            <div v-if="p.parent_place_name" class="muted" data-testid="result-branch">
-              所属 {{ p.parent_place_name }}
-            </div>
-            <div class="muted" data-testid="result-meta">
-              {{ placeTypeLabel(p.place_type) }} ·
-              {{ p.canonical_address ?? "地址待补充" }}
-            </div>
-            <!-- Why a place the user never named came back. -->
-            <div v-if="p.matched_alias" class="muted" data-testid="result-alias">
-              以「{{ p.matched_alias }}」匹配（曾用名／别称）
-            </div>
-            <div class="muted" data-testid="result-rules">{{ ruleSummaryLabel(p) }}</div>
-            <div class="row" style="margin-top: var(--pa-space-1h)">
-              <span v-if="verified[p.id]" class="tag">已核验</span>
-              <span v-if="hasPetZone[p.id]" class="tag">独立携宠区</span>
-              <span v-if="serviceDogInfo[p.id]" class="tag">含服务犬信息</span>
-              <span v-if="p.rule_count === 0" class="tag">尚未收录规则</span>
-              <StatusBadge v-if="conflicts[p.id]" semantic="CONFLICT" />
-            </div>
-          </RouterLink>
-        </template>
+          {{ loading ? "搜索中…" : "搜索" }}
+        </button>
       </div>
 
-      <!-- M3 D2 — desktop split pane: the previewed place's summary. -->
-      <PlacePreview
-        v-if="isDesktop"
-        class="search-preview"
-        :place="selectedPlace"
-        :status="selectedStatus"
-        :snapshot="preview.snapshot"
-        :loading="preview.loading"
-        :error="preview.error"
+      <div v-if="recent.length" class="recent-bar" data-testid="search-recent">
+        <div class="row" style="justify-content: space-between">
+          <span class="muted">最近搜索</span>
+          <button type="button" class="pill" data-testid="clear-search-recent" @click="clearRecent">
+            清除
+          </button>
+        </div>
+        <div class="row">
+          <button
+            v-for="t in recent"
+            :key="t"
+            type="button"
+            class="pill"
+            :data-testid="'recent-search-' + t"
+            @click="useRecent(t)"
+          >
+            {{ t }}
+          </button>
+        </div>
+      </div>
+
+      <div
+        v-if="lensHint"
+        class="panel muted"
+        data-testid="lens-hint"
+        style="margin-top: var(--pa-space-2)"
+      >
+        {{ lensHint }}
+      </div>
+
+      <div class="panel">
+        <div class="muted">
+          {{ session.activePet ? `本次：${session.activePet.display_name}` : "未设置宠物档案" }}
+          · {{ boundary ? `共处边界「${boundary.name}」` : "未设置共处边界" }}
+        </div>
+      </div>
+
+      <FilterChips
+        v-model="active"
+        :options="FILTERS"
+        hint="默认不过滤“信息不足”。筛选只影响显示，不改变任何结论。"
       />
-    </DesktopContentContainer>
-  </AppShell>
+
+      <SkeletonList v-if="loading" :rows="3" />
+      <StateMessage v-else-if="error" kind="ERROR" :description="error">
+        <template #action>
+          <button type="button" class="primary" @click="search">重试</button>
+        </template>
+      </StateMessage>
+      <StateMessage
+        v-else-if="searched && !visible.length"
+        kind="PARTIAL"
+        data-testid="search-empty"
+        :title="EMPTY_STATE_COPY.SEARCH.title"
+        :description="emptyDescription"
+      >
+        <template #action>
+          <div class="row" style="justify-content: center">
+            <RouterLink class="btn primary" to="/contribute" data-testid="search-empty-contribute">
+              提交场所线索
+            </RouterLink>
+            <button v-if="active.length" type="button" class="pill" @click="active = []">
+              清除筛选
+            </button>
+          </div>
+        </template>
+      </StateMessage>
+      <template v-else>
+        <RouterLink
+          v-for="p in visible"
+          :key="p.id"
+          class="panel result-card"
+          :to="{ name: 'place', params: { id: p.id } }"
+          :aria-current="selectedId === p.id ? 'true' : undefined"
+          :data-testid="'result-' + p.canonical_name"
+          @mouseenter="selectPlace(p)"
+          @focus="selectPlace(p)"
+        >
+          <div class="row" style="justify-content: space-between">
+            <strong>{{ p.canonical_name }}</strong>
+            <StatusBadge :status="statuses[p.id] ?? 'UNKNOWN'" />
+          </div>
+          <p
+            v-if="facts.get(p.id)?.answerError"
+            class="result-answer-error"
+            data-testid="row-answer-error"
+          >
+            规则结论暂时无法取得 —— 请检查网络后重试。
+          </p>
+          <div v-if="p.parent_place_name" class="muted" data-testid="result-branch">
+            所属 {{ p.parent_place_name }}
+          </div>
+          <div class="muted" data-testid="result-meta">
+            {{ placeTypeLabel(p.place_type) }} · {{ p.canonical_address ?? "地址待补充" }}
+          </div>
+          <div v-if="p.matched_alias" class="muted" data-testid="result-alias">
+            以「{{ p.matched_alias }}」匹配（曾用名／别称）
+          </div>
+          <div class="muted" data-testid="result-rules">{{ ruleSummaryLabel(p) }}</div>
+
+          <!-- M3：移动端也可见 Reality 摘要 + Evidence/Freshness 元数据 -->
+          <div class="result-reality" data-testid="result-reality">
+            <p v-if="facts.get(p.id)?.realityError" class="result-reality__error">
+              现场信息暂时无法取得 —— 请检查网络后重试。
+            </p>
+            <template v-else>
+              <p>{{ realityLineFor(facts.get(p.id)?.reality) }}</p>
+              <p v-if="evidenceLineFor(facts.get(p.id)?.reality)" class="muted">
+                {{ evidenceLineFor(facts.get(p.id)?.reality) }}
+              </p>
+            </template>
+          </div>
+
+          <div v-if="p.rule_count === 0" class="muted result-notes">尚未收录规则</div>
+          <StatusBadge
+            v-if="facts.get(p.id)?.answer?.conflict_state?.has_conflict"
+            semantic="CONFLICT"
+          />
+        </RouterLink>
+      </template>
+    </div>
+
+    <PlacePreview
+      v-if="isDesktop"
+      class="search-preview"
+      :place="selectedPlace"
+      :status="selectedStatus"
+      :snapshot="preview.snapshot"
+      :loading="preview.loading"
+      :error="preview.error"
+    />
+  </DesktopContentContainer>
 </template>
 
 <style scoped>
@@ -524,19 +439,32 @@ onMounted(async () => {
 .search-clear:hover {
   color: var(--pa-color-text-secondary);
 }
-/* Each result row is a single link control (M2 §9). */
 .result-card {
   display: block;
 }
 .recent-bar {
   margin: 0 0 var(--pa-space-3);
 }
-
-/* M3 D2 — split layout: the list pane wraps, the preview sticks to the top. */
 .search-pane {
   min-width: 0;
 }
-
+.result-reality {
+  margin-top: var(--pa-space-2);
+  font-size: var(--pa-font-size-md);
+  color: var(--pa-color-text-primary);
+  line-height: var(--pa-line-height-base);
+  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  padding-top: var(--pa-space-2);
+}
+.result-reality p {
+  margin: 0 0 var(--pa-space-1);
+}
+.result-reality__error {
+  color: var(--pa-color-text-secondary);
+}
+.result-notes {
+  margin-top: var(--pa-space-1);
+}
 .search-preview {
   position: sticky;
   top: var(--pa-space-4);
