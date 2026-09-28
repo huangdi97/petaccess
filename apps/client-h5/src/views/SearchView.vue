@@ -2,11 +2,17 @@
 /**
  * Search — List–Detail Workspace (UI_RECONSTRUCTION_DESIGN_FREEZE §9).
  *
- * Desktop: rail + 360–420px result pane + remaining detail inspector.
- * Result rows are divider-led (identity/distance → conclusion/conditions →
- * recent reality + sources); the selected row gets a subtle tint; the filter
- * is a light panel ("筛选 N"), never a pill wall. Mobile: results → tap →
- * place, no squeezed two-pane.
+ * Desktop: rail + 380–420px result pane + remaining detail inspector.
+ * Result rows are divider-led (identity → type·distance → PRIMARY DECISION →
+ * 1 key condition → recent reality); the selected row gets a subtle tint plus
+ * a single left indicator; the filter is a light panel (desktop) / bottom
+ * sheet (mobile), never a pill wall.
+ *
+ * VISUAL FIDELITY (Goal §3.1): each row carries a strict information budget —
+ * identity / type·distance / primary decision / one key condition / reality
+ * freshness. The old engineering noise ("已核验：", effective-rule counts,
+ * alias-match mechanics) is gone from the row; rule material presence stays
+ * as a single quiet metadata line.
  *
  * Data: the ONLY consumer source is the repository (CoexistenceSnapshot SSOT,
  * bounded concurrency, cache with full query-context keys, epoch guard). The
@@ -17,8 +23,6 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import {
   client,
-  placeTypeLabel,
-  ruleSummaryLabel,
   session,
   type BoundaryProfile,
   type CoexistenceSnapshot,
@@ -27,12 +31,14 @@ import {
 import { EMPTY_STATE_COPY, type StatusKey } from "@petaccess/design-tokens";
 import DecisionInspector from "../components/domain/DecisionInspector.vue";
 import QueryContextBar from "../components/domain/QueryContextBar.vue";
+import PaBottomSheet from "../components/ui/PaBottomSheet.vue";
 import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
 import StatusBadge from "../components/StatusBadge.vue";
-import { answerScopeLabel, answerStatusKey } from "../answer";
+import { answerConditions, answerStatusKey, answerVerdictLabel } from "../answer";
 import { lensOrderScore, lensProjection, type ConsumerLens } from "../consumer/rowView";
 import { evidenceLineFor, freshnessLineFor, realityLineFor } from "../consumer/rowView";
+import { placeTypeLabel, ruleSummaryLabel } from "../consumer/labels";
 import { useBreakpoint } from "../composables/useBreakpoint";
 import { useOnline } from "../composables/useOnline";
 import { presentDescription } from "../errors";
@@ -124,6 +130,14 @@ const visible = computed(() => {
     );
   });
 });
+
+/** The one key condition for a row (or "" when none) — §32 row budget. */
+function rowCondition(p: PlaceSummary): string {
+  const answer = facts.value.get(p.id)?.answer;
+  if (!answer) return "";
+  const conditions = answerConditions(answer);
+  return conditions[0] ?? "";
+}
 
 async function search() {
   if (!online.value) {
@@ -265,7 +279,7 @@ onMounted(async () => {
   await search();
 });
 
-const { desktop: isDesktop } = useBreakpoint();
+const { desktop: isDesktop, mobile: isMobile } = useBreakpoint();
 const selectedId = ref<string | null>(null);
 </script>
 
@@ -337,7 +351,7 @@ const selectedId = ref<string | null>(null);
           {{ lensHint }}
         </div>
 
-        <!-- filter: a light panel, never a pill wall -->
+        <!-- filter: light panel (desktop) / bottom sheet (mobile) — never pills -->
         <div class="filter-bar">
           <button
             type="button"
@@ -358,23 +372,45 @@ const selectedId = ref<string | null>(null);
             清除筛选
           </button>
         </div>
-        <div v-if="filterOpen" class="filter-panel">
-          <div class="filter-panel__option" v-for="f in FILTERS" :key="f.key">
-            <label>
-              <input
-                type="checkbox"
-                :checked="active.includes(f.key)"
-                @change="
-                  active = active.includes(f.key)
-                    ? active.filter((k) => k !== f.key)
-                    : [...active, f.key]
-                "
-              />
-              {{ f.label }}
-            </label>
+        <div v-if="isDesktop && filterOpen" class="filter-panel">
+          <div class="filter-options">
+            <div class="filter-options__row" v-for="f in FILTERS" :key="f.key">
+              <label>
+                <input
+                  type="checkbox"
+                  :checked="active.includes(f.key)"
+                  @change="
+                    active = active.includes(f.key)
+                      ? active.filter((k) => k !== f.key)
+                      : [...active, f.key]
+                  "
+                />
+                {{ f.label }}
+              </label>
+            </div>
+            <p class="muted filter-panel__hint">筛选只影响显示，不改变任何结论。</p>
           </div>
-          <p class="muted filter-panel__hint">筛选只影响显示，不改变任何结论。</p>
         </div>
+
+        <PaBottomSheet :open="isMobile && filterOpen" title="筛选结果" @close="filterOpen = false">
+          <div class="filter-options">
+            <div class="filter-options__row" v-for="f in FILTERS" :key="f.key">
+              <label>
+                <input
+                  type="checkbox"
+                  :checked="active.includes(f.key)"
+                  @change="
+                    active = active.includes(f.key)
+                      ? active.filter((k) => k !== f.key)
+                      : [...active, f.key]
+                  "
+                />
+                {{ f.label }}
+              </label>
+            </div>
+            <p class="muted filter-panel__hint">筛选只影响显示，不改变任何结论。</p>
+          </div>
+        </PaBottomSheet>
 
         <SkeletonList v-if="loading" :rows="3" />
         <StateMessage v-else-if="error" kind="ERROR" :description="error">
@@ -431,9 +467,8 @@ const selectedId = ref<string | null>(null);
                   <div class="result-row__identity">
                     <strong class="result-row__name">{{ p.canonical_name }}</strong>
                     <span class="muted result-row__meta">
-                      {{ placeTypeLabel(p.place_type) }} ·
-                      {{ p.canonical_address ?? "地址待补充" }}
-                      <span v-if="p.distance_m"> · {{ Math.round(p.distance_m) }}m</span>
+                      {{ placeTypeLabel(p.place_type) }}
+                      <template v-if="p.distance_m"> · {{ Math.round(p.distance_m) }}m</template>
                     </span>
                   </div>
                   <StatusBadge :semantic="statuses[p.id] ?? 'UNKNOWN'" />
@@ -449,7 +484,7 @@ const selectedId = ref<string | null>(null);
                   >
                     {{
                       facts.get(p.id)?.answer?.normative_result.summary ||
-                      "已核验：" + answerScopeLabel(facts.get(p.id)?.answer, speciesLabel)
+                      answerVerdictLabel(facts.get(p.id)?.answer)
                     }}
                   </p>
                   <p v-else class="result-row__conclusion" data-testid="row-lens-headline">
@@ -457,7 +492,7 @@ const selectedId = ref<string | null>(null);
                   </p>
                   <p
                     v-if="lensProjectionFor(p).zoneFacts.length"
-                    class="muted"
+                    class="muted result-row__zonefacts"
                     data-testid="row-lens-zones"
                   >
                     相关区域：{{ lensProjectionFor(p).zoneFacts.join("、") }}
@@ -473,24 +508,15 @@ const selectedId = ref<string | null>(null);
                   规则结论暂时无法取得 —— 请检查网络后重试。
                 </p>
                 <template v-else-if="facts.get(p.id)?.answer">
-                  <p class="result-row__conclusion" data-testid="row-rule">
-                    已核验：{{ answerScopeLabel(facts.get(p.id)?.answer, speciesLabel) }}
+                  <!-- PRIMARY DECISION: the one line the user scans for -->
+                  <p class="result-row__decision" data-testid="row-rule">
+                    {{ answerVerdictLabel(facts.get(p.id)?.answer) }}
                   </p>
-                  <p
-                    v-if="facts.get(p.id)?.answer?.condition_evaluation?.conditions?.length"
-                    class="muted"
-                  >
-                    条件：{{ answerScopeLabel(facts.get(p.id)?.answer, speciesLabel) }}
+                  <!-- 1 key condition only -->
+                  <p v-if="rowCondition(p)" class="muted result-row__condition">
+                    {{ rowCondition(p) }}
                   </p>
                 </template>
-
-                <div v-if="p.parent_place_name" class="muted" data-testid="result-branch">
-                  所属 {{ p.parent_place_name }}
-                </div>
-                <div v-if="p.matched_alias" class="muted" data-testid="result-alias">
-                  以「{{ p.matched_alias }}」匹配（曾用名／别称）
-                </div>
-                <div class="muted" data-testid="result-rules">{{ ruleSummaryLabel(p) }}</div>
 
                 <!-- Reality 摘要 + Evidence/Freshness 元数据 -->
                 <div class="result-row__reality" data-testid="result-reality">
@@ -503,6 +529,18 @@ const selectedId = ref<string | null>(null);
                       {{ evidenceLineFor(facts.get(p.id)?.reality) }}
                     </p>
                   </template>
+                </div>
+
+                <!-- 极轻元数据：规则材料存在性；父场所只保留在桌面且不抢视觉 -->
+                <div class="result-row__rules" data-testid="result-rules">
+                  {{ ruleSummaryLabel(p) }}
+                </div>
+                <div
+                  v-if="p.parent_place_name"
+                  class="muted result-row__branch"
+                  data-testid="result-branch"
+                >
+                  所属 {{ p.parent_place_name }}
                 </div>
               </RouterLink>
             </li>
@@ -636,13 +674,13 @@ const selectedId = ref<string | null>(null);
   margin-bottom: var(--pa-space-2);
 }
 
-.filter-panel__option {
+.filter-options__row {
   min-height: var(--pa-size-control-md);
   display: flex;
   align-items: center;
 }
 
-.filter-panel__option input {
+.filter-options__row input {
   width: auto;
   margin-right: var(--pa-space-2);
 }
@@ -661,12 +699,25 @@ const selectedId = ref<string | null>(null);
   padding: 0;
 }
 
+/* Result rows are divider rows — never cards. Selected = subtle tint + one
+ * 2px accent bar on the left (Goal §32: 1 clear indicator, no rounded card). */
 .result-row {
+  position: relative;
   border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
 }
 
 .result-row--selected {
   background: var(--pa-color-accent-weak);
+}
+
+.result-row--selected::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: var(--pa-border-width-strong);
+  background: var(--pa-color-accent);
 }
 
 .result-row__link {
@@ -698,10 +749,17 @@ const selectedId = ref<string | null>(null);
   margin-top: var(--pa-space-1);
 }
 
-.result-row__conclusion {
+/* Primary decision: the scannable line of the row. */
+.result-row__decision {
   margin: var(--pa-space-2) 0 0;
+  font-size: var(--pa-font-size-lg);
   font-weight: var(--pa-font-weight-medium);
   color: var(--pa-color-text-primary);
+}
+
+.result-row__condition {
+  margin: var(--pa-space-1) 0 0;
+  font-size: var(--pa-font-size-md);
 }
 
 .result-row__error {
@@ -709,14 +767,55 @@ const selectedId = ref<string | null>(null);
   color: var(--pa-color-text-secondary);
 }
 
+.result-row__zonefacts {
+  margin: var(--pa-space-1) 0 0;
+}
+
 .result-row__reality {
   margin-top: var(--pa-space-2);
   padding-top: var(--pa-space-2);
   border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
-  font-size: var(--pa-font-size-md);
+  font-size: var(--pa-font-size-14);
 }
 
 .result-row__reality p {
   margin: 0 0 var(--pa-space-1);
+}
+
+/* 极轻元数据：规则材料存在性（13px），不参与决策扫描。 */
+.result-row__rules {
+  margin-top: var(--pa-space-2);
+  font-size: var(--pa-font-size-sm);
+  color: var(--pa-color-text-disabled);
+}
+
+.result-row__branch {
+  margin-top: var(--pa-space-1);
+  font-size: var(--pa-font-size-sm);
+}
+
+/* Mobile compression (Goal §33): ≤4 visual groups; rule-count / branch noise
+ * does not belong on a phone scan. */
+@media (max-width: 767px) {
+  .result-row__rules,
+  .result-row__branch {
+    display: none;
+  }
+
+  .result-row__link {
+    padding: var(--pa-space-4) 0;
+  }
+
+  .result-row__name {
+    font-size: var(--pa-font-size-xl);
+  }
+
+  .result-row__meta {
+    font-size: var(--pa-font-size-md);
+  }
+
+  .result-row__decision {
+    font-size: var(--pa-font-size-xl);
+  }
 }
 </style>

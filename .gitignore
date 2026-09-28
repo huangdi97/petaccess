@@ -57,3 +57,7 @@ coverage.json
 
 # agent session state (goal tracking), not project source
 .pi/
+
+# agent-local run state (ledgers, logs, temp) ¡ª not project source
+.agent-local/
+

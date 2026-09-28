@@ -24,6 +24,9 @@ export default defineConfig({
   use: {
     headless: true,
     baseURL: "http://127.0.0.1:5175",
+    // Reuse an installed browser when the pinned Chromium revision is absent
+    // (Goal §11: never download a browser while a compatible one exists locally).
+    ...(process.env.PLAYWRIGHT_CHANNEL ? { channel: process.env.PLAYWRIGHT_CHANNEL } : {}),
   },
   webServer: [
     {
@@ -47,27 +50,27 @@ export default defineConfig({
   projects: [
     {
       name: "ui-360",
-      testMatch: /(capture|a11y-gate|phase[13]-gate)\.spec\.ts/,
+      testMatch: /(capture|a11y-gate|phase[13]-gate|consumer-leakage-gate)\.spec\.ts/,
       use: { viewport: { width: 360, height: 740 } },
     },
     {
       name: "ui-430",
-      testMatch: /(capture|a11y-gate|phase[13]-gate)\.spec\.ts/,
+      testMatch: /(capture|a11y-gate|phase[13]-gate|consumer-leakage-gate)\.spec\.ts/,
       use: { viewport: { width: 430, height: 740 } },
     },
     {
       name: "ui-800",
-      testMatch: /(capture|a11y-gate|phase[13]-gate)\.spec\.ts/,
+      testMatch: /(capture|a11y-gate|phase[13]-gate|consumer-leakage-gate)\.spec\.ts/,
       use: { viewport: { width: 800, height: 900 }, isMobile: false, hasTouch: true },
     },
     {
       name: "ui-1280",
-      testMatch: /(capture|a11y-gate|phase[13]-gate)\.spec\.ts/,
+      testMatch: /(capture|a11y-gate|phase[13]-gate|consumer-leakage-gate)\.spec\.ts/,
       use: { ...devices["Desktop Chrome"], viewport: { width: 1280, height: 800 } },
     },
     {
       name: "ui-1440",
-      testMatch: /(capture|a11y-gate|phase[13]-gate)\.spec\.ts/,
+      testMatch: /(capture|a11y-gate|phase[13]-gate|consumer-leakage-gate)\.spec\.ts/,
       use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } },
     },
   ],

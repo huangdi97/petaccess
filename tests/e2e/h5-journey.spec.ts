@@ -53,8 +53,9 @@ test("place detail shows one-sentence answer with zones and provenance", async (
   const outdoor = zones.locator(".zone-row").filter({ hasText: "户外座位区" });
   await outdoor.getByRole("button", { name: "查看" }).click();
   await expect(outdoor).toContainText("有条件");
-  // observations coexist with rules but do not change the answer
-  await expect(page.getByText("no_interaction_observed").first()).toBeVisible();
+  // observations coexist with rules but do not change the answer; staff
+  // action renders in consumer language, never the raw enum (Goal §29/§30)
+  await expect(page.getByText("未观察到干预").first()).toBeVisible();
 });
 
 test("mode switch re-evaluates: service dog → allowed", async ({ page }) => {

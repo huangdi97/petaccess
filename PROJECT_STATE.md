@@ -1,7 +1,10 @@
 # PROJECT_STATE.md
 
-## Current phase（2026-09-28 当前会话实测 — v0.2 UI Reconstruction / Spatial Dossier 收口）
-# v0.1.0 Early Preview — 已发布（2026-09-24）｜v0.2.0 M1–M8 已完成｜**UI_RECONSTRUCTION 全矩阵闭环 = 本轮完成**｜见 docs/reports/UI_RECONSTRUCTION_FINAL_REPORT.md
+## Current phase（2026-09-28 当前会话实测 — v0.2.1 Visual Fidelity Recovery，Phase A: Search + Place）
+# 状态重置（Goal §2）：UI_VISUAL_FIDELITY = FAIL · UI_CONSUMER_LANGUAGE = FAIL（Phase A 页面已清零，Reality/Evidence 属 Phase C）· UI_HUMAN_VISUAL_ACCEPTANCE = FAIL · UI_VISUAL_CLOSURE = REOPENED
+# Phase A（Search/Place 桌面+移动）已完成实现与自动化门禁，真实截图见 artifacts/visual-fidelity-recovery/phase-a/ 与 VISUAL_FIDELITY_REVIEW.html；HUMAN_VISUAL_GATE_A = PENDING，见 docs/reports/VISUAL_FIDELITY_PHASE_A_REPORT.md
+# 历史「UI_RECONSTRUCTION 全矩阵闭环」为 PRE-INTEGRATION / HISTORICAL 记录，不再作为当前视觉状态。
+# 上游：v0.1.0 Early Preview — 已发布（2026-09-24）｜v0.2.0 M1–M8 已完成（HISTORICAL）
 
 ## UI Reconstruction 收口（2026-09-28 全实测, CURRENT VERIFIED）
 - 定位：M3.1 Consumer Contract 关闭（G1 五项全 PASS）+ Home/Search/Map/Place/Reality/Evidence/Contribution 七页按 v0.10-R1 Canonical Master + Approved Reference 重构为 Spatial Dossier（空间档案式）成熟工具。

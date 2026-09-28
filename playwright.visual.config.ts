@@ -96,6 +96,9 @@ export default defineConfig({
   },
   use: {
     headless: true,
+    // Reuse an installed browser when the pinned Chromium revision is absent
+    // (Goal §11: never download a browser while a compatible one exists locally).
+    ...(process.env.PLAYWRIGHT_CHANNEL ? { channel: process.env.PLAYWRIGHT_CHANNEL } : {}),
   },
   // Availability is probed over TCP (`port`), not HTTP (`url`), and the servers
   // are started without `--strictPort`. Both are deliberate:

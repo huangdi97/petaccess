@@ -28,6 +28,10 @@ export default defineConfig({
   use: {
     baseURL: "http://127.0.0.1:5175",
     headless: true,
+    // Reuse an installed browser when the pinned Chromium revision is absent
+    // (Goal §11: never download a browser while a compatible one exists locally).
+    // PLAYWRIGHT_CHANNEL=chrome makes every project launch the installed Chrome.
+    ...(process.env.PLAYWRIGHT_CHANNEL ? { channel: process.env.PLAYWRIGHT_CHANNEL } : {}),
   },
   webServer: [
     {

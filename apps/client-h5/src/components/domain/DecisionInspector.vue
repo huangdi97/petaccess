@@ -3,11 +3,18 @@
  * DecisionInspector — the quiet detail / dossier inspector (Design Freeze §9:
  * Search = List–Detail Workspace; Place = Dossier + Decision Inspector).
  *
- * Flat primary surface, divider-led rows, NO card. Shows only the 3–5 key
- * facts that answer the current query: current context, primary status,
- * conditions, major exception, source / verified / freshness. Data flows in
- * as props (never fetched here); semantic values come from shared
- * vocabularies (answer.ts / reality.ts / rowView.ts).
+ * VISUAL FIDELITY (Goal §3.1): this is a *judgment surface*, not a database
+ * detail table. The old `<dl>` label/value rows read as an engineering form
+ * ("Current Context / Condition / Recent Reality / Evidence all at equal
+ * weight"); the hierarchy is now explicit:
+ *
+ *   Identity → Current Context → PRIMARY DECISION (large) → Conditions →
+ *   Major Exception → Recent Reality → Source/Freshness.
+ *
+ * Only the 3–5 facts that answer the current query are shown (freeze §9);
+ * the full dossier stays on the Place page. Data flows in as props (never
+ * fetched here); semantic values come from the shared vocabularies
+ * (answer.ts / reality.ts / rowView.ts / consumer/labels.ts).
  */
 import { computed } from "vue";
 import {
@@ -86,49 +93,56 @@ const freshness = computed(() => freshnessLineFor(props.stale, props.fetchedAtMs
         </p>
       </header>
 
-      <dl class="decision-inspector__facts">
-        <div class="surface-row">
-          <dt>当前查询</dt>
-          <dd>{{ speciesLabel }} · 进入 · 公共区域</dd>
-        </div>
+      <!-- Current Context -->
+      <div class="inspector-block inspector-block--context">
+        <span class="inspector-block__label">当前查询</span>
+        <p class="inspector-block__value">{{ speciesLabel }} · 进入 · 公共区域</p>
+      </div>
 
-        <div class="surface-row">
-          <dt>结论</dt>
-          <dd data-testid="inspector-verdict">
-            <template v-if="answerError">暂时无法取得（请检查网络后重试）</template>
-            <template v-else-if="answer">{{ verdict }}</template>
-            <template v-else>尚未核验</template>
-          </dd>
-        </div>
+      <!-- Primary Decision: the one fact the user came for -->
+      <div class="inspector-block inspector-block--decision">
+        <span class="inspector-block__label">结论</span>
+        <p class="inspector-decision" data-testid="inspector-verdict">
+          <template v-if="answerError">暂时无法取得（请检查网络后重试）</template>
+          <template v-else-if="answer">{{ verdict }}</template>
+          <template v-else>尚未核验</template>
+        </p>
+        <p v-if="answer && !answerError" class="inspector-block__value inspector-scope">
+          {{ scope }}
+        </p>
+      </div>
 
-        <div v-if="answer && !answerError" class="surface-row">
-          <dt>适用范围</dt>
-          <dd>{{ scope }}</dd>
-        </div>
+      <!-- Conditions: one line per requirement, only when they exist -->
+      <div v-if="conditions.length" class="inspector-block">
+        <span class="inspector-block__label">进入前需满足</span>
+        <ul class="inspector-conditions">
+          <li v-for="c in conditions" :key="c" class="inspector-conditions__item">
+            <span class="inspector-conditions__mark" aria-hidden="true">✓</span>
+            {{ c }}
+          </li>
+        </ul>
+      </div>
 
-        <div v-if="conditions.length" class="surface-row">
-          <dt>条件</dt>
-          <dd>{{ conditions.join("、") }}</dd>
-        </div>
+      <!-- Major Exception: divergence, only when a real difference exists -->
+      <div v-if="divergence" class="inspector-block">
+        <span class="inspector-block__label">与现场情况</span>
+        <p class="inspector-block__value" data-testid="inspector-divergence">{{ divergence }}</p>
+      </div>
 
-        <div v-if="divergence" class="surface-row">
-          <dt>差异</dt>
-          <dd data-testid="inspector-divergence">{{ divergence }}</dd>
-        </div>
+      <!-- Recent Reality -->
+      <div class="inspector-block">
+        <span class="inspector-block__label">近期现场</span>
+        <p class="inspector-block__value">
+          <template v-if="realityError">暂时无法取得</template>
+          <template v-else>{{ realityLine }}</template>
+        </p>
+      </div>
 
-        <div class="surface-row">
-          <dt>近期现场</dt>
-          <dd>
-            <template v-if="realityError">暂时无法取得</template>
-            <template v-else>{{ realityLine }}</template>
-          </dd>
-        </div>
-
-        <div v-if="freshness" class="surface-row">
-          <dt>时效</dt>
-          <dd data-testid="inspector-freshness">{{ freshness }}</dd>
-        </div>
-      </dl>
+      <!-- Source / freshness: quiet metadata, never the headline -->
+      <div v-if="freshness" class="inspector-block inspector-block--meta">
+        <span class="inspector-block__label">时效</span>
+        <p class="inspector-block__value" data-testid="inspector-freshness">{{ freshness }}</p>
+      </div>
 
       <footer class="decision-inspector__foot">
         <RouterLink class="btn primary" :to="`/place/${place.id}`" data-testid="inspector-open">
@@ -147,8 +161,12 @@ const freshness = computed(() => freshnessLineFor(props.stale, props.fetchedAtMs
 .decision-inspector {
   display: flex;
   flex-direction: column;
-  gap: var(--pa-space-4);
+  gap: var(--pa-space-5);
   min-width: 0;
+  padding: var(--pa-space-5);
+  border: var(--pa-border-width) solid var(--pa-color-border);
+  border-radius: var(--pa-radius-md);
+  background: var(--pa-color-surface);
 }
 
 .decision-inspector__head {
@@ -178,23 +196,70 @@ const freshness = computed(() => freshnessLineFor(props.stale, props.fetchedAtMs
   color: var(--pa-color-text-muted);
 }
 
-.decision-inspector__facts {
+.inspector-block {
   display: flex;
   flex-direction: column;
-  margin: 0;
+  gap: var(--pa-space-1);
 }
 
-.decision-inspector__facts dt {
+.inspector-block__label {
   font-size: var(--pa-font-size-md);
   color: var(--pa-color-text-secondary);
 }
 
-.decision-inspector__facts dd {
+.inspector-block__value {
   margin: 0;
-  font-size: var(--pa-font-size-md);
+  font-size: var(--pa-font-size-base);
   color: var(--pa-color-text-primary);
-  text-align: right;
   overflow-wrap: anywhere;
+}
+
+/* Primary decision: the loudest line on the surface. */
+.inspector-block--decision {
+  padding: var(--pa-space-3) var(--pa-space-4);
+  border-left: var(--pa-border-width-strong) solid var(--pa-color-accent);
+  background: var(--pa-color-bg-sunken);
+}
+
+.inspector-decision {
+  margin: 0;
+  font-size: var(--pa-font-size-26);
+  font-weight: var(--pa-font-weight-medium);
+  line-height: var(--pa-line-height-tight);
+  color: var(--pa-color-text-primary);
+}
+
+.inspector-scope {
+  font-size: var(--pa-font-size-md);
+  color: var(--pa-color-text-secondary);
+}
+
+/* Conditions: one readable line each, check-marked, never a comma blob. */
+.inspector-conditions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-1);
+}
+
+.inspector-conditions__item {
+  display: flex;
+  align-items: baseline;
+  gap: var(--pa-space-2);
+  font-size: var(--pa-font-size-base);
+  color: var(--pa-color-text-primary);
+}
+
+.inspector-conditions__mark {
+  color: var(--pa-color-accent);
+  font-weight: var(--pa-font-weight-bold);
+}
+
+.inspector-block--meta {
+  padding-top: var(--pa-space-3);
+  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
 }
 
 .decision-inspector__foot {
@@ -206,5 +271,16 @@ const freshness = computed(() => freshnessLineFor(props.stale, props.fetchedAtMs
   padding: var(--pa-space-6) 0;
   text-align: center;
   color: var(--pa-color-text-muted);
+}
+
+/* Narrow screens: keep the decision legible without shrinking the body type. */
+@media (max-width: 767px) {
+  .decision-inspector {
+    padding: var(--pa-space-4);
+  }
+
+  .inspector-decision {
+    font-size: var(--pa-font-size-22);
+  }
 }
 </style>

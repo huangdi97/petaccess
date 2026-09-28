@@ -144,6 +144,16 @@
   --pa-font-size-2xl: 20px;
   --pa-font-size-3xl: 24px;
   --pa-font-size-4xl: 32px;
+  /* Visual-fidelity ladder (Goal §36): metadata 14, section 17–19,
+   * decision 22/26, page identity 30 — values land in tokens so pages
+   * never invent sizes. */
+  --pa-font-size-14: 14px;
+  --pa-font-size-17: 17px;
+  --pa-font-size-18: 18px;
+  --pa-font-size-19: 19px;
+  --pa-font-size-22: 22px;
+  --pa-font-size-26: 26px;
+  --pa-font-size-30: 30px;
   --pa-font-weight-regular: 400;
   --pa-font-weight-medium: 500;
   --pa-font-weight-bold: 700;

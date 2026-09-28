@@ -21,10 +21,12 @@ const visualDbUrl =
  */
 export default defineConfig({
   testDir: "./tests/ui-audit",
-  timeout: 90000,
   use: {
     headless: true,
     baseURL: "http://127.0.0.1:5175",
+    // Reuse an installed browser when the pinned Chromium revision is absent
+    // (Goal §11: never download a browser while a compatible one exists locally).
+    ...(process.env.PLAYWRIGHT_CHANNEL ? { channel: process.env.PLAYWRIGHT_CHANNEL } : {}),
   },
   webServer: [
     {
