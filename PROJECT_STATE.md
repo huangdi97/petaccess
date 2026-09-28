@@ -1,7 +1,21 @@
 # PROJECT_STATE.md
 
-## Current phase（2026-09-27 当前会话实测 — M3 Consumer Core 深化收口）
-# v0.1.0 Early Preview — 已发布（2026-09-24）｜v0.2.0 M1–M8 已完成｜**V020 M3 Consumer Core 深化收口 = PASS（本轮完成）**｜下一 milestone：V020_M9_ANDROID_FINAL
+## Current phase（2026-09-28 当前会话实测 — v0.2 UI Reconstruction / Spatial Dossier 收口）
+# v0.1.0 Early Preview — 已发布（2026-09-24）｜v0.2.0 M1–M8 已完成｜**UI_RECONSTRUCTION 全矩阵闭环 = 本轮完成**｜见 docs/reports/UI_RECONSTRUCTION_FINAL_REPORT.md
+
+## UI Reconstruction 收口（2026-09-28 全实测, CURRENT VERIFIED）
+- 定位：M3.1 Consumer Contract 关闭（G1 五项全 PASS）+ Home/Search/Map/Place/Reality/Evidence/Contribution 七页按 v0.10-R1 Canonical Master + Approved Reference 重构为 Spatial Dossier（空间档案式）成熟工具。
+- Canonical master 与 Approved Reference PNG 已随分支提交（commit 5af0020），非 untracked。
+- G1（M3.1）消费契约 5 项 PASS（COEXISTENCE_SNAPSHOT_SSOT / TRANSPORT_ERROR_CACHE / SNAPSHOT_CACHE_KEY / OFFLINE_STALE_WIRING / LENS_SEMANTICS），回归测试 tests/e2e/consumer-contract-closure.spec.ts 全绿。
+- 工程门禁（本轮实测）：backend pytest **961 passed / 2 skipped**；vue-tsc / client-h5 build / admin build / eslint / prettier 全 PASS；Playwright e2e **189 passed**（响应式矩阵扩至 8 页 × 9 viewport）；ui-reconstruction capture（final stage）**90/90**；phase1+phase3 gate 45/45；a11y gate **30/30**；responsive 72/72。
+- 文件体积遗留已处理：HomeView 199 行 / MapView 203 行 / EvidenceView 263 行（composable + 子组件拆分，prettier 幂等）。
+- Android FAST（真实模拟器 pdig36，端口 5556）：Install/launch/Home/Search(7 条真实结果)/Map/Place/navigation/offline/recovery/short-lifecycle **全 PASS**（WebView CDP DOM + 设备层截图证据；修复了 C: 盘 1.3GB 可用不足；从未 adb kill-server）。见 docs/reports/UI_RECONSTRUCTION_ANDROID_FAST.md。
+- Windows smoke（真实 Tauri WebView2 runtime）：build 2m52s → petaccess.exe；launch/Home/Search/Map/Place/navigation/offline/recovery 全 PASS（CDP + UI Automation 证据）；不再是 stretched H5。见 docs/reports/UI_RECONSTRUCTION_WINDOWS_SMOKE.md。
+- 视觉审计：结构断言 + 像素级证据全过；90 张 final 截图 + UI_RECONSTRUCTION_BEFORE_AFTER_GALLERY.html（90 格）可直接打开。`UI_VISUAL_CLOSURE = PASS`（自动化证据）；人工目视最终复核由用户在画廊完成（审计文档诚实标注依赖人眼的项）。
+- 遗留（tracked）：TEST-001 contribution-wizard 并行 flake（既有冻结语义，单跑/重跑均 PASS）；Android WebView uiautomator 文本可见性 PLATFORM_LIMITED（既有，非缺陷）；artifacts/ 目录 gitignored（工作区证据）。
+- LOCAL git：分支 `feat/ui-reconstruction-spatial-dossier`（commit：5af0020→567e42e→8b7e245→fa2b368→ec8af2c→2fcf241→4fc21ba→af25ee6→7404155）；origin/master `434efd3` 未变（0 divergence，纯 fast-forward descendant，按 AC-G1 四条件 FF 集成并 push）。v0.1.0 tag 未动。
+
+## M3 深化收口基线（历史记录 — 2026-09-27，保留作 provenance）
 
 ## M3 深化收口基线（2026-09-27 全实测, CURRENT VERIFIED — 见 docs/reports/V020_M3_FINAL_REPORT.md）
 - 定位（用户确认）：M3 深化收口——基于现有实现做 UI/UX 全量设计收口，不吞并 M4/M5/M7；Canonical Master = v0.10-R1（2026-09-27）。
