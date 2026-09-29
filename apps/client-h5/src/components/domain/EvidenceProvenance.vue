@@ -64,7 +64,12 @@ const provenance = computed<ProvenanceStep[]>(() => {
 </script>
 
 <template>
-  <section class="evidence-section" data-testid="evidence-provenance" aria-label="证据来源链">
+  <section
+    class="evidence-section"
+    data-testid="evidence-provenance"
+    data-ui="evidence-provenance"
+    aria-label="证据来源链"
+  >
     <h2 class="evidence-section__title">证据来源链</h2>
     <div
       v-for="p in provenance"

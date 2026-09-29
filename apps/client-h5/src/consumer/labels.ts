@@ -40,10 +40,42 @@ export function zoneTypeLabel(value: string | null | undefined): string {
   return ZONE_TYPE_LABELS[value ?? ""] ?? "其他区域";
 }
 
-/** Floor reference — never the raw `floor` value. */
+/** Floor reference — consumer copy, never the raw `floor`/`1F` token.
+ * "1F"→"一层", "B1"→"地下一层"; anything else falls back to a safe prefix. */
+const FLOOR_ZH: Record<string, string> = {
+  "1F": "一层",
+  "2F": "二层",
+  "3F": "三层",
+  "4F": "四层",
+  "5F": "五层",
+  "6F": "六层",
+  B1: "地下一层",
+  B2: "地下二层",
+};
+
 export function floorLabel(value: string | null | undefined): string {
   if (!value) return "";
-  return value.toLowerCase() === "floor" ? "楼层" : `楼层 ${value}`;
+  if (value.toLowerCase() === "floor") return "楼层";
+  return FLOOR_ZH[value] ?? "楼层";
+}
+
+/** One consumer-friendly zone line: `一层公共区域` / `餐饮堂食区` / `户外区域`.
+ * The raw DB name is not trusted on screen when it embeds floor tokens
+ * (seed names like "1F 公共区" leak "1F"); otherwise the seed's own
+ * consumer-readable name ("室内堂食区") is kept. */
+const FLOOR_TOKEN_RE = /^(?:[0-9]+F|B[0-9]+)\s+/i;
+
+export function zoneConsumerLine(zone: {
+  name?: string | null;
+  floor_ref?: string | null;
+  zone_type?: string | null;
+}): string {
+  const rawName = (zone.name ?? "").trim();
+  if (rawName && !FLOOR_TOKEN_RE.test(rawName)) return rawName;
+  const floor = zone.floor_ref ? floorLabel(zone.floor_ref) : "";
+  const type = zoneTypeLabel(zone.zone_type ?? "");
+  if (type === "楼层" && floor) return floor;
+  return floor ? `${floor}${type}` : type;
 }
 
 /** Animal scopes (AnimalScope). */

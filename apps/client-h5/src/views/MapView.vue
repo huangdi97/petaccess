@@ -54,7 +54,7 @@ function goHome() {
 </script>
 
 <template>
-  <div class="map-workspace" data-testid="map-workspace">
+  <div class="map-workspace" data-testid="map-workspace" data-ui="map-shell">
     <h1 class="visually-hidden">规则地图</h1>
     <QueryContextBar />
 
@@ -96,7 +96,13 @@ function goHome() {
       />
 
       <!-- 主画布：地图是页面的主导表面 -->
-      <section v-if="view === 'map'" class="map-canvas" data-testid="map" aria-label="规则地图">
+      <section
+        v-if="view === 'map'"
+        class="map-canvas"
+        data-testid="map"
+        data-ui="map-canvas"
+        aria-label="规则地图"
+      >
         <StateMessage
           v-if="error && !isDesktop"
           kind="ERROR"

@@ -1,0 +1,89 @@
+{
+  "id": "place.desktop",
+  "title": "Place Desktop Contract",
+  "viewport": { "width": 1440, "height": 900 },
+  "pages": [{ "id": "place-ready", "route": "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e" }],
+  "elements": [
+    {
+      "id": "PLACE_RAIL_WIDTH",
+      "ui": "app-rail",
+      "fallbacks": [".desktop-rail"],
+      "props": { "width": { "min": 64, "max": 72 } },
+      "severity": "FAIL"
+    },
+    {
+      "id": "PLACE_TOP_CONTEXT_HEIGHT",
+      "ui": "query-context",
+      "fallbacks": ["[data-testid='query-context']"],
+      "props": { "height": { "min": 56, "max": 64 } },
+      "severity": "FAIL"
+    },
+    {
+      "id": "PLACE_INSPECTOR_WIDTH",
+      "ui": "place-inspector",
+      "fallbacks": ["[data-testid='decision-inspector']"],
+      "props": { "width": { "min": 300, "max": 360 } },
+      "severity": "FAIL"
+    },
+    {
+      "id": "PLACE_INSPECTOR_STICKY",
+      "ui": "place-inspector",
+      "fallbacks": ["[data-testid='decision-inspector']"],
+      "props": { "position": { "equals": "sticky" } },
+      "severity": "WARN"
+    },
+    {
+      "id": "PLACE_IDENTITY_NAME_SIZE",
+      "ui": "place-name",
+      "fallbacks": [".place-dossier__name", "h1"],
+      "props": { "fontSize": { "min": 26, "max": 30 } },
+      "severity": "FAIL"
+    },
+    {
+      "id": "PLACE_SECTION_GAP",
+      "ui": "place-dossier",
+      "fallbacks": [".place-dossier", "main"],
+      "props": { "sectionGap": { "min": 24, "max": 32 } },
+      "severity": "WARN"
+    },
+    {
+      "id": "PLACE_MAIN_DOSSIER_PRESENT",
+      "ui": "place-dossier",
+      "fallbacks": [".place-dossier", "[class*='dossier']"],
+      "props": { "count": { "min": 1 } },
+      "severity": "FAIL"
+    }
+  ],
+  "structure": [
+    {
+      "id": "PLACE_ZONES_NOT_CARDS",
+      "selector": "[data-ui='place-zones'] .zone-row, .zone-row",
+      "forbiddenClass": ["card", "panel"],
+      "severity": "FAIL"
+    },
+    {
+      "id": "PLACE_NO_RAW_ZONE_ENUM",
+      "selector": "[data-ui='place-zones'], .zone-row",
+      "forbiddenText": ["1F", "pet_area", "dining_area", "floor"],
+      "severity": "FAIL"
+    }
+  ],
+  "density": [
+    {
+      "id": "PLACE_MAX_SEMANTIC_GAP",
+      "selector": "[data-ui='place-dossier']",
+      "metric": "largestVerticalGap",
+      "max": 180,
+      "severity": "FAIL"
+    },
+    {
+      "id": "PLACE_INFO_BLOCKS",
+      "selector": "[data-ui='place-dossier']",
+      "metric": "infoBlockCount",
+      "min": 4,
+      "severity": "FAIL"
+    }
+  ],
+  "language": { "uuid": true, "enums": true, "invariants": true, "allcapsTokens": true },
+  "notes": "Dossier ~65-72% of available width; sticky inspector 300-360px, only 5-6 info groups."
+}

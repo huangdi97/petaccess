@@ -11,6 +11,7 @@
 import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { client, type ObservationView, type SourceView } from "@petaccess/client-core";
+import { animalScopeLabel, ruleActionLabel, staffActionLabel } from "../consumer/labels";
 import { EMPTY_STATE_COPY } from "@petaccess/design-tokens";
 import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
@@ -119,7 +120,7 @@ watch(placeId, () => void load(), { immediate: true });
 </script>
 
 <template>
-  <div class="evidence-workspace" data-testid="evidence-workspace">
+  <div class="evidence-workspace" data-testid="evidence-workspace" data-ui="evidence-shell">
     <QueryContextBar />
     <div class="evidence-workspace__body">
       <h1 class="visually-hidden">证据与来源</h1>
@@ -131,13 +132,18 @@ watch(placeId, () => void load(), { immediate: true });
       </StateMessage>
       <template v-else-if="trace">
         <header class="evidence-head">
-          <p class="muted evidence-head__place">场所 {{ placeId }}</p>
+          <!-- Place display name: never the raw UUID (contract EVIDENCE_NO_UUID_TEXT). -->
+          <p class="muted evidence-head__place">场所信息暂不可用</p>
           <h2>证据与来源</h2>
           <EvidenceMeta
             v-if="trace.evidence_count != null"
             :evidence-count="trace.evidence_count"
           />
-          <p class="evidence-disclaimer" data-testid="evidence-disclaimer">
+          <p
+            class="evidence-disclaimer"
+            data-testid="evidence-disclaimer"
+            data-ui="evidence-disclaimer"
+          >
             现场事实不代表正式准入规则。
           </p>
         </header>
@@ -148,16 +154,19 @@ watch(placeId, () => void load(), { immediate: true });
           :reviewed-count="trace.review_sections.length"
         />
 
-        <section class="evidence-section" aria-label="时间记录">
+        <section class="evidence-section" aria-label="时间记录" data-ui="evidence-times">
           <h2 class="evidence-section__title">时间记录</h2>
           <div class="surface-row">
-            <span>观察时间</span><span class="muted">{{ observedTime || "未记录" }}</span>
+            <span>观察时间</span
+            ><span class="muted" data-ui="observed-time">{{ observedTime || "未记录" }}</span>
           </div>
           <div class="surface-row">
-            <span>提交时间</span><span class="muted">{{ submittedTime || "未记录" }}</span>
+            <span>提交时间</span
+            ><span class="muted" data-ui="submitted-time">{{ submittedTime || "未记录" }}</span>
           </div>
           <div class="surface-row">
-            <span>核验时间</span><span class="muted">{{ reviewedTime || "未记录" }}</span>
+            <span>核验时间</span
+            ><span class="muted" data-ui="reviewed-time">{{ reviewedTime || "未记录" }}</span>
           </div>
           <div v-for="(line, i) in reviewLines" :key="i" class="surface-row">
             <span>核验记录</span><span class="muted">{{ line }}</span>
@@ -172,8 +181,10 @@ watch(placeId, () => void load(), { immediate: true });
               <time class="muted">{{ displayTime(o.occurred_at) }}</time>
             </div>
             <p class="evidence-item__text">
-              {{ o.animal_scope }} · {{ o.observed_action }}
-              <span v-if="o.staff_action" class="muted">（工作人员：{{ o.staff_action }}）</span>
+              {{ animalScopeLabel(o.animal_scope) }} · {{ ruleActionLabel(o.observed_action) }}
+              <span v-if="o.staff_action" class="muted"
+                >（工作人员：{{ staffActionLabel(o.staff_action) }}）</span
+              >
             </p>
             <p v-if="o.note" class="muted evidence-item__note">{{ o.note }}</p>
           </div>
@@ -183,7 +194,11 @@ watch(placeId, () => void load(), { immediate: true });
             :title="EMPTY_STATE_COPY.EVIDENCE.title"
             :description="EMPTY_STATE_COPY.EVIDENCE.description"
             data-testid="evidence-empty"
-          />
+          >
+            <template #action>
+              <button class="primary" @click="load">刷新</button>
+            </template>
+          </StateMessage>
           <p class="muted evidence-item__images" data-testid="evidence-images-note">
             暂无原始证据图片（证据仍可来自文字记录）
           </p>
@@ -194,8 +209,8 @@ watch(placeId, () => void load(), { immediate: true });
           <div v-for="s in sources" :key="s.id" class="surface-row">
             <span class="evidence-source__issuer">{{ s.issuer }}</span>
             <span class="muted evidence-source__meta"
-              >{{ LABELS[s.source_type] ?? s.source_type }} ·
-              {{ LABELS[s.issuer_verification] ?? s.issuer_verification }} · 收集于
+              >{{ LABELS[s.source_type] ?? "其他来源" }} ·
+              {{ LABELS[s.issuer_verification] ?? "核验状态未知" }} · 收集于
               {{ s.collected_at.slice(0, 10) }}</span
             >
           </div>

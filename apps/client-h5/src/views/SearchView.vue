@@ -291,12 +291,12 @@ const selectedId = ref<string | null>(null);
 </script>
 
 <template>
-  <div class="search-workspace" data-testid="search-workspace">
+  <div class="search-workspace" data-testid="search-workspace" data-ui="search-shell">
     <QueryContextBar />
 
     <div class="search-workspace__body" :class="{ 'search-workspace__body--split': isDesktop }">
       <!-- result pane -->
-      <section class="search-result-pane" aria-label="搜索结果">
+      <section class="search-result-pane" aria-label="搜索结果" data-ui="search-results-pane">
         <header class="search-result-pane__head">
           <h1 class="visually-hidden">搜索场所规则</h1>
           <form class="search-field" @submit.prevent="search">
@@ -333,7 +333,7 @@ const selectedId = ref<string | null>(null);
             <span class="muted">最近搜索</span>
             <button
               type="button"
-              class="pill"
+              class="recent-bar__clear"
               data-testid="clear-search-recent"
               @click="clearRecent"
             >
@@ -345,7 +345,7 @@ const selectedId = ref<string | null>(null);
               v-for="t in recent"
               :key="t"
               type="button"
-              class="pill"
+              class="recent-bar__item"
               :data-testid="'recent-search-' + t"
               @click="useRecent(t)"
             >
@@ -364,6 +364,7 @@ const selectedId = ref<string | null>(null);
             type="button"
             class="filter-toggle"
             data-testid="filter-toggle"
+            data-ui="search-filter-toggle"
             :aria-expanded="filterOpen"
             @click="filterOpen = !filterOpen"
           >
@@ -372,7 +373,7 @@ const selectedId = ref<string | null>(null);
           <button
             v-if="active.length"
             type="button"
-            class="pill"
+            class="filter-bar__clear"
             data-testid="filter-clear"
             @click="active = []"
           >
@@ -399,7 +400,12 @@ const selectedId = ref<string | null>(null);
           </div>
         </div>
 
-        <PaBottomSheet :open="isMobile && filterOpen" title="筛选结果" @close="filterOpen = false">
+        <PaBottomSheet
+          :open="isMobile && filterOpen"
+          title="筛选结果"
+          ui="search-filter-sheet"
+          @close="filterOpen = false"
+        >
           <div class="filter-options">
             <div class="filter-options__row" v-for="f in FILTERS" :key="f.key">
               <label>
@@ -441,7 +447,12 @@ const selectedId = ref<string | null>(null);
               >
                 提交场所线索
               </RouterLink>
-              <button v-if="active.length" type="button" class="pill" @click="active = []">
+              <button
+                v-if="active.length"
+                type="button"
+                class="filter-bar__clear"
+                @click="active = []"
+              >
                 清除筛选
               </button>
             </div>
@@ -455,13 +466,16 @@ const selectedId = ref<string | null>(null);
           >
             {{ freshnessLineFor(listStale, listFetchedAtMs, !online) }}
           </p>
-          <p class="search-count" data-testid="search-count">找到 {{ visible.length }} 个结果</p>
+          <p class="search-count" data-testid="search-count" data-ui="search-count">
+            找到 {{ visible.length }} 个结果
+          </p>
           <ul class="result-list" role="list">
             <li
               v-for="p in visible"
               :key="p.id"
               class="result-row"
               :class="{ 'result-row--selected': selectedId === p.id }"
+              :data-ui="selectedId === p.id ? 'search-selected-row' : 'search-result-row'"
               :aria-current="selectedId === p.id ? 'true' : undefined"
             >
               <RouterLink
@@ -559,8 +573,14 @@ const selectedId = ref<string | null>(null);
       </section>
 
       <!-- detail inspector (desktop only) -->
-      <aside v-if="isDesktop" class="search-inspector" aria-label="场所详情">
+      <aside
+        v-if="isDesktop"
+        class="search-inspector"
+        data-ui="search-detail-pane"
+        aria-label="场所详情"
+      >
         <DecisionInspector
+          data-ui="search-detail-content"
           :place="selectedPlace"
           :status="selectedStatus"
           :answer="selectedPlace ? (facts.get(selectedPlace.id)?.answer ?? null) : null"
@@ -611,7 +631,8 @@ const selectedId = ref<string | null>(null);
   .search-inspector {
     flex: 1 1 auto;
     min-width: 0;
-    max-width: 560px;
+    max-width: var(--pa-layout-detail-content);
+    padding-left: var(--pa-space-40);
     position: sticky;
     top: var(--pa-space-4);
     align-self: stretch;
@@ -644,7 +665,7 @@ const selectedId = ref<string | null>(null);
 }
 
 .recent-bar {
-  margin: var(--pa-space-4) 0 var(--pa-space-2);
+  margin: var(--pa-space-3) 0 var(--pa-space-2);
 }
 
 .recent-bar__row {
@@ -653,11 +674,48 @@ const selectedId = ref<string | null>(null);
   align-items: center;
 }
 
+/* Recent chips are quiet text buttons, not pills (Goal: clear/recent/filter
+ * never become visual heroes; contract NO_ROW_PILL_WALL = 0). */
+.recent-bar__clear,
+.filter-bar__clear {
+  border: none;
+  background: none;
+  color: var(--pa-color-text-muted);
+  font-size: var(--pa-font-size-md);
+  min-height: var(--pa-size-control-md);
+  padding: var(--pa-space-1) var(--pa-space-2);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.recent-bar__clear:hover,
+.filter-bar__clear:hover {
+  color: var(--pa-color-accent);
+  text-decoration-color: var(--pa-color-accent);
+}
+
 .recent-bar__items {
   display: flex;
   flex-wrap: wrap;
   gap: var(--pa-space-2);
-  margin-top: var(--pa-space-2);
+  margin-top: var(--pa-space-1);
+}
+
+.recent-bar__item {
+  border: var(--pa-border-width) solid var(--pa-color-border);
+  border-radius: var(--pa-radius-control);
+  background: var(--pa-color-surface);
+  color: var(--pa-color-text-secondary);
+  font-size: var(--pa-font-size-md);
+  min-height: var(--pa-size-control-md);
+  padding: var(--pa-space-1) var(--pa-space-3);
+  cursor: pointer;
+}
+
+.recent-bar__item:hover {
+  border-color: var(--pa-color-border-strong);
+  color: var(--pa-color-text-primary);
 }
 
 .lens-line {
@@ -741,10 +799,11 @@ const selectedId = ref<string | null>(null);
 
 .result-row__link {
   display: block;
-  padding: var(--pa-space-3) var(--pa-space-1);
+  padding: var(--pa-space-2) var(--pa-space-1);
   text-decoration: none;
   color: inherit;
 }
+
 .result-row__link:hover {
   background: var(--pa-color-surface-interactive);
 }
@@ -752,7 +811,7 @@ const selectedId = ref<string | null>(null);
 .result-row__head {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: baseline;
   gap: var(--pa-space-3);
 }
 
@@ -776,6 +835,7 @@ const selectedId = ref<string | null>(null);
 .result-row__name {
   font-size: var(--pa-font-size-lg);
   font-weight: var(--pa-font-weight-medium);
+  line-height: var(--pa-line-height-tight);
   color: var(--pa-color-text-primary);
 }
 
@@ -783,16 +843,15 @@ const selectedId = ref<string | null>(null);
   display: block;
   margin-top: var(--pa-space-1);
   font-size: var(--pa-font-size-md);
-}
-
-.result-row__meta {
+  line-height: var(--pa-line-height-tight);
   overflow-wrap: anywhere;
 }
 
 .result-row__conclusion {
-  margin: var(--pa-space-2) 0 0;
+  margin: var(--pa-space-1) 0 0;
   font-size: var(--pa-font-size-lg);
   font-weight: var(--pa-font-weight-medium);
+  line-height: var(--pa-line-height-tight);
   color: var(--pa-color-text-primary);
 }
 
@@ -802,15 +861,16 @@ const selectedId = ref<string | null>(null);
 }
 
 .result-row__error {
-  margin: var(--pa-space-2) 0 0;
+  margin: var(--pa-space-1) 0 0;
   color: var(--pa-color-text-secondary);
 }
 
 /* Primary decision: the scannable line of the row; condition sits inline. */
 .result-row__decision {
-  margin: var(--pa-space-2) 0 0;
+  margin: var(--pa-space-1) 0 0;
   font-size: var(--pa-font-size-lg);
   font-weight: var(--pa-font-weight-medium);
+  line-height: var(--pa-line-height-tight);
   color: var(--pa-color-text-primary);
 }
 
@@ -821,10 +881,11 @@ const selectedId = ref<string | null>(null);
 }
 
 .result-row__reality {
-  margin-top: var(--pa-space-2);
-  padding-top: var(--pa-space-2);
+  margin-top: var(--pa-space-1);
+  padding-top: var(--pa-space-1);
   border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
   font-size: var(--pa-font-size-14);
+  line-height: var(--pa-line-height-tight);
 }
 
 .result-row__reality p {
@@ -832,8 +893,9 @@ const selectedId = ref<string | null>(null);
 }
 
 .result-row__rules {
-  margin-top: var(--pa-space-2);
+  margin-top: var(--pa-space-1);
   font-size: var(--pa-font-size-sm);
+  line-height: var(--pa-line-height-tight);
   color: var(--pa-color-text-disabled);
 }
 
@@ -849,7 +911,7 @@ const selectedId = ref<string | null>(null);
   }
 
   .result-row__link {
-    padding: var(--pa-space-4) 0;
+    padding: var(--pa-space-3) 0;
   }
 
   .result-row__name {

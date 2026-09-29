@@ -9,6 +9,7 @@
 import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { client, freshnessLabel, type ObservationView } from "@petaccess/client-core";
+import { animalScopeLabel, ruleActionLabel, staffActionLabel } from "../consumer/labels";
 import { EMPTY_STATE_COPY } from "@petaccess/design-tokens";
 import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
@@ -146,10 +147,14 @@ watch(placeId, () => void load(), { immediate: true });
           </div>
         </section>
 
-        <section class="reality-timeline" data-testid="trace-observations">
+        <section
+          class="reality-timeline"
+          data-testid="trace-observations"
+          data-ui="reality-timeline"
+        >
           <h2 class="reality-ledger__title">现场记录时间线</h2>
           <ul class="timeline" role="list">
-            <li v-for="o in observations" :key="o.id" class="trace-row">
+            <li v-for="o in observations" :key="o.id" class="trace-row" data-ui="reality-event">
               <span class="trace-row__dot" aria-hidden="true"></span>
               <div class="trace-row__content">
                 <div class="trace-row__head">
@@ -157,9 +162,9 @@ watch(placeId, () => void load(), { immediate: true });
                   <EvidenceStatus :state="evidenceStateFor(o)" />
                 </div>
                 <p class="trace-row__event">
-                  {{ o.animal_scope }} · {{ o.observed_action }}
+                  {{ animalScopeLabel(o.animal_scope) }} · {{ ruleActionLabel(o.observed_action) }}
                   <span v-if="o.staff_action" class="muted"
-                    >（工作人员：{{ o.staff_action }}）</span
+                    >（工作人员：{{ staffActionLabel(o.staff_action) }}）</span
                   >
                 </p>
                 <p class="muted trace-row__meta">
@@ -176,7 +181,15 @@ watch(placeId, () => void load(), { immediate: true });
             :title="EMPTY_STATE_COPY.REALITY.title"
             :description="EMPTY_STATE_COPY.REALITY.description"
             data-testid="trace-empty"
-          />
+            data-ui="reality-empty"
+          >
+            <template #action>
+              <button class="primary" @click="load">刷新</button>
+              <RouterLink class="btn" :to="`/place/${placeId}`" style="margin-left: 8px"
+                >查看场所准入</RouterLink
+              >
+            </template>
+          </StateMessage>
         </section>
       </template>
       <StateMessage

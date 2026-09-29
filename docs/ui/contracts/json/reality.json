@@ -1,0 +1,65 @@
+{
+  "id": "reality",
+  "title": "Reality Contract",
+  "viewport": { "width": 1440, "height": 900 },
+  "pages": [
+    { "id": "reality-ready", "route": "/#/place/8412b521-5e1c-505d-9dec-568acb860c76/reality" },
+    { "id": "reality-empty", "route": "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e/reality" }
+  ],
+  "elements": [
+    {
+      "id": "REALITY_QUERY_CONTEXT",
+      "ui": "query-context",
+      "fallbacks": ["[data-testid='query-context']"],
+      "props": { "count": { "min": 1 } },
+      "severity": "FAIL"
+    },
+    {
+      "id": "REALITY_TRACE_ROWS",
+      "ui": "reality-timeline",
+      "fallbacks": ["[data-testid='trace-observations'], .trace-observations"],
+      "props": { "count": { "min": 1 } },
+      "severity": "FAIL"
+    }
+  ],
+  "structure": [
+    {
+      "id": "REALITY_EVENT_NOT_CARD",
+      "selector": "[data-ui='reality-event'], .trace-row",
+      "forbiddenClass": ["panel", "card"],
+      "severity": "FAIL",
+      "pages": ["reality-ready"]
+    },
+    {
+      "id": "REALITY_EVENT_ROW_COUNT",
+      "selector": "[data-ui='reality-event'], .trace-row",
+      "min": 1,
+      "severity": "FAIL",
+      "pages": ["reality-ready"]
+    },
+    {
+      "id": "REALITY_NO_INVARIANT_TEXT",
+      "selector": "body",
+      "forbiddenText": [
+        "NO_RECENT_RECORD",
+        "INSUFFICIENT_OBSERVATION",
+        "OBSERVED_RECENTLY",
+        "MULTI_EVIDENCE_OBSERVED",
+        "RULE_REALITY_ALIGNED",
+        "POTENTIAL_CONFLICT"
+      ],
+      "severity": "FAIL"
+    }
+  ],
+  "density": [
+    {
+      "id": "REALITY_EMPTY_STATE_HAS_ACTIONS",
+      "selector": "[data-ui='reality-empty'], [data-testid='trace-empty']",
+      "hasOnePrimaryAction": true,
+      "severity": "FAIL",
+      "pages": ["reality-empty"]
+    }
+  ],
+  "language": { "uuid": true, "enums": true, "invariants": true, "allcapsTokens": true },
+  "notes": "True event log: Date group -> Time -> marker -> Location -> Observed fact -> evidence/freshness. ready = 星河咖啡 (2 seeded observations, rows render); empty = 云栖中心 (no observations, empty state with 1 primary action). Empty copy: 暂无记录不代表现实中没有动物。"
+}

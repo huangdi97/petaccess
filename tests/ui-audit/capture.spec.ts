@@ -161,7 +161,7 @@ test("search-offline", async ({ page }, testInfo) => {
 
 // ------------------------------------------------------------ other pages ---
 for (const [slug, url, testid] of [
-  ["map", "/#/map", "coverage-hint"],
+  ["map", "/#/map", "map"],
   ["place", "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e", "section-answer"],
   ["contribute", "/#/contribute", "contribute-needs-place"],
   ["mine", "/#/mine", "consumer-app-shell"],

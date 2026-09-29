@@ -56,7 +56,7 @@ function choose(opt: EntryOption) {
 </script>
 
 <template>
-  <div>
+  <div data-ui="contribution-flow">
     <h2 class="entry-question">你刚刚知道了什么？</h2>
     <p class="muted entry-hint">只提供结构化选项，不设自由评论区，以避免未经核实的评价影响判断。</p>
     <ul class="entry-options" role="list">

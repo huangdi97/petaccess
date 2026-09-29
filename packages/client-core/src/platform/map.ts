@@ -100,7 +100,7 @@ export function clusterMarkers(
   zoom: number,
   opts: { unclusterAt?: number; baseCellDeg?: number } = {},
 ): MapCluster[] {
-  const unclusterAt = opts.unclusterAt ?? 15;
+  const unclusterAt = opts.unclusterAt ?? 14;
   const baseCellDeg = opts.baseCellDeg ?? 0.02;
 
   if (zoom >= unclusterAt) {

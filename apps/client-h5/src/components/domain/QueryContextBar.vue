@@ -40,7 +40,7 @@ function selectMode(m: QueryMode) {
 </script>
 
 <template>
-  <div class="query-context" data-testid="query-context">
+  <div class="query-context" data-testid="query-context" data-ui="query-context">
     <span class="query-context__label" aria-hidden="true">当前查询</span>
     <span class="query-context__value" data-testid="query-context-summary">{{ summary }}</span>
     <button

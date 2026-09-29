@@ -1,0 +1,48 @@
+{
+  "id": "global",
+  "title": "Global Consumer UI Contract",
+  "viewport": { "width": 1440, "height": 900 },
+  "pages": [
+    { "id": "home", "route": "/" },
+    { "id": "search", "route": "/#/search" },
+    { "id": "map", "route": "/#/map" },
+    { "id": "place", "route": "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e" },
+    { "id": "reality", "route": "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e/reality" },
+    { "id": "evidence", "route": "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e/evidence" },
+    { "id": "contribute", "route": "/#/contribute" }
+  ],
+  "elements": [
+    {
+      "id": "APP_RAIL_WIDTH",
+      "ui": "app-rail",
+      "fallbacks": [".desktop-rail"],
+      "props": { "width": { "min": 64, "max": 72 } },
+      "severity": "FAIL"
+    },
+    {
+      "id": "RAIL_HAS_ARIA_LABEL",
+      "ui": "app-rail",
+      "fallbacks": [".desktop-rail"],
+      "props": { "ariaLabel": { "min": 1 } },
+      "severity": "FAIL"
+    },
+    {
+      "id": "SINGLE_H1",
+      "ui": "page-h1",
+      "fallbacks": ["h1"],
+      "props": { "count": { "min": 1, "max": 1 } },
+      "severity": "FAIL"
+    }
+  ],
+  "density": [
+    {
+      "id": "NO_GLOBAL_HORIZONTAL_OVERFLOW",
+      "selector": "body",
+      "metric": "horizontalOverflow",
+      "max": 1,
+      "severity": "FAIL"
+    }
+  ],
+  "language": { "uuid": true, "enums": true, "invariants": true, "allcapsTokens": true },
+  "notes": "Baseline viewports: desktop 1440x900; mobile 430x932. data-ui attrs are the target contract; fallbacks allow baseline probing of pre-refactor DOM."
+}

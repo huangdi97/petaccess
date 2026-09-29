@@ -336,7 +336,7 @@ def reality_trace(
             value=f"{summary.recent_count_30d} 条（近30天）"
             if summary.recent_count_30d
             else "暂无近期记录",
-            note="暂无记录不代表现场没有动物（NO_RECENT_RECORD ≠ NO_ANIMAL_PRESENCE）",
+            note="暂无记录不代表现场没有动物。",
         ),
         RealityTraceSection(
             label="来源类型",

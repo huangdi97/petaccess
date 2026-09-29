@@ -1,0 +1,69 @@
+{
+  "id": "evidence",
+  "title": "Evidence Contract",
+  "viewport": { "width": 1440, "height": 900 },
+  "pages": [
+    { "id": "evidence-ready", "route": "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e/evidence" },
+    { "id": "evidence-records", "route": "/#/place/8412b521-5e1c-505d-9dec-568acb860c76/evidence" }
+  ],
+  "elements": [
+    {
+      "id": "EVIDENCE_PROVENANCE",
+      "ui": "evidence-provenance",
+      "fallbacks": ["[data-testid='evidence-provenance']"],
+      "props": { "count": { "min": 1 } },
+      "severity": "FAIL"
+    },
+    {
+      "id": "EVIDENCE_ITEMS",
+      "ui": "evidence-items",
+      "fallbacks": ["[data-testid='evidence-items']"],
+      "props": { "count": { "min": 1 } },
+      "severity": "WARN"
+    },
+    {
+      "id": "EVIDENCE_SOURCES",
+      "ui": "evidence-sources",
+      "fallbacks": ["[data-testid='evidence-sources']"],
+      "props": { "count": { "min": 1 } },
+      "severity": "WARN"
+    },
+    {
+      "id": "EVIDENCE_QUERY_CONTEXT",
+      "ui": "query-context",
+      "fallbacks": ["[data-testid='query-context']"],
+      "props": { "count": { "min": 1 } },
+      "severity": "FAIL"
+    }
+  ],
+  "structure": [
+    {
+      "id": "EVIDENCE_PROVENANCE_5_STEPS",
+      "selector": "[data-ui='evidence-provenance'], [data-testid='evidence-provenance']",
+      "surfaceRowCount": { "min": 5, "max": 5 },
+      "severity": "FAIL"
+    },
+    {
+      "id": "EVIDENCE_DISCLAIMER",
+      "selector": "[data-testid='evidence-disclaimer'], [data-ui='evidence-disclaimer']",
+      "mustContainText": "现场事实不代表正式准入规则",
+      "severity": "FAIL"
+    },
+    {
+      "id": "EVIDENCE_NO_UUID_TEXT",
+      "selector": "body",
+      "forbiddenText": [],
+      "uuidForbidden": true,
+      "severity": "FAIL"
+    },
+    {
+      "id": "EVIDENCE_TIMES_SEPARATED",
+      "selector": "[data-ui='evidence-times']",
+      "surfaceRowCount": { "min": 3 },
+      "severity": "FAIL"
+    }
+  ],
+  "density": [],
+  "language": { "uuid": true, "enums": true, "invariants": true, "allcapsTokens": true },
+  "notes": "Top: place name + zone + observed time. Provenance = 5 consumer steps. Observed/Submitted/Reviewed separated (>=3 time rows). Placeholder when no display name: 场所信息暂不可用. ready = 云栖中心 (empty records path), records = 星河咖啡 (seeded observations path)."
+}

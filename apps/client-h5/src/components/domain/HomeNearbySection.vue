@@ -41,7 +41,7 @@ const freshness = computed(() =>
 </script>
 
 <template>
-  <div>
+  <div data-ui="home-nearby">
     <SkeletonList v-if="loading" :rows="3" />
     <StateMessage v-else-if="error" kind="ERROR" title="未能取得附近场所" :description="error">
       <template #action>

@@ -1,4 +1,4 @@
-import path from "node:path";
+﻿import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { defineConfig, devices } from "@playwright/test";
@@ -8,12 +8,12 @@ const win = process.platform === "win32";
 const venvPython = JSON.stringify(
   path.resolve(__dirname, ".venv", win ? "Scripts" : "bin", win ? "python.exe" : "python"),
 );
-const feEnv = { ...process.env, VITE_API_PROXY: "http://127.0.0.1:8011" };
+const feEnv = { ...process.env, VITE_API_PROXY: "http://127.0.0.1:8013" };
 const visualDbUrl =
   "postgresql+psycopg://petaccess:petaccess_dev_only@localhost:5432/petaccess_visual";
 
 /**
- * UI reconstruction capture run — baseline / phase gates / final screenshots.
+ * UI reconstruction capture run 鈥?baseline / phase gates / final screenshots.
  * Same deterministic stack as playwright.visual.config.ts (petaccess_visual seed)
  * so before/after pairs are comparable. Stage is selected via
  * UI_RECONSTRUCTION_STAGE (baseline | phase1 | phase2 | phase3 | final).
@@ -23,16 +23,16 @@ export default defineConfig({
   timeout: 90000,
   use: {
     headless: true,
-    baseURL: "http://127.0.0.1:5175",
+    baseURL: "http://127.0.0.1:5177",
     // Reuse an installed browser when the pinned Chromium revision is absent
-    // (Goal §11: never download a browser while a compatible one exists locally).
+    // (Goal 搂11: never download a browser while a compatible one exists locally).
     ...(process.env.PLAYWRIGHT_CHANNEL ? { channel: process.env.PLAYWRIGHT_CHANNEL } : {}),
   },
   webServer: [
     {
-      command: `${venvPython} ${path.resolve(__dirname, "scripts", "visual_db_reset.py")} && ${venvPython} ${path.resolve(__dirname, "scripts", "dev_api_server.py")} --db-name petaccess_visual --role VISUAL --port 8011`,
+      command: `${venvPython} ${path.resolve(__dirname, "scripts", "visual_db_reset.py")} && ${venvPython} ${path.resolve(__dirname, "scripts", "dev_api_server.py")} --db-name petaccess_visual --role VISUAL --port 8013`,
       cwd: path.resolve(__dirname, "services/api"),
-      url: "http://127.0.0.1:8011/health",
+      url: "http://127.0.0.1:8013/health",
       reuseExistingServer: false,
       timeout: 180000,
       env: { ...process.env, DATABASE_URL: visualDbUrl },
@@ -40,8 +40,8 @@ export default defineConfig({
       stderr: "pipe",
     },
     {
-      command: "pnpm --filter @petaccess/client-h5 exec vite preview --host 127.0.0.1 --port 5175",
-      port: 5175,
+      command: "pnpm --filter @petaccess/client-h5 exec vite preview --host 127.0.0.1 --port 5177",
+      port: 5177,
       reuseExistingServer: true,
       timeout: 60000,
       env: feEnv,

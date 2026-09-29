@@ -20,11 +20,15 @@ test("decision home is search-first and states what is verified", async ({ page 
   await expect(page.getByTestId("home-title")).toBeVisible();
   await expect(page.getByTestId("home-search")).toBeVisible();
   await expect(page.getByTestId("home-search-input")).toBeVisible();
-  // the three query perspectives, with 看场所规则 as the default
-  await expect(page.getByTestId("perspective-rules")).toBeVisible();
-  await expect(page.getByTestId("perspective-rules")).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByTestId("perspective-animal")).toBeVisible();
-  await expect(page.getByTestId("perspective-coexist")).toBeVisible();
+  // Contract HOME_NO_PERSPECTIVE_TRIO: the old perspective pill trio is gone;
+  // the query context bar carries the active 查询 instead (see QueryContextBar).
+  await expect(page.getByTestId("query-context")).toBeVisible();
+  await expect(page.getByTestId("perspective-rules")).toHaveCount(0);
+  await expect(page.getByTestId("perspective-animal")).toHaveCount(0);
+  await expect(page.getByTestId("perspective-coexist")).toHaveCount(0);
+  // The secondary lens is a quiet link list (现场/室内/餐饮/完整规则).
+  await expect(page.getByTestId("entry-presence")).toBeVisible();
+  await expect(page.getByTestId("entry-dining")).toBeVisible();
   // §9.2/§9.4: the map is reachable, but it is a link — not the landing surface
   await expect(page.getByTestId("go-map")).toBeVisible();
   await expect(page.getByTestId("map")).toHaveCount(0);

@@ -103,7 +103,7 @@ const freshness = computed(() => freshnessLineFor(props.stale, props.fetchedAtMs
       </div>
 
       <!-- Primary Decision: the one fact the user came for -->
-      <div class="inspector-block inspector-block--decision">
+      <div class="inspector-block inspector-block--decision" data-ui="search-decision">
         <span class="inspector-block__label">结论</span>
         <p class="inspector-decision" data-testid="inspector-verdict">
           <template v-if="answerError">暂时无法取得（请检查网络后重试）</template>
@@ -116,7 +116,7 @@ const freshness = computed(() => freshnessLineFor(props.stale, props.fetchedAtMs
       </div>
 
       <!-- Conditions: one line per requirement, only when they exist -->
-      <div v-if="conditions.length" class="inspector-block">
+      <div v-if="conditions.length" class="inspector-block" data-ui="search-conditions">
         <span class="inspector-block__label">进入前需满足</span>
         <ul class="inspector-conditions">
           <li v-for="c in conditions" :key="c" class="inspector-conditions__item">
@@ -133,7 +133,7 @@ const freshness = computed(() => freshnessLineFor(props.stale, props.fetchedAtMs
       </div>
 
       <!-- Recent Reality -->
-      <div class="inspector-block">
+      <div class="inspector-block" data-ui="search-reality">
         <span class="inspector-block__label">近期现场</span>
         <p class="inspector-block__value">
           <template v-if="realityError">暂时无法取得</template>
@@ -142,7 +142,7 @@ const freshness = computed(() => freshnessLineFor(props.stale, props.fetchedAtMs
       </div>
 
       <!-- Source / freshness: quiet metadata, never the headline -->
-      <div v-if="freshness" class="inspector-block inspector-block--meta">
+      <div v-if="freshness" class="inspector-block inspector-block--meta" data-ui="search-evidence">
         <span class="inspector-block__label">时效</span>
         <p class="inspector-block__value" data-testid="inspector-freshness">{{ freshness }}</p>
       </div>
@@ -159,9 +159,7 @@ const freshness = computed(() => freshnessLineFor(props.stale, props.fetchedAtMs
     </p>
   </section>
 </template>
-
 <style scoped>
-/* Flat pane per Design Freeze §5: inspector is NOT a card. */
 /* Flat pane per Design Freeze §5: inspector is NOT a card. It fills the
  * available column height so the workspace reads as a composed two-pane
  * surface instead of a short block floating in empty canvas (Goal §3.1:

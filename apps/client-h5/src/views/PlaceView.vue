@@ -51,7 +51,6 @@ import {
   coexistenceValueLabel,
   entranceLabel,
   facilityStateLabel,
-  floorLabel,
   mandatoryLevelLabel,
   observedActionLabel,
   ruleLayerLabel,
@@ -59,7 +58,7 @@ import {
   ruleSubjectLine,
   sourceLabel,
   staffActionLabel,
-  zoneTypeLabel,
+  zoneConsumerLine,
 } from "../consumer/labels";
 import { answerConditions, answerStatusKey, answerVerdictLabel } from "../answer";
 import { presentDescription } from "../errors";
@@ -451,13 +450,12 @@ async function claimOperator() {
 /** Progressive disclosure for the History block on mobile. */
 const historyOpen = ref(false);
 </script>
-
 <template>
-  <div class="place-workspace" data-testid="place-workspace">
+  <div class="place-workspace" data-testid="place-workspace" data-ui="place-shell">
     <QueryContextBar />
     <div class="place-workspace__body" :class="{ 'place-workspace__body--split': isDesktop }">
       <!-- main dossier -->
-      <main class="place-dossier" aria-label="场所档案">
+      <main class="place-dossier" data-ui="place-dossier" aria-label="场所档案">
         <SkeletonList v-if="loading" :rows="4" />
         <StateMessage v-else-if="error" kind="ERROR" title="未能取得场所信息" :description="error">
           <template #action>
@@ -481,8 +479,8 @@ const historyOpen = ref(false);
           </StateMessage>
 
           <!-- 1. Identity -->
-          <header class="place-dossier__head">
-            <h1 class="place-dossier__name">{{ place.canonical_name }}</h1>
+          <header class="place-dossier__head" data-ui="place-identity">
+            <h1 class="place-dossier__name" data-ui="place-name">{{ place.canonical_name }}</h1>
             <p class="muted place-dossier__meta">
               {{ placeTypeLabel(place.place_type) }} ·
               {{ place.canonical_address ?? "地址未收录" }}
@@ -498,7 +496,7 @@ const historyOpen = ref(false);
           </header>
 
           <!-- 2. Current Query + Decision -->
-          <section class="place-section" data-testid="section-answer">
+          <section class="place-section" data-testid="section-answer" data-ui="place-decision">
             <h2 class="place-section__title">当前结论</h2>
             <div v-if="answer" class="sub-answer sub-answer--mine" data-testid="answer">
               <div class="sub-answer__context muted">
@@ -592,9 +590,8 @@ const historyOpen = ref(false);
               {{ answer?.evidence_state.rules[0].provenance_statement }}
             </div>
           </section>
-
           <!-- 3. Recent Reality -->
-          <section class="place-section">
+          <section class="place-section" data-ui="place-reality">
             <RealityPanel
               :snapshot="coexistence"
               :loading="!coexistenceLoaded"
@@ -602,17 +599,12 @@ const historyOpen = ref(false);
             />
           </section>
 
-          <!-- 4. Space / Zones -->
-          <section class="place-section" data-testid="zones">
+          <section class="place-section" data-testid="zones" data-ui="place-zones">
             <h2 class="place-section__title">空间与区域</h2>
             <p v-if="!zones.length" class="muted">暂无分区域信息（信息不足 ≠ 允许）</p>
-            <div v-for="z in zones" :key="z.id" class="zone-row">
+            <div v-for="z in zones" :key="z.id" class="zone-row" data-ui="zone-row">
               <span class="zone-row__name">
-                {{ z.name }}
-                <span v-if="z.floor_ref" class="tag zone-row__floor">{{
-                  floorLabel(z.floor_ref)
-                }}</span>
-                <span class="tag zone-row__type">{{ zoneTypeLabel(z.zone_type) }}</span>
+                {{ zoneConsumerLine(z) }}
               </span>
               <span class="zone-row__control">
                 <template v-if="zoneAnswer === z.id">
@@ -629,7 +621,7 @@ const historyOpen = ref(false);
           </section>
 
           <!-- 5. Rules + Conditions -->
-          <section class="place-section" data-testid="conditions">
+          <section class="place-section" data-testid="conditions" data-ui="place-rules">
             <h2 class="place-section__title">规则依据</h2>
             <div v-if="!currentRules.length" class="muted">
               暂无可靠规则结论（未收录 ≠ 没有规则）。
@@ -658,7 +650,7 @@ const historyOpen = ref(false);
           </section>
 
           <!-- 6. Evidence / Provenance -->
-          <section class="place-section" data-testid="sources">
+          <section class="place-section" data-testid="sources" data-ui="place-evidence">
             <h2 class="place-section__title">来源与时效</h2>
             <div
               v-if="passportEvidence"
@@ -755,7 +747,7 @@ const historyOpen = ref(false);
             </div>
           </section>
           <!-- 8. History / Correction (sank; disclosure on mobile) -->
-          <section class="place-section" data-testid="history">
+          <section class="place-section" data-testid="history" data-ui="place-history">
             <h2 class="place-section__title">历史版本与纠错</h2>
             <div v-if="!historyRules.length" class="muted">暂无历史版本</div>
             <div v-else>
@@ -827,7 +819,12 @@ const historyOpen = ref(false);
       </main>
 
       <!-- sticky decision inspector (desktop only) -->
-      <aside v-if="isDesktop && place" class="place-inspector" aria-label="当前决策">
+      <aside
+        v-if="isDesktop && place"
+        class="place-inspector"
+        data-ui="place-inspector"
+        aria-label="当前决策"
+      >
         <DecisionInspector
           :place="{ ...place, canonical_address: place.canonical_address ?? null }"
           :answer="answer"

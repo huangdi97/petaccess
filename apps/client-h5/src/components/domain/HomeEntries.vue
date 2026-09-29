@@ -23,7 +23,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="home-entries" role="list">
+  <div class="home-entries" role="list" data-ui="home-lens">
     <button
       v-for="e in entries"
       :key="e.key"
@@ -35,6 +35,7 @@ const emit = defineEmits<{
       <PaIcon :name="e.icon" size="lg" class="entry-icon" />
       <span class="entry-label">{{ e.label }}</span>
       <span class="entry-hint">{{ e.hint }}</span>
+      <span class="entry-arrow" aria-hidden="true">→</span>
     </button>
   </div>
 </template>
@@ -84,6 +85,13 @@ const emit = defineEmits<{
   margin-left: auto;
   font-size: var(--pa-font-size-sm);
   color: var(--pa-color-text-muted);
+}
+
+.entry-arrow {
+  margin-left: var(--pa-space-2);
+  color: var(--pa-color-accent);
+  font-size: var(--pa-font-size-lg);
+  flex-shrink: 0;
 }
 
 @media (min-width: 768px) {

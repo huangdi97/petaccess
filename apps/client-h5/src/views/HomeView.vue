@@ -15,16 +15,10 @@ import DesktopContentContainer from "../components/layout/DesktopContentContaine
 import HomeEntries from "../components/domain/HomeEntries.vue";
 import HomeNearbySection from "../components/domain/HomeNearbySection.vue";
 import QueryContextBar from "../components/domain/QueryContextBar.vue";
-import {
-  CONDITION_ZH,
-  HOME_ENTRIES,
-  PERSPECTIVES,
-  useHomeLauncher,
-} from "../composables/useHomeLauncher";
+import { CONDITION_ZH, HOME_ENTRIES, useHomeLauncher } from "../composables/useHomeLauncher";
 
 const {
   query,
-  perspective,
   recent,
   loading,
   error,
@@ -35,7 +29,6 @@ const {
   speciesLabel,
   verified,
   pending,
-  setPerspective,
   submitSearch,
   goEntry,
   open,
@@ -47,7 +40,7 @@ const {
 
 <template>
   <DesktopContentContainer mode="wide">
-    <div class="page">
+    <div class="page" data-ui="home">
       <QueryContextBar />
 
       <!-- coverage header — survives an API failure -->
@@ -78,21 +71,6 @@ const {
           查询
         </button>
       </form>
-
-      <!-- 查询视角（h5-shell.spec.ts 断言 perspective-* testid，保留为安静行内切换） -->
-      <div class="row home-perspectives" role="group" aria-label="查询视角">
-        <button
-          v-for="p in PERSPECTIVES"
-          :key="p.key"
-          class="pill"
-          :class="{ active: perspective === p.key }"
-          :aria-pressed="perspective === p.key"
-          :data-testid="'perspective-' + p.key"
-          @click="setPerspective(p.key)"
-        >
-          {{ p.label }}
-        </button>
-      </div>
 
       <!-- 最近查看：divider 行，非卡片 -->
       <section v-if="recent.length" data-testid="recent-section">
@@ -165,10 +143,6 @@ const {
   flex-direction: column;
   gap: var(--pa-space-2);
   margin-bottom: var(--pa-space-4);
-}
-
-.home-perspectives {
-  margin: 0 0 var(--pa-space-4);
 }
 
 .home-section-header {

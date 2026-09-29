@@ -1,0 +1,67 @@
+{
+  "id": "home",
+  "title": "Home Contract",
+  "viewport": { "width": 1440, "height": 900 },
+  "pages": [{ "id": "home-ready", "route": "/" }],
+  "elements": [
+    {
+      "id": "HOME_QUERY_CONTEXT",
+      "ui": "query-context",
+      "fallbacks": ["[data-testid='query-context']"],
+      "props": { "count": { "min": 1 } },
+      "severity": "FAIL"
+    },
+    {
+      "id": "HOME_PRIMARY_SEARCH",
+      "ui": "home-search",
+      "fallbacks": ["[data-testid='home-search']"],
+      "props": { "count": { "min": 1 } },
+      "severity": "FAIL"
+    },
+    {
+      "id": "HOME_SEARCH_INPUT_HEIGHT",
+      "ui": "home-search-input",
+      "fallbacks": ["[data-testid='home-search-input']"],
+      "props": { "height": { "min": 44 } },
+      "severity": "FAIL"
+    },
+    {
+      "id": "HOME_NEARBY_SECTION",
+      "ui": "home-nearby",
+      "fallbacks": ["[data-testid='home-freshness'], [data-testid='home-empty']"],
+      "props": { "count": { "min": 1 } },
+      "severity": "WARN"
+    }
+  ],
+  "structure": [
+    {
+      "id": "HOME_NO_PERSPECTIVE_TRIO",
+      "selector": "[data-ui='home-perspectives'], .home-perspectives, [data-testid^='perspective-']",
+      "max": 0,
+      "severity": "FAIL"
+    },
+    {
+      "id": "HOME_NO_FEATURE_CARD_WALL",
+      "selector": "[data-ui='home'] .feature-card, .home-feature-card",
+      "max": 0,
+      "severity": "FAIL"
+    },
+    {
+      "id": "HOME_LENS_IS_LINK_ROWS",
+      "selector": "[data-ui='home-lens'], .home-lens",
+      "containsArrows": true,
+      "severity": "WARN"
+    }
+  ],
+  "density": [
+    {
+      "id": "HOME_MAX_SEMANTIC_GAP",
+      "selector": "[data-ui='home']",
+      "metric": "largestVerticalGap",
+      "max": 180,
+      "severity": "FAIL"
+    }
+  ],
+  "language": { "uuid": true, "enums": true, "invariants": true, "allcapsTokens": true },
+  "notes": "Home is a task launcher, not a dashboard. Order: Location -> Query -> Search -> Recent -> Nearby -> Lens."
+}

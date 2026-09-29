@@ -217,6 +217,8 @@
   --pa-layout-result-pane: 400px;
   /* Sticky decision inspector width on the Place dossier. */
   --pa-layout-inspector: 320px;
+  /* Detail content column: never stretch the full pane (Freeze §25.6). */
+  --pa-layout-detail-content: 720px;
   --pa-layout-header-height: 56px;
   --pa-layout-content-max: 1200px;
   --pa-layout-content-narrow: 640px;

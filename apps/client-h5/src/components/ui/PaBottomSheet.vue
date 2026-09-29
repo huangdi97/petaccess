@@ -7,9 +7,13 @@
  */
 import { onBeforeUnmount, onMounted } from "vue";
 
-const props = withDefaults(defineProps<{ open: boolean; title?: string | null }>(), {
-  title: null,
-});
+const props = withDefaults(
+  defineProps<{ open: boolean; title?: string | null; ui?: string | null }>(),
+  {
+    title: null,
+    ui: null,
+  },
+);
 
 const emit = defineEmits<{ close: [] }>();
 
@@ -26,7 +30,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onWindowKey));
 
 <template>
   <Teleport to="body">
-    <div class="pa-sheet" data-state="sheet">
+    <div class="pa-sheet" data-state="sheet" :data-ui="props.ui ?? undefined">
       <!-- v-show so the panel keeps its transform transition while closed. -->
       <div v-show="open" class="pa-sheet__overlay" @click.self="emit('close')"></div>
       <section

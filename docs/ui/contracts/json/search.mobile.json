@@ -1,0 +1,74 @@
+{
+  "id": "search.mobile",
+  "title": "Search Mobile Contract",
+  "viewport": { "width": 430, "height": 932 },
+  "pages": [
+    { "id": "search-mobile-ready", "route": "/#/search" },
+    {
+      "id": "search-mobile-filter",
+      "route": "/#/search",
+      "interactions": [
+        {
+          "clickSelectors": ["[data-testid='filter-toggle']"],
+          "waitForSelector": "[data-ui='search-filter-sheet']"
+        }
+      ]
+    }
+  ],
+  "elements": [
+    {
+      "id": "SEARCH_MOBILE_DETAIL_PANE_ABSENT",
+      "ui": "search-detail-pane",
+      "fallbacks": ["[data-testid='decision-inspector']"],
+      "props": { "count": { "max": 0 } },
+      "severity": "FAIL"
+    },
+    {
+      "id": "SEARCH_MOBILE_INPUT_HEIGHT",
+      "ui": "search-input",
+      "fallbacks": ["[data-testid='search-input']"],
+      "props": { "height": { "min": 44 } },
+      "severity": "FAIL"
+    },
+    {
+      "id": "SEARCH_MOBILE_ROW_HEIGHT",
+      "ui": "search-result-row",
+      "fallbacks": ["ul.result-list li"],
+      "props": { "height": { "min": 104, "max": 132 } },
+      "severity": "FAIL",
+      "aggregate": "rows"
+    },
+    {
+      "id": "SEARCH_MOBILE_FILTER_TOGGLE",
+      "ui": "search-filter-toggle",
+      "fallbacks": ["[data-testid='filter-toggle']"],
+      "props": { "count": { "min": 1 } },
+      "severity": "FAIL"
+    }
+  ],
+  "structure": [
+    {
+      "id": "SEARCH_MOBILE_NO_CARD_ROWS",
+      "selector": "ul.result-list li",
+      "forbiddenClass": ["card", "panel"],
+      "severity": "FAIL"
+    },
+    {
+      "id": "SEARCH_MOBILE_FILTER_IS_SHEET",
+      "selector": "[data-testid='search-filter-sheet'], [data-ui='search-filter-sheet']",
+      "minVisibleAfterClick": 1,
+      "severity": "FAIL"
+    }
+  ],
+  "density": [
+    {
+      "id": "SEARCH_MOBILE_FIRST_VIEWPORT_FILL",
+      "selector": "[data-ui='search-results-pane'], .search-result-pane",
+      "metric": "contentHeightInViewport",
+      "min": 200,
+      "severity": "WARN"
+    }
+  ],
+  "language": { "uuid": true, "enums": true, "invariants": true, "allcapsTokens": true },
+  "notes": "Mobile = single column + drill-down; filter opens a bottom sheet with top radius 16px, drag handle, title, options, actions."
+}

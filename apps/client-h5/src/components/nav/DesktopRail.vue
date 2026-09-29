@@ -43,6 +43,7 @@ const envLabel = import.meta.env.DEV ? "development" : "production";
   <aside
     class="desktop-rail"
     data-testid="desktop-rail"
+    data-ui="app-rail"
     :style="{ zIndex: `var(${Z_INDEX.sticky})` }"
     aria-label="主导航"
   >

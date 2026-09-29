@@ -15,7 +15,12 @@
     "client:dev": "pnpm --filter @petaccess/client dev:h5",
     "lint:fe": "eslint .",
     "format:fe": "prettier --write .",
-    "format:check:fe": "prettier --check ."
+    "format:check:fe": "prettier --check .",
+    "ui:probe": "pnpm exec playwright test -c playwright.ui-oracle.config.ts",
+    "ui:capture": "pnpm ui:probe",
+    "ui:contract": "node --experimental-strip-types tools/ui-oracle/compare.ts",
+    "ui:language": "node --experimental-strip-types tools/ui-oracle/run-language.ts",
+    "ui:density": "node --experimental-strip-types tools/ui-oracle/run-density.ts"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

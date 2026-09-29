@@ -6,9 +6,14 @@
  * a *renderer only*: clustering, coverage and location state live in
  * `@petaccess/client-core` so switching to the Tencent SDK replaces this
  * component and nothing else.
+ *
+ * Spatial language (contract MAP_MOCK_*): the surface carries a light SVG
+ * basemap — road-like lines, block polygons, a subtle river/green area —
+ * plus a zoom affordance, so the map reads as a space, never a grey grid with
+ * a single number. Markers stay provider-neutral divs with semantic glyphs.
  */
 import { computed } from "vue";
-import type { MapCamera, MapCluster, MapPolygon, MapMarker } from "@petaccess/client-core";
+import type { MapCamera, MapCluster, MapMarker } from "@petaccess/client-core";
 import { STATUS_GLYPHS } from "@petaccess/client-core";
 
 const props = withDefaults(
@@ -16,9 +21,8 @@ const props = withDefaults(
     camera: MapCamera;
     clusters: MapCluster[];
     selectedId?: string | null;
-    polygons?: MapPolygon[];
   }>(),
-  { selectedId: null, polygons: () => [] },
+  { selectedId: null },
 );
 
 const emit = defineEmits<{ select: [cluster: MapCluster] }>();
@@ -26,25 +30,10 @@ const emit = defineEmits<{ select: [cluster: MapCluster] }>();
 /** Degrees of longitude visible at this zoom (deterministic, provider-free). */
 const spanDeg = computed(() => 0.02 / Math.max(1, props.camera.zoom / 14));
 
-/**
- * Projection, clamped so the whole pin box stays inside the surface.
- *
- * A pin is drawn *above* its anchor (`.map-pin` is `translate(-50%, -100%)`),
- * so clamping the anchor to 8% of the 260px surface put the top row of pins at
- * y = -23: `overflow: hidden` cut each pin in half, and the topmost pin's centre
- * landed on the container's edge, where the topmost element at that point is
- * `.map-mock` rather than the pin. Playwright said so in as many words
- * (".map-mock intercepts pointer events") — which is exactly what a thumb aimed
- * at the middle of that marker would also hit.
- *
- * The reserve is expressed in CSS px via `clamp()`, not as a percentage: the
- * room a pin needs above its anchor is 44px regardless of how wide or tall the
- * surface happens to be, and only the browser knows that width. The two numbers
- * mirror `.map-pin { min-height: 44px }` and half of its 63px-wide label box.
- */
+/** Projection, clamped so the whole pin box stays inside the surface. */
 const PIN_HEIGHT_PX = 44;
 const PIN_HALF_WIDTH_PX = 32;
-/** Keeps pins off the bottom edge, where `.map-mock`'s border sits. */
+/** Keeps pins off the bottom edge, where the surface border sits. */
 const MAX_Y_PCT = 88;
 
 function project(lat: number, lng: number): { left: string; top: string } {
@@ -57,15 +46,44 @@ function project(lat: number, lng: number): { left: string; top: string } {
 }
 
 const glyph = (status: MapMarker["status"]) => STATUS_GLYPHS[status] ?? STATUS_GLYPHS.UNKNOWN;
+
+/** Deterministic spatial skeleton: roads, blocks, a river/green ribbon. */
+const ROADS = ["M 0 128 L 260 96", "M 0 224 L 260 208", "M 76 0 L 96 260", "M 180 0 L 196 260"];
+const BLOCKS = [
+  "96,96 180,96 180,208 96,208",
+  "20,150 76,150 76,224 20,224",
+  "196,96 260,96 260,208 196,208",
+];
+const RIVER = "M 0 40 Q 130 60 260 40 L 260 84 Q 130 104 0 84 Z";
 </script>
 
 <template>
-  <div class="map-surface" data-testid="map-surface">
+  <div class="map-surface" data-testid="map-surface" data-ui="mock-map">
+    <!-- 空间基底：道路/街区/水系（SVG，纯表现，不承载数据语义） -->
+    <svg
+      class="map-basemap"
+      viewBox="0 0 260 260"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path class="basemap-river" :d="RIVER" />
+      <polygon v-for="b in BLOCKS" :key="b" class="basemap-block" :points="b" />
+      <path v-for="r in ROADS" :key="r" class="basemap-road" :d="r" />
+    </svg>
+
+    <div class="map-zoom" data-testid="map-zoom" data-ui="map-zoom" role="group" aria-label="缩放">
+      <button type="button" aria-label="放大" disabled>＋</button>
+      <button type="button" aria-label="缩小" disabled>－</button>
+    </div>
+
     <div
       v-for="c in clusters"
       :key="c.id"
       class="map-pin"
       :class="{ 'map-pin--selected': selectedId === c.memberIds[0] }"
+      :data-selected="selectedId === c.memberIds[0] ? 'true' : undefined"
+      :data-ui="selectedId === c.memberIds[0] ? 'map-marker-selected' : 'map-marker'"
       :style="project(c.lat, c.lng)"
       :data-testid="c.count > 1 ? 'cluster-' + c.id : 'pin-' + c.memberIds[0]"
       :aria-label="`${c.count} 个场所，${glyph(c.status)}`"
@@ -90,3 +108,146 @@ const glyph = (status: MapMarker["status"]) => STATUS_GLYPHS[status] ?? STATUS_G
     <div v-if="!clusters.length" class="map-empty muted">当前视野内暂无已收录场所</div>
   </div>
 </template>
+
+<style scoped>
+.map-surface {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 480px;
+  overflow: hidden;
+}
+
+/* 空间基底：轻量道路/街区/水系 —— 不是灰网格+数字。 */
+.map-basemap {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.basemap-road {
+  fill: none;
+  stroke: var(--pa-color-map-grid-b);
+  stroke-width: 4;
+}
+
+.basemap-block {
+  fill: var(--pa-color-map-grid-a);
+  stroke: var(--pa-color-border-subtle);
+  stroke-width: 1;
+}
+
+.basemap-river {
+  fill: var(--pa-color-reality-observed-bg);
+  opacity: 0.55;
+}
+
+/* 缩放控件：空间感 affordance（mock 阶段为展示性控件）。 */
+.map-zoom {
+  position: absolute;
+  right: var(--pa-space-3);
+  top: var(--pa-space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-1);
+  z-index: 2;
+}
+
+.map-zoom button {
+  width: var(--pa-size-control-lg);
+  height: var(--pa-size-control-lg);
+  border: var(--pa-border-width) solid var(--pa-color-border);
+  border-radius: var(--pa-radius-control);
+  background: var(--pa-color-surface);
+  color: var(--pa-color-text-primary);
+  font-size: var(--pa-font-size-lg);
+  cursor: default;
+}
+
+/* ---- pins ---- */
+.map-pin {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+  min-height: var(--pa-size-control-lg);
+  min-width: 32px;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.map-pin--selected {
+  z-index: 3;
+}
+
+.map-cluster {
+  min-width: 24px;
+  height: 24px;
+  border-radius: var(--pa-radius-pill);
+  color: var(--pa-color-text-inverse);
+  font-size: var(--pa-font-size-sm);
+  font-weight: var(--pa-font-weight-bold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--pa-space-1);
+}
+
+.lbl {
+  font-size: var(--pa-font-size-sm);
+  font-weight: var(--pa-font-weight-medium);
+  white-space: nowrap;
+  background: var(--pa-color-map-label-bg);
+  border-radius: var(--pa-radius-sm);
+  padding: 0 var(--pa-space-1);
+  color: var(--pa-color-text-primary);
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: var(--pa-radius-pill);
+  border: 2px solid var(--pa-color-map-pin-border);
+}
+
+.map-pin--selected .dot {
+  width: 16px;
+  height: 16px;
+  box-shadow: var(--pa-elevation-2);
+}
+
+/* status fills mirror the app's status tokens (s-* classes from app sheet). */
+.s-ALLOWED,
+.s-MATCH {
+  background: var(--pa-color-status-allowed);
+}
+
+.s-CONDITIONAL {
+  background: var(--pa-color-status-conditional);
+}
+
+.s-RESTRICTED {
+  background: var(--pa-color-status-restricted);
+}
+
+.s-UNKNOWN {
+  background: var(--pa-color-status-unknown);
+}
+
+.s-CONFLICT {
+  background: var(--pa-color-status-conflict);
+}
+
+.map-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+</style>

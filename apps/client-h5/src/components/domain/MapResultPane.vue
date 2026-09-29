@@ -1,12 +1,14 @@
 <script setup lang="ts">
 /**
  * MapResultPane — the map workspace's result pane (freeze §9): location row,
- * search shortcut, status filters, loading/error/empty/coverage/list rows.
+ * search shortcut, status filters (筛选 N toggle + panel, never a pill wall),
+ * loading/error/empty/coverage/list rows.
  *
  * Divider-led rows with radius 0 (no cards); the map canvas in the parent
  * stays the dominant surface. "信息不足" is a first-class filter that is off
  * by default — filtering never hides unknown places silently.
  */
+import { ref } from "vue";
 import { EMPTY_STATE_COPY } from "@petaccess/design-tokens";
 import {
   LOCATION_LABELS,
@@ -15,7 +17,6 @@ import {
   type MapMarker,
   type PlaceSummary,
 } from "@petaccess/client-core";
-import FilterChips from "../FilterChips.vue";
 import SkeletonList from "../SkeletonList.vue";
 import StateMessage from "../StateMessage.vue";
 import StatusBadge from "../StatusBadge.vue";
@@ -48,10 +49,19 @@ const STATUS_FILTERS = [
   { key: "UNKNOWN", label: "信息不足" },
   { key: "CONFLICT", label: "来源不一致" },
 ];
+/** 筛选 N 面板开合（desktop popover / mobile inline panel）。 */
+const filterOpen = ref(false);
+
+function toggleFilter(key: string) {
+  const next = props.filters.includes(key)
+    ? props.filters.filter((k) => k !== key)
+    : [...props.filters, key];
+  emit("update:filters", next);
+}
 </script>
 
 <template>
-  <section class="map-pane" aria-label="附近场所">
+  <section class="map-pane" data-ui="map-result-pane" aria-label="附近场所">
     <h2 class="map-pane__title">附近场所</h2>
     <div class="map-pane__head">
       <div class="row map-pane__locate">
@@ -74,12 +84,43 @@ const STATUS_FILTERS = [
       </p>
     </div>
 
-    <FilterChips
-      :model-value="props.filters"
-      :options="STATUS_FILTERS"
-      hint="筛选是可选的：信息不足的场所默认仍然显示（信息不足 ≠ 允许）。"
-      @update:model-value="emit('update:filters', $event)"
-    />
+    <!-- 筛选：单个「筛选 N」入口 + 面板（contract MAP_NO_FILTER_PILL_WALL = 0）。 -->
+    <div class="map-filter" data-ui="map-filter">
+      <button
+        type="button"
+        class="map-filter__toggle"
+        data-testid="map-filter-toggle"
+        data-ui="map-filter-toggle"
+        :aria-expanded="filterOpen"
+        @click="filterOpen = !filterOpen"
+      >
+        筛选{{ props.filters.length ? ` ${props.filters.length}` : "" }}
+      </button>
+      <div v-if="filterOpen" class="map-filter__panel" data-ui="map-filter-panel">
+        <div v-for="f in STATUS_FILTERS" :key="f.key" class="map-filter__row">
+          <label>
+            <input
+              type="checkbox"
+              :checked="props.filters.includes(f.key)"
+              @change="toggleFilter(f.key)"
+            />
+            {{ f.label }}
+          </label>
+        </div>
+        <button
+          v-if="props.filters.length"
+          type="button"
+          class="map-filter__clear"
+          data-testid="filter-clear"
+          @click="emit('clearFilters')"
+        >
+          清除筛选
+        </button>
+        <p class="muted map-filter__hint">
+          筛选是可选的：信息不足的场所默认仍然显示（信息不足 ≠ 允许）。
+        </p>
+      </div>
+    </div>
 
     <SkeletonList v-if="props.loading" :rows="3" />
     <StateMessage
@@ -174,6 +215,55 @@ const STATUS_FILTERS = [
   margin: 0 0 var(--pa-space-2);
   font-size: var(--pa-font-size-lg);
   font-weight: var(--pa-font-weight-medium);
+}
+
+/* 筛选入口 + 面板：单入口，不铺 pill wall。 */
+.map-filter {
+  margin: var(--pa-space-2) 0;
+}
+
+.map-filter__toggle {
+  border: var(--pa-border-width) solid var(--pa-color-border);
+  border-radius: var(--pa-radius-control);
+  background: var(--pa-color-surface);
+  color: var(--pa-color-text-primary);
+  padding: var(--pa-space-1) var(--pa-space-3);
+  font-size: var(--pa-font-size-md);
+  cursor: pointer;
+}
+
+.map-filter__panel {
+  margin-top: var(--pa-space-2);
+  border-top: var(--pa-border-width) solid var(--pa-color-border);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border);
+  padding: var(--pa-space-2) 0;
+}
+
+.map-filter__row {
+  min-height: var(--pa-size-control-md);
+  display: flex;
+  align-items: center;
+}
+
+.map-filter__row input {
+  width: auto;
+  margin-right: var(--pa-space-2);
+}
+
+.map-filter__clear {
+  border: none;
+  background: none;
+  color: var(--pa-color-text-muted);
+  font-size: var(--pa-font-size-md);
+  min-height: var(--pa-size-control-md);
+  padding: var(--pa-space-1) var(--pa-space-2);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.map-filter__hint {
+  margin: var(--pa-space-1) 0 0;
 }
 
 /* 附近场所行：divider 列表行，radius 0，非卡片。 */

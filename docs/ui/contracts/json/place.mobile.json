@@ -1,0 +1,70 @@
+{
+  "id": "place.mobile",
+  "title": "Place Mobile Contract",
+  "viewport": { "width": 430, "height": 932 },
+  "pages": [
+    { "id": "place-mobile-ready", "route": "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e" }
+  ],
+  "elements": [
+    {
+      "id": "PLACE_MOBILE_INSPECTOR_ABSENT",
+      "ui": "place-inspector",
+      "fallbacks": ["[data-testid='decision-inspector']"],
+      "props": { "count": { "max": 0 } },
+      "severity": "FAIL"
+    },
+    {
+      "id": "PLACE_MOBILE_NAME_VISIBLE",
+      "ui": "place-name",
+      "fallbacks": [".place-dossier__name", "h1"],
+      "props": { "count": { "min": 1 } },
+      "severity": "FAIL"
+    },
+    {
+      "id": "PLACE_MOBILE_DECISION_VISIBLE",
+      "ui": "place-decision",
+      "fallbacks": ["[data-testid='section-answer'], [data-testid='answer-status']"],
+      "props": { "count": { "min": 1 } },
+      "severity": "FAIL"
+    },
+    {
+      "id": "PLACE_MOBILE_DECISION_SIZE",
+      "fallbacks": ["[data-testid='answer-status']"],
+      "props": { "fontSize": { "min": 22, "max": 26 } },
+      "severity": "WARN"
+    }
+  ],
+  "structure": [
+    {
+      "id": "PLACE_MOBILE_HISTORY_COLLAPSED",
+      "selector": "[data-ui='place-history'], [class*='history']",
+      "disclosureDefault": "collapsed",
+      "severity": "WARN"
+    },
+    {
+      "id": "PLACE_MOBILE_ZONES_NOT_CARDS",
+      "selector": ".zone-row",
+      "forbiddenClass": ["card", "panel"],
+      "severity": "FAIL"
+    }
+  ],
+  "density": [
+    {
+      "id": "PLACE_MOBILE_FIRST_VIEWPORT_LINES",
+      "selector": "body",
+      "metric": "firstViewportVisibleTextLines",
+      "max": 40,
+      "warnAt": 30,
+      "severity": "WARN"
+    },
+    {
+      "id": "PLACE_MOBILE_MAX_GAP",
+      "selector": "[data-ui='place-dossier']",
+      "metric": "largestVerticalGap",
+      "max": 180,
+      "severity": "FAIL"
+    }
+  ],
+  "language": { "uuid": true, "enums": true, "invariants": true, "allcapsTokens": true },
+  "notes": "Mobile = single column, no inspector. History/versions collapsed by default (progressive disclosure). First viewport: name + decision + 1 supporting fact."
+}
