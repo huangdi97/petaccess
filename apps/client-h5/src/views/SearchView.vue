@@ -3,7 +3,7 @@
  * Search — List–Detail Workspace (UI_RECONSTRUCTION_DESIGN_FREEZE §9).
  *
  * Desktop: rail + 380–420px result pane + remaining detail inspector.
- * Result rows are divider-led (identity → type·distance → PRIMARY DECISION →
+ * Result rows are divider-led (identity → type·address → PRIMARY DECISION →
  * 1 key condition → recent reality); the selected row gets a subtle tint plus
  * a single left indicator; the filter is a light panel (desktop) / bottom
  * sheet (mobile), never a pill wall.
@@ -36,8 +36,15 @@ import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
 import StatusBadge from "../components/StatusBadge.vue";
 import { answerConditions, answerStatusKey, answerVerdictLabel } from "../answer";
-import { lensOrderScore, lensProjection, type ConsumerLens } from "../consumer/rowView";
-import { evidenceLineFor, freshnessLineFor, realityLineFor } from "../consumer/rowView";
+import {
+  evidenceLineFor,
+  freshnessLineFor,
+  lensOrderScore,
+  lensProjection,
+  realityLineFor,
+  recentLineFor,
+  type ConsumerLens,
+} from "../consumer/rowView";
 import { placeTypeLabel, ruleSummaryLabel } from "../consumer/labels";
 import { useBreakpoint } from "../composables/useBreakpoint";
 import { useOnline } from "../composables/useOnline";
@@ -448,6 +455,7 @@ const selectedId = ref<string | null>(null);
           >
             {{ freshnessLineFor(listStale, listFetchedAtMs, !online) }}
           </p>
+          <p class="search-count" data-testid="search-count">找到 {{ visible.length }} 个结果</p>
           <ul class="result-list" role="list">
             <li
               v-for="p in visible"
@@ -463,6 +471,7 @@ const selectedId = ref<string | null>(null);
                 @mouseenter="selectPlace(p)"
                 @focus="selectPlace(p)"
               >
+                <!-- head: identity left, recency + status right -->
                 <div class="result-row__head">
                   <div class="result-row__identity">
                     <strong class="result-row__name">{{ p.canonical_name }}</strong>
@@ -471,11 +480,15 @@ const selectedId = ref<string | null>(null);
                       <template v-if="p.distance_m"> · {{ Math.round(p.distance_m) }}m</template>
                     </span>
                   </div>
-                  <StatusBadge :semantic="statuses[p.id] ?? 'UNKNOWN'" />
+                  <div class="result-row__head-right">
+                    <span v-if="recentLineFor(facts.get(p.id)?.reality)" class="result-row__recent">
+                      {{ recentLineFor(facts.get(p.id)?.reality) }}
+                    </span>
+                    <StatusBadge :semantic="statuses[p.id] ?? 'UNKNOWN'" />
+                  </div>
                 </div>
 
-                <!-- M3.1 lens projection：真实改变 Consumer 呈现（rule-first / reality-first），
-                     不改变任何 domain 事实；indoor/dining 仅上浮服务端返回的 observed_zones。 -->
+                <!-- lens projection (presentation-only) -->
                 <template v-if="lensKey">
                   <p
                     v-if="lensProjectionFor(p).headline === 'rule' && facts.get(p.id)?.answer"
@@ -507,40 +520,37 @@ const selectedId = ref<string | null>(null);
                 >
                   规则结论暂时无法取得 —— 请检查网络后重试。
                 </p>
-                <template v-else-if="facts.get(p.id)?.answer">
-                  <!-- PRIMARY DECISION: the one line the user scans for -->
-                  <p class="result-row__decision" data-testid="row-rule">
-                    {{ answerVerdictLabel(facts.get(p.id)?.answer) }}
-                  </p>
-                  <!-- 1 key condition only -->
-                  <p v-if="rowCondition(p)" class="muted result-row__condition">
-                    {{ rowCondition(p) }}
-                  </p>
-                </template>
+                <!-- primary decision: verdict + 1 key condition on one dense line -->
+                <p
+                  v-else-if="facts.get(p.id)?.answer"
+                  class="result-row__decision"
+                  data-testid="row-rule"
+                >
+                  {{ answerVerdictLabel(facts.get(p.id)?.answer) }}
+                  <span v-if="rowCondition(p)" class="result-row__condition">
+                    · {{ rowCondition(p) }}
+                  </span>
+                </p>
 
-                <!-- Reality 摘要 + Evidence/Freshness 元数据 -->
+                <!-- reality + evidence: one quiet line -->
                 <div class="result-row__reality" data-testid="result-reality">
                   <p v-if="facts.get(p.id)?.realityError" class="result-row__error">
                     现场信息暂时无法取得 —— 请检查网络后重试。
                   </p>
-                  <template v-else>
-                    <p>{{ realityLineFor(facts.get(p.id)?.reality) }}</p>
-                    <p v-if="evidenceLineFor(facts.get(p.id)?.reality)" class="muted">
-                      {{ evidenceLineFor(facts.get(p.id)?.reality) }}
-                    </p>
-                  </template>
+                  <p v-else>
+                    {{ realityLineFor(facts.get(p.id)?.reality) }}
+                    <span v-if="evidenceLineFor(facts.get(p.id)?.reality)" class="muted">
+                      · {{ evidenceLineFor(facts.get(p.id)?.reality) }}
+                    </span>
+                  </p>
                 </div>
 
-                <!-- 极轻元数据：规则材料存在性；父场所只保留在桌面且不抢视觉 -->
+                <!-- 极轻元数据：规则材料存在性 + 父场所 -->
                 <div class="result-row__rules" data-testid="result-rules">
                   {{ ruleSummaryLabel(p) }}
-                </div>
-                <div
-                  v-if="p.parent_place_name"
-                  class="muted result-row__branch"
-                  data-testid="result-branch"
-                >
-                  所属 {{ p.parent_place_name }}
+                  <span v-if="p.parent_place_name" class="muted" data-testid="result-branch">
+                    · 所属 {{ p.parent_place_name }}
+                  </span>
                 </div>
               </RouterLink>
             </li>
@@ -587,8 +597,9 @@ const selectedId = ref<string | null>(null);
 @media (min-width: 768px) {
   .search-workspace__body--split {
     flex-direction: row;
-    align-items: flex-start;
-    max-width: none;
+    align-items: stretch;
+    max-width: 1180px;
+    margin: 0 auto;
   }
 
   .search-result-pane {
@@ -600,8 +611,10 @@ const selectedId = ref<string | null>(null);
   .search-inspector {
     flex: 1 1 auto;
     min-width: 0;
+    max-width: 560px;
     position: sticky;
     top: var(--pa-space-4);
+    align-self: stretch;
   }
 }
 
@@ -693,6 +706,12 @@ const selectedId = ref<string | null>(null);
   margin: var(--pa-space-2) 0;
 }
 
+.search-count {
+  margin: var(--pa-space-2) 0;
+  font-size: var(--pa-font-size-md);
+  color: var(--pa-color-text-muted);
+}
+
 .result-list {
   list-style: none;
   margin: 0;
@@ -722,11 +741,10 @@ const selectedId = ref<string | null>(null);
 
 .result-row__link {
   display: block;
-  padding: var(--pa-space-3) var(--pa-space-2);
+  padding: var(--pa-space-3) var(--pa-space-1);
   text-decoration: none;
   color: inherit;
 }
-
 .result-row__link:hover {
   background: var(--pa-color-surface-interactive);
 }
@@ -738,6 +756,23 @@ const selectedId = ref<string | null>(null);
   gap: var(--pa-space-3);
 }
 
+.result-row__identity {
+  min-width: 0;
+}
+
+.result-row__head-right {
+  display: flex;
+  align-items: center;
+  gap: var(--pa-space-2);
+  flex-shrink: 0;
+}
+
+.result-row__recent {
+  font-size: var(--pa-font-size-sm);
+  color: var(--pa-color-text-muted);
+  white-space: nowrap;
+}
+
 .result-row__name {
   font-size: var(--pa-font-size-lg);
   font-weight: var(--pa-font-weight-medium);
@@ -747,17 +782,21 @@ const selectedId = ref<string | null>(null);
 .result-row__meta {
   display: block;
   margin-top: var(--pa-space-1);
+  font-size: var(--pa-font-size-md);
 }
 
-/* Primary decision: the scannable line of the row. */
-.result-row__decision {
+.result-row__meta {
+  overflow-wrap: anywhere;
+}
+
+.result-row__conclusion {
   margin: var(--pa-space-2) 0 0;
   font-size: var(--pa-font-size-lg);
   font-weight: var(--pa-font-weight-medium);
   color: var(--pa-color-text-primary);
 }
 
-.result-row__condition {
+.result-row__zonefacts {
   margin: var(--pa-space-1) 0 0;
   font-size: var(--pa-font-size-md);
 }
@@ -767,8 +806,18 @@ const selectedId = ref<string | null>(null);
   color: var(--pa-color-text-secondary);
 }
 
-.result-row__zonefacts {
-  margin: var(--pa-space-1) 0 0;
+/* Primary decision: the scannable line of the row; condition sits inline. */
+.result-row__decision {
+  margin: var(--pa-space-2) 0 0;
+  font-size: var(--pa-font-size-lg);
+  font-weight: var(--pa-font-weight-medium);
+  color: var(--pa-color-text-primary);
+}
+
+.result-row__condition {
+  font-size: var(--pa-font-size-md);
+  font-weight: var(--pa-font-weight-regular);
+  color: var(--pa-color-text-secondary);
 }
 
 .result-row__reality {
@@ -779,26 +828,23 @@ const selectedId = ref<string | null>(null);
 }
 
 .result-row__reality p {
-  margin: 0 0 var(--pa-space-1);
+  margin: 0;
 }
 
-/* 极轻元数据：规则材料存在性（13px），不参与决策扫描。 */
 .result-row__rules {
   margin-top: var(--pa-space-2);
   font-size: var(--pa-font-size-sm);
   color: var(--pa-color-text-disabled);
 }
 
-.result-row__branch {
-  margin-top: var(--pa-space-1);
-  font-size: var(--pa-font-size-sm);
+.result-row__rules .muted {
+  color: var(--pa-color-text-disabled);
 }
 
 /* Mobile compression (Goal §33): ≤4 visual groups; rule-count / branch noise
  * does not belong on a phone scan. */
 @media (max-width: 767px) {
-  .result-row__rules,
-  .result-row__branch {
+  .result-row__rules {
     display: none;
   }
 

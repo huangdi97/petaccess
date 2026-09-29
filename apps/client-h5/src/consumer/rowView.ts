@@ -33,6 +33,12 @@ export function evidenceLineFor(reality: RealityAnswer | null | undefined): stri
   return parts.join(" · ");
 }
 
+/** Compact recency line for a result row's right side — "N 天前记录". */
+export function recentLineFor(reality: RealityAnswer | null | undefined): string {
+  if (!reality || reality.days_since_last_seen == null) return "";
+  return `${reality.days_since_last_seen} 天前记录`;
+}
+
 /**
  * Lens projection for a row. Returns which layer is headlined and, for the
  * indoor / dining lenses, the observed zones to surface — all server facts.

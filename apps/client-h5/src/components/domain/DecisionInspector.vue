@@ -4,12 +4,15 @@
  * Search = List–Detail Workspace; Place = Dossier + Decision Inspector).
  *
  * VISUAL FIDELITY (Goal §3.1): this is a *judgment surface*, not a database
- * detail table. The old `<dl>` label/value rows read as an engineering form
- * ("Current Context / Condition / Recent Reality / Evidence all at equal
- * weight"); the hierarchy is now explicit:
+ * detail table and not a card. The old `<dl>` label/value rows read as an
+ * engineering form; the hierarchy is now explicit:
  *
  *   Identity → Current Context → PRIMARY DECISION (large) → Conditions →
  *   Major Exception → Recent Reality → Source/Freshness.
+ *
+ * Per Design Freeze §5 the inspector is a flat pane: no border, no radius, no
+ * card background — only a bottom divider that separates it from the next
+ * surface, and the decision block carries a thick accent left edge.
  *
  * Only the 3–5 facts that answer the current query are shown (freeze §9);
  * the full dossier stays on the Place page. Data flows in as props (never
@@ -158,15 +161,20 @@ const freshness = computed(() => freshnessLineFor(props.stale, props.fetchedAtMs
 </template>
 
 <style scoped>
+/* Flat pane per Design Freeze §5: inspector is NOT a card. */
+/* Flat pane per Design Freeze §5: inspector is NOT a card. It fills the
+ * available column height so the workspace reads as a composed two-pane
+ * surface instead of a short block floating in empty canvas (Goal §3.1:
+ * "空而不静" — the inspector must own its space). */
 .decision-inspector {
   display: flex;
   flex-direction: column;
   gap: var(--pa-space-5);
   min-width: 0;
-  padding: var(--pa-space-5);
-  border: var(--pa-border-width) solid var(--pa-color-border);
-  border-radius: var(--pa-radius-md);
-  background: var(--pa-color-surface);
+  min-height: calc(100vh - 112px);
+  align-self: stretch;
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border);
+  padding-bottom: var(--pa-space-5);
 }
 
 .decision-inspector__head {
@@ -214,11 +222,10 @@ const freshness = computed(() => freshnessLineFor(props.stale, props.fetchedAtMs
   overflow-wrap: anywhere;
 }
 
-/* Primary decision: the loudest line on the surface. */
+/* Primary decision: thick accent left edge — the loudest line on the pane. */
 .inspector-block--decision {
-  padding: var(--pa-space-3) var(--pa-space-4);
   border-left: var(--pa-border-width-strong) solid var(--pa-color-accent);
-  background: var(--pa-color-bg-sunken);
+  padding-left: var(--pa-space-4);
 }
 
 .inspector-decision {
@@ -276,7 +283,7 @@ const freshness = computed(() => freshnessLineFor(props.stale, props.fetchedAtMs
 /* Narrow screens: keep the decision legible without shrinking the body type. */
 @media (max-width: 767px) {
   .decision-inspector {
-    padding: var(--pa-space-4);
+    padding-bottom: var(--pa-space-4);
   }
 
   .inspector-decision {

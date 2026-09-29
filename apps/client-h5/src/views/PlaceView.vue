@@ -903,7 +903,7 @@ const historyOpen = ref(false);
 
 /* Sections: divider-led rhythm, not a flat wall of equal-weight panels. */
 .place-section {
-  margin-bottom: var(--pa-space-6);
+  margin-bottom: var(--pa-space-5);
 }
 
 .place-section__title {
@@ -920,19 +920,30 @@ const historyOpen = ref(false);
   color: var(--pa-color-text-secondary);
 }
 
-/* Current query + decision: the loudest block of the dossier. */
+/* Current query + decision: flat divider-led blocks (Freeze §5 — NOT cards). */
 .sub-answer {
-  padding: var(--pa-space-3) var(--pa-space-4);
-  border: var(--pa-border-width) solid var(--pa-color-border);
-  border-radius: var(--pa-radius-md);
-  margin-bottom: var(--pa-space-3);
-  background: var(--pa-color-surface);
+  padding: var(--pa-space-3) 0;
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.sub-answer:last-child {
+  border-bottom: none;
 }
 
 .sub-answer--mine {
   border-left: var(--pa-border-width-strong) solid var(--pa-color-accent);
+  padding-left: var(--pa-space-4);
 }
 
+.sub-answer .status {
+  font-size: var(--pa-font-size-26);
+  font-weight: var(--pa-font-weight-medium);
+  margin: var(--pa-space-1) 0;
+}
+
+.sub-answer__context {
+  margin: 0 0 var(--pa-space-1);
+}
 .sub-answer .status {
   font-size: var(--pa-font-size-26);
   font-weight: var(--pa-font-weight-medium);
