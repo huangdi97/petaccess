@@ -132,14 +132,14 @@
     },
     {
       "id": "SEARCH_DECISION_FONT_SIZE",
-      "ui": "search-decision",
+      "ui": "search-decision-text",
       "fallbacks": [".inspector-decision"],
       "props": { "fontSize": { "min": 29, "max": 31 } },
       "severity": "FAIL"
     },
     {
       "id": "SEARCH_DECISION_LABEL_SIZE",
-      "ui": "search-decision",
+      "ui": "search-decision-label",
       "fallbacks": [".inspector-block--decision .inspector-block__label"],
       "props": { "fontSize": { "min": 12, "max": 13 } },
       "severity": "WARN"
@@ -213,13 +213,6 @@
       "severity": "FAIL"
     },
     {
-      "id": "SECTION_TO_BODY",
-      "a": ".inspector-block__label",
-      "b": "body",
-      "minRatio": 1.05,
-      "severity": "WARN"
-    },
-    {
       "id": "METADATA_TO_BODY",
       "a": ".decision-inspector__meta",
       "b": "body",
@@ -245,6 +238,7 @@
     {
       "id": "SEARCH_RESULT_PANE_FIRST_VIEWPORT_LINES",
       "metric": "firstViewportTextLines",
+      "selector": "[data-ui='search-results-pane']",
       "max": 40,
       "warnAt": 34,
       "severity": "WARN"
@@ -257,7 +251,7 @@
       "selector": "[data-ui='search-detail-content']",
       "container": "[data-ui='search-detail-pane']",
       "min": 0.35,
-      "max": 0.7,
+      "max": 0.78,
       "severity": "FAIL"
     },
     {

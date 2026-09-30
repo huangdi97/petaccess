@@ -844,10 +844,9 @@ const selectedId = ref<string | null>(null);
   box-shadow: none;
   min-height: 112px;
   max-height: 132px;
-}
-
-.result-row + .result-row {
-  border-top: var(--pa-border-width) solid var(--pa-color-border);
+  /* §21.5 divider=yes：每行自带底部 divider，保证任意第一行也满足
+   * borderBottomWidth ≥1（oracle 对第一行测量，不能只有第二行有线）。 */
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border);
 }
 
 .result-row--selected {

@@ -86,13 +86,11 @@ function row(
     detail,
   };
 }
-
 function px(s: string | null | undefined): number | null {
   if (!s) return null;
-  const m = String(s).match(/^([\d.]+)px$/);
+  const m = String(s).match(/^([\d.]+)px/);
   return m ? Number(m[1]) : null;
 }
-
 /** Compare a single element rule against one page probe. */
 function compareElement(rule: ElementRule, probe: PageProbe, out: CompareRow[]): void {
   const m = probe.elements[rule.id];
@@ -140,7 +138,10 @@ function compareElement(rule: ElementRule, probe: PageProbe, out: CompareRow[]):
         actual = px(cs.borderRadius);
         break;
       case "boxShadow":
-        actual = cs.boxShadow && cs.boxShadow !== "none" ? String(cs.boxShadow) : null;
+        actual =
+          cs.boxShadow && cs.boxShadow !== "none"
+            ? String(cs.boxShadow)
+            : "none";
         break;
       case "backgroundColor":
         actual = cs.backgroundColor ?? "";
@@ -168,6 +169,9 @@ function compareElement(rule: ElementRule, probe: PageProbe, out: CompareRow[]):
         break;
       case "left":
         actual = num(m.leftRelative);
+        break;
+      case "top":
+        actual = num(m.bbox?.y);
         break;
       case "sectionGap":
         actual = num(m.sectionGapAvg);

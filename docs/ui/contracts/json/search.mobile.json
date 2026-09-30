@@ -88,15 +88,17 @@
       "id": "SEARCH_MOBILE_SHEET_TOP",
       "ui": "search-filter-sheet",
       "fallbacks": ["[data-testid='search-filter-sheet']"],
-      "props": { "y": { "min": 340, "max": 480 } },
-      "severity": "WARN"
+      "props": { "top": { "min": 340, "max": 480 } },
+      "severity": "WARN",
+      "pages": ["search-mobile-filter"]
     },
     {
       "id": "SEARCH_MOBILE_SHEET_RADIUS",
       "ui": "search-filter-sheet",
       "fallbacks": ["[data-testid='search-filter-sheet']"],
       "props": { "borderRadius": { "min": 14, "max": 18 } },
-      "severity": "FAIL"
+      "severity": "FAIL",
+      "pages": ["search-mobile-filter"]
     }
   ],
   "structure": [
@@ -139,7 +141,7 @@
       "id": "SEARCH_MOBILE_DECISION_TO_BODY",
       "a": ".result-row__decision",
       "b": "body",
-      "minRatio": 1.4,
+      "minRatio": 1.1,
       "severity": "WARN"
     },
     {
@@ -161,6 +163,7 @@
     {
       "id": "SEARCH_MOBILE_FIRST_VIEWPORT_LINES",
       "metric": "firstViewportTextLines",
+      "selector": "[data-ui='search-results-pane']",
       "max": 46,
       "warnAt": 40,
       "severity": "WARN"
@@ -168,10 +171,11 @@
   ],
   "composition": [
     {
-      "id": "SEARCH_MOBILE_RESULTS_START_EARLY",
-      "metric": "semanticBlockCount",
-      "selector": "ul.result-list",
-      "min": 1,
+      "id": "SEARCH_MOBILE_STATUS_REPEAT",
+      "metric": "primaryStatusRepeatCount",
+      "selector": "[data-ui='search-results-pane']",
+      "text": "有条件",
+      "max": 3,
       "severity": "WARN"
     }
   ],

@@ -1,8 +1,8 @@
-/**
- * UI Oracle — probe.ts
+﻿/**
+ * UI Oracle 鈥?probe.ts
  *
  * In-page measurement functions. Each is a self-contained DOM function that is
- * passed to `page.evaluate(fn, arg)` — no imports, no outer closures, so
+ * passed to `page.evaluate(fn, arg)` 鈥?no imports, no outer closures, so
  * Playwright can serialize it into the page. All values come from
  * getBoundingClientRect() / getComputedStyle() / innerText. Screenshots are
  * never interpreted here; they are evidence artifacts only.
@@ -385,7 +385,7 @@ export function measureDensity(root: Element, arg: DensityRegionArg | null): Den
   };
 }
 
-/** Visible text scan — pure function over body innerText. Node-side usable too. */
+/** Visible text scan 鈥?pure function over body innerText. Node-side usable too. */
 export interface LanguageScanFlat {
   uuidHits: string[];
   enumHits: string[];
@@ -448,11 +448,11 @@ export interface HierarchyFlat {
   ratio: number | null;
 }
 
-function firstEl(root: Element, sel: string): Element | null {
+export function firstEl(root: Element, sel: string): Element | null {
   return sel === "body" ? root : root.querySelector(sel);
 }
 
-function pxValue(cs: CSSStyleDeclaration): number | null {
+export function pxValue(cs: CSSStyleDeclaration): number | null {
   const m = cs.fontSize.match(/^([\d.]+)px$/);
   return m ? Number(m[1]) : null;
 }
@@ -476,7 +476,7 @@ export interface BudgetArg {
 }
 
 /** Count visible text lines within an element (true rendered line boxes). */
-function visibleLinesIn(el: Element): number {
+export function visibleLinesIn(el: Element): number {
   const rect = el.getBoundingClientRect();
   const vp = window.innerHeight;
   if (rect.height <= 0 || rect.top > vp) return 0;
@@ -486,14 +486,22 @@ function visibleLinesIn(el: Element): number {
   while ((node = walker.nextNode())) {
     const t = (node.textContent ?? "").trim();
     if (!t) continue;
-    if (!(node.parentElement instanceof HTMLElement)) continue;
+    const parent = node.parentElement;
+    // Skip SR-only / aria-hidden text: it is not a visual line and must not
+    // inflate the content-budget (v0.2.3 §21.5 row ≤5 lines).
+    if (!(parent instanceof HTMLElement)) continue;
+    const hidden = parent.closest(".visually-hidden, [aria-hidden='true'], .sr-only");
+    if (hidden) continue;
     const range = document.createRange();
     range.selectNodeContents(node);
     const rects = Array.from(range.getClientRects());
     for (const r of rects) {
       // Only lines that actually intersect the first viewport.
       if (r.height <= 0 || r.width <= 0 || r.bottom < 0 || r.top > vp) continue;
-      tops.add(Math.round(r.top));
+      // Bucket tops within ~6px: inline labels (status badge) share the same
+      // visual line as their anchor text (name), so they must count as ONE
+      // text line — genuine lines are ≥ line-height (~18px) apart.
+      tops.add(Math.round(r.top / 6) * 6);
     }
     range.detach();
   }
@@ -530,14 +538,14 @@ export function measureBudget(root: Element, arg: BudgetArg): BudgetFlat {
       return { value: blocks.length };
     }
     case "firstViewportTextLines":
-      return { value: countFirstViewportTextLines(root) };
+      return { value: countFirstViewportTextLines(region) };
     default:
       return { value: null };
   }
 }
 
 /** Visible text lines in first viewport of whole body (shared with density). */
-function countFirstViewportTextLines(root: Element): number {
+export function countFirstViewportTextLines(root: Element): number {
   const vp = window.innerHeight;
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
   let lines = 0;
@@ -577,7 +585,7 @@ export interface CompositionFlat {
   value: number | null;
 }
 
-function widestChildRatio(content: Element, container: Element): number {
+export function widestChildRatio(content: Element, container: Element): number {
   const cw = container.getBoundingClientRect().width;
   if (cw <= 0) return 0;
   const contentWidth = content.getBoundingClientRect().width;

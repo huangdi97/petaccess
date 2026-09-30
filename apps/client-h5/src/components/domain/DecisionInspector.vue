@@ -107,7 +107,6 @@ const freshness = computed(() => freshnessLineFor(props.stale, props.fetchedAtMs
           {{ place.canonical_address ?? "地址待补充" }}
         </p>
       </header>
-
       <!-- Current Context -->
       <div class="inspector-block inspector-block--context">
         <span class="inspector-block__label">当前查询</span>
@@ -116,8 +115,8 @@ const freshness = computed(() => freshnessLineFor(props.stale, props.fetchedAtMs
 
       <!-- Primary Decision: the one fact the user came for -->
       <div class="inspector-block inspector-block--decision" data-ui="search-decision">
-        <span class="inspector-block__label">结论</span>
-        <p class="inspector-decision" data-testid="inspector-verdict">
+        <span class="inspector-block__label" data-ui="search-decision-label">结论</span>
+        <p class="inspector-decision" data-ui="search-decision-text" data-testid="inspector-verdict">
           <template v-if="answerError">暂时无法取得（请检查网络后重试）</template>
           <template v-else-if="answer">{{ verdict }}</template>
           <template v-else>尚未核验</template>
@@ -126,7 +125,6 @@ const freshness = computed(() => freshnessLineFor(props.stale, props.fetchedAtMs
           {{ scope }}
         </p>
       </div>
-
       <!-- Conditions: one line per requirement, only when they exist -->
       <div v-if="conditions.length" class="inspector-block" data-ui="search-conditions">
         <span class="inspector-block__label">进入前需满足</span>
@@ -198,6 +196,11 @@ const freshness = computed(() => freshnessLineFor(props.stale, props.fetchedAtMs
   display: flex;
   flex-direction: column;
   gap: var(--pa-space-1);
+}
+
+/* §22：detail 内容列最大 704px，不铺满整个 DetailPane（972）。 */
+.decision-inspector--search {
+  max-width: var(--pa-layout-detail-content);
 }
 
 .decision-inspector__title-row {

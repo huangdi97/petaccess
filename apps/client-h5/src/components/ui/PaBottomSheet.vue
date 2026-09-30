@@ -30,12 +30,13 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onWindowKey));
 
 <template>
   <Teleport to="body">
-    <div class="pa-sheet" data-state="sheet" :data-ui="props.ui ?? undefined">
+    <div class="pa-sheet" data-state="sheet">
       <!-- v-show so the panel keeps its transform transition while closed. -->
       <div v-show="open" class="pa-sheet__overlay" @click.self="emit('close')"></div>
       <section
         class="pa-sheet__panel"
         :class="{ 'pa-sheet__panel--open': open }"
+        :data-ui="props.ui ?? undefined"
         role="dialog"
         aria-modal="true"
         :aria-label="title ?? undefined"

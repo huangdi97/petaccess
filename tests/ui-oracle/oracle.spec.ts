@@ -21,6 +21,8 @@ import type { ContractSchema, PageDef } from "../../tools/ui-oracle/contracts.ts
 import { pageEval } from "../../tools/ui-oracle/page-eval.ts";
 import {
   checkCollapsed,
+  countFirstViewportTextLines,
+  firstEl,
   leftRelativeToPane,
   measureBudget,
   measureComposition,
@@ -29,9 +31,12 @@ import {
   measureHierarchy,
   measureState,
   measureStructure,
+  pxValue,
   resolveSelector,
   scanLanguage,
   scanRefs,
+  visibleLinesIn,
+  widestChildRatio,
 } from "../../tools/ui-oracle/probe.ts";
 
 const STAGE = process.env.UI_ORACLE_STAGE ?? "baseline";
@@ -63,20 +68,29 @@ const STRUCTURE_HELPERS: Record<string, (...args: never[]) => unknown> = {
   checkCollapsed: checkCollapsed as unknown as (...args: never[]) => unknown,
 };
 
+
 const DENSITY_HELPERS: Record<string, (...args: never[]) => unknown> = {
   measureDensity: measureDensity as unknown as (...args: never[]) => unknown,
-}
+};
 
 const HIERARCHY_HELPERS: Record<string, (...args: never[]) => unknown> = {
   measureHierarchy: measureHierarchy as unknown as (...args: never[]) => unknown,
+  firstEl: firstEl as unknown as (...args: never[]) => unknown,
+  pxValue: pxValue as unknown as (...args: never[]) => unknown,
 };
 
 const BUDGET_HELPERS: Record<string, (...args: never[]) => unknown> = {
   measureBudget: measureBudget as unknown as (...args: never[]) => unknown,
+  visibleLinesIn: visibleLinesIn as unknown as (...args: never[]) => unknown,
+  countFirstViewportTextLines: countFirstViewportTextLines as unknown as (
+    ...args: never[]
+  ) => unknown,
+  pxValue: pxValue as unknown as (...args: never[]) => unknown,
 };
 
 const COMPOSITION_HELPERS: Record<string, (...args: never[]) => unknown> = {
   measureComposition: measureComposition as unknown as (...args: never[]) => unknown,
+  widestChildRatio: widestChildRatio as unknown as (...args: never[]) => unknown,
 };
 
 const STATE_HELPERS: Record<string, (...args: never[]) => unknown> = {
@@ -362,6 +376,11 @@ async function runContract(
     await settle(page);
     await expect(page.getByTestId("consumer-app-shell").first()).toBeVisible({ timeout: 15000 });
 
+    // Interactions (e.g. mobile filter bottom sheet) run FIRST so every probe
+    // below measures the DOM state the screenshot will actually show — sheet
+    // radius/geometry only exists while the sheet is open (O6 honesty).
+    await runInteractions(page, pageDef);
+
     const elements: Record<string, unknown> = {};
     for (const rule of contract.elements ?? []) {
       elements[rule.id] = await probeElement(page, rule);
@@ -389,18 +408,14 @@ async function runContract(
     for (const rule of contract.composition ?? []) {
       composition[rule.id] = await probeComposition(page, rule);
     }
-    const state = await probeState(page);
     const language = await probeLanguage(page);
-
-    // Interactions (e.g. mobile filter bottom sheet) then re-measure
-    // minVisibleAfterClick structure rules.
-    await runInteractions(page, pageDef);
     for (const rule of contract.structure ?? []) {
       if (rule.minVisibleAfterClick !== undefined) {
         const v = await visibleCountOf(page, rule.selector);
         (structure[rule.id] as { visibleCountAfterClick?: number }).visibleCountAfterClick = v;
       }
     }
+    const state = await probeState(page);
 
     const shotName = `${contract.id}-${pageDef.id}.png`;
     await page.screenshot({ path: path.join(SCREEN_DIR, shotName), fullPage: false });
