@@ -430,3 +430,264 @@ export function scanLanguage(text: string): LanguageScanFlat {
   }
   return { uuidHits, enumHits, invariantHits, allcapsHits };
 }
+
+/* --- v0.2.3 Oracle v2: O3 hierarchy / O4 budget / O5 composition / O6 state - */
+
+export interface HierarchyArg {
+  a: string;
+  b: string;
+}
+
+export interface HierarchyFlat {
+  aFontSize: number | null;
+  bFontSize: number | null;
+  ratio: number | null;
+}
+
+function firstEl(root: Element, sel: string): Element | null {
+  return sel === "body" ? root : root.querySelector(sel);
+}
+
+function pxValue(cs: CSSStyleDeclaration): number | null {
+  const m = cs.fontSize.match(/^([\d.]+)px$/);
+  return m ? Number(m[1]) : null;
+}
+
+/** O3: ratio = fontSize(a) / fontSize(b) for the first matching elements. */
+export function measureHierarchy(root: Element, arg: HierarchyArg): HierarchyFlat {
+  const a = firstEl(root, arg.a);
+  const b = firstEl(root, arg.b);
+  const aFontSize = a ? pxValue(getComputedStyle(a)) : null;
+  const bFontSize = b ? pxValue(getComputedStyle(b)) : null;
+  const ratio =
+    aFontSize !== null && bFontSize !== null && bFontSize > 0
+      ? Math.round((aFontSize / bFontSize) * 100) / 100
+      : null;
+  return { aFontSize, bFontSize, ratio };
+}
+
+export interface BudgetArg {
+  metric: "rowTextLines" | "firstViewportBlocks" | "firstViewportTextLines";
+  selector?: string;
+}
+
+/** Count visible text lines within an element (rough: height / line-height). */
+function visibleLinesIn(el: Element): number {
+  const rect = el.getBoundingClientRect();
+  const cs = getComputedStyle(el);
+  const lh = pxValue(cs);
+  if (!lh || rect.height <= 0) return 1;
+  const vp = window.innerHeight;
+  const visibleH = Math.max(0, Math.min(rect.height, vp - rect.top));
+  return Math.max(1, Math.round(visibleH / lh));
+}
+
+export interface BudgetFlat {
+  value: number | null;
+}
+
+/** O4: content-budget metrics over a region / first viewport. */
+export function measureBudget(root: Element, arg: BudgetArg): BudgetFlat {
+  const region = arg.selector ? root.querySelector(arg.selector) ?? root : root;
+  switch (arg.metric) {
+    case "rowTextLines": {
+      // Aggregated over every row match: each row's visible text lines.
+      const rows = Array.from(region.querySelectorAll("[data-ui*='row' i], li")).filter(
+        (el) => el.getBoundingClientRect().height > 0,
+      );
+      if (rows.length === 0) return { value: visibleLinesIn(region) };
+      const perRow = rows.map((r) => visibleLinesIn(r));
+      return { value: Math.max(...perRow) };
+    }
+    case "firstViewportBlocks": {
+      const vp = window.innerHeight;
+      const blocks = Array.from(
+        region.querySelectorAll(
+          "[data-ui-block], section, article, h2, h3, [class*='section'], [class*='block']",
+        ),
+      ).filter((el) => {
+        const r = el.getBoundingClientRect();
+        return r.height > 0 && r.top >= 0 && r.top < vp;
+      });
+      return { value: blocks.length };
+    }
+    case "firstViewportTextLines":
+      return { value: countFirstViewportTextLines(root) };
+    default:
+      return { value: null };
+  }
+}
+
+/** Visible text lines in first viewport of whole body (shared with density). */
+function countFirstViewportTextLines(root: Element): number {
+  const vp = window.innerHeight;
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  let lines = 0;
+  let node: Node | null;
+  const seen = new Set<string>();
+  while ((node = walker.nextNode()) && lines < 400) {
+    const t = (node.textContent ?? "").trim();
+    if (!t) continue;
+    const el = node.parentElement;
+    if (!el) continue;
+    const r = el.getBoundingClientRect();
+    if (r.top < 0 || r.top > vp) continue;
+    const key = t.slice(0, 24);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const cs = getComputedStyle(el);
+    const lh = pxValue(cs);
+    lines += 1;
+    if (lh) lines += Math.max(0, Math.floor((r.height - 4) / lh) - 1);
+  }
+  return lines;
+}
+
+export interface CompositionArg {
+  metric:
+    | "contentOccupancy"
+    | "inspectorOccupancy"
+    | "largestVerticalGap"
+    | "primaryStatusRepeatCount"
+    | "semanticBlockCount";
+  selector?: string;
+  container?: string;
+  text?: string;
+}
+
+export interface CompositionFlat {
+  value: number | null;
+}
+
+function widestChildRatio(content: Element, container: Element): number {
+  const cw = container.getBoundingClientRect().width;
+  if (cw <= 0) return 0;
+  const contentWidth = content.getBoundingClientRect().width;
+  const maxChild = Array.from(content.children).reduce((max, ch) => {
+    const w = ch.getBoundingClientRect().width;
+    return w > max ? w : max;
+  }, contentWidth);
+  return Math.round((Math.min(maxChild, cw) / cw) * 100) / 100;
+}
+
+/** O5: composition metrics (occupancy / gap / status-repeat / block count). */
+export function measureComposition(root: Element, arg: CompositionArg): CompositionFlat {
+  const region = arg.selector ? root.querySelector(arg.selector) ?? root : root;
+  switch (arg.metric) {
+    case "contentOccupancy": {
+      const container = arg.container ? root.querySelector(arg.container) ?? root : root;
+      return { value: widestChildRatio(region, container) };
+    }
+    case "inspectorOccupancy": {
+      const container = arg.container ? root.querySelector(arg.container) ?? root : root;
+      const cw = container.getBoundingClientRect().width;
+      if (cw <= 0) return { value: 0 };
+      const w = region.getBoundingClientRect().width;
+      return { value: Math.round((w / cw) * 100) / 100 };
+    }
+    case "largestVerticalGap": {
+      const kids = Array.from(region.children)
+        .map((k) => k.getBoundingClientRect())
+        .filter((r) => r.height > 0 && r.top >= 0);
+      if (kids.length < 2) return { value: 0 };
+      kids.sort((a, b) => a.top - b.top);
+      let maxGap = 0;
+      for (let i = 1; i < kids.length; i += 1) {
+        maxGap = Math.max(maxGap, kids[i]!.top - kids[i - 1]!.bottom);
+      }
+      return { value: maxGap };
+    }
+    case "primaryStatusRepeatCount": {
+      if (!arg.text) return { value: 0 };
+      const vp = window.innerHeight;
+      const hits = Array.from(region.querySelectorAll("div, span, p, h1, h2, h3, section")).filter(
+        (el) => {
+          const r = el.getBoundingClientRect();
+          if (r.height <= 0 || r.top < 0 || r.top > vp) return false;
+          const own = (el.textContent ?? "").trim();
+          if (own !== arg.text) return false;
+          // Only count leaf-ish nodes (no descendant with identical full text).
+          const children = Array.from(el.children);
+          return !children.some((c) => (c.textContent ?? "").trim() === own);
+        },
+      );
+      return { value: hits.length };
+    }
+    case "semanticBlockCount": {
+      const vp = window.innerHeight;
+      const blocks = Array.from(
+        region.querySelectorAll(
+          "[data-ui-block], section, article, h2, h3, [class*='section'], [class*='block']",
+        ),
+      ).filter((el) => {
+        const r = el.getBoundingClientRect();
+        return r.height > 0 && r.top >= 0 && r.top < vp;
+      });
+      return { value: blocks.length };
+    }
+    default:
+      return { value: null };
+  }
+}
+
+export interface StateArg {
+  page?: string;
+  state?: string;
+  fixture?: string;
+  componentCounts?: Array<{ selector: string; min: number }>;
+}
+
+export interface StateFlat {
+  route: string;
+  page: string | null;
+  state: string | null;
+  fixture: string | null;
+  h1: string | null;
+  entityId: string | null;
+  resultCount: number | null;
+  selectedId: string | null;
+  componentCounts: Record<string, number>;
+}
+
+/** O6: real captured page state read from DOM / URL (never hand-written). */
+export function measureState(root: Element, _arg: StateArg | null): StateFlat {
+  const host = root.querySelector("[data-ui-page]") ?? root;
+  const h1 = root.querySelector("h1");
+  const resultCountEl = root.querySelector("[data-ui='search-count']");
+  const selected = root.querySelector("[data-ui*='selected']");
+  const counts: Record<string, number> = {};
+  for (const el of root.querySelectorAll("[data-ui-count]")) {
+    const name = el.getAttribute("data-ui-count") ?? "";
+    if (name) counts[name] = Number(el.textContent ?? NaN) || 0;
+  }
+  return {
+    route: location.hash,
+    page: host.getAttribute("data-ui-page"),
+    state: host.getAttribute("data-ui-state"),
+    fixture: host.getAttribute("data-ui-fixture"),
+    h1: h1 ? (h1.textContent ?? "").trim() : null,
+    entityId:
+      host.getAttribute("data-ui-entity-id") ??
+      host.getAttribute("data-entity-id") ??
+      (location.hash.match(/place\/([0-9a-f-]{36})/i)?.[1] ?? null),
+    resultCount: resultCountEl ? Number(resultCountEl.textContent ?? NaN) || null : null,
+    selectedId: selected?.getAttribute("data-ui") ?? null,
+    componentCounts: counts,
+  };
+}
+
+/* --- language v0.2.3: refs (ADR/RFC/TD/AC/PR) scan ------------------------ */
+
+const ADR_RE = /\bADR-\d+\b/gi;
+const RFC_RE = /\bRFC-\d+\b/gi;
+const TD_RE = /\bTD-\d+\b/gi;
+const AC_RE = /\bAC-[A-Z0-9-]+\b/gi;
+const PR_RE = /\bPR-\d+\b/gi;
+
+export function scanRefs(text: string): string[] {
+  const out = new Set<string>();
+  for (const re of [ADR_RE, RFC_RE, TD_RE, AC_RE, PR_RE]) {
+    for (const m of text.matchAll(re)) out.add(m[0].toUpperCase());
+  }
+  return [...out].sort();
+}

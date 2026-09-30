@@ -30,6 +30,7 @@ interface ScanRow {
   snakeCase: string[];
   allcaps: string[];
   invariants: string[];
+  refs: string[];
 }
 
 export function runLanguageScan(stage: string): ScanRow[] {
@@ -63,18 +64,16 @@ export function runLanguageScan(stage: string): ScanRow[] {
           snakeCase: lang.enumHits,
           invariants: lang.invariantHits,
           allcaps: lang.allcapsHits,
+          refs: lang.refHits,
         }),
         uuid: lang.uuidHits,
         snakeCase: lang.enumHits,
         allcaps: lang.allcapsHits,
         invariants: lang.invariantHits,
+        refs: lang.refHits,
       });
     }
   }
-  writeFileSync(
-    OUT_FILE,
-    JSON.stringify({ stage, generatedAt: new Date().toISOString(), rows }, null, 2),
-  );
   writeFileSync(
     OUT_FILE,
     JSON.stringify({ stage, generatedAt: new Date().toISOString(), rows }, null, 2),
@@ -91,7 +90,7 @@ if (
   const fails = rows.filter((r) => r.verdict === "FAIL");
   for (const r of rows) {
     console.log(
-      `[language:${STAGE}] ${r.contractId}/${r.pageId}: ${r.verdict}${r.snakeCase.length ? ` enums=${r.snakeCase.join(",")}` : ""}${r.uuid.length ? ` uuid=${r.uuid.join(",")}` : ""}${r.invariants.length ? ` inv=${r.invariants.join(",")}` : ""}`,
+      `[language:${STAGE}] ${r.contractId}/${r.pageId}: ${r.verdict}${r.snakeCase.length ? ` enums=${r.snakeCase.join(",")}` : ""}${r.uuid.length ? ` uuid=${r.uuid.join(",")}` : ""}${r.invariants.length ? ` inv=${r.invariants.join(",")}` : ""}${r.refs.length ? ` refs=${r.refs.join(",")}` : ""}`,
     );
   }
   console.log(`[language:${STAGE}] total=${rows.length} FAIL=${fails.length}`);

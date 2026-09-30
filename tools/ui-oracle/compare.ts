@@ -23,6 +23,10 @@ import type {
   PageProbe,
   RangeSpec,
   StructureRule,
+  BudgetRule,
+  CompositionRule,
+  HierarchyRule,
+  StateExpectation,
 } from "./contracts.ts";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -67,7 +71,7 @@ function inRange(actual: number | null, spec: RangeSpec): boolean {
 function row(
   id: string,
   kind: CompareRow["kind"],
-  target: unknown,
+  target: CompareRow["target"],
   actual: unknown,
   ok: boolean,
   sev: "FAIL" | "WARN",
@@ -465,6 +469,178 @@ function compareLanguage(
       ),
     );
   }
+  if (flags.refs) {
+    out.push(
+      row(
+        `${probe.pageId}-REFS`,
+        "language",
+        "refs=0",
+        l.refHits,
+        l.refHits.length === 0,
+        "FAIL",
+        `hits=${l.refHits.join(",")}`,
+      ),
+    );
+  }
+}
+
+function compareHierarchy(
+  rule: HierarchyRule,
+  probe: PageProbe,
+  out: CompareRow[],
+): void {
+  const m = probe.hierarchy[rule.id];
+  if (!m) {
+    out.push({
+      id: rule.id,
+      kind: "hierarchy",
+      target: rule.id,
+      actual: null,
+      result: "FAIL",
+      detail: "no probe",
+    });
+    return;
+  }
+  const ratio = num(m.ratio);
+  if (rule.minRatio !== undefined) {
+    out.push(
+      row(
+        rule.id,
+        "hierarchy",
+        `ratio>=${rule.minRatio}`,
+        ratio,
+        ratio !== null && ratio >= rule.minRatio,
+        rule.severity,
+        `ratio=${ratio} a=${m.aFontSize}px b=${m.bFontSize}px`,
+      ),
+    );
+  }
+  if (rule.maxRatio !== undefined) {
+    out.push(
+      row(
+        rule.id,
+        "hierarchy",
+        `ratio<=${rule.maxRatio}`,
+        ratio,
+        ratio !== null && ratio <= rule.maxRatio,
+        rule.severity,
+        `ratio=${ratio} a=${m.aFontSize}px b=${m.bFontSize}px`,
+      ),
+    );
+  }
+}
+
+function compareBudget(rule: BudgetRule, probe: PageProbe, out: CompareRow[]): void {
+  const m = probe.budget[rule.id];
+  if (!m) {
+    out.push({
+      id: rule.id,
+      kind: "budget",
+      target: rule.id,
+      actual: null,
+      result: "FAIL",
+      detail: "no probe",
+    });
+    return;
+  }
+  const spec: RangeSpec = {};
+  if (rule.min !== undefined) spec.min = rule.min;
+  if (rule.max !== undefined) spec.max = rule.max;
+  const actual = num(m.value);
+  out.push(
+    row(
+      rule.id,
+      "budget",
+      spec,
+      actual,
+      inRange(actual, spec),
+      rule.severity,
+      `actual=${actual} metric=${rule.metric}`,
+    ),
+  );
+}
+
+function compareComposition(
+  rule: CompositionRule,
+  probe: PageProbe,
+  out: CompareRow[],
+): void {
+  const m = probe.composition[rule.id];
+  if (!m) {
+    out.push({
+      id: rule.id,
+      kind: "composition",
+      target: rule.id,
+      actual: null,
+      result: "FAIL",
+      detail: "no probe",
+    });
+    return;
+  }
+  const spec: RangeSpec = {};
+  if (rule.min !== undefined) spec.min = rule.min;
+  if (rule.max !== undefined) spec.max = rule.max;
+  const actual = num(m.value);
+  out.push(
+    row(
+      rule.id,
+      "composition",
+      spec,
+      actual,
+      inRange(actual, spec),
+      rule.severity,
+      `actual=${actual} metric=${rule.metric}`,
+    ),
+  );
+}
+
+function compareState(
+  expect: StateExpectation,
+  probe: PageProbe,
+  out: CompareRow[],
+): void {
+  const s = probe.state;
+  const emit = (
+    id: string,
+    field: string,
+    expected: unknown,
+    actual: unknown,
+  ): void => {
+    out.push(
+      row(
+        `${probe.pageId}-${id}`,
+        "state",
+        field,
+        expected,
+        String(actual) === String(expected),
+        "FAIL",
+        `expected=${String(expected)} actual=${String(actual)} route=${s.route}`,
+      ),
+    );
+  };
+  if (expect.page !== undefined) emit("PAGE", "page", expect.page, s.page);
+  if (expect.state !== undefined) emit("STATE", "state", expect.state, s.state);
+  if (expect.fixture !== undefined) emit("FIXTURE", "fixture", expect.fixture, s.fixture);
+  if (expect.h1 !== undefined) emit("H1", "h1", expect.h1, s.h1);
+  if (expect.entityId !== undefined) emit("ENTITY", "entityId", expect.entityId, s.entityId);
+  if (expect.resultCount !== undefined) {
+    emit("COUNT", "resultCount", expect.resultCount, s.resultCount);
+  }
+  if (expect.selectedId !== undefined) emit("SELECTED", "selectedId", expect.selectedId, s.selectedId);
+  for (const c of expect.componentCounts ?? []) {
+    const actual = s.componentCounts[c.selector] ?? 0;
+    out.push(
+      row(
+        `${probe.pageId}-COMP-${c.selector}`,
+        "state",
+        `count>=${c.min}`,
+        actual,
+        actual >= c.min,
+        "FAIL",
+        `selector=${c.selector} count=${actual}`,
+      ),
+    );
+  }
 }
 
 /** Compare one contract (all its pages) and produce a single artifact. */
@@ -478,6 +654,7 @@ export function compareContract(contract: ContractSchema): CompareArtifact | nul
   // page wins for first-match. Rules may scope to specific page ids (`pages`)
   // so state-specific assertions (entry vs guard, ready vs empty) stay precise.
   for (const pageProbe of probe.pages) {
+    const pageDef = contract.pages.find((p) => p.id === pageProbe.pageId);
     for (const rule of contract.elements ?? []) {
       if (!applies(pageProbe.pageId, rule.pages)) continue;
       compareElement(rule, pageProbe, rows);
@@ -490,6 +667,19 @@ export function compareContract(contract: ContractSchema): CompareArtifact | nul
       if (!applies(pageProbe.pageId, rule.pages)) continue;
       compareDensity(rule, pageProbe, rows);
     }
+    for (const rule of contract.hierarchy ?? []) {
+      if (!applies(pageProbe.pageId, rule.pages)) continue;
+      compareHierarchy(rule, pageProbe, rows);
+    }
+    for (const rule of contract.budget ?? []) {
+      if (!applies(pageProbe.pageId, rule.pages)) continue;
+      compareBudget(rule, pageProbe, rows);
+    }
+    for (const rule of contract.composition ?? []) {
+      if (!applies(pageProbe.pageId, rule.pages)) continue;
+      compareComposition(rule, pageProbe, rows);
+    }
+    if (pageDef?.expect) compareState(pageDef.expect, pageProbe, rows);
     compareLanguage(contract.language, pageProbe, rows);
   }
   // Dedup identical (id, kind, result) rows keeping the worst (FAIL > WARN > PASS).

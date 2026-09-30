@@ -11,7 +11,13 @@
  *                required texts, disclosure defaults);
  *   - density:   aggregate metrics measured over a region (gaps, line counts,
  *                block counts, overflow);
- *   - language:  visible-text scan flags (uuid / enums / invariants / ALL_CAPS).
+ *   - hierarchy: relative font-size ratios between two selectors (O3);
+ *   - budget:    content-budget line / block counts in a region (O4);
+ *   - composition: occupancy / max gap / status-repeat / first-viewport block
+ *                counts (O5);
+ *   - state:     capture-state integrity expectations (O6);
+ *   - language:  visible-text scan flags (uuid / enums / invariants / ALL_CAPS
+ *                / refs).
  */
 export type Severity = "FAIL" | "WARN";
 
@@ -73,6 +79,79 @@ export interface DensityRule {
   pages?: string[];
 }
 
+/* --- v0.2.3 Oracle v2 新增四层 ------------------------------------------- */
+
+/** O3 相对层级：两个选择器命中元素的计算 font-size 之比。 */
+export interface HierarchyRule {
+  id: string;
+  /** 上层元素选择器（分子）。 */
+  a: string;
+  /** 基线元素选择器（分母，通常是 body 文本）。 */
+  b: string;
+  minRatio?: number;
+  maxRatio?: number;
+  severity: Severity;
+  pages?: string[];
+}
+
+export type BudgetMetric = "rowTextLines" | "firstViewportBlocks" | "firstViewportTextLines";
+
+/** O4 内容预算：区域内可见文本行数 / 首屏语义块数。 */
+export interface BudgetRule {
+  id: string;
+  metric: BudgetMetric;
+  /** 限定的区域选择器（不填 = body）。 */
+  selector?: string;
+  min?: number;
+  max?: number;
+  severity: Severity;
+  pages?: string[];
+}
+
+export type CompositionMetric =
+  | "contentOccupancy"
+  | "inspectorOccupancy"
+  | "largestVerticalGap"
+  | "primaryStatusRepeatCount"
+  | "semanticBlockCount";
+
+/** O5 构图：占有率 / 最大竖直 gap / 状态重复计数 / 首屏语义块数。 */
+export interface CompositionRule {
+  id: string;
+  metric: CompositionMetric;
+  /** 被测量区域（content/inspector 的容器，gap 与 block 的扫描根）。 */
+  selector?: string;
+  /** occupancy 的容器（通常是 pane / workspace）。 */
+  container?: string;
+  /** primaryStatusRepeatCount 需要计数的完整文本。 */
+  text?: string;
+  min?: number;
+  max?: number;
+  severity: Severity;
+  pages?: string[];
+}
+
+/** O6 状态完整性：截图前必须断言的真实页面状态（expected）。 */
+export interface StateExpectation {
+  page?: string;
+  state?: string;
+  fixture?: string;
+  h1?: string;
+  entityId?: string;
+  resultCount?: number;
+  selectedId?: string;
+  componentCounts?: Array<{ selector: string; min: number }>;
+}
+
+export interface LanguageFlags {
+  uuid?: boolean;
+  enums?: boolean;
+  invariants?: boolean;
+  allcapsTokens?: boolean;
+  /** ADR-/RFC-/TD-/AC-/PR- refs forbidden on consumer DOM（§17）。 */
+  refs?: boolean;
+}
+
 export interface PageDef {
   id: string;
   route: string;
@@ -85,13 +164,8 @@ export interface PageDef {
     clickSelectors?: string[];
     waitForSelector?: string;
   }>;
-}
-
-export interface LanguageFlags {
-  uuid?: boolean;
-  enums?: boolean;
-  invariants?: boolean;
-  allcapsTokens?: boolean;
+  /** O6 capture-state integrity: expected real page state before capture. */
+  expect?: StateExpectation;
 }
 
 export interface ContractSchema {
@@ -102,6 +176,9 @@ export interface ContractSchema {
   elements?: ElementRule[];
   structure?: StructureRule[];
   density?: DensityRule[];
+  hierarchy?: HierarchyRule[];
+  budget?: BudgetRule[];
+  composition?: CompositionRule[];
   language: LanguageFlags;
   notes?: string;
 }
@@ -138,11 +215,38 @@ export interface DensityMeasurement {
   primaryActionCount: number | null;
 }
 
+export interface HierarchyMeasurement {
+  aFontSize: number | null;
+  bFontSize: number | null;
+  ratio: number | null;
+}
+
+export interface BudgetMeasurement {
+  value: number | null;
+}
+
+export interface CompositionMeasurement {
+  value: number | null;
+}
+
+export interface StateMeasurement {
+  route: string;
+  page: string | null;
+  state: string | null;
+  fixture: string | null;
+  h1: string | null;
+  entityId: string | null;
+  resultCount: number | null;
+  selectedId: string | null;
+  componentCounts: Record<string, number>;
+}
+
 export interface LanguageMeasurement {
   uuidHits: string[];
   enumHits: string[];
   invariantHits: string[];
   allcapsHits: string[];
+  refHits: string[];
 }
 
 export interface PageProbe {
@@ -151,6 +255,10 @@ export interface PageProbe {
   elements: Record<string, ElementMeasurement>;
   structure: Record<string, StructureMeasurement>;
   density: Record<string, DensityMeasurement>;
+  hierarchy: Record<string, HierarchyMeasurement>;
+  budget: Record<string, BudgetMeasurement>;
+  composition: Record<string, CompositionMeasurement>;
+  state: StateMeasurement;
   language: LanguageMeasurement;
   screenshot: string | null;
 }
@@ -164,7 +272,7 @@ export interface ProbeArtifact {
 
 export interface CompareRow {
   id: string;
-  kind: "element" | "structure" | "density" | "language";
+  kind: "element" | "structure" | "density" | "hierarchy" | "budget" | "composition" | "state" | "language";
   target: RangeSpec | string | number;
   actual: unknown;
   result: "PASS" | "WARN" | "FAIL";

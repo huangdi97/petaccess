@@ -12,13 +12,14 @@ export interface LanguageHit {
   snakeCase: string[];
   allcaps: string[];
   invariants: string[];
+  refs: string[];
 }
 
 const UUID_RE = /\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/i;
 const UUID_PREFIX_RE = /\b[0-9a-f]{8}-(?![0-9a-f]{4}-)/i;
 const SNAKE_RE = /\b[a-z][a-z0-9]*(?:_[a-z0-9]+)+\b/g;
 const ALLCAPS_RE = /\b[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+\b/g;
-
+const REFS_RE = /\b(?:ADR|RFC|TD)-\d+\b|\bAC-[A-Z0-9-]+\b|\bPR-\d+\b/gi;
 /** Known internal invariants that must never appear as raw codes. */
 export const INVARIANTS = [
   "NO_RECENT_RECORD",
@@ -50,6 +51,15 @@ export const BANNED_ENUMS = [
   "pet_waiting_area",
   "ordinary_pet_indoor_dining",
   "animal_on_customer_seat",
+  // §17：raw enum 短词（consumer 页禁止英文裸值）。
+  "allowed",
+  "prohibited",
+  "conditional",
+  "unknown",
+  "verified",
+  "disputed",
+  "observed",
+  "historical",
 ];
 
 export function scanVisibleText(pageId: string, text: string): LanguageHit {
@@ -81,17 +91,27 @@ export function scanVisibleText(pageId: string, text: string): LanguageHit {
 
   const invariants = INVARIANTS.filter((i) => text.includes(i));
 
+  const refs = new Set<string>();
+  for (const m of text.matchAll(REFS_RE)) refs.add(m[0].toUpperCase());
+
   return {
     pageId,
     uuid: [...uuid],
     snakeCase: [...snakeCase],
     allcaps: [...allcaps],
     invariants,
+    refs: [...refs],
   };
 }
 
 export function verdict(hit: LanguageHit): "PASS" | "FAIL" {
-  return hit.uuid.length === 0 && hit.snakeCase.length === 0 && hit.invariants.length === 0
+  return (
+    hit.uuid.length === 0 &&
+    hit.snakeCase.length === 0 &&
+    hit.invariants.length === 0 &&
+    hit.refs.length === 0
     ? "PASS"
-    : "FAIL";
+    : "FAIL"
+  );
 }
+

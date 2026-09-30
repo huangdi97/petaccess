@@ -22,11 +22,16 @@ import { pageEval } from "../../tools/ui-oracle/page-eval.ts";
 import {
   checkCollapsed,
   leftRelativeToPane,
+  measureBudget,
+  measureComposition,
   measureDensity,
   measureElement,
+  measureHierarchy,
+  measureState,
   measureStructure,
   resolveSelector,
   scanLanguage,
+  scanRefs,
 } from "../../tools/ui-oracle/probe.ts";
 
 const STAGE = process.env.UI_ORACLE_STAGE ?? "baseline";
@@ -60,8 +65,23 @@ const STRUCTURE_HELPERS: Record<string, (...args: never[]) => unknown> = {
 
 const DENSITY_HELPERS: Record<string, (...args: never[]) => unknown> = {
   measureDensity: measureDensity as unknown as (...args: never[]) => unknown,
+}
+
+const HIERARCHY_HELPERS: Record<string, (...args: never[]) => unknown> = {
+  measureHierarchy: measureHierarchy as unknown as (...args: never[]) => unknown,
 };
 
+const BUDGET_HELPERS: Record<string, (...args: never[]) => unknown> = {
+  measureBudget: measureBudget as unknown as (...args: never[]) => unknown,
+};
+
+const COMPOSITION_HELPERS: Record<string, (...args: never[]) => unknown> = {
+  measureComposition: measureComposition as unknown as (...args: never[]) => unknown,
+};
+
+const STATE_HELPERS: Record<string, (...args: never[]) => unknown> = {
+  measureState: measureState as unknown as (...args: never[]) => unknown,
+};
 export interface ElementMeasurementShape {
   x: number | null;
   y: number | null;
@@ -218,9 +238,72 @@ async function probeDensity(
   });
 }
 
+export interface HierarchyArgShape {
+  a: string;
+  b: string;
+}
+
+async function probeHierarchy(
+  page: import("@playwright/test").Page,
+  rule: HierarchyArgShape,
+): Promise<unknown> {
+  return pageEval(page, {
+    fn: (a: unknown) => measureHierarchy(document.body, a as HierarchyArgShape),
+    helpers: HIERARCHY_HELPERS,
+    arg: rule,
+  });
+}
+
+export interface BudgetArgShape {
+  metric: "rowTextLines" | "firstViewportBlocks" | "firstViewportTextLines";
+  selector?: string;
+}
+
+async function probeBudget(
+  page: import("@playwright/test").Page,
+  rule: BudgetArgShape,
+): Promise<unknown> {
+  return pageEval(page, {
+    fn: (a: unknown) => measureBudget(document.body, a as BudgetArgShape),
+    helpers: BUDGET_HELPERS,
+    arg: rule,
+  });
+}
+
+export interface CompositionArgShape {
+  metric:
+    | "contentOccupancy"
+    | "inspectorOccupancy"
+    | "largestVerticalGap"
+    | "primaryStatusRepeatCount"
+    | "semanticBlockCount";
+  selector?: string;
+  container?: string;
+  text?: string;
+}
+
+async function probeComposition(
+  page: import("@playwright/test").Page,
+  rule: CompositionArgShape,
+): Promise<unknown> {
+  return pageEval(page, {
+    fn: (a: unknown) => measureComposition(document.body, a as CompositionArgShape),
+    helpers: COMPOSITION_HELPERS,
+    arg: rule,
+  });
+}
+
+async function probeState(page: import("@playwright/test").Page): Promise<unknown> {
+  return pageEval(page, {
+    fn: () => measureState(document.body, null),
+    helpers: STATE_HELPERS,
+  });
+}
+
 async function probeLanguage(page: import("@playwright/test").Page) {
   const text = await page.evaluate(() => document.body.innerText);
-  return scanLanguage(text);
+  const base = scanLanguage(text);
+  return { ...base, refHits: scanRefs(text) };
 }
 
 async function runInteractions(
@@ -292,6 +375,19 @@ async function runContract(
         rule.selector ? { selector: rule.selector, fallbackSelector: rule.selector } : null,
       );
     }
+    const hierarchy: Record<string, unknown> = {};
+    for (const rule of contract.hierarchy ?? []) {
+      hierarchy[rule.id] = await probeHierarchy(page, rule);
+    }
+    const budget: Record<string, unknown> = {};
+    for (const rule of contract.budget ?? []) {
+      budget[rule.id] = await probeBudget(page, rule);
+    }
+    const composition: Record<string, unknown> = {};
+    for (const rule of contract.composition ?? []) {
+      composition[rule.id] = await probeComposition(page, rule);
+    }
+    const state = await probeState(page);
     const language = await probeLanguage(page);
 
     // Interactions (e.g. mobile filter bottom sheet) then re-measure
@@ -313,6 +409,10 @@ async function runContract(
       elements,
       structure,
       density,
+      hierarchy,
+      budget,
+      composition,
+      state,
       language,
       screenshot: shotName,
     });

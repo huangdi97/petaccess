@@ -124,6 +124,8 @@
   --pa-space-6: 32px;
   --pa-space-40: 40px;
   --pa-space-7: 48px;
+  --pa-space-28: 28px; /* section gap（Executable Blueprint §20） */
+  --pa-space-64: 64px; /* major block gap（Executable Blueprint §20） */
 
   --pa-radius-sm: 6px;
   --pa-radius-control: 8px; /* buttons, inputs, chips */
@@ -132,6 +134,8 @@
   --pa-radius-pill: 999px;
   /* 生活气息收口：结果行/卡片行用柔和的 12px 圆角（替代硬边 0px 的表格感）。 */
   --pa-radius-row: 12px;
+  /* v0.2.3 Executable Blueprint §5/§21.5：列表行回归硬边 0 半径 + divider，不用 floating card。 */
+  --pa-radius-row-zero: 0px;
 
   /* --- border ------------------------------------------------------------ */
   --pa-border-width: 1px;
@@ -160,7 +164,24 @@
   --pa-font-size-22: 22px;
   --pa-font-size-26: 26px;
   --pa-font-size-30: 30px;
-  --pa-font-weight-regular: 400;
+  /* v0.2.3 Executable Blueprint §18 全局字体蓝图（desktop 基准；mobile 覆盖见下方媒体查询）：
+   * page identity 28/36/650 · primary decision 30/38/650 · section 18/26/600
+   * body 15/23/400 · metadata 13/20/400 · small label 12/18/500。±1px 实现误差允许。 */
+  --pa-font-size-28: 28px;
+  --pa-font-size-23: 23px;
+  --pa-font-size-31: 31px;
+  --pa-font-size-24: 24px;
+  --pa-font-size-32: 32px;
+  --pa-font-size-38: 38px;
+  --pa-line-height-20: 20px;
+  --pa-line-height-23: 23px;
+  --pa-line-height-26: 26px;
+  --pa-line-height-31: 31px;
+  --pa-line-height-32: 32px;
+  --pa-line-height-36: 36px;
+  --pa-line-height-38: 38px;
+  --pa-font-weight-650: 650;
+  --pa-font-weight-600: 600;
   --pa-font-weight-medium: 500;
   --pa-font-weight-bold: 700;
   --pa-line-height-tight: 1.25;
@@ -223,8 +244,9 @@
   --pa-layout-result-pane: 400px;
   /* Sticky decision inspector width on the Place dossier. */
   --pa-layout-inspector: 320px;
-  /* Detail content column: never stretch the full pane (Freeze §25.6). */
-  --pa-layout-detail-content: 720px;
+  /* v0.2.3 §21：desktop topbar 高度 60px；detail content 列宽 704px（max 720）。 */
+  --pa-layout-topbar-height: 60px;
+  --pa-layout-detail-content: 704px;
   --pa-layout-header-height: 56px;
   --pa-layout-content-max: 1200px;
   --pa-layout-content-narrow: 640px;
@@ -250,5 +272,18 @@
     --pa-motion-fast: 0ms;
     --pa-motion-base: 0ms;
     --pa-motion-slow: 0ms;
+  }
+}
+}
+
+/* v0.2.3 §18 mobile 字体蓝图覆盖（430 级 viewport）：
+ * page identity 23/31/650 · primary decision 24/32/650。其余（18/26/600、15/23/400、
+ * 13/20/400、12/18/500）desktop/mobile 通用。 */
+@media (max-width: 767px) {
+  :root {
+    --pa-font-size-28: 23px;
+    --pa-line-height-36: 31px;
+    --pa-font-size-30: 24px;
+    --pa-line-height-38: 32px;
   }
 }
