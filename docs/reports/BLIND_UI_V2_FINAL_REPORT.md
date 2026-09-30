@@ -1,15 +1,15 @@
 # Blind UI v2 — Final Report（v0.2.3 全量机器管道）
 
 Status: 机器全 PASS · 人审门 PENDING
-Branch: `feat/blind-ui-compiler-v2`（HEAD `f4900f1`）
+Branch: `feat/blind-ui-compiler-v2`（HEAD `3979a18`）
 执行时间：2026-09-30 ~ 2026-10-01（实测）
 
 ## 0. Final Report 第一屏（规范 §57，全部来自实测）
 
 ```text
-CURRENT_HEAD             f4900f1（feat/blind-ui-compiler-v2；追溯至 e724f1c）
+CURRENT_HEAD             3979a18（feat/blind-ui-compiler-v2；追溯至 e724f1c）
 ORIGIN_MASTER            842c030（本轮完全未动：无 merge、无 FF）
-FEATURE_BRANCH           feat/blind-ui-compiler-v2（12 个 commit，无 force push / 无改写）
+FEATURE_BRANCH           feat/blind-ui-compiler-v2（14 个 commit，无 force push / 无改写）
 
 WORKSPACE_ROOT           E:\AI\宠物管理
 EXTRA_WORKTREE_USED?     NO（本轮未创建新 worktree；既有 worktree 未删除）
@@ -131,6 +131,6 @@ phase-b-place（3）、phase-c-home-map（2）、phase-d-rest（7）= **16 张�
 ## 8. Feature Branch Push
 
 **PASS（实测）**：`git push origin feat/blind-ui-compiler-v2` 成功，远程分支
-`origin/feat/blind-ui-compiler-v2` = `f4900f1` = 本地 HEAD；origin/master 仍为
+`origin/feat/blind-ui-compiler-v2` = `3979a18` = 本地 HEAD；origin/master 仍为
 `842c030`（未动）；`git merge-base --is-ancestor origin/master HEAD` 通过；
 无 force push、无历史改写。
