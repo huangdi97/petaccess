@@ -94,6 +94,12 @@ async function main() {
     });
     await new Promise((r) => setTimeout(r, 600));
     log("RECOVERY", await run(expr));
+  } else if (action === "place") {
+    await send("Runtime.evaluate", {
+      expression: `location.hash = "#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e"`,
+    });
+    await new Promise((r) => setTimeout(r, 2500));
+    log("PLACE", await run(expr));
   } else if (action === "nav") {
     await send("Runtime.evaluate", { expression: `location.hash = "#/map"` });
     await new Promise((r) => setTimeout(r, 1200));
