@@ -164,9 +164,15 @@ const freshness = computed(() => freshnessLineFor(props.stale, props.fetchedAtMs
       </footer>
     </template>
 
-    <p v-else class="decision-inspector__hint">
-      从结果中选择一个场所，查看当前查询下的结论与现场摘要。
-    </p>
+    <div v-else class="decision-inspector__onboarding">
+      <h2 class="decision-inspector__onboarding-title">从左侧结果选择一个场所</h2>
+      <p class="decision-inspector__onboarding-body">
+        查看当前查询下的进入结论、现场记录与证据来源。没有结果时，可提交场所线索帮助完善。
+      </p>
+      <RouterLink class="btn secondary" to="/contribute" data-testid="inspector-onboarding-cta">
+        提交场所线索
+      </RouterLink>
+    </div>
   </section>
 </template>
 <style scoped>
@@ -323,6 +329,30 @@ const freshness = computed(() => freshnessLineFor(props.stale, props.fetchedAtMs
   color: var(--pa-color-text-muted);
 }
 
+.decision-inspector__onboarding {
+  /* §23：右侧 onboarding copy，max-width 520，top 108–140，禁止右侧空白。 */
+  max-width: 520px;
+  padding-top: 108px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-3);
+}
+
+.decision-inspector__onboarding-title {
+  margin: 0;
+  font-size: var(--pa-font-size-xl);
+  font-weight: var(--pa-font-weight-650);
+  line-height: var(--pa-line-height-26);
+  color: var(--pa-color-text-primary);
+}
+
+.decision-inspector__onboarding-body {
+  margin: 0;
+  font-size: var(--pa-font-size-md);
+  line-height: var(--pa-line-height-20);
+  color: var(--pa-color-text-secondary);
+}
+
 /* Narrow screens: keep the decision legible without shrinking the body type. */
 @media (max-width: 767px) {
   .decision-inspector,
@@ -330,6 +360,11 @@ const freshness = computed(() => freshnessLineFor(props.stale, props.fetchedAtMs
     gap: var(--pa-space-5);
     padding-bottom: var(--pa-space-4);
   }
+
+  .decision-inspector__onboarding {
+    padding-top: var(--pa-space-6);
+  }
+
   .inspector-decision {
     font-size: var(--pa-font-size-24);
     line-height: var(--pa-line-height-32);
