@@ -40,7 +40,7 @@ const {
 
 <template>
   <DesktopContentContainer mode="wide">
-    <div class="page" data-ui="home">
+    <div class="page" data-ui="home" data-ui-page="home" data-ui-state="ready" data-ui-fixture="home-ready-v1">
       <QueryContextBar />
 
       <!-- coverage header — survives an API failure -->

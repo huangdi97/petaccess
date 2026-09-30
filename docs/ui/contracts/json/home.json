@@ -2,7 +2,18 @@
   "id": "home",
   "title": "Home Contract",
   "viewport": { "width": 1440, "height": 900 },
-  "pages": [{ "id": "home-ready", "route": "/" }],
+  "pages": [
+    {
+      "id": "home-ready",
+      "route": "/",
+      "expect": {
+        "page": "home",
+        "state": "ready",
+        "fixture": "home-ready-v1",
+        "h1": "去之前，先看看这里的规则和现场。"
+      }
+    }
+  ],
   "elements": [
     {
       "id": "HOME_QUERY_CONTEXT",

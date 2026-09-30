@@ -29,6 +29,7 @@ interface StateExpect {
   state?: string;
   fixture?: string;
   h1?: string;
+  entityId?: string;
   selectedId?: string;
   count?: number;
 }
@@ -154,6 +155,36 @@ const SHOTS: Shot[] = [
     },
     note: "移动单列：首屏 name/query/decision/1 condition/Reality teaser（§34）",
   },
+
+  // ---- Phase C: Home + Map ---------------------------------------------
+  {
+    name: "home_desktop",
+    phase: "phase-c-home-map",
+    width: 1440,
+    height: 900,
+    route: "/#/",
+    expect: {
+      page: "home",
+      state: "ready",
+      fixture: "home-ready-v1",
+      h1: "去之前，先看看这里的规则和现场。",
+    },
+    note: "Task Launcher：location → query → search → recent/nearby → lens（§36）",
+  },
+  {
+    name: "map_desktop",
+    phase: "phase-c-home-map",
+    width: 1440,
+    height: 900,
+    route: "/#/map",
+    expect: {
+      page: "map",
+      state: "ready",
+      fixture: "map-ready-v1",
+      h1: "规则地图",
+    },
+    note: "Spatial workspace：rail + 400 result pane + full map + 筛选 N（§37）",
+  },
 ];
 
 async function freezeMotion(page: import("@playwright/test").Page): Promise<void> {
@@ -191,12 +222,14 @@ async function readActualState(
     const h1 = document.querySelector("h1");
     const countEl = document.querySelector("[data-ui-count='result-rows']");
     const selected = document.querySelector("[data-ui*='selected']");
+    const entityEl = document.querySelector("[data-ui-entity-id]");
     return {
       route: location.hash,
       page: host?.getAttribute("data-ui-page") ?? null,
       state: host?.getAttribute("data-ui-state") ?? null,
       fixture: host?.getAttribute("data-ui-fixture") ?? null,
       h1: h1 ? (h1.textContent ?? "").trim() : null,
+      entityId: entityEl?.getAttribute("data-ui-entity-id") ?? null,
       selectedId: selected?.getAttribute("data-ui") ?? null,
       count: countEl ? Number(countEl.textContent ?? NaN) || null : null,
     };
@@ -218,6 +251,7 @@ function assertState(
   check("state", expect.state);
   check("fixture", expect.fixture);
   check("h1", expect.h1);
+  check("entityId", expect.entityId);
   check("selectedId", expect.selectedId);
   check("count", expect.count);
   return { ok: mismatches.length === 0, mismatches };

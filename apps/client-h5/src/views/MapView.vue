@@ -54,7 +54,14 @@ function goHome() {
 </script>
 
 <template>
-  <div class="map-workspace" data-testid="map-workspace" data-ui="map-shell">
+  <div
+    class="map-workspace"
+    data-testid="map-workspace"
+    data-ui="map-shell"
+    data-ui-page="map"
+    data-ui-state="ready"
+    data-ui-fixture="map-ready-v1"
+  >
     <h1 class="visually-hidden">规则地图</h1>
     <QueryContextBar />
 
@@ -202,7 +209,6 @@ function goHome() {
   padding-right: var(--pa-space-5);
 }
 
-/* 地图画布：主导表面。flex:1 占用剩余宽度，min-height 480px 保证高。 */
 .map-canvas {
   position: relative;
   overflow: hidden;
@@ -228,7 +234,8 @@ function goHome() {
   position: fixed;
   right: var(--pa-space-5);
   bottom: var(--pa-space-5);
-  width: min(360px, calc(100% - var(--pa-space-6)));
+  /* v0.2.3 §37：selected preview 只一个，w 280–320。 */
+  width: min(300px, calc(100% - var(--pa-space-6)));
   max-height: calc(100vh - var(--pa-space-7));
   overflow-y: auto;
   border-radius: var(--pa-radius-md);

@@ -2,7 +2,18 @@
   "id": "map",
   "title": "Map Contract",
   "viewport": { "width": 1440, "height": 900 },
-  "pages": [{ "id": "map-ready", "route": "/#/map" }],
+  "pages": [
+    {
+      "id": "map-ready",
+      "route": "/#/map",
+      "expect": {
+        "page": "map",
+        "state": "ready",
+        "fixture": "map-ready-v1",
+        "h1": "规则地图"
+      }
+    }
+  ],
   "elements": [
     {
       "id": "MAP_RESULT_PANE_WIDTH",
