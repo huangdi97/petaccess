@@ -154,6 +154,9 @@ function compareElement(rule: ElementRule, probe: PageProbe, out: CompareRow[]):
       case "gap":
         actual = px(cs.gap);
         break;
+      case "borderBottomWidth":
+        actual = px(cs.borderBottomWidth);
+        break;
       case "ariaLabel":
         actual = m.ariaLabel.length > 0 ? 1 : 0;
         break;

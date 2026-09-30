@@ -98,6 +98,7 @@ export interface ElementMeasurementShape {
   position: string | null;
   overflow: string | null;
   gap: string | null;
+  borderBottomWidth: string | null;
   ariaLabel: string;
   count: number;
   maxChildWidth: number | null;
@@ -165,6 +166,7 @@ async function probeElement(
       position: flat.position,
       overflow: flat.overflow,
       gap: flat.gap,
+      borderBottomWidth: flat.borderBottomWidth,
     },
     ariaLabel: flat.ariaLabel,
     count: flat.count,

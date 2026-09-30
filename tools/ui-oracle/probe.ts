@@ -44,6 +44,7 @@ export interface ElementMeasurementFlat {
   position: string | null;
   overflow: string | null;
   gap: string | null;
+  borderBottomWidth: string | null;
   ariaLabel: string;
   count: number;
   maxChildWidth: number | null;
@@ -85,6 +86,7 @@ export function measureElement(
       position: null,
       overflow: null,
       gap: null,
+      borderBottomWidth: null,
       ariaLabel: "",
       count,
       maxChildWidth: null,
@@ -162,6 +164,7 @@ export function measureElement(
     position: cs.position,
     overflow: cs.overflow,
     gap: cs.gap,
+    borderBottomWidth: cs.borderBottomWidth,
     ariaLabel: el.getAttribute("aria-label") ?? "",
     count,
     maxChildWidth: maxChildWidth(el),
