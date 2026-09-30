@@ -447,11 +447,35 @@ async function claimOperator() {
   }
 }
 
-/** Progressive disclosure for the History block on mobile. */
 const historyOpen = ref(false);
+
+/**
+ * O6 capture-state integrity (v0.2.3 §14): page/state/fixture narrated from
+ * ACTUAL loaded data. `unknown` covers BOTH a missing answer and an answer
+ * whose honest verdict is UNKNOWN (信息不足) — never a pretend "ready".
+ */
+const placeState = computed<string>(() => {
+  if (error.value || !place.value) return "unavailable";
+  if (loading.value) return "loading";
+  if (!answer.value) return "unknown";
+  return answerStatusKey(answer.value) === "UNKNOWN" ? "unknown" : "ready";
+});
+const placeFixture = computed<string>(() => {
+  if (placeState.value === "ready") return "place-ready-v1";
+  if (placeState.value === "unknown") return "place-unknown-v1";
+  return "place-state-v1";
+});
 </script>
 <template>
-  <div class="place-workspace" data-testid="place-workspace" data-ui="place-shell">
+  <div
+    class="place-workspace"
+    data-testid="place-workspace"
+    data-ui="place-shell"
+    data-ui-page="place"
+    :data-ui-state="placeState"
+    :data-ui-fixture="placeFixture"
+    :data-ui-entity-id="placeId"
+  >
     <QueryContextBar />
     <div class="place-workspace__body" :class="{ 'place-workspace__body--split': isDesktop }">
       <!-- main dossier -->
@@ -848,7 +872,6 @@ const historyOpen = ref(false);
 .place-workspace__body {
   display: flex;
   flex-direction: column;
-  /* 生活气息收口 2026-09-30：section 间距 24→32，节奏更透气（density 上限 180 内）。 */
   gap: var(--pa-space-6);
   padding: var(--pa-space-4);
   max-width: var(--pa-layout-content-narrow);
@@ -856,15 +879,20 @@ const historyOpen = ref(false);
 }
 
 @media (min-width: 768px) {
+  /* v0.2.3 §27：main dossier x≈100 w∈820–860 + inspector x≈1010–1040
+   * w∈320–350 sticky。居中 max-width 会让 dossier 漂到中间，必须全出血
+   * 左对齐；dossier 列宽 cap 860px。 */
   .place-workspace__body--split {
     flex-direction: row;
     align-items: flex-start;
-    max-width: var(--pa-layout-content-max);
+    max-width: none;
+    padding: var(--pa-space-4) var(--pa-space-6);
   }
 
   .place-dossier {
     flex: 1 1 auto;
     min-width: 0;
+    max-width: 860px;
   }
 
   .place-inspector {
@@ -886,14 +914,18 @@ const historyOpen = ref(false);
 
 .place-dossier__name {
   margin: 0;
-  font-size: var(--pa-font-size-30);
-  font-weight: var(--pa-font-weight-medium);
-  line-height: var(--pa-line-height-tight);
+  /* v0.2.3 §28：identity name = page identity 28/36/650。 */
+  font-size: var(--pa-font-size-28);
+  font-weight: var(--pa-font-weight-650);
+  line-height: var(--pa-line-height-36);
   color: var(--pa-color-text-primary);
 }
 
 .place-dossier__meta {
   margin: 0;
+  font-size: var(--pa-font-size-md);
+  line-height: var(--pa-line-height-20);
+  color: var(--pa-color-text-muted);
 }
 
 .place-dossier__actions {
@@ -907,8 +939,10 @@ const historyOpen = ref(false);
 
 .place-section__title {
   margin: 0 0 var(--pa-space-3);
+  /* v0.2.3 §31：section title 18/26/600。 */
   font-size: var(--pa-font-size-18);
-  font-weight: var(--pa-font-weight-medium);
+  font-weight: var(--pa-font-weight-600);
+  line-height: var(--pa-line-height-26);
   color: var(--pa-color-text-primary);
 }
 
@@ -936,18 +970,11 @@ const historyOpen = ref(false);
   padding: var(--pa-space-3) var(--pa-space-4);
 }
 
+/* v0.2.3 §29：primary decision 30/38/650（blueprint §18）。 */
 .sub-answer .status {
-  font-size: var(--pa-font-size-26);
-  font-weight: var(--pa-font-weight-medium);
-  margin: var(--pa-space-1) 0;
-}
-
-.sub-answer__context {
-  margin: 0 0 var(--pa-space-1);
-}
-.sub-answer .status {
-  font-size: var(--pa-font-size-26);
-  font-weight: var(--pa-font-weight-medium);
+  font-size: var(--pa-font-size-30);
+  font-weight: var(--pa-font-weight-650);
+  line-height: var(--pa-line-height-38);
   margin: var(--pa-space-1) 0;
 }
 
@@ -955,12 +982,15 @@ const historyOpen = ref(false);
   margin: 0 0 var(--pa-space-1);
 }
 
+/* v0.2.3 §32：zone rows —— consumer names only，height 48–56，divider rows。 */
 .zone-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: var(--pa-space-3);
-  padding: var(--pa-space-3) 0;
+  min-height: 48px;
+  max-height: 56px;
+  padding: var(--pa-space-2) 0;
   border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
 }
 
@@ -1006,12 +1036,17 @@ const historyOpen = ref(false);
 }
 
 @media (max-width: 767px) {
+  /* v0.2.3 §18 mobile：page identity 23/31/650 · primary decision 24/32/650。 */
   .place-dossier__name {
-    font-size: var(--pa-font-size-22);
+    font-size: var(--pa-font-size-23);
+    font-weight: var(--pa-font-weight-650);
+    line-height: var(--pa-line-height-31);
   }
 
   .sub-answer .status {
-    font-size: var(--pa-font-size-22);
+    font-size: var(--pa-font-size-24);
+    font-weight: var(--pa-font-weight-650);
+    line-height: var(--pa-line-height-32);
   }
 }
 </style>

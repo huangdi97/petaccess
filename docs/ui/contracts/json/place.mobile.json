@@ -1,9 +1,19 @@
 {
   "id": "place.mobile",
-  "title": "Place Mobile Contract",
+  "title": "Place Mobile Contract v0.2.3 Executable Blueprint",
   "viewport": { "width": 430, "height": 932 },
   "pages": [
-    { "id": "place-mobile-ready", "route": "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e" }
+    {
+      "id": "place-mobile-ready",
+      "route": "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+      "expect": {
+        "page": "place",
+        "state": "ready",
+        "fixture": "place-ready-v1",
+        "entityId": "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+        "h1": "云栖中心·测试商场"
+      }
+    }
   ],
   "elements": [
     {
@@ -30,8 +40,15 @@
     {
       "id": "PLACE_MOBILE_DECISION_SIZE",
       "fallbacks": ["[data-testid='answer-status']"],
-      "props": { "fontSize": { "min": 22, "max": 26 } },
+      "props": { "fontSize": { "min": 23, "max": 25 } },
       "severity": "WARN"
+    },
+    {
+      "id": "PLACE_MOBILE_BOTTOM_NAV_HEIGHT",
+      "ui": "mobile-tabbar",
+      "fallbacks": ["[data-testid='mobile-tabbar']"],
+      "props": { "height": { "min": 58, "max": 64 } },
+      "severity": "FAIL"
     }
   ],
   "structure": [
@@ -39,7 +56,7 @@
       "id": "PLACE_MOBILE_HISTORY_COLLAPSED",
       "selector": "[data-ui='place-history'], [class*='history']",
       "disclosureDefault": "collapsed",
-      "severity": "WARN"
+      "severity": "FAIL"
     },
     {
       "id": "PLACE_MOBILE_ZONES_NOT_CARDS",
@@ -50,14 +67,6 @@
   ],
   "density": [
     {
-      "id": "PLACE_MOBILE_FIRST_VIEWPORT_LINES",
-      "selector": "body",
-      "metric": "firstViewportVisibleTextLines",
-      "max": 40,
-      "warnAt": 30,
-      "severity": "WARN"
-    },
-    {
       "id": "PLACE_MOBILE_MAX_GAP",
       "selector": "[data-ui='place-dossier']",
       "metric": "largestVerticalGap",
@@ -65,6 +74,33 @@
       "severity": "FAIL"
     }
   ],
-  "language": { "uuid": true, "enums": true, "invariants": true, "allcapsTokens": true },
-  "notes": "Mobile = single column, no inspector. History/versions collapsed by default (progressive disclosure). First viewport: name + decision + 1 supporting fact."
+  "budget": [
+    {
+      "id": "PLACE_MOBILE_FIRST_VIEWPORT_BLOCKS",
+      "metric": "firstViewportBlocks",
+      "selector": "[data-ui='place-dossier']",
+      "min": 2,
+      "severity": "FAIL"
+    },
+    {
+      "id": "PLACE_MOBILE_FIRST_VIEWPORT_LINES",
+      "metric": "firstViewportTextLines",
+      "selector": "[data-ui='place-dossier']",
+      "max": 26,
+      "warnAt": 22,
+      "severity": "WARN"
+    }
+  ],
+  "composition": [
+    {
+      "id": "PLACE_MOBILE_STATUS_REPEAT",
+      "metric": "primaryStatusRepeatCount",
+      "selector": "[data-ui='place-dossier']",
+      "text": "有条件进入",
+      "max": 2,
+      "severity": "FAIL"
+    }
+  ],
+  "language": { "uuid": true, "enums": true, "invariants": true, "allcapsTokens": true, "refs": true },
+  "notes": "v0.2.3 §34：single column；首屏 name/query/decision/1 condition/reality teaser，≤22 visible lines；history/provenance/boundary 默认折叠；bottom nav 58–64。"
 }

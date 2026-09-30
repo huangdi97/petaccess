@@ -47,7 +47,7 @@ interface Shot {
 }
 
 const SHOTS: Shot[] = [
-  // ---- Phase A: Search -----------------------------------------------
+  // ---- Phase A: Search -------------------------------------------------
   {
     name: "search_desktop_ready",
     phase: "phase-a-search",
@@ -106,6 +106,53 @@ const SHOTS: Shot[] = [
       h1: "搜索场所规则",
     },
     note: "筛选 bottom sheet：top 340–480、radius 16、5 rows（§25）",
+  },
+
+  // ---- Phase B: Place ---------------------------------------------------
+  {
+    name: "place_desktop_ready",
+    phase: "phase-b-place",
+    width: 1440,
+    height: 900,
+    route: "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+    expect: {
+      page: "place",
+      state: "ready",
+      fixture: "place-ready-v1",
+      entityId: "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+      h1: "云栖中心·测试商场",
+    },
+    note: "Dossier x≈100 w∈820–860 + Inspector x≈1010 w∈320–350 sticky（§27）",
+  },
+  {
+    name: "place_desktop_unknown",
+    phase: "phase-b-place",
+    width: 1440,
+    height: 900,
+    route: "/#/place/3b5a341a-e550-5f0c-b35a-319ed43bd840",
+    expect: {
+      page: "place",
+      state: "unknown",
+      fixture: "place-unknown-v1",
+      entityId: "3b5a341a-e550-5f0c-b35a-319ed43bd840",
+      h1: "星河咖啡·栖霞分店",
+    },
+    note: "无已发布结论 → UNKNOWN 诚实态（未知 ≠ 允许）",
+  },
+  {
+    name: "place_mobile_ready",
+    phase: "phase-b-place",
+    width: 430,
+    height: 932,
+    route: "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+    expect: {
+      page: "place",
+      state: "ready",
+      fixture: "place-ready-v1",
+      entityId: "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+      h1: "云栖中心·测试商场",
+    },
+    note: "移动单列：首屏 name/query/decision/1 condition/Reality teaser（§34）",
   },
 ];
 

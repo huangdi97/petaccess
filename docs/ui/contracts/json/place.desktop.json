@@ -1,8 +1,31 @@
 {
   "id": "place.desktop",
-  "title": "Place Desktop Contract",
+  "title": "Place Desktop Contract v0.2.3 Executable Blueprint",
   "viewport": { "width": 1440, "height": 900 },
-  "pages": [{ "id": "place-ready", "route": "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e" }],
+  "pages": [
+    {
+      "id": "place-ready",
+      "route": "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+      "expect": {
+        "page": "place",
+        "state": "ready",
+        "fixture": "place-ready-v1",
+        "entityId": "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+        "h1": "云栖中心·测试商场"
+      }
+    },
+    {
+      "id": "place-unknown",
+      "route": "/#/place/3b5a341a-e550-5f0c-b35a-319ed43bd840",
+      "expect": {
+        "page": "place",
+        "state": "unknown",
+        "fixture": "place-unknown-v1",
+        "entityId": "3b5a341a-e550-5f0c-b35a-319ed43bd840",
+        "h1": "星河咖啡·栖霞分店"
+      }
+    }
+  ],
   "elements": [
     {
       "id": "PLACE_RAIL_WIDTH",
@@ -19,31 +42,17 @@
       "severity": "FAIL"
     },
     {
-      "id": "PLACE_INSPECTOR_WIDTH",
-      "ui": "place-inspector",
-      "fallbacks": ["[data-testid='decision-inspector']"],
-      "props": { "width": { "min": 300, "max": 360 } },
-      "severity": "FAIL"
-    },
-    {
-      "id": "PLACE_INSPECTOR_STICKY",
-      "ui": "place-inspector",
-      "fallbacks": ["[data-testid='decision-inspector']"],
-      "props": { "position": { "equals": "sticky" } },
+      "id": "PLACE_MAIN_DOSSIER_X",
+      "ui": "place-dossier",
+      "fallbacks": [".place-dossier"],
+      "props": { "left": { "min": 92, "max": 112 } },
       "severity": "WARN"
     },
     {
-      "id": "PLACE_IDENTITY_NAME_SIZE",
-      "ui": "place-name",
-      "fallbacks": [".place-dossier__name", "h1"],
-      "props": { "fontSize": { "min": 26, "max": 30 } },
-      "severity": "FAIL"
-    },
-    {
-      "id": "PLACE_SECTION_GAP",
+      "id": "PLACE_MAIN_DOSSIER_WIDTH",
       "ui": "place-dossier",
-      "fallbacks": [".place-dossier", "main"],
-      "props": { "sectionGap": { "min": 24, "max": 32 } },
+      "fallbacks": [".place-dossier"],
+      "props": { "width": { "min": 820, "max": 860 } },
       "severity": "WARN"
     },
     {
@@ -52,6 +61,69 @@
       "fallbacks": [".place-dossier", "[class*='dossier']"],
       "props": { "count": { "min": 1 } },
       "severity": "FAIL"
+    },
+    {
+      "id": "PLACE_INSPECTOR_X",
+      "ui": "place-inspector",
+      "fallbacks": ["[data-testid='decision-inspector']"],
+      "props": { "left": { "min": 984, "max": 1048 } },
+      "severity": "WARN"
+    },
+    {
+      "id": "PLACE_INSPECTOR_WIDTH",
+      "ui": "place-inspector",
+      "fallbacks": ["[data-testid='decision-inspector']"],
+      "props": { "width": { "min": 320, "max": 350 } },
+      "severity": "FAIL"
+    },
+    {
+      "id": "PLACE_INSPECTOR_STICKY",
+      "ui": "place-inspector",
+      "fallbacks": ["[data-testid='decision-inspector']"],
+      "props": { "position": { "equals": "sticky" } },
+      "severity": "FAIL"
+    },
+    {
+      "id": "PLACE_IDENTITY_NAME_SIZE",
+      "ui": "place-name",
+      "fallbacks": [".place-dossier__name", "h1"],
+      "props": { "fontSize": { "min": 27, "max": 29 }, "fontWeight": { "min": 600 } },
+      "severity": "FAIL"
+    },
+    {
+      "id": "PLACE_DECISION_FONT_SIZE",
+      "fallbacks": ["[data-testid='answer-status']", ".sub-answer .status"],
+      "props": { "fontSize": { "min": 29, "max": 31 } },
+      "severity": "FAIL"
+    },
+    {
+      "id": "PLACE_SECTION_TITLE_SIZE",
+      "fallbacks": [".place-section__title"],
+      "props": { "fontSize": { "min": 18, "max": 19 } },
+      "severity": "FAIL"
+    },
+    {
+      "id": "PLACE_SECTION_GAP",
+      "ui": "place-dossier",
+      "fallbacks": [".place-dossier", "main"],
+      "props": { "sectionGap": { "min": 16, "max": 40 } },
+      "severity": "WARN"
+    },
+    {
+      "id": "PLACE_ZONE_ROW_HEIGHT",
+      "ui": "zone-row",
+      "fallbacks": [".zone-row"],
+      "props": { "height": { "min": 48, "max": 56 } },
+      "severity": "FAIL",
+      "aggregate": "rows",
+      "pages": ["place-ready"]
+    },
+    {
+      "id": "PLACE_ACTIONS_MAX_TWO",
+      "ui": "place-identity",
+      "fallbacks": [".place-dossier__head .row button, .place-dossier__actions"],
+      "props": { "count": { "max": 2 } },
+      "severity": "WARN"
     }
   ],
   "structure": [
@@ -66,6 +138,18 @@
       "selector": "[data-ui='place-zones'], .zone-row",
       "forbiddenText": ["1F", "pet_area", "dining_area", "floor"],
       "severity": "FAIL"
+    },
+    {
+      "id": "PLACE_SECTION_NOT_CARD",
+      "selector": "[data-ui='place-dossier'] .place-section",
+      "forbiddenClass": ["card", "panel"],
+      "severity": "FAIL"
+    },
+    {
+      "id": "PLACE_HISTORY_COLLAPSED_MOBILE",
+      "selector": "[data-ui='place-history'] [aria-expanded='false'], [data-ui='place-history'] .disclosure-toggle",
+      "min": 1,
+      "severity": "WARN"
     }
   ],
   "density": [
@@ -74,7 +158,7 @@
       "selector": "[data-ui='place-dossier']",
       "metric": "largestVerticalGap",
       "max": 180,
-      "severity": "FAIL"
+      "severity": "WARN"
     },
     {
       "id": "PLACE_INFO_BLOCKS",
@@ -84,6 +168,64 @@
       "severity": "FAIL"
     }
   ],
-  "language": { "uuid": true, "enums": true, "invariants": true, "allcapsTokens": true },
-  "notes": "Dossier ~65-72% of available width; sticky inspector 300-360px, only 5-6 info groups."
+  "hierarchy": [
+    {
+      "id": "PLACE_IDENTITY_TO_BODY",
+      "a": ".place-dossier__name",
+      "b": "body",
+      "minRatio": 1.6,
+      "severity": "FAIL"
+    },
+    {
+      "id": "PLACE_DECISION_TO_BODY",
+      "a": ".sub-answer .status",
+      "b": "body",
+      "minRatio": 1.75,
+      "severity": "FAIL"
+    },
+    {
+      "id": "PLACE_SECTION_TO_BODY",
+      "a": ".place-section__title",
+      "b": "body",
+      "minRatio": 1.15,
+      "severity": "FAIL"
+    }
+  ],
+  "budget": [
+    {
+      "id": "PLACE_DESKTOP_FIRST_VIEWPORT_BLOCKS",
+      "metric": "firstViewportBlocks",
+      "selector": "[data-ui='place-dossier']",
+      "min": 3,
+      "severity": "FAIL"
+    },
+    {
+      "id": "PLACE_DESKTOP_FIRST_VIEWPORT_LINES",
+      "metric": "firstViewportTextLines",
+      "selector": "[data-ui='place-dossier']",
+      "max": 60,
+      "warnAt": 48,
+      "severity": "WARN"
+    }
+  ],
+  "composition": [
+    {
+      "id": "PLACE_INSPECTOR_OCCUPANCY",
+      "metric": "inspectorOccupancy",
+      "selector": "[data-ui='place-inspector']",
+      "container": "[data-ui='place-shell']",
+      "min": 0.22,
+      "severity": "FAIL"
+    },
+    {
+      "id": "PLACE_STATUS_REPEAT",
+      "metric": "primaryStatusRepeatCount",
+      "selector": "[data-ui='place-dossier']",
+      "text": "有条件进入",
+      "max": 2,
+      "severity": "FAIL"
+    }
+  ],
+  "language": { "uuid": true, "enums": true, "invariants": true, "allcapsTokens": true, "refs": true },
+  "notes": "v0.2.3 §27–33：Main dossier x≈100 w∈820–860；Inspector x≈1010–1040 w∈320–350 sticky；Identity 28/650；section 18/600；zone rows h 48–56（consumer names only）；status repetition ≤2。"
 }
