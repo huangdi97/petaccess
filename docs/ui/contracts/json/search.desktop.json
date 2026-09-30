@@ -8,7 +8,7 @@
       "route": "/#/search",
       "expect": {
         "page": "search",
-        "state": "ready",
+        "state": "ready-selected",
         "fixture": "search-ready-v1",
         "h1": "搜索场所规则",
         "selectedId": "search-selected-row",

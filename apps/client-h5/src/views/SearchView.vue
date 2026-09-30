@@ -459,33 +459,38 @@ const selectedId = ref<string | null>(null);
           </template>
         </StateMessage>
         <!-- empty: 只存在于 ResultsPane 内（§23），无大卡/大圆角/阴影 -->
-        <StateMessage
+        <div
           v-else-if="searched && !visible.length"
-          kind="PARTIAL"
+          class="search-empty"
+          data-ui="search-empty-block"
           data-testid="search-empty"
-          :title="EMPTY_STATE_COPY.SEARCH.title"
-          :description="emptyDescription"
         >
-          <template #action>
-            <div class="row" style="justify-content: center">
-              <RouterLink
-                class="btn primary"
-                to="/contribute"
-                data-testid="search-empty-contribute"
-              >
-                提交场所线索
-              </RouterLink>
-              <button
-                v-if="active.length"
-                type="button"
-                class="filter-bar__clear"
-                @click="active = []"
-              >
-                清除筛选
-              </button>
-            </div>
-          </template>
-        </StateMessage>
+          <StateMessage
+            kind="PARTIAL"
+            :title="EMPTY_STATE_COPY.SEARCH.title"
+            :description="emptyDescription"
+          >
+            <template #action>
+              <div class="row" style="justify-content: center">
+                <RouterLink
+                  class="btn primary"
+                  to="/contribute"
+                  data-testid="search-empty-contribute"
+                >
+                  提交场所线索
+                </RouterLink>
+                <button
+                  v-if="active.length"
+                  type="button"
+                  class="filter-bar__clear"
+                  @click="active = []"
+                >
+                  清除筛选
+                </button>
+              </div>
+            </template>
+          </StateMessage>
+        </div>
         <template v-else>
           <p
             v-if="freshnessLineFor(listStale, listFetchedAtMs, !online)"
@@ -495,6 +500,7 @@ const selectedId = ref<string | null>(null);
             {{ freshnessLineFor(listStale, listFetchedAtMs, !online) }}
           </p>
           <p class="search-count" data-testid="search-count" data-ui="search-count">
+            <span data-ui-count="result-rows" class="visually-hidden">{{ visible.length }}</span>
             找到 {{ visible.length }} 个结果
           </p>
           <ul class="result-list" role="list">
@@ -698,6 +704,31 @@ const selectedId = ref<string | null>(null);
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.search-empty {
+  /* §23：empty 块 top 220–260、w 320–340、radius ≤8、无阴影；不放大卡。 */
+  margin-top: 220px;
+  width: 330px;
+  max-width: 340px;
+}
+
+.search-empty .state-message {
+  background: transparent;
+  border: none;
+  border-radius: var(--pa-radius-control);
+  box-shadow: none;
+  padding: var(--pa-space-4);
+  text-align: center;
+}
+
+.search-empty .state-message__action .row {
+  flex-direction: column;
+  gap: var(--pa-space-3);
+}
+
+.search-freshness {
+  margin: var(--pa-space-2) 0;
 }
 
 /* Recent chips are quiet text buttons, not pills (Goal: clear/recent/filter
