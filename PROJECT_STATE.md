@@ -1,16 +1,32 @@
 # PROJECT_STATE.md
 
-## Current phase（2026-09-29 本轮实测 — v0.2.2 Blind-Model UI 全量收口）
-- 状态：`UI_MACHINE_CONTRACT_ACCEPTANCE = PASS` · `UI_HUMAN_VISUAL_ACCEPTANCE = PENDING`（第一轮人工验收 = **REJECTED**：「太规整，缺生活气息」→ 按用户选定方向 B 完成视觉温度收口并重发，等待再次签字）· `UI_VISUAL_CLOSURE = PENDING_HUMAN`
-- 分支：`feat/visual-fidelity-recovery`；HEAD = `12ad324`（push 后更新）；origin/master = `842c030` **未动**（不 merge、不 fast-forward、等人工视觉确认后另行请求）；v0.1.0 tag 未动。
-- 方法：Blind-Model —— 不使用任何视觉模型/OCR/截图理解；以 `docs/ui/contracts/` 机器契约 + `tools/ui-oracle/` 自建 Oracle 测量（DOM/bbox/computed style/density/语言扫描）驱动收口。见 `docs/ui/BLIND_UI_COMPLETION_METHOD.md`。
-- 机器 Gate（final）：10 契约 **TOTAL PASS=164 WARN=1 FAIL=0**（唯一 WARN = place.mobile 首屏 42 行，契约 warnAt=30，progressive disclosure 记录）；语言扫描 21 页 FAIL=0（UUID/enum/invariant 可见命中 0）。产物 `artifacts/blind-ui-recovery/reports/*`。
-- **生活气息收口（2026-09-30，用户 REJECTED「太规整」后按方向 B 重发）**：暖纸 app 底色（#faf7f2）+ 暖 surface token（surface-warm/warm-strong/border-warm + radius-row 12px）；Search/Map/Home nearby 行从「radius 0 divider 表格」改为「12px 圆角 + 轻投影柔行」；DecisionInspector 与 Place 决策块从裸文字改为暖 surface；Place section 间距 24→32。语义色不变。契约锚点 SEARCH_ROW_RADIUS_ZERO → SEARCH_ROW_RADIUS_SOFT(8–16px)。重跑后 final gate 仍 PASS=164 WARN=1 FAIL=0。
-- 回归（本轮实测）：client-h5 vue-tsc+build PASS；eslint 0；prettier PASS；Playwright e2e 189/189（串行；并行 2-worker 下 contribute-wizard 懒加载超时 flake 既有）；ui-reconstruction 180/180（phase1/3 + a11y + leakage all）；visual 59/59（consumer 基线按新 UI 重生成 38 张）；ui-audit 70/70；backend pytest 836 passed / 2 skipped / 4 环境性失败（celery/OCR/adb 路径，均与本轮无关；`-k reality` 30/30）。
-- Android FAST（emulator-5554 复用，ASCII worktree 例外经用户确认后构建并已删除）：install/launch/Home/Search(16 结果)/Place/Map/nav/offline/recovery/lifecycle 全 PASS。见 `docs/reports/BLIND_UI_ANDROID_FAST.md`。
-- Windows Smoke（真实 WebView2/Tauri，工作区内构建）：launch/Home/Search(16 结果)/Place/Map/nav/offline/recovery 全 PASS。见 `docs/reports/BLIND_UI_WINDOWS_SMOKE.md`。
-- 人工验收证据：`artifacts/blind-ui-recovery/HUMAN_REVIEW/`（14 张命名截图 + HUMAN_REVIEW_INDEX.html，仅机器校验 PNG magic/dimensions/bytes/hash）。**等待用户人工视觉签字，Agent 不替代视觉 PASS。**
-- 历史章节（下方 v0.2.1 / M3 / M8 / M2 等）均为 HISTORY / PRE-INTEGRATION，不再代表当前视觉状态。
+## Current phase（2026-10-01 本轮实测 — v0.2.3 Blind UI Compiler v2 全量机器管道）
+- 状态：`BLIND_UI_COMPILER_V2 = PASS` · `UI_MACHINE_CONTRACT_ACCEPTANCE = PASS` ·
+  `UI_HUMAN_VISUAL_ACCEPTANCE = PENDING` · `UI_VISUAL_CLOSURE = PENDING_HUMAN`
+- 分支：`feat/blind-ui-compiler-v2`；HEAD = `18646e1`（自 `e724f1c`，11 commits，未 push）；
+  origin/master = `842c030` **未动**（不 merge、不 fast-forward，等人工视觉确认后另行请求）；
+  v0.1.0 tag 未动；无 force push / 无历史改写 / 未删除既有 worktree。
+- 方法：Blind UI Compiler v2 —— 不使用任何视觉模型/OCR/截图理解；六层 Oracle
+  （O1 语义 / O2 几何 / O3 相对层级 / O4 内容预算 / O5 构图 / O6 状态完整性）+ Capture
+  State Integrity + Executable Blueprint。见 `docs/ui/BLIND_UI_COMPILER_V2_METHOD.md`。
+- 机器 Gate（final）：10 契约 **TOTAL PASS=332 WARN=3 FAIL=0**（3 WARN 均为既有
+  place.mobile 容忍项：PLACE_HISTORY_COLLAPSED_MOBILE / PLACE_SECTION_GAP /
+  PLACE_MOBILE_FIRST_VIEWPORT_LINES）；语言扫描 24 页 FAIL=0（uuid/enums/invariants/
+  allcaps/refs 可见命中 0）。产物 `artifacts/blind-ui-compiler-v2/reports/*`。
+- 页面实施：Search / Place / Home / Map / Reality / Evidence / Contribution 七页按
+  v0.2.3 蓝图实施并全过机器门禁（phase A–D）。
+- 人审包：`artifacts/blind-ui-compiler-v2/HUMAN_REVIEW/`（phase-a-search 4 /
+  phase-b-place 3 / phase-c-home-map 2 / phase-d-rest 7 = **16 张全部 VALID** +
+  HUMAN_REVIEW_INDEX.html，metadata actual 全部来自真实 DOM）。**等待用户人工视觉
+  签字，Agent 不替代视觉 PASS。**
+- 回归（本轮实测）：client-h5 vue-tsc+build PASS；eslint 0；prettier 3.9.6 PASS
+  （repo-wide LF + format pass，独立 style commit，无语义变化）；Playwright e2e 串行
+  189/189（并行 contribute-wizard TEST-001 懒加载 flake 既有，单跑绿）；ui-oracle
+  probe+human-review 12+2 passed；ui-audit 70/70；visual 59/59（consumer 基线按蓝图
+  重生成 24 张，admin 未动）；ui-reconstruction 串行 180/180；backend pytest
+  **961 passed / 2 skipped / 0 failed**（含 Celery worker；adb.py 修复 ANDROID_HOME
+  解析，Android 工具链 15/15）。
+- 本轮不产生 Android FAST / Windows Smoke 报告（人审门通过后的后续轮次）。
 
 ### 历史记录 — v0.2.1 Visual Fidelity Recovery，Phase A（2026-09-28，HISTORICAL）
 
