@@ -226,6 +226,12 @@
       "severity": "FAIL"
     }
   ],
-  "language": { "uuid": true, "enums": true, "invariants": true, "allcapsTokens": true, "refs": true },
+  "language": {
+    "uuid": true,
+    "enums": true,
+    "invariants": true,
+    "allcapsTokens": true,
+    "refs": true
+  },
   "notes": "v0.2.3 §27–33：Main dossier x≈100 w∈820–860；Inspector x≈1010–1040 w∈320–350 sticky；Identity 28/650；section 18/600；zone rows h 48–56（consumer names only）；status repetition ≤2。"
 }

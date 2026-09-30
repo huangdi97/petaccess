@@ -76,6 +76,12 @@
     }
   ],
   "density": [],
-  "language": { "uuid": true, "enums": true, "invariants": true, "allcapsTokens": true, "refs": true },
+  "language": {
+    "uuid": true,
+    "enums": true,
+    "invariants": true,
+    "allcapsTokens": true,
+    "refs": true
+  },
   "notes": "Map is canvas. Only one floating preview card allowed (map-preview-float). Mock map must show roads/blocks/green+rivers/markers/selected/zoom."
 }

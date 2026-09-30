@@ -87,8 +87,8 @@ export function measureElement(
       position: null,
       overflow: null,
       gap: null,
-    borderBottomWidth: null,
-    gridTemplateColumns: null,
+      borderBottomWidth: null,
+      gridTemplateColumns: null,
       ariaLabel: "",
       count,
       maxChildWidth: null,
@@ -265,11 +265,8 @@ export function measureStructure(root: Element, arg: StructureRuleArg): Structur
   const collapsed = arg.disclosureDefault === "collapsed" ? checkCollapsed(nodes) : false;
 
   // O2 几何：全部命中元素共享同一 x（timeline time col / marker col 对齐）。
-  const lefts = nodes
-    .map((n) => n.getBoundingClientRect().left)
-    .filter((v) => Number.isFinite(v));
-  const xSpread =
-    lefts.length >= 2 ? Math.max(...lefts) - Math.min(...lefts) : null;
+  const lefts = nodes.map((n) => n.getBoundingClientRect().left).filter((v) => Number.isFinite(v));
+  const xSpread = lefts.length >= 2 ? Math.max(...lefts) - Math.min(...lefts) : null;
 
   return {
     count: nodes.length,
@@ -526,7 +523,7 @@ export interface BudgetFlat {
 
 /** O4: content-budget metrics over a region / first viewport. */
 export function measureBudget(root: Element, arg: BudgetArg): BudgetFlat {
-  const region = arg.selector ? root.querySelector(arg.selector) ?? root : root;
+  const region = arg.selector ? (root.querySelector(arg.selector) ?? root) : root;
   switch (arg.metric) {
     case "rowTextLines": {
       // Aggregated over every row match: each row's visible text lines.
@@ -610,14 +607,14 @@ export function widestChildRatio(content: Element, container: Element): number {
 
 /** O5: composition metrics (occupancy / gap / status-repeat / block count). */
 export function measureComposition(root: Element, arg: CompositionArg): CompositionFlat {
-  const region = arg.selector ? root.querySelector(arg.selector) ?? root : root;
+  const region = arg.selector ? (root.querySelector(arg.selector) ?? root) : root;
   switch (arg.metric) {
     case "contentOccupancy": {
-      const container = arg.container ? root.querySelector(arg.container) ?? root : root;
+      const container = arg.container ? (root.querySelector(arg.container) ?? root) : root;
       return { value: widestChildRatio(region, container) };
     }
     case "inspectorOccupancy": {
-      const container = arg.container ? root.querySelector(arg.container) ?? root : root;
+      const container = arg.container ? (root.querySelector(arg.container) ?? root) : root;
       const cw = container.getBoundingClientRect().width;
       if (cw <= 0) return { value: 0 };
       const w = region.getBoundingClientRect().width;
@@ -707,7 +704,8 @@ export function measureState(root: Element, _arg: StateArg | null): StateFlat {
     entityId:
       host.getAttribute("data-ui-entity-id") ??
       host.getAttribute("data-entity-id") ??
-      (location.hash.match(/place\/([0-9a-f-]{36})/i)?.[1] ?? null),
+      location.hash.match(/place\/([0-9a-f-]{36})/i)?.[1] ??
+      null,
     resultCount: resultCountEl ? Number(resultCountEl.textContent ?? NaN) || null : null,
     selectedId: selected?.getAttribute("data-ui") ?? null,
     componentCounts: counts,

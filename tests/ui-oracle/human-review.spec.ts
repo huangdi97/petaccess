@@ -305,7 +305,9 @@ const SHOTS: Shot[] = [
 ];
 
 async function freezeMotion(page: import("@playwright/test").Page): Promise<void> {
-  await page.addStyleTag({ content: "* { transition: none !important; animation: none !important; }" });
+  await page.addStyleTag({
+    content: "* { transition: none !important; animation: none !important; }",
+  });
   await page.emulateMedia({ reducedMotion: "reduce" });
 }
 
@@ -325,7 +327,9 @@ async function signIn(request: import("@playwright/test").APIRequestContext): Pr
     data: { display_name: "Human Review 探针", email, password: "passw0rd123" },
   });
   expect(reg.ok()).toBeTruthy();
-  const login = await request.post(`${API}/auth/login`, { data: { email, password: "passw0rd123" } });
+  const login = await request.post(`${API}/auth/login`, {
+    data: { email, password: "passw0rd123" },
+  });
   expect(login.ok()).toBeTruthy();
   return (await login.json()).access_token as string;
 }
@@ -386,10 +390,10 @@ function assertState(
   return { ok: mismatches.length === 0, mismatches };
 }
 
-test("human review v0.2.3 — named screenshots with Capture State Integrity", async (
-  { page, request },
-  testInfo,
-) => {
+test("human review v0.2.3 — named screenshots with Capture State Integrity", async ({
+  page,
+  request,
+}, testInfo) => {
   const project = testInfo.project.name;
   const isDesktopProject = project === "oracle-desktop";
   const rows: Array<{
@@ -448,9 +452,14 @@ test("human review v0.2.3 — named screenshots with Capture State Integrity", a
     }
 
     if (shot.clickTestid) {
-      await page.getByTestId(shot.clickTestid).click().catch(() => {});
+      await page
+        .getByTestId(shot.clickTestid)
+        .click()
+        .catch(() => {});
       if (shot.waitTestid) {
-        await page.waitForSelector(`[data-testid='${shot.waitTestid}']`, { timeout: 5000 }).catch(() => {});
+        await page
+          .waitForSelector(`[data-testid='${shot.waitTestid}']`, { timeout: 5000 })
+          .catch(() => {});
       }
       await settle(page);
     }
@@ -475,7 +484,10 @@ test("human review v0.2.3 — named screenshots with Capture State Integrity", a
     // timeline can start below the 900px fold, and the shot must show the
     // content that differs between states (state already asserted above).
     if (shot.scrollToTestid) {
-      await page.getByTestId(shot.scrollToTestid).scrollIntoViewIfNeeded().catch(() => {});
+      await page
+        .getByTestId(shot.scrollToTestid)
+        .scrollIntoViewIfNeeded()
+        .catch(() => {});
       await page.waitForTimeout(200);
     }
 
@@ -554,5 +566,7 @@ test("human review v0.2.3 — named screenshots with Capture State Integrity", a
 
   // The test itself fails when any shot was invalid — the package must be
   // trustworthy or visibly incomplete.
-  expect(invalid, `invalid capture states: ${invalid.map((i) => i.name).join(", ")}`).toHaveLength(0);
+  expect(invalid, `invalid capture states: ${invalid.map((i) => i.name).join(", ")}`).toHaveLength(
+    0,
+  );
 });

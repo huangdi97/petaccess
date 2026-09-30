@@ -30,7 +30,10 @@
       "route": "/#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
       "auth": true,
       "interactions": [
-        { "clickSelectors": ["[data-testid='entry-quick']"], "waitForSelector": "[data-testid='quick-submit']" }
+        {
+          "clickSelectors": ["[data-testid='entry-quick']"],
+          "waitForSelector": "[data-testid='quick-submit']"
+        }
       ],
       "expect": {
         "page": "contribution",
@@ -119,6 +122,12 @@
     }
   ],
   "density": [],
-  "language": { "uuid": true, "enums": true, "invariants": true, "allcapsTokens": true, "refs": true },
+  "language": {
+    "uuid": true,
+    "enums": true,
+    "invariants": true,
+    "allcapsTokens": true,
+    "refs": true
+  },
   "notes": "v0.2.3 §40/§41: first screen 你刚刚知道了什么？ with exactly 5 fixed options; consumer copy has no ADR/RFC/TD/UUID/enum (location copy uses the spec-correct wording 位置信息仅用于核验场所，不保存连续位置轨迹). Wizard O6 states: choose-type (entry) -> step-1 (legacy confirm) -> step-2 (reality parent-flow) -> done. Entry probed authenticated (pa_token via API, same as contribute-wizard e2e)."
 }

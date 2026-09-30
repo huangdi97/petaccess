@@ -105,13 +105,10 @@ export function scanVisibleText(pageId: string, text: string): LanguageHit {
 }
 
 export function verdict(hit: LanguageHit): "PASS" | "FAIL" {
-  return (
-    hit.uuid.length === 0 &&
+  return hit.uuid.length === 0 &&
     hit.snakeCase.length === 0 &&
     hit.invariants.length === 0 &&
     hit.refs.length === 0
     ? "PASS"
-    : "FAIL"
-  );
+    : "FAIL";
 }
-

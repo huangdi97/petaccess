@@ -132,6 +132,12 @@
       "severity": "FAIL"
     }
   ],
-  "language": { "uuid": true, "enums": true, "invariants": true, "allcapsTokens": true, "refs": true },
+  "language": {
+    "uuid": true,
+    "enums": true,
+    "invariants": true,
+    "allcapsTokens": true,
+    "refs": true
+  },
   "notes": "v0.2.3 §39: content max width 820, provenance marker col 24px + content remaining, marker x identical, continuous rail, step gap 28-36, exactly 5 steps (原始证据/地点匹配/时间确认/来源确认/人工核验), no UUIDs. ready = 星河咖啡 (seeded observations), empty = 云栖中心."
 }

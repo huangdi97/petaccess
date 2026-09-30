@@ -278,7 +278,15 @@ export interface ProbeArtifact {
 
 export interface CompareRow {
   id: string;
-  kind: "element" | "structure" | "density" | "hierarchy" | "budget" | "composition" | "state" | "language";
+  kind:
+    | "element"
+    | "structure"
+    | "density"
+    | "hierarchy"
+    | "budget"
+    | "composition"
+    | "state"
+    | "language";
   target: RangeSpec | string | number;
   actual: unknown;
   result: "PASS" | "WARN" | "FAIL";

@@ -90,7 +90,6 @@ const uiFixture = computed<string>(() => `contribution-${uiState.value}-v1`);
 
 /** §41: choice-count must reflect the real number of options on the entry. */
 const choiceCount = computed<number>(() => (uiState.value === "choose-type" ? 5 : 0));
-
 </script>
 <template>
   <div
@@ -102,8 +101,12 @@ const choiceCount = computed<number>(() => (uiState.value === "choose-type" ? 5 
   >
     <QueryContextBar v-if="placeId" />
     <div class="contribute-workspace__body">
-      <h1 class="visually-hidden">{{ uiState === "choose-type" ? "你刚刚知道了什么？" : "现场贡献" }}</h1>
-      <span v-if="uiState === 'choose-type'" class="visually-hidden" data-ui-count="choice-count">{{ choiceCount }}</span>
+      <h1 class="visually-hidden">
+        {{ uiState === "choose-type" ? "你刚刚知道了什么？" : "现场贡献" }}
+      </h1>
+      <span v-if="uiState === 'choose-type'" class="visually-hidden" data-ui-count="choice-count">{{
+        choiceCount
+      }}</span>
       <StateMessage
         v-if="!placeId"
         kind="PARTIAL"

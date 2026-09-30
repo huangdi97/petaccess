@@ -75,7 +75,11 @@ const provenance = computed<ProvenanceStep[]>(() => {
   >
     <h2 class="evidence-section__title">证据来源链</h2>
     <ol class="provenance-rail" data-ui="evidence-prov-rail">
-      <span class="provenance-rail__line" data-ui="evidence-prov-rail-line" aria-hidden="true"></span>
+      <span
+        class="provenance-rail__line"
+        data-ui="evidence-prov-rail-line"
+        aria-hidden="true"
+      ></span>
       <li
         v-for="p in provenance"
         :key="p.key"
@@ -83,7 +87,11 @@ const provenance = computed<ProvenanceStep[]>(() => {
         :class="{ 'provenance-step--filled': p.filled }"
         data-ui="evidence-prov-step"
       >
-        <span class="provenance-step__mark" aria-hidden="true" data-ui="evidence-prov-marker"></span>
+        <span
+          class="provenance-step__mark"
+          aria-hidden="true"
+          data-ui="evidence-prov-marker"
+        ></span>
         <div class="provenance-step__body">
           <span class="provenance-step__label">{{ p.label }}</span>
           <span class="muted provenance-step__note">{{ p.note }}</span>

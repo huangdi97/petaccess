@@ -73,7 +73,10 @@
     {
       "id": "SEARCH_DETAIL_CONTENT_WIDTH",
       "ui": "search-detail-content",
-      "fallbacks": ["[data-testid='decision-inspector'] .decision-content", "[data-testid='decision-inspector']"],
+      "fallbacks": [
+        "[data-testid='decision-inspector'] .decision-content",
+        "[data-testid='decision-inspector']"
+      ],
       "props": { "maxChildWidth": { "min": 680, "max": 724 } },
       "severity": "FAIL"
     },
@@ -101,7 +104,10 @@
     {
       "id": "SEARCH_ROW_HEIGHT",
       "ui": "search-result-row",
-      "fallbacks": ["[data-testid^='result-']:not([data-testid='result-rules'])", "ul.result-list li"],
+      "fallbacks": [
+        "[data-testid^='result-']:not([data-testid='result-rules'])",
+        "ul.result-list li"
+      ],
       "props": { "height": { "min": 112, "max": 132 } },
       "severity": "FAIL",
       "aggregate": "rows"
@@ -263,6 +269,12 @@
       "severity": "FAIL"
     }
   ],
-  "language": { "uuid": true, "enums": true, "invariants": true, "allcapsTokens": true, "refs": true },
+  "language": {
+    "uuid": true,
+    "enums": true,
+    "invariants": true,
+    "allcapsTokens": true,
+    "refs": true
+  },
   "notes": "v0.2.3 §21–22：Rail 68 / Topbar 60 / Results 400（x=68）/ Detail 972（x=468）；row radius=0 + divider + ≤5 text lines；selected = subtle tint + 2px indicator；detail content w∈680–724、首屏 ≥5 blocks、最大语义 gap ≤72px。"
 }

@@ -903,7 +903,6 @@ const selectedId = ref<string | null>(null);
   color: var(--pa-color-text-primary);
 }
 
-
 .result-row__meta {
   display: block;
   margin-top: var(--pa-space-1);

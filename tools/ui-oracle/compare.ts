@@ -138,10 +138,7 @@ function compareElement(rule: ElementRule, probe: PageProbe, out: CompareRow[]):
         actual = px(cs.borderRadius);
         break;
       case "boxShadow":
-        actual =
-          cs.boxShadow && cs.boxShadow !== "none"
-            ? String(cs.boxShadow)
-            : "none";
+        actual = cs.boxShadow && cs.boxShadow !== "none" ? String(cs.boxShadow) : "none";
         break;
       case "backgroundColor":
         actual = cs.backgroundColor ?? "";
@@ -509,11 +506,7 @@ function compareLanguage(
   }
 }
 
-function compareHierarchy(
-  rule: HierarchyRule,
-  probe: PageProbe,
-  out: CompareRow[],
-): void {
+function compareHierarchy(rule: HierarchyRule, probe: PageProbe, out: CompareRow[]): void {
   const m = probe.hierarchy[rule.id];
   if (!m) {
     out.push({
@@ -585,11 +578,7 @@ function compareBudget(rule: BudgetRule, probe: PageProbe, out: CompareRow[]): v
   );
 }
 
-function compareComposition(
-  rule: CompositionRule,
-  probe: PageProbe,
-  out: CompareRow[],
-): void {
+function compareComposition(rule: CompositionRule, probe: PageProbe, out: CompareRow[]): void {
   const m = probe.composition[rule.id];
   if (!m) {
     out.push({
@@ -619,18 +608,9 @@ function compareComposition(
   );
 }
 
-function compareState(
-  expect: StateExpectation,
-  probe: PageProbe,
-  out: CompareRow[],
-): void {
+function compareState(expect: StateExpectation, probe: PageProbe, out: CompareRow[]): void {
   const s = probe.state;
-  const emit = (
-    id: string,
-    field: string,
-    expected: unknown,
-    actual: unknown,
-  ): void => {
+  const emit = (id: string, field: string, expected: unknown, actual: unknown): void => {
     out.push(
       row(
         `${probe.pageId}-${id}`,
@@ -651,7 +631,8 @@ function compareState(
   if (expect.resultCount !== undefined) {
     emit("COUNT", "resultCount", expect.resultCount, s.resultCount);
   }
-  if (expect.selectedId !== undefined) emit("SELECTED", "selectedId", expect.selectedId, s.selectedId);
+  if (expect.selectedId !== undefined)
+    emit("SELECTED", "selectedId", expect.selectedId, s.selectedId);
   for (const c of expect.componentCounts ?? []) {
     const actual = s.componentCounts[c.selector] ?? 0;
     out.push(

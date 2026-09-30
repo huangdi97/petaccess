@@ -179,6 +179,12 @@
       "severity": "WARN"
     }
   ],
-  "language": { "uuid": true, "enums": true, "invariants": true, "allcapsTokens": true, "refs": true },
+  "language": {
+    "uuid": true,
+    "enums": true,
+    "invariants": true,
+    "allcapsTokens": true,
+    "refs": true
+  },
   "notes": "v0.2.3 §24–25：single column；row h 108–128、radius 0、≤5 text lines；bottom nav 58–64；filter = bottom sheet（top 340–480、radius 14–18、5 rows、无卡片）。"
 }

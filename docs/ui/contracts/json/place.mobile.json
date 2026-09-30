@@ -101,6 +101,12 @@
       "severity": "FAIL"
     }
   ],
-  "language": { "uuid": true, "enums": true, "invariants": true, "allcapsTokens": true, "refs": true },
+  "language": {
+    "uuid": true,
+    "enums": true,
+    "invariants": true,
+    "allcapsTokens": true,
+    "refs": true
+  },
   "notes": "v0.2.3 §34：single column；首屏 name/query/decision/1 condition/reality teaser，≤22 visible lines；history/provenance/boundary 默认折叠；bottom nav 58–64。"
 }

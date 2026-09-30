@@ -68,7 +68,6 @@ const STRUCTURE_HELPERS: Record<string, (...args: never[]) => unknown> = {
   checkCollapsed: checkCollapsed as unknown as (...args: never[]) => unknown,
 };
 
-
 const DENSITY_HELPERS: Record<string, (...args: never[]) => unknown> = {
   measureDensity: measureDensity as unknown as (...args: never[]) => unknown,
 };
@@ -218,7 +217,6 @@ interface StructureMeasurementShape {
   collapsed: boolean;
   xSpread: number | null;
 }
-
 
 async function probeStructure(
   page: import("@playwright/test").Page,

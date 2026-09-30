@@ -56,12 +56,6 @@ const CONFIDENCE_LABELS: Record<string, string> = {
 function confidenceLabel(v: string): string {
   return CONFIDENCE_LABELS[v] ?? "位置未记录";
 }
-
-/** Render "2026-09-20 10:30" for a timestamp, "2026-09-20" for a bare date. */
-function displayTime(iso: string): string {
-  return iso.length >= 16 ? `${iso.slice(0, 10)} ${iso.slice(11, 16)}` : iso;
-}
-
 /** §38: the 72px time column shows the clock time; the date lives in the
  * date-group header, so the column never wraps. */
 function timeOnly(iso: string): string {
@@ -133,12 +127,23 @@ const uiState = computed<string>(() => {
   if (!trace.value) return "unavailable";
   return observations.value.length > 0 ? "ready" : "empty";
 });
-const uiFixture = computed<string>(() => (uiState.value === "ready" ? "reality-ready-v1" : uiState.value === "empty" ? "reality-empty-v1" : "reality-other"));
-
+const uiFixture = computed<string>(() =>
+  uiState.value === "ready"
+    ? "reality-ready-v1"
+    : uiState.value === "empty"
+      ? "reality-empty-v1"
+      : "reality-other",
+);
 </script>
 
 <template>
-  <div class="reality-workspace" data-testid="reality-workspace" data-ui-page="reality" :data-ui-state="uiState" :data-ui-fixture="uiFixture">
+  <div
+    class="reality-workspace"
+    data-testid="reality-workspace"
+    data-ui-page="reality"
+    :data-ui-state="uiState"
+    :data-ui-fixture="uiFixture"
+  >
     <QueryContextBar />
     <div class="reality-workspace__body">
       <h1 class="visually-hidden">现场轨迹</h1>
@@ -192,20 +197,22 @@ const uiFixture = computed<string>(() => (uiState.value === "ready" ? "reality-r
             <span class="timeline-rail" data-ui="reality-rail" aria-hidden="true"></span>
             <template v-for="g in observationGroups" :key="g.date">
               <div class="timeline-date" data-ui="timeline-date">{{ g.date }}</div>
-              <div
-                v-for="o in g.items"
-                :key="o.id"
-                class="trace-row"
-                data-ui="reality-event"
-              >
-                <time class="trace-row__time" data-ui="reality-event-time">{{ displayTime(o.occurred_at) }}</time>
-                <span class="trace-row__dot" aria-hidden="true" data-ui="reality-event-marker"></span>
+              <div v-for="o in g.items" :key="o.id" class="trace-row" data-ui="reality-event">
+                <time class="trace-row__time" data-ui="reality-event-time">{{
+                  timeOnly(o.occurred_at)
+                }}</time>
+                <span
+                  class="trace-row__dot"
+                  aria-hidden="true"
+                  data-ui="reality-event-marker"
+                ></span>
                 <div class="trace-row__content">
                   <div class="trace-row__head">
                     <EvidenceStatus :state="evidenceStateFor(o)" />
                   </div>
                   <p class="trace-row__event">
-                    {{ animalScopeLabel(o.animal_scope) }} · {{ ruleActionLabel(o.observed_action) }}
+                    {{ animalScopeLabel(o.animal_scope) }} ·
+                    {{ ruleActionLabel(o.observed_action) }}
                     <span v-if="o.staff_action" class="muted"
                       >（工作人员：{{ staffActionLabel(o.staff_action) }}）</span
                     >

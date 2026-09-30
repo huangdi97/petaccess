@@ -73,6 +73,12 @@
       "severity": "FAIL"
     }
   ],
-  "language": { "uuid": true, "enums": true, "invariants": true, "allcapsTokens": true, "refs": true },
+  "language": {
+    "uuid": true,
+    "enums": true,
+    "invariants": true,
+    "allcapsTokens": true,
+    "refs": true
+  },
   "notes": "Home is a task launcher, not a dashboard. Order: Location -> Query -> Search -> Recent -> Nearby -> Lens."
 }

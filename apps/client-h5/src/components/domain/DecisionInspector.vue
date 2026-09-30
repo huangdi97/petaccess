@@ -116,7 +116,11 @@ const freshness = computed(() => freshnessLineFor(props.stale, props.fetchedAtMs
       <!-- Primary Decision: the one fact the user came for -->
       <div class="inspector-block inspector-block--decision" data-ui="search-decision">
         <span class="inspector-block__label" data-ui="search-decision-label">结论</span>
-        <p class="inspector-decision" data-ui="search-decision-text" data-testid="inspector-verdict">
+        <p
+          class="inspector-decision"
+          data-ui="search-decision-text"
+          data-testid="inspector-verdict"
+        >
           <template v-if="answerError">暂时无法取得（请检查网络后重试）</template>
           <template v-else-if="answer">{{ verdict }}</template>
           <template v-else>尚未核验</template>

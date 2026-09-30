@@ -126,12 +126,22 @@ const uiState = computed<string>(() => {
   return observations.value.length > 0 ? "ready" : "empty";
 });
 const uiFixture = computed<string>(() =>
-  uiState.value === "ready" ? "evidence-records-v1" : uiState.value === "empty" ? "evidence-empty-v1" : "evidence-other",
+  uiState.value === "ready"
+    ? "evidence-records-v1"
+    : uiState.value === "empty"
+      ? "evidence-empty-v1"
+      : "evidence-other",
 );
 </script>
 
 <template>
-  <div class="evidence-workspace" data-testid="evidence-workspace" data-ui-page="evidence" :data-ui-state="uiState" :data-ui-fixture="uiFixture">
+  <div
+    class="evidence-workspace"
+    data-testid="evidence-workspace"
+    data-ui-page="evidence"
+    :data-ui-state="uiState"
+    :data-ui-fixture="uiFixture"
+  >
     <QueryContextBar />
     <div class="evidence-workspace__body">
       <h1 class="visually-hidden">证据与来源</h1>
