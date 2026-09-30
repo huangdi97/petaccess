@@ -1,10 +1,11 @@
 # PROJECT_STATE.md
 
 ## Current phase（2026-09-29 本轮实测 — v0.2.2 Blind-Model UI 全量收口）
-- 状态：`UI_MACHINE_CONTRACT_ACCEPTANCE = PASS` · `UI_HUMAN_VISUAL_ACCEPTANCE = PENDING` · `UI_VISUAL_CLOSURE = PENDING_HUMAN`
+- 状态：`UI_MACHINE_CONTRACT_ACCEPTANCE = PASS` · `UI_HUMAN_VISUAL_ACCEPTANCE = PENDING`（第一轮人工验收 = **REJECTED**：「太规整，缺生活气息」→ 按用户选定方向 B 完成视觉温度收口并重发，等待再次签字）· `UI_VISUAL_CLOSURE = PENDING_HUMAN`
 - 分支：`feat/visual-fidelity-recovery`；HEAD = `12ad324`（push 后更新）；origin/master = `842c030` **未动**（不 merge、不 fast-forward、等人工视觉确认后另行请求）；v0.1.0 tag 未动。
 - 方法：Blind-Model —— 不使用任何视觉模型/OCR/截图理解；以 `docs/ui/contracts/` 机器契约 + `tools/ui-oracle/` 自建 Oracle 测量（DOM/bbox/computed style/density/语言扫描）驱动收口。见 `docs/ui/BLIND_UI_COMPLETION_METHOD.md`。
 - 机器 Gate（final）：10 契约 **TOTAL PASS=164 WARN=1 FAIL=0**（唯一 WARN = place.mobile 首屏 42 行，契约 warnAt=30，progressive disclosure 记录）；语言扫描 21 页 FAIL=0（UUID/enum/invariant 可见命中 0）。产物 `artifacts/blind-ui-recovery/reports/*`。
+- **生活气息收口（2026-09-30，用户 REJECTED「太规整」后按方向 B 重发）**：暖纸 app 底色（#faf7f2）+ 暖 surface token（surface-warm/warm-strong/border-warm + radius-row 12px）；Search/Map/Home nearby 行从「radius 0 divider 表格」改为「12px 圆角 + 轻投影柔行」；DecisionInspector 与 Place 决策块从裸文字改为暖 surface；Place section 间距 24→32。语义色不变。契约锚点 SEARCH_ROW_RADIUS_ZERO → SEARCH_ROW_RADIUS_SOFT(8–16px)。重跑后 final gate 仍 PASS=164 WARN=1 FAIL=0。
 - 回归（本轮实测）：client-h5 vue-tsc+build PASS；eslint 0；prettier PASS；Playwright e2e 189/189（串行；并行 2-worker 下 contribute-wizard 懒加载超时 flake 既有）；ui-reconstruction 180/180（phase1/3 + a11y + leakage all）；visual 59/59（consumer 基线按新 UI 重生成 38 张）；ui-audit 70/70；backend pytest 836 passed / 2 skipped / 4 环境性失败（celery/OCR/adb 路径，均与本轮无关；`-k reality` 30/30）。
 - Android FAST（emulator-5554 复用，ASCII worktree 例外经用户确认后构建并已删除）：install/launch/Home/Search(16 结果)/Place/Map/nav/offline/recovery/lifecycle 全 PASS。见 `docs/reports/BLIND_UI_ANDROID_FAST.md`。
 - Windows Smoke（真实 WebView2/Tauri，工作区内构建）：launch/Home/Search(16 结果)/Place/Map/nav/offline/recovery 全 PASS。见 `docs/reports/BLIND_UI_WINDOWS_SMOKE.md`。

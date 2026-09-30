@@ -12,17 +12,24 @@
 
 :root {
   /* --- colour: surfaces ------------------------------------------------- */
-  --pa-color-bg-app: #f4f6f8;
+  /* 生活气息收口（2026-09-30，用户人工验收反馈）：中性冷灰 chrome 改为暖纸色系；
+   * 语义色（allowed/conditional/restricted/observed…）保持含义不变。token 仍是 SSOT。 */
+  --pa-color-bg-app: #faf7f2;
   --pa-color-bg-surface: #ffffff;
-  --pa-color-bg-sunken: #eef1f4;
+  --pa-color-bg-sunken: #f2ede3;
   --pa-color-bg-overlay: rgba(20, 28, 36, 0.44);
 
   /* Surface vocabulary (Design System §7): every layer of the app is a named
    * surface token, so components never invent another grey. */
   --pa-color-surface: #ffffff;
   --pa-color-surface-raised: #ffffff;
-  --pa-color-surface-muted: #eef1f4;
-  --pa-color-surface-interactive: #e7eef5;
+  --pa-color-surface-muted: #f2ede3;
+  --pa-color-surface-interactive: #efe7d8;
+
+  /* 暖 surface（决策块 / 选中行）：来自既有 amber 族的暖 tint，仅用于 chrome。 */
+  --pa-color-surface-warm: #fdf6e7;
+  --pa-color-surface-warm-strong: #f8ecd4;
+  --pa-color-border-warm: #eadfc8;
 
   /* --- colour: text ------------------------------------------------------ */
   --pa-color-text-primary: #1d2733;
@@ -64,7 +71,7 @@
   --pa-color-status-restricted: #8f4a3a;
   --pa-color-status-restricted-bg: #f7e9e5;
   --pa-color-status-unknown: #5c6873;
-  --pa-color-status-unknown-bg: #eceff2;
+  --pa-color-status-unknown-bg: #eeeae1;
   --pa-color-status-conflict: #6f5a9e;
   --pa-color-status-conflict-bg: #eeeafa;
   --pa-color-status-stale: #8a5f18;
@@ -118,14 +125,13 @@
   --pa-space-40: 40px;
   --pa-space-7: 48px;
 
-  /* --- radius ------------------------------------------------------------ */
-  /* Semantic names, not just a numeric ladder: a control (button/input/chip)
-   * and a card are allowed to diverge later without touching every call site. */
   --pa-radius-sm: 6px;
   --pa-radius-control: 8px; /* buttons, inputs, chips */
   --pa-radius-md: 10px; /* cards */
   --pa-radius-lg: 12px; /* sheets / modals */
   --pa-radius-pill: 999px;
+  /* 生活气息收口：结果行/卡片行用柔和的 12px 圆角（替代硬边 0px 的表格感）。 */
+  --pa-radius-row: 12px;
 
   /* --- border ------------------------------------------------------------ */
   --pa-border-width: 1px;

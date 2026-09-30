@@ -776,15 +776,19 @@ const selectedId = ref<string | null>(null);
   padding: 0;
 }
 
-/* Result rows are divider rows — never cards. Selected = subtle tint + one
- * 2px accent bar on the left (Goal §32: 1 clear indicator, no rounded card). */
+/* Result rows are soft raised rows — never cards, never hard table lines.
+ * 生活气息收口（2026-09-30）：12px 圆角 + 轻投影替代 0px 硬边表格感；选中 =
+ * 暖 tint + 2px accent 左指示（Goal §32 的「1 clear indicator」保留）。 */
 .result-row {
   position: relative;
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: var(--pa-radius-row);
+  background: var(--pa-color-surface);
+  box-shadow: var(--pa-elevation-1);
+  margin-bottom: var(--pa-space-2);
 }
 
 .result-row--selected {
-  background: var(--pa-color-accent-weak);
+  background: var(--pa-color-surface-warm-strong);
 }
 
 .result-row--selected::before {
@@ -795,6 +799,7 @@ const selectedId = ref<string | null>(null);
   bottom: 0;
   width: var(--pa-border-width-strong);
   background: var(--pa-color-accent);
+  border-radius: var(--pa-radius-row) 0 0 var(--pa-radius-row);
 }
 
 .result-row__link {

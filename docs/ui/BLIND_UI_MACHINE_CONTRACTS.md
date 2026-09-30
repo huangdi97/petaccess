@@ -37,8 +37,8 @@
 ```
 
 ## 3. 关键约束锚点（实测锚点，来自契约）
+- Search desktop：rail 64–72px、top context 56–64px、result pane 380–420px、detail 内容 maxChildWidth 680–760px、detail 左距 32–48px、顶距 24–32px、detail 首屏 ≥360px、result row 高 108–136px 且 **radius 8–16px（生活气息收口：12px 柔行，SEARCH_ROW_RADIUS_SOFT 替代原 radius=0）**、selected 行暖 tint + 左指示 2px、决策锚点 label 12–13px / decision 28–32px / supporting 14–16px。
 
-- Search desktop：rail 64–72px、top context 56–64px、result pane 380–420px、detail 内容 maxChildWidth 680–760px、detail 左距 32–48px、顶距 24–32px、detail 首屏 ≥360px、result row 高 108–136px 且 radius=0、selected 行 tint + 左指示 2px、决策锚点 label 12–13px / decision 28–32px / supporting 14–16px。
 - Search mobile：row 104–132px、决策高于 metadata、filter bottom sheet（top radius 16px + drag handle + title + 选项 + action）。
 - Place desktop：dossier 65–72% + sticky inspector 300–360px（sticky top = context bar + 20–24px）、identity name 28–30px、Current Decision 为第一核心 section。
 - Place mobile：首屏 place name + 决策 + 至少一项 supporting fact；禁止超长 schema dump。

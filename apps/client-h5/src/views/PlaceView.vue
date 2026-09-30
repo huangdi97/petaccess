@@ -847,7 +847,8 @@ const historyOpen = ref(false);
 .place-workspace__body {
   display: flex;
   flex-direction: column;
-  gap: var(--pa-space-5);
+  /* 生活气息收口 2026-09-30：section 间距 24→32，节奏更透气（density 上限 180 内）。 */
+  gap: var(--pa-space-6);
   padding: var(--pa-space-4);
   max-width: var(--pa-layout-content-narrow);
   margin: 0 auto;
@@ -929,7 +930,9 @@ const historyOpen = ref(false);
 
 .sub-answer--mine {
   border-left: var(--pa-border-width-strong) solid var(--pa-color-accent);
-  padding-left: var(--pa-space-4);
+  background: var(--pa-color-surface-warm);
+  border-radius: var(--pa-radius-md);
+  padding: var(--pa-space-3) var(--pa-space-4);
 }
 
 .sub-answer .status {

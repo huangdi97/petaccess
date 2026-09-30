@@ -29,13 +29,13 @@
 | WINDOWS SMOKE | 全场景 PASS（launch/Home/Search 16 结果/Place/Map/nav/offline/recovery），见 BLIND_UI_WINDOWS_SMOKE.md |
 | HUMAN REVIEW SCREENSHOT ROOT | `artifacts/blind-ui-recovery/HUMAN_REVIEW/`（14 张命名截图 + HUMAN_REVIEW_INDEX.html） |
 | UI_MACHINE_CONTRACT_ACCEPTANCE | **PASS**（final gate：TOTAL PASS=164 WARN=1 FAIL=0） |
-| UI_HUMAN_VISUAL_ACCEPTANCE | **PENDING**（等待人类在 HUMAN_REVIEW 包签字） |
+| UI_HUMAN_VISUAL_ACCEPTANCE | **PENDING**（第一轮人工验收 = **REJECTED**：「太规整，缺生活气息」；2026-09-30 按用户选定方向 B 完成视觉温度收口并重发 14 张截图，等待再次签字） |
 | REMAINING GAPS | 见下 |
 
 ## 各页面 machine gate（UI_ORACLE_STAGE=final）
 
 | 契约 | PASS | WARN | FAIL |
-|---|---|---|---|
+|---|---|---|
 | search.desktop | 22 | 0 | 0 |
 | search.mobile | 15 | 0 | 0 |
 | place.desktop | 15 | 0 | 0 |
@@ -66,10 +66,11 @@
 4. **后端 4 环境性失败**：`test_serial_state_missing_when_offline`（adb 路径硬编码 AppData，实为 D:\Code）、`test_ocr_task_updates_media_for_review_queue` / `test_ttl_purge_removes_expired` / `test_e2e_a_signage_upload_to_published_rule`（celery worker/OCR 未运行）。均不引用本轮改动的 reality_reports，属 BLOCKED_EXTERNAL 环境项。
 5. **Android debug-CDP ANR**：CDP 调试器附着时 HOME 背景化触发 WebView ANR（harness 产物）；摘除 CDP 后生命周期 PASS。
 6. **ui-audit 为 legacy capture**：map-ready 断言从 `coverage-hint`（桌面窗格专用）改为 `map` canvas（全视口主表面），与新 IA 一致。
-7. **视觉基线重生成**：consumer 38 张 baseline 因本轮有意 UI 重设计而重生成（visual 59/59 确定性通过）；admin 基线未动。
+7. **视觉基线重生成**：consumer 38 张 baseline 因本轮有意 UI 重设计而重生成（visual 59/59 确定性通过）；生活气息收口后再重生成 5 张（home-fixture 3 视口 + place 768×2，暖底色可见页）；admin 基线未动。
+8. **生活气息收口（2026-09-30）**：用户第一轮人工验收 REJECTED（「太规整，缺生活气息」）→ 按选定方向 B 完成 token 内视觉温度：暖纸 app 底色 `#faf7f2`、新增 `surface-warm` / `warm-strong` / `border-warm` / `radius-row` token、Search/Map/Home nearby 行改 12px 圆角轻投影柔行（契约 SEARCH_ROW_RADIUS_ZERO → SEARCH_ROW_RADIUS_SOFT 8–16px）、DecisionInspector 与 Place 决策块暖 surface、Place section 间距 24→32；语义色保持。重跑 final gate 仍 PASS=164 WARN=1 FAIL=0；e2e 189/189、reconstruction 180/180、visual 59/59、language 21 页 FAIL=0；HUMAN_REVIEW 14 张已重发。
 
 ## 结论
 
 - 机器侧（契约、Oracle、回归、双端 smoke）全部收口：`UI_MACHINE_CONTRACT_ACCEPTANCE = PASS`。
-- **`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING`**：Agent 不做视觉签字；请打开 `artifacts/blind-ui-recovery/HUMAN_REVIEW/HUMAN_REVIEW_INDEX.html` 人工验收 14 张固定视口截图。
+- **`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING`（第二轮待签）**：第一轮人工验收 REJECTED（「太规整，缺生活气息」）已按方向 B 完成视觉温度收口并重发；Agent 不做视觉签字；请重新打开 `artifacts/blind-ui-recovery/HUMAN_REVIEW/HUMAN_REVIEW_INDEX.html` 人工验收 14 张暖感重发截图。
 - master 未动；feature 分支 push 完成后等待人工确认。

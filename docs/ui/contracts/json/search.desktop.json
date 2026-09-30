@@ -1,38 +1,76 @@
 {
   "id": "search.desktop",
   "title": "Search Desktop Contract",
-  "viewport": { "width": 1440, "height": 900 },
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
   "pages": [
-    { "id": "search-ready", "route": "/#/search" },
-    { "id": "search-selected", "route": "/#/search?q=%E6%98%9F%E6%B2%B3" }
+    {
+      "id": "search-ready",
+      "route": "/#/search"
+    },
+    {
+      "id": "search-selected",
+      "route": "/#/search?q=%E6%98%9F%E6%B2%B3"
+    }
   ],
   "elements": [
     {
       "id": "SEARCH_RAIL_WIDTH",
       "ui": "app-rail",
-      "fallbacks": [".desktop-rail"],
-      "props": { "width": { "min": 64, "max": 72 } },
+      "fallbacks": [
+        ".desktop-rail"
+      ],
+      "props": {
+        "width": {
+          "min": 64,
+          "max": 72
+        }
+      },
       "severity": "FAIL"
     },
     {
       "id": "SEARCH_TOP_CONTEXT_HEIGHT",
       "ui": "query-context",
-      "fallbacks": ["[data-testid='query-context']"],
-      "props": { "height": { "min": 56, "max": 64 } },
+      "fallbacks": [
+        "[data-testid='query-context']"
+      ],
+      "props": {
+        "height": {
+          "min": 56,
+          "max": 64
+        }
+      },
       "severity": "FAIL"
     },
     {
       "id": "SEARCH_RESULT_PANE_WIDTH",
       "ui": "search-results-pane",
-      "fallbacks": [".search-result-pane", "[class*='search-result-pane']"],
-      "props": { "width": { "min": 380, "max": 420 } },
+      "fallbacks": [
+        ".search-result-pane",
+        "[class*='search-result-pane']"
+      ],
+      "props": {
+        "width": {
+          "min": 380,
+          "max": 420
+        }
+      },
       "severity": "FAIL"
     },
     {
       "id": "SEARCH_DETAIL_PANE_PRESENT",
       "ui": "search-detail-pane",
-      "fallbacks": ["[data-testid='decision-inspector']", ".search-inspector"],
-      "props": { "count": { "min": 1 } },
+      "fallbacks": [
+        "[data-testid='decision-inspector']",
+        ".search-inspector"
+      ],
+      "props": {
+        "count": {
+          "min": 1
+        }
+      },
       "severity": "FAIL"
     },
     {
@@ -42,21 +80,40 @@
         "[data-testid='decision-inspector'] .decision-content",
         "[data-testid='decision-inspector']"
       ],
-      "props": { "maxChildWidth": { "min": 680, "max": 760 } },
+      "props": {
+        "maxChildWidth": {
+          "min": 680,
+          "max": 760
+        }
+      },
       "severity": "FAIL"
     },
     {
       "id": "SEARCH_DETAIL_CONTENT_LEFT_OFFSET",
       "ui": "search-detail-content",
-      "fallbacks": ["[data-testid='decision-inspector']"],
-      "props": { "left": { "min": 32, "max": 48 } },
+      "fallbacks": [
+        "[data-testid='decision-inspector']"
+      ],
+      "props": {
+        "left": {
+          "min": 32,
+          "max": 48
+        }
+      },
       "severity": "WARN"
     },
     {
       "id": "SEARCH_INPUT_HEIGHT",
       "ui": "search-input",
-      "fallbacks": ["[data-testid='search-input']"],
-      "props": { "height": { "min": 44, "max": 48 } },
+      "fallbacks": [
+        "[data-testid='search-input']"
+      ],
+      "props": {
+        "height": {
+          "min": 44,
+          "max": 48
+        }
+      },
       "severity": "FAIL"
     },
     {
@@ -66,30 +123,54 @@
         "[data-testid^='result-']:not([data-testid='result-rules'])",
         "ul.result-list li"
       ],
-      "props": { "height": { "min": 108, "max": 136 } },
+      "props": {
+        "height": {
+          "min": 108,
+          "max": 136
+        }
+      },
       "severity": "FAIL",
       "aggregate": "rows"
     },
     {
-      "id": "SEARCH_ROW_RADIUS_ZERO",
+      "id": "SEARCH_ROW_RADIUS_SOFT",
       "ui": "search-result-row",
-      "fallbacks": ["ul.result-list li"],
-      "props": { "borderRadius": { "max": 0 } },
+      "fallbacks": [
+        "ul.result-list li"
+      ],
+      "props": {
+        "borderRadius": {
+          "min": 8,
+          "max": 16
+        }
+      },
       "severity": "FAIL",
       "aggregate": "rows"
     },
     {
       "id": "SEARCH_DETAIL_FIRST_VIEWPORT_HEIGHT",
       "ui": "search-detail-content",
-      "fallbacks": ["[data-testid='decision-inspector']"],
-      "props": { "contentHeightInViewport": { "min": 360 } },
+      "fallbacks": [
+        "[data-testid='decision-inspector']"
+      ],
+      "props": {
+        "contentHeightInViewport": {
+          "min": 360
+        }
+      },
       "severity": "WARN"
     },
     {
       "id": "SEARCH_COUNT_LINE",
       "ui": "search-count",
-      "fallbacks": ["[data-testid='search-count']"],
-      "props": { "count": { "min": 1 } },
+      "fallbacks": [
+        "[data-testid='search-count']"
+      ],
+      "props": {
+        "count": {
+          "min": 1
+        }
+      },
       "severity": "FAIL"
     }
   ],
@@ -97,7 +178,10 @@
     {
       "id": "NO_RESULT_CARD_ROWS",
       "selector": "ul.result-list li",
-      "forbiddenClass": ["card", "panel"],
+      "forbiddenClass": [
+        "card",
+        "panel"
+      ],
       "severity": "FAIL"
     },
     {
@@ -117,6 +201,11 @@
       "severity": "FAIL"
     }
   ],
-  "language": { "uuid": true, "enums": true, "invariants": true, "allcapsTokens": true },
+  "language": {
+    "uuid": true,
+    "enums": true,
+    "invariants": true,
+    "allcapsTokens": true
+  },
   "notes": "Detail content must not stretch full pane; selected row uses tint + 2px left indicator (see contract md 25.5)."
 }

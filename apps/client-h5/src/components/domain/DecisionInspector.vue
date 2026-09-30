@@ -220,10 +220,13 @@ const freshness = computed(() => freshnessLineFor(props.stale, props.fetchedAtMs
   overflow-wrap: anywhere;
 }
 
-/* Primary decision: thick accent left edge — the loudest line on the pane. */
+/* Primary decision: warm surface + thick accent left edge — the loudest line
+ * on the pane（生活气息收口 2026-09-30：决策块从裸文字块改为暖 surface）。 */
 .inspector-block--decision {
   border-left: var(--pa-border-width-strong) solid var(--pa-color-accent);
-  padding-left: var(--pa-space-4);
+  background: var(--pa-color-surface-warm);
+  border-radius: var(--pa-radius-md);
+  padding: var(--pa-space-3) var(--pa-space-4);
 }
 
 .inspector-decision {

@@ -266,7 +266,8 @@ function toggleFilter(key: string) {
   margin: var(--pa-space-1) 0 0;
 }
 
-/* 附近场所行：divider 列表行，radius 0，非卡片。 */
+/* 附近场所行：柔和凸起行（生活气息收口 2026-09-30）——12px 圆角 + 轻投影替代
+ * divider 表格感；仍非卡片（无边框卡片式视觉）。 */
 .map-place-list {
   list-style: none;
   margin: 0;
@@ -275,16 +276,19 @@ function toggleFilter(key: string) {
 
 .map-place-row {
   cursor: pointer;
-  padding: var(--pa-space-3) 0;
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  padding: var(--pa-space-3) var(--pa-space-4);
+  border-radius: var(--pa-radius-row);
+  background: var(--pa-color-surface);
+  box-shadow: var(--pa-elevation-1);
+  margin-bottom: var(--pa-space-2);
 }
 
 .map-place-row:last-child {
-  border-bottom: none;
+  margin-bottom: 0;
 }
 
 .map-place-row:hover {
-  background: var(--pa-color-surface-interactive);
+  background: var(--pa-color-surface-warm);
 }
 
 .map-place-row__head {

@@ -143,15 +143,19 @@ const freshness = computed(() =>
 </template>
 
 <style scoped>
-/* Nearby rows — divider-based (PlaceResultRow + subtle separators), NOT cards. */
+/* Nearby rows — soft raised rows（生活气息收口 2026-09-30）：12px 圆角 + 轻投影，
+ * 替代 divider 表格感；仍非卡片墙。 */
 .home-card {
   cursor: pointer;
-  padding: var(--pa-space-3) 0;
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  padding: var(--pa-space-3) var(--pa-space-4);
+  border-radius: var(--pa-radius-row);
+  background: var(--pa-color-surface);
+  box-shadow: var(--pa-elevation-1);
+  margin-bottom: var(--pa-space-2);
 }
 
 .home-card:last-child {
-  border-bottom: none;
+  margin-bottom: 0;
 }
 
 .home-card__head {

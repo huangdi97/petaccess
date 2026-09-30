@@ -22,6 +22,7 @@
 | Phase C | Home 去 perspective pill；Map 去 pill wall → SVG 空间底图 + 筛选 N | home 12/12、map 13/13 |
 | Phase D | Reality event log / Evidence provenance / Contribution 认证态交易流 | reality 14/14、evidence 16/16、contribution 14/14 |
 | Final | 全量 10 契约 probe + compare + language + density | `final.json`：TOTAL PASS=164 WARN=1 FAIL=0；language FAIL=0 |
+| Final 第二轮 | 生活气息收口重发（用户 REJECTED「太规整」→ 方向 B 视觉温度；暖纸底色 / 12px 柔行 / 暖决策块 / 间距 24→32） | 重跑 10 契约：TOTAL PASS=164 WARN=1 FAIL=0；视觉基线重生成；HUMAN_REVIEW 14 张重发 |
 
 ## 3. 关键机制
 
@@ -32,6 +33,7 @@
 - **数据-ui 命名体系**：语义区域用稳定 `data-ui`（search-shell / place-dossier / reality-timeline / evidence-provenance / contribution-flow 等）；共享组件根 data-ui 由父页面 fallthrough；`PaBottomSheet` 因 Teleport 根不收 data-* 属性而增加显式 `ui` prop。
 
 ## 4. 已知 gap（诚实记录，非 FAIL）
+
 
 - place.mobile 首屏可见文本行 42（契约 `PLACE_MOBILE_FIRST_VIEWPORT_LINES` max=40 / warnAt=30）→ **WARN**：优先 progressive disclosure 而非删信息。
 - search.mobile 首屏行 38 → density 诊断 WARN（非契约 FAIL）。
