@@ -37,7 +37,6 @@ import StateMessage from "../components/StateMessage.vue";
 import StatusBadge from "../components/StatusBadge.vue";
 import { answerConditions, answerStatusKey, answerVerdictLabel } from "../answer";
 import {
-  evidenceLineFor,
   freshnessLineFor,
   lensOrderScore,
   lensProjection,
@@ -45,7 +44,7 @@ import {
   recentLineFor,
   type ConsumerLens,
 } from "../consumer/rowView";
-import { placeTypeLabel, ruleSummaryLabel } from "../consumer/labels";
+import { placeTypeLabel } from "../consumer/labels";
 import { useBreakpoint } from "../composables/useBreakpoint";
 import { useOnline } from "../composables/useOnline";
 import { presentDescription } from "../errors";
@@ -79,6 +78,25 @@ const searched = ref(false);
 const loading = ref(false);
 const error = ref("");
 const epoch = createEpoch();
+
+/**
+ * O6 capture-state integrity: page/state/fixture narrated by this component.
+ * The oracle compares these against the real DOM before a screenshot counts
+ * as evidence — state reflects what is actually on screen (ready / selected /
+ * empty / filter), never what a test wanted to see.
+ */
+const uiState = computed<string>(() => {
+  if (filterOpen.value) return "filter";
+  if (searched.value && !loading.value && !error.value && visible.value.length === 0)
+    return "empty";
+  if (searched.value && !loading.value && !error.value && selectedId.value) return "ready-selected";
+  return "ready";
+});
+const uiFixture = computed<string>(() => {
+  if (uiState.value === "filter") return "search-filter-v1";
+  if (uiState.value === "empty") return "search-empty-v1";
+  return "search-ready-v1";
+});
 const speciesLabel = computed(() => {
   const s = session.activePet?.species ?? "dog";
   if (session.activePet?.service_role === "working") return "服务犬";
@@ -291,11 +309,18 @@ const selectedId = ref<string | null>(null);
 </script>
 
 <template>
-  <div class="search-workspace" data-testid="search-workspace" data-ui="search-shell">
+  <div
+    class="search-workspace"
+    data-testid="search-workspace"
+    data-ui="search-shell"
+    data-ui-page="search"
+    :data-ui-state="uiState"
+    :data-ui-fixture="uiFixture"
+  >
     <QueryContextBar />
 
     <div class="search-workspace__body" :class="{ 'search-workspace__body--split': isDesktop }">
-      <!-- result pane -->
+      <!-- result pane（v0.2.3 §21：ResultsPane x=68 w=400 全出血；§22 内容列不铺满） -->
       <section class="search-result-pane" aria-label="搜索结果" data-ui="search-results-pane">
         <header class="search-result-pane__head">
           <h1 class="visually-hidden">搜索场所规则</h1>
@@ -305,6 +330,7 @@ const selectedId = ref<string | null>(null);
               aria-label="搜索场所"
               placeholder="搜索场所、商圈或地址"
               data-testid="search-input"
+              data-ui="search-input"
               @keydown.enter="search"
             />
             <button
@@ -322,6 +348,7 @@ const selectedId = ref<string | null>(null);
               class="primary search-submit"
               :disabled="loading"
               data-testid="search-btn"
+              data-ui="search-submit"
             >
               {{ loading ? "搜索中…" : "搜索" }}
             </button>
@@ -358,7 +385,7 @@ const selectedId = ref<string | null>(null);
           {{ lensHint }}
         </div>
 
-        <!-- filter: light panel (desktop) / bottom sheet (mobile) — never pills -->
+        <!-- filter: single 「筛选 N」 entry（§21.3：不得出现状态 pill wall） -->
         <div class="filter-bar">
           <button
             type="button"
@@ -431,6 +458,7 @@ const selectedId = ref<string | null>(null);
             <button type="button" class="primary" @click="search">重试</button>
           </template>
         </StateMessage>
+        <!-- empty: 只存在于 ResultsPane 内（§23），无大卡/大圆角/阴影 -->
         <StateMessage
           v-else-if="searched && !visible.length"
           kind="PARTIAL"
@@ -485,19 +513,21 @@ const selectedId = ref<string | null>(null);
                 @mouseenter="selectPlace(p)"
                 @focus="selectPlace(p)"
               >
-                <!-- head: identity left, recency + status right -->
+                <!-- head: identity left, status right (v0.2.3 §21.5 budget:
+                     name / type·distance·recency / decision / condition / reality
+                     = 5 lines max; 规则数量/来源计数/内部计数 不上行) -->
                 <div class="result-row__head">
                   <div class="result-row__identity">
                     <strong class="result-row__name">{{ p.canonical_name }}</strong>
                     <span class="muted result-row__meta">
                       {{ placeTypeLabel(p.place_type) }}
                       <template v-if="p.distance_m"> · {{ Math.round(p.distance_m) }}m</template>
+                      <template v-if="recentLineFor(facts.get(p.id)?.reality)">
+                        · {{ recentLineFor(facts.get(p.id)?.reality) }}
+                      </template>
                     </span>
                   </div>
                   <div class="result-row__head-right">
-                    <span v-if="recentLineFor(facts.get(p.id)?.reality)" class="result-row__recent">
-                      {{ recentLineFor(facts.get(p.id)?.reality) }}
-                    </span>
                     <StatusBadge :semantic="statuses[p.id] ?? 'UNKNOWN'" />
                   </div>
                 </div>
@@ -534,7 +564,7 @@ const selectedId = ref<string | null>(null);
                 >
                   规则结论暂时无法取得 —— 请检查网络后重试。
                 </p>
-                <!-- primary decision: verdict + 1 key condition on one dense line -->
+                <!-- primary decision: verdict + 1 key condition on one line -->
                 <p
                   v-else-if="facts.get(p.id)?.answer"
                   class="result-row__decision"
@@ -546,33 +576,21 @@ const selectedId = ref<string | null>(null);
                   </span>
                 </p>
 
-                <!-- reality + evidence: one quiet line -->
-                <div class="result-row__reality" data-testid="result-reality">
-                  <p v-if="facts.get(p.id)?.realityError" class="result-row__error">
-                    现场信息暂时无法取得 —— 请检查网络后重试。
-                  </p>
-                  <p v-else>
-                    {{ realityLineFor(facts.get(p.id)?.reality) }}
-                    <span v-if="evidenceLineFor(facts.get(p.id)?.reality)" class="muted">
-                      · {{ evidenceLineFor(facts.get(p.id)?.reality) }}
-                    </span>
-                  </p>
-                </div>
-
-                <!-- 极轻元数据：规则材料存在性 + 父场所 -->
-                <div class="result-row__rules" data-testid="result-rules">
-                  {{ ruleSummaryLabel(p) }}
-                  <span v-if="p.parent_place_name" class="muted" data-testid="result-branch">
-                    · 所属 {{ p.parent_place_name }}
-                  </span>
-                </div>
+                <!-- reality freshness: one line (v0.2.3 §21.5: reality state only,
+                     no 来源计数/依据计数 on rows) -->
+                <p v-if="facts.get(p.id)?.realityError" class="result-row__error">
+                  现场信息暂时无法取得 —— 请检查网络后重试。
+                </p>
+                <p v-else class="result-row__reality-line" data-testid="result-reality">
+                  {{ realityLineFor(facts.get(p.id)?.reality) }}
+                </p>
               </RouterLink>
             </li>
           </ul>
         </template>
       </section>
 
-      <!-- detail inspector (desktop only) -->
+      <!-- detail inspector (desktop only; v0.2.3 §22 content 列 ≤704px) -->
       <aside
         v-if="isDesktop"
         class="search-inspector"
@@ -581,6 +599,7 @@ const selectedId = ref<string | null>(null);
       >
         <DecisionInspector
           data-ui="search-detail-content"
+          variant="search"
           :place="selectedPlace"
           :status="selectedStatus"
           :answer="selectedPlace ? (facts.get(selectedPlace.id)?.answer ?? null) : null"
@@ -615,26 +634,33 @@ const selectedId = ref<string | null>(null);
 }
 
 @media (min-width: 768px) {
+  /* v0.2.3 §21.1：Rail 68 / Topbar 60 / Results 400（x=68, 全出血）/
+   * Detail 余下（x=468 w=972）。禁用居中 max-width：结果窗格必须贴住
+   * rail（Content Shell 已 margin-left 68），detail 自适应到右侧边缘。 */
   .search-workspace__body--split {
     flex-direction: row;
     align-items: stretch;
-    max-width: 1180px;
-    margin: 0 auto;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    gap: 0;
   }
 
   .search-result-pane {
     flex: 0 0 var(--pa-layout-result-pane);
     border-right: var(--pa-border-width) solid var(--pa-color-border);
-    padding-right: var(--pa-space-5);
+    /* §21.2：results content x = 68 + 20 = 88；content width = 400 - 40 = 360。 */
+    padding: var(--pa-space-5) var(--pa-space-20) 0;
   }
 
   .search-inspector {
     flex: 1 1 auto;
     min-width: 0;
-    max-width: var(--pa-layout-detail-content);
+    /* §22：detail content x = 468 + 40 = 508；宽度由 DecisionInspector
+     * 自身 max-width（--pa-layout-detail-content = 704）约束。 */
     padding-left: var(--pa-space-40);
     position: sticky;
-    top: var(--pa-space-4);
+    top: 0;
     align-self: stretch;
   }
 }
@@ -760,10 +786,6 @@ const selectedId = ref<string | null>(null);
   margin: var(--pa-space-2) 0 0;
 }
 
-.search-freshness {
-  margin: var(--pa-space-2) 0;
-}
-
 .search-count {
   margin: var(--pa-space-2) 0;
   font-size: var(--pa-font-size-md);
@@ -776,37 +798,50 @@ const selectedId = ref<string | null>(null);
   padding: 0;
 }
 
-/* Result rows are soft raised rows — never cards, never hard table lines.
- * 生活气息收口（2026-09-30）：12px 圆角 + 轻投影替代 0px 硬边表格感；选中 =
- * 暖 tint + 2px accent 左指示（Goal §32 的「1 clear indicator」保留）。 */
+.search-freshness {
+  margin: var(--pa-space-2) 0;
+}
+
+/* v0.2.3 §21.5：result rows = divider rows, NOT cards — radius 0, no shadow,
+ * bottom divider, min-height 112 / max 132, paddings ≤14px. The 生活气息收口
+ * (radius 12 + soft shadow) is deliberately superseded by the blueprint
+ * (用户 2026-09-30 确认：蓝图为准，按 v0.2.3 严格重置). */
 .result-row {
   position: relative;
-  border-radius: var(--pa-radius-row);
-  background: var(--pa-color-surface);
-  box-shadow: var(--pa-elevation-1);
-  margin-bottom: var(--pa-space-2);
+  border-radius: var(--pa-radius-row-zero);
+  background: transparent;
+  box-shadow: none;
+  min-height: 112px;
+  max-height: 132px;
+}
+
+.result-row + .result-row {
+  border-top: var(--pa-border-width) solid var(--pa-color-border);
 }
 
 .result-row--selected {
-  background: var(--pa-color-surface-warm-strong);
+  background: var(--pa-color-surface-warm);
 }
 
 .result-row--selected::before {
   content: "";
   position: absolute;
   left: 0;
-  top: 0;
-  bottom: 0;
+  top: var(--pa-space-3);
+  bottom: var(--pa-space-3);
   width: var(--pa-border-width-strong);
   background: var(--pa-color-accent);
-  border-radius: var(--pa-radius-row) 0 0 var(--pa-radius-row);
+  border-radius: 0;
 }
 
 .result-row__link {
   display: block;
-  padding: var(--pa-space-2) var(--pa-space-1);
+  /* §20 row internal = 10–14px；12px 落在范围内。 */
+  padding: var(--pa-space-3) var(--pa-space-1);
   text-decoration: none;
   color: inherit;
+  min-height: 112px;
+  box-sizing: border-box;
 }
 
 .result-row__link:hover {
@@ -831,18 +866,13 @@ const selectedId = ref<string | null>(null);
   flex-shrink: 0;
 }
 
-.result-row__recent {
-  font-size: var(--pa-font-size-sm);
-  color: var(--pa-color-text-muted);
-  white-space: nowrap;
-}
-
 .result-row__name {
   font-size: var(--pa-font-size-lg);
   font-weight: var(--pa-font-weight-medium);
   line-height: var(--pa-line-height-tight);
   color: var(--pa-color-text-primary);
 }
+
 
 .result-row__meta {
   display: block;
@@ -885,36 +915,16 @@ const selectedId = ref<string | null>(null);
   color: var(--pa-color-text-secondary);
 }
 
-.result-row__reality {
-  margin-top: var(--pa-space-1);
-  padding-top: var(--pa-space-1);
-  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+.result-row__reality-line {
+  margin: var(--pa-space-1) 0 0;
   font-size: var(--pa-font-size-14);
-  line-height: var(--pa-line-height-tight);
+  line-height: var(--pa-line-height-20);
+  color: var(--pa-color-text-secondary);
 }
 
-.result-row__reality p {
-  margin: 0;
-}
-
-.result-row__rules {
-  margin-top: var(--pa-space-1);
-  font-size: var(--pa-font-size-sm);
-  line-height: var(--pa-line-height-tight);
-  color: var(--pa-color-text-disabled);
-}
-
-.result-row__rules .muted {
-  color: var(--pa-color-text-disabled);
-}
-
-/* Mobile compression (Goal §33): ≤4 visual groups; rule-count / branch noise
- * does not belong on a phone scan. */
+/* Mobile compression (v0.2.3 §24): single column, ≤5 text lines per row;
+ * rule-count / branch noise does not belong on a phone scan anyway. */
 @media (max-width: 767px) {
-  .result-row__rules {
-    display: none;
-  }
-
   .result-row__link {
     padding: var(--pa-space-3) 0;
   }

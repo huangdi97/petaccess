@@ -34,6 +34,7 @@ function isActive(to: string): boolean {
   <nav
     class="mobile-tabbar"
     data-testid="mobile-tabbar"
+    data-ui="mobile-tabbar"
     :style="{ zIndex: `var(${Z_INDEX.tabbar})` }"
     aria-label="主导航"
   >

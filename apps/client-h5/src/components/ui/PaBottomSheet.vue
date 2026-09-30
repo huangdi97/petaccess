@@ -78,7 +78,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onWindowKey));
   width: 100%;
   max-width: 720px;
   background: var(--pa-color-surface-raised);
-  border-radius: var(--pa-radius-lg) var(--pa-radius-lg) 0 0;
+  border-radius: var(--pa-radius-sheet) var(--pa-radius-sheet) 0 0;
   box-shadow: var(--pa-elevation-3);
   padding: var(--pa-space-3) var(--pa-space-4);
   padding-bottom: calc(var(--pa-space-4) + var(--pa-safe-bottom));

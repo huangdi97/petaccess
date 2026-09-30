@@ -1,176 +1,161 @@
 {
   "id": "search.desktop",
-  "title": "Search Desktop Contract",
-  "viewport": {
-    "width": 1440,
-    "height": 900
-  },
+  "title": "Search Desktop Contract v0.2.3 Executable Blueprint",
+  "viewport": { "width": 1440, "height": 900 },
   "pages": [
     {
       "id": "search-ready",
-      "route": "/#/search"
+      "route": "/#/search",
+      "expect": {
+        "page": "search",
+        "state": "ready",
+        "fixture": "search-ready-v1",
+        "h1": "搜索场所规则",
+        "selectedId": "search-selected-row",
+        "componentCounts": [{ "selector": "result-rows", "min": 3 }]
+      }
     },
     {
       "id": "search-selected",
-      "route": "/#/search?q=%E6%98%9F%E6%B2%B3"
+      "route": "/#/search?q=%E6%98%9F%E6%B2%B3",
+      "expect": {
+        "page": "search",
+        "state": "ready-selected",
+        "fixture": "search-ready-v1",
+        "h1": "搜索场所规则",
+        "selectedId": "search-selected-row"
+      }
     }
   ],
   "elements": [
     {
       "id": "SEARCH_RAIL_WIDTH",
       "ui": "app-rail",
-      "fallbacks": [
-        ".desktop-rail"
-      ],
-      "props": {
-        "width": {
-          "min": 64,
-          "max": 72
-        }
-      },
+      "fallbacks": [".desktop-rail"],
+      "props": { "width": { "min": 64, "max": 72 } },
       "severity": "FAIL"
     },
     {
       "id": "SEARCH_TOP_CONTEXT_HEIGHT",
       "ui": "query-context",
-      "fallbacks": [
-        "[data-testid='query-context']"
-      ],
-      "props": {
-        "height": {
-          "min": 56,
-          "max": 64
-        }
-      },
+      "fallbacks": ["[data-testid='query-context']"],
+      "props": { "height": { "min": 56, "max": 64 } },
       "severity": "FAIL"
+    },
+    {
+      "id": "SEARCH_RESULT_PANE_X",
+      "ui": "search-results-pane",
+      "fallbacks": [".search-result-pane"],
+      "props": { "left": { "min": 60, "max": 76 } },
+      "severity": "WARN"
     },
     {
       "id": "SEARCH_RESULT_PANE_WIDTH",
       "ui": "search-results-pane",
-      "fallbacks": [
-        ".search-result-pane",
-        "[class*='search-result-pane']"
-      ],
-      "props": {
-        "width": {
-          "min": 380,
-          "max": 420
-        }
-      },
+      "fallbacks": [".search-result-pane"],
+      "props": { "width": { "min": 392, "max": 408 } },
       "severity": "FAIL"
+    },
+    {
+      "id": "SEARCH_DETAIL_PANE_X",
+      "ui": "search-detail-pane",
+      "fallbacks": ["[data-testid='decision-inspector']"],
+      "props": { "left": { "min": 460, "max": 476 } },
+      "severity": "WARN"
     },
     {
       "id": "SEARCH_DETAIL_PANE_PRESENT",
       "ui": "search-detail-pane",
-      "fallbacks": [
-        "[data-testid='decision-inspector']",
-        ".search-inspector"
-      ],
-      "props": {
-        "count": {
-          "min": 1
-        }
-      },
+      "fallbacks": ["[data-testid='decision-inspector']"],
+      "props": { "count": { "min": 1 } },
       "severity": "FAIL"
     },
     {
       "id": "SEARCH_DETAIL_CONTENT_WIDTH",
       "ui": "search-detail-content",
-      "fallbacks": [
-        "[data-testid='decision-inspector'] .decision-content",
-        "[data-testid='decision-inspector']"
-      ],
-      "props": {
-        "maxChildWidth": {
-          "min": 680,
-          "max": 760
-        }
-      },
+      "fallbacks": ["[data-testid='decision-inspector'] .decision-content", "[data-testid='decision-inspector']"],
+      "props": { "maxChildWidth": { "min": 680, "max": 724 } },
       "severity": "FAIL"
     },
     {
       "id": "SEARCH_DETAIL_CONTENT_LEFT_OFFSET",
       "ui": "search-detail-content",
-      "fallbacks": [
-        "[data-testid='decision-inspector']"
-      ],
-      "props": {
-        "left": {
-          "min": 32,
-          "max": 48
-        }
-      },
+      "fallbacks": ["[data-testid='decision-inspector']"],
+      "props": { "left": { "min": 32, "max": 48 } },
       "severity": "WARN"
     },
     {
       "id": "SEARCH_INPUT_HEIGHT",
       "ui": "search-input",
-      "fallbacks": [
-        "[data-testid='search-input']"
-      ],
-      "props": {
-        "height": {
-          "min": 44,
-          "max": 48
-        }
-      },
+      "fallbacks": ["[data-testid='search-input']"],
+      "props": { "height": { "min": 44, "max": 46 } },
+      "severity": "FAIL"
+    },
+    {
+      "id": "SEARCH_BUTTON_HEIGHT",
+      "ui": "search-submit",
+      "fallbacks": ["[data-testid='search-btn']"],
+      "props": { "height": { "min": 44, "max": 46 } },
       "severity": "FAIL"
     },
     {
       "id": "SEARCH_ROW_HEIGHT",
       "ui": "search-result-row",
-      "fallbacks": [
-        "[data-testid^='result-']:not([data-testid='result-rules'])",
-        "ul.result-list li"
-      ],
-      "props": {
-        "height": {
-          "min": 108,
-          "max": 136
-        }
-      },
+      "fallbacks": ["[data-testid^='result-']:not([data-testid='result-rules'])", "ul.result-list li"],
+      "props": { "height": { "min": 112, "max": 132 } },
       "severity": "FAIL",
       "aggregate": "rows"
     },
     {
-      "id": "SEARCH_ROW_RADIUS_SOFT",
+      "id": "SEARCH_ROW_RADIUS_ZERO",
       "ui": "search-result-row",
-      "fallbacks": [
-        "ul.result-list li"
-      ],
-      "props": {
-        "borderRadius": {
-          "min": 8,
-          "max": 16
-        }
-      },
+      "fallbacks": ["ul.result-list li"],
+      "props": { "borderRadius": { "equals": "0" } },
       "severity": "FAIL",
       "aggregate": "rows"
     },
     {
-      "id": "SEARCH_DETAIL_FIRST_VIEWPORT_HEIGHT",
-      "ui": "search-detail-content",
-      "fallbacks": [
-        "[data-testid='decision-inspector']"
-      ],
-      "props": {
-        "contentHeightInViewport": {
-          "min": 360
-        }
-      },
+      "id": "SEARCH_ROW_SHADOW_NONE",
+      "ui": "search-result-row",
+      "fallbacks": ["ul.result-list li"],
+      "props": { "boxShadow": { "equals": "none" } },
+      "severity": "FAIL",
+      "aggregate": "rows"
+    },
+    {
+      "id": "SEARCH_ROW_DIVIDER",
+      "ui": "search-result-row",
+      "fallbacks": ["ul.result-list li"],
+      "props": { "borderBottomWidth": { "min": 1 } },
+      "severity": "FAIL",
+      "aggregate": "rows"
+    },
+    {
+      "id": "SEARCH_DECISION_FONT_SIZE",
+      "ui": "search-decision",
+      "fallbacks": [".inspector-decision"],
+      "props": { "fontSize": { "min": 29, "max": 31 } },
+      "severity": "FAIL"
+    },
+    {
+      "id": "SEARCH_DECISION_LABEL_SIZE",
+      "ui": "search-decision",
+      "fallbacks": [".inspector-block--decision .inspector-block__label"],
+      "props": { "fontSize": { "min": 12, "max": 13 } },
       "severity": "WARN"
+    },
+    {
+      "id": "SEARCH_PAGE_TITLE_SIZE",
+      "ui": "search-detail-name",
+      "fallbacks": [".decision-inspector__name"],
+      "props": { "fontSize": { "min": 27, "max": 29 } },
+      "severity": "FAIL"
     },
     {
       "id": "SEARCH_COUNT_LINE",
       "ui": "search-count",
-      "fallbacks": [
-        "[data-testid='search-count']"
-      ],
-      "props": {
-        "count": {
-          "min": 1
-        }
-      },
+      "fallbacks": ["[data-testid='search-count']"],
+      "props": { "count": { "min": 1 } },
       "severity": "FAIL"
     }
   ],
@@ -178,10 +163,7 @@
     {
       "id": "NO_RESULT_CARD_ROWS",
       "selector": "ul.result-list li",
-      "forbiddenClass": [
-        "card",
-        "panel"
-      ],
+      "forbiddenClass": ["card", "panel"],
       "severity": "FAIL"
     },
     {
@@ -190,6 +172,20 @@
       "max": 0,
       "fallbackSelector": ".search-result-pane .pill",
       "severity": "FAIL"
+    },
+    {
+      "id": "DETAIL_NOT_FIELD_TABLE",
+      "selector": "[data-ui='search-detail-content'] dl",
+      "max": 0,
+      "fallbackSelector": ".decision-inspector dl",
+      "severity": "WARN"
+    },
+    {
+      "id": "FILTER_SINGLE_ENTRY",
+      "selector": "[data-ui='search-filter-toggle']",
+      "min": 1,
+      "max": 1,
+      "severity": "FAIL"
     }
   ],
   "density": [
@@ -197,15 +193,82 @@
       "id": "SEARCH_DETAIL_MAX_SEMANTIC_GAP",
       "selector": "[data-ui='search-detail-content']",
       "metric": "largestVerticalGap",
-      "max": 180,
+      "max": 72,
       "severity": "FAIL"
     }
   ],
-  "language": {
-    "uuid": true,
-    "enums": true,
-    "invariants": true,
-    "allcapsTokens": true
-  },
-  "notes": "Detail content must not stretch full pane; selected row uses tint + 2px left indicator (see contract md 25.5)."
+  "hierarchy": [
+    {
+      "id": "PAGE_TITLE_TO_BODY",
+      "a": "[data-ui='search-detail-name'], .decision-inspector__name",
+      "b": "body",
+      "minRatio": 1.6,
+      "severity": "FAIL"
+    },
+    {
+      "id": "DECISION_TO_BODY",
+      "a": "[data-ui='search-decision'] .inspector-decision, .inspector-decision",
+      "b": "body",
+      "minRatio": 1.75,
+      "severity": "FAIL"
+    },
+    {
+      "id": "SECTION_TO_BODY",
+      "a": ".inspector-block__label",
+      "b": "body",
+      "minRatio": 1.05,
+      "severity": "WARN"
+    },
+    {
+      "id": "METADATA_TO_BODY",
+      "a": ".decision-inspector__meta",
+      "b": "body",
+      "maxRatio": 0.95,
+      "severity": "FAIL"
+    }
+  ],
+  "budget": [
+    {
+      "id": "SEARCH_DESKTOP_ROW_TEXT_LINES",
+      "metric": "rowTextLines",
+      "selector": "ul.result-list",
+      "max": 5,
+      "severity": "FAIL"
+    },
+    {
+      "id": "SEARCH_DETAIL_FIRST_VIEWPORT_BLOCKS",
+      "metric": "firstViewportBlocks",
+      "selector": "[data-ui='search-detail-content']",
+      "min": 5,
+      "severity": "FAIL"
+    },
+    {
+      "id": "SEARCH_RESULT_PANE_FIRST_VIEWPORT_LINES",
+      "metric": "firstViewportTextLines",
+      "max": 40,
+      "warnAt": 34,
+      "severity": "WARN"
+    }
+  ],
+  "composition": [
+    {
+      "id": "SEARCH_DETAIL_CONTENT_OCCUPANCY",
+      "metric": "contentOccupancy",
+      "selector": "[data-ui='search-detail-content']",
+      "container": "[data-ui='search-detail-pane']",
+      "min": 0.35,
+      "max": 0.7,
+      "severity": "FAIL"
+    },
+    {
+      "id": "SEARCH_PRIMARY_STATUS_REPEAT",
+      "metric": "primaryStatusRepeatCount",
+      "selector": "[data-ui='search-detail-content']",
+      "text": "有条件进入",
+      "max": 2,
+      "severity": "FAIL"
+    }
+  ],
+  "language": { "uuid": true, "enums": true, "invariants": true, "allcapsTokens": true, "refs": true },
+  "notes": "v0.2.3 §21–22：Rail 68 / Topbar 60 / Results 400（x=68）/ Detail 972（x=468）；row radius=0 + divider + ≤5 text lines；selected = subtle tint + 2px indicator；detail content w∈680–724、首屏 ≥5 blocks、最大语义 gap ≤72px。"
 }

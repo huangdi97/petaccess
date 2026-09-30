@@ -131,6 +131,7 @@
   --pa-radius-control: 8px; /* buttons, inputs, chips */
   --pa-radius-md: 10px; /* cards */
   --pa-radius-lg: 12px; /* sheets / modals */
+  --pa-radius-sheet: 16px; /* v0.2.3 §25: bottom sheet top radius */
   --pa-radius-pill: 999px;
   /* 生活气息收口：结果行/卡片行用柔和的 12px 圆角（替代硬边 0px 的表格感）。 */
   --pa-radius-row: 12px;
@@ -236,7 +237,7 @@
    * the M2 DesktopContentContainer widths instead (see V020_APP_SHELL_SPEC). */
   --pa-layout-max-width: 480px;
   --pa-layout-touch-target: 44px;
-  --pa-layout-tabbar-height: 56px;
+  --pa-layout-tabbar-height: 60px; /* v0.2.3 §24: bottom nav 58–64 */
   /* UI reconstruction (Design Freeze §4): desktop navigation is a 64–72px icon
    * rail, never a wide sidebar. Pages must read this token, not invent widths. */
   --pa-layout-rail-width: 68px;
@@ -273,7 +274,6 @@
     --pa-motion-base: 0ms;
     --pa-motion-slow: 0ms;
   }
-}
 }
 
 /* v0.2.3 §18 mobile 字体蓝图覆盖（430 级 viewport）：

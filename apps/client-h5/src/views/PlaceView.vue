@@ -826,6 +826,7 @@ const historyOpen = ref(false);
         aria-label="当前决策"
       >
         <DecisionInspector
+          variant="place"
           :place="{ ...place, canonical_address: place.canonical_address ?? null }"
           :answer="answer"
           :answer-error="!coexistenceLoaded && !answer"

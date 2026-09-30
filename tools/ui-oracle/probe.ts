@@ -259,6 +259,7 @@ export function measureStructure(root: Element, arg: StructureRuleArg): Structur
 
   const collapsed = arg.disclosureDefault === "collapsed" ? checkCollapsed(nodes) : false;
 
+
   return {
     count: nodes.length,
     sampleClasses,
@@ -474,15 +475,29 @@ export interface BudgetArg {
   selector?: string;
 }
 
-/** Count visible text lines within an element (rough: height / line-height). */
+/** Count visible text lines within an element (true rendered line boxes). */
 function visibleLinesIn(el: Element): number {
   const rect = el.getBoundingClientRect();
-  const cs = getComputedStyle(el);
-  const lh = pxValue(cs);
-  if (!lh || rect.height <= 0) return 1;
   const vp = window.innerHeight;
-  const visibleH = Math.max(0, Math.min(rect.height, vp - rect.top));
-  return Math.max(1, Math.round(visibleH / lh));
+  if (rect.height <= 0 || rect.top > vp) return 0;
+  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+  let node: Node | null;
+  const tops = new Set<number>();
+  while ((node = walker.nextNode())) {
+    const t = (node.textContent ?? "").trim();
+    if (!t) continue;
+    if (!(node.parentElement instanceof HTMLElement)) continue;
+    const range = document.createRange();
+    range.selectNodeContents(node);
+    const rects = Array.from(range.getClientRects());
+    for (const r of rects) {
+      // Only lines that actually intersect the first viewport.
+      if (r.height <= 0 || r.width <= 0 || r.bottom < 0 || r.top > vp) continue;
+      tops.add(Math.round(r.top));
+    }
+    range.detach();
+  }
+  return tops.size;
 }
 
 export interface BudgetFlat {

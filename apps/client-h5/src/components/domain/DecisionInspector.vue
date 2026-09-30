@@ -35,7 +35,6 @@ import {
 import { freshnessLineFor } from "../../consumer/rowView";
 import { divergenceLabel, realityStateLabel } from "../../reality";
 import StatusBadge from "../StatusBadge.vue";
-
 const props = withDefaults(
   defineProps<{
     place: {
@@ -54,6 +53,12 @@ const props = withDefaults(
     offline?: boolean;
     speciesLabel?: string;
     conditionsLabel?: Record<string, string>;
+    /**
+     * v0.2.3 §22/§33：search detail = large identity (28/650) + primary
+     * decision 30/650, flat accent, content column ≤704px；place inspector =
+     * compact (decision 24–26), label 12 / value 14–16。
+     */
+    variant?: "search" | "place";
   }>(),
   {
     answer: null,
@@ -66,6 +71,7 @@ const props = withDefaults(
     offline: false,
     speciesLabel: "普通犬",
     conditionsLabel: () => ({}),
+    variant: "search",
   },
 );
 
@@ -83,11 +89,17 @@ const freshness = computed(() => freshnessLineFor(props.stale, props.fetchedAtMs
 </script>
 
 <template>
-  <section class="decision-inspector" data-testid="decision-inspector">
+  <section
+    class="decision-inspector"
+    :class="`decision-inspector--${variant}`"
+    data-testid="decision-inspector"
+  >
     <template v-if="place">
       <header class="decision-inspector__head">
         <div class="decision-inspector__title-row">
-          <h2 class="decision-inspector__name">{{ place.canonical_name }}</h2>
+          <h2 class="decision-inspector__name" data-ui="search-detail-name">
+            {{ place.canonical_name }}
+          </h2>
           <StatusBadge :semantic="status" />
         </div>
         <p class="decision-inspector__meta">
@@ -163,16 +175,23 @@ const freshness = computed(() => freshnessLineFor(props.stale, props.fetchedAtMs
 /* Flat pane per Design Freeze §5: inspector is NOT a card. It fills the
  * available column height so the workspace reads as a composed two-pane
  * surface instead of a short block floating in empty canvas (Goal §3.1:
- * "空而不静" — the inspector must own its space). */
+ * "空而不静" — the inspector must own its space).
+ *
+ * v0.2.3 §22 (search detail) vs §33 (place inspector) sizes are toggled by
+ * the `variant` prop — the same component, two type sizes, one hierarchy. */
 .decision-inspector {
   display: flex;
   flex-direction: column;
-  gap: var(--pa-space-5);
+  gap: var(--pa-space-28);
   min-width: 0;
   min-height: calc(100vh - 112px);
   align-self: stretch;
   border-bottom: var(--pa-border-width) solid var(--pa-color-border);
   padding-bottom: var(--pa-space-5);
+}
+
+.decision-inspector--place {
+  gap: var(--pa-space-5);
 }
 
 .decision-inspector__head {
@@ -188,17 +207,25 @@ const freshness = computed(() => freshnessLineFor(props.stale, props.fetchedAtMs
   gap: var(--pa-space-3);
 }
 
+/* §22 identity: place name = page identity 28/36/650（Blueprint §18 字体蓝图）。 */
 .decision-inspector__name {
   margin: 0;
+  font-size: var(--pa-font-size-28);
+  font-weight: var(--pa-font-weight-650);
+  line-height: var(--pa-line-height-36);
+  color: var(--pa-color-text-primary);
+}
+
+.decision-inspector--place .decision-inspector__name {
   font-size: var(--pa-font-size-2xl);
   font-weight: var(--pa-font-weight-medium);
   line-height: var(--pa-line-height-tight);
-  color: var(--pa-color-text-primary);
 }
 
 .decision-inspector__meta {
   margin: 0;
   font-size: var(--pa-font-size-md);
+  line-height: var(--pa-line-height-20);
   color: var(--pa-color-text-muted);
 }
 
@@ -209,36 +236,47 @@ const freshness = computed(() => freshnessLineFor(props.stale, props.fetchedAtMs
 }
 
 .inspector-block__label {
-  font-size: var(--pa-font-size-md);
+  font-size: var(--pa-font-size-sm);
+  line-height: var(--pa-line-height-20);
   color: var(--pa-color-text-secondary);
 }
 
 .inspector-block__value {
   margin: 0;
   font-size: var(--pa-font-size-base);
+  line-height: var(--pa-line-height-23);
   color: var(--pa-color-text-primary);
   overflow-wrap: anywhere;
 }
 
-/* Primary decision: warm surface + thick accent left edge — the loudest line
- * on the pane（生活气息收口 2026-09-30：决策块从裸文字块改为暖 surface）。 */
+/* §22 primary decision: FLAT accent block — label 12 / decision 30 / support
+ * 15 / left accent 2px / padding-left 16。蓝图明确「不能做成大卡」：
+ * no surface fill, no radius, no shadow — the accent edge + size carry it.
+ * （生活气息收口的暖 surface 在决策块上按蓝图取消） */
 .inspector-block--decision {
   border-left: var(--pa-border-width-strong) solid var(--pa-color-accent);
-  background: var(--pa-color-surface-warm);
-  border-radius: var(--pa-radius-md);
-  padding: var(--pa-space-3) var(--pa-space-4);
+  padding-left: var(--pa-space-4);
+  padding-top: var(--pa-space-1);
+  padding-bottom: var(--pa-space-2);
 }
 
 .inspector-decision {
   margin: 0;
+  font-size: var(--pa-font-size-30);
+  font-weight: var(--pa-font-weight-650);
+  line-height: var(--pa-line-height-38);
+  color: var(--pa-color-text-primary);
+}
+
+.decision-inspector--place .inspector-decision {
   font-size: var(--pa-font-size-26);
   font-weight: var(--pa-font-weight-medium);
-  line-height: var(--pa-line-height-tight);
-  color: var(--pa-color-text-primary);
+  line-height: var(--pa-line-height-32);
 }
 
 .inspector-scope {
   font-size: var(--pa-font-size-md);
+  line-height: var(--pa-line-height-23);
   color: var(--pa-color-text-secondary);
 }
 
@@ -257,6 +295,7 @@ const freshness = computed(() => freshnessLineFor(props.stale, props.fetchedAtMs
   align-items: baseline;
   gap: var(--pa-space-2);
   font-size: var(--pa-font-size-base);
+  line-height: var(--pa-line-height-23);
   color: var(--pa-color-text-primary);
 }
 
@@ -283,12 +322,14 @@ const freshness = computed(() => freshnessLineFor(props.stale, props.fetchedAtMs
 
 /* Narrow screens: keep the decision legible without shrinking the body type. */
 @media (max-width: 767px) {
-  .decision-inspector {
+  .decision-inspector,
+  .decision-inspector--place {
+    gap: var(--pa-space-5);
     padding-bottom: var(--pa-space-4);
   }
-
   .inspector-decision {
-    font-size: var(--pa-font-size-22);
+    font-size: var(--pa-font-size-24);
+    line-height: var(--pa-line-height-32);
   }
 }
 </style>

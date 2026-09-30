@@ -1,9 +1,19 @@
 {
   "id": "search.mobile",
-  "title": "Search Mobile Contract",
+  "title": "Search Mobile Contract v0.2.3 Executable Blueprint",
   "viewport": { "width": 430, "height": 932 },
   "pages": [
-    { "id": "search-mobile-ready", "route": "/#/search" },
+    {
+      "id": "search-mobile-ready",
+      "route": "/#/search",
+      "expect": {
+        "page": "search",
+        "state": "ready",
+        "fixture": "search-ready-v1",
+        "h1": "搜索场所规则",
+        "componentCounts": [{ "selector": "result-rows", "min": 3 }]
+      }
+    },
     {
       "id": "search-mobile-filter",
       "route": "/#/search",
@@ -12,7 +22,13 @@
           "clickSelectors": ["[data-testid='filter-toggle']"],
           "waitForSelector": "[data-ui='search-filter-sheet']"
         }
-      ]
+      ],
+      "expect": {
+        "page": "search",
+        "state": "filter",
+        "fixture": "search-filter-v1",
+        "h1": "搜索场所规则"
+      }
     }
   ],
   "elements": [
@@ -27,22 +43,59 @@
       "id": "SEARCH_MOBILE_INPUT_HEIGHT",
       "ui": "search-input",
       "fallbacks": ["[data-testid='search-input']"],
-      "props": { "height": { "min": 44 } },
+      "props": { "height": { "min": 44, "max": 46 } },
       "severity": "FAIL"
     },
     {
       "id": "SEARCH_MOBILE_ROW_HEIGHT",
       "ui": "search-result-row",
       "fallbacks": ["ul.result-list li"],
-      "props": { "height": { "min": 104, "max": 132 } },
+      "props": { "height": { "min": 108, "max": 128 } },
       "severity": "FAIL",
       "aggregate": "rows"
+    },
+    {
+      "id": "SEARCH_MOBILE_ROW_RADIUS_ZERO",
+      "ui": "search-result-row",
+      "fallbacks": ["ul.result-list li"],
+      "props": { "borderRadius": { "equals": "0" } },
+      "severity": "FAIL",
+      "aggregate": "rows"
+    },
+    {
+      "id": "SEARCH_MOBILE_ROW_SHADOW_NONE",
+      "ui": "search-result-row",
+      "fallbacks": ["ul.result-list li"],
+      "props": { "boxShadow": { "equals": "none" } },
+      "severity": "FAIL",
+      "aggregate": "rows"
+    },
+    {
+      "id": "SEARCH_MOBILE_BOTTOM_NAV_HEIGHT",
+      "ui": "mobile-tabbar",
+      "fallbacks": ["[data-testid='mobile-tabbar']", "nav[data-testid*='tabbar']"],
+      "props": { "height": { "min": 58, "max": 64 } },
+      "severity": "FAIL"
     },
     {
       "id": "SEARCH_MOBILE_FILTER_TOGGLE",
       "ui": "search-filter-toggle",
       "fallbacks": ["[data-testid='filter-toggle']"],
       "props": { "count": { "min": 1 } },
+      "severity": "FAIL"
+    },
+    {
+      "id": "SEARCH_MOBILE_SHEET_TOP",
+      "ui": "search-filter-sheet",
+      "fallbacks": ["[data-testid='search-filter-sheet']"],
+      "props": { "y": { "min": 340, "max": 480 } },
+      "severity": "WARN"
+    },
+    {
+      "id": "SEARCH_MOBILE_SHEET_RADIUS",
+      "ui": "search-filter-sheet",
+      "fallbacks": ["[data-testid='search-filter-sheet']"],
+      "props": { "borderRadius": { "min": 14, "max": 18 } },
       "severity": "FAIL"
     }
   ],
@@ -58,6 +111,18 @@
       "selector": "[data-testid='search-filter-sheet'], [data-ui='search-filter-sheet']",
       "minVisibleAfterClick": 1,
       "severity": "FAIL"
+    },
+    {
+      "id": "SEARCH_MOBILE_SHEET_FIVE_FILTER_ROWS",
+      "selector": "[data-ui='search-filter-sheet'] .filter-options__row",
+      "min": 5,
+      "severity": "FAIL"
+    },
+    {
+      "id": "SEARCH_MOBILE_NO_FILTER_CARDS",
+      "selector": "[data-ui='search-filter-sheet'] .filter-options__row",
+      "forbiddenClass": ["card", "panel"],
+      "severity": "FAIL"
     }
   ],
   "density": [
@@ -69,6 +134,47 @@
       "severity": "WARN"
     }
   ],
-  "language": { "uuid": true, "enums": true, "invariants": true, "allcapsTokens": true },
-  "notes": "Mobile = single column + drill-down; filter opens a bottom sheet with top radius 16px, drag handle, title, options, actions."
+  "hierarchy": [
+    {
+      "id": "SEARCH_MOBILE_DECISION_TO_BODY",
+      "a": ".result-row__decision",
+      "b": "body",
+      "minRatio": 1.4,
+      "severity": "WARN"
+    },
+    {
+      "id": "SEARCH_MOBILE_METADATA_SMALLER",
+      "a": ".result-row__meta",
+      "b": "body",
+      "maxRatio": 1.0,
+      "severity": "WARN"
+    }
+  ],
+  "budget": [
+    {
+      "id": "SEARCH_MOBILE_ROW_TEXT_LINES",
+      "metric": "rowTextLines",
+      "selector": "ul.result-list",
+      "max": 5,
+      "severity": "FAIL"
+    },
+    {
+      "id": "SEARCH_MOBILE_FIRST_VIEWPORT_LINES",
+      "metric": "firstViewportTextLines",
+      "max": 46,
+      "warnAt": 40,
+      "severity": "WARN"
+    }
+  ],
+  "composition": [
+    {
+      "id": "SEARCH_MOBILE_RESULTS_START_EARLY",
+      "metric": "semanticBlockCount",
+      "selector": "ul.result-list",
+      "min": 1,
+      "severity": "WARN"
+    }
+  ],
+  "language": { "uuid": true, "enums": true, "invariants": true, "allcapsTokens": true, "refs": true },
+  "notes": "v0.2.3 §24–25：single column；row h 108–128、radius 0、≤5 text lines；bottom nav 58–64；filter = bottom sheet（top 340–480、radius 14–18、5 rows、无卡片）。"
 }
