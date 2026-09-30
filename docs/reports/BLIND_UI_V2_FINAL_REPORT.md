@@ -113,7 +113,7 @@ phase-b-place（3）、phase-c-home-map（2）、phase-d-rest（7）= **16 张�
 
 ## 6. Git 现实（§56，实测）
 
-- 分支 feat/blind-ui-compiler-v2 存在，HEAD 追溯至 e724f1c；12 个 commit；
+- 分支 feat/blind-ui-compiler-v2 存在，HEAD 追溯至 e724f1c；14 个 commit；
   无 force push、无历史改写、未移动 v0.1.0 tag、未 reset 既有提交、未删除其他 worktree。
 - origin/master 本轮完全未变（842c030），未 push（人审未通过 → 按契约不合并 master；
   feature branch push 状态见 §8）。
