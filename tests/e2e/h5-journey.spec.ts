@@ -123,10 +123,12 @@ test("same-brand branches come back as two labelled rows, answer first", async (
   // Two rows, not one ambiguous one, and the child says whose it is.
   await expect(branch.getByTestId("result-branch")).toContainText("星河咖啡·测试店");
 
-  // Each row states how much rule material sits behind it.
-  await expect(flagship.getByTestId("result-rules")).toContainText("生效规则");
-  await expect(branch.getByTestId("result-rules")).toContainText("尚未收录规则");
-
+  // v0.2.3 §21.5: rows carry the decision line, never rule-count tallies
+  // (规则数量/来源计数 forbidden on rows) — both rows show a decision, and
+  // the old result-rules tally must not exist.
+  await expect(flagship.getByTestId("row-rule")).toHaveCount(1);
+  await expect(branch.getByTestId("row-rule")).toHaveCount(1);
+  await expect(page.getByTestId("result-rules")).toHaveCount(0);
   // The row that can actually answer comes first — a rule-less branch used to
   // lead on alphabetical order, so the top hit read 「尚未收录规则」 while the
   // answer sat one row down.

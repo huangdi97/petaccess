@@ -17,6 +17,7 @@ commands therefore retry briefly instead of failing a whole scenario.
 
 from __future__ import annotations
 
+import os
 import subprocess
 import time
 from pathlib import Path
@@ -27,6 +28,18 @@ SDK_ADB = Path(
 DEFAULT_SERIAL = "emulator-5562"
 FORBIDDEN_SERIALS = frozenset({"emulator-5554"})
 HARDCODED_ADB = r"C:\Android\adb.exe"
+
+
+def _sdk_adb_candidates() -> list[Path]:
+    """Resolve the SDK adb from the environment first, hardcoded path as
+    fallback — the fixed C: path predates machines where the SDK lives
+    elsewhere (e.g. ANDROID_HOME=D:\\Code\\Android\\SDK)."""
+    home = os.environ.get("ANDROID_HOME") or os.environ.get("ANDROID_SDK_ROOT")
+    cands: list[Path] = []
+    if home:
+        cands.append(Path(home) / "platform-tools" / "adb.exe")
+    cands.append(SDK_ADB)
+    return cands
 
 
 class AdbError(RuntimeError):
@@ -44,9 +57,10 @@ def check_serial(serial: str) -> str:
 
 def adb_binary() -> str:
     """The single SDK adb path (existence checked at first use)."""
-    if not SDK_ADB.exists():
-        raise AdbError(f"SDK adb missing at {SDK_ADB}")
-    return str(SDK_ADB)
+    for cand in _sdk_adb_candidates():
+        if cand.exists():
+            return str(cand)
+    raise AdbError(f"SDK adb missing at {SDK_ADB}")
 
 
 def _run(cmd: list[str], timeout: int) -> tuple[int, str]:

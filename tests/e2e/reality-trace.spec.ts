@@ -58,7 +58,7 @@ test("A3 — 观察时间线渲染；空时间线走 REALITY empty copy", async 
   );
   await page.goto(`${BASE}/#/place/${MALL_ID}/reality`);
   await expect(page.getByTestId("trace-empty")).toBeVisible();
-  await expect(page.getByTestId("trace-empty")).toContainText("暂无足够现场记录");
+  await expect(page.getByTestId("trace-empty")).toContainText("暂无近期现场记录");
 });
 
 test("A4 — 深链标题正确；错误统一呈现且不泄漏内部字样", async ({ page }) => {

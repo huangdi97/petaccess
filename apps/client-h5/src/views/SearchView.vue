@@ -527,6 +527,9 @@ const selectedId = ref<string | null>(null);
                     <strong class="result-row__name">{{ p.canonical_name }}</strong>
                     <span class="muted result-row__meta">
                       {{ placeTypeLabel(p.place_type) }}
+                      <span v-if="p.parent_place_name" data-testid="result-branch">
+                        · 所属 {{ p.parent_place_name }}</span
+                      >
                       <template v-if="p.distance_m"> · {{ Math.round(p.distance_m) }}m</template>
                       <template v-if="recentLineFor(facts.get(p.id)?.reality)">
                         · {{ recentLineFor(facts.get(p.id)?.reality) }}

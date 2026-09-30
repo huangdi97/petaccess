@@ -102,8 +102,8 @@ test("evidence route renders provenance, items and the permanent disclaimer", as
   await expect(page.getByTestId("evidence-disclaimer")).toContainText(
     "现场事实不代表正式准入规则。",
   );
-  // Provenance chain has exactly the five frozen steps.
-  await expect(page.getByTestId("evidence-provenance").locator(".surface-row")).toHaveCount(5);
+  // Provenance chain has exactly the five frozen steps (§39 rail layout).
+  await expect(page.getByTestId("evidence-provenance").locator(".provenance-step")).toHaveCount(5);
   await expect(page.getByTestId("query-context")).toBeVisible();
 });
 
@@ -116,7 +116,9 @@ test("contribution first screen asks 你刚刚知道了什么？ with the five c
   await page.evaluate((t) => localStorage.setItem("pa_token", t), token);
   await page.goto(`/#/contribute/${MALL_ID}`);
   await expect(page.getByTestId("entry-reality-observed_presence")).toBeVisible({ timeout: 15000 });
-  await expect(page.getByText("你刚刚知道了什么？")).toBeVisible();
+  // §41 makes the page h1 carry the same question (visually-hidden) as the
+  // visible entry h2 — getByText is intentionally ambiguous, so take first.
+  await expect(page.getByText("你刚刚知道了什么？").first()).toBeVisible();
   for (const label of [
     "我看到了新的规则",
     "我在现场看到动物",
