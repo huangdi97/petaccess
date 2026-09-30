@@ -130,5 +130,7 @@ phase-b-place（3）、phase-c-home-map（2）、phase-d-rest（7）= **16 张�
 
 ## 8. Feature Branch Push
 
-按契约在本轮结束前尝试 push feature branch；结果见 Git 操作记录
-（若凭据/网络失败则如实记 BLOCKED_EXTERNAL，不伪造）。
+**PASS（实测）**：`git push origin feat/blind-ui-compiler-v2` 成功，远程分支
+`origin/feat/blind-ui-compiler-v2` = `ab8e05f` = 本地 HEAD；origin/master 仍为
+`842c030`（未动）；`git merge-base --is-ancestor origin/master HEAD` 通过；
+无 force push、无历史改写。
