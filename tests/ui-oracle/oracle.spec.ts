@@ -113,6 +113,7 @@ export interface ElementMeasurementShape {
   overflow: string | null;
   gap: string | null;
   borderBottomWidth: string | null;
+  gridTemplateColumns: string | null;
   ariaLabel: string;
   count: number;
   maxChildWidth: number | null;
@@ -181,6 +182,7 @@ async function probeElement(
       overflow: flat.overflow,
       gap: flat.gap,
       borderBottomWidth: flat.borderBottomWidth,
+      gridTemplateColumns: flat.gridTemplateColumns,
     },
     ariaLabel: flat.ariaLabel,
     count: flat.count,
@@ -202,6 +204,7 @@ interface StructureRuleArg {
   containsArrows?: boolean;
   surfaceRowCount?: { min?: number; max?: number };
   disclosureDefault?: "collapsed";
+  xConsistent?: boolean;
 }
 
 interface StructureMeasurementShape {
@@ -213,7 +216,9 @@ interface StructureMeasurementShape {
   missingRequiredTexts: string[];
   hasArrows: boolean;
   collapsed: boolean;
+  xSpread: number | null;
 }
+
 
 async function probeStructure(
   page: import("@playwright/test").Page,
@@ -235,6 +240,7 @@ async function probeStructure(
       forbiddenTextHits: raw.forbiddenTextHits,
       missingRequiredTexts: raw.missingRequiredTexts,
     },
+    xSpread: raw.xSpread,
   };
 }
 

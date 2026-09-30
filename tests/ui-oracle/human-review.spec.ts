@@ -32,6 +32,8 @@ interface StateExpect {
   entityId?: string;
   selectedId?: string;
   count?: number;
+  /** Generic data-ui-count key assertions (e.g. contribution choice-count). */
+  counts?: Record<string, number>;
 }
 
 interface Shot {
@@ -43,10 +45,16 @@ interface Shot {
   auth?: boolean;
   emptySearch?: boolean;
   openFilter?: boolean;
+  /** Click a testid after settle (e.g. an entry option) before asserting state. */
+  clickTestid?: string;
+  /** Wait for a testid to appear after the click (form step rendered). */
+  waitTestid?: string;
+  /** Scroll a testid into view before the screenshot (distinguishing content
+   * below the viewport fold is still captured; state asserted before scroll). */
+  scrollToTestid?: string;
   expect: StateExpect;
   note: string;
 }
-
 const SHOTS: Shot[] = [
   // ---- Phase A: Search -------------------------------------------------
   {
@@ -185,6 +193,115 @@ const SHOTS: Shot[] = [
     },
     note: "Spatial workspace：rail + 400 result pane + full map + 筛选 N（§37）",
   },
+
+  // ---- Phase D: Reality + Evidence + Contribution ------------------------
+  {
+    name: "reality_desktop_ready",
+    phase: "phase-d-rest",
+    width: 1440,
+    height: 900,
+    route: "/#/place/8412b521-5e1c-505d-9dec-568acb860c76/reality",
+    expect: {
+      page: "reality",
+      state: "ready",
+      fixture: "reality-ready-v1",
+      h1: "现场轨迹",
+    },
+    scrollToTestid: "trace-observations",
+    note: "True timeline：time col 72 / rail 24 / content；marker+time x 对齐（§38）",
+  },
+  {
+    name: "reality_desktop_empty",
+    phase: "phase-d-rest",
+    width: 1440,
+    height: 900,
+    route: "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e/reality",
+    expect: {
+      page: "reality",
+      state: "empty",
+      fixture: "reality-empty-v1",
+      h1: "现场轨迹",
+    },
+    scrollToTestid: "trace-observations",
+    note: "空态：暂无近期现场记录。/ 这并不代表现场没有动物。（§38）",
+  },
+  {
+    name: "evidence_desktop_records",
+    phase: "phase-d-rest",
+    width: 1440,
+    height: 900,
+    route: "/#/place/8412b521-5e1c-505d-9dec-568acb860c76/evidence",
+    expect: {
+      page: "evidence",
+      state: "ready",
+      fixture: "evidence-records-v1",
+      h1: "证据与来源",
+    },
+    note: "Provenance rail：marker col 24 / gap 28–36 / 5 步、禁 UUID（§39）",
+  },
+  {
+    name: "evidence_desktop_empty",
+    phase: "phase-d-rest",
+    width: 1440,
+    height: 900,
+    route: "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e/evidence",
+    expect: {
+      page: "evidence",
+      state: "empty",
+      fixture: "evidence-empty-v1",
+      h1: "证据与来源",
+    },
+    note: "无记录路径：证据条目空态 + 来源链保持 5 步结构（§39）",
+  },
+  {
+    name: "contribution_desktop_choose-type",
+    phase: "phase-d-rest",
+    width: 1440,
+    height: 900,
+    route: "/#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+    auth: true,
+    expect: {
+      page: "contribution",
+      state: "choose-type",
+      fixture: "contribution-choose-type-v1",
+      h1: "你刚刚知道了什么？",
+      counts: { "choice-count": 5 },
+    },
+    note: "§40/§41：5 固定选项 + consumer copy 禁 ADR/UUID；choice-count=5",
+  },
+  {
+    name: "contribution_desktop_step-2",
+    phase: "phase-d-rest",
+    width: 1440,
+    height: 900,
+    route: "/#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+    auth: true,
+    clickTestid: "entry-reality-observed_presence",
+    waitTestid: "reality-submit",
+    expect: {
+      page: "contribution",
+      state: "step-2",
+      fixture: "contribution-step-2-v1",
+      h1: "现场贡献",
+    },
+    note: "真实进入 reality 父流程表单（第二步聚焦步骤，§40）",
+  },
+  {
+    name: "contribution_mobile_choose-type",
+    phase: "phase-d-rest",
+    width: 430,
+    height: 932,
+    route: "/#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+    auth: true,
+    expect: {
+      page: "contribution",
+      state: "choose-type",
+      fixture: "contribution-choose-type-v1",
+      h1: "你刚刚知道了什么？",
+      counts: { "choice-count": 5 },
+    },
+    note: "移动端同样真实进入 choose-type（§40）",
+  },
 ];
 
 async function freezeMotion(page: import("@playwright/test").Page): Promise<void> {
@@ -223,6 +340,11 @@ async function readActualState(
     const countEl = document.querySelector("[data-ui-count='result-rows']");
     const selected = document.querySelector("[data-ui*='selected']");
     const entityEl = document.querySelector("[data-ui-entity-id]");
+    const counts: Record<string, number> = {};
+    for (const el of document.querySelectorAll("[data-ui-count]")) {
+      const key = el.getAttribute("data-ui-count") ?? "";
+      if (key) counts[key] = Number(el.textContent ?? NaN) || 0;
+    }
     return {
       route: location.hash,
       page: host?.getAttribute("data-ui-page") ?? null,
@@ -232,6 +354,7 @@ async function readActualState(
       entityId: entityEl?.getAttribute("data-ui-entity-id") ?? null,
       selectedId: selected?.getAttribute("data-ui") ?? null,
       count: countEl ? Number(countEl.textContent ?? NaN) || null : null,
+      counts,
     };
   });
 }
@@ -254,6 +377,12 @@ function assertState(
   check("entityId", expect.entityId);
   check("selectedId", expect.selectedId);
   check("count", expect.count);
+  for (const [key, exp] of Object.entries(expect.counts ?? {})) {
+    const counts = (actual.counts ?? {}) as Record<string, number>;
+    if (counts[key] !== exp) {
+      mismatches.push(`counts.${key}: expected=${String(exp)} actual=${String(counts[key])}`);
+    }
+  }
   return { ok: mismatches.length === 0, mismatches };
 }
 
@@ -318,6 +447,14 @@ test("human review v0.2.3 — named screenshots with Capture State Integrity", a
       await page.waitForTimeout(300);
     }
 
+    if (shot.clickTestid) {
+      await page.getByTestId(shot.clickTestid).click().catch(() => {});
+      if (shot.waitTestid) {
+        await page.waitForSelector(`[data-testid='${shot.waitTestid}']`, { timeout: 5000 }).catch(() => {});
+      }
+      await settle(page);
+    }
+
     // O6: assert the real DOM state BEFORE saving (v0.2.3 §14).
     const actual = await readActualState(page);
     const { ok, mismatches } = assertState(actual, shot.expect);
@@ -333,6 +470,14 @@ test("human review v0.2.3 — named screenshots with Capture State Integrity", a
       note: shot.note,
       generatedAt: new Date().toISOString(),
     };
+
+    // Scroll the distinguishing section into view before capture — the
+    // timeline can start below the 900px fold, and the shot must show the
+    // content that differs between states (state already asserted above).
+    if (shot.scrollToTestid) {
+      await page.getByTestId(shot.scrollToTestid).scrollIntoViewIfNeeded().catch(() => {});
+      await page.waitForTimeout(200);
+    }
 
     if (ok) {
       const file = path.join(phaseDir, `${shot.name}.png`);

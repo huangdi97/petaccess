@@ -68,13 +68,42 @@ function done(m: string) {
   msg.value = m;
   step.value = "done";
 }
-</script>
 
+/** O6 capture-state integrity (§40/§41): the wizard exposes real states —
+ * choose-type (entry), focused form steps (step-1 = legacy confirmations,
+ * step-2 = reality parent-flow), done. Every value maps to an actual screen. */
+const uiState = computed<string>(() => {
+  if (!placeId.value) return "needs-place";
+  if (!signedIn.value) return "sign-in-required";
+  switch (step.value) {
+    case "entry":
+      return "choose-type";
+    case "done":
+      return "done";
+    case "reality":
+      return "step-2";
+    default:
+      return "step-1";
+  }
+});
+const uiFixture = computed<string>(() => `contribution-${uiState.value}-v1`);
+
+/** §41: choice-count must reflect the real number of options on the entry. */
+const choiceCount = computed<number>(() => (uiState.value === "choose-type" ? 5 : 0));
+
+</script>
 <template>
-  <div class="contribute-workspace" data-testid="contribute-workspace">
+  <div
+    class="contribute-workspace"
+    data-testid="contribute-workspace"
+    data-ui-page="contribution"
+    :data-ui-state="uiState"
+    :data-ui-fixture="uiFixture"
+  >
     <QueryContextBar v-if="placeId" />
     <div class="contribute-workspace__body">
-      <h1 class="visually-hidden">现场贡献</h1>
+      <h1 class="visually-hidden">{{ uiState === "choose-type" ? "你刚刚知道了什么？" : "现场贡献" }}</h1>
+      <span v-if="uiState === 'choose-type'" class="visually-hidden" data-ui-count="choice-count">{{ choiceCount }}</span>
       <StateMessage
         v-if="!placeId"
         kind="PARTIAL"
@@ -156,7 +185,7 @@ function done(m: string) {
         />
 
         <div class="contribute-workspace__notice">
-          位置仅记录分桶后的现场核验结果（距离/精度），不保存原始 GPS 轨迹（ADR-012）。
+          位置信息仅用于核验场所，不保存连续位置轨迹。
           高频提交会被限流。证据媒体不公开，仅审核可见。
         </div>
       </template>

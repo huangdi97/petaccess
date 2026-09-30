@@ -252,6 +252,8 @@
   --pa-layout-content-max: 1200px;
   --pa-layout-content-narrow: 640px;
   --pa-layout-content-gutter: 24px;
+  /* v0.2.3 §38/§39: Reality timeline & Evidence provenance max content width. */
+  --pa-layout-content-820: 820px;
 }
 
 /* Breakpoints are consumed in JS (see src/index.ts) because CSS custom

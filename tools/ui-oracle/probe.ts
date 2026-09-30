@@ -45,6 +45,7 @@ export interface ElementMeasurementFlat {
   overflow: string | null;
   gap: string | null;
   borderBottomWidth: string | null;
+  gridTemplateColumns: string | null;
   ariaLabel: string;
   count: number;
   maxChildWidth: number | null;
@@ -86,7 +87,8 @@ export function measureElement(
       position: null,
       overflow: null,
       gap: null,
-      borderBottomWidth: null,
+    borderBottomWidth: null,
+    gridTemplateColumns: null,
       ariaLabel: "",
       count,
       maxChildWidth: null,
@@ -165,6 +167,7 @@ export function measureElement(
     overflow: cs.overflow,
     gap: cs.gap,
     borderBottomWidth: cs.borderBottomWidth,
+    gridTemplateColumns: cs.gridTemplateColumns,
     ariaLabel: el.getAttribute("aria-label") ?? "",
     count,
     maxChildWidth: maxChildWidth(el),
@@ -198,6 +201,8 @@ export interface StructureRuleArg {
   containsArrows?: boolean;
   surfaceRowCount?: { min?: number; max?: number };
   disclosureDefault?: "collapsed";
+  /** O2: every matched element must share the same x (time col / marker col). */
+  xConsistent?: boolean;
 }
 
 export interface StructureMeasurementFlat {
@@ -209,6 +214,7 @@ export interface StructureMeasurementFlat {
   missingRequiredTexts: string[];
   hasArrows: boolean;
   collapsed: boolean;
+  xSpread: number | null;
 }
 
 export function measureStructure(root: Element, arg: StructureRuleArg): StructureMeasurementFlat {
@@ -256,9 +262,14 @@ export function measureStructure(root: Element, arg: StructureRuleArg): Structur
         );
       })
     : false;
-
   const collapsed = arg.disclosureDefault === "collapsed" ? checkCollapsed(nodes) : false;
 
+  // O2 几何：全部命中元素共享同一 x（timeline time col / marker col 对齐）。
+  const lefts = nodes
+    .map((n) => n.getBoundingClientRect().left)
+    .filter((v) => Number.isFinite(v));
+  const xSpread =
+    lefts.length >= 2 ? Math.max(...lefts) - Math.min(...lefts) : null;
 
   return {
     count: nodes.length,
@@ -269,6 +280,7 @@ export function measureStructure(root: Element, arg: StructureRuleArg): Structur
     missingRequiredTexts,
     hasArrows,
     collapsed,
+    xSpread,
   };
 }
 

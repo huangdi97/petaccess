@@ -3,23 +3,81 @@
   "title": "Reality Contract",
   "viewport": { "width": 1440, "height": 900 },
   "pages": [
-    { "id": "reality-ready", "route": "/#/place/8412b521-5e1c-505d-9dec-568acb860c76/reality" },
-    { "id": "reality-empty", "route": "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e/reality" }
+    {
+      "id": "reality-ready",
+      "route": "/#/place/8412b521-5e1c-505d-9dec-568acb860c76/reality",
+      "expect": {
+        "page": "reality",
+        "state": "ready",
+        "fixture": "reality-ready-v1",
+        "h1": "现场轨迹"
+      }
+    },
+    {
+      "id": "reality-empty",
+      "route": "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e/reality",
+      "expect": {
+        "page": "reality",
+        "state": "empty",
+        "fixture": "reality-empty-v1",
+        "h1": "现场轨迹"
+      }
+    }
   ],
   "elements": [
     {
-      "id": "REALITY_QUERY_CONTEXT",
-      "ui": "query-context",
-      "fallbacks": ["[data-testid='query-context']"],
-      "props": { "count": { "min": 1 } },
+      "id": "REALITY_MAX_WIDTH",
+      "ui": "reality-body",
+      "fallbacks": [".reality-workspace__body"],
+      "props": { "width": { "min": 780, "max": 824 } },
       "severity": "FAIL"
+    },
+    {
+      "id": "REALITY_RAIL_WIDTH",
+      "ui": "reality-rail",
+      "fallbacks": [".timeline-rail"],
+      "props": { "width": { "equals": 2 } },
+      "severity": "FAIL",
+      "pages": ["reality-ready"]
+    },
+    {
+      "id": "REALITY_RAIL_CONTINUOUS",
+      "ui": "reality-rail",
+      "fallbacks": [".timeline-rail"],
+      "props": { "height": { "min": 60 } },
+      "severity": "FAIL",
+      "pages": ["reality-ready"]
+    },
+    {
+      "id": "REALITY_DATE_GROUP_SEP",
+      "ui": "timeline-date",
+      "fallbacks": [".timeline-date"],
+      "props": { "margin": { "min": 28 } },
+      "severity": "FAIL",
+      "pages": ["reality-ready"]
+    },
+    {
+      "id": "REALITY_TIME_COL",
+      "ui": "reality-event",
+      "fallbacks": [".trace-row"],
+      "props": { "gridTemplateColumns": { "startsWith": "72px 24px" } },
+      "severity": "FAIL",
+      "pages": ["reality-ready"]
     },
     {
       "id": "REALITY_TRACE_ROWS",
       "ui": "reality-timeline",
-      "fallbacks": ["[data-testid='trace-observations'], .trace-observations"],
+      "fallbacks": ["[data-testid='trace-observations']"],
       "props": { "count": { "min": 1 } },
       "severity": "FAIL"
+    },
+    {
+      "id": "REALITY_EVENT_ROW_COUNT",
+      "ui": "reality-event",
+      "fallbacks": ["[data-ui='reality-event'], .trace-row"],
+      "props": { "count": { "min": 1 } },
+      "severity": "FAIL",
+      "pages": ["reality-ready"]
     }
   ],
   "structure": [
@@ -31,11 +89,25 @@
       "pages": ["reality-ready"]
     },
     {
-      "id": "REALITY_EVENT_ROW_COUNT",
-      "selector": "[data-ui='reality-event'], .trace-row",
-      "min": 1,
+      "id": "REALITY_TIME_X_CONSISTENT",
+      "selector": ".trace-row__time",
+      "xConsistent": true,
       "severity": "FAIL",
       "pages": ["reality-ready"]
+    },
+    {
+      "id": "REALITY_MARKER_X_CONSISTENT",
+      "selector": ".trace-row__dot",
+      "xConsistent": true,
+      "severity": "FAIL",
+      "pages": ["reality-ready"]
+    },
+    {
+      "id": "REALITY_EMPTY_COPY",
+      "selector": "body",
+      "mustContainTexts": ["暂无近期现场记录", "这并不代表现场没有动物"],
+      "severity": "FAIL",
+      "pages": ["reality-empty"]
     },
     {
       "id": "REALITY_NO_INVARIANT_TEXT",
@@ -53,6 +125,15 @@
   ],
   "density": [
     {
+      "id": "REALITY_EVENT_GAP",
+      "selector": "[data-ui='reality-timeline-list'], .timeline",
+      "metric": "largestVerticalGap",
+      "min": 20,
+      "max": 28,
+      "severity": "FAIL",
+      "pages": ["reality-ready"]
+    },
+    {
       "id": "REALITY_EMPTY_STATE_HAS_ACTIONS",
       "selector": "[data-ui='reality-empty'], [data-testid='trace-empty']",
       "hasOnePrimaryAction": true,
@@ -60,6 +141,15 @@
       "pages": ["reality-empty"]
     }
   ],
-  "language": { "uuid": true, "enums": true, "invariants": true, "allcapsTokens": true },
-  "notes": "True event log: Date group -> Time -> marker -> Location -> Observed fact -> evidence/freshness. ready = 星河咖啡 (2 seeded observations, rows render); empty = 云栖中心 (no observations, empty state with 1 primary action). Empty copy: 暂无记录不代表现实中没有动物。"
+  "hierarchy": [
+    {
+      "id": "REALITY_TITLE_TO_BODY",
+      "a": ".reality-ledger__title, .reality-head h2",
+      "b": "body",
+      "minRatio": 1.15,
+      "severity": "FAIL"
+    }
+  ],
+  "language": { "uuid": true, "enums": true, "invariants": true, "allcapsTokens": true, "refs": true },
+  "notes": "v0.2.3 §38: true event log, max width 820, time col 72px / rail 24px / content remainder, time+marker x aligned, rail continuous, event gap 20-28, date group sep >= 28, events are rows not cards. Empty copy = 暂无近期现场记录。这并不代表现场没有动物。 ready = 星河咖啡 (2 seeded observations), empty = 云栖中心."
 }

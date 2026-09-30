@@ -117,10 +117,21 @@ async function load() {
 }
 
 watch(placeId, () => void load(), { immediate: true });
+
+/** O6 capture-state integrity: ready = records exist, else empty/loading/error. */
+const uiState = computed<string>(() => {
+  if (loading.value) return "loading";
+  if (error.value) return "error";
+  if (!trace.value) return "unavailable";
+  return observations.value.length > 0 ? "ready" : "empty";
+});
+const uiFixture = computed<string>(() =>
+  uiState.value === "ready" ? "evidence-records-v1" : uiState.value === "empty" ? "evidence-empty-v1" : "evidence-other",
+);
 </script>
 
 <template>
-  <div class="evidence-workspace" data-testid="evidence-workspace" data-ui="evidence-shell">
+  <div class="evidence-workspace" data-testid="evidence-workspace" data-ui-page="evidence" :data-ui-state="uiState" :data-ui-fixture="uiFixture">
     <QueryContextBar />
     <div class="evidence-workspace__body">
       <h1 class="visually-hidden">证据与来源</h1>
@@ -236,7 +247,7 @@ watch(placeId, () => void load(), { immediate: true });
   flex-direction: column;
   gap: var(--pa-space-5);
   padding: var(--pa-space-4);
-  max-width: var(--pa-layout-content-narrow);
+  max-width: var(--pa-layout-content-820);
   margin: 0 auto;
 }
 .evidence-head {

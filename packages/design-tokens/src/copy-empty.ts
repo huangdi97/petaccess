@@ -50,8 +50,8 @@ export const EMPTY_STATE_COPY: Readonly<Record<EmptyContextKey, EmptyStateCopy>>
     secondary: "",
   },
   REALITY: {
-    title: "暂无足够现场记录",
-    description: "暂无记录不代表现实中没有动物。",
+    title: "暂无近期现场记录",
+    description: "这并不代表现场没有动物。",
     primary: "贡献现场记录",
     secondary: "",
   },

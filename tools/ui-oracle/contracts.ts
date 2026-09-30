@@ -26,6 +26,8 @@ export interface RangeSpec {
   max?: number;
   equals?: string | number;
   warnAt?: number;
+  /** String prefix match (e.g. grid-template-columns fixed columns). */
+  startsWith?: string;
 }
 
 export interface ElementRule {
@@ -56,6 +58,8 @@ export interface StructureRule {
   disclosureDefault?: "collapsed";
   minVisibleAfterClick?: number;
   uuidForbidden?: boolean;
+  /** O2: all matched elements share the same horizontal x (timeline time col / marker col). */
+  xConsistent?: boolean;
   severity: Severity;
   /** Restrict this rule to specific page ids (probe artifact pages[].pageId). */
   pages?: string[];
@@ -204,6 +208,8 @@ export interface StructureMeasurement {
   collapsed: boolean;
   visibleCountAfterClick: number | null;
   details: { forbiddenTextHits: string[]; missingRequiredTexts: string[] };
+  /** O2: x spread (px) across all matched elements — 0 when every element shares one x. */
+  xSpread: number | null;
 }
 
 export interface DensityMeasurement {

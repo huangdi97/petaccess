@@ -62,6 +62,12 @@ function displayTime(iso: string): string {
   return iso.length >= 16 ? `${iso.slice(0, 10)} ${iso.slice(11, 16)}` : iso;
 }
 
+/** §38: the 72px time column shows the clock time; the date lives in the
+ * date-group header, so the column never wraps. */
+function timeOnly(iso: string): string {
+  return iso.length >= 16 ? iso.slice(11, 16) : iso.slice(0, 10);
+}
+
 const traceGroups = computed(() =>
   trace.value
     ? [
@@ -100,10 +106,39 @@ async function load() {
 }
 
 watch(placeId, () => void load(), { immediate: true });
+
+/** Segment observations into date groups, newest date first (§38 date groups). */
+interface ObservationGroup {
+  date: string;
+  items: ObservationView[];
+}
+
+const observationGroups = computed<ObservationGroup[]>(() => {
+  const byDate = new Map<string, ObservationView[]>();
+  for (const o of observations.value) {
+    const date = o.occurred_at.slice(0, 10);
+    const list = byDate.get(date);
+    if (list) list.push(o);
+    else byDate.set(date, [o]);
+  }
+  return [...byDate.entries()]
+    .sort((a, b) => b[0].localeCompare(a[0]))
+    .map(([date, items]) => ({ date, items }));
+});
+
+/** O6 capture-state integrity (numbered where states differ from the plain id). */
+const uiState = computed<string>(() => {
+  if (loading.value) return "loading";
+  if (error.value) return "error";
+  if (!trace.value) return "unavailable";
+  return observations.value.length > 0 ? "ready" : "empty";
+});
+const uiFixture = computed<string>(() => (uiState.value === "ready" ? "reality-ready-v1" : uiState.value === "empty" ? "reality-empty-v1" : "reality-other"));
+
 </script>
 
 <template>
-  <div class="reality-workspace" data-testid="reality-workspace">
+  <div class="reality-workspace" data-testid="reality-workspace" data-ui-page="reality" :data-ui-state="uiState" :data-ui-fixture="uiFixture">
     <QueryContextBar />
     <div class="reality-workspace__body">
       <h1 class="visually-hidden">现场轨迹</h1>
@@ -153,28 +188,37 @@ watch(placeId, () => void load(), { immediate: true });
           data-ui="reality-timeline"
         >
           <h2 class="reality-ledger__title">现场记录时间线</h2>
-          <ul class="timeline" role="list">
-            <li v-for="o in observations" :key="o.id" class="trace-row" data-ui="reality-event">
-              <span class="trace-row__dot" aria-hidden="true"></span>
-              <div class="trace-row__content">
-                <div class="trace-row__head">
-                  <time class="trace-row__time">{{ displayTime(o.occurred_at) }}</time>
-                  <EvidenceStatus :state="evidenceStateFor(o)" />
+          <div class="timeline" role="list" data-ui="reality-timeline-list">
+            <span class="timeline-rail" data-ui="reality-rail" aria-hidden="true"></span>
+            <template v-for="g in observationGroups" :key="g.date">
+              <div class="timeline-date" data-ui="timeline-date">{{ g.date }}</div>
+              <div
+                v-for="o in g.items"
+                :key="o.id"
+                class="trace-row"
+                data-ui="reality-event"
+              >
+                <time class="trace-row__time" data-ui="reality-event-time">{{ displayTime(o.occurred_at) }}</time>
+                <span class="trace-row__dot" aria-hidden="true" data-ui="reality-event-marker"></span>
+                <div class="trace-row__content">
+                  <div class="trace-row__head">
+                    <EvidenceStatus :state="evidenceStateFor(o)" />
+                  </div>
+                  <p class="trace-row__event">
+                    {{ animalScopeLabel(o.animal_scope) }} · {{ ruleActionLabel(o.observed_action) }}
+                    <span v-if="o.staff_action" class="muted"
+                      >（工作人员：{{ staffActionLabel(o.staff_action) }}）</span
+                    >
+                  </p>
+                  <p class="muted trace-row__meta">
+                    <span>地点：{{ confidenceLabel(o.place_confidence) }}</span>
+                    <span>{{ freshnessLabel(o.occurred_at) }}</span>
+                  </p>
+                  <p v-if="o.note" class="muted trace-row__note">{{ o.note }}</p>
                 </div>
-                <p class="trace-row__event">
-                  {{ animalScopeLabel(o.animal_scope) }} · {{ ruleActionLabel(o.observed_action) }}
-                  <span v-if="o.staff_action" class="muted"
-                    >（工作人员：{{ staffActionLabel(o.staff_action) }}）</span
-                  >
-                </p>
-                <p class="muted trace-row__meta">
-                  <span>地点：{{ confidenceLabel(o.place_confidence) }}</span>
-                  <span>{{ freshnessLabel(o.occurred_at) }}</span>
-                </p>
-                <p v-if="o.note" class="muted trace-row__note">{{ o.note }}</p>
               </div>
-            </li>
-          </ul>
+            </template>
+          </div>
           <StateMessage
             v-if="!observations.length"
             kind="PARTIAL"
@@ -211,7 +255,7 @@ watch(placeId, () => void load(), { immediate: true });
   flex-direction: column;
   gap: var(--pa-space-5);
   padding: var(--pa-space-4);
-  max-width: var(--pa-layout-content-narrow);
+  max-width: var(--pa-layout-content-820);
   margin: 0 auto;
 }
 .reality-head {
@@ -220,6 +264,7 @@ watch(placeId, () => void load(), { immediate: true });
 }
 .reality-head h2 {
   margin: 0 0 var(--pa-space-2);
+  font-size: var(--pa-font-size-18);
 }
 .reality-head__state {
   margin: var(--pa-space-2) 0;
@@ -231,7 +276,6 @@ watch(placeId, () => void load(), { immediate: true });
   margin: var(--pa-space-4) 0 0;
   padding: var(--pa-space-3);
 }
-/* Facts and review are distinct ledger surfaces — distinguishable beyond colour */
 .reality-ledger--facts {
   background: var(--pa-color-surface);
 }
@@ -240,7 +284,7 @@ watch(placeId, () => void load(), { immediate: true });
 }
 .reality-ledger__title {
   margin: 0 0 var(--pa-space-2);
-  font-size: var(--pa-font-size-lg);
+  font-size: var(--pa-font-size-18);
   color: var(--pa-color-text-primary);
 }
 .reality-ledger__label {
@@ -259,24 +303,53 @@ watch(placeId, () => void load(), { immediate: true });
   padding: 0;
   list-style: none;
 }
-.timeline::before {
+.timeline-rail {
+  /* §38: continuous rail across the whole timeline, centered in the 24px
+   * marker column (72px time col + 12px) so time/marker/rail all align. */
   content: "";
   position: absolute;
-  left: 5px;
+  left: calc(72px + 11px);
   top: 8px;
   bottom: 8px;
-  width: var(--pa-border-width);
+  width: 2px;
   background: var(--pa-color-border-subtle);
+  pointer-events: none;
+}
+.timeline-date {
+  /* §38: date group separation >= 28px between groups. */
+  margin: 28px 0 20px 0;
+  padding-left: calc(72px + 24px);
+  font-size: var(--pa-font-size-sm);
+  font-weight: var(--pa-font-weight-semibold);
+  color: var(--pa-color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.timeline > .timeline-date:first-child {
+  margin-top: 0;
 }
 .trace-row {
   display: grid;
-  grid-template-columns: 14px 1fr;
-  gap: var(--pa-space-3);
+  grid-template-columns: 72px 24px 1fr;
+  gap: 0 var(--pa-space-3);
   border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
-  padding: var(--pa-space-3) 0;
+  padding: 0 0 24px 0;
+  margin-bottom: 24px;
+  /* §38: events are timeline rows, never cards (no panel/card surface). */
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
 }
 .trace-row:last-child {
   border-bottom: none;
+}
+.trace-row__time {
+  padding-top: 2px;
+  font-size: var(--pa-font-size-md);
+  font-weight: var(--pa-font-weight-medium);
+  color: var(--pa-color-text-primary);
+  text-align: left;
+  white-space: nowrap;
 }
 .trace-row__dot {
   width: 10px;
@@ -284,18 +357,14 @@ watch(placeId, () => void load(), { immediate: true });
   border-radius: 50%;
   background: var(--pa-color-surface);
   border: var(--pa-border-width) solid var(--pa-color-accent);
-  margin: 4px auto 0;
+  margin: 6px auto 0;
 }
 .trace-row__head {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: var(--pa-space-2);
-}
-.trace-row__time {
-  font-size: var(--pa-font-size-md);
-  font-weight: var(--pa-font-weight-medium);
-  color: var(--pa-color-text-primary);
+  min-height: 22px;
 }
 .trace-row__event,
 .trace-row__note {

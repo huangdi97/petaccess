@@ -158,6 +158,9 @@ function compareElement(rule: ElementRule, probe: PageProbe, out: CompareRow[]):
       case "borderBottomWidth":
         actual = px(cs.borderBottomWidth);
         break;
+      case "gridTemplateColumns":
+        actual = cs.gridTemplateColumns ?? "";
+        break;
       case "ariaLabel":
         actual = m.ariaLabel.length > 0 ? 1 : 0;
         break;
@@ -182,8 +185,10 @@ function compareElement(rule: ElementRule, probe: PageProbe, out: CompareRow[]):
     const ok =
       spec.equals !== undefined
         ? String(actual) === String(spec.equals)
-        : inRange(num(actual), spec);
-    const detail = `target=${spec.min ?? "-"}..${spec.max ?? "-"}${spec.equals !== undefined ? ` ==${spec.equals}` : ""} actual=${String(actual)} raw=${JSON.stringify(m.computed[prop] ?? (prop === "width" ? m.bbox?.width : prop === "height" ? m.bbox?.height : ""))}`;
+        : spec.startsWith !== undefined
+          ? String(actual).startsWith(spec.startsWith)
+          : inRange(num(actual), spec);
+    const detail = `target=${spec.min ?? "-"}..${spec.max ?? "-"}${spec.equals !== undefined ? ` ==${spec.equals}` : spec.startsWith !== undefined ? ` startsWith=${spec.startsWith}` : ""} actual=${String(actual)} raw=${JSON.stringify(m.computed[prop] ?? (prop === "width" ? m.bbox?.width : prop === "height" ? m.bbox?.height : ""))}`;
     out.push(row(rule.id, "element", spec, actual, ok, rule.severity, detail));
   }
 }
@@ -334,6 +339,19 @@ function compareStructure(rule: StructureRule, probe: PageProbe, out: CompareRow
         v !== null && v >= rule.minVisibleAfterClick,
         rule.severity,
         `visible=${v}`,
+      ),
+    );
+  }
+  if (rule.xConsistent) {
+    out.push(
+      row(
+        rule.id,
+        "structure",
+        "xConsistent<=1",
+        m.xSpread,
+        m.xSpread !== null && m.xSpread <= 1,
+        rule.severity,
+        `xSpread=${m.xSpread}`,
       ),
     );
   }

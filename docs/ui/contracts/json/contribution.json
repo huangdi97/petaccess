@@ -3,11 +3,58 @@
   "title": "Contribution Contract",
   "viewport": { "width": 1440, "height": 900 },
   "pages": [
-    { "id": "contribute-needs-place", "route": "/#/contribute" },
+    {
+      "id": "contribute-needs-place",
+      "route": "/#/contribute",
+      "expect": {
+        "page": "contribution",
+        "state": "needs-place",
+        "fixture": "contribution-needs-place-v1",
+        "h1": "现场贡献"
+      }
+    },
     {
       "id": "contribute-entry",
       "route": "/#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
-      "auth": true
+      "auth": true,
+      "expect": {
+        "page": "contribution",
+        "state": "choose-type",
+        "fixture": "contribution-choose-type-v1",
+        "h1": "你刚刚知道了什么？",
+        "componentCounts": [{ "selector": "choice-count", "min": 5 }]
+      }
+    },
+    {
+      "id": "contribute-step-1",
+      "route": "/#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+      "auth": true,
+      "interactions": [
+        { "clickSelectors": ["[data-testid='entry-quick']"], "waitForSelector": "[data-testid='quick-submit']" }
+      ],
+      "expect": {
+        "page": "contribution",
+        "state": "step-1",
+        "fixture": "contribution-step-1-v1",
+        "h1": "现场贡献"
+      }
+    },
+    {
+      "id": "contribute-step-2",
+      "route": "/#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+      "auth": true,
+      "interactions": [
+        {
+          "clickSelectors": ["[data-testid='entry-reality-observed_presence']"],
+          "waitForSelector": "[data-testid='reality-submit']"
+        }
+      ],
+      "expect": {
+        "page": "contribution",
+        "state": "step-2",
+        "fixture": "contribution-step-2-v1",
+        "h1": "现场贡献"
+      }
     }
   ],
   "elements": [
@@ -61,9 +108,17 @@
       "max": 0,
       "severity": "FAIL",
       "pages": ["contribute-needs-place"]
+    },
+    {
+      "id": "CONTRIBUTE_LOCATION_COPY_CORRECT",
+      "selector": "body",
+      "mustContainTexts": ["位置信息仅用于核验场所，不保存连续位置轨迹"],
+      "forbiddenText": ["ADR-012", "ADR-", "GPS 轨迹（"],
+      "severity": "FAIL",
+      "pages": ["contribute-entry", "contribute-step-1", "contribute-step-2"]
     }
   ],
   "density": [],
-  "language": { "uuid": true, "enums": true, "invariants": true, "allcapsTokens": true },
-  "notes": "Real transaction flow: entry -> focused steps -> 已提交待核验. Never '规则已更新' on submit. Tests must cover guard/entry/step/submit/mobile (contribute-wizard e2e). The entry page is probed in an authenticated state (pa_token via API, same as contribute-wizard e2e)."
+  "language": { "uuid": true, "enums": true, "invariants": true, "allcapsTokens": true, "refs": true },
+  "notes": "v0.2.3 §40/§41: first screen 你刚刚知道了什么？ with exactly 5 fixed options; consumer copy has no ADR/RFC/TD/UUID/enum (location copy uses the spec-correct wording 位置信息仅用于核验场所，不保存连续位置轨迹). Wizard O6 states: choose-type (entry) -> step-1 (legacy confirm) -> step-2 (reality parent-flow) -> done. Entry probed authenticated (pa_token via API, same as contribute-wizard e2e)."
 }
