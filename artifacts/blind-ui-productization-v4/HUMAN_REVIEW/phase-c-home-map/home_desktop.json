@@ -1,0 +1,27 @@
+{
+  "name": "home_desktop",
+  "phase": "phase-c-home-map",
+  "viewport": "1440x900",
+  "route": "/#/",
+  "expected": {
+    "page": "home",
+    "state": "ready",
+    "fixture": "home-ready-v1",
+    "h1": "去之前，先看看这里的规则和现场。"
+  },
+  "actual": {
+    "route": "#/",
+    "page": "home",
+    "state": "ready",
+    "fixture": "home-ready-v1",
+    "h1": "去之前，先看看这里的规则和现场。",
+    "entityId": null,
+    "selectedId": null,
+    "count": null,
+    "counts": {}
+  },
+  "valid": true,
+  "mismatches": [],
+  "note": "v0.2.4 §29：max 960；divider rows，不做大白卡/卡片行",
+  "generatedAt": "2026-10-01T08:42:49.145Z"
+}

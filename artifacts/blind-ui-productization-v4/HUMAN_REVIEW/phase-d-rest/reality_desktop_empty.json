@@ -1,0 +1,27 @@
+{
+  "name": "reality_desktop_empty",
+  "phase": "phase-d-rest",
+  "viewport": "1440x900",
+  "route": "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e/reality",
+  "expected": {
+    "page": "reality",
+    "state": "empty",
+    "fixture": "reality-empty-v1",
+    "h1": "现场轨迹"
+  },
+  "actual": {
+    "route": "#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e/reality",
+    "page": "reality",
+    "state": "empty",
+    "fixture": "reality-empty-v1",
+    "h1": "现场轨迹",
+    "entityId": null,
+    "selectedId": null,
+    "count": null,
+    "counts": {}
+  },
+  "valid": true,
+  "mismatches": [],
+  "note": "v0.2.4 §36：inline empty，无大卡",
+  "generatedAt": "2026-10-01T08:42:52.293Z"
+}

@@ -1,0 +1,28 @@
+{
+  "name": "place_desktop_rules",
+  "phase": "phase-b-place",
+  "viewport": "1440x900",
+  "route": "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e?view=rules",
+  "expected": {
+    "page": "place",
+    "state": "ready",
+    "fixture": "place-ready-v1",
+    "entityId": "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+    "h1": "云栖中心·测试商场"
+  },
+  "actual": {
+    "route": "#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e?view=rules",
+    "page": "place",
+    "state": "ready",
+    "fixture": "place-ready-v1",
+    "h1": "云栖中心·测试商场",
+    "entityId": "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+    "selectedId": null,
+    "count": null,
+    "counts": {}
+  },
+  "valid": true,
+  "mismatches": [],
+  "note": "v0.2.4 §23：规则 view（当前规则/条件/例外/依据/折叠历史）",
+  "generatedAt": "2026-10-01T08:42:46.876Z"
+}

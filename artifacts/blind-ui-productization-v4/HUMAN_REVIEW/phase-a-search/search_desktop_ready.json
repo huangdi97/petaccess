@@ -1,0 +1,30 @@
+{
+  "name": "search_desktop_ready",
+  "phase": "phase-a-search",
+  "viewport": "1440x900",
+  "route": "/#/search",
+  "expected": {
+    "page": "search",
+    "state": "ready-selected",
+    "fixture": "search-ready-v1",
+    "h1": "搜索场所规则",
+    "selectedId": "search-selected-row"
+  },
+  "actual": {
+    "route": "#/search",
+    "page": "search",
+    "state": "ready-selected",
+    "fixture": "search-ready-v1",
+    "h1": "搜索场所规则",
+    "entityId": null,
+    "selectedId": "search-selected-row",
+    "count": 5,
+    "counts": {
+      "result-rows": 5
+    }
+  },
+  "valid": true,
+  "mismatches": [],
+  "note": "v0.2.4 §11/§12：list-detail；Has a toolbar 结果数|筛选；row 92–108 / 4 semantic lines",
+  "generatedAt": "2026-10-01T08:42:42.556Z"
+}

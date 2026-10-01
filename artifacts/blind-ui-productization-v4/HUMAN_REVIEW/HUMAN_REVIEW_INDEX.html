@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PetAccess v0.2.4 — Blind UI Productization Human Review 包</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 2rem; max-width: 1100px; color: #222; }
+  h1 { font-size: 1.4rem; }
+  .card { border: 1px solid #ccc; border-radius: 8px; padding: 1rem; margin: 1.2rem 0; }
+  .card img { max-width: 100%; border: 1px solid #ddd; margin-top: 0.6rem; }
+  dl { display: grid; grid-template-columns: 10rem 1fr; gap: 0.25rem 1rem; }
+  dt { font-weight: 600; }
+  dd { margin: 0; }
+  .status { margin-top: 1rem; font-size: 0.9rem; color: #555; }
+</style>
+</head>
+<body>
+  <h1>PetAccess v0.2.4 — Blind UI Productization Human Review 包（14 VALID / 14 total）</h1>
+  <p>每张截图都先通过 Capture State Integrity（route/page/state/fixture/h1/selected/count 来自真实 DOM），
+  valid 才进入本包；Agent 不代替用户做视觉签字。HTML 不做任何美学评价。</p>
+  <div class="card">
+  <h2>search_desktop_ready ✅</h2>
+  <dl>
+    <dt>Phase</dt><dd>phase-a-search</dd>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/search</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>77263</dd>
+    <dt>Known notes</dt><dd>v0.2.4 §11/§12：list-detail；Has a toolbar 结果数|筛选；row 92–108 / 4 semantic lines</dd>
+  </dl>
+  <img src="phase-a-search/search_desktop_ready.png" alt="search_desktop_ready — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>search_desktop_empty ✅</h2>
+  <dl>
+    <dt>Phase</dt><dd>phase-a-search</dd>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/search</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>40476</dd>
+    <dt>Known notes</dt><dd>v0.2.4 §14：inline empty，无 card/shadow；右侧 onboarding inline copy</dd>
+  </dl>
+  <img src="phase-a-search/search_desktop_empty.png" alt="search_desktop_empty — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>place_desktop_overview ✅</h2>
+  <dl>
+    <dt>Phase</dt><dd>phase-b-place</dd>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>77150</dd>
+    <dt>Known notes</dt><dd>v0.2.4 §16：Overview 五块（Identity/Decision/Reality/Space/Evidence），不再是无限长页</dd>
+  </dl>
+  <img src="phase-b-place/place_desktop_overview.png" alt="place_desktop_overview — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>place_desktop_rules ✅</h2>
+  <dl>
+    <dt>Phase</dt><dd>phase-b-place</dd>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e?view=rules</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>82319</dd>
+    <dt>Known notes</dt><dd>v0.2.4 §23：规则 view（当前规则/条件/例外/依据/折叠历史）</dd>
+  </dl>
+  <img src="phase-b-place/place_desktop_rules.png" alt="place_desktop_rules — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>place_desktop_unknown ✅</h2>
+  <dl>
+    <dt>Phase</dt><dd>phase-b-place</dd>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/place/3b5a341a-e550-5f0c-b35a-319ed43bd840</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>75348</dd>
+    <dt>Known notes</dt><dd>v0.2.4 §27：UNKNOWN 只渲染有数据的部分，不渲染空 section 全家福</dd>
+  </dl>
+  <img src="phase-b-place/place_desktop_unknown.png" alt="place_desktop_unknown — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>home_desktop ✅</h2>
+  <dl>
+    <dt>Phase</dt><dd>phase-c-home-map</dd>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>67772</dd>
+    <dt>Known notes</dt><dd>v0.2.4 §29：max 960；divider rows，不做大白卡/卡片行</dd>
+  </dl>
+  <img src="phase-c-home-map/home_desktop.png" alt="home_desktop — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>map_desktop ✅</h2>
+  <dl>
+    <dt>Phase</dt><dd>phase-c-home-map</dd>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/map</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>85217</dd>
+    <dt>Known notes</dt><dd>v0.2.4 §32：desktop List+Map；results divider rows；selected preview 5 项</dd>
+  </dl>
+  <img src="phase-c-home-map/map_desktop.png" alt="map_desktop — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>reality_desktop_ready ✅</h2>
+  <dl>
+    <dt>Phase</dt><dd>phase-d-rest</dd>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/place/8412b521-5e1c-505d-9dec-568acb860c76/reality</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>38551</dd>
+    <dt>Known notes</dt><dd>v0.2.4 §34/§51：timeline 首屏（first event top ≤360），从 page top capture</dd>
+  </dl>
+  <img src="phase-d-rest/reality_desktop_ready.png" alt="reality_desktop_ready — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>reality_desktop_empty ✅</h2>
+  <dl>
+    <dt>Phase</dt><dd>phase-d-rest</dd>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e/reality</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>27071</dd>
+    <dt>Known notes</dt><dd>v0.2.4 §36：inline empty，无大卡</dd>
+  </dl>
+  <img src="phase-d-rest/reality_desktop_empty.png" alt="reality_desktop_empty — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>evidence_desktop_ready ✅</h2>
+  <dl>
+    <dt>Phase</dt><dd>phase-d-rest</dd>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/place/8412b521-5e1c-505d-9dec-568acb860c76/evidence</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>51951</dd>
+    <dt>Known notes</dt><dd>v0.2.4 §38/§52：record identity + provenance 前 3 步首屏可见</dd>
+  </dl>
+  <img src="phase-d-rest/evidence_desktop_ready.png" alt="evidence_desktop_ready — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>evidence_desktop_empty ✅</h2>
+  <dl>
+    <dt>Phase</dt><dd>phase-d-rest</dd>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e/evidence</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>49577</dd>
+    <dt>Known notes</dt><dd>v0.2.4 §40：记录存在时不再显示「0 条依据」</dd>
+  </dl>
+  <img src="phase-d-rest/evidence_desktop_empty.png" alt="evidence_desktop_empty — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>contribution_desktop_choose-type ✅</h2>
+  <dl>
+    <dt>Phase</dt><dd>phase-d-rest</dd>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>44952</dd>
+    <dt>Known notes</dt><dd>v0.2.4 §41：5 choice rows（icon+title+desc+chevron），至少 4 行首屏可见</dd>
+  </dl>
+  <img src="phase-d-rest/contribution_desktop_choose-type.png" alt="contribution_desktop_choose-type — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>contribution_desktop_step-1 ✅</h2>
+  <dl>
+    <dt>Phase</dt><dd>phase-d-rest</dd>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>32976</dd>
+    <dt>Known notes</dt><dd>v0.2.4 §43：聚焦步骤（步骤 1/3），一屏一个问题</dd>
+  </dl>
+  <img src="phase-d-rest/contribution_desktop_step-1.png" alt="contribution_desktop_step-1 — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>contribution_desktop_step-2 ✅</h2>
+  <dl>
+    <dt>Phase</dt><dd>phase-d-rest</dd>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>42368</dd>
+    <dt>Known notes</dt><dd>v0.2.4 §43：reality 父流程表单（步骤 2/3）</dd>
+  </dl>
+  <img src="phase-d-rest/contribution_desktop_step-2.png" alt="contribution_desktop_step-2 — VALID" loading="lazy" />
+</div>
+  <p class="status">机器门禁与状态完整性验证详见 docs/reports/BLIND_UI_V4_PRODUCTIZATION_REPORT.md。</p>
+</body>
+</html>

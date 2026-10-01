@@ -1,0 +1,27 @@
+{
+  "name": "map_mobile_selected_sheet",
+  "phase": "phase-c-home-map",
+  "viewport": "430x932",
+  "route": "/#/map?place=8412b521-5e1c-505d-9dec-568acb860c76",
+  "expected": {
+    "page": "map",
+    "state": "ready",
+    "fixture": "map-ready-v1",
+    "h1": "规则地图"
+  },
+  "actual": {
+    "route": "#/map?place=8412b521-5e1c-505d-9dec-568acb860c76",
+    "page": "map",
+    "state": "ready",
+    "fixture": "map-ready-v1",
+    "h1": "规则地图",
+    "entityId": null,
+    "selectedId": "map-marker-selected",
+    "count": null,
+    "counts": {}
+  },
+  "valid": true,
+  "mismatches": [],
+  "note": "v0.2.4 §33：selected place → bottom sheet（tabbar 上方，3–4 行）",
+  "generatedAt": "2026-10-01T08:42:49.825Z"
+}

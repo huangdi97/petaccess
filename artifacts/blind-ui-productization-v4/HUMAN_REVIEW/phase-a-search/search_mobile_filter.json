@@ -1,0 +1,29 @@
+{
+  "name": "search_mobile_filter",
+  "phase": "phase-a-search",
+  "viewport": "430x932",
+  "route": "/#/search",
+  "expected": {
+    "page": "search",
+    "state": "filter",
+    "fixture": "search-filter-v1",
+    "h1": "搜索场所规则"
+  },
+  "actual": {
+    "route": "#/search",
+    "page": "search",
+    "state": "filter",
+    "fixture": "search-filter-v1",
+    "h1": "搜索场所规则",
+    "entityId": null,
+    "selectedId": null,
+    "count": 5,
+    "counts": {
+      "result-rows": 5
+    }
+  },
+  "valid": true,
+  "mismatches": [],
+  "note": "v0.2.4 §13：筛选 bottom sheet",
+  "generatedAt": "2026-10-01T08:42:44.000Z"
+}

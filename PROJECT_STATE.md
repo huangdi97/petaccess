@@ -1,5 +1,39 @@
 # PROJECT_STATE.md
 
+## Current phase（2026-10-01 本轮实测 — v0.2.4 Blind UI Productization 全量机器管道）
+- 状态：`BLIND_UI_PRODUCTIZATION_V4 = PASS` · `UI_MACHINE_PRODUCTIZATION = PASS` ·
+  `UI_HUMAN_VISUAL_ACCEPTANCE = PENDING` · `UI_VISUAL_CLOSURE = PENDING_HUMAN`
+  （不得写作 `UI_VISUAL_CLOSURE = PASS`）
+- 分支：`feat/blind-ui-productization-v4`（基点 `feat/blind-ui-compiler-v2 @ 90d57e6`，
+  先行 28 / 落后 0）；实现基准 `IMPLEMENTATION_BASE = e1c5ca7`（代码与测试完成后的实现 commit）；
+  feature branch pushed；最终分支 HEAD 以 Git 查询为准。
+  origin/master = `842c030` **未动**（不 merge、不 fast-forward master，等人审 PASS 后另行请求）；
+  `v0.1.0` tag 未动；无 force push / 无历史改写 / 未更新 `tests/visual/**-snapshots/*.png`。
+- 方法：Blind UI Productization v4 —— 不使用任何视觉模型/OCR/截图理解；依据 v0.2.4 规格
+  （§1–64 文字化人工反馈 + 可执行 UI contract）改代码；Oracle 仅最小修正
+  （阈值/作用域修正 + 当前反馈所需少量 contract + minVisibleInViewport 探针；O1–O6 保留）。
+- 机器 Gate（final）：10 契约 **TOTAL PASS=368 WARN=0 FAIL=0**（原 3 个 WARN 升级项
+  PLACE_HISTORY_COLLAPSED_MOBILE / PLACE_SECTION_GAP / PLACE_MOBILE_FIRST_VIEWPORT_LINES
+  按新阈值执行，违反一律 FAIL）；语言扫描 26 页 FAIL=0。
+- 页面实施：Search / Place / Home / Map / Reality / Evidence / Contribution 七页按
+  v0.2.4 产品化规格落地（Place = Dossier with Views：`?view=` 本地导航、Overview 五块、
+  长度门 desktop<=1500/mobile<=2000、mobile 首屏<=22 行、section gap<=40、去重、Unknown 收口）。
+- 人审包：`artifacts/blind-ui-productization-v4/HUMAN_REVIEW/`（phase-a-search 4 /
+  phase-b-place 5 / phase-c-home-map 5 / phase-d-rest 10 = **24 张全部 VALID** +
+  HUMAN_REVIEW_INDEX.html；metadata actual 全部来自真实 DOM，O6 延续）。
+  **等待用户人工视觉签字，Agent 不替代视觉 PASS。**
+- 回归（本轮实测）：vue-tsc PASS；client-h5 build PASS；admin build PASS；eslint 0；
+  prettier check PASS；ui-oracle probe + human-review 全绿（final）；
+  ui-reconstruction 180/180（responsive 1440×900 / 430×932 + a11y + phase gates + leakage）；
+  Playwright e2e **189/189**（含修复 mode-switch 重算、lens headline、并行 hash goto 加固）；
+  backend pytest **961 passed / 2 skipped / 0 failed**（含 Celery worker，petaccess_test DB）。
+- 本轮修复（WIP 阶段发现）：presence lens `row-lens-headline` 应为 reality 行（非 decision）；
+  PlaceView 恢复 session mode watch（模式切换重算）；Contribution 步骤指示 5/3 → 2/3。
+- 本轮不产生 Android FAST / Windows Smoke 报告（人审门通过后的后续轮次）。
+
+### 历史记录 — v0.2.3 Blind UI Compiler v2（2026-10-01，HISTORICAL）
+# PROJECT_STATE.md
+
 ## Current phase（2026-10-01 本轮实测 — v0.2.3 Blind UI Compiler v2 全量机器管道）
 - 状态：`BLIND_UI_COMPILER_V2 = PASS` · `UI_MACHINE_CONTRACT_ACCEPTANCE = PASS` ·
   `UI_HUMAN_VISUAL_ACCEPTANCE = PENDING` · `UI_VISUAL_CLOSURE = PENDING_HUMAN`
