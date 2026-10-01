@@ -26,32 +26,34 @@ test("health and decision home render nearby places", async ({ page }) => {
 });
 
 test("place detail shows one-sentence answer with zones and provenance", async ({ page }) => {
-  // v0.2.4 §16：Overview = Identity → Decision → Reality → Space → Evidence。
-  await page.goto(`/#/place/${CAFE_ID}`);
+  // v0.2.5 §15: unknown places render the minimal Unknown Overview, so the
+  // full dossier (answer/zones/evidence) is asserted on the ready mall fixture.
+  const MALL_ID = "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e";
+  await page.goto(`/#/place/${MALL_ID}`);
   const answer = page.getByTestId("answer");
   await expect(answer).toBeVisible();
-  // AccessAnswer contract (design §10): zone rules are NEVER flattened into a
-  // place verdict — a plain dog with only zone-scoped rules reads UNKNOWN at
-  // place level, and the page says so instead of inventing one.
-  await expect(page.getByTestId("answer-status")).toContainText("信息不足");
+  // Mall verdict for a plain dog is conditional (carrier rule); the answer
+  // references the query context line, never a flattened zone verdict.
+  await expect(page.getByTestId("answer-status")).toContainText("有条件");
   await expect(page.getByTestId("overview-reality")).toBeVisible();
-  // space summary shows the two zones by consumer name
+  // space summary shows the mall's first zones by consumer name
   const zones = page.getByTestId("overview-zones");
-  await expect(zones).toContainText("室内堂食区");
-  await expect(zones).toContainText("户外座位区");
+  await expect(zones).toContainText("一层");
   // rules view (v0.2.4 §23) carries the conditions & provenance
-  await page.goto(`/#/place/${CAFE_ID}?view=rules`);
+  await page.goto(`/#/place/${MALL_ID}?view=rules`);
   await expect(page.getByTestId("place-rules-view")).toBeVisible();
-  await expect(page.getByTestId("place-rules-view")).toContainText("需牵引");
+  await expect(page.getByTestId("place-rules-view")).toContainText("需宠物包");
   // evidence summary on the overview
-  await page.goto(`/#/place/${CAFE_ID}`);
+  await page.goto(`/#/place/${MALL_ID}`);
   await expect(page.getByTestId("overview-evidence")).toBeVisible();
 });
 
 test("mode switch re-evaluates: service dog → allowed", async ({ page }) => {
   await page.goto(`/#/place/${CAFE_ID}`);
   // plain dog at place level: no place-scoped ordinary-pet rule → UNKNOWN
-  await expect(page.getByTestId("answer-status")).toHaveText("信息不足");
+  // (v0.2.5 §15 renders the minimal Unknown Overview, not a dossier).
+  await expect(page.getByTestId("place-unknown")).toBeVisible();
+  await expect(page.getByTestId("place-unknown")).toContainText("信息不足");
   // Query Context primitive: open the editor and switch to service-dog mode.
   await page.getByTestId("query-context-edit").click();
   await page.getByRole("button", { name: "服务犬通行" }).click();
@@ -59,7 +61,8 @@ test("mode switch re-evaluates: service dog → allowed", async ({ page }) => {
   await expect(page.getByTestId("answer-status")).toHaveText("可以进入");
   await page.getByTestId("query-context-edit").click();
   await page.getByRole("button", { name: "普通携带" }).click();
-  await expect(page.getByTestId("answer-status")).toHaveText("信息不足");
+  await expect(page.getByTestId("place-unknown")).toBeVisible();
+  await expect(page.getByTestId("place-unknown")).toContainText("信息不足");
 });
 
 /**
@@ -80,8 +83,9 @@ test("switching between two places re-renders the second one", async ({ page }) 
 
   await page.goto(`/#/place/${BRANCH_ID}`);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("星河咖啡·栖霞分店");
-  // the answer has to belong to the new place too, not just the title
-  await expect(page.getByTestId("answer-status")).toHaveText("信息不足");
+  // the unknown overview has to belong to the new place too, not just the title
+  await expect(page.getByTestId("place-unknown")).toBeVisible();
+  await expect(page.getByTestId("place-unknown")).toContainText("信息不足");
 
   // Same mechanism from the user's side: history back and forward.
   await page.goBack();
@@ -143,8 +147,9 @@ test("register → create pet → answer carries pet context → quick confirm",
   await page.getByTestId("pet-save").click();
   await expect(page).toHaveURL(/#\/$/);
 
-  // place answer references the pet
-  await page.goto(`/#/place/${CAFE_ID}`);
+  // place answer references the pet (ready fixture: the cafe is UNKNOWN and
+  // v0.2.5 §15 shows its minimal Unknown Overview without an answer block).
+  await page.goto(`/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e`);
   await expect(page.getByTestId("answer")).toContainText("我的宠物：豆豆");
 
   // quick confirm requires auth → succeeds and records

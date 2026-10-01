@@ -41,6 +41,9 @@ const speciesLabel = computed(() => {
   if (session.activePet?.service_role === "working") return "服务犬";
   return s === "dog" ? "普通犬" : s === "cat" ? "猫" : "其他宠物";
 });
+const petContext = computed(() =>
+  session.activePet ? `我的宠物：${session.activePet.display_name}` : "我的宠物：未设置",
+);
 const realityLine = computed(() =>
   props.coexistence?.reality_answer
     ? realityStateLabel(props.coexistence.reality_answer)
@@ -55,7 +58,8 @@ const spaceSummaryLine = computed(() =>
 );
 /** §11 mobile：evidence summary row 的 value。 */
 const evidenceSummaryLine = computed(
-  () => `${primaryEvidence.value} · 最近核验${props.latestVerifiedAt ? ` ${props.latestVerifiedAt}` : "暂无"}`,
+  () =>
+    `${primaryEvidence.value} · 最近核验${props.latestVerifiedAt ? ` ${props.latestVerifiedAt}` : "暂无"}`,
 );
 </script>
 
@@ -65,16 +69,14 @@ const evidenceSummaryLine = computed(
     <h2 class="place-section__title">当前结论</h2>
     <div class="sub-answer sub-answer--mine" data-testid="answer">
       <p v-if="desktop" class="muted sub-answer__context" data-testid="answer-context">
-        {{ speciesLabel }} · 进入 · 公共区域
+        {{ petContext }} · {{ speciesLabel }} · 进入 · 公共区域
       </p>
       <StatusBadge :semantic="statusKey" />
       <p class="status" data-testid="answer-status">{{ verdict }}</p>
       <p v-if="keyCondition" class="muted" data-testid="answer-conditions">
         需满足：{{ keyCondition }}
       </p>
-      <p v-if="answer" class="muted sub-answer__note">
-        当前结论仅适用于这次查询。
-      </p>
+      <p v-if="answer" class="muted sub-answer__note">当前结论仅适用于这次查询。</p>
     </div>
   </section>
 

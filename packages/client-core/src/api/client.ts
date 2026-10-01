@@ -7,12 +7,17 @@ import type { ApiSchemas } from "@petaccess/api-client";
 
 let base = "http://127.0.0.1:8000/api/v1";
 let tokenProvider: () => string | undefined = () => undefined;
-let idemCounter = 0;
 
 export const api = createClient({
   baseUrl: () => base,
   getToken: () => tokenProvider(),
-  getIdempotencyKey: () => `cli-${Date.now()}-${idemCounter++}`,
+  getIdempotencyKey: () => {
+    // Globally unique per call: two parallel pages each start their module
+    // counter at 0, so `Date.now()-counter` collides within the same
+    // millisecond and the server's in-flight guard rejects the second POST
+    // with 409. `randomUUID` removes the cross-instance collision entirely.
+    return `cli-${crypto.randomUUID()}`;
+  },
 });
 
 export function configureApi(baseUrl: string) {

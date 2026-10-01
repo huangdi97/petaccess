@@ -103,7 +103,6 @@ async function submit() {
 </script>
 
 <template>
-
   <ContributionStepShell
     :place-name="placeName"
     :step="2"
@@ -197,11 +196,12 @@ async function submit() {
       <input
         v-model="context"
         id="reality-context"
-        placeholder="一两句话即可，不填也可以"
         data-testid="reality-context"
+        placeholder="一两句话即可，不填也可以"
       />
     </fieldset>
 
+    <p v-if="error" class="notice" data-testid="reality-error" role="alert">{{ error }}</p>
     <template #primary>
       <button class="primary" :disabled="!canSubmit" data-testid="reality-submit" @click="submit">
         {{ busy ? "提交中…" : "提交现场情况" }}

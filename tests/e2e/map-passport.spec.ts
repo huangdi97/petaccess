@@ -11,6 +11,8 @@ import { expect, test } from "@playwright/test";
 const BASE = "http://127.0.0.1:5175";
 /** Deterministic seed UUID with published rules (h5-journey.spec.ts). */
 const CAFE_ID = "8412b521-5e1c-505d-9dec-568acb860c76";
+/** Ready fixture (place-ready-v1) — unknown places render the §15 Unknown Overview. */
+const MALL_ID = "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e";
 
 test("A4 — /#/map?place= 深链预选；页面选择后 back/forward 同步", async ({ page }) => {
   // Entry 1: deep link opens the desktop pane with the right place.
@@ -66,17 +68,20 @@ test("A2 — map 空态使用统一文案（地图暂无已发布场所 + 返回
 });
 
 test("B1/B2 — Place Dossier 概览 + 规则/现场 view 关键段齐备", async ({ page }) => {
-  await page.goto(`${BASE}/#/place/${CAFE_ID}`);
+  // §15: unknown places (cafe) show the minimal Unknown Overview, so the
+  // dossier overview blocks are asserted on the ready mall fixture; the cafe
+  // still serves the rules/reality views (they render regardless of state).
+  await page.goto(`${BASE}/#/place/${MALL_ID}`);
   // Rule dimension: answer section with verdict + overview evidence summary.
   await expect(page.getByTestId("section-answer")).toBeVisible();
   await expect(page.getByTestId("overview-evidence")).toBeVisible();
   // Reality dimension visible on the overview too (recent reality block).
   await expect(page.getByTestId("overview-reality")).toBeVisible();
   // Rules view carries the source rows.
-  await page.goto(`${BASE}/#/place/${CAFE_ID}?view=rules`);
+  await page.goto(`${BASE}/#/place/${MALL_ID}?view=rules`);
   await expect(page.getByTestId("place-rules-view")).toBeVisible();
   await expect(page.getByTestId("rule-source").first()).toBeVisible();
-  // Reality view hosts the shared event log.
+  // Reality view hosts the shared event log (cafe has observations).
   await page.goto(`${BASE}/#/place/${CAFE_ID}?view=reality`);
   await expect(page.getByTestId("place-reality-view")).toBeVisible();
   await expect(
@@ -95,7 +100,9 @@ test("B3 — Place Evidence view 证据来源链渲染，无原始枚举", async
 });
 
 test("B5 — Search DecisionInspector 查看完整场所 → Place Passport", async ({ page }) => {
-  await page.goto(`${BASE}/#/search?q=星河`);
+  // Search the ready mall fixture: the cafe deep-link lands on the §15 Unknown
+  // Overview, which has no dossier answer block.
+  await page.goto(`${BASE}/#/search?q=云栖`);
   await expect(page.getByTestId("decision-inspector")).toBeVisible();
   await page.getByTestId("inspector-open").click();
   await expect(page.getByTestId("section-answer")).toBeVisible();
