@@ -479,4 +479,13 @@ a.pill.active {
   .skeleton::after {
     animation: none;
   }
+  *,
+  *::before,
+  *::after {
+    /* §41：reduced-motion 全局降级 —— 禁止页面 slide / bounce / gradient 动画。 */
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

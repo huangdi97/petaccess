@@ -84,6 +84,8 @@ function selectMode(m: QueryMode) {
   display: flex;
   align-items: center;
   gap: var(--pa-space-2);
+  /* §38：全产品统一 h 60。 */
+  min-height: 60px;
   padding: var(--pa-space-2) var(--pa-space-4);
   border-bottom: var(--pa-border-width) solid var(--pa-color-border);
   background: var(--pa-color-surface);
@@ -92,11 +94,16 @@ function selectMode(m: QueryMode) {
 
 .query-context__label {
   color: var(--pa-color-text-muted);
+  flex: 0 0 auto;
 }
 
 .query-context__value {
   color: var(--pa-color-text-primary);
   font-weight: var(--pa-font-weight-medium);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .query-context__edit {
