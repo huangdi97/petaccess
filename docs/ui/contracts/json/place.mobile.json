@@ -114,6 +114,27 @@
       "selector": ".zone-row",
       "forbiddenClass": ["card", "panel"],
       "severity": "FAIL"
+    },
+    {
+      "id": "PLACE_MOBILE_OVERVIEW_SUMMARY_PRESENT",
+      "selector": "[data-testid='overview-zones'], [data-testid='overview-evidence']",
+      "min": 2,
+      "severity": "FAIL",
+      "pages": ["place-mobile-ready"]
+    },
+    {
+      "id": "PLACE_NO_STRAY_GLYPH",
+      "selector": "[data-ui='place-dossier'], [data-testid='place-unknown']",
+      "forbiddenText": [">", "<", ":::", "——"],
+      "severity": "FAIL",
+      "pages": ["place-mobile-ready", "place-mobile-rules"]
+    },
+    {
+      "id": "PLACE_NO_ENGINEERING_INVARIANT_COPY",
+      "selector": "[data-ui='place-dossier'], [data-testid='place-unknown']",
+      "forbiddenText": ["≠", "UNKNOWN", "ALLOWED", "PROHIBITED", "CONDITIONAL", "source_id", "rule_id", "zone_type"],
+      "severity": "FAIL",
+      "pages": ["place-mobile-ready", "place-mobile-rules"]
     }
   ],
   "density": [

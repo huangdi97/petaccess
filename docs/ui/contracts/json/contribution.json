@@ -138,6 +138,21 @@
       "minVisibleInViewport": 4,
       "severity": "FAIL",
       "pages": ["contribute-entry"]
+    },
+    {
+      "id": "CONTRIBUTION_STEP_CONTEXT_PRESENT",
+      "selector": "[data-testid='step-place-context'], [data-testid='contribute-step'], [data-testid='quick-submit'], [data-testid='step-back']",
+      "min": 4,
+      "severity": "FAIL",
+      "pages": ["contribute-step-1"]
+    },
+    {
+      "id": "CONTRIBUTION_OPTION_ROWS_NOT_PILLS",
+      "selector": "[data-testid='quick-options'] .option-row",
+      "min": 3,
+      "forbiddenClass": ["pill"],
+      "severity": "FAIL",
+      "pages": ["contribute-step-1"]
     }
   ],
   "density": [],

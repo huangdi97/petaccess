@@ -1,0 +1,99 @@
+{
+  "id": "map.mobile",
+  "title": "Map Mobile Contract v0.2.5 (overlay bottom sheet §22–24/§49)",
+  "viewport": {
+    "width": 430,
+    "height": 932
+  },
+  "pages": [
+    {
+      "id": "map-mobile-ready",
+      "route": "/#/map",
+      "expect": {
+        "page": "map",
+        "state": "ready",
+        "fixture": "map-ready-v1",
+        "h1": "规则地图"
+      }
+    },
+    {
+      "id": "map-mobile-selected-half",
+      "route": "/#/map?place=8412b521-5e1c-505d-9dec-568acb860c76",
+      "expect": {
+        "page": "map",
+        "state": "ready",
+        "fixture": "map-ready-v1",
+        "h1": "规则地图"
+      }
+    }
+  ],
+  "elements": [
+    {
+      "id": "MAP_MOBILE_TOGGLE_SEGMENTED",
+      "selector": "[data-testid='view-map'], [data-testid='view-list']",
+      "props": {
+        "count": {
+          "min": 2
+        }
+      },
+      "severity": "FAIL"
+    },
+    {
+      "id": "MAP_MOBILE_SHEET_OVERLAY",
+      "ui": "map-mobile-sheet",
+      "fallbacks": [
+        "[data-testid='map-mobile-sheet']"
+      ],
+      "props": {
+        "count": {
+          "min": 1
+        },
+        "position": {
+          "equals": "absolute"
+        },
+        "borderRadius": {
+          "min": 14,
+          "max": 18
+        }
+      },
+      "severity": "FAIL",
+      "pages": ["map-mobile-selected-half"]
+    },
+    {
+      "id": "MAP_MOBILE_SHEET_ABOVE_TABBAR",
+      "ui": "map-mobile-sheet",
+      "fallbacks": [
+        "[data-testid='map-mobile-sheet']"
+      ],
+      "props": {
+        "top": {
+          "min": 300,
+          "max": 700
+        },
+        "height": {
+          "min": 180,
+          "max": 360
+        }
+      },
+      "severity": "FAIL",
+      "pages": ["map-mobile-selected-half"]
+    }
+  ],
+  "structure": [
+    {
+      "id": "MAP_MOBILE_SHEET_NO_OUTLINE_STATUS",
+      "selector": "[data-testid='map-mobile-sheet'] .status-badge--block, [data-testid='map-mobile-sheet'] [style*='border']",
+      "max": 0,
+      "severity": "FAIL",
+      "pages": ["map-mobile-selected-half"]
+    }
+  ],
+  "language": {
+    "uuid": true,
+    "enums": true,
+    "invariants": true,
+    "allcapsTokens": true,
+    "refs": true
+  },
+  "notes": "v0.2.5 §22–24/§49：mobile map 恒 overlay；selected = real bottom sheet（fixed overlay、radius 16、half 280–340、top < 700、不与 tabbar 重叠）。"
+}

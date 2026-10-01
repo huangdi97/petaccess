@@ -278,6 +278,27 @@
       "disclosureDefault": "collapsed",
       "severity": "FAIL",
       "pages": ["place-rules"]
+    },
+    {
+      "id": "PLACE_NO_STRAY_GLYPH",
+      "selector": "[data-ui='place-dossier'], [data-testid='place-unknown']",
+      "forbiddenText": [">", "<", ":::", "——"],
+      "severity": "FAIL",
+      "pages": ["place-ready", "place-unknown"]
+    },
+    {
+      "id": "PLACE_NO_ENGINEERING_INVARIANT_COPY",
+      "selector": "[data-ui='place-dossier'], [data-testid='place-unknown']",
+      "forbiddenText": ["≠", "UNKNOWN", "ALLOWED", "PROHIBITED", "CONDITIONAL", "source_id", "rule_id", "zone_type"],
+      "severity": "FAIL",
+      "pages": ["place-ready", "place-unknown"]
+    },
+    {
+      "id": "PLACE_RULE_GROUP_HAS_CONTEXT",
+      "selector": "[data-testid='rule-group-context'], [data-testid='rule-group']",
+      "min": 1,
+      "severity": "FAIL",
+      "pages": ["place-rules"]
     }
   ],
   "density": [
