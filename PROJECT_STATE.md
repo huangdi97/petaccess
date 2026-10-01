@@ -1,5 +1,42 @@
 # PROJECT_STATE.md
 
+## Current phase（2026-10-01 本轮实测 — v0.2.5 Human Visual Closure / Interaction & Brand Polish 全量机器管道）
+- 状态：`UI_HUMAN_CLOSURE_V5 = MACHINE_PASS` · 七页 `*_CANDIDATE = READY_FOR_HUMAN` ·
+  `UI_HUMAN_VISUAL_ACCEPTANCE = PENDING` · `UI_VISUAL_CLOSURE = PENDING_HUMAN` ·
+  `VISUAL_BASELINE_PROMOTED = NO` · `MASTER_MERGED = NO`
+  （不得写作 `UI_HUMAN_VISUAL_ACCEPTANCE = PASS` / `UI_VISUAL_CLOSURE = PASS`）
+- 分支：`feat/ui-human-closure-v5`（基点 = v4 head `e5a9949`）；feature branch pushed；
+  最终分支 HEAD 以 Git 查询为准（文档不自我引用 HEAD）。
+  origin/master = `842c030` **未动**（不 merge、不 fast-forward master，等人审 PASS 后另行请求）；
+  `v0.1.0` tag 未动；无 force push / 无历史改写 / 未更新 `tests/visual/**-snapshots/*.png`
+  （`git diff <v4-base>..HEAD --stat tests/visual/` 为空）。
+- 方法：Human Visual Closure v5 —— 不使用任何视觉模型/OCR/截图理解；依据 v0.2.5 规格
+  （§1–61 文字化人工反馈）做交互与品牌打磨；Oracle 只新增 §46 的 8 个 FAIL 级 gate
+  （PLACE_NO_STRAY_GLYPH / PLACE_NO_ENGINEERING_INVARIANT_COPY / PLACE_RULE_GROUP_HAS_CONTEXT /
+  PLACE_MOBILE_OVERVIEW_SUMMARY_PRESENT / MAP_MOBILE_SHEET_OVERLAY / MAP_MOBILE_SHEET_ABOVE_TABBAR /
+  CONTRIBUTION_STEP_CONTEXT_PRESENT / CONTRIBUTION_OPTION_ROWS_NOT_PILLS），O1–O6 保留。
+- 机器 Gate（final）：11 契约 **TOTAL PASS=398 WARN=0 FAIL=0**（含新增 map.mobile 契约 +
+  8 个新 gate；v4 的 3 个 WARN 项本轮已清零）；语言扫描 28 页 FAIL=0（含 §48 禁词
+  ≠/UNKNOWN/ALLOWED/PROHIBITED/CONDITIONAL/source_id/rule_id/zone_type 用户可见 DOM 0 命中）；
+  density 诊断 21 行 FAIL=0（与 compare gate 对齐）。
+- 页面实施：Place P0 收口（Rule Groups 带回文章节、Unknown Overview 最小化、mobile
+  Space/Evidence summary row、Inspector 去重）/ Map Mobile overlay bottom sheet（half/
+  expanded/peek 三态、segmented 地图|列表）/ Contribution Step Shell（place context +
+  3-segment progress + radio option rows + reality cluster 表单 + Done copy）/ Search/Home/
+  Reality/Evidence 打磨 / 全局一致性（Top Context Bar h60、rail blue-tint、reduced-motion）。
+- 人审包：`artifacts/ui-human-closure-v5/HUMAN_REVIEW/`（§42 清单 **27 张全部 VALID** +
+  HUMAN_REVIEW_INDEX.html；metadata actual 全部来自真实 DOM，O6 延续；metadata 只证明
+  真实状态，不宣称视觉通过）。**等待用户人工视觉签字，Agent 不替代视觉 PASS。**
+- 回归（本轮实测）：vue-tsc PASS；client-h5 build PASS；admin build PASS；eslint 0；
+  prettier check PASS；ui-oracle probe + human-review v4/v5 全绿（final）；
+  ui-reconstruction 180/180（responsive 8 断点 360/390/430/768/1024/1280/1440/1920 +
+  a11y + phase gates + leakage）；Playwright e2e **189/189 ×2 全绿**（含 v5 §15 断言对齐、
+  wizard 确定性 token boot、UUID 幂等键修复并行 409、reality 提交错误显式化）；
+  backend pytest **961 passed / 2 skipped / 0 failed**（含 Celery worker，petaccess_test DB）。
+- 本轮不产生 Android FAST / Windows Smoke 报告（人审门通过后的后续轮次；
+  ANDROID_FAST = NOT_REQUIRED · WINDOWS_SMOKE = NOT_REQUIRED）。
+
+### 历史记录 — v0.2.4 Blind UI Productization（2026-10-01，HISTORICAL）
 ## Current phase（2026-10-01 本轮实测 — v0.2.4 Blind UI Productization 全量机器管道）
 - 状态：`BLIND_UI_PRODUCTIZATION_V4 = PASS` · `UI_MACHINE_PRODUCTIZATION = PASS` ·
   `UI_HUMAN_VISUAL_ACCEPTANCE = PENDING` · `UI_VISUAL_CLOSURE = PENDING_HUMAN`
