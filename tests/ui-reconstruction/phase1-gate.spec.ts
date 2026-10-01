@@ -47,24 +47,30 @@ test("search mobile: results only, no squeezed two-pane; tap navigates to place"
   await expect(body).not.toHaveClass(/search-workspace__body--split/);
 
   await page.getByTestId("result-星河咖啡·测试店").click();
-  await expect(page.getByTestId("section-answer")).toBeVisible();
+  // v0.2.5 §15: unknown places render the minimal Unknown Overview
+  // (PlaceUnknownPane) instead of the full dossier — navigation is proven
+  // by the unknown pane, not by a decision surface that no longer exists.
+  await expect(page.getByTestId("place-unknown")).toBeVisible();
 });
 
 test("place desktop: dossier + sticky decision inspector", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/#/place/8412b521-5e1c-505d-9dec-568acb860c76");
+  // §10/§15: use the ready fixture (mall) — unknown places show the minimal
+  // Unknown Overview, so the dossier + inspector assertions need a ready place.
+  await page.goto("/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e");
   await expect(page.getByTestId("section-answer")).toBeVisible();
   await expect(page.getByTestId("decision-inspector")).toBeVisible();
 });
 
 test("place mobile: single column dossier", async ({ page }) => {
   await page.setViewportSize({ width: 430, height: 932 });
-  await page.goto("/#/place/8412b521-5e1c-505d-9dec-568acb860c76");
+  await page.goto("/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e");
   await expect(page.getByTestId("section-answer")).toBeVisible();
   await expect(page.getByTestId("decision-inspector")).toHaveCount(0);
   const body = page.locator(".place-workspace__body");
   await expect(body).not.toHaveClass(/place-workspace__body--split/);
 });
+
 
 test("query context is visible on search and place", async ({ page }) => {
   await page.goto("/#/search");
