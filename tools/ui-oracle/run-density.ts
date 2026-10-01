@@ -73,27 +73,52 @@ export function runDensity(stage: string): DensityRow[] {
     // diagnostic only applies it to <1000px contracts. Desktop verdicts come
     // from the contract rules in compare.ts, which are the machine gate.
     const isMobile = (raw.viewport?.width ?? 1440) < 1000;
-    // Where the contract defines the first-viewport-lines budget itself (e.g.
-    // place.mobile warnAt=30/max=40), use the contract's verdict so this
-    // diagnostic and the compare gate agree; otherwise fall back to the global
-    // mobile heuristic and skip desktop pages entirely.
-    let contractLinesRule: { min?: number; max?: number; warnAt?: number } | undefined;
+    // Where the contract defines a first-viewport line budget, use the
+    // contract's verdict with the *same probe value compare.ts uses* so this
+    // diagnostic cannot contradict the compare gate (v0.2.5 alignment):
+    // - `budget` rules (metric firstViewportTextLines) read page.budget[ruleId].value;
+    // - `density` rules (metric firstViewportVisibleTextLines) read the density
+    //   measurement's firstViewportVisibleTextLines.
+    // Otherwise fall back to the global mobile heuristic and skip desktop pages.
+    let contractLinesRule:
+      { id?: string; metric?: string; min?: number; max?: number; warnAt?: number } | undefined;
     try {
       const c = JSON.parse(
         readFileSync(path.join(CONTRACTS_DIR, `${raw.contractId ?? f}.json`), "utf8"),
       ) as {
-        density?: Array<{ metric?: string; min?: number; max?: number; warnAt?: number }>;
+        density?: Array<{
+          id?: string;
+          metric?: string;
+          min?: number;
+          max?: number;
+          warnAt?: number;
+        }>;
+        budget?: Array<{
+          id?: string;
+          metric?: string;
+          min?: number;
+          max?: number;
+          warnAt?: number;
+        }>;
       };
-      contractLinesRule = c.density?.find((r) => r.metric === "firstViewportVisibleTextLines");
+      contractLinesRule = [...(c.density ?? []), ...(c.budget ?? [])].find(
+        (r) =>
+          r.metric === "firstViewportVisibleTextLines" || r.metric === "firstViewportTextLines",
+      );
     } catch {
       contractLinesRule = undefined;
     }
+    const contractLinesIsBudget = contractLinesRule?.metric === "firstViewportTextLines";
     for (const page of raw.pages ?? []) {
       const d = Object.values(page.density ?? {})[0];
       if (!d) continue;
       const gap = d.largestVerticalGap;
       const info = d.infoBlockCount;
-      const lines = d.firstViewportVisibleTextLines;
+      const lines =
+        contractLinesIsBudget && contractLinesRule?.id
+          ? (page.budget?.[contractLinesRule.id]?.value ?? null)
+          : d.firstViewportVisibleTextLines;
+      if (lines === null || lines === undefined) continue;
       rows.push({
         contractId: raw.contractId ?? f,
         pageId: page.pageId,

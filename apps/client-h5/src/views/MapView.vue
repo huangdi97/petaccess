@@ -18,7 +18,6 @@ import MapSelectedSheet from "../components/map/MapSelectedSheet.vue";
 import PlacePreview from "../components/domain/PlacePreview.vue";
 import QueryContextBar from "../components/domain/QueryContextBar.vue";
 import StateMessage from "../components/StateMessage.vue";
-import { placeTypeLabel } from "@petaccess/client-core";
 import { useMapWorkspace } from "../composables/useMapWorkspace";
 import { useRouter } from "vue-router";
 

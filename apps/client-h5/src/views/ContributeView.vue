@@ -97,20 +97,6 @@ const uiState = computed<string>(() => {
 /** §41: choice-count must reflect the real number of options on the entry. */
 const choiceCount = computed<number>(() => (uiState.value === "choose-type" ? 5 : 0));
 
-/** §43: the wizard is a 3-step flow — legacy confirmation flows
- * (quick/signage/rule/experience) are 步骤 1 / 3, the reality parent-flow is
- * 步骤 2 / 3; entry/done show no indicator at all. */
-const STEP_NUMBER: Record<Step, number> = {
-  entry: 0,
-  quick: 1,
-  signage: 1,
-  rule: 1,
-  experience: 1,
-  reality: 2,
-  done: 0,
-};
-const stepNumber = computed<number>(() => STEP_NUMBER[step.value] ?? 0);
-const stepTotal = computed<number>(() => (stepNumber.value > 0 ? 3 : 0));
 const uiFixture = computed<string>(() => `contribution-${uiState.value}-v1`);
 </script>
 
@@ -215,7 +201,6 @@ const uiFixture = computed<string>(() => `contribution-${uiState.value}-v1`);
           :place-id="placeId"
           @continue="reset"
         />
-
       </template>
     </div>
   </div>
