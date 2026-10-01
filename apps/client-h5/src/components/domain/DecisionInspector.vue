@@ -175,11 +175,7 @@ const realityLineForPlace = computed(() =>
           <p class="inspector-block__value" data-testid="inspector-evidence">{{ evidenceLine }}</p>
         </div>
         <footer class="decision-inspector__foot">
-          <RouterLink
-            class="btn-inline"
-            :to="`/place/${place.id}`"
-            data-testid="inspector-open"
-          >
+          <RouterLink class="btn-inline" :to="`/place/${place.id}`" data-testid="inspector-open">
             查看完整场所 →
           </RouterLink>
         </footer>

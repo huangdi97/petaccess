@@ -205,13 +205,13 @@ const groups = computed<ObservationGroup[]>(() => {
   margin: 0;
   font-weight: var(--pa-font-weight-medium);
   color: var(--pa-color-text-primary);
-.trace-row__event {
-  margin: var(--pa-space-1) 0 0;
-  font-size: var(--pa-font-size-base);
-  font-weight: var(--pa-font-weight-600);
-  line-height: var(--pa-line-height-23);
-  overflow-wrap: anywhere;
-}
+  .trace-row__event {
+    margin: var(--pa-space-1) 0 0;
+    font-size: var(--pa-font-size-base);
+    font-weight: var(--pa-font-weight-600);
+    line-height: var(--pa-line-height-23);
+    overflow-wrap: anywhere;
+  }
 }
 .trace-row__meta {
   display: flex;

@@ -73,7 +73,12 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
 </script>
 
 <template>
-  <div v-if="open && place" class="sheet-overlay" data-testid="map-sheet-overlay" data-ui="map-sheet">
+  <div
+    v-if="open && place"
+    class="sheet-overlay"
+    data-testid="map-sheet-overlay"
+    data-ui="map-sheet"
+  >
     <section
       class="sheet"
       role="dialog"
@@ -98,7 +103,12 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
           <div class="sheet__title-row">
             <h2 class="sheet__name">{{ place.canonical_name }}</h2>
             <StatusBadge :semantic="statusKey" />
-            <button class="sheet__close" data-testid="sheet-close" aria-label="关闭" @click="emit('close')">
+            <button
+              class="sheet__close"
+              data-testid="sheet-close"
+              aria-label="关闭"
+              @click="emit('close')"
+            >
               <PaIcon name="close" size="sm" label="关闭" />
             </button>
           </div>
@@ -120,7 +130,11 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
         </div>
 
         <div class="sheet__actions">
-          <RouterLink class="btn-inline sheet__cta" :to="`/place/${place.id}`" data-testid="sheet-open-detail">
+          <RouterLink
+            class="btn-inline sheet__cta"
+            :to="`/place/${place.id}`"
+            data-testid="sheet-open-detail"
+          >
             查看场所 →
           </RouterLink>
         </div>

@@ -36,16 +36,12 @@
         }
       },
       "severity": "FAIL",
-      "fallbacks": [
-        "[data-testid='view-map'], [data-testid='view-list']"
-      ]
+      "fallbacks": ["[data-testid='view-map'], [data-testid='view-list']"]
     },
     {
       "id": "MAP_MOBILE_SHEET_OVERLAY",
       "ui": "map-mobile-sheet",
-      "fallbacks": [
-        "[data-testid='map-mobile-sheet']"
-      ],
+      "fallbacks": ["[data-testid='map-mobile-sheet']"],
       "props": {
         "count": {
           "min": 1
@@ -59,16 +55,12 @@
         }
       },
       "severity": "FAIL",
-      "pages": [
-        "map-mobile-selected-half"
-      ]
+      "pages": ["map-mobile-selected-half"]
     },
     {
       "id": "MAP_MOBILE_SHEET_ABOVE_TABBAR",
       "ui": "map-mobile-sheet",
-      "fallbacks": [
-        "[data-testid='map-mobile-sheet']"
-      ],
+      "fallbacks": ["[data-testid='map-mobile-sheet']"],
       "props": {
         "top": {
           "min": 300,
@@ -80,9 +72,7 @@
         }
       },
       "severity": "FAIL",
-      "pages": [
-        "map-mobile-selected-half"
-      ]
+      "pages": ["map-mobile-selected-half"]
     }
   ],
   "structure": [
@@ -91,9 +81,7 @@
       "selector": "[data-testid='map-mobile-sheet'] .status-badge--block, [data-testid='map-mobile-sheet'] [style*='border']",
       "max": 0,
       "severity": "FAIL",
-      "pages": [
-        "map-mobile-selected-half"
-      ]
+      "pages": ["map-mobile-selected-half"]
     }
   ],
   "language": {

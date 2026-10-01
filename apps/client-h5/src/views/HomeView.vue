@@ -109,8 +109,8 @@ const {
       <HomeEntries :entries="HOME_ENTRIES" @select="goEntry" />
 
       <p class="notice home-semantics" data-testid="home-semantics">
-        「附近待补充」表示还没有足够依据下结论，不等于允许或禁止。有依据的结论会写明范围（动物 · 区域），
-        不对整个场所下结论。<RouterLink class="btn-inline" to="/settings"
+        「附近待补充」表示还没有足够依据下结论，不等于允许或禁止。有依据的结论会写明范围（动物 ·
+        区域）， 不对整个场所下结论。<RouterLink class="btn-inline" to="/settings"
           >为什么这个结论？ →</RouterLink
         >
       </p>

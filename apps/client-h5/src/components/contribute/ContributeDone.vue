@@ -19,7 +19,11 @@ defineEmits<{ continue: [] }>();
       <RouterLink class="btn-inline" :to="{ name: 'mine' }" data-testid="done-mine">
         查看我的贡献 →
       </RouterLink>
-      <RouterLink class="btn-inline" :to="{ name: 'place', params: { id: placeId } }" data-testid="done-place">
+      <RouterLink
+        class="btn-inline"
+        :to="{ name: 'place', params: { id: placeId } }"
+        data-testid="done-place"
+      >
         返回场所 →
       </RouterLink>
     </div>

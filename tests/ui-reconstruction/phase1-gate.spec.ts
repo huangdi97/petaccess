@@ -71,7 +71,6 @@ test("place mobile: single column dossier", async ({ page }) => {
   await expect(body).not.toHaveClass(/place-workspace__body--split/);
 });
 
-
 test("query context is visible on search and place", async ({ page }) => {
   await page.goto("/#/search");
   await expect(page.getByTestId("query-context")).toBeVisible();

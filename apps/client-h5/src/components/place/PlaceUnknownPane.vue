@@ -49,7 +49,11 @@ const knownFacts = computed<FactRow[]>(() => {
     </template>
 
     <div class="place-unknown__actions">
-      <RouterLink class="btn primary" :to="`/contribute/${placeId}`" data-testid="place-unknown-contribute">
+      <RouterLink
+        class="btn primary"
+        :to="`/contribute/${placeId}`"
+        data-testid="place-unknown-contribute"
+      >
         提交规则线索
       </RouterLink>
       <RouterLink class="btn" :to="`/place/${placeId}/reality`" data-testid="place-unknown-reality">

@@ -73,7 +73,12 @@ async function submit() {
   >
     <div v-if="error" class="notice" data-testid="quick-error">{{ error }}</div>
     <!-- §31 radio option rows（非 pill）。 -->
-    <div class="option-group" role="radiogroup" aria-label="现场与规则是否一致" data-testid="quick-options">
+    <div
+      class="option-group"
+      role="radiogroup"
+      aria-label="现场与规则是否一致"
+      data-testid="quick-options"
+    >
       <button
         v-for="opt in OPTIONS"
         :key="opt.key"
@@ -94,12 +99,7 @@ async function submit() {
     </div>
 
     <template #primary>
-      <button
-        class="primary"
-        :disabled="!canSubmit"
-        data-testid="quick-submit"
-        @click="submit"
-      >
+      <button class="primary" :disabled="!canSubmit" data-testid="quick-submit" @click="submit">
         {{ busy ? "提交中…" : "提交确认" }}
       </button>
     </template>

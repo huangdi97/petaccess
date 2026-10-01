@@ -58,12 +58,7 @@ defineEmits<{ back: [] }>();
 
     <!-- footer actions：primary 恰 1，secondary back 恰 1（§32）。 -->
     <footer class="step-shell__actions">
-      <button
-        type="button"
-        class="step-shell__back"
-        data-testid="step-back"
-        @click="$emit('back')"
-      >
+      <button type="button" class="step-shell__back" data-testid="step-back" @click="$emit('back')">
         返回
       </button>
       <slot name="primary" />

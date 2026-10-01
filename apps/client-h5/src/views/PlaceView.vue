@@ -359,7 +359,6 @@ const placeFixture = computed<string>(() => {
             :reviewed-count="observations.length"
           />
 
-
           <section
             v-if="view === 'overview' && isDesktop && currentRules.length"
             class="place-section"

@@ -184,7 +184,13 @@ async function submit() {
       </div>
 
       <label for="signage-note">补充说明（结构化补充，非评论区）</label>
-      <input v-model="note" id="signage-note" maxlength="500" placeholder="如：告示位于入口右侧" data-testid="signage-note" />
+      <input
+        v-model="note"
+        id="signage-note"
+        maxlength="500"
+        placeholder="如：告示位于入口右侧"
+        data-testid="signage-note"
+      />
 
       <label style="display: flex; gap: 8px; align-items: center; margin-top: 10px">
         <input v-model="placeConfirmed" type="checkbox" data-testid="signage-place-confirm" />
