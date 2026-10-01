@@ -122,9 +122,24 @@ export function measureElement(
   const visibleH = Math.max(0, Math.min(rect.height, vpHeight - topOfContent));
 
   const sectionGap = (start: Element): number | null => {
-    const blocks = Array.from(
+    const raw = Array.from(
       start.querySelectorAll("section, article, [class*='section'], h2, h3, [class*='row']"),
-    )
+    );
+    // Top-level section rhythm only: skip blocks nested inside another matched
+    // block (an h2 inside a section, a row inside a section). Counting those
+    // would treat a section's own internal padding as a gap and inflate the
+    // median (v0.2.4 §4 target gap = between sibling sections).
+    const blocks = raw
+      .filter((b) => {
+        let p = b.parentElement;
+        while (p && p !== start) {
+          if (p.matches("section, article, [class*='section'], [class*='row'], h2, h3")) {
+            return false;
+          }
+          p = p.parentElement;
+        }
+        return true;
+      })
       .map((b) => b.getBoundingClientRect())
       .filter((r) => r.height > 0 && r.top >= 0);
     if (blocks.length < 2) return null;

@@ -10,7 +10,8 @@ import { expect, test } from "@playwright/test";
 const BASE = "http://127.0.0.1:5175";
 /** 云栖中心·测试商场 — the richest seeded place (rules, sources, reality). */
 const MALL_ID = "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e";
-
+/** 星河咖啡·测试店 — the seeded place with 2 observations (reality-ready). */
+const CAFE_ID = "8412b521-5e1c-505d-9dec-568acb860c76";
 test("A1 — 概览现场 CTA 进入现场 view；直接深链可访问", async ({ page }) => {
   await page.goto(`${BASE}/#/place/${MALL_ID}`);
   await expect(page.getByTestId("overview-reality")).toBeVisible();
@@ -23,7 +24,9 @@ test("A1 — 概览现场 CTA 进入现场 view；直接深链可访问", async 
 });
 
 test("A2/B2 — v0.2.4：timeline 首屏 + 一行 metadata，无原始枚举", async ({ page }) => {
-  await page.goto(`${BASE}/#/place/${MALL_ID}/reality`);
+  // 星河咖啡·测试店（8412b521）带 2 条现场记录，是 reality-ready fixture；
+  // 云栖中心·测试商场（MALL_ID）在 demo seed 无 observations，走 empty 态（A3 覆盖）。
+  await page.goto(`${BASE}/#/place/${CAFE_ID}/reality`);
   await expect(page.getByTestId("trace-summary")).toBeVisible();
   // §34：summary 收为一行 metadata；timeline 紧随其后进入首屏。
   await expect(page.getByTestId("reality-summary")).toBeVisible();
@@ -66,7 +69,7 @@ test("A4 — 深链标题正确；错误统一呈现且不泄漏内部字样", a
   await page.goto(`${BASE}/#/place/${MALL_ID}/reality`);
   await expect(page).toHaveTitle("现场轨迹 · PetAccess");
 
-  await page.route("**/api/v1/places/*/reality/trace**", (route) =>
+  await page.route("**/api/v1/places/*/observations**", (route) =>
     route.fulfill({
       status: 500,
       contentType: "application/json",

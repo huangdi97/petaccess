@@ -31,6 +31,9 @@ test("A1/A4 — 向导入口与现场记录表单渲染（已登录）", async (
   await page.evaluate((t) => localStorage.setItem("pa_token", t), token);
 
   await page.goto(`${BASE}/#/contribute/${MALL_ID}`);
+  // 与 human-review 相同加固：hash-only goto 在并行 worker 下可能被 SPA boot
+  // 初始导航覆盖（落在 Home）；reload 强制以目标 hash 重新挂载 ContributeView。
+  await page.reload();
   // Hardening (same pattern as B2, commit a8bab37): under 6 parallel workers
   // the lazy-loaded ContributeView chunk can exceed the default 5s expect
   // timeout on first load. Bounded 15s wait, then assert visibility.
@@ -48,6 +51,8 @@ test("A2 — 现场记录经父流提交，候选进入人工审核队列", asyn
   await page.evaluate((t) => localStorage.setItem("pa_token", t), token);
 
   await page.goto(`${BASE}/#/contribute/${MALL_ID}`);
+  // 并行 worker 下 hash goto 可能被 SPA boot 覆盖，reload 落到目标 hash（与 A1 同模式）。
+  await page.reload();
   // Hardening (same pattern as B2/A1, commit a8bab37): the entry is lazy-
   // loaded and can appear late under parallel workers; wait before clicking.
   await expect(page.getByTestId("entry-reality-observed_presence")).toBeVisible({ timeout: 15000 });

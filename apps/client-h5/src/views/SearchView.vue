@@ -536,11 +536,12 @@ const selectedId = ref<string | null>(null);
                       · {{ rowCondition(p) }}
                     </span>
                   </p>
-                  <p v-else class="result-row__decision" data-testid="row-lens-headline">
-                    {{ answerVerdictLabel(facts.get(p.id)?.answer) }}
-                    <span v-if="rowCondition(p)" class="result-row__condition">
-                      · {{ rowCondition(p) }}
-                    </span>
+                  <p
+                    v-else
+                    class="result-row__reality-line result-row__reality-line--lead"
+                    data-testid="row-lens-headline"
+                  >
+                    {{ lensProjectionFor(p).realityLine }}
                   </p>
                 </template>
 
@@ -572,13 +573,11 @@ const selectedId = ref<string | null>(null);
                 >
                   现场信息暂时无法取得 —— 请检查网络后重试。
                 </p>
+                <!-- 非 reality-headline lens（rules / 无 lens）才再渲染独立 reality 行；
+                     presence/indoor/dining 时 reality 已是 row-lens-headline，不重复。 -->
                 <p
-                  v-else
+                  v-else-if="!lensKey || lensProjectionFor(p).headline !== 'reality'"
                   class="result-row__reality-line"
-                  :class="{
-                    'result-row__decision--lead':
-                      lensKey && lensProjectionFor(p).headline !== 'rule',
-                  }"
                   data-testid="result-reality"
                 >
                   {{ realityLineFor(facts.get(p.id)?.reality) }}
@@ -948,6 +947,11 @@ const selectedId = ref<string | null>(null);
   font-size: var(--pa-font-size-14);
   line-height: var(--pa-line-height-20);
   color: var(--pa-color-text-secondary);
+}
+
+.result-row__reality-line--lead {
+  font-weight: var(--pa-font-weight-650);
+  color: var(--pa-color-accent);
 }
 
 .result-row__error {

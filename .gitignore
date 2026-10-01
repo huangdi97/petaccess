@@ -27,6 +27,7 @@ blob-report/
 # so the human gate evidence travels with the branch.
 artifacts/*
 !artifacts/blind-ui-compiler-v2/
+!artifacts/blind-ui-productization-v4/
 .playwright/
 *.tsbuildinfo
 .vite/

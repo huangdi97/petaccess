@@ -125,6 +125,16 @@ async function evaluate() {
   });
 }
 
+// Mode switch (普通携带 ↔ 服务犬通行) must re-evaluate as the new animal:
+// the answer text and verdict change with session.mode / activePet.
+watch(
+  () => [session.mode, session.activePet],
+  () => {
+    if (!placeId.value || loading.value) return;
+    void evaluate();
+  },
+);
+
 async function load() {
   loading.value = true;
   error.value = "";
@@ -292,7 +302,7 @@ const placeFixture = computed<string>(() => {
               {{ placeTypeLabel(place.place_type) }} ·
               {{ place.canonical_address ?? "地址未收录" }}
             </p>
-            <div class="row place-dossier__actions">
+            <div v-if="isDesktop" class="row place-dossier__actions">
               <button @click="toggleWatch">
                 {{ watching ? "已关注规则变化 ✓（点击取消）" : "关注此场所规则变化" }}
               </button>
@@ -314,6 +324,7 @@ const placeFixture = computed<string>(() => {
             :primary-source-label="primarySourceLabel"
             :latest-verified-at="latestVerifiedAt"
             :observation-count="observations.length"
+            :desktop="isDesktop"
           />
           <PlaceSpacePane v-else-if="view === 'space'" :zones="zones" :extras="extras" />
           <PlaceRulesPane
@@ -359,9 +370,8 @@ const placeFixture = computed<string>(() => {
             </div>
           </section>
 
-          <!-- 现场快捷确认（保留在概览底部之外的次级位置） -->
           <section
-            v-if="view === 'overview' && currentRules.length"
+            v-if="view === 'overview' && isDesktop && currentRules.length"
             class="place-section"
             data-testid="quick-confirm"
           >

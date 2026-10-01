@@ -75,11 +75,13 @@ test("B1/B2 — Place Dossier 概览 + 规则/现场 view 关键段齐备", asyn
   // Rules view carries the source rows.
   await page.goto(`${BASE}/#/place/${CAFE_ID}?view=rules`);
   await expect(page.getByTestId("place-rules-view")).toBeVisible();
-  await expect(page.getByTestId("rule-source")).toBeVisible();
+  await expect(page.getByTestId("rule-source").first()).toBeVisible();
   // Reality view hosts the shared event log.
   await page.goto(`${BASE}/#/place/${CAFE_ID}?view=reality`);
   await expect(page.getByTestId("place-reality-view")).toBeVisible();
-  await expect(page.getByTestId("trace-observations")).toBeVisible();
+  await expect(
+    page.getByTestId("place-reality-view").locator("[data-ui='reality-event-log']"),
+  ).toBeVisible();
 });
 
 test("B3 — Place Evidence view 证据来源链渲染，无原始枚举", async ({ page }) => {

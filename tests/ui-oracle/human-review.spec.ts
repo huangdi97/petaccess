@@ -1,27 +1,26 @@
 /**
- * UI Oracle — human-review.spec.ts (v0.2.3)
+ * UI Oracle — human-review.spec.ts (v0.2.4)
  *
- * Captures the named HUMAN_REVIEW screenshots per phase (evidence artifacts
- * only: fixed viewport, deterministic data, animations disabled, clock
- * frozen). Every shot is gated by Capture State Integrity (v0.2.3 §14):
+ * Captures the named HUMAN_REVIEW screenshots per §47 (evidence artifacts
+ * only: fixed viewport, deterministic data, animations disabled). Every shot
+ * is gated by Capture State Integrity (O6): navigate → settle → read ACTUAL
+ * DOM state (data-ui-page/state/fixture/h1/counts), compare against the
+ * shot's `expect`, and only matching shots are written to the package with a
+ * `valid: true` metadata file; invalid shots go to `_invalid/` with their
+ * mismatch and are excluded from HUMAN_REVIEW_INDEX.html.
  *
- *   - navigate → settle → read ACTUAL page state from the DOM
- *     (data-ui-page / data-ui-state / data-ui-fixture / h1 / counts),
- *     never from test intent;
- *   - compare against the shot's `expect` contract;
- *   - only shots where every expected field matches are written to the
- *     human-review package with a `valid: true` metadata file; invalid shots
- *     are still written to a `_invalid` folder with their mismatch so the
- *     failure is visible, but are excluded from HUMAN_REVIEW_INDEX.html.
+ * §51: Reality first-viewport gate — screenshots are captured from page top;
+ * the v4 Reality page puts the timeline in the first viewport, so no
+ * scrollTo is used to prove the timeline exists.
  *
- * Output: artifacts/blind-ui-compiler-v2/HUMAN_REVIEW/<phase>/…
+ * Output: artifacts/blind-ui-productization-v4/HUMAN_REVIEW/<phase>/…
  */
 import { mkdirSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
 import { expect, test } from "@playwright/test";
 
-const OUT = path.resolve("artifacts/blind-ui-compiler-v2/HUMAN_REVIEW");
+const OUT = path.resolve("artifacts/blind-ui-productization-v4/HUMAN_REVIEW");
 const API = "http://127.0.0.1:8012/api/v1";
 
 interface StateExpect {
@@ -49,14 +48,13 @@ interface Shot {
   clickTestid?: string;
   /** Wait for a testid to appear after the click (form step rendered). */
   waitTestid?: string;
-  /** Scroll a testid into view before the screenshot (distinguishing content
-   * below the viewport fold is still captured; state asserted before scroll). */
-  scrollToTestid?: string;
+  /** v0.2.4 §15: `?view=` for Place dossier panes. */
+  view?: "overview" | "space" | "rules" | "reality" | "evidence";
   expect: StateExpect;
   note: string;
 }
 const SHOTS: Shot[] = [
-  // ---- Phase A: Search -------------------------------------------------
+  // ---- 1. Search (§47 search: 4) -----------------------------------------
   {
     name: "search_desktop_ready",
     phase: "phase-a-search",
@@ -70,7 +68,7 @@ const SHOTS: Shot[] = [
       h1: "搜索场所规则",
       selectedId: "search-selected-row",
     },
-    note: "桌面：Rail 68 / Topbar 60 / Results 400 全出血 + Detail 704 内容列",
+    note: "v0.2.4 §11/§12：list-detail；Has a toolbar 结果数|筛选；row 92–108 / 4 semantic lines",
   },
   {
     name: "search_desktop_empty",
@@ -85,7 +83,7 @@ const SHOTS: Shot[] = [
       fixture: "search-empty-v1",
       h1: "搜索场所规则",
     },
-    note: "空态只存在于 ResultsPane；右侧 onboarding copy（§23）",
+    note: "v0.2.4 §14：inline empty，无 card/shadow；右侧 onboarding inline copy",
   },
   {
     name: "search_mobile_ready",
@@ -99,7 +97,7 @@ const SHOTS: Shot[] = [
       fixture: "search-ready-v1",
       h1: "搜索场所规则",
     },
-    note: "移动单列：row 108–128、radius 0、≤5 行文本（§24）",
+    note: "v0.2.4 §13：single column，rows 88–104 / ≤4 lines，toolbar 结果N|筛选",
   },
   {
     name: "search_mobile_filter",
@@ -114,16 +112,17 @@ const SHOTS: Shot[] = [
       fixture: "search-filter-v1",
       h1: "搜索场所规则",
     },
-    note: "筛选 bottom sheet：top 340–480、radius 16、5 rows（§25）",
+    note: "v0.2.4 §13：筛选 bottom sheet",
   },
 
-  // ---- Phase B: Place ---------------------------------------------------
+  // ---- 2. Place（§47 place: 5）------------------------------------------
   {
-    name: "place_desktop_ready",
+    name: "place_desktop_overview",
     phase: "phase-b-place",
     width: 1440,
     height: 900,
     route: "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+    view: "overview",
     expect: {
       page: "place",
       state: "ready",
@@ -131,7 +130,23 @@ const SHOTS: Shot[] = [
       entityId: "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
       h1: "云栖中心·测试商场",
     },
-    note: "Dossier x≈100 w∈820–860 + Inspector x≈1010 w∈320–350 sticky（§27）",
+    note: "v0.2.4 §16：Overview 五块（Identity/Decision/Reality/Space/Evidence），不再是无限长页",
+  },
+  {
+    name: "place_desktop_rules",
+    phase: "phase-b-place",
+    width: 1440,
+    height: 900,
+    route: "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e?view=rules",
+    view: "rules",
+    expect: {
+      page: "place",
+      state: "ready",
+      fixture: "place-ready-v1",
+      entityId: "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+      h1: "云栖中心·测试商场",
+    },
+    note: "v0.2.4 §23：规则 view（当前规则/条件/例外/依据/折叠历史）",
   },
   {
     name: "place_desktop_unknown",
@@ -139,6 +154,7 @@ const SHOTS: Shot[] = [
     width: 1440,
     height: 900,
     route: "/#/place/3b5a341a-e550-5f0c-b35a-319ed43bd840",
+    view: "overview",
     expect: {
       page: "place",
       state: "unknown",
@@ -146,14 +162,15 @@ const SHOTS: Shot[] = [
       entityId: "3b5a341a-e550-5f0c-b35a-319ed43bd840",
       h1: "星河咖啡·栖霞分店",
     },
-    note: "无已发布结论 → UNKNOWN 诚实态（未知 ≠ 允许）",
+    note: "v0.2.4 §27：UNKNOWN 只渲染有数据的部分，不渲染空 section 全家福",
   },
   {
-    name: "place_mobile_ready",
+    name: "place_mobile_overview",
     phase: "phase-b-place",
     width: 430,
     height: 932,
     route: "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+    view: "overview",
     expect: {
       page: "place",
       state: "ready",
@@ -161,10 +178,26 @@ const SHOTS: Shot[] = [
       entityId: "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
       h1: "云栖中心·测试商场",
     },
-    note: "移动单列：首屏 name/query/decision/1 condition/Reality teaser（§34）",
+    note: "v0.2.4 §28：首屏 ≤22 lines（Place+tabs+Decision+Reality teaser）",
+  },
+  {
+    name: "place_mobile_rules",
+    phase: "phase-b-place",
+    width: 430,
+    height: 932,
+    route: "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e?view=rules",
+    view: "rules",
+    expect: {
+      page: "place",
+      state: "ready",
+      fixture: "place-ready-v1",
+      entityId: "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+      h1: "云栖中心·测试商场",
+    },
+    note: "v0.2.4 §15 mobile：horizontal scroll text tab；规则 view 折叠历史",
   },
 
-  // ---- Phase C: Home + Map ---------------------------------------------
+  // ---- 3. Home + Map（§47 home/map: 4）----------------------------------
   {
     name: "home_desktop",
     phase: "phase-c-home-map",
@@ -177,7 +210,21 @@ const SHOTS: Shot[] = [
       fixture: "home-ready-v1",
       h1: "去之前，先看看这里的规则和现场。",
     },
-    note: "Task Launcher：location → query → search → recent/nearby → lens（§36）",
+    note: "v0.2.4 §29：max 960；divider rows，不做大白卡/卡片行",
+  },
+  {
+    name: "home_mobile",
+    phase: "phase-c-home-map",
+    width: 430,
+    height: 932,
+    route: "/#/",
+    expect: {
+      page: "home",
+      state: "ready",
+      fixture: "home-ready-v1",
+      h1: "去之前，先看看这里的规则和现场。",
+    },
+    note: "v0.2.4 §29/§31：mobile 单列 rows + lenses",
   },
   {
     name: "map_desktop",
@@ -191,10 +238,38 @@ const SHOTS: Shot[] = [
       fixture: "map-ready-v1",
       h1: "规则地图",
     },
-    note: "Spatial workspace：rail + 400 result pane + full map + 筛选 N（§37）",
+    note: "v0.2.4 §32：desktop List+Map；results divider rows；selected preview 5 项",
+  },
+  {
+    name: "map_mobile_ready",
+    phase: "phase-c-home-map",
+    width: 430,
+    height: 932,
+    route: "/#/map",
+    expect: {
+      page: "map",
+      state: "ready",
+      fixture: "map-ready-v1",
+      h1: "规则地图",
+    },
+    note: "v0.2.4 §33：mobile map，未选中态",
+  },
+  {
+    name: "map_mobile_selected_sheet",
+    phase: "phase-c-home-map",
+    width: 430,
+    height: 932,
+    route: "/#/map?place=8412b521-5e1c-505d-9dec-568acb860c76",
+    expect: {
+      page: "map",
+      state: "ready",
+      fixture: "map-ready-v1",
+      h1: "规则地图",
+    },
+    note: "v0.2.4 §33：selected place → bottom sheet（tabbar 上方，3–4 行）",
   },
 
-  // ---- Phase D: Reality + Evidence + Contribution ------------------------
+  // ---- 4. Reality（§47 reality: 3）---------------------------------------
   {
     name: "reality_desktop_ready",
     phase: "phase-d-rest",
@@ -207,8 +282,7 @@ const SHOTS: Shot[] = [
       fixture: "reality-ready-v1",
       h1: "现场轨迹",
     },
-    scrollToTestid: "trace-observations",
-    note: "True timeline：time col 72 / rail 24 / content；marker+time x 对齐（§38）",
+    note: "v0.2.4 §34/§51：timeline 首屏（first event top ≤360），从 page top capture",
   },
   {
     name: "reality_desktop_empty",
@@ -222,11 +296,26 @@ const SHOTS: Shot[] = [
       fixture: "reality-empty-v1",
       h1: "现场轨迹",
     },
-    scrollToTestid: "trace-observations",
-    note: "空态：暂无近期现场记录。/ 这并不代表现场没有动物。（§38）",
+    note: "v0.2.4 §36：inline empty，无大卡",
   },
   {
-    name: "evidence_desktop_records",
+    name: "reality_mobile_ready",
+    phase: "phase-d-rest",
+    width: 430,
+    height: 932,
+    route: "/#/place/8412b521-5e1c-505d-9dec-568acb860c76/reality",
+    expect: {
+      page: "reality",
+      state: "ready",
+      fixture: "reality-ready-v1",
+      h1: "现场轨迹",
+    },
+    note: "v0.2.4 §34：mobile timeline-first",
+  },
+
+  // ---- 5. Evidence（§47 evidence: 3）-------------------------------------
+  {
+    name: "evidence_desktop_ready",
     phase: "phase-d-rest",
     width: 1440,
     height: 900,
@@ -237,7 +326,7 @@ const SHOTS: Shot[] = [
       fixture: "evidence-records-v1",
       h1: "证据与来源",
     },
-    note: "Provenance rail：marker col 24 / gap 28–36 / 5 步、禁 UUID（§39）",
+    note: "v0.2.4 §38/§52：record identity + provenance 前 3 步首屏可见",
   },
   {
     name: "evidence_desktop_empty",
@@ -251,8 +340,24 @@ const SHOTS: Shot[] = [
       fixture: "evidence-empty-v1",
       h1: "证据与来源",
     },
-    note: "无记录路径：证据条目空态 + 来源链保持 5 步结构（§39）",
+    note: "v0.2.4 §40：记录存在时不再显示「0 条依据」",
   },
+  {
+    name: "evidence_mobile_ready",
+    phase: "phase-d-rest",
+    width: 430,
+    height: 932,
+    route: "/#/place/8412b521-5e1c-505d-9dec-568acb860c76/evidence",
+    expect: {
+      page: "evidence",
+      state: "ready",
+      fixture: "evidence-records-v1",
+      h1: "证据与来源",
+    },
+    note: "v0.2.4 §38：mobile record identity + provenance",
+  },
+
+  // ---- 6. Contribution（§47 contribution: 4）-----------------------------
   {
     name: "contribution_desktop_choose-type",
     phase: "phase-d-rest",
@@ -267,7 +372,24 @@ const SHOTS: Shot[] = [
       h1: "你刚刚知道了什么？",
       counts: { "choice-count": 5 },
     },
-    note: "§40/§41：5 固定选项 + consumer copy 禁 ADR/UUID；choice-count=5",
+    note: "v0.2.4 §41：5 choice rows（icon+title+desc+chevron），至少 4 行首屏可见",
+  },
+  {
+    name: "contribution_desktop_step-1",
+    phase: "phase-d-rest",
+    width: 1440,
+    height: 900,
+    route: "/#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+    auth: true,
+    clickTestid: "entry-quick",
+    waitTestid: "quick-submit",
+    expect: {
+      page: "contribution",
+      state: "step-1",
+      fixture: "contribution-step-1-v1",
+      h1: "现场贡献",
+    },
+    note: "v0.2.4 §43：聚焦步骤（步骤 1/3），一屏一个问题",
   },
   {
     name: "contribution_desktop_step-2",
@@ -284,7 +406,7 @@ const SHOTS: Shot[] = [
       fixture: "contribution-step-2-v1",
       h1: "现场贡献",
     },
-    note: "真实进入 reality 父流程表单（第二步聚焦步骤，§40）",
+    note: "v0.2.4 §43：reality 父流程表单（步骤 2/3）",
   },
   {
     name: "contribution_mobile_choose-type",
@@ -300,7 +422,7 @@ const SHOTS: Shot[] = [
       h1: "你刚刚知道了什么？",
       counts: { "choice-count": 5 },
     },
-    note: "移动端同样真实进入 choose-type（§40）",
+    note: "v0.2.4 §41/§53：mobile 至少 4 choice rows 首屏可见",
   },
 ];
 
@@ -334,7 +456,7 @@ async function signIn(request: import("@playwright/test").APIRequestContext): Pr
   return (await login.json()).access_token as string;
 }
 
-/** Read the REAL page state from the DOM — never hand-written. (v0.2.3 §15) */
+/** Read the REAL page state from the DOM — never hand-written. (O6) */
 async function readActualState(
   page: import("@playwright/test").Page,
 ): Promise<Record<string, unknown>> {
@@ -365,7 +487,7 @@ async function readActualState(
 
 function assertState(
   actual: Record<string, unknown>,
-  expect: StateExpect,
+  expectState: StateExpect,
 ): { ok: boolean; mismatches: string[] } {
   const mismatches: string[] = [];
   const check = (key: string, exp: unknown): void => {
@@ -374,14 +496,14 @@ function assertState(
       mismatches.push(`${key}: expected=${String(exp)} actual=${String(actual[key])}`);
     }
   };
-  check("page", expect.page);
-  check("state", expect.state);
-  check("fixture", expect.fixture);
-  check("h1", expect.h1);
-  check("entityId", expect.entityId);
-  check("selectedId", expect.selectedId);
-  check("count", expect.count);
-  for (const [key, exp] of Object.entries(expect.counts ?? {})) {
+  check("page", expectState.page);
+  check("state", expectState.state);
+  check("fixture", expectState.fixture);
+  check("h1", expectState.h1);
+  check("entityId", expectState.entityId);
+  check("selectedId", expectState.selectedId);
+  check("count", expectState.count);
+  for (const [key, exp] of Object.entries(expectState.counts ?? {})) {
     const counts = (actual.counts ?? {}) as Record<string, number>;
     if (counts[key] !== exp) {
       mismatches.push(`counts.${key}: expected=${String(exp)} actual=${String(counts[key])}`);
@@ -390,11 +512,11 @@ function assertState(
   return { ok: mismatches.length === 0, mismatches };
 }
 
-test("human review v0.2.3 — named screenshots with Capture State Integrity", async ({
+test("human review v0.2.4 — named screenshots with Capture State Integrity", async ({
   page,
   request,
 }, testInfo) => {
-  const project = testInfo.project.name;
+  const project = testInfo.project?.name ?? "";
   const isDesktopProject = project === "oracle-desktop";
   const rows: Array<{
     name: string;
@@ -408,9 +530,6 @@ test("human review v0.2.3 — named screenshots with Capture State Integrity", a
   }> = [];
 
   for (const shot of SHOTS) {
-    // Each shot renders in exactly one project (desktop shots under
-    // oracle-desktop, mobile shots under oracle-mobile) so viewport and
-    // touch behaviour match the shot's contract.
     const wantDesktop = shot.width >= 1000;
     if (wantDesktop !== isDesktopProject) continue;
 
@@ -418,13 +537,8 @@ test("human review v0.2.3 — named screenshots with Capture State Integrity", a
     mkdirSync(phaseDir, { recursive: true });
 
     await page.setViewportSize({ width: shot.width, height: shot.height });
-    // Clock frozen BEFORE navigation so relative timestamps are deterministic.
     await page.clock.install({ time: new Date("2026-09-15T04:00:00Z") }).catch(() => {});
 
-    // Fresh SPA boot per shot: navigate to the shot's own route, then reload
-    // so the app reboots directly at that URL with zero leaked selection or
-    // route state from a previous shot (O6 honesty). Route mocks persist
-    // across reloads, so emptySearch interception still applies.
     if (shot.emptySearch) {
       await page.route("**/api/v1/places?**", (route) =>
         route.fulfill({ json: { items: [], total: 0, limit: 20, offset: 0 } }),
@@ -464,7 +578,7 @@ test("human review v0.2.3 — named screenshots with Capture State Integrity", a
       await settle(page);
     }
 
-    // O6: assert the real DOM state BEFORE saving (v0.2.3 §14).
+    // O6: assert the real DOM state BEFORE saving (v0.2.4 §48).
     const actual = await readActualState(page);
     const { ok, mismatches } = assertState(actual, shot.expect);
     const meta = {
@@ -480,17 +594,7 @@ test("human review v0.2.3 — named screenshots with Capture State Integrity", a
       generatedAt: new Date().toISOString(),
     };
 
-    // Scroll the distinguishing section into view before capture — the
-    // timeline can start below the 900px fold, and the shot must show the
-    // content that differs between states (state already asserted above).
-    if (shot.scrollToTestid) {
-      await page
-        .getByTestId(shot.scrollToTestid)
-        .scrollIntoViewIfNeeded()
-        .catch(() => {});
-      await page.waitForTimeout(200);
-    }
-
+    // §51：从 page top capture（Reality timeline 在首屏，不需 scrollTo）。
     if (ok) {
       const file = path.join(phaseDir, `${shot.name}.png`);
       await page.screenshot({ path: file });
@@ -501,7 +605,6 @@ test("human review v0.2.3 — named screenshots with Capture State Integrity", a
       );
       rows.push({ ...meta, bytes: statSync(file).size });
     } else {
-      // Invalid shots: keep the evidence for debugging, but NOT in the index.
       const invalidDir = path.join(OUT, "_invalid");
       mkdirSync(invalidDir, { recursive: true });
       const file = path.join(invalidDir, `${shot.name}.png`);
@@ -541,7 +644,7 @@ test("human review v0.2.3 — named screenshots with Capture State Integrity", a
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>PetAccess v0.2.3 — Blind UI Compiler Human Review 包</title>
+<title>PetAccess v0.2.4 — Blind UI Productization Human Review 包</title>
 <style>
   body { font-family: system-ui, sans-serif; margin: 2rem; max-width: 1100px; color: #222; }
   h1 { font-size: 1.4rem; }
@@ -554,18 +657,16 @@ test("human review v0.2.3 — named screenshots with Capture State Integrity", a
 </style>
 </head>
 <body>
-  <h1>PetAccess v0.2.3 — Blind UI Compiler Human Review 包（${valid.length} VALID / ${rows.length} total）</h1>
+  <h1>PetAccess v0.2.4 — Blind UI Productization Human Review 包（${valid.length} VALID / ${rows.length} total）</h1>
   <p>每张截图都先通过 Capture State Integrity（route/page/state/fixture/h1/selected/count 来自真实 DOM），
   valid 才进入本包；Agent 不代替用户做视觉签字。HTML 不做任何美学评价。</p>
   ${cards}
-  <p class="status">机器门禁与状态完整性验证详见 docs/reports/BLIND_UI_V2_FINAL_REPORT.md。</p>
+  <p class="status">机器门禁与状态完整性验证详见 docs/reports/BLIND_UI_V4_PRODUCTIZATION_REPORT.md。</p>
 </body>
 </html>`,
     "utf8",
   );
 
-  // The test itself fails when any shot was invalid — the package must be
-  // trustworthy or visibly incomplete.
   expect(invalid, `invalid capture states: ${invalid.map((i) => i.name).join(", ")}`).toHaveLength(
     0,
   );

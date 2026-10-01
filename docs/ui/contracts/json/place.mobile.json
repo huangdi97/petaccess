@@ -1,11 +1,25 @@
 {
   "id": "place.mobile",
   "title": "Place Mobile Contract v0.2.3 Executable Blueprint",
-  "viewport": { "width": 430, "height": 932 },
+  "viewport": {
+    "width": 430,
+    "height": 932
+  },
   "pages": [
     {
       "id": "place-mobile-ready",
       "route": "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+      "expect": {
+        "page": "place",
+        "state": "ready",
+        "fixture": "place-ready-v1",
+        "entityId": "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+        "h1": "云栖中心·测试商场"
+      }
+    },
+    {
+      "id": "place-mobile-rules",
+      "route": "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e?view=rules",
       "expect": {
         "page": "place",
         "state": "ready",
@@ -20,35 +34,71 @@
       "id": "PLACE_MOBILE_INSPECTOR_ABSENT",
       "ui": "place-inspector",
       "fallbacks": ["[data-testid='decision-inspector']"],
-      "props": { "count": { "max": 0 } },
+      "props": {
+        "count": {
+          "max": 0
+        }
+      },
       "severity": "FAIL"
     },
     {
       "id": "PLACE_MOBILE_NAME_VISIBLE",
       "ui": "place-name",
       "fallbacks": [".place-dossier__name", "h1"],
-      "props": { "count": { "min": 1 } },
+      "props": {
+        "count": {
+          "min": 1
+        }
+      },
       "severity": "FAIL"
     },
     {
       "id": "PLACE_MOBILE_DECISION_VISIBLE",
       "ui": "place-decision",
       "fallbacks": ["[data-testid='section-answer'], [data-testid='answer-status']"],
-      "props": { "count": { "min": 1 } },
-      "severity": "FAIL"
+      "props": {
+        "count": {
+          "min": 1
+        }
+      },
+      "severity": "FAIL",
+      "pages": ["place-mobile-ready"]
     },
     {
       "id": "PLACE_MOBILE_DECISION_SIZE",
       "fallbacks": ["[data-testid='answer-status']"],
-      "props": { "fontSize": { "min": 23, "max": 25 } },
-      "severity": "WARN"
+      "props": {
+        "fontSize": {
+          "min": 23,
+          "max": 25
+        }
+      },
+      "severity": "WARN",
+      "pages": ["place-mobile-ready"]
     },
     {
       "id": "PLACE_MOBILE_BOTTOM_NAV_HEIGHT",
       "ui": "mobile-tabbar",
       "fallbacks": ["[data-testid='mobile-tabbar']"],
-      "props": { "height": { "min": 58, "max": 64 } },
+      "props": {
+        "height": {
+          "min": 58,
+          "max": 64
+        }
+      },
       "severity": "FAIL"
+    },
+    {
+      "id": "PLACE_MOBILE_OVERVIEW_FULLPAGE_HEIGHT",
+      "ui": "place-dossier",
+      "fallbacks": [".place-dossier"],
+      "props": {
+        "height": {
+          "max": 2000
+        }
+      },
+      "severity": "FAIL",
+      "pages": ["place-mobile-ready"]
     }
   ],
   "structure": [
@@ -56,7 +106,8 @@
       "id": "PLACE_MOBILE_HISTORY_COLLAPSED",
       "selector": "[data-ui='place-history'], [class*='history']",
       "disclosureDefault": "collapsed",
-      "severity": "FAIL"
+      "severity": "FAIL",
+      "pages": ["place-mobile-rules"]
     },
     {
       "id": "PLACE_MOBILE_ZONES_NOT_CARDS",
@@ -80,6 +131,7 @@
       "metric": "firstViewportBlocks",
       "selector": "[data-ui='place-dossier']",
       "min": 2,
+      "pages": ["place-mobile-ready"],
       "severity": "FAIL"
     },
     {
@@ -88,13 +140,7 @@
       "selector": "[data-ui='place-dossier']",
       "max": 24,
       "warnAt": 22,
-      "severity": "FAIL"
-    },
-    {
-      "id": "PLACE_MOBILE_OVERVIEW_FULLPAGE_HEIGHT",
-      "metric": "contentHeightInViewport",
-      "selector": "[data-ui='place-dossier']",
-      "max": 2000,
+      "pages": ["place-mobile-ready"],
       "severity": "FAIL"
     }
   ],

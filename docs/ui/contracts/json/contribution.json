@@ -127,8 +127,8 @@
     {
       "id": "CONTRIBUTE_LOCATION_COPY_CORRECT",
       "selector": "body",
-      "mustContainTexts": ["位置信息仅用于核验场所，不保存连续位置轨迹"],
-      "forbiddenText": ["ADR-012", "ADR-", "GPS 轨迹（"],
+      "mustContainTexts": ["提交内容会进入人工核验"],
+      "forbiddenText": ["ADR-", "GPS 轨迹（", "位置信息仅用于核验场所，不保存连续位置轨迹"],
       "severity": "FAIL",
       "pages": ["contribute-entry", "contribute-step-1", "contribute-step-2"]
     },

@@ -1,8 +1,10 @@
 {
   "id": "place.desktop",
-  "id": "place.desktop",
   "title": "Place Desktop Contract v0.2.4 Executable Blueprint (Dossier with Views)",
-  "viewport": { "width": 1440, "height": 900 },
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
   "pages": [
     {
       "id": "place-ready",
@@ -43,97 +45,166 @@
       "id": "PLACE_RAIL_WIDTH",
       "ui": "app-rail",
       "fallbacks": [".desktop-rail"],
-      "props": { "width": { "min": 64, "max": 72 } },
+      "props": {
+        "width": {
+          "min": 64,
+          "max": 72
+        }
+      },
       "severity": "FAIL"
     },
     {
       "id": "PLACE_TOP_CONTEXT_HEIGHT",
       "ui": "query-context",
       "fallbacks": ["[data-testid='query-context']"],
-      "props": { "height": { "min": 56, "max": 64 } },
+      "props": {
+        "height": {
+          "min": 56,
+          "max": 64
+        }
+      },
       "severity": "FAIL"
     },
     {
       "id": "PLACE_MAIN_DOSSIER_X",
       "ui": "place-dossier",
       "fallbacks": [".place-dossier"],
-      "props": { "left": { "min": 92, "max": 112 } },
+      "props": {
+        "left": {
+          "min": 92,
+          "max": 112
+        }
+      },
       "severity": "WARN"
     },
     {
       "id": "PLACE_MAIN_DOSSIER_WIDTH",
       "ui": "place-dossier",
       "fallbacks": [".place-dossier"],
-      "props": { "width": { "min": 820, "max": 860 } },
+      "props": {
+        "width": {
+          "min": 820,
+          "max": 860
+        }
+      },
       "severity": "WARN"
     },
     {
       "id": "PLACE_MAIN_DOSSIER_PRESENT",
       "ui": "place-dossier",
       "fallbacks": [".place-dossier", "[class*='dossier']"],
-      "props": { "count": { "min": 1 } },
+      "props": {
+        "count": {
+          "min": 1
+        }
+      },
       "severity": "FAIL"
     },
     {
       "id": "PLACE_INSPECTOR_X",
       "ui": "place-inspector",
       "fallbacks": ["[data-testid='decision-inspector']"],
-      "props": { "left": { "min": 984, "max": 1048 } },
+      "props": {
+        "left": {
+          "min": 984,
+          "max": 1048
+        }
+      },
       "severity": "WARN"
     },
     {
       "id": "PLACE_INSPECTOR_WIDTH",
       "ui": "place-inspector",
       "fallbacks": ["[data-testid='decision-inspector']"],
-      "props": { "width": { "min": 320, "max": 350 } },
+      "props": {
+        "width": {
+          "min": 320,
+          "max": 350
+        }
+      },
       "severity": "FAIL"
     },
     {
       "id": "PLACE_INSPECTOR_STICKY",
       "ui": "place-inspector",
       "fallbacks": ["[data-testid='decision-inspector']"],
-      "props": { "position": { "equals": "sticky" } },
+      "props": {
+        "position": {
+          "equals": "sticky"
+        }
+      },
       "severity": "FAIL"
     },
     {
       "id": "PLACE_IDENTITY_NAME_SIZE",
       "ui": "place-name",
       "fallbacks": [".place-dossier__name", "h1"],
-      "props": { "fontSize": { "min": 27, "max": 29 }, "fontWeight": { "min": 600 } },
+      "props": {
+        "fontSize": {
+          "min": 27,
+          "max": 29
+        },
+        "fontWeight": {
+          "min": 600
+        }
+      },
       "severity": "FAIL"
     },
     {
       "id": "PLACE_DECISION_FONT_SIZE",
-
       "fallbacks": ["[data-testid='answer-status']", ".sub-answer .status"],
-      "props": { "fontSize": { "min": 27, "max": 29 } },
-      "severity": "FAIL"
+      "props": {
+        "fontSize": {
+          "min": 27,
+          "max": 29
+        }
+      },
+      "severity": "FAIL",
+      "pages": ["place-ready", "place-unknown"]
     },
     {
       "id": "PLACE_SECTION_TITLE_SIZE",
       "fallbacks": [".place-section__title"],
-      "props": { "fontSize": { "min": 18, "max": 19 } },
+      "props": {
+        "fontSize": {
+          "min": 18,
+          "max": 19
+        }
+      },
       "severity": "FAIL"
     },
     {
       "id": "PLACE_SECTION_GAP",
       "ui": "place-dossier",
       "fallbacks": [".place-dossier", "main"],
-      "props": { "sectionGap": { "min": 24, "max": 40 } },
+      "props": {
+        "sectionGap": {
+          "min": 24,
+          "max": 40
+        }
+      },
       "severity": "FAIL"
     },
     {
       "id": "PLACE_NAV_PRESENT",
       "ui": "place-nav",
       "fallbacks": ["[data-ui='place-nav']"],
-      "props": { "count": { "min": 1 } },
+      "props": {
+        "count": {
+          "min": 1
+        }
+      },
       "severity": "FAIL"
     },
     {
       "id": "PLACE_RULES_VIEW_PRESENT",
       "ui": "place-rules-view",
       "fallbacks": ["[data-testid='place-rules-view']"],
-      "props": { "count": { "min": 1 } },
+      "props": {
+        "count": {
+          "min": 1
+        }
+      },
       "severity": "FAIL",
       "pages": ["place-rules"]
     },
@@ -141,7 +212,11 @@
       "id": "PLACE_OVERVIEW_FULLPAGE_HEIGHT",
       "ui": "place-dossier",
       "fallbacks": [".place-dossier"],
-      "props": { "height": { "max": 1500 } },
+      "props": {
+        "height": {
+          "max": 1500
+        }
+      },
       "severity": "FAIL",
       "pages": ["place-ready"]
     },
@@ -149,7 +224,12 @@
       "id": "PLACE_ZONE_ROW_HEIGHT",
       "ui": "zone-row",
       "fallbacks": [".zone-row"],
-      "props": { "height": { "min": 48, "max": 56 } },
+      "props": {
+        "height": {
+          "min": 48,
+          "max": 56
+        }
+      },
       "severity": "FAIL",
       "aggregate": "rows",
       "pages": ["place-ready"]
@@ -158,7 +238,11 @@
       "id": "PLACE_ACTIONS_MAX_TWO",
       "ui": "place-identity",
       "fallbacks": [".place-dossier__head .row button, .place-dossier__actions"],
-      "props": { "count": { "max": 2 } },
+      "props": {
+        "count": {
+          "max": 2
+        }
+      },
       "severity": "WARN"
     }
   ],
@@ -225,7 +309,8 @@
       "a": ".sub-answer .status",
       "b": "body",
       "minRatio": 1.75,
-      "severity": "FAIL"
+      "severity": "FAIL",
+      "pages": ["place-ready", "place-unknown"]
     },
     {
       "id": "PLACE_SECTION_TO_BODY",

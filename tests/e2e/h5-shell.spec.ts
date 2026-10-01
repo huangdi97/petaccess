@@ -42,13 +42,14 @@ test("decision home is search-first and states what is verified", async ({ page 
 test("map is its own tab and renders the full interaction shell", async ({ page }) => {
   await page.setViewportSize({ width: 430, height: 932 });
   await page.goto("/#/map");
-  // location state is always labelled, never implied by colour alone
-  await expect(page.getByTestId("location-label")).toBeVisible();
-  await expect(page.getByTestId("locate-btn")).toBeVisible();
-  // v0.2.4 §32：地图/列表 toggle 只在 mobile 保留（desktop 恒为 List+Map）
+  // v0.2.4 §32：地图/列表 toggle 只在 mobile 保留（desktop 恒为 List+Map）。
+  // Mobile 默认地图面；带标注的定位状态位于列表 pane（§33）。
   await expect(page.getByTestId("view-map")).toBeVisible();
   await page.getByTestId("view-list").click();
   await expect(page.getByTestId("view-list")).toBeVisible();
+  // location state is always labelled, never implied by colour alone
+  await expect(page.getByTestId("location-label")).toBeVisible();
+  await expect(page.getByTestId("locate-btn")).toBeVisible();
   await page.getByTestId("view-map").click();
   // Without a reachable API the surface must be EITHER the provider-neutral
   // map renderer OR an explicit ERROR state — never a map with invented pins.
