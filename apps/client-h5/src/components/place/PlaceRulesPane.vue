@@ -126,7 +126,7 @@ function ruleConditionLines(r: RuleView): string[] {
         </p>
       </div>
     </section>
-    <p v-if="!currentRules.length" class="muted">暂无可靠规则结论（未收录 ≠ 没有规则，这里使用自然语言说明）。</p>
+    <p v-if="!currentRules.length" class="muted">暂无可靠规则结论。未收录不代表没有规则。</p>
 
     <!-- §14 Rule Conflict：inline，不渲染紫色 badge 为主角。 -->
     <section v-if="conflicts.hasConflict" class="rule-conflict" data-testid="rule-conflict">

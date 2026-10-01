@@ -24,7 +24,7 @@ defineProps<{
   <div data-ui="place-space-view" data-testid="place-space-view">
     <section class="place-section" data-testid="space-zones" data-ui="place-zones">
       <h2 class="place-section__title">空间与区域</h2>
-      <p v-if="!zones.length" class="muted">暂无分区域信息（信息不足 ≠ 允许）</p>
+      <p v-if="!zones.length" class="muted">暂无分区域信息。信息不足不代表允许或禁止。</p>
       <div v-for="z in zones" :key="z.id" class="zone-row" data-ui="zone-row">
         <span class="zone-row__name">{{ zoneConsumerLine(z) }}</span>
         <RouterLink

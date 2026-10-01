@@ -50,7 +50,7 @@ async function submit() {
       evidence_refs: null,
       ...proximity(),
     });
-    emit("done", "现场记录已提交。现场记录 ≠ 场所正式政策，二者会分开呈现。");
+    emit("done", "现场记录已提交。现场记录与场所正式政策分开呈现，不会互相混同。");
   } catch (e) {
     error.value = presentDescription(e);
   } finally {
@@ -65,7 +65,7 @@ async function submit() {
     :step="1"
     :total="3"
     title="我有现场经历"
-    description="只记录可观察到的行为，不记录主观推断。现场记录 ≠ 场所正式政策。"
+    description="只记录可观察到的行为，不记录主观推断。现场记录不代表场所正式政策。"
     @back="emit('back')"
   >
     <div v-if="error" class="notice" data-testid="exp-error">{{ error }}</div>

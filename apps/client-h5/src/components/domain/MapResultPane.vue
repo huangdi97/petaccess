@@ -117,7 +117,7 @@ function toggleFilter(key: string) {
           清除筛选
         </button>
         <p class="muted map-filter__hint">
-          筛选是可选的：信息不足的场所默认仍然显示（信息不足 ≠ 允许）。
+          筛选是可选的：信息不足的场所默认仍然显示，信息不足不代表允许或禁止。
         </p>
       </div>
     </div>

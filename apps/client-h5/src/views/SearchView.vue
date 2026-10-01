@@ -860,7 +860,8 @@ const selectedId = ref<string | null>(null);
 }
 
 .result-row--selected {
-  background: var(--pa-color-surface-warm);
+  /* v0.2.5 §17：selected tint 更轻、不发米黄；用 subtle blue。 */
+  background: var(--pa-color-accent-weak);
 }
 
 .result-row--selected::before {
