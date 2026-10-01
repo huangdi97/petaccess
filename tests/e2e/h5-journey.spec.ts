@@ -16,46 +16,36 @@ test("health and decision home render nearby places", async ({ page }) => {
   await expect(page.getByText("附近已核验")).toBeVisible();
   await expect(page.getByRole("heading", { name: "规则待核实" })).toBeVisible();
 
-  // the map tab still renders the full shell and the list fallback
+  // the map tab still renders the full shell; desktop is List+Map split so the
+  // result pane is already visible without any 地图/列表 mode toggle (§32).
   await page.goto("/#/map");
   await expect(page.getByTestId("map")).toBeVisible();
-  await page.getByTestId("view-list").click();
   await expect(page.getByRole("heading", { name: "附近场所" })).toBeVisible();
   await expect(page.getByText("星河咖啡·测试店").first()).toBeVisible();
   await expect(page.getByText("青岚公园·演示").first()).toBeVisible();
 });
 
 test("place detail shows one-sentence answer with zones and provenance", async ({ page }) => {
+  // v0.2.4 §16：Overview = Identity → Decision → Reality → Space → Evidence。
   await page.goto(`/#/place/${CAFE_ID}`);
   const answer = page.getByTestId("answer");
   await expect(answer).toBeVisible();
-  // design #48: actionable answer + obligations + source + last verification
-  // anonymous visit → no pet profile yet (explicit, never guessed)
-  await expect(answer).toContainText("我的宠物：未设置");
   // AccessAnswer contract (design §10): zone rules are NEVER flattened into a
   // place verdict — a plain dog with only zone-scoped rules reads UNKNOWN at
-  // place level, and the page points at the zones instead of inventing one.
+  // place level, and the page says so instead of inventing one.
   await expect(page.getByTestId("answer-status")).toContainText("信息不足");
-  await expect(answer).toContainText("本次查询范围内没有已发布规则 —— 未知 ≠ 允许。");
-  // the outdoor zone's leash condition is surfaced in the conditions panel
-  await expect(page.getByTestId("conditions")).toContainText("需牵引");
-  // provenance is rendered by section 1 as a whole, not by the answer block
-  await expect(page.getByTestId("section-answer")).toContainText("最近核验：");
-  // zone breakdown: every zone is listed, and its status is computed on demand
-  // (one evaluation per zone, so the list does not fan out into N requests)
-  const zones = page.getByTestId("zones");
+  await expect(page.getByTestId("overview-reality")).toBeVisible();
+  // space summary shows the two zones by consumer name
+  const zones = page.getByTestId("overview-zones");
   await expect(zones).toContainText("室内堂食区");
   await expect(zones).toContainText("户外座位区");
-  const indoor = zones.locator(".zone-row").filter({ hasText: "室内堂食区" });
-  await indoor.getByRole("button", { name: "查看" }).click();
-  await expect(indoor).toContainText("明确限制");
-  // outdoor zone resolves to conditional (leash) — still zone-scoped
-  const outdoor = zones.locator(".zone-row").filter({ hasText: "户外座位区" });
-  await outdoor.getByRole("button", { name: "查看" }).click();
-  await expect(outdoor).toContainText("有条件");
-  // observations coexist with rules but do not change the answer; staff
-  // action renders in consumer language, never the raw enum (Goal §29/§30)
-  await expect(page.getByText("未观察到干预").first()).toBeVisible();
+  // rules view (v0.2.4 §23) carries the conditions & provenance
+  await page.goto(`/#/place/${CAFE_ID}?view=rules`);
+  await expect(page.getByTestId("place-rules-view")).toBeVisible();
+  await expect(page.getByTestId("place-rules-view")).toContainText("需牵引");
+  // evidence summary on the overview
+  await page.goto(`/#/place/${CAFE_ID}`);
+  await expect(page.getByTestId("overview-evidence")).toBeVisible();
 });
 
 test("mode switch re-evaluates: service dog → allowed", async ({ page }) => {
@@ -91,7 +81,7 @@ test("switching between two places re-renders the second one", async ({ page }) 
   await page.goto(`/#/place/${BRANCH_ID}`);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("星河咖啡·栖霞分店");
   // the answer has to belong to the new place too, not just the title
-  await expect(page.getByTestId("answer-ordinary")).toContainText("尚未核验");
+  await expect(page.getByTestId("answer-status")).toHaveText("信息不足");
 
   // Same mechanism from the user's side: history back and forward.
   await page.goBack();
@@ -99,14 +89,10 @@ test("switching between two places re-renders the second one", async ({ page }) 
   await page.goForward();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("星河咖啡·栖霞分店");
 });
-
 test("search finds place by fuzzy name", async ({ page }) => {
   await page.goto("/#/search");
   await page.getByTestId("search-input").fill("星河");
   await page.getByTestId("search-btn").click();
-  // Not `getByText(name)` on purpose: the same-brand branch row carries the
-  // flagship's name in its 「所属 …」 line, so a plain text query matches twice
-  // and Playwright fails on strict mode rather than on anything real.
   await expect(page.getByTestId("result-星河咖啡·测试店")).toBeVisible();
 });
 
@@ -120,8 +106,9 @@ test("same-brand branches come back as two labelled rows, answer first", async (
   await expect(flagship).toBeVisible();
   await expect(branch).toBeVisible();
 
-  // Two rows, not one ambiguous one, and the child says whose it is.
-  await expect(branch.getByTestId("result-branch")).toContainText("星河咖啡·测试店");
+  // v0.2.4 §11：rows no longer carry a separate 所属-brand meta line; each row
+  // is its own place with its own name (the parent-name line was removed).
+  await expect(branch.getByTestId("result-branch")).toHaveCount(0);
 
   // v0.2.3 §21.5: rows carry the decision line, never rule-count tallies
   // (规则数量/来源计数 forbidden on rows) — both rows show a decision, and

@@ -1,42 +1,32 @@
 <script setup lang="ts">
 /**
- * RealityTraceView — M5 Reality Trace as a Temporal Event Log (freeze §9).
+ * RealityTraceView — v0.2.4 Reality v4 (§34–36): Timeline-First.
  *
- * Events are rows on a timeline (TIME → EVENT → LOCATION → EVIDENCE), never
- * cards. Fact and review sections render as a divider-led ledger. The page
- * sits inside ConsumerAppShell, so it carries no AppShell / content wrapper.
+ * The page's FIRST surface is the event log — the summary ledgers that used
+ * to sit above the fold (观察到的事实 / 核验姿态) are gone; at most ONE line of
+ * metadata (N 条记录 · 最近日期 · M 条待核验) separates the header from the
+ * timeline. Timeline rendering is the shared RealityEventLog (§24 reuse).
+ * Filter state lives here (§34 筛选：全部 ▾) and constrains the observations
+ * passed down. Empty state is inline, not a card.
  */
 import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
-import { client, freshnessLabel, type ObservationView } from "@petaccess/client-core";
-import { animalScopeLabel, ruleActionLabel, staffActionLabel } from "../consumer/labels";
-import { EMPTY_STATE_COPY } from "@petaccess/design-tokens";
+import { client, type ObservationView, type Zone } from "@petaccess/client-core";
 import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
 import QueryContextBar from "../components/domain/QueryContextBar.vue";
-import EvidenceMeta from "../components/domain/EvidenceMeta.vue";
-import EvidenceStatus from "../components/domain/EvidenceStatus.vue";
+import RealityEventLog from "../components/domain/RealityEventLog.vue";
 import { presentDescription } from "../errors";
 
 const route = useRoute();
 const placeId = computed(() => (route.params.id ? String(route.params.id) : ""));
 
-interface TraceSection {
-  label: string;
-  value: string | null;
-  note?: string | null;
-}
-interface Trace {
-  summary: string;
-  fact_sections: TraceSection[];
-  review_sections: TraceSection[];
-  evidence_count: number;
-}
-
-const trace = ref<Trace | null>(null);
 const observations = ref<ObservationView[]>([]);
+const zones = ref<Zone[]>([]);
 const loading = ref(true);
 const error = ref("");
+/** 筛选：全部 / 已核验 / 待核验（§34 筛选：全部 ▾）。 */
+const filter = ref<"all" | "verified" | "pending">("all");
 
 function evidenceStateFor(o: ObservationView): "verified" | "pending" | "disputed" | "historical" {
   if (o.dispute_status === "DISPUTED") return "disputed";
@@ -44,54 +34,37 @@ function evidenceStateFor(o: ObservationView): "verified" | "pending" | "dispute
   return "verified";
 }
 
-/** Location confidence rendered as consumer copy — the raw enum stays off-screen. */
-const CONFIDENCE_LABELS: Record<string, string> = {
-  confirmed_on_site: "现场确认",
-  high: "位置高可信",
-  medium: "位置中等可信",
-  low: "位置低可信",
-  uncertain: "位置不确定",
-};
+/** §34 one-line metadata（可省但非表格）：N 条记录 · 最近 DATE · M 条待核验。 */
+const summaryLine = computed(() => {
+  const n = observations.value.length;
+  if (!n) return "";
+  const latest = [...observations.value].sort((a, b) =>
+    b.occurred_at.localeCompare(a.occurred_at),
+  )[0];
+  const pending = observations.value.filter((o) => evidenceStateFor(o) !== "verified").length;
+  const parts = [`${n} 条记录`, `最近 ${latest.occurred_at.slice(0, 10)}`];
+  if (pending > 0) parts.push(`${pending} 条待核验`);
+  return parts.join(" · ");
+});
 
-function confidenceLabel(v: string): string {
-  return CONFIDENCE_LABELS[v] ?? "位置未记录";
-}
-/** §38: the 72px time column shows the clock time; the date lives in the
- * date-group header, so the column never wraps. */
-function timeOnly(iso: string): string {
-  return iso.length >= 16 ? iso.slice(11, 16) : iso.slice(0, 10);
-}
-
-const traceGroups = computed(() =>
-  trace.value
-    ? [
-        {
-          key: "facts",
-          title: "观察到的事实",
-          testid: "trace-facts",
-          sections: trace.value.fact_sections,
-        },
-        {
-          key: "review",
-          title: "核验姿态",
-          testid: "trace-review",
-          sections: trace.value.review_sections,
-        },
-      ]
-    : [],
-);
+/** Filter applied before handing off to the shared event log. */
+const visibleObservations = computed<ObservationView[]>(() => {
+  if (filter.value === "all") return observations.value;
+  const wantVerified = filter.value === "verified";
+  return observations.value.filter((o) => (evidenceStateFor(o) === "verified") === wantVerified);
+});
 
 async function load() {
   if (!placeId.value) return;
   loading.value = true;
   error.value = "";
   try {
-    const [t, obs] = await Promise.all([
-      client.realityTrace(placeId.value),
+    const [obs, zs] = await Promise.all([
       client.observations(placeId.value),
+      client.zones(placeId.value),
     ]);
-    trace.value = t;
     observations.value = obs;
+    zones.value = zs;
   } catch (e) {
     error.value = presentDescription(e);
   } finally {
@@ -101,30 +74,10 @@ async function load() {
 
 watch(placeId, () => void load(), { immediate: true });
 
-/** Segment observations into date groups, newest date first (§38 date groups). */
-interface ObservationGroup {
-  date: string;
-  items: ObservationView[];
-}
-
-const observationGroups = computed<ObservationGroup[]>(() => {
-  const byDate = new Map<string, ObservationView[]>();
-  for (const o of observations.value) {
-    const date = o.occurred_at.slice(0, 10);
-    const list = byDate.get(date);
-    if (list) list.push(o);
-    else byDate.set(date, [o]);
-  }
-  return [...byDate.entries()]
-    .sort((a, b) => b[0].localeCompare(a[0]))
-    .map(([date, items]) => ({ date, items }));
-});
-
-/** O6 capture-state integrity (numbered where states differ from the plain id). */
+/** O6 capture-state integrity: ready = observations exist. */
 const uiState = computed<string>(() => {
   if (loading.value) return "loading";
   if (error.value) return "error";
-  if (!trace.value) return "unavailable";
   return observations.value.length > 0 ? "ready" : "empty";
 });
 const uiFixture = computed<string>(() =>
@@ -153,102 +106,53 @@ const uiFixture = computed<string>(() =>
           <button class="primary" @click="load">重试</button>
         </template>
       </StateMessage>
-      <template v-else-if="trace">
-        <header class="reality-head" data-testid="trace-summary">
-          <h2>现场轨迹（≠ 规则）</h2>
-          <p class="reality-head__state">{{ trace.summary }}</p>
-          <p class="muted">
-            现场记录与平台核验姿态分开呈现：事实说明观察到了什么，核验说明平台如何确认。
-          </p>
-          <EvidenceMeta
-            v-if="trace.evidence_count != null"
-            :evidence-count="trace.evidence_count"
-          />
-        </header>
 
-        <section
-          v-for="g in traceGroups"
-          :key="g.key"
-          :class="
-            g.key === 'review'
-              ? 'reality-ledger reality-ledger--review'
-              : 'reality-ledger reality-ledger--facts'
-          "
-          :data-testid="g.testid"
-          :aria-label="g.title"
-        >
-          <h2 class="reality-ledger__title">{{ g.title }}</h2>
-          <div v-for="s in g.sections" :key="s.label" class="surface-row">
-            <span class="reality-ledger__label">{{ s.label }}</span>
-            <div class="reality-ledger__body">
-              <p>{{ s.value ?? "暂无" }}</p>
-              <p v-if="s.note" class="muted">{{ s.note }}</p>
-            </div>
+      <template v-else>
+        <!-- v0.2.4 §34：页顶只允许 title + 一句说明 + 筛选；随后就是 Timeline。 -->
+        <header class="reality-head" data-testid="trace-summary">
+          <h2 class="reality-head__title">现场记录</h2>
+          <p class="muted reality-head__intro">这些记录描述现场观察，不代表运营方正式规则。</p>
+          <div class="reality-head__meta">
+            <label class="visually-hidden" for="reality-filter">筛选现场记录</label>
+            <select
+              id="reality-filter"
+              v-model="filter"
+              class="reality-filter"
+              data-testid="reality-filter"
+              data-ui="reality-filter"
+            >
+              <option value="all">筛选：全部 ▾</option>
+              <option value="verified">筛选：已核验 ▾</option>
+              <option value="pending">筛选：待核验 ▾</option>
+            </select>
+            <span
+              v-if="summaryLine"
+              class="muted reality-head__summary"
+              data-testid="reality-summary"
+            >
+              {{ summaryLine }}
+            </span>
           </div>
-        </section>
+        </header>
 
         <section
           class="reality-timeline"
           data-testid="trace-observations"
           data-ui="reality-timeline"
         >
-          <h2 class="reality-ledger__title">现场记录时间线</h2>
-          <div class="timeline" role="list" data-ui="reality-timeline-list">
-            <span class="timeline-rail" data-ui="reality-rail" aria-hidden="true"></span>
-            <template v-for="g in observationGroups" :key="g.date">
-              <div class="timeline-date" data-ui="timeline-date">{{ g.date }}</div>
-              <div v-for="o in g.items" :key="o.id" class="trace-row" data-ui="reality-event">
-                <time class="trace-row__time" data-ui="reality-event-time">{{
-                  timeOnly(o.occurred_at)
-                }}</time>
-                <span
-                  class="trace-row__dot"
-                  aria-hidden="true"
-                  data-ui="reality-event-marker"
-                ></span>
-                <div class="trace-row__content">
-                  <div class="trace-row__head">
-                    <EvidenceStatus :state="evidenceStateFor(o)" />
-                  </div>
-                  <p class="trace-row__event">
-                    {{ animalScopeLabel(o.animal_scope) }} ·
-                    {{ ruleActionLabel(o.observed_action) }}
-                    <span v-if="o.staff_action" class="muted"
-                      >（工作人员：{{ staffActionLabel(o.staff_action) }}）</span
-                    >
-                  </p>
-                  <p class="muted trace-row__meta">
-                    <span>地点：{{ confidenceLabel(o.place_confidence) }}</span>
-                    <span>{{ freshnessLabel(o.occurred_at) }}</span>
-                  </p>
-                  <p v-if="o.note" class="muted trace-row__note">{{ o.note }}</p>
-                </div>
-              </div>
-            </template>
-          </div>
-          <StateMessage
-            v-if="!observations.length"
-            kind="PARTIAL"
-            :title="EMPTY_STATE_COPY.REALITY.title"
-            :description="EMPTY_STATE_COPY.REALITY.description"
-            data-testid="trace-empty"
-            data-ui="reality-empty"
-          >
-            <template #action>
-              <button class="primary" @click="load">刷新</button>
-              <RouterLink class="btn" :to="`/place/${placeId}`" style="margin-left: 8px"
-                >查看场所准入</RouterLink
+          <RealityEventLog :observations="visibleObservations" :zones="zones" :place-id="placeId">
+            <template #empty-action>
+              <RouterLink
+                class="btn primary"
+                :to="`/place/${placeId}`"
+                data-testid="reality-go-enter"
               >
+                记录现场情况
+              </RouterLink>
             </template>
-          </StateMessage>
+          </RealityEventLog>
         </section>
       </template>
-      <StateMessage
-        v-else
-        kind="PARTIAL"
-        :title="EMPTY_STATE_COPY.REALITY.title"
-        :description="EMPTY_STATE_COPY.REALITY.description"
-      />
     </div>
   </div>
 </template>
@@ -265,124 +169,34 @@ const uiFixture = computed<string>(() =>
   max-width: var(--pa-layout-content-820);
   margin: 0 auto;
 }
+/* §34：头部必须轻 —— title + 一句说明 + 筛选行，timeline 才能进入首屏。 */
 .reality-head {
-  padding-bottom: var(--pa-space-4);
+  padding-bottom: var(--pa-space-3);
   border-bottom: var(--pa-border-width) solid var(--pa-color-border);
 }
-.reality-head h2 {
-  margin: 0 0 var(--pa-space-2);
-  font-size: var(--pa-font-size-18);
-}
-.reality-head__state {
-  margin: var(--pa-space-2) 0;
-  font-size: var(--pa-font-size-xl);
-  font-weight: var(--pa-font-weight-semibold);
-  color: var(--pa-color-text-primary);
-}
-.reality-ledger {
-  margin: var(--pa-space-4) 0 0;
-  padding: var(--pa-space-3);
-}
-.reality-ledger--facts {
-  background: var(--pa-color-surface);
-}
-.reality-ledger--review {
-  background: var(--pa-color-bg-sunken);
-}
-.reality-ledger__title {
-  margin: 0 0 var(--pa-space-2);
-  font-size: var(--pa-font-size-18);
-  color: var(--pa-color-text-primary);
-}
-.reality-ledger__label {
-  font-size: var(--pa-font-size-md);
-  color: var(--pa-color-text-secondary);
-}
-.reality-ledger__body p {
+.reality-head__title {
   margin: 0 0 var(--pa-space-1);
-  font-size: var(--pa-font-size-md);
+  font-size: var(--pa-font-size-18);
+  line-height: var(--pa-line-height-26);
+  color: var(--pa-color-text-primary);
+}
+.reality-head__intro {
+  margin: 0;
   line-height: var(--pa-line-height-base);
 }
-/* Timeline — a vertical guide with one dot per event row. */
-.timeline {
-  position: relative;
-  margin: var(--pa-space-2) 0 0;
-  padding: 0;
-  list-style: none;
-}
-.timeline-rail {
-  /* §38: continuous rail across the whole timeline, centered in the 24px
-   * marker column (72px time col + 12px) so time/marker/rail all align. */
-  content: "";
-  position: absolute;
-  left: calc(72px + 11px);
-  top: 8px;
-  bottom: 8px;
-  width: 2px;
-  background: var(--pa-color-border-subtle);
-  pointer-events: none;
-}
-.timeline-date {
-  /* §38: date group separation >= 28px between groups. */
-  margin: 28px 0 20px 0;
-  padding-left: calc(72px + 24px);
-  font-size: var(--pa-font-size-sm);
-  font-weight: var(--pa-font-weight-semibold);
-  color: var(--pa-color-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-.timeline > .timeline-date:first-child {
-  margin-top: 0;
-}
-.trace-row {
-  display: grid;
-  grid-template-columns: 72px 24px 1fr;
-  gap: 0 var(--pa-space-3);
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
-  padding: 0 0 24px 0;
-  margin-bottom: 24px;
-  /* §38: events are timeline rows, never cards (no panel/card surface). */
-  background: transparent;
-  border-radius: 0;
-  box-shadow: none;
-}
-.trace-row:last-child {
-  border-bottom: none;
-}
-.trace-row__time {
-  padding-top: 2px;
-  font-size: var(--pa-font-size-md);
-  font-weight: var(--pa-font-weight-medium);
-  color: var(--pa-color-text-primary);
-  text-align: left;
-  white-space: nowrap;
-}
-.trace-row__dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--pa-color-surface);
-  border: var(--pa-border-width) solid var(--pa-color-accent);
-  margin: 6px auto 0;
-}
-.trace-row__head {
+.reality-head__meta {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: var(--pa-space-2);
-  min-height: 22px;
-}
-.trace-row__event,
-.trace-row__note {
-  margin: var(--pa-space-1) 0 0;
-  font-size: var(--pa-font-size-md);
-  line-height: var(--pa-line-height-base);
-}
-.trace-row__meta {
-  display: flex;
-  flex-wrap: wrap;
   gap: var(--pa-space-3);
-  margin: var(--pa-space-1) 0 0;
+  margin-top: var(--pa-space-2);
+}
+.reality-filter {
+  width: auto;
+  min-height: var(--pa-size-control-md);
+  margin: 0;
+}
+.reality-head__summary {
+  font-size: var(--pa-font-size-md);
 }
 </style>

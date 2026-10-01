@@ -1,15 +1,12 @@
 <script setup lang="ts">
 /**
- * Home — Task Launcher (UI_RECONSTRUCTION_DESIGN_FREEZE §9).
+ * Home — Task Launcher (v0.2.4 §29–31).
  *
- * Composition: data/actions live in useHomeLauncher; the verified/pending
- * nearby list and the secondary lens entries are their own components. This
- * view keeps the page skeleton: QueryContextBar → location → primary search →
- * recent → nearby section → lens entries → semantics footer. No hero photo,
- * no feature-card wall, no category chips — lists are divider-led rows.
- *
- * 产品方向（frozen，未变）：search-first；「去之前，查清规则」；UNKNOWN ≠ ALLOWED；
- * 已核验范围写明（动物 · 区域）；贡献为低优先级 footer。
+ * Desktop main max 960px. Structure is a flat list, not a portal:
+ * Location + map link → Headline → Search → 最近/附近 divider rows →
+ * 待核实 divider rows → Quick lenses (4 text links). No big white card,
+ * no pending card rows, no 「为什么？」pill — anything explanatory is a
+ * text link（为什么这个结论？ →）.
  */
 import DesktopContentContainer from "../components/layout/DesktopContentContainer.vue";
 import HomeEntries from "../components/domain/HomeEntries.vue";
@@ -41,7 +38,7 @@ const {
 <template>
   <DesktopContentContainer mode="wide">
     <div
-      class="page"
+      class="page page--home"
       data-ui="home"
       data-ui-page="home"
       data-ui-state="ready"
@@ -49,13 +46,10 @@ const {
     >
       <QueryContextBar />
 
-      <!-- coverage header — survives an API failure -->
+      <!-- location + map link -->
       <div class="home-topline">
         <strong data-testid="coverage-area">上海 · 试点</strong>
-        <span class="row home-topline__actions">
-          <RouterLink class="btn-inline" to="/map" data-testid="go-map">看地图 &gt;</RouterLink>
-          <RouterLink to="/settings" class="pill" data-testid="coverage-scope">覆盖范围</RouterLink>
-        </span>
+        <RouterLink class="btn-inline" to="/map" data-testid="go-map">看地图 →</RouterLink>
       </div>
 
       <h1 data-testid="home-title">去之前，先看看这里的规则和现场。</h1>
@@ -82,9 +76,8 @@ const {
       <section v-if="recent.length" data-testid="recent-section">
         <div class="home-section-header">
           <h2 class="home-section-title">最近查看</h2>
-          <button class="pill" data-testid="clear-recent" @click="clearRecent">清空</button>
+          <button class="btn-inline" data-testid="clear-recent" @click="clearRecent">清空</button>
         </div>
-        <p class="muted">打开时重新求值 —— 规则更新后会以最新结果呈现，不复用旧答案。</p>
         <div
           v-for="r in recent"
           :key="r.id"
@@ -112,12 +105,14 @@ const {
         @retry="load"
       />
 
-      <!-- 次级镜头入口：安静的 divider 列表，不是彩色卡片 -->
+      <!-- Quick lenses：desktop 两列 text nav（§31），非卡 -->
       <HomeEntries :entries="HOME_ENTRIES" @select="goEntry" />
 
       <p class="notice home-semantics" data-testid="home-semantics">
         「规则待核实」＝ 尚未核验，<strong>不等于允许或禁止</strong>。已核验的结论会写明范围（动物 ·
-        区域），不对整个场所下结论。
+        区域），不对整个场所下结论。<RouterLink class="btn-inline" to="/settings"
+          >为什么这个结论？ →</RouterLink
+        >
       </p>
 
       <footer class="home-footer">
@@ -131,6 +126,12 @@ const {
 </template>
 
 <style scoped>
+/* v0.2.4 §29：desktop main max 960（wide 容器内居中收口）。 */
+.page--home {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
 .home-topline {
   display: flex;
   justify-content: space-between;

@@ -65,23 +65,27 @@ test("A2 — map 空态使用统一文案（地图暂无已发布场所 + 返回
   ).toBeVisible();
 });
 
-test("B1/B2 — Place Passport 关键段齐备且规则/现场分层清晰", async ({ page }) => {
+test("B1/B2 — Place Dossier 概览 + 规则/现场 view 关键段齐备", async ({ page }) => {
   await page.goto(`${BASE}/#/place/${CAFE_ID}`);
-  // Rule dimension: answer section with verdict.
+  // Rule dimension: answer section with verdict + overview evidence summary.
   await expect(page.getByTestId("section-answer")).toBeVisible();
-  await expect(page.getByTestId("sources")).toBeVisible();
-  await expect(page.getByText("来源与时效")).toBeVisible();
-  // Reality dimension: Reality panel + field records, structurally distinct.
-  await expect(page.getByTestId("reality-panel")).toBeVisible();
-  await expect(page.getByTestId("observations")).toBeVisible();
-  await expect(page.getByTestId("observation-disclaimer")).toContainText("现场记录 ≠ 场所正式政策");
+  await expect(page.getByTestId("overview-evidence")).toBeVisible();
+  // Reality dimension visible on the overview too (recent reality block).
+  await expect(page.getByTestId("overview-reality")).toBeVisible();
+  // Rules view carries the source rows.
+  await page.goto(`${BASE}/#/place/${CAFE_ID}?view=rules`);
+  await expect(page.getByTestId("place-rules-view")).toBeVisible();
+  await expect(page.getByTestId("rule-source")).toBeVisible();
+  // Reality view hosts the shared event log.
+  await page.goto(`${BASE}/#/place/${CAFE_ID}?view=reality`);
+  await expect(page.getByTestId("place-reality-view")).toBeVisible();
+  await expect(page.getByTestId("trace-observations")).toBeVisible();
 });
 
-test("B3 — Passport 证据视觉语言（EvidenceStatus/EvidenceMeta/FreshnessStatus 渲染，无原始枚举）", async ({
-  page,
-}) => {
-  await page.goto(`${BASE}/#/place/${CAFE_ID}`);
-  await expect(page.getByTestId("passport-evidence")).toBeVisible();
+test("B3 — Place Evidence view 证据来源链渲染，无原始枚举", async ({ page }) => {
+  await page.goto(`${BASE}/#/place/${CAFE_ID}?view=evidence`);
+  await expect(page.getByTestId("place-evidence-view")).toBeVisible();
+  await expect(page.getByTestId("evidence-provenance")).toBeVisible();
   const text = await page.evaluate(() => document.body.innerText);
   for (const raw of ["VERIFIED", "PENDING", "DISPUTED", "HISTORICAL"]) {
     expect(text, `raw evidence enum ${raw} must not reach the page`).not.toContain(raw);
@@ -93,5 +97,4 @@ test("B5 — Search DecisionInspector 查看完整场所 → Place Passport", as
   await expect(page.getByTestId("decision-inspector")).toBeVisible();
   await page.getByTestId("inspector-open").click();
   await expect(page.getByTestId("section-answer")).toBeVisible();
-  await expect(page.getByTestId("reality-panel")).toBeVisible();
 });

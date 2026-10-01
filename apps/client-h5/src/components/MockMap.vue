@@ -215,9 +215,13 @@ const RIVER = "M 0 40 Q 130 60 260 40 L 260 84 Q 130 104 0 84 Z";
 }
 
 .map-pin--selected .dot {
-  width: 16px;
-  height: 16px;
-  box-shadow: var(--pa-elevation-2);
+  /* §32：selected marker 明显扩大 1.2–1.4x + halo。 */
+  width: 18px;
+  height: 18px;
+  box-shadow:
+    0 0 0 4px var(--pa-color-accent-weak),
+    var(--pa-elevation-2);
+  border-color: var(--pa-color-surface);
 }
 
 /* status fills mirror the app's status tokens (s-* classes from app sheet). */

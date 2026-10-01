@@ -1,7 +1,10 @@
 {
   "id": "home",
   "title": "Home Contract",
-  "viewport": { "width": 1440, "height": 900 },
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
   "pages": [
     {
       "id": "home-ready",
@@ -19,28 +22,55 @@
       "id": "HOME_QUERY_CONTEXT",
       "ui": "query-context",
       "fallbacks": ["[data-testid='query-context']"],
-      "props": { "count": { "min": 1 } },
+      "props": {
+        "count": {
+          "min": 1
+        }
+      },
       "severity": "FAIL"
     },
     {
       "id": "HOME_PRIMARY_SEARCH",
       "ui": "home-search",
       "fallbacks": ["[data-testid='home-search']"],
-      "props": { "count": { "min": 1 } },
+      "props": {
+        "count": {
+          "min": 1
+        }
+      },
       "severity": "FAIL"
     },
     {
       "id": "HOME_SEARCH_INPUT_HEIGHT",
       "ui": "home-search-input",
       "fallbacks": ["[data-testid='home-search-input']"],
-      "props": { "height": { "min": 44 } },
+      "props": {
+        "height": {
+          "min": 44
+        }
+      },
       "severity": "FAIL"
     },
     {
       "id": "HOME_NEARBY_SECTION",
       "ui": "home-nearby",
       "fallbacks": ["[data-testid='home-freshness'], [data-testid='home-empty']"],
-      "props": { "count": { "min": 1 } },
+      "props": {
+        "count": {
+          "min": 1
+        }
+      },
+      "severity": "WARN"
+    },
+    {
+      "id": "HOME_MAX_WIDTH_960",
+      "ui": "home",
+      "fallbacks": [".page--home", "[data-ui='home']"],
+      "props": {
+        "width": {
+          "max": 960
+        }
+      },
       "severity": "WARN"
     }
   ],

@@ -76,21 +76,16 @@ const freshness = computed(() =>
         </p>
 
         <h2 class="home-section-title home-section-title--stacked">附近已核验</h2>
-        <p class="muted">
-          已核验 = 有规则依据。核验范围写清楚（动物 · 区域），不写成对整个场所的结论。
+
+        <p v-if="!verified.length" class="muted" data-testid="verified-empty">
+          这一区域暂无已核验场所。可看地图，或改用搜索指定场所名。
         </p>
 
-        <StateMessage
-          v-if="!verified.length"
-          kind="PARTIAL"
-          data-testid="verified-empty"
-          description="这一区域暂无已核验场所。可切换类别、看地图，或改用搜索指定场所名。"
-        />
-
+        <!-- v0.2.4 §30：divider rows，非卡。 -->
         <div
           v-for="c in verified"
           :key="c.place.id"
-          class="home-card"
+          class="home-row"
           :data-testid="'verified-' + c.place.id"
           @click="emit('open', c.place.id)"
         >
@@ -102,22 +97,20 @@ const freshness = computed(() =>
             :reality-error="c.facts.realityError"
             :species-label="speciesLabel"
             :conditions-label="conditionsLabel"
-            class="home-card__row"
           />
-          <div class="row home-card__head">
-            <div class="muted" :data-testid="'scope-' + c.place.id">已核验：{{ c.scope }}</div>
+          <div class="row home-row__head">
+            <span class="muted" :data-testid="'scope-' + c.place.id">已核验：{{ c.scope }}</span>
             <StatusBadge :semantic="c.status" />
           </div>
           <p v-if="c.conditions.length" class="notice" :data-testid="'conditions-' + c.place.id">
             进入前需满足：{{ c.conditions.join("、") }}
+            <RouterLink
+              class="btn-inline"
+              :to="`/place/${c.place.id}/why`"
+              :data-testid="'why-' + c.place.id"
+              >为什么这个结论？ →</RouterLink
+            >
           </p>
-          <button
-            class="pill"
-            :data-testid="'why-' + c.place.id"
-            @click.stop="emit('why', c.place.id)"
-          >
-            为什么？
-          </button>
         </div>
 
         <h2 class="home-section-title home-section-title--stacked">规则待核实</h2>
@@ -125,17 +118,15 @@ const freshness = computed(() =>
         <div
           v-for="c in pending"
           :key="c.place.id"
-          class="home-card"
+          class="home-row"
           :data-testid="'pending-' + c.place.id"
           @click="emit('open', c.place.id)"
         >
-          <div class="row home-card__head">
-            <div class="home-card__main">
-              <strong>{{ c.place.canonical_name }}</strong>
-              <div class="muted">{{ placeTypeLabel(c.place.place_type) }}</div>
-            </div>
+          <div class="row home-row__head">
+            <strong>{{ c.place.canonical_name }}</strong>
             <StatusBadge :semantic="c.status" />
           </div>
+          <span class="muted">{{ placeTypeLabel(c.place.place_type) }}</span>
         </div>
       </template>
     </template>
@@ -143,27 +134,20 @@ const freshness = computed(() =>
 </template>
 
 <style scoped>
-/* Nearby rows — soft raised rows（生活气息收口 2026-09-30）：12px 圆角 + 轻投影，
- * 替代 divider 表格感；仍非卡片墙。 */
-.home-card {
+/* v0.2.4 §30：附近/待核实 = divider rows，非卡（无圆角/无阴影/无 surface 填充）。 */
+.home-row {
   cursor: pointer;
-  padding: var(--pa-space-3) var(--pa-space-4);
-  border-radius: var(--pa-radius-row);
-  background: var(--pa-color-surface);
-  box-shadow: var(--pa-elevation-1);
-  margin-bottom: var(--pa-space-2);
-}
-
-.home-card:last-child {
+  padding: var(--pa-space-3) 0;
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
   margin-bottom: 0;
 }
 
-.home-card__head {
-  justify-content: space-between;
+.home-row:last-child {
+  border-bottom: none;
 }
 
-.home-card__row {
-  margin-bottom: var(--pa-space-2);
+.home-row__head {
+  justify-content: space-between;
 }
 
 .home-section-title--stacked {

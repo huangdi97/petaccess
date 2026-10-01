@@ -339,6 +339,8 @@ export interface EvaluateView {
 
 export interface ObservationView {
   id: string;
+  place_id: string;
+  zone_id: string | null;
   occurred_at: string;
   animal_scope: string;
   observed_action: string;

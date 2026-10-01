@@ -3,19 +3,17 @@
  * EvidenceProvenance — the five-step provenance chain of a place's evidence
  * record (§39): 原始证据 → 地点匹配 → 时间确认 → 来源确认 → 人工核验.
  *
- * Blueprint geometry: marker column = 24px, content column = remaining,
- * marker x identical across steps, continuous vertical rail, step gap
- * 28–36px (marker 24px col / rail / gap are part of the O2 contract).
+ * v0.2.4 §39：保留当前成功的 5 步 rail，并增强为每步「形状 + 状态文字 + 一句解释」。
+ * 步骤只从可用数据推导；缺失渲染「待补充」，不猜测（空态仍保留 5 步结构）。
  *
- * Steps derive ONLY from available data; absent fields render 未记录, never
- * invented. The view supplies the three counts; this component turns them
- * into the chain. Pure presentation, no data fetching.
+ * Blueprint geometry (O2): marker column = 24px, content column = remaining,
+ * marker x identical across steps, continuous vertical rail, step gap 28–36px.
  */
 import { computed } from "vue";
 
 interface Props {
   observedCount: number;
-  evidenceCount: number;
+  ruleEvidenceCount: number;
   reviewedCount: number;
 }
 
@@ -24,7 +22,9 @@ const props = defineProps<Props>();
 interface ProvenanceStep {
   key: string;
   label: string;
+  /** complete / pending（当前无历史记录则 pending）。 */
   filled: boolean;
+  /** 每步一句解释（§39）。 */
   note: string;
 }
 
@@ -53,8 +53,11 @@ const provenance = computed<ProvenanceStep[]>(() => {
     {
       key: "source",
       label: "来源确认",
-      filled: props.evidenceCount > 0,
-      note: props.evidenceCount > 0 ? `${props.evidenceCount} 条依据` : "暂无依据来源",
+      filled: props.ruleEvidenceCount > 0,
+      note:
+        props.ruleEvidenceCount > 0
+          ? `${props.ruleEvidenceCount} 条规则依据`
+          : "正式规则依据：0（来源待补充）",
     },
     {
       key: "review",
@@ -64,6 +67,11 @@ const provenance = computed<ProvenanceStep[]>(() => {
     },
   ];
 });
+
+/** §39：每步状态文字 —— complete / pending。 */
+function stepStatus(p: ProvenanceStep): string {
+  return p.filled ? "已完成" : "待补充";
+}
 </script>
 
 <template>
@@ -84,7 +92,8 @@ const provenance = computed<ProvenanceStep[]>(() => {
         v-for="p in provenance"
         :key="p.key"
         class="provenance-step"
-        :class="{ 'provenance-step--filled': p.filled }"
+        :class="p.filled ? 'provenance-step--filled' : 'provenance-step--pending'"
+        :data-step-state="p.filled ? 'complete' : 'pending'"
         data-ui="evidence-prov-step"
       >
         <span
@@ -93,7 +102,14 @@ const provenance = computed<ProvenanceStep[]>(() => {
           data-ui="evidence-prov-marker"
         ></span>
         <div class="provenance-step__body">
-          <span class="provenance-step__label">{{ p.label }}</span>
+          <span class="provenance-step__title-row">
+            <span class="provenance-step__label">{{ p.label }}</span>
+            <span
+              class="provenance-step__status"
+              :data-step-state="p.filled ? 'complete' : 'pending'"
+              >{{ stepStatus(p) }}</span
+            >
+          </span>
           <span class="muted provenance-step__note">{{ p.note }}</span>
         </div>
       </li>
@@ -139,7 +155,6 @@ const provenance = computed<ProvenanceStep[]>(() => {
   grid-template-columns: 24px 1fr;
   gap: 0 var(--pa-space-3);
   margin-bottom: 32px;
-  /* Events are ledger rows, not cards. */
   background: transparent;
   border-radius: 0;
   box-shadow: none;
@@ -149,6 +164,7 @@ const provenance = computed<ProvenanceStep[]>(() => {
   margin-bottom: 0;
 }
 
+/* §39 形状：pending = 空心圆 + 中性边框；complete = 实心 accent。 */
 .provenance-step__mark {
   width: 12px;
   height: 12px;
@@ -170,9 +186,24 @@ const provenance = computed<ProvenanceStep[]>(() => {
   padding-bottom: 2px;
 }
 
+.provenance-step__title-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--pa-space-2);
+}
+
 .provenance-step__label {
   color: var(--pa-color-text-primary);
   font-weight: var(--pa-font-weight-medium);
+}
+
+.provenance-step__status {
+  font-size: var(--pa-font-size-sm);
+  color: var(--pa-color-text-muted);
+}
+
+.provenance-step__status[data-step-state="complete"] {
+  color: var(--pa-color-accent);
 }
 
 .provenance-step__note {

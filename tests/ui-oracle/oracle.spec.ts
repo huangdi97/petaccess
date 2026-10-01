@@ -216,6 +216,7 @@ interface StructureMeasurementShape {
   hasArrows: boolean;
   collapsed: boolean;
   xSpread: number | null;
+  visibleInViewport: number;
 }
 
 async function probeStructure(
@@ -234,6 +235,7 @@ async function probeStructure(
     surfaceRows: raw.surfaceRows,
     hasArrows: raw.hasArrows,
     collapsed: raw.collapsed,
+    visibleInViewport: raw.visibleInViewport,
     details: {
       forbiddenTextHits: raw.forbiddenTextHits,
       missingRequiredTexts: raw.missingRequiredTexts,

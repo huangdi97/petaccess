@@ -28,7 +28,7 @@ import {
   type CoexistenceSnapshot,
   type PlaceSummary,
 } from "@petaccess/client-core";
-import { EMPTY_STATE_COPY, type StatusKey } from "@petaccess/design-tokens";
+import { type StatusKey } from "@petaccess/design-tokens";
 import DecisionInspector from "../components/domain/DecisionInspector.vue";
 import QueryContextBar from "../components/domain/QueryContextBar.vue";
 import PaBottomSheet from "../components/ui/PaBottomSheet.vue";
@@ -41,7 +41,6 @@ import {
   lensOrderScore,
   lensProjection,
   realityLineFor,
-  recentLineFor,
   type ConsumerLens,
 } from "../consumer/rowView";
 import { placeTypeLabel } from "../consumer/labels";
@@ -285,12 +284,6 @@ function clearSearch() {
   if (searched.value) void search();
 }
 
-const emptyDescription = computed(() =>
-  results.value.length
-    ? "当前筛选下没有结果。清除筛选可查看全部（含信息不足的场所）。"
-    : EMPTY_STATE_COPY.SEARCH.description,
-);
-
 onMounted(async () => {
   await session.restore();
   loadRecent();
@@ -353,8 +346,36 @@ const selectedId = ref<string | null>(null);
               {{ loading ? "搜索中…" : "搜索" }}
             </button>
           </form>
+          <!-- v0.2.4 §11：toolbar 单行「结果数 | 筛选」；不再把搜索/最近搜索/
+               lens/筛选/结果数散成 5 层。 -->
+          <div class="search-toolbar">
+            <span class="search-count" data-testid="search-count" data-ui="search-count">
+              <span data-ui-count="result-rows" class="visually-hidden">{{ visible.length }}</span>
+              结果 {{ visible.length }}
+            </span>
+            <button
+              type="button"
+              class="filter-toggle"
+              data-testid="filter-toggle"
+              data-ui="search-filter-toggle"
+              :aria-expanded="filterOpen"
+              @click="filterOpen = !filterOpen"
+            >
+              筛选{{ active.length ? ` ${active.length}` : "" }}
+            </button>
+            <button
+              v-if="active.length"
+              type="button"
+              class="filter-bar__clear"
+              data-testid="filter-clear"
+              @click="active = []"
+            >
+              清除筛选
+            </button>
+          </div>
         </header>
 
+        <!-- 最近搜索：仅在真实存在时显示（v0.2.4 §11 ≤56px vertical）。 -->
         <div v-if="recent.length" class="recent-bar" data-testid="search-recent">
           <div class="recent-bar__row">
             <span class="muted">最近搜索</span>
@@ -385,28 +406,7 @@ const selectedId = ref<string | null>(null);
           {{ lensHint }}
         </div>
 
-        <!-- filter: single 「筛选 N」 entry（§21.3：不得出现状态 pill wall） -->
-        <div class="filter-bar">
-          <button
-            type="button"
-            class="filter-toggle"
-            data-testid="filter-toggle"
-            data-ui="search-filter-toggle"
-            :aria-expanded="filterOpen"
-            @click="filterOpen = !filterOpen"
-          >
-            筛选{{ active.length ? ` ${active.length}` : "" }}
-          </button>
-          <button
-            v-if="active.length"
-            type="button"
-            class="filter-bar__clear"
-            data-testid="filter-clear"
-            @click="active = []"
-          >
-            清除筛选
-          </button>
-        </div>
+        <!-- 筛选面板：desktop inline panel / mobile bottom sheet；单入口不铺 pill。 -->
         <div v-if="isDesktop && filterOpen" class="filter-panel">
           <div class="filter-options">
             <div class="filter-options__row" v-for="f in FILTERS" :key="f.key">
@@ -458,38 +458,25 @@ const selectedId = ref<string | null>(null);
             <button type="button" class="primary" @click="search">重试</button>
           </template>
         </StateMessage>
-        <!-- empty: 只存在于 ResultsPane 内（§23），无大卡/大圆角/阴影 -->
+        <!-- empty: v0.2.4 §14 inline，不用 StateMessage 卡片视觉（无 card/shadow）。 -->
         <div
           v-else-if="searched && !visible.length"
           class="search-empty"
           data-ui="search-empty-block"
           data-testid="search-empty"
         >
-          <StateMessage
-            kind="PARTIAL"
-            :title="EMPTY_STATE_COPY.SEARCH.title"
-            :description="emptyDescription"
-          >
-            <template #action>
-              <div class="row" style="justify-content: center">
-                <RouterLink
-                  class="btn primary"
-                  to="/contribute"
-                  data-testid="search-empty-contribute"
-                >
-                  提交场所线索
-                </RouterLink>
-                <button
-                  v-if="active.length"
-                  type="button"
-                  class="filter-bar__clear"
-                  @click="active = []"
-                >
-                  清除筛选
-                </button>
-              </div>
-            </template>
-          </StateMessage>
+          <template v-if="active.length">
+            <p class="search-empty__title">当前筛选下没有结果</p>
+            <p class="muted search-empty__body">清除筛选可查看全部（含信息不足的场所）。</p>
+            <button type="button" class="filter-bar__clear" @click="active = []">清除筛选</button>
+          </template>
+          <template v-else>
+            <p class="search-empty__title">没有找到已收录场所</p>
+            <p class="muted search-empty__body">试试其他关键词，或者提交一个新的场所线索。</p>
+            <RouterLink class="btn primary" to="/contribute" data-testid="search-empty-contribute">
+              提交场所线索
+            </RouterLink>
+          </template>
         </div>
         <template v-else>
           <p
@@ -498,10 +485,6 @@ const selectedId = ref<string | null>(null);
             data-testid="search-freshness"
           >
             {{ freshnessLineFor(listStale, listFetchedAtMs, !online) }}
-          </p>
-          <p class="search-count" data-testid="search-count" data-ui="search-count">
-            <span data-ui-count="result-rows" class="visually-hidden">{{ visible.length }}</span>
-            找到 {{ visible.length }} 个结果
           </p>
           <ul class="result-list" role="list">
             <li
@@ -519,21 +502,17 @@ const selectedId = ref<string | null>(null);
                 @mouseenter="selectPlace(p)"
                 @focus="selectPlace(p)"
               >
-                <!-- head: identity left, status right (v0.2.3 §21.5 budget:
-                     name / type·distance·recency / decision / condition / reality
-                     = 5 lines max; 规则数量/来源计数/内部计数 不上行) -->
+                <!-- v0.2.4 §11 row budget：4 semantic lines max
+                     line1 Place name + Status（右上）
+                     line2 Type · distance/area
+                     line3 Primary decision（verdict + key condition 同行）
+                     line4 Reality freshness（列表缩写「暂无足够现场记录」） -->
                 <div class="result-row__head">
                   <div class="result-row__identity">
                     <strong class="result-row__name">{{ p.canonical_name }}</strong>
                     <span class="muted result-row__meta">
                       {{ placeTypeLabel(p.place_type) }}
-                      <span v-if="p.parent_place_name" data-testid="result-branch">
-                        · 所属 {{ p.parent_place_name }}</span
-                      >
                       <template v-if="p.distance_m"> · {{ Math.round(p.distance_m) }}m</template>
-                      <template v-if="recentLineFor(facts.get(p.id)?.reality)">
-                        · {{ recentLineFor(facts.get(p.id)?.reality) }}
-                      </template>
                     </span>
                   </div>
                   <div class="result-row__head-right">
@@ -541,27 +520,27 @@ const selectedId = ref<string | null>(null);
                   </div>
                 </div>
 
-                <!-- lens projection (presentation-only) -->
+                <!-- lens projection（presentation-only）：只改突出那一行，不加行。
+                     rules → decision 为标题行；presence → reality 为标题行。 -->
                 <template v-if="lensKey">
                   <p
                     v-if="lensProjectionFor(p).headline === 'rule' && facts.get(p.id)?.answer"
-                    class="result-row__conclusion"
+                    class="result-row__decision result-row__decision--lead"
                     data-testid="row-lens-headline"
                   >
                     {{
                       facts.get(p.id)?.answer?.normative_result.summary ||
                       answerVerdictLabel(facts.get(p.id)?.answer)
                     }}
+                    <span v-if="rowCondition(p)" class="result-row__condition">
+                      · {{ rowCondition(p) }}
+                    </span>
                   </p>
-                  <p v-else class="result-row__conclusion" data-testid="row-lens-headline">
-                    {{ lensProjectionFor(p).realityLine }}
-                  </p>
-                  <p
-                    v-if="lensProjectionFor(p).zoneFacts.length"
-                    class="muted result-row__zonefacts"
-                    data-testid="row-lens-zones"
-                  >
-                    相关区域：{{ lensProjectionFor(p).zoneFacts.join("、") }}
+                  <p v-else class="result-row__decision" data-testid="row-lens-headline">
+                    {{ answerVerdictLabel(facts.get(p.id)?.answer) }}
+                    <span v-if="rowCondition(p)" class="result-row__condition">
+                      · {{ rowCondition(p) }}
+                    </span>
                   </p>
                 </template>
 
@@ -577,6 +556,7 @@ const selectedId = ref<string | null>(null);
                 <p
                   v-else-if="facts.get(p.id)?.answer"
                   class="result-row__decision"
+                  :class="{ 'result-row__decision--lead': !lensKey }"
                   data-testid="row-rule"
                 >
                   {{ answerVerdictLabel(facts.get(p.id)?.answer) }}
@@ -585,12 +565,22 @@ const selectedId = ref<string | null>(null);
                   </span>
                 </p>
 
-                <!-- reality freshness: one line (v0.2.3 §21.5: reality state only,
-                     no 来源计数/依据计数 on rows) -->
-                <p v-if="facts.get(p.id)?.realityError" class="result-row__error">
+                <!-- reality freshness: 一行（v0.2.4 §11 列表缩写；完整措辞进详情） -->
+                <p
+                  v-if="facts.get(p.id)?.realityError"
+                  class="result-row__error result-row__reality-line"
+                >
                   现场信息暂时无法取得 —— 请检查网络后重试。
                 </p>
-                <p v-else class="result-row__reality-line" data-testid="result-reality">
+                <p
+                  v-else
+                  class="result-row__reality-line"
+                  :class="{
+                    'result-row__decision--lead':
+                      lensKey && lensProjectionFor(p).headline !== 'rule',
+                  }"
+                  data-testid="result-reality"
+                >
                   {{ realityLineFor(facts.get(p.id)?.reality) }}
                 </p>
               </RouterLink>
@@ -710,24 +700,24 @@ const selectedId = ref<string | null>(null);
 }
 
 .search-empty {
-  /* §23：empty 块 top 220–260、w 320–340、radius ≤8、无阴影；不放大卡。 */
-  margin-top: 220px;
-  width: 330px;
-  max-width: 340px;
-}
-
-.search-empty .state-message {
-  background: transparent;
-  border: none;
-  border-radius: var(--pa-radius-control);
-  box-shadow: none;
-  padding: var(--pa-space-4);
-  text-align: center;
-}
-
-.search-empty .state-message__action .row {
+  /* v0.2.4 §14：inline empty，不放大卡/大圆角/阴影。 */
+  margin-top: var(--pa-space-4);
+  display: flex;
   flex-direction: column;
-  gap: var(--pa-space-3);
+  align-items: flex-start;
+  gap: var(--pa-space-2);
+}
+
+.search-empty__title {
+  margin: 0;
+  font-size: var(--pa-font-size-xl);
+  font-weight: var(--pa-font-weight-600);
+  color: var(--pa-color-text-primary);
+}
+
+.search-empty__body {
+  margin: 0;
+  line-height: var(--pa-line-height-base);
 }
 
 .search-freshness {
@@ -780,6 +770,26 @@ const selectedId = ref<string | null>(null);
 
 .lens-line {
   margin: var(--pa-space-2) 0;
+}
+
+/* v0.2.4 §11：toolbar 单行 —— 结果数（muted）| 筛选（text button）。 */
+.search-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--pa-space-3);
+  margin-top: var(--pa-space-2);
+  padding-bottom: var(--pa-space-2);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.search-toolbar .search-count {
+  margin: 0;
+  font-size: var(--pa-font-size-md);
+  color: var(--pa-color-text-muted);
+}
+
+.search-toolbar .filter-toggle {
+  margin-left: auto;
 }
 
 .filter-bar {
@@ -836,18 +846,16 @@ const selectedId = ref<string | null>(null);
   margin: var(--pa-space-2) 0;
 }
 
-/* v0.2.3 §21.5：result rows = divider rows, NOT cards — radius 0, no shadow,
- * bottom divider, min-height 112 / max 132, paddings ≤14px. The 生活气息收口
- * (radius 12 + soft shadow) is deliberately superseded by the blueprint
- * (用户 2026-09-30 确认：蓝图为准，按 v0.2.3 严格重置). */
+/* v0.2.4 §11：result rows = divider rows, NOT cards — radius 0, no shadow,
+ * bottom divider, height 92–108（§11 target），paddings ≤14px。 */
 .result-row {
   position: relative;
   border-radius: var(--pa-radius-row-zero);
   background: transparent;
   box-shadow: none;
-  min-height: 112px;
-  max-height: 132px;
-  /* §21.5 divider=yes：每行自带底部 divider，保证任意第一行也满足
+  min-height: 92px;
+  max-height: 108px;
+  /* §11 divider=yes：每行自带底部 divider，保证任意第一行也满足
    * borderBottomWidth ≥1（oracle 对第一行测量，不能只有第二行有线）。 */
   border-bottom: var(--pa-border-width) solid var(--pa-color-border);
 }
@@ -869,11 +877,11 @@ const selectedId = ref<string | null>(null);
 
 .result-row__link {
   display: block;
-  /* §20 row internal = 10–14px；12px 落在范围内。 */
+  /* v0.2.4 §11 row internal = 12px。 */
   padding: var(--pa-space-3) var(--pa-space-1);
   text-decoration: none;
   color: inherit;
-  min-height: 112px;
+  min-height: 92px;
   box-sizing: border-box;
 }
 
@@ -914,31 +922,19 @@ const selectedId = ref<string | null>(null);
   overflow-wrap: anywhere;
 }
 
-.result-row__conclusion {
-  margin: var(--pa-space-1) 0 0;
-  font-size: var(--pa-font-size-lg);
-  font-weight: var(--pa-font-weight-medium);
-  line-height: var(--pa-line-height-tight);
-  color: var(--pa-color-text-primary);
-}
-
-.result-row__zonefacts {
-  margin: var(--pa-space-1) 0 0;
-  font-size: var(--pa-font-size-md);
-}
-
-.result-row__error {
-  margin: var(--pa-space-1) 0 0;
-  color: var(--pa-color-text-secondary);
-}
-
-/* Primary decision: the scannable line of the row; condition sits inline. */
+/* Primary decision: the scannable line of the row; condition sits inline.
+ * --lead = lens 标题行（v0.2.4 §11：只改强调，不新增行）。 */
 .result-row__decision {
   margin: var(--pa-space-1) 0 0;
   font-size: var(--pa-font-size-lg);
   font-weight: var(--pa-font-weight-medium);
   line-height: var(--pa-line-height-tight);
   color: var(--pa-color-text-primary);
+}
+
+.result-row__decision--lead {
+  font-weight: var(--pa-font-weight-650);
+  color: var(--pa-color-accent);
 }
 
 .result-row__condition {
@@ -954,9 +950,19 @@ const selectedId = ref<string | null>(null);
   color: var(--pa-color-text-secondary);
 }
 
-/* Mobile compression (v0.2.3 §24): single column, ≤5 text lines per row;
- * rule-count / branch noise does not belong on a phone scan anyway. */
+.result-row__error {
+  margin: var(--pa-space-1) 0 0;
+  color: var(--pa-color-text-secondary);
+}
+
+/* Mobile compression (v0.2.4 §13): row height 88–104，单列，≤4 semantic lines。 */
 @media (max-width: 767px) {
+  .result-row,
+  .result-row__link {
+    min-height: 88px;
+    max-height: 104px;
+  }
+
   .result-row__link {
     padding: var(--pa-space-3) 0;
   }

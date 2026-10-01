@@ -12,21 +12,23 @@
 
 :root {
   /* --- colour: surfaces ------------------------------------------------- */
-  /* 生活气息收口（2026-09-30，用户人工验收反馈）：中性冷灰 chrome 改为暖纸色系；
-   * 语义色（allowed/conditional/restricted/observed…）保持含义不变。token 仍是 SSOT。 */
-  --pa-color-bg-app: #faf7f2;
+  /* v0.2.4 Productization (§9/§45): 去黄收口 —— app 背景回退中性暖白/浅灰,
+   * sunken/supporting 用极浅中性灰；warm tint 只保留给真正 conditional 语义区,
+   * 不作为通用页面背景。中性 surface 占 >=90%。 */
+  --pa-color-bg-app: #f8f8f7;
   --pa-color-bg-surface: #ffffff;
-  --pa-color-bg-sunken: #f2ede3;
+  --pa-color-bg-sunken: #f2f4f6;
   --pa-color-bg-overlay: rgba(20, 28, 36, 0.44);
 
   /* Surface vocabulary (Design System §7): every layer of the app is a named
    * surface token, so components never invent another grey. */
   --pa-color-surface: #ffffff;
   --pa-color-surface-raised: #ffffff;
-  --pa-color-surface-muted: #f2ede3;
-  --pa-color-surface-interactive: #efe7d8;
+  --pa-color-surface-muted: #f2f4f6;
+  --pa-color-surface-interactive: #e9eef4;
 
-  /* 暖 surface（决策块 / 选中行）：来自既有 amber 族的暖 tint，仅用于 chrome。 */
+  /* 暖 surface（决策块 / 罕见选中态）：保留 amber 家族暖 tint，仅限 conditional
+   * 语义区与少量选中态；普通 section/row/divider 一律中性。 */
   --pa-color-surface-warm: #fdf6e7;
   --pa-color-surface-warm-strong: #f8ecd4;
   --pa-color-border-warm: #eadfc8;
@@ -174,6 +176,9 @@
   --pa-font-size-24: 24px;
   --pa-font-size-32: 32px;
   --pa-font-size-38: 38px;
+  /* v0.2.4 §44：primary decision 桌面 28/36/650，移动 24/32/650（不再到处 30px）。 */
+  --pa-font-size-decision: 28px;
+  --pa-line-height-decision: 36px;
   --pa-line-height-20: 20px;
   --pa-line-height-23: 23px;
   --pa-line-height-26: 26px;
@@ -245,15 +250,19 @@
   --pa-layout-result-pane: 400px;
   /* Sticky decision inspector width on the Place dossier. */
   --pa-layout-inspector: 320px;
-  /* v0.2.3 §21：desktop topbar 高度 60px；detail content 列宽 704px（max 720）。 */
+  /* v0.2.4 §12：desktop topbar 高度 60px；search detail 内容列宽 620–680（token
+   * 取中值 660，明确不 >704；首页/贡献容器 960/680 见下）。 */
   --pa-layout-topbar-height: 60px;
-  --pa-layout-detail-content: 704px;
+  --pa-layout-detail-content: 660px;
   --pa-layout-header-height: 56px;
   --pa-layout-content-max: 1200px;
   --pa-layout-content-narrow: 640px;
   --pa-layout-content-gutter: 24px;
   /* v0.2.3 §38/§39: Reality timeline & Evidence provenance max content width. */
   --pa-layout-content-820: 820px;
+  /* v0.2.4 §29/§41：Home desktop main max 960；Contribution desktop container max 680。 */
+  --pa-layout-content-960: 960px;
+  --pa-layout-content-680: 680px;
 }
 
 /* Breakpoints are consumed in JS (see src/index.ts) because CSS custom
@@ -278,7 +287,7 @@
   }
 }
 
-/* v0.2.3 §18 mobile 字体蓝图覆盖（430 级 viewport）：
+/* v0.2.4 §44 mobile 字体蓝图覆盖（430 级 viewport）：
  * page identity 23/31/650 · primary decision 24/32/650。其余（18/26/600、15/23/400、
  * 13/20/400、12/18/500）desktop/mobile 通用。 */
 @media (max-width: 767px) {
@@ -287,5 +296,7 @@
     --pa-line-height-36: 31px;
     --pa-font-size-30: 24px;
     --pa-line-height-38: 32px;
+    --pa-font-size-decision: 24px;
+    --pa-line-height-decision: 32px;
   }
 }

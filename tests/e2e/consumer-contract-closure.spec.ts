@@ -215,8 +215,9 @@ test("C5: lens changes consumer projection without changing domain facts", async
   await page.getByTestId("search-input").fill("契约");
   await page.getByTestId("search-btn").click();
   await expect(page.getByTestId("result-契约测试场所")).toBeVisible();
-  // indoor lens surfaces the server-provided observed zones as zone facts.
+  // v0.2.4 §11：row 预算收紧为 4 条 semantic lines，indoor lens 的 zone facts
+  // 不再铺在行上（进详情）；lens 仍只改 presentation，不改 domain facts。
   const indoorRow = page.getByTestId("result-契约测试场所");
-  await expect(indoorRow.locator("[data-testid=row-lens-zones]")).toContainText("一层公共区域");
-  await expect(indoorRow.locator("[data-testid=row-lens-zones]")).toContainText("餐饮堂食区");
+  await expect(indoorRow.locator("[data-testid=row-lens-zones]")).toHaveCount(0);
+  await expect(indoorRow.locator("[data-testid=row-lens-headline]")).toBeVisible();
 });

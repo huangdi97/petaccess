@@ -26,15 +26,9 @@ import {
   type CoexistenceSnapshot,
   type RealityAnswer,
 } from "@petaccess/client-core";
-import {
-  answerConditions,
-  answerScopeLabel,
-  answerStatusKey,
-  answerVerdictLabel,
-} from "../../answer";
+import { answerConditions, answerVerdictLabel } from "../../answer";
 import { freshnessLineFor } from "../../consumer/rowView";
-import { divergenceLabel, realityStateLabel } from "../../reality";
-import StatusBadge from "../StatusBadge.vue";
+import { realityStateLabel } from "../../reality";
 const props = withDefaults(
   defineProps<{
     place: {
@@ -75,17 +69,50 @@ const props = withDefaults(
   },
 );
 
-const status = computed(() => answerStatusKey(props.answer));
-const scope = computed(() => answerScopeLabel(props.answer, props.speciesLabel));
 const verdict = computed(() => answerVerdictLabel(props.answer));
 const conditions = computed(() => answerConditions(props.answer, props.conditionsLabel));
-const realityLine = computed(() =>
-  props.reality ? realityStateLabel(props.reality) : "暂无足够现场记录（≠ 没有动物）",
-);
-const divergence = computed(() =>
-  props.snapshot ? divergenceLabel(props.snapshot.divergence) : "",
-);
 const freshness = computed(() => freshnessLineFor(props.stale, props.fetchedAtMs, props.offline));
+/** §12 Evidence one-line：来源 issuer + 时效。 */
+const SOURCE_RATE: Record<string, string> = {
+  official_operator_policy: "运营方规则",
+  onsite_signage: "现场标识",
+  government_service: "政府服务",
+  statute_or_regulation: "法规",
+  certified_verifier: "认证核验方",
+  ordinary_user: "用户提交",
+  external_web_reference: "外部网页",
+  imported_dataset: "导入数据",
+};
+const evidenceLine = computed(() => {
+  const ev = props.answer?.evidence_state.rules[0];
+  const issuer = ev?.issuer ?? SOURCE_RATE[ev?.source_type ?? ""] ?? "来源待补充";
+  return freshness.value ? `${issuer} · ${freshness.value}` : issuer;
+});
+/** §12/§26：Primary Decision 的 key condition（第一条；无则不猜测）。 */
+const keyCondition = computed(() => conditions.value[0] ?? "");
+/** §26：限制区域（例外区域列表；无则整块不渲染）。 */
+const exceptions = computed(() =>
+  (props.answer?.condition_evaluation.pending_exceptions ?? []).map(
+    (e) => props.conditionsLabel[e] ?? e,
+  ),
+);
+/** §26：最近核验（来自 rules 的 last_verified_at 最近值；无则原文提示）。 */
+const latestVerifiedLabel = computed(() => {
+  const cut = props.answer?.evidence_state.rules[0]?.source_id
+    ? (props.snapshot?.generated_at ?? null)
+    : null;
+  return cut ? cut.slice(0, 10) : "暂无";
+});
+/** §12（search）one-line reality summary：撇去括号补充，保持单行。 */
+const realityLineForSearch = computed(() => {
+  if (!props.reality) return "暂无足够现场记录";
+  const label = realityStateLabel(props.reality);
+  return label.replace(/\s*（.*?）\s*$/, "");
+});
+/** §26（place）：现场 —— 暂无足够记录，不再输出长解释。 */
+const realityLineForPlace = computed(() =>
+  props.reality ? realityStateLabel(props.reality) : "暂无足够记录",
+);
 </script>
 
 <template>
@@ -95,85 +122,132 @@ const freshness = computed(() => freshnessLineFor(props.stale, props.fetchedAtMs
     data-testid="decision-inspector"
   >
     <template v-if="place">
+      <!-- v0.2.4 §12：Place Identity（删除顶部重复 status badge） -->
       <header class="decision-inspector__head">
-        <div class="decision-inspector__title-row">
-          <h2 class="decision-inspector__name" data-ui="search-detail-name">
-            {{ place.canonical_name }}
-          </h2>
-          <StatusBadge :semantic="status" />
-        </div>
+        <h2 class="decision-inspector__name" data-ui="search-detail-name">
+          {{ place.canonical_name }}
+        </h2>
         <p class="decision-inspector__meta">
           {{ placeTypeLabel(place.place_type) }} ·
           {{ place.canonical_address ?? "地址待补充" }}
         </p>
       </header>
-      <!-- Current Context -->
-      <div class="inspector-block inspector-block--context">
-        <span class="inspector-block__label">当前查询</span>
-        <p class="inspector-block__value">{{ speciesLabel }} · 进入 · 公共区域</p>
-      </div>
 
-      <!-- Primary Decision: the one fact the user came for -->
-      <div class="inspector-block inspector-block--decision" data-ui="search-decision">
-        <span class="inspector-block__label" data-ui="search-decision-label">结论</span>
-        <p
-          class="inspector-decision"
-          data-ui="search-decision-text"
-          data-testid="inspector-verdict"
-        >
-          <template v-if="answerError">暂时无法取得（请检查网络后重试）</template>
-          <template v-else-if="answer">{{ verdict }}</template>
-          <template v-else>尚未核验</template>
-        </p>
-        <p v-if="answer && !answerError" class="inspector-block__value inspector-scope">
-          {{ scope }}
-        </p>
-      </div>
-      <!-- Conditions: one line per requirement, only when they exist -->
-      <div v-if="conditions.length" class="inspector-block" data-ui="search-conditions">
-        <span class="inspector-block__label">进入前需满足</span>
-        <ul class="inspector-conditions">
-          <li v-for="c in conditions" :key="c" class="inspector-conditions__item">
-            <span class="inspector-conditions__mark" aria-hidden="true">✓</span>
-            {{ c }}
-          </li>
-        </ul>
-      </div>
+      <!-- Search detail（§12 严格顺序）：Identity → Query → Decision → Reality →
+           Evidence/Source → CTA；place inspector（§26）走下方紧凑结构。 -->
+      <template v-if="variant === 'search'">
+        <div class="inspector-block inspector-block--context">
+          <span class="inspector-block__label">当前查询</span>
+          <p class="inspector-block__value">{{ speciesLabel }} · 进入 · 公共区域</p>
+        </div>
 
-      <!-- Major Exception: divergence, only when a real difference exists -->
-      <div v-if="divergence" class="inspector-block">
-        <span class="inspector-block__label">与现场情况</span>
-        <p class="inspector-block__value" data-testid="inspector-divergence">{{ divergence }}</p>
-      </div>
+        <div class="inspector-block inspector-block--decision" data-ui="search-decision">
+          <span class="inspector-block__label" data-ui="search-decision-label">结论</span>
+          <p
+            class="inspector-decision"
+            data-ui="search-decision-text"
+            data-testid="inspector-verdict"
+          >
+            <template v-if="answerError">暂时无法取得（请检查网络后重试）</template>
+            <template v-else-if="answer">{{ verdict }}</template>
+            <template v-else>尚未核验</template>
+          </p>
+          <p
+            v-if="keyCondition"
+            class="inspector-block__value inspector-scope"
+            data-testid="inspector-key-condition"
+          >
+            需满足：{{ keyCondition }}
+          </p>
+        </div>
 
-      <!-- Recent Reality -->
-      <div class="inspector-block" data-ui="search-reality">
-        <span class="inspector-block__label">近期现场</span>
-        <p class="inspector-block__value">
-          <template v-if="realityError">暂时无法取得</template>
-          <template v-else>{{ realityLine }}</template>
-        </p>
-      </div>
+        <div class="inspector-block" data-ui="search-reality">
+          <span class="inspector-block__label">近期现场</span>
+          <p class="inspector-block__value">
+            <template v-if="realityError">暂时无法取得</template>
+            <template v-else>{{ realityLineForSearch }}</template>
+          </p>
+        </div>
 
-      <!-- Source / freshness: quiet metadata, never the headline -->
-      <div v-if="freshness" class="inspector-block inspector-block--meta" data-ui="search-evidence">
-        <span class="inspector-block__label">时效</span>
-        <p class="inspector-block__value" data-testid="inspector-freshness">{{ freshness }}</p>
-      </div>
+        <div class="inspector-block inspector-block--meta" data-ui="search-evidence">
+          <span class="inspector-block__label">证据与来源</span>
+          <p class="inspector-block__value" data-testid="inspector-evidence">{{ evidenceLine }}</p>
+        </div>
 
-      <footer class="decision-inspector__foot">
-        <RouterLink class="btn primary" :to="`/place/${place.id}`" data-testid="inspector-open">
-          查看完整场所
-        </RouterLink>
-      </footer>
+        <footer class="decision-inspector__foot">
+          <RouterLink class="btn primary" :to="`/place/${place.id}`" data-testid="inspector-open">
+            查看完整场所
+          </RouterLink>
+        </footer>
+      </template>
+
+      <!-- Place inspector（§26 固定内容，无 CTA 大按钮，底部 text link） -->
+      <template v-else>
+        <div class="inspector-block inspector-block--context">
+          <span class="inspector-block__label">当前查询</span>
+          <p class="inspector-block__value">{{ speciesLabel }} · 进入 · 公共区域</p>
+        </div>
+
+        <div class="inspector-block inspector-block--decision" data-ui="search-decision">
+          <span class="inspector-block__label" data-ui="search-decision-label">结论</span>
+          <p
+            class="inspector-decision"
+            data-ui="search-decision-text"
+            data-testid="inspector-verdict"
+          >
+            <template v-if="answerError">暂时无法取得（请检查网络后重试）</template>
+            <template v-else-if="answer">{{ verdict }}</template>
+            <template v-else>尚未核验</template>
+          </p>
+        </div>
+
+        <div v-if="keyCondition" class="inspector-block">
+          <span class="inspector-block__label">需要</span>
+          <p class="inspector-block__value" data-testid="inspector-key-condition">
+            {{ keyCondition }}
+          </p>
+        </div>
+
+        <div v-if="exceptions.length" class="inspector-block">
+          <span class="inspector-block__label">限制区域</span>
+          <p class="inspector-block__value">{{ exceptions.join("、") }}</p>
+        </div>
+
+        <div class="inspector-block">
+          <span class="inspector-block__label">依据</span>
+          <p class="inspector-block__value">{{ evidenceLine }}</p>
+        </div>
+
+        <div class="inspector-block">
+          <span class="inspector-block__label">最近核验</span>
+          <p class="inspector-block__value">{{ latestVerifiedLabel }}</p>
+        </div>
+
+        <div class="inspector-block" data-ui="search-reality">
+          <span class="inspector-block__label">现场</span>
+          <p class="inspector-block__value">
+            <template v-if="realityError">暂时无法取得</template>
+            <template v-else>{{ realityLineForPlace }}</template>
+          </p>
+        </div>
+
+        <footer class="decision-inspector__foot decision-inspector__foot--link">
+          <RouterLink
+            class="btn-inline"
+            :to="`/place/${place.id}/evidence`"
+            data-testid="inspector-evidence-link"
+          >
+            查看完整证据 →
+          </RouterLink>
+        </footer>
+      </template>
     </template>
 
     <div v-else class="decision-inspector__onboarding">
-      <h2 class="decision-inspector__onboarding-title">从左侧结果选择一个场所</h2>
-      <p class="decision-inspector__onboarding-body">
-        查看当前查询下的进入结论、现场记录与证据来源。没有结果时，可提交场所线索帮助完善。
-      </p>
-      <RouterLink class="btn secondary" to="/contribute" data-testid="inspector-onboarding-cta">
+      <!-- v0.2.4 §14：右侧 inline onboarding copy，无 card/shadow。 -->
+      <h2 class="decision-inspector__onboarding-title">选择一个场所后，</h2>
+      <p class="decision-inspector__onboarding-body">这里会显示准入结论、条件和最近现场。</p>
+      <RouterLink class="btn" to="/contribute" data-testid="inspector-onboarding-cta">
         提交场所线索
       </RouterLink>
     </div>
@@ -275,9 +349,10 @@ const freshness = computed(() => freshnessLineFor(props.stale, props.fetchedAtMs
 
 .inspector-decision {
   margin: 0;
-  font-size: var(--pa-font-size-30);
+  /* v0.2.4 §44：primary decision 桌面 28/36/650（不再到处 30px）。 */
+  font-size: var(--pa-font-size-decision);
   font-weight: var(--pa-font-weight-650);
-  line-height: var(--pa-line-height-38);
+  line-height: var(--pa-line-height-decision);
   color: var(--pa-color-text-primary);
 }
 
@@ -324,6 +399,17 @@ const freshness = computed(() => freshnessLineFor(props.stale, props.fetchedAtMs
 
 .decision-inspector__foot {
   margin-top: var(--pa-space-2);
+}
+
+/* §26：place inspector 底部用 text link（查看完整证据 →），不放 CTA 大按钮。 */
+.decision-inspector__foot--link {
+  margin-top: var(--pa-space-3);
+  padding-top: var(--pa-space-3);
+  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.decision-inspector__foot--link a {
+  font-size: var(--pa-font-size-md);
 }
 
 .decision-inspector__hint {

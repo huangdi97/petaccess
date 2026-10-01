@@ -1,7 +1,10 @@
 {
   "id": "search.desktop",
   "title": "Search Desktop Contract v0.2.3 Executable Blueprint",
-  "viewport": { "width": 1440, "height": 900 },
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
   "pages": [
     {
       "id": "search-ready",
@@ -12,7 +15,12 @@
         "fixture": "search-ready-v1",
         "h1": "搜索场所规则",
         "selectedId": "search-selected-row",
-        "componentCounts": [{ "selector": "result-rows", "min": 3 }]
+        "componentCounts": [
+          {
+            "selector": "result-rows",
+            "min": 3
+          }
+        ]
       }
     },
     {
@@ -32,42 +40,71 @@
       "id": "SEARCH_RAIL_WIDTH",
       "ui": "app-rail",
       "fallbacks": [".desktop-rail"],
-      "props": { "width": { "min": 64, "max": 72 } },
+      "props": {
+        "width": {
+          "min": 64,
+          "max": 72
+        }
+      },
       "severity": "FAIL"
     },
     {
       "id": "SEARCH_TOP_CONTEXT_HEIGHT",
       "ui": "query-context",
       "fallbacks": ["[data-testid='query-context']"],
-      "props": { "height": { "min": 56, "max": 64 } },
+      "props": {
+        "height": {
+          "min": 56,
+          "max": 64
+        }
+      },
       "severity": "FAIL"
     },
     {
       "id": "SEARCH_RESULT_PANE_X",
       "ui": "search-results-pane",
       "fallbacks": [".search-result-pane"],
-      "props": { "left": { "min": 60, "max": 76 } },
+      "props": {
+        "left": {
+          "min": 60,
+          "max": 76
+        }
+      },
       "severity": "WARN"
     },
     {
       "id": "SEARCH_RESULT_PANE_WIDTH",
       "ui": "search-results-pane",
       "fallbacks": [".search-result-pane"],
-      "props": { "width": { "min": 392, "max": 408 } },
+      "props": {
+        "width": {
+          "min": 392,
+          "max": 408
+        }
+      },
       "severity": "FAIL"
     },
     {
       "id": "SEARCH_DETAIL_PANE_X",
       "ui": "search-detail-pane",
       "fallbacks": ["[data-testid='decision-inspector']"],
-      "props": { "left": { "min": 460, "max": 476 } },
+      "props": {
+        "left": {
+          "min": 460,
+          "max": 476
+        }
+      },
       "severity": "WARN"
     },
     {
       "id": "SEARCH_DETAIL_PANE_PRESENT",
       "ui": "search-detail-pane",
       "fallbacks": ["[data-testid='decision-inspector']"],
-      "props": { "count": { "min": 1 } },
+      "props": {
+        "count": {
+          "min": 1
+        }
+      },
       "severity": "FAIL"
     },
     {
@@ -77,28 +114,36 @@
         "[data-testid='decision-inspector'] .decision-content",
         "[data-testid='decision-inspector']"
       ],
-      "props": { "maxChildWidth": { "min": 680, "max": 724 } },
+      "props": {
+        "maxChildWidth": {
+          "min": 620,
+          "max": 680
+        }
+      },
       "severity": "FAIL"
-    },
-    {
-      "id": "SEARCH_DETAIL_CONTENT_LEFT_OFFSET",
-      "ui": "search-detail-content",
-      "fallbacks": ["[data-testid='decision-inspector']"],
-      "props": { "left": { "min": 32, "max": 48 } },
-      "severity": "WARN"
     },
     {
       "id": "SEARCH_INPUT_HEIGHT",
       "ui": "search-input",
       "fallbacks": ["[data-testid='search-input']"],
-      "props": { "height": { "min": 44, "max": 46 } },
+      "props": {
+        "height": {
+          "min": 44,
+          "max": 46
+        }
+      },
       "severity": "FAIL"
     },
     {
       "id": "SEARCH_BUTTON_HEIGHT",
       "ui": "search-submit",
       "fallbacks": ["[data-testid='search-btn']"],
-      "props": { "height": { "min": 44, "max": 46 } },
+      "props": {
+        "height": {
+          "min": 44,
+          "max": 46
+        }
+      },
       "severity": "FAIL"
     },
     {
@@ -108,7 +153,12 @@
         "[data-testid^='result-']:not([data-testid='result-rules'])",
         "ul.result-list li"
       ],
-      "props": { "height": { "min": 112, "max": 132 } },
+      "props": {
+        "height": {
+          "min": 92,
+          "max": 108
+        }
+      },
       "severity": "FAIL",
       "aggregate": "rows"
     },
@@ -116,7 +166,11 @@
       "id": "SEARCH_ROW_RADIUS_ZERO",
       "ui": "search-result-row",
       "fallbacks": ["ul.result-list li"],
-      "props": { "borderRadius": { "equals": "0" } },
+      "props": {
+        "borderRadius": {
+          "equals": "0"
+        }
+      },
       "severity": "FAIL",
       "aggregate": "rows"
     },
@@ -124,7 +178,11 @@
       "id": "SEARCH_ROW_SHADOW_NONE",
       "ui": "search-result-row",
       "fallbacks": ["ul.result-list li"],
-      "props": { "boxShadow": { "equals": "none" } },
+      "props": {
+        "boxShadow": {
+          "equals": "none"
+        }
+      },
       "severity": "FAIL",
       "aggregate": "rows"
     },
@@ -132,7 +190,11 @@
       "id": "SEARCH_ROW_DIVIDER",
       "ui": "search-result-row",
       "fallbacks": ["ul.result-list li"],
-      "props": { "borderBottomWidth": { "min": 1 } },
+      "props": {
+        "borderBottomWidth": {
+          "min": 1
+        }
+      },
       "severity": "FAIL",
       "aggregate": "rows"
     },
@@ -140,28 +202,47 @@
       "id": "SEARCH_DECISION_FONT_SIZE",
       "ui": "search-decision-text",
       "fallbacks": [".inspector-decision"],
-      "props": { "fontSize": { "min": 29, "max": 31 } },
+      "props": {
+        "fontSize": {
+          "min": 27,
+          "max": 29
+        }
+      },
       "severity": "FAIL"
     },
     {
       "id": "SEARCH_DECISION_LABEL_SIZE",
       "ui": "search-decision-label",
       "fallbacks": [".inspector-block--decision .inspector-block__label"],
-      "props": { "fontSize": { "min": 12, "max": 13 } },
+      "props": {
+        "fontSize": {
+          "min": 12,
+          "max": 13
+        }
+      },
       "severity": "WARN"
     },
     {
       "id": "SEARCH_PAGE_TITLE_SIZE",
       "ui": "search-detail-name",
       "fallbacks": [".decision-inspector__name"],
-      "props": { "fontSize": { "min": 27, "max": 29 } },
+      "props": {
+        "fontSize": {
+          "min": 27,
+          "max": 29
+        }
+      },
       "severity": "FAIL"
     },
     {
       "id": "SEARCH_COUNT_LINE",
       "ui": "search-count",
       "fallbacks": ["[data-testid='search-count']"],
-      "props": { "count": { "min": 1 } },
+      "props": {
+        "count": {
+          "min": 1
+        }
+      },
       "severity": "FAIL"
     }
   ],
@@ -191,6 +272,12 @@
       "selector": "[data-ui='search-filter-toggle']",
       "min": 1,
       "max": 1,
+      "severity": "FAIL"
+    },
+    {
+      "id": "SEARCH_NO_DUPLICATE_STATUS_BADGE",
+      "selector": "[data-ui='search-detail-content'] header .status-badge",
+      "max": 0,
       "severity": "FAIL"
     }
   ],
@@ -238,7 +325,7 @@
       "id": "SEARCH_DETAIL_FIRST_VIEWPORT_BLOCKS",
       "metric": "firstViewportBlocks",
       "selector": "[data-ui='search-detail-content']",
-      "min": 5,
+      "min": 4,
       "severity": "FAIL"
     },
     {

@@ -86,9 +86,16 @@
       "id": "PLACE_MOBILE_FIRST_VIEWPORT_LINES",
       "metric": "firstViewportTextLines",
       "selector": "[data-ui='place-dossier']",
-      "max": 26,
+      "max": 24,
       "warnAt": 22,
-      "severity": "WARN"
+      "severity": "FAIL"
+    },
+    {
+      "id": "PLACE_MOBILE_OVERVIEW_FULLPAGE_HEIGHT",
+      "metric": "contentHeightInViewport",
+      "selector": "[data-ui='place-dossier']",
+      "max": 2000,
+      "severity": "FAIL"
     }
   ],
   "composition": [

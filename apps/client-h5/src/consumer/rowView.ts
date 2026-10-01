@@ -15,10 +15,12 @@ import { REALITY_STATE_LABELS } from "../reality";
 
 export type ConsumerLens = "" | "presence" | "rules" | "indoor" | "dining";
 
-/** One-line reality headline for a row. */
+/** One-line reality headline for a row (v0.2.4 §11: 列表缩写成「暂无足够现场记录」，
+ * 完整核验措辞（≠ 没有动物）留给详情页）。 */
 export function realityLineFor(reality: RealityAnswer | null | undefined): string {
-  if (!reality) return "暂无足够现场记录（≠ 没有动物）";
-  return REALITY_STATE_LABELS[reality.state] ?? reality.state;
+  if (!reality) return "暂无足够现场记录";
+  const label = REALITY_STATE_LABELS[reality.state] ?? reality.state;
+  return label === "暂无足够现场记录（≠ 没有动物）" ? "暂无足够现场记录" : label;
 }
 
 /** Evidence / freshness metadata line; empty when there is genuinely nothing. */

@@ -57,6 +57,9 @@ export interface StructureRule {
   surfaceRowCount?: RangeSpec;
   disclosureDefault?: "collapsed";
   minVisibleAfterClick?: number;
+  /** O5-v4：首屏内可见的命中元素数下限（§51–53 首屏门）。 */
+  minVisibleInViewport?: number;
+
   uuidForbidden?: boolean;
   /** O2: all matched elements share the same horizontal x (timeline time col / marker col). */
   xConsistent?: boolean;

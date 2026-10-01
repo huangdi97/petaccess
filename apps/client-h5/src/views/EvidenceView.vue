@@ -1,22 +1,34 @@
 <script setup lang="ts">
 /**
- * EvidenceView — Evidence Record + Provenance (freeze §9).
- * Provenance (photo → place → observed → source → human review) derives ONLY
- * from available data; absent fields render 未记录, never invented. The
- * observations API exposes no media URLs, so a muted note replaces imagery.
+ * EvidenceView — Evidence Record + Provenance (v0.2.4 §37–40).
  *
- * Composition: the provenance chain lives in EvidenceProvenance; this view
- * keeps data loading and the time-record / items / sources sections.
+ * Record identity is resolved, never "场所信息暂不可用": the header names the
+ * place, zone and observed time from the actual API responses. The provenance
+ * rail (5 steps) stays as the successful v0.2.3 surface and gains explicit
+ * active/complete/pending shapes with one-line explanation per step. Evidence
+ * dimensions are never conflated: the record header says 现场记录 count while
+ * a separate line states 正式规则依据 when the rule-evidence dimension is truly
+ * zero (§40).
  */
 import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
-import { client, type ObservationView, type SourceView } from "@petaccess/client-core";
-import { animalScopeLabel, ruleActionLabel, staffActionLabel } from "../consumer/labels";
-import { EMPTY_STATE_COPY } from "@petaccess/design-tokens";
+import {
+  client,
+  placeTypeLabel,
+  type ObservationView,
+  type PlaceDetail,
+  type SourceView,
+  type Zone,
+} from "@petaccess/client-core";
+import {
+  animalScopeLabel,
+  ruleActionLabel,
+  staffActionLabel,
+  zoneConsumerLine,
+} from "../consumer/labels";
 import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
 import QueryContextBar from "../components/domain/QueryContextBar.vue";
-import EvidenceMeta from "../components/domain/EvidenceMeta.vue";
 import EvidenceStatus from "../components/domain/EvidenceStatus.vue";
 import EvidenceProvenance from "../components/domain/EvidenceProvenance.vue";
 import { presentDescription } from "../errors";
@@ -37,6 +49,8 @@ const route = useRoute();
 const placeId = computed(() => (route.params.id ? String(route.params.id) : ""));
 
 const trace = ref<Trace | null>(null);
+const place = ref<PlaceDetail | null>(null);
+const zones = ref<Zone[]>([]);
 const observations = ref<ObservationView[]>([]);
 const sources = ref<SourceView[]>([]);
 const loading = ref(true);
@@ -52,6 +66,28 @@ function evidenceStateFor(o: ObservationView): "verified" | "pending" | "dispute
 function displayTime(iso: string): string {
   return iso.length >= 16 ? `${iso.slice(0, 10)} ${iso.slice(11, 16)}` : iso;
 }
+
+/** §38 record identity — zone of the most recent observation, resolved by name. */
+const recordZone = computed(() => {
+  const latest = [...observations.value].sort((a, b) =>
+    b.occurred_at.localeCompare(a.occurred_at),
+  )[0];
+  if (!latest?.zone_id) return null;
+  return zones.value.find((z) => z.id === latest.zone_id) ?? null;
+});
+
+const recordIdentity = computed(() => {
+  if (!observations.value.length) return null;
+  const latest = [...observations.value].sort((a, b) =>
+    b.occurred_at.localeCompare(a.occurred_at),
+  )[0];
+  const zone = recordZone.value ? zoneConsumerLine(recordZone.value) : null;
+  return {
+    placeName: place.value?.canonical_name ?? null,
+    zoneName: zone,
+    observedTime: displayTime(latest.occurred_at),
+  };
+});
 
 /** Observed = most recent observation's occurred_at. */
 const observedTime = computed(() => {
@@ -96,19 +132,40 @@ const LABELS: Record<string, string> = {
   unverified: "未核验",
 };
 
+/** §40：记录存在时标题显示「N 条现场记录」；正式规则依据单独计数，不混维。 */
+const factCountLabel = computed(() => {
+  const n = observations.value.length;
+  return n === 0 ? "暂无现场记录" : `${n} 条现场记录`;
+});
+const ruleEvidenceCount = computed(() => trace.value?.evidence_count ?? 0);
+const pendingSources = computed(
+  () => sources.value.filter((s) => s.issuer_verification === "unverified").length,
+);
+const sourceSummary = computed(() => {
+  const parts: string[] = [];
+  if (sources.value.length === 0) parts.push("来源待补充");
+  else parts.push(`${sources.value.length} 个来源`);
+  if (pendingSources.value > 0) parts.push(`${pendingSources.value} 个待核验`);
+  return parts.join(" · ");
+});
+
 async function load() {
   if (!placeId.value) return;
   loading.value = true;
   error.value = "";
   try {
-    const [t, obs, srcs] = await Promise.all([
+    const [t, obs, srcs, plc, zs] = await Promise.all([
       client.realityTrace(placeId.value),
       client.observations(placeId.value),
       client.allSources(),
+      client.place(placeId.value).catch(() => null),
+      client.zones(placeId.value).catch(() => [] as Zone[]),
     ]);
     trace.value = t;
     observations.value = obs;
     sources.value = srcs;
+    place.value = plc;
+    zones.value = zs;
   } catch (e) {
     error.value = presentDescription(e);
   } finally {
@@ -152,14 +209,24 @@ const uiFixture = computed<string>(() =>
         </template>
       </StateMessage>
       <template v-else-if="trace">
-        <header class="evidence-head">
-          <!-- Place display name: never the raw UUID (contract EVIDENCE_NO_UUID_TEXT). -->
-          <p class="muted evidence-head__place">场所信息暂不可用</p>
-          <h2>证据与来源</h2>
-          <EvidenceMeta
-            v-if="trace.evidence_count != null"
-            :evidence-count="trace.evidence_count"
-          />
+        <!-- §38 header：record identity 必须可读（ready fixture 有 place/zone/time）。 -->
+        <header class="evidence-head" data-testid="evidence-head">
+          <template v-if="recordIdentity">
+            <h2 class="evidence-head__record" data-testid="evidence-record-place">
+              {{ recordIdentity.placeName ?? "场所名称待补充" }}
+            </h2>
+            <p class="muted evidence-head__meta" data-testid="evidence-record-zone">
+              {{ recordIdentity.zoneName ?? placeTypeLabel(place?.place_type ?? "") }} ·
+              {{ recordIdentity.observedTime }}
+            </p>
+            <p class="muted evidence-head__count" data-testid="evidence-record-count">
+              {{ factCountLabel }} · {{ sourceSummary }}
+            </p>
+          </template>
+          <template v-else>
+            <h2 class="evidence-head__record">暂无现场记录</h2>
+            <p class="muted evidence-head__meta">该场所尚未收录现场事实。未收录不代表没有动物。</p>
+          </template>
           <p
             class="evidence-disclaimer"
             data-testid="evidence-disclaimer"
@@ -171,7 +238,7 @@ const uiFixture = computed<string>(() =>
 
         <EvidenceProvenance
           :observed-count="observations.length"
-          :evidence-count="trace.evidence_count ?? 0"
+          :rule-evidence-count="ruleEvidenceCount"
           :reviewed-count="trace.review_sections.length"
         />
 
@@ -209,17 +276,14 @@ const uiFixture = computed<string>(() =>
             </p>
             <p v-if="o.note" class="muted evidence-item__note">{{ o.note }}</p>
           </div>
-          <StateMessage
+          <div
             v-if="!observations.length"
-            kind="EMPTY"
-            :title="EMPTY_STATE_COPY.EVIDENCE.title"
-            :description="EMPTY_STATE_COPY.EVIDENCE.description"
+            class="evidence-empty-inline"
             data-testid="evidence-empty"
           >
-            <template #action>
-              <button class="primary" @click="load">刷新</button>
-            </template>
-          </StateMessage>
+            <p>暂无现场记录</p>
+            <p class="muted">这并不代表现场没有动物。</p>
+          </div>
           <p class="muted evidence-item__images" data-testid="evidence-images-note">
             暂无原始证据图片（证据仍可来自文字记录）
           </p>
@@ -236,14 +300,16 @@ const uiFixture = computed<string>(() =>
             >
           </div>
           <p v-if="!sources.length" class="muted">暂无来源记录。</p>
+          <!-- §40：正式规则依据维度单独说明，不与现场记录数量混淆。 -->
+          <p class="muted evidence-rule-dimension" data-testid="evidence-rule-count">
+            正式规则依据：{{ ruleEvidenceCount }}
+          </p>
         </section>
       </template>
-      <StateMessage
-        v-else
-        kind="EMPTY"
-        :title="EMPTY_STATE_COPY.EVIDENCE.title"
-        :description="EMPTY_STATE_COPY.EVIDENCE.description"
-      />
+      <div v-else class="evidence-empty-inline" data-testid="evidence-none">
+        <p>暂无现场记录</p>
+        <p class="muted">这并不代表现场没有动物。</p>
+      </div>
     </div>
   </div>
 </template>
@@ -264,12 +330,19 @@ const uiFixture = computed<string>(() =>
   padding-bottom: var(--pa-space-4);
   border-bottom: var(--pa-border-width) solid var(--pa-color-border);
 }
-.evidence-head__place {
-  margin: 0 0 var(--pa-space-1);
-  font-size: var(--pa-font-size-sm);
+.evidence-head__record {
+  margin: 0;
+  font-size: var(--pa-font-size-18);
+  line-height: var(--pa-line-height-26);
+  color: var(--pa-color-text-primary);
 }
-.evidence-head h2 {
-  margin: 0 0 var(--pa-space-2);
+.evidence-head__meta {
+  margin: var(--pa-space-1) 0 0;
+  line-height: var(--pa-line-height-23);
+}
+.evidence-head__count {
+  margin: var(--pa-space-1) 0 0;
+  font-size: var(--pa-font-size-md);
 }
 .evidence-disclaimer {
   margin: var(--pa-space-3) 0 0;
@@ -315,5 +388,15 @@ const uiFixture = computed<string>(() =>
 }
 .evidence-source__meta {
   text-align: right;
+}
+.evidence-rule-dimension {
+  margin: var(--pa-space-2) 0 0;
+  font-size: var(--pa-font-size-sm);
+}
+.evidence-empty-inline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-1);
+  margin: var(--pa-space-2) 0;
 }
 </style>

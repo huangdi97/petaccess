@@ -1,7 +1,10 @@
 {
   "id": "contribution",
   "title": "Contribution Contract",
-  "viewport": { "width": 1440, "height": 900 },
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
   "pages": [
     {
       "id": "contribute-needs-place",
@@ -22,7 +25,12 @@
         "state": "choose-type",
         "fixture": "contribution-choose-type-v1",
         "h1": "你刚刚知道了什么？",
-        "componentCounts": [{ "selector": "choice-count", "min": 5 }]
+        "componentCounts": [
+          {
+            "selector": "choice-count",
+            "min": 5
+          }
+        ]
       }
     },
     {
@@ -65,7 +73,11 @@
       "id": "CONTRIBUTE_FIRST_SCREEN",
       "ui": "contribution-flow",
       "fallbacks": ["[data-testid='contribute-entry'], .contribute-entry"],
-      "props": { "count": { "min": 1 } },
+      "props": {
+        "count": {
+          "min": 1
+        }
+      },
       "severity": "FAIL",
       "pages": ["contribute-entry"]
     }
@@ -119,6 +131,13 @@
       "forbiddenText": ["ADR-012", "ADR-", "GPS 轨迹（"],
       "severity": "FAIL",
       "pages": ["contribute-entry", "contribute-step-1", "contribute-step-2"]
+    },
+    {
+      "id": "CONTRIBUTE_4_CHOICES_FIRST_VIEWPORT",
+      "selector": "[data-ui='contribution-flow'] .entry-option__button, [data-testid^='entry-']",
+      "minVisibleInViewport": 4,
+      "severity": "FAIL",
+      "pages": ["contribute-entry"]
     }
   ],
   "density": [],

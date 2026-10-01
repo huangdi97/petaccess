@@ -339,6 +339,20 @@ function compareStructure(rule: StructureRule, probe: PageProbe, out: CompareRow
       ),
     );
   }
+  if (rule.minVisibleInViewport !== undefined) {
+    const v = m.visibleInViewport;
+    out.push(
+      row(
+        rule.id,
+        "structure",
+        `visibleInViewport>=${rule.minVisibleInViewport}`,
+        v,
+        v !== null && v >= rule.minVisibleInViewport,
+        rule.severity,
+        `visibleInViewport=${v}`,
+      ),
+    );
+  }
   if (rule.xConsistent) {
     out.push(
       row(

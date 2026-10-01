@@ -65,7 +65,9 @@ function goHome() {
     <h1 class="visually-hidden">规则地图</h1>
     <QueryContextBar />
 
-    <div class="map-viewbar" role="group" aria-label="视图切换">
+    <!-- v0.2.4 §32：desktop 没有「地图/列表」模式切换 —— desktop 恒为 List+Map。
+         Mobile 保留 compact mode toggle（仅确有必要时）。 -->
+    <div v-if="!isDesktop" class="map-viewbar" role="group" aria-label="视图切换">
       <button type="button" class="pill" data-testid="view-map" @click="view = 'map'">地图</button>
       <button
         type="button"

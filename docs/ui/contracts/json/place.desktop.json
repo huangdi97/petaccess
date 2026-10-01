@@ -1,11 +1,23 @@
 {
   "id": "place.desktop",
-  "title": "Place Desktop Contract v0.2.3 Executable Blueprint",
+  "id": "place.desktop",
+  "title": "Place Desktop Contract v0.2.4 Executable Blueprint (Dossier with Views)",
   "viewport": { "width": 1440, "height": 900 },
   "pages": [
     {
       "id": "place-ready",
       "route": "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+      "expect": {
+        "page": "place",
+        "state": "ready",
+        "fixture": "place-ready-v1",
+        "entityId": "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+        "h1": "云栖中心·测试商场"
+      }
+    },
+    {
+      "id": "place-rules",
+      "route": "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e?view=rules",
       "expect": {
         "page": "place",
         "state": "ready",
@@ -92,8 +104,9 @@
     },
     {
       "id": "PLACE_DECISION_FONT_SIZE",
+
       "fallbacks": ["[data-testid='answer-status']", ".sub-answer .status"],
-      "props": { "fontSize": { "min": 29, "max": 31 } },
+      "props": { "fontSize": { "min": 27, "max": 29 } },
       "severity": "FAIL"
     },
     {
@@ -106,8 +119,31 @@
       "id": "PLACE_SECTION_GAP",
       "ui": "place-dossier",
       "fallbacks": [".place-dossier", "main"],
-      "props": { "sectionGap": { "min": 16, "max": 40 } },
-      "severity": "WARN"
+      "props": { "sectionGap": { "min": 24, "max": 40 } },
+      "severity": "FAIL"
+    },
+    {
+      "id": "PLACE_NAV_PRESENT",
+      "ui": "place-nav",
+      "fallbacks": ["[data-ui='place-nav']"],
+      "props": { "count": { "min": 1 } },
+      "severity": "FAIL"
+    },
+    {
+      "id": "PLACE_RULES_VIEW_PRESENT",
+      "ui": "place-rules-view",
+      "fallbacks": ["[data-testid='place-rules-view']"],
+      "props": { "count": { "min": 1 } },
+      "severity": "FAIL",
+      "pages": ["place-rules"]
+    },
+    {
+      "id": "PLACE_OVERVIEW_FULLPAGE_HEIGHT",
+      "ui": "place-dossier",
+      "fallbacks": [".place-dossier"],
+      "props": { "height": { "max": 1500 } },
+      "severity": "FAIL",
+      "pages": ["place-ready"]
     },
     {
       "id": "PLACE_ZONE_ROW_HEIGHT",
@@ -149,7 +185,15 @@
       "id": "PLACE_HISTORY_COLLAPSED_MOBILE",
       "selector": "[data-ui='place-history'] [aria-expanded='false'], [data-ui='place-history'] .disclosure-toggle",
       "min": 1,
-      "severity": "WARN"
+      "severity": "FAIL",
+      "pages": ["place-rules"]
+    },
+    {
+      "id": "PLACE_RULES_VIEW_HISTORY_COLLAPSED",
+      "selector": "[data-ui='place-rules-view'] [data-ui='place-history'], [data-ui='place-rules-view'] .disclosure-toggle",
+      "disclosureDefault": "collapsed",
+      "severity": "FAIL",
+      "pages": ["place-rules"]
     }
   ],
   "density": [

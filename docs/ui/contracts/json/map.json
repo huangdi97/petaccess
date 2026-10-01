@@ -1,7 +1,10 @@
 {
   "id": "map",
   "title": "Map Contract",
-  "viewport": { "width": 1440, "height": 900 },
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
   "pages": [
     {
       "id": "map-ready",
@@ -19,21 +22,45 @@
       "id": "MAP_RESULT_PANE_WIDTH",
       "ui": "map-result-pane",
       "fallbacks": ["[data-testid='map-result-pane'], .map-pane"],
-      "props": { "width": { "min": 360, "max": 420 } },
+      "props": {
+        "width": {
+          "min": 360,
+          "max": 420
+        }
+      },
       "severity": "FAIL"
     },
     {
       "id": "MAP_CANVAS_PRESENT",
       "ui": "map-canvas",
       "fallbacks": ["[data-testid='map'], .map-canvas"],
-      "props": { "count": { "min": 1 } },
+      "props": {
+        "count": {
+          "min": 1
+        }
+      },
       "severity": "FAIL"
     },
     {
       "id": "MAP_FILTER_TOGGLE",
       "ui": "map-filter-toggle",
       "fallbacks": ["[data-testid='map-filter-toggle']"],
-      "props": { "count": { "min": 1 } },
+      "props": {
+        "count": {
+          "min": 1
+        }
+      },
+      "severity": "WARN"
+    },
+    {
+      "id": "MAP_PREVIEW_FOCUSED",
+      "ui": "place-preview",
+      "fallbacks": ["[data-testid='place-preview']"],
+      "props": {
+        "count": {
+          "min": 1
+        }
+      },
       "severity": "WARN"
     }
   ],
@@ -73,6 +100,12 @@
       "selector": "[data-ui='map-zoom']",
       "min": 1,
       "severity": "WARN"
+    },
+    {
+      "id": "MAP_RESULT_ROWS_NOT_CARDS",
+      "selector": ".map-place-row",
+      "forbiddenClass": ["card", "panel"],
+      "severity": "FAIL"
     }
   ],
   "density": [],

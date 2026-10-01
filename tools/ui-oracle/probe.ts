@@ -201,8 +201,10 @@ export interface StructureRuleArg {
   containsArrows?: boolean;
   surfaceRowCount?: { min?: number; max?: number };
   disclosureDefault?: "collapsed";
-  /** O2: every matched element must share the same x (time col / marker col). */
+  /** O2: every matched element must share the same x (timeline time col / marker col). */
   xConsistent?: boolean;
+  /** O5-v4：首屏门 —— 命中元素的首屏可见数量下限。 */
+  minVisibleInViewport?: number;
 }
 
 export interface StructureMeasurementFlat {
@@ -215,6 +217,8 @@ export interface StructureMeasurementFlat {
   hasArrows: boolean;
   collapsed: boolean;
   xSpread: number | null;
+  /** O5-v4：命中元素中首屏可见的数量（top < viewport height）。 */
+  visibleInViewport: number;
 }
 
 export function measureStructure(root: Element, arg: StructureRuleArg): StructureMeasurementFlat {
@@ -267,6 +271,11 @@ export function measureStructure(root: Element, arg: StructureRuleArg): Structur
   // O2 几何：全部命中元素共享同一 x（timeline time col / marker col 对齐）。
   const lefts = nodes.map((n) => n.getBoundingClientRect().left).filter((v) => Number.isFinite(v));
   const xSpread = lefts.length >= 2 ? Math.max(...lefts) - Math.min(...lefts) : null;
+  // O5-v4 首屏门：命中元素中哪些顶部落在首屏内（top < viewport height）。
+  const visibleInViewport = nodes.filter((n) => {
+    const r = n.getBoundingClientRect();
+    return r.top >= 0 && r.top < window.innerHeight && r.height > 0;
+  }).length;
 
   return {
     count: nodes.length,
@@ -278,6 +287,7 @@ export function measureStructure(root: Element, arg: StructureRuleArg): Structur
     hasArrows,
     collapsed,
     xSpread,
+    visibleInViewport,
   };
 }
 

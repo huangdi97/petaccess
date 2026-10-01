@@ -1,7 +1,10 @@
 {
   "id": "reality",
   "title": "Reality Contract",
-  "viewport": { "width": 1440, "height": 900 },
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
   "pages": [
     {
       "id": "reality-ready",
@@ -29,14 +32,23 @@
       "id": "REALITY_MAX_WIDTH",
       "ui": "reality-body",
       "fallbacks": [".reality-workspace__body"],
-      "props": { "width": { "min": 780, "max": 824 } },
+      "props": {
+        "width": {
+          "min": 780,
+          "max": 824
+        }
+      },
       "severity": "FAIL"
     },
     {
       "id": "REALITY_RAIL_WIDTH",
       "ui": "reality-rail",
       "fallbacks": [".timeline-rail"],
-      "props": { "width": { "equals": 2 } },
+      "props": {
+        "width": {
+          "equals": 2
+        }
+      },
       "severity": "FAIL",
       "pages": ["reality-ready"]
     },
@@ -44,7 +56,11 @@
       "id": "REALITY_RAIL_CONTINUOUS",
       "ui": "reality-rail",
       "fallbacks": [".timeline-rail"],
-      "props": { "height": { "min": 60 } },
+      "props": {
+        "height": {
+          "min": 60
+        }
+      },
       "severity": "FAIL",
       "pages": ["reality-ready"]
     },
@@ -52,7 +68,11 @@
       "id": "REALITY_DATE_GROUP_SEP",
       "ui": "timeline-date",
       "fallbacks": [".timeline-date"],
-      "props": { "margin": { "min": 28 } },
+      "props": {
+        "margin": {
+          "min": 28
+        }
+      },
       "severity": "FAIL",
       "pages": ["reality-ready"]
     },
@@ -60,7 +80,11 @@
       "id": "REALITY_TIME_COL",
       "ui": "reality-event",
       "fallbacks": [".trace-row"],
-      "props": { "gridTemplateColumns": { "startsWith": "72px 24px" } },
+      "props": {
+        "gridTemplateColumns": {
+          "startsWith": "72px 24px"
+        }
+      },
       "severity": "FAIL",
       "pages": ["reality-ready"]
     },
@@ -68,14 +92,34 @@
       "id": "REALITY_TRACE_ROWS",
       "ui": "reality-timeline",
       "fallbacks": ["[data-testid='trace-observations']"],
-      "props": { "count": { "min": 1 } },
+      "props": {
+        "count": {
+          "min": 1
+        }
+      },
       "severity": "FAIL"
     },
     {
       "id": "REALITY_EVENT_ROW_COUNT",
       "ui": "reality-event",
       "fallbacks": ["[data-ui='reality-event'], .trace-row"],
-      "props": { "count": { "min": 1 } },
+      "props": {
+        "count": {
+          "min": 1
+        }
+      },
+      "severity": "FAIL",
+      "pages": ["reality-ready"]
+    },
+    {
+      "id": "REALITY_FIRST_EVENT_TOP",
+      "ui": "reality-event",
+      "fallbacks": [".trace-row"],
+      "props": {
+        "top": {
+          "max": 360
+        }
+      },
       "severity": "FAIL",
       "pages": ["reality-ready"]
     }
@@ -121,6 +165,13 @@
         "POTENTIAL_CONFLICT"
       ],
       "severity": "FAIL"
+    },
+    {
+      "id": "REALITY_FIRST_VIEWPORT_EVENTS",
+      "selector": "[data-ui='reality-event'], .trace-row",
+      "minVisibleInViewport": 1,
+      "severity": "FAIL",
+      "pages": ["reality-ready"]
     }
   ],
   "density": [

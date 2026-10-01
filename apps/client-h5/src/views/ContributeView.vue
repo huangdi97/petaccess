@@ -86,11 +86,18 @@ const uiState = computed<string>(() => {
       return "step-1";
   }
 });
-const uiFixture = computed<string>(() => `contribution-${uiState.value}-v1`);
-
 /** §41: choice-count must reflect the real number of options on the entry. */
 const choiceCount = computed<number>(() => (uiState.value === "choose-type" ? 5 : 0));
+
+/** §43：真实多步时显示「步骤 X / 3」；entry/done 不显示。 */
+const STEP_ORDER: Step[] = ["quick", "signage", "rule", "experience", "reality"];
+const stepNumber = computed<number>(() =>
+  STEP_ORDER.includes(step.value) ? STEP_ORDER.indexOf(step.value) + 1 : 0,
+);
+const stepTotal = computed<number>(() => (stepNumber.value > 0 ? 3 : 0));
+const uiFixture = computed<string>(() => `contribution-${uiState.value}-v1`);
 </script>
+
 <template>
   <div
     class="contribute-workspace"
@@ -107,6 +114,10 @@ const choiceCount = computed<number>(() => (uiState.value === "choose-type" ? 5 
       <span v-if="uiState === 'choose-type'" class="visually-hidden" data-ui-count="choice-count">{{
         choiceCount
       }}</span>
+      <p v-if="stepNumber > 0" class="contribute-step" data-testid="contribute-step">
+        步骤 {{ stepNumber }} / {{ stepTotal }}
+      </p>
+
       <StateMessage
         v-if="!placeId"
         kind="PARTIAL"
@@ -187,9 +198,12 @@ const choiceCount = computed<number>(() => (uiState.value === "choose-type" ? 5 
           @continue="reset"
         />
 
+        <!-- v0.2.4 §42：隐私文案降权 —— 详细说明进 info popover / help 页。 -->
         <div class="contribute-workspace__notice">
-          位置信息仅用于核验场所，不保存连续位置轨迹。
-          高频提交会被限流。证据媒体不公开，仅审核可见。
+          <RouterLink class="btn-inline" to="/privacy" data-testid="privacy-link">
+            隐私与审核说明 →
+          </RouterLink>
+          <p class="muted">提交内容会进入人工核验。</p>
         </div>
       </template>
     </div>
@@ -202,10 +216,23 @@ const choiceCount = computed<number>(() => (uiState.value === "choose-type" ? 5 
 }
 .contribute-workspace__body {
   padding: var(--pa-space-4);
-  max-width: var(--pa-layout-content-narrow);
+  max-width: var(--pa-layout-content-680);
   margin: 0 auto;
 }
 .contribute-workspace__notice {
   margin-top: var(--pa-space-5);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--pa-space-1);
+}
+.contribute-workspace__notice p {
+  margin: 0;
+  font-size: var(--pa-font-size-sm);
+}
+.contribute-step {
+  margin: var(--pa-space-4) 0 0;
+  font-size: var(--pa-font-size-sm);
+  color: var(--pa-color-text-secondary);
 }
 </style>
