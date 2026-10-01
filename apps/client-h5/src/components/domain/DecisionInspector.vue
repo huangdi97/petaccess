@@ -122,8 +122,9 @@ const realityLineForPlace = computed(() =>
     data-testid="decision-inspector"
   >
     <template v-if="place">
-      <!-- v0.2.4 §12：Place Identity（删除顶部重复 status badge） -->
-      <header class="decision-inspector__head">
+      <!-- v0.2.4 §12：Search detail 保留 identity；v0.2.5 §16：place inspector
+           不再重复 Place Name/地址（identity 只在 main column）。 -->
+      <header v-if="variant === 'search'" class="decision-inspector__head">
         <h2 class="decision-inspector__name" data-ui="search-detail-name">
           {{ place.canonical_name }}
         </h2>
@@ -173,10 +174,13 @@ const realityLineForPlace = computed(() =>
           <span class="inspector-block__label">证据与来源</span>
           <p class="inspector-block__value" data-testid="inspector-evidence">{{ evidenceLine }}</p>
         </div>
-
         <footer class="decision-inspector__foot">
-          <RouterLink class="btn primary" :to="`/place/${place.id}`" data-testid="inspector-open">
-            查看完整场所
+          <RouterLink
+            class="btn-inline"
+            :to="`/place/${place.id}`"
+            data-testid="inspector-open"
+          >
+            查看完整场所 →
           </RouterLink>
         </footer>
       </template>
@@ -244,12 +248,9 @@ const realityLineForPlace = computed(() =>
     </template>
 
     <div v-else class="decision-inspector__onboarding">
-      <!-- v0.2.4 §14：右侧 inline onboarding copy，无 card/shadow。 -->
+      <!-- v0.2.5 §18：右侧纯 onboarding 文案，去重复 CTA（左侧 pane 保留 primary）。 -->
       <h2 class="decision-inspector__onboarding-title">选择一个场所后，</h2>
       <p class="decision-inspector__onboarding-body">这里会显示准入结论、条件和最近现场。</p>
-      <RouterLink class="btn" to="/contribute" data-testid="inspector-onboarding-cta">
-        提交场所线索
-      </RouterLink>
     </div>
   </section>
 </template>

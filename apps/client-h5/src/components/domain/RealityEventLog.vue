@@ -16,6 +16,7 @@ import {
   staffActionLabel,
   zoneConsumerLine,
 } from "../../consumer/labels";
+import PaIcon from "../ui/PaIcon.vue";
 
 const props = withDefaults(
   defineProps<{
@@ -34,7 +35,7 @@ function evidenceStateFor(o: ObservationView): "verified" | "pending" | "dispute
   return "verified";
 }
 
-/** §35 single-line status label: 地点已确认 · 时间待核验 — never a badge wall. */
+/** §35 status：小号 muted 文本；待核验用 clock icon 标注，不用强 badge。 */
 function eventStatusLine(o: ObservationView): string {
   const confirmed =
     o.place_confidence === "confirmed_on_site" || o.place_confidence === "high"
@@ -42,6 +43,11 @@ function eventStatusLine(o: ObservationView): string {
       : "地点待核验";
   const timeState = evidenceStateFor(o) === "verified" ? "时间已核验" : "时间待核验";
   return `${confirmed} · ${timeState}`;
+}
+
+/** §35：pending 事件单独标记（小号 muted + clock icon）。 */
+function isPending(o: ObservationView): boolean {
+  return evidenceStateFor(o) !== "verified";
 }
 
 function zoneNameFor(o: ObservationView): string | null {
@@ -101,9 +107,10 @@ const groups = computed<ObservationGroup[]>(() => {
                 >
               </p>
               <div class="trace-row__meta">
-                <span class="trace-row__status" data-testid="event-status">{{
-                  eventStatusLine(o)
-                }}</span>
+                <span class="trace-row__status" data-testid="event-status">
+                  <PaIcon v-if="isPending(o)" name="clock" size="sm" label="待核验" />
+                  {{ eventStatusLine(o) }}
+                </span>
                 <RouterLink
                   class="btn-inline trace-row__evidence"
                   :to="`/place/${placeId}/evidence`"
@@ -177,7 +184,8 @@ const groups = computed<ObservationGroup[]>(() => {
 .trace-row__time {
   padding-top: 2px;
   font-size: var(--pa-font-size-md);
-  font-weight: var(--pa-font-weight-medium);
+  font-weight: var(--pa-font-weight-650);
+  font-variant-numeric: tabular-nums;
   color: var(--pa-color-text-primary);
   text-align: left;
   white-space: nowrap;
@@ -197,13 +205,13 @@ const groups = computed<ObservationGroup[]>(() => {
   margin: 0;
   font-weight: var(--pa-font-weight-medium);
   color: var(--pa-color-text-primary);
-  line-height: var(--pa-line-height-23);
-}
 .trace-row__event {
   margin: var(--pa-space-1) 0 0;
   font-size: var(--pa-font-size-base);
+  font-weight: var(--pa-font-weight-600);
   line-height: var(--pa-line-height-23);
   overflow-wrap: anywhere;
+}
 }
 .trace-row__meta {
   display: flex;

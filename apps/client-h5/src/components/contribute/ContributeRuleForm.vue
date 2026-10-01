@@ -2,16 +2,19 @@
 /**
  * ContributeRuleForm — 我知道规则（结构化表单，legacy createObservation 规则路径）。
  * 提交为「用户陈述」，与场所正式规则并存展示，不覆盖已收录规则。
+ * v0.2.5 §28–32：统一走 ContributeStepShell；条件选项组改为 checkbox option rows（非 pill）。
  */
 import { computed, ref } from "vue";
 import { client } from "@petaccess/client-core";
 import { isoAt, proximity } from "./contributeSupport";
 import { presentDescription } from "../../errors";
+import ContributionStepShell from "./ContributionStepShell.vue";
 
 defineOptions({ name: "ContributeRuleForm" });
 
 const props = defineProps<{
   placeId: string;
+  placeName: string;
   zones: { id: string; name: string }[];
   online: boolean;
   signedIn: boolean;
@@ -32,6 +35,12 @@ const CONDITION_OPTIONS = [
 ];
 
 const canSubmit = computed(() => props.online && props.signedIn && !busy.value);
+
+function toggleCondition(key: string) {
+  conditions.value = conditions.value.includes(key)
+    ? conditions.value.filter((k) => k !== key)
+    : [...conditions.value, key];
+}
 
 async function submit() {
   if (!canSubmit.value || !knowRule.value) return;
@@ -64,11 +73,14 @@ async function submit() {
 </script>
 
 <template>
-  <div>
-    <strong>我知道规则（结构化表单）</strong>
-    <p class="muted" style="margin-top: 4px">
-      你的说明会以「用户陈述」与场所正式规则并存展示，不会覆盖已收录规则。
-    </p>
+  <ContributionStepShell
+    :place-name="placeName"
+    :step="1"
+    :total="3"
+    title="我知道规则"
+    description="你的说明会以「用户陈述」与场所正式规则并存展示，不会覆盖已收录规则。"
+    @back="emit('back')"
+  >
     <div v-if="error" class="notice" data-testid="rule-error">{{ error }}</div>
 
     <label for="rule-known">你了解到的规则是</label>
@@ -86,23 +98,26 @@ async function submit() {
     </select>
 
     <label>条件（可多选 / 全不选）</label>
-    <div class="row">
+    <!-- §31 checkbox option rows（多选，非 pill）。 -->
+    <div class="option-group" role="group" aria-label="规则条件">
       <button
         v-for="c in CONDITION_OPTIONS"
         :key="c.key"
-        class="pill"
-        :class="{ active: conditions.includes(c.key) }"
-        @click="
-          conditions.includes(c.key)
-            ? (conditions = conditions.filter((k) => k !== c.key))
-            : conditions.push(c.key)
-        "
+        type="button"
+        class="option-row"
+        role="checkbox"
+        :aria-checked="conditions.includes(c.key)"
+        :class="{ 'option-row--active': conditions.includes(c.key) }"
+        @click="toggleCondition(c.key)"
       >
-        {{ c.label }}
+        <span class="option-row__checkbox" aria-hidden="true" />
+        <span class="option-row__text">
+          <span class="option-row__label">{{ c.label }}</span>
+        </span>
       </button>
     </div>
 
-    <div class="row" style="margin-top: 14px">
+    <template #primary>
       <button
         class="primary"
         :disabled="!canSubmit || !knowRule"
@@ -111,7 +126,69 @@ async function submit() {
       >
         {{ busy ? "提交中…" : "提交" }}
       </button>
-      <button :disabled="busy" @click="emit('back')">返回</button>
-    </div>
-  </div>
+    </template>
+  </ContributionStepShell>
 </template>
+
+<style scoped>
+.option-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-2);
+}
+.option-row {
+  display: flex;
+  align-items: center;
+  gap: var(--pa-space-3);
+  min-height: 56px;
+  padding: var(--pa-space-2) var(--pa-space-3);
+  border: var(--pa-border-width) solid var(--pa-color-border);
+  border-radius: var(--pa-radius-md);
+  background: var(--pa-color-surface);
+  text-align: left;
+  cursor: pointer;
+}
+.option-row--active {
+  border-color: var(--pa-color-accent);
+  background: var(--pa-color-accent-weak);
+}
+.option-row__checkbox {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  border: 2px solid var(--pa-color-border-strong);
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.option-row--active .option-row__checkbox {
+  border-color: var(--pa-color-accent);
+  background: var(--pa-color-accent);
+}
+.option-row--active .option-row__checkbox::after {
+  content: "✓";
+  color: var(--pa-color-surface);
+  font-size: 13px;
+  line-height: 1;
+}
+.option-row__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.option-row__label {
+  font-size: var(--pa-font-size-base);
+  font-weight: var(--pa-font-weight-600);
+  color: var(--pa-color-text-primary);
+}
+.option-row__hint {
+  font-size: var(--pa-font-size-sm);
+}
+.option-row:hover,
+.option-row:focus-visible {
+  border-color: var(--pa-color-accent);
+  outline: 2px solid var(--pa-color-border-focus);
+  outline-offset: -1px;
+}
+</style>

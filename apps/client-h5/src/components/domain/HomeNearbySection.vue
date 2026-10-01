@@ -75,10 +75,10 @@ const freshness = computed(() =>
           {{ freshness }}
         </p>
 
-        <h2 class="home-section-title home-section-title--stacked">附近已核验</h2>
+        <h2 class="home-section-title home-section-title--stacked">附近已有依据</h2>
 
         <p v-if="!verified.length" class="muted" data-testid="verified-empty">
-          这一区域暂无已核验场所。可看地图，或改用搜索指定场所名。
+          这一区域暂无有依据的场所。可看地图，或改用搜索指定场所名。
         </p>
 
         <!-- v0.2.4 §30：divider rows，非卡。 -->
@@ -99,7 +99,6 @@ const freshness = computed(() =>
             :conditions-label="conditionsLabel"
           />
           <div class="row home-row__head">
-            <span class="muted" :data-testid="'scope-' + c.place.id">已核验：{{ c.scope }}</span>
             <StatusBadge :semantic="c.status" />
           </div>
           <p v-if="c.conditions.length" class="notice" :data-testid="'conditions-' + c.place.id">
@@ -112,9 +111,8 @@ const freshness = computed(() =>
             >
           </p>
         </div>
-
-        <h2 class="home-section-title home-section-title--stacked">规则待核实</h2>
-        <p class="muted">尚未核验 ≠ 允许或禁止。这些场所我们目前没有足够依据下结论。</p>
+        <h2 class="home-section-title home-section-title--stacked">附近待补充</h2>
+        <p class="muted">这些场所我们目前没有足够依据下结论，信息不足不等于允许或禁止。</p>
         <div
           v-for="c in pending"
           :key="c.place.id"

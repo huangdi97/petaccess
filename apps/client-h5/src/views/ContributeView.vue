@@ -34,6 +34,8 @@ const realityKind = ref<RealityKind>("observed_presence");
 const msg = ref("");
 const signedIn = ref(false);
 const zones = ref<{ id: string; name: string }[]>([]);
+/** §29：step shell 顶部显示「我给哪个场所提交」。 */
+const placeName = ref("");
 
 // Reactive param + immediate: the router reuses this component across
 // /contribute/:id changes; every submit carries place_id, so re-anchor first.
@@ -42,13 +44,19 @@ watch(
   async () => {
     reset();
     zones.value = [];
+    placeName.value = "";
     await session.restore();
     signedIn.value = session.signedIn;
     if (!signedIn.value || !placeId.value) return;
     try {
-      zones.value = await client.zones(placeId.value);
+      const [zs, place] = await Promise.all([
+        client.zones(placeId.value),
+        client.place(placeId.value).catch(() => null),
+      ]);
+      zones.value = zs;
+      placeName.value = place?.canonical_name ?? "";
     } catch {
-      /* best-effort; forms work without zones */
+      /* best-effort; forms work without zones/name */
     }
   },
   { immediate: true },
@@ -122,9 +130,6 @@ const uiFixture = computed<string>(() => `contribution-${uiState.value}-v1`);
       <span v-if="uiState === 'choose-type'" class="visually-hidden" data-ui-count="choice-count">{{
         choiceCount
       }}</span>
-      <p v-if="stepNumber > 0" class="contribute-step" data-testid="contribute-step">
-        步骤 {{ stepNumber }} / {{ stepTotal }}
-      </p>
 
       <StateMessage
         v-if="!placeId"
@@ -157,6 +162,7 @@ const uiFixture = computed<string>(() => `contribution-${uiState.value}-v1`);
         <ContributeQuickForm
           v-else-if="step === 'quick'"
           :place-id="placeId"
+          :place-name="placeName"
           :online="online"
           :signed-in="signedIn"
           @done="done"
@@ -165,6 +171,7 @@ const uiFixture = computed<string>(() => `contribution-${uiState.value}-v1`);
         <ContributeSignageForm
           v-else-if="step === 'signage'"
           :place-id="placeId"
+          :place-name="placeName"
           :zones="zones"
           :online="online"
           :signed-in="signedIn"
@@ -174,6 +181,7 @@ const uiFixture = computed<string>(() => `contribution-${uiState.value}-v1`);
         <ContributeRuleForm
           v-else-if="step === 'rule'"
           :place-id="placeId"
+          :place-name="placeName"
           :zones="zones"
           :online="online"
           :signed-in="signedIn"
@@ -183,6 +191,7 @@ const uiFixture = computed<string>(() => `contribution-${uiState.value}-v1`);
         <ContributeObservationForm
           v-else-if="step === 'experience'"
           :place-id="placeId"
+          :place-name="placeName"
           :zones="zones"
           :online="online"
           :signed-in="signedIn"
@@ -192,6 +201,7 @@ const uiFixture = computed<string>(() => `contribution-${uiState.value}-v1`);
         <ContributeRealityForm
           v-else-if="step === 'reality'"
           :place-id="placeId"
+          :place-name="placeName"
           :zones="zones"
           :online="online"
           :signed-in="signedIn"
@@ -206,13 +216,6 @@ const uiFixture = computed<string>(() => `contribution-${uiState.value}-v1`);
           @continue="reset"
         />
 
-        <!-- v0.2.4 §42：隐私文案降权 —— 详细说明进 info popover / help 页。 -->
-        <div class="contribute-workspace__notice">
-          <RouterLink class="btn-inline" to="/privacy" data-testid="privacy-link">
-            隐私与审核说明 →
-          </RouterLink>
-          <p class="muted">提交内容会进入人工核验。</p>
-        </div>
       </template>
     </div>
   </div>

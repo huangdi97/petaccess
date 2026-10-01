@@ -178,7 +178,8 @@ export function useMapWorkspace() {
   /** M4 A1 — the floating preview fetches the ONE CoexistenceSnapshot for the
    *  place via the consumer repository (SSOT, same cache as rows). */
   async function selectPlace(p: PlaceSummary) {
-    if (!isDesktop.value) return;
+    // v0.2.5 §24：mobile selected sheet 需要 key condition + 最近现场，
+    // snapshot 不再只给 desktop 取。
     preview.value = { snapshot: null, loading: true, error: "" };
     try {
       const { snapshot } = await snapshotFor(p.id);

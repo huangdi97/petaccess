@@ -32,8 +32,8 @@ test("decision home is search-first and states what is verified", async ({ page 
   // §9.2/§9.4: the map is reachable, but it is a link — not the landing surface
   await expect(page.getByTestId("go-map")).toBeVisible();
   await expect(page.getByTestId("map")).toHaveCount(0);
-  // §12.2 + §9.9 wording is stated up front: 「规则待核实」and UNKNOWN ≠ ALLOWED
-  await expect(page.getByTestId("home-semantics")).toContainText("规则待核实");
+  // §20–21: 「附近待补充」wording 明示 信息不足 ≠ 允许或禁止（§9 consumer copy）。
+  await expect(page.getByTestId("home-semantics")).toContainText("附近待补充");
   await expect(page.getByTestId("home-semantics")).toContainText("不等于允许或禁止");
   // §12.6: contribution is a low-priority footer action
   await expect(page.getByTestId("contribute-link")).toBeVisible();

@@ -2,16 +2,19 @@
 /**
  * ContributeObservationForm — 我有现场经历（结构化，legacy createObservation 路径）。
  * 只记录可观察行为，不记录主观推断；现场记录 ≠ 场所正式政策。
+ * v0.2.5 §28–32：统一走 ContributeStepShell。
  */
 import { computed, ref } from "vue";
 import { client } from "@petaccess/client-core";
 import { isoAt, proximity } from "./contributeSupport";
 import { presentDescription } from "../../errors";
+import ContributionStepShell from "./ContributionStepShell.vue";
 
 defineOptions({ name: "ContributeObservationForm" });
 
 const props = defineProps<{
   placeId: string;
+  placeName: string;
   zones: { id: string; name: string }[];
   online: boolean;
   signedIn: boolean;
@@ -57,11 +60,14 @@ async function submit() {
 </script>
 
 <template>
-  <div>
-    <strong>我有现场经历</strong>
-    <p class="muted" style="margin-top: 4px">
-      只记录可观察到的行为，不记录主观推断。现场记录 ≠ 场所正式政策。
-    </p>
+  <ContributionStepShell
+    :place-name="placeName"
+    :step="1"
+    :total="3"
+    title="我有现场经历"
+    description="只记录可观察到的行为，不记录主观推断。现场记录 ≠ 场所正式政策。"
+    @back="emit('back')"
+  >
     <div v-if="error" class="notice" data-testid="exp-error">{{ error }}</div>
 
     <label for="exp-date">日期</label>
@@ -107,11 +113,10 @@ async function submit() {
       placeholder="如：工作日下午，未见工作人员介入"
     />
 
-    <div class="row" style="margin-top: 14px">
+    <template #primary>
       <button class="primary" :disabled="!canSubmit" data-testid="exp-submit" @click="submit">
         {{ busy ? "提交中…" : "提交现场记录" }}
       </button>
-      <button :disabled="busy" @click="emit('back')">返回</button>
-    </div>
-  </div>
+    </template>
+  </ContributionStepShell>
 </template>

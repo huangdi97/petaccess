@@ -1,22 +1,31 @@
 <script setup lang="ts">
 /**
- * PlaceRulesPane — Place Dossier 规则 view（v0.2.4 §23）。
+ * PlaceRulesPane — Place Dossier 规则 view（v0.2.5 §12–14）。
  *
- * 当前规则 / conditions / exceptions / rule conflicts / source /
- * effective·freshness / historical versions（折叠，progressive disclosure）。
- * 历史版本与纠错留在这里，不放 Overview。
+ * v0.2.4 的平铺 `普通宠物 · 进入` 重复行用户无法区分上下文；v0.2.5 重组为
+ * **Context → Rule**：按真实 domain data（rule.zone_id / place-level）分组——
+ *   场所整体
+ *     普通宠物 · 进入        有条件进入
+ *     需宠物包
+ *   餐饮堂食区
+ *     普通宠物 · 进入        明确限制
+ *   服务犬
+ *     进入 · 明确允许
+ * 一组：Context label + Rule subject/action + Primary status + Conditions +
+ * Source/freshness（secondary）。组间 divider + 20–24 gap；无 card wall。
+ * Rule Conflict 改为 inline（△ 来源不一致 · 部分信息仍待人工复核 · 查看差异 →），
+ * 不渲染紫色 badge 为主角。不知道 context 时按 zone_id 分组，无法归属的规则
+ * 进入「场所整体」；不伪造 zone/context。
  */
 import { computed, ref } from "vue";
-import type { AccessAnswer, RuleView, SourceView } from "@petaccess/client-core";
-import { conditionLabel } from "@petaccess/client-core";
+import type { AccessAnswer, RuleView, SourceView, Zone } from "@petaccess/client-core";
 import {
-  mandatoryLevelLabel,
   ruleLayerLabel,
   ruleStatusLabel,
   ruleSubjectLine,
   sourceLabel,
+  zoneTypeLabel,
 } from "../../consumer/labels";
-import { answerStatusKey } from "../../answer";
 import StatusBadge from "../StatusBadge.vue";
 import SourceBadge from "../SourceBadge.vue";
 
@@ -27,91 +36,105 @@ const props = defineProps<{
   conditions: string[];
   answer: AccessAnswer | null;
   latestVerifiedAt: string | null;
+  /** v0.2.5 §12：zone 上下文（真实 domain data，决定 rule grouping 的 context label）。 */
+  zoneList: Zone[];
 }>();
 
 const historyOpen = ref(false);
 
-const STALE_DAYS = 180;
-function isStale(r: RuleView): boolean {
-  if (!r.last_verified_at) return false;
-  const age = (Date.now() - new Date(r.last_verified_at).getTime()) / 86_400_000;
-  return age > STALE_DAYS;
+/** zone_id → consumer context label（§12：不许出现 7 个相同 title；用真实 zone 名）。 */
+const zoneNameById = computed(() => {
+  const m = new Map<string, string>();
+  for (const z of props.zoneList) m.set(z.id, zoneTypeLabel(z.zone_type));
+  return m;
+});
+
+/** §12 grouping：place-level（zone_id null）→「场所整体」；zone-level → 按 zone。 */
+interface RuleGroup {
+  contextLabel: string;
+  rules: RuleView[];
 }
+const ruleGroups = computed<RuleGroup[]>(() => {
+  const groups = new Map<string, RuleView[]>();
+  const keyOf = (r: RuleView): string => {
+    if (r.zone_id) return zoneNameById.value.get(r.zone_id) ?? "场所整体";
+    return "场所整体";
+  };
+  for (const r of props.currentRules) {
+    const key = keyOf(r);
+    const list = groups.get(key);
+    if (list) list.push(r);
+    else groups.set(key, [r]);
+  }
+  return [...groups.entries()].map(([contextLabel, rules]) => ({ contextLabel, rules }));
+});
 
 const conflicts = computed(() => {
   const bad = props.currentRules.filter((r) => !r.last_verified_at);
-  return {
-    hasConflict: (props.answer?.conflict_state?.has_conflict ?? false) || bad.length > 1,
-    note: props.answer?.conflict_state?.has_conflict
-      ? "来源存在不一致：已保留全部规则，按最严结论展示，等待复核。"
-      : bad.length > 1
-        ? "部分规则缺少核验信息，需要人工复核（不猜测）。"
-        : "",
-  };
+  const hasConflict = (props.answer?.conflict_state?.has_conflict ?? false) || bad.length > 1;
+  const note = props.answer?.conflict_state?.has_conflict
+    ? "部分信息仍待人工复核"
+    : bad.length > 1
+      ? "部分规则缺少核验信息，需要人工复核"
+      : "";
+  return { hasConflict, note };
 });
+
+/** 每条 rule 的 conditions（优先 RuleView note / rule_conditions；无则本组 conditions）。 */
+function ruleConditionLines(r: RuleView): string[] {
+  const out = [...props.conditions];
+  if (r.note) out.unshift(r.note);
+  return [...new Set(out)].slice(0, 2);
+}
 </script>
 
 <template>
   <div data-ui="place-rules-view" data-testid="place-rules-view">
-    <!-- 当前规则 -->
-    <section class="place-section" data-testid="conditions" data-ui="place-rules">
-      <h2 class="place-section__title">当前规则</h2>
-      <div v-if="!currentRules.length" class="muted">暂无可靠规则结论（未收录 ≠ 没有规则）。</div>
-      <div v-for="r in currentRules" :key="r.id" class="zone-row" data-testid="rule-row">
-        <span class="zone-row__name">
-          {{ ruleSubjectLine(r.animal_scope, r.action) }}
-          <span v-if="r.rule_layer" class="tag zone-row__layer">
-            {{ ruleLayerLabel(r.rule_layer) }}
-          </span>
-          <span v-if="r.mandatory_level" class="tag zone-row__force">
-            {{ mandatoryLevelLabel(r.mandatory_level) }}
-          </span>
-        </span>
-        <span class="zone-row__control">
-          <StatusBadge :effect="r.effect" />
-          <StatusBadge v-if="isStale(r)" semantic="STALE" />
-        </span>
-      </div>
-      <StatusBadge
-        v-if="answer && (answerStatusKey(answer) === 'CONFLICT' || conflicts.hasConflict)"
-        semantic="CONFLICT"
-      />
-      <p v-if="conflicts.note" class="muted">{{ conflicts.note }}</p>
-    </section>
-
-    <!-- 进入前需满足（conditions） -->
-    <section class="place-section">
-      <h2 class="place-section__title">进入前需满足</h2>
-      <div v-if="!conditions.length" class="muted">暂无明确条件（未收录条件 ≠ 无限制）</div>
-      <div v-else class="rule-conditions">
-        <p v-for="c in conditions" :key="c" class="rule-condition">{{ c }}</p>
-      </div>
-    </section>
-
-    <!-- 例外区域（pending exceptions） -->
+    <!-- §12 Rule Groups：Context → Rule；组间 divider + 20–24 gap，非 card wall。 -->
     <section
-      v-if="(answer?.condition_evaluation.pending_exceptions ?? []).length"
-      class="place-section"
+      v-for="group in ruleGroups"
+      :key="group.contextLabel"
+      class="rule-group"
+      data-testid="rule-group"
+      data-ui="place-rule-group"
     >
-      <h2 class="place-section__title">限制区域 / 例外</h2>
-      <p v-for="e in answer?.condition_evaluation.pending_exceptions ?? []" :key="e" class="muted">
-        {{ conditionLabel(e) }}
-      </p>
-    </section>
-
-    <!-- 依据 / 时效 —— §18 普通 text row，三条 beige bar 取消 -->
-    <section class="place-section">
-      <h2 class="place-section__title">依据与时效</h2>
-      <div v-for="r in currentRules" :key="r.id" class="source-line" data-testid="rule-source">
-        <span>
+      <h2 class="rule-group__context" data-testid="rule-group-context">{{ group.contextLabel }}</h2>
+      <div v-for="r in group.rules" :key="r.id" class="rule-card" data-testid="rule-row">
+        <div class="rule-card__head">
+          <span class="rule-card__subject">{{ ruleSubjectLine(r.animal_scope, r.action) }}</span>
+          <span class="rule-card__status">
+            <StatusBadge
+              v-if="r.effect"
+              :effect="r.effect"
+              data-testid="rule-effect-badge"
+            />
+          </span>
+        </div>
+        <p
+          v-for="c in ruleConditionLines(r)"
+          :key="c"
+          class="rule-card__condition"
+          data-testid="rule-condition"
+        >
+          {{ c }}
+        </p>
+        <p class="muted rule-card__meta" data-testid="rule-source">
           {{ sourceLabel(sourceMap.get(r.source_id)?.issuer ?? null, true) }}
           <SourceBadge :source-type="sourceMap.get(r.source_id)?.source_type" />
-        </span>
-        <span class="muted">
-          {{ r.last_verified_at ? `最近核验 ${r.last_verified_at.slice(0, 10)}` : "来源仍待补充" }}
-        </span>
+          <span v-if="r.last_verified_at"> · 最近核验 {{ r.last_verified_at.slice(0, 10) }}</span>
+          <span v-else> · 来源仍待补充</span>
+        </p>
       </div>
-      <p v-if="!currentRules.length" class="muted">暂无规则来源。</p>
+    </section>
+    <p v-if="!currentRules.length" class="muted">暂无可靠规则结论（未收录 ≠ 没有规则，这里使用自然语言说明）。</p>
+
+    <!-- §14 Rule Conflict：inline，不渲染紫色 badge 为主角。 -->
+    <section v-if="conflicts.hasConflict" class="rule-conflict" data-testid="rule-conflict">
+      <p class="rule-conflict__title">△ 来源不一致</p>
+      <p class="muted rule-conflict__note">{{ conflicts.note }}</p>
+      <RouterLink class="btn-inline" :to="`/place/${currentRules[0]?.place_id ?? ''}?view=evidence`">
+        查看差异 →
+      </RouterLink>
     </section>
 
     <!-- 历史版本（§23 折叠，progressive disclosure） -->
@@ -133,9 +156,10 @@ const conflicts = computed(() => {
           <div v-for="r in historyRules" :key="r.id" class="zone-row">
             <span class="zone-row__name">
               {{ ruleSubjectLine(r.animal_scope, r.action) }}
-              <span class="tag" style="margin-left: 6px">{{ ruleStatusLabel(r.status) }}</span>
+              <span v-if="r.rule_layer" class="tag">{{ ruleLayerLabel(r.rule_layer) }}</span>
+              <span class="tag">{{ ruleStatusLabel(r.status) }}</span>
             </span>
-            <StatusBadge :effect="r.effect" />
+            <StatusBadge v-if="r.effect" :effect="r.effect" />
           </div>
         </div>
       </template>
@@ -150,8 +174,75 @@ const conflicts = computed(() => {
 </template>
 
 <style scoped>
+/* 组间 divider + 20–24 gap（§13）；组内非 card wall：divider rows。 */
+.rule-group {
+  margin: 0 0 var(--pa-space-5);
+  padding-bottom: var(--pa-space-5);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border);
+}
+.rule-group:last-of-type {
+  border-bottom: none;
+}
+.rule-group__context {
+  margin: 0 0 var(--pa-space-3);
+  font-size: var(--pa-font-size-18);
+  font-weight: var(--pa-font-weight-600);
+  line-height: var(--pa-line-height-26);
+  color: var(--pa-color-text-primary);
+}
+.rule-card {
+  padding: var(--pa-space-2) 0 var(--pa-space-3);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+.rule-card:last-child {
+  border-bottom: none;
+}
+.rule-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--pa-space-3);
+}
+.rule-card__subject {
+  font-size: var(--pa-font-size-base);
+  font-weight: var(--pa-font-weight-600);
+  color: var(--pa-color-text-primary);
+}
+.rule-card__status {
+  flex-shrink: 0;
+}
+.rule-card__condition {
+  margin: var(--pa-space-1) 0 0;
+  font-size: var(--pa-font-size-md);
+  color: var(--pa-color-text-secondary);
+}
+.rule-card__meta {
+  margin: var(--pa-space-1) 0 0;
+  font-size: var(--pa-font-size-sm);
+  color: var(--pa-color-text-muted);
+}
+
+/* §14 inline conflict — text-led, no purple badge as hero. */
+.rule-conflict {
+  margin: var(--pa-space-2) 0 var(--pa-space-5);
+  padding: var(--pa-space-3) var(--pa-space-4);
+  border-left: var(--pa-border-width-strong) solid var(--pa-color-warning, #b98a2e);
+  border-radius: var(--pa-radius-md);
+  background: var(--pa-color-surface-muted);
+}
+.rule-conflict__title {
+  margin: 0 0 var(--pa-space-1);
+  font-size: var(--pa-font-size-base);
+  font-weight: var(--pa-font-weight-600);
+  color: var(--pa-color-text-primary);
+}
+.rule-conflict__note {
+  margin: 0 0 var(--pa-space-1);
+}
+
+/* 历史版本区保持 divider rows（非卡片）。 */
 .place-section {
-  margin-bottom: var(--pa-space-5);
+  margin-top: var(--pa-space-4);
 }
 .place-section__title {
   margin: 0 0 var(--pa-space-3);
@@ -166,7 +257,6 @@ const conflicts = computed(() => {
   align-items: center;
   gap: var(--pa-space-3);
   min-height: 48px;
-  max-height: 64px;
   padding: var(--pa-space-2) 0;
   border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
 }
@@ -178,13 +268,6 @@ const conflicts = computed(() => {
   align-items: center;
   flex-wrap: wrap;
   gap: var(--pa-space-1);
-  font-size: var(--pa-font-size-base);
-}
-.zone-row__control {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--pa-space-2);
-  flex-shrink: 0;
 }
 .tag {
   display: inline-block;
@@ -193,27 +276,6 @@ const conflicts = computed(() => {
   padding: 1px var(--pa-space-2);
   font-size: var(--pa-font-size-sm);
   color: var(--pa-color-text-muted);
-}
-.rule-conditions {
-  display: flex;
-  flex-direction: column;
-  gap: var(--pa-space-1);
-}
-.rule-condition {
-  margin: 0;
-  font-size: var(--pa-font-size-base);
-  line-height: var(--pa-line-height-23);
-}
-.source-line {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--pa-space-3);
-  padding: var(--pa-space-2) 0;
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
-}
-.source-line:last-child {
-  border-bottom: none;
 }
 .disclosure-toggle {
   border: none;

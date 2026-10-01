@@ -1,11 +1,14 @@
 <script setup lang="ts">
 /**
- * PlaceOverviewPane — Place Dossier 概览（v0.2.4 §16–21）。
+ * PlaceOverviewPane — Place Dossier 概览（v0.2.5 §10/§11/§16）。
  *
- * 最多五块：Identity（由 PlaceView header 担任）→ Current Decision →
- * Recent Reality → Space Summary（≤3 行）→ Evidence / Source Summary（3 项）。
- * 每个 summary 都是短行 + 一个「查看… →」text CTA；不放完整长表。
- * Decision 全文表达式只出现一次（§17 去重：Primary decision full = 1）。
+ * 结构继续：Identity → Tabs → Current Decision → Recent Reality →
+ * Space Summary → Evidence Summary，但节奏调整：
+ * - desktop：main column max 820（由 PlaceView 控制）；五块齐全。
+ * - mobile：不再「Decision+Reality 后大片空白」——Space/Evidence 也以
+ *   56–64px summary row 呈现（§11），文本不展开。
+ * - Consumer copy：无工程不变量（「当前结论仅适用于这次查询。」）；无孤立 `>`。
+ * - Decision 全文表达式只出现一次（去重：Primary decision full = 1）。
  */
 import { computed } from "vue";
 import type { AccessAnswer, CoexistenceSnapshot, Zone } from "@petaccess/client-core";
@@ -23,8 +26,7 @@ const props = withDefaults(
     primarySourceLabel: string | null;
     latestVerifiedAt: string | null;
     observationCount: number;
-    /** §28：mobile 首屏只放 Identity+tabs+Decision+Reality teaser（≤22 lines），
-     *  Space/Evidence summary 进各自的 view；desktop Overview 显示全部五块。 */
+    /** §11：mobile 也要 Space/Evidence summary row（非展开），desktop 五块齐全。 */
     desktop?: boolean;
   }>(),
   { desktop: true },
@@ -39,9 +41,6 @@ const speciesLabel = computed(() => {
   if (session.activePet?.service_role === "working") return "服务犬";
   return s === "dog" ? "普通犬" : s === "cat" ? "猫" : "其他宠物";
 });
-const petContext = computed(() =>
-  session.activePet ? `我的宠物：${session.activePet.display_name}` : "我的宠物：未设置",
-);
 const realityLine = computed(() =>
   props.coexistence?.reality_answer
     ? realityStateLabel(props.coexistence.reality_answer)
@@ -50,31 +49,36 @@ const realityLine = computed(() =>
 const primaryEvidence = computed(
   () => props.primarySourceLabel ?? props.answer?.evidence_state.rules[0]?.issuer ?? "来源待补充",
 );
+/** §11 mobile：space summary row 的 value。 */
+const spaceSummaryLine = computed(() =>
+  props.zoneSummary.length ? `${props.zoneSummary.length} 个已收录区域` : "暂无已收录区域",
+);
+/** §11 mobile：evidence summary row 的 value。 */
+const evidenceSummaryLine = computed(
+  () => `${primaryEvidence.value} · 最近核验${props.latestVerifiedAt ? ` ${props.latestVerifiedAt}` : "暂无"}`,
+);
 </script>
 
 <template>
-  <!-- Current Decision (§17：完整 status surface 仅此一处) -->
+  <!-- Current Decision（§17：完整 status surface 仅此一处；§9 自然语言补充） -->
   <section class="place-section" data-testid="section-answer" data-ui="place-decision">
     <h2 class="place-section__title">当前结论</h2>
     <div class="sub-answer sub-answer--mine" data-testid="answer">
       <p v-if="desktop" class="muted sub-answer__context" data-testid="answer-context">
-        {{ petContext }} · 查询：{{ speciesLabel }} · 进入 · 公共区域
+        {{ speciesLabel }} · 进入 · 公共区域
       </p>
       <StatusBadge :semantic="statusKey" />
       <p class="status" data-testid="answer-status">{{ verdict }}</p>
       <p v-if="keyCondition" class="muted" data-testid="answer-conditions">
         需满足：{{ keyCondition }}
       </p>
-      <p
-        v-if="desktop && !answer?.condition_evaluation.missing_inputs.length && answer"
-        class="muted"
-      >
-        该结论依当前查询给出；未知 ≠ 允许。
+      <p v-if="answer" class="muted sub-answer__note">
+        当前结论仅适用于这次查询。
       </p>
     </div>
   </section>
 
-  <!-- Recent Reality（§19）：mobile 首屏只留一行 teaser + CTA（§28）。 -->
+  <!-- Recent Reality：mobile 保留一行 teaser + CTA（§11）。 -->
   <section class="place-section" data-ui="place-reality-overview" data-testid="overview-reality">
     <h2 class="place-section__title">最近现场</h2>
     <p class="muted" data-testid="overview-reality-line">{{ realityLine }}</p>
@@ -86,26 +90,36 @@ const primaryEvidence = computed(
     </RouterLink>
   </section>
 
-  <!-- §28 mobile：Space/Evidence summary 进各自 view，不入首屏。 -->
+  <!-- §11 mobile：Space summary row（56–64px，不展开）；desktop 显示多行区。 -->
   <section
     v-if="desktop"
     class="place-section"
     data-ui="place-zones-summary"
     data-testid="overview-zones"
   >
-    >
     <h2 class="place-section__title">空间概览</h2>
     <div v-for="z in zoneSummary.slice(0, 3)" :key="z.id" class="zone-row" data-ui="zone-row">
       <span class="zone-row__name">{{ zoneConsumerLine(z) }}</span>
       <span class="muted zone-row__hint">查看分区结论</span>
     </div>
-    <p v-if="!zoneSummary.length" class="muted">暂无分区域信息（信息不足 ≠ 允许）</p>
+    <p v-if="!zoneSummary.length" class="muted">暂无已收录的分区域信息</p>
     <RouterLink class="btn-inline" :to="`?view=space`" data-testid="overview-space-link">
       查看全部空间 →
     </RouterLink>
   </section>
+  <RouterLink
+    v-else
+    class="overview-summary-row"
+    :to="`?view=space`"
+    data-testid="overview-zones"
+    data-ui="place-zones-summary"
+  >
+    <span class="overview-summary-row__label">空间</span>
+    <span class="overview-summary-row__value">{{ spaceSummaryLine }}</span>
+    <span class="overview-summary-row__cta">查看 →</span>
+  </RouterLink>
 
-  <!-- §28 mobile：Evidence summary 进证据 view；只 desktop 显示。 -->
+  <!-- §11 mobile：Evidence summary row；desktop 显示详情区。 -->
   <section
     v-if="desktop"
     class="place-section"
@@ -131,6 +145,17 @@ const primaryEvidence = computed(
       查看证据与来源 →
     </RouterLink>
   </section>
+  <RouterLink
+    v-else
+    class="overview-summary-row"
+    :to="`?view=evidence`"
+    data-testid="overview-evidence"
+    data-ui="place-evidence-summary"
+  >
+    <span class="overview-summary-row__label">依据</span>
+    <span class="overview-summary-row__value">{{ evidenceSummaryLine }}</span>
+    <span class="overview-summary-row__cta">查看 →</span>
+  </RouterLink>
 </template>
 
 <style scoped>
@@ -148,6 +173,13 @@ const primaryEvidence = computed(
   border-left: var(--pa-border-width-strong) solid var(--pa-color-accent);
   border-radius: var(--pa-radius-md);
   padding: var(--pa-space-3) var(--pa-space-4);
+}
+.sub-answer__context {
+  margin: 0 0 var(--pa-space-1);
+}
+.sub-answer__note {
+  margin: var(--pa-space-2) 0 0;
+  color: var(--pa-color-text-secondary);
 }
 .status {
   margin: var(--pa-space-1) 0;
@@ -187,5 +219,41 @@ const primaryEvidence = computed(
 .evidence-summary-grid__value {
   font-size: var(--pa-font-size-md);
   color: var(--pa-color-text-primary);
+}
+
+/* §11 mobile summary row：56–64px、无 card、divider-led。 */
+.overview-summary-row {
+  display: flex;
+  align-items: center;
+  gap: var(--pa-space-3);
+  min-height: 56px;
+  max-height: 64px;
+  padding: var(--pa-space-2) 0;
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  text-decoration: none;
+  color: var(--pa-color-text-primary);
+}
+.overview-summary-row:last-child {
+  border-bottom: none;
+}
+.overview-summary-row__label {
+  flex: 0 0 auto;
+  font-size: var(--pa-font-size-base);
+  font-weight: var(--pa-font-weight-600);
+  color: var(--pa-color-text-primary);
+}
+.overview-summary-row__value {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: var(--pa-font-size-base);
+  color: var(--pa-color-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.overview-summary-row__cta {
+  flex: 0 0 auto;
+  font-size: var(--pa-font-size-md);
+  color: var(--pa-color-accent);
 }
 </style>

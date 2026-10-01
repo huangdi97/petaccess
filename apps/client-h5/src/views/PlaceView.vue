@@ -39,6 +39,7 @@ import PlaceSpacePane from "../components/place/PlaceSpacePane.vue";
 import PlaceRulesPane from "../components/place/PlaceRulesPane.vue";
 import PlaceRealityPane from "../components/place/PlaceRealityPane.vue";
 import PlaceEvidencePane from "../components/place/PlaceEvidencePane.vue";
+import PlaceUnknownPane from "../components/place/PlaceUnknownPane.vue";
 import { sourceLabel } from "../consumer/labels";
 import { answerStatusKey } from "../answer";
 import { presentDescription } from "../errors";
@@ -315,9 +316,16 @@ const placeFixture = computed<string>(() => {
           <!-- 2. 本地 section 导航（§15） -->
           <PlaceSectionNav :active="view" :place-id="placeId" />
 
-          <!-- 3. 按 view 渲染对应 pane -->
+          <PlaceUnknownPane
+            v-if="view === 'overview' && placeState === 'unknown'"
+            :place-id="placeId"
+            :has-rules="currentRules.length > 0"
+            :has-observations="observations.length > 0"
+            :zone-count="zones.length"
+            :has-sources="sources.length > 0"
+          />
           <PlaceOverviewPane
-            v-if="view === 'overview' && overviewFiveBlocks"
+            v-else-if="view === 'overview' && overviewFiveBlocks"
             :answer="answer"
             :coexistence="coexistence"
             :zone-summary="zones"
@@ -335,6 +343,7 @@ const placeFixture = computed<string>(() => {
             :conditions="conditions"
             :answer="answer"
             :latest-verified-at="latestVerifiedAt"
+            :zone-list="zones"
           />
           <PlaceRealityPane
             v-else-if="view === 'reality'"
@@ -350,25 +359,6 @@ const placeFixture = computed<string>(() => {
             :reviewed-count="observations.length"
           />
 
-          <!-- 未知态（§27）：不渲染空 section 全家福 -->
-          <section
-            v-if="placeState === 'unknown'"
-            class="place-section place-unknown"
-            data-testid="place-unknown"
-          >
-            <h2 class="place-section__title">当前查询</h2>
-            <p class="place-unknown__headline">信息不足</p>
-            <p class="muted">当前没有足够可靠规则，无法确认是否允许进入。</p>
-            <h3 class="place-section__subtitle">已有信息</h3>
-            <ul class="muted place-unknown__list">
-              <li v-if="!currentRules.length">暂无正式规则</li>
-              <li v-if="!observations.length">暂无足够现场记录</li>
-            </ul>
-            <div class="row">
-              <RouterLink class="btn" :to="`/contribute/${placeId}`">提交规则线索</RouterLink>
-              <RouterLink class="btn" :to="`/place/${placeId}/reality`">记录现场情况</RouterLink>
-            </div>
-          </section>
 
           <section
             v-if="view === 'overview' && isDesktop && currentRules.length"
@@ -436,7 +426,8 @@ const placeFixture = computed<string>(() => {
   .place-dossier {
     flex: 1 1 auto;
     min-width: 0;
-    max-width: 860px;
+    /* v0.2.5 §10：main column max width 820。 */
+    max-width: 820px;
   }
 
   .place-inspector {
@@ -463,7 +454,6 @@ const placeFixture = computed<string>(() => {
   line-height: var(--pa-line-height-36);
   color: var(--pa-color-text-primary);
 }
-
 .place-dossier__meta {
   margin: 0;
   font-size: var(--pa-font-size-md);

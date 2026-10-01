@@ -13,8 +13,8 @@ test("health and decision home render nearby places", async ({ page }) => {
   // (search-first). The map moved to its own tab.
   await expect(page.getByTestId("home-title")).toBeVisible();
   await expect(page.getByTestId("home-search-input")).toBeVisible();
-  await expect(page.getByText("附近已核验")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "规则待核实" })).toBeVisible();
+  await expect(page.getByText("附近已有依据")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "附近待补充" })).toBeVisible();
 
   // the map tab still renders the full shell; desktop is List+Map split so the
   // result pane is already visible without any 地图/列表 mode toggle (§32).

@@ -2,16 +2,19 @@
 /**
  * ContributeSignageForm — 拍规则牌：上传 → OCR 预览（仅供审核参考）→ 结构化确认 →
  * legacy verify（signage_uploaded）。照片/OCR 永不自动成规则（ADR-005/022）。
+ * v0.2.5 §28–32：统一走 ContributeStepShell；选项组改为 checkbox option rows（非 pill）。
  */
 import { computed, ref } from "vue";
 import { client } from "@petaccess/client-core";
 import { evidenceRefs, proximity } from "./contributeSupport";
 import { presentDescription } from "../../errors";
+import ContributionStepShell from "./ContributionStepShell.vue";
 
 defineOptions({ name: "ContributeSignageForm" });
 
 const props = defineProps<{
   placeId: string;
+  placeName: string;
   zones: { id: string; name: string }[];
   online: boolean;
   signedIn: boolean;
@@ -38,6 +41,12 @@ const CONDITION_OPTIONS = [
 ];
 
 const canSubmit = computed(() => props.online && props.signedIn && !busy.value);
+
+function toggleCondition(key: string) {
+  conditions.value = conditions.value.includes(key)
+    ? conditions.value.filter((k) => k !== key)
+    : [...conditions.value, key];
+}
 
 async function upload(e: Event) {
   const input = e.target as HTMLInputElement;
@@ -113,11 +122,14 @@ async function submit() {
 </script>
 
 <template>
-  <div>
-    <strong>拍规则牌</strong>
-    <div class="notice" style="margin-top: 8px">
-      证据说明：照片用于人工审核，属受控长期保存的证据媒体，不对外公开；平台不会仅凭照片自动生成或发布规则。
-    </div>
+  <ContributionStepShell
+    :place-name="placeName"
+    :step="1"
+    :total="3"
+    title="拍规则牌"
+    description="照片与 OCR 文本仅用于人工审核，属受控长期保存的证据媒体，不对外公开；平台不会仅凭照片自动生成或发布规则。"
+    @back="emit('back')"
+  >
     <div v-if="error" class="notice" data-testid="signage-error">{{ error }}</div>
 
     <label for="signage-file">现场告示照片（相机 / 相册）</label>
@@ -146,50 +158,112 @@ async function submit() {
       </div>
 
       <label for="signage-zone">拍摄区域（可选）</label>
-      <select v-model="zone" id="signage-zone">
+      <select v-model="zone" id="signage-zone" data-testid="signage-zone">
         <option value="">全场 / 不确定</option>
         <option v-for="z in zones" :key="z.id" :value="z.id">{{ z.name }}</option>
       </select>
 
       <label>条件（可多选 / 全不选）</label>
-      <div class="row">
+      <!-- §31 checkbox option rows（多选，非 pill）。 -->
+      <div class="option-group" role="group" aria-label="规则牌上的条件">
         <button
           v-for="c in CONDITION_OPTIONS"
           :key="c.key"
-          class="pill"
-          :class="{ active: conditions.includes(c.key) }"
-          @click="
-            conditions.includes(c.key)
-              ? (conditions = conditions.filter((k) => k !== c.key))
-              : conditions.push(c.key)
-          "
+          type="button"
+          class="option-row"
+          role="checkbox"
+          :aria-checked="conditions.includes(c.key)"
+          :class="{ 'option-row--active': conditions.includes(c.key) }"
+          @click="toggleCondition(c.key)"
         >
-          {{ c.label }}
+          <span class="option-row__checkbox" aria-hidden="true" />
+          <span class="option-row__text">
+            <span class="option-row__label">{{ c.label }}</span>
+          </span>
         </button>
       </div>
 
       <label for="signage-note">补充说明（结构化补充，非评论区）</label>
-      <input v-model="note" id="signage-note" maxlength="500" placeholder="如：告示位于入口右侧" />
+      <input v-model="note" id="signage-note" maxlength="500" placeholder="如：告示位于入口右侧" data-testid="signage-note" />
 
       <label style="display: flex; gap: 8px; align-items: center; margin-top: 10px">
         <input v-model="placeConfirmed" type="checkbox" data-testid="signage-place-confirm" />
         <span>我确认这张照片拍摄于本场所</span>
       </label>
-
-      <div class="row" style="margin-top: 14px">
-        <button
-          class="primary"
-          :disabled="!canSubmit || !placeConfirmed"
-          data-testid="signage-submit"
-          @click="submit"
-        >
-          {{ busy ? "提交中…" : "提交证据" }}
-        </button>
-        <button :disabled="busy" @click="emit('back')">返回</button>
-      </div>
     </template>
-    <div v-else class="row" style="margin-top: 14px">
-      <button :disabled="busy" @click="emit('back')">返回</button>
-    </div>
-  </div>
+
+    <template #primary>
+      <button
+        class="primary"
+        :disabled="!canSubmit || !placeConfirmed"
+        data-testid="signage-submit"
+        @click="submit"
+      >
+        {{ busy ? "提交中…" : "提交证据" }}
+      </button>
+    </template>
+  </ContributionStepShell>
 </template>
+
+<style scoped>
+.option-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-2);
+}
+.option-row {
+  display: flex;
+  align-items: center;
+  gap: var(--pa-space-3);
+  min-height: 56px;
+  padding: var(--pa-space-2) var(--pa-space-3);
+  border: var(--pa-border-width) solid var(--pa-color-border);
+  border-radius: var(--pa-radius-md);
+  background: var(--pa-color-surface);
+  text-align: left;
+  cursor: pointer;
+}
+.option-row--active {
+  border-color: var(--pa-color-accent);
+  background: var(--pa-color-accent-weak);
+}
+.option-row__checkbox {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  border: 2px solid var(--pa-color-border-strong);
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.option-row--active .option-row__checkbox {
+  border-color: var(--pa-color-accent);
+  background: var(--pa-color-accent);
+}
+.option-row--active .option-row__checkbox::after {
+  content: "✓";
+  color: var(--pa-color-surface);
+  font-size: 13px;
+  line-height: 1;
+}
+.option-row__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.option-row__label {
+  font-size: var(--pa-font-size-base);
+  font-weight: var(--pa-font-weight-600);
+  color: var(--pa-color-text-primary);
+}
+.option-row__hint {
+  font-size: var(--pa-font-size-sm);
+}
+.option-row:hover,
+.option-row:focus-visible {
+  border-color: var(--pa-color-accent);
+  outline: 2px solid var(--pa-color-border-focus);
+  outline-offset: -1px;
+}
+</style>

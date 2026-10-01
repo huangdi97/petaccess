@@ -12,12 +12,11 @@
  * (CoexistenceSnapshot SSOT, bounded concurrency, cache). Markers = shape +
  * semantic status, never a ranking; map failure surfaces via StateMessage.
  */
-import BottomSheet from "../components/BottomSheet.vue";
 import MapResultPane from "../components/domain/MapResultPane.vue";
 import MockMap from "../components/MockMap.vue";
+import MapSelectedSheet from "../components/map/MapSelectedSheet.vue";
 import PlacePreview from "../components/domain/PlacePreview.vue";
 import QueryContextBar from "../components/domain/QueryContextBar.vue";
-import StatusBadge from "../components/StatusBadge.vue";
 import StateMessage from "../components/StateMessage.vue";
 import { placeTypeLabel } from "@petaccess/client-core";
 import { useMapWorkspace } from "../composables/useMapWorkspace";
@@ -68,16 +67,24 @@ function goHome() {
     <!-- v0.2.4 §32：desktop 没有「地图/列表」模式切换 —— desktop 恒为 List+Map。
          Mobile 保留 compact mode toggle（仅确有必要时）。 -->
     <div v-if="!isDesktop" class="map-viewbar" role="group" aria-label="视图切换">
-      <button type="button" class="pill" data-testid="view-map" @click="view = 'map'">地图</button>
-      <button
-        type="button"
-        class="pill"
-        :class="{ active: view === 'list' }"
-        data-testid="view-list"
-        @click="view = 'list'"
-      >
-        列表
-      </button>
+      <div class="map-viewbar__segment">
+        <button
+          type="button"
+          :class="{ active: view === 'map' }"
+          data-testid="view-map"
+          @click="view = 'map'"
+        >
+          地图
+        </button>
+        <button
+          type="button"
+          :class="{ active: view === 'list' }"
+          data-testid="view-list"
+          @click="view = 'list'"
+        >
+          列表
+        </button>
+      </div>
     </div>
 
     <div
@@ -143,59 +150,69 @@ function goHome() {
         :error="preview.error"
       />
     </div>
-
-    <!-- 移动端：选中场所的底部面板 -->
-    <BottomSheet
+    <!-- 移动端：选中场所 = 真实 overlay bottom sheet（v0.2.5 §22–24）。 -->
+    <MapSelectedSheet
       :open="Boolean(selected) && !isDesktop"
-      :title="selected?.canonical_name ?? null"
+      :place="selected"
+      :status="selected ? (statuses[selected.id] ?? null) : null"
+      :snapshot="preview.snapshot"
+      :loading="preview.loading"
+      :error="preview.error"
       @close="
         selected = null;
         syncRoutePlace(null);
       "
-    >
-      <template v-if="selected">
-        <div class="muted">
-          {{ placeTypeLabel(selected.place_type) }} ·
-          {{ selected.canonical_address ?? "地址未收录" }}
-        </div>
-        <div style="margin: 8px 0">
-          <StatusBadge :semantic="statuses[selected.id] ?? 'UNKNOWN'" block />
-        </div>
-        <div class="row">
-          <button class="primary" data-testid="sheet-open-detail" @click="open(selected.id)">
-            查看场所详情
-          </button>
-          <button
-            @click="
-              selected = null;
-              syncRoutePlace(null);
-            "
-          >
-            返回地图
-          </button>
-        </div>
-      </template>
-    </BottomSheet>
+    />
   </div>
 </template>
 
 <style scoped>
 .map-workspace {
   min-height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
+/* v0.2.5 §25：compact segmented control（非两个独立 pill）。 */
 .map-viewbar {
   display: flex;
-  gap: var(--pa-space-2);
+  justify-content: center;
   padding: var(--pa-space-2) var(--pa-space-4);
   border-bottom: var(--pa-border-width) solid var(--pa-color-border);
 }
+.map-viewbar__segment {
+  display: inline-flex;
+  border: var(--pa-border-width) solid var(--pa-color-border);
+  border-radius: var(--pa-radius-control);
+  overflow: hidden;
+}
+.map-viewbar__segment button {
+  border: none;
+  background: transparent;
+  min-height: var(--pa-size-control-md);
+  padding: 0 var(--pa-space-4);
+  font-size: var(--pa-font-size-md);
+  color: var(--pa-color-text-secondary);
+  cursor: pointer;
+}
+.map-viewbar__segment button.active {
+  background: var(--pa-color-accent-weak);
+  color: var(--pa-color-accent);
+  font-weight: var(--pa-font-weight-600);
+}
+.map-viewbar__segment button:focus-visible {
+  outline: 2px solid var(--pa-color-border-focus);
+  outline-offset: -1px;
+}
 
+/* Mobile：body 占满 tabbar 上方视口；map 填充剩余高度（§22）。 */
 .map-workspace__body {
   display: flex;
   flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
   gap: var(--pa-space-4);
-  padding: var(--pa-space-4);
+  padding: var(--pa-space-3);
 }
 
 /* Desktop map mode: 400px result pane + the map canvas taking the rest. */
@@ -214,10 +231,11 @@ function goHome() {
 .map-canvas {
   position: relative;
   overflow: hidden;
-  flex: 1;
+  flex: 1 1 auto;
   min-width: 0;
-  min-height: 480px;
+  min-height: 320px;
   border: var(--pa-border-width) solid var(--pa-color-border);
+  border-radius: var(--pa-radius-md);
   background:
     repeating-linear-gradient(
       0deg,

@@ -96,12 +96,11 @@ const RIVER = "M 0 40 Q 130 60 260 40 L 260 84 Q 130 104 0 84 Z";
         <div class="map-cluster" :class="'s-' + c.status">{{ c.count }}</div>
       </template>
       <template v-else>
-        <!-- Label first, dot second. The pin is drawn above its anchor
-             (`translate(-50%, -100%)`) and `.map-pin` uses
-             `justify-content: flex-end`, so the *last* child ends up on the
-             anchor. With the dot first, the label — not the pin tip — sat on
-             the coordinate and the teardrop floated above it. -->
-        <div class="lbl">{{ glyph(c.status) }}</div>
+        <!-- v0.2.5 §26：未选中 marker 只显示小 symbol，不永久铺满状态字；
+             只有选中的（或 hover）才上 label。 -->
+        <div v-if="selectedId === c.memberIds[0]" class="lbl" :class="'s-' + c.status">
+          {{ glyph(c.status) }}
+        </div>
         <div class="dot" :class="'s-' + c.status"></div>
       </template>
     </div>
@@ -215,15 +214,14 @@ const RIVER = "M 0 40 Q 130 60 260 40 L 260 84 Q 130 104 0 84 Z";
 }
 
 .map-pin--selected .dot {
-  /* §32：selected marker 明显扩大 1.2–1.4x + halo。 */
-  width: 18px;
-  height: 18px;
+  /* v0.2.5 §26：selected marker 1.3x + halo（未选中 12px → 选中 ~15.6px）。 */
+  width: 16px;
+  height: 16px;
   box-shadow:
     0 0 0 4px var(--pa-color-accent-weak),
     var(--pa-elevation-2);
   border-color: var(--pa-color-surface);
 }
-
 /* status fills mirror the app's status tokens (s-* classes from app sheet). */
 .s-ALLOWED,
 .s-MATCH {
