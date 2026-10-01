@@ -692,5 +692,7 @@ test("human review v0.2.5 — named screenshots with Capture State Integrity", a
     "utf8",
   );
 
-  expect(invalid, `invalid capture states: ${invalid.map((i) => i.name).join(", ")}`).toHaveLength(0);
+  expect(invalid, `invalid capture states: ${invalid.map((i) => i.name).join(", ")}`).toHaveLength(
+    0,
+  );
 });
