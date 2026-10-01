@@ -1,0 +1,26 @@
+{
+  "name": "map_mobile_selected_half",
+  "viewport": "430x932",
+  "route": "/#/map?place=8412b521-5e1c-505d-9dec-568acb860c76",
+  "expected": {
+    "page": "map",
+    "state": "ready",
+    "fixture": "map-ready-v1",
+    "h1": "规则地图"
+  },
+  "actual": {
+    "route": "#/map?place=8412b521-5e1c-505d-9dec-568acb860c76",
+    "page": "map",
+    "state": "ready",
+    "fixture": "map-ready-v1",
+    "h1": "规则地图",
+    "entityId": null,
+    "selectedId": "map-marker-selected",
+    "count": null,
+    "counts": {}
+  },
+  "valid": true,
+  "mismatches": [],
+  "note": "v0.2.5 §23/§24：half 态 bottom sheet（drag handle+名称+状态+类型·距离+关键条件+最近现场+查看场所 →）",
+  "generatedAt": "2026-10-01T17:21:21.584Z"
+}

@@ -1,0 +1,26 @@
+{
+  "name": "contribution_desktop_done",
+  "viewport": "1440x900",
+  "route": "/#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+  "expected": {
+    "page": "contribution",
+    "state": "done",
+    "fixture": "contribution-done-v1",
+    "h1": "现场贡献"
+  },
+  "actual": {
+    "route": "#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+    "page": "contribution",
+    "state": "done",
+    "fixture": "contribution-done-v1",
+    "h1": "现场贡献",
+    "entityId": null,
+    "selectedId": null,
+    "count": null,
+    "counts": {}
+  },
+  "valid": true,
+  "mismatches": [],
+  "note": "v0.2.5 §34：已提交待核验 · 感谢提供事实记录…查看我的贡献 →/返回场所 →",
+  "generatedAt": "2026-10-01T17:21:33.180Z"
+}

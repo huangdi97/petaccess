@@ -1,0 +1,26 @@
+{
+  "name": "contribution_mobile_step1",
+  "viewport": "430x932",
+  "route": "/#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+  "expected": {
+    "page": "contribution",
+    "state": "step-1",
+    "fixture": "contribution-step-1-v1",
+    "h1": "现场贡献"
+  },
+  "actual": {
+    "route": "#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+    "page": "contribution",
+    "state": "step-1",
+    "fixture": "contribution-step-1-v1",
+    "h1": "现场贡献",
+    "entityId": null,
+    "selectedId": null,
+    "count": null,
+    "counts": {}
+  },
+  "valid": true,
+  "mismatches": [],
+  "note": "v0.2.5 §29–32：mobile step shell，min-height 440–520",
+  "generatedAt": "2026-10-01T17:21:27.995Z"
+}

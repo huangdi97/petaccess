@@ -1,0 +1,28 @@
+{
+  "name": "search_mobile_filter",
+  "viewport": "430x932",
+  "route": "/#/search",
+  "expected": {
+    "page": "search",
+    "state": "filter",
+    "fixture": "search-filter-v1",
+    "h1": "搜索场所规则"
+  },
+  "actual": {
+    "route": "#/search",
+    "page": "search",
+    "state": "filter",
+    "fixture": "search-filter-v1",
+    "h1": "搜索场所规则",
+    "entityId": null,
+    "selectedId": null,
+    "count": 5,
+    "counts": {
+      "result-rows": 5
+    }
+  },
+  "valid": true,
+  "mismatches": [],
+  "note": "v0.2.5 §19：Filter 非独立大按钮（toolbar 内）",
+  "generatedAt": "2026-10-01T17:21:16.471Z"
+}

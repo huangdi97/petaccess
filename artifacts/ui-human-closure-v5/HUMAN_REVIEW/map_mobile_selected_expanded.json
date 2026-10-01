@@ -1,0 +1,26 @@
+{
+  "name": "map_mobile_selected_expanded",
+  "viewport": "430x932",
+  "route": "/#/map?place=8412b521-5e1c-505d-9dec-568acb860c76",
+  "expected": {
+    "page": "map",
+    "state": "ready",
+    "fixture": "map-ready-v1",
+    "h1": "规则地图"
+  },
+  "actual": {
+    "route": "#/map?place=8412b521-5e1c-505d-9dec-568acb860c76",
+    "page": "map",
+    "state": "ready",
+    "fixture": "map-ready-v1",
+    "h1": "规则地图",
+    "entityId": null,
+    "selectedId": "map-marker-selected",
+    "count": null,
+    "counts": {}
+  },
+  "valid": true,
+  "mismatches": [],
+  "note": "v0.2.5 §23：expanded 态（drag handle 点击展开）",
+  "generatedAt": "2026-10-01T17:21:22.843Z"
+}

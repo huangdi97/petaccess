@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PetAccess v0.2.5 — Human Visual Closure Review 候选包</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 2rem; max-width: 1100px; color: #222; }
+  h1 { font-size: 1.4rem; }
+  .card { border: 1px solid #ccc; border-radius: 8px; padding: 1rem; margin: 1.2rem 0; }
+  .card img { max-width: 100%; border: 1px solid #ddd; margin-top: 0.6rem; }
+  dl { display: grid; grid-template-columns: 10rem 1fr; gap: 0.25rem 1rem; }
+  dt { font-weight: 600; }
+  dd { margin: 0; }
+  .status { margin-top: 1rem; font-size: 0.9rem; color: #555; }
+</style>
+</head>
+<body>
+  <h1>PetAccess v0.2.5 — Human Visual Closure Review 候选包（15 VALID / 15 total）</h1>
+  <p>每张截图都先通过 Capture State Integrity（route/page/state/fixture/h1/entity/selected/count 来自真实 DOM），
+  valid 才进入本包；metadata 只证明真实状态，不宣称视觉通过；Agent 不代替用户做视觉签字。</p>
+  <div class="card">
+  <h2>search_desktop_ready ✅</h2>
+  <dl>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/search</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>76801</dd>
+    <dt>Known notes</dt><dd>v0.2.5 §17/§19：list-detail；toolbar 结果N|筛选；selected tint 轻、status 不抢 Place Name</dd>
+  </dl>
+  <img src="search_desktop_ready.png" alt="search_desktop_ready — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>search_desktop_empty ✅</h2>
+  <dl>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/search</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>38626</dd>
+    <dt>Known notes</dt><dd>v0.2.5 §18：仅左侧一个 primary「提交场所线索」，右侧纯 onboarding 文案</dd>
+  </dl>
+  <img src="search_desktop_empty.png" alt="search_desktop_empty — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>place_desktop_overview ✅</h2>
+  <dl>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>71710</dd>
+    <dt>Known notes</dt><dd>v0.2.5 §10/§11：main column 820；Identity/Decision/Reality/Space/Evidence</dd>
+  </dl>
+  <img src="place_desktop_overview.png" alt="place_desktop_overview — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>place_desktop_rules ✅</h2>
+  <dl>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e?view=rules</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>79436</dd>
+    <dt>Known notes</dt><dd>v0.2.5 §12–14：Rule Groups 带回文章节（contextLabel/subjectAction/status/condition/source）</dd>
+  </dl>
+  <img src="place_desktop_rules.png" alt="place_desktop_rules — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>place_desktop_unknown ✅</h2>
+  <dl>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/place/3b5a341a-e550-5f0c-b35a-319ed43bd840</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>57452</dd>
+    <dt>Known notes</dt><dd>v0.2.5 §15：Unknown Overview 最小化；自然语言 copy，无工程不变量</dd>
+  </dl>
+  <img src="place_desktop_unknown.png" alt="place_desktop_unknown — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>home_desktop ✅</h2>
+  <dl>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>65545</dd>
+    <dt>Known notes</dt><dd>v0.2.5 §20/§21：附近已有依据 / 附近待补充 consumer copy</dd>
+  </dl>
+  <img src="home_desktop.png" alt="home_desktop — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>map_desktop ✅</h2>
+  <dl>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/map</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>81924</dd>
+    <dt>Known notes</dt><dd>v0.2.5 §22：desktop List+Map；selected preview</dd>
+  </dl>
+  <img src="map_desktop.png" alt="map_desktop — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>reality_desktop_ready ✅</h2>
+  <dl>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/place/8412b521-5e1c-505d-9dec-568acb860c76/reality</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>38902</dd>
+    <dt>Known notes</dt><dd>v0.2.5 §35：timeline 首屏；Date=metadata、Time=strong、Fact=body strong、待核验=小号 muted</dd>
+  </dl>
+  <img src="reality_desktop_ready.png" alt="reality_desktop_ready — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>reality_desktop_empty ✅</h2>
+  <dl>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e/reality</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>27071</dd>
+    <dt>Known notes</dt><dd>v0.2.5 §35：inline empty</dd>
+  </dl>
+  <img src="reality_desktop_empty.png" alt="reality_desktop_empty — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>evidence_desktop_ready ✅</h2>
+  <dl>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/place/8412b521-5e1c-505d-9dec-568acb860c76/evidence</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>51664</dd>
+    <dt>Known notes</dt><dd>v0.2.5 §36：record identity 更强；2 条现场记录·8 个来源·3 个待核验 层级明确</dd>
+  </dl>
+  <img src="evidence_desktop_ready.png" alt="evidence_desktop_ready — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>evidence_desktop_empty ✅</h2>
+  <dl>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e/evidence</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>49577</dd>
+    <dt>Known notes</dt><dd>v0.2.5 §36：inline empty</dd>
+  </dl>
+  <img src="evidence_desktop_empty.png" alt="evidence_desktop_empty — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>contribution_desktop_choose ✅</h2>
+  <dl>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>41730</dd>
+    <dt>Known notes</dt><dd>v0.2.5 §28/§31：5 option rows；提交内容会进入人工核验</dd>
+  </dl>
+  <img src="contribution_desktop_choose.png" alt="contribution_desktop_choose — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>contribution_desktop_step1 ✅</h2>
+  <dl>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>47377</dd>
+    <dt>Known notes</dt><dd>v0.2.5 §29–32：ContributionStepShell（place context + progress + title/desc + footer）+ radio option rows</dd>
+  </dl>
+  <img src="contribution_desktop_step1.png" alt="contribution_desktop_step1 — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>contribution_desktop_step2 ✅</h2>
+  <dl>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>41521</dd>
+    <dt>Known notes</dt><dd>v0.2.5 §33：reality 表单按真实字段 cluster（什么时候/在哪里/你看到了什么）</dd>
+  </dl>
+  <img src="contribution_desktop_step2.png" alt="contribution_desktop_step2 — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>contribution_desktop_done ✅</h2>
+  <dl>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>26356</dd>
+    <dt>Known notes</dt><dd>v0.2.5 §34：已提交待核验 · 感谢提供事实记录…查看我的贡献 →/返回场所 →</dd>
+  </dl>
+  <img src="contribution_desktop_done.png" alt="contribution_desktop_done — VALID" loading="lazy" />
+</div>
+  <p class="status">机器门禁与状态完整性验证详见 docs/reports/UI_HUMAN_CLOSURE_V5_REPORT.md。</p>
+</body>
+</html>

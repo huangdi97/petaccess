@@ -1,0 +1,26 @@
+{
+  "name": "reality_mobile_ready",
+  "viewport": "430x932",
+  "route": "/#/place/8412b521-5e1c-505d-9dec-568acb860c76/reality",
+  "expected": {
+    "page": "reality",
+    "state": "ready",
+    "fixture": "reality-ready-v1",
+    "h1": "现场轨迹"
+  },
+  "actual": {
+    "route": "#/place/8412b521-5e1c-505d-9dec-568acb860c76/reality",
+    "page": "reality",
+    "state": "ready",
+    "fixture": "reality-ready-v1",
+    "h1": "现场轨迹",
+    "entityId": null,
+    "selectedId": null,
+    "count": null,
+    "counts": {}
+  },
+  "valid": true,
+  "mismatches": [],
+  "note": "v0.2.5 §35：mobile timeline-first",
+  "generatedAt": "2026-10-01T17:21:23.735Z"
+}
