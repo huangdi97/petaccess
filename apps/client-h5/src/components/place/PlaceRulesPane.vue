@@ -103,11 +103,7 @@ function ruleConditionLines(r: RuleView): string[] {
         <div class="rule-card__head">
           <span class="rule-card__subject">{{ ruleSubjectLine(r.animal_scope, r.action) }}</span>
           <span class="rule-card__status">
-            <StatusBadge
-              v-if="r.effect"
-              :effect="r.effect"
-              data-testid="rule-effect-badge"
-            />
+            <StatusBadge v-if="r.effect" :effect="r.effect" data-testid="rule-effect-badge" />
           </span>
         </div>
         <p
@@ -132,7 +128,10 @@ function ruleConditionLines(r: RuleView): string[] {
     <section v-if="conflicts.hasConflict" class="rule-conflict" data-testid="rule-conflict">
       <p class="rule-conflict__title">△ 来源不一致</p>
       <p class="muted rule-conflict__note">{{ conflicts.note }}</p>
-      <RouterLink class="btn-inline" :to="`/place/${currentRules[0]?.place_id ?? ''}?view=evidence`">
+      <RouterLink
+        class="btn-inline"
+        :to="`/place/${currentRules[0]?.place_id ?? ''}?view=evidence`"
+      >
         查看差异 →
       </RouterLink>
     </section>
@@ -226,7 +225,7 @@ function ruleConditionLines(r: RuleView): string[] {
 .rule-conflict {
   margin: var(--pa-space-2) 0 var(--pa-space-5);
   padding: var(--pa-space-3) var(--pa-space-4);
-  border-left: var(--pa-border-width-strong) solid var(--pa-color-warning, #b98a2e);
+  border-left: var(--pa-border-width-strong) solid var(--pa-color-warning);
   border-radius: var(--pa-radius-md);
   background: var(--pa-color-surface-muted);
 }

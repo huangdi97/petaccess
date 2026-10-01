@@ -112,12 +112,11 @@ test("contribution first screen asks 你刚刚知道了什么？ with the five c
   request,
 }) => {
   const token = await signIn(request);
-  await page.goto("/");
-  await page.evaluate((t) => localStorage.setItem("pa_token", t), token);
-  await page.goto(`/#/contribute/${MALL_ID}`);
-  // 并行 worker 下 hash goto 可能被 SPA boot 初始导航覆盖（落在 Home）；
-  // reload 强制以目标 hash 重新挂载（与 human-review / contribute-wizard 同模式）。
-  await page.reload();
+  // Deterministic token injection: a single full-page goto boots straight into
+  // ContributeView (the goto→reload pattern raced SPA boot under parallel
+  // workers and intermittently landed on Home; same fix as contribute-wizard).
+  await page.addInitScript((t) => localStorage.setItem("pa_token", t), token);
+  await page.goto(`/#/contribute/${MALL_ID}`, { waitUntil: "load" });
   await expect(page.getByTestId("entry-reality-observed_presence")).toBeVisible({ timeout: 15000 });
   // §41 makes the page h1 carry the same question (visually-hidden) as the
   // visible entry h2 — getByText is intentionally ambiguous, so take first.
