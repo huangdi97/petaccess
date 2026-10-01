@@ -1,0 +1,32 @@
+{
+  "name": "contribution_mobile_choose-type",
+  "phase": "phase-d-rest",
+  "viewport": "430x932",
+  "route": "/#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+  "expected": {
+    "page": "contribution",
+    "state": "choose-type",
+    "fixture": "contribution-choose-type-v1",
+    "h1": "你刚刚知道了什么？",
+    "counts": {
+      "choice-count": 5
+    }
+  },
+  "actual": {
+    "route": "#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+    "page": "contribution",
+    "state": "choose-type",
+    "fixture": "contribution-choose-type-v1",
+    "h1": "你刚刚知道了什么？",
+    "entityId": null,
+    "selectedId": null,
+    "count": null,
+    "counts": {
+      "choice-count": 5
+    }
+  },
+  "valid": true,
+  "mismatches": [],
+  "note": "移动端同样真实进入 choose-type（§40）",
+  "generatedAt": "2026-09-30T17:09:02.204Z"
+}

@@ -1,0 +1,27 @@
+{
+  "name": "evidence_desktop_records",
+  "phase": "phase-d-rest",
+  "viewport": "1440x900",
+  "route": "/#/place/8412b521-5e1c-505d-9dec-568acb860c76/evidence",
+  "expected": {
+    "page": "evidence",
+    "state": "ready",
+    "fixture": "evidence-records-v1",
+    "h1": "证据与来源"
+  },
+  "actual": {
+    "route": "#/place/8412b521-5e1c-505d-9dec-568acb860c76/evidence",
+    "page": "evidence",
+    "state": "ready",
+    "fixture": "evidence-records-v1",
+    "h1": "证据与来源",
+    "entityId": null,
+    "selectedId": null,
+    "count": null,
+    "counts": {}
+  },
+  "valid": true,
+  "mismatches": [],
+  "note": "Provenance rail：marker col 24 / gap 28–36 / 5 步、禁 UUID（§39）",
+  "generatedAt": "2026-09-30T17:09:07.317Z"
+}

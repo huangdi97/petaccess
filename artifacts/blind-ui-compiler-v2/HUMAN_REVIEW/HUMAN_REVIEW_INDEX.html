@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PetAccess v0.2.3 — Blind UI Compiler Human Review 包</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 2rem; max-width: 1100px; color: #222; }
+  h1 { font-size: 1.4rem; }
+  .card { border: 1px solid #ccc; border-radius: 8px; padding: 1rem; margin: 1.2rem 0; }
+  .card img { max-width: 100%; border: 1px solid #ddd; margin-top: 0.6rem; }
+  dl { display: grid; grid-template-columns: 10rem 1fr; gap: 0.25rem 1rem; }
+  dt { font-weight: 600; }
+  dd { margin: 0; }
+  .status { margin-top: 1rem; font-size: 0.9rem; color: #555; }
+</style>
+</head>
+<body>
+  <h1>PetAccess v0.2.3 — Blind UI Compiler Human Review 包（12 VALID / 12 total）</h1>
+  <p>每张截图都先通过 Capture State Integrity（route/page/state/fixture/h1/selected/count 来自真实 DOM），
+  valid 才进入本包；Agent 不代替用户做视觉签字。HTML 不做任何美学评价。</p>
+  <div class="card">
+  <h2>search_desktop_ready ✅</h2>
+  <dl>
+    <dt>Phase</dt><dd>phase-a-search</dd>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/search</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>82132</dd>
+    <dt>Known notes</dt><dd>桌面：Rail 68 / Topbar 60 / Results 400 全出血 + Detail 704 内容列</dd>
+  </dl>
+  <img src="phase-a-search/search_desktop_ready.png" alt="search_desktop_ready — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>search_desktop_empty ✅</h2>
+  <dl>
+    <dt>Phase</dt><dd>phase-a-search</dd>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/search</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>40939</dd>
+    <dt>Known notes</dt><dd>空态只存在于 ResultsPane；右侧 onboarding copy（§23）</dd>
+  </dl>
+  <img src="phase-a-search/search_desktop_empty.png" alt="search_desktop_empty — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>place_desktop_ready ✅</h2>
+  <dl>
+    <dt>Phase</dt><dd>phase-b-place</dd>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>91405</dd>
+    <dt>Known notes</dt><dd>Dossier x≈100 w∈820–860 + Inspector x≈1010 w∈320–350 sticky（§27）</dd>
+  </dl>
+  <img src="phase-b-place/place_desktop_ready.png" alt="place_desktop_ready — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>place_desktop_unknown ✅</h2>
+  <dl>
+    <dt>Phase</dt><dd>phase-b-place</dd>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/place/3b5a341a-e550-5f0c-b35a-319ed43bd840</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>84892</dd>
+    <dt>Known notes</dt><dd>无已发布结论 → UNKNOWN 诚实态（未知 ≠ 允许）</dd>
+  </dl>
+  <img src="phase-b-place/place_desktop_unknown.png" alt="place_desktop_unknown — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>home_desktop ✅</h2>
+  <dl>
+    <dt>Phase</dt><dd>phase-c-home-map</dd>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>72659</dd>
+    <dt>Known notes</dt><dd>Task Launcher：location → query → search → recent/nearby → lens（§36）</dd>
+  </dl>
+  <img src="phase-c-home-map/home_desktop.png" alt="home_desktop — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>map_desktop ✅</h2>
+  <dl>
+    <dt>Phase</dt><dd>phase-c-home-map</dd>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/map</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>106073</dd>
+    <dt>Known notes</dt><dd>Spatial workspace：rail + 400 result pane + full map + 筛选 N（§37）</dd>
+  </dl>
+  <img src="phase-c-home-map/map_desktop.png" alt="map_desktop — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>reality_desktop_ready ✅</h2>
+  <dl>
+    <dt>Phase</dt><dd>phase-d-rest</dd>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/place/8412b521-5e1c-505d-9dec-568acb860c76/reality</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>58772</dd>
+    <dt>Known notes</dt><dd>True timeline：time col 72 / rail 24 / content；marker+time x 对齐（§38）</dd>
+  </dl>
+  <img src="phase-d-rest/reality_desktop_ready.png" alt="reality_desktop_ready — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>reality_desktop_empty ✅</h2>
+  <dl>
+    <dt>Phase</dt><dd>phase-d-rest</dd>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e/reality</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>54388</dd>
+    <dt>Known notes</dt><dd>空态：暂无近期现场记录。/ 这并不代表现场没有动物。（§38）</dd>
+  </dl>
+  <img src="phase-d-rest/reality_desktop_empty.png" alt="reality_desktop_empty — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>evidence_desktop_records ✅</h2>
+  <dl>
+    <dt>Phase</dt><dd>phase-d-rest</dd>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/place/8412b521-5e1c-505d-9dec-568acb860c76/evidence</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>43115</dd>
+    <dt>Known notes</dt><dd>Provenance rail：marker col 24 / gap 28–36 / 5 步、禁 UUID（§39）</dd>
+  </dl>
+  <img src="phase-d-rest/evidence_desktop_records.png" alt="evidence_desktop_records — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>evidence_desktop_empty ✅</h2>
+  <dl>
+    <dt>Phase</dt><dd>phase-d-rest</dd>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e/evidence</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>41946</dd>
+    <dt>Known notes</dt><dd>无记录路径：证据条目空态 + 来源链保持 5 步结构（§39）</dd>
+  </dl>
+  <img src="phase-d-rest/evidence_desktop_empty.png" alt="evidence_desktop_empty — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>contribution_desktop_choose-type ✅</h2>
+  <dl>
+    <dt>Phase</dt><dd>phase-d-rest</dd>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>39161</dd>
+    <dt>Known notes</dt><dd>§40/§41：5 固定选项 + consumer copy 禁 ADR/UUID；choice-count=5</dd>
+  </dl>
+  <img src="phase-d-rest/contribution_desktop_choose-type.png" alt="contribution_desktop_choose-type — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>contribution_desktop_step-2 ✅</h2>
+  <dl>
+    <dt>Phase</dt><dd>phase-d-rest</dd>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd>43942</dd>
+    <dt>Known notes</dt><dd>真实进入 reality 父流程表单（第二步聚焦步骤，§40）</dd>
+  </dl>
+  <img src="phase-d-rest/contribution_desktop_step-2.png" alt="contribution_desktop_step-2 — VALID" loading="lazy" />
+</div>
+  <p class="status">机器门禁与状态完整性验证详见 docs/reports/BLIND_UI_V2_FINAL_REPORT.md。</p>
+</body>
+</html>

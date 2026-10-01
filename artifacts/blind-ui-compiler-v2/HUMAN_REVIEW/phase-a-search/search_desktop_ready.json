@@ -1,0 +1,30 @@
+{
+  "name": "search_desktop_ready",
+  "phase": "phase-a-search",
+  "viewport": "1440x900",
+  "route": "/#/search",
+  "expected": {
+    "page": "search",
+    "state": "ready-selected",
+    "fixture": "search-ready-v1",
+    "h1": "搜索场所规则",
+    "selectedId": "search-selected-row"
+  },
+  "actual": {
+    "route": "#/search",
+    "page": "search",
+    "state": "ready-selected",
+    "fixture": "search-ready-v1",
+    "h1": "搜索场所规则",
+    "entityId": null,
+    "selectedId": "search-selected-row",
+    "count": 5,
+    "counts": {
+      "result-rows": 5
+    }
+  },
+  "valid": true,
+  "mismatches": [],
+  "note": "桌面：Rail 68 / Topbar 60 / Results 400 全出血 + Detail 704 内容列",
+  "generatedAt": "2026-09-30T17:08:57.337Z"
+}

@@ -1,0 +1,28 @@
+{
+  "name": "place_desktop_ready",
+  "phase": "phase-b-place",
+  "viewport": "1440x900",
+  "route": "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+  "expected": {
+    "page": "place",
+    "state": "ready",
+    "fixture": "place-ready-v1",
+    "entityId": "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+    "h1": "云栖中心·测试商场"
+  },
+  "actual": {
+    "route": "#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+    "page": "place",
+    "state": "ready",
+    "fixture": "place-ready-v1",
+    "h1": "云栖中心·测试商场",
+    "entityId": "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+    "selectedId": null,
+    "count": null,
+    "counts": {}
+  },
+  "valid": true,
+  "mismatches": [],
+  "note": "Dossier x≈100 w∈820–860 + Inspector x≈1010 w∈320–350 sticky（§27）",
+  "generatedAt": "2026-09-30T17:09:00.492Z"
+}

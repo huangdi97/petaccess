@@ -1,0 +1,242 @@
+{
+  "phase": "final",
+  "generated_at": "2026-09-30T16:43:03.453Z",
+  "contracts": {
+    "contribution": {
+      "PASS": 44,
+      "WARN": 0,
+      "FAIL": 0
+    },
+    "evidence": {
+      "PASS": 33,
+      "WARN": 0,
+      "FAIL": 0
+    },
+    "global": {
+      "PASS": 32,
+      "WARN": 0,
+      "FAIL": 0
+    },
+    "home": {
+      "PASS": 17,
+      "WARN": 0,
+      "FAIL": 0
+    },
+    "map": {
+      "PASS": 18,
+      "WARN": 0,
+      "FAIL": 0
+    },
+    "place.desktop": {
+      "PASS": 45,
+      "WARN": 2,
+      "FAIL": 0
+    },
+    "place.mobile": {
+      "PASS": 20,
+      "WARN": 1,
+      "FAIL": 0
+    },
+    "reality": {
+      "PASS": 33,
+      "WARN": 0,
+      "FAIL": 0
+    },
+    "search.desktop": {
+      "PASS": 52,
+      "WARN": 0,
+      "FAIL": 0
+    },
+    "search.mobile": {
+      "PASS": 38,
+      "WARN": 0,
+      "FAIL": 0
+    }
+  },
+  "state_integrity": {
+    "PASS": 76,
+    "WARN": 0,
+    "FAIL": 0,
+    "rows": 76
+  },
+  "semantic": {
+    "PASS": 39,
+    "WARN": 1,
+    "FAIL": 0,
+    "rows": 40
+  },
+  "language": {
+    "PASS": 24,
+    "WARN": 0,
+    "FAIL": 0,
+    "rows": 24,
+    "scan": [
+      {
+        "page": "contribution/contribute-needs-place",
+        "verdict": "PASS"
+      },
+      {
+        "page": "contribution/contribute-entry",
+        "verdict": "PASS"
+      },
+      {
+        "page": "contribution/contribute-step-1",
+        "verdict": "PASS"
+      },
+      {
+        "page": "contribution/contribute-step-2",
+        "verdict": "PASS"
+      },
+      {
+        "page": "evidence/evidence-empty",
+        "verdict": "PASS"
+      },
+      {
+        "page": "evidence/evidence-records",
+        "verdict": "PASS"
+      },
+      {
+        "page": "global/home",
+        "verdict": "PASS"
+      },
+      {
+        "page": "global/search",
+        "verdict": "PASS"
+      },
+      {
+        "page": "global/map",
+        "verdict": "PASS"
+      },
+      {
+        "page": "global/place",
+        "verdict": "PASS"
+      },
+      {
+        "page": "global/reality",
+        "verdict": "PASS"
+      },
+      {
+        "page": "global/evidence",
+        "verdict": "PASS"
+      },
+      {
+        "page": "global/contribute",
+        "verdict": "PASS"
+      },
+      {
+        "page": "home/home-ready",
+        "verdict": "PASS"
+      },
+      {
+        "page": "map/map-ready",
+        "verdict": "PASS"
+      },
+      {
+        "page": "place.desktop/place-ready",
+        "verdict": "PASS"
+      },
+      {
+        "page": "place.desktop/place-unknown",
+        "verdict": "PASS"
+      },
+      {
+        "page": "place.mobile/place-mobile-ready",
+        "verdict": "PASS"
+      },
+      {
+        "page": "reality/reality-ready",
+        "verdict": "PASS"
+      },
+      {
+        "page": "reality/reality-empty",
+        "verdict": "PASS"
+      },
+      {
+        "page": "search.desktop/search-ready",
+        "verdict": "PASS"
+      },
+      {
+        "page": "search.desktop/search-selected",
+        "verdict": "PASS"
+      },
+      {
+        "page": "search.mobile/search-mobile-ready",
+        "verdict": "PASS"
+      },
+      {
+        "page": "search.mobile/search-mobile-filter",
+        "verdict": "PASS"
+      }
+    ],
+    "refs": []
+  },
+  "geometry": {
+    "PASS": 81,
+    "WARN": 1,
+    "FAIL": 0,
+    "rows": 82,
+    "element": {
+      "PASS": 71,
+      "WARN": 1,
+      "FAIL": 0,
+      "rows": 72
+    },
+    "density": {
+      "PASS": 10,
+      "WARN": 0,
+      "FAIL": 0,
+      "rows": 10
+    }
+  },
+  "relative_hierarchy": {
+    "PASS": 9,
+    "WARN": 0,
+    "FAIL": 0,
+    "rows": 9
+  },
+  "content_budget": {
+    "PASS": 8,
+    "WARN": 1,
+    "FAIL": 0,
+    "rows": 9
+  },
+  "composition": {
+    "PASS": 6,
+    "WARN": 0,
+    "FAIL": 0,
+    "rows": 6
+  },
+  "interaction": {
+    "PASS": 0,
+    "WARN": 0,
+    "FAIL": 0,
+    "note": "interactions run before every probe (oracle.spec runInteractions); no interaction-specific FAIL rows"
+  },
+  "responsive": {
+    "PASS": 0,
+    "WARN": 0,
+    "FAIL": 0,
+    "note": "viewport per contract; desktop+mobile projects both executed"
+  },
+  "a11y": {
+    "PASS": 0,
+    "WARN": 0,
+    "FAIL": 0,
+    "note": "a11y gates live in ui-audit suite (see regression section)"
+  },
+  "screenshots": {
+    "count": 0,
+    "dir": "artifacts/blind-ui-compiler-v2/HUMAN_REVIEW"
+  },
+  "total": {
+    "PASS": 332,
+    "WARN": 3,
+    "FAIL": 0
+  },
+  "known_gaps": [
+    "place.desktop:PLACE_HISTORY_COLLAPSED_MOBILE WARN — count=0",
+    "place.desktop:PLACE_SECTION_GAP WARN — target=16..40 actual=49 raw=\"\"",
+    "place.mobile:PLACE_MOBILE_FIRST_VIEWPORT_LINES WARN — actual=38 metric=firstViewportTextLines"
+  ],
+  "language_failures": []
+}

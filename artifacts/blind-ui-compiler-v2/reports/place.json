@@ -1,0 +1,118 @@
+{
+  "phase": "place",
+  "generated_at": "2026-09-30T16:43:03.405Z",
+  "contracts": {
+    "place.desktop": {
+      "PASS": 45,
+      "WARN": 2,
+      "FAIL": 0
+    },
+    "place.mobile": {
+      "PASS": 20,
+      "WARN": 1,
+      "FAIL": 0
+    }
+  },
+  "state_integrity": {
+    "PASS": 15,
+    "WARN": 0,
+    "FAIL": 0,
+    "rows": 15
+  },
+  "semantic": {
+    "PASS": 5,
+    "WARN": 1,
+    "FAIL": 0,
+    "rows": 6
+  },
+  "language": {
+    "PASS": 3,
+    "WARN": 0,
+    "FAIL": 0,
+    "rows": 3,
+    "scan": [
+      {
+        "page": "place.desktop/place-ready",
+        "verdict": "PASS"
+      },
+      {
+        "page": "place.desktop/place-unknown",
+        "verdict": "PASS"
+      },
+      {
+        "page": "place.mobile/place-mobile-ready",
+        "verdict": "PASS"
+      }
+    ],
+    "refs": []
+  },
+  "geometry": {
+    "PASS": 21,
+    "WARN": 1,
+    "FAIL": 0,
+    "rows": 22,
+    "element": {
+      "PASS": 18,
+      "WARN": 1,
+      "FAIL": 0,
+      "rows": 19
+    },
+    "density": {
+      "PASS": 3,
+      "WARN": 0,
+      "FAIL": 0,
+      "rows": 3
+    }
+  },
+  "relative_hierarchy": {
+    "PASS": 3,
+    "WARN": 0,
+    "FAIL": 0,
+    "rows": 3
+  },
+  "content_budget": {
+    "PASS": 3,
+    "WARN": 1,
+    "FAIL": 0,
+    "rows": 4
+  },
+  "composition": {
+    "PASS": 3,
+    "WARN": 0,
+    "FAIL": 0,
+    "rows": 3
+  },
+  "interaction": {
+    "PASS": 0,
+    "WARN": 0,
+    "FAIL": 0,
+    "note": "interactions run before every probe (oracle.spec runInteractions); no interaction-specific FAIL rows"
+  },
+  "responsive": {
+    "PASS": 0,
+    "WARN": 0,
+    "FAIL": 0,
+    "note": "viewport per contract; desktop+mobile projects both executed"
+  },
+  "a11y": {
+    "PASS": 0,
+    "WARN": 0,
+    "FAIL": 0,
+    "note": "a11y gates live in ui-audit suite (see regression section)"
+  },
+  "screenshots": {
+    "count": 0,
+    "dir": "artifacts/blind-ui-compiler-v2/HUMAN_REVIEW"
+  },
+  "total": {
+    "PASS": 65,
+    "WARN": 3,
+    "FAIL": 0
+  },
+  "known_gaps": [
+    "place.desktop:PLACE_HISTORY_COLLAPSED_MOBILE WARN — count=0",
+    "place.desktop:PLACE_SECTION_GAP WARN — target=16..40 actual=49 raw=\"\"",
+    "place.mobile:PLACE_MOBILE_FIRST_VIEWPORT_LINES WARN — actual=38 metric=firstViewportTextLines"
+  ],
+  "language_failures": []
+}

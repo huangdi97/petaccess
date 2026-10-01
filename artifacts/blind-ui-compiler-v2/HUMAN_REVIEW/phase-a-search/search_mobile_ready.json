@@ -1,0 +1,29 @@
+{
+  "name": "search_mobile_ready",
+  "phase": "phase-a-search",
+  "viewport": "430x932",
+  "route": "/#/search",
+  "expected": {
+    "page": "search",
+    "state": "ready",
+    "fixture": "search-ready-v1",
+    "h1": "搜索场所规则"
+  },
+  "actual": {
+    "route": "#/search",
+    "page": "search",
+    "state": "ready",
+    "fixture": "search-ready-v1",
+    "h1": "搜索场所规则",
+    "entityId": null,
+    "selectedId": null,
+    "count": 5,
+    "counts": {
+      "result-rows": 5
+    }
+  },
+  "valid": true,
+  "mismatches": [],
+  "note": "移动单列：row 108–128、radius 0、≤5 行文本（§24）",
+  "generatedAt": "2026-09-30T17:08:57.304Z"
+}

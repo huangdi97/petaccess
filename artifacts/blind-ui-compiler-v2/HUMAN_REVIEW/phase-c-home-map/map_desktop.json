@@ -1,0 +1,27 @@
+{
+  "name": "map_desktop",
+  "phase": "phase-c-home-map",
+  "viewport": "1440x900",
+  "route": "/#/map",
+  "expected": {
+    "page": "map",
+    "state": "ready",
+    "fixture": "map-ready-v1",
+    "h1": "规则地图"
+  },
+  "actual": {
+    "route": "#/map",
+    "page": "map",
+    "state": "ready",
+    "fixture": "map-ready-v1",
+    "h1": "规则地图",
+    "entityId": null,
+    "selectedId": "map-marker-selected",
+    "count": null,
+    "counts": {}
+  },
+  "valid": true,
+  "mismatches": [],
+  "note": "Spatial workspace：rail + 400 result pane + full map + 筛选 N（§37）",
+  "generatedAt": "2026-09-30T17:09:03.916Z"
+}

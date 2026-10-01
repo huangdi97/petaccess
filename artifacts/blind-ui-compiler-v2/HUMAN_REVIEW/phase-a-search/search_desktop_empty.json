@@ -1,0 +1,27 @@
+{
+  "name": "search_desktop_empty",
+  "phase": "phase-a-search",
+  "viewport": "1440x900",
+  "route": "/#/search",
+  "expected": {
+    "page": "search",
+    "state": "empty",
+    "fixture": "search-empty-v1",
+    "h1": "搜索场所规则"
+  },
+  "actual": {
+    "route": "#/search?q=%E4%B8%8D%E5%AD%98%E5%9C%A8%E7%9A%84%E5%9C%BA%E6%89%80zzz",
+    "page": "search",
+    "state": "empty",
+    "fixture": "search-empty-v1",
+    "h1": "搜索场所规则",
+    "entityId": null,
+    "selectedId": null,
+    "count": null,
+    "counts": {}
+  },
+  "valid": true,
+  "mismatches": [],
+  "note": "空态只存在于 ResultsPane；右侧 onboarding copy（§23）",
+  "generatedAt": "2026-09-30T17:08:58.919Z"
+}

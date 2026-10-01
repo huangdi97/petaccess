@@ -1,0 +1,139 @@
+{
+  "phase": "rest",
+  "generated_at": "2026-09-30T16:43:03.445Z",
+  "contracts": {
+    "reality": {
+      "PASS": 33,
+      "WARN": 0,
+      "FAIL": 0
+    },
+    "evidence": {
+      "PASS": 33,
+      "WARN": 0,
+      "FAIL": 0
+    },
+    "contribution": {
+      "PASS": 44,
+      "WARN": 0,
+      "FAIL": 0
+    }
+  },
+  "state_integrity": {
+    "PASS": 33,
+    "WARN": 0,
+    "FAIL": 0,
+    "rows": 33
+  },
+  "semantic": {
+    "PASS": 17,
+    "WARN": 0,
+    "FAIL": 0,
+    "rows": 17
+  },
+  "language": {
+    "PASS": 8,
+    "WARN": 0,
+    "FAIL": 0,
+    "rows": 8,
+    "scan": [
+      {
+        "page": "contribution/contribute-needs-place",
+        "verdict": "PASS"
+      },
+      {
+        "page": "contribution/contribute-entry",
+        "verdict": "PASS"
+      },
+      {
+        "page": "contribution/contribute-step-1",
+        "verdict": "PASS"
+      },
+      {
+        "page": "contribution/contribute-step-2",
+        "verdict": "PASS"
+      },
+      {
+        "page": "evidence/evidence-empty",
+        "verdict": "PASS"
+      },
+      {
+        "page": "evidence/evidence-records",
+        "verdict": "PASS"
+      },
+      {
+        "page": "reality/reality-ready",
+        "verdict": "PASS"
+      },
+      {
+        "page": "reality/reality-empty",
+        "verdict": "PASS"
+      }
+    ],
+    "refs": []
+  },
+  "geometry": {
+    "PASS": 19,
+    "WARN": 0,
+    "FAIL": 0,
+    "rows": 19,
+    "element": {
+      "PASS": 16,
+      "WARN": 0,
+      "FAIL": 0,
+      "rows": 16
+    },
+    "density": {
+      "PASS": 3,
+      "WARN": 0,
+      "FAIL": 0,
+      "rows": 3
+    }
+  },
+  "relative_hierarchy": {
+    "PASS": 1,
+    "WARN": 0,
+    "FAIL": 0,
+    "rows": 1
+  },
+  "content_budget": {
+    "PASS": 0,
+    "WARN": 0,
+    "FAIL": 0,
+    "rows": 0
+  },
+  "composition": {
+    "PASS": 0,
+    "WARN": 0,
+    "FAIL": 0,
+    "rows": 0
+  },
+  "interaction": {
+    "PASS": 0,
+    "WARN": 0,
+    "FAIL": 0,
+    "note": "interactions run before every probe (oracle.spec runInteractions); no interaction-specific FAIL rows"
+  },
+  "responsive": {
+    "PASS": 0,
+    "WARN": 0,
+    "FAIL": 0,
+    "note": "viewport per contract; desktop+mobile projects both executed"
+  },
+  "a11y": {
+    "PASS": 0,
+    "WARN": 0,
+    "FAIL": 0,
+    "note": "a11y gates live in ui-audit suite (see regression section)"
+  },
+  "screenshots": {
+    "count": 0,
+    "dir": "artifacts/blind-ui-compiler-v2/HUMAN_REVIEW"
+  },
+  "total": {
+    "PASS": 110,
+    "WARN": 0,
+    "FAIL": 0
+  },
+  "known_gaps": [],
+  "language_failures": []
+}

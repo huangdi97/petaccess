@@ -1,0 +1,118 @@
+{
+  "phase": "search",
+  "generated_at": "2026-09-30T16:43:03.382Z",
+  "contracts": {
+    "search.desktop": {
+      "PASS": 52,
+      "WARN": 0,
+      "FAIL": 0
+    },
+    "search.mobile": {
+      "PASS": 38,
+      "WARN": 0,
+      "FAIL": 0
+    }
+  },
+  "state_integrity": {
+    "PASS": 20,
+    "WARN": 0,
+    "FAIL": 0,
+    "rows": 20
+  },
+  "semantic": {
+    "PASS": 8,
+    "WARN": 0,
+    "FAIL": 0,
+    "rows": 8
+  },
+  "language": {
+    "PASS": 4,
+    "WARN": 0,
+    "FAIL": 0,
+    "rows": 4,
+    "scan": [
+      {
+        "page": "search.desktop/search-ready",
+        "verdict": "PASS"
+      },
+      {
+        "page": "search.desktop/search-selected",
+        "verdict": "PASS"
+      },
+      {
+        "page": "search.mobile/search-mobile-ready",
+        "verdict": "PASS"
+      },
+      {
+        "page": "search.mobile/search-mobile-filter",
+        "verdict": "PASS"
+      }
+    ],
+    "refs": []
+  },
+  "geometry": {
+    "PASS": 29,
+    "WARN": 0,
+    "FAIL": 0,
+    "rows": 29,
+    "element": {
+      "PASS": 27,
+      "WARN": 0,
+      "FAIL": 0,
+      "rows": 27
+    },
+    "density": {
+      "PASS": 2,
+      "WARN": 0,
+      "FAIL": 0,
+      "rows": 2
+    }
+  },
+  "relative_hierarchy": {
+    "PASS": 5,
+    "WARN": 0,
+    "FAIL": 0,
+    "rows": 5
+  },
+  "content_budget": {
+    "PASS": 5,
+    "WARN": 0,
+    "FAIL": 0,
+    "rows": 5
+  },
+  "composition": {
+    "PASS": 3,
+    "WARN": 0,
+    "FAIL": 0,
+    "rows": 3
+  },
+  "interaction": {
+    "PASS": 0,
+    "WARN": 0,
+    "FAIL": 0,
+    "note": "interactions run before every probe (oracle.spec runInteractions); no interaction-specific FAIL rows"
+  },
+  "responsive": {
+    "PASS": 0,
+    "WARN": 0,
+    "FAIL": 0,
+    "note": "viewport per contract; desktop+mobile projects both executed"
+  },
+  "a11y": {
+    "PASS": 0,
+    "WARN": 0,
+    "FAIL": 0,
+    "note": "a11y gates live in ui-audit suite (see regression section)"
+  },
+  "screenshots": {
+    "count": 0,
+    "dir": "artifacts/blind-ui-compiler-v2/HUMAN_REVIEW"
+  },
+  "total": {
+    "PASS": 90,
+    "WARN": 0,
+    "FAIL": 0
+  },
+  "known_gaps": [],
+  "language_failures": []
+}

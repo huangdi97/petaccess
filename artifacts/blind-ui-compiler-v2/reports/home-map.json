@@ -1,0 +1,110 @@
+{
+  "phase": "home-map",
+  "generated_at": "2026-09-30T16:43:03.423Z",
+  "contracts": {
+    "home": {
+      "PASS": 17,
+      "WARN": 0,
+      "FAIL": 0
+    },
+    "map": {
+      "PASS": 18,
+      "WARN": 0,
+      "FAIL": 0
+    }
+  },
+  "state_integrity": {
+    "PASS": 8,
+    "WARN": 0,
+    "FAIL": 0,
+    "rows": 8
+  },
+  "semantic": {
+    "PASS": 9,
+    "WARN": 0,
+    "FAIL": 0,
+    "rows": 9
+  },
+  "language": {
+    "PASS": 2,
+    "WARN": 0,
+    "FAIL": 0,
+    "rows": 2,
+    "scan": [
+      {
+        "page": "home/home-ready",
+        "verdict": "PASS"
+      },
+      {
+        "page": "map/map-ready",
+        "verdict": "PASS"
+      }
+    ],
+    "refs": []
+  },
+  "geometry": {
+    "PASS": 8,
+    "WARN": 0,
+    "FAIL": 0,
+    "rows": 8,
+    "element": {
+      "PASS": 7,
+      "WARN": 0,
+      "FAIL": 0,
+      "rows": 7
+    },
+    "density": {
+      "PASS": 1,
+      "WARN": 0,
+      "FAIL": 0,
+      "rows": 1
+    }
+  },
+  "relative_hierarchy": {
+    "PASS": 0,
+    "WARN": 0,
+    "FAIL": 0,
+    "rows": 0
+  },
+  "content_budget": {
+    "PASS": 0,
+    "WARN": 0,
+    "FAIL": 0,
+    "rows": 0
+  },
+  "composition": {
+    "PASS": 0,
+    "WARN": 0,
+    "FAIL": 0,
+    "rows": 0
+  },
+  "interaction": {
+    "PASS": 0,
+    "WARN": 0,
+    "FAIL": 0,
+    "note": "interactions run before every probe (oracle.spec runInteractions); no interaction-specific FAIL rows"
+  },
+  "responsive": {
+    "PASS": 0,
+    "WARN": 0,
+    "FAIL": 0,
+    "note": "viewport per contract; desktop+mobile projects both executed"
+  },
+  "a11y": {
+    "PASS": 0,
+    "WARN": 0,
+    "FAIL": 0,
+    "note": "a11y gates live in ui-audit suite (see regression section)"
+  },
+  "screenshots": {
+    "count": 0,
+    "dir": "artifacts/blind-ui-compiler-v2/HUMAN_REVIEW"
+  },
+  "total": {
+    "PASS": 35,
+    "WARN": 0,
+    "FAIL": 0
+  },
+  "known_gaps": [],
+  "language_failures": []
+}
