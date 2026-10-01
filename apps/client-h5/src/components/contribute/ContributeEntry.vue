@@ -107,7 +107,7 @@ function choose(opt: EntryOption) {
         </button>
       </li>
     </ul>
-    <p class="muted entry-note">提交进入人工审核队列，AI 不会自动裁定。</p>
+    <p class="muted entry-note">提交内容会进入人工核验，AI 不会自动裁定。</p>
   </div>
 </template>
 

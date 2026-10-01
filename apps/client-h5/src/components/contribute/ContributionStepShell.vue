@@ -71,6 +71,7 @@ defineEmits<{ back: [] }>();
 
     <!-- §42 privacy/help link -->
     <p class="step-shell__privacy">
+      提交内容会进入人工核验。
       <RouterLink class="btn-inline" to="/privacy" data-testid="privacy-link">
         隐私与审核说明 →
       </RouterLink>

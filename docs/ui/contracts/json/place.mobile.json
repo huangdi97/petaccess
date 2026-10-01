@@ -33,7 +33,9 @@
     {
       "id": "PLACE_MOBILE_INSPECTOR_ABSENT",
       "ui": "place-inspector",
-      "fallbacks": ["[data-testid='decision-inspector']"],
+      "fallbacks": [
+        "[data-testid='decision-inspector']"
+      ],
       "props": {
         "count": {
           "max": 0
@@ -44,7 +46,10 @@
     {
       "id": "PLACE_MOBILE_NAME_VISIBLE",
       "ui": "place-name",
-      "fallbacks": [".place-dossier__name", "h1"],
+      "fallbacks": [
+        ".place-dossier__name",
+        "h1"
+      ],
       "props": {
         "count": {
           "min": 1
@@ -55,18 +60,24 @@
     {
       "id": "PLACE_MOBILE_DECISION_VISIBLE",
       "ui": "place-decision",
-      "fallbacks": ["[data-testid='section-answer'], [data-testid='answer-status']"],
+      "fallbacks": [
+        "[data-testid='section-answer'], [data-testid='answer-status']"
+      ],
       "props": {
         "count": {
           "min": 1
         }
       },
       "severity": "FAIL",
-      "pages": ["place-mobile-ready"]
+      "pages": [
+        "place-mobile-ready"
+      ]
     },
     {
       "id": "PLACE_MOBILE_DECISION_SIZE",
-      "fallbacks": ["[data-testid='answer-status']"],
+      "fallbacks": [
+        "[data-testid='answer-status']"
+      ],
       "props": {
         "fontSize": {
           "min": 23,
@@ -74,12 +85,16 @@
         }
       },
       "severity": "WARN",
-      "pages": ["place-mobile-ready"]
+      "pages": [
+        "place-mobile-ready"
+      ]
     },
     {
       "id": "PLACE_MOBILE_BOTTOM_NAV_HEIGHT",
       "ui": "mobile-tabbar",
-      "fallbacks": ["[data-testid='mobile-tabbar']"],
+      "fallbacks": [
+        "[data-testid='mobile-tabbar']"
+      ],
       "props": {
         "height": {
           "min": 58,
@@ -91,14 +106,18 @@
     {
       "id": "PLACE_MOBILE_OVERVIEW_FULLPAGE_HEIGHT",
       "ui": "place-dossier",
-      "fallbacks": [".place-dossier"],
+      "fallbacks": [
+        ".place-dossier"
+      ],
       "props": {
         "height": {
           "max": 2000
         }
       },
       "severity": "FAIL",
-      "pages": ["place-mobile-ready"]
+      "pages": [
+        "place-mobile-ready"
+      ]
     }
   ],
   "structure": [
@@ -107,12 +126,17 @@
       "selector": "[data-ui='place-history'], [class*='history']",
       "disclosureDefault": "collapsed",
       "severity": "FAIL",
-      "pages": ["place-mobile-rules"]
+      "pages": [
+        "place-mobile-rules"
+      ]
     },
     {
       "id": "PLACE_MOBILE_ZONES_NOT_CARDS",
       "selector": ".zone-row",
-      "forbiddenClass": ["card", "panel"],
+      "forbiddenClass": [
+        "card",
+        "panel"
+      ],
       "severity": "FAIL"
     },
     {
@@ -120,21 +144,43 @@
       "selector": "[data-testid='overview-zones'], [data-testid='overview-evidence']",
       "min": 2,
       "severity": "FAIL",
-      "pages": ["place-mobile-ready"]
+      "pages": [
+        "place-mobile-ready"
+      ]
     },
     {
       "id": "PLACE_NO_STRAY_GLYPH",
       "selector": "[data-ui='place-dossier'], [data-testid='place-unknown']",
-      "forbiddenText": [">", "<", ":::", "——"],
+      "forbiddenText": [
+        ">",
+        "<",
+        ":::",
+        "——"
+      ],
       "severity": "FAIL",
-      "pages": ["place-mobile-ready", "place-mobile-rules"]
+      "pages": [
+        "place-mobile-ready",
+        "place-mobile-rules"
+      ]
     },
     {
       "id": "PLACE_NO_ENGINEERING_INVARIANT_COPY",
       "selector": "[data-ui='place-dossier'], [data-testid='place-unknown']",
-      "forbiddenText": ["≠", "UNKNOWN", "ALLOWED", "PROHIBITED", "CONDITIONAL", "source_id", "rule_id", "zone_type"],
+      "forbiddenText": [
+        "≠",
+        "UNKNOWN",
+        "ALLOWED",
+        "PROHIBITED",
+        "CONDITIONAL",
+        "source_id",
+        "rule_id",
+        "zone_type"
+      ],
       "severity": "FAIL",
-      "pages": ["place-mobile-ready", "place-mobile-rules"]
+      "pages": [
+        "place-mobile-ready",
+        "place-mobile-rules"
+      ]
     }
   ],
   "density": [
@@ -152,17 +198,22 @@
       "metric": "firstViewportBlocks",
       "selector": "[data-ui='place-dossier']",
       "min": 2,
-      "pages": ["place-mobile-ready"],
+      "pages": [
+        "place-mobile-ready"
+      ],
       "severity": "FAIL"
     },
     {
       "id": "PLACE_MOBILE_FIRST_VIEWPORT_LINES",
       "metric": "firstViewportTextLines",
       "selector": "[data-ui='place-dossier']",
-      "max": 24,
-      "warnAt": 22,
-      "pages": ["place-mobile-ready"],
-      "severity": "FAIL"
+      "max": 30,
+      "warnAt": 27,
+      "pages": [
+        "place-mobile-ready"
+      ],
+      "severity": "FAIL",
+      "note": "v0.2.5 §11: mobile overview gained two required summary rows (Space/Evidence) in the first screen; budget re-baselined from 24 to 30."
     }
   ],
   "composition": [
