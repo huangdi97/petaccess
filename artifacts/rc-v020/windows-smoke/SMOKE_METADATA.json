@@ -1,0 +1,29 @@
+{
+  "report": "V020 RC Windows Smoke — screenshot evidence metadata",
+  "generatedAt": "2026-10-02",
+  "runtime": "real Tauri v2 debug build (petaccess.exe) on WebView2 Runtime 154.0.4258.48",
+  "exe": "D:\\pa-fix-target-win\\debug\\petaccess.exe",
+  "api": "http://127.0.0.1:8016/api/v1 (petaccess_visual, role VISUAL)",
+  "driver": "WebView2 CDP (--remote-debugging-port=9223 --force-renderer-accessibility) + Page.captureScreenshot + process window checks",
+  "screenshots": [
+    { "file": "01_home.png", "route": "#/", "state": "home ready", "result": "PASS" },
+    { "file": "02_search.png", "route": "#/search", "state": "搜索场所规则, 咖啡 → 10 result rows", "result": "PASS" },
+    { "file": "03_place.png", "route": "#/place/5a9084d0-…", "state": "h1 云栖中心·测试商场 overview", "result": "PASS" },
+    { "file": "04_map.png", "route": "#/place/5a9084d0-…?view=rules", "state": "rule groups (desktop rail present)", "result": "PASS" },
+    { "file": "05_reality.png", "route": "#/place/5a9084d0-…/reality", "state": "h1 现场轨迹", "result": "PASS" },
+    { "file": "06_evidence.png", "route": "#/place/5a9084d0-…?view=evidence", "state": "evidence + provenance", "result": "PASS" },
+    { "file": "07_contribution.png", "route": "#/contribute/5a9084d0-…", "state": "h1 你刚刚知道了什么？, 5 option rows", "result": "PASS" },
+    { "file": "08_offline.png", "route": "#/ (offline event)", "state": "global-offline-banner visible", "result": "PASS" },
+    { "file": "09_recovered.png", "route": "#/ (online event)", "state": "banner hidden, home re-rendered", "result": "PASS" },
+    { "file": "10_home_after_recovery.png", "route": "#/", "state": "home restored (same pixels as 01_home)", "result": "PASS" }
+  ],
+  "runtime_assertions": {
+    "WINDOW_CHROME": "PASS (MainWindowTitle = PetAccess 宠物共处)",
+    "DESKTOP_RAIL": "PASS (desktop-rail + aria-label 主导航 present)",
+    "DPI": "PASS (host current DPI set; window renders 1250x950 content)",
+    "KEYBOARD_FOCUS": "PASS (search input fill + click driven via CDP real DOM)",
+    "WEBVIEW2_RENDERING": "PASS (real WebView2 154, not browser simulation)",
+    "LOCAL_API_RESOLUTION": "PASS (tauri.localhost origin data requests to 127.0.0.1:8016 succeed)",
+    "CLOSE_RELAUNCH": "PASS (close → relaunch → window + CDP page online, title 首页 · PetAccess)"
+  }
+}
