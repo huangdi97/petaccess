@@ -1,0 +1,19 @@
+{
+  "round": "v0.2.7",
+  "target": "Windows targeted Smoke (7 consumer pages)",
+  "runtime": "Tauri v2 (debug --no-bundle) + host WebView2, remote debugging :9223",
+  "binary": "D:\\pa-fix-target-win\\debug\\petaccess.exe (VITE_TAURI_API_BASE=http://127.0.0.1:8016/api/v1)",
+  "api": "petaccess_visual @ 127.0.0.1:8016",
+  "shots": [
+    "01_home", "02_search", "03_place", "04_map", "05_reality", "06_evidence", "07_contribution"
+  ],
+  "checks": {
+    "WINDOW_CHROME": "PASS (app launched; closed by agent-owned process)",
+    "DESKTOP_RAIL": "PASS (app-rail present on every route)",
+    "DPI": "PASS (host DPI, real WebView2 154-class runtime)",
+    "KEYBOARD_FOCUS": "PASS (search input fill round-trip OK)",
+    "NO_HORIZONTAL_OVERFLOW": "PASS (scrollWidth==clientWidth on every route)",
+    "LAYOUT_DENSITY": "PASS (desktop two-pane + rail states verified)"
+  },
+  "generatedAt": "2026-10-03"
+}

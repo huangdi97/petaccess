@@ -293,8 +293,7 @@ async function readActualState(
     const countEl = document.querySelector("[data-ui-count='result-rows']");
     const selected = document.querySelector("[data-ui*='selected']");
     const entityEl =
-      document.querySelector("[data-ui-entity-id]") ??
-      document.querySelector("[data-entity-id]");
+      document.querySelector("[data-ui-entity-id]") ?? document.querySelector("[data-entity-id]");
     const counts: Record<string, number> = {};
     for (const el of document.querySelectorAll("[data-ui-count]")) {
       const key = el.getAttribute("data-ui-count") ?? "";
@@ -306,7 +305,10 @@ async function readActualState(
       state: host?.getAttribute("data-ui-state") ?? null,
       fixture: host?.getAttribute("data-ui-fixture") ?? null,
       h1: h1 ? (h1.textContent ?? "").trim() : null,
-      entityId: entityEl?.getAttribute("data-ui-entity-id") ?? entityEl?.getAttribute("data-entity-id") ?? null,
+      entityId:
+        entityEl?.getAttribute("data-ui-entity-id") ??
+        entityEl?.getAttribute("data-entity-id") ??
+        null,
       selectedId: selected?.getAttribute("data-ui") ?? null,
       count: countEl ? Number(countEl.textContent ?? NaN) || null : null,
       counts,
@@ -341,10 +343,10 @@ function assertState(
   return { ok: mismatches.length === 0, mismatches };
 }
 
-test("human review v0.2.7 — named screenshots with Capture State Integrity", async (
-  { page, request },
-  testInfo,
-) => {
+test("human review v0.2.7 — named screenshots with Capture State Integrity", async ({
+  page,
+  request,
+}, testInfo) => {
   const project = testInfo.project?.name ?? "";
   const isDesktopProject = project === "oracle-desktop";
   const rows: Array<{
@@ -394,9 +396,7 @@ test("human review v0.2.7 — named screenshots with Capture State Integrity", a
     const actual = await readActualState(page);
     const { ok, mismatches } = assertState(actual, shot.expect);
     const beforeFile =
-      shot.before && existsSync(path.join(BEFORE_DIR, shot.before))
-        ? shot.before
-        : null;
+      shot.before && existsSync(path.join(BEFORE_DIR, shot.before)) ? shot.before : null;
     const meta = {
       name: shot.name,
       viewport: `${shot.width}x${shot.height}`,

@@ -1,0 +1,20 @@
+{
+  "round": "v0.2.7",
+  "target": "Android targeted FAST (7 consumer pages)",
+  "device": "emulator-5554 / AVD main (API 36, x86_64, reused, not created)",
+  "apk": "D:\\pa-fix\\apps\\client-h5\\src-tauri\\gen\\android\\app\\build\\outputs\\apk\\universal\\debug\\app-universal-debug.apk (debug, VITE_TAURI_ANDROID_API_BASE=http://10.0.2.2:8016/api/v1)",
+  "api": "petaccess_visual @ 127.0.0.1:8016",
+  "shots": [
+    "01_home", "02_search", "03_place_overview", "04_map", "05_map_half", "06_map_expanded", "07_contribution"
+  ],
+  "checks": {
+    "NO_HORIZONTAL_OVERFLOW": "PASS (scrollWidth==clientWidth on every route)",
+    "NO_CRASH": "PASS (0 FATAL EXCEPTION in logcat)",
+    "NO_ANR": "PASS",
+    "NO_RENDERER_CRASH": "PASS",
+    "NO_TOUCH_REGRESSION": "PASS (sheet handle click opened expanded state)",
+    "NO_FONT_BREAK": "PASS (h1/state verified per route)",
+    "NO_WEBVIEW_LAYOUT_DRIFT": "PASS (all states ready, map canvas rendered)"
+  },
+  "generatedAt": "2026-10-03"
+}

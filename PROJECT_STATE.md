@@ -1,5 +1,30 @@
 # PROJECT_STATE.md
 
+## Current phase（2026-10-03 本轮实测 — v0.2.7 Final Product Craft / Spatial Map / Desktop Composition Closure）
+- 状态：`V0207_PRODUCT_CRAFT = MACHINE_PASS` · `PRODUCT_STRUCTURE = FROZEN` ·
+  `UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW` · `V020_RC_READY = PRESERVED` ·
+  `PUBLIC_RELEASE = NOT_PERFORMED`
+- 分支：`feat/ui-product-craft-v7`（基点 = origin/master `42ed4e34`，已 push；
+  origin/master 未动；v0.1.0 tag 未动；无 v0.2.0 tag / Release / store）。
+- 内容：Map Spatial Craft（抽象城市画布 + marker 系统 + selected scale/halo）、
+  Contribution Desktop 双栏 composition（main 680 + context 280）、
+  Reality/Evidence/Search 阅读节奏收口、§40 十个 craft gates 全绿。
+- 机器 Gate（本轮实测）：vue-tsc / h5 build / admin build / eslint 0 / prettier PASS；
+  ui-oracle **423/0/0**（398 → +25，WHY_TEST_COUNT_CHANGED=新增 craft gates 与
+  map-mobile-expanded 页）；language 29 FAIL=0；density 28 FAIL=0；
+  ui-reconstruction **180/180**；e2e **189/189**；backend pytest
+  **961 passed / 2 skipped / 0 failed**；visual regression **59/59**（craft diff 全部
+  低于 2% 容差 → EXPECTED_CRAFT_DIFF sub-threshold，snapshot 零变更；admin 0）。
+- 人审包：`artifacts/ui-product-craft-v7/HUMAN_REVIEW/` 13/13 VALID（O6 全部
+  VALID=true）+ HUMAN_REVIEW_INDEX.html + before/after 对照。
+- 跨运行时：Android targeted FAST 7/7（emulator-5554 / AVD main；NO_HORIZONTAL_
+  OVERFLOW / NO_CRASH / NO_ANR / NO_RENDERER_CRASH 全 PASS）；Windows targeted
+  Smoke 7/7（Tauri v2 + WebView2；rail / keyboard / overflow 全 PASS）。
+- 环境注记：Docker Desktop 无法稳定启动，DB 栈改用会话级 Windows pg16+PostGIS、
+  Windows Redis、moto S3（scratch 内 `pg_up.ps1`/`redis_up.ps1`），仓库代码零依赖。
+- 停止线：机器全绿 + 人审包 READY，**等待用户人工视觉签字**（Agent 不代替
+  `UI_HUMAN_VISUAL_ACCEPTANCE = PASS`）；未 merge master / 未 tag / 未发布。
+### 历史记录 — v0.2.6 RC Integration（2026-10-02，HISTORICAL）
 ## Current phase（2026-10-02 本轮实测 — v0.2.6 RC Integration / Cross-Runtime Final Acceptance）
 - 状态：`V020_RC_INTEGRATION = PASS` · `UI_HUMAN_VISUAL_ACCEPTANCE = PASS_FOR_RC` ·
   `UI_VISUAL_CLOSURE = FROZEN_FOR_RC` · `CANONICAL_VISUAL_BASELINE_PROMOTION = PASS` ·
