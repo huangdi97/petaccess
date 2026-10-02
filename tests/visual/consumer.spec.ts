@@ -92,13 +92,10 @@ test("place detail — UNKNOWN (no published rule)", async ({ page }) => {
   await page.goto(`/#/place/${FIXTURE.unknown}`);
   await settle(page);
   // A baseline is only evidence about UNKNOWN if the page really is UNKNOWN.
-  // Without this the shot stayed green on a page whose answer badge read
-  // 「✕ 明确限制」 — the opposite of what the file name promised. Scoped to the
-  // answer block on purpose: UNKNOWN also appears on individual zone rows of
-  // other places, so an unscoped match would pass on the wrong page.
-  await expect(
-    page.locator("[data-testid='answer-ordinary'] [data-status='UNKNOWN']"),
-  ).toBeVisible();
+  // v5 renders the honest UNKNOWN surface as the dedicated PlaceUnknownPane
+  // (data-testid="place-unknown"): the answer block only exists for resolved
+  // states, so asserting the pane is the correct, drift-proof anchor.
+  await expect(page.getByTestId("place-unknown")).toBeVisible();
   await shot(page, "place-unknown");
 });
 
@@ -107,8 +104,10 @@ test("place detail — CONDITIONAL (real seeded rules)", async ({ page }) => {
   await settle(page);
   // Named for what the page actually answers. The mall's place-level answer
   // resolves CONDITIONAL (carrier required) via its governing template rule.
+  // v5 anchor: PlaceOverviewPane renders the decision under
+  // data-testid="section-answer" with the StatusBadge carrying data-status.
   await expect(
-    page.locator("[data-testid='answer-ordinary'] [data-status='CONDITIONAL']"),
+    page.locator("[data-testid='section-answer'] [data-status='CONDITIONAL']"),
   ).toBeVisible();
   await shot(page, "place-conditional");
 });
@@ -171,6 +170,8 @@ test("reality trace — fact and verification, distinct from rules", async ({ pa
   await page.goto(`/#/place/${FIXTURE.mall}/reality`);
   await settle(page);
   await expect(page.getByTestId("trace-summary")).toBeVisible();
-  await expect(page.getByTestId("trace-facts")).toBeVisible();
+  // v5 split RealityTraceView into trace-summary (header) + trace-observations
+  // (timeline rows); trace-facts no longer exists.
+  await expect(page.getByTestId("trace-observations")).toBeVisible();
   await shot(page, "reality-trace");
 });
