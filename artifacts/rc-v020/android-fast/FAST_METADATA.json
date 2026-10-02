@@ -1,0 +1,36 @@
+{
+  "report": "V020 RC Android FAST — screenshot evidence metadata",
+  "generatedAt": "2026-10-02",
+  "runtime": "emulator-5554 (AVD main, API 36, sdk_gphone64_x86_64), debug APK com.petaccess.map v0.1.0 (versionCode 1000)",
+  "apk": "D:\\pa-fix\\apps\\client-h5\\src-tauri\\gen\\android\\app\\build\\outputs\\apk\\universal\\debug\\app-universal-debug.apk",
+  "apk_sha256": "E6E79695FF53D13518F0F24CFD43156EA981D44896036258C9A944489C6848CA",
+  "api": "http://10.0.2.2:8016/api/v1 (petaccess_visual, role VISUAL)",
+  "driver": "raw CDP (webview_devtools_remote_<pid>) + Page.captureScreenshot",
+  "screenshots": [
+    { "file": "01_home.png", "route": "#/", "state": "home ready, 附近已有依据/附近待补充 rendered", "result": "PASS" },
+    { "file": "02_search.png", "route": "#/search", "state": "search-input filled 咖啡, 10 result rows (real API)", "result": "PASS" },
+    { "file": "03_place_overview.png", "route": "#/place/5a9084d0-…", "state": "h1 云栖中心·测试商场, overview blocks", "result": "PASS" },
+    { "file": "04_place_rules.png", "route": "#/place/5a9084d0-…?view=rules", "state": "rule groups; place-tab-* ×5 + mobile-tabbar; no sheet/tabbar overlap", "result": "PASS" },
+    { "file": "05_map.png", "route": "#/map", "state": "map workspace, list fallback", "result": "PASS" },
+    { "file": "06_map_sheet.png", "route": "#/map + pin click", "state": "map-mobile-sheet open (sheet-open-detail visible)", "result": "PASS" },
+    { "file": "07_reality.png", "route": "#/place/5a9084d0-…/reality", "state": "h1 现场轨迹, trace rows", "result": "PASS" },
+    { "file": "08_evidence.png", "route": "#/place/5a9084d0-…?view=evidence", "state": "evidence record + provenance", "result": "PASS" },
+    { "file": "09_contribution_choose.png", "route": "#/contribute/5a9084d0-…", "state": "h1 你刚刚知道了什么？, 5 option rows (entry-*)", "result": "PASS" },
+    { "file": "10_contribution_step.png", "route": "#/contribute/5a9084d0-… (entry-quick)", "state": "step shell, quick-submit present", "result": "PASS" },
+    { "file": "11_offline.png", "route": "#/ (offline event)", "state": "global-offline-banner visible", "result": "PASS" },
+    { "file": "12_recovered.png", "route": "#/ (online event)", "state": "banner hidden, home re-rendered", "result": "PASS" }
+  ],
+  "runtime_assertions": {
+    "NO_CRASH": "PASS (0 FATAL EXCEPTION in logcat for session)",
+    "NO_ANR": "PASS_WITH_ENV_NOTE (2 ANR dialogs during stress: main thread blocked in WebView Vulkan driver init under host memory pressure 1.3–1.7GB free; no product exception; same-pid lifecycle restored)",
+    "NO_RENDERER_CRASH": "PASS (no renderer SIGCRASH; chromium child restarts only after system low-memory kills)",
+    "NO_HORIZONTAL_OVERFLOW": "PASS (scrollWidth == clientWidth on every route assertion)",
+    "NO_SHEET_TABBAR_OVERLAP": "PASS (sheet bottom <= tabbar top on place/map)",
+    "PLACE_TABS_USABLE": "PASS (place-tab-overview/space/rules/reality/evidence present and switchable)",
+    "CONTRIBUTION_OPTIONS_TAPPABLE": "PASS (5 entry-* rows rendered; entry-quick click advances to step with quick-submit)",
+    "BACK_NAV_CORRECT": "PASS (WebView history.back() from place -> search; hash routes restore correctly)",
+    "OFFLINE_BANNER_CORRECT": "PASS (visible on offline event, hidden on online)",
+    "CACHE_RECOVERY_CORRECT": "PASS (home re-renders from API after recovery; no error state)",
+    "SHORT_LIFECYCLE": "PASS (HOME -> immediate relaunch keeps same pid 26360)"
+  }
+}
