@@ -62,6 +62,34 @@
         }
       },
       "severity": "WARN"
+    },
+    {
+      "id": "MAP_CANVAS_OCCUPANCY",
+      "ui": "map-canvas",
+      "fallbacks": ["[data-testid='map'], .map-canvas"],
+      "props": {
+        "width": {
+          "min": 700
+        }
+      },
+      "severity": "FAIL",
+      "note": "v0.2.7 §40：desktop 1440 下 map canvas 必须占主导（>700px），不再是窄条。"
+    },
+    {
+      "id": "MAP_SELECTED_HIERARCHY",
+      "ui": "map-marker-selected",
+      "fallbacks": ["[data-selected='true']"],
+      "props": {
+        "width": {
+          "min": 14,
+          "max": 40
+        },
+        "shadowed": {
+          "min": 1
+        }
+      },
+      "severity": "FAIL",
+      "note": "v0.2.7 §40：selected marker 必须 scale ≥14px 且浮起（halo/elevation）。"
     }
   ],
   "structure": [

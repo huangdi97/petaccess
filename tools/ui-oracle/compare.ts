@@ -140,6 +140,10 @@ function compareElement(rule: ElementRule, probe: PageProbe, out: CompareRow[]):
       case "boxShadow":
         actual = cs.boxShadow && cs.boxShadow !== "none" ? String(cs.boxShadow) : "none";
         break;
+      case "shadowed":
+        /* v0.2.7：elevation/焦点浮起 —— 计算样式 shadow 是否存在（0/1）。 */
+        actual = cs.boxShadow && cs.boxShadow !== "none" ? 1 : 0;
+        break;
       case "backgroundColor":
         actual = cs.backgroundColor ?? "";
         break;

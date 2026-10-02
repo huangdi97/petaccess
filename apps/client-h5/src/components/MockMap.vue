@@ -7,10 +7,16 @@
  * `@petaccess/client-core` so switching to the Tencent SDK replaces this
  * component and nothing else.
  *
- * Spatial language (contract MAP_MOCK_*): the surface carries a light SVG
- * basemap — road-like lines, block polygons, a subtle river/green area —
- * plus a zoom affordance, so the map reads as a space, never a grey grid with
- * a single number. Markers stay provider-neutral divs with semantic glyphs.
+ * Spatial language (contract MAP_MOCK_*): the surface carries an abstract
+ * urban spatial canvas — primary/secondary road hierarchy, block polygons,
+ * district edge, open-space patches, subtle building mass hints and a river
+ * ribbon — all very light, cool, low-contrast, so the PetAccess overlay
+ * (markers, selected preview) is always the visual focus. v0.2.7 §8/§9:
+ * the canvas must read as a place, never as a grey grid with a few dots.
+ *
+ * Marker system (v0.2.7 §10): UNKNOWN = neutral fill, CONDITIONAL = subtle
+ * amber ring, ALLOWED = subtle positive fill, RESTRICTED = subtle restriction
+ * fill, SELECTED = scale + halo + elevation. No big coloured pins, no emoji.
  */
 import { computed } from "vue";
 import type { MapCamera, MapCluster, MapMarker } from "@petaccess/client-core";
@@ -47,19 +53,53 @@ function project(lat: number, lng: number): { left: string; top: string } {
 
 const glyph = (status: MapMarker["status"]) => STATUS_GLYPHS[status] ?? STATUS_GLYPHS.UNKNOWN;
 
-/** Deterministic spatial skeleton: roads, blocks, a river/green ribbon. */
-const ROADS = ["M 0 128 L 260 96", "M 0 224 L 260 208", "M 76 0 L 96 260", "M 180 0 L 196 260"];
+/* ---- Abstract urban spatial canvas (v0.2.7 §8) -------------------------
+ * Everything is pure decoration; no data semantics live here. The palette
+ * stays very light cool neutral and low-contrast so the map never competes
+ * with rule/reality/selected place. */
+const DISTRICT =
+  "M 12 12 H 248 A 10 10 0 0 1 258 22 V 238 A 10 10 0 0 1 248 248 H 12 A 10 10 0 0 1 2 238 V 22 A 10 10 0 0 1 12 2 Z";
+const RIVER = "M 0 40 Q 130 60 260 40 L 260 84 Q 130 104 0 84 Z";
+/** Soft open-space patch (park/green), very low opacity. */
+const OPEN_SPACE =
+  "M 100 96 Q 114 88 130 96 Q 146 88 160 98 L 160 130 Q 146 140 130 132 Q 114 140 100 128 Z";
 const BLOCKS = [
   "96,96 180,96 180,208 96,208",
   "20,150 76,150 76,224 20,224",
   "196,96 260,96 260,208 196,208",
+  "20,96 76,96 76,138 20,138",
+  "180,208 260,208 260,248 180,248",
+  "96,60 180,60 180,84 96,84",
 ];
-const RIVER = "M 0 40 Q 130 60 260 40 L 260 84 Q 130 104 0 84 Z";
+/** Road hierarchy: wider primary, narrower secondary. */
+const ROADS_PRIMARY = ["M 0 128 L 260 96", "M 180 0 L 196 260"];
+const ROADS_SECONDARY = [
+  "M 0 224 L 260 208",
+  "M 76 0 L 96 260",
+  "M 20 138 L 76 138 L 76 150",
+  "M 196 84 L 196 96",
+  "M 96 96 L 96 60",
+];
+/** Building mass hints: faint rectangles clustered inside blocks. */
+const MASS = [
+  "104,104 120,104 120,116 104,116",
+  "128,104 144,104 144,116 128,116",
+  "152,104 168,104 168,116 152,116",
+  "104,124 120,124 120,136 104,136",
+  "128,124 144,124 144,136 128,136",
+  "152,124 168,124 168,136 152,136",
+  "104,168 124,168 124,184 104,184",
+  "132,168 152,168 152,184 132,184",
+  "28,158 44,158 44,170 28,170",
+  "52,158 68,158 68,170 52,170",
+  "204,104 224,104 224,120 204,120",
+  "232,104 248,104 248,120 232,120",
+];
 </script>
 
 <template>
   <div class="map-surface" data-testid="map-surface" data-ui="mock-map">
-    <!-- 空间基底：道路/街区/水系（SVG，纯表现，不承载数据语义） -->
+    <!-- 空间基底：道路层级/街区/开放空间/建筑体块/水系（SVG，纯表现，不承载数据语义） -->
     <svg
       class="map-basemap"
       viewBox="0 0 260 260"
@@ -67,9 +107,26 @@ const RIVER = "M 0 40 Q 130 60 260 40 L 260 84 Q 130 104 0 84 Z";
       aria-hidden="true"
       focusable="false"
     >
+      <path class="basemap-district" :d="DISTRICT" />
+      <path class="basemap-open" :d="OPEN_SPACE" />
       <path class="basemap-river" :d="RIVER" />
+      <rect
+        v-for="m in MASS"
+        :key="m"
+        class="basemap-mass"
+        :x="m.split(',')[0]"
+        :y="m.split(',')[1]"
+        :width="Number(m.split(',')[2]) - Number(m.split(',')[0])"
+        :height="Number(m.split(',')[3]) - Number(m.split(',')[1])"
+      />
       <polygon v-for="b in BLOCKS" :key="b" class="basemap-block" :points="b" />
-      <path v-for="r in ROADS" :key="r" class="basemap-road" :d="r" />
+      <path v-for="r in ROADS_PRIMARY" :key="r" class="basemap-road basemap-road--primary" :d="r" />
+      <path
+        v-for="r in ROADS_SECONDARY"
+        :key="r"
+        class="basemap-road basemap-road--secondary"
+        :d="r"
+      />
     </svg>
 
     <div class="map-zoom" data-testid="map-zoom" data-ui="map-zoom" role="group" aria-label="缩放">
@@ -83,7 +140,13 @@ const RIVER = "M 0 40 Q 130 60 260 40 L 260 84 Q 130 104 0 84 Z";
       class="map-pin"
       :class="{ 'map-pin--selected': selectedId === c.memberIds[0] }"
       :data-selected="selectedId === c.memberIds[0] ? 'true' : undefined"
-      :data-ui="selectedId === c.memberIds[0] ? 'map-marker-selected' : 'map-marker'"
+      :data-ui="
+        c.count > 1
+          ? selectedId === c.memberIds[0]
+            ? 'map-marker-selected'
+            : 'map-marker'
+          : undefined
+      "
       :style="project(c.lat, c.lng)"
       :data-testid="c.count > 1 ? 'cluster-' + c.id : 'pin-' + c.memberIds[0]"
       :aria-label="`${c.count} 个场所，${glyph(c.status)}`"
@@ -101,7 +164,13 @@ const RIVER = "M 0 40 Q 130 60 260 40 L 260 84 Q 130 104 0 84 Z";
         <div v-if="selectedId === c.memberIds[0]" class="lbl" :class="'s-' + c.status">
           {{ glyph(c.status) }}
         </div>
-        <div class="dot" :class="'s-' + c.status"></div>
+        <!-- v0.2.7 §10：dot 是 marker 本体（含语义形状），data-ui 供几何 gate 测量：
+             map-marker / map-marker-selected（scale + halo + elevation）。 -->
+        <div
+          class="dot"
+          :class="['s-' + c.status, { 'dot--selected': selectedId === c.memberIds[0] }]"
+          :data-ui="selectedId === c.memberIds[0] ? 'map-marker-selected' : 'map-marker'"
+        ></div>
       </template>
     </div>
     <div v-if="!clusters.length" class="map-empty muted">当前视野内暂无已收录场所</div>
@@ -117,29 +186,58 @@ const RIVER = "M 0 40 Q 130 60 260 40 L 260 84 Q 130 104 0 84 Z";
   overflow: hidden;
 }
 
-/* 空间基底：轻量道路/街区/水系 —— 不是灰网格+数字。 */
+/* 空间基底：轻量抽象城市画布 —— 不是灰网格+数字（v0.2.7 §8）。 */
 .map-basemap {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
+  /* 画布基底 = 极浅冷中性色，SVG 元素在其上分层。 */
+  background: var(--pa-color-map-grid-a);
 }
 
-.basemap-road {
+.basemap-district {
   fill: none;
-  stroke: var(--pa-color-map-grid-b);
-  stroke-width: 4;
+  stroke: var(--pa-color-border);
+  stroke-width: 2;
+  opacity: 0.55;
 }
 
-.basemap-block {
-  fill: var(--pa-color-map-grid-a);
-  stroke: var(--pa-color-border-subtle);
-  stroke-width: 1;
+.basemap-open {
+  fill: var(--pa-color-status-allowed-bg);
+  opacity: 0.45;
 }
 
 .basemap-river {
   fill: var(--pa-color-reality-observed-bg);
+  opacity: 0.5;
+}
+
+.basemap-block {
+  fill: var(--pa-color-surface);
   opacity: 0.55;
+  stroke: var(--pa-color-border-subtle);
+  stroke-width: 1;
+}
+
+/* 建筑体块提示：极弱，仅提供密度感。 */
+.basemap-mass {
+  fill: var(--pa-color-text-muted);
+  opacity: 0.08;
+}
+
+/* 道路层级：primary 更宽更明确，secondary 更细更弱。 */
+.basemap-road {
+  fill: none;
+  stroke: var(--pa-color-map-grid-b);
+}
+.basemap-road--primary {
+  stroke-width: 5;
+  opacity: 0.9;
+}
+.basemap-road--secondary {
+  stroke-width: 2;
+  opacity: 0.65;
 }
 
 /* 缩放控件：空间感 affordance（mock 阶段为展示性控件）。 */
@@ -206,15 +304,28 @@ const RIVER = "M 0 40 Q 130 60 260 40 L 260 84 Q 130 104 0 84 Z";
   color: var(--pa-color-text-primary);
 }
 
+/* v0.2.7 §10 marker 系统：
+ * - UNKNOWN      = neutral fill
+ * - CONDITIONAL  = subtle amber ring（空心圆 + 琥珀描边）
+ * - ALLOWED      = subtle positive fill
+ * - RESTRICTED   = subtle restriction fill
+ * - SELECTED     = scale 1.33x + halo + elevation（dot--selected）
+ */
 .dot {
   width: 12px;
   height: 12px;
   border-radius: var(--pa-radius-pill);
   border: 2px solid var(--pa-color-map-pin-border);
+  transition: box-shadow var(--pa-motion-fast) var(--pa-motion-ease);
 }
 
-.map-pin--selected .dot {
-  /* v0.2.5 §26：selected marker 1.3x + halo（未选中 12px → 选中 ~15.6px）。 */
+.dot.s-CONDITIONAL {
+  background: transparent;
+  border-width: 3px;
+  border-color: var(--pa-color-status-conditional);
+}
+
+.dot--selected {
   width: 16px;
   height: 16px;
   box-shadow:
@@ -222,13 +333,26 @@ const RIVER = "M 0 40 Q 130 60 260 40 L 260 84 Q 130 104 0 84 Z";
     var(--pa-elevation-2);
   border-color: var(--pa-color-surface);
 }
+/* 选中聚合（cluster）：与单点选中一致 —— halo + elevation（v0.2.7 §10）。 */
+.map-pin--selected .map-cluster {
+  box-shadow:
+    0 0 0 4px var(--pa-color-accent-weak),
+    var(--pa-elevation-2);
+}
+
+/* 选中 + 有条件：保留琥珀环，不覆盖为白边。 */
+.dot--selected.s-CONDITIONAL {
+  border-color: var(--pa-color-status-conditional);
+}
+
 /* status fills mirror the app's status tokens (s-* classes from app sheet). */
 .s-ALLOWED,
 .s-MATCH {
   background: var(--pa-color-status-allowed);
 }
 
-.s-CONDITIONAL {
+/* Cluster（数字聚合）保留实心语义填充；dot 的 CONDITIONAL 是环（见上）。 */
+.map-cluster.s-CONDITIONAL {
   background: var(--pa-color-status-conditional);
 }
 

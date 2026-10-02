@@ -199,6 +199,14 @@
       "b": "body",
       "minRatio": 1.15,
       "severity": "FAIL"
+    },
+    {
+      "id": "PRIMARY_CONTENT_DOMINATES_METADATA",
+      "a": ".reality-head__title",
+      "b": ".reality-head__intro",
+      "minRatio": 1.1,
+      "severity": "FAIL",
+      "note": "v0.2.7 §24/§40：页面标题强于说明行（Observed Fact 层级）。"
     }
   ],
   "language": {

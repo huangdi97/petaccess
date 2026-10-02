@@ -332,7 +332,9 @@ const uiFixture = computed<string>(() =>
 }
 .evidence-head__record {
   margin: 0;
-  font-size: var(--pa-font-size-18);
+  /* v0.2.7 §25/§28：record identity 是页面首要事实 —— 22/650，强化可读层级。 */
+  font-size: var(--pa-font-size-22);
+  font-weight: var(--pa-font-weight-650);
   line-height: var(--pa-line-height-26);
   color: var(--pa-color-text-primary);
 }

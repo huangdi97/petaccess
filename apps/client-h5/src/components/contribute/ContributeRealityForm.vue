@@ -112,94 +112,98 @@ async function submit() {
     @back="emit('back')"
   >
     <!-- §33 question clusters：什么时候 / 在哪里 / 你看到了什么 -->
-    <fieldset class="cluster">
-      <legend class="cluster__title">什么时候？</legend>
-      <label for="reality-date">日期</label>
-      <input v-model="occurredAt" type="date" id="reality-date" data-testid="reality-date" />
-      <label for="reality-effort">在场时长</label>
-      <select v-model="effortBucket" id="reality-effort" data-testid="reality-effort">
-        <option v-for="(label, key) in EFFORT_LABELS" :key="key" :value="key">{{ label }}</option>
-      </select>
-    </fieldset>
-
-    <fieldset class="cluster">
-      <legend class="cluster__title">在哪里？</legend>
-      <label for="reality-zone">适用区域</label>
-      <select v-model="zone" id="reality-zone">
-        <option value="">全场 / 不确定</option>
-        <option v-for="z in zones" :key="z.id" :value="z.id">{{ z.name }}</option>
-      </select>
-    </fieldset>
-
-    <fieldset class="cluster">
-      <legend class="cluster__title">你看到了什么？</legend>
-      <template v-if="kind === 'observed_presence'">
-        <label for="reality-animal">动物</label>
-        <select v-model="animal" id="reality-animal">
-          <option value="dog">犬</option>
-          <option value="cat">猫</option>
-          <option value="other">其他</option>
+    <!-- §19 field groups：真实结构化表单包一层 contribution-form 供几何 gate
+         测量 group rhythm（When / Where / What 三组，组距 20–28px）。 -->
+    <div class="reality-form" data-ui="contribution-form">
+      <fieldset class="cluster">
+        <legend class="cluster__title">什么时候？</legend>
+        <label for="reality-date">日期</label>
+        <input v-model="occurredAt" type="date" id="reality-date" data-testid="reality-date" />
+        <label for="reality-effort">在场时长</label>
+        <select v-model="effortBucket" id="reality-effort" data-testid="reality-effort">
+          <option v-for="(label, key) in EFFORT_LABELS" :key="key" :value="key">{{ label }}</option>
         </select>
-        <label for="reality-count">大概几只</label>
+      </fieldset>
+
+      <fieldset class="cluster">
+        <legend class="cluster__title">在哪里？</legend>
+        <label for="reality-zone">适用区域</label>
+        <select v-model="zone" id="reality-zone">
+          <option value="">全场 / 不确定</option>
+          <option v-for="z in zones" :key="z.id" :value="z.id">{{ z.name }}</option>
+        </select>
+      </fieldset>
+
+      <fieldset class="cluster">
+        <legend class="cluster__title">你看到了什么？</legend>
+        <template v-if="kind === 'observed_presence'">
+          <label for="reality-animal">动物</label>
+          <select v-model="animal" id="reality-animal">
+            <option value="dog">犬</option>
+            <option value="cat">猫</option>
+            <option value="other">其他</option>
+          </select>
+          <label for="reality-count">大概几只</label>
+          <input
+            v-model="count"
+            type="number"
+            min="1"
+            placeholder="1"
+            id="reality-count"
+            data-testid="reality-count"
+          />
+          <label for="reality-action">在做什么</label>
+          <select v-model="action" id="reality-action">
+            <option value="present">在场</option>
+            <option value="walking">行走</option>
+            <option value="waiting">等待</option>
+            <option value="entering">进入</option>
+            <option value="dining">用餐</option>
+          </select>
+        </template>
+
+        <template v-else-if="kind === 'staff_response'">
+          <label for="reality-staff-action">工作人员做了什么</label>
+          <select v-model="staffAction" id="reality-staff-action">
+            <option value="provided_guidance">引导 / 说明</option>
+            <option value="asked_to_leave">要求离开</option>
+            <option value="offered_assistance">提供协助</option>
+            <option value="no_interaction">未与顾客互动</option>
+          </select>
+          <label for="reality-staff-outcome">结果（可选）</label>
+          <input
+            v-model="staffOutcome"
+            placeholder="一两句话即可，不填也可以"
+            id="reality-staff-outcome"
+          />
+        </template>
+
+        <template v-else>
+          <label for="reality-facility-type">设施类型</label>
+          <select v-model="facilityType" id="reality-facility-type">
+            <option value="waiting_area">宠物等候区 / 笼</option>
+            <option value="water_station">饮水点 / 水碗</option>
+            <option value="pet_elevator">宠物电梯</option>
+            <option value="designated_zone">专用活动区</option>
+            <option value="other_facility">其他设施</option>
+          </select>
+          <label for="reality-facility-status">状态</label>
+          <select v-model="facilityOperational" id="reality-facility-status">
+            <option value="active">正常可用</option>
+            <option value="removed">已拆除</option>
+            <option value="out_of_service">停用</option>
+          </select>
+        </template>
+
+        <label for="reality-context">补充（可选）</label>
         <input
-          v-model="count"
-          type="number"
-          min="1"
-          placeholder="1"
-          id="reality-count"
-          data-testid="reality-count"
-        />
-        <label for="reality-action">在做什么</label>
-        <select v-model="action" id="reality-action">
-          <option value="present">在场</option>
-          <option value="walking">行走</option>
-          <option value="waiting">等待</option>
-          <option value="entering">进入</option>
-          <option value="dining">用餐</option>
-        </select>
-      </template>
-
-      <template v-else-if="kind === 'staff_response'">
-        <label for="reality-staff-action">工作人员做了什么</label>
-        <select v-model="staffAction" id="reality-staff-action">
-          <option value="provided_guidance">引导 / 说明</option>
-          <option value="asked_to_leave">要求离开</option>
-          <option value="offered_assistance">提供协助</option>
-          <option value="no_interaction">未与顾客互动</option>
-        </select>
-        <label for="reality-staff-outcome">结果（可选）</label>
-        <input
-          v-model="staffOutcome"
+          v-model="context"
+          id="reality-context"
+          data-testid="reality-context"
           placeholder="一两句话即可，不填也可以"
-          id="reality-staff-outcome"
         />
-      </template>
-
-      <template v-else>
-        <label for="reality-facility-type">设施类型</label>
-        <select v-model="facilityType" id="reality-facility-type">
-          <option value="waiting_area">宠物等候区 / 笼</option>
-          <option value="water_station">饮水点 / 水碗</option>
-          <option value="pet_elevator">宠物电梯</option>
-          <option value="designated_zone">专用活动区</option>
-          <option value="other_facility">其他设施</option>
-        </select>
-        <label for="reality-facility-status">状态</label>
-        <select v-model="facilityOperational" id="reality-facility-status">
-          <option value="active">正常可用</option>
-          <option value="removed">已拆除</option>
-          <option value="out_of_service">停用</option>
-        </select>
-      </template>
-
-      <label for="reality-context">补充（可选）</label>
-      <input
-        v-model="context"
-        id="reality-context"
-        data-testid="reality-context"
-        placeholder="一两句话即可，不填也可以"
-      />
-    </fieldset>
+      </fieldset>
+    </div>
 
     <p v-if="error" class="notice" data-testid="reality-error" role="alert">{{ error }}</p>
     <template #primary>
@@ -212,7 +216,8 @@ async function submit() {
 
 <style scoped>
 .cluster {
-  margin: 0 0 var(--pa-space-3);
+  /* v0.2.7 §19：field group 组距 24px —— 不再「一项一巨大 gap」。 */
+  margin: 0 0 var(--pa-space-5);
   padding: 0;
   border: none;
   display: flex;

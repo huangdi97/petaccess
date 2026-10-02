@@ -162,17 +162,21 @@ const realityLineForPlace = computed(() =>
           </p>
         </div>
 
-        <div class="inspector-block" data-ui="search-reality">
-          <span class="inspector-block__label">近期现场</span>
-          <p class="inspector-block__value">
-            <template v-if="realityError">暂时无法取得</template>
-            <template v-else>{{ realityLineForSearch }}</template>
-          </p>
-        </div>
+        <div class="inspector-secondary">
+          <div class="inspector-block" data-ui="search-reality">
+            <span class="inspector-block__label">近期现场</span>
+            <p class="inspector-block__value">
+              <template v-if="realityError">暂时无法取得</template>
+              <template v-else>{{ realityLineForSearch }}</template>
+            </p>
+          </div>
 
-        <div class="inspector-block inspector-block--meta" data-ui="search-evidence">
-          <span class="inspector-block__label">证据与来源</span>
-          <p class="inspector-block__value" data-testid="inspector-evidence">{{ evidenceLine }}</p>
+          <div class="inspector-block inspector-block--meta" data-ui="search-evidence">
+            <span class="inspector-block__label">证据与来源</span>
+            <p class="inspector-block__value" data-testid="inspector-evidence">
+              {{ evidenceLine }}
+            </p>
+          </div>
         </div>
         <footer class="decision-inspector__foot">
           <RouterLink class="btn-inline" :to="`/place/${place.id}`" data-testid="inspector-open">
@@ -392,6 +396,20 @@ const realityLineForPlace = computed(() =>
 .inspector-block--meta {
   padding-top: var(--pa-space-3);
   border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+/* v0.2.7 §22：secondary evidence grouping —— reality + evidence 归组为
+   次要信息区（顶部细分隔线），primary decision 保持唯一强焦点。 */
+.inspector-secondary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-5);
+  padding-top: var(--pa-space-3);
+  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+.inspector-secondary .inspector-block--meta {
+  border-top: none;
+  padding-top: 0;
 }
 
 .decision-inspector__foot {

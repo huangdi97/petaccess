@@ -80,6 +80,37 @@
       },
       "severity": "FAIL",
       "pages": ["contribute-entry"]
+    },
+    {
+      "id": "CONTRIBUTION_MAIN_COLUMN_BOUNDED",
+      "ui": "contribution-main",
+      "fallbacks": [".contribute-workspace__main"],
+      "props": {
+        "width": {
+          "min": 620,
+          "max": 760
+        }
+      },
+      "severity": "FAIL",
+      "pages": ["contribute-entry", "contribute-step-1", "contribute-step-2"],
+      "note": "v0.2.7 §16/§40：main task column 620–720px（容差到 760）。"
+    },
+    {
+      "id": "CONTRIBUTION_CONTEXT_VISIBLE",
+      "ui": "contribution-context",
+      "fallbacks": [".contribute-workspace__context"],
+      "props": {
+        "count": {
+          "min": 1
+        },
+        "width": {
+          "min": 240,
+          "max": 320
+        }
+      },
+      "severity": "FAIL",
+      "pages": ["contribute-entry", "contribute-step-1", "contribute-step-2"],
+      "note": "v0.2.7 §15/§40：desktop secondary context rail 240–300px 真实可见。"
     }
   ],
   "structure": [
@@ -155,7 +186,42 @@
       "pages": ["contribute-step-1"]
     }
   ],
-  "density": [],
+  "density": [
+    {
+      "id": "CONTRIBUTION_FIELD_GROUP_RHYTHM",
+      "selector": "[data-ui='contribution-form']",
+      "metric": "largestVerticalGap",
+      "min": 16,
+      "max": 40,
+      "severity": "FAIL",
+      "pages": ["contribute-step-2"],
+      "note": "v0.2.7 §19/§40：When/Where/What 三组间距 20–28px 稳定节奏。"
+    }
+  ],
+  "composition": [
+    {
+      "id": "CONTRIBUTION_DESKTOP_WORKSPACE_BALANCE",
+      "metric": "inspectorOccupancy",
+      "selector": "[data-ui='contribution-main']",
+      "container": "[data-ui='contribution-workspace']",
+      "min": 0.55,
+      "max": 0.8,
+      "severity": "FAIL",
+      "pages": ["contribute-entry", "contribute-step-1", "contribute-step-2"],
+      "note": "v0.2.7 §15/§40：main column 占 workspace 55–80%，宽屏构图平衡。"
+    }
+  ],
+  "hierarchy": [
+    {
+      "id": "PRIMARY_CONTENT_DOMINATES_METADATA",
+      "a": ".entry-question",
+      "b": ".entry-hint",
+      "minRatio": 1.4,
+      "severity": "FAIL",
+      "pages": ["contribute-entry"],
+      "note": "v0.2.7 §40：question 必须显著强于 metadata/hint。"
+    }
+  ],
   "language": {
     "uuid": true,
     "enums": true,

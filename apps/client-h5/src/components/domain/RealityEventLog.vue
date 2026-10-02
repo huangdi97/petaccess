@@ -96,15 +96,16 @@ const groups = computed<ObservationGroup[]>(() => {
             }}</time>
             <span class="trace-row__dot" aria-hidden="true" data-ui="reality-event-marker"></span>
             <div class="trace-row__content">
-              <p class="trace-row__location" data-testid="event-location">
-                {{ zoneNameFor(o) ?? "地点待确认" }}
-              </p>
-              <p class="trace-row__event">
-                {{ animalScopeLabel(o.animal_scope) }} ·
-                {{ ruleActionLabel(o.observed_action) }}
-                <span v-if="o.staff_action" class="muted"
+              <!-- v0.2.7 §24：Observed Fact = primary；Location = secondary；
+                   Staff Response 从属于事实；Review metadata = tertiary。 -->
+              <p class="trace-row__event" data-testid="event-fact">
+                {{ animalScopeLabel(o.animal_scope) }} · {{ ruleActionLabel(o.observed_action) }}
+                <span v-if="o.staff_action" class="trace-row__staff"
                   >（工作人员：{{ staffActionLabel(o.staff_action) }}）</span
                 >
+              </p>
+              <p class="trace-row__location" data-testid="event-location">
+                {{ zoneNameFor(o) ?? "地点待确认" }}
               </p>
               <div class="trace-row__meta">
                 <span class="trace-row__status" data-testid="event-status">
@@ -201,17 +202,23 @@ const groups = computed<ObservationGroup[]>(() => {
 .trace-row__content {
   min-width: 0;
 }
-.trace-row__location {
+/* v0.2.7 §24：Observed Fact = 主行（事实优先）；Location = 次要上下文；
+   Staff Response = 从属于事实；Review metadata = 第三层。 */
+.trace-row__event {
   margin: 0;
-  font-weight: var(--pa-font-weight-medium);
-  color: var(--pa-color-text-primary);
-  .trace-row__event {
-    margin: var(--pa-space-1) 0 0;
-    font-size: var(--pa-font-size-base);
-    font-weight: var(--pa-font-weight-600);
-    line-height: var(--pa-line-height-23);
-    overflow-wrap: anywhere;
-  }
+  font-size: var(--pa-font-size-base);
+  font-weight: var(--pa-font-weight-600);
+  line-height: var(--pa-line-height-23);
+  overflow-wrap: anywhere;
+}
+.trace-row__staff {
+  font-size: var(--pa-font-size-sm);
+  color: var(--pa-color-text-secondary);
+}
+.trace-row__location {
+  margin: var(--pa-space-1) 0 0;
+  font-size: var(--pa-font-size-md);
+  color: var(--pa-color-text-secondary);
 }
 .trace-row__meta {
   display: flex;

@@ -311,6 +311,22 @@
       "b": "body",
       "maxRatio": 0.95,
       "severity": "FAIL"
+    },
+    {
+      "id": "PRIMARY_CONTENT_DOMINATES_METADATA",
+      "a": "[data-ui='search-detail-name'], .decision-inspector__name",
+      "b": ".decision-inspector__meta",
+      "minRatio": 1.5,
+      "severity": "FAIL",
+      "note": "v0.2.7 §40：detail 的 place name 必须显著强于 Type·地址 metadata。"
+    },
+    {
+      "id": "STATUS_BADGE_NOT_PRIMARY",
+      "a": ".result-row .status-badge",
+      "b": ".result-row__name",
+      "maxRatio": 0.95,
+      "severity": "FAIL",
+      "note": "v0.2.7 §26/§40：row 内 status badge 字号低于场所名。"
     }
   ],
   "budget": [

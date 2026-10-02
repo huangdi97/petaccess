@@ -106,10 +106,13 @@ defineEmits<{ back: [] }>();
 .step-shell__progress-label {
   margin-left: var(--pa-space-2);
   white-space: nowrap;
+  /* v0.2.7 §17：progress 退后 —— label 更小更轻，question 成为焦点。 */
+  font-size: var(--pa-font-size-sm);
+  letter-spacing: var(--pa-letter-spacing-wide);
 }
 .step-shell__title {
   margin: var(--pa-space-1) 0 0;
-  font-size: var(--pa-font-size-24);
+  font-size: var(--pa-font-size-26);
   font-weight: var(--pa-font-weight-650);
   line-height: var(--pa-line-height-32);
   color: var(--pa-color-text-primary);

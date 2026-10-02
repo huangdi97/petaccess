@@ -235,17 +235,9 @@ function goHome() {
   min-height: 320px;
   border: var(--pa-border-width) solid var(--pa-color-border);
   border-radius: var(--pa-radius-md);
-  background:
-    repeating-linear-gradient(
-      0deg,
-      var(--pa-color-map-grid-a) 0 24px,
-      var(--pa-color-map-grid-b) 24px 25px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      var(--pa-color-map-grid-a) 0 24px,
-      var(--pa-color-map-grid-b) 24px 25px
-    );
+  /* v0.2.7 §8/§9：画布基底退回极浅冷中性纯色 —— MockMap 的抽象城市
+     SVG 在其上分层；不再叠加「灰网格+数字」式的 repeating grid。 */
+  background: var(--pa-color-map-grid-a);
 }
 
 /* 桌面浮动预览：唯一允许的浮动卡片（freeze §5：map preview 10–12px + light shadow）。 */

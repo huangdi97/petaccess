@@ -11,10 +11,14 @@
  * - `role="dialog"` + Escape 关闭（键盘可达）；reduced-motion 降级。
  */
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
-import type { CoexistenceSnapshot, PlaceSummary } from "@petaccess/client-core";
-import { placeTypeLabel } from "@petaccess/client-core";
-import { answerConditions, answerStatusKey } from "../../answer";
+import {
+  placeTypeLabel,
+  type CoexistenceSnapshot,
+  type PlaceSummary,
+} from "@petaccess/client-core";
+import { answerConditions, answerStatusKey, answerVerdictLabel } from "../../answer";
 import { realityStateLabel } from "../../reality";
+import { sourceLabel } from "../../consumer/labels";
 import StatusBadge from "../StatusBadge.vue";
 import PaIcon from "../ui/PaIcon.vue";
 
@@ -59,6 +63,15 @@ const realityLine = computed(() =>
     ? realityStateLabel(props.snapshot.reality_answer)
     : "暂无足够记录",
 );
+/** §13 expanded：Current Decision —— 真实 verdict（不伪造）。 */
+const verdictText = computed(() => (props.loading ? "加载中…" : answerVerdictLabel(answer.value)));
+/** §13 expanded：Evidence/Freshness —— 真实来源 issuer + snapshot 生成时间。 */
+const evidenceLine = computed(() => {
+  const ev = answer.value?.evidence_state.rules[0] ?? null;
+  const issuer = sourceLabel(ev?.issuer ?? null, Boolean(ev));
+  const gen = props.snapshot?.generated_at?.slice(0, 10);
+  return gen ? `${issuer} · 更新于 ${gen}` : issuer;
+});
 
 function onKey(e: KeyboardEvent) {
   if (props.open && e.key === "Escape") emit("close");
@@ -118,6 +131,17 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
           </p>
         </div>
 
+        <!-- §13 expanded：Current Decision（真实 verdict，无数据则保持留白不伪造）。 -->
+        <div
+          v-if="phase === 'expanded'"
+          class="sheet__block"
+          data-testid="sheet-verdict"
+          data-ui="sheet-verdict"
+        >
+          <span class="sheet__block-label">结论</span>
+          <p class="sheet__verdict" data-testid="sheet-verdict-text">{{ verdictText }}</p>
+        </div>
+
         <p v-if="keyCondition" class="sheet__condition" data-testid="sheet-condition">
           {{ keyCondition }}
         </p>
@@ -127,6 +151,17 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
           <span class="sheet__reality-line">
             {{ loading ? "加载中…" : error ? "暂时无法取得" : realityLine }}
           </span>
+        </div>
+
+        <!-- §13 expanded：Evidence/Freshness（真实来源 + 快照更新时间，不伪造）。 -->
+        <div
+          v-if="phase === 'expanded'"
+          class="sheet__block"
+          data-testid="sheet-evidence"
+          data-ui="sheet-evidence"
+        >
+          <span class="sheet__block-label">证据与来源</span>
+          <p class="sheet__evidence-line">{{ evidenceLine }}</p>
         </div>
 
         <div class="sheet__actions">
@@ -220,6 +255,30 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   font-size: var(--pa-font-size-base);
   font-weight: var(--pa-font-weight-600);
   color: var(--pa-color-text-primary);
+}
+/* §13 expanded blocks：真实信息块，label 弱化、value 为主内容。 */
+.sheet__block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-1);
+}
+.sheet__block-label {
+  font-size: var(--pa-font-size-sm);
+  color: var(--pa-color-text-secondary);
+}
+.sheet__verdict {
+  margin: 0;
+  font-size: var(--pa-font-size-lg);
+  font-weight: var(--pa-font-weight-650);
+  line-height: var(--pa-line-height-26);
+  color: var(--pa-color-text-primary);
+}
+.sheet__evidence-line {
+  margin: 0;
+  font-size: var(--pa-font-size-base);
+  line-height: var(--pa-line-height-23);
+  color: var(--pa-color-text-primary);
+  overflow-wrap: anywhere;
 }
 .sheet__reality {
   display: flex;
