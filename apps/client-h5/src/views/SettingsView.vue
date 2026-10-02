@@ -1,10 +1,9 @@
 <script setup lang="ts">
 // @ui-static SettingsView — 设置入口页，无列表数据加载（M3 E1 静态声明）。
 import { onMounted, ref } from "vue";
-import { session } from "@petaccess/client-core";
+import { MODE_LABELS, session } from "@petaccess/client-core";
 import { REQUIRED_COPY } from "@petaccess/design-tokens";
 import AppShell from "../components/AppShell.vue";
-
 /**
  * Settings / About / Methodology (UI_UX_IMPLEMENTATION_SPEC §8, P1 item 11).
  *
@@ -121,9 +120,8 @@ const EVIDENCE = [
         <RouterLink class="btn-inline" to="/about">查看产品说明与版本</RouterLink>
       </p>
     </div>
-
     <div class="panel">
-      <div class="muted">当前查询模式：{{ session.mode }}</div>
+      <div class="muted">当前查询模式：{{ MODE_LABELS[session.mode] }}</div>
       <div class="muted" style="margin-top: 4px">
         {{
           signedIn ? `已登录：${session.user?.display_name ?? ""}` : "未登录（可浏览公开收录内容）"

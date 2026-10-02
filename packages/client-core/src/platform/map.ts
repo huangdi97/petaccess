@@ -171,7 +171,7 @@ export function coverageHint(markers: MapMarker[]): CoverageHint {
     markers.length === 0
       ? "当前视野内暂无已收录场所。未收录不代表该场所没有规则。"
       : `当前视野 ${markers.length} 个场所：${covered} 个已有结论，` +
-        `${unknown} 个信息不足或存在不一致。信息不足 ≠ 允许。`;
+        `${unknown} 个信息不足或存在不一致。信息不足不等于允许。`;
   return { covered, unknown, text };
 }
 
