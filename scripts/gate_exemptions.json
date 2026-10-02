@@ -1308,6 +1308,96 @@
       "path": "api/v1/reality_reports.py",
       "reason": "planned backend split (M2); sibling of api/v1/reality.py — see V010_TECH_DEBT_REGISTER #TD-010",
       "reference": "TD-010"
+    },
+    {
+      "rule": "vue>200",
+      "path": "components/contribute/ContributeRealityForm.vue",
+      "reason": "frozen v5 consumer component; RC round forbids UI refactor; planned split after release — see V010_TECH_DEBT_REGISTER #TD-030",
+      "reference": "TD-030"
+    },
+    {
+      "rule": "vue>200",
+      "path": "components/contribute/ContributeSignageForm.vue",
+      "reason": "frozen v5 consumer component; RC round forbids UI refactor; planned split after release — see V010_TECH_DEBT_REGISTER #TD-030",
+      "reference": "TD-030"
+    },
+    {
+      "rule": "vue>200",
+      "path": "components/domain/DecisionInspector.vue",
+      "reason": "frozen v5 consumer component; RC round forbids UI refactor; planned split after release — see V010_TECH_DEBT_REGISTER #TD-030",
+      "reference": "TD-030"
+    },
+    {
+      "rule": "vue>200",
+      "path": "components/domain/EvidenceProvenance.vue",
+      "reason": "frozen v5 consumer component; RC round forbids UI refactor; planned split after release — see V010_TECH_DEBT_REGISTER #TD-030",
+      "reference": "TD-030"
+    },
+    {
+      "rule": "vue>200",
+      "path": "components/domain/MapResultPane.vue",
+      "reason": "frozen v5 consumer component; RC round forbids UI refactor; planned split after release — see V010_TECH_DEBT_REGISTER #TD-030",
+      "reference": "TD-030"
+    },
+    {
+      "rule": "vue>200",
+      "path": "components/domain/PlaceResultRow.vue",
+      "reason": "frozen v5 consumer component; RC round forbids UI refactor; planned split after release — see V010_TECH_DEBT_REGISTER #TD-030",
+      "reference": "TD-030"
+    },
+    {
+      "rule": "vue>200",
+      "path": "components/domain/RealityEventLog.vue",
+      "reason": "frozen v5 consumer component; RC round forbids UI refactor; planned split after release — see V010_TECH_DEBT_REGISTER #TD-030",
+      "reference": "TD-030"
+    },
+    {
+      "rule": "vue>200",
+      "path": "components/map/MapSelectedSheet.vue",
+      "reason": "frozen v5 consumer component; RC round forbids UI refactor; planned split after release — see V010_TECH_DEBT_REGISTER #TD-030",
+      "reference": "TD-030"
+    },
+    {
+      "rule": "vue>200",
+      "path": "components/MockMap.vue",
+      "reason": "frozen v5 consumer component; RC round forbids UI refactor; planned split after release — see V010_TECH_DEBT_REGISTER #TD-030",
+      "reference": "TD-030"
+    },
+    {
+      "rule": "vue>200",
+      "path": "components/nav/DesktopRail.vue",
+      "reason": "frozen v5 consumer component; RC round forbids UI refactor; planned split after release — see V010_TECH_DEBT_REGISTER #TD-030",
+      "reference": "TD-030"
+    },
+    {
+      "rule": "vue>200",
+      "path": "components/place/PlaceOverviewPane.vue",
+      "reason": "frozen v5 consumer component; RC round forbids UI refactor; planned split after release — see V010_TECH_DEBT_REGISTER #TD-030",
+      "reference": "TD-030"
+    },
+    {
+      "rule": "vue>200",
+      "path": "components/place/PlaceRulesPane.vue",
+      "reason": "frozen v5 consumer component; RC round forbids UI refactor; planned split after release — see V010_TECH_DEBT_REGISTER #TD-030",
+      "reference": "TD-030"
+    },
+    {
+      "rule": "vue>200",
+      "path": "components/RealityPanel.vue",
+      "reason": "frozen v5 consumer component; RC round forbids UI refactor; planned split after release — see V010_TECH_DEBT_REGISTER #TD-030",
+      "reference": "TD-030"
+    },
+    {
+      "rule": "vue>200",
+      "path": "views/ContributeView.vue",
+      "reason": "frozen v5 consumer component; RC round forbids UI refactor; planned split after release — see V010_TECH_DEBT_REGISTER #TD-030",
+      "reference": "TD-030"
+    },
+    {
+      "rule": "vue>200",
+      "path": "views/RealityTraceView.vue",
+      "reason": "frozen v5 consumer component; RC round forbids UI refactor; planned split after release — see V010_TECH_DEBT_REGISTER #TD-030",
+      "reference": "TD-030"
     }
   ]
 }
