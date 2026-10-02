@@ -1,0 +1,27 @@
+{
+  "name": "05_map_mobile_ready",
+  "viewport": "430x932",
+  "route": "/#/map",
+  "expected": {
+    "page": "map",
+    "state": "ready",
+    "fixture": "map-ready-v1",
+    "h1": "规则地图"
+  },
+  "actual": {
+    "route": "#/map",
+    "page": "map",
+    "state": "ready",
+    "fixture": "map-ready-v1",
+    "h1": "规则地图",
+    "entityId": null,
+    "selectedId": null,
+    "count": null,
+    "counts": {}
+  },
+  "valid": true,
+  "mismatches": [],
+  "before": "map-h5-390-win32.png",
+  "note": "v0.2.7 §8：mobile canvas 同样抽象城市基底；地图不抢 overlay。",
+  "generatedAt": "2026-10-02T18:30:35.734Z"
+}

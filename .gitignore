@@ -67,3 +67,4 @@ coverage.json
 
 # agent-local run state (ledgers, logs, temp) — not project source
 .agent-local/
+!artifacts/ui-product-craft-v7/

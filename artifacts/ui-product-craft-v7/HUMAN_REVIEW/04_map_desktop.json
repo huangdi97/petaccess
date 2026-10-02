@@ -1,0 +1,27 @@
+{
+  "name": "04_map_desktop",
+  "viewport": "1440x900",
+  "route": "/#/map",
+  "expected": {
+    "page": "map",
+    "state": "ready",
+    "fixture": "map-ready-v1",
+    "h1": "规则地图"
+  },
+  "actual": {
+    "route": "#/map",
+    "page": "map",
+    "state": "ready",
+    "fixture": "map-ready-v1",
+    "h1": "规则地图",
+    "entityId": null,
+    "selectedId": "map-marker-selected",
+    "count": null,
+    "counts": {}
+  },
+  "valid": true,
+  "mismatches": [],
+  "before": "map-h5-1440-win32.png",
+  "note": "v0.2.7 §8–11：abstract urban canvas（道路层级/街区/开放空间/水系/体块），selected marker scale+halo。",
+  "generatedAt": "2026-10-02T18:30:39.152Z"
+}

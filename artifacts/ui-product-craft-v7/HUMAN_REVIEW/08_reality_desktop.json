@@ -1,0 +1,27 @@
+{
+  "name": "08_reality_desktop",
+  "viewport": "1440x900",
+  "route": "/#/place/8412b521-5e1c-505d-9dec-568acb860c76/reality",
+  "expected": {
+    "page": "reality",
+    "state": "ready",
+    "fixture": "reality-ready-v1",
+    "h1": "现场轨迹"
+  },
+  "actual": {
+    "route": "#/place/8412b521-5e1c-505d-9dec-568acb860c76/reality",
+    "page": "reality",
+    "state": "ready",
+    "fixture": "reality-ready-v1",
+    "h1": "现场轨迹",
+    "entityId": null,
+    "selectedId": null,
+    "count": null,
+    "counts": {}
+  },
+  "valid": true,
+  "mismatches": [],
+  "before": "reality-trace-h5-1440-win32.png",
+  "note": "v0.2.7 §24：Observed Fact 主行、Location 次行、staff 从属、meta 第三层。",
+  "generatedAt": "2026-10-02T18:30:40.110Z"
+}

@@ -1,0 +1,28 @@
+{
+  "name": "03_place_desktop_overview",
+  "viewport": "1440x900",
+  "route": "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+  "expected": {
+    "page": "place",
+    "state": "ready",
+    "fixture": "place-ready-v1",
+    "h1": "云栖中心·测试商场",
+    "entityId": "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e"
+  },
+  "actual": {
+    "route": "#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+    "page": "place",
+    "state": "ready",
+    "fixture": "place-ready-v1",
+    "h1": "云栖中心·测试商场",
+    "entityId": "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+    "selectedId": null,
+    "count": null,
+    "counts": {}
+  },
+  "valid": true,
+  "mismatches": [],
+  "before": "place-conditional-h5-1440-win32.png",
+  "note": "v0.2.7 §23：Place 尽量不动，仅 spacing/hierarchy 收口。",
+  "generatedAt": "2026-10-02T18:30:38.145Z"
+}

@@ -1,0 +1,27 @@
+{
+  "name": "01_home_desktop",
+  "viewport": "1440x900",
+  "route": "/",
+  "expected": {
+    "page": "home",
+    "state": "ready",
+    "fixture": "home-ready-v1",
+    "h1": "去之前，先看看这里的规则和现场。"
+  },
+  "actual": {
+    "route": "#/",
+    "page": "home",
+    "state": "ready",
+    "fixture": "home-ready-v1",
+    "h1": "去之前，先看看这里的规则和现场。",
+    "entityId": null,
+    "selectedId": null,
+    "count": null,
+    "counts": {}
+  },
+  "valid": true,
+  "mismatches": [],
+  "before": "home-fixture-h5-1440-win32.png",
+  "note": "v0.2.7：Home task launcher 保持；本页无 craft 改动（基线对照）。",
+  "generatedAt": "2026-10-02T18:30:35.707Z"
+}

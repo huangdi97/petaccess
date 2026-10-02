@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PetAccess v0.2.7 Final Product Craft — Human Review Pack</title>
+<style>
+  body { font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif; margin: 24px auto; max-width: 1200px; padding: 0 16px; color: #1d2733; }
+  h1 { font-size: 22px; }
+  .card { border: 1px solid #e4e8ec; border-radius: 10px; padding: 16px; margin: 16px 0; }
+  .card h2 { margin: 0 0 8px; font-size: 17px; }
+  dl { display: grid; grid-template-columns: 120px 1fr; gap: 4px 12px; margin: 8px 0; font-size: 13px; }
+  dt { color: #5c6772; } dd { margin: 0; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
+  figure { margin: 0; } figcaption { font-size: 12px; color: #5c6772; margin-bottom: 4px; }
+  img { width: 100%; border: 1px solid #e4e8ec; border-radius: 8px; }
+</style>
+</head>
+<body>
+<h1>PetAccess v0.2.7 Final Product Craft · Human Review Pack（13 VALID / 13 total）</h1>
+<p>截图必须通过 Capture State Integrity（route/page/state/fixture/h1/entity/count actual=expected）后才保存为 PNG。
+metadata JSON 只证明真实页面状态，不宣称视觉通过。等待人工视觉判断（Agent 不代替签字）。</p>
+<div class="card">
+  <h2>01_home_desktop ✅</h2>
+  <dl>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd></dd>
+    <dt>Known notes</dt><dd>v0.2.7：Home task launcher 保持；本页无 craft 改动（基线对照）。</dd>
+  </dl>
+  <div class="pair">
+      <figure><figcaption>before（RC 冻结 baseline）</figcaption><img src="../../../../tests/visual/consumer.spec.ts-snapshots/home-fixture-h5-1440-win32.png" alt="01_home_desktop before" loading="lazy" /></figure>
+      <figure><figcaption>after（v0.2.7 craft）</figcaption><img src="01_home_desktop.png" alt="01_home_desktop after — VALID" loading="lazy" /></figure>
+    </div>
+</div>
+<div class="card">
+  <h2>02_search_desktop ✅</h2>
+  <dl>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/search</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd></dd>
+    <dt>Known notes</dt><dd>v0.2.7 §22：detail secondary evidence grouping（reality+evidence 归组、顶部细分隔线）。</dd>
+  </dl>
+  <div class="pair">
+      <figure><figcaption>before（RC 冻结 baseline）</figcaption><img src="../../../../tests/visual/consumer.spec.ts-snapshots/search-fixture-h5-1440-win32.png" alt="02_search_desktop before" loading="lazy" /></figure>
+      <figure><figcaption>after（v0.2.7 craft）</figcaption><img src="02_search_desktop.png" alt="02_search_desktop after — VALID" loading="lazy" /></figure>
+    </div>
+</div>
+<div class="card">
+  <h2>03_place_desktop_overview ✅</h2>
+  <dl>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd></dd>
+    <dt>Known notes</dt><dd>v0.2.7 §23：Place 尽量不动，仅 spacing/hierarchy 收口。</dd>
+  </dl>
+  <div class="pair">
+      <figure><figcaption>before（RC 冻结 baseline）</figcaption><img src="../../../../tests/visual/consumer.spec.ts-snapshots/place-conditional-h5-1440-win32.png" alt="03_place_desktop_overview before" loading="lazy" /></figure>
+      <figure><figcaption>after（v0.2.7 craft）</figcaption><img src="03_place_desktop_overview.png" alt="03_place_desktop_overview after — VALID" loading="lazy" /></figure>
+    </div>
+</div>
+<div class="card">
+  <h2>04_map_desktop ✅</h2>
+  <dl>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/map</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd></dd>
+    <dt>Known notes</dt><dd>v0.2.7 §8–11：abstract urban canvas（道路层级/街区/开放空间/水系/体块），selected marker scale+halo。</dd>
+  </dl>
+  <div class="pair">
+      <figure><figcaption>before（RC 冻结 baseline）</figcaption><img src="../../../../tests/visual/consumer.spec.ts-snapshots/map-h5-1440-win32.png" alt="04_map_desktop before" loading="lazy" /></figure>
+      <figure><figcaption>after（v0.2.7 craft）</figcaption><img src="04_map_desktop.png" alt="04_map_desktop after — VALID" loading="lazy" /></figure>
+    </div>
+</div>
+<div class="card">
+  <h2>05_map_mobile_ready ✅</h2>
+  <dl>
+    <dt>Viewport</dt><dd>430x932</dd>
+    <dt>Route</dt><dd><code>/#/map</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd></dd>
+    <dt>Known notes</dt><dd>v0.2.7 §8：mobile canvas 同样抽象城市基底；地图不抢 overlay。</dd>
+  </dl>
+  <div class="pair">
+      <figure><figcaption>before（RC 冻结 baseline）</figcaption><img src="../../../../tests/visual/consumer.spec.ts-snapshots/map-h5-390-win32.png" alt="05_map_mobile_ready before" loading="lazy" /></figure>
+      <figure><figcaption>after（v0.2.7 craft）</figcaption><img src="05_map_mobile_ready.png" alt="05_map_mobile_ready after — VALID" loading="lazy" /></figure>
+    </div>
+</div>
+<div class="card">
+  <h2>06_map_mobile_half ✅</h2>
+  <dl>
+    <dt>Viewport</dt><dd>430x932</dd>
+    <dt>Route</dt><dd><code>/#/map?place=8412b521-5e1c-505d-9dec-568acb860c76</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd></dd>
+    <dt>Known notes</dt><dd>v0.2.7 §12：half sheet 仅 craft handle/metadata/status 层级。</dd>
+  </dl>
+  <div class="pair">
+      <figure><figcaption>before（RC 冻结 baseline）</figcaption><img src="../../../../tests/visual/consumer.spec.ts-snapshots/map-sheet-h5-390-win32.png" alt="06_map_mobile_half before" loading="lazy" /></figure>
+      <figure><figcaption>after（v0.2.7 craft）</figcaption><img src="06_map_mobile_half.png" alt="06_map_mobile_half after — VALID" loading="lazy" /></figure>
+    </div>
+</div>
+<div class="card">
+  <h2>07_map_mobile_expanded ✅</h2>
+  <dl>
+    <dt>Viewport</dt><dd>430x932</dd>
+    <dt>Route</dt><dd><code>/#/map?place=8412b521-5e1c-505d-9dec-568acb860c76</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd></dd>
+    <dt>Known notes</dt><dd>v0.2.7 §13：expanded 只加真实信息（结论/证据与来源），无伪造填充。</dd>
+  </dl>
+  <img src="07_map_mobile_expanded.png" alt="07_map_mobile_expanded — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>08_reality_desktop ✅</h2>
+  <dl>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/place/8412b521-5e1c-505d-9dec-568acb860c76/reality</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd></dd>
+    <dt>Known notes</dt><dd>v0.2.7 §24：Observed Fact 主行、Location 次行、staff 从属、meta 第三层。</dd>
+  </dl>
+  <div class="pair">
+      <figure><figcaption>before（RC 冻结 baseline）</figcaption><img src="../../../../tests/visual/consumer.spec.ts-snapshots/reality-trace-h5-1440-win32.png" alt="08_reality_desktop before" loading="lazy" /></figure>
+      <figure><figcaption>after（v0.2.7 craft）</figcaption><img src="08_reality_desktop.png" alt="08_reality_desktop after — VALID" loading="lazy" /></figure>
+    </div>
+</div>
+<div class="card">
+  <h2>09_evidence_desktop ✅</h2>
+  <dl>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/place/8412b521-5e1c-505d-9dec-568acb860c76/evidence</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd></dd>
+    <dt>Known notes</dt><dd>v0.2.7 §25：record identity 22/650 为首要事实；provenance 层级不变。</dd>
+  </dl>
+  <img src="09_evidence_desktop.png" alt="09_evidence_desktop — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>10_contribution_desktop_choose ✅</h2>
+  <dl>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd></dd>
+    <dt>Known notes</dt><dd>v0.2.7 §15–16：desktop main+context 双栏（context rail 只放真实上下文）。</dd>
+  </dl>
+  <div class="pair">
+      <figure><figcaption>before（RC 冻结 baseline）</figcaption><img src="../../../../tests/visual/consumer.spec.ts-snapshots/contribute-h5-1440-win32.png" alt="10_contribution_desktop_choose before" loading="lazy" /></figure>
+      <figure><figcaption>after（v0.2.7 craft）</figcaption><img src="10_contribution_desktop_choose.png" alt="10_contribution_desktop_choose after — VALID" loading="lazy" /></figure>
+    </div>
+</div>
+<div class="card">
+  <h2>11_contribution_desktop_step1 ✅</h2>
+  <dl>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd></dd>
+    <dt>Known notes</dt><dd>v0.2.7 §17：progress quieter、question 更强；context rail 持续。</dd>
+  </dl>
+  <img src="11_contribution_desktop_step1.png" alt="11_contribution_desktop_step1 — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>12_contribution_desktop_step2 ✅</h2>
+  <dl>
+    <dt>Viewport</dt><dd>1440x900</dd>
+    <dt>Route</dt><dd><code>/#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd></dd>
+    <dt>Known notes</dt><dd>v0.2.7 §19：When/Where/What field group 20–28px 稳定节奏。</dd>
+  </dl>
+  <img src="12_contribution_desktop_step2.png" alt="12_contribution_desktop_step2 — VALID" loading="lazy" />
+</div>
+<div class="card">
+  <h2>13_contribution_mobile_step1 ✅</h2>
+  <dl>
+    <dt>Viewport</dt><dd>430x932</dd>
+    <dt>Route</dt><dd><code>/#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e</code></dd>
+    <dt>State integrity</dt><dd>VALID — actual DOM 与 expected 一致</dd>
+    <dt>PNG bytes</dt><dd></dd>
+    <dt>Known notes</dt><dd>v0.2.7：mobile 单列不变；context rail 仅 desktop 渲染。</dd>
+  </dl>
+  <div class="pair">
+      <figure><figcaption>before（RC 冻结 baseline）</figcaption><img src="../../../../tests/visual/consumer.spec.ts-snapshots/contribute-h5-390-win32.png" alt="13_contribution_mobile_step1 before" loading="lazy" /></figure>
+      <figure><figcaption>after（v0.2.7 craft）</figcaption><img src="13_contribution_mobile_step1.png" alt="13_contribution_mobile_step1 after — VALID" loading="lazy" /></figure>
+    </div>
+</div>
+<footer>
+<p>完整报告：<code>docs/reports/V0207_PRODUCT_CRAFT_FINAL_REPORT.md</code> · 状态：<code>UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW</code></p>
+</footer>
+</body>
+</html>
