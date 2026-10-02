@@ -1,5 +1,35 @@
 # PROJECT_STATE.md
 
+## Current phase（2026-10-02 本轮实测 — v0.2.6 RC Integration / Cross-Runtime Final Acceptance）
+- 状态：`V020_RC_INTEGRATION = PASS` · `UI_HUMAN_VISUAL_ACCEPTANCE = PASS_FOR_RC` ·
+  `UI_VISUAL_CLOSURE = FROZEN_FOR_RC` · `CANONICAL_VISUAL_BASELINE_PROMOTION = PASS` ·
+  `VISUAL_REGRESSION = PASS` · `WEB_FULL_REGRESSION = PASS` · `ANDROID_FAST = PASS` ·
+  `WINDOWS_SMOKE = PASS` · `MASTER_FF_INTEGRATION = PASS` · `V020_RC_READY = YES` ·
+  `PUBLIC_RELEASE = NOT_PERFORMED` · `AWAITING_RELEASE_AUTHORIZATION = YES`
+- 分支：`feat/v020-rc-integration-v6`（基点 = v5 head `70d670c`）；origin/master 以 Git
+  查询为准（本轮 fast-forward 集成，仅 FF，无 force/merge/rebase）；`v0.1.0` tag 未动。
+- 基线提升：G2 将人工冻结的 v5 Consumer UI 提升为 canonical visual baseline
+  （`docs/reports/V020_RC_VISUAL_BASELINE_MANIFEST.md`，24 张 consumer PNG + 断言对齐
+  冻结 v5 DOM；Admin 零改动；视觉确定性 59/59 ×2 PASS）。
+- 跨运行时：Android FAST（复用 emulator-5554 / AVD main，API 36）12 张截图全 PASS；
+  Windows Smoke（真实 Tauri v2 + WebView2 154）9 张截图全 PASS；release-like H5 /
+  Windows NSIS / Android APK+AAB 产物记录于 `artifacts/rc-v020/RC_ARTIFACT_MANIFEST.json`
+  与 `docs/reports/V020_RC_ARTIFACT_REPORT.md`（signing 受限如实记录，不假签）。
+- 机器 Gate（本轮实测）：vue-tsc PASS；client-h5 build PASS；admin build PASS；
+  eslint 0；prettier PASS；ui-oracle compare 398/0/0 + 捕获套件 PASS（serial 稳定）；
+  语言扫描 28 页 FAIL=0；density 21 FAIL=0；ui-reconstruction 180/180；
+  Playwright e2e **189/189**；visual regression **59/59**；backend pytest
+  **961 passed / 2 skipped / 0 failed**（含 Celery worker，petaccess_test DB）；
+  secret scan 0 findings；dependency audit 0 known vulnerabilities；
+  engineering gate **PASS（0 FAIL）**——v5 遗留 15 个 vue>200 冻结 Consumer 组件
+  按仓库机制登记 TD-030（RC 轮禁止重构冻结 UI，拆分排 release 后）。
+- G4 收口：Consumer 复制终扫 15 路由 0 命中；修复 2 处用户可见工程痕迹
+  （地图覆盖提示 `信息不足 ≠ 允许` → `不等于允许`；设置页 `with_pet` 裸 key →
+  `带宠出行`），并回归重建受影响 baseline。
+- 本轮不创建 tag / 不发布 Release / 不上商店（`CREATE_V020_TAG = NO`；
+  最终状态 `V020_RC_READY = YES`，发布动作等待用户授权）。
+
+### 历史记录 — v0.2.5 Human Visual Closure（2026-10-01，HISTORICAL）
 ## Current phase（2026-10-01 本轮实测 — v0.2.5 Human Visual Closure / Interaction & Brand Polish 全量机器管道）
 - 状态：`UI_HUMAN_CLOSURE_V5 = MACHINE_PASS` · 七页 `*_CANDIDATE = READY_FOR_HUMAN` ·
   `UI_HUMAN_VISUAL_ACCEPTANCE = PENDING` · `UI_VISUAL_CLOSURE = PENDING_HUMAN` ·

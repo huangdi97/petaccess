@@ -1,0 +1,81 @@
+{
+  "round": "V020 RC (v0.2.6)",
+  "generatedAt": "2026-10-02",
+  "artifacts": [
+    {
+      "id": "h5-production",
+      "kind": "web",
+      "name": "PetAccess client-h5 production build",
+      "path": "apps/client-h5/dist",
+      "detail": "51 files / 426186 bytes",
+      "entry": {
+        "index.html": "E41DF9DF545FF1404C2C27E27F6C890A4CCF3A07D1846BA694F5D016E12ADCA8",
+        "assets/index-BVpmflhp.js": "8A94674D0F3697E99C92DED20D3A8B9936F205840D2A5E037A511E0E8B350C40",
+        "assets/index-DhnSvRmi.css": "5530106EA1531613D58D0394EFA212B64034BEC9AC6EEA463153DA1C0AEA6367"
+      },
+      "buildCommand": "pnpm --filter @petaccess/client-h5 build",
+      "signing": "N/A",
+      "smoke": "PASS (index 200 / asset 200 / hash routes home/search/map/place/contribute shell+no-error; no sourcemap; no dev-port leak; no dev endpoint leak)",
+      "notes": "G8 release-like H5"
+    },
+    {
+      "id": "android-debug-apk",
+      "kind": "android",
+      "name": "PetAccess Android debug APK (x86_64)",
+      "path": "D:\\pa-fix\\apps\\client-h5\\src-tauri\\gen\\android\\app\\build\\outputs\\apk\\universal\\debug\\app-universal-debug.apk",
+      "sha256": "E6E79695FF53D13518F0F24CFD43156EA981D44896036258C9A944489C6848CA",
+      "size": 137488646,
+      "buildCommand": "VITE_TAURI_ANDROID_API_BASE=http://10.0.2.2:8016/api/v1 pnpm --filter @petaccess/client-h5 exec tauri android build --target x86_64 --debug (vcvars64 + CARGO_TARGET_DIR=D:\\pa-fix-target)",
+      "signing": "debug-signed",
+      "smoke": "PASS (Android FAST: install Success, launch, 12 screenshots, all runtime assertions)",
+      "notes": "used by Android FAST; manifest: package com.petaccess.map / versionName 0.1.0 / versionCode 1000 / permissions INTERNET only (+standard debug DYNAMIC_RECEIVER_NOT_EXPORTED)"
+    },
+    {
+      "id": "android-release-unsigned-apk",
+      "kind": "android",
+      "name": "PetAccess Android release-like APK (unsigned, x86_64)",
+      "path": "D:\\pa-fix\\apps\\client-h5\\src-tauri\\gen\\android\\app\\build\\outputs\\apk\\universal\\release\\app-universal-release-unsigned.apk",
+      "sha256": "156285CD3E368B988DECEB4D84860864E56CF7E260F23330D58DE00BD4FE1689",
+      "size": 11586738,
+      "buildCommand": "VITE_TAURI_ANDROID_API_BASE=http://10.0.2.2:8016/api/v1 pnpm --filter @petaccess/client-h5 exec tauri android build --target x86_64 (vcvars64 + CARGO_TARGET_DIR=D:\\pa-fix-target-andrel)",
+      "signing": "RELEASE_SIGNING = BLOCKED_SECRET (keystore absent at ~/.petaccess-keystore; not faked)",
+      "smoke": "PASS (aapt badging: manifest package/version/permissions verified; installability N/A for unsigned)",
+      "notes": "G10 release-like Android; permissions INTERNET only (+standard debug DYNAMIC_RECEIVER_NOT_EXPORTED)"
+    },
+    {
+      "id": "android-release-aab",
+      "kind": "android",
+      "name": "PetAccess Android release-like AAB (unsigned)",
+      "path": "D:\\pa-fix\\apps\\client-h5\\src-tauri\\gen\\android\\app\\build\\outputs\\bundle\\universalRelease\\app-universal-release.aab",
+      "sha256": "9A52FC5BC2782E72C84591DE8134597267CE5A1162CD3B5BDF5187A5AA279744",
+      "size": 6185942,
+      "buildCommand": "same as android-release-unsigned-apk",
+      "signing": "RELEASE_SIGNING = BLOCKED_SECRET (keystore absent; not faked)",
+      "smoke": "PASS (artifact exists, non-zero, hash computed)",
+      "notes": "G10 release-like Android AAB"
+    },
+    {
+      "id": "windows-debug-exe",
+      "kind": "windows",
+      "name": "PetAccess Windows debug exe (real Tauri)",
+      "path": "D:\\pa-fix-target-win\\debug\\petaccess.exe",
+      "size": 8732160,
+      "buildCommand": "VITE_TAURI_API_BASE=http://127.0.0.1:8016/api/v1 pnpm --filter @petaccess/client-h5 exec tauri build --debug --no-bundle (CARGO_TARGET_DIR=D:\\pa-fix-target-win)",
+      "signing": "N/A (debug)",
+      "smoke": "PASS (Windows Smoke: window chrome, rail, WebView2 154, all routes, offline/recovery/relaunch)",
+      "notes": "G7 Windows Smoke runtime"
+    },
+    {
+      "id": "windows-release-installer",
+      "kind": "windows",
+      "name": "PetAccess Windows NSIS installer (release-like, x64)",
+      "path": "D:\\pa-fix-target-win-rel\\release\\bundle\\nsis\\PetAccess_0.1.0_x64-setup.exe",
+      "sha256": "5CC7C84E42AF3842202F0BA834D30818EF8B711E2AB6A2378F0AED0744363E56",
+      "size": 1994016,
+      "buildCommand": "VITE_TAURI_API_BASE=http://127.0.0.1:8016/api/v1 pnpm --filter @petaccess/client-h5 exec tauri build (CARGO_TARGET_DIR=D:\\pa-fix-target-win-rel)",
+      "signing": "NotSigned (no Authenticode certificate; not faked)",
+      "smoke": "PASS (artifact exists, non-zero, hash; installer produced by makensis)",
+      "notes": "G9 release-like Windows; companion release petaccess.exe 8732160 B at D:\\pa-fix-target-win-rel\\release\\petaccess.exe"
+    }
+  ]
+}
