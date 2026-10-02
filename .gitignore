@@ -29,6 +29,7 @@ artifacts/*
 !artifacts/blind-ui-compiler-v2/
 !artifacts/blind-ui-productization-v4/
 !artifacts/ui-human-closure-v5/
+!artifacts/rc-v020/
 .playwright/
 *.tsbuildinfo
 .vite/

@@ -1,0 +1,10 @@
+{
+  "phase": "G0-G2",
+  "updated_at": "2026-10-02",
+  "note": "only processes started/owned by this agent are listed; docker containers pre-existed (stopped) and were restarted via docker compose (reuse-first)",
+  "processes": [
+    { "kind": "docker", "name": "petaccess-db-1", "purpose": "PostGIS for petaccess dev/visual/e2e databases", "action": "started (reuse existing stopped container)", "status": "running" },
+    { "kind": "docker", "name": "petaccess-redis-1", "purpose": "Redis for backend queues", "action": "started (reuse existing stopped container)", "status": "running" },
+    { "kind": "docker", "name": "petaccess-minio-1", "purpose": "MinIO object storage (dev)", "action": "started (reuse existing stopped container)", "status": "running" }
+  ]
+}
