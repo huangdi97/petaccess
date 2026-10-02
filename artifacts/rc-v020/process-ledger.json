@@ -1,11 +1,11 @@
 {
-  "phase": "G0-G6 (Android FAST done)",
+  "phase": "V020 RC COMPLETE (master FF integrated)",
   "updated_at": "2026-10-02",
-  "note": "only processes started/owned by this agent are listed; docker containers pre-existed (stopped) and were restarted via docker compose (reuse-first). Detached servers started via WMI/Start-Process per runbook section 5.",
+  "note": "only processes started/owned by this agent are listed. docker containers were reused (restarted via docker compose from pre-existing stopped state); docker desktop was started/restarted by this agent after external sessions dropped it (documented in V020_RC_FINAL_REPORT).",
   "processes": [
-    { "kind": "docker", "name": "petaccess-db-1", "purpose": "PostGIS for petaccess dev/visual/e2e databases", "action": "started (reuse existing stopped container)", "status": "running" },
-    { "kind": "docker", "name": "petaccess-redis-1", "purpose": "Redis for backend queues", "action": "started (reuse existing stopped container)", "status": "running" },
-    { "kind": "docker", "name": "petaccess-minio-1", "purpose": "MinIO object storage (dev)", "action": "started (reuse existing stopped container)", "status": "running" },
-    { "kind": "python", "name": "dev_api_server.py --port 8016", "purpose": "petaccess_visual API for Android FAST (emulator reaches host via 10.0.2.2:8016)", "action": "started detached (WMI powershell -EncodedCommand)", "status": "running" }
+    { "kind": "docker", "name": "petaccess-db-1", "purpose": "PostGIS for petaccess dev/visual/e2e databases", "action": "started (reuse existing stopped container)", "status": "running-or-dropped-by-external-docker-restart" },
+    { "kind": "docker", "name": "petaccess-redis-1", "purpose": "Redis for backend queues", "action": "started (reuse existing stopped container)", "status": "running-or-dropped-by-external-docker-restart" },
+    { "kind": "docker", "name": "petaccess-minio-1", "purpose": "MinIO object storage (dev)", "action": "started (reuse existing stopped container)", "status": "running-or-dropped-by-external-docker-restart" },
+    { "kind": "python", "name": "dev_api_server.py --port 8016", "purpose": "petaccess_visual API for Android FAST / Windows smoke / H5 smoke", "action": "started detached (WMI); STOPPED by agent at round end", "status": "stopped" }
   ]
 }
