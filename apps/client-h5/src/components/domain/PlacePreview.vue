@@ -77,7 +77,11 @@ const metaLine = computed(() => {
 
       <!-- §32：查看场所 → -->
       <footer class="place-preview__foot">
-        <RouterLink class="btn-inline place-preview__cta" :to="`/place/${place.id}`" data-testid="preview-open">
+        <RouterLink
+          class="btn-inline place-preview__cta"
+          :to="`/place/${place.id}`"
+          data-testid="preview-open"
+        >
           查看场所 →
         </RouterLink>
       </footer>
