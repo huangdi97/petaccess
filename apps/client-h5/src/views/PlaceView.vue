@@ -418,8 +418,9 @@ const placeFixture = computed<string>(() => {
   .place-workspace__body--split {
     flex-direction: row;
     align-items: flex-start;
+    gap: var(--pa-space-7);
     max-width: none;
-    padding: var(--pa-space-4) var(--pa-space-6);
+    padding: var(--pa-space-5) var(--pa-space-7);
   }
 
   .place-dossier {
@@ -433,7 +434,9 @@ const placeFixture = computed<string>(() => {
     flex: 0 0 var(--pa-layout-inspector);
     min-width: 0;
     position: sticky;
-    top: var(--pa-space-4);
+    top: var(--pa-space-5);
+    padding-left: var(--pa-space-6);
+    border-left: var(--pa-border-width) solid var(--pa-color-border-subtle);
   }
 }
 
@@ -441,9 +444,9 @@ const placeFixture = computed<string>(() => {
   display: flex;
   flex-direction: column;
   gap: var(--pa-space-2);
-  padding-bottom: var(--pa-space-4);
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border);
-  margin-bottom: var(--pa-space-5);
+  padding-bottom: var(--pa-space-5);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  margin-bottom: var(--pa-space-4);
 }
 
 .place-dossier__name {
@@ -499,6 +502,16 @@ const placeFixture = computed<string>(() => {
 }
 
 @media (max-width: 767px) {
+  .place-workspace__body {
+    gap: var(--pa-space-5);
+    padding: var(--pa-space-4);
+  }
+
+  .place-dossier__head {
+    padding-bottom: var(--pa-space-4);
+    margin-bottom: var(--pa-space-3);
+  }
+
   .place-dossier__name {
     font-size: var(--pa-font-size-23);
     font-weight: var(--pa-font-weight-650);
