@@ -214,7 +214,8 @@ function goHome() {
   padding: var(--pa-space-3);
 }
 
-/* Desktop map mode: 400px result pane + the map canvas taking the rest. */
+/* Desktop map mode: the workspace owns the viewport below the 60px query bar,
+   so the spatial canvas remains dominant instead of ending halfway down page. */
 .map-workspace__body--split {
   flex-direction: row;
   align-items: stretch;
@@ -238,6 +239,22 @@ function goHome() {
   /* v0.2.7 §8/§9：画布基底退回极浅冷中性纯色 —— MockMap 的抽象城市
      SVG 在其上分层；不再叠加「灰网格+数字」式的 repeating grid。 */
   background: var(--pa-color-map-grid-a);
+}
+
+@media (min-width: 768px) {
+  .map-workspace__body {
+    height: calc(100vh - 60px);
+    min-height: 560px;
+    padding: var(--pa-space-3);
+  }
+
+  .map-workspace__body--split {
+    padding: var(--pa-space-3);
+  }
+
+  .map-canvas {
+    min-height: 0;
+  }
 }
 
 /* 桌面浮动预览：唯一允许的浮动卡片（freeze §5：map preview 10–12px + light shadow）。 */
