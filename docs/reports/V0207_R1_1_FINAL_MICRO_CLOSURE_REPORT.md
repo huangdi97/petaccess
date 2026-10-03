@@ -9,7 +9,7 @@ Round: **v0.2.7-R1.1 — Final Micro Closure（Human Review Integrity / Rail Mic
 - BASE_HEAD = `42ed4e34158a566b2574b7176d3d12ddf12a20e1`（重新 fetch 后 origin/master）
 - V7_HEAD = `346abbd378e519b44f08a16557cd0b62216c9843`（origin/feat/ui-product-craft-v7）
 - R1_IMPLEMENTATION_HEAD = `f8c1227d861ec271f73b02281a58cbc05ac661af`（v0.2.7-R1 代码实现提交，历史头，**不是**本轮最终 HEAD）
-- FINAL_BRANCH_HEAD = `__FINAL_BRANCH_HEAD__`（本轮最终提交，提交后以 `git rev-parse HEAD` 实测回填）
+- FINAL_BRANCH_HEAD = `647ecd54121c26a11d6c583f400d3e3aa9bc0f47`（本轮最终证据/产物提交——人审包 + Windows targeted smoke 证据；紧随其后的 docs/status 提交仅记录本报告，停止线 `git rev-parse HEAD` 实测即为该 docs 提交，两者均真实 SHA，见 §10）
 
 ## 2. HUMAN_REVIEW_INDEX_FIX（P0-1）
 
@@ -111,8 +111,8 @@ API = `scripts/dev_api_server.py --db-name petaccess_visual --role VISUAL --port
   - origin/master = `42ed4e34…`、origin/feat/ui-product-craft-v7 = `346abbd3…`、
     origin/feat/ui-product-craft-v7-runtime-closure = `7d4772e7…`（与规格参考一致）。
 - 创建分支 `feat/ui-product-craft-v7-runtime-final`（基点 origin/feat/ui-product-craft-v7-runtime-closure）。
-- `git rev-list --left-right --count origin/master...HEAD` = **0 / 9**（after docs commit 后为 0 / 10）。
-- `git rev-list --left-right --count origin/feat/ui-product-craft-v7...HEAD` = **0 / 5**（after docs commit 0 / 6）。
+- `git rev-list --left-right --count origin/master...HEAD` = **0 / 11**（停止线 HEAD 实测，含 docs/status 提交）
+- `git rev-list --left-right --count origin/feat/ui-product-craft-v7...HEAD` = **0 / 7**（停止线 HEAD 实测，含 docs/status 提交）
 - 全程无 force push / merge commit / shared rebase（仅本地提交，未 push）。
 - WORKTREE 状态：主仓库 + `D:\pa-fix`（构建 worktree）均 clean于各自 commit；
   `D:\pa-fix` 保留 stash `r1-worktree-leftovers-r111-session`（v7/R1 遗留本地改动的只读保留，不恢复）。
