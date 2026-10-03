@@ -98,18 +98,19 @@ const freshness = computed(() =>
             :species-label="speciesLabel"
             :conditions-label="conditionsLabel"
           />
-          <div class="row home-row__head">
-            <StatusBadge :semantic="c.status" />
-          </div>
-          <p v-if="c.conditions.length" class="notice" :data-testid="'conditions-' + c.place.id">
-            进入前需满足：{{ c.conditions.join("、") }}
+          <div
+            v-if="c.conditions.length"
+            class="home-row__condition"
+            :data-testid="'conditions-' + c.place.id"
+          >
+            <span>进入前需满足：{{ c.conditions.join("、") }}</span>
             <RouterLink
               class="btn-inline"
               :to="`/place/${c.place.id}/why`"
               :data-testid="'why-' + c.place.id"
-              >为什么这个结论？ →</RouterLink
+              >查看依据 →</RouterLink
             >
-          </p>
+          </div>
         </div>
         <h2 class="home-section-title home-section-title--stacked">附近待补充</h2>
         <p class="muted">这些场所我们目前没有足够依据下结论，信息不足不等于允许或禁止。</p>
@@ -135,9 +136,14 @@ const freshness = computed(() =>
 /* v0.2.4 §30：附近/待核实 = divider rows，非卡（无圆角/无阴影/无 surface 填充）。 */
 .home-row {
   cursor: pointer;
-  padding: var(--pa-space-3) 0;
+  padding: var(--pa-space-4) 0;
   border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
   margin-bottom: 0;
+  transition: background-color var(--pa-motion-fast) var(--pa-motion-ease);
+}
+
+.home-row:hover {
+  background: var(--pa-color-surface-interactive);
 }
 
 .home-row:last-child {
@@ -148,15 +154,25 @@ const freshness = computed(() =>
   justify-content: space-between;
 }
 
+.home-row__condition {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--pa-space-3);
+  margin-top: var(--pa-space-2);
+  font-size: var(--pa-font-size-sm);
+  color: var(--pa-color-text-secondary);
+}
+
 .home-section-title--stacked {
   margin: var(--pa-space-5) 0 var(--pa-space-2);
 }
 
 .home-section-title {
   margin: 0;
-  font-size: var(--pa-font-size-2xl);
-  font-weight: var(--pa-font-weight-medium);
-  line-height: var(--pa-line-height-tight);
+  font-size: var(--pa-font-size-xl);
+  font-weight: var(--pa-font-weight-650);
+  line-height: var(--pa-line-height-26);
   color: var(--pa-color-text-primary);
 }
 </style>
