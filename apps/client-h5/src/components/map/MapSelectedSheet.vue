@@ -42,13 +42,24 @@ const phase = ref<SheetPhase>("half");
 
 const TABBAR = "var(--pa-safe-total-bottom)";
 const HALF_H = "min(320px, 36vh)";
-const EXPANDED_H = "min(78vh, 680px)";
+const EXPANDED_MAX_H = "min(78vh, 680px)";
+const EXPANDED_MIN_H = "min(420px, 55vh)";
 const CLOSED_H = "60px";
 
 /** §23 geometry：phase → 高度；bottom 固定在 tabbar 上方。 */
 const sheetStyle = computed(() => {
-  const h = phase.value === "expanded" ? EXPANDED_H : phase.value === "closed" ? CLOSED_H : HALF_H;
-  return { height: h, bottom: TABBAR };
+  if (phase.value === "expanded") {
+    return {
+      height: "auto",
+      minHeight: EXPANDED_MIN_H,
+      maxHeight: EXPANDED_MAX_H,
+      bottom: TABBAR,
+    };
+  }
+  return {
+    height: phase.value === "closed" ? CLOSED_H : HALF_H,
+    bottom: TABBAR,
+  };
 });
 
 const answer = computed(() => props.snapshot?.rule_answer ?? null);
@@ -222,7 +233,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  padding: 0 var(--pa-space-4) var(--pa-space-3);
+  padding: 0 var(--pa-space-5) var(--pa-space-4);
   display: flex;
   flex-direction: column;
   gap: var(--pa-space-3);
@@ -236,6 +247,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   display: flex;
   align-items: center;
   gap: var(--pa-space-2);
+  min-height: 36px;
 }
 .sheet__name {
   flex: 1 1 auto;
@@ -293,7 +305,8 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   color: var(--pa-color-text-primary);
 }
 .sheet__actions {
-  margin-top: var(--pa-space-1);
+  margin-top: auto;
+  padding-top: var(--pa-space-2);
 }
 .sheet__close {
   flex: 0 0 auto;
