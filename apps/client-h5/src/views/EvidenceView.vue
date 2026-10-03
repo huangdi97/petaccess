@@ -457,7 +457,6 @@ const uiFixture = computed<string>(() =>
   gap: var(--pa-space-1);
   margin: var(--pa-space-2) 0;
 }
-</style>
 
 @media (max-width: 767px) {
   .evidence-workspace__body {
@@ -483,3 +482,4 @@ const uiFixture = computed<string>(() =>
     max-width: 60%;
   }
 }
+</style>
