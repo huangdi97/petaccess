@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - feat/ui-direct-craft-v8
+  pull_request:
+    branches:
+      - feat/ui-product-craft-v7-human-review-final
   workflow_dispatch:
 
 jobs:
