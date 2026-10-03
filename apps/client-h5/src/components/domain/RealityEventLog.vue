@@ -247,7 +247,6 @@ const groups = computed<ObservationGroup[]>(() => {
   margin: 0;
   font-weight: var(--pa-font-weight-600);
 }
-</style>
 
 @media (max-width: 767px) {
   .timeline-rail {
@@ -278,3 +277,4 @@ const groups = computed<ObservationGroup[]>(() => {
     gap: var(--pa-space-2);
   }
 }
+</style>
