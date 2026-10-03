@@ -27,7 +27,6 @@ import {
   zoneTypeLabel,
 } from "../../consumer/labels";
 import StatusBadge from "../StatusBadge.vue";
-import SourceBadge from "../SourceBadge.vue";
 
 const props = defineProps<{
   currentRules: RuleView[];
@@ -82,9 +81,10 @@ const conflicts = computed(() => {
 
 /** 每条 rule 的 conditions（优先 RuleView note / rule_conditions；无则本组 conditions）。 */
 function ruleConditionLines(r: RuleView): string[] {
-  const out = [...props.conditions];
-  if (r.note) out.unshift(r.note);
-  return [...new Set(out)].slice(0, 2);
+  // Only show condition copy that is attached to this rule. A page-wide
+  // condition list can span several contexts and must not be repeated under
+  // every rule as if it were rule-specific.
+  return r.note ? [r.note] : [];
 }
 </script>
 
@@ -116,7 +116,6 @@ function ruleConditionLines(r: RuleView): string[] {
         </p>
         <p class="muted rule-card__meta" data-testid="rule-source">
           {{ sourceLabel(sourceMap.get(r.source_id)?.issuer ?? null, true) }}
-          <SourceBadge :source-type="sourceMap.get(r.source_id)?.source_type" />
           <span v-if="r.last_verified_at"> · 最近核验 {{ r.last_verified_at.slice(0, 10) }}</span>
           <span v-else> · 来源仍待补充</span>
         </p>
@@ -175,7 +174,7 @@ function ruleConditionLines(r: RuleView): string[] {
 <style scoped>
 /* 组间 divider + 20–24 gap（§13）；组内非 card wall：divider rows。 */
 .rule-group {
-  margin: 0 0 var(--pa-space-5);
+  margin: 0 0 var(--pa-space-6);
   padding-bottom: var(--pa-space-5);
   border-bottom: var(--pa-border-width) solid var(--pa-color-border);
 }
@@ -190,7 +189,7 @@ function ruleConditionLines(r: RuleView): string[] {
   color: var(--pa-color-text-primary);
 }
 .rule-card {
-  padding: var(--pa-space-2) 0 var(--pa-space-3);
+  padding: var(--pa-space-3) 0 var(--pa-space-4);
   border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
 }
 .rule-card:last-child {
@@ -211,7 +210,7 @@ function ruleConditionLines(r: RuleView): string[] {
   flex-shrink: 0;
 }
 .rule-card__condition {
-  margin: var(--pa-space-1) 0 0;
+  margin: var(--pa-space-2) 0 0;
   font-size: var(--pa-font-size-md);
   color: var(--pa-color-text-secondary);
 }
@@ -296,3 +295,22 @@ function ruleConditionLines(r: RuleView): string[] {
   margin: var(--pa-space-2) 0 0;
 }
 </style>
+
+@media (max-width: 767px) {
+  .rule-group {
+    margin-bottom: var(--pa-space-5);
+    padding-bottom: var(--pa-space-4);
+  }
+
+  .rule-group__context {
+    font-size: var(--pa-font-size-lg);
+  }
+
+  .rule-card {
+    padding: var(--pa-space-3) 0;
+  }
+
+  .rule-card__meta {
+    line-height: var(--pa-line-height-20);
+  }
+}
