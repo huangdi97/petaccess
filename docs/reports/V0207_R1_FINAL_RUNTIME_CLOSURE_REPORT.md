@@ -149,3 +149,14 @@ HUMAN_REVIEW_INDEX.html（Windows Map / Contribution BEFORE/AFTER 对照）。
   `MASTER = UNCHANGED` · `PUBLIC_RELEASE = NOT_PERFORMED` · `AWAITING_RELEASE_AUTHORIZATION = YES`。
 - 停止线已到达：机器 gate 全绿 + HUMAN_REVIEW READY，等待用户人工视觉签字。
   签字并授权后（Stage B）：canonical baseline promotion → `git push origin HEAD:master`（仅 fast-forward）。
+
+## 13. ENVIRONMENT_NOTES
+
+- 会话 DB 栈：pg16+PostGIS 便携运行于 **127.0.0.1:55432**（端口 5432 被本机不可见占用者阻塞，
+  实测无法 bind）；`scripts/dev_api_server.py --db-name petaccess_visual --role VISUAL --port 8016/8012/8013/8014`
+  均通过 `VISUAL_DB_ADMIN_URL`/`TEST_DB_ADMIN_URL` 环境变量指向 55432，仓库代码零改动；
+  仓库 `.env`（gitignored）端口由 5432 临时调整为 55432（会话级，不入库）。Redis 127.0.0.1:6379。
+- Windows/Android 二进制在 ASCII worktree `D:\pa-fix`（git worktree at 分支代码 SHA）构建，
+  Windows target `D:\pa-fix-target-win`、Android APK `D:\pa-fix\apps\client-h5\src-tauri\gen\android\...`，
+  Android 在真实 emulator-5554 / AVD main（x86_64 debug，VITE_TAURI_ANDROID_API_BASE=10.0.2.2:8016）验证。
+- 本轮无大型下载（LARGE_DOWNLOAD_REQUIRED = NO）；未清任何缓存；未 kill 非 Agent 进程。
