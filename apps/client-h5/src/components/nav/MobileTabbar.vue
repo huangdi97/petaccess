@@ -99,7 +99,6 @@ function isActive(to: string): boolean {
   outline: 2px solid var(--pa-color-border-focus);
   outline-offset: -2px;
 }
-</style>
 
 .mobile-tabbar__icon,
 .mobile-tabbar__label {
@@ -111,3 +110,4 @@ function isActive(to: string): boolean {
 .mobile-tabbar__item--active .mobile-tabbar__icon {
   transform: translateY(-1px);
 }
+</style>
