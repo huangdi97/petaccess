@@ -17,8 +17,7 @@ import {
   type RealityAnswer,
 } from "@petaccess/client-core";
 import StatusBadge from "../StatusBadge.vue";
-import PaDivider from "../ui/PaDivider.vue";
-import { answerConditions, answerScopeLabel, answerStatusKey } from "../../answer";
+import { answerConditions, answerScopeLabel, answerStatusKey, answerVerdictLabel } from "../../answer";
 import {
   evidenceLineFor,
   lensProjection,
@@ -70,9 +69,6 @@ const projection = computed(() => lensProjection(props.lens, props.answer, props
           >{{ placeTypeLabel(place.place_type) }} ·
           {{ place.canonical_address ?? "地址待补充" }}</span
         >
-        <span v-if="place.matched_alias" class="place-result-row__meta"
-          >以「{{ place.matched_alias }}」匹配（曾用名／别称）</span
-        >
       </div>
       <StatusBadge :semantic="status" class="place-result-row__badge" />
     </div>
@@ -106,13 +102,11 @@ const projection = computed(() => lensProjection(props.lens, props.answer, props
 
     <!-- Rule 主结论：scope + conditions -->
     <template v-else-if="answer">
-      <p class="place-result-row__rule" data-testid="row-rule">已核验：{{ scope }}</p>
+      <p class="place-result-row__rule" data-testid="row-rule">{{ answerVerdictLabel(answer) }}</p>
       <p v-if="conditions.length" class="place-result-row__conditions">
         进入前需满足：{{ conditions.join("、") }}
       </p>
     </template>
-
-    <PaDivider class="place-result-row__divider" />
 
     <!-- Reality 摘要：现场事实层，区别于 Rule -->
     <div class="place-result-row__reality">
@@ -195,14 +189,13 @@ const projection = computed(() => lensProjection(props.lens, props.answer, props
   line-height: var(--pa-line-height-base);
 }
 
-.place-result-row__divider {
-  margin: var(--pa-space-2) 0 var(--pa-space-1);
-}
-
 .place-result-row__reality {
   display: flex;
   flex-direction: column;
   gap: var(--pa-space-1);
+  margin-top: var(--pa-space-2);
+  padding-top: var(--pa-space-2);
+  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
 }
 
 .place-result-row__reality-label {
