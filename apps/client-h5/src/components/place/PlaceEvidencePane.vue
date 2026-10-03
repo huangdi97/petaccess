@@ -9,6 +9,7 @@ import EvidenceProvenance from "../domain/EvidenceProvenance.vue";
 import EvidenceStatus from "../domain/EvidenceStatus.vue";
 
 const props = defineProps<{
+  placeId: string;
   observations: ObservationView[];
   sources: SourceView[];
   ruleEvidenceCount: number;
@@ -63,7 +64,7 @@ const LABELS: Record<string, string> = {
       <p v-if="!observations.length" class="muted">暂无现场记录（未收录不代表没有动物）。</p>
       <RouterLink
         class="btn-inline"
-        :to="`/place/${props.observations[0]?.place_id ?? ''}/evidence`"
+        :to="`/place/${props.placeId}/evidence`"
       >
         查看全部证据 →
       </RouterLink>
