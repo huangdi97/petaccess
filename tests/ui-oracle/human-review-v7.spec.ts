@@ -68,7 +68,7 @@ const SHOTS: Shot[] = [
       page: "home",
       state: "ready",
       fixture: "home-ready-v1",
-      h1: "去之前，先看看这里的规则和现场。",
+      h1: "去之前，先看规则与现场。",
     },
     note: "v0.2.7：Home task launcher 保持；本页无 craft 改动（基线对照）。",
   },
