@@ -14,7 +14,7 @@
  * ".png.png". A referential-integrity gate re-reads the generated index and
  * requires every <img src> to resolve to an existing file.
  */
-import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
 import { expect, test } from "@playwright/test";
@@ -50,6 +50,24 @@ const WEB_SHOTS = [
     note: "v0.2.7-R1 COMPACT_DESKTOP (768–1119): rail + 单栏 task（context rail 不并排）。",
   },
 ];
+
+// v0.2.7-R1.1.1 P0-1/P0-2: the final Human Review pack is closed over an
+// explicit expected card set — never "whatever is in the directory". Order is
+// fixed (01 Map → 02 Contribution choose → 03 step1 → 04 step2 → 05 Rail
+// closeup → 06 Web 1440 → 07 Web compact), not filesystem order.
+export const HUMAN_REVIEW_EXPECTED_CARD_SET = [
+  "01_windows_map",
+  "02_windows_contribution_choose",
+  "03_windows_contribution_step1",
+  "04_windows_contribution_step2",
+  "05_desktop_rail_closeup",
+  "06_web_contribution_1440",
+  "07_web_contribution_compact",
+] as const;
+
+// 7 cards, 7 review PNGs, 9 <img src> (01/02 carry before+after, 03–07 one each).
+export const EXPECTED_REVIEW_CARDS = HUMAN_REVIEW_EXPECTED_CARD_SET.length;
+export const EXPECTED_IMG_REFERENCES = 9;
 
 interface StateExpect {
   page?: string;
@@ -182,6 +200,17 @@ test("human review v0.2.7-R1 — web contribution wide/compact + windows pack as
     }
   }
 
+  // v0.2.7-R1.1.1 P0-3: deterministic single final writer. The 06/07 web rows
+  // only exist for oracle-desktop; if any other project reached the assembly it
+  // would build rows=[] and overwrite the complete 7-card index with 01–05 only.
+  // No other project may assemble the pack or write HUMAN_REVIEW_INDEX.html.
+  if (!isDesktopProject) {
+    console.log(
+      "[human-review-r1] non-desktop project — skipping pack assembly (final writer is oracle-desktop only)",
+    );
+    return;
+  }
+
   // Copy the real-Windows shots from the smoke pack into the human pack.
   const WINDOWS_COPY = [
     { from: "04_map.png", to: "01_windows_map" },
@@ -218,7 +247,14 @@ test("human review v0.2.7-R1 — web contribution wide/compact + windows pack as
     { name: "02_windows_contribution_choose", before: "07_contribution_choose_before.png" },
   ];
 
-  const all = [...windowsRows, ...rows];
+  // v0.2.7-R1.1.1 P0-2: assemble in the fixed expected card order — never in
+  // filesystem or collection order, so the index cannot silently drift.
+  const rowByName = new Map([...windowsRows, ...rows].map((r) => [r.name, r] as const));
+  const all = HUMAN_REVIEW_EXPECTED_CARD_SET.map((name) => {
+    const r = rowByName.get(name);
+    if (!r) throw new Error(`expected card ${name} has no evidence row`);
+    return r;
+  });
   const valid = all.filter((r) => r.valid);
   const cards = all
     .map((r) => {
@@ -269,7 +305,7 @@ test("human review v0.2.7-R1 — web contribution wide/compact + windows pack as
 <p>机器 gate 全绿 + 截图通过 State Integrity 后才入包。metadata JSON 只证明真实页面状态，不宣称视觉通过。等待人工视觉判断（Agent 不代替签字）。</p>
 ${cards}
 <footer>
-<p>完整报告：<code>docs/reports/V0207_R1_1_FINAL_MICRO_CLOSURE_REPORT.md</code> · 状态：<code>UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW</code></p>
+<p>完整报告：<code>docs/reports/V0207_R1_1_1_HUMAN_REVIEW_TRUTH_CLOSURE_REPORT.md</code>（历史：<code>docs/reports/V0207_R1_1_FINAL_MICRO_CLOSURE_REPORT.md</code>） · 状态：<code>UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW</code></p>
 </footer>
 </body>
 </html>`,
@@ -288,17 +324,40 @@ ${cards}
   // v0.2.7-R1.1 P0-1 referential-integrity gate: every <img src> in the
   // generated index must resolve to a real file, and ".png.png" is forbidden.
   const indexHtml = readFileSync(path.join(OUT, "HUMAN_REVIEW_INDEX.html"), "utf8");
+  const imgSrcs = [...indexHtml.matchAll(/<img[^>]*\bsrc="([^"]+)"/g)].map((m) => m[1]!);
   const missingImages: string[] = [];
-  for (const m of indexHtml.matchAll(/<img[^>]*\bsrc="([^"]+)"/g)) {
-    const src = m[1]!;
+  for (const src of imgSrcs) {
     if (!existsSync(path.resolve(OUT, src))) missingImages.push(src);
   }
   const pngPngCount = (indexHtml.match(/\.png\.png/g) ?? []).length;
   console.log(
-    `[human-review-r1.1] HUMAN_REVIEW_INDEX referential integrity: ${
-      indexHtml.match(/<img/g).length
-    } img srcs, missing=${JSON.stringify(missingImages)}, png.png=${pngPngCount}`,
+    `[human-review-r1.1] HUMAN_REVIEW_INDEX referential integrity: ${imgSrcs.length} img srcs, missing=${JSON.stringify(missingImages)}, png.png=${pngPngCount}`,
   );
   expect(pngPngCount).toBe(0);
   expect(missingImages).toHaveLength(0);
+
+  // v0.2.7-R1.1.1 P0-1/P0-2 completeness gates — the pack is closed over the
+  // explicit expected card set, never over "whatever the directory contains".
+  const cardNames = [...indexHtml.matchAll(/<h2>([a-z0-9_]+)/g)].map((m) => m[1]!);
+  expect(cardNames).toEqual([...HUMAN_REVIEW_EXPECTED_CARD_SET]); // exact, ordered
+  expect(cardNames).toHaveLength(EXPECTED_REVIEW_CARDS); // 7
+  expect(imgSrcs).toHaveLength(EXPECTED_IMG_REFERENCES); // 9 (01/02 before+after, 03–07 single)
+  expect(indexHtml).toContain("7 VALID / 7 total");
+
+  // Before/after pairs must exist in the smoke pack and be referenced.
+  for (const before of ["04_map_before.png", "07_contribution_choose_before.png"]) {
+    expect(existsSync(path.join(SMOKE, before))).toBe(true);
+    expect(imgSrcs.some((s) => s.endsWith(before))).toBe(true);
+  }
+
+  // Orphan gate: every top-level HUMAN_REVIEW/*.png logical name must equal the
+  // expected card set — no PNG without a card and no card without a PNG.
+  const pngLogicalNames = readdirSync(OUT)
+    .filter((f) => f.endsWith(".png"))
+    .map((f) => f.replace(/\.png$/, ""))
+    .sort();
+  expect(pngLogicalNames).toEqual([...HUMAN_REVIEW_EXPECTED_CARD_SET].sort());
+  for (const name of HUMAN_REVIEW_EXPECTED_CARD_SET) {
+    expect(existsSync(path.join(OUT, `${name}.png`))).toBe(true); // NO_MISSING_CARD
+  }
 });
