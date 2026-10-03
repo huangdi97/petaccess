@@ -19,8 +19,8 @@ export const REALITY_STATE_LABELS: Record<string, string> = {
   OBSERVED_RECENTLY: "近期现场有动物出现",
   OBSERVED_HISTORICALLY: "仅有历史记录，未呈现为近期",
   MULTI_EVIDENCE_OBSERVED: "多来源证实近期现场有动物",
-  NO_RECENT_RECORD: "暂无近期现场记录（≠ 没有动物）",
-  INSUFFICIENT_OBSERVATION: "现场记录不足或未完成人工核验",
+  NO_RECENT_RECORD: "暂无近期现场记录",
+  INSUFFICIENT_OBSERVATION: "暂无足够现场记录",
   DISPUTED: "现场记录存在争议",
 };
 
@@ -29,7 +29,7 @@ export const DIVERGENCE_LABELS: Record<string, string> = {
   RULE_REALITY_ALIGNED: "规则与现实一致",
   RULE_PROHIBITS_BUT_OBSERVED: "规则禁止，但现场近期有动物出现",
   RULE_ALLOWS_BUT_NO_RECENT_RECORD: "规则允许，但暂无近期现场记录",
-  RULE_UNKNOWN_BUT_OBSERVED: "规则未知，但现场近期有动物出现",
+  RULE_UNKNOWN_BUT_OBSERVED: "规则信息不足，但现场近期有动物出现",
   RULE_CONDITIONAL_AND_OBSERVED: "规则附条件，现场近期有动物出现",
   INSUFFICIENT_DATA: "信息不足，无法对比",
 };
@@ -59,7 +59,7 @@ export function realityTone(state: string | undefined): string {
 }
 
 export function realityStateLabel(answer: RealityAnswer | null | undefined): string {
-  if (!answer) return "暂无近期现场记录（≠ 没有动物）";
+  if (!answer) return "暂无近期现场记录";
   return REALITY_STATE_LABELS[answer.state] ?? answer.state;
 }
 

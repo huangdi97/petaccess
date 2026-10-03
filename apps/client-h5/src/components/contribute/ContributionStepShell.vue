@@ -31,7 +31,9 @@ defineEmits<{ back: [] }>();
   <section class="step-shell" data-testid="step-shell" data-ui="contribution-step-shell">
     <!-- §29 place context -->
     <p class="step-shell__place" data-testid="step-place-context">
-      {{ placeName }} · {{ placeZone }}
+      <span class="step-shell__place-label">当前场所</span>
+      <strong>{{ placeName }}</strong>
+      <span>· {{ placeZone }}</span>
     </p>
 
     <!-- §30 progress：3-segment 条 + 文本 -->
@@ -77,7 +79,7 @@ defineEmits<{ back: [] }>();
 <style scoped>
 .step-shell {
   min-height: 440px;
-  max-width: 640px;
+  max-width: 664px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -86,13 +88,31 @@ defineEmits<{ back: [] }>();
 }
 .step-shell__place {
   margin: 0;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--pa-space-1);
+  padding-bottom: var(--pa-space-3);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
   font-size: var(--pa-font-size-md);
   color: var(--pa-color-text-secondary);
+}
+
+.step-shell__place strong {
+  color: var(--pa-color-text-primary);
+  font-weight: var(--pa-font-weight-600);
+}
+
+.step-shell__place-label {
+  margin-right: var(--pa-space-1);
+  font-size: var(--pa-font-size-sm);
+  color: var(--pa-color-text-muted);
 }
 .step-shell__progress {
   display: flex;
   align-items: center;
   gap: var(--pa-space-2);
+  margin-top: var(--pa-space-1);
 }
 .step-shell__segment {
   flex: 1 1 0;
@@ -152,6 +172,8 @@ defineEmits<{ back: [] }>();
 }
 .step-shell__privacy {
   margin: var(--pa-space-2) 0 0;
+  font-size: var(--pa-font-size-sm);
+  color: var(--pa-color-text-muted);
 }
 
 @media (max-width: 767px) {

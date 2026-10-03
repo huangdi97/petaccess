@@ -305,11 +305,13 @@ const { desktop: isDesktop } = useBreakpoint();
 }
 .contribute-context__label {
   font-size: var(--pa-font-size-sm);
-  color: var(--pa-color-text-secondary);
+  font-weight: var(--pa-font-weight-medium);
+  letter-spacing: var(--pa-letter-spacing-wide);
+  color: var(--pa-color-text-muted);
 }
 .contribute-context__value {
   font-size: var(--pa-font-size-base);
-  font-weight: var(--pa-font-weight-600);
+  font-weight: var(--pa-font-weight-650);
   line-height: var(--pa-line-height-23);
   color: var(--pa-color-text-primary);
 }
@@ -338,8 +340,11 @@ const { desktop: isDesktop } = useBreakpoint();
     gap: 48px;
   }
   .contribute-workspace__context {
+    position: sticky;
+    top: var(--pa-space-5);
     border-top: none;
-    padding-top: var(--pa-space-3);
+    border-left: var(--pa-border-width) solid var(--pa-color-border-subtle);
+    padding: var(--pa-space-3) 0 var(--pa-space-3) var(--pa-space-5);
   }
 }
 .contribute-workspace__notice {

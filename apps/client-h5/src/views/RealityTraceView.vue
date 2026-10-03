@@ -113,6 +113,13 @@ const uiFixture = computed<string>(() =>
           <h2 class="reality-head__title">现场记录</h2>
           <p class="muted reality-head__intro">这些记录描述现场观察，不代表运营方正式规则。</p>
           <div class="reality-head__meta">
+            <span
+              v-if="summaryLine"
+              class="muted reality-head__summary"
+              data-testid="reality-summary"
+            >
+              {{ summaryLine }}
+            </span>
             <label class="visually-hidden" for="reality-filter">筛选现场记录</label>
             <select
               id="reality-filter"
@@ -121,17 +128,10 @@ const uiFixture = computed<string>(() =>
               data-testid="reality-filter"
               data-ui="reality-filter"
             >
-              <option value="all">筛选：全部 ▾</option>
-              <option value="verified">筛选：已核验 ▾</option>
-              <option value="pending">筛选：待核验 ▾</option>
+              <option value="all">全部记录</option>
+              <option value="verified">已核验</option>
+              <option value="pending">待核验</option>
             </select>
-            <span
-              v-if="summaryLine"
-              class="muted reality-head__summary"
-              data-testid="reality-summary"
-            >
-              {{ summaryLine }}
-            </span>
           </div>
         </header>
 
@@ -165,18 +165,19 @@ const uiFixture = computed<string>(() =>
   display: flex;
   flex-direction: column;
   gap: var(--pa-space-5);
-  padding: var(--pa-space-4);
-  max-width: var(--pa-layout-content-820);
+  padding: var(--pa-space-5) var(--pa-space-6) var(--pa-space-7);
+  max-width: 900px;
   margin: 0 auto;
 }
 /* §34：头部必须轻 —— title + 一句说明 + 筛选行，timeline 才能进入首屏。 */
 .reality-head {
   padding-bottom: var(--pa-space-3);
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
 }
 .reality-head__title {
   margin: 0 0 var(--pa-space-1);
-  font-size: var(--pa-font-size-18);
+  font-size: var(--pa-font-size-22);
+  font-weight: var(--pa-font-weight-650);
   line-height: var(--pa-line-height-26);
   color: var(--pa-color-text-primary);
 }
@@ -189,14 +190,29 @@ const uiFixture = computed<string>(() =>
   align-items: center;
   flex-wrap: wrap;
   gap: var(--pa-space-3);
-  margin-top: var(--pa-space-2);
+  margin-top: var(--pa-space-4);
 }
 .reality-filter {
   width: auto;
   min-height: var(--pa-size-control-md);
-  margin: 0;
+  margin: 0 0 0 auto;
+  background: var(--pa-color-surface);
 }
 .reality-head__summary {
   font-size: var(--pa-font-size-md);
+}
+
+@media (max-width: 767px) {
+  .reality-workspace__body {
+    padding: var(--pa-space-4);
+  }
+
+  .reality-head__meta {
+    align-items: flex-start;
+  }
+
+  .reality-filter {
+    margin-left: 0;
+  }
 }
 </style>

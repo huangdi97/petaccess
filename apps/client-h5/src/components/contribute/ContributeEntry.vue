@@ -139,9 +139,8 @@ function choose(opt: EntryOption) {
   display: flex;
   align-items: center;
   width: 100%;
-  min-height: 64px;
-  max-height: 72px;
-  padding: var(--pa-space-2) var(--pa-space-1);
+  min-height: 68px;
+  padding: var(--pa-space-3) var(--pa-space-2);
   border: none;
   border-radius: 0;
   background: transparent;
@@ -151,14 +150,20 @@ function choose(opt: EntryOption) {
   cursor: pointer;
   gap: var(--pa-space-3);
 }
-.entry-option__button:hover {
+.entry-option__button:hover,
+.entry-option__button:focus-visible {
   color: var(--pa-color-accent);
+  background: var(--pa-color-surface-interactive);
 }
 .entry-option__icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--pa-radius-control);
+  background: var(--pa-color-accent-weak);
   color: var(--pa-color-accent);
 }
 .entry-option__text {
@@ -182,10 +187,15 @@ function choose(opt: EntryOption) {
 .entry-option__chevron {
   margin-left: auto;
   flex-shrink: 0;
-  color: var(--pa-color-accent);
+  color: var(--pa-color-text-muted);
   font-size: var(--pa-font-size-lg);
 }
 .entry-note {
   margin: var(--pa-space-4) 0 0;
+}
+
+.entry-option__button:hover .entry-option__chevron,
+.entry-option__button:focus-visible .entry-option__chevron {
+  color: var(--pa-color-accent);
 }
 </style>

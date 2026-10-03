@@ -27,7 +27,6 @@ import {
   zoneTypeLabel,
 } from "../../consumer/labels";
 import StatusBadge from "../StatusBadge.vue";
-import SourceBadge from "../SourceBadge.vue";
 
 const props = defineProps<{
   currentRules: RuleView[];
@@ -82,14 +81,24 @@ const conflicts = computed(() => {
 
 /** 每条 rule 的 conditions（优先 RuleView note / rule_conditions；无则本组 conditions）。 */
 function ruleConditionLines(r: RuleView): string[] {
-  const out = [...props.conditions];
-  if (r.note) out.unshift(r.note);
-  return [...new Set(out)].slice(0, 2);
+  // Only show condition copy that is attached to this rule. A page-wide
+  // condition list can span several contexts and must not be repeated under
+  // every rule as if it were rule-specific.
+  return r.note ? [r.note] : [];
 }
 </script>
 
 <template>
   <div data-ui="place-rules-view" data-testid="place-rules-view">
+    <section
+      v-if="conditions.length"
+      class="current-query-conditions"
+      data-testid="current-query-conditions"
+    >
+      <span class="current-query-conditions__label">当前查询需要</span>
+      <p class="current-query-conditions__value">{{ conditions.join("、") }}</p>
+    </section>
+
     <!-- §12 Rule Groups：Context → Rule；组间 divider + 20–24 gap，非 card wall。 -->
     <section
       v-for="group in ruleGroups"
@@ -116,7 +125,6 @@ function ruleConditionLines(r: RuleView): string[] {
         </p>
         <p class="muted rule-card__meta" data-testid="rule-source">
           {{ sourceLabel(sourceMap.get(r.source_id)?.issuer ?? null, true) }}
-          <SourceBadge :source-type="sourceMap.get(r.source_id)?.source_type" />
           <span v-if="r.last_verified_at"> · 最近核验 {{ r.last_verified_at.slice(0, 10) }}</span>
           <span v-else> · 来源仍待补充</span>
         </p>
@@ -173,9 +181,32 @@ function ruleConditionLines(r: RuleView): string[] {
 </template>
 
 <style scoped>
+/* Current-query conditions are shown once, then the actual zone/context rules follow. */
+.current-query-conditions {
+  display: flex;
+  align-items: baseline;
+  gap: var(--pa-space-3);
+  margin: 0 0 var(--pa-space-5);
+  padding-bottom: var(--pa-space-4);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.current-query-conditions__label {
+  flex: 0 0 auto;
+  font-size: var(--pa-font-size-sm);
+  color: var(--pa-color-text-muted);
+}
+
+.current-query-conditions__value {
+  margin: 0;
+  font-size: var(--pa-font-size-base);
+  font-weight: var(--pa-font-weight-600);
+  color: var(--pa-color-text-primary);
+}
+
 /* 组间 divider + 20–24 gap（§13）；组内非 card wall：divider rows。 */
 .rule-group {
-  margin: 0 0 var(--pa-space-5);
+  margin: 0 0 var(--pa-space-6);
   padding-bottom: var(--pa-space-5);
   border-bottom: var(--pa-border-width) solid var(--pa-color-border);
 }
@@ -190,7 +221,7 @@ function ruleConditionLines(r: RuleView): string[] {
   color: var(--pa-color-text-primary);
 }
 .rule-card {
-  padding: var(--pa-space-2) 0 var(--pa-space-3);
+  padding: var(--pa-space-3) 0 var(--pa-space-4);
   border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
 }
 .rule-card:last-child {
@@ -211,7 +242,7 @@ function ruleConditionLines(r: RuleView): string[] {
   flex-shrink: 0;
 }
 .rule-card__condition {
-  margin: var(--pa-space-1) 0 0;
+  margin: var(--pa-space-2) 0 0;
   font-size: var(--pa-font-size-md);
   color: var(--pa-color-text-secondary);
 }
@@ -294,5 +325,24 @@ function ruleConditionLines(r: RuleView): string[] {
 }
 .history-note {
   margin: var(--pa-space-2) 0 0;
+}
+
+@media (max-width: 767px) {
+  .rule-group {
+    margin-bottom: var(--pa-space-5);
+    padding-bottom: var(--pa-space-4);
+  }
+
+  .rule-group__context {
+    font-size: var(--pa-font-size-lg);
+  }
+
+  .rule-card {
+    padding: var(--pa-space-3) 0;
+  }
+
+  .rule-card__meta {
+    line-height: var(--pa-line-height-20);
+  }
 }
 </style>

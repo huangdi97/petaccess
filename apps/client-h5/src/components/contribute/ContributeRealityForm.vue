@@ -216,7 +216,6 @@ async function submit() {
 
 <style scoped>
 .cluster {
-  /* v0.2.7 §19：field group 组距 24px —— 不再「一项一巨大 gap」。 */
   margin: 0 0 var(--pa-space-5);
   padding: 0;
   border: none;
@@ -224,11 +223,16 @@ async function submit() {
   flex-direction: column;
   gap: var(--pa-space-2);
 }
+
+.cluster + .cluster {
+  padding-top: var(--pa-space-5);
+  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
 .cluster__title {
   font-size: var(--pa-font-size-base);
   font-weight: var(--pa-font-weight-600);
   color: var(--pa-color-text-primary);
-  margin-bottom: var(--pa-space-1);
+  margin-bottom: var(--pa-space-2);
 }
 .cluster label {
   font-size: var(--pa-font-size-sm);
@@ -237,7 +241,7 @@ async function submit() {
 .cluster input,
 .cluster select {
   min-height: var(--pa-size-control-md);
-  border: var(--pa-border-width) solid var(--pa-color-border);
+  border: var(--pa-border-width) solid var(--pa-color-border-strong);
   border-radius: var(--pa-radius-control);
   padding: var(--pa-space-1) var(--pa-space-2);
   font-size: var(--pa-font-size-base);

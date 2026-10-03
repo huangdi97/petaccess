@@ -151,7 +151,7 @@ const realityLineForPlace = computed(() =>
           >
             <template v-if="answerError">暂时无法取得（请检查网络后重试）</template>
             <template v-else-if="answer">{{ verdict }}</template>
-            <template v-else>尚未核验</template>
+            <template v-else>信息不足</template>
           </p>
           <p
             v-if="keyCondition"
@@ -201,7 +201,7 @@ const realityLineForPlace = computed(() =>
           >
             <template v-if="answerError">暂时无法取得（请检查网络后重试）</template>
             <template v-else-if="answer">{{ verdict }}</template>
-            <template v-else>尚未核验</template>
+            <template v-else>信息不足</template>
           </p>
         </div>
 
@@ -265,9 +265,9 @@ const realityLineForPlace = computed(() =>
 .decision-inspector {
   display: flex;
   flex-direction: column;
-  gap: var(--pa-space-28);
+  gap: var(--pa-space-6);
   min-width: 0;
-  min-height: calc(100vh - 112px);
+  min-height: calc(100vh - 60px);
   align-self: stretch;
   border-bottom: var(--pa-border-width) solid var(--pa-color-border);
   padding-bottom: var(--pa-space-5);
@@ -435,9 +435,8 @@ const realityLineForPlace = computed(() =>
 }
 
 .decision-inspector__onboarding {
-  /* §23：右侧 onboarding copy，max-width 520，top 108–140，禁止右侧空白。 */
   max-width: 520px;
-  padding-top: 108px;
+  padding-top: var(--pa-space-7);
   display: flex;
   flex-direction: column;
   gap: var(--pa-space-3);

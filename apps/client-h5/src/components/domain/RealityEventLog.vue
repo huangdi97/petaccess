@@ -158,12 +158,12 @@ const groups = computed<ObservationGroup[]>(() => {
   pointer-events: none;
 }
 .timeline-date {
-  margin: 28px 0 20px 0;
+  margin: var(--pa-space-6) 0 var(--pa-space-4);
   padding-left: calc(72px + 24px);
   font-size: var(--pa-font-size-sm);
   font-weight: var(--pa-font-weight-semibold);
   color: var(--pa-color-text-secondary);
-  letter-spacing: 0.04em;
+  letter-spacing: var(--pa-letter-spacing-wide);
 }
 .timeline > .timeline-date:first-child {
   margin-top: 0;
@@ -173,8 +173,8 @@ const groups = computed<ObservationGroup[]>(() => {
   grid-template-columns: 72px 24px 1fr;
   gap: 0 var(--pa-space-3);
   border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
-  padding: 0 0 24px 0;
-  margin-bottom: 24px;
+  padding: 0 0 var(--pa-space-5) 0;
+  margin-bottom: var(--pa-space-5);
   background: transparent;
   border-radius: 0;
   box-shadow: none;
@@ -192,8 +192,8 @@ const groups = computed<ObservationGroup[]>(() => {
   white-space: nowrap;
 }
 .trace-row__dot {
-  width: 10px;
-  height: 10px;
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
   background: var(--pa-color-surface);
   border: var(--pa-border-width) solid var(--pa-color-accent);
@@ -206,7 +206,7 @@ const groups = computed<ObservationGroup[]>(() => {
    Staff Response = 从属于事实；Review metadata = 第三层。 */
 .trace-row__event {
   margin: 0;
-  font-size: var(--pa-font-size-base);
+  font-size: var(--pa-font-size-lg);
   font-weight: var(--pa-font-weight-600);
   line-height: var(--pa-line-height-23);
   overflow-wrap: anywhere;
@@ -246,5 +246,35 @@ const groups = computed<ObservationGroup[]>(() => {
 .reality-empty__title {
   margin: 0;
   font-weight: var(--pa-font-weight-600);
+}
+
+@media (max-width: 767px) {
+  .timeline-rail {
+    left: calc(52px + 9px);
+  }
+
+  .timeline-date {
+    padding-left: calc(52px + 20px);
+    margin: var(--pa-space-5) 0 var(--pa-space-3);
+  }
+
+  .trace-row {
+    grid-template-columns: 52px 20px 1fr;
+    column-gap: var(--pa-space-2);
+    padding-bottom: var(--pa-space-4);
+    margin-bottom: var(--pa-space-4);
+  }
+
+  .trace-row__time {
+    font-size: var(--pa-font-size-sm);
+  }
+
+  .trace-row__event {
+    font-size: var(--pa-font-size-base);
+  }
+
+  .trace-row__meta {
+    gap: var(--pa-space-2);
+  }
 }
 </style>

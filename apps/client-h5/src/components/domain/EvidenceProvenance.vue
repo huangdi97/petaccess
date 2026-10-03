@@ -154,7 +154,7 @@ function stepStatus(p: ProvenanceStep): string {
   display: grid;
   grid-template-columns: 24px 1fr;
   gap: 0 var(--pa-space-3);
-  margin-bottom: 32px;
+  margin-bottom: var(--pa-space-5);
   background: transparent;
   border-radius: 0;
   box-shadow: none;
@@ -194,7 +194,8 @@ function stepStatus(p: ProvenanceStep): string {
 
 .provenance-step__label {
   color: var(--pa-color-text-primary);
-  font-weight: var(--pa-font-weight-medium);
+  font-size: var(--pa-font-size-base);
+  font-weight: var(--pa-font-weight-600);
 }
 
 .provenance-step__status {
@@ -203,10 +204,11 @@ function stepStatus(p: ProvenanceStep): string {
 }
 
 .provenance-step__status[data-step-state="complete"] {
-  color: var(--pa-color-accent);
+  color: var(--pa-color-text-secondary);
 }
 
 .provenance-step__note {
   font-size: var(--pa-font-size-sm);
+  line-height: var(--pa-line-height-20);
 }
 </style>

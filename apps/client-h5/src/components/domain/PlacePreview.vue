@@ -18,8 +18,7 @@ import {
   type CoexistenceSnapshot,
   type PlaceSummary,
 } from "@petaccess/client-core";
-import { answerConditions, answerStatusKey, answerVerdictLabel } from "../../answer";
-import StatusBadge from "../StatusBadge.vue";
+import { answerConditions, answerVerdictLabel } from "../../answer";
 import { realityStateLabel } from "../../reality";
 
 const props = withDefaults(
@@ -34,8 +33,6 @@ const props = withDefaults(
 );
 
 const answer = computed(() => props.snapshot?.rule_answer ?? null);
-/** §32：Primary status 用 answer 的结论；外部 status prop 保留兼容。 */
-const statusKey = computed(() => answerStatusKey(answer.value));
 const keyCondition = computed(() => answerConditions(answer.value)[0] ?? "");
 const realityLine = computed(() =>
   props.loading
@@ -64,7 +61,6 @@ const metaLine = computed(() => {
 
       <!-- §32：Primary status + key condition -->
       <div class="place-preview__decision" data-testid="preview-verdict">
-        <StatusBadge :semantic="statusKey" />
         <p class="place-preview__verdict-text" data-testid="preview-verdict-text">
           {{ answerVerdictLabel(answer) }}
         </p>
@@ -81,7 +77,11 @@ const metaLine = computed(() => {
 
       <!-- §32：查看场所 → -->
       <footer class="place-preview__foot">
-        <RouterLink class="btn primary" :to="`/place/${place.id}`" data-testid="preview-open">
+        <RouterLink
+          class="btn-inline place-preview__cta"
+          :to="`/place/${place.id}`"
+          data-testid="preview-open"
+        >
           查看场所 →
         </RouterLink>
       </footer>
@@ -99,7 +99,7 @@ const metaLine = computed(() => {
   border: 1px solid var(--pa-color-border);
   border-radius: var(--pa-radius-md);
   background: var(--pa-color-surface);
-  padding: var(--pa-space-4);
+  padding: var(--pa-space-5);
   display: flex;
   flex-direction: column;
   gap: var(--pa-space-3);
@@ -153,6 +153,13 @@ const metaLine = computed(() => {
 }
 .place-preview__foot {
   margin-top: var(--pa-space-1);
+  padding-top: var(--pa-space-2);
+  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.place-preview__cta {
+  padding-left: 0;
+  padding-right: 0;
 }
 .place-preview__hint {
   margin: 0;

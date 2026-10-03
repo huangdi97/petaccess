@@ -211,6 +211,7 @@ const uiFixture = computed<string>(() =>
       <template v-else-if="trace">
         <!-- §38 header：record identity 必须可读（ready fixture 有 place/zone/time）。 -->
         <header class="evidence-head" data-testid="evidence-head">
+          <p class="evidence-head__eyebrow">证据记录</p>
           <template v-if="recordIdentity">
             <h2 class="evidence-head__record" data-testid="evidence-record-place">
               {{ recordIdentity.placeName ?? "场所名称待补充" }}
@@ -244,19 +245,27 @@ const uiFixture = computed<string>(() =>
 
         <section class="evidence-section" aria-label="时间记录" data-ui="evidence-times">
           <h2 class="evidence-section__title">时间记录</h2>
-          <div class="surface-row">
-            <span>观察时间</span
-            ><span class="muted" data-ui="observed-time">{{ observedTime || "未记录" }}</span>
+          <div class="evidence-time-grid">
+            <div class="evidence-timefact">
+              <span class="evidence-timefact__label">观察时间</span>
+              <strong class="evidence-timefact__value" data-ui="observed-time">{{
+                observedTime || "未记录"
+              }}</strong>
+            </div>
+            <div class="evidence-timefact">
+              <span class="evidence-timefact__label">提交时间</span>
+              <strong class="evidence-timefact__value" data-ui="submitted-time">{{
+                submittedTime || "未记录"
+              }}</strong>
+            </div>
+            <div class="evidence-timefact">
+              <span class="evidence-timefact__label">核验时间</span>
+              <strong class="evidence-timefact__value" data-ui="reviewed-time">{{
+                reviewedTime || "未记录"
+              }}</strong>
+            </div>
           </div>
-          <div class="surface-row">
-            <span>提交时间</span
-            ><span class="muted" data-ui="submitted-time">{{ submittedTime || "未记录" }}</span>
-          </div>
-          <div class="surface-row">
-            <span>核验时间</span
-            ><span class="muted" data-ui="reviewed-time">{{ reviewedTime || "未记录" }}</span>
-          </div>
-          <div v-for="(line, i) in reviewLines" :key="i" class="surface-row">
+          <div v-for="(line, i) in reviewLines" :key="i" class="evidence-review-row">
             <span>核验记录</span><span class="muted">{{ line }}</span>
           </div>
         </section>
@@ -322,20 +331,28 @@ const uiFixture = computed<string>(() =>
   display: flex;
   flex-direction: column;
   gap: var(--pa-space-5);
-  padding: var(--pa-space-4);
-  max-width: var(--pa-layout-content-820);
+  padding: var(--pa-space-5) var(--pa-space-6) var(--pa-space-7);
+  max-width: 900px;
   margin: 0 auto;
 }
 .evidence-head {
-  padding-bottom: var(--pa-space-4);
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border);
+  padding-bottom: var(--pa-space-5);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.evidence-head__eyebrow {
+  margin: 0 0 var(--pa-space-2);
+  font-size: var(--pa-font-size-sm);
+  font-weight: var(--pa-font-weight-600);
+  letter-spacing: var(--pa-letter-spacing-wide);
+  color: var(--pa-color-text-muted);
 }
 .evidence-head__record {
   margin: 0;
   /* v0.2.7 §25/§28：record identity 是页面首要事实 —— 22/650，强化可读层级。 */
-  font-size: var(--pa-font-size-22);
+  font-size: var(--pa-font-size-24);
   font-weight: var(--pa-font-weight-650);
-  line-height: var(--pa-line-height-26);
+  line-height: var(--pa-line-height-32);
   color: var(--pa-color-text-primary);
 }
 .evidence-head__meta {
@@ -343,8 +360,10 @@ const uiFixture = computed<string>(() =>
   line-height: var(--pa-line-height-23);
 }
 .evidence-head__count {
-  margin: var(--pa-space-1) 0 0;
+  margin: var(--pa-space-2) 0 0;
   font-size: var(--pa-font-size-md);
+  font-weight: var(--pa-font-weight-medium);
+  color: var(--pa-color-text-secondary);
 }
 .evidence-disclaimer {
   margin: var(--pa-space-3) 0 0;
@@ -357,9 +376,46 @@ const uiFixture = computed<string>(() =>
   gap: var(--pa-space-1);
 }
 .evidence-section__title {
-  margin: var(--pa-space-4) 0 var(--pa-space-1);
+  margin: var(--pa-space-4) 0 var(--pa-space-2);
   font-size: var(--pa-font-size-lg);
+  font-weight: var(--pa-font-weight-650);
   color: var(--pa-color-text-primary);
+}
+
+.evidence-time-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--pa-space-5);
+  padding: var(--pa-space-3) 0 var(--pa-space-4);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.evidence-timefact {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-1);
+  min-width: 0;
+}
+
+.evidence-timefact__label {
+  font-size: var(--pa-font-size-sm);
+  color: var(--pa-color-text-muted);
+}
+
+.evidence-timefact__value {
+  font-size: var(--pa-font-size-md);
+  font-weight: var(--pa-font-weight-600);
+  color: var(--pa-color-text-primary);
+  overflow-wrap: anywhere;
+}
+
+.evidence-review-row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--pa-space-4);
+  padding: var(--pa-space-2) 0;
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  font-size: var(--pa-font-size-sm);
 }
 .evidence-item {
   flex-direction: column;
@@ -400,5 +456,30 @@ const uiFixture = computed<string>(() =>
   flex-direction: column;
   gap: var(--pa-space-1);
   margin: var(--pa-space-2) 0;
+}
+
+@media (max-width: 767px) {
+  .evidence-workspace__body {
+    padding: var(--pa-space-4);
+  }
+
+  .evidence-head__record {
+    font-size: var(--pa-font-size-22);
+    line-height: var(--pa-line-height-26);
+  }
+
+  .evidence-time-grid {
+    grid-template-columns: 1fr;
+    gap: var(--pa-space-3);
+  }
+
+  .evidence-review-row,
+  .surface-row {
+    align-items: flex-start;
+  }
+
+  .evidence-source__meta {
+    max-width: 60%;
+  }
 }
 </style>

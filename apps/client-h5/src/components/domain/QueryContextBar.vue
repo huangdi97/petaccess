@@ -87,19 +87,21 @@ function selectMode(m: QueryMode) {
   /* §38：全产品统一 h 60。 */
   min-height: 60px;
   padding: var(--pa-space-2) var(--pa-space-4);
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border);
-  background: var(--pa-color-surface);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  background: var(--pa-color-surface-raised);
   font-size: var(--pa-font-size-md);
 }
 
 .query-context__label {
   color: var(--pa-color-text-muted);
   flex: 0 0 auto;
+  font-size: var(--pa-font-size-sm);
+  letter-spacing: var(--pa-letter-spacing-wide);
 }
 
 .query-context__value {
   color: var(--pa-color-text-primary);
-  font-weight: var(--pa-font-weight-medium);
+  font-weight: var(--pa-font-weight-600);
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -111,7 +113,7 @@ function selectMode(m: QueryMode) {
   padding: var(--pa-space-1) var(--pa-space-3);
   border: var(--pa-border-width) solid var(--pa-color-border);
   border-radius: var(--pa-radius-control);
-  background: var(--pa-color-surface);
+  background: transparent;
   color: var(--pa-color-accent);
   font: inherit;
   font-size: var(--pa-font-size-md);
@@ -120,6 +122,7 @@ function selectMode(m: QueryMode) {
 
 .query-context__edit:hover {
   border-color: var(--pa-color-accent);
+  background: var(--pa-color-accent-weak);
 }
 
 .query-context__form {
