@@ -647,7 +647,9 @@ const selectedId = ref<string | null>(null);
   .search-result-pane {
     flex: 0 0 var(--pa-layout-result-pane);
     border-right: var(--pa-border-width) solid var(--pa-color-border);
-    /* §21.2：results content x = 68 + 20 = 88；content width = 400 - 40 = 360。 */
+    background: var(--pa-color-surface-raised);
+    /* Results remain a pane, not a card: the surface tint only separates
+       task selection from the decision workspace. */
     padding: var(--pa-space-5) var(--pa-space-20) 0;
   }
 
@@ -656,7 +658,7 @@ const selectedId = ref<string | null>(null);
     min-width: 0;
     /* §22：detail content x = 468 + 40 = 508；宽度由 DecisionInspector
      * 自身 max-width（--pa-layout-detail-content = 704）约束。 */
-    padding-left: var(--pa-space-40);
+    padding: var(--pa-space-6) var(--pa-space-6) 0 var(--pa-space-40);
     position: sticky;
     top: 0;
     align-self: stretch;
@@ -672,10 +674,17 @@ const selectedId = ref<string | null>(null);
 .search-field input {
   flex: 1;
   min-width: 0;
+  min-height: 48px;
+  margin: 0;
+  border-color: var(--pa-color-border-strong);
+  background: var(--pa-color-surface);
 }
 
 .search-submit {
   flex-shrink: 0;
+  min-height: 48px;
+  padding-inline: var(--pa-space-4);
+  font-weight: var(--pa-font-weight-600);
 }
 
 .search-clear {
@@ -799,13 +808,18 @@ const selectedId = ref<string | null>(null);
 }
 
 .filter-toggle {
-  border: var(--pa-border-width) solid var(--pa-color-border);
+  border: none;
   border-radius: var(--pa-radius-control);
-  background: var(--pa-color-surface);
-  color: var(--pa-color-text-primary);
-  padding: var(--pa-space-1) var(--pa-space-3);
+  background: transparent;
+  color: var(--pa-color-accent);
+  padding: var(--pa-space-1) var(--pa-space-2);
   font-size: var(--pa-font-size-md);
   cursor: pointer;
+}
+
+.filter-toggle:hover,
+.filter-toggle:focus-visible {
+  background: var(--pa-color-accent-weak);
 }
 
 .filter-panel {
