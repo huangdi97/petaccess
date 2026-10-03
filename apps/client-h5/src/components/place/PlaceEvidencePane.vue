@@ -62,10 +62,7 @@ const LABELS: Record<string, string> = {
         </p>
       </div>
       <p v-if="!observations.length" class="muted">暂无现场记录（未收录不代表没有动物）。</p>
-      <RouterLink
-        class="btn-inline"
-        :to="`/place/${props.placeId}/evidence`"
-      >
+      <RouterLink class="btn-inline" :to="`/place/${props.placeId}/evidence`">
         查看全部证据 →
       </RouterLink>
     </section>
