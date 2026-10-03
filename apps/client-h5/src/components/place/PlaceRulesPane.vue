@@ -294,7 +294,6 @@ function ruleConditionLines(r: RuleView): string[] {
 .history-note {
   margin: var(--pa-space-2) 0 0;
 }
-</style>
 
 @media (max-width: 767px) {
   .rule-group {
@@ -314,3 +313,4 @@ function ruleConditionLines(r: RuleView): string[] {
     line-height: var(--pa-line-height-20);
   }
 }
+</style>
