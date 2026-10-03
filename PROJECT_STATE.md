@@ -1,5 +1,34 @@
 # PROJECT_STATE.md
 
+## Current phase（2026-10-03 本轮实测 — v0.2.7-R1 Final Runtime Craft Closure）
+- 状态：`V0207_R1_RUNTIME_CLOSURE = MACHINE_PASS` · `WINDOWS_RAIL_OVERFLOW = PASS` ·
+  `WINDOWS_CONTRIBUTION_COMPOSITION = PASS` · `UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW` ·
+  `PRODUCT_STRUCTURE = FROZEN` · `MASTER = UNCHANGED` · `PUBLIC_RELEASE = NOT_PERFORMED`
+- 分支：`feat/ui-product-craft-v7-runtime-closure`（基点 = origin/feat/ui-product-craft-v7
+  `346abbd`，R1_HEAD = `f8c1227`；origin/master 未动；v0.1.0 tag 未动；无 v0.2.0 tag / Release / store）。
+- 内容：P0-1 DesktopRail 横向 scrollbar 修复（footer ellipsis + 隐藏 tooltip display:none +
+  overflow-x hidden；rail.scrollWidth 104→67）；P0-2 Contribution 双栏 breakpoint 契约
+  （COMPACT 768–1119 / WIDE ≥1120，默认窗口 width 1000→1120，默认 Windows runtime 真并排）；
+  新增 DESKTOP_RAIL_NO_HORIZONTAL_OVERFLOW + nested contribution gates（oracle 427/0/0）。
+- 机器 Gate（本轮实测）：vue-tsc / h5 build / admin build / eslint 0 / prettier PASS；
+  ui-oracle **427/0/0**；ui-language 29 FAIL=0；ui-density 28 FAIL=0；
+  ui-reconstruction **180/180**；e2e **189/189**；visual regression **59/59**（Stage A 不更新 snapshot）；
+  backend `BACKEND_CODE_CHANGED = NO`（git diff 无 services 变更）→ `BACKEND_FULL_RERUN = NOT_REQUIRED`。
+- 真实 Windows runtime（Tauri v2 + WebView2，CDP :9223）：9 路由 smoke 全 PASS
+  （rail 67/68 无横向滚动条；contribution choose/step1/step2 layoutMode=wide；
+  完整 metrics 见 `artifacts/ui-product-craft-v7-runtime-closure/windows-runtime-metrics.json`）。
+- Android：贡献 targeted smoke（choose + step1，emulator-5554 / AVD main）PASS + 无 overflow；
+  浏览器 responsive 360/390/430 无 Contribution regression（reconstruction/e2e 覆盖）。
+- 人审包：`artifacts/ui-product-craft-v7-runtime-closure/HUMAN_REVIEW/` 7 张
+  （01–05 真实 WebView2 + 06 web 1440 WIDE + 07 web compact）+ BEFORE/AFTER（Map / Contribution）
+  + HUMAN_REVIEW_INDEX.html；metadata actual 全部来自真实 DOM。
+- 停止线：机器 gate 全绿 + HUMAN_REVIEW READY，**等待用户人工视觉签字**
+  （Agent 不代替 `UI_HUMAN_VISUAL_ACCEPTANCE = PASS`）；签字并授权后才做
+  canonical baseline promotion → `git push origin HEAD:master`（仅 fast-forward）。
+
+### 历史记录 — v0.2.7 Product Craft（2026-10-03，HISTORICAL）
+
+
 ## Current phase（2026-10-03 本轮实测 — v0.2.7 Final Product Craft / Spatial Map / Desktop Composition Closure）
 - 状态：`V0207_PRODUCT_CRAFT = MACHINE_PASS` · `PRODUCT_STRUCTURE = FROZEN` ·
   `UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW` · `V020_RC_READY = PRESERVED` ·
