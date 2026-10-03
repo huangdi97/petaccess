@@ -81,7 +81,7 @@ const metaLine = computed(() => {
 
       <!-- §32：查看场所 → -->
       <footer class="place-preview__foot">
-        <RouterLink class="btn primary" :to="`/place/${place.id}`" data-testid="preview-open">
+        <RouterLink class="btn-inline place-preview__cta" :to="`/place/${place.id}`" data-testid="preview-open">
           查看场所 →
         </RouterLink>
       </footer>
@@ -99,7 +99,7 @@ const metaLine = computed(() => {
   border: 1px solid var(--pa-color-border);
   border-radius: var(--pa-radius-md);
   background: var(--pa-color-surface);
-  padding: var(--pa-space-4);
+  padding: var(--pa-space-5);
   display: flex;
   flex-direction: column;
   gap: var(--pa-space-3);
@@ -153,6 +153,13 @@ const metaLine = computed(() => {
 }
 .place-preview__foot {
   margin-top: var(--pa-space-1);
+  padding-top: var(--pa-space-2);
+  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.place-preview__cta {
+  padding-left: 0;
+  padding-right: 0;
 }
 .place-preview__hint {
   margin: 0;
