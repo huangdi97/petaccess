@@ -1,0 +1,383 @@
+{
+  "contractId": "map",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "stage": "r111-audit",
+  "generatedAt": "2026-10-03T14:25:20.862Z",
+  "pages": [
+    {
+      "pageId": "map-ready",
+      "route": "/#/map",
+      "elements": {
+        "MAP_RESULT_PANE_WIDTH": {
+          "bbox": {
+            "x": 80,
+            "y": 73,
+            "width": 400,
+            "height": 574
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "0px 24px 0px 0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "附近场所",
+          "count": 1,
+          "maxChildWidth": 400,
+          "contentHeightInViewport": 574,
+          "leftRelative": 80,
+          "sectionGapAvg": 172,
+          "scrollWidth": 399,
+          "clientWidth": 399,
+          "rows": [
+            {
+              "height": 574,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "MAP_CANVAS_PRESENT": {
+          "bbox": {
+            "x": 480,
+            "y": 73,
+            "width": 948,
+            "height": 574
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "0px",
+            "borderRadius": "10px",
+            "boxShadow": "none",
+            "backgroundColor": "rgb(238, 242, 245)",
+            "position": "relative",
+            "overflow": "hidden",
+            "gap": "normal",
+            "borderBottomWidth": "1px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "规则地图",
+          "count": 1,
+          "maxChildWidth": 948,
+          "contentHeightInViewport": 574,
+          "leftRelative": 480,
+          "sectionGapAvg": null,
+          "scrollWidth": 946,
+          "clientWidth": 946,
+          "rows": [
+            {
+              "height": 574,
+              "borderRadius": "10px"
+            }
+          ]
+        },
+        "MAP_FILTER_TOGGLE": {
+          "bbox": {
+            "x": 80,
+            "y": 206,
+            "width": 52,
+            "height": 44
+          },
+          "computed": {
+            "fontSize": "13px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "4px 12px",
+            "margin": "0px",
+            "borderRadius": "8px",
+            "boxShadow": "none",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "normal",
+            "borderBottomWidth": "1px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 52,
+          "contentHeightInViewport": 44,
+          "leftRelative": 0,
+          "sectionGapAvg": null,
+          "scrollWidth": 50,
+          "clientWidth": 50,
+          "rows": [
+            {
+              "height": 44,
+              "borderRadius": "8px"
+            }
+          ]
+        },
+        "MAP_PREVIEW_FOCUSED": {
+          "bbox": {
+            "x": 1116,
+            "y": 642.25,
+            "width": 300,
+            "height": 233.75
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "16px",
+            "margin": "0px",
+            "borderRadius": "10px",
+            "boxShadow": "none",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "12px",
+            "borderBottomWidth": "1px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 300,
+          "contentHeightInViewport": 233.75,
+          "leftRelative": 1116,
+          "sectionGapAvg": 97.75,
+          "scrollWidth": 298,
+          "clientWidth": 298,
+          "rows": [
+            {
+              "height": 233.75,
+              "borderRadius": "10px"
+            }
+          ]
+        },
+        "MAP_CANVAS_OCCUPANCY": {
+          "bbox": {
+            "x": 480,
+            "y": 73,
+            "width": 948,
+            "height": 574
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "0px",
+            "borderRadius": "10px",
+            "boxShadow": "none",
+            "backgroundColor": "rgb(238, 242, 245)",
+            "position": "relative",
+            "overflow": "hidden",
+            "gap": "normal",
+            "borderBottomWidth": "1px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "规则地图",
+          "count": 1,
+          "maxChildWidth": 948,
+          "contentHeightInViewport": 574,
+          "leftRelative": 480,
+          "sectionGapAvg": null,
+          "scrollWidth": 946,
+          "clientWidth": 946,
+          "rows": [
+            {
+              "height": 574,
+              "borderRadius": "10px"
+            }
+          ]
+        },
+        "MAP_SELECTED_HIERARCHY": {
+          "bbox": {
+            "x": 580.819091796875,
+            "y": 98.68629455566406,
+            "width": 22.62744140625,
+            "height": 22.627410888671875
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "0px 24.6719px",
+            "borderRadius": "999px",
+            "boxShadow": "rgb(231, 238, 245) 0px 0px 0px 4px, rgba(0, 0, 0, 0.1) 0px 2px 8px 0px",
+            "backgroundColor": "rgb(92, 104, 115)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "normal",
+            "borderBottomWidth": "2px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 22.62744140625,
+          "contentHeightInViewport": 22.627410888671875,
+          "leftRelative": 580.819091796875,
+          "sectionGapAvg": null,
+          "scrollWidth": 12,
+          "clientWidth": 12,
+          "rows": [
+            {
+              "height": 22.627410888671875,
+              "borderRadius": "999px"
+            }
+          ]
+        }
+      },
+      "structure": {
+        "MAP_NO_FILTER_PILL_WALL": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "MAP_MOCK_ROAD_LINES": {
+          "count": 10,
+          "sampleClasses": [
+            "basemap-district",
+            "basemap-open",
+            "basemap-river"
+          ],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 10,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": 728.3484191894531
+        },
+        "MAP_MOCK_BLOCK_POLYGONS": {
+          "count": 6,
+          "sampleClasses": [
+            "basemap-block",
+            "basemap-block",
+            "basemap-block"
+          ],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 6,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": 640.3692016601562
+        },
+        "MAP_MOCK_MARKERS": {
+          "count": 5,
+          "sampleClasses": [
+            "dot s-UNKNOWN dot--selected",
+            "dot s-UNKNOWN",
+            "dot s-CONDITIONAL"
+          ],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 5,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": 830.1093139648438
+        },
+        "MAP_MOCK_SELECTED_MARKER": {
+          "count": 2,
+          "sampleClasses": [
+            "map-pin map-pin--selected",
+            "dot s-UNKNOWN dot--selected"
+          ],
+          "sampleText": "? 信息不足",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 2,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": 21.358154296875
+        },
+        "MAP_MOCK_ZOOM_AFFORDANCE": {
+          "count": 1,
+          "sampleClasses": [
+            "map-zoom"
+          ],
+          "sampleText": "＋\n－",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 1,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "MAP_RESULT_ROWS_NOT_CARDS": {
+          "count": 5,
+          "sampleClasses": [
+            "map-place-row",
+            "map-place-row",
+            "map-place-row"
+          ],
+          "sampleText": "星河咖啡·测试店\n咖啡 · 355m\n?\n尚未核验\n（尚未核验：在已核验来源中暂未找到明确规则，不代表允许）",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 5,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": 0
+        }
+      },
+      "density": {},
+      "hierarchy": {},
+      "budget": {},
+      "composition": {},
+      "state": {
+        "route": "#/map",
+        "page": "map",
+        "state": "ready",
+        "fixture": "map-ready-v1",
+        "h1": "规则地图",
+        "entityId": null,
+        "resultCount": null,
+        "selectedId": "map-marker-selected",
+        "componentCounts": {}
+      },
+      "language": {
+        "uuidHits": [],
+        "enumHits": [],
+        "invariantHits": [],
+        "allcapsHits": [],
+        "refHits": []
+      },
+      "screenshot": "map-map-ready.png"
+    }
+  ]
+}
