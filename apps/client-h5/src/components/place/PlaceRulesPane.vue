@@ -90,6 +90,15 @@ function ruleConditionLines(r: RuleView): string[] {
 
 <template>
   <div data-ui="place-rules-view" data-testid="place-rules-view">
+    <section
+      v-if="conditions.length"
+      class="current-query-conditions"
+      data-testid="current-query-conditions"
+    >
+      <span class="current-query-conditions__label">当前查询需要</span>
+      <p class="current-query-conditions__value">{{ conditions.join("、") }}</p>
+    </section>
+
     <!-- §12 Rule Groups：Context → Rule；组间 divider + 20–24 gap，非 card wall。 -->
     <section
       v-for="group in ruleGroups"
@@ -172,6 +181,29 @@ function ruleConditionLines(r: RuleView): string[] {
 </template>
 
 <style scoped>
+/* Current-query conditions are shown once, then the actual zone/context rules follow. */
+.current-query-conditions {
+  display: flex;
+  align-items: baseline;
+  gap: var(--pa-space-3);
+  margin: 0 0 var(--pa-space-5);
+  padding-bottom: var(--pa-space-4);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.current-query-conditions__label {
+  flex: 0 0 auto;
+  font-size: var(--pa-font-size-sm);
+  color: var(--pa-color-text-muted);
+}
+
+.current-query-conditions__value {
+  margin: 0;
+  font-size: var(--pa-font-size-base);
+  font-weight: var(--pa-font-weight-600);
+  color: var(--pa-color-text-primary);
+}
+
 /* 组间 divider + 20–24 gap（§13）；组内非 card wall：divider rows。 */
 .rule-group {
   margin: 0 0 var(--pa-space-6);
