@@ -27,7 +27,10 @@ body {
   background: var(--bg);
   color: var(--text);
   font-size: var(--pa-font-size-base);
+  line-height: var(--pa-line-height-base);
   font-family: var(--pa-font-family);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 #app {
   min-height: 100vh;
@@ -40,6 +43,9 @@ a {
 }
 h1 {
   font-size: var(--pa-font-size-2xl);
+  font-weight: var(--pa-font-weight-650);
+  line-height: var(--pa-line-height-32);
+  letter-spacing: -0.01em;
   margin: 0;
 }
 h2 {
@@ -120,6 +126,10 @@ button {
   cursor: pointer;
   color: var(--text);
   font-family: inherit;
+  transition:
+    border-color var(--pa-motion-fast) var(--pa-motion-ease),
+    background-color var(--pa-motion-fast) var(--pa-motion-ease),
+    color var(--pa-motion-fast) var(--pa-motion-ease);
 }
 button.primary {
   background: var(--accent);
