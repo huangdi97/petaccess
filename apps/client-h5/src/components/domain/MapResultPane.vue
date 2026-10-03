@@ -68,7 +68,7 @@ function toggleFilter(key: string) {
         <strong data-testid="location-label">{{ LOCATION_LABELS[props.locationState] }}</strong>
         <button
           type="button"
-          class="pill"
+          class="map-pane__locate-button"
           data-testid="locate-btn"
           :disabled="props.locationState === 'REQUESTING'"
           @click="emit('locate')"
@@ -201,6 +201,20 @@ function toggleFilter(key: string) {
 
 .map-pane__locate {
   justify-content: space-between;
+  min-height: 40px;
+}
+
+.map-pane__locate-button {
+  border: none;
+  background: transparent;
+  color: var(--pa-color-accent);
+  min-height: var(--pa-size-control-md);
+  padding: var(--pa-space-1) var(--pa-space-2);
+}
+
+.map-pane__locate-button:hover,
+.map-pane__locate-button:focus-visible {
+  background: var(--pa-color-accent-weak);
 }
 
 .map-pane__search {
@@ -213,8 +227,8 @@ function toggleFilter(key: string) {
 
 .map-pane__title {
   margin: 0 0 var(--pa-space-2);
-  font-size: var(--pa-font-size-lg);
-  font-weight: var(--pa-font-weight-medium);
+  font-size: var(--pa-font-size-xl);
+  font-weight: var(--pa-font-weight-650);
 }
 
 /* 筛选入口 + 面板：单入口，不铺 pill wall。 */
@@ -223,13 +237,18 @@ function toggleFilter(key: string) {
 }
 
 .map-filter__toggle {
-  border: var(--pa-border-width) solid var(--pa-color-border);
+  border: none;
   border-radius: var(--pa-radius-control);
-  background: var(--pa-color-surface);
-  color: var(--pa-color-text-primary);
-  padding: var(--pa-space-1) var(--pa-space-3);
+  background: transparent;
+  color: var(--pa-color-accent);
+  padding: var(--pa-space-1) var(--pa-space-2);
   font-size: var(--pa-font-size-md);
   cursor: pointer;
+}
+
+.map-filter__toggle:hover,
+.map-filter__toggle:focus-visible {
+  background: var(--pa-color-accent-weak);
 }
 
 .map-filter__panel {
@@ -275,7 +294,7 @@ function toggleFilter(key: string) {
 
 .map-place-row {
   cursor: pointer;
-  padding: var(--pa-space-3) 0;
+  padding: var(--pa-space-4) 0;
   border-radius: 0;
   background: transparent;
   box-shadow: none;
