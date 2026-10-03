@@ -19,7 +19,6 @@ import {
   type PlaceSummary,
 } from "@petaccess/client-core";
 import { answerConditions, answerStatusKey, answerVerdictLabel } from "../../answer";
-import StatusBadge from "../StatusBadge.vue";
 import { realityStateLabel } from "../../reality";
 
 const props = withDefaults(
@@ -64,7 +63,6 @@ const metaLine = computed(() => {
 
       <!-- §32：Primary status + key condition -->
       <div class="place-preview__decision" data-testid="preview-verdict">
-        <StatusBadge :semantic="statusKey" />
         <p class="place-preview__verdict-text" data-testid="preview-verdict-text">
           {{ answerVerdictLabel(answer) }}
         </p>
