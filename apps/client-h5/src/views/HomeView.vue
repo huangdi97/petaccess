@@ -107,19 +107,19 @@ const {
         @retry="load"
       />
 
-      <!-- Quick lenses：desktop 两列 text nav（§31），非卡 -->
-      <HomeEntries :entries="HOME_ENTRIES" @select="goEntry" />
+      <section class="home-lenses" aria-label="其他查看方式">
+        <h2 class="home-section-title">换个角度看</h2>
+        <HomeEntries :entries="HOME_ENTRIES" @select="goEntry" />
+      </section>
 
-      <p class="notice home-semantics" data-testid="home-semantics">
-        「附近待补充」表示还没有足够依据下结论，不等于允许或禁止。有依据的结论会写明范围（动物 ·
-        区域）， 不对整个场所下结论。<RouterLink class="btn-inline" to="/settings"
-          >为什么这个结论？ →</RouterLink
-        >
+      <p class="home-semantics" data-testid="home-semantics">
+        信息不足不等于允许或禁止；每个结论都只针对当前查询。
+        <RouterLink class="btn-inline" to="/settings">了解判断方式 →</RouterLink>
       </p>
 
       <footer class="home-footer">
         <RouterLink class="btn" to="/contribute" data-testid="contribute-link"
-          >拍规则牌 / 现场核验</RouterLink
+          >补充规则或现场</RouterLink
         >
         <p class="muted">现场记录与官方规则分开保存；AI/OCR 只生成待审候选，不会自动成为规则。</p>
       </footer>
@@ -216,8 +216,16 @@ const {
   border-bottom: none;
 }
 
+.home-lenses {
+  margin-top: var(--pa-space-6);
+}
+
 .home-semantics {
-  margin-top: var(--pa-space-5);
+  margin: var(--pa-space-6) 0 0;
+  padding-top: var(--pa-space-4);
+  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  font-size: var(--pa-font-size-sm);
+  color: var(--pa-color-text-secondary);
 }
 
 .home-footer {
