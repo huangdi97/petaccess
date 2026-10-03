@@ -1,22 +1,26 @@
 /**
- * UI Oracle — human-review-r1.spec.ts (v0.2.7-R1 Final Runtime Craft Closure, §30)
+ * UI Oracle — human-review-r1.spec.ts (v0.2.7-R1.1 Final Micro Closure)
  *
- * Web contribution screenshots for the R1 human pack (artifacts/
- * ui-product-craft-v7-runtime-closure/HUMAN_REVIEW/):
+ * Web contribution screenshots for the R1.1 human pack (artifacts/
+ * ui-product-craft-v7-runtime-final/HUMAN_REVIEW/):
  *   06_web_contribution_1440  — WIDE_DESKTOP composition (viewport >= 1120)
  *   07_web_contribution_compact — COMPACT_DESKTOP single column (768–1119)
  * The Windows shots (01–05) are captured by the real Tauri/WebView2 smoke
  * harness (windows-smoke/…) and copied into the pack by this spec, so every
  * item in the pack is real-DOM evidence; metadata 只证明真实状态。
  * State integrity (route/page/state/fixture/h1) is asserted before saving.
+ * v0.2.7-R1.1 P0-1: rows carry a logicalName WITHOUT the ".png" extension;
+ * the file is "{logicalName}.png", so the HTML template can never emit
+ * ".png.png". A referential-integrity gate re-reads the generated index and
+ * requires every <img src> to resolve to an existing file.
  */
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
 import { expect, test } from "@playwright/test";
 
-const OUT = path.resolve("artifacts/ui-product-craft-v7-runtime-closure/HUMAN_REVIEW");
-const SMOKE = path.resolve("artifacts/ui-product-craft-v7-runtime-closure/windows-smoke");
+const OUT = path.resolve("artifacts/ui-product-craft-v7-runtime-final/HUMAN_REVIEW");
+const SMOKE = path.resolve("artifacts/ui-product-craft-v7-runtime-final/windows-smoke");
 const API = "http://127.0.0.1:8012/api/v1";
 const MALL_ID = "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e";
 
@@ -180,11 +184,11 @@ test("human review v0.2.7-R1 — web contribution wide/compact + windows pack as
 
   // Copy the real-Windows shots from the smoke pack into the human pack.
   const WINDOWS_COPY = [
-    { from: "04_map.png", to: "01_windows_map.png" },
-    { from: "07_contribution_choose.png", to: "02_windows_contribution_choose.png" },
-    { from: "08_contribution_step1.png", to: "03_windows_contribution_step1.png" },
-    { from: "09_contribution_step2.png", to: "04_windows_contribution_step2.png" },
-    { from: "05_desktop_rail_closeup.png", to: "05_desktop_rail_closeup.png" },
+    { from: "04_map.png", to: "01_windows_map" },
+    { from: "07_contribution_choose.png", to: "02_windows_contribution_choose" },
+    { from: "08_contribution_step1.png", to: "03_windows_contribution_step1" },
+    { from: "09_contribution_step2.png", to: "04_windows_contribution_step2" },
+    { from: "05_desktop_rail_closeup.png", to: "05_desktop_rail_closeup" },
   ];
   const windowsRows: Array<{
     name: string;
@@ -247,7 +251,7 @@ test("human review v0.2.7-R1 — web contribution wide/compact + windows pack as
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>PetAccess v0.2.7-R1 Final Runtime Craft Closure — Human Review Pack</title>
+<title>PetAccess v0.2.7-R1.1 Final Micro Closure — Human Review Pack</title>
 <style>
   body { font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif; margin: 24px auto; max-width: 1200px; padding: 0 16px; color: #1d2733; }
   h1 { font-size: 22px; }
@@ -261,18 +265,18 @@ test("human review v0.2.7-R1 — web contribution wide/compact + windows pack as
 </style>
 </head>
 <body>
-<h1>PetAccess v0.2.7-R1 Final Runtime Craft Closure · Human Review Pack（${valid.length} VALID / ${all.length} total）</h1>
+<h1>PetAccess v0.2.7-R1.1 Final Micro Closure · Human Review Pack（${valid.length} VALID / ${all.length} total）</h1>
 <p>机器 gate 全绿 + 截图通过 State Integrity 后才入包。metadata JSON 只证明真实页面状态，不宣称视觉通过。等待人工视觉判断（Agent 不代替签字）。</p>
 ${cards}
 <footer>
-<p>完整报告：<code>docs/reports/V0207_R1_FINAL_RUNTIME_CLOSURE_REPORT.md</code> · 状态：<code>UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW</code></p>
+<p>完整报告：<code>docs/reports/V0207_R1_1_FINAL_MICRO_CLOSURE_REPORT.md</code> · 状态：<code>UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW</code></p>
 </footer>
 </body>
 </html>`,
     "utf8",
   );
 
-  const summary = `[human-review-r1] ${all.length} shots, ${valid.length} VALID, ${all.length - valid.length} INVALID: ${
+  const summary = `[human-review-r1.1] ${all.length} shots, ${valid.length} VALID, ${all.length - valid.length} INVALID: ${
     all
       .filter((r) => !r.valid)
       .map((r) => r.name)
@@ -280,4 +284,21 @@ ${cards}
   }`;
   console.log(summary);
   expect(all.filter((r) => !r.valid)).toHaveLength(0);
+
+  // v0.2.7-R1.1 P0-1 referential-integrity gate: every <img src> in the
+  // generated index must resolve to a real file, and ".png.png" is forbidden.
+  const indexHtml = readFileSync(path.join(OUT, "HUMAN_REVIEW_INDEX.html"), "utf8");
+  const missingImages: string[] = [];
+  for (const m of indexHtml.matchAll(/<img[^>]*\bsrc="([^"]+)"/g)) {
+    const src = m[1]!;
+    if (!existsSync(path.resolve(OUT, src))) missingImages.push(src);
+  }
+  const pngPngCount = (indexHtml.match(/\.png\.png/g) ?? []).length;
+  console.log(
+    `[human-review-r1.1] HUMAN_REVIEW_INDEX referential integrity: ${
+      indexHtml.match(/<img/g).length
+    } img srcs, missing=${JSON.stringify(missingImages)}, png.png=${pngPngCount}`,
+  );
+  expect(pngPngCount).toBe(0);
+  expect(missingImages).toHaveLength(0);
 });

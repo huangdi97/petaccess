@@ -39,8 +39,9 @@ test("desktop shows the rail with both groups and no bottom tabs", async ({ page
   }
   await expect(rail.getByRole("link", { name: "关于" })).toHaveCount(0);
   await expect(page.getByTestId("mobile-tabbar")).toHaveCount(0);
-  // version info lives in the rail footer
-  await expect(rail.getByTestId("app-version")).toContainText("PetAccess v");
+  // v0.2.7-R1.1 P0-3: the 68px rail footer shows compact version only (vX.Y);
+  // the full "PetAccess v{version} · {env}" stays in title / data attributes.
+  await expect(rail.getByTestId("app-version")).toContainText(/^v\d+\.\d+$/);
 });
 
 test("tablet (768) switches to the rail", async ({ page }) => {
