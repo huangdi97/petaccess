@@ -47,10 +47,10 @@ const cls = computed(() => `desktop-content desktop-content--${props.mode}`);
   gap: var(--pa-space-6);
   align-items: start;
 }
-</style>
 
 @media (max-width: 767px) {
   .desktop-content {
     padding-inline: 0;
   }
 }
+</style>
