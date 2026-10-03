@@ -119,6 +119,8 @@ export interface ElementMeasurementShape {
   contentHeightInViewport: number | null;
   leftRelative: number | null;
   sectionGapAvg: number | null;
+  scrollWidth: number | null;
+  clientWidth: number | null;
   rows: Array<{ height: number | null; borderRadius: string | null }>;
 }
 
@@ -189,6 +191,8 @@ async function probeElement(
     contentHeightInViewport: flat.contentHeightInViewport,
     leftRelative: flat.leftRelative,
     sectionGapAvg: flat.sectionGapAvg,
+    scrollWidth: flat.scrollWidth,
+    clientWidth: flat.clientWidth,
     rows: flat.rows,
   };
 }

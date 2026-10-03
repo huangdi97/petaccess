@@ -52,6 +52,8 @@ export interface ElementMeasurementFlat {
   contentHeightInViewport: number | null;
   leftRelative: number | null;
   sectionGapAvg: number | null;
+  scrollWidth: number | null;
+  clientWidth: number | null;
   rows: Array<{ height: number | null; borderRadius: string | null }>;
 }
 
@@ -95,6 +97,8 @@ export function measureElement(
       contentHeightInViewport: null,
       leftRelative: null,
       sectionGapAvg: null,
+      scrollWidth: null,
+      clientWidth: null,
       rows: [],
     };
   }
@@ -189,6 +193,8 @@ export function measureElement(
     contentHeightInViewport: visibleH,
     leftRelative: leftRelativeToPane(el),
     sectionGapAvg: sectionGap(el),
+    scrollWidth: el.scrollWidth,
+    clientWidth: el.clientWidth,
     rows,
   };
 }

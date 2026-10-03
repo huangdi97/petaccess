@@ -323,7 +323,14 @@ const { desktop: isDesktop } = useBreakpoint();
   line-height: var(--pa-line-height-23);
   color: var(--pa-color-text-secondary);
 }
-@media (min-width: 1024px) {
+/* v0.2.7-R1 P0-2 measured desktop layout model (real Windows runtime):
+   - COMPACT_DESKTOP: 768px <= viewport < 1120px  -> rail + single column.
+   - WIDE_DESKTOP:    viewport >= 1120px          -> rail + main|context.
+   Content width = viewport - 68 (rail) - ~40 (page padding) - scrollbar.
+   The designed workspace (main 680 + gap 48 + context 280 = 1008) fits with
+   main >= 620 only from ~1120px CSS viewport upward; below that the column
+   layout keeps the task readable instead of squeezing a broken two-column. */
+@media (min-width: 1120px) {
   .contribute-workspace__layout {
     flex-direction: row;
     align-items: flex-start;

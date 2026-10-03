@@ -111,6 +111,33 @@
       "severity": "FAIL",
       "pages": ["contribute-entry", "contribute-step-1", "contribute-step-2"],
       "note": "v0.2.7 §15/§40：desktop secondary context rail 240–300px 真实可见。"
+    },
+    {
+      "id": "CONTRIBUTION_WORKSPACE_NO_HORIZONTAL_OVERFLOW",
+      "ui": "contribution-workspace",
+      "fallbacks": [".contribute-workspace"],
+      "props": { "hOverflow": { "equals": 0 } },
+      "severity": "FAIL",
+      "pages": ["contribute-entry", "contribute-step-1", "contribute-step-2"],
+      "note": "v0.2.7-R1 P0-1 nested: workspace scrollWidth <= clientWidth + 1."
+    },
+    {
+      "id": "CONTRIBUTION_MAIN_NO_HORIZONTAL_OVERFLOW",
+      "ui": "contribution-main",
+      "fallbacks": [".contribute-workspace__main"],
+      "props": { "hOverflow": { "equals": 0 } },
+      "severity": "FAIL",
+      "pages": ["contribute-entry", "contribute-step-1", "contribute-step-2"],
+      "note": "v0.2.7-R1 P0-1 nested: main column scrollWidth <= clientWidth + 1."
+    },
+    {
+      "id": "CONTRIBUTION_CONTEXT_NO_HORIZONTAL_OVERFLOW",
+      "ui": "contribution-context",
+      "fallbacks": [".contribute-workspace__context"],
+      "props": { "hOverflow": { "equals": 0 } },
+      "severity": "FAIL",
+      "pages": ["contribute-entry", "contribute-step-1", "contribute-step-2"],
+      "note": "v0.2.7-R1 P0-1 nested: context rail scrollWidth <= clientWidth + 1."
     }
   ],
   "structure": [

@@ -180,6 +180,16 @@ function compareElement(rule: ElementRule, probe: PageProbe, out: CompareRow[]):
       case "sectionGap":
         actual = num(m.sectionGapAvg);
         break;
+      case "hOverflow":
+        /* v0.2.7-R1 P0-1: 1 when scrollWidth > clientWidth + 1 (horizontal
+           overflow must stay impossible on the 68px rail and its nested boxes). */
+        actual =
+          m.scrollWidth !== null && m.clientWidth !== null
+            ? m.scrollWidth > m.clientWidth + 1
+              ? 1
+              : 0
+            : null;
+        break;
       default:
         actual = null;
     }

@@ -1,0 +1,12 @@
+{
+  "source": "windows-smoke harness CDP clip capture",
+  "railClientWidth": 68,
+  "page": "home",
+  "generatedAt": "2026-10-03T16:49:03.7179897+08:00",
+  "packName": "05_desktop_rail_closeup",
+  "name": "05_desktop_rail_closeup",
+  "state": "ready",
+  "railNoHorizontalOverflow": "PASS",
+  "note": "68px rail closeup — footer ellipsized + tooltips display:none; no horizontal scrollbar",
+  "railScrollWidth": 67
+}

@@ -83,7 +83,11 @@ const envLabel = import.meta.env.DEV ? "development" : "production";
       </RouterLink>
     </nav>
 
-    <div class="desktop-rail__version" data-testid="app-version">
+    <div
+      class="desktop-rail__version"
+      data-testid="app-version"
+      :title="`PetAccess v${version} · ${envLabel}`"
+    >
       <span class="desktop-rail__version-name">PetAccess v{{ version }}</span>
       <span class="desktop-rail__version-env" aria-hidden="true">{{ envLabel }}</span>
     </div>
@@ -103,6 +107,10 @@ const envLabel = import.meta.env.DEV ? "development" : "production";
   border-right: var(--pa-border-width) solid var(--pa-color-border);
   padding: var(--pa-space-4) 0 var(--pa-safe-bottom);
   overflow-y: auto;
+  /* v0.2.7-R1 P0-1: the rail is a 68px icon rail — it must never grow a
+     horizontal scrollbar. overflow-x hidden is the visual clamp; the footer
+     text is also width-bounded below so content cannot enlarge the rail. */
+  overflow-x: hidden;
 }
 
 .desktop-rail__brand {
@@ -187,28 +195,53 @@ const envLabel = import.meta.env.DEV ? "development" : "production";
   font-size: var(--pa-font-size-sm);
   opacity: 0;
   pointer-events: none;
-  transition: opacity var(--pa-motion-fast) var(--pa-motion-ease);
+  /* v0.2.7-R1 P0-1: display:none keeps the hidden tooltip out of the rail's
+     scrollable overflow region entirely (rail.scrollWidth == clientWidth).
+     The hover rule reveals it with a short fade-in; opacity fade-out is
+     intentionally dropped so the rail can never accumulate overflow. */
+  display: none;
   z-index: var(--pa-z-sticky);
 }
 
 .desktop-rail__item:hover .desktop-rail__tip,
 .desktop-rail__item:focus-visible .desktop-rail__tip {
+  display: block;
+  animation: rail-tip-in var(--pa-motion-fast) var(--pa-motion-ease);
   opacity: 1;
+}
+
+@keyframes rail-tip-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .desktop-rail__version {
   margin-top: auto;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
   padding-top: var(--pa-space-4);
 }
 
 .desktop-rail__version-name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: var(--pa-font-size-sm);
   color: var(--pa-color-text-muted);
 }
 
 .desktop-rail__version-env {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: var(--pa-font-size-xs);
   color: var(--pa-color-text-muted);
 }
