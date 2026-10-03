@@ -174,7 +174,8 @@ const evidenceSummaryLine = computed(
 .sub-answer--mine {
   border-left: var(--pa-border-width-strong) solid var(--pa-color-accent);
   border-radius: var(--pa-radius-md);
-  padding: var(--pa-space-3) var(--pa-space-4);
+  padding: var(--pa-space-4);
+  background: var(--pa-color-surface-muted);
 }
 .sub-answer__context {
   margin: 0 0 var(--pa-space-1);
@@ -184,7 +185,7 @@ const evidenceSummaryLine = computed(
   color: var(--pa-color-text-secondary);
 }
 .status {
-  margin: var(--pa-space-1) 0;
+  margin: var(--pa-space-2) 0 var(--pa-space-1);
   font-size: var(--pa-font-size-decision);
   font-weight: var(--pa-font-weight-650);
   line-height: var(--pa-line-height-decision);
@@ -228,9 +229,9 @@ const evidenceSummaryLine = computed(
   display: flex;
   align-items: center;
   gap: var(--pa-space-3);
-  min-height: 56px;
-  max-height: 64px;
-  padding: var(--pa-space-2) 0;
+  min-height: 60px;
+  max-height: 68px;
+  padding: var(--pa-space-3) 0;
   border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
   text-decoration: none;
   color: var(--pa-color-text-primary);
