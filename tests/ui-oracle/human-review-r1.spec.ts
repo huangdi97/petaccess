@@ -202,7 +202,7 @@ test("human review v0.2.7-R1 — web contribution wide/compact + windows pack as
     const src = path.join(SMOKE, from);
     if (!existsSync(src)) continue;
     mkdirSync(OUT, { recursive: true });
-    const dst = path.join(OUT, to);
+    const dst = path.join(OUT, `${to}.png`);
     writeFileSync(dst, readFileSync(src));
     windowsRows.push({
       name: to,
@@ -233,10 +233,10 @@ test("human review v0.2.7-R1 — web contribution wide/compact + windows pack as
     <dt>Known notes</dt><dd>${r.note}</dd>
   </dl>
   ${
-    before && existsSync(path.join(SMOKE, before))
+    before?.before && existsSync(path.join(SMOKE, before.before))
       ? `<div class="pair">
-      <figure><figcaption>BEFORE（v7 runtime，rail scrollbar / compact 可见）</figcaption><img src="../windows-smoke/${before}" alt="${r.name} before" loading="lazy" /></figure>
-      <figure><figcaption>AFTER（v0.2.7-R1）</figcaption><img src="${r.name}.png" alt="${r.name} after — VALID" loading="lazy" /></figure>
+      <figure><figcaption>BEFORE（v7 runtime，rail scrollbar / compact 可见）</figcaption><img src="../windows-smoke/${before.before}" alt="${r.name} before" loading="lazy" /></figure>
+      <figure><figcaption>AFTER（v0.2.7-R1.1）</figcaption><img src="${r.name}.png" alt="${r.name} after — VALID" loading="lazy" /></figure>
     </div>`
       : `<img src="${r.name}.png" alt="${r.name} — ${r.valid ? "VALID" : "INVALID"}" loading="lazy" />`
   }
