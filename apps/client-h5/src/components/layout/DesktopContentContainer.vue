@@ -48,3 +48,9 @@ const cls = computed(() => `desktop-content desktop-content--${props.mode}`);
   align-items: start;
 }
 </style>
+
+@media (max-width: 767px) {
+  .desktop-content {
+    padding-inline: 0;
+  }
+}
