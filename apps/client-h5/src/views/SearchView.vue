@@ -34,7 +34,6 @@ import QueryContextBar from "../components/domain/QueryContextBar.vue";
 import PaBottomSheet from "../components/ui/PaBottomSheet.vue";
 import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
-import StatusBadge from "../components/StatusBadge.vue";
 import { answerConditions, answerStatusKey, answerVerdictLabel } from "../answer";
 import {
   freshnessLineFor,
@@ -515,9 +514,6 @@ const selectedId = ref<string | null>(null);
                       <template v-if="p.distance_m"> · {{ Math.round(p.distance_m) }}m</template>
                     </span>
                   </div>
-                  <div class="result-row__head-right">
-                    <StatusBadge :semantic="statuses[p.id] ?? 'UNKNOWN'" />
-                  </div>
                 </div>
 
                 <!-- lens projection（presentation-only）：只改突出那一行，不加行。
@@ -914,13 +910,6 @@ const selectedId = ref<string | null>(null);
   min-width: 0;
 }
 
-.result-row__head-right {
-  display: flex;
-  align-items: center;
-  gap: var(--pa-space-2);
-  flex-shrink: 0;
-}
-
 .result-row__name {
   font-size: var(--pa-font-size-lg);
   font-weight: var(--pa-font-weight-medium);
@@ -998,10 +987,5 @@ const selectedId = ref<string | null>(null);
     font-size: var(--pa-font-size-xl);
   }
 
-  /* Mobile row already states the decision in text; suppress the duplicate
-     status chip so each result stays within the four-line consumer budget. */
-  .result-row__head-right {
-    display: none;
-  }
 }
 </style>
