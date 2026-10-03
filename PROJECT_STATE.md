@@ -1,5 +1,36 @@
 # PROJECT_STATE.md
 
+## Current phase（2026-10-03 本轮实测 — v0.2.7-R1.1.1 Human Review Truth Closure）
+- 状态：`V0207_R1_1_1_HUMAN_REVIEW_TRUTH_CLOSURE = MACHINE_PASS` · `HUMAN_REVIEW_PACK = COMPLETE` ·
+  `HUMAN_REVIEW_CARDS = 7/7` · `HUMAN_REVIEW_PNGS = 7/7` · `HUMAN_REVIEW_IMG_REFS = 9/9` ·
+  `HUMAN_REVIEW_INDEX_REFERENTIAL_INTEGRITY = PASS` · `HUMAN_REVIEW_INDEX_EXACT_SET = PASS` ·
+  `UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW` · `MASTER = UNCHANGED` · `PUBLIC_RELEASE = NOT_PERFORMED`
+- 分支：`feat/ui-product-craft-v7-human-review-final`（基点 = origin/feat/ui-product-craft-v7-runtime-final `a83f64f`；
+  已 push；BASE_HEAD `42ed4e3` / V7_HEAD `346abbd` / R1_IMPLEMENTATION_HEAD `f8c1227` /
+  R1_1_CODE_HEAD `2010775` / R1_1_EVIDENCE_HEAD `647ecd5` / R1_1_DOCS_HEAD `a83f64f`；
+  FINAL_BRANCH_HEAD 以最终验证时刻 `git rev-parse HEAD` / `git rev-parse origin/feat/ui-product-craft-v7-human-review-final`
+  实测为准（避免自引用死锁）；origin/master 未动；v0.1.0 tag 未动；无 v0.2.0 tag / Release / store）。
+- 内容：P0-3 单一最终 writer 修复——`tests/ui-oracle/human-review-r1.spec.ts` 非 oracle-desktop project
+  在 pack 组装前 early return，只有 `oracle-desktop` 允许 assemble + 写最终 Index + 跑完结 gates
+  （ONE FINAL WRITER，deterministic）；P0-1/P0-2 显式 `HUMAN_REVIEW_EXPECTED_CARD_SET`（固定顺序 7 个）+ exact-set /
+  数量(7) / img-ref(9) / orphan / missing / `.png.png` 门禁全部 assert 化。
+- 人审包：`artifacts/ui-product-craft-v7-runtime-final/HUMAN_REVIEW/`（目录不变，无 v8/v9 噪音）重新生成：
+  **7 cards、7 PNG、9 `<img src>`、0 missing、0 orphan、0 `.png.png`**，Index 标题 `7 VALID / 7 total`；
+  01–05 = windows-smoke 真实 WebView2 证据逐字节复制（SHA256 一致），06/07 = generator 自然重截
+  （state integrity page/state/fixture/h1 全 PASS，`valid=true` 全部来自真实 DOM，零伪造）。
+- 机器 Gate（本轮实测）：prettier --check（spec）exit 0；eslint（spec）0 issues；
+  human-review-r1 spec（两个 project，`--workers=1`）**2 passed / 0 failed**
+  （desktop：7 shots、7 VALID、0 INVALID；mobile：skip assembly 日志 + 不再写 Index）。
+- 复用（未重跑，产品代码零改动，`apps/` 0 变更）：ui-oracle 427/0/0、ui-reconstruction 180/180、
+  e2e 189/189、visual 59/59（均来自 R1.1）；`WINDOWS_RUNTIME_RERUN = NOT_REQUIRED`（R1.1 targeted 5/5），
+  `ANDROID_RERUN = NOT_REQUIRED`，`FULL_PRODUCT_REGRESSION_RERUN = NOT_REQUIRED`，`BACKEND_CODE_CHANGED = NO`。
+- 停止线：exact-set 全绿 + Git truth PASS + HUMAN_REVIEW READY，**等待用户人工视觉签字**
+  （Agent 不代替 `UI_HUMAN_VISUAL_ACCEPTANCE = PASS`）；签字并授权后才执行 Stage B：
+  force recapture 批准快照 → canonical baseline = 批准外观 → visual compare ×2 → docs truth →
+  verify master ancestor → fast-forward master（仅 FF，无 force/merge/rebase）。
+
+### 历史记录 — v0.2.7-R1.1 Final Micro Closure（2026-10-03，HISTORICAL）
+
 ## Current phase（2026-10-03 本轮实测 — v0.2.7-R1.1 Final Micro Closure）
 - 状态：`V0207_R1_1_MICRO_CLOSURE = MACHINE_PASS` · `HUMAN_REVIEW = READY` ·
   `WINDOWS_RAIL_OVERFLOW = PASS` · `WINDOWS_RAIL_TOOLTIP = PASS` ·
