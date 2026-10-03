@@ -69,3 +69,4 @@ coverage.json
 .agent-local/
 !artifacts/ui-product-craft-v7/
 !artifacts/ui-product-craft-v7-runtime-closure/
+!artifacts/ui-product-craft-v7-runtime-final/

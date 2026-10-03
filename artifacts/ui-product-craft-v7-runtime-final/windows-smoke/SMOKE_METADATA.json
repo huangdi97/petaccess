@@ -1,0 +1,41 @@
+{
+  "round": "v0.2.7-R1.1",
+  "mode": "targeted refresh",
+  "target": "Windows targeted smoke (Map / Contribution choose, step1, step2 / Rail closeup)",
+  "runtime": "Tauri v2 (debug --no-bundle) + host WebView2, remote debugging :9223",
+  "binary": "D:\\pa-fix-target-win\\debug\\petaccess.exe (rebuilt at 2010775, R1.1 rail UI)",
+  "api": "petaccess_visual @ 127.0.0.1:8016",
+  "checks": {
+    "WINDOW_CHROME": "PASS",
+    "DESKTOP_RAIL_PRESENT": "PASS",
+    "DESKTOP_RAIL_NO_HORIZONTAL_OVERFLOW": "PASS",
+    "CONTRIBUTION_RUNTIME_COMPOSITION_MODE": "PASS (wide)",
+    "STATE_INTEGRITY": "PASS",
+    "RAIL_NATIVE_TITLE": "PASS (title + aria-label present, hover checked)",
+    "RAIL_FOOTER_COMPACT": "PASS (v0.2 only)",
+    "NO_DOCUMENT_HORIZONTAL_OVERFLOW": "PASS"
+  },
+  "results": [
+    {
+      "name": "04_map",
+      "valid": true
+    },
+    {
+      "name": "07_contribution_choose",
+      "valid": true
+    },
+    {
+      "name": "08_contribution_step1",
+      "valid": true
+    },
+    {
+      "name": "09_contribution_step2",
+      "valid": true
+    },
+    {
+      "name": "05_desktop_rail_closeup",
+      "valid": true
+    }
+  ],
+  "generatedAt": "2026-10-03T12:42:19.275Z"
+}

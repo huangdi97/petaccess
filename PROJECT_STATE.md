@@ -1,5 +1,40 @@
 # PROJECT_STATE.md
 
+## Current phase（2026-10-03 本轮实测 — v0.2.7-R1.1 Final Micro Closure）
+- 状态：`V0207_R1_1_MICRO_CLOSURE = MACHINE_PASS` · `HUMAN_REVIEW = READY` ·
+  `WINDOWS_RAIL_OVERFLOW = PASS` · `WINDOWS_RAIL_TOOLTIP = PASS` ·
+  `WINDOWS_RAIL_FOOTER = PASS` · `HUMAN_REVIEW_INDEX = PASS` ·
+  `WINDOWS_CONTRIBUTION_COMPOSITION = PASS` · `UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW` ·
+  `MASTER = UNCHANGED` · `PUBLIC_RELEASE = NOT_PERFORMED`
+- 分支：`feat/ui-product-craft-v7-runtime-final`（基点 = origin/feat/ui-product-craft-v7-runtime-closure `7d4772e`；
+  BASE_HEAD `42ed4e3` / V7_HEAD `346abbd` / R1_IMPLEMENTATION_HEAD `f8c1227`；
+  最终 HEAD 见 `docs/reports/V0207_R1_1_FINAL_MICRO_CLOSURE_REPORT.md` GIT_TRUTH，以 `git rev-parse HEAD` 实测为准；
+  origin/master 未动；v0.1.0 tag 未动；无 v0.2.0 tag / Release / store）。
+- 内容：P0-1 Human Review Index `.png.png` 修复（生成器 logicalName 模型 + beforePairs 修正 +
+  referential-integrity gate：全部 `<img src>` 必须 resolve，`expect(missingImages).toHaveLength(0)`）；
+  P0-2 DesktopRail 移除被 overflow-x:hidden 裁掉的自定义 tooltip（span/CSS/rail-tip-in 动画），
+  6 个导航 RouterLink 改 `aria-label` + 原生 `:title`，rail 横向 overflow 硬 Gate 保持（scrollWidth ≤ clientWidth + 1）；
+  P0-3 rail footer 可见文本改 compact version only = `v0.2`，完整版本/环境保留于 title/data-attribute；
+  P0-4 Git/Docs truth：FINAL_BRANCH_HEAD 与 ahead/behind 全部按重新 fetch/rev-list 实测重写。
+- 机器 Gate（本轮实测）：prettier PASS、eslint 0、client-h5 vue-tsc+build PASS、admin build PASS；
+  ui-oracle **427/0/0**；ui-reconstruction **180/180**；e2e **189/189**；
+  visual regression **59/59**（Stage A 不更新 snapshot）；backend `BACKEND_CODE_CHANGED = NO`
+  （`git diff origin/feat/ui-product-craft-v7-runtime-closure...HEAD -- services/` 为空）→
+  `BACKEND_FULL_RERUN = NOT_REQUIRED`；Android（未改 Contribution layout）`ANDROID_RERUN = NOT_REQUIRED`。
+- 真实 Windows runtime（Tauri v2 + WebView2，CDP :9223，沿用 `D:\pa-fix-target-win\debug\petaccess.exe`，
+  1120×760）：targeted 5/5 PASS（Map / Contribution choose / step1 / step2 / Rail closeup）——
+  rail 67/67 无横向滚动条、Contribution 三页 layoutMode=wide + sameRow=true、
+  footer 可见 `v0.2`、6 项 title+aria-label 原生 tooltip 齐备、document 无横向溢出。
+- 人审包：`artifacts/ui-product-craft-v7-runtime-final/HUMAN_REVIEW/` 7 张
+  （01–05 真实 WebView2 targeted refresh + 06 web 1440 WIDE + 07 web 1000 COMPACT）+ BEFORE/AFTER
+  （Map / Contribution）+ HUMAN_REVIEW_INDEX.html；
+  `HUMAN_REVIEW_INDEX_REFERENTIAL_INTEGRITY = PASS`（7/7、0 `.png.png`）。
+- 停止线：机器 gate 全绿 + HUMAN_REVIEW READY，**等待用户人工视觉签字**
+  （Agent 不代替 `UI_HUMAN_VISUAL_ACCEPTANCE = PASS`）；签字并授权后才执行
+  canonical baseline promotion → fast-forward master（仅 FF，无 force/merge/rebase）。
+
+### 历史记录 — v0.2.7-R1 Final Runtime Closure（2026-10-03，HISTORICAL）
+
 ## Current phase（2026-10-03 本轮实测 — v0.2.7-R1 Final Runtime Craft Closure）
 - 状态：`V0207_R1_RUNTIME_CLOSURE = MACHINE_PASS` · `WINDOWS_RAIL_OVERFLOW = PASS` ·
   `WINDOWS_CONTRIBUTION_COMPOSITION = PASS` · `UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW` ·

@@ -1,0 +1,22 @@
+{
+  "name": "06_web_contribution_1440",
+  "viewport": "1440x900",
+  "route": "/#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+  "expected": {
+    "page": "contribution",
+    "state": "choose-type",
+    "fixture": "contribution-choose-type-v1",
+    "h1": "你刚刚知道了什么？"
+  },
+  "actual": {
+    "route": "#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+    "page": "contribution",
+    "state": "choose-type",
+    "fixture": "contribution-choose-type-v1",
+    "h1": "你刚刚知道了什么？"
+  },
+  "valid": true,
+  "mismatches": [],
+  "note": "v0.2.7-R1 WIDE_DESKTOP (>=1120): main | context 双栏在 1440 web viewport 成立。",
+  "generatedAt": "2026-10-03T13:02:01.086Z"
+}
