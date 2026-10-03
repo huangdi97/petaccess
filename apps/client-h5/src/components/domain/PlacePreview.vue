@@ -18,7 +18,7 @@ import {
   type CoexistenceSnapshot,
   type PlaceSummary,
 } from "@petaccess/client-core";
-import { answerConditions, answerStatusKey, answerVerdictLabel } from "../../answer";
+import { answerConditions, answerVerdictLabel } from "../../answer";
 import { realityStateLabel } from "../../reality";
 
 const props = withDefaults(
@@ -33,8 +33,6 @@ const props = withDefaults(
 );
 
 const answer = computed(() => props.snapshot?.rule_answer ?? null);
-/** §32：Primary status 用 answer 的结论；外部 status prop 保留兼容。 */
-const statusKey = computed(() => answerStatusKey(answer.value));
 const keyCondition = computed(() => answerConditions(answer.value)[0] ?? "");
 const realityLine = computed(() =>
   props.loading
