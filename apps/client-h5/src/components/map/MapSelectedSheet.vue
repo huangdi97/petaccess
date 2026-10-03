@@ -41,7 +41,7 @@ type SheetPhase = "closed" | "half" | "expanded";
 const phase = ref<SheetPhase>("half");
 
 const TABBAR = "var(--pa-safe-total-bottom)";
-const HALF_H = "min(320px, 36vh)";
+const HALF_H = "min(288px, 32vh)";
 const EXPANDED_MAX_H = "min(78vh, 680px)";
 const EXPANDED_MIN_H = "min(420px, 55vh)";
 const CLOSED_H = "60px";
