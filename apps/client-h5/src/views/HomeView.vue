@@ -69,7 +69,11 @@ const {
             placeholder="搜索场所、商圈或地址"
             autocomplete="off"
           />
-          <button class="primary home-search__submit" type="submit" data-testid="home-search-submit">
+          <button
+            class="primary home-search__submit"
+            type="submit"
+            data-testid="home-search-submit"
+          >
             查询
           </button>
         </form>
