@@ -353,6 +353,7 @@ const placeFixture = computed<string>(() => {
           />
           <PlaceEvidencePane
             v-else-if="view === 'evidence'"
+            :place-id="placeId"
             :observations="observations"
             :sources="sources"
             :rule-evidence-count="currentRules.length"
