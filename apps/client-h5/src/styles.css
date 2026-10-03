@@ -292,17 +292,19 @@ label {
   display: inline-flex;
   align-items: center;
   gap: var(--pa-space-1);
-  border-radius: var(--pa-radius-sm);
+  border-radius: var(--pa-radius-pill);
   padding: 2px var(--pa-space-2);
-  font-size: var(--pa-font-size-md);
+  font-size: var(--pa-font-size-sm);
   font-weight: var(--pa-font-weight-medium);
-  line-height: var(--pa-line-height-tight);
-  border: var(--pa-border-width) solid currentColor;
+  line-height: var(--pa-line-height-20);
+  border: var(--pa-border-width) solid transparent;
   white-space: nowrap;
 }
 .status-badge .status-badge__icon {
+  font-size: var(--pa-font-size-xs);
   font-weight: var(--pa-font-weight-bold);
   line-height: 1;
+  opacity: 0.9;
 }
 .status-badge--block {
   display: flex;
