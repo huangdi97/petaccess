@@ -193,9 +193,9 @@ function choose(opt: EntryOption) {
 .entry-note {
   margin: var(--pa-space-4) 0 0;
 }
-</style>
 
 .entry-option__button:hover .entry-option__chevron,
 .entry-option__button:focus-visible .entry-option__chevron {
   color: var(--pa-color-accent);
 }
+</style>
