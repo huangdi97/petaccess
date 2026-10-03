@@ -121,7 +121,6 @@ defineProps<{
   padding: var(--pa-space-2) var(--pa-space-3);
   margin-top: var(--pa-space-2);
 }
-</style>
 
 @media (max-width: 767px) {
   .zone-row {
@@ -134,3 +133,4 @@ defineProps<{
     min-width: 0;
   }
 }
+</style>
