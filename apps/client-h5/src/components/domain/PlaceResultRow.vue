@@ -17,7 +17,7 @@ import {
   type RealityAnswer,
 } from "@petaccess/client-core";
 import StatusBadge from "../StatusBadge.vue";
-import { answerConditions, answerScopeLabel, answerStatusKey, answerVerdictLabel } from "../../answer";
+import { answerConditions, answerStatusKey, answerVerdictLabel } from "../../answer";
 import {
   evidenceLineFor,
   lensProjection,
@@ -50,7 +50,6 @@ const props = withDefaults(
 );
 
 const status = computed(() => answerStatusKey(props.answer));
-const scope = computed(() => answerScopeLabel(props.answer, props.speciesLabel));
 const conditions = computed(() => answerConditions(props.answer, props.conditionsLabel));
 const realityLine = computed(() => realityLineFor(props.reality));
 const evidenceLine = computed(() => evidenceLineFor(props.reality));
@@ -81,7 +80,7 @@ const projection = computed(() => lensProjection(props.lens, props.answer, props
         class="place-result-row__rule"
         data-testid="row-lens-headline"
       >
-        {{ answer.normative_result.summary || "已核验：" + scope }}
+        {{ answer.normative_result.summary || answerVerdictLabel(answer) }}
       </p>
       <p v-else class="place-result-row__reality-line" data-testid="row-lens-headline">
         {{ projection.realityLine }}
