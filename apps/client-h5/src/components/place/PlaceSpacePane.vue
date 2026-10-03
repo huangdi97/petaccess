@@ -44,8 +44,8 @@ defineProps<{
       </div>
       <div v-for="e in extras?.entrances ?? []" :key="e.id" class="zone-row">
         <span class="zone-row__name">
-          {{ e.name
-          }}<span class="tag" style="margin-left: 6px">{{ entranceLabel(e.entrance_type) }}</span>
+          {{ e.name }}
+          <span class="muted zone-row__meta">· {{ entranceLabel(e.entrance_type) }}</span>
         </span>
         <span class="muted">{{ e.access_notes ?? "" }}</span>
       </div>
@@ -58,15 +58,14 @@ defineProps<{
     <section class="place-section" data-testid="amenities">
       <h2 class="place-section__title">设施</h2>
       <div v-if="!extras?.amenities.length" class="muted">暂无设施记录</div>
-      <div class="row">
-        <span v-for="a in extras?.amenities ?? []" :key="a.id" class="tag">
-          {{ amenityLabel(a.amenity_type) }} · {{ facilityStateLabel(a.status) }}
-        </span>
+      <div v-for="a in extras?.amenities ?? []" :key="a.id" class="zone-row">
+        <span class="zone-row__name">{{ amenityLabel(a.amenity_type) }}</span>
+        <span class="muted">{{ facilityStateLabel(a.status) }}</span>
       </div>
     </section>
 
     <section class="place-section" data-testid="coexistence-location-facts">
-      <h2 class="place-section__title">共处边界（空间事实）</h2>
+      <h2 class="place-section__title">空间事实</h2>
       <div v-if="!extras?.coexistence.length" class="muted">暂无共处边界结构化记录</div>
       <div v-for="c in extras?.coexistence ?? []" :key="c.id" class="zone-row">
         <span>{{ coexistenceLabel(c.attribute) }}</span>
@@ -75,7 +74,7 @@ defineProps<{
           }}<span v-if="c.verified_at"> · {{ c.verified_at.slice(0, 10) }}</span>
         </span>
       </div>
-      <div class="notice">共处边界是来自来源的空间事实，不对人作评价。</div>
+      <div class="notice">这些信息描述场所空间本身，不代表正式准入规则。</div>
     </section>
   </div>
 </template>
@@ -111,13 +110,8 @@ defineProps<{
   gap: var(--pa-space-1);
   font-size: var(--pa-font-size-base);
 }
-.tag {
-  display: inline-block;
-  border: var(--pa-border-width) solid var(--pa-color-border);
-  border-radius: var(--pa-radius-sm);
-  padding: 1px var(--pa-space-2);
+.zone-row__meta {
   font-size: var(--pa-font-size-sm);
-  color: var(--pa-color-text-muted);
 }
 .notice {
   font-size: var(--pa-font-size-sm);
@@ -128,3 +122,15 @@ defineProps<{
   margin-top: var(--pa-space-2);
 }
 </style>
+
+@media (max-width: 767px) {
+  .zone-row {
+    align-items: flex-start;
+    min-height: 52px;
+    max-height: none;
+  }
+
+  .zone-row__name {
+    min-width: 0;
+  }
+}
