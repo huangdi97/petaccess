@@ -201,7 +201,6 @@ const uiFixture = computed<string>(() =>
 .reality-head__summary {
   font-size: var(--pa-font-size-md);
 }
-</style>
 
 @media (max-width: 767px) {
   .reality-workspace__body {
@@ -216,3 +215,4 @@ const uiFixture = computed<string>(() =>
     margin-left: 0;
   }
 }
+</style>
