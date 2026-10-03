@@ -128,6 +128,9 @@ const compactVersion = version.split("-")[0]!.split(".").slice(0, 2).join(".");
   margin-bottom: var(--pa-space-4);
   color: var(--pa-color-text-primary);
   text-decoration: none;
+  transition:
+    background-color var(--pa-motion-fast) var(--pa-motion-ease),
+    color var(--pa-motion-fast) var(--pa-motion-ease);
 }
 
 .desktop-rail__brand-mark {
@@ -152,7 +155,7 @@ const compactVersion = version.split("-")[0]!.split(".").slice(0, 2).join(".");
 
 .desktop-rail__divider {
   border: none;
-  border-top: var(--pa-border-width) solid var(--pa-color-border);
+  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
   width: calc(100% - var(--pa-space-6));
   margin: var(--pa-space-4) auto;
 }
@@ -175,7 +178,7 @@ const compactVersion = version.split("-")[0]!.split(".").slice(0, 2).join(".");
 }
 
 .desktop-rail__item--active {
-  background: var(--pa-color-surface-interactive);
+  background: var(--pa-color-accent-weak);
   color: var(--pa-color-accent);
 }
 
