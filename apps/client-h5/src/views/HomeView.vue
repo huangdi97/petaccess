@@ -47,18 +47,18 @@ const {
         data-ui-fixture="home-ready-v1"
       >
         <!-- location + map link -->
-          <div class="home-topline">
+        <div class="home-topline">
           <strong data-testid="coverage-area">上海 · 试点</strong>
           <RouterLink class="btn-inline" to="/map" data-testid="go-map">看地图 →</RouterLink>
         </div>
-  
+
         <div class="home-intro">
           <h1 data-testid="home-title">去之前，先看规则与现场。</h1>
           <p class="muted home-subtitle" data-testid="home-subtitle">
             先确认准入规则，再参考经核验的现场记录。
           </p>
         </div>
-  
+
         <!-- search-first -->
         <form class="home-search" data-testid="home-search" @submit.prevent="submitSearch">
           <label class="visually-hidden" for="home-q">搜索场所、商圈或地址</label>
@@ -73,7 +73,7 @@ const {
             查询
           </button>
         </form>
-  
+
         <!-- 最近查看：divider 行，非卡片 -->
         <section v-if="recent.length" data-testid="recent-section">
           <div class="home-section-header">
@@ -90,7 +90,7 @@ const {
             <strong>{{ r.name }}</strong>
           </div>
         </section>
-  
+
         <HomeNearbySection
           :loading="loading"
           :error="error"
@@ -106,24 +106,26 @@ const {
           @why="why"
           @retry="load"
         />
-  
+
         <section class="home-lenses" aria-label="其他查看方式">
           <h2 class="home-section-title">换个角度看</h2>
           <HomeEntries :entries="HOME_ENTRIES" @select="goEntry" />
         </section>
-  
+
         <p class="home-semantics" data-testid="home-semantics">
           信息不足不等于允许或禁止；每个结论都只针对当前查询。
           <RouterLink class="btn-inline" to="/settings">了解判断方式 →</RouterLink>
         </p>
-  
+
         <footer class="home-footer">
-          <RouterLink class="btn" to="/contribute" data-testid="contribute-link"
-            >补充规则或现场</RouterLink
-          >
-          <p class="muted">现场记录与官方规则分开保存；AI/OCR 只生成待审候选，不会自动成为规则。</p>
+          <RouterLink class="btn" to="/contribute" data-testid="contribute-link">
+            补充规则或现场
+          </RouterLink>
+          <p class="muted">
+            现场记录与官方规则分开保存；AI/OCR 只生成待审候选，不会自动成为规则。
+          </p>
         </footer>
-        </div>
+      </div>
     </DesktopContentContainer>
   </div>
 </template>
