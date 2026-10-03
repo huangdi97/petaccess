@@ -997,5 +997,11 @@ const selectedId = ref<string | null>(null);
   .result-row__decision {
     font-size: var(--pa-font-size-xl);
   }
+
+  /* Mobile row already states the decision in text; suppress the duplicate
+     status chip so each result stays within the four-line consumer budget. */
+  .result-row__head-right {
+    display: none;
+  }
 }
 </style>
