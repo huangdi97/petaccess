@@ -438,14 +438,16 @@ a.pill.active {
 }
 
 .state-message {
-  background: var(--panel);
-  border: var(--pa-border-width) solid var(--line);
-  border-radius: var(--pa-radius-lg);
-  padding: var(--pa-space-5) var(--pa-space-4);
-  text-align: center;
+  background: var(--pa-color-surface-muted);
+  border: none;
+  border-left: var(--pa-border-width-strong) solid var(--pa-color-border-strong);
+  border-radius: 0;
+  padding: var(--pa-space-4) var(--pa-space-5);
+  text-align: left;
+  max-width: 680px;
 }
 .state-message__icon {
-  font-size: var(--pa-font-size-2xl);
+  font-size: var(--pa-font-size-xl);
   line-height: 1;
   color: var(--muted);
 }
@@ -461,6 +463,9 @@ a.pill.active {
   line-height: var(--pa-line-height-base);
 }
 .state-message__action {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pa-space-2);
   margin-top: var(--pa-space-3);
 }
 
