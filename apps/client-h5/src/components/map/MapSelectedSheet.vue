@@ -305,8 +305,12 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   color: var(--pa-color-text-primary);
 }
 .sheet__actions {
-  margin-top: auto;
+  margin-top: var(--pa-space-1);
   padding-top: var(--pa-space-2);
+}
+
+.sheet[data-phase="expanded"] .sheet__actions {
+  margin-top: auto;
 }
 .sheet__close {
   flex: 0 0 auto;
