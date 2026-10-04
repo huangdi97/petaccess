@@ -14,9 +14,9 @@ import DesktopContentContainer from "./layout/DesktopContentContainer.vue";
   <div class="secondary-workspace">
     <QueryContextBar />
     <DesktopContentContainer mode="single-column">
-      <div class="secondary-page">
+      <main class="secondary-page">
         <slot />
-      </div>
+      </main>
     </DesktopContentContainer>
   </div>
 </template>
