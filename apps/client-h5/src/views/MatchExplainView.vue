@@ -52,6 +52,19 @@ const STANCE_TEXT: Record<string, string> = {
   prefer: "希望提供",
 };
 
+const ATTRIBUTE_TEXT: Record<string, string> = {
+  off_leash: "脱绳活动",
+  designated_area: "指定活动区",
+  indoor_access: "室内进入",
+  carrier_required: "要求装载",
+  muzzle_required: "要求嘴套",
+  size_limit: "体型限制",
+  breed_limit: "品种限制",
+  peak_hours_restriction: "高峰时段限制",
+  dining_together: "同桌就餐",
+  waiting_area: "等候区",
+};
+
 const MISSING_INPUT_TEXT: Record<string, string> = {
   holder_scope: "同行人身份（是否为残障人士）",
   service_role: "动物角色（导盲犬 / 助听犬 / 其他服务犬）",
@@ -120,137 +133,275 @@ watch(
 
 <template>
   <AppShell>
+    <header class="explain-head">
+      <div>
+        <h1>为什么是这个结果</h1>
+        <p class="muted">
+          这里展示当前查询所依据的规则层级、适用条件和来源；不会用一次现场观察替代正式规则。
+        </p>
+      </div>
+      <button
+        type="button"
+        class="explain-refresh"
+        :disabled="busy"
+        data-testid="re-resolve"
+        @click="resolveRules"
+      >
+        {{ busy ? "更新中…" : "重新获取" }}
+      </button>
+    </header>
+
     <StateMessage v-if="error" kind="ERROR" :description="error" data-testid="match-error">
       <template #action>
         <button type="button" class="primary" @click="resolveRules">重试</button>
       </template>
     </StateMessage>
 
-    <div class="panel">
-      <h1>为什么是这个结果</h1>
-      <p class="muted" style="margin-top: 4px">
-        按 法规 → 监管指引 → 经营方政策 → 场所/分区覆盖 → 临时政策 分层解析，
-        并说明每一步如何得出当前结论。
-      </p>
-      <button class="primary block" :disabled="busy" data-testid="re-resolve" @click="resolveRules">
-        {{ busy ? "解析中…" : "重新解析" }}
-      </button>
-    </div>
+    <template v-if="resolved">
+      <section class="explain-decision" data-testid="effective-rules">
+        <span class="explain-label">当前结论</span>
+        <strong class="explain-verdict" data-testid="effective-effect">
+          {{ answerVerdictLabel(resolved) }}
+        </strong>
+        <p class="muted explain-meta">
+          {{
+            COMPLIANCE_TEXT[resolved.normative_result.compliance_state] ??
+            "部分信息仍需核对"
+          }}
+          ·
+          {{
+            resolved.scope_summary.scope_level === "zone"
+              ? (resolved.scope_summary.zone?.name ?? "当前区域")
+              : resolved.scope_summary.scope_level === "none"
+                ? "尚无可靠规则覆盖"
+                : "场所整体"
+          }}
+        </p>
+      </section>
 
-    <div v-if="resolved" class="panel" data-testid="effective-rules">
-      <div class="muted">生效结论</div>
-      <div style="font-size: 22px; font-weight: 700; margin: 4px 0" data-testid="effective-effect">
-        {{ answerVerdictLabel(resolved) }}
-      </div>
-      <div class="muted">
-        合规状态：{{
-          COMPLIANCE_TEXT[resolved.normative_result.compliance_state] ??
-          resolved.normative_result.compliance_state
-        }}
-        · 适用规则 {{ resolved.normative_result.governing_rule_ids.length }} 条 · 范围：{{
-          resolved.scope_summary.scope_level === "zone"
-            ? (resolved.scope_summary.zone?.name ?? "该区域")
-            : resolved.scope_summary.scope_level === "none"
-              ? "尚无规则覆盖"
-              : "场所整体"
-        }}
-      </div>
+      <section
+        v-if="resolved.rights_information.operator_obligations.length"
+        class="explain-section"
+      >
+        <h2>需要满足</h2>
+        <p>{{ resolved.rights_information.operator_obligations.join("、") }}</p>
+      </section>
 
-      <template v-if="resolved.rights_information.operator_obligations.length">
-        <h2>附加条件</h2>
-        <div class="muted">
-          {{ resolved.rights_information.operator_obligations.join(" · ") }}
-        </div>
-      </template>
-
-      <template v-if="resolved.condition_evaluation.missing_inputs.length">
-        <h2>还缺什么</h2>
-        <div class="muted">
+      <section v-if="resolved.condition_evaluation.missing_inputs.length" class="explain-section">
+        <h2>还需要哪些信息</h2>
+        <p class="muted">
           补充{{
             resolved.condition_evaluation.missing_inputs
-              .map((m) => MISSING_INPUT_TEXT[m] ?? m)
+              .map((m) => MISSING_INPUT_TEXT[m] ?? "相关条件")
               .join("、")
-          }}后可得到更确定的结论 —— 现在不是「允许」。
-        </div>
-      </template>
+          }}后，才能得到更确定的结论。当前信息不足不代表允许。
+        </p>
+      </section>
 
-      <h2>推导过程</h2>
-      <ol style="padding-left: 18px; margin: 6px 0">
-        <li v-for="(s, i) in steps" :key="i" class="muted" style="margin-bottom: 4px">
-          {{ s }}
-        </li>
-        <li v-if="!steps.length" class="muted">无解释步骤</li>
-      </ol>
+      <section class="explain-section">
+        <h2>推导过程</h2>
+        <ol class="explain-steps">
+          <li v-for="(s, i) in steps" :key="i">{{ s }}</li>
+          <li v-if="!steps.length" class="muted">暂无可展示的解释步骤。</li>
+        </ol>
+      </section>
 
-      <template v-if="resolved.evidence_state.rules.length">
+      <section v-if="resolved.evidence_state.rules.length" class="explain-section">
         <h2>来源</h2>
         <div
-          v-for="e in resolved.evidence_state.rules"
-          :key="e.rule_id"
-          class="muted"
+          v-for="(e, i) in resolved.evidence_state.rules"
+          :key="i"
+          class="explain-source"
           data-testid="trace-provenance"
         >
-          · {{ e.provenance_statement }}
+          {{ e.provenance_statement }}
         </div>
-      </template>
+      </section>
 
-      <template v-if="resolved.conflict_state.suppressed.length">
-        <h2>被抑制的规则</h2>
-        <div v-for="s in resolved.conflict_state.suppressed" :key="s.rule" class="zone-row">
-          <span class="muted">{{ s.rule.slice(0, 8) }}…</span>
-          <span class="muted">{{ s.reason }}</span>
+      <section
+        v-if="
+          resolved.conflict_state.suppressed.length ||
+          resolved.conflict_state.unresolved_conflicts.length
+        "
+        class="explain-section explain-review"
+      >
+        <h2>仍需人工复核</h2>
+        <p v-if="resolved.conflict_state.suppressed.length" class="muted">
+          有 {{ resolved.conflict_state.suppressed.length }} 条较低优先级信息没有作为当前结论依据。
+        </p>
+        <p v-if="resolved.conflict_state.unresolved_conflicts.length" class="muted">
+          另有 {{ resolved.conflict_state.unresolved_conflicts.length }} 组来源仍存在冲突；系统不会自动裁决。
+        </p>
+      </section>
+    </template>
+
+    <section class="explain-section explain-boundary" data-testid="boundary-section">
+      <div class="explain-section__head">
+        <div>
+          <h2>与我的共处边界比对</h2>
+          <p class="muted">这是个人偏好的逐项比对，不是场所评分。</p>
         </div>
-      </template>
+        <RouterLink class="btn-inline" to="/boundary">设置边界 →</RouterLink>
+      </div>
 
-      <template v-if="resolved.conflict_state.unresolved_conflicts.length">
-        <h2>未解冲突（需人工复核）</h2>
-        <div
-          v-for="(pair, i) in resolved.conflict_state.unresolved_conflicts"
-          :key="i"
-          class="zone-row"
-        >
-          <span class="muted">{{ pair[0]?.slice(0, 8) }}… ↔ {{ pair[1]?.slice(0, 8) }}…</span>
-          <span class="muted">不做自动裁决</span>
-        </div>
-      </template>
-    </div>
+      <p v-if="note" class="muted" data-testid="boundary-note">{{ note }}</p>
 
-    <div class="panel" data-testid="boundary-section">
-      <h2 style="margin-top: 0">与我的共处边界比对</h2>
-      <div v-if="note" class="muted" data-testid="boundary-note">{{ note }}</div>
       <template v-if="boundary">
-        <div class="muted" style="margin-bottom: 8px">
-          共 {{ boundary.results.length }} 项 · 符合 {{ boundary.summary.match }} · 冲突
-          {{ boundary.summary.conflict }} · 未知 {{ boundary.summary.unknown }}（{{
-            boundary.summary.note
-          }}）
-        </div>
+        <p class="explain-boundary__summary muted">
+          共 {{ boundary.results.length }} 项 · 符合 {{ boundary.summary.match }} · 不符合
+          {{ boundary.summary.conflict }} · 信息不足 {{ boundary.summary.unknown }}
+        </p>
+
         <div
           v-for="r in boundary.results"
           :key="r.attribute"
-          class="zone-row"
+          class="explain-boundary__row"
           data-testid="boundary-item"
         >
-          <span>
-            {{ r.attribute }}
-            <span class="tag" style="margin-left: 6px">{{
-              STANCE_TEXT[r.stance] ?? r.stance
-            }}</span>
-          </span>
-          <span>
-            <span
-              class="tag tag--on-solid"
-              :class="
-                r.verdict === 'MATCH' ? 's-MATCH' : r.verdict === 'CONFLICT' ? 's-RESTRICTED' : ''
-              "
-              >{{ VERDICT_TEXT[r.verdict] ?? r.verdict }}</span
-            >
+          <div>
+            <strong>{{ ATTRIBUTE_TEXT[r.attribute] ?? "共处条件" }}</strong>
+            <span class="muted"> · {{ STANCE_TEXT[r.stance] ?? "个人偏好" }}</span>
+          </div>
+          <span class="explain-boundary__verdict">
+            {{ VERDICT_TEXT[r.verdict] ?? "信息不足" }}
           </span>
         </div>
       </template>
-      <RouterLink to="/boundary" class="pill" style="display: inline-block; margin-top: 10px"
-        >设置共处边界</RouterLink
-      >
-    </div>
+    </section>
   </AppShell>
 </template>
+
+<style scoped>
+.explain-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--pa-space-5);
+  padding-bottom: var(--pa-space-5);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.explain-head p {
+  max-width: 680px;
+  margin: var(--pa-space-2) 0 0;
+  line-height: var(--pa-line-height-23);
+}
+
+.explain-refresh {
+  flex: 0 0 auto;
+  min-height: var(--pa-size-control-md);
+  border: none;
+  background: transparent;
+  color: var(--pa-color-accent);
+  cursor: pointer;
+}
+
+.explain-decision {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-1);
+  margin-top: var(--pa-space-5);
+  padding: var(--pa-space-2) 0 var(--pa-space-2) var(--pa-space-4);
+  border-left: var(--pa-border-width-strong) solid var(--pa-color-accent);
+}
+
+.explain-label {
+  font-size: var(--pa-font-size-sm);
+  color: var(--pa-color-text-muted);
+}
+
+.explain-verdict {
+  font-size: var(--pa-font-size-28);
+  line-height: var(--pa-line-height-36);
+  font-weight: var(--pa-font-weight-650);
+}
+
+.explain-meta {
+  margin: 0;
+}
+
+.explain-section {
+  padding: var(--pa-space-5) 0;
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.explain-section h2 {
+  margin: 0 0 var(--pa-space-2);
+  font-size: var(--pa-font-size-lg);
+  font-weight: var(--pa-font-weight-650);
+}
+
+.explain-section > p {
+  max-width: 680px;
+  margin: 0;
+  line-height: var(--pa-line-height-23);
+}
+
+.explain-steps {
+  margin: var(--pa-space-3) 0 0;
+  padding-left: var(--pa-space-5);
+}
+
+.explain-steps li {
+  margin-bottom: var(--pa-space-2);
+  line-height: var(--pa-line-height-23);
+}
+
+.explain-source {
+  padding: var(--pa-space-2) 0;
+  color: var(--pa-color-text-secondary);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.explain-review {
+  border-left: var(--pa-border-width-strong) solid var(--pa-color-warning);
+  padding-left: var(--pa-space-4);
+}
+
+.explain-review p + p {
+  margin-top: var(--pa-space-2);
+}
+
+.explain-section__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--pa-space-4);
+  margin-bottom: var(--pa-space-3);
+}
+
+.explain-section__head p {
+  margin: var(--pa-space-1) 0 0;
+}
+
+.explain-boundary__summary {
+  margin-bottom: var(--pa-space-2) !important;
+}
+
+.explain-boundary__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--pa-space-4);
+  min-height: 48px;
+  padding: var(--pa-space-2) 0;
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.explain-boundary__verdict {
+  flex: 0 0 auto;
+  color: var(--pa-color-text-secondary);
+}
+
+@media (max-width: 767px) {
+  .explain-head,
+  .explain-section__head {
+    flex-direction: column;
+    gap: var(--pa-space-2);
+  }
+
+  .explain-boundary__row {
+    align-items: flex-start;
+  }
+}
+</style>
