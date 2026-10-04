@@ -3,6 +3,7 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { session } from "@petaccess/client-core";
+import AuthModeTabs from "../components/auth/AuthModeTabs.vue";
 import DesktopContentContainer from "../components/layout/DesktopContentContainer.vue";
 import { presentDescription } from "../errors";
 
@@ -43,26 +44,7 @@ async function submit() {
         </p>
       </header>
 
-      <div class="auth-mode" role="tablist" aria-label="账号操作">
-        <button
-          type="button"
-          role="tab"
-          :aria-selected="mode === 'login'"
-          :class="{ 'auth-mode__item--active': mode === 'login' }"
-          @click="mode = 'login'"
-        >
-          登录
-        </button>
-        <button
-          type="button"
-          role="tab"
-          :aria-selected="mode === 'register'"
-          :class="{ 'auth-mode__item--active': mode === 'register' }"
-          @click="mode = 'register'"
-        >
-          注册
-        </button>
-      </div>
+      <AuthModeTabs :mode="mode" @change="mode = $event" />
 
       <form class="auth-form" @submit.prevent="submit">
         <label v-if="mode === 'register'" class="auth-field">
@@ -127,27 +109,6 @@ async function submit() {
 .auth-head p:last-child {
   margin: var(--pa-space-2) 0 0;
   line-height: var(--pa-line-height-23);
-}
-
-.auth-mode {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
-}
-
-.auth-mode button {
-  min-height: 48px;
-  border: none;
-  border-bottom: 2px solid transparent;
-  background: transparent;
-  color: var(--pa-color-text-secondary);
-  cursor: pointer;
-}
-
-.auth-mode__item--active {
-  border-bottom-color: var(--pa-color-accent) !important;
-  color: var(--pa-color-text-primary) !important;
-  font-weight: var(--pa-font-weight-650);
 }
 
 .auth-form {
