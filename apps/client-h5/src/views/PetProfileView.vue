@@ -150,7 +150,6 @@ onMounted(load);
     <template v-else>
       <p v-if="error" class="profile-feedback" data-testid="pet-error">{{ error }}</p>
       <p v-if="notice" class="profile-feedback" data-testid="pet-notice">{{ notice }}</p>
-
       <PetProfileEditor
         v-if="editing"
         v-model:draft="draft"
