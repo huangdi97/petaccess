@@ -170,10 +170,23 @@ onMounted(load);
       <span>当前无网络连接：可查看已加载档案，保存操作已暂停。</span>
     </div>
 
-    <!-- Page title sits above the state branches: the skeleton, the
-         permission-denied message and the pet list are all "the pet profile
-         page", and only one of them used to carry a heading at all. -->
-    <h1>宠物档案</h1>
+    <header class="profile-head">
+      <div>
+        <h1>宠物档案</h1>
+        <p class="muted">
+          只填写规则判断真正需要的信息；留空字段保持未知，不会被系统猜测。
+        </p>
+      </div>
+      <button
+        v-if="session.signedIn && !editing"
+        type="button"
+        class="profile-head__action"
+        data-testid="pet-new"
+        @click="startNew"
+      >
+        新建档案
+      </button>
+    </header>
 
     <SkeletonList v-if="loading" :rows="3" />
 
@@ -198,54 +211,66 @@ onMounted(load);
     </StateMessage>
 
     <template v-else>
-      <div v-if="error" class="panel" data-testid="pet-error">{{ error }}</div>
-      <div v-if="notice" class="panel" data-testid="pet-notice">{{ notice }}</div>
+      <p v-if="error" class="profile-feedback" data-testid="pet-error">{{ error }}</p>
+      <p v-if="notice" class="profile-feedback" data-testid="pet-notice">{{ notice }}</p>
 
-      <!-- ---------------------------------------------------------- editor -->
-      <div v-if="editing" class="panel" data-testid="pet-editor">
-        <h1>{{ isNew ? "新建宠物档案" : "编辑宠物档案" }}</h1>
-        <p class="muted" style="margin-top: 4px">
-          档案仅用于规则匹配。空缺字段保持未知，不会被视为满足或不满足条件。
-        </p>
+      <section v-if="editing" class="profile-editor" data-testid="pet-editor">
+        <div class="profile-editor__head">
+          <h2>{{ isNew ? "新建宠物档案" : "编辑宠物档案" }}</h2>
+          <p class="muted">名称只用于你自己区分多个档案；体重和肩高可以留空。</p>
+        </div>
 
-        <label>名称（可选，便于你区分多个档案）</label>
-        <input v-model="draft.display_name" data-testid="pet-name" placeholder="如：豆豆" />
+        <div class="profile-form-grid">
+          <label class="profile-field">
+            <span>名称</span>
+            <input v-model="draft.display_name" data-testid="pet-name" placeholder="如：豆豆" />
+          </label>
 
-        <label>物种</label>
-        <select v-model="draft.species" data-testid="pet-species">
-          <option value="dog">犬</option>
-          <option value="cat">猫</option>
-          <option value="other">其他</option>
-        </select>
+          <label class="profile-field">
+            <span>物种</span>
+            <select v-model="draft.species" data-testid="pet-species">
+              <option value="dog">犬</option>
+              <option value="cat">猫</option>
+              <option value="other">其他</option>
+            </select>
+          </label>
 
-        <label>品种（可选）</label>
-        <input v-model="draft.breed_text" data-testid="pet-breed" placeholder="如：柴犬" />
+          <label class="profile-field">
+            <span>品种（可选）</span>
+            <input v-model="draft.breed_text" data-testid="pet-breed" placeholder="如：柴犬" />
+          </label>
 
-        <label>体重 kg（规则涉及体重上限时必需；留空则返回「需补充」而非猜测）</label>
-        <input
-          v-model="draft.weight_kg"
-          type="number"
-          step="0.1"
-          min="0"
-          max="300"
-          data-testid="pet-weight"
-        />
+          <label class="profile-field">
+            <span>体重 kg（可选）</span>
+            <input
+              v-model="draft.weight_kg"
+              type="number"
+              step="0.1"
+              min="0"
+              max="300"
+              data-testid="pet-weight"
+            />
+            <small>只有规则涉及体重限制时才会使用。</small>
+          </label>
 
-        <label>肩高 cm（规则涉及肩高限制时必需；留空则保持未知）</label>
-        <input
-          v-model="draft.shoulder_height_cm"
-          type="number"
-          step="1"
-          min="0"
-          max="250"
-          data-testid="pet-shoulder"
-        />
+          <label class="profile-field">
+            <span>肩高 cm（可选）</span>
+            <input
+              v-model="draft.shoulder_height_cm"
+              type="number"
+              step="1"
+              min="0"
+              max="250"
+              data-testid="pet-shoulder"
+            />
+            <small>只有规则涉及体型限制时才会使用。</small>
+          </label>
+        </div>
 
-        <!-- service role lives in its own block: it is a declaration, not an attribute -->
-        <div class="panel" style="margin-top: 12px" data-testid="pet-service-block">
-          <div style="font-weight: 600">服务犬身份</div>
-          <p class="muted" style="margin-top: 4px">
-            仅由你自行声明。平台不凭照片、品种或体型认定服务犬身份，也不据此改变场所规则。
+        <fieldset class="profile-service" data-testid="pet-service-block">
+          <legend>服务犬身份</legend>
+          <p class="muted">
+            仅由你自行声明。平台不凭照片、品种或体型认定服务犬身份。
           </p>
           <select v-model="draft.service_role" data-testid="pet-service-role">
             <option value="none">普通宠物</option>
@@ -253,9 +278,9 @@ onMounted(load);
             <option value="in_training">服务犬（训练中）</option>
             <option value="retired">服务犬（已退役）</option>
           </select>
-        </div>
+        </fieldset>
 
-        <div class="row" style="margin-top: 16px">
+        <div class="profile-actions">
           <button
             class="primary"
             :disabled="!draft.display_name.trim() || busy || !online"
@@ -266,89 +291,251 @@ onMounted(load);
           </button>
           <button :disabled="busy" @click="cancel">取消</button>
         </div>
-      </div>
+      </section>
 
-      <!-- ------------------------------------------------------------ list -->
       <template v-else>
-        <div class="panel">
-          <div class="row" style="justify-content: space-between">
-            <h1 style="margin: 0">宠物档案</h1>
-            <button class="pill" data-testid="pet-new" @click="startNew">新建</button>
-          </div>
-        </div>
-
         <StateMessage
           v-if="!pets.length"
           kind="EMPTY"
-          description="还没有宠物档案。没有档案时，涉及体重/体型条件的规则会返回「需补充」。"
+          description="还没有宠物档案。没有档案也可以浏览公开规则；只有需要个体条件时才需要补充。"
         >
           <template #action>
             <button class="primary" data-testid="pet-empty-new" @click="startNew">新建档案</button>
           </template>
         </StateMessage>
 
-        <div v-for="p in pets" :key="p.id" class="panel" data-testid="pet-card">
-          <div class="row" style="justify-content: space-between">
-            <strong>{{ p.display_name }}</strong>
-            <span v-if="activeId === p.id" class="pill active" data-testid="pet-active">
-              本次对象
-            </span>
-          </div>
-          <div class="muted" style="margin-top: 6px">
-            {{ SPECIES_LABELS[p.species] ?? p.species }}
-            <template v-if="p.breed_text"> · {{ p.breed_text }}</template>
-            <template v-if="p.weight_kg != null"> · {{ p.weight_kg }}kg</template>
-            <template v-if="p.shoulder_height_cm != null">
-              · 肩高 {{ p.shoulder_height_cm }}cm</template
-            >
-          </div>
-          <div
-            v-if="p.service_role !== 'none'"
-            class="muted"
-            style="margin-top: 4px"
-            data-testid="pet-service-declared"
-          >
-            服务犬（用户声明）· {{ SERVICE_LABELS[p.service_role] ?? p.service_role }}
-          </div>
-          <div
-            v-if="p.weight_kg == null || p.shoulder_height_cm == null"
-            class="muted"
-            style="margin-top: 4px"
-          >
-            尚未填写{{ p.weight_kg == null ? "体重" : ""
-            }}{{ p.weight_kg == null && p.shoulder_height_cm == null ? "与" : ""
-            }}{{ p.shoulder_height_cm == null ? "肩高" : "" }}：相关规则将返回「需补充」。
-          </div>
-          <div class="row" style="margin-top: 10px">
-            <button
-              v-if="activeId !== p.id"
-              class="pill"
-              :data-testid="`pet-use-${p.id}`"
-              @click="setActive(p)"
-            >
-              设为本次对象
-            </button>
-            <button class="pill" :data-testid="`pet-edit-${p.id}`" @click="startEdit(p)">
-              编辑
-            </button>
-            <button
-              class="pill"
-              :disabled="busy"
-              :data-testid="`pet-delete-${p.id}`"
-              @click="remove(p)"
-            >
-              删除
-            </button>
-          </div>
-        </div>
+        <section v-else class="profile-list" aria-label="宠物档案列表">
+          <article v-for="p in pets" :key="p.id" class="profile-row" data-testid="pet-card">
+            <div class="profile-row__head">
+              <div>
+                <strong class="profile-row__name">{{ p.display_name }}</strong>
+                <span v-if="activeId === p.id" class="profile-row__active" data-testid="pet-active">
+                  本次使用中
+                </span>
+              </div>
+              <div class="profile-row__actions">
+                <button
+                  v-if="activeId !== p.id"
+                  :data-testid="`pet-use-${p.id}`"
+                  @click="setActive(p)"
+                >
+                  设为本次对象
+                </button>
+                <button :data-testid="`pet-edit-${p.id}`" @click="startEdit(p)">编辑</button>
+                <button
+                  :disabled="busy"
+                  :data-testid="`pet-delete-${p.id}`"
+                  @click="remove(p)"
+                >
+                  删除
+                </button>
+              </div>
+            </div>
 
-        <div class="panel">
-          <div class="muted">
-            服务犬适用独立通行规则（服务犬不等于普通宠物），判定不在此档案内合并；
-            请在地图页切换到「服务犬」查询模式查看。
-          </div>
-        </div>
+            <p class="muted profile-row__meta">
+              {{ SPECIES_LABELS[p.species] ?? "其他" }}
+              <template v-if="p.breed_text"> · {{ p.breed_text }}</template>
+              <template v-if="p.weight_kg != null"> · {{ p.weight_kg }} kg</template>
+              <template v-if="p.shoulder_height_cm != null">
+                · 肩高 {{ p.shoulder_height_cm }} cm
+              </template>
+            </p>
+
+            <p
+              v-if="p.service_role !== 'none'"
+              class="muted profile-row__meta"
+              data-testid="pet-service-declared"
+            >
+              {{ SERVICE_LABELS[p.service_role] ?? "服务犬（用户声明）" }}
+            </p>
+
+            <p
+              v-if="p.weight_kg == null || p.shoulder_height_cm == null"
+              class="profile-row__missing"
+            >
+              尚未填写{{ p.weight_kg == null ? "体重" : "" }}{{
+                p.weight_kg == null && p.shoulder_height_cm == null ? "与" : ""
+              }}{{ p.shoulder_height_cm == null ? "肩高" : "" }}；相关规则需要时再补充即可。
+            </p>
+          </article>
+        </section>
+
+        <p class="profile-note muted">
+          服务犬使用独立通行规则。需要查询时，直接在“当前查询”中切换到服务犬视角。
+        </p>
       </template>
     </template>
   </AppShell>
 </template>
+
+<style scoped>
+.profile-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--pa-space-4);
+  padding-bottom: var(--pa-space-5);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.profile-head p {
+  max-width: 620px;
+  margin: var(--pa-space-2) 0 0;
+}
+
+.profile-head__action {
+  flex: 0 0 auto;
+  border: none;
+  background: transparent;
+  color: var(--pa-color-accent);
+  min-height: var(--pa-size-control-md);
+  cursor: pointer;
+}
+
+.profile-feedback {
+  margin: var(--pa-space-3) 0 0;
+  padding: var(--pa-space-3) 0;
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  color: var(--pa-color-text-secondary);
+}
+
+.profile-editor {
+  padding-top: var(--pa-space-5);
+}
+
+.profile-editor__head h2 {
+  margin: 0;
+  font-size: var(--pa-font-size-xl);
+}
+
+.profile-editor__head p {
+  margin: var(--pa-space-1) 0 var(--pa-space-4);
+}
+
+.profile-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--pa-space-4);
+}
+
+.profile-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-1);
+  font-size: var(--pa-font-size-md);
+}
+
+.profile-field input,
+.profile-field select {
+  margin: 0;
+}
+
+.profile-field small {
+  color: var(--pa-color-text-muted);
+  line-height: var(--pa-line-height-20);
+}
+
+.profile-service {
+  margin: var(--pa-space-5) 0 0;
+  padding: var(--pa-space-4) 0 0;
+  border: 0;
+  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.profile-service legend {
+  padding: 0;
+  font-weight: var(--pa-font-weight-650);
+}
+
+.profile-service p {
+  max-width: 620px;
+  margin: var(--pa-space-1) 0 var(--pa-space-3);
+}
+
+.profile-service select {
+  max-width: 320px;
+  margin: 0;
+}
+
+.profile-actions {
+  display: flex;
+  gap: var(--pa-space-2);
+  padding-top: var(--pa-space-5);
+}
+
+.profile-list {
+  margin-top: var(--pa-space-3);
+}
+
+.profile-row {
+  padding: var(--pa-space-4) 0;
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.profile-row__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--pa-space-4);
+}
+
+.profile-row__name {
+  font-size: var(--pa-font-size-lg);
+}
+
+.profile-row__active {
+  margin-left: var(--pa-space-2);
+  font-size: var(--pa-font-size-sm);
+  color: var(--pa-color-accent);
+}
+
+.profile-row__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pa-space-2);
+}
+
+.profile-row__actions button {
+  border: none;
+  background: transparent;
+  color: var(--pa-color-accent);
+  min-height: var(--pa-size-control-md);
+  padding: 0 var(--pa-space-1);
+  cursor: pointer;
+}
+
+.profile-row__meta,
+.profile-row__missing {
+  margin: var(--pa-space-1) 0 0;
+}
+
+.profile-row__missing {
+  font-size: var(--pa-font-size-sm);
+  color: var(--pa-color-text-secondary);
+}
+
+.profile-note {
+  margin: var(--pa-space-5) 0 0;
+  padding-top: var(--pa-space-4);
+  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+@media (max-width: 767px) {
+  .profile-head {
+    flex-direction: column;
+  }
+
+  .profile-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-row__head {
+    flex-direction: column;
+    gap: var(--pa-space-2);
+  }
+
+  .profile-row__actions {
+    gap: var(--pa-space-3);
+  }
+}
+</style>
