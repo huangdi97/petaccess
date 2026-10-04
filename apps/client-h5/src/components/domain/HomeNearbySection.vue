@@ -151,7 +151,6 @@ const freshness = computed(() =>
   justify-content: space-between;
 }
 
-
 .home-row__evidence-link {
   margin-top: var(--pa-space-2);
   font-size: var(--pa-font-size-sm);
