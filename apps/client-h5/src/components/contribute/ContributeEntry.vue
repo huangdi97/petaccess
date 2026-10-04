@@ -1,13 +1,5 @@
 <script setup lang="ts">
-/**
- * ContributeEntry — the first question of the Contribution transaction flow
- * (v0.2.4 §41): 你刚刚知道了什么？ with focused choice rows.
- *
- * Each choice is a real transaction launcher: icon + title + one-line
- * description + chevron + divider, row height 64–72px — never bare text rows.
- * Options map onto the existing step machine keys; testids asserted by the
- * e2e wizard (entry-quick, entry-reality-observed_presence) are preserved.
- */
+/** Contribution entry: five focused transaction launchers, not a generic form. */
 import { type IconName } from "@petaccess/design-tokens";
 import PaIcon from "../ui/PaIcon.vue";
 defineOptions({ name: "ContributeEntry" });
