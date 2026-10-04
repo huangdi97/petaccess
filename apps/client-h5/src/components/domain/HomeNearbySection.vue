@@ -11,7 +11,6 @@ import { type PlaceSummary } from "@petaccess/client-core";
 import PlaceResultRow from "./PlaceResultRow.vue";
 import SkeletonList from "../SkeletonList.vue";
 import StateMessage from "../StateMessage.vue";
-import StatusBadge from "../StatusBadge.vue";
 import { placeTypeLabel } from "@petaccess/client-core";
 import { freshnessLineFor } from "../../consumer/rowView";
 import type { HomeCard } from "../../composables/useHomeLauncher";
@@ -123,9 +122,9 @@ const freshness = computed(() =>
         >
           <div class="row home-row__head">
             <strong>{{ c.place.canonical_name }}</strong>
-            <StatusBadge :semantic="c.status" />
           </div>
           <span class="muted">{{ placeTypeLabel(c.place.place_type) }}</span>
+          <span class="home-row__pending-copy">信息不足</span>
         </div>
       </template>
     </template>
@@ -152,6 +151,14 @@ const freshness = computed(() =>
 
 .home-row__head {
   justify-content: space-between;
+}
+
+.home-row__pending-copy {
+  display: block;
+  margin-top: var(--pa-space-1);
+  font-size: var(--pa-font-size-md);
+  font-weight: var(--pa-font-weight-medium);
+  color: var(--pa-color-text-secondary);
 }
 
 .home-row__condition {
