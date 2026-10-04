@@ -43,7 +43,7 @@ const phase = ref<SheetPhase>("half");
 const TABBAR = "var(--pa-safe-total-bottom)";
 const HALF_H = "min(288px, 32vh)";
 const EXPANDED_MAX_H = "min(78vh, 680px)";
-const EXPANDED_MIN_H = "min(420px, 55vh)";
+const EXPANDED_MIN_H = "min(360px, 48vh)";
 const CLOSED_H = "60px";
 
 /** §23 geometry：phase → 高度；bottom 固定在 tabbar 上方。 */
@@ -309,9 +309,6 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   padding-top: var(--pa-space-2);
 }
 
-.sheet[data-phase="expanded"] .sheet__actions {
-  margin-top: auto;
-}
 .sheet__close {
   flex: 0 0 auto;
   display: inline-flex;
