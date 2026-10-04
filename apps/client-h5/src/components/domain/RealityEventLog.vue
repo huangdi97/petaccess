@@ -159,7 +159,7 @@ const groups = computed<ObservationGroup[]>(() => {
   pointer-events: none;
 }
 .timeline-date {
-  margin: var(--pa-space-4) 0 var(--pa-space-2);
+  margin: var(--pa-space-6) 0 var(--pa-space-4);
   padding-left: calc(72px + 24px);
   font-size: var(--pa-font-size-sm);
   font-weight: var(--pa-font-weight-semibold);
@@ -174,8 +174,8 @@ const groups = computed<ObservationGroup[]>(() => {
   grid-template-columns: 72px 24px 1fr;
   gap: 0 var(--pa-space-3);
   border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
-  padding: 0 0 var(--pa-space-3) 0;
-  margin-bottom: var(--pa-space-3);
+  padding: 0 0 var(--pa-space-4) 0;
+  margin-bottom: var(--pa-space-5);
   background: transparent;
   border-radius: 0;
   box-shadow: none;
@@ -263,14 +263,14 @@ const groups = computed<ObservationGroup[]>(() => {
 
   .timeline-date {
     padding-left: calc(52px + 20px);
-    margin: var(--pa-space-4) 0 var(--pa-space-2);
+    margin: var(--pa-space-5) 0 var(--pa-space-3);
   }
 
   .trace-row {
     grid-template-columns: 52px 20px 1fr;
     column-gap: var(--pa-space-2);
-    padding-bottom: var(--pa-space-3);
-    margin-bottom: var(--pa-space-3);
+    padding-bottom: var(--pa-space-4);
+    margin-bottom: var(--pa-space-4);
   }
 
   .trace-row__time {
