@@ -100,12 +100,13 @@ const groups = computed<ObservationGroup[]>(() => {
                    Staff Response 从属于事实；Review metadata = tertiary。 -->
               <p class="trace-row__event" data-testid="event-fact">
                 {{ animalScopeLabel(o.animal_scope) }} · {{ ruleActionLabel(o.observed_action) }}
-                <span v-if="o.staff_action" class="trace-row__staff"
-                  >（工作人员：{{ staffActionLabel(o.staff_action) }}）</span
-                >
               </p>
               <p class="trace-row__location" data-testid="event-location">
                 {{ zoneNameFor(o) ?? "地点待确认" }}
+              </p>
+              <p v-if="o.staff_action" class="trace-row__staff" data-testid="event-staff-response">
+                <span class="trace-row__staff-label">工作人员</span>
+                {{ staffActionLabel(o.staff_action) }}
               </p>
               <div class="trace-row__meta">
                 <span class="trace-row__status" data-testid="event-status">
@@ -212,8 +213,15 @@ const groups = computed<ObservationGroup[]>(() => {
   overflow-wrap: anywhere;
 }
 .trace-row__staff {
+  display: flex;
+  gap: var(--pa-space-2);
+  margin: var(--pa-space-1) 0 0;
   font-size: var(--pa-font-size-sm);
   color: var(--pa-color-text-secondary);
+}
+
+.trace-row__staff-label {
+  color: var(--pa-color-text-muted);
 }
 .trace-row__location {
   margin: var(--pa-space-1) 0 0;
