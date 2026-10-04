@@ -3,11 +3,14 @@ import { ref } from "vue";
 import { animalScopeLabel } from "../../consumer/labels";
 
 const emit = defineEmits<{ suggest: [species: string, breed: string] }>();
+const input = ref<HTMLInputElement | null>(null);
+const fileName = ref("");
 const message = ref("");
 
 async function onPickImage(event: Event) {
   const file = (event.target as HTMLInputElement).files?.[0];
   if (!file) return;
+  fileName.value = file.name;
 
   const form = new FormData();
   form.append("image", file);
@@ -37,7 +40,18 @@ async function onPickImage(event: Event) {
   <section class="pet-image-section">
     <h2>图片建议（可选）</h2>
     <p class="muted">上传照片后可以获得物种/品种填写建议；你仍可以直接手填并修改。</p>
-    <input type="file" accept="image/*" data-testid="pet-photo" @change="onPickImage" />
+    <input
+      ref="input"
+      class="pet-image-input"
+      type="file"
+      accept="image/*"
+      data-testid="pet-photo"
+      @change="onPickImage"
+    />
+    <div class="pet-image-picker">
+      <button type="button" class="pet-image-button" @click="input?.click()">选择照片</button>
+      <span class="muted">{{ fileName || "尚未选择照片" }}</span>
+    </div>
     <p v-if="message" class="pet-image-feedback" data-testid="ai-suggestion">{{ message }}</p>
   </section>
 </template>
@@ -58,8 +72,46 @@ async function onPickImage(event: Event) {
   margin: 0 0 var(--pa-space-3);
 }
 
+.pet-image-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.pet-image-picker {
+  display: flex;
+  align-items: center;
+  gap: var(--pa-space-3);
+}
+
+.pet-image-button {
+  min-height: var(--pa-size-control-md);
+  border: var(--pa-border-width) solid var(--pa-color-border);
+  border-radius: var(--pa-radius-control);
+  background: var(--pa-color-surface);
+  color: var(--pa-color-text-primary);
+  padding: 0 var(--pa-space-3);
+  cursor: pointer;
+}
+
+.pet-image-button:hover,
+.pet-image-button:focus-visible {
+  border-color: var(--pa-color-accent);
+}
+
 .pet-image-feedback {
   margin-top: var(--pa-space-3) !important;
   color: var(--pa-color-text-secondary);
+}
+
+@media (max-width: 767px) {
+  .pet-image-picker {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--pa-space-2);
+  }
 }
 </style>
