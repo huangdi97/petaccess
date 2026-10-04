@@ -266,6 +266,5 @@ const evidenceSummaryLine = computed(
     padding: var(--pa-space-2) 0 var(--pa-space-2) var(--pa-space-4);
     background: transparent;
   }
-
 }
 </style>

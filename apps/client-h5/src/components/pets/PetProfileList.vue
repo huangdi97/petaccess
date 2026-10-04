@@ -62,8 +62,8 @@ const SERVICE_LABELS: Record<string, string> = {
         v-if="pet.weight_kg == null || pet.shoulder_height_cm == null"
         class="profile-row__missing"
       >
-        尚未填写{{ pet.weight_kg == null ? "体重" : "" }}{{
-          pet.weight_kg == null && pet.shoulder_height_cm == null ? "与" : ""
+        尚未填写{{ pet.weight_kg == null ? "体重" : ""
+        }}{{ pet.weight_kg == null && pet.shoulder_height_cm == null ? "与" : ""
         }}{{ pet.shoulder_height_cm == null ? "肩高" : "" }}；相关规则需要时再补充即可。
       </p>
     </article>

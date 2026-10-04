@@ -73,8 +73,7 @@ const MISSING_INPUT_TEXT: Record<string, string> = {
 
   <section
     v-if="
-      answer.conflict_state.suppressed.length ||
-      answer.conflict_state.unresolved_conflicts.length
+      answer.conflict_state.suppressed.length || answer.conflict_state.unresolved_conflicts.length
     "
     class="explain-section explain-review"
   >

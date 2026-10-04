@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import type { BoundaryMatchResult } from "@petaccess/client-core";
-import {
-  BOUNDARY_ATTRIBUTE_LABELS,
-  BOUNDARY_STANCE_LABELS,
-} from "../../consumer/boundaryOptions";
+import { BOUNDARY_ATTRIBUTE_LABELS, BOUNDARY_STANCE_LABELS } from "../../consumer/boundaryOptions";
 
 defineProps<{ boundary: BoundaryMatchResult | null; note: string }>();
 
@@ -40,9 +37,7 @@ const VERDICT_TEXT: Record<string, string> = {
       >
         <div>
           <strong>{{ BOUNDARY_ATTRIBUTE_LABELS[result.attribute] ?? "共处条件" }}</strong>
-          <span class="muted">
-            · {{ BOUNDARY_STANCE_LABELS[result.stance] ?? "个人偏好" }}
-          </span>
+          <span class="muted"> · {{ BOUNDARY_STANCE_LABELS[result.stance] ?? "个人偏好" }} </span>
         </div>
         <span class="boundary-panel__verdict">
           {{ VERDICT_TEXT[result.verdict] ?? "信息不足" }}

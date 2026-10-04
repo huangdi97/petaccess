@@ -145,7 +145,8 @@ onMounted(load);
       kind="ERROR"
       :description="`未能取得宠物档案：${error}`"
     >
-      <template #action><button class="primary" @click="load">重试</button></template>    </StateMessage>
+      <template #action><button class="primary" @click="load">重试</button></template>
+    </StateMessage>
     <template v-else>
       <p v-if="error" class="profile-feedback" data-testid="pet-error">{{ error }}</p>
       <p v-if="notice" class="profile-feedback" data-testid="pet-notice">{{ notice }}</p>

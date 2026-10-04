@@ -39,7 +39,9 @@ async function capture(page: Page, name: string, route: string) {
     text: document.body.innerText,
   }));
   expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.clientWidth + 1);
-  expect(metrics.text).not.toMatch(/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/i);
+  expect(metrics.text).not.toMatch(
+    /[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/i,
+  );
   expect(metrics.text).not.toContain("supersession");
   expect(metrics.text).not.toContain("ADR-");
   expect(metrics.text).not.toContain("lead-only");
@@ -52,7 +54,10 @@ async function capture(page: Page, name: string, route: string) {
   });
 }
 
-test("secondary consumer pages inherit the final visual language", async ({ page, request }, testInfo) => {
+test("secondary consumer pages inherit the final visual language", async ({
+  page,
+  request,
+}, testInfo) => {
   await mkdir(OUT, { recursive: true });
   const mobile = testInfo.project.name === "oracle-mobile";
   const suffix = mobile ? "mobile" : "desktop";

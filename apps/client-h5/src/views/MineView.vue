@@ -63,9 +63,7 @@ function setActivePet(pet: (typeof pets.value)[number]) {
         <div class="mine-section__head">
           <div>
             <h2>共处边界</h2>
-            <p class="muted">
-              这是你自己的出行偏好，只用于逐项比对公开事实，不形成场所总分。
-            </p>
+            <p class="muted">这是你自己的出行偏好，只用于逐项比对公开事实，不形成场所总分。</p>
           </div>
           <RouterLink class="btn-inline" to="/boundary" data-testid="open-boundary">
             设置边界 →

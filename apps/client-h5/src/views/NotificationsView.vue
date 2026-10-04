@@ -57,9 +57,7 @@ async function unsubscribe(w: WatchView) {
 
     <div class="notifications-channel">
       <strong>提醒通道</strong>
-      <p class="muted">
-        当前版本尚未接入系统推送；这里展示关注列表，不代表任何提醒已经发送。
-      </p>
+      <p class="muted">当前版本尚未接入系统推送；这里展示关注列表，不代表任何提醒已经发送。</p>
     </div>
 
     <SkeletonList v-if="loading" :rows="3" />
@@ -77,11 +75,7 @@ async function unsubscribe(w: WatchView) {
         <button class="primary" @click="router.push({ name: 'mine' })">去登录</button>
       </template>
     </StateMessage>
-    <StateMessage
-      v-else-if="!watches.length"
-      kind="EMPTY"
-      description="还没有关注任何规则变化。"
-    >
+    <StateMessage v-else-if="!watches.length" kind="EMPTY" description="还没有关注任何规则变化。">
       <template #action>
         <button class="primary" @click="router.push({ name: 'home' })">查找场所</button>
       </template>
