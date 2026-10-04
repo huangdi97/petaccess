@@ -1,0 +1,42 @@
+name: UI Direct Autofmt
+
+on:
+  push:
+    branches:
+      - feat/ui-direct-craft-v8
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/ui-direct-craft-v8
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.4.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Format direct UI work
+        run: |
+          pnpm exec prettier --write             "apps/client-h5/src/**/*.{vue,ts}"             "docs/ui/contracts/json/*.json"             "tests/ui-oracle/*.ts"
+      - name: Commit formatting when needed
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo "No formatting changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/client-h5/src docs/ui/contracts/json tests/ui-oracle
+          git commit -m "style(ui): apply canonical Prettier formatting"
+          git push origin HEAD:feat/ui-direct-craft-v8
