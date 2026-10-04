@@ -80,23 +80,24 @@ const ROADS_SECONDARY = [
   "M 196 84 L 196 96",
   "M 96 96 L 96 60",
 ];
-/** Building mass hints: faint rectangles clustered inside blocks. */
+/** Building mass hints: faint rectangles clustered inside blocks. Each entry is
+ * "x,y,width,height" (rect geometry, not polygon points — the <rect> below
+ * binds these fields directly). */
 const MASS = [
-  "104,104 120,104 120,116 104,116",
-  "128,104 144,104 144,116 128,116",
-  "152,104 168,104 168,116 152,116",
-  "104,124 120,124 120,136 104,136",
-  "128,124 144,124 144,136 128,136",
-  "152,124 168,124 168,136 152,136",
-  "104,168 124,168 124,184 104,184",
-  "132,168 152,168 152,184 132,184",
-  "28,158 44,158 44,170 28,170",
-  "52,158 68,158 68,170 52,170",
-  "204,104 224,104 224,120 204,120",
-  "232,104 248,104 248,120 232,120",
+  "104,104,16,12",
+  "128,104,16,12",
+  "152,104,16,12",
+  "104,124,16,12",
+  "128,124,16,12",
+  "152,124,16,12",
+  "104,168,20,16",
+  "132,168,20,16",
+  "28,158,16,12",
+  "52,158,16,12",
+  "204,104,20,16",
+  "232,104,16,12",
 ];
 </script>
-
 <template>
   <div class="map-surface" data-testid="map-surface" data-ui="mock-map">
     <!-- 空间基底：道路层级/街区/开放空间/建筑体块/水系（SVG，纯表现，不承载数据语义） -->
@@ -116,8 +117,8 @@ const MASS = [
         class="basemap-mass"
         :x="m.split(',')[0]"
         :y="m.split(',')[1]"
-        :width="Number(m.split(',')[2]) - Number(m.split(',')[0])"
-        :height="Number(m.split(',')[3]) - Number(m.split(',')[1])"
+        :width="m.split(',')[2]"
+        :height="m.split(',')[3]"
       />
       <polygon v-for="b in BLOCKS" :key="b" class="basemap-block" :points="b" />
       <path v-for="r in ROADS_PRIMARY" :key="r" class="basemap-road basemap-road--primary" :d="r" />
