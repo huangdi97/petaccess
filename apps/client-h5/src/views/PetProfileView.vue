@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from "vue";
 import { client, session, ApiError, type PetView } from "@petaccess/client-core";
 import AppShell from "../components/AppShell.vue";
 import PetProfileEditor from "../components/pets/PetProfileEditor.vue";
+import PetProfileHeader from "../components/pets/PetProfileHeader.vue";
 import PetProfileList from "../components/pets/PetProfileList.vue";
 import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
@@ -123,26 +124,12 @@ onMounted(load);
 
 <template>
   <AppShell>
-    <div v-if="!online" class="offline-banner" data-testid="offline-banner">
-      <span aria-hidden="true">⊘</span>
-      <span>当前无网络连接：可查看已加载档案，保存操作已暂停。</span>
-    </div>
-
-    <header class="profile-head">
-      <div>
-        <h1>宠物档案</h1>
-        <p class="muted">只填写规则判断真正需要的信息；留空字段保持未知，不会被系统猜测。</p>
-      </div>
-      <button
-        v-if="session.signedIn && !editing"
-        type="button"
-        class="profile-head__action"
-        data-testid="pet-new"
-        @click="startNew"
-      >
-        新建档案
-      </button>
-    </header>
+    <PetProfileHeader
+      :online="online"
+      :signed-in="session.signedIn"
+      :editing="Boolean(editing)"
+      @create="startNew"
+    />
 
     <SkeletonList v-if="loading" :rows="3" />
     <StateMessage
@@ -202,29 +189,6 @@ onMounted(load);
 </template>
 
 <style scoped>
-.profile-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--pa-space-4);
-  padding-bottom: var(--pa-space-5);
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
-}
-
-.profile-head p {
-  max-width: 620px;
-  margin: var(--pa-space-2) 0 0;
-}
-
-.profile-head__action {
-  flex: 0 0 auto;
-  min-height: var(--pa-size-control-md);
-  border: none;
-  background: transparent;
-  color: var(--pa-color-accent);
-  cursor: pointer;
-}
-
 .profile-feedback {
   margin: var(--pa-space-3) 0 0;
   color: var(--pa-color-text-secondary);
@@ -234,11 +198,5 @@ onMounted(load);
   margin: var(--pa-space-5) 0 0;
   padding-top: var(--pa-space-4);
   border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
-}
-
-@media (max-width: 767px) {
-  .profile-head {
-    flex-direction: column;
-  }
 }
 </style>
