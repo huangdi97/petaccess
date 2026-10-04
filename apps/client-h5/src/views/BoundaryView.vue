@@ -137,7 +137,9 @@ onMounted(load);
       <span aria-hidden="true">⊘</span>
       <span>当前无网络连接：可查看已加载内容，保存操作已暂停。</span>
     </div>
+
     <SkeletonList v-if="loading" :rows="4" />
+
     <StateMessage
       v-else-if="error && !loaded"
       kind="ERROR"
@@ -147,54 +149,173 @@ onMounted(load);
         <button class="primary" @click="load">重试</button>
       </template>
     </StateMessage>
+
     <template v-else>
-      <div v-if="error" class="panel" data-testid="boundary-error">{{ error }}</div>
-      <div v-if="msg" class="panel" data-testid="boundary-msg">{{ msg }}</div>
-
-      <div class="panel">
+      <header class="boundary-head">
         <h1>共处边界</h1>
-        <p class="muted" style="margin-top: 4px">
-          这些是<strong>你自己的</strong>出行偏好，用来逐项比对场所公开记录。
-          没设置的项保持「未知」，不会被当成允许或禁止。
+        <p class="muted">
+          这些是你自己的出行偏好，只用于逐项比对场所公开记录，不形成场所总分。
+          没有设置的项目会保持信息不足。
         </p>
-        <label>方案名称</label>
+      </header>
+
+      <p v-if="error" class="boundary-feedback" data-testid="boundary-error">{{ error }}</p>
+      <p v-if="msg" class="boundary-feedback" data-testid="boundary-msg">{{ msg }}</p>
+
+      <label class="boundary-name">
+        <span>方案名称</span>
         <input v-model="profileName" aria-label="共处边界名称" placeholder="我的共处边界" />
+      </label>
+
+      <section class="boundary-list" aria-label="共处偏好">
+        <div
+          v-for="attr in ATTRIBUTES"
+          :key="attr.value"
+          class="boundary-row"
+          data-testid="boundary-attr"
+        >
+          <div class="boundary-row__body">
+            <strong>{{ attr.label }}</strong>
+            <span v-if="chosen[attr.value]" class="muted">
+              当前：{{ STANCE_LABELS[chosen[attr.value]] }}
+            </span>
+            <span v-else class="muted">未设置</span>
+          </div>
+
+          <div class="boundary-choices" :aria-label="attr.label">
+            <button
+              v-for="s in attr.stances"
+              :key="s"
+              type="button"
+              class="boundary-choice"
+              :class="{ 'boundary-choice--active': chosen[attr.value] === s }"
+              :aria-pressed="chosen[attr.value] === s"
+              :data-testid="`stance-${attr.value}-${s}`"
+              @click="pick(attr.value, s)"
+            >
+              {{ STANCE_LABELS[s] }}
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <div class="boundary-actions">
+        <button
+          class="primary"
+          :disabled="busy || !loaded || !online"
+          data-testid="boundary-save"
+          @click="save"
+        >
+          {{ busy ? "保存中…" : "保存边界" }}
+        </button>
       </div>
 
-      <div v-for="attr in ATTRIBUTES" :key="attr.value" class="panel" data-testid="boundary-attr">
-        <div style="font-weight: 600">{{ attr.label }}</div>
-        <div class="row" style="margin-top: 8px">
-          <button
-            v-for="s in attr.stances"
-            :key="s"
-            class="pill"
-            :class="{ active: chosen[attr.value] === s }"
-            :data-testid="`stance-${attr.value}-${s}`"
-            @click="pick(attr.value, s)"
-          >
-            {{ STANCE_LABELS[s] }}
-          </button>
-        </div>
-        <div v-if="chosen[attr.value]" class="muted" style="margin-top: 6px">
-          已选：{{ STANCE_LABELS[chosen[attr.value]] }}（再次点击可清除）
-        </div>
-      </div>
-
-      <button
-        class="primary block"
-        :disabled="busy || !loaded || !online"
-        data-testid="boundary-save"
-        @click="save"
-      >
-        {{ busy ? "保存中…" : "保存边界" }}
-      </button>
-
-      <div class="panel" style="margin-top: 12px">
-        <div class="muted">
-          说明：边界仅用于「你」的比对结果，不是对场所的评分，也不会改变规则收录内容。
-          服务犬适用独立的通行规则，不在此边界内判断。
-        </div>
-      </div>
+      <p class="boundary-note muted">
+        共处边界只改变“是否符合你的偏好”的逐项展示，不改变场所规则、现场事实或服务犬通行规则。
+      </p>
     </template>
   </AppShell>
 </template>
+
+<style scoped>
+.boundary-head {
+  padding-bottom: var(--pa-space-5);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.boundary-head p {
+  max-width: 680px;
+  margin: var(--pa-space-2) 0 0;
+  line-height: var(--pa-line-height-23);
+}
+
+.boundary-feedback {
+  margin: var(--pa-space-3) 0 0;
+  color: var(--pa-color-text-secondary);
+}
+
+.boundary-name {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-1);
+  max-width: 420px;
+  padding: var(--pa-space-5) 0;
+  font-size: var(--pa-font-size-md);
+}
+
+.boundary-name input {
+  margin: 0;
+}
+
+.boundary-list {
+  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.boundary-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) auto;
+  align-items: center;
+  gap: var(--pa-space-5);
+  min-height: 72px;
+  padding: var(--pa-space-3) 0;
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.boundary-row__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-1);
+}
+
+.boundary-choices {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--pa-space-1);
+}
+
+.boundary-choice {
+  min-height: 36px;
+  padding: 0 var(--pa-space-3);
+  border: var(--pa-border-width) solid var(--pa-color-border);
+  border-radius: var(--pa-radius-control);
+  background: var(--pa-color-surface);
+  color: var(--pa-color-text-secondary);
+  cursor: pointer;
+}
+
+.boundary-choice:hover,
+.boundary-choice:focus-visible {
+  border-color: var(--pa-color-accent);
+}
+
+.boundary-choice--active {
+  border-color: var(--pa-color-accent);
+  background: var(--pa-color-accent-weak);
+  color: var(--pa-color-accent);
+  font-weight: var(--pa-font-weight-600);
+}
+
+.boundary-actions {
+  padding-top: var(--pa-space-5);
+}
+
+.boundary-note {
+  margin: var(--pa-space-5) 0 0;
+  padding-top: var(--pa-space-4);
+  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  line-height: var(--pa-line-height-20);
+}
+
+@media (max-width: 767px) {
+  .boundary-row {
+    grid-template-columns: 1fr;
+    gap: var(--pa-space-2);
+    align-items: flex-start;
+  }
+
+  .boundary-choices {
+    justify-content: flex-start;
+  }
+}
+</style>
