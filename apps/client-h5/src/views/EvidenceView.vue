@@ -332,7 +332,7 @@ const uiFixture = computed<string>(() =>
   flex-direction: column;
   gap: var(--pa-space-5);
   padding: var(--pa-space-5) var(--pa-space-6) var(--pa-space-7);
-  max-width: 900px;
+  max-width: var(--pa-layout-content-820);
   margin: 0 auto;
 }
 .evidence-head {
