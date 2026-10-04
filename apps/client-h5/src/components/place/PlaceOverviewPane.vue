@@ -259,7 +259,6 @@ const evidenceSummaryLine = computed(
   font-size: var(--pa-font-size-md);
   color: var(--pa-color-accent);
 }
-</style>
 
 @media (min-width: 768px) {
   .sub-answer--mine {
@@ -273,3 +272,4 @@ const evidenceSummaryLine = computed(
     line-height: var(--pa-line-height-32);
   }
 }
+</style>
