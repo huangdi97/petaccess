@@ -174,8 +174,8 @@ const groups = computed<ObservationGroup[]>(() => {
   grid-template-columns: 72px 24px 1fr;
   gap: 0 var(--pa-space-3);
   border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
-  padding: 0 0 var(--pa-space-5) 0;
-  margin-bottom: var(--pa-space-5);
+  padding: 0 0 var(--pa-space-4) 0;
+  margin-bottom: var(--pa-space-4);
   background: transparent;
   border-radius: 0;
   box-shadow: none;
