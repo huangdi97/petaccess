@@ -211,7 +211,6 @@ const uiFixture = computed<string>(() =>
       <template v-else-if="trace">
         <!-- §38 header：record identity 必须可读（ready fixture 有 place/zone/time）。 -->
         <header class="evidence-head" data-testid="evidence-head">
-          <p class="evidence-head__eyebrow">证据记录</p>
           <template v-if="recordIdentity">
             <h2 class="evidence-head__record" data-testid="evidence-record-place">
               {{ recordIdentity.placeName ?? "场所名称待补充" }}
@@ -340,13 +339,6 @@ const uiFixture = computed<string>(() =>
   border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
 }
 
-.evidence-head__eyebrow {
-  margin: 0 0 var(--pa-space-2);
-  font-size: var(--pa-font-size-sm);
-  font-weight: var(--pa-font-weight-600);
-  letter-spacing: var(--pa-letter-spacing-wide);
-  color: var(--pa-color-text-muted);
-}
 .evidence-head__record {
   margin: 0;
   /* v0.2.7 §25/§28：record identity 是页面首要事实 —— 22/650，强化可读层级。 */
