@@ -27,6 +27,13 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: ESLint
         run: pnpm lint:fe
+      - name: Format Home preview
+        run: pnpm exec prettier --write apps/client-h5/src/views/HomeView.vue
+      - name: Upload formatted Home
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-direct-formatted-home
+          path: apps/client-h5/src/views/HomeView.vue
       - name: Prettier check
         run: pnpm format:check:fe
       - name: client-h5 typecheck + build
