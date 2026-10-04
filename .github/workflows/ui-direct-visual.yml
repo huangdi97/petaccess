@@ -70,8 +70,8 @@ jobs:
       - name: Install Playwright Chromium
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: Run UI Oracle capture
-        run: pnpm exec playwright test tests/ui-oracle/oracle.spec.ts -c playwright.ui-oracle.config.ts
+      - name: Run UI Oracle and secondary craft capture
+        run: pnpm exec playwright test tests/ui-oracle/oracle.spec.ts tests/ui-oracle/secondary-craft.spec.ts -c playwright.ui-oracle.config.ts
 
       - name: Compare UI contracts
         run: node --experimental-strip-types tools/ui-oracle/compare.ts ui-direct-v8
@@ -85,4 +85,5 @@ jobs:
             artifacts/blind-ui-recovery/screens/ui-direct-v8/
             artifacts/blind-ui-recovery/probes/ui-direct-v8-*.json
             artifacts/blind-ui-recovery/reports/compare-*.json
+            artifacts/ui-direct-secondary/
           if-no-files-found: warn
