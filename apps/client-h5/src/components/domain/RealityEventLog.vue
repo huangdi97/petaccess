@@ -159,7 +159,7 @@ const groups = computed<ObservationGroup[]>(() => {
   pointer-events: none;
 }
 .timeline-date {
-  margin: var(--pa-space-6) 0 var(--pa-space-4);
+  margin: var(--pa-space-4) 0 var(--pa-space-2);
   padding-left: calc(72px + 24px);
   font-size: var(--pa-font-size-sm);
   font-weight: var(--pa-font-weight-semibold);
@@ -263,7 +263,7 @@ const groups = computed<ObservationGroup[]>(() => {
 
   .timeline-date {
     padding-left: calc(52px + 20px);
-    margin: var(--pa-space-5) 0 var(--pa-space-3);
+    margin: var(--pa-space-4) 0 var(--pa-space-2);
   }
 
   .trace-row {
