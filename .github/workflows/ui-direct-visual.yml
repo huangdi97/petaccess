@@ -71,7 +71,7 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
 
       - name: Run UI Oracle capture
-        run: pnpm ui:probe
+        run: pnpm exec playwright test tests/ui-oracle/oracle.spec.ts -c playwright.ui-oracle.config.ts
 
       - name: Compare UI contracts
         run: node --experimental-strip-types tools/ui-oracle/compare.ts ui-direct-v8
