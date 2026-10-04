@@ -2,48 +2,10 @@
 import { onMounted, ref } from "vue";
 import { client, ApiError, session, type BoundaryProfile } from "@petaccess/client-core";
 import AppShell from "../components/AppShell.vue";
+import BoundaryPreferenceList from "../components/boundary/BoundaryPreferenceList.vue";
 import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
 import { useOnline } from "../composables/useOnline";
-
-/**
- * 共处边界：用户对「与动物共处」的自有条件。
- *
- * 这些是使用者自己的要求，不是对场所的评分。判定逐项进行，永不汇总为总分
- * （ADR / brief §8）。文案保持中性：描述「我能否接受」，而非「这家店好不好」。
- */
-
-interface AttributeOption {
-  value: string;
-  label: string;
-  stances: string[];
-}
-
-/** Attributes + which stances are meaningful for each. Mirrors the branches in
- *  `app.rulespec.v05_boundary.match()`. */
-const ATTRIBUTES: AttributeOption[] = [
-  { value: "off_leash", label: "脱绳活动", stances: ["avoid", "accept"] },
-  { value: "designated_area", label: "指定活动区", stances: ["prefer", "avoid"] },
-  {
-    value: "indoor_access",
-    label: "室内进入",
-    stances: ["require_prohibited", "accept", "prefer"],
-  },
-  { value: "carrier_required", label: "要求装载（笼/包/推车）", stances: ["accept", "avoid"] },
-  { value: "muzzle_required", label: "要求嘴套", stances: ["accept", "avoid"] },
-  { value: "size_limit", label: "体型限制", stances: ["avoid", "accept"] },
-  { value: "breed_limit", label: "品种限制", stances: ["avoid", "accept"] },
-  { value: "peak_hours_restriction", label: "高峰时段限制", stances: ["prefer", "accept"] },
-  { value: "dining_together", label: "可与同桌就餐", stances: ["prefer", "avoid"] },
-  { value: "waiting_area", label: "设有等候区", stances: ["prefer", "avoid"] },
-];
-
-const STANCE_LABELS: Record<string, string> = {
-  accept: "可接受",
-  avoid: "希望没有",
-  require_prohibited: "必须禁止（硬性）",
-  prefer: "希望提供",
-};
 
 const profileName = ref("我的共处边界");
 const chosen = ref<Record<string, string>>({});
@@ -54,19 +16,25 @@ const loaded = ref(false);
 const loading = ref(true);
 const { online } = useOnline();
 
+function apply(profile: BoundaryProfile | null) {
+  if (!profile) {
+    chosen.value = {};
+    return;
+  }
+  profileName.value = profile.name || "我的共处边界";
+  chosen.value = Object.fromEntries(profile.preferences.map((p) => [p.attribute, p.stance]));
+}
+
 async function load() {
   error.value = "";
   loading.value = true;
   try {
-    // Signed out there is no profile to fetch and the endpoint answers 401;
-    // explain that in plain language instead of surfacing the transport error.
     if (!session.signedIn) {
       apply(null);
       error.value = "共处边界保存在你的账号下：登录后即可设置并同步到各页面。";
       return;
     }
-    const res = await client.defaultBoundaryProfile();
-    apply(res.profile);
+    apply((await client.defaultBoundaryProfile()).profile);
   } catch (e) {
     error.value = e instanceof ApiError ? e.message : String(e);
   } finally {
@@ -75,26 +43,11 @@ async function load() {
   }
 }
 
-function apply(p: BoundaryProfile | null) {
-  if (!p) {
-    chosen.value = {};
-    return;
-  }
-  profileName.value = p.name || "我的共处边界";
-  const next: Record<string, string> = {};
-  for (const pref of p.preferences) next[pref.attribute] = pref.stance;
-  chosen.value = next;
-}
-
-/** Tapping the active stance clears it — an unset attribute stays UNKNOWN
- *  rather than being coerced into a default (UNKNOWN ≠ allowed/prohibited). */
 function pick(attribute: string, stance: string) {
-  if (chosen.value[attribute] === stance) {
-    delete chosen.value[attribute];
-    chosen.value = { ...chosen.value };
-  } else {
-    chosen.value = { ...chosen.value, [attribute]: stance };
-  }
+  const next = { ...chosen.value };
+  if (next[attribute] === stance) delete next[attribute];
+  else next[attribute] = stance;
+  chosen.value = next;
 }
 
 async function save() {
@@ -117,12 +70,11 @@ async function save() {
       preferences,
     });
     apply(saved);
-    msg.value = `已保存 ${preferences.length} 项边界${preferences.length ? "" : "（未设置项保持未知）"}`;
+    msg.value = preferences.length
+      ? `已保存 ${preferences.length} 项边界`
+      : "已保存；未设置项目继续保持信息不足";
   } catch (e) {
-    error.value =
-      e instanceof ApiError
-        ? `${e.message}${e.message.includes("登录") ? "" : "（需登录后保存）"}`
-        : String(e);
+    error.value = e instanceof ApiError ? e.message : String(e);
   } finally {
     busy.value = false;
   }
@@ -167,37 +119,7 @@ onMounted(load);
         <input v-model="profileName" aria-label="共处边界名称" placeholder="我的共处边界" />
       </label>
 
-      <section class="boundary-list" aria-label="共处偏好">
-        <div
-          v-for="attr in ATTRIBUTES"
-          :key="attr.value"
-          class="boundary-row"
-          data-testid="boundary-attr"
-        >
-          <div class="boundary-row__body">
-            <strong>{{ attr.label }}</strong>
-            <span v-if="chosen[attr.value]" class="muted">
-              当前：{{ STANCE_LABELS[chosen[attr.value]] }}
-            </span>
-            <span v-else class="muted">未设置</span>
-          </div>
-
-          <div class="boundary-choices" :aria-label="attr.label">
-            <button
-              v-for="s in attr.stances"
-              :key="s"
-              type="button"
-              class="boundary-choice"
-              :class="{ 'boundary-choice--active': chosen[attr.value] === s }"
-              :aria-pressed="chosen[attr.value] === s"
-              :data-testid="`stance-${attr.value}-${s}`"
-              @click="pick(attr.value, s)"
-            >
-              {{ STANCE_LABELS[s] }}
-            </button>
-          </div>
-        </div>
-      </section>
+      <BoundaryPreferenceList :chosen="chosen" @pick="pick" />
 
       <div class="boundary-actions">
         <button
@@ -247,55 +169,6 @@ onMounted(load);
   margin: 0;
 }
 
-.boundary-list {
-  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
-}
-
-.boundary-row {
-  display: grid;
-  grid-template-columns: minmax(180px, 1fr) auto;
-  align-items: center;
-  gap: var(--pa-space-5);
-  min-height: 72px;
-  padding: var(--pa-space-3) 0;
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
-}
-
-.boundary-row__body {
-  display: flex;
-  flex-direction: column;
-  gap: var(--pa-space-1);
-}
-
-.boundary-choices {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: var(--pa-space-1);
-}
-
-.boundary-choice {
-  min-height: 36px;
-  padding: 0 var(--pa-space-3);
-  border: var(--pa-border-width) solid var(--pa-color-border);
-  border-radius: var(--pa-radius-control);
-  background: var(--pa-color-surface);
-  color: var(--pa-color-text-secondary);
-  cursor: pointer;
-}
-
-.boundary-choice:hover,
-.boundary-choice:focus-visible {
-  border-color: var(--pa-color-accent);
-}
-
-.boundary-choice--active {
-  border-color: var(--pa-color-accent);
-  background: var(--pa-color-accent-weak);
-  color: var(--pa-color-accent);
-  font-weight: var(--pa-font-weight-600);
-}
-
 .boundary-actions {
   padding-top: var(--pa-space-5);
 }
@@ -305,17 +178,5 @@ onMounted(load);
   padding-top: var(--pa-space-4);
   border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
   line-height: var(--pa-line-height-20);
-}
-
-@media (max-width: 767px) {
-  .boundary-row {
-    grid-template-columns: 1fr;
-    gap: var(--pa-space-2);
-    align-items: flex-start;
-  }
-
-  .boundary-choices {
-    justify-content: flex-start;
-  }
 }
 </style>
