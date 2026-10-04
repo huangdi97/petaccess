@@ -986,6 +986,5 @@ const selectedId = ref<string | null>(null);
   .result-row__decision {
     font-size: var(--pa-font-size-xl);
   }
-
 }
 </style>
