@@ -1,29 +1,38 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import { session, type QueryMode } from "@petaccess/client-core";
-import ModeBar from "../components/ModeBar.vue";
-
-const who = computed(() =>
-  session.activePet
-    ? `本次：${session.activePet.display_name} · ${session.activePet.breed_text ?? session.activePet.species}` +
-      (session.activePet.weight_kg ? ` · ${session.activePet.weight_kg}kg` : "")
-    : "未设置宠物档案",
-);
-
-function setMode(m: QueryMode) {
-  session.mode = m;
-}
+/**
+ * Secondary consumer page shell.
+ *
+ * The global ConsumerAppShell already owns desktop/mobile navigation. Secondary
+ * pages only need the same Current Query primitive and a bounded reading/task
+ * column; they must not re-introduce the legacy mode bar or a pet-summary card.
+ */
+import QueryContextBar from "./domain/QueryContextBar.vue";
+import DesktopContentContainer from "./layout/DesktopContentContainer.vue";
 </script>
 
 <template>
-  <div class="page">
-    <ModeBar :mode="session.mode" @change="setMode" />
-    <div class="panel">
-      <div class="row" style="justify-content: space-between">
-        <strong>{{ who }}</strong>
-        <RouterLink to="/pet/new" class="pill">换宠物 / 新建</RouterLink>
+  <div class="secondary-workspace">
+    <QueryContextBar />
+    <DesktopContentContainer mode="single-column">
+      <div class="secondary-page">
+        <slot />
       </div>
-    </div>
-    <slot />
+    </DesktopContentContainer>
   </div>
 </template>
+
+<style scoped>
+.secondary-workspace {
+  min-height: 100%;
+}
+
+.secondary-page {
+  padding: var(--pa-space-6) 0 var(--pa-space-8);
+}
+
+@media (max-width: 767px) {
+  .secondary-page {
+    padding: var(--pa-space-4);
+  }
+}
+</style>
