@@ -8,12 +8,18 @@ on:
     branches:
       - feat/ui-product-craft-v7-human-review-final
 
+permissions:
+  contents: write
+
 jobs:
   frontend:
     name: UI lint, typecheck and build
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'push' && github.ref_name || github.event.pull_request.head.ref }}
+          fetch-depth: 0
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
         with:
@@ -27,13 +33,21 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: ESLint
         run: pnpm lint:fe
-      - name: Format Home preview
-        run: pnpm exec prettier --write apps/client-h5/src/views/HomeView.vue
-      - name: Upload formatted Home
-        uses: actions/upload-artifact@v4
-        with:
-          name: ui-direct-formatted-home
-          path: apps/client-h5/src/views/HomeView.vue
+      - name: Apply canonical Prettier formatting
+        run: pnpm exec prettier --write "apps/client-h5/src/**/*.{vue,ts}" "docs/ui/contracts/json/*.json" "tests/ui-oracle/*.ts"
+      - name: Commit formatting on direct branch pushes
+        if: github.event_name == 'push' && github.actor != 'github-actions[bot]'
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo "No formatting changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/client-h5/src docs/ui/contracts/json tests/ui-oracle
+          git commit -m "style(ui): apply canonical Prettier formatting"
+          git push origin HEAD:feat/ui-direct-craft-v8
       - name: Prettier check
         run: pnpm format:check:fe
       - name: client-h5 typecheck + build
