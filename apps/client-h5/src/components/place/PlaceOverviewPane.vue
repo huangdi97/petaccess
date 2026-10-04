@@ -92,51 +92,51 @@ const divergenceLine = computed(() => {
 <template>
   <!-- Canonical first screen: Rule + Reality are read together but never merged. -->
   <div class="place-overview-lead" data-ui="place-coexistence-lead">
-  <!-- Current Decision（§17：完整 status surface 仅此一处；§9 自然语言补充） -->
-  <section class="place-section" data-testid="section-answer" data-ui="place-decision">
-    <h2 class="place-section__title">当前结论</h2>
-    <div class="sub-answer sub-answer--mine" data-testid="answer">
-      <p v-if="desktop" class="muted sub-answer__context" data-testid="answer-context">
-        {{ petContext }} · {{ speciesLabel }} · 进入 · 公共区域
-      </p>
-      <StatusBadge :semantic="statusKey" />
-      <p class="status" data-testid="answer-status">{{ verdict }}</p>
-      <p v-if="keyCondition" class="muted" data-testid="answer-conditions">
-        需满足：{{ keyCondition }}
-      </p>
-      <p v-if="answer" class="muted sub-answer__note">当前结论仅适用于这次查询。</p>
-    </div>
-  </section>
+    <!-- Current Decision（§17：完整 status surface 仅此一处；§9 自然语言补充） -->
+    <section class="place-section" data-testid="section-answer" data-ui="place-decision">
+      <h2 class="place-section__title">当前结论</h2>
+      <div class="sub-answer sub-answer--mine" data-testid="answer">
+        <p v-if="desktop" class="muted sub-answer__context" data-testid="answer-context">
+          {{ petContext }} · {{ speciesLabel }} · 进入 · 公共区域
+        </p>
+        <StatusBadge :semantic="statusKey" />
+        <p class="status" data-testid="answer-status">{{ verdict }}</p>
+        <p v-if="keyCondition" class="muted" data-testid="answer-conditions">
+          需满足：{{ keyCondition }}
+        </p>
+        <p v-if="answer" class="muted sub-answer__note">当前结论仅适用于这次查询。</p>
+      </div>
+    </section>
 
-  <!-- Recent Reality：mobile 保留一行 teaser + CTA（§11）。 -->
-  <section class="place-section" data-ui="place-reality-overview" data-testid="overview-reality">
-    <h2 class="place-section__title">最近现场</h2>
-    <p class="muted" data-testid="overview-reality-line">{{ realityLine }}</p>
-    <p v-if="observationCount > 0 && desktop" class="muted overview-note">
-      {{ observationCount }} 条现场记录
-    </p>
-    <div
-      v-if="staffSummaryLine || facilitySummaryLine || divergenceLine"
-      class="coexistence-facts"
-      data-ui="coexistence-facts"
-    >
-      <p v-if="staffSummaryLine" class="coexistence-fact">
-        <span class="coexistence-fact__label">工作人员处理</span>
-        <span>{{ staffSummaryLine }}</span>
+    <!-- Recent Reality：mobile 保留一行 teaser + CTA（§11）。 -->
+    <section class="place-section" data-ui="place-reality-overview" data-testid="overview-reality">
+      <h2 class="place-section__title">最近现场</h2>
+      <p class="muted" data-testid="overview-reality-line">{{ realityLine }}</p>
+      <p v-if="observationCount > 0 && desktop" class="muted overview-note">
+        {{ observationCount }} 条现场记录
       </p>
-      <p v-if="facilitySummaryLine" class="coexistence-fact">
-        <span class="coexistence-fact__label">相关设施</span>
-        <span>{{ facilitySummaryLine }}</span>
-      </p>
-      <p v-if="divergenceLine" class="coexistence-fact coexistence-fact--divergence">
-        <span class="coexistence-fact__label">规则与现场</span>
-        <span>{{ divergenceLine }}</span>
-      </p>
-    </div>
-    <RouterLink class="btn-inline" :to="`?view=reality`" data-testid="overview-reality-link">
-      查看现场记录 →
-    </RouterLink>
-  </section>
+      <div
+        v-if="staffSummaryLine || facilitySummaryLine || divergenceLine"
+        class="coexistence-facts"
+        data-ui="coexistence-facts"
+      >
+        <p v-if="staffSummaryLine" class="coexistence-fact">
+          <span class="coexistence-fact__label">工作人员处理</span>
+          <span>{{ staffSummaryLine }}</span>
+        </p>
+        <p v-if="facilitySummaryLine" class="coexistence-fact">
+          <span class="coexistence-fact__label">相关设施</span>
+          <span>{{ facilitySummaryLine }}</span>
+        </p>
+        <p v-if="divergenceLine" class="coexistence-fact coexistence-fact--divergence">
+          <span class="coexistence-fact__label">规则与现场</span>
+          <span>{{ divergenceLine }}</span>
+        </p>
+      </div>
+      <RouterLink class="btn-inline" :to="`?view=reality`" data-testid="overview-reality-link">
+        查看现场记录 →
+      </RouterLink>
+    </section>
   </div>
 
   <!-- §11 mobile：Space summary row（56–64px，不展开）；desktop 显示多行区。 -->
