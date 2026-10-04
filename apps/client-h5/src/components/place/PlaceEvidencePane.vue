@@ -56,9 +56,10 @@ const LABELS: Record<string, string> = {
         </div>
         <p class="evidence-item__text">
           {{ animalScopeLabel(o.animal_scope) }} · {{ ruleActionLabel(o.observed_action) }}
-          <span v-if="o.staff_action" class="muted"
-            >（工作人员：{{ staffActionLabel(o.staff_action) }}）</span
-          >
+        </p>
+        <p v-if="o.staff_action" class="evidence-item__staff">
+          <span class="muted">工作人员</span>
+          {{ staffActionLabel(o.staff_action) }}
         </p>
       </div>
       <p v-if="!observations.length" class="muted">暂无现场记录（未收录不代表没有动物）。</p>
@@ -112,10 +113,17 @@ const LABELS: Record<string, string> = {
   flex-wrap: wrap;
   gap: var(--pa-space-2);
 }
-.evidence-item__text {
+.evidence-item__text,
+.evidence-item__staff {
   margin: 0;
   font-size: var(--pa-font-size-md);
   line-height: var(--pa-line-height-base);
+}
+
+.evidence-item__staff {
+  display: flex;
+  gap: var(--pa-space-2);
+  color: var(--pa-color-text-secondary);
 }
 .evidence-source__issuer {
   color: var(--pa-color-text-primary);
