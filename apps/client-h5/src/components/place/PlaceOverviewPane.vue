@@ -260,3 +260,16 @@ const evidenceSummaryLine = computed(
   color: var(--pa-color-accent);
 }
 </style>
+
+@media (min-width: 768px) {
+  .sub-answer--mine {
+    border-radius: 0;
+    padding: var(--pa-space-2) 0 var(--pa-space-2) var(--pa-space-4);
+    background: transparent;
+  }
+
+  .status {
+    font-size: var(--pa-font-size-24);
+    line-height: var(--pa-line-height-32);
+  }
+}
