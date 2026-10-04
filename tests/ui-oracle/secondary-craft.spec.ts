@@ -82,6 +82,7 @@ test("secondary consumer pages inherit the final visual language", async ({
         ["boundary", "/#/boundary"],
         ["about", "/#/about"],
         ["why", `/#/place/${PLACE_ID}/why`],
+        ["not-found", "/#/this-route-does-not-exist"],
       ]
     : [
         ["mine", "/#/mine"],
