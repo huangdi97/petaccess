@@ -82,7 +82,9 @@ const {
           <div class="home-section-header home-section-header--lenses">
             <div>
               <h2 class="home-section-title">你更想先看什么？</h2>
-              <p class="muted home-section-hint">从同一组规则、现场与证据事实中，先看你最关心的一层。</p>
+              <p class="muted home-section-hint">
+                从同一组规则、现场与证据事实中，先看你最关心的一层。
+              </p>
             </div>
           </div>
           <HomeEntries :entries="HOME_ENTRIES" @select="goEntry" />
