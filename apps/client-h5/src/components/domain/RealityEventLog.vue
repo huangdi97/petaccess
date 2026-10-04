@@ -174,8 +174,8 @@ const groups = computed<ObservationGroup[]>(() => {
   grid-template-columns: 72px 24px 1fr;
   gap: 0 var(--pa-space-3);
   border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
-  padding: 0 0 var(--pa-space-4) 0;
-  margin-bottom: var(--pa-space-4);
+  padding: 0 0 var(--pa-space-3) 0;
+  margin-bottom: var(--pa-space-3);
   background: transparent;
   border-radius: 0;
   box-shadow: none;
@@ -269,8 +269,8 @@ const groups = computed<ObservationGroup[]>(() => {
   .trace-row {
     grid-template-columns: 52px 20px 1fr;
     column-gap: var(--pa-space-2);
-    padding-bottom: var(--pa-space-4);
-    margin-bottom: var(--pa-space-4);
+    padding-bottom: var(--pa-space-3);
+    margin-bottom: var(--pa-space-3);
   }
 
   .trace-row__time {
