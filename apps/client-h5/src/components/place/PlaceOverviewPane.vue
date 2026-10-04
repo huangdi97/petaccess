@@ -12,7 +12,7 @@
  */
 import { computed } from "vue";
 import type { AccessAnswer, CoexistenceSnapshot, Zone } from "@petaccess/client-core";
-import { zoneConsumerLine } from "../../consumer/labels";
+import { animalFacilityLabel, staffActionLabel, zoneConsumerLine } from "../../consumer/labels";
 import { answerConditions, answerStatusKey, answerVerdictLabel } from "../../answer";
 import { realityStateLabel } from "../../reality";
 import StatusBadge from "../StatusBadge.vue";
@@ -61,9 +61,37 @@ const evidenceSummaryLine = computed(
   () =>
     `${primaryEvidence.value} · 最近核验${props.latestVerifiedAt ? ` ${props.latestVerifiedAt}` : "暂无"}`,
 );
+
+/** Canonical first-screen coexistence summary: Rule + Reality stay separate,
+ * while staff handling / facilities remain factual Reality details. */
+const staffSummaryLine = computed(() => {
+  const rows = props.coexistence?.staff_response_summary ?? [];
+  return rows
+    .slice(0, 2)
+    .map((item) => `${staffActionLabel(item.response_action)} × ${item.count}`)
+    .join(" · ");
+});
+
+const facilitySummaryLine = computed(() => {
+  const rows = props.coexistence?.facility_summary ?? [];
+  return rows
+    .slice(0, 2)
+    .map((item) => `${animalFacilityLabel(item.facility_type)} × ${item.count}`)
+    .join(" · ");
+});
+
+const divergenceLine = computed(() => {
+  const d = props.coexistence?.divergence;
+  if (!d?.note) return "";
+  const state = (d.state ?? "").toUpperCase();
+  if (["CONSISTENT", "NONE", "NO_DIVERGENCE"].includes(state)) return "";
+  return d.note;
+});
 </script>
 
 <template>
+  <!-- Canonical first screen: Rule + Reality are read together but never merged. -->
+  <div class="place-overview-lead" data-ui="place-coexistence-lead">
   <!-- Current Decision（§17：完整 status surface 仅此一处；§9 自然语言补充） -->
   <section class="place-section" data-testid="section-answer" data-ui="place-decision">
     <h2 class="place-section__title">当前结论</h2>
@@ -87,10 +115,29 @@ const evidenceSummaryLine = computed(
     <p v-if="observationCount > 0 && desktop" class="muted overview-note">
       {{ observationCount }} 条现场记录
     </p>
+    <div
+      v-if="staffSummaryLine || facilitySummaryLine || divergenceLine"
+      class="coexistence-facts"
+      data-ui="coexistence-facts"
+    >
+      <p v-if="staffSummaryLine" class="coexistence-fact">
+        <span class="coexistence-fact__label">工作人员处理</span>
+        <span>{{ staffSummaryLine }}</span>
+      </p>
+      <p v-if="facilitySummaryLine" class="coexistence-fact">
+        <span class="coexistence-fact__label">相关设施</span>
+        <span>{{ facilitySummaryLine }}</span>
+      </p>
+      <p v-if="divergenceLine" class="coexistence-fact coexistence-fact--divergence">
+        <span class="coexistence-fact__label">规则与现场</span>
+        <span>{{ divergenceLine }}</span>
+      </p>
+    </div>
     <RouterLink class="btn-inline" :to="`?view=reality`" data-testid="overview-reality-link">
       查看现场记录 →
     </RouterLink>
   </section>
+  </div>
 
   <!-- §11 mobile：Space summary row（56–64px，不展开）；desktop 显示多行区。 -->
   <section
@@ -161,6 +208,24 @@ const evidenceSummaryLine = computed(
 </template>
 
 <style scoped>
+.place-overview-lead {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+  gap: var(--pa-space-6);
+  margin-bottom: var(--pa-space-6);
+  padding-bottom: var(--pa-space-5);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.place-overview-lead > .place-section {
+  margin-bottom: 0;
+}
+
+.place-overview-lead > .place-section + .place-section {
+  padding-left: var(--pa-space-6);
+  border-left: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
 .place-section {
   margin-bottom: var(--pa-space-5);
 }
@@ -258,6 +323,54 @@ const evidenceSummaryLine = computed(
   flex: 0 0 auto;
   font-size: var(--pa-font-size-md);
   color: var(--pa-color-accent);
+}
+
+.coexistence-facts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-2);
+  margin: var(--pa-space-4) 0 var(--pa-space-2);
+  padding-top: var(--pa-space-3);
+  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.coexistence-fact {
+  display: grid;
+  grid-template-columns: 7rem minmax(0, 1fr);
+  gap: var(--pa-space-3);
+  margin: 0;
+  font-size: var(--pa-font-size-md);
+  line-height: var(--pa-line-height-20);
+  color: var(--pa-color-text-primary);
+}
+
+.coexistence-fact__label {
+  color: var(--pa-color-text-muted);
+}
+
+.coexistence-fact--divergence {
+  color: var(--pa-color-status-conflict);
+}
+
+@media (max-width: 767px) {
+  .place-overview-lead {
+    grid-template-columns: 1fr;
+    gap: var(--pa-space-5);
+    margin-bottom: var(--pa-space-5);
+    padding-bottom: var(--pa-space-4);
+  }
+
+  .place-overview-lead > .place-section + .place-section {
+    padding-left: 0;
+    padding-top: var(--pa-space-4);
+    border-left: none;
+    border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  }
+
+  .coexistence-fact {
+    grid-template-columns: 1fr;
+    gap: var(--pa-space-1);
+  }
 }
 
 @media (min-width: 768px) {
