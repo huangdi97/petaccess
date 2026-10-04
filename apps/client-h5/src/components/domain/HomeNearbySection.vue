@@ -97,18 +97,15 @@ const freshness = computed(() =>
             :species-label="speciesLabel"
             :conditions-label="conditionsLabel"
           />
-          <div
-            v-if="c.conditions.length"
-            class="home-row__condition"
-            :data-testid="'conditions-' + c.place.id"
-          >
-            <span>进入前需满足：{{ c.conditions.join("、") }}</span>
+          <div v-if="c.facts.answer" class="home-row__evidence-link">
             <RouterLink
               class="btn-inline"
               :to="`/place/${c.place.id}/why`"
               :data-testid="'why-' + c.place.id"
-              >查看依据 →</RouterLink
+              @click.stop
             >
+              查看依据 →
+            </RouterLink>
           </div>
         </div>
         <h2 class="home-section-title home-section-title--stacked">附近待补充</h2>
@@ -161,14 +158,9 @@ const freshness = computed(() =>
   color: var(--pa-color-text-secondary);
 }
 
-.home-row__condition {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--pa-space-3);
+.home-row__evidence-link {
   margin-top: var(--pa-space-2);
   font-size: var(--pa-font-size-sm);
-  color: var(--pa-color-text-secondary);
 }
 
 .home-section-title--stacked {
