@@ -4,6 +4,7 @@ import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { client, session } from "@petaccess/client-core";
 import AppShell from "../components/AppShell.vue";
+import { animalScopeLabel } from "../consumer/labels";
 
 const router = useRouter();
 const pet = ref({ display_name: "", species: "dog", breed_text: "", weight_kg: "" });
@@ -31,12 +32,13 @@ async function onPickImage(e: Event) {
     if (res.ok) {
       pet.value.species = data.species;
       pet.value.breed_text = data.breed_candidates[0] ?? "";
-      aiMsg.value = `AI 建议：${data.species} · ${data.breed_candidates.join(" / ")}（请确认或修改）`;
+      const breed = data.breed_candidates.join(" / ");
+      aiMsg.value = `图片建议：${animalScopeLabel(data.species)}${breed ? ` · ${breed}` : ""}（请确认或修改）`;
     } else {
-      aiMsg.value = `AI 建议不可用（${data.error?.message ?? "请手填"}），手填即可`;
+      aiMsg.value = "图片建议暂不可用，直接手填即可";
     }
   } catch {
-    aiMsg.value = "AI 建议不可用，手填即可";
+    aiMsg.value = "图片建议暂不可用，直接手填即可";
   }
 }
 
