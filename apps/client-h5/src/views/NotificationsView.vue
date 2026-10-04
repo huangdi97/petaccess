@@ -1,17 +1,11 @@
 <script setup lang="ts">
-/**
- * Notification center (P1).
- *
- * There is no push channel yet (the notification provider is a mock), so this
- * screen shows the *subscriptions* that will drive notifications plus the
- * honest status of the delivery channel. It never claims a message was sent.
- */
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { client, session, type WatchView } from "@petaccess/client-core";
 import AppShell from "../components/AppShell.vue";
 import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
+import { presentDescription } from "../errors";
 
 const router = useRouter();
 const watches = ref<WatchView[]>([]);
@@ -20,9 +14,9 @@ const error = ref("");
 const signedIn = ref(false);
 
 const TARGET_LABELS: Record<string, string> = {
-  place: "场所",
-  zone: "区域",
-  rule: "规则",
+  place: "场所规则",
+  zone: "区域规则",
+  rule: "具体规则",
   regulation: "法规",
 };
 
@@ -34,7 +28,7 @@ async function load() {
     signedIn.value = session.signedIn;
     watches.value = signedIn.value ? await client.myWatches() : [];
   } catch (e) {
-    error.value = e instanceof Error ? e.message : String(e);
+    error.value = presentDescription(e);
   } finally {
     loading.value = false;
   }
@@ -47,23 +41,25 @@ async function unsubscribe(w: WatchView) {
     await client.unwatch(w.id);
     watches.value = watches.value.filter((x) => x.id !== w.id);
   } catch (e) {
-    error.value = e instanceof Error ? e.message : String(e);
+    error.value = presentDescription(e);
   }
 }
 </script>
 
 <template>
   <AppShell>
-    <h1>通知中心</h1>
+    <header class="notifications-head">
+      <h1>通知中心</h1>
+      <p class="muted">
+        关注规则变化后，这里会列出你的订阅。规则出现新版本、被替代或恢复旧版本时，才有可能产生提醒。
+      </p>
+    </header>
 
-    <div class="panel">
-      <div class="muted">
-        规则变化提醒：当关注的场所/区域规则更新（新版本、supersession、回滚）时通知你。
-      </div>
-      <StateMessage
-        kind="PARTIAL"
-        description="当前版本通知通道为 Mock（尚未接入真实推送通道）。这里展示的是订阅列表，不代表已发送过消息。"
-      />
+    <div class="notifications-channel">
+      <strong>提醒通道</strong>
+      <p class="muted">
+        当前版本尚未接入系统推送；这里展示关注列表，不代表任何提醒已经发送。
+      </p>
     </div>
 
     <SkeletonList v-if="loading" :rows="3" />
@@ -75,7 +71,7 @@ async function unsubscribe(w: WatchView) {
     <StateMessage
       v-else-if="!signedIn"
       kind="PERMISSION_DENIED"
-      description="登录后可查看你的规则变化订阅。"
+      description="登录后可查看和管理你的规则变化关注。"
     >
       <template #action>
         <button class="primary" @click="router.push({ name: 'mine' })">去登录</button>
@@ -84,25 +80,83 @@ async function unsubscribe(w: WatchView) {
     <StateMessage
       v-else-if="!watches.length"
       kind="EMPTY"
-      description="还没有订阅任何场所的规则变化。"
+      description="还没有关注任何规则变化。"
     >
       <template #action>
-        <button class="primary" @click="router.push({ name: 'home' })">去地图关注场所</button>
+        <button class="primary" @click="router.push({ name: 'home' })">查找场所</button>
       </template>
     </StateMessage>
-    <template v-else>
-      <div v-for="w in watches" :key="w.id" class="panel">
-        <div class="row" style="justify-content: space-between">
-          <span>
-            <span class="tag">{{ TARGET_LABELS[w.target_type] ?? w.target_type }}</span>
-            <span class="muted">{{ w.target_id.slice(0, 8) }}</span>
-          </span>
-          <button @click="unsubscribe(w)">取消订阅</button>
+
+    <section v-else class="notifications-list" aria-label="已关注的规则变化">
+      <div v-for="w in watches" :key="w.id" class="notification-row">
+        <div class="notification-row__body">
+          <strong>{{ TARGET_LABELS[w.target_type] ?? "规则变化" }}</strong>
+          <span class="muted">已关注 · 等待后续变化</span>
         </div>
-        <div class="muted">
-          通道：{{ w.channels?.join("、") || "默认" }} · 状态：{{ w.status ?? "active" }}
-        </div>
+        <button class="notification-row__action" type="button" @click="unsubscribe(w)">
+          取消关注
+        </button>
       </div>
-    </template>
+    </section>
   </AppShell>
 </template>
+
+<style scoped>
+.notifications-head {
+  padding-bottom: var(--pa-space-5);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.notifications-head p,
+.notifications-channel p {
+  max-width: 680px;
+  margin: var(--pa-space-2) 0 0;
+  line-height: var(--pa-line-height-23);
+}
+
+.notifications-channel {
+  padding: var(--pa-space-4) 0;
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.notifications-list {
+  margin-top: var(--pa-space-3);
+}
+
+.notification-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pa-space-4);
+  min-height: 64px;
+  padding: var(--pa-space-3) 0;
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.notification-row__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-1);
+}
+
+.notification-row__action {
+  flex: 0 0 auto;
+  min-height: var(--pa-size-control-md);
+  border: none;
+  background: transparent;
+  color: var(--pa-color-accent);
+  cursor: pointer;
+}
+
+.notification-row__action:hover,
+.notification-row__action:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media (max-width: 767px) {
+  .notification-row {
+    align-items: flex-start;
+  }
+}
+</style>
