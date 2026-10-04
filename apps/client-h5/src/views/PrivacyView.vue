@@ -1,17 +1,5 @@
 <script setup lang="ts">
-// @ui-static PrivacyView — 静态隐私说明页（M3 E1 静态声明）。
-/**
- * Privacy / Data Controls (spec §2.4-adjacent; Master Goal §7 privacy).
- *
- * This screen is deliberately explicit about what the product does NOT do:
- *   - no default continuous location history (ADR-012);
- *   - field records are bucketed, never raw trajectories;
- *   - lead-only sources are never stored beyond the excerpt.
- *
- * Local controls below really work (they clear on-device data). Account
- * deletion / data export are shown with their true status — the backend flow is
- * not implemented yet, so the screen says so instead of pretending.
- */
+// @ui-static PrivacyView — static privacy and local-data controls.
 import { computed, ref } from "vue";
 import { session, platformStorage } from "@petaccess/client-core";
 import AppShell from "../components/AppShell.vue";
@@ -21,28 +9,13 @@ const cleared = ref(false);
 const deletionRequested = ref(false);
 
 const inventory = [
-  { item: "账号（邮箱、显示名）", stored: "是", purpose: "登录与会话", basis: "履行服务所必需" },
-  {
-    item: "宠物档案（物种、体重、肩高、服务犬角色）",
-    stored: "是",
-    purpose: "准入判断输入",
-    basis: "用户主动提供",
-  },
-  { item: "共处边界偏好", stored: "是", purpose: "逐条边界比对", basis: "用户主动提供" },
-  {
-    item: "位置轨迹",
-    stored: "否（不默认保存）",
-    purpose: "—",
-    basis: "ADR-012：仅一次性附近查询",
-  },
-  { item: "现场记录位置", stored: "分桶（如 <100m）", purpose: "核验可信度", basis: "最小化" },
-  {
-    item: "上传证据（图片）",
-    stored: "按来源许可",
-    purpose: "规则溯源",
-    basis: "lead-only 不存储",
-  },
-  { item: "关注订阅", stored: "是", purpose: "规则变化提醒", basis: "用户主动订阅" },
+  { item: "账号", stored: "保存", detail: "邮箱与显示名，用于登录和会话。" },
+  { item: "宠物档案", stored: "保存", detail: "仅使用你主动填写、且规则判断真正需要的信息。" },
+  { item: "共处边界", stored: "保存", detail: "用于逐项比对你的出行偏好，不形成场所总分。" },
+  { item: "连续位置轨迹", stored: "不保存", detail: "附近查询只使用当次位置，不建立持续轨迹。" },
+  { item: "现场核验位置", stored: "最小化保存", detail: "只保留核验所需的距离或精度范围。" },
+  { item: "上传证据", stored: "按许可处理", detail: "不可公开再分发的内容不会直接展示原文。" },
+  { item: "规则关注", stored: "保存", detail: "仅保存你主动关注的规则变化。" },
 ];
 
 const signedIn = computed(() => session.signedIn);
@@ -60,70 +33,160 @@ function requestDeletion() {
 
 <template>
   <AppShell>
-    <h1>隐私与数据控制</h1>
+    <header class="privacy-head">
+      <h1>隐私与数据</h1>
+      <p class="muted">
+        只收集完成查询、核验和账号功能所需要的数据；位置不会被默认保存为连续轨迹。
+      </p>
+    </header>
 
-    <h2>数据清单</h2>
-    <div class="panel">
-      <div v-for="row in inventory" :key="row.item" class="zone-row">
-        <span>
-          <strong style="font-size: 14px">{{ row.item }}</strong>
-          <div class="muted">{{ row.purpose }} · {{ row.basis }}</div>
-        </span>
-        <span class="tag">{{ row.stored }}</span>
+    <section class="privacy-section">
+      <h2>数据清单</h2>
+      <div class="privacy-inventory">
+        <div v-for="row in inventory" :key="row.item" class="privacy-row">
+          <div class="privacy-row__body">
+            <strong>{{ row.item }}</strong>
+            <span class="muted">{{ row.detail }}</span>
+          </div>
+          <span class="privacy-row__state">{{ row.stored }}</span>
+        </div>
       </div>
-      <div class="notice">
-        我们不建立原始连续位置历史（ADR-012）；贡献位置以分桶方式保存；lead-only 来源不落库。
-      </div>
-    </div>
+    </section>
 
-    <h2>本机数据</h2>
-    <div class="panel">
-      <div class="muted">
-        {{ signedIn ? "当前设备已登录，令牌保存在本机。" : "当前设备未登录。" }}
-      </div>
+    <section class="privacy-section">
+      <h2>本机登录状态</h2>
+      <p class="muted">
+        {{ signedIn ? "当前设备已登录。" : "当前设备未登录。" }}
+        清除本机状态不会删除服务器上的账号数据。
+      </p>
       <button
-        class="block"
-        style="margin-top: 8px"
+        class="privacy-action"
+        type="button"
         data-testid="clear-local"
         :disabled="!signedIn"
         @click="clearLocalData"
       >
         清除本机登录状态
       </button>
-      <div v-if="cleared" class="notice" data-testid="cleared-msg">
-        已清除本机登录状态。服务器上的账号数据不受影响。
-      </div>
-    </div>
+      <p v-if="cleared" class="privacy-feedback" data-testid="cleared-msg">
+        已清除本机登录状态；服务器上的账号数据未改变。
+      </p>
+    </section>
 
-    <h2>定位</h2>
-    <div class="panel">
-      <div class="muted">
-        定位为一次性使用：仅用于“附近”查询，不持续记录、不后台采集。可在系统设置中关闭定位权限。
-      </div>
-    </div>
+    <section class="privacy-section">
+      <h2>定位</h2>
+      <p class="muted">
+        定位只用于当前“附近”查询或现场核验，不持续记录、不在后台建立位置历史。你可以随时在系统设置中关闭定位权限。
+      </p>
+    </section>
 
-    <h2>账号删除与数据导出</h2>
-    <div class="panel">
+    <section class="privacy-section">
+      <h2>账号删除与数据导出</h2>
       <StateMessage
         kind="PARTIAL"
-        description="账号删除与数据导出流程尚未开放（后端接口未实现）。当前版本可通过反馈渠道人工处理，我们不会声称已完成。"
+        description="当前版本还没有自动化账号删除与导出流程；如需处理，可先提交人工请求。"
       >
         <template #action>
           <button class="primary" data-testid="request-deletion" @click="requestDeletion">
-            提交人工删除请求
+            提交人工请求
           </button>
         </template>
       </StateMessage>
-      <div v-if="deletionRequested" class="notice" data-testid="deletion-requested">
-        已记录你的删除请求（本机标记）。请通过反馈渠道提供账号邮箱以完成人工核验。
-      </div>
-    </div>
+      <p v-if="deletionRequested" class="privacy-feedback" data-testid="deletion-requested">
+        已在本机记录请求。后续仍需要通过反馈渠道核对账号身份后处理。
+      </p>
+    </section>
 
-    <h2>数据来源与许可</h2>
-    <div class="panel">
-      <div class="muted">
-        每条规则都标注来源、采集方式与再分发许可；不可再分发的内容仅用于判断，不对外展示原文。
-      </div>
-    </div>
+    <section class="privacy-section">
+      <h2>来源与许可</h2>
+      <p class="muted">
+        每条规则和现场事实都保留来源与采集方式。不能公开再分发的材料只用于核验，不直接向消费者展示原文。
+      </p>
+    </section>
   </AppShell>
 </template>
+
+<style scoped>
+.privacy-head {
+  padding-bottom: var(--pa-space-5);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.privacy-head p {
+  max-width: 680px;
+  margin: var(--pa-space-2) 0 0;
+  line-height: var(--pa-line-height-23);
+}
+
+.privacy-section {
+  padding: var(--pa-space-5) 0;
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.privacy-section h2 {
+  margin: 0 0 var(--pa-space-3);
+  font-size: var(--pa-font-size-lg);
+  font-weight: var(--pa-font-weight-650);
+}
+
+.privacy-section > p {
+  max-width: 680px;
+  margin: 0;
+  line-height: var(--pa-line-height-23);
+}
+
+.privacy-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--pa-space-4);
+  padding: var(--pa-space-3) 0;
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.privacy-row:last-child {
+  border-bottom: none;
+}
+
+.privacy-row__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-1);
+}
+
+.privacy-row__state {
+  color: var(--pa-color-text-secondary);
+  font-size: var(--pa-font-size-md);
+  text-align: right;
+}
+
+.privacy-action {
+  margin-top: var(--pa-space-3);
+  min-height: var(--pa-size-control-md);
+  border: none;
+  background: transparent;
+  color: var(--pa-color-accent);
+  padding: 0;
+  cursor: pointer;
+}
+
+.privacy-action:disabled {
+  color: var(--pa-color-text-muted);
+  cursor: default;
+}
+
+.privacy-feedback {
+  margin-top: var(--pa-space-3) !important;
+  color: var(--pa-color-text-secondary);
+}
+
+@media (max-width: 767px) {
+  .privacy-row {
+    grid-template-columns: 1fr;
+    gap: var(--pa-space-1);
+  }
+
+  .privacy-row__state {
+    text-align: left;
+  }
+}
+</style>
