@@ -78,6 +78,16 @@ const {
           </button>
         </form>
 
+        <section class="home-lenses" aria-label="你更想先看什么">
+          <div class="home-section-header home-section-header--lenses">
+            <div>
+              <h2 class="home-section-title">你更想先看什么？</h2>
+              <p class="muted home-section-hint">从同一组规则、现场与证据事实中，先看你最关心的一层。</p>
+            </div>
+          </div>
+          <HomeEntries :entries="HOME_ENTRIES" @select="goEntry" />
+        </section>
+
         <!-- 最近查看：divider 行，非卡片 -->
         <section v-if="recent.length" data-testid="recent-section">
           <div class="home-section-header">
@@ -110,11 +120,6 @@ const {
           @why="why"
           @retry="load"
         />
-
-        <section class="home-lenses" aria-label="其他查看方式">
-          <h2 class="home-section-title">换个角度看</h2>
-          <HomeEntries :entries="HOME_ENTRIES" @select="goEntry" />
-        </section>
 
         <p class="home-semantics" data-testid="home-semantics">
           信息不足不等于允许或禁止；每个结论都只针对当前查询。
@@ -223,7 +228,19 @@ const {
 }
 
 .home-lenses {
-  margin-top: var(--pa-space-6);
+  margin: 0 0 var(--pa-space-6);
+  padding-bottom: var(--pa-space-5);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.home-section-header--lenses {
+  padding-top: 0;
+}
+
+.home-section-hint {
+  margin: var(--pa-space-1) 0 0;
+  font-size: var(--pa-font-size-md);
+  line-height: var(--pa-line-height-20);
 }
 
 .home-semantics {
