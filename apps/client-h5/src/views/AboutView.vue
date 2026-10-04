@@ -1,68 +1,90 @@
 <script setup lang="ts">
-// @ui-static AboutView — 静态信息页，无数据加载（M3 E1 静态声明）。
-/**
- * AboutView — 关于: what PetAccess is, what it is not, and version info.
- * Desktop rail 关于 destination (V020_APP_SHELL_SPEC §16).
- */
+// @ui-static AboutView — legacy deep link; canonical product explanation lives in Settings.
 import AppShell from "../components/AppShell.vue";
 import PaIcon from "../components/ui/PaIcon.vue";
 
 const version = import.meta.env.VITE_APP_VERSION ?? "0.2.0-dev";
 
 const PRINCIPLES = [
-  { icon: "document" as const, text: "规则来自已核验来源；UNKNOWN 不等于允许或禁止。" },
-  { icon: "eye" as const, text: "现场记录是独立的「事实」维度，不等于场所政策。" },
-  { icon: "shield" as const, text: "证据链可追溯；AI/OCR 只生成待审候选，不是最终判定。" },
+  { icon: "document" as const, title: "规则", text: "说明当前查询适用的允许、限制与条件。" },
+  { icon: "eye" as const, title: "现场", text: "记录实际观察到的事实，与正式规则分开。" },
+  { icon: "shield" as const, title: "证据", text: "保留来源、时间和核验状态，让结论可追溯。" },
 ];
 </script>
 
 <template>
   <AppShell>
-    <h1 class="title" data-testid="about-title">关于 PetAccess</h1>
-    <p class="muted">
-      PetAccess 是城市公共空间动物共处信息工具：你去之前，先查这里的规则与经核验的现场记录。
-    </p>
+    <header class="about-head">
+      <h1 data-testid="about-title">关于 PetAccess</h1>
+      <p class="muted">
+        城市公共空间动物通行规则与现场事实查询工具。我们不替你评价一个场所，只把规则、现场和依据讲清楚。
+      </p>
+    </header>
 
-    <section class="panel" aria-label="产品原则">
-      <div v-for="(p, i) in PRINCIPLES" :key="i" class="principle-row">
+    <section class="about-principles" aria-label="产品原则">
+      <div v-for="p in PRINCIPLES" :key="p.title" class="principle-row">
         <PaIcon :name="p.icon" size="md" class="principle-icon" />
-        <span>{{ p.text }}</span>
+        <div>
+          <strong>{{ p.title }}</strong>
+          <p class="muted">{{ p.text }}</p>
+        </div>
       </div>
     </section>
 
-    <section class="panel" aria-label="版本">
-      <div class="principle-row">
-        <PaIcon name="info" size="md" class="principle-icon" />
-        <span>当前版本 v{{ version }}</span>
-      </div>
-      <p class="muted">试点区域：上海 · 试点。产品处于开发预览阶段。</p>
+    <section class="about-meta" aria-label="版本">
+      <p>当前版本 v{{ version }}</p>
+      <p class="muted">上海试点 · 开发预览阶段</p>
+      <RouterLink class="btn-inline" to="/settings">查看设置与完整方法说明 →</RouterLink>
     </section>
 
-    <footer class="muted">现场记录与官方规则分开保存；本产品不做场所评分与排名。</footer>
+    <footer class="muted">现场记录与正式规则分开保存；PetAccess 不做场所评分与排名。</footer>
   </AppShell>
 </template>
 
 <style scoped>
-.title {
-  font-size: var(--pa-font-size-2xl);
-  margin: 0 0 var(--pa-space-2);
+.about-head {
+  padding-bottom: var(--pa-space-5);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.about-head p {
+  max-width: 680px;
+  margin: var(--pa-space-2) 0 0;
+  line-height: var(--pa-line-height-23);
+}
+
+.about-principles {
+  padding: var(--pa-space-4) 0;
 }
 
 .principle-row {
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: 28px 1fr;
   gap: var(--pa-space-3);
-  padding: var(--pa-space-2) 0;
-  font-size: var(--pa-font-size-base);
-  line-height: var(--pa-line-height-base);
+  padding: var(--pa-space-4) 0;
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
 }
 
-.principle-row + .principle-row {
-  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+.principle-row p {
+  margin: var(--pa-space-1) 0 0;
 }
 
 .principle-icon {
-  flex: none;
   color: var(--pa-color-text-secondary);
+}
+
+.about-meta {
+  padding: var(--pa-space-5) 0;
+  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.about-meta p {
+  margin: 0 0 var(--pa-space-1);
+}
+
+footer {
+  padding-top: var(--pa-space-5);
+  font-size: var(--pa-font-size-sm);
 }
 </style>
