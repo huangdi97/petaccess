@@ -46,6 +46,9 @@ async function capture(page: Page, name: string, route: string) {
   expect(metrics.text).not.toContain("ADR-");
   expect(metrics.text).not.toContain("lead-only");
   expect(metrics.text).not.toContain("UNKNOWN");
+  expect(metrics.text).not.toContain("template layer");
+  expect(metrics.text).not.toContain("operator specificity");
+  expect(metrics.text).not.toContain("jurisdiction layer");
 
   await page.screenshot({
     path: path.join(OUT, `${name}.png`),
@@ -72,8 +75,13 @@ test("secondary consumer pages inherit the final visual language", async ({
     ? [
         ["mine", "/#/mine"],
         ["settings", "/#/settings"],
-        ["boundary", "/#/boundary"],
+        ["privacy", "/#/privacy"],
+        ["notifications", "/#/notifications"],
         ["pets", "/#/pets"],
+        ["pet-new", "/#/pet/new"],
+        ["boundary", "/#/boundary"],
+        ["about", "/#/about"],
+        ["why", `/#/place/${PLACE_ID}/why`],
       ]
     : [
         ["mine", "/#/mine"],
