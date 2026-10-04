@@ -267,9 +267,5 @@ const evidenceSummaryLine = computed(
     background: transparent;
   }
 
-  .status {
-    font-size: var(--pa-font-size-24);
-    line-height: var(--pa-line-height-32);
-  }
 }
 </style>
