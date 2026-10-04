@@ -1,0 +1,12 @@
+﻿{
+  "order": 4,
+  "name": "04_map_desktop",
+  "platform": "web",
+  "device": "desktop",
+  "viewport": "1440x900",
+  "route": "/#/map",
+  "state": "ready",
+  "gitSha": "d2eeba2fe5ffbfba31f244881f6e1705a07f84c2",
+  "valid": true,
+  "screenshot": "04_map_desktop.png"
+}

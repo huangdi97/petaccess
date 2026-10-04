@@ -1,0 +1,12 @@
+﻿{
+  "order": 19,
+  "name": "19_boundary",
+  "platform": "windows",
+  "device": "webview2",
+  "viewport": "1120x760",
+  "route": "/#/boundary",
+  "state": "ready",
+  "gitSha": "d2eeba2fe5ffbfba31f244881f6e1705a07f84c2",
+  "valid": true,
+  "screenshot": "19_boundary.png"
+}

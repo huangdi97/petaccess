@@ -1,0 +1,15 @@
+{
+  "gitSha": "d2eeba2fe5ffbfba31f244881f6e1705a07f84c2",
+  "route": "/#/settings",
+  "page": "settings",
+  "state": "ready",
+  "viewportWidth": 390,
+  "viewportHeight": 844,
+  "devicePixelRatio": 1,
+  "documentClientWidth": 390,
+  "documentScrollWidth": 390,
+  "horizontalOverflow": false,
+  "consoleErrors": [],
+  "networkErrors": [],
+  "screenshot": "18_web_settings_ready_390x844.png"
+}

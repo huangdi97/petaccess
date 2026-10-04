@@ -1,0 +1,12 @@
+﻿{
+  "order": 16,
+  "name": "16_mine",
+  "platform": "windows",
+  "device": "webview2",
+  "viewport": "1120x760",
+  "route": "/#/mine",
+  "state": "ready",
+  "gitSha": "d2eeba2fe5ffbfba31f244881f6e1705a07f84c2",
+  "valid": true,
+  "screenshot": "16_mine.png"
+}

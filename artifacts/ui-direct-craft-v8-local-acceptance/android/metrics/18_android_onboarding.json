@@ -1,0 +1,15 @@
+{
+  "gitSha": "d2eeba2fe5ffbfba31f244881f6e1705a07f84c2",
+  "page": "onboarding",
+  "state": "ready",
+  "route": "/onboarding",
+  "innerWidth": 412,
+  "innerHeight": 915,
+  "devicePixelRatio": 2.625,
+  "documentClientWidth": 412,
+  "documentScrollWidth": 412,
+  "bodyTextHead": "PetAccess |  | 开始使用 |  | 登录后可以保存宠物档案、关注规则变化和查看自己的贡献；查询公开场所信息不要求登录。 |  | ",
+  "href": "http://tauri.localhost/#/onboarding",
+  "horizontalOverflow": false,
+  "screenshot": "18_android_onboarding.png"
+}

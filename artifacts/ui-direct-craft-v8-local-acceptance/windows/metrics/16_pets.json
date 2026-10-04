@@ -1,0 +1,25 @@
+{
+  "gitSha": "d2eeba2fe5ffbfba31f244881f6e1705a07f84c2",
+  "page": "pets",
+  "state": "ready",
+  "route": "/#/pets",
+  "innerWidth": 1120,
+  "innerHeight": 760,
+  "outerWidth": 1121,
+  "outerHeight": 761,
+  "devicePixelRatio": 1.25,
+  "visualViewportWidth": 1120,
+  "visualViewportHeight": 760,
+  "documentClientWidth": 1120,
+  "documentScrollWidth": 1120,
+  "rail": {
+    "clientWidth": 67,
+    "scrollWidth": 67
+  },
+  "contribution": null,
+  "horizontalOverflow": false,
+  "railHorizontalOverflow": false,
+  "contributionLayoutMode": null,
+  "consoleErrors": [],
+  "screenshot": "16_pets.png"
+}

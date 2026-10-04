@@ -1,0 +1,15 @@
+{
+  "gitSha": "d2eeba2fe5ffbfba31f244881f6e1705a07f84c2",
+  "route": "/#/search",
+  "page": "search",
+  "state": "ready",
+  "viewportWidth": 390,
+  "viewportHeight": 844,
+  "devicePixelRatio": 1,
+  "documentClientWidth": 390,
+  "documentScrollWidth": 390,
+  "horizontalOverflow": false,
+  "consoleErrors": [],
+  "networkErrors": [],
+  "screenshot": "02_web_search_ready_390x844.png"
+}

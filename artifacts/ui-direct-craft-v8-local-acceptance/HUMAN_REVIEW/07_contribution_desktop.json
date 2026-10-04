@@ -1,0 +1,12 @@
+﻿{
+  "order": 7,
+  "name": "07_contribution_desktop",
+  "platform": "web",
+  "device": "desktop",
+  "viewport": "1440x900",
+  "route": "/#/contribute/5a9084d0...",
+  "state": "step1",
+  "gitSha": "d2eeba2fe5ffbfba31f244881f6e1705a07f84c2",
+  "valid": true,
+  "screenshot": "07_contribution_desktop.png"
+}

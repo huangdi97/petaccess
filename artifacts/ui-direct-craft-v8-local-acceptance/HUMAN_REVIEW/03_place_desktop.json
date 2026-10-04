@@ -1,0 +1,12 @@
+﻿{
+  "order": 3,
+  "name": "03_place_desktop",
+  "platform": "web",
+  "device": "desktop",
+  "viewport": "1440x900",
+  "route": "/#/place/5a9084d0...",
+  "state": "overview",
+  "gitSha": "d2eeba2fe5ffbfba31f244881f6e1705a07f84c2",
+  "valid": true,
+  "screenshot": "03_place_desktop.png"
+}
