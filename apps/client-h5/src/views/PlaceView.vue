@@ -421,7 +421,7 @@ const placeFixture = computed<string>(() => {
     align-items: flex-start;
     gap: var(--pa-space-7);
     max-width: none;
-    padding: var(--pa-space-5) var(--pa-space-7);
+    padding: var(--pa-space-5) var(--pa-space-6);
   }
 
   .place-dossier {
