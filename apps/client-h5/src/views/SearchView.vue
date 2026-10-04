@@ -670,7 +670,7 @@ const selectedId = ref<string | null>(null);
 .search-field input {
   flex: 1;
   min-width: 0;
-  min-height: 48px;
+  min-height: 46px;
   margin: 0;
   border-color: var(--pa-color-border-strong);
   background: var(--pa-color-surface);
@@ -678,7 +678,7 @@ const selectedId = ref<string | null>(null);
 
 .search-submit {
   flex-shrink: 0;
-  min-height: 48px;
+  min-height: 46px;
   padding-inline: var(--pa-space-4);
   font-weight: var(--pa-font-weight-600);
 }
