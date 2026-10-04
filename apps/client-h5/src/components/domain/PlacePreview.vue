@@ -18,8 +18,9 @@ import {
   type CoexistenceSnapshot,
   type PlaceSummary,
 } from "@petaccess/client-core";
-import { answerConditions, answerVerdictLabel } from "../../answer";
+import { answerConditions, answerStatusKey, answerVerdictLabel } from "../../answer";
 import { realityStateLabel } from "../../reality";
+import StatusBadge from "../StatusBadge.vue";
 
 const props = withDefaults(
   defineProps<{
@@ -33,6 +34,7 @@ const props = withDefaults(
 );
 
 const answer = computed(() => props.snapshot?.rule_answer ?? null);
+const statusKey = computed(() => answerStatusKey(answer.value));
 const keyCondition = computed(() => answerConditions(answer.value)[0] ?? "");
 const realityLine = computed(() =>
   props.loading
@@ -61,6 +63,7 @@ const metaLine = computed(() => {
 
       <!-- §32：Primary status + key condition -->
       <div class="place-preview__decision" data-testid="preview-verdict">
+        <StatusBadge :semantic="statusKey" />
         <p class="place-preview__verdict-text" data-testid="preview-verdict-text">
           {{ answerVerdictLabel(answer) }}
         </p>
@@ -78,7 +81,7 @@ const metaLine = computed(() => {
       <!-- §32：查看场所 → -->
       <footer class="place-preview__foot">
         <RouterLink
-          class="btn-inline place-preview__cta"
+          class="btn primary place-preview__cta"
           :to="`/place/${place.id}`"
           data-testid="preview-open"
         >
@@ -158,8 +161,7 @@ const metaLine = computed(() => {
 }
 
 .place-preview__cta {
-  padding-left: 0;
-  padding-right: 0;
+  align-self: flex-start;
 }
 .place-preview__hint {
   margin: 0;
