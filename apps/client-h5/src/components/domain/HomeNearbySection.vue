@@ -75,7 +75,7 @@ const freshness = computed(() =>
           {{ freshness }}
         </p>
 
-        <h2 class="home-section-title home-section-title--stacked">附近已有依据</h2>
+        <h2 class="home-section-title home-section-title--stacked">规则与现场速览</h2>
 
         <p v-if="!verified.length" class="muted" data-testid="verified-empty">
           这一区域暂无有依据的场所。可看地图，或改用搜索指定场所名。
