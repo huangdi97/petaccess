@@ -22,7 +22,6 @@ const { online } = useOnline();
 
 const isNew = computed(() => editing.value === "new");
 const activeId = computed(() => session.activePet?.id ?? null);
-
 async function load() {
   error.value = "";
   loading.value = true;
