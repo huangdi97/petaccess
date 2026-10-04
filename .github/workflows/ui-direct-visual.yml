@@ -9,6 +9,10 @@ on:
       - feat/ui-product-craft-v7-human-review-final
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   visual:
     name: UI oracle and screenshots
