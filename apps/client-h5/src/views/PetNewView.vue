@@ -4,43 +4,13 @@ import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { client, session } from "@petaccess/client-core";
 import AppShell from "../components/AppShell.vue";
-import { animalScopeLabel } from "../consumer/labels";
+import PetImageSuggestion from "../components/pets/PetImageSuggestion.vue";
 
 const router = useRouter();
 const pet = ref({ display_name: "", species: "dog", breed_text: "", weight_kg: "" });
 const serviceRole = ref("none");
 const error = ref("");
-const aiMsg = ref("");
-const aiFile = ref<File | null>(null);
 const saving = ref(false);
-
-async function onPickImage(e: Event) {
-  const input = e.target as HTMLInputElement;
-  aiFile.value = input.files?.[0] ?? null;
-  if (!aiFile.value) return;
-  // Mock VisionProvider suggestion → user confirms (design #5.2/#21):
-  // never service dog, never confirmed weight/height from an image.
-  const form = new FormData();
-  form.append("image", aiFile.value);
-  try {
-    const res = await fetch("/api/v1/ai/pet-vision", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${localStorage.getItem("pa_token")}` },
-      body: form,
-    });
-    const data = await res.json();
-    if (res.ok) {
-      pet.value.species = data.species;
-      pet.value.breed_text = data.breed_candidates[0] ?? "";
-      const breed = data.breed_candidates.join(" / ");
-      aiMsg.value = `图片建议：${animalScopeLabel(data.species)}${breed ? ` · ${breed}` : ""}（请确认或修改）`;
-    } else {
-      aiMsg.value = "图片建议暂不可用，直接手填即可";
-    }
-  } catch {
-    aiMsg.value = "图片建议暂不可用，直接手填即可";
-  }
-}
 
 async function save() {
   error.value = "";
@@ -121,12 +91,14 @@ async function save() {
         </select>
       </section>
 
-      <section class="pet-new-section">
-        <h2>图片建议（可选）</h2>
-        <p class="muted">上传照片后可以获得物种/品种填写建议；你仍可以直接手填并修改。</p>
-        <input type="file" accept="image/*" data-testid="pet-photo" @change="onPickImage" />
-        <p v-if="aiMsg" class="pet-new-feedback" data-testid="ai-suggestion">{{ aiMsg }}</p>
-      </section>
+      <PetImageSuggestion
+        @suggest="
+          (species, breed) => {
+            pet.species = species;
+            pet.breed_text = breed;
+          }
+        "
+      />
 
       <div class="pet-new-actions">
         <button
