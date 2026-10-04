@@ -154,7 +154,7 @@ function stepStatus(p: ProvenanceStep): string {
   display: grid;
   grid-template-columns: 24px 1fr;
   gap: 0 var(--pa-space-3);
-  margin-bottom: var(--pa-space-7);
+  margin-bottom: var(--pa-space-6);
   background: transparent;
   border-radius: 0;
   box-shadow: none;
