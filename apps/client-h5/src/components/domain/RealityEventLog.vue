@@ -25,9 +25,18 @@ const props = withDefaults(
     zones: Zone[];
     placeId: string;
     limit?: number;
+    signedIn?: boolean;
+    busyEventId?: string | null;
   }>(),
-  { limit: 0 },
+  { limit: 0, signedIn: false, busyEventId: null },
 );
+
+const emit = defineEmits<{
+  confirm: [
+    event: RealityEventView,
+    type: "still_present" | "not_seen_now" | "facility_still_present" | "facility_removed",
+  ];
+}>();
 
 function zoneNameFor(event: RealityEventView): string {
   if (!event.zone_id) return "场所范围";
@@ -110,6 +119,44 @@ const visibleGroups = computed<EventGroup[]>(() => {
               >
                 查看证据 →
               </RouterLink>
+            </div>
+            <div
+              v-if="signedIn && ['observed_presence', 'animal_facility'].includes(event.event_type)"
+              class="trace-row__confirm"
+              aria-label="补充当前现场确认"
+            >
+              <template v-if="event.event_type === 'observed_presence'">
+                <button
+                  type="button"
+                  :disabled="busyEventId === event.id"
+                  @click="emit('confirm', event, 'still_present')"
+                >
+                  我现在也看到了
+                </button>
+                <button
+                  type="button"
+                  :disabled="busyEventId === event.id"
+                  @click="emit('confirm', event, 'not_seen_now')"
+                >
+                  这次没看到
+                </button>
+              </template>
+              <template v-else>
+                <button
+                  type="button"
+                  :disabled="busyEventId === event.id"
+                  @click="emit('confirm', event, 'facility_still_present')"
+                >
+                  设施还在
+                </button>
+                <button
+                  type="button"
+                  :disabled="busyEventId === event.id"
+                  @click="emit('confirm', event, 'facility_removed')"
+                >
+                  设施已撤除
+                </button>
+              </template>
             </div>
           </div>
         </div>
@@ -231,6 +278,35 @@ const visibleGroups = computed<EventGroup[]>(() => {
 
 .trace-row__status {
   color: var(--pa-color-text-muted);
+}
+
+.trace-row__confirm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pa-space-2);
+  margin-top: var(--pa-space-2);
+}
+
+.trace-row__confirm button {
+  min-height: var(--pa-size-control-sm);
+  padding: 0 var(--pa-space-2);
+  border: none;
+  background: transparent;
+  color: var(--pa-color-accent);
+  font-size: var(--pa-font-size-sm);
+  cursor: pointer;
+}
+
+.trace-row__confirm button:hover,
+.trace-row__confirm button:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.trace-row__confirm button:disabled {
+  color: var(--pa-color-text-muted);
+  cursor: progress;
+  text-decoration: none;
 }
 
 .reality-empty {
