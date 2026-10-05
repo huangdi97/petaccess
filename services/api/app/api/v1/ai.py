@@ -16,11 +16,13 @@ from app.core.errors import ApiError
 from app.core.security import get_current_user
 from app.providers.factory import (
     get_ai_guard,
+    get_map_provider,
     get_nl_provider,
     get_ocr_provider,
     get_vision_provider,
 )
 from app.providers.mock import MockMapProvider
+from app.providers.tencent_map import ProviderError
 
 router = APIRouter(prefix="/ai", tags=["ai"])
 
@@ -115,6 +117,83 @@ def parse_query(
     )
 
 
+class MapCoordinate(BaseModel):
+    lat: float = Field(ge=-90, le=90)
+    lng: float = Field(ge=-180, le=180)
+
+
+class MapTranslateIn(BaseModel):
+    coordinates: list[MapCoordinate] = Field(min_length=1, max_length=50)
+
+
 @router.get("/map/config")
-def map_config(user=Depends(get_current_user)) -> dict:
-    return MockMapProvider().render_config()
+def map_config() -> dict:
+    """Public render configuration for the consumer map.
+
+    The Tencent browser key is intentionally client-visible: Tencent's own
+    JavaScript GL API requires that key in the script URL. Deployments must
+    restrict this *client* key by approved domains. The server WebService key
+    remains private and is never returned here.
+    """
+    settings = get_settings()
+    real_ready = bool(
+        settings.feature_real_map
+        and settings.map_provider == "tencent"
+        and settings.tencent_map_key_client
+        and settings.tencent_map_key_server
+    )
+    if not real_ready:
+        return {
+            **MockMapProvider().render_config(),
+            "real_enabled": False,
+            "client_key": None,
+            "attribution": None,
+            "reason": "real_map_not_configured",
+        }
+
+    config = get_map_provider().render_config()
+    return {
+        **config,
+        "center": {"lat": 31.23, "lng": 121.47},
+        "zoom": 14,
+        "real_enabled": True,
+        "client_key": settings.tencent_map_key_client,
+        "attribution": "腾讯地图",
+        "reason": None,
+    }
+
+
+@router.post("/map/translate")
+def translate_map_coordinates(body: MapTranslateIn) -> dict:
+    """Translate governed EPSG:4326 points for the configured render provider.
+
+    Converted coordinates are response-only presentation data: PetAccess never
+    writes provider coordinates back into Place.location or PlaceGeometry.
+    """
+    settings = get_settings()
+    if not (
+        settings.feature_real_map
+        and settings.map_provider == "tencent"
+        and settings.tencent_map_key_server
+    ):
+        return {
+            "provider": "mock",
+            "coordinate_system": "EPSG:4326",
+            "coordinates": [point.model_dump() for point in body.coordinates],
+        }
+
+    try:
+        translated = get_map_provider().translate_coordinates(
+            [(point.lat, point.lng) for point in body.coordinates]
+        )
+    except ProviderError as exc:
+        raise ApiError(
+            "真实地图坐标转换暂不可用",
+            code=f"map_{exc.code}",
+            status_code=503,
+        ) from exc
+    return {
+        "provider": "tencent",
+        "coordinate_system": "GCJ-02",
+        "coordinates": translated,
+    }
