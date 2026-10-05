@@ -223,7 +223,6 @@ export interface CoexistenceSnapshot {
   evidence_summary: EvidenceSummary;
 }
 
-
 /** One published, human-verified Reality fact in the consumer timeline. */
 export interface RealityEventView {
   id: string;
