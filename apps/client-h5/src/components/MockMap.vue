@@ -33,7 +33,7 @@ const props = withDefaults(
   { selectedId: null, lens: "rule", lensLabels: () => ({}) },
 );
 
-const emit = defineEmits<{ select: [cluster: MapCluster] }>();
+const emit = defineEmits<{ select: [cluster: MapCluster]; zoom: [delta: number] }>();
 
 /** Degrees of longitude visible at this zoom (deterministic, provider-free). */
 const spanDeg = computed(() => 0.02 / Math.max(1, props.camera.zoom / 14));
@@ -107,7 +107,12 @@ const MASS = [
 ];
 </script>
 <template>
-  <div class="map-surface" data-testid="map-surface" data-ui="mock-map">
+  <div
+    class="map-surface"
+    :class="`map-surface--${lens}`"
+    data-testid="map-surface"
+    data-ui="mock-map"
+  >
     <!-- 空间基底：道路层级/街区/开放空间/建筑体块/水系（SVG，纯表现，不承载数据语义） -->
     <svg
       class="map-basemap"
@@ -139,8 +144,22 @@ const MASS = [
     </svg>
 
     <div class="map-zoom" data-testid="map-zoom" data-ui="map-zoom" role="group" aria-label="缩放">
-      <button type="button" aria-label="放大" disabled>＋</button>
-      <button type="button" aria-label="缩小" disabled>－</button>
+      <button
+        type="button"
+        aria-label="放大"
+        :disabled="camera.zoom >= 18"
+        @click="emit('zoom', 1)"
+      >
+        ＋
+      </button>
+      <button
+        type="button"
+        aria-label="缩小"
+        :disabled="camera.zoom <= 8"
+        @click="emit('zoom', -1)"
+      >
+        －
+      </button>
     </div>
 
     <div
@@ -268,7 +287,12 @@ const MASS = [
   background: var(--pa-color-surface);
   color: var(--pa-color-text-primary);
   font-size: var(--pa-font-size-lg);
+  cursor: pointer;
+}
+
+.map-zoom button:disabled {
   cursor: default;
+  opacity: 0.45;
 }
 
 /* ---- pins ---- */
@@ -358,6 +382,54 @@ const MASS = [
 .s-ALLOWED,
 .s-MATCH {
   background: var(--pa-color-status-allowed);
+}
+
+.s-STALE {
+  background: var(--pa-color-status-stale);
+}
+
+/* Non-rule lenses reuse marker state keys only as an internal carrier for
+ * clustering/selection. Their visible palette must express the active fact
+ * dimension, never access morality ("green = allowed"). */
+.map-surface--reality .s-ALLOWED,
+.map-surface--reality .s-MATCH {
+  background: var(--pa-color-reality-observed);
+}
+
+.map-surface--reality .s-STALE {
+  background: var(--pa-color-reality-historical);
+}
+
+.map-surface--reality .s-UNKNOWN {
+  background: var(--pa-color-reality-insufficient);
+}
+
+.map-surface--reality .s-CONFLICT {
+  background: var(--pa-color-reality-disputed);
+}
+
+.map-surface--facility .s-ALLOWED,
+.map-surface--facility .s-MATCH {
+  background: var(--pa-color-facility-confirmed);
+}
+
+.map-surface--facility .s-UNKNOWN,
+.map-surface--facility .s-STALE {
+  background: var(--pa-color-facility-unverified);
+}
+
+.map-surface--facility .dot.s-CONDITIONAL {
+  background: transparent;
+  border-color: var(--pa-color-facility-unverified);
+}
+
+.map-surface--facility .map-cluster.s-CONDITIONAL {
+  background: var(--pa-color-facility-unverified);
+}
+
+.map-surface--divergence .s-ALLOWED,
+.map-surface--divergence .s-MATCH {
+  background: var(--pa-color-reality-observed);
 }
 
 /* Cluster（数字聚合）保留实心语义填充；dot 的 CONDITIONAL 是环（见上）。 */
