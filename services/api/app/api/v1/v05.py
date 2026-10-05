@@ -14,7 +14,9 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.core.audit import record_audit
 from app.core.audit_events import AuditEvent
+from app.core.config import get_settings
 from app.core.errors import ApiError, NotFound
+from app.core.ratelimit import check_rate_limit
 from app.core.security import get_current_user, require_role
 from app.db.session import get_db
 from app.models import (
@@ -108,6 +110,14 @@ def contribute_rule_lead(
     db: Session = Depends(get_db),
 ) -> dict:
     """Put a user rule lead into RuleCandidate review, never Observation/Rule."""
+
+    settings = get_settings()
+    check_rate_limit(
+        "consumer_rule_leads",
+        user.id,
+        settings.contribution_rate_max,
+        settings.contribution_rate_window_seconds,
+    )
 
     place = db.get(Place, place_id)
     if place is None:
