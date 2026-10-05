@@ -43,6 +43,7 @@ MAX_BYTES = 10 * 1024 * 1024
 
 PRIVACY_BY_PURPOSE = {
     MediaPurpose.SIGNAGE_EVIDENCE: MediaPrivacyClass.EVIDENCE,
+    MediaPurpose.REALITY_EVIDENCE: MediaPrivacyClass.EVIDENCE,
     MediaPurpose.IMPORT_DOCUMENT: MediaPrivacyClass.EVIDENCE,
     MediaPurpose.SCENE_PHOTO: MediaPrivacyClass.SCENE,
     MediaPurpose.AVATAR: MediaPrivacyClass.SCENE,
