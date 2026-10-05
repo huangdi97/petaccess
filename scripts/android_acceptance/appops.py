@@ -16,7 +16,6 @@ from pathlib import Path
 
 from .adb import (
     SDK_ADB,
-    DEFAULT_SERIAL,
     adb,
     check_serial,
     package_running,
