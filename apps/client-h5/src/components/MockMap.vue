@@ -27,8 +27,10 @@ const props = withDefaults(
     camera: MapCamera;
     clusters: MapCluster[];
     selectedId?: string | null;
+    lens?: string;
+    lensLabels?: Record<string, string>;
   }>(),
-  { selectedId: null },
+  { selectedId: null, lens: "rule", lensLabels: () => ({}) },
 );
 
 const emit = defineEmits<{ select: [cluster: MapCluster] }>();
@@ -52,6 +54,12 @@ function project(lat: number, lng: number): { left: string; top: string } {
 }
 
 const glyph = (status: MapMarker["status"]) => STATUS_GLYPHS[status] ?? STATUS_GLYPHS.UNKNOWN;
+
+function markerLabel(cluster: MapCluster): string {
+  if (cluster.count > 1) return `${cluster.count} 个场所`;
+  const id = cluster.memberIds[0];
+  return props.lensLabels[id] ?? glyph(cluster.status);
+}
 
 /* ---- Abstract urban spatial canvas (v0.2.7 §8) -------------------------
  * Everything is pure decoration; no data semantics live here. The palette
@@ -150,7 +158,7 @@ const MASS = [
       "
       :style="project(c.lat, c.lng)"
       :data-testid="c.count > 1 ? 'cluster-' + c.id : 'pin-' + c.memberIds[0]"
-      :aria-label="`${c.count} 个场所，${glyph(c.status)}`"
+      :aria-label="`${c.count} 个场所，${markerLabel(c)}`"
       role="button"
       tabindex="0"
       @click="emit('select', c)"
@@ -163,7 +171,7 @@ const MASS = [
         <!-- v0.2.5 §26：未选中 marker 只显示小 symbol，不永久铺满状态字；
              只有选中的（或 hover）才上 label。 -->
         <div v-if="selectedId === c.memberIds[0]" class="lbl" :class="'s-' + c.status">
-          {{ glyph(c.status) }}
+          {{ markerLabel(c) }}
         </div>
         <!-- v0.2.7 §10：dot 是 marker 本体（含语义形状），data-ui 供几何 gate 测量：
              map-marker / map-marker-selected（scale + halo + elevation）。 -->
