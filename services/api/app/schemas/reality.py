@@ -16,6 +16,7 @@ from app.models.enums import (
     ExternalContentPlatform,
     FacilityAccessMode,
     FacilityOperationalState,
+    FacilityPurposeState,
     FactEvidenceState,
     ObservationEffortDurationBucket,
     ObservationOrigin,
@@ -29,6 +30,7 @@ from app.models.enums import (
     RealityReportPrivacyState,
     RealityVerificationStatus,
     StaffActorRole,
+    StaffAwarenessState,
     StaffResponseAction,
     TimeCertainty,
     TimeEvidenceState,
@@ -118,6 +120,7 @@ class StaffResponseObservationOut(BaseModel):
     actor_role: StaffActorRole
     trigger_context: str | None
     response_action: StaffResponseAction
+    staff_awareness_state: StaffAwarenessState
     response_outcome: str | None
     policy_statement_verbatim: str | None
     observed_at: datetime
@@ -136,6 +139,7 @@ class AnimalFacilityOut(BaseModel):
     place_id: str
     zone_id: str | None
     facility_type: AnimalFacilityType
+    purpose_state: FacilityPurposeState
     operator_provided: bool
     access_mode: FacilityAccessMode
     capacity: int | None
@@ -174,9 +178,11 @@ class RealityEventOut(BaseModel):
     observed_context: str | None = None
     staff_actor_role: str | None = None
     staff_action: str | None = None
+    staff_awareness_state: str | None = None
     staff_outcome: str | None = None
     facility_type: str | None = None
     facility_state: str | None = None
+    facility_purpose_state: str | None = None
     facility_access_mode: str | None = None
     facility_capacity: int | None = None
     facility_size_limit: str | None = None
@@ -189,6 +195,7 @@ class RealityEventOut(BaseModel):
     facility_operator_provided: bool | None = None
     source_id: str | None = None
     evidence_bundle_id: str | None = None
+    submitted_at: datetime | None = None
     verification_status: str
     freshness_state: str | None = None
     last_verified_at: datetime | None = None
