@@ -103,7 +103,7 @@ def find_duplicate_report(
     the new report still lands REVIEW_PENDING with the flag attached.
     """
     fp = content_fingerprint(source_url, content_hash)
-    if fp is None:
+    if fp is None and media_hash is None:
         return None
     since = datetime.now(UTC) - timedelta(hours=DEDUP_WINDOW_HOURS)
     stmt = select(RealityReport).where(
@@ -120,7 +120,7 @@ def find_duplicate_report(
         if media_hash and report.media_hash == media_hash:
             return report
         rfp = content_fingerprint(report.source_url, report.content_hash)
-        if rfp is not None and rfp == fp:
+        if fp is not None and rfp == fp:
             return report
     return None
 
