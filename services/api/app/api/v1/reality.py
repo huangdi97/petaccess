@@ -877,6 +877,7 @@ def _facility_summary(db: Session, place_id: str) -> list[dict]:
     rows = db.execute(
         select(
             AnimalFacility.facility_type,
+            AnimalFacility.purpose_state,
             AnimalFacility.operational_state,
             func.count(),
             func.max(AnimalFacility.last_verified_at),
@@ -892,16 +893,21 @@ def _facility_summary(db: Session, place_id: str) -> list[dict]:
                 RealityReport.time_evidence_state != "publication_time_only",
             ),
         )
-        .group_by(AnimalFacility.facility_type, AnimalFacility.operational_state)
+        .group_by(
+            AnimalFacility.facility_type,
+            AnimalFacility.purpose_state,
+            AnimalFacility.operational_state,
+        )
     ).all()
     return [
         {
             "facility_type": facility_type,
+            "purpose_state": purpose_state,
             "count": count,
             "operational_state": state,
             "last_verified_at": last_verified_at,
         }
-        for facility_type, state, count, last_verified_at in rows
+        for facility_type, purpose_state, state, count, last_verified_at in rows
     ]
 
 
