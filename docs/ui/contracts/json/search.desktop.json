@@ -39,7 +39,9 @@
     {
       "id": "SEARCH_RAIL_WIDTH",
       "ui": "app-rail",
-      "fallbacks": [".desktop-rail"],
+      "fallbacks": [
+        ".desktop-rail"
+      ],
       "props": {
         "width": {
           "min": 64,
@@ -51,7 +53,9 @@
     {
       "id": "SEARCH_TOP_CONTEXT_HEIGHT",
       "ui": "query-context",
-      "fallbacks": ["[data-testid='query-context']"],
+      "fallbacks": [
+        "[data-testid='query-context']"
+      ],
       "props": {
         "height": {
           "min": 56,
@@ -63,7 +67,9 @@
     {
       "id": "SEARCH_RESULT_PANE_X",
       "ui": "search-results-pane",
-      "fallbacks": [".search-result-pane"],
+      "fallbacks": [
+        ".search-result-pane"
+      ],
       "props": {
         "left": {
           "min": 60,
@@ -75,7 +81,9 @@
     {
       "id": "SEARCH_RESULT_PANE_WIDTH",
       "ui": "search-results-pane",
-      "fallbacks": [".search-result-pane"],
+      "fallbacks": [
+        ".search-result-pane"
+      ],
       "props": {
         "width": {
           "min": 392,
@@ -87,7 +95,9 @@
     {
       "id": "SEARCH_DETAIL_PANE_X",
       "ui": "search-detail-pane",
-      "fallbacks": ["[data-testid='decision-inspector']"],
+      "fallbacks": [
+        "[data-testid='decision-inspector']"
+      ],
       "props": {
         "left": {
           "min": 460,
@@ -99,7 +109,9 @@
     {
       "id": "SEARCH_DETAIL_PANE_PRESENT",
       "ui": "search-detail-pane",
-      "fallbacks": ["[data-testid='decision-inspector']"],
+      "fallbacks": [
+        "[data-testid='decision-inspector']"
+      ],
       "props": {
         "count": {
           "min": 1
@@ -125,7 +137,9 @@
     {
       "id": "SEARCH_INPUT_HEIGHT",
       "ui": "search-input",
-      "fallbacks": ["[data-testid='search-input']"],
+      "fallbacks": [
+        "[data-testid='search-input']"
+      ],
       "props": {
         "height": {
           "min": 44,
@@ -137,7 +151,9 @@
     {
       "id": "SEARCH_BUTTON_HEIGHT",
       "ui": "search-submit",
-      "fallbacks": ["[data-testid='search-btn']"],
+      "fallbacks": [
+        "[data-testid='search-btn']"
+      ],
       "props": {
         "height": {
           "min": 44,
@@ -155,8 +171,8 @@
       ],
       "props": {
         "height": {
-          "min": 92,
-          "max": 108
+          "min": 112,
+          "max": 132
         }
       },
       "severity": "FAIL",
@@ -165,7 +181,9 @@
     {
       "id": "SEARCH_ROW_RADIUS_ZERO",
       "ui": "search-result-row",
-      "fallbacks": ["ul.result-list li"],
+      "fallbacks": [
+        "ul.result-list li"
+      ],
       "props": {
         "borderRadius": {
           "equals": "0"
@@ -177,7 +195,9 @@
     {
       "id": "SEARCH_ROW_SHADOW_NONE",
       "ui": "search-result-row",
-      "fallbacks": ["ul.result-list li"],
+      "fallbacks": [
+        "ul.result-list li"
+      ],
       "props": {
         "boxShadow": {
           "equals": "none"
@@ -189,7 +209,9 @@
     {
       "id": "SEARCH_ROW_DIVIDER",
       "ui": "search-result-row",
-      "fallbacks": ["ul.result-list li"],
+      "fallbacks": [
+        "ul.result-list li"
+      ],
       "props": {
         "borderBottomWidth": {
           "min": 1
@@ -201,7 +223,9 @@
     {
       "id": "SEARCH_DECISION_FONT_SIZE",
       "ui": "search-decision-text",
-      "fallbacks": [".inspector-decision"],
+      "fallbacks": [
+        ".inspector-decision"
+      ],
       "props": {
         "fontSize": {
           "min": 27,
@@ -213,7 +237,9 @@
     {
       "id": "SEARCH_DECISION_LABEL_SIZE",
       "ui": "search-decision-label",
-      "fallbacks": [".inspector-block--decision .inspector-block__label"],
+      "fallbacks": [
+        ".inspector-block--decision .inspector-block__label"
+      ],
       "props": {
         "fontSize": {
           "min": 12,
@@ -225,7 +251,9 @@
     {
       "id": "SEARCH_PAGE_TITLE_SIZE",
       "ui": "search-detail-name",
-      "fallbacks": [".decision-inspector__name"],
+      "fallbacks": [
+        ".decision-inspector__name"
+      ],
       "props": {
         "fontSize": {
           "min": 27,
@@ -237,7 +265,9 @@
     {
       "id": "SEARCH_COUNT_LINE",
       "ui": "search-count",
-      "fallbacks": ["[data-testid='search-count']"],
+      "fallbacks": [
+        "[data-testid='search-count']"
+      ],
       "props": {
         "count": {
           "min": 1
@@ -250,7 +280,10 @@
     {
       "id": "NO_RESULT_CARD_ROWS",
       "selector": "ul.result-list li",
-      "forbiddenClass": ["card", "panel"],
+      "forbiddenClass": [
+        "card",
+        "panel"
+      ],
       "severity": "FAIL"
     },
     {
@@ -275,10 +308,22 @@
       "severity": "FAIL"
     },
     {
-      "id": "SEARCH_NO_DUPLICATE_STATUS_BADGE",
-      "selector": ".result-row .status-badge, [data-ui='search-detail-content'] header .status-badge",
+      "id": "SEARCH_DETAIL_HEADER_NO_DUPLICATE_STATUS_BADGE",
+      "selector": "[data-ui='search-detail-content'] header .status-badge",
       "max": 0,
       "severity": "FAIL"
+    },
+    {
+      "id": "SEARCH_ROW_REALITY_PRESENT",
+      "selector": "[data-testid='result-reality'], [data-testid='row-lens-headline']",
+      "min": 1,
+      "severity": "FAIL"
+    },
+    {
+      "id": "SEARCH_ROW_EVIDENCE_META_PRESENT",
+      "selector": "[data-testid='result-evidence-meta']",
+      "min": 1,
+      "severity": "WARN"
     }
   ],
   "density": [
@@ -371,5 +416,5 @@
     "allcapsTokens": true,
     "refs": true
   },
-  "notes": "v0.2.3 §21–22：Rail 68 / Topbar 60 / Results 400（x=68）/ Detail 972（x=468）；row radius=0 + divider + ≤5 text lines；selected = subtle tint + 2px indicator；detail content w∈680–724、首屏 ≥5 blocks、最大语义 gap ≤72px。"
+  "notes": "Canonical v0.10-R1: each row keeps Place identity + Rule semantic status + Reality headline + Rule condition + Evidence/freshness metadata, divider-led with <=5 text lines."
 }
