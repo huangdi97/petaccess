@@ -6,6 +6,14 @@ import type { RowFacts } from "./repository";
 
 export type MapLensKey = "rule" | "reality" | "facility" | "divergence";
 
+const MAP_LENS_KEYS = new Set<MapLensKey>(["rule", "reality", "facility", "divergence"]);
+
+export function parseMapLens(value: unknown): MapLensKey {
+  return typeof value === "string" && MAP_LENS_KEYS.has(value as MapLensKey)
+    ? (value as MapLensKey)
+    : "rule";
+}
+
 export function mapLensTone(lens: MapLensKey, row: RowFacts | undefined): MapMarker["status"] {
   if (!row) return "UNKNOWN";
   if (lens === "rule") return answerStatusKey(row.answer);
