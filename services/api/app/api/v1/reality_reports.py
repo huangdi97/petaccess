@@ -418,7 +418,35 @@ def reality_trace(
         for row in published_rows
         if getattr(row, "evidence_bundle_id", None)
     }
-    has_first_hand_source = any(getattr(row, "source_id", None) for row in published_rows)
+    candidate_ids = {
+        row.candidate_id
+        for row in published_rows
+        if getattr(row, "candidate_id", None)
+    }
+    report_origins = (
+        list(
+            db.scalars(
+                select(RealityReport.origin)
+                .join(RealityCandidate, RealityCandidate.report_id == RealityReport.id)
+                .where(RealityCandidate.id.in_(candidate_ids))
+            )
+        )
+        if candidate_ids
+        else []
+    )
+    source_ids = {
+        row.source_id for row in published_rows if getattr(row, "source_id", None)
+    }
+    directness_values = (
+        list(db.scalars(select(Source.directness).where(Source.id.in_(source_ids))))
+        if source_ids
+        else []
+    )
+    has_first_hand_source = any(
+        _enum_value(origin)
+        in {"on_site_now", "on_site_past", "operator_provided", "official_public_content"}
+        for origin in report_origins
+    ) or any(_enum_value(value) == "direct" for value in directness_values)
 
     fact_sections = [
         RealityTraceSection(
@@ -434,7 +462,7 @@ def reality_trace(
         ),
         RealityTraceSection(
             label="来源类型",
-            value=_source_type_label(db, claims, staff_rows, facility_rows),
+            value=_source_type_label(db, claims, staff_rows, facility_rows, report_origins),
         ),
         RealityTraceSection(
             label="时间",
@@ -528,18 +556,35 @@ def _source_type_label(
     claims: Sequence[ObservedPresence],
     staff_rows: Sequence[StaffResponseObservation],
     facility_rows: Sequence[AnimalFacility],
+    report_origins: Sequence[object] = (),
 ) -> str:
-    """Describe actual source provenance rather than infer it from fact type."""
+    """Describe explicit Source rows and RealityReport origins without guessing."""
     source_ids = {
         row.source_id
         for row in [*claims, *staff_rows, *facility_rows]
         if row.source_id
     }
-    if not source_ids:
-        return "来源待补充" if (claims or staff_rows or facility_rows) else "暂无已发布记录"
-    source_types = db.scalars(select(Source.source_type).where(Source.id.in_(source_ids))).all()
+    source_types = (
+        db.scalars(select(Source.source_type).where(Source.id.in_(source_ids))).all()
+        if source_ids
+        else []
+    )
     labels = {
         SOURCE_TYPE_LABELS.get(_enum_value(source_type), "其他来源")
         for source_type in source_types
     }
-    return "、".join(sorted(labels)) or "来源待补充"
+    origin_labels = {
+        "on_site_now": "现场亲历",
+        "on_site_past": "过往现场亲历",
+        "external_online_content": "公开内容线索",
+        "operator_provided": "场所方提供",
+        "official_public_content": "官方公开内容",
+    }
+    labels.update(
+        origin_labels[_enum_value(origin)]
+        for origin in report_origins
+        if _enum_value(origin) in origin_labels
+    )
+    if labels:
+        return "、".join(sorted(labels))
+    return "来源待补充" if (claims or staff_rows or facility_rows) else "暂无已发布记录"
