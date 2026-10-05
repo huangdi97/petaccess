@@ -162,7 +162,7 @@ const groups = computed<ObservationGroup[]>(() => {
   margin: var(--pa-space-28) 0 var(--pa-space-4);
   padding-left: calc(72px + 24px);
   font-size: var(--pa-font-size-sm);
-  font-weight: var(--pa-font-weight-semibold);
+  font-weight: var(--pa-font-weight-600);
   color: var(--pa-color-text-secondary);
   letter-spacing: var(--pa-letter-spacing-wide);
 }
