@@ -102,8 +102,9 @@ def _enum_text(value: object | None) -> str | None:
 
 
 def _presence_event(
-    row: ObservedPresence, submitted_at: datetime | None = None
+    row: ObservedPresence, report_meta: dict[str, object | None] | None = None
 ) -> RealityEventOut:
+    report_meta = report_meta or {}
     return RealityEventOut(
         id=row.id,
         event_type="observed_presence",
@@ -111,12 +112,15 @@ def _presence_event(
         zone_id=row.zone_id,
         event_at=row.observed_at,
         time_basis="observed",
+        time_evidence_state=report_meta.get("time_evidence_state"),
+        content_published_at=report_meta.get("content_published_at"),
+        claimed_event_at=report_meta.get("claimed_event_at"),
         animal_scope=_enum_text(row.animal_scope),
         observed_action=_enum_text(row.observed_action),
         observed_context=row.observed_context,
         source_id=row.source_id,
         evidence_bundle_id=row.evidence_bundle_id,
-        submitted_at=submitted_at,
+        submitted_at=report_meta.get("submitted_at"),
         verification_status=_enum_text(row.verification_status) or "unverified",
         freshness_state=_enum_text(row.freshness_state),
         last_verified_at=row.last_verified_at,
@@ -124,8 +128,9 @@ def _presence_event(
 
 
 def _staff_event(
-    row: StaffResponseObservation, submitted_at: datetime | None = None
+    row: StaffResponseObservation, report_meta: dict[str, object | None] | None = None
 ) -> RealityEventOut:
+    report_meta = report_meta or {}
     return RealityEventOut(
         id=row.id,
         event_type="staff_response",
@@ -133,6 +138,9 @@ def _staff_event(
         zone_id=row.zone_id,
         event_at=row.observed_at,
         time_basis="observed",
+        time_evidence_state=report_meta.get("time_evidence_state"),
+        content_published_at=report_meta.get("content_published_at"),
+        claimed_event_at=report_meta.get("claimed_event_at"),
         observed_context=row.trigger_context,
         staff_actor_role=_enum_text(row.actor_role),
         staff_action=_enum_text(row.response_action),
@@ -140,7 +148,7 @@ def _staff_event(
         staff_outcome=row.response_outcome,
         source_id=row.source_id,
         evidence_bundle_id=row.evidence_bundle_id,
-        submitted_at=submitted_at,
+        submitted_at=report_meta.get("submitted_at"),
         verification_status=_enum_text(row.verification_status) or "unverified",
         freshness_state=_enum_text(row.freshness_state),
         last_verified_at=row.last_verified_at,
@@ -148,8 +156,9 @@ def _staff_event(
 
 
 def _facility_event(
-    row: AnimalFacility, submitted_at: datetime | None = None
+    row: AnimalFacility, report_meta: dict[str, object | None] | None = None
 ) -> RealityEventOut:
+    report_meta = report_meta or {}
     event_at = row.observed_at or row.last_verified_at or row.created_at
     basis = "observed" if row.observed_at else "verified" if row.last_verified_at else "recorded"
     return RealityEventOut(
@@ -159,6 +168,9 @@ def _facility_event(
         zone_id=row.zone_id,
         event_at=event_at,
         time_basis=basis,
+        time_evidence_state=report_meta.get("time_evidence_state"),
+        content_published_at=report_meta.get("content_published_at"),
+        claimed_event_at=report_meta.get("claimed_event_at"),
         facility_type=_enum_text(row.facility_type),
         facility_state=_enum_text(row.operational_state),
         facility_purpose_state=_enum_text(row.purpose_state),
@@ -174,7 +186,7 @@ def _facility_event(
         facility_operator_provided=row.operator_provided,
         source_id=row.source_id,
         evidence_bundle_id=row.evidence_bundle_id,
-        submitted_at=submitted_at,
+        submitted_at=report_meta.get("submitted_at"),
         verification_status=_enum_text(row.verification_status) or "unverified",
         freshness_state=_enum_text(row.freshness_state),
         last_verified_at=row.last_verified_at,
@@ -223,28 +235,46 @@ def consumer_reality_events(
         for row in [*presence, *staff, *facilities]
         if row.candidate_id
     }
-    submitted_by_candidate: dict[str, datetime | None] = {}
+    report_meta_by_candidate: dict[str, dict[str, object | None]] = {}
     if candidate_ids:
-        submission_rows = db.execute(
-            select(RealityCandidate.id, RealityReport.submitted_at)
+        report_rows = db.execute(
+            select(
+                RealityCandidate.id,
+                RealityReport.submitted_at,
+                RealityReport.time_evidence_state,
+                RealityReport.content_published_at,
+                RealityReport.claimed_event_at,
+            )
             .outerjoin(RealityReport, RealityReport.id == RealityCandidate.report_id)
             .where(RealityCandidate.id.in_(candidate_ids))
         ).all()
-        submitted_by_candidate = {
-            candidate_id: submitted_at for candidate_id, submitted_at in submission_rows
+        report_meta_by_candidate = {
+            candidate_id: {
+                "submitted_at": submitted_at,
+                "time_evidence_state": time_evidence_state,
+                "content_published_at": content_published_at,
+                "claimed_event_at": claimed_event_at,
+            }
+            for (
+                candidate_id,
+                submitted_at,
+                time_evidence_state,
+                content_published_at,
+                claimed_event_at,
+            ) in report_rows
         }
 
     events = [
         *[
-            _presence_event(row, submitted_by_candidate.get(row.candidate_id))
+            _presence_event(row, report_meta_by_candidate.get(row.candidate_id))
             for row in presence
         ],
         *[
-            _staff_event(row, submitted_by_candidate.get(row.candidate_id))
+            _staff_event(row, report_meta_by_candidate.get(row.candidate_id))
             for row in staff
         ],
         *[
-            _facility_event(row, submitted_by_candidate.get(row.candidate_id))
+            _facility_event(row, report_meta_by_candidate.get(row.candidate_id))
             for row in facilities
         ],
     ]
