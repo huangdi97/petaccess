@@ -40,6 +40,7 @@ export function presencePayload(o: {
 
 export function staffPayload(o: {
   action: string;
+  awareness: string;
   context: string;
   outcome: string;
 }): Record<string, unknown> {
@@ -47,14 +48,24 @@ export function staffPayload(o: {
     actor_role: "unknown_staff",
     trigger_context: o.context.trim() || null,
     response_action: o.action || "unknown",
+    staff_awareness_state: o.awareness || "awareness_unknown",
     response_outcome: o.outcome.trim() || null,
   };
 }
 
-export function facilityPayload(o: { type: string; operational: string }): Record<string, unknown> {
+export function facilityPayload(o: {
+  type: string;
+  operational: string;
+  purpose: string;
+  accessMode: string;
+  capacity: string;
+}): Record<string, unknown> {
   return {
     facility_type: o.type || "other",
     operational_state: o.operational,
+    purpose_state: o.purpose || "purpose_unknown",
+    access_mode: o.accessMode || "unknown",
+    capacity: o.capacity ? Number(o.capacity) : null,
   };
 }
 
@@ -67,9 +78,13 @@ export function realityPayload(
     action: string;
     context: string;
     staffAction: string;
+    staffAwareness: string;
     staffOutcome: string;
     facilityType: string;
     facilityOperational: string;
+    facilityPurpose: string;
+    facilityAccessMode: string;
+    facilityCapacity: string;
   },
 ): { payload: Record<string, unknown>; animalScope: string | null } {
   if (kind === "observed_presence") {
@@ -85,12 +100,23 @@ export function realityPayload(
   }
   if (kind === "staff_response") {
     return {
-      payload: staffPayload({ action: f.staffAction, context: f.context, outcome: f.staffOutcome }),
+      payload: staffPayload({
+        action: f.staffAction,
+        awareness: f.staffAwareness,
+        context: f.context,
+        outcome: f.staffOutcome,
+      }),
       animalScope: null,
     };
   }
   return {
-    payload: facilityPayload({ type: f.facilityType, operational: f.facilityOperational }),
+    payload: facilityPayload({
+      type: f.facilityType,
+      operational: f.facilityOperational,
+      purpose: f.facilityPurpose,
+      accessMode: f.facilityAccessMode,
+      capacity: f.facilityCapacity,
+    }),
     animalScope: null,
   };
 }
