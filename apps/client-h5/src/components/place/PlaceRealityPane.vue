@@ -21,7 +21,7 @@ defineProps<{
 const emit = defineEmits<{
   confirm: [
     event: RealityEventView,
-    type: "still_present" | "not_seen_now" | "facility_still_present" | "facility_removed",
+    type: "still_present" | "facility_still_present" | "facility_removed",
   ];
 }>();
 </script>
