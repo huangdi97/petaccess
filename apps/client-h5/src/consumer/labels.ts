@@ -169,11 +169,28 @@ export function observedActionLabel(value: string | null | undefined): string {
 
 /** Staff response actions (StaffResponseAction / ObservationStaffAction). */
 export const STAFF_ACTION_LABELS: Record<string, string> = {
+  // Legacy onsite ObservationStaffAction.
   explicitly_allowed: "明确允许",
   explicitly_refused: "明确拒绝",
   asked_to_remove: "要求带离",
-  no_interaction_observed: "未观察到干预",
-  interaction_unknown: "干预情况未知",
+  no_interaction_observed: "未观察到互动",
+  interaction_unknown: "互动情况未知",
+
+  // v0.9 Reality StaffResponseAction.
+  proactive_accommodation: "主动提供便利",
+  provide_water: "提供饮水",
+  provide_container_or_stroller: "提供宠物箱或推车",
+  direct_to_allowed_zone: "引导到允许区域",
+  remind_leash: "提醒牵引",
+  require_carrier: "要求使用宠物箱或包",
+  request_relocation: "要求更换位置",
+  request_wait_outside: "要求在外等候",
+  deny_entry: "拒绝进入",
+  request_exit: "要求离开",
+  policy_explanation: "解释场所规则",
+  escalate_to_manager: "转交负责人处理",
+  no_intervention_observed: "未观察到干预",
+  unknown: "处理情况未知",
 };
 
 export function staffActionLabel(value: string | null | undefined): string {
