@@ -12,7 +12,12 @@
  */
 import { computed } from "vue";
 import type { AccessAnswer, CoexistenceSnapshot, Zone } from "@petaccess/client-core";
-import { animalFacilityLabel, staffActionLabel, zoneConsumerLine } from "../../consumer/labels";
+import {
+  animalFacilityLabel,
+  facilityPurposeIsConfirmed,
+  staffActionLabel,
+  zoneConsumerLine,
+} from "../../consumer/labels";
 import { answerConditions, answerStatusKey, answerVerdictLabel } from "../../answer";
 import { divergenceLabel, realityStateLabel } from "../../reality";
 import StatusBadge from "../StatusBadge.vue";
@@ -85,13 +90,14 @@ const staffSummaryLine = computed(() => {
 const facilitySummaryLine = computed(() => {
   const rows = props.coexistence?.facility_summary ?? [];
   if (!rows.length) return "暂无经核验的动物设施记录";
-  return rows
-    .slice(0, 1)
-    .map((item) => {
-      const verified = item.last_verified_at ? ` · 核验 ${item.last_verified_at.slice(0, 10)}` : "";
-      return `${animalFacilityLabel(item.facility_type)} × ${item.count}${verified}`;
-    })
-    .join(" · ");
+  const confirmed = rows.find((item) => facilityPurposeIsConfirmed(item.purpose_state));
+  const item = confirmed ?? rows[0];
+  if (!item) return "暂无经核验的动物设施记录";
+  const verified = item.last_verified_at ? ` · 核验 ${item.last_verified_at.slice(0, 10)}` : "";
+  const label = facilityPurposeIsConfirmed(item.purpose_state)
+    ? animalFacilityLabel(item.facility_type)
+    : "疑似动物相关设施 · 用途待核验";
+  return `${label} × ${item.count}${verified}`;
 });
 
 const divergenceLine = computed(() => {
