@@ -12,6 +12,7 @@ import {
   realityEventDetail,
   realityEventEvidenceState,
   realityEventHeadline,
+  realityEventProvenance,
   realityEventTimeBasis,
 } from "../../consumer/realityEvent";
 import EvidenceProvenance from "../domain/EvidenceProvenance.vue";
@@ -58,6 +59,9 @@ const LABELS: Record<string, string> = {
         <p class="evidence-item__text">{{ realityEventHeadline(event) }}</p>
         <p v-if="realityEventDetail(event)" class="muted evidence-item__detail">
           {{ realityEventDetail(event) }}
+        </p>
+        <p v-if="realityEventProvenance(event)" class="muted evidence-item__provenance">
+          {{ realityEventProvenance(event) }}
         </p>
         <p class="muted evidence-item__time-basis">{{ realityEventTimeBasis(event) }}</p>
       </div>
@@ -121,12 +125,14 @@ const LABELS: Record<string, string> = {
 
 .evidence-item__text,
 .evidence-item__detail,
+.evidence-item__provenance,
 .evidence-item__time-basis {
   margin: 0;
   font-size: var(--pa-font-size-md);
   line-height: var(--pa-line-height-base);
 }
 
+.evidence-item__provenance,
 .evidence-item__time-basis {
   font-size: var(--pa-font-size-sm);
 }
