@@ -24,9 +24,10 @@ const cards = computed(() => [...props.verified, ...props.pending]);
 const recommendationTitle = computed(() => (props.interest ? "按你的关注推荐" : "近期值得先看"));
 
 function hasUsefulFact(card: HomeCard): boolean {
-  const realityEvidence = card.facts.reality?.evidence_count ?? 0;
+  const presenceEvidence = card.facts.reality?.evidence_count ?? 0;
+  const realityEvidence = card.facts.snapshot?.evidence_summary.reality_evidence_count ?? 0;
   const ruleEvidence = card.facts.snapshot?.evidence_summary.rule_evidence.length ?? 0;
-  return realityEvidence > 0 || ruleEvidence > 0 || card.status !== "UNKNOWN";
+  return presenceEvidence > 0 || realityEvidence > 0 || ruleEvidence > 0 || card.status !== "UNKNOWN";
 }
 
 /**
@@ -46,8 +47,8 @@ function compareRecommendation(a: HomeCard, b: HomeCard): number {
   const bDays = b.facts.reality?.days_since_last_seen ?? Number.POSITIVE_INFINITY;
   if (aDays !== bDays) return aDays - bDays;
 
-  const aEvidence = a.facts.reality?.evidence_count ?? 0;
-  const bEvidence = b.facts.reality?.evidence_count ?? 0;
+  const aEvidence = a.facts.snapshot?.evidence_summary.reality_evidence_count ?? 0;
+  const bEvidence = b.facts.snapshot?.evidence_summary.reality_evidence_count ?? 0;
   if (aEvidence !== bEvidence) return bEvidence - aEvidence;
 
   return a.place.canonical_name.localeCompare(b.place.canonical_name, "zh-CN");
@@ -82,8 +83,9 @@ function meta(card: HomeCard): string {
   if (reality?.days_since_last_seen != null) {
     parts.push(`${reality.days_since_last_seen} 天前最近记录`);
   }
-  if ((reality?.evidence_count ?? 0) > 0) {
-    parts.push(`${reality?.evidence_count} 条现场证据`);
+  const allRealityEvidence = card.facts.snapshot?.evidence_summary.reality_evidence_count ?? 0;
+  if (allRealityEvidence > 0) {
+    parts.push(`${allRealityEvidence} 条现场证据`);
   }
   const ruleEvidence = card.facts.snapshot?.evidence_summary.rule_evidence.length ?? 0;
   if (!parts.length && ruleEvidence > 0) parts.push(`${ruleEvidence} 条规则依据`);
