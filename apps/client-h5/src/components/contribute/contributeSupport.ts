@@ -46,14 +46,14 @@ export function staffPayload(o: {
   return {
     actor_role: "staff",
     trigger_context: o.context.trim() || null,
-    response_action: o.action || "provided_guidance",
+    response_action: o.action || "unknown",
     response_outcome: o.outcome.trim() || null,
   };
 }
 
 export function facilityPayload(o: { type: string; operational: string }): Record<string, unknown> {
   return {
-    facility_type: o.type || "waiting_area",
+    facility_type: o.type || "other",
     operator_provided: false,
     operational_state: o.operational,
   };
