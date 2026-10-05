@@ -2,7 +2,7 @@
 /** ContributeRealityForm — M7 reality contribution on the parent-flow API (A2). */
 import { computed, ref } from "vue";
 import { client } from "@petaccess/client-core";
-import { isoAt, realityPayload, reportOrigin } from "./contributeSupport";
+import { isoAt, realityPayload } from "./contributeSupport";
 import { presentDescription } from "../../errors";
 import {
   ANIMAL_FACILITY_LABELS,
@@ -203,7 +203,7 @@ async function submit() {
     });
     const res = await client.createRealityReport(props.placeId, {
       report: {
-        origin: isExternal.value ? "external_online_content" : reportOrigin(occurredAt.value),
+        origin: sourceMode.value,
         place_id: props.placeId,
         place_match_state: "exact_place",
         place_match_evidence_types: ["user_confirmation"],
@@ -223,7 +223,9 @@ async function submit() {
             : "unknown"
           : "exact",
         fact_evidence_state: isExternal.value
-          ? "text_only_external"
+          ? mediaId.value
+            ? "external_media"
+            : "text_only_external"
           : mediaId.value
             ? "direct_media"
             : "first_hand_no_media",
@@ -354,8 +356,16 @@ async function submit() {
 
       <fieldset v-if="!isExternal" class="cluster">
         <legend class="cluster__title">什么时候？</legend>
-        <label for="reality-date">日期</label>
-        <input v-model="occurredAt" type="date" id="reality-date" data-testid="reality-date" />
+        <template v-if="sourceMode === 'on_site_past'">
+          <label for="reality-date">发生日期</label>
+          <input
+            id="reality-date"
+            v-model="occurredAt"
+            type="date"
+            data-testid="reality-date"
+          />
+        </template>
+        <p v-else class="muted source-note">将使用提交时的当前时间记录这次现场观察。</p>
         <label for="reality-effort">在场时长</label>
         <select v-model="effortBucket" id="reality-effort" data-testid="reality-effort">
           <option v-for="(label, key) in EFFORT_LABELS" :key="key" :value="key">{{ label }}</option>
