@@ -119,7 +119,7 @@ const selectedStatus = computed(() =>
 );
 
 const FILTERS = [
-  { key: "MATCH", label: "明确允许" },
+  { key: "ALLOWED", label: "明确允许" },
   { key: "CONDITIONAL", label: "有条件" },
   { key: "RESTRICTED", label: "明确限制" },
   { key: "UNKNOWN", label: "信息不足" },
