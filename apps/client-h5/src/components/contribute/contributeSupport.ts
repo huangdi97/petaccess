@@ -44,7 +44,7 @@ export function staffPayload(o: {
   outcome: string;
 }): Record<string, unknown> {
   return {
-    actor_role: "staff",
+    actor_role: "unknown_staff",
     trigger_context: o.context.trim() || null,
     response_action: o.action || "unknown",
     response_outcome: o.outcome.trim() || null,
@@ -54,7 +54,6 @@ export function staffPayload(o: {
 export function facilityPayload(o: { type: string; operational: string }): Record<string, unknown> {
   return {
     facility_type: o.type || "other",
-    operator_provided: false,
     operational_state: o.operational,
   };
 }
