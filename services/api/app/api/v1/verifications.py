@@ -32,7 +32,13 @@ def list_place_verifications(
         select(VerificationEvent)
         .where(
             VerificationEvent.place_id == place_id,
-            VerificationEvent.event_type != VerificationEventType.PLACE_CORRECTION,
+            VerificationEvent.event_type.notin_(
+                (
+                    VerificationEventType.PLACE_CORRECTION,
+                    VerificationEventType.RULE_LEAD_SUBMITTED,
+                    VerificationEventType.SIGNAGE_UPLOADED,
+                )
+            ),
         )
         .order_by(VerificationEvent.occurred_at.desc())
     )
@@ -65,6 +71,44 @@ def list_place_corrections(
 router.add_api_route(
     "/admin/place-corrections",
     list_place_corrections,
+    methods=["GET"],
+    response_model=Page[VerificationOut],
+)
+
+
+def list_rule_leads(
+    limit: int = Query(default=50, le=100),
+    offset: int = Query(default=0, ge=0),
+    user: User = Depends(require_role(UserRole.MODERATOR)),
+    db: Session = Depends(get_db),
+) -> Page[VerificationOut]:
+    """Moderator-only queue for rule leads and signage evidence.
+
+    These are pre-normative review inputs. They never appear in the public
+    verification feed and never become AccessRule rows without the governed
+    RuleCandidate -> Human Review -> Publish path.
+    """
+
+    stmt = (
+        select(VerificationEvent)
+        .where(
+            VerificationEvent.event_type.in_(
+                (
+                    VerificationEventType.RULE_LEAD_SUBMITTED,
+                    VerificationEventType.SIGNAGE_UPLOADED,
+                )
+            )
+        )
+        .order_by(VerificationEvent.created_at.desc())
+    )
+    total = db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
+    rows = db.scalars(stmt.limit(limit).offset(offset)).all()
+    return Page(items=rows, total=total, limit=limit, offset=offset)
+
+
+router.add_api_route(
+    "/admin/rule-leads",
+    list_rule_leads,
     methods=["GET"],
     response_model=Page[VerificationOut],
 )
