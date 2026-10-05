@@ -375,6 +375,73 @@ def materialize_report_evidence(db: Session, report: RealityReport) -> EvidenceB
     return bundle
 
 
+
+def materialize_legacy_candidate_evidence(
+    db: Session, candidate: RealityCandidate
+) -> EvidenceBundle:
+    """Backstop the legacy signed-in contribution endpoint with real provenance.
+
+    The route has no RealityReport parent, so its path place selection is stored
+    as user-confirmed place evidence and its explicit observed_at stays the time
+    anchor. This keeps the compatibility API from bypassing the evidence-first
+    publication contract.
+    """
+    now = datetime.now(UTC)
+    artifact = SourceArtifact(
+        source_id=None,
+        source_platform=SourcePlatform.ONSITE,
+        collector_type=CollectorType.ONSITE_EVIDENCE,
+        artifact_type="structured_firsthand_report",
+        source_url=None,
+        source_content_id=f"legacy-reality-candidate:{candidate.id}",
+        media_id=None,
+        snapshot_ref=None,
+        content_hash=None,
+        collected_at=now,
+        publisher_type="ordinary_user",
+        published_at=None,
+        captured_excerpt=None,
+        evidence_strength="user_submitted",
+        storage_allowed=True,
+        display_allowed=False,
+        redistribution_allowed=False,
+    )
+    db.add(artifact)
+    db.flush()
+    bundle = EvidenceBundle(
+        artifact_id=artifact.id,
+        source_id=None,
+        source_platform=artifact.source_platform,
+        source_url=None,
+        publisher_type=artifact.publisher_type,
+        published_at=None,
+        captured_at=now,
+        quoted_fragment=None,
+        extracted_fragment=None,
+        evidence_class=EvidenceClass.ORIGINAL,
+        content_hash=None,
+        place_match_evidence={
+            "state": "exact_place",
+            "types": ["user_confirmation"],
+            "place_id": candidate.place_id,
+        },
+        temporal_evidence={
+            "state": "exact_event_time" if candidate.observed_at else "unknown",
+            "observed_at": candidate.observed_at.isoformat() if candidate.observed_at else None,
+        },
+        extraction_method="manual",
+        license_metadata={
+            "storage_allowed": True,
+            "display_allowed": False,
+            "redistribution_allowed": False,
+            "structured_fact_publication_only": True,
+        },
+        privacy_notes="Compatibility contribution provenance; private review material.",
+    )
+    db.add(bundle)
+    db.flush()
+    return bundle
+
 def attach_candidate(
     db: Session,
     report: RealityReport,
