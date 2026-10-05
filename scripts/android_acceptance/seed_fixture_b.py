@@ -24,6 +24,7 @@ import sys
 import urllib.request
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / "services" / "api"))
 sys.path.insert(0, str(REPO / "scripts"))
@@ -42,20 +43,17 @@ PASSWORD = "passw0rd123"
 
 
 def _probe_role() -> str:
+    import psycopg
     from dev_api_server import psycopg_url_for  # type: ignore[import-not-found]
 
     from app.db.safety import guard_for_psycopg  # type: ignore[import-not-found]
-
-    import psycopg
 
     with psycopg.connect(psycopg_url_for("petaccess_e2e_android")) as conn:
         guard = guard_for_psycopg(conn)
     return guard.role.value
 
 
-def _request(
-    method: str, path: str, body: dict | None = None, token: str | None = None
-) -> dict:
+def _request(method: str, path: str, body: dict | None = None, token: str | None = None) -> dict:
     data = json.dumps(body).encode() if body is not None else None
     headers = {"Content-Type": "application/json"}
     if token:
@@ -185,59 +183,120 @@ def main() -> int:
         return 3
 
     _submit_verified(
-        token, cafe, "observed_presence",
-        {"observed_action": "present", "observed_context": "fixture-1d-门口出现"}, 1,
+        token,
+        cafe,
+        "observed_presence",
+        {"observed_action": "present", "observed_context": "fixture-1d-门口出现"},
+        1,
     )
     _submit_verified(
-        token, cafe, "observed_presence",
-        {"observed_action": "present", "observed_context": "fixture-3d-户外区域"}, 3,
+        token,
+        cafe,
+        "observed_presence",
+        {"observed_action": "present", "observed_context": "fixture-3d-户外区域"},
+        3,
     )
     _submit_verified(
-        token, cafe, "observed_presence",
-        {"observed_action": "present", "observed_context": "fixture-20d-历史两周前"}, 20,
+        token,
+        cafe,
+        "observed_presence",
+        {"observed_action": "present", "observed_context": "fixture-20d-历史两周前"},
+        20,
     )
     _submit_verified(
-        token, cafe, "observed_presence",
-        {"observed_action": "present", "observed_context": "fixture-120d-历史四月前"}, 120,
+        token,
+        cafe,
+        "observed_presence",
+        {"observed_action": "present", "observed_context": "fixture-120d-历史四月前"},
+        120,
     )
     print("  presence claims seeded (1d/3d/20d/120d)")
 
     _submit_verified(
-        token, cafe, "staff_response",
-        {"actor_role": "frontline_staff", "response_action": "provide_water",
-         "awareness_state": "awareness_confirmed", "response_outcome": "observed once"}, 2,
+        token,
+        cafe,
+        "staff_response",
+        {
+            "actor_role": "frontline_staff",
+            "response_action": "provide_water",
+            "awareness_state": "awareness_confirmed",
+            "response_outcome": "observed once",
+        },
+        2,
     )
     _submit_verified(
-        token, cafe, "staff_response",
-        {"actor_role": "frontline_staff", "response_action": "remind_leash",
-         "awareness_state": "awareness_likely", "response_outcome": "observed once"}, 5,
+        token,
+        cafe,
+        "staff_response",
+        {
+            "actor_role": "frontline_staff",
+            "response_action": "remind_leash",
+            "awareness_state": "awareness_likely",
+            "response_outcome": "observed once",
+        },
+        5,
     )
     _submit_verified(
-        token, cafe, "staff_response",
-        {"actor_role": "frontline_staff", "response_action": "deny_entry",
-         "awareness_state": "awareness_unknown", "response_outcome": "observed once"}, 40,
+        token,
+        cafe,
+        "staff_response",
+        {
+            "actor_role": "frontline_staff",
+            "response_action": "deny_entry",
+            "awareness_state": "awareness_unknown",
+            "response_outcome": "observed once",
+        },
+        40,
     )
     _submit_verified(
-        token, cafe, "staff_response",
-        {"actor_role": "frontline_staff", "response_action": "no_intervention_observed",
-         "awareness_state": "awareness_unknown", "response_outcome": "observed once"}, 10,
+        token,
+        cafe,
+        "staff_response",
+        {
+            "actor_role": "frontline_staff",
+            "response_action": "no_intervention_observed",
+            "awareness_state": "awareness_unknown",
+            "response_outcome": "observed once",
+        },
+        10,
     )
     print("  staff responses seeded (water/leash/deny/none + awareness)")
 
     _submit_verified(
-        token, cafe, "animal_facility",
-        {"facility_type": "water_bowl", "purpose_state": "purpose_confirmed",
-         "operational_state": "active", "access_mode": "operator_provided"}, 2,
+        token,
+        cafe,
+        "animal_facility",
+        {
+            "facility_type": "water_bowl",
+            "purpose_state": "purpose_confirmed",
+            "operational_state": "active",
+            "access_mode": "operator_provided",
+        },
+        2,
     )
     _submit_verified(
-        token, cafe, "animal_facility",
-        {"facility_type": "pet_waiting_area", "purpose_state": "purpose_signage_supported",
-         "operational_state": "active", "access_mode": "self_service"}, 2,
+        token,
+        cafe,
+        "animal_facility",
+        {
+            "facility_type": "pet_waiting_area",
+            "purpose_state": "purpose_signage_supported",
+            "operational_state": "active",
+            "access_mode": "self_service",
+        },
+        2,
     )
     _submit_verified(
-        token, cafe, "animal_facility",
-        {"facility_type": "outdoor_holding_cage", "purpose_state": "purpose_unknown",
-         "operational_state": "active", "access_mode": "unknown"}, 2,
+        token,
+        cafe,
+        "animal_facility",
+        {
+            "facility_type": "outdoor_holding_cage",
+            "purpose_state": "purpose_unknown",
+            "operational_state": "active",
+            "access_mode": "unknown",
+        },
+        2,
     )
     print("  facilities seeded (water/waiting/cage + purpose levels)")
 
@@ -258,7 +317,8 @@ def main() -> int:
 
     # Reality reports with explicit place-match / time-evidence / fact-evidence.
     _submit_report(
-        token, cafe,
+        token,
+        cafe,
         {
             "origin": "on_site_past",
             "place_id": cafe,
@@ -269,7 +329,8 @@ def main() -> int:
         },
     )
     _submit_report(
-        token, cafe,
+        token,
+        cafe,
         {
             "origin": "external_online_content",
             "place_id": cafe,

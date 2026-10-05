@@ -63,12 +63,22 @@ def main() -> int:
     time.sleep(9)
     stages = appops.boot_trace(SERIAL)
     pid2 = appops.shell_pidof(SERIAL, appops.PACKAGE)
-    steps.append({"step": "post_upgrade_launch", "stages": stages, "pid": pid2,
-                  "home_ready": "HOME_READY" in stages})
-    print("post_upgrade_launch stages=%s home_ready=%s pid=%s" % (stages, "HOME_READY" in stages, pid2))
+    steps.append(
+        {
+            "step": "post_upgrade_launch",
+            "stages": stages,
+            "pid": pid2,
+            "home_ready": "HOME_READY" in stages,
+        }
+    )
+    print(
+        "post_upgrade_launch stages=%s home_ready=%s pid=%s"
+        % (stages, "HOME_READY" in stages, pid2)
+    )
 
     (EVIDENCE / "upgrade_drill.json").write_text(
-        json.dumps(steps, ensure_ascii=False, indent=2), encoding="utf-8")
+        json.dumps(steps, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
     ok = all(s.get("ok", True) for s in steps)
     print("UPGRADE DRILL", "PASS" if ok else "CHECK STEPS")
     return 0 if ok else 1

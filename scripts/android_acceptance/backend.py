@@ -23,9 +23,7 @@ import sys
 import time
 from pathlib import Path
 
-CONTROL = Path(
-    r"E:\AI\宠物管理\artifacts\android_acceptance\runtime\backend_control.json"
-)
+CONTROL = Path(r"E:\AI\宠物管理\artifacts\android_acceptance\runtime\backend_control.json")
 RUNNER = Path(__file__).with_name("api_wrapper.py")
 API_LOG = Path(r"E:\AI\宠物管理\artifacts\android_acceptance\logs\api_wrapper.log")
 
@@ -98,10 +96,16 @@ def stop_wrapper() -> None:
     """Stop the acceptance wrapper by its actual 8010 listener owner."""
     try:
         conn = subprocess.run(
-            ["powershell", "-NoProfile", "-Command",
-             "Get-NetTCPConnection -State Listen -LocalPort 8010 -ErrorAction SilentlyContinue | "
-             "Select-Object -First 1 -ExpandProperty OwningProcess"],
-            capture_output=True, text=True, timeout=30,
+            [
+                "powershell",
+                "-NoProfile",
+                "-Command",
+                "Get-NetTCPConnection -State Listen -LocalPort 8010 -ErrorAction SilentlyContinue | "
+                "Select-Object -First 1 -ExpandProperty OwningProcess",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=30,
         ).stdout.strip()
         if conn and conn.isdigit():
             subprocess.run(["taskkill", "/PID", conn, "/T", "/F"], capture_output=True)
@@ -114,9 +118,12 @@ def stop_wrapper() -> None:
 def _pid_alive(pid: int) -> bool:
     if pid <= 0:
         return False
-    return subprocess.run(
-        ["tasklist", "/FI", f"PID eq {pid}"], capture_output=True, text=True
-    ).stdout.count(str(pid)) > 1
+    return (
+        subprocess.run(
+            ["tasklist", "/FI", f"PID eq {pid}"], capture_output=True, text=True
+        ).stdout.count(str(pid))
+        > 1
+    )
 
 
 def probe_ready(url: str = "http://127.0.0.1:8010/api/v1/regulations", timeout: int = 30) -> bool:

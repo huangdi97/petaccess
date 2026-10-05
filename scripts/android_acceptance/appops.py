@@ -18,9 +18,7 @@ from .adb import (
     SDK_ADB,
     adb,
     check_serial,
-    package_running,
     shell,
-    shell_pidof,
 )
 
 PACKAGE = "com.petaccess.map"
@@ -58,9 +56,7 @@ def sha256_of(path: Path) -> str:
 
 
 def aapt_badging(path: Path) -> str:
-    aapt = Path(
-        r"C:\Users\Kaiser\AppData\Local\Android\Sdk\build-tools\36.0.0\aapt.exe"
-    )
+    aapt = Path(r"C:\Users\Kaiser\AppData\Local\Android\Sdk\build-tools\36.0.0\aapt.exe")
     import subprocess
 
     proc = subprocess.run(
@@ -89,9 +85,7 @@ def describe_apk(path: str | Path, store_json: Path | None = None) -> ApkArtifac
     art.aapt_ok = bool(art.version_name and art.version_code)
     if store_json:
         store_json.parent.mkdir(parents=True, exist_ok=True)
-        store_json.write_text(
-            json.dumps(asdict(art), indent=2), encoding="utf-8"
-        )
+        store_json.write_text(json.dumps(asdict(art), indent=2), encoding="utf-8")
     return art
 
 
@@ -121,8 +115,9 @@ def install_apk(
     # install must not abort a lifecycle scenario.
     last_out = ""
     for attempt in range(5):
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=600,
-                              encoding="utf-8", errors="replace")
+        proc = subprocess.run(
+            cmd, capture_output=True, text=True, timeout=600, encoding="utf-8", errors="replace"
+        )
         out = (proc.stdout or "") + (proc.stderr or "")
         if proc.returncode == 0 or "Success" in out:
             last_out = out

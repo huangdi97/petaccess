@@ -32,8 +32,8 @@ from app.core.audit import record_audit
 from app.core.audit_events import AuditEvent
 from app.core.errors import ApiError
 from app.models import (
-    ExternalContentReference,
     AnimalFacility,
+    ExternalContentReference,
     MediaObject,
     ObservationEffort,
     ObservedPresence,
@@ -42,18 +42,18 @@ from app.models import (
     RealityReport,
     User,
 )
+from app.models.enums import (
+    ContributionAbuseFlag,
+    RealityCandidateType,
+    RealityReportModerationState,
+    RealityVerificationStatus,
+)
 from app.models.evidence import (
     CollectorType,
     EvidenceBundle,
     EvidenceClass,
     SourceArtifact,
     SourcePlatform,
-)
-from app.models.enums import (
-    ContributionAbuseFlag,
-    RealityCandidateType,
-    RealityReportModerationState,
-    RealityVerificationStatus,
 )
 from app.models.media import MediaPurpose
 from app.schemas.reality import (
@@ -364,14 +364,18 @@ def materialize_report_evidence(db: Session, report: RealityReport) -> EvidenceB
         artifact_type=(
             "external_content_reference"
             if external
-            else "structured_firsthand_report" if onsite else "structured_reality_report"
+            else "structured_firsthand_report"
+            if onsite
+            else "structured_reality_report"
         ),
         content_id=str(report.id),
         collected_at=report.submitted_at or datetime.now(UTC),
         publisher_type=(
             "ordinary_user"
             if report.origin in {"on_site_now", "on_site_past", "external_online_content"}
-            else "official_operator" if report.origin == "operator_provided" else "unknown"
+            else "official_operator"
+            if report.origin == "operator_provided"
+            else "unknown"
         ),
         source_url=report.source_url,
         content_hash=report.content_hash or report.media_hash,
@@ -430,6 +434,7 @@ def materialize_legacy_candidate_evidence(
         },
         privacy_note="Compatibility contribution provenance; private review material.",
     )
+
 
 def attach_candidate(
     db: Session,

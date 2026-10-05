@@ -17,13 +17,21 @@ def main() -> int:
         "Routes": "COVERED" if has("cdp_journey_ws.json") else "PARTIAL",
         "Domain States": "COVERED" if has("cdp_semantic.json") else "PARTIAL",
         "Device Sizes": "COVERED" if (runtime / "width_matrix.json").exists() else "PARTIAL",
-        "Network States": "COVERED" if has("network_matrix.json") and has("http_status_matrix.json") else "PARTIAL",
+        "Network States": "COVERED"
+        if has("network_matrix.json") and has("http_status_matrix.json")
+        else "PARTIAL",
         "Permission States": "NOT_RUN",  # app declares no runtime permissions
-        "Lifecycle": "COVERED" if has("cold_launch.json") and has("warm_launch.json") else "PARTIAL",
-        "Install/Upgrade": "COVERED" if (ROOT / "upgrade" / "upgrade_drill.json").exists() else "PARTIAL",
+        "Lifecycle": "COVERED"
+        if has("cold_launch.json") and has("warm_launch.json")
+        else "PARTIAL",
+        "Install/Upgrade": "COVERED"
+        if (ROOT / "upgrade" / "upgrade_drill.json").exists()
+        else "PARTIAL",
         "Visual": "COVERED" if list((ROOT / "screenshots").glob("*.png")) else "PARTIAL",
         "Accessibility": "PARTIAL",  # WebView a11y tree limited; uiautomator checks done
-        "Performance": "COVERED" if (ROOT / "performance" / "memory_summary.json").exists() else "PARTIAL",
+        "Performance": "COVERED"
+        if (ROOT / "performance" / "memory_summary.json").exists()
+        else "PARTIAL",
         "Stress": "COVERED" if has("route_stress.json") else "PARTIAL",
         "Error Paths": "COVERED" if has("http_status_matrix.json") else "PARTIAL",
     }
@@ -43,8 +51,12 @@ def main() -> int:
         "Error Paths": "HTTP error matrix injected+observed; Home offline error state with Retry; app converts to product error (no raw JSON)",
     }
 
-    payload = {"matrix": matrix, "notes": notes,
-               "generated": "2026-09-26", "device": "emulator-5562 (API 35)"}
+    payload = {
+        "matrix": matrix,
+        "notes": notes,
+        "generated": "2026-09-26",
+        "device": "emulator-5562 (API 35)",
+    }
     OUT.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
     print("coverage_matrix.json written")
     for k, v in matrix.items():

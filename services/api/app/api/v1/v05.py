@@ -141,7 +141,9 @@ def contribute_rule_lead(
             or media.purpose != MediaPurpose.SIGNAGE_EVIDENCE
             or media.deleted_at is not None
         ):
-            raise ApiError("规则证据不可用或不属于当前账号/场所", code="invalid_rule_evidence", status_code=403)
+            raise ApiError(
+                "规则证据不可用或不属于当前账号/场所", code="invalid_rule_evidence", status_code=403
+            )
 
     now = datetime.now(UTC)
     source = Source(

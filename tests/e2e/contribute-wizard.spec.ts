@@ -210,10 +210,7 @@ test("A2.3 — 场所纠错只提交 review lead，不直接修改场所", async
   });
 });
 
-test("A2.4 — “这次没看到”记录 effort，而不是生成动物缺席 claim", async ({
-  page,
-  request,
-}) => {
+test("A2.4 — “这次没看到”记录 effort，而不是生成动物缺席 claim", async ({ page, request }) => {
   const token = await signIn(request);
   const eventsResponse = await request.get(`${API}/places/${MALL_ID}/reality/events`);
   expect(eventsResponse.ok()).toBeTruthy();
