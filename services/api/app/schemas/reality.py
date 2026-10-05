@@ -177,7 +177,16 @@ class RealityEventOut(BaseModel):
     staff_outcome: str | None = None
     facility_type: str | None = None
     facility_state: str | None = None
-    facility_count: int | None = None
+    facility_access_mode: str | None = None
+    facility_capacity: int | None = None
+    facility_size_limit: str | None = None
+    facility_weather_protection: bool | None = None
+    facility_shade: bool | None = None
+    facility_ventilation: bool | None = None
+    facility_water_available: bool | None = None
+    facility_supervision_state: str | None = None
+    facility_security_or_lock_state: str | None = None
+    facility_operator_provided: bool | None = None
     source_id: str | None = None
     evidence_bundle_id: str | None = None
     verification_status: str
