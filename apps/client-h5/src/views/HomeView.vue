@@ -53,9 +53,9 @@ const {
         </div>
 
         <div class="home-intro">
-          <h1 data-testid="home-title">去之前，先看规则与现场。</h1>
+          <h1 data-testid="home-title">去之前，先看看这里的规则和现场。</h1>
           <p class="muted home-subtitle" data-testid="home-subtitle">
-            先确认准入规则，再参考经核验的现场记录。
+            了解规则，也参考真实的现场情况。
           </p>
         </div>
 
@@ -66,7 +66,7 @@ const {
             id="home-q"
             v-model="query"
             data-testid="home-search-input"
-            placeholder="搜索场所、商圈或地址"
+            placeholder="搜索附近场所 / 场所名 / 商圈 / 地址"
             autocomplete="off"
           />
           <button
@@ -90,23 +90,6 @@ const {
           <HomeEntries :entries="HOME_ENTRIES" @select="goEntry" />
         </section>
 
-        <!-- 最近查看：divider 行，非卡片 -->
-        <section v-if="recent.length" data-testid="recent-section">
-          <div class="home-section-header">
-            <h2 class="home-section-title">最近查看</h2>
-            <button class="btn-inline" data-testid="clear-recent" @click="clearRecent">清空</button>
-          </div>
-          <div
-            v-for="r in recent"
-            :key="r.id"
-            class="home-recent__item"
-            :data-testid="'recent-' + r.id"
-            @click="open(r.id)"
-          >
-            <strong>{{ r.name }}</strong>
-          </div>
-        </section>
-
         <HomeNearbySection
           :loading="loading"
           :error="error"
@@ -122,6 +105,24 @@ const {
           @why="why"
           @retry="load"
         />
+
+        <!-- Canonical v0.10-R1: recent history comes after recommendations,
+             overview and divergence so it never competes with the current task. -->
+        <section v-if="recent.length" class="home-recent" data-testid="recent-section">
+          <div class="home-section-header">
+            <h2 class="home-section-title">最近查看</h2>
+            <button class="btn-inline" data-testid="clear-recent" @click="clearRecent">清空</button>
+          </div>
+          <div
+            v-for="r in recent"
+            :key="r.id"
+            class="home-recent__item"
+            :data-testid="'recent-' + r.id"
+            @click="open(r.id)"
+          >
+            <strong>{{ r.name }}</strong>
+          </div>
+        </section>
 
         <p class="home-semantics" data-testid="home-semantics">
           信息不足不等于允许或禁止；每个结论都只针对当前查询。
@@ -219,6 +220,12 @@ const {
 }
 
 /* Recent rows — divider-based, radius 0. */
+.home-recent {
+  margin-top: var(--pa-space-6);
+  padding-top: var(--pa-space-4);
+  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
 .home-recent__item {
   cursor: pointer;
   padding: var(--pa-space-3) 0;
