@@ -120,13 +120,18 @@ function queryServiceRole(): string {
 }
 
 async function evaluate() {
-  const animal = session.activePet?.species ?? "dog";
-  answer.value = await client.accessAnswer(placeId.value, {
-    animal,
-    service_role: queryServiceRole(),
-    declared_role: session.activePet?.declared_role ?? null,
-    action: "enter",
-  });
+  coexistenceLoaded.value = false;
+  try {
+    const { snapshot } = await snapshotFor(placeId.value);
+    coexistence.value = snapshot;
+    answer.value = snapshot.rule_answer;
+  } catch (error) {
+    coexistence.value = null;
+    answer.value = null;
+    throw error;
+  } finally {
+    coexistenceLoaded.value = true;
+  }
 }
 
 // Mode switch (普通携带 ↔ 服务犬通行) must re-evaluate as the new animal:
@@ -135,7 +140,9 @@ watch(
   () => [session.mode, session.activePet],
   () => {
     if (!placeId.value || loading.value) return;
-    void evaluate();
+    void evaluate().catch(() => {
+      if (!partial.value.includes("当前答案")) partial.value.push("当前答案");
+    });
   },
 );
 
@@ -189,12 +196,6 @@ async function load() {
   } catch {
     degrade("当前答案");
   }
-  try {
-    coexistence.value = (await snapshotFor(placeId.value)).snapshot;
-  } catch {
-    coexistence.value = null;
-  }
-  coexistenceLoaded.value = true;
   loading.value = false;
 }
 
