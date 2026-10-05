@@ -94,12 +94,7 @@ const FACILITY_TYPE_KEYS = [
   "other",
 ] as const;
 
-const FACILITY_STATE_KEYS = [
-  "active",
-  "temporarily_unavailable",
-  "removed",
-  "unknown",
-] as const;
+const FACILITY_STATE_KEYS = ["active", "temporarily_unavailable", "removed", "unknown"] as const;
 
 const busy = ref(false);
 const error = ref("");
