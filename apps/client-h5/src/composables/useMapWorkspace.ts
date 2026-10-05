@@ -40,7 +40,7 @@ export function useMapWorkspace() {
   const camera = ref<MapCamera>(synthDemoCamera());
   const places = ref<PlaceSummary[]>([]);
   const facts = ref<Map<string, RowFacts>>(new Map());
-  const lens = ref<MapLensKey>("rule");
+  const lens = ref<MapLensKey>(parseMapLens(route.query.lens));
   const loading = ref(true);
   const error = ref("");
   const locationState = ref<LocationState>("IDLE");
@@ -196,9 +196,22 @@ export function useMapWorkspace() {
 
   // Back/forward or an external deep link changes ?place= → update the selection
   // (guard keeps this from looping when it was our own push).
-  watch(lens, () => {
+  watch(lens, (value) => {
     activeFilters.value = [];
+    const routeValue = typeof route.query.lens === "string" ? route.query.lens : "rule";
+    if (routeValue === value || (value === "rule" && routeValue === "rule")) return;
+    void router.replace({
+      query: { ...route.query, lens: value === "rule" ? undefined : value },
+    });
   });
+
+  watch(
+    () => route.query.lens,
+    (value) => {
+      const next = parseMapLens(value);
+      if (next !== lens.value) lens.value = next;
+    },
+  );
 
   watch(
     () => route.query.place,
