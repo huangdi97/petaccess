@@ -1,7 +1,4 @@
-import {
-  coverageHint,
-  type MapMarker,
-} from "@petaccess/client-core";
+import { coverageHint, type MapMarker } from "@petaccess/client-core";
 
 import { answerStatusKey, answerVerdictLabel } from "../answer";
 import { divergenceLabel, realityStateLabel } from "../reality";
@@ -75,7 +72,9 @@ export function mapLensCoverage(
   if (lens === "rule") return coverageHint(markers);
 
   if (lens === "reality") {
-    const covered = [...facts.values()].filter((row) => (row.reality?.evidence_count ?? 0) > 0).length;
+    const covered = [...facts.values()].filter(
+      (row) => (row.reality?.evidence_count ?? 0) > 0,
+    ).length;
     return {
       covered,
       unknown: Math.max(0, markers.length - covered),
