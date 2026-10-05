@@ -42,8 +42,10 @@ test("A1/A4 — 向导入口与现场记录表单渲染（已登录）", async (
   await expect(page.getByTestId("entry-quick")).toBeVisible();
   await page.getByTestId("entry-reality-observed_presence").click();
   await expect(page.getByTestId("reality-submit")).toBeVisible({ timeout: 15000 });
-  await expect(page.getByTestId("reality-date")).toBeVisible();
+  await expect(page.getByTestId("reality-source-mode")).toBeVisible();
   await expect(page.getByTestId("reality-effort")).toBeVisible();
+  await page.getByTestId("reality-source-mode").selectOption("on_site_past");
+  await expect(page.getByTestId("reality-date")).toBeVisible();
 });
 
 test("A2 — 现场记录经父流提交，候选进入人工审核队列", async ({ page, request }) => {
@@ -56,7 +58,9 @@ test("A2 — 现场记录经父流提交，候选进入人工审核队列", asyn
   // loaded and can appear late under parallel workers; wait before clicking.
   await expect(page.getByTestId("entry-reality-observed_presence")).toBeVisible({ timeout: 15000 });
   await page.getByTestId("entry-reality-observed_presence").click();
-  await expect(page.getByTestId("reality-date")).toBeVisible({ timeout: 15000 });
+  await expect(page.getByTestId("reality-source-mode")).toBeVisible({ timeout: 15000 });
+  await page.getByTestId("reality-source-mode").selectOption("on_site_past");
+  await expect(page.getByTestId("reality-date")).toBeVisible();
   await page.getByTestId("reality-date").fill("2026-09-20");
   await page.getByTestId("reality-count").fill("2");
   await page.getByTestId("reality-submit").click();
@@ -64,6 +68,39 @@ test("A2 — 现场记录经父流提交，候选进入人工审核队列", asyn
   // 5s expect under parallel workers (same pattern as B2).
   await expect(page.getByTestId("contribute-result")).toBeVisible({ timeout: 15000 });
   await expect(page.getByTestId("contribute-result")).toContainText(/已提交/);
+});
+
+test("A2.0 — 外部帖子只记录发布时间，不把发布时间伪装成事件时间", async ({
+  page,
+  request,
+}) => {
+  const token = await signIn(request);
+  await page.addInitScript((t) => localStorage.setItem("pa_token", t), token);
+  await page.goto(`${BASE}/#/contribute/${MALL_ID}`, { waitUntil: "load" });
+  await expect(page.getByTestId("entry-reality-observed_presence")).toBeVisible({ timeout: 15000 });
+  await page.getByTestId("entry-reality-observed_presence").click();
+  await page.getByTestId("reality-source-mode").selectOption("external_online_content");
+  await page.getByTestId("reality-source-url").fill("https://example.com/public-post");
+  await page.getByTestId("reality-source-platform").selectOption("web");
+  await page.getByTestId("reality-published-date").fill("2026-09-20");
+
+  const requestPromise = page.waitForRequest(
+    (r) => r.method() === "POST" && r.url().includes(`/places/${MALL_ID}/reality/reports`),
+  );
+  await page.getByTestId("reality-submit").click();
+  const requestBody = (await requestPromise).postDataJSON() as {
+    report: Record<string, unknown>;
+    effort: unknown;
+    external_content: Record<string, unknown> | null;
+  };
+  expect(requestBody.report.origin).toBe("external_online_content");
+  expect(requestBody.report.time_evidence_state).toBe("publication_time_only");
+  expect(requestBody.report.observed_at).toBeNull();
+  expect(requestBody.report.claimed_event_at).toBeNull();
+  expect(requestBody.report.fact_evidence_state).toBe("text_only_external");
+  expect(requestBody.effort).toBeNull();
+  expect(requestBody.external_content?.source_url).toBe("https://example.com/public-post");
+  await expect(page.getByTestId("contribute-result")).toBeVisible({ timeout: 15000 });
 });
 
 test("A2.1 — Staff / Facility contribution uses canonical Reality domain values", async ({
@@ -185,7 +222,9 @@ test("B2 — 我的贡献：提交后可见、空时走统一空态", async ({ p
     timeout: 15000,
   });
   await page.getByTestId("entry-reality-observed_presence").click();
-  await expect(page.getByTestId("reality-date")).toBeVisible({ timeout: 15000 });
+  await expect(page.getByTestId("reality-source-mode")).toBeVisible({ timeout: 15000 });
+  await page.getByTestId("reality-source-mode").selectOption("on_site_past");
+  await expect(page.getByTestId("reality-date")).toBeVisible();
   await page.getByTestId("reality-date").fill("2026-09-20");
   await page.getByTestId("reality-submit").click();
   await expect(page.getByTestId("contribute-result")).toBeVisible({ timeout: 15000 });
