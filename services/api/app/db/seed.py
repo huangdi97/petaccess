@@ -208,7 +208,12 @@ def _seed_v09_reality_demo(
             },
             privacy_notes="虚构开发证据；不包含真实人物、门店或媒体。",
         )
-        session.add_all([artifact, bundle])
+        # Seed rows use scalar foreign-key ids rather than ORM relationships,
+        # so make parent ordering explicit for PostgreSQL.
+        session.add(artifact)
+        session.flush()
+        session.add(bundle)
+        session.flush()
         bundles[key] = bundle
 
     candidate_specs = [
