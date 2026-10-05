@@ -21,7 +21,9 @@
     {
       "id": "HOME_QUERY_CONTEXT",
       "ui": "query-context",
-      "fallbacks": ["[data-testid='query-context']"],
+      "fallbacks": [
+        "[data-testid='query-context']"
+      ],
       "props": {
         "count": {
           "min": 1
@@ -32,7 +34,9 @@
     {
       "id": "HOME_PRIMARY_SEARCH",
       "ui": "home-search",
-      "fallbacks": ["[data-testid='home-search']"],
+      "fallbacks": [
+        "[data-testid='home-search']"
+      ],
       "props": {
         "count": {
           "min": 1
@@ -43,7 +47,9 @@
     {
       "id": "HOME_SEARCH_INPUT_HEIGHT",
       "ui": "home-search-input",
-      "fallbacks": ["[data-testid='home-search-input']"],
+      "fallbacks": [
+        "[data-testid='home-search-input']"
+      ],
       "props": {
         "height": {
           "min": 44
@@ -54,7 +60,9 @@
     {
       "id": "HOME_NEARBY_SECTION",
       "ui": "home-nearby",
-      "fallbacks": ["[data-testid='home-freshness'], [data-testid='home-empty']"],
+      "fallbacks": [
+        "[data-testid='home-freshness'], [data-testid='home-empty']"
+      ],
       "props": {
         "count": {
           "min": 1
@@ -65,7 +73,10 @@
     {
       "id": "HOME_MAX_WIDTH_960",
       "ui": "home",
-      "fallbacks": [".page--home", "[data-ui='home']"],
+      "fallbacks": [
+        ".page--home",
+        "[data-ui='home']"
+      ],
       "props": {
         "width": {
           "max": 960
@@ -102,8 +113,24 @@
     {
       "id": "HOME_DIVERGENCE_NOT_CARD_WALL",
       "selector": "[data-ui='home-divergence'] .home-divergence__row",
-      "forbiddenClass": ["card", "panel"],
+      "forbiddenClass": [
+        "card",
+        "panel"
+      ],
       "severity": "FAIL"
+    },
+    {
+      "id": "HOME_FOUR_TASK_LENSES",
+      "selector": "[data-ui='home-lens'] button",
+      "min": 4,
+      "max": 4,
+      "severity": "FAIL",
+      "mustContainTexts": [
+        "现场是否有动物出现",
+        "室内空间情况",
+        "餐饮区域情况",
+        "完整规则"
+      ]
     }
   ],
   "density": [
@@ -122,5 +149,5 @@
     "allcapsTokens": true,
     "refs": true
   },
-  "notes": "Home follows canonical v0.10-R1 order: Location -> Query -> Search -> four task lenses -> recommendations -> Rule/Reality overview -> divergence -> recent. Task launcher, not dashboard."
+  "notes": "Home canonical order: Location -> Query -> Search -> four task lenses -> recommendation -> Rule/Reality overview -> divergence -> recent. “按你的关注推荐” is only shown after a real saved attention choice; otherwise the neutral title is “近期值得先看”. Preference only changes ordering/emphasis, never venue scoring."
 }
