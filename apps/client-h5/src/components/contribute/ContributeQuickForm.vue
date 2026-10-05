@@ -25,6 +25,7 @@ const emit = defineEmits<{ done: [msg: string]; back: [] }>();
 type CorrectionKind = "name" | "address" | "place_state" | "other";
 const kind = ref<CorrectionKind>("address");
 const detail = ref("");
+const correctValueUnknown = ref(false);
 const busy = ref(false);
 const error = ref("");
 
@@ -36,7 +37,11 @@ const OPTIONS: { key: CorrectionKind; label: string; hint: string }[] = [
 ];
 
 const canSubmit = computed(
-  () => props.online && props.signedIn && !busy.value && detail.value.trim().length >= 2,
+  () =>
+    props.online &&
+    props.signedIn &&
+    !busy.value &&
+    (correctValueUnknown.value || detail.value.trim().length >= 2),
 );
 
 async function submit() {
@@ -50,7 +55,9 @@ async function submit() {
       rule_id: null,
       event_type: "place_correction",
       result: "uncertain",
-      note: `${selected?.label ?? "场所信息纠错"}：${detail.value.trim()}`,
+      note: correctValueUnknown.value
+        ? `${selected?.label ?? "场所信息纠错"}：当前信息有误，但提交者不知道正确值`
+        : `${selected?.label ?? "场所信息纠错"}：${detail.value.trim()}`,
       evidence_refs: null,
       ...proximity(),
     });
@@ -98,7 +105,15 @@ async function submit() {
       </button>
     </div>
 
-    <label class="correction-detail" for="correction-detail">
+    <label class="correction-unknown">
+      <input v-model="correctValueUnknown" type="checkbox" data-testid="correction-unknown" />
+      <span>
+        我只知道当前信息有误，不知道正确值
+        <small class="muted">不确定是合法答案；人工核验会继续补充。</small>
+      </span>
+    </label>
+
+    <label v-if="!correctValueUnknown" class="correction-detail" for="correction-detail">
       <span>正确情况或需要核验的内容</span>
       <textarea
         id="correction-detail"
@@ -158,7 +173,8 @@ async function submit() {
 }
 
 .option-row__text,
-.correction-detail {
+.correction-detail,
+.correction-unknown span {
   display: flex;
   flex-direction: column;
   gap: var(--pa-space-1);
@@ -182,9 +198,21 @@ async function submit() {
   outline-offset: -1px;
 }
 
-.correction-detail {
+.correction-detail,
+.correction-unknown {
   margin-top: var(--pa-space-4);
   font-size: var(--pa-font-size-md);
+}
+
+.correction-unknown {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--pa-space-2);
+}
+
+.correction-unknown input {
+  width: auto;
+  margin-top: 3px;
 }
 
 .correction-detail textarea {
