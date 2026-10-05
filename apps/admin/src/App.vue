@@ -17,6 +17,7 @@ const nav = [
   { to: "/conflicts", label: "冲突复核" },
   { to: "/audit", label: "审计日志" },
   { to: "/users", label: "用户" },
+  { to: "/contribution-leads", label: "贡献线索" },
 ];
 
 const navV05 = [
