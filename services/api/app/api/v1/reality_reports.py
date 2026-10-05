@@ -303,11 +303,25 @@ def create_reality_report(
 
     effort_id = None
     if body.effort is not None:
-        effort = create_observation_effort(db, user, body.effort, request=request)
+        effort = create_observation_effort(
+            db,
+            user,
+            body.effort,
+            report_id=str(report.id),
+            evidence_bundle_id=evidence_bundle.id,
+            request=request,
+        )
         effort_id = effort.id
     confirmation_id = None
     if body.confirmation is not None:
-        confirmation = create_confirmation(db, user, body.confirmation, request=request)
+        confirmation = create_confirmation(
+            db,
+            user,
+            body.confirmation,
+            report_id=str(report.id),
+            evidence_bundle_id=evidence_bundle.id,
+            request=request,
+        )
         confirmation_id = confirmation.id
 
     external_id = None
