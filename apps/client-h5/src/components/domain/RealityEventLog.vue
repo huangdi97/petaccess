@@ -9,14 +9,13 @@
  */
 import { computed } from "vue";
 import type { RealityEventView, Zone } from "@petaccess/client-core";
+import { zoneConsumerLine } from "../../consumer/labels";
 import {
-  animalFacilityLabel,
-  animalScopeLabel,
-  facilityStateLabel,
-  observedActionLabel,
-  staffActionLabel,
-  zoneConsumerLine,
-} from "../../consumer/labels";
+  realityEventDetail,
+  realityEventHeadline,
+  realityEventTimeBasis,
+  realityEventVerification,
+} from "../../consumer/realityEvent";
 
 const props = withDefaults(
   defineProps<{
@@ -36,38 +35,6 @@ function zoneNameFor(event: RealityEventView): string {
 
 function timeOnly(iso: string): string {
   return iso.length >= 16 ? iso.slice(11, 16) : "";
-}
-
-function eventHeadline(event: RealityEventView): string {
-  if (event.event_type === "staff_response") {
-    return `工作人员 · ${staffActionLabel(event.staff_action)}`;
-  }
-  if (event.event_type === "animal_facility") {
-    return `动物设施 · ${animalFacilityLabel(event.facility_type)}`;
-  }
-  return `${animalScopeLabel(event.animal_scope)} · ${observedActionLabel(event.observed_action)}`;
-}
-
-function eventDetail(event: RealityEventView): string {
-  if (event.event_type === "staff_response") {
-    return event.staff_outcome || event.observed_context || "";
-  }
-  if (event.event_type === "animal_facility") {
-    const parts = [facilityStateLabel(event.facility_state)];
-    if (event.facility_count != null) parts.push(`容量 ${event.facility_count}`);
-    return parts.join(" · ");
-  }
-  return event.observed_context || "";
-}
-
-function timeBasisLabel(event: RealityEventView): string {
-  if (event.time_basis === "verified") return "按核验时间记录";
-  if (event.time_basis === "recorded") return "按收录时间记录";
-  return "观察时间已记录";
-}
-
-function verificationLabel(event: RealityEventView): string {
-  return event.verification_status === "human_verified_with_note" ? "人工核验（附注）" : "人工核验";
 }
 
 interface EventGroup {
@@ -124,14 +91,14 @@ const visibleGroups = computed<EventGroup[]>(() => {
           </time>
           <span class="trace-row__dot" aria-hidden="true" data-ui="reality-event-marker"></span>
           <div class="trace-row__content">
-            <p class="trace-row__event" data-testid="event-fact">{{ eventHeadline(event) }}</p>
+            <p class="trace-row__event" data-testid="event-fact">{{ realityEventHeadline(event) }}</p>
             <p class="trace-row__location" data-testid="event-location">
               {{ zoneNameFor(event) }}
             </p>
-            <p v-if="eventDetail(event)" class="trace-row__detail">{{ eventDetail(event) }}</p>
+            <p v-if="realityEventDetail(event)" class="trace-row__detail">{{ realityEventDetail(event) }}</p>
             <div class="trace-row__meta">
               <span class="trace-row__status" data-testid="event-status">
-                {{ verificationLabel(event) }} · {{ timeBasisLabel(event) }}
+                {{ realityEventVerification(event) }} · {{ realityEventTimeBasis(event) }}
               </span>
               <RouterLink
                 v-if="event.evidence_bundle_id"
