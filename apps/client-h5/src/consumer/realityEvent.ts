@@ -6,13 +6,14 @@ import {
   facilityStateLabel,
   observedActionLabel,
   staffActionLabel,
+  staffRoleLabel,
 } from "./labels";
 
 export type EvidenceVisualState = "verified" | "pending" | "disputed" | "historical";
 
 export function realityEventHeadline(event: RealityEventView): string {
   if (event.event_type === "staff_response") {
-    return `工作人员 · ${staffActionLabel(event.staff_action)}`;
+    return `${staffRoleLabel(event.staff_actor_role)} · ${staffActionLabel(event.staff_action)}`;
   }
   if (event.event_type === "animal_facility") {
     return `动物设施 · ${animalFacilityLabel(event.facility_type)}`;
