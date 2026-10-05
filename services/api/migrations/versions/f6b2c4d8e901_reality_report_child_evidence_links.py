@@ -1,7 +1,7 @@
 """Link RealityReport child evidence rows back to their parent provenance.
 
 Revision ID: f6b2c4d8e901
-Revises: a91f3c7d2e40
+Revises: b37e5a1c9d20
 Create Date: 2026-10-05
 
 ObservationEffort and RealityConfirmation are children of one RealityReport,
@@ -16,7 +16,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "f6b2c4d8e901"
-down_revision: str | None = "a91f3c7d2e40"
+down_revision: str | None = "b37e5a1c9d20"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
