@@ -148,10 +148,9 @@ def _supersession_target_violations(
             "候选指向的待替换规则不存在，不能发布",
         )]
 
-    same_owner = (
-        target.place_id == candidate.place_id
-        and target.zone_id == candidate.zone_id
-    )
+    # Supersession may legitimately narrow/widen/move a rule between zones.
+    # The immutable boundary is the owning Place, not the old zone id.
+    same_owner = target.place_id == candidate.place_id
     same_action = target.action == candidate.action
     same_layer = (target.rule_layer or "OPERATOR_POLICY") == (
         candidate.rule_layer or "OPERATOR_POLICY"
@@ -166,7 +165,7 @@ def _supersession_target_violations(
         (
             "supersession_owner_mismatch",
             not same_owner,
-            "待替换规则与候选不属于同一场所/区域",
+            "待替换规则与候选不属于同一场所",
         ),
         (
             "supersession_action_mismatch",
