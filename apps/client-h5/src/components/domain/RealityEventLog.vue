@@ -27,8 +27,16 @@ const props = withDefaults(
     limit?: number;
     signedIn?: boolean;
     busyEventId?: string | null;
+    emptyTitle?: string;
+    emptyDescription?: string;
   }>(),
-  { limit: 0, signedIn: false, busyEventId: null },
+  {
+    limit: 0,
+    signedIn: false,
+    busyEventId: null,
+    emptyTitle: "暂无近期现场记录",
+    emptyDescription: "这并不代表现场没有动物。",
+  },
 );
 
 const emit = defineEmits<{
@@ -176,8 +184,8 @@ const visibleGroups = computed<EventGroup[]>(() => {
       data-testid="trace-empty"
       data-ui="reality-empty"
     >
-      <p class="reality-empty__title">暂无近期现场记录</p>
-      <p class="muted">这并不代表现场没有动物。</p>
+      <p class="reality-empty__title">{{ emptyTitle }}</p>
+      <p class="muted">{{ emptyDescription }}</p>
       <slot name="empty-action" />
     </div>
   </div>
