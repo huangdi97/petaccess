@@ -6,7 +6,6 @@ import AppShell from "../components/AppShell.vue";
 import StateMessage from "../components/StateMessage.vue";
 
 const cleared = ref(false);
-const deletionRequested = ref(false);
 
 const inventory = [
   { item: "账号", stored: "保存", detail: "邮箱与显示名，用于登录和会话。" },
@@ -26,9 +25,6 @@ function clearLocalData() {
   cleared.value = true;
 }
 
-function requestDeletion() {
-  deletionRequested.value = true;
-}
 </script>
 
 <template>
@@ -84,17 +80,8 @@ function requestDeletion() {
       <h2>账号删除与数据导出</h2>
       <StateMessage
         kind="PARTIAL"
-        description="当前版本还没有自动化账号删除与导出流程；如需处理，可先提交人工请求。"
-      >
-        <template #action>
-          <button class="primary" data-testid="request-deletion" @click="requestDeletion">
-            提交人工请求
-          </button>
-        </template>
-      </StateMessage>
-      <p v-if="deletionRequested" class="privacy-feedback" data-testid="deletion-requested">
-        已在本机记录请求。后续仍需要通过反馈渠道核对账号身份后处理。
-      </p>
+        description="当前开发预览版尚未接入应用内账号删除与数据导出申请。这里不会用本机按钮假装已经向服务器提交请求；正式开放前会提供可核验的申请与处理状态。"
+      />
     </section>
 
     <section class="privacy-section">
