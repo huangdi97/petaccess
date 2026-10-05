@@ -8316,8 +8316,8 @@
             "anyOf": [
               {
                 "type": "number",
-                "maximum": 1.0,
-                "minimum": 0.0
+                "maximum": 1,
+                "minimum": 0
               },
               {
                 "type": "null"
@@ -9518,8 +9518,8 @@
           },
           "review_interval_days": {
             "type": "integer",
-            "maximum": 3650.0,
-            "minimum": 1.0,
+            "maximum": 3650,
+            "minimum": 1,
             "title": "Review Interval Days",
             "default": 90
           }
@@ -9762,7 +9762,7 @@
           },
           "schedule_minutes": {
             "type": "integer",
-            "minimum": 5.0,
+            "minimum": 5,
             "title": "Schedule Minutes",
             "default": 1440
           },
@@ -11287,8 +11287,8 @@
             "anyOf": [
               {
                 "type": "number",
-                "maximum": 300.0,
-                "exclusiveMinimum": 0.0
+                "maximum": 300,
+                "exclusiveMinimum": 0
               },
               {
                 "type": "null"
@@ -11300,8 +11300,8 @@
             "anyOf": [
               {
                 "type": "number",
-                "maximum": 250.0,
-                "exclusiveMinimum": 0.0
+                "maximum": 250,
+                "exclusiveMinimum": 0
               },
               {
                 "type": "null"
@@ -11709,6 +11709,28 @@
               }
             ],
             "title": "Canonical Address"
+          },
+          "latitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latitude"
+          },
+          "longitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longitude"
           },
           "distance_m": {
             "anyOf": [
