@@ -30,14 +30,17 @@ from sqlalchemy.orm import Session
 
 from app.core.audit import record_audit
 from app.core.audit_events import AuditEvent
+from app.core.errors import ApiError
 from app.models import (
     ExternalContentReference,
+    MediaObject,
     ObservationEffort,
     RealityCandidate,
     RealityConfirmation,
     RealityReport,
     User,
 )
+from app.models.media import MediaPurpose
 from app.models.enums import (
     ContributionAbuseFlag,
     RealityCandidateType,
@@ -144,6 +147,41 @@ def check_old_video(
     return None
 
 
+def _resolve_private_media_refs(
+    db: Session,
+    user: User | None,
+    refs: list[dict] | None,
+) -> tuple[list[dict] | None, str | None]:
+    """Validate report media against the authenticated uploader.
+
+    Client-supplied media ids/hashes are never trusted as provenance. Only
+    stored REALITY_EVIDENCE uploaded by this user can enter a report; the
+    canonical SHA-256 comes from MediaObject for anti-abuse/dedup.
+    """
+    if not refs:
+        return None, None
+    if user is None:
+        raise ApiError("登录后才能附加现场证据", code="auth_required", status_code=401)
+
+    resolved: list[dict] = []
+    hashes: list[str] = []
+    for raw in refs[:5]:
+        media_id = str(raw.get("media_id") or "")
+        media = db.get(MediaObject, media_id) if media_id else None
+        if (
+            media is None
+            or media.upload_status != "stored"
+            or media.created_by_user_id != user.id
+            or media.purpose != MediaPurpose.REALITY_EVIDENCE
+        ):
+            raise ApiError("现场证据不可用或不属于当前账号", code="invalid_media_ref")
+        resolved.append({"media_id": media.id, "purpose": media.purpose})
+        hashes.append(media.sha256)
+
+    aggregate_hash = sha256("|".join(sorted(hashes)).encode()).hexdigest() if hashes else None
+    return resolved, aggregate_hash
+
+
 def _collect_abuse_flags(
     db: Session, report: RealityReportIn, duplicate: RealityReport | None
 ) -> list[str]:
@@ -176,7 +214,9 @@ def create_report(
     handled by the caller (token persisted separately, never the raw value).
     Media defaults to private (``privacy_state`` default in schema).
     """
-    duplicate = find_duplicate_report(db, body.source_url, body.content_hash, body.media_hash)
+    media_refs, uploaded_media_hash = _resolve_private_media_refs(db, user, body.media_refs)
+    effective_media_hash = uploaded_media_hash or body.media_hash
+    duplicate = find_duplicate_report(db, body.source_url, body.content_hash, effective_media_hash)
     flags = _collect_abuse_flags(db, body, duplicate)
 
     report = RealityReport(
@@ -198,11 +238,11 @@ def create_report(
         time_certainty=body.time_certainty.value,
         fact_evidence_state=body.fact_evidence_state.value,
         privacy_state=body.privacy_state.value,
-        media_refs=body.media_refs,
+        media_refs=media_refs,
         source_url=body.source_url,
         source_platform=body.source_platform.value if body.source_platform else None,
         content_hash=body.content_hash,
-        media_hash=body.media_hash,
+        media_hash=effective_media_hash,
         external_keyframe_ref=body.external_keyframe_ref,
         ocr_text=body.ocr_text,
         moderation_state=(
