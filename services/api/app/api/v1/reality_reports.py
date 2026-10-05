@@ -72,7 +72,7 @@ from app.services.reality_contribution import (
     create_observation_effort,
     create_report,
 )
-from app.services.reality_summary import _Row, freshness_for, summarize
+from app.services.reality_summary import freshness_for
 
 router = APIRouter(tags=["reality"])
 
@@ -405,18 +405,9 @@ def reality_trace(
         .order_by(AnimalFacility.created_at.asc())
     ).all()
 
-    rows = [
-        _Row(
-            observed_at=c.observed_at,
-            source_id=c.source_id,
-            evidence_id=c.evidence_bundle_id,
-            zone_name=None,
-            action=c.observed_action if c.observed_action else None,
-            human_verified=True,
-        )
-        for c in claims
-    ]
-    summary = summarize(rows, now=now)
+    from app.api.v1.reality import _presence_summary
+
+    summary = _presence_summary(db, place_id, now)
     published_rows = [*claims, *staff_rows, *facility_rows]
     evidence_ids = {
         row.evidence_bundle_id
