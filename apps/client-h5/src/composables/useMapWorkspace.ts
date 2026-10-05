@@ -21,7 +21,13 @@ import {
   type PlaceSummary,
 } from "@petaccess/client-core";
 
-import { mapLensCoverage, mapLensLabel, mapLensTone, type MapLensKey } from "../consumer/mapLens";
+import {
+  mapLensCoverage,
+  mapLensLabel,
+  mapLensTone,
+  parseMapLens,
+  type MapLensKey,
+} from "../consumer/mapLens";
 import { enrichRows, nearbyPlaces, snapshotFor, type RowFacts } from "../consumer/repository";
 import { presentDescription } from "../errors";
 import { useBreakpoint } from "./useBreakpoint";
