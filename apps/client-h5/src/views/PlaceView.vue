@@ -114,11 +114,6 @@ const presenceEventCount = computed(
   () => realityEvents.value.filter((event) => event.event_type === "observed_presence").length,
 );
 
-function queryServiceRole(): string {
-  if (session.mode === "service_dog") return "working";
-  return session.activePet?.service_role ?? "none";
-}
-
 async function evaluate() {
   coexistenceLoaded.value = false;
   try {
