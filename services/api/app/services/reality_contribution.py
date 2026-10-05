@@ -56,13 +56,13 @@ from app.models.enums import (
     RealityVerificationStatus,
 )
 from app.models.media import MediaPurpose
-from app.services.reality_freshness import freshness_state
 from app.schemas.reality import (
     ExternalContentReferenceIn,
     ObservationEffortIn,
     RealityConfirmationIn,
     RealityReportIn,
 )
+from app.services.reality_freshness import freshness_state
 
 #: A first-hand report without media stays REVIEW_PENDING; never auto-rejected.
 NO_MEDIA_REVIEW_PENDING = True
