@@ -6,7 +6,13 @@
  * here instead of drifting per-form.
  */
 export function proximity() {
-  return { proximity_verified: true, distance_bucket: "<100m", accuracy_bucket: "10-50m" };
+  // No geolocation measurement happens in this helper. Never fabricate a
+  // proximity proof just because the user opened a contribution form.
+  return {
+    proximity_verified: false,
+    distance_bucket: null,
+    accuracy_bucket: null,
+  };
 }
 
 export function evidenceRefs(mediaId: string | null) {
