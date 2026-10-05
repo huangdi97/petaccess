@@ -334,6 +334,11 @@ def _seed_v09_reality_demo(
         session.add(candidate)
         candidates[key] = candidate
 
+    # candidate_id is a scalar FK and the seed does not attach ORM relationships.
+    # Flush the parent candidates explicitly so PostgreSQL never sees a child
+    # AnimalFacility/ObservedPresence before its RealityCandidate exists.
+    session.flush()
+
     session.add_all(
         [
             ObservedPresence(
