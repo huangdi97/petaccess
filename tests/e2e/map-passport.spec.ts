@@ -102,6 +102,28 @@ test("B2.1 — Space view 展示已核验设施属性且不暗示准入或安全
   await expect(page.getByTestId("animal-facilities")).toContainText("不构成安全");
 });
 
+test("B2.2 — 仅有发布时间的设施线索不冒充当前空间设施事实", async ({ page }) => {
+  await page.route("**/api/v1/places/*/reality/events**", (route) =>
+    route.fulfill({
+      json: [
+        {
+          id: "publication-only-facility",
+          event_type: "animal_facility",
+          time_evidence_state: "publication_time_only",
+          facility_type: "water_bowl",
+          facility_purpose_state: "purpose_signage_supported",
+          facility_state: "active",
+          source_id: null,
+        },
+      ],
+    }),
+  );
+  await page.goto(`${BASE}/#/place/${MALL_ID}?view=space`);
+  await expect(page.getByTestId("animal-facilities")).toBeVisible();
+  await expect(page.getByTestId("animal-facility-record")).toHaveCount(0);
+  await expect(page.getByTestId("animal-facility-summary-row").first()).toBeVisible();
+});
+
 test("B3 — Place Evidence view 证据来源链渲染，无原始枚举", async ({ page }) => {
   await page.goto(`${BASE}/#/place/${CAFE_ID}?view=evidence`);
   await expect(page.getByTestId("place-evidence-view")).toBeVisible();
