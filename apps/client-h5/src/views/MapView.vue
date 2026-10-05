@@ -24,7 +24,6 @@ import { useRouter } from "vue-router";
 const {
   camera,
   places,
-  facts,
   lens,
   lensLabels,
   statuses,
@@ -124,7 +123,6 @@ function goHome() {
       <MapResultPane
         v-if="isDesktop || view === 'list'"
         :places="places"
-        :facts="facts"
         :lens="lens"
         :lens-labels="lensLabels"
         :statuses="statuses"
