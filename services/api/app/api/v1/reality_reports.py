@@ -71,6 +71,7 @@ from app.services.reality_contribution import (
     create_external_content_ref,
     create_observation_effort,
     create_report,
+    materialize_report_evidence,
 )
 from app.services.reality_summary import freshness_for
 
@@ -268,6 +269,8 @@ def create_reality_report(
         report.anonymous_token = uuid.uuid4().hex
         db.flush()
 
+    evidence_bundle = materialize_report_evidence(db, report)
+
     briefs: list[RealityCandidateBrief] = []
     for candidate in body.candidates:
         cand_place = _candidate_place(body, place_id, candidate)
@@ -280,6 +283,7 @@ def create_reality_report(
             payload=candidate.payload or {},
             zone_id=candidate.zone_id,
             observed_at=candidate.observed_at or body.report.observed_at,
+            evidence_bundle_id=evidence_bundle.id,
             request=request,
         )
         briefs.append(
