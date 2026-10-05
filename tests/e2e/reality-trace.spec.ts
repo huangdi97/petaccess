@@ -55,9 +55,7 @@ test("A3 — 观察时间线渲染；空时间线走 REALITY empty copy", async 
   await expect(rows.first().or(empty).first()).toBeVisible();
 
   // Forced-empty observations → the shared REALITY empty copy.
-  await page.route("**/api/v1/places/*/reality/events**", (route) =>
-    route.fulfill({ json: [] }),
-  );
+  await page.route("**/api/v1/places/*/reality/events**", (route) => route.fulfill({ json: [] }));
   await page.goto(`${BASE}/#/place/${MALL_ID}/reality`);
   await expect(page.getByTestId("trace-empty")).toBeVisible();
   await expect(page.getByTestId("trace-empty")).toContainText("暂无近期现场记录");
