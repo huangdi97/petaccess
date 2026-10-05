@@ -384,6 +384,91 @@ def test_imprecise_place_match_cannot_publish_public_claim(client, place_id):
     assert decision.json()["error"]["code"] == "reality_exact_place_required"
 
 
+def test_publication_only_facts_stay_out_of_recent_and_current_summaries(
+    client, place_id, signed_user
+):
+    """A recent post date is not a recent event date or proof a facility is current."""
+    before = client.get(f"/api/v1/places/{place_id}/reality").json()
+    published = (datetime.now(UTC) - timedelta(hours=1)).isoformat()
+    created = client.post(
+        f"/api/v1/places/{place_id}/reality/reports",
+        headers=signed_user,
+        json={
+            "report": _report(
+                "external_online_content",
+                observed_at=None,
+                claimed_event_at=None,
+                content_published_at=published,
+                time_evidence_state="publication_time_only",
+                time_certainty="unknown",
+                fact_evidence_state="text_only_external",
+            ),
+            "candidates": [
+                {
+                    "candidate_type": "staff_response",
+                    "observed_at": None,
+                    "payload": {
+                        "actor_role": "unknown_staff",
+                        "response_action": "request_wait_outside",
+                        "staff_awareness_state": "awareness_confirmed",
+                    },
+                },
+                {
+                    "candidate_type": "animal_facility",
+                    "observed_at": None,
+                    "payload": {
+                        "facility_type": "water_bowl",
+                        "purpose_state": "purpose_signage_supported",
+                        "operational_state": "active",
+                    },
+                },
+            ],
+            "external_content": {
+                "source_url": f"https://example.com/publication-only-{uuid.uuid4().hex}",
+                "platform": "web",
+                "published_at": published,
+            },
+        },
+    )
+    assert created.status_code == 201, created.text
+
+    me = client.get("/api/v1/auth/me", headers=signed_user)
+    assert me.status_code == 200, me.text
+    from app.db.session import get_session_factory
+    from app.models import User
+
+    session = get_session_factory()()
+    try:
+        user = session.get(User, me.json()["id"])
+        assert user is not None
+        user.role = "admin"
+        session.commit()
+    finally:
+        session.close()
+
+    for candidate in created.json()["candidates"]:
+        decision = client.post(
+            f"/api/v1/reality/candidates/{candidate['id']}/decision",
+            headers=signed_user,
+            json={"reality_decision": "verified", "decision_note": None},
+        )
+        assert decision.status_code == 200, decision.text
+
+    after = client.get(f"/api/v1/places/{place_id}/reality").json()
+    assert after["recent_count_30d"] == before["recent_count_30d"]
+    assert after["staff_response_summary"] == before["staff_response_summary"]
+    assert after["facility_summary"] == before["facility_summary"]
+
+    events = client.get(f"/api/v1/places/{place_id}/reality/events").json()
+    published_events = [
+        event
+        for event in events
+        if event["time_evidence_state"] == "publication_time_only"
+        and event["content_published_at"] is not None
+    ]
+    assert len(published_events) >= 2
+
+
 def test_effort_never_becomes_no_animal_presence_claim(client, place_id, signed_user):
     """§24: animal_observed=false forms only an ObservationEffort row."""
     before = client.get(f"/api/v1/places/{place_id}/reality").json()
