@@ -21,9 +21,7 @@
     {
       "id": "MAP_RESULT_PANE_WIDTH",
       "ui": "map-result-pane",
-      "fallbacks": [
-        "[data-testid='map-result-pane'], .map-pane"
-      ],
+      "fallbacks": ["[data-testid='map-result-pane'], .map-pane"],
       "props": {
         "width": {
           "min": 360,
@@ -35,9 +33,7 @@
     {
       "id": "MAP_CANVAS_PRESENT",
       "ui": "map-canvas",
-      "fallbacks": [
-        "[data-testid='map'], .map-canvas"
-      ],
+      "fallbacks": ["[data-testid='map'], .map-canvas"],
       "props": {
         "count": {
           "min": 1
@@ -48,9 +44,7 @@
     {
       "id": "MAP_FILTER_TOGGLE",
       "ui": "map-filter-toggle",
-      "fallbacks": [
-        "[data-testid='map-filter-toggle']"
-      ],
+      "fallbacks": ["[data-testid='map-filter-toggle']"],
       "props": {
         "count": {
           "min": 1
@@ -61,9 +55,7 @@
     {
       "id": "MAP_PREVIEW_FOCUSED",
       "ui": "place-preview",
-      "fallbacks": [
-        "[data-testid='place-preview']"
-      ],
+      "fallbacks": ["[data-testid='place-preview']"],
       "props": {
         "count": {
           "min": 1
@@ -74,9 +66,7 @@
     {
       "id": "MAP_CANVAS_OCCUPANCY",
       "ui": "map-canvas",
-      "fallbacks": [
-        "[data-testid='map'], .map-canvas"
-      ],
+      "fallbacks": ["[data-testid='map'], .map-canvas"],
       "props": {
         "width": {
           "min": 700
@@ -88,9 +78,7 @@
     {
       "id": "MAP_SELECTED_HIERARCHY",
       "ui": "map-marker-selected",
-      "fallbacks": [
-        "[data-selected='true']"
-      ],
+      "fallbacks": ["[data-selected='true']"],
       "props": {
         "width": {
           "min": 14,
@@ -106,9 +94,7 @@
     {
       "id": "MAP_LENSBAR_PRESENT",
       "ui": "map-lensbar",
-      "fallbacks": [
-        "[data-ui='map-lensbar']"
-      ],
+      "fallbacks": ["[data-ui='map-lensbar']"],
       "props": {
         "count": {
           "min": 1
@@ -157,10 +143,7 @@
     {
       "id": "MAP_RESULT_ROWS_NOT_CARDS",
       "selector": ".map-place-row",
-      "forbiddenClass": [
-        "card",
-        "panel"
-      ],
+      "forbiddenClass": ["card", "panel"],
       "severity": "FAIL"
     },
     {
@@ -169,12 +152,7 @@
       "min": 4,
       "max": 4,
       "severity": "FAIL",
-      "mustContainTexts": [
-        "规则",
-        "现场",
-        "设施",
-        "规则×现场"
-      ]
+      "mustContainTexts": ["规则", "现场", "设施", "规则×现场"]
     }
   ],
   "density": [],
