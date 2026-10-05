@@ -22,12 +22,14 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; connect-src 'self' ipc: http://ipc.localhost http://localhost:* http://127.0.0.1:* http://10.0.2.2:* ws://10.0.2.2:*; img-src 'self' asset: http://asset.localhost data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; script-src 'self'"
+      "csp": "default-src 'self'; connect-src 'self' ipc: http://ipc.localhost http://localhost:* http://127.0.0.1:* http://10.0.2.2:* ws://10.0.2.2:* https://apis.map.qq.com https://map.qq.com https://mapapi.qq.com https://*.map.qq.com https://*.map.gtimg.com; img-src 'self' asset: http://asset.localhost data: blob: https://map.qq.com https://mapapi.qq.com https://*.map.qq.com https://*.map.gtimg.com; style-src 'self' 'unsafe-inline'; font-src 'self' data:; script-src 'self' https://map.qq.com https://mapapi.qq.com; worker-src 'self' blob:"
     }
   },
   "bundle": {
     "active": true,
-    "targets": ["nsis"],
+    "targets": [
+      "nsis"
+    ],
     "category": "Lifestyle",
     "shortDescription": "宠物准入与公共空间共处规则地图 — Early Preview",
     "longDescription": "查询场所对宠物的准入规则、查看经核验的现场事实并贡献线索。当前为 0.1.0 Early Preview：数据可能为空，不代表场所没有规则。",
@@ -42,7 +44,10 @@
       "nsis": {
         "installMode": "currentUser",
         "displayLanguageSelector": false,
-        "languages": ["SimpChinese", "English"],
+        "languages": [
+          "SimpChinese",
+          "English"
+        ],
         "installerIcon": "icons/icon.ico"
       }
     },
