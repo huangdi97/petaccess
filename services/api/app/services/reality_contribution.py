@@ -492,6 +492,8 @@ def create_observation_effort(
     user: User | None,
     body: ObservationEffortIn,
     *,
+    report_id: str | None = None,
+    evidence_bundle_id: str | None = None,
     request=None,
 ) -> ObservationEffort:
     """Record a no-animal-observed effort row.
@@ -500,6 +502,8 @@ def create_observation_effort(
     a RealityCandidate/claim and never implies NO_ANIMAL_PRESENCE.
     """
     effort = ObservationEffort(
+        report_id=report_id,
+        evidence_bundle_id=evidence_bundle_id,
         place_id=body.place_id,
         duration_bucket=body.duration_bucket.value,
         covered_zone_ids=body.covered_zone_ids,
@@ -520,6 +524,8 @@ def create_observation_effort(
         target_id=str(effort.id),
         after_state={
             "place_id": effort.place_id,
+            "report_id": effort.report_id,
+            "evidence_bundle_id": effort.evidence_bundle_id,
             "animal_observed": effort.animal_observed,
             "duration_bucket": effort.duration_bucket,
         },
@@ -532,6 +538,8 @@ def create_confirmation(
     user: User | None,
     body: RealityConfirmationIn,
     *,
+    report_id: str | None = None,
+    evidence_bundle_id: str | None = None,
     request=None,
 ) -> RealityConfirmation:
     """Add a scoped confirmation row; never rewrite the target fact."""
@@ -555,6 +563,8 @@ def create_confirmation(
             raise ApiError("确认候选不存在或不属于当前场所", code="confirmation_target_mismatch")
 
     conf = RealityConfirmation(
+        report_id=report_id,
+        evidence_bundle_id=evidence_bundle_id,
         confirmation_type=body.confirmation_type.value,
         place_id=body.place_id,
         target_claim_id=body.target_claim_id,
@@ -575,6 +585,8 @@ def create_confirmation(
         after_state={
             "confirmation_type": conf.confirmation_type,
             "place_id": conf.place_id,
+            "report_id": conf.report_id,
+            "evidence_bundle_id": conf.evidence_bundle_id,
             "target_claim_id": conf.target_claim_id,
         },
     )
