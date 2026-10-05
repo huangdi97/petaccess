@@ -27,7 +27,9 @@ function hasUsefulFact(card: HomeCard): boolean {
   const presenceEvidence = card.facts.reality?.evidence_count ?? 0;
   const realityEvidence = card.facts.snapshot?.evidence_summary.reality_evidence_count ?? 0;
   const ruleEvidence = card.facts.snapshot?.evidence_summary.rule_evidence.length ?? 0;
-  return presenceEvidence > 0 || realityEvidence > 0 || ruleEvidence > 0 || card.status !== "UNKNOWN";
+  return (
+    presenceEvidence > 0 || realityEvidence > 0 || ruleEvidence > 0 || card.status !== "UNKNOWN"
+  );
 }
 
 /**
