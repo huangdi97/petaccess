@@ -1,5 +1,26 @@
 # PROJECT_STATE.md
 
+## Current phase（2026-10-05 — Canonical Visual Recovery implementation complete / CI pending）
+
+- 状态：`DIRECT_V8_CANONICAL_VISUAL_RECOVERY = CODE_COMPLETE` · `MACHINE_ACCEPTANCE = PENDING` ·
+  `UI_HUMAN_VISUAL_ACCEPTANCE = REJECTED_REOPENED` · `PR #1 = DRAFT` ·
+  `MASTER = UNCHANGED` · `PUBLIC_RELEASE = NOT_PERFORMED`。
+- 权威恢复冻结：`docs/ui/DIRECT_V8_CANONICAL_VISUAL_RECOVERY_2026-10-05.md`。
+  Canonical Master v0.10-R1 决定产品内容；Executable Blueprint 只负责可测几何，不再允许旧 Gate
+  删除 Home recommendations/divergence、Map 四 Lens 或 Place Coexistence Passport 首屏事实。
+- 本轮 GitHub 实施：Home 恢复四任务 Lens → 按关注推荐 → Rule/Reality 速览 → divergence → recent；
+  Search 每行恢复 Rule + Reality + Evidence/Freshness；Map 恢复 Rule / Reality / Facility /
+  Divergence 四 Lens 且全部投影同一 CoexistenceSnapshot；Place 首屏恢复 Rule + Reality +
+  Staff Response + Animal Facility + Divergence，以及 Evidence / Why / Correction actions。
+- 数据边界：`RowFacts` 仅保留服务端 `CoexistenceSnapshot` 作为 Consumer projection SSOT；
+  UI 不新增第二 Rule/Reality resolver，不把 Reality / Facility tone 解释为 access verdict。
+- 工程收口：已修复上一轮 CI 暴露的 RowFacts fallback type gap；Home digest 与 Map lens projection
+  已拆分，避免新增 `vue>200` / `ts>300` quality-gate FAIL；Oracle JSON 已同步 Canonical。
+- 停止线：等待本 HEAD 的 PR CI / UI Direct Validation / UI Direct Visual 真实结果。
+  即使机器全绿，也只进入 `HUMAN_REVIEW_READY`；在真实 Web / Windows / Android 截图人工确认前，
+  禁止 baseline promotion、禁止 master 集成、禁止 tag / Release。
+
+
 ## Current phase（2026-10-05 — direct-v8 Human Visual Reopen）
 
 - 分支：`feat/ui-direct-craft-v8`；PR #1 保持 **draft**；`master` / tag / Release 不动。
