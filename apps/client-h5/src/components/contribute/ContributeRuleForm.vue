@@ -25,6 +25,7 @@ const emit = defineEmits<{ done: [msg: string]; back: [] }>();
 type RuleIntent = "still_valid" | "changed" | "new_lead";
 const intent = ref<RuleIntent>("new_lead");
 const effect = ref<"allowed" | "restricted" | "conditional" | "">("");
+const animalScope = ref<"ordinary_pet" | "dog" | "cat" | "other">("ordinary_pet");
 const zone = ref("");
 const conditions = ref<string[]>([]);
 const mediaId = ref<string | null>(null);
@@ -109,14 +110,17 @@ async function submit() {
       return;
     }
 
-    await client.verify({
-      place_id: props.placeId,
+    const canonicalEffect =
+      effect.value === "restricted" ? "prohibited" : effect.value;
+    if (!canonicalEffect) return;
+    await client.contributeRuleLead(props.placeId, {
       zone_id: zone.value || null,
-      rule_id: intent.value === "changed" ? (target?.id ?? null) : null,
-      event_type: intent.value === "changed" ? "rule_changed" : "rule_lead_submitted",
-      result: intent.value === "changed" ? "changed" : "uncertain",
-      note: `规则线索：${effectLabel}；区域：${zoneLabel}；条件：${conditionLabel}${evidenceNote}`,
-      evidence_refs: evidenceRefs(mediaId.value),
+      animal_scope: animalScope.value,
+      effect: canonicalEffect,
+      proposed_conditions: conditions.value,
+      raw_text: `规则线索：${effectLabel}；区域：${zoneLabel}；条件：${conditionLabel}${evidenceNote}`,
+      media_id: mediaId.value,
+      current_rule_id: intent.value === "changed" ? (target?.id ?? null) : null,
       ...proximity(),
     });
     emit(
@@ -147,6 +151,7 @@ async function submit() {
     <RuleLeadFields
       v-model:intent="intent"
       v-model:effect="effect"
+      v-model:animal-scope="animalScope"
       v-model:zone="zone"
       v-model:conditions="conditions"
       :zones="zones"
