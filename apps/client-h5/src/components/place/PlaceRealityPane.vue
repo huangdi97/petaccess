@@ -4,12 +4,12 @@
  * Reality timeline stays shared; Staff Response is a first-class factual
  * dimension from the same CoexistenceSnapshot, never promoted into policy.
  */
-import type { ObservationView, StaffResponseSummaryItem, Zone } from "@petaccess/client-core";
+import type { RealityEventView, StaffResponseSummaryItem, Zone } from "@petaccess/client-core";
 import RealityEventLog from "../domain/RealityEventLog.vue";
 import { staffActionLabel } from "../../consumer/labels";
 
 defineProps<{
-  observations: ObservationView[];
+  events: RealityEventView[];
   staffResponses: StaffResponseSummaryItem[];
   zones: Zone[];
   placeId: string;
@@ -37,7 +37,7 @@ defineProps<{
 
     <section class="reality-fact-section" data-ui="place-observation-timeline">
       <h2 class="reality-fact-section__title">现场时间线</h2>
-      <RealityEventLog :observations="observations" :zones="zones" :place-id="placeId" />
+      <RealityEventLog :events="events" :zones="zones" :place-id="placeId" />
       <RouterLink
         class="btn-inline reality-full-link"
         :to="`/place/${placeId}/reality`"
