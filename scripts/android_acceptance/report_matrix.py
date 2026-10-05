@@ -138,7 +138,7 @@ def main() -> int:
         routes = journey["rows"]
     for r in routes or []:
         route = r.get("route", "?")
-        blank = "blank" if not r.get("text") else "text"
+        "blank" if not r.get("text") else "text"
         add(
             f"R_{route or 'home'}",
             "route",
