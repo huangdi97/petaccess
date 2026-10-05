@@ -8,22 +8,8 @@ from sqlalchemy.orm import Session
 
 from app.core.security import require_role
 from app.db.session import get_db
-from app.models import (
-    AccessRule,
-    AuditLog,
-    DisputeCase,
-    EvidenceBundle,
-    ObservationClaim,
-    OperatorClaim,
-    Place,
-    RuleCandidate,
-    Source,
-    SourceArtifact,
-    User,
-    VerificationEvent,
-)
+from app.models import AccessRule, AuditLog, ObservationClaim, User
 from app.models.enums import UserRole
-from app.models.evidence import SourcePlatform
 from app.schemas.civic import AuditOut
 from app.schemas.common import Page
 from app.services.admin_quality_dashboard import build_quality_dashboard
