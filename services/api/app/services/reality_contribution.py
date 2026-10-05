@@ -33,8 +33,10 @@ from app.core.audit_events import AuditEvent
 from app.core.errors import ApiError
 from app.models import (
     ExternalContentReference,
+    AnimalFacility,
     MediaObject,
     ObservationEffort,
+    ObservedPresence,
     RealityCandidate,
     RealityConfirmation,
     RealityReport,
@@ -532,11 +534,26 @@ def create_confirmation(
     *,
     request=None,
 ) -> RealityConfirmation:
-    """Add a confirmation row.
+    """Add a scoped confirmation row; never rewrite the target fact."""
+    if not body.target_claim_id and not body.target_candidate_id:
+        raise ApiError("确认记录必须指向一条已有事实或候选", code="confirmation_target_required")
 
-    A confirmation is evidence, never a deletion: NOT_SEEN_NOW never touches
-    the older Observation (the row is simply appended; nothing is deleted).
-    """
+    confirmation_type = body.confirmation_type.value
+    if body.target_claim_id:
+        model = (
+            AnimalFacility
+            if confirmation_type in {"facility_still_present", "facility_removed"}
+            else ObservedPresence
+        )
+        target = db.get(model, body.target_claim_id)
+        if target is None or target.place_id != body.place_id:
+            raise ApiError("确认目标不存在或不属于当前场所", code="confirmation_target_mismatch")
+
+    if body.target_candidate_id:
+        target_candidate = db.get(RealityCandidate, body.target_candidate_id)
+        if target_candidate is None or target_candidate.place_id != body.place_id:
+            raise ApiError("确认候选不存在或不属于当前场所", code="confirmation_target_mismatch")
+
     conf = RealityConfirmation(
         confirmation_type=body.confirmation_type.value,
         place_id=body.place_id,
