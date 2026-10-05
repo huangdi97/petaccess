@@ -77,9 +77,9 @@ const uiState = computed<string>(() => {
 
 const uiFixture = computed<string>(() =>
   uiState.value === "ready"
-    ? "reality-ready-v2"
+    ? "reality-ready-v1"
     : uiState.value === "empty"
-      ? "reality-empty-v2"
+      ? "reality-empty-v1"
       : "reality-other",
 );
 </script>
