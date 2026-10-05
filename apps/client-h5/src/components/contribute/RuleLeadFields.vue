@@ -7,6 +7,9 @@ const intent = defineModel<RuleIntent>("intent", { required: true });
 const effect = defineModel<"allowed" | "restricted" | "conditional" | "">("effect", {
   required: true,
 });
+const animalScope = defineModel<"ordinary_pet" | "dog" | "cat" | "other">("animalScope", {
+  required: true,
+});
 const zone = defineModel<string>("zone", { required: true });
 const conditions = defineModel<string[]>("conditions", { required: true });
 
@@ -59,6 +62,14 @@ function toggleCondition(key: string) {
       <option value="allowed">明确允许</option>
       <option value="restricted">明确限制</option>
       <option value="conditional">有条件进入</option>
+    </select>
+
+    <label for="rule-animal-scope">适用动物</label>
+    <select id="rule-animal-scope" v-model="animalScope" data-testid="rule-animal-scope">
+      <option value="ordinary_pet">普通宠物</option>
+      <option value="dog">犬</option>
+      <option value="cat">猫</option>
+      <option value="other">其他动物</option>
     </select>
 
     <label for="rule-zone">适用区域</label>
