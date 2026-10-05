@@ -81,6 +81,11 @@ class PlaceSummary(BaseModel):
     canonical_name: str
     place_type: PlaceType
     canonical_address: str | None
+    # Representative point in WGS84. Optional because a place may be known
+    # before its map position is verified; UNKNOWN coordinates must never be
+    # fabricated in production.
+    latitude: float | None = None
+    longitude: float | None = None
     distance_m: float | None = None
     # Parent place's name when this is a branch (e.g. a store inside a mall).
     # Named for what it *is*, not for what it usually means: the value is the
