@@ -197,6 +197,22 @@ export function staffActionLabel(value: string | null | undefined): string {
   return STAFF_ACTION_LABELS[value ?? ""] ?? "处理情况未知";
 }
 
+/** Staff role only; individual identity is never consumer-visible. */
+export const STAFF_ROLE_LABELS: Record<string, string> = {
+  owner: "负责人",
+  manager: "管理人员",
+  frontline_staff: "现场工作人员",
+  server: "服务人员",
+  security: "安保人员",
+  cleaning_staff: "保洁人员",
+  front_desk: "前台人员",
+  unknown_staff: "工作人员",
+};
+
+export function staffRoleLabel(value: string | null | undefined): string {
+  return STAFF_ROLE_LABELS[value ?? ""] ?? "工作人员";
+}
+
 /** Facility operational states (FacilityOperationalState). */
 export const FACILITY_STATE_LABELS: Record<string, string> = {
   active: "正常使用中",
