@@ -52,9 +52,40 @@ export function realityEventDetail(event: RealityEventView): string {
 }
 
 export function realityEventTimeBasis(event: RealityEventView): string {
+  if (event.time_evidence_state === "publication_time_only") {
+    return "仅确认内容发布时间，未确认事件发生时间";
+  }
+  if (event.time_evidence_state === "exact_event_date") return "事件日期已确认，具体时刻未记录";
+  if (event.time_evidence_state === "approximate_date") return "事件日期为约略时间";
+  if (event.time_evidence_state === "live_device_time") return "现场设备时间已记录";
+  if (event.time_evidence_state === "exact_event_time") return "事件时间已确认";
   if (event.time_basis === "verified") return "按核验时间记录";
   if (event.time_basis === "recorded") return "按收录时间记录";
   return "观察时间已记录";
+}
+
+export function realityEventDisplayDate(event: RealityEventView): string {
+  const source =
+    event.time_evidence_state === "publication_time_only" && event.content_published_at
+      ? event.content_published_at
+      : event.event_at;
+  return source.slice(0, 10);
+}
+
+export function realityEventDisplayTime(event: RealityEventView): string {
+  if (event.time_evidence_state === "publication_time_only") return "发布";
+  if (event.time_evidence_state === "exact_event_date") return "日期";
+  if (event.time_evidence_state === "approximate_date") return "约";
+  return event.event_at.length >= 16 ? event.event_at.slice(11, 16) : "—";
+}
+
+export function displayRealityEventTime(event: RealityEventView): string {
+  const date = realityEventDisplayDate(event);
+  const time = realityEventDisplayTime(event);
+  if (time === "日期") return date;
+  if (time === "发布") return `${date} 发布`;
+  if (time === "约") return `约 ${date}`;
+  return time === "—" ? date : `${date} ${time}`;
 }
 
 export function realityEventVerification(event: RealityEventView): string {
