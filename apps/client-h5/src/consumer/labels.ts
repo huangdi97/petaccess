@@ -232,6 +232,22 @@ export function facilityStateLabel(value: string | null | undefined): string {
   return FACILITY_STATE_LABELS[value ?? ""] ?? "状态未知";
 }
 
+/** How a verified animal facility is made available; this is not entry policy. */
+export const FACILITY_ACCESS_MODE_LABELS: Record<string, string> = {
+  operator_provided: "场所提供",
+  self_service: "自助使用",
+  staff_assisted: "需工作人员协助",
+  unknown: "使用方式未确认",
+};
+
+export function facilityAccessModeLabel(value: string | null | undefined): string {
+  return FACILITY_ACCESS_MODE_LABELS[value ?? ""] ?? "使用方式未确认";
+}
+
+export function verifiedBooleanLabel(value: boolean | null | undefined): string {
+  return value === true ? "有" : value === false ? "无" : "未确认";
+}
+
 /** Amenity types (PlaceView AMENITY_LABELS). */
 export const AMENITY_LABELS: Record<string, string> = {
   PET_WATER: "宠物饮水",
