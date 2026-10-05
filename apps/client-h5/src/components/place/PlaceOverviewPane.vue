@@ -14,7 +14,7 @@ import { computed } from "vue";
 import type { AccessAnswer, CoexistenceSnapshot, Zone } from "@petaccess/client-core";
 import { animalFacilityLabel, staffActionLabel, zoneConsumerLine } from "../../consumer/labels";
 import { answerConditions, answerStatusKey, answerVerdictLabel } from "../../answer";
-import { realityStateLabel } from "../../reality";
+import { divergenceLabel, realityStateLabel } from "../../reality";
 import StatusBadge from "../StatusBadge.vue";
 import { session } from "@petaccess/client-core";
 
@@ -49,6 +49,14 @@ const realityLine = computed(() =>
     ? realityStateLabel(props.coexistence.reality_answer)
     : "暂无足够现场记录",
 );
+const realityMetaLine = computed(() => {
+  const reality = props.coexistence?.reality_answer;
+  if (!reality) return "";
+  const parts: string[] = [];
+  if (reality.evidence_count > 0) parts.push(`${reality.evidence_count} 条现场证据`);
+  if (reality.days_since_last_seen != null) parts.push(`最近一次 ${reality.days_since_last_seen} 天前`);
+  return parts.join(" · ");
+});
 const primaryEvidence = computed(
   () => props.primarySourceLabel ?? props.answer?.evidence_state.rules[0]?.issuer ?? "来源待补充",
 );
@@ -75,17 +83,19 @@ const staffSummaryLine = computed(() => {
 const facilitySummaryLine = computed(() => {
   const rows = props.coexistence?.facility_summary ?? [];
   return rows
-    .slice(0, 2)
-    .map((item) => `${animalFacilityLabel(item.facility_type)} × ${item.count}`)
+    .slice(0, 1)
+    .map((item) => {
+      const verified = item.last_verified_at ? ` · 核验 ${item.last_verified_at.slice(0, 10)}` : "";
+      return `${animalFacilityLabel(item.facility_type)} × ${item.count}${verified}`;
+    })
     .join(" · ");
 });
 
 const divergenceLine = computed(() => {
   const d = props.coexistence?.divergence;
-  if (!d?.note) return "";
-  const state = (d.state ?? "").toUpperCase();
-  if (["CONSISTENT", "NONE", "NO_DIVERGENCE"].includes(state)) return "";
-  return d.note;
+  if (!d) return "";
+  if (["RULE_REALITY_ALIGNED", "INSUFFICIENT_DATA"].includes(d.state)) return "";
+  return divergenceLabel(d);
 });
 </script>
 
@@ -111,8 +121,9 @@ const divergenceLine = computed(() => {
     <!-- Recent Reality：mobile 保留一行 teaser + CTA（§11）。 -->
     <section class="place-section" data-ui="place-reality-overview" data-testid="overview-reality">
       <h2 class="place-section__title">最近现场</h2>
-      <p class="muted" data-testid="overview-reality-line">{{ realityLine }}</p>
-      <p v-if="observationCount > 0 && desktop" class="muted overview-note">
+      <p class="place-reality-headline" data-testid="overview-reality-line">{{ realityLine }}</p>
+      <p v-if="realityMetaLine" class="muted overview-note">{{ realityMetaLine }}</p>
+      <p v-else-if="observationCount > 0 && desktop" class="muted overview-note">
         {{ observationCount }} 条现场记录
       </p>
       <div
@@ -256,6 +267,14 @@ const divergenceLine = computed(() => {
   line-height: var(--pa-line-height-decision);
   color: var(--pa-color-text-primary);
 }
+.place-reality-headline {
+  margin: 0;
+  font-size: var(--pa-font-size-xl);
+  font-weight: var(--pa-font-weight-650);
+  line-height: var(--pa-line-height-26);
+  color: var(--pa-color-text-primary);
+}
+
 .overview-note {
   margin: var(--pa-space-1) 0 0;
 }
