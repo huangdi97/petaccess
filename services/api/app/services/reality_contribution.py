@@ -282,44 +282,30 @@ def create_report(
     return report, flags
 
 
-def materialize_report_evidence(db: Session, report: RealityReport) -> EvidenceBundle:
-    """Create the immutable provenance anchor every report-backed candidate cites.
-
-    RealityReport is the user-facing contribution container; EvidenceBundle is
-    the publication-grade provenance layer.  The bridge deliberately stores
-    references and structured evidence axes, not a redistributable copy of
-    third-party content.  Multiple private media refs remain on RealityReport;
-    the aggregate media hash anchors integrity without pretending one image is
-    the whole report.
-    """
-    external = report.origin == "external_online_content"
-    onsite = report.origin in {"on_site_now", "on_site_past"}
-    source_platform = SourcePlatform.USER_LINK if external else SourcePlatform.ONSITE
-    collector_type = CollectorType.USER_LINK if external else CollectorType.ONSITE_EVIDENCE
-    artifact_type = (
-        "external_content_reference"
-        if external
-        else "structured_firsthand_report" if onsite else "structured_reality_report"
-    )
-    publisher_type = (
-        "ordinary_user"
-        if report.origin in {"on_site_now", "on_site_past", "external_online_content"}
-        else "official_operator" if report.origin == "operator_provided" else "unknown"
-    )
+def _private_provenance_artifact(
+    db: Session,
+    *,
+    platform: str,
+    collector: str,
+    artifact_type: str,
+    content_id: str,
+    collected_at: datetime,
+    publisher_type: str,
+    source_url: str | None = None,
+    content_hash: str | None = None,
+    published_at: datetime | None = None,
+) -> SourceArtifact:
     artifact = SourceArtifact(
         source_id=None,
-        source_platform=source_platform,
-        collector_type=collector_type,
+        source_platform=platform,
+        collector_type=collector,
         artifact_type=artifact_type,
-        source_url=report.source_url,
-        source_content_id=str(report.id),
-        media_id=None,
-        snapshot_ref=None,
-        content_hash=report.content_hash or report.media_hash,
-        collected_at=report.submitted_at or datetime.now(UTC),
+        source_url=source_url,
+        source_content_id=content_id,
+        content_hash=content_hash,
+        collected_at=collected_at,
         publisher_type=publisher_type,
-        published_at=report.content_published_at,
-        captured_excerpt=None,
+        published_at=published_at,
         evidence_strength="user_submitted",
         storage_allowed=True,
         display_allowed=False,
@@ -327,7 +313,17 @@ def materialize_report_evidence(db: Session, report: RealityReport) -> EvidenceB
     )
     db.add(artifact)
     db.flush()
+    return artifact
 
+
+def _private_provenance_bundle(
+    db: Session,
+    artifact: SourceArtifact,
+    *,
+    place_match: dict[str, Any],
+    temporal: dict[str, Any],
+    privacy_note: str,
+) -> EvidenceBundle:
     bundle = EvidenceBundle(
         artifact_id=artifact.id,
         source_id=None,
@@ -336,18 +332,59 @@ def materialize_report_evidence(db: Session, report: RealityReport) -> EvidenceB
         publisher_type=artifact.publisher_type,
         published_at=artifact.published_at,
         captured_at=artifact.collected_at,
-        quoted_fragment=None,
-        extracted_fragment=None,
         evidence_class=EvidenceClass.ORIGINAL,
         content_hash=artifact.content_hash,
-        place_match_evidence={
+        place_match_evidence=place_match,
+        temporal_evidence=temporal,
+        extraction_method="manual",
+        license_metadata={
+            "storage_allowed": True,
+            "display_allowed": False,
+            "redistribution_allowed": False,
+            "structured_fact_publication_only": True,
+        },
+        privacy_notes=privacy_note,
+    )
+    db.add(bundle)
+    db.flush()
+    return bundle
+
+
+def materialize_report_evidence(db: Session, report: RealityReport) -> EvidenceBundle:
+    """Bridge a private RealityReport into publication-grade provenance."""
+    external = report.origin == "external_online_content"
+    onsite = report.origin in {"on_site_now", "on_site_past"}
+    artifact = _private_provenance_artifact(
+        db,
+        platform=SourcePlatform.USER_LINK if external else SourcePlatform.ONSITE,
+        collector=CollectorType.USER_LINK if external else CollectorType.ONSITE_EVIDENCE,
+        artifact_type=(
+            "external_content_reference"
+            if external
+            else "structured_firsthand_report" if onsite else "structured_reality_report"
+        ),
+        content_id=str(report.id),
+        collected_at=report.submitted_at or datetime.now(UTC),
+        publisher_type=(
+            "ordinary_user"
+            if report.origin in {"on_site_now", "on_site_past", "external_online_content"}
+            else "official_operator" if report.origin == "operator_provided" else "unknown"
+        ),
+        source_url=report.source_url,
+        content_hash=report.content_hash or report.media_hash,
+        published_at=report.content_published_at,
+    )
+    return _private_provenance_bundle(
+        db,
+        artifact,
+        place_match={
             "state": report.place_match_state,
             "types": report.place_match_evidence_types or [],
             "place_id": report.place_id,
             "container_place_id": report.container_place_id,
             "subject_place_id": report.subject_place_id,
         },
-        temporal_evidence={
+        temporal={
             "state": report.time_evidence_state,
             "time_certainty": report.time_certainty,
             "content_published_at": (
@@ -358,89 +395,38 @@ def materialize_report_evidence(db: Session, report: RealityReport) -> EvidenceB
             ),
             "observed_at": report.observed_at.isoformat() if report.observed_at else None,
         },
-        extraction_method="manual",
-        license_metadata={
-            "storage_allowed": True,
-            "display_allowed": False,
-            "redistribution_allowed": False,
-            "structured_fact_publication_only": True,
-        },
-        privacy_notes=(
-            "RealityReport provenance is private review material. Consumer surfaces may expose "
-            "only the reviewed structured fact and non-sensitive provenance summary."
-        ),
+        privacy_note="Private RealityReport provenance; publish only reviewed structured facts.",
     )
-    db.add(bundle)
-    db.flush()
-    return bundle
-
 
 
 def materialize_legacy_candidate_evidence(
     db: Session, candidate: RealityCandidate
 ) -> EvidenceBundle:
-    """Backstop the legacy signed-in contribution endpoint with real provenance.
-
-    The route has no RealityReport parent, so its path place selection is stored
-    as user-confirmed place evidence and its explicit observed_at stays the time
-    anchor. This keeps the compatibility API from bypassing the evidence-first
-    publication contract.
-    """
+    """Keep the compatibility contribution route inside the evidence contract."""
     now = datetime.now(UTC)
-    artifact = SourceArtifact(
-        source_id=None,
-        source_platform=SourcePlatform.ONSITE,
-        collector_type=CollectorType.ONSITE_EVIDENCE,
+    artifact = _private_provenance_artifact(
+        db,
+        platform=SourcePlatform.ONSITE,
+        collector=CollectorType.ONSITE_EVIDENCE,
         artifact_type="structured_firsthand_report",
-        source_url=None,
-        source_content_id=f"legacy-reality-candidate:{candidate.id}",
-        media_id=None,
-        snapshot_ref=None,
-        content_hash=None,
+        content_id=f"legacy-reality-candidate:{candidate.id}",
         collected_at=now,
         publisher_type="ordinary_user",
-        published_at=None,
-        captured_excerpt=None,
-        evidence_strength="user_submitted",
-        storage_allowed=True,
-        display_allowed=False,
-        redistribution_allowed=False,
     )
-    db.add(artifact)
-    db.flush()
-    bundle = EvidenceBundle(
-        artifact_id=artifact.id,
-        source_id=None,
-        source_platform=artifact.source_platform,
-        source_url=None,
-        publisher_type=artifact.publisher_type,
-        published_at=None,
-        captured_at=now,
-        quoted_fragment=None,
-        extracted_fragment=None,
-        evidence_class=EvidenceClass.ORIGINAL,
-        content_hash=None,
-        place_match_evidence={
+    return _private_provenance_bundle(
+        db,
+        artifact,
+        place_match={
             "state": "exact_place",
             "types": ["user_confirmation"],
             "place_id": candidate.place_id,
         },
-        temporal_evidence={
+        temporal={
             "state": "exact_event_time" if candidate.observed_at else "unknown",
             "observed_at": candidate.observed_at.isoformat() if candidate.observed_at else None,
         },
-        extraction_method="manual",
-        license_metadata={
-            "storage_allowed": True,
-            "display_allowed": False,
-            "redistribution_allowed": False,
-            "structured_fact_publication_only": True,
-        },
-        privacy_notes="Compatibility contribution provenance; private review material.",
+        privacy_note="Compatibility contribution provenance; private review material.",
     )
-    db.add(bundle)
-    db.flush()
-    return bundle
 
 def attach_candidate(
     db: Session,
