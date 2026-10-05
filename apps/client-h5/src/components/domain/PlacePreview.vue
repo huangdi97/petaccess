@@ -29,8 +29,10 @@ const props = withDefaults(
     snapshot?: CoexistenceSnapshot | null;
     loading?: boolean;
     error?: string;
+    mapLensName?: string;
+    mapLensLabel?: string;
   }>(),
-  { status: null, snapshot: null, loading: false, error: "" },
+  { status: null, snapshot: null, loading: false, error: "", mapLensName: "", mapLensLabel: "" },
 );
 
 const answer = computed(() => props.snapshot?.rule_answer ?? null);
@@ -60,6 +62,11 @@ const metaLine = computed(() => {
         <h2 class="place-preview__name">{{ place.canonical_name }}</h2>
         <p class="place-preview__muted">{{ metaLine }}</p>
       </header>
+
+      <div v-if="mapLensLabel" class="place-preview__lens" data-testid="preview-map-lens">
+        <span class="place-preview__label">当前地图 · {{ mapLensName }}</span>
+        <strong>{{ mapLensLabel }}</strong>
+      </div>
 
       <!-- §32：Primary status + key condition -->
       <div class="place-preview__decision" data-testid="preview-verdict">
@@ -126,6 +133,20 @@ const metaLine = computed(() => {
   color: var(--pa-color-text-muted);
   line-height: var(--pa-line-height-base);
 }
+.place-preview__lens {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-1);
+  padding-bottom: var(--pa-space-3);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.place-preview__lens strong {
+  font-size: var(--pa-font-size-base);
+  line-height: var(--pa-line-height-23);
+  color: var(--pa-color-text-primary);
+}
+
 .place-preview__decision {
   display: flex;
   flex-direction: column;
