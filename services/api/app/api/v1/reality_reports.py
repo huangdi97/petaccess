@@ -44,6 +44,7 @@ from app.models import (
     Place,
     RealityCandidate,
     RealityReport,
+    Source,
     StaffResponseObservation,
     User,
 )
@@ -90,10 +91,90 @@ REALITY_STATE_LABELS: dict[str, str] = {
 }
 
 
+FRESHNESS_LABELS: dict[str, str] = {
+    "FRESH": "7 天内",
+    "RECENT": "30 天内",
+    "AGING": "30–90 天",
+    "HISTORICAL": "历史记录",
+    "EXPIRED_FOR_SUMMARY": "已超出近期摘要范围",
+}
+
+STAFF_RESPONSE_LABELS: dict[str, str] = {
+    "proactive_accommodation": "主动提供便利",
+    "provide_water": "提供饮水",
+    "provide_container_or_stroller": "提供宠物箱或推车",
+    "direct_to_allowed_zone": "引导到允许区域",
+    "remind_leash": "提醒牵引",
+    "require_carrier": "要求使用宠物箱或包",
+    "request_relocation": "要求更换位置",
+    "request_wait_outside": "要求在外等候",
+    "deny_entry": "拒绝进入",
+    "request_exit": "要求离开",
+    "policy_explanation": "解释场所规则",
+    "escalate_to_manager": "转交负责人处理",
+    "no_intervention_observed": "未观察到处理",
+    "unknown": "处理情况未知",
+}
+
+FACILITY_LABELS: dict[str, str] = {
+    "outdoor_holding_cage": "户外安置笼",
+    "kennel": "犬舍",
+    "tether_point": "拴宠点",
+    "pet_waiting_area": "携宠等候区",
+    "pet_parking": "宠物暂放区",
+    "water_bowl": "饮水碗",
+    "pet_stroller": "宠物推车",
+    "carrier_storage": "宠物箱寄存",
+    "pet_entrance": "宠物入口",
+    "pet_elevator": "宠物电梯",
+    "dedicated_pet_zone": "独立携宠区",
+    "waste_bag_station": "拾便袋站",
+    "cleaning_station": "清洁站",
+    "washing_point": "清洗点",
+    "dedicated_pet_tableware": "专用宠物餐具",
+    "other": "其他设施",
+}
+
+SOURCE_TYPE_LABELS: dict[str, str] = {
+    "statute_or_regulation": "法规",
+    "government_service": "政府服务",
+    "official_operator_policy": "管理方发布",
+    "onsite_signage": "现场标识",
+    "certified_verifier": "认证核验方",
+    "ordinary_user": "普通用户现场提交",
+    "external_web_reference": "外部网页",
+    "imported_dataset": "导入数据",
+}
+
+
 def _freshness_label(observed_at: datetime | None) -> str:
     if observed_at is None:
         return "时间未知"
-    return freshness_for(observed_at)
+    state = freshness_for(observed_at)
+    return FRESHNESS_LABELS.get(state, "时间状态待确认")
+
+
+def _enum_value(value) -> str:
+    return value.value if hasattr(value, "value") else str(value)
+
+
+def _staff_trace_label(row: StaffResponseObservation) -> str:
+    action = _enum_value(row.response_action)
+    awareness = _enum_value(row.staff_awareness_state)
+    if action == "no_intervention_observed":
+        if awareness == "awareness_confirmed":
+            return "工作人员已注意到，本次未观察到进一步处理"
+        return "本次记录未观察到工作人员处理"
+    return STAFF_RESPONSE_LABELS.get(action, "工作人员处理情况待补充")
+
+
+def _facility_trace_label(row: AnimalFacility) -> str:
+    purpose = _enum_value(row.purpose_state)
+    if purpose in {"purpose_user_inferred", "purpose_unknown"}:
+        return "疑似动物相关设施，用途待核验"
+    return FACILITY_LABELS.get(_enum_value(row.facility_type), "动物相关设施")
+
+
 
 
 def _validate_report_times(body: RealityContributionIn) -> None:
@@ -347,7 +428,7 @@ def reality_trace(
         ),
         RealityTraceSection(
             label="来源类型",
-            value=_source_type_label(claims, staff_rows, facility_rows),
+            value=_source_type_label(db, claims, staff_rows, facility_rows),
         ),
         RealityTraceSection(
             label="时间",
@@ -355,12 +436,12 @@ def reality_trace(
         ),
         RealityTraceSection(
             label="工作人员处理",
-            value="、".join(sorted({str(s.response_action) for s in staff_rows}))
+            value="、".join(sorted({_staff_trace_label(row) for row in staff_rows}))
             or "暂无经核验的处理记录",
         ),
         RealityTraceSection(
             label="动物相关设施",
-            value="、".join(sorted({str(f.facility_type) for f in facility_rows}))
+            value="、".join(sorted({_facility_trace_label(row) for row in facility_rows}))
             or "暂无经核验的设施记录",
         ),
     ]
@@ -437,16 +518,22 @@ def my_reality_contributions(
 
 
 def _source_type_label(
+    db: Session,
     claims: Sequence[ObservedPresence],
     staff_rows: Sequence[StaffResponseObservation],
     facility_rows: Sequence[AnimalFacility],
 ) -> str:
-    """Label the observed source contexts (facts only, no raw URLs)."""
-    parts: list[str] = []
-    if claims:
-        parts.append("现场亲历")
-    if staff_rows:
-        parts.append("现场亲历（工作人员）")
-    if facility_rows:
-        parts.append("现场亲历（设施）")
-    return "、".join(parts) or "暂无已发布记录"
+    """Describe actual source provenance rather than infer it from fact type."""
+    source_ids = {
+        row.source_id
+        for row in [*claims, *staff_rows, *facility_rows]
+        if row.source_id
+    }
+    if not source_ids:
+        return "来源待补充" if (claims or staff_rows or facility_rows) else "暂无已发布记录"
+    source_types = db.scalars(select(Source.source_type).where(Source.id.in_(source_ids))).all()
+    labels = {
+        SOURCE_TYPE_LABELS.get(_enum_value(source_type), "其他来源")
+        for source_type in source_types
+    }
+    return "、".join(sorted(labels)) or "来源待补充"
