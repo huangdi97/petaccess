@@ -80,8 +80,18 @@ export function useHomeLauncher() {
     return s === "dog" ? "普通犬" : s === "cat" ? "猫" : "其他宠物";
   });
 
-  const verified = computed(() => cards.value.filter((c) => ANSWERED_STATUSES.includes(c.status)));
-  const pending = computed(() => cards.value.filter((c) => !ANSWERED_STATUSES.includes(c.status)));
+  // Home is Rule + Reality, not a "rules verified" dashboard. A place with
+  // useful published Reality evidence remains a substantive digest row even
+  // when Rule is UNKNOWN; otherwise the UI would hide the exact divergence
+  // the product is designed to surface.
+  const verified = computed(() =>
+    cards.value.filter((card) => {
+      if (ANSWERED_STATUSES.includes(card.status)) return true;
+      if ((card.facts.reality?.evidence_count ?? 0) > 0) return true;
+      return (card.facts.snapshot?.evidence_summary.rule_evidence.length ?? 0) > 0;
+    }),
+  );
+  const pending = computed(() => cards.value.filter((card) => !verified.value.includes(card)));
 
   function setPerspective(p: Perspective) {
     perspective.value = p;
