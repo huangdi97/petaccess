@@ -180,6 +180,7 @@ def contribute_rule_lead(
         extraction_method="manual",
         raw_text=body.raw_text,
         media_id=body.media_id,
+        supersedes_rule_id=body.current_rule_id,
     )
     transition(candidate, "REVIEW_PENDING")
     record_audit(
@@ -220,6 +221,7 @@ class CandidateIn(BaseModel):
     raw_text: str | None = None
     media_id: str | None = None
     evidence_bundle_id: str | None = None
+    supersedes_rule_id: str | None = None
     # --- ADR-025 / ADR-028: source-faithful scope ---------------------------
     source_scope_exact: str | None = Field(default=None, max_length=64)
     subject_scope_normalized: str | None = Field(default=None, max_length=32)
@@ -369,6 +371,7 @@ def _candidate_dict(c) -> dict:
         "reviewer_id": c.reviewer_id,
         "review_note": c.review_note,
         "published_rule_id": c.published_rule_id,
+        "supersedes_rule_id": c.supersedes_rule_id,
         "media_id": c.media_id,
         "evidence_bundle_id": c.evidence_bundle_id,
         # --- ADR-025 / ADR-028 scope layer ---
@@ -446,6 +449,7 @@ def admin_create_candidate(
         raw_text=body.raw_text,
         media_id=body.media_id,
         evidence_bundle_id=body.evidence_bundle_id,
+        supersedes_rule_id=body.supersedes_rule_id,
         source_scope_exact=body.source_scope_exact,
         subject_scope_normalized=body.subject_scope_normalized,
         normalization_type=body.normalization_type,
