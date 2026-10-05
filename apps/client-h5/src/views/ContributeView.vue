@@ -36,6 +36,7 @@ const signedIn = ref(false);
 const zones = ref<{ id: string; name: string }[]>([]);
 /** §29：step shell 顶部显示「我给哪个场所提交」。 */
 const placeName = ref("");
+const parentPlaceId = ref<string | null>(null);
 
 // Reactive param + immediate: the router reuses this component across
 // /contribute/:id changes; every submit carries place_id, so re-anchor first.
@@ -45,6 +46,7 @@ watch(
     reset();
     zones.value = [];
     placeName.value = "";
+    parentPlaceId.value = null;
     await session.restore();
     signedIn.value = session.signedIn;
     if (!signedIn.value || !placeId.value) return;
@@ -55,6 +57,7 @@ watch(
       ]);
       zones.value = zs;
       placeName.value = place?.canonical_name ?? "";
+      parentPlaceId.value = place?.parent_place_id ?? null;
     } catch {
       /* best-effort; forms work without zones/name */
     }
@@ -196,6 +199,7 @@ const { desktop: isDesktop } = useBreakpoint();
               v-else-if="step === 'reality'"
               :place-id="placeId"
               :place-name="placeName"
+              :parent-place-id="parentPlaceId"
               :zones="zones"
               :online="online"
               :signed-in="signedIn"
