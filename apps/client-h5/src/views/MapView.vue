@@ -12,8 +12,11 @@
  * (CoexistenceSnapshot SSOT, bounded concurrency, cache). Markers = shape +
  * semantic status, never a ranking; map failure surfaces via StateMessage.
  */
+import { computed, onMounted, ref } from "vue";
+import { client, type MapRenderConfig } from "@petaccess/client-core";
 import MapResultPane from "../components/domain/MapResultPane.vue";
 import MockMap from "../components/MockMap.vue";
+import TencentMap from "../components/TencentMap.vue";
 import MapSelectedSheet from "../components/map/MapSelectedSheet.vue";
 import PlacePreview from "../components/domain/PlacePreview.vue";
 import QueryContextBar from "../components/domain/QueryContextBar.vue";
@@ -47,6 +50,25 @@ const {
 } = useMapWorkspace();
 const router = useRouter();
 
+const renderConfig = ref<MapRenderConfig | null>(null);
+const realMapError = ref("");
+const useRealMap = computed(
+  () =>
+    renderConfig.value?.provider === "tencent" &&
+    renderConfig.value.real_enabled &&
+    Boolean(renderConfig.value.client_key) &&
+    !realMapError.value,
+);
+
+onMounted(async () => {
+  try {
+    renderConfig.value = await client.mapConfig();
+  } catch {
+    // Map data/list remains usable even if provider capability detection fails.
+    renderConfig.value = null;
+  }
+});
+
 const MAP_LENSES = [
   { key: "rule", label: "规则" },
   { key: "reality", label: "现场" },
@@ -64,6 +86,17 @@ function zoomMap(delta: number) {
     ...camera.value,
     zoom: Math.max(8, Math.min(18, camera.value.zoom + delta)),
   };
+}
+
+function setAbsoluteZoom(zoom: number) {
+  camera.value = {
+    ...camera.value,
+    zoom: Math.max(8, Math.min(18, zoom)),
+  };
+}
+
+function handleRealMapError(message: string) {
+  realMapError.value = message || "真实地图暂不可用";
 }
 
 function chooseMapResult(id: string) {
@@ -176,6 +209,19 @@ function chooseMapResult(id: string) {
             <button type="button" class="primary" @click="load">重试</button>
           </template>
         </StateMessage>
+        <TencentMap
+          v-else-if="useRealMap && renderConfig?.client_key"
+          :client-key="renderConfig.client_key"
+          :camera="camera"
+          :clusters="clusters"
+          :lens="lens"
+          :lens-labels="lensLabels"
+          :selected-id="selected?.id ?? null"
+          @select="onSelectCluster"
+          @zoom="zoomMap"
+          @zoom-absolute="setAbsoluteZoom"
+          @error="handleRealMapError"
+        />
         <MockMap
           v-else
           :camera="camera"
@@ -186,6 +232,13 @@ function chooseMapResult(id: string) {
           @select="onSelectCluster"
           @zoom="zoomMap"
         />
+        <p
+          v-if="realMapError"
+          class="map-provider-fallback"
+          data-testid="map-real-provider-fallback"
+        >
+          真实底图暂不可用，已切换到简化空间底图；规则、现场和场所坐标仍来自 PetAccess。
+        </p>
       </section>
     </div>
 
@@ -373,6 +426,22 @@ function chooseMapResult(id: string) {
   .map-canvas {
     min-height: 0;
   }
+}
+
+.map-provider-fallback {
+  position: absolute;
+  left: var(--pa-space-3);
+  bottom: var(--pa-space-3);
+  z-index: 6;
+  max-width: min(420px, calc(100% - var(--pa-space-6)));
+  margin: 0;
+  padding: var(--pa-space-2) var(--pa-space-3);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: var(--pa-radius-control);
+  background: color-mix(in srgb, var(--pa-color-surface) 94%, transparent);
+  color: var(--pa-color-text-secondary);
+  font-size: var(--pa-font-size-sm);
+  line-height: var(--pa-line-height-20);
 }
 
 /* 桌面浮动预览：唯一允许的浮动卡片（freeze §5：map preview 10–12px + light shadow）。 */
