@@ -259,6 +259,17 @@ export function useMapWorkspace() {
     },
   );
 
+  // A Rule-lens filter is a real spatial filter: a hidden result cannot
+  // remain selected in the preview after its row and marker disappear.
+  watch(visiblePlaces, (list) => {
+    if (!selected.value || list.some((place) => place.id === selected.value?.id)) return;
+    const next = isDesktop.value && list.length ? list[0] : null;
+    selected.value = next;
+    syncRoutePlace(next?.id ?? null);
+    if (next) void selectPlace(next);
+    else preview.value = { snapshot: null, loading: false, error: "" };
+  });
+
   return {
     camera,
     places,
