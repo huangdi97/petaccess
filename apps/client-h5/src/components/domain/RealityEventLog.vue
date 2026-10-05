@@ -44,6 +44,17 @@ function zoneNameFor(event: RealityEventView): string {
   return zone ? zoneConsumerLine(zone) : "分区待确认";
 }
 
+function effortRoute(event: RealityEventView) {
+  return {
+    path: `/contribute/${props.placeId}`,
+    query: {
+      mode: "effort",
+      target: event.id,
+      ...(event.zone_id ? { zone: event.zone_id } : {}),
+    },
+  };
+}
+
 interface EventGroup {
   date: string;
   items: RealityEventView[];
@@ -133,13 +144,9 @@ const visibleGroups = computed<EventGroup[]>(() => {
                 >
                   我现在也看到了
                 </button>
-                <button
-                  type="button"
-                  :disabled="busyEventId === event.id"
-                  @click="emit('confirm', event, 'not_seen_now')"
-                >
+                <RouterLink class="trace-row__effort-link" :to="effortRoute(event)">
                   这次没看到
-                </button>
+                </RouterLink>
               </template>
               <template v-else>
                 <button
@@ -287,7 +294,8 @@ const visibleGroups = computed<EventGroup[]>(() => {
   margin-top: var(--pa-space-2);
 }
 
-.trace-row__confirm button {
+.trace-row__confirm button,
+.trace-row__effort-link {
   min-height: var(--pa-size-control-sm);
   padding: 0 var(--pa-space-2);
   border: none;
@@ -297,8 +305,16 @@ const visibleGroups = computed<EventGroup[]>(() => {
   cursor: pointer;
 }
 
+.trace-row__effort-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
 .trace-row__confirm button:hover,
-.trace-row__confirm button:focus-visible {
+.trace-row__confirm button:focus-visible,
+.trace-row__effort-link:hover,
+.trace-row__effort-link:focus-visible {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
