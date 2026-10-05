@@ -110,8 +110,7 @@ async function submit() {
       return;
     }
 
-    const canonicalEffect =
-      effect.value === "restricted" ? "prohibited" : effect.value;
+    const canonicalEffect = effect.value === "restricted" ? "prohibited" : effect.value;
     if (!canonicalEffect) return;
     await client.contributeRuleLead(props.placeId, {
       zone_id: zone.value || null,
