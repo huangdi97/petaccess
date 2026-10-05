@@ -19,7 +19,7 @@ Hard rules enforced here (and by the schema):
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import func, select
+from sqlalchemy import func, select, union_all
 from sqlalchemy.orm import Session
 
 from app.core.audit import record_audit
@@ -644,12 +644,18 @@ def coexistence_snapshot(place_id: str, body: dict, db: Session = Depends(get_db
 
     reality_answer = _reality_answer_for_place(db, place_id, now)
 
+    reality_evidence_count, reality_source_count, reality_verification = (
+        _reality_evidence_stats(db, place_id)
+    )
     snapshot = build_coexistence_snapshot(
         place_id=place_id,
         rule_answer=rule_answer,
         reality_answer=reality_answer,
         staff_response_summary=reality_answer.get("staff_response_summary", []),
         facility_summary=reality_answer.get("facility_summary", []),
+        reality_evidence_count=reality_evidence_count,
+        reality_distinct_source_count=reality_source_count,
+        reality_verification_state=reality_verification,
         now=now,
     )
     return to_plain(snapshot)
@@ -728,6 +734,29 @@ def _facility_summary(db: Session, place_id: str) -> list[dict]:
         }
         for facility_type, state, count, last_verified_at in rows
     ]
+
+
+def _reality_evidence_stats(db: Session, place_id: str) -> tuple[int, int, str | None]:
+    """Count distinct published Reality evidence/source anchors across all fact types."""
+    rows = union_all(
+        select(ObservedPresence.source_id, ObservedPresence.evidence_bundle_id).where(
+            ObservedPresence.place_id == place_id,
+            ObservedPresence.verification_status.in_(VERIFIED_REALITY_STATUSES),
+        ),
+        select(StaffResponseObservation.source_id, StaffResponseObservation.evidence_bundle_id).where(
+            StaffResponseObservation.place_id == place_id,
+            StaffResponseObservation.verification_status.in_(VERIFIED_REALITY_STATUSES),
+        ),
+        select(AnimalFacility.source_id, AnimalFacility.evidence_bundle_id).where(
+            AnimalFacility.place_id == place_id,
+            AnimalFacility.verification_status.in_(VERIFIED_REALITY_STATUSES),
+        ),
+    ).subquery()
+    values = db.execute(select(rows.c.source_id, rows.c.evidence_bundle_id)).all()
+    evidence_ids = {evidence_id for _, evidence_id in values if evidence_id}
+    source_ids = {source_id for source_id, _ in values if source_id}
+    verification = "human_verified" if values else None
+    return len(evidence_ids), len(source_ids), verification
 
 
 def _reality_answer_for_place(db: Session, place_id: str, now: datetime) -> dict:
