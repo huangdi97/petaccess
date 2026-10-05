@@ -40,7 +40,6 @@ from app.models import (
 )
 from app.models.enums import (
     REALITY_VERIFIED_DECISIONS,
-    RealityFreshnessState,
     RealityVerificationStatus,
     UserRole,
 )
@@ -55,11 +54,8 @@ from app.schemas.reality import (
     RealityEventOut,
     StaffResponseObservationOut,
 )
-from app.services.reality_summary import (
-    _Row,
-    freshness_for,
-    summarize,
-)
+from app.services.reality_freshness import freshness_state
+from app.services.reality_summary import _Row, summarize
 
 router = APIRouter(tags=["reality"])
 admin = APIRouter(tags=["admin:reality"])
@@ -78,13 +74,6 @@ class _EventReportMeta(TypedDict):
     place_match_state: str | None
     content_published_at: datetime | None
     claimed_event_at: datetime | None
-
-
-def _freshness_state(observed_at: datetime | None) -> RealityFreshnessState | None:
-    """Map a summary-bucket string onto the stored enum value."""
-    if observed_at is None:
-        return None
-    return RealityFreshnessState(freshness_for(observed_at).lower())
 
 
 # ---------------------------------------------------------------------------
@@ -357,7 +346,7 @@ def contribute_reality(
         verification_status=RealityVerificationStatus.UNVERIFIED,
     )
     if cand.observed_at is not None:
-        cand.freshness_state = _freshness_state(cand.observed_at)
+        cand.freshness_state = freshness_state(cand.observed_at)
     db.add(cand)
     db.flush()
     from app.services.reality_contribution import materialize_legacy_candidate_evidence
@@ -434,7 +423,7 @@ def create_reality_candidate(
         verification_status=RealityVerificationStatus.DERIVED_AI_ONLY,
     )
     if cand.observed_at is not None:
-        cand.freshness_state = _freshness_state(cand.observed_at)
+        cand.freshness_state = freshness_state(cand.observed_at)
     db.add(cand)
     db.flush()  # PkMixin id is a DB-side default; record_audit refuses a bare "None" target_id
     record_audit(
@@ -586,7 +575,7 @@ def _publish_claim(db: Session, cand: RealityCandidate):
             source_id=cand.source_id,
             evidence_bundle_id=cand.evidence_bundle_id,
             verification_status=status,
-            freshness_state=_freshness_state(event_anchor) if event_time_known else None,
+            freshness_state=freshness_state(event_anchor) if event_time_known else None,
             last_verified_at=cand.decided_at,
         )
     elif cand.candidate_type == "staff_response":
@@ -605,7 +594,7 @@ def _publish_claim(db: Session, cand: RealityCandidate):
             source_id=cand.source_id,
             evidence_bundle_id=cand.evidence_bundle_id,
             verification_status=status,
-            freshness_state=_freshness_state(event_anchor) if event_time_known else None,
+            freshness_state=freshness_state(event_anchor) if event_time_known else None,
             last_verified_at=cand.decided_at,
         )
     elif cand.candidate_type == "animal_facility":
@@ -631,7 +620,7 @@ def _publish_claim(db: Session, cand: RealityCandidate):
             source_id=cand.source_id,
             evidence_bundle_id=cand.evidence_bundle_id,
             verification_status=status,
-            freshness_state=_freshness_state(event_anchor) if event_time_known else None,
+            freshness_state=freshness_state(event_anchor) if event_time_known else None,
         )
     else:
         raise ValueError(f"unknown candidate_type: {cand.candidate_type}")
