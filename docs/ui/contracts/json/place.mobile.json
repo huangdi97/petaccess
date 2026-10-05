@@ -27,13 +27,37 @@
         "entityId": "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
         "h1": "云栖中心·测试商场"
       }
+    },
+    {
+      "id": "place-mobile-space",
+      "route": "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e?view=space",
+      "expect": {
+        "page": "place",
+        "state": "ready",
+        "fixture": "place-ready-v1",
+        "entityId": "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+        "h1": "云栖中心·测试商场"
+      }
+    },
+    {
+      "id": "place-mobile-reality",
+      "route": "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e?view=reality",
+      "expect": {
+        "page": "place",
+        "state": "ready",
+        "fixture": "place-ready-v1",
+        "entityId": "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+        "h1": "云栖中心·测试商场"
+      }
     }
   ],
   "elements": [
     {
       "id": "PLACE_MOBILE_INSPECTOR_ABSENT",
       "ui": "place-inspector",
-      "fallbacks": ["[data-testid='decision-inspector']"],
+      "fallbacks": [
+        "[data-testid='decision-inspector']"
+      ],
       "props": {
         "count": {
           "max": 0
@@ -44,7 +68,10 @@
     {
       "id": "PLACE_MOBILE_NAME_VISIBLE",
       "ui": "place-name",
-      "fallbacks": [".place-dossier__name", "h1"],
+      "fallbacks": [
+        ".place-dossier__name",
+        "h1"
+      ],
       "props": {
         "count": {
           "min": 1
@@ -55,18 +82,24 @@
     {
       "id": "PLACE_MOBILE_DECISION_VISIBLE",
       "ui": "place-decision",
-      "fallbacks": ["[data-testid='section-answer'], [data-testid='answer-status']"],
+      "fallbacks": [
+        "[data-testid='section-answer'], [data-testid='answer-status']"
+      ],
       "props": {
         "count": {
           "min": 1
         }
       },
       "severity": "FAIL",
-      "pages": ["place-mobile-ready"]
+      "pages": [
+        "place-mobile-ready"
+      ]
     },
     {
       "id": "PLACE_MOBILE_DECISION_SIZE",
-      "fallbacks": ["[data-testid='answer-status']"],
+      "fallbacks": [
+        "[data-testid='answer-status']"
+      ],
       "props": {
         "fontSize": {
           "min": 23,
@@ -74,12 +107,16 @@
         }
       },
       "severity": "WARN",
-      "pages": ["place-mobile-ready"]
+      "pages": [
+        "place-mobile-ready"
+      ]
     },
     {
       "id": "PLACE_MOBILE_BOTTOM_NAV_HEIGHT",
       "ui": "mobile-tabbar",
-      "fallbacks": ["[data-testid='mobile-tabbar']"],
+      "fallbacks": [
+        "[data-testid='mobile-tabbar']"
+      ],
       "props": {
         "height": {
           "min": 58,
@@ -91,14 +128,18 @@
     {
       "id": "PLACE_MOBILE_OVERVIEW_FULLPAGE_HEIGHT",
       "ui": "place-dossier",
-      "fallbacks": [".place-dossier"],
+      "fallbacks": [
+        ".place-dossier"
+      ],
       "props": {
         "height": {
           "max": 2000
         }
       },
       "severity": "FAIL",
-      "pages": ["place-mobile-ready"]
+      "pages": [
+        "place-mobile-ready"
+      ]
     }
   ],
   "structure": [
@@ -107,12 +148,17 @@
       "selector": "[data-ui='place-history'], [class*='history']",
       "disclosureDefault": "collapsed",
       "severity": "FAIL",
-      "pages": ["place-mobile-rules"]
+      "pages": [
+        "place-mobile-rules"
+      ]
     },
     {
       "id": "PLACE_MOBILE_ZONES_NOT_CARDS",
       "selector": ".zone-row",
-      "forbiddenClass": ["card", "panel"],
+      "forbiddenClass": [
+        "card",
+        "panel"
+      ],
       "severity": "FAIL"
     },
     {
@@ -120,14 +166,24 @@
       "selector": "[data-testid='overview-zones'], [data-testid='overview-evidence']",
       "min": 2,
       "severity": "FAIL",
-      "pages": ["place-mobile-ready"]
+      "pages": [
+        "place-mobile-ready"
+      ]
     },
     {
       "id": "PLACE_NO_STRAY_GLYPH",
       "selector": "[data-ui='place-dossier'], [data-testid='place-unknown']",
-      "forbiddenText": [">", "<", ":::", "——"],
+      "forbiddenText": [
+        ">",
+        "<",
+        ":::",
+        "——"
+      ],
       "severity": "FAIL",
-      "pages": ["place-mobile-ready", "place-mobile-rules"]
+      "pages": [
+        "place-mobile-ready",
+        "place-mobile-rules"
+      ]
     },
     {
       "id": "PLACE_NO_ENGINEERING_INVARIANT_COPY",
@@ -143,14 +199,19 @@
         "zone_type"
       ],
       "severity": "FAIL",
-      "pages": ["place-mobile-ready", "place-mobile-rules"]
+      "pages": [
+        "place-mobile-ready",
+        "place-mobile-rules"
+      ]
     },
     {
       "id": "PLACE_MOBILE_COEXISTENCE_LEAD_PRESENT",
       "selector": "[data-ui='place-coexistence-lead']",
       "min": 1,
       "severity": "FAIL",
-      "pages": ["place-mobile-ready"]
+      "pages": [
+        "place-mobile-ready"
+      ]
     },
     {
       "id": "PLACE_MOBILE_FIRST_SCREEN_ACTIONS",
@@ -158,8 +219,32 @@
       "min": 3,
       "max": 4,
       "severity": "FAIL",
-      "pages": ["place-mobile-ready"],
-      "mustContainTexts": ["查看证据", "为什么", "纠错"]
+      "pages": [
+        "place-mobile-ready"
+      ],
+      "mustContainTexts": [
+        "查看证据",
+        "为什么",
+        "纠错"
+      ]
+    },
+    {
+      "id": "PLACE_MOBILE_STAFF_RESPONSE_DETAIL",
+      "selector": "[data-ui='place-staff-response']",
+      "min": 1,
+      "severity": "FAIL",
+      "pages": [
+        "place-mobile-reality"
+      ]
+    },
+    {
+      "id": "PLACE_MOBILE_ANIMAL_FACILITY_DETAIL",
+      "selector": "[data-ui='place-animal-facilities']",
+      "min": 1,
+      "severity": "FAIL",
+      "pages": [
+        "place-mobile-space"
+      ]
     }
   ],
   "density": [
@@ -177,7 +262,9 @@
       "metric": "firstViewportBlocks",
       "selector": "[data-ui='place-dossier']",
       "min": 2,
-      "pages": ["place-mobile-ready"],
+      "pages": [
+        "place-mobile-ready"
+      ],
       "severity": "FAIL"
     },
     {
@@ -186,7 +273,9 @@
       "selector": "[data-ui='place-dossier']",
       "max": 30,
       "warnAt": 27,
-      "pages": ["place-mobile-ready"],
+      "pages": [
+        "place-mobile-ready"
+      ],
       "severity": "FAIL",
       "note": "v0.2.5 §11: mobile overview gained two required summary rows (Space/Evidence) in the first screen; budget re-baselined from 24 to 30."
     }
