@@ -14,6 +14,12 @@ export function parseMapLens(value: unknown): MapLensKey {
     : "rule";
 }
 
+/**
+ * MarkerStatus is reused as a clustering/shape carrier. For non-rule lenses
+ * these keys are NOT access verdicts; MockMap remaps them to Reality/Facility/
+ * Divergence palette tokens and the visible text always comes from
+ * mapLensLabel().
+ */
 export function mapLensTone(lens: MapLensKey, row: RowFacts | undefined): MapMarker["status"] {
   if (!row) return "UNKNOWN";
   if (lens === "rule") return answerStatusKey(row.answer);
