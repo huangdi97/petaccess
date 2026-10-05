@@ -117,6 +117,52 @@ test("A2.1 — Staff / Facility contribution uses canonical Reality domain value
   await expect(page.getByTestId("contribute-result")).toBeVisible({ timeout: 15000 });
 });
 
+test("A2.2 — 规则线索进入 RuleCandidate review，而不是 Observation/Rule", async ({
+  page,
+  request,
+}) => {
+  const token = await signIn(request);
+  await page.addInitScript((t) => localStorage.setItem("pa_token", t), token);
+  await page.goto(`${BASE}/#/contribute/${MALL_ID}`, { waitUntil: "load" });
+  await expect(page.getByTestId("entry-rule")).toBeVisible({ timeout: 15000 });
+  await page.getByTestId("entry-rule").click();
+  await page.getByTestId("rule-known").selectOption("conditional");
+  await page.getByTestId("rule-animal-scope").selectOption("ordinary_pet");
+
+  const leadRequestPromise = page.waitForRequest(
+    (r) => r.method() === "POST" && r.url().includes(`/places/${MALL_ID}/rule-leads`),
+  );
+  await page.getByTestId("rule-submit").click();
+  const leadRequest = await leadRequestPromise;
+  const body = leadRequest.postDataJSON() as Record<string, unknown>;
+  expect(body.animal_scope).toBe("ordinary_pet");
+  expect(body.effect).toBe("conditional");
+  await expect(page.getByTestId("contribute-result")).toContainText("人工复核", {
+    timeout: 15000,
+  });
+});
+
+test("A2.3 — 场所纠错只提交 review lead，不直接修改场所", async ({ page, request }) => {
+  const token = await signIn(request);
+  await page.addInitScript((t) => localStorage.setItem("pa_token", t), token);
+  await page.goto(`${BASE}/#/contribute/${MALL_ID}`, { waitUntil: "load" });
+  await expect(page.getByTestId("entry-quick")).toBeVisible({ timeout: 15000 });
+  await page.getByTestId("entry-quick").click();
+  await page.getByTestId("correction-detail").fill("地址楼层需要人工复核");
+
+  const correctionRequestPromise = page.waitForRequest(
+    (r) => r.method() === "POST" && r.url().includes("/verifications"),
+  );
+  await page.getByTestId("quick-submit").click();
+  const correctionRequest = await correctionRequestPromise;
+  const body = correctionRequest.postDataJSON() as Record<string, unknown>;
+  expect(body.event_type).toBe("place_correction");
+  expect(body.result).toBe("uncertain");
+  await expect(page.getByTestId("contribute-result")).toContainText("人工核验", {
+    timeout: 15000,
+  });
+});
+
 test("B2 — 我的贡献：提交后可见、空时走统一空态", async ({ page, request }) => {
   // Fresh user with no contributions → unified empty copy.
   const tokenA = await signIn(request);
