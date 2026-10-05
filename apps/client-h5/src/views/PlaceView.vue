@@ -169,9 +169,13 @@ async function load() {
   try {
     const relevantSourceIds = new Set([
       ...rules.value.map((rule) => rule.source_id),
-      ...realityEvents.value.map((event) => event.source_id).filter((id): id is string => Boolean(id)),
+      ...realityEvents.value
+        .map((event) => event.source_id)
+        .filter((id): id is string => Boolean(id)),
     ]);
-    sources.value = (await client.allSources()).filter((source) => relevantSourceIds.has(source.id));
+    sources.value = (await client.allSources()).filter((source) =>
+      relevantSourceIds.has(source.id),
+    );
   } catch {
     degrade("来源");
   }

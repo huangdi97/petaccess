@@ -91,11 +91,15 @@ const visibleGroups = computed<EventGroup[]>(() => {
           </time>
           <span class="trace-row__dot" aria-hidden="true" data-ui="reality-event-marker"></span>
           <div class="trace-row__content">
-            <p class="trace-row__event" data-testid="event-fact">{{ realityEventHeadline(event) }}</p>
+            <p class="trace-row__event" data-testid="event-fact">
+              {{ realityEventHeadline(event) }}
+            </p>
             <p class="trace-row__location" data-testid="event-location">
               {{ zoneNameFor(event) }}
             </p>
-            <p v-if="realityEventDetail(event)" class="trace-row__detail">{{ realityEventDetail(event) }}</p>
+            <p v-if="realityEventDetail(event)" class="trace-row__detail">
+              {{ realityEventDetail(event) }}
+            </p>
             <div class="trace-row__meta">
               <span class="trace-row__status" data-testid="event-status">
                 {{ realityEventVerification(event) }} · {{ realityEventTimeBasis(event) }}
