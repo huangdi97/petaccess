@@ -3,9 +3,12 @@ import {
   animalFacilityLabel,
   animalScopeLabel,
   facilityAccessModeLabel,
+  facilityPurposeIsConfirmed,
+  facilityPurposeLabel,
   facilityStateLabel,
   observedActionLabel,
   staffActionLabel,
+  staffAwarenessLabel,
   staffRoleLabel,
 } from "./labels";
 
@@ -13,20 +16,31 @@ export type EvidenceVisualState = "verified" | "pending" | "disputed" | "histori
 
 export function realityEventHeadline(event: RealityEventView): string {
   if (event.event_type === "staff_response") {
+    if (event.staff_action === "no_intervention_observed") {
+      return event.staff_awareness_state === "awareness_confirmed"
+        ? "工作人员已注意到 · 本次未观察到进一步处理"
+        : "本次记录未观察到工作人员处理";
+    }
     return `${staffRoleLabel(event.staff_actor_role)} · ${staffActionLabel(event.staff_action)}`;
   }
   if (event.event_type === "animal_facility") {
-    return `动物设施 · ${animalFacilityLabel(event.facility_type)}`;
+    return facilityPurposeIsConfirmed(event.facility_purpose_state)
+      ? `动物设施 · ${animalFacilityLabel(event.facility_type)}`
+      : `疑似动物相关设施 · ${facilityPurposeLabel(event.facility_purpose_state)}`;
   }
   return `${animalScopeLabel(event.animal_scope)} · ${observedActionLabel(event.observed_action)}`;
 }
 
 export function realityEventDetail(event: RealityEventView): string {
   if (event.event_type === "staff_response") {
-    return event.staff_outcome || event.observed_context || "";
+    const parts = [staffAwarenessLabel(event.staff_awareness_state)];
+    if (event.staff_outcome) parts.push(event.staff_outcome);
+    else if (event.observed_context) parts.push(event.observed_context);
+    return parts.join(" · ");
   }
   if (event.event_type === "animal_facility") {
     const parts = [
+      facilityPurposeLabel(event.facility_purpose_state),
       facilityStateLabel(event.facility_state),
       facilityAccessModeLabel(event.facility_access_mode),
     ];
