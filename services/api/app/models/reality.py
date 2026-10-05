@@ -378,8 +378,15 @@ class ObservationEffort(Base, PkMixin, TimestampMixin):
     __table_args__ = (
         Index("ix_observation_effort_place_time", "place_id", "observed_at"),
         Index("ix_observation_effort_animal", "animal_observed"),
+        Index("ix_observation_effort_report", "report_id"),
     )
 
+    report_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("reality_report.id", ondelete="SET NULL"), nullable=True
+    )
+    evidence_bundle_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("evidence_bundle.id", ondelete="SET NULL"), nullable=True
+    )
     place_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("place.id", ondelete="CASCADE"), nullable=False
     )
@@ -408,8 +415,15 @@ class RealityConfirmation(Base, PkMixin, TimestampMixin):
     __table_args__ = (
         Index("ix_reality_confirmation_place_type", "place_id", "confirmation_type"),
         Index("ix_reality_confirmation_target", "target_claim_id"),
+        Index("ix_reality_confirmation_report", "report_id"),
     )
 
+    report_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("reality_report.id", ondelete="SET NULL"), nullable=True
+    )
+    evidence_bundle_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("evidence_bundle.id", ondelete="SET NULL"), nullable=True
+    )
     confirmation_type: Mapped[RealityConfirmationType] = mapped_column(String(24), nullable=False)
     place_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("place.id", ondelete="CASCADE"), nullable=False
