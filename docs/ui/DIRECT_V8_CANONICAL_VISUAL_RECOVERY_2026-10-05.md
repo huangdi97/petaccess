@@ -115,7 +115,7 @@ PetAccess 不是“宠物友好 App”，也不是“规则数据库前端”。
 8. 最近查看；
 9. 贡献 / 方法说明。
 
-推荐不是评分，也不是“适合你”；只根据已有事实把更相关的信息上浮。
+推荐不是评分，也不是“适合你”。只有用户真实选择过关注 Lens 后，标题才使用“按你的关注推荐”，且只改变信息排序/强调；没有已保存偏好时使用中性的“近期值得先看”。不得用内部加权分伪装成个性化推荐。
 
 ### 5.2 Search = List–Detail Workspace
 
@@ -147,6 +147,10 @@ Map 必须正式恢复 Canonical 四 Lens：
 
 Mock provider 仍必须像空间，不得退回数字网格；未来替换真实 provider 时不改变 Consumer 业务逻辑。
 
+非 Rule Lens 不得复用“绿色 = 允许”的视觉语义：Reality 使用 Reality palette，Facility 使用 Facility palette，Divergence 使用差异/历史语义色。MarkerStatus 在非 Rule Lens 只可作为聚类/形状内部 carrier，用户可见文字必须来自当前 Lens 的事实标签。
+
+Mock 阶段的地图缩放控件必须可真实操作，不能展示 disabled 的“道具按钮”；desktop 结果行点击先形成地图选中态与 Place Preview，再由 Preview 进入完整场所。
+
 ### 5.4 Place = Coexistence Passport
 
 第一屏同时回答：
@@ -163,6 +167,10 @@ Mock provider 仍必须像空间，不得退回数字网格；未来替换真实
 - 查看证据；
 - 为什么；
 - 纠错 / 补充。
+
+**Rule = UNKNOWN 只代表规范事实不足，绝不能把整个 Place Overview 替换成 Unknown 空页。** 即使规则未知，只要 Reality / Staff Response / Animal Facility / Evidence 中任一维度已有事实，就必须继续展示。
+
+工作人员处理与动物设施是 Public Beta 一等信息：Overview 给摘要与独立入口；Reality view 展示完整 Staff Response 汇总，Space view 展示独立 Animal Facility 汇总。它们不得被压缩成“设施存在 = 可以进入”或“工作人员处理 = 正式政策”。
 
 完整详情继续用 Overview / Space / Rules / Reality / Evidence 视图分层，不恢复无限长 dossier。
 
@@ -204,7 +212,14 @@ TIME → EVENT → LOCATION → STAFF RESPONSE → REVIEW/EVIDENCE。
 - Map 恢复四 Lens，marker / list row 同步投影；
 - Place Overview 恢复 Rule + Reality 并排，并把 Staff / Facility / Divergence 拉回第一屏；
 - Place 恢复 查看证据 / 为什么 / 纠错 三个核心动作；
-- Oracle contract 同步 canonical，而不是让旧契约逼迫新实现退化。
+- Oracle contract 同步 canonical，而不是让旧契约逼迫新实现退化；
+- Home 推荐改为真实 attention preference 驱动：选择 Lens 才持久化偏好，无偏好时使用中性近期信息排序；
+- Search 默认恢复 Reality-first，同时保留 Rule semantic status / Rule conclusion / Evidence metadata；
+- 修复 Place Rule UNKNOWN 吞掉 Reality/Staff/Facility/Evidence 的产品级错误；
+- Place Reality 增加 Staff Response 一等详情，Place Space 增加 Animal Facility 一等详情；
+- Map 非 Rule Lens 使用 Reality/Facility/Divergence 专属 palette，不再把现场/设施“借绿”成准入允许；
+- Mock Map 的 +/− 缩放改为真实交互；desktop 列表点击保持在 Spatial selection flow，并显式高亮选中行；
+- 新增/强化 Home、Search、Map、Place desktop/mobile contract，专门防止上述语义与视觉回归。
 
 ## 7. Human Visual Acceptance 停止线
 
@@ -228,6 +243,19 @@ TIME → EVENT → LOCATION → STAFF RESPONSE → REVIEW/EVIDENCE。
 - Evidence ready；
 - Contribution choose + one complete path；
 - Mine / Settings / Pets 至少各一张，确认整体产品语言没有重新退化为“后台表单”。
+
+## 7.1 已核验外部参考（2026-10-05）
+
+本轮只把外部产品当作交互机制证据，不把它们当作 PetAccess 产品定义：
+
+- Wheelmap FAQ / mapping guide：unknown 是地图一等状态，marker 通过状态语义而不是隐藏 unknown；https://wheelmap.org/faq/
+- Apple Human Interface Guidelines — Maps：地图通常应可交互，支持 zoom / pan；自定义 overlay 需要突出时应让底图降饱和；selected place 使用清晰选中态与 place card/sheet；https://developer.apple.com/design/human-interface-guidelines/maps
+- Google Maps “Edit business information in Google Maps”：属性允许 Yes / No / Unsure，用户修改进入审核，照片可作为核验材料；https://support.google.com/maps/answer/7084895
+- AccessNow：强调具体 accessibility feature、现场照片/评论与透明信息；PetAccess 只吸收“具体事实 + 透明未知 + 低负担贡献”机制，不采用场所评分；https://accessnow.com/
+
+这些参考共同支持本轮恢复方向：**未知可见、事实维度分开、地图可交互、选中态明确、贡献待核验**。
+
+---
 
 ## 8. 研究结论
 
