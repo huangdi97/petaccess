@@ -45,7 +45,6 @@ from app.models.enums import (
 from app.schemas.common import Page
 from app.schemas.reality import (
     AnimalFacilityOut,
-    FacilitySummaryItem,
     ObservedPresenceOut,
     RealityAnswer,
     RealityCandidateIn,
@@ -627,19 +626,3 @@ def _reality_answer_for_place(db: Session, place_id: str, now: datetime) -> dict
         "note": summary.note,
     }
 
-    return {
-        "state": summary.state,
-        "last_seen_at": summary.last_seen_at,
-        "evidence_count": summary.evidence_count,
-        "distinct_source_count": summary.distinct_source_count,
-        "observed_zones": list(summary.observed_zones),
-        "observed_actions": list(summary.observed_actions),
-        "staff_response_summary": staff_summary,
-        "facility_summary": facility_summary,
-        "freshness_state": summary.freshness_state,
-        "verification_state": summary.verification_state,
-        "recent_count_7d": summary.recent_count_7d,
-        "recent_count_30d": summary.recent_count_30d,
-        "days_since_last_seen": summary.days_since_last_seen,
-        "note": summary.note,
-    }
