@@ -20,12 +20,10 @@ import {
 import SkeletonList from "../SkeletonList.vue";
 import StateMessage from "../StateMessage.vue";
 import StatusBadge from "../StatusBadge.vue";
-import type { RowFacts } from "../../consumer/repository";
-import type { MapLensKey } from "../../composables/useMapWorkspace";
+import type { MapLensKey } from "../../consumer/mapLens";
 
 const props = defineProps<{
   places: PlaceSummary[];
-  facts: Map<string, RowFacts>;
   lens: MapLensKey;
   lensLabels: Record<string, string>;
   statuses: Record<string, MapMarker["status"]>;
