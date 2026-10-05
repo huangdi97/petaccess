@@ -174,6 +174,7 @@ export function useHomeLauncher() {
       if (!epoch.isCurrent(n)) return; // a newer load superseded this one
       cards.value = places.value.map((p) => {
         const f = facts.get(p.id) ?? {
+          snapshot: null,
           answer: null,
           answerError: true,
           reality: null,
