@@ -24,6 +24,9 @@ import { useRouter } from "vue-router";
 const {
   camera,
   places,
+  facts,
+  lens,
+  lensLabels,
   statuses,
   loading,
   error,
@@ -45,6 +48,13 @@ const {
 } = useMapWorkspace();
 const router = useRouter();
 
+const MAP_LENSES = [
+  { key: "rule", label: "规则" },
+  { key: "reality", label: "现场" },
+  { key: "facility", label: "设施" },
+  { key: "divergence", label: "规则×现场" },
+] as const;
+
 /** The pane's empty-state action leads back to the task launcher. */
 function goHome() {
   void router.push({ name: "home" });
@@ -62,6 +72,26 @@ function goHome() {
   >
     <h1 class="visually-hidden">规则地图</h1>
     <QueryContextBar />
+
+    <!-- Canonical v0.10-R1 Map: Rule / Reality / Facility / Divergence are
+         first-class lenses over the same CoexistenceSnapshot facts. -->
+    <nav class="map-lensbar" data-ui="map-lensbar" aria-label="地图信息镜头">
+      <span class="map-lensbar__label">地图显示</span>
+      <div class="map-lensbar__options">
+        <button
+          v-for="item in MAP_LENSES"
+          :key="item.key"
+          type="button"
+          class="map-lensbar__button"
+          :class="{ 'map-lensbar__button--active': lens === item.key }"
+          :aria-pressed="lens === item.key"
+          :data-testid="'map-lens-' + item.key"
+          @click="lens = item.key"
+        >
+          {{ item.label }}
+        </button>
+      </div>
+    </nav>
 
     <!-- v0.2.4 §32：desktop 没有「地图/列表」模式切换 —— desktop 恒为 List+Map。
          Mobile 保留 compact mode toggle（仅确有必要时）。 -->
@@ -94,6 +124,9 @@ function goHome() {
       <MapResultPane
         v-if="isDesktop || view === 'list'"
         :places="places"
+        :facts="facts"
+        :lens="lens"
+        :lens-labels="lensLabels"
         :statuses="statuses"
         :visible-places="visiblePlaces"
         :loading="loading"
@@ -133,6 +166,8 @@ function goHome() {
           v-else
           :camera="camera"
           :clusters="clusters"
+          :lens="lens"
+          :lens-labels="lensLabels"
           :selected-id="selected?.id ?? null"
           @select="onSelectCluster"
         />
@@ -170,6 +205,54 @@ function goHome() {
   min-height: 100%;
   display: flex;
   flex-direction: column;
+}
+
+.map-lensbar {
+  display: flex;
+  align-items: center;
+  gap: var(--pa-space-4);
+  min-height: 52px;
+  padding: var(--pa-space-2) var(--pa-space-4);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  background: var(--pa-color-surface);
+}
+
+.map-lensbar__label {
+  flex: 0 0 auto;
+  font-size: var(--pa-font-size-sm);
+  color: var(--pa-color-text-muted);
+}
+
+.map-lensbar__options {
+  display: flex;
+  align-items: center;
+  gap: var(--pa-space-1);
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.map-lensbar__button {
+  flex: 0 0 auto;
+  min-height: var(--pa-size-control-md);
+  padding: 0 var(--pa-space-3);
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--pa-color-text-secondary);
+  font-size: var(--pa-font-size-md);
+  cursor: pointer;
+}
+
+.map-lensbar__button--active {
+  border-bottom-color: var(--pa-color-accent);
+  color: var(--pa-color-accent);
+  font-weight: var(--pa-font-weight-650);
+}
+
+.map-lensbar__button:hover,
+.map-lensbar__button:focus-visible {
+  background: var(--pa-color-accent-weak);
+  outline: none;
 }
 
 /* v0.2.5 §25：compact segmented control（非两个独立 pill）。 */
@@ -243,7 +326,7 @@ function goHome() {
 
 @media (min-width: 768px) {
   .map-workspace__body {
-    height: calc(100vh - 60px);
+    height: calc(100vh - 112px);
     min-height: 560px;
     padding: var(--pa-space-3);
   }
