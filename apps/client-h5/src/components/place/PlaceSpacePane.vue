@@ -13,6 +13,8 @@ import {
   coexistenceValueLabel,
   entranceLabel,
   facilityAccessModeLabel,
+  facilityPurposeIsConfirmed,
+  facilityPurposeLabel,
   facilityStateLabel,
   verifiedBooleanLabel,
   zoneConsumerLine,
@@ -83,10 +85,18 @@ function facilityZone(event: RealityEventView): string {
           data-testid="animal-facility-record"
         >
           <header class="facility-record__head">
-            <strong>{{ animalFacilityLabel(event.facility_type) }}</strong>
+            <strong>
+              {{
+                facilityPurposeIsConfirmed(event.facility_purpose_state)
+                  ? animalFacilityLabel(event.facility_type)
+                  : "疑似动物相关设施"
+              }}
+            </strong>
             <span class="facility-record__where">{{ facilityZone(event) }}</span>
           </header>
           <dl class="facility-facts">
+            <dt>用途依据</dt>
+            <dd>{{ facilityPurposeLabel(event.facility_purpose_state) }}</dd>
             <dt>当前状态</dt>
             <dd>{{ facilityStateLabel(event.facility_state) }}</dd>
             <dt>使用方式</dt>
