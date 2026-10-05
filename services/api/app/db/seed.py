@@ -913,6 +913,20 @@ def run_demo_seed() -> dict[str, int]:  # noqa: PLR0915 - linear demo data scrip
     session.add_all(all_zones)
     session.flush()
 
+    # --- v0.9 Reality demo: the current Consumer reads published Reality claims,
+    # not the legacy ObservationClaim table. Keep the visual/runtime fixture rich
+    # enough to exercise Rule + Reality + Staff + Facility + Divergence together.
+    _seed_v09_reality_demo(
+        session,
+        mall=places["place_yunqi_mall"],
+        dining_zone=z_mall_4f,
+        public_zone=z_mall_1f,
+        source_alice=src_user_alice,
+        source_bob=src_user_bob,
+        reviewer=users["admin"],
+    )
+    session.flush()
+
     # --- geometries: place points already denormalized; zone polygons below ---
     geometries = [
         PlaceGeometry(
