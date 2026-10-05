@@ -7,6 +7,7 @@ from datetime import UTC, datetime
 
 from app.models import AccessRule, Place, RuleCandidate, Source
 from app.models.enums import PlaceType, RuleStatus, SourceType
+from app.services.candidate_service import publish
 from app.services.publish_gate import (
     _has_unresolved_conflict,
     _supersession_target_violations,
@@ -135,3 +136,28 @@ def test_noncurrent_replacement_target_is_refused(db_session):
     assert "supersession_target_not_current" in _active_codes(
         _supersession_target_violations(db_session, candidate)
     )
+
+
+def test_publish_marks_explicit_cross_source_target_superseded(db_session, monkeypatch):
+    """Write-boundary semantics: an approved explicit target retires atomically."""
+
+    place = _place(db_session)
+    old_source = _source(db_session, "旧规则来源")
+    new_source = _source(db_session, "经审核的新来源")
+    target = _rule(db_session, place, old_source, effect="prohibited")
+    candidate = _candidate(db_session, place, new_source, target=target, effect="allowed")
+
+    # This test isolates supersession mutation semantics. Gate behaviour is
+    # covered separately above, so bypass the evidence/freshness prerequisites.
+    monkeypatch.setattr(
+        "app.services.publish_gate.validate_for_publish",
+        lambda db, candidate: None,
+    )
+
+    published = publish(db_session, candidate, reviewer_id="reviewer-test")
+    db_session.flush()
+
+    assert target.status == RuleStatus.SUPERSEDED
+    assert published.supersedes_rule_id == target.id
+    assert published.source_id == new_source.id
+    assert published.status == RuleStatus.CURRENT
