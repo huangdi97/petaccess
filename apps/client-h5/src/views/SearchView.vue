@@ -559,9 +559,11 @@ const selectedId = ref<string | null>(null);
                 </p>
                 <!-- primary decision: verdict + 1 key condition on one line -->
                 <p
-                  v-else-if="facts.get(p.id)?.answer"
+                  v-else-if="
+                    facts.get(p.id)?.answer &&
+                    (!lensKey || lensProjectionFor(p).headline !== 'rule')
+                  "
                   class="result-row__decision"
-                  :class="{ 'result-row__decision--lead': !lensKey }"
                   data-testid="row-rule"
                 >
                   {{ answerVerdictLabel(facts.get(p.id)?.answer) }}
