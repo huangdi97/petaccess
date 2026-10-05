@@ -113,11 +113,7 @@ function facilityZone(event: RealityEventView): string {
             <dd>{{ event.facility_security_or_lock_state || "未确认" }}</dd>
             <dt>最近核验</dt>
             <dd>
-              {{
-                event.last_verified_at
-                  ? displayRealityTime(event.last_verified_at)
-                  : "未记录"
-              }}
+              {{ event.last_verified_at ? displayRealityTime(event.last_verified_at) : "未记录" }}
             </dd>
           </dl>
         </article>
