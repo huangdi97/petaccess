@@ -32,8 +32,8 @@ const OPTIONS: EntryOption[] = [
     kind: "select",
     key: "rule",
     testid: "entry-rule",
-    label: "我看到了新的规则",
-    description: "规则牌、公告或正式说明",
+    label: "我看到或了解到一条规则",
+    description: "规则牌、公告、工作人员说明或其他线索",
     icon: "document",
   },
   {
