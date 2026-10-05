@@ -41,7 +41,6 @@ def list_place_verifications(
     return Page(items=rows, total=total, limit=limit, offset=offset)
 
 
-@router.get("/admin/place-corrections", response_model=Page[VerificationOut])
 def list_place_corrections(
     limit: int = Query(default=50, le=100),
     offset: int = Query(default=0, ge=0),
@@ -58,6 +57,17 @@ def list_place_corrections(
     total = db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
     rows = db.scalars(stmt.limit(limit).offset(offset)).all()
     return Page(items=rows, total=total, limit=limit, offset=offset)
+
+
+# Explicit endpoint registration is intentional: it makes the route handler a
+# real first-party reference for the dead-code gate instead of relying on
+# decorator side effects that the static scanner cannot see.
+router.add_api_route(
+    "/admin/place-corrections",
+    list_place_corrections,
+    methods=["GET"],
+    response_model=Page[VerificationOut],
+)
 
 
 @router.post("/verifications", response_model=VerificationOut, status_code=201)
