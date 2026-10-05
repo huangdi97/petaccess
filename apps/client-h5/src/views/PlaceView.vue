@@ -307,9 +307,7 @@ const placeFixture = computed<string>(() => {
               <RouterLink :to="`/place/${placeId}/evidence`" class="btn-inline">
                 查看证据 →
               </RouterLink>
-              <RouterLink :to="`/place/${placeId}/why`" class="btn-inline">
-                为什么？ →
-              </RouterLink>
+              <RouterLink :to="`/place/${placeId}/why`" class="btn-inline"> 为什么？ → </RouterLink>
               <RouterLink :to="`/contribute/${placeId}`" class="btn-inline">
                 纠错 / 补充 →
               </RouterLink>
