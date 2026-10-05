@@ -38,6 +38,8 @@ import { isOnline } from "../composables/useOnline";
 import { ConsumerCache } from "./cache";
 
 export interface RowFacts {
+  /** The authoritative aggregate behind every projected consumer fact. */
+  snapshot: CoexistenceSnapshot | null;
   answer: AccessAnswer | null;
   /** true when the snapshot fetch failed at transport level (NOT domain UNKNOWN). */
   answerError: boolean;
@@ -141,6 +143,7 @@ export async function rowFacts(place: PlaceSummary): Promise<RowFacts> {
   try {
     const { snapshot, stale, fetchedAtMs } = await snapshotFor(place.id);
     return {
+      snapshot,
       answer: snapshot.rule_answer,
       answerError: false,
       reality: snapshot.reality_answer,
@@ -151,6 +154,7 @@ export async function rowFacts(place: PlaceSummary): Promise<RowFacts> {
     };
   } catch {
     return {
+      snapshot: null,
       answer: null,
       answerError: true,
       reality: null,
@@ -178,6 +182,7 @@ export async function enrichRows(list: PlaceSummary[], limit = 4): Promise<Map<s
         out.set(p.id, await rowFacts(p));
       } catch {
         out.set(p.id, {
+          snapshot: null,
           answer: null,
           answerError: true,
           reality: null,
