@@ -10,7 +10,9 @@ MAP_SPATIAL_WORKSPACE          = IMPLEMENTED
 MAP_FOUR_LENSES                = IMPLEMENTED
 MAP_REAL_PLACE_COORDINATES     = IMPLEMENTED
 MAP_ONE_SHOT_LOCATION_QUERY    = IMPLEMENTED
-MAP_REAL_TILE_BASEMAP          = BLOCKED_EXTERNAL
+MAP_REAL_TILE_RENDERER_CODE    = IMPLEMENTED
+MAP_REAL_TILE_RUNTIME          = BLOCKED_EXTERNAL
+MAP_WGS84_TO_GCJ02_BOUNDARY    = IMPLEMENTED
 MAP_AREA_SELECTOR              = NOT_IMPLEMENTED
 ```
 
@@ -107,31 +109,78 @@ camera(lat,lng)
 因此一次性定位现在真正改变空间查询，仍遵守 ADR-012：
 不连续追踪、不保存用户移动轨迹。
 
-## 3. 仍然没有完成的：真实瓦片底图
+## 3. Real Map：代码链已接通，真实运行仍是 External Blocker
 
-当前 `MockMap.vue` 的底图仍是 provider-neutral 的抽象城市空间画布。
-它现在可以把**真实场所坐标**投影到真实相对位置，但它不是腾讯地图真实道路瓦片。
-
-所以：
+当前分支已经不再停在“以后换 provider”的接口注释，而是有两套真实可切换 renderer：
 
 ```text
-REAL_COORDINATES = YES
-REAL_TILE_BASEMAP = NO
+feature_real_map=false / key 缺失
+→ MockMap（简化空间底图，真实 PetAccess 坐标）
+
+feature_real_map=true
++ MAP_PROVIDER=tencent
++ TENCENT_MAP_KEY_CLIENT
++ TENCENT_MAP_KEY_SERVER
+→ TencentMap（真实腾讯 GL 瓦片）
 ```
 
-这两件事必须分开写。
+新增链路：
 
-正式腾讯 GL 接线仍需要：
+```text
+PostGIS EPSG:4326 governed coordinate
+→ /ai/map/translate
+→ Tencent WebService coord/v1/translate type=1
+→ GCJ-02 presentation coordinate
+→ Tencent JavaScript API GL real basemap
+→ PetAccess-owned accessible marker overlay
+```
 
-- `TENCENT_MAP_KEY_CLIENT` / 对应 Web key；
-- Web / Windows WebView2 / Android WebView 可用域名与 CSP allowlist；
-- provider terms / attribution；
-- real runtime smoke；
-- keyboard/touch marker interaction；
-- map load failure → current list/spatial fallback；
-- Windows + Android screenshot evidence。
+这里刻意不把 GCJ-02 写回数据库。PetAccess 的事实坐标继续以
+`Place.location / PlaceGeometry = EPSG:4326` 为治理事实；provider 坐标只属于 render boundary。
 
-没有外部 key 前，Agent 不应伪造“真实地图已接入”。
+官方依据：
+
+- Tencent JavaScript API GL 基础入门：
+  https://lbs.qq.com/webApi/javascriptGL/glGuide/glBasic
+  - 浏览器通过 `https://map.qq.com/api/gljs?v=1.exp&key=...` 加载；
+  - SDK 使用 GCJ-02；
+  - GPS / 其它坐标需要先转换。
+- Tencent WebService 坐标转换：
+  https://lbs.qq.com/service/webService/webServiceGuide/webServiceTranslate
+  - `/ws/coord/v1/translate`；
+  - `type=1` = GPS 坐标；
+  - 支持批量转换。
+
+安全边界：
+
+- `TENCENT_MAP_KEY_CLIENT` 是 JavaScript GL 本来就会暴露在浏览器请求中的 Web key，
+  只能在 `feature_real_map=true` 且 server/client key 都完整时从 public map config 返回；
+  部署时必须在腾讯控制台限制允许域名。
+- `TENCENT_MAP_KEY_SERVER` 永不发到客户端；WGS84→GCJ-02 由 API 代理转换。
+- Tauri CSP 已显式 allowlist 腾讯地图 GL / tile 域名，不开放任意第三方脚本。
+- SDK 加载 / 坐标转换失败时自动退回 MockMap；List / Rule / Reality / Evidence 不丢失。
+
+**还没有完成的是外部运行验收，不是源码 adapter：**
+
+- 需要真实 `TENCENT_MAP_KEY_CLIENT / SERVER`；
+- 需要 Web 真瓦片截图；
+- Windows WebView2 真瓦片 smoke；
+- Android WebView 真瓦片 smoke；
+- 如 SDK 实际请求域名超出当前 CSP allowlist，只允许依据真实 console/CSP error 精确补域名；
+- 需要确认 attribution、touch/keyboard、SDK load failure fallback。
+
+因此当前应写：
+
+```text
+REAL_TILE_RENDERER_CODE = IMPLEMENTED
+REAL_TILE_RUNTIME = BLOCKED_EXTERNAL_KEY
+```
+
+不能写：
+
+```text
+REAL_TILE_BASEMAP_RUNTIME = PASS  ❌
+```
 
 ## 4. Area selector
 
