@@ -146,6 +146,12 @@ def test_anonymous_on_site_now_report_with_candidate_never_verifies(client, plac
     assert body["report"]["anonymous_token"]
 
 
+def test_raw_reality_report_parents_are_not_public(client, place_id):
+    """Report parents contain private provenance and one-time tokens; claims are the public layer."""
+    r = client.get(f"/api/v1/places/{place_id}/reality/reports")
+    assert r.status_code in (401, 403), r.text
+
+
 def test_on_site_past_without_observed_at_is_rejected(client, place_id):
     """§19: ON_SITE_PAST must state when it happened; never default to submit time."""
     r = client.post(
@@ -351,6 +357,21 @@ def test_reality_trace_distinguishes_fact_from_review(client, place_id):
     }
 
 
+def test_reality_trace_uses_consumer_language_for_verified_demo_facts(client):
+    """Trace sections must not leak raw enum vocabulary from staff/facility/freshness axes."""
+    r = client.get("/api/v1/places", params={"q": "云栖"})
+    assert r.status_code == 200, r.text
+    mall_id = r.json()["items"][0]["id"]
+    trace = client.get(f"/api/v1/places/{mall_id}/reality/trace")
+    assert trace.status_code == 200, trace.text
+    visible = " ".join(
+        str(section.get("value") or "")
+        for section in [*trace.json()["fact_sections"], *trace.json()["review_sections"]]
+    )
+    for raw in ("request_relocation", "require_carrier", "pet_waiting_area", "FRESH"):
+        assert raw not in visible
+
+
 def test_reality_events_expose_only_published_verified_facts(client, place_id, signed_user):
     """Consumer timeline must not leak review-pending candidates or staff identity."""
     pending = client.post(
@@ -374,6 +395,10 @@ def test_reality_events_expose_only_published_verified_facts(client, place_id, s
     assert all(event["id"] != pending_id for event in events)
     assert all("reviewer" not in event for event in events)
     assert all("policy_statement_verbatim" not in event for event in events)
+    assert all("anonymous_token" not in event for event in events)
+    assert all("reporter_id" not in event for event in events)
+    assert all("media_refs" not in event for event in events)
+    assert all("source_url" not in event for event in events)
 
 
 def _make_verified_presence(client, place_id, auth) -> str:
