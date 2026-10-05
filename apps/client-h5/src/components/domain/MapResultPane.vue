@@ -27,6 +27,7 @@ const props = defineProps<{
   lens: MapLensKey;
   lensLabels: Record<string, string>;
   statuses: Record<string, MapMarker["status"]>;
+  selectedId?: string | null;
   visiblePlaces: PlaceSummary[];
   loading: boolean;
   error: string;
@@ -172,6 +173,9 @@ function toggleFilter(key: string) {
             v-for="p in props.visiblePlaces"
             :key="p.id"
             class="map-place-row"
+            :class="{ 'map-place-row--selected': props.selectedId === p.id }"
+            :aria-current="props.selectedId === p.id ? 'true' : undefined"
+            :data-selected="props.selectedId === p.id ? 'true' : undefined"
             :data-testid="'place-' + p.id"
             @click="emit('open', p.id)"
           >
@@ -311,8 +315,9 @@ function toggleFilter(key: string) {
 }
 
 .map-place-row {
+  position: relative;
   cursor: pointer;
-  padding: var(--pa-space-4) 0;
+  padding: var(--pa-space-4) var(--pa-space-2);
   border-radius: 0;
   background: transparent;
   box-shadow: none;
@@ -326,6 +331,20 @@ function toggleFilter(key: string) {
 
 .map-place-row:hover {
   background: var(--pa-color-surface-interactive);
+}
+
+.map-place-row--selected {
+  background: var(--pa-color-accent-weak);
+}
+
+.map-place-row--selected::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: var(--pa-space-3);
+  bottom: var(--pa-space-3);
+  width: var(--pa-border-width-strong);
+  background: var(--pa-color-accent);
 }
 
 .map-place-row__head {
