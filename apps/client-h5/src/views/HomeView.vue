@@ -16,6 +16,7 @@ import { CONDITION_ZH, HOME_ENTRIES, useHomeLauncher } from "../composables/useH
 
 const {
   query,
+  interest,
   recent,
   loading,
   error,
@@ -101,6 +102,7 @@ const {
           :online="online"
           :species-label="speciesLabel"
           :conditions-label="CONDITION_ZH"
+          :interest="interest"
           @open="open"
           @why="why"
           @retry="load"
