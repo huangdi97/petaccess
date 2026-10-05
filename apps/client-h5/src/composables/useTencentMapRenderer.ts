@@ -77,9 +77,7 @@ function loadTencentSdk(key: string): Promise<TencentApi> {
 
   sdkPromise = new Promise<TencentApi>((resolve, reject) => {
     const callback = "__petaccessTencentMapReady";
-    document
-      .querySelector<HTMLScriptElement>('script[data-petaccess-tencent-map="1"]')
-      ?.remove();
+    document.querySelector<HTMLScriptElement>('script[data-petaccess-tencent-map="1"]')?.remove();
 
     const script = document.createElement("script");
     const timeout = window.setTimeout(() => reject(new Error("腾讯地图 SDK 加载超时")), 12000);
@@ -93,8 +91,7 @@ function loadTencentSdk(key: string): Promise<TencentApi> {
     script.charset = "utf-8";
     script.async = true;
     script.dataset.petaccessTencentMap = "1";
-    script.src =
-      `https://map.qq.com/api/gljs?v=1.exp&key=${encodeURIComponent(key)}&callback=${callback}`;
+    script.src = `https://map.qq.com/api/gljs?v=1.exp&key=${encodeURIComponent(key)}&callback=${callback}`;
     script.addEventListener(
       "error",
       () => {
@@ -168,8 +165,7 @@ function markerSvg(color: string, count: number, selected: boolean): string {
     count > 1
       ? `<text x="18" y="22" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" font-weight="700" fill="#fff">${Math.min(count, 99)}</text>`
       : "";
-  const svg =
-    `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36">${ring}<circle cx="18" cy="18" r="${selected ? 10 : 9}" fill="${color}" stroke="#fff" stroke-width="2"/>${text}</svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36">${ring}<circle cx="18" cy="18" r="${selected ? 10 : 9}" fill="${color}" stroke="#fff" stroke-width="2"/>${text}</svg>`;
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
 
@@ -210,8 +206,7 @@ export function useTencentMapRenderer(options: TencentRendererOptions) {
     const styles: Record<string, unknown> = {};
     const geometries = clusters.map((cluster, index) => {
       const selected = options.selectedId() === cluster.memberIds[0];
-      const styleId =
-        `${options.lens()}-${cluster.status}-${cluster.count}-${selected ? "selected" : "plain"}`;
+      const styleId = `${options.lens()}-${cluster.status}-${cluster.count}-${selected ? "selected" : "plain"}`;
       if (!styles[styleId]) {
         styles[styleId] = new api.MarkerStyle({
           width: 36,
@@ -262,9 +257,7 @@ export function useTencentMapRenderer(options: TencentRendererOptions) {
   watch(
     () => [options.camera().lat, options.camera().lng] as const,
     () =>
-      void syncCenter().catch((error) =>
-        options.onError(failMessage(error, "地图中心转换失败")),
-      ),
+      void syncCenter().catch((error) => options.onError(failMessage(error, "地图中心转换失败"))),
   );
   watch(
     () => options.camera().zoom,
@@ -275,9 +268,7 @@ export function useTencentMapRenderer(options: TencentRendererOptions) {
   watch(
     () => [options.clusters(), options.selectedId(), options.lens()] as const,
     () =>
-      void syncMarkers().catch((error) =>
-        options.onError(failMessage(error, "地图点位转换失败")),
-      ),
+      void syncMarkers().catch((error) => options.onError(failMessage(error, "地图点位转换失败"))),
     { deep: true },
   );
 
