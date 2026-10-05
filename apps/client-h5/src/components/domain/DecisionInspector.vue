@@ -47,6 +47,8 @@ const props = withDefaults(
     offline?: boolean;
     speciesLabel?: string;
     conditionsLabel?: Record<string, string>;
+    /** Real rule verification date supplied by the Place dossier. */
+    latestVerifiedAt?: string | null;
     /**
      * v0.2.3 §22/§33：search detail = large identity (28/650) + primary
      * decision 30/650, flat accent, content column ≤704px；place inspector =
@@ -65,6 +67,7 @@ const props = withDefaults(
     offline: false,
     speciesLabel: "普通犬",
     conditionsLabel: () => ({}),
+    latestVerifiedAt: null,
     variant: "search",
   },
 );
@@ -96,13 +99,8 @@ const exceptions = computed(() =>
     (e) => props.conditionsLabel[e] ?? e,
   ),
 );
-/** §26：最近核验（来自 rules 的 last_verified_at 最近值；无则原文提示）。 */
-const latestVerifiedLabel = computed(() => {
-  const cut = props.answer?.evidence_state.rules[0]?.source_id
-    ? (props.snapshot?.generated_at ?? null)
-    : null;
-  return cut ? cut.slice(0, 10) : "暂无";
-});
+/** §26：最近核验来自真实规则 last_verified_at，不拿快照生成时间冒充。 */
+const latestVerifiedLabel = computed(() => props.latestVerifiedAt ?? "暂无");
 /** §12（search）one-line reality summary：撇去括号补充，保持单行。 */
 const realityLineForSearch = computed(() => {
   if (!props.reality) return "暂无足够现场记录";
