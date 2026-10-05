@@ -36,6 +36,18 @@ const visibleEvents = computed(() => {
   return events.value.filter((event) => event.event_type === wanted);
 });
 
+const emptyCopy = computed(() =>
+  filter.value === "all"
+    ? {
+        title: "暂无近期现场记录",
+        description: "这并不代表现场没有动物。",
+      }
+    : {
+        title: "当前筛选下没有对应记录",
+        description: "可切换到“全部事实”查看其他经核验记录。",
+      },
+);
+
 const summaryLine = computed(() => {
   if (!events.value.length) return "";
   const latest = [...events.value].sort((a, b) => b.event_at.localeCompare(a.event_at))[0];
@@ -141,8 +153,14 @@ const uiFixture = computed<string>(() =>
           data-testid="trace-observations"
           data-ui="reality-timeline"
         >
-          <RealityEventLog :events="visibleEvents" :zones="zones" :place-id="placeId">
-            <template #empty-action>
+          <RealityEventLog
+            :events="visibleEvents"
+            :zones="zones"
+            :place-id="placeId"
+            :empty-title="emptyCopy.title"
+            :empty-description="emptyCopy.description"
+          >
+            <template v-if="!events.length" #empty-action>
               <RouterLink
                 class="btn primary"
                 :to="`/contribute/${placeId}`"
