@@ -175,3 +175,34 @@ def test_radius_clamped_to_provider_limits():
     provider.search_places("x", 31.23, 121.47, 999999)
     assert "999999" not in seen["url"]
     assert "10000" in seen["url"]
+
+
+def test_translate_coordinates_uses_official_gps_input_and_preserves_order():
+    seen = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen["url"] = str(request.url)
+        return ok(
+            {
+                "locations": [
+                    {"lat": 31.2283, "lng": 121.4782},
+                    {"lat": 31.2201, "lng": 121.4699},
+                ]
+            }
+        )
+
+    provider = make_provider(handler)
+    rows = provider.translate_coordinates([(31.23, 121.47), (31.22, 121.46)])
+    assert rows == [
+        {"lat": 31.2283, "lng": 121.4782},
+        {"lat": 31.2201, "lng": 121.4699},
+    ]
+    assert "/ws/coord/v1/translate" in seen["url"]
+    assert "type=1" in seen["url"]
+
+
+def test_translate_coordinates_rejects_provider_count_mismatch():
+    provider = make_provider(lambda req: ok({"locations": [{"lat": 31.2, "lng": 121.4}]}))
+    with pytest.raises(ProviderError) as ei:
+        provider.translate_coordinates([(31.23, 121.47), (31.22, 121.46)])
+    assert ei.value.code == "malformed_response"
