@@ -257,6 +257,45 @@ test("A2.4 — “这次没看到”记录 effort，而不是生成动物缺席 
   });
 });
 
+test("A3 — 规则线索进入核验队列而不是 Observation", async ({ page, request }) => {
+  const token = await signIn(request);
+  await page.addInitScript((t) => localStorage.setItem("pa_token", t), token);
+  await page.goto(`${BASE}/#/contribute/${MALL_ID}`, { waitUntil: "load" });
+  await expect(page.getByTestId("entry-rule")).toBeVisible({ timeout: 15000 });
+  await page.getByTestId("entry-rule").click();
+  await page.getByTestId("rule-known").selectOption("conditional");
+
+  const verificationRequest = page.waitForRequest(
+    (r) => r.method() === "POST" && r.url().endsWith("/api/v1/verifications"),
+  );
+  await page.getByTestId("rule-submit").click();
+  const req = await verificationRequest;
+  const body = req.postDataJSON() as Record<string, unknown>;
+  expect(body.event_type).toBe("rule_lead_submitted");
+  expect(body.result).toBe("uncertain");
+  await expect(page.getByTestId("contribute-result")).toBeVisible({ timeout: 15000 });
+  await expect(page.getByTestId("contribute-result")).toContainText("不会自动变成正式规则");
+});
+
+test("A3.1 — 场所纠错允许只知道当前值错误", async ({ page, request }) => {
+  const token = await signIn(request);
+  await page.addInitScript((t) => localStorage.setItem("pa_token", t), token);
+  await page.goto(`${BASE}/#/contribute/${MALL_ID}`, { waitUntil: "load" });
+  await expect(page.getByTestId("entry-quick")).toBeVisible({ timeout: 15000 });
+  await page.getByTestId("entry-quick").click();
+  await page.getByTestId("correction-unknown").check();
+
+  const verificationRequest = page.waitForRequest(
+    (r) => r.method() === "POST" && r.url().endsWith("/api/v1/verifications"),
+  );
+  await page.getByTestId("quick-submit").click();
+  const req = await verificationRequest;
+  const body = req.postDataJSON() as Record<string, unknown>;
+  expect(body.event_type).toBe("place_correction");
+  expect(String(body.note)).toContain("不知道正确值");
+  await expect(page.getByTestId("contribute-result")).toBeVisible({ timeout: 15000 });
+});
+
 test("B2 — 我的贡献：提交后可见、空时走统一空态", async ({ page, request }) => {
   // Fresh user with no contributions → unified empty copy.
   const tokenA = await signIn(request);
