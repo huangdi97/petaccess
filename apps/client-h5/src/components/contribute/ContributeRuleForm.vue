@@ -4,12 +4,13 @@
  * existing-rule confirmation / changed-rule lead / new-rule lead + optional
  * signage evidence. Nothing here writes ObservationClaim or publishes Rule.
  */
-import { computed, onMounted, ref } from "vue";
-import { client, type RuleView } from "@petaccess/client-core";
+import { computed, ref } from "vue";
+import { client } from "@petaccess/client-core";
 import { evidenceRefs, proximity } from "./contributeSupport";
 import { presentDescription } from "../../errors";
 import ContributionStepShell from "./ContributionStepShell.vue";
 import RuleLeadFields from "./RuleLeadFields.vue";
+import RuleTargetPicker from "./RuleTargetPicker.vue";
 
 defineOptions({ name: "ContributeRuleForm" });
 
@@ -34,13 +35,7 @@ const ocrText = ref("");
 const uploading = ref(false);
 const busy = ref(false);
 const error = ref("");
-const currentRules = ref<RuleView[]>([]);
 const selectedRuleId = ref("");
-const rulesLoading = ref(false);
-
-const targetRule = computed(
-  () => currentRules.value.find((rule) => rule.id === selectedRuleId.value) ?? null,
-);
 
 const needsRuleDescription = computed(() => intent.value !== "still_valid");
 const canSubmit = computed(
@@ -49,46 +44,9 @@ const canSubmit = computed(
     props.signedIn &&
     !busy.value &&
     !uploading.value &&
-    (intent.value === "new_lead" || Boolean(targetRule.value)) &&
+    (intent.value === "new_lead" || Boolean(selectedRuleId.value)) &&
     (!needsRuleDescription.value || Boolean(effect.value)),
 );
-
-async function loadCurrentRules() {
-  rulesLoading.value = true;
-  try {
-    currentRules.value = (await client.rules(props.placeId)).filter(
-      (rule) => rule.status === "current",
-    );
-    if (currentRules.value.length === 1) selectedRuleId.value = currentRules.value[0]?.id ?? "";
-  } catch {
-    currentRules.value = [];
-  } finally {
-    rulesLoading.value = false;
-  }
-}
-
-function ruleOptionLabel(rule: RuleView): string {
-  const scope =
-    rule.animal_scope === "dog"
-      ? "犬"
-      : rule.animal_scope === "cat"
-        ? "猫"
-        : rule.animal_scope === "ordinary_pet"
-          ? "普通宠物"
-          : "其他动物";
-  const effect =
-    rule.effect === "allowed"
-      ? "允许进入"
-      : rule.effect === "prohibited"
-        ? "限制进入"
-        : rule.effect === "conditional"
-          ? "有条件进入"
-          : "结论待核验";
-  const zoneName = props.zones.find((zone) => zone.id === rule.zone_id)?.name;
-  return `${scope} · ${effect} · ${zoneName ?? "场所范围"}`;
-}
-
-onMounted(loadCurrentRules);
 
 async function upload(event: Event) {
   const input = event.target as HTMLInputElement;
@@ -119,11 +77,8 @@ async function submit() {
   error.value = "";
   busy.value = true;
   try {
-    const target = targetRule.value;
-    if (intent.value !== "new_lead" && !target) {
-      error.value = currentRules.value.length
-        ? "请选择这次要确认或修正的具体规则。"
-        : "当前没有可核验的已收录规则。请选择“我看到或了解到一条规则”提交新线索。";
+    if (intent.value !== "new_lead" && !selectedRuleId.value) {
+      error.value = "请选择这次要确认或修正的具体规则。";
       return;
     }
 
@@ -145,7 +100,7 @@ async function submit() {
       await client.verify({
         place_id: props.placeId,
         zone_id: zone.value || null,
-        rule_id: target?.id ?? null,
+        rule_id: selectedRuleId.value || null,
         event_type: "field_check",
         result: "still_valid",
         note: "现场核验：页面规则仍然如此",
@@ -165,7 +120,7 @@ async function submit() {
       proposed_conditions: conditions.value,
       raw_text: `规则线索：${effectLabel}；区域：${zoneLabel}；条件：${conditionLabel}${evidenceNote}`,
       media_id: mediaId.value,
-      current_rule_id: intent.value === "changed" ? (target?.id ?? null) : null,
+      current_rule_id: intent.value === "changed" ? selectedRuleId.value || null : null,
       ...proximity(),
     });
     emit(
@@ -202,31 +157,12 @@ async function submit() {
       :zones="zones"
     />
 
-    <div v-if="intent !== 'new_lead'" class="rule-target">
-      <label for="rule-target">这次针对哪一条已收录规则？</label>
-      <select
-        id="rule-target"
-        v-model="selectedRuleId"
-        data-testid="rule-target"
-        :disabled="rulesLoading || !currentRules.length"
-      >
-        <option value="">
-          {{
-            rulesLoading
-              ? "正在读取已收录规则…"
-              : currentRules.length
-                ? "请选择具体规则"
-                : "当前没有可核验规则"
-          }}
-        </option>
-        <option v-for="rule in currentRules" :key="rule.id" :value="rule.id">
-          {{ ruleOptionLabel(rule) }}
-        </option>
-      </select>
-      <p class="rule-upload-note">
-        多条规则必须明确选择目标，避免把“仍有效 / 已变化”错误写到另一条规则上。
-      </p>
-    </div>
+    <RuleTargetPicker
+      v-if="intent !== 'new_lead'"
+      v-model="selectedRuleId"
+      :place-id="placeId"
+      :zones="zones"
+    />
 
     <div class="rule-evidence">
       <h3>规则牌 / 公告照片（可选）</h3>
