@@ -3490,6 +3490,10 @@ export interface components {
             place_type: components["schemas"]["PlaceType"];
             /** Canonical Address */
             canonical_address: string | null;
+            /** Latitude */
+            latitude?: number | null;
+            /** Longitude */
+            longitude?: number | null;
             /** Distance M */
             distance_m?: number | null;
             /** Parent Place Name */
