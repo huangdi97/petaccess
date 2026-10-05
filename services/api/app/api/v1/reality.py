@@ -32,6 +32,7 @@ from app.models import (
     ObservedPresence,
     Place,
     RealityCandidate,
+    RealityReport,
     StaffResponseObservation,
     User,
     Zone,
@@ -100,7 +101,9 @@ def _enum_text(value: object | None) -> str | None:
     return str(getattr(value, "value", value))
 
 
-def _presence_event(row: ObservedPresence) -> RealityEventOut:
+def _presence_event(
+    row: ObservedPresence, submitted_at: datetime | None = None
+) -> RealityEventOut:
     return RealityEventOut(
         id=row.id,
         event_type="observed_presence",
@@ -113,13 +116,16 @@ def _presence_event(row: ObservedPresence) -> RealityEventOut:
         observed_context=row.observed_context,
         source_id=row.source_id,
         evidence_bundle_id=row.evidence_bundle_id,
+        submitted_at=submitted_at,
         verification_status=_enum_text(row.verification_status) or "unverified",
         freshness_state=_enum_text(row.freshness_state),
         last_verified_at=row.last_verified_at,
     )
 
 
-def _staff_event(row: StaffResponseObservation) -> RealityEventOut:
+def _staff_event(
+    row: StaffResponseObservation, submitted_at: datetime | None = None
+) -> RealityEventOut:
     return RealityEventOut(
         id=row.id,
         event_type="staff_response",
@@ -130,16 +136,20 @@ def _staff_event(row: StaffResponseObservation) -> RealityEventOut:
         observed_context=row.trigger_context,
         staff_actor_role=_enum_text(row.actor_role),
         staff_action=_enum_text(row.response_action),
+        staff_awareness_state=_enum_text(row.staff_awareness_state),
         staff_outcome=row.response_outcome,
         source_id=row.source_id,
         evidence_bundle_id=row.evidence_bundle_id,
+        submitted_at=submitted_at,
         verification_status=_enum_text(row.verification_status) or "unverified",
         freshness_state=_enum_text(row.freshness_state),
         last_verified_at=row.last_verified_at,
     )
 
 
-def _facility_event(row: AnimalFacility) -> RealityEventOut:
+def _facility_event(
+    row: AnimalFacility, submitted_at: datetime | None = None
+) -> RealityEventOut:
     event_at = row.observed_at or row.last_verified_at or row.created_at
     basis = "observed" if row.observed_at else "verified" if row.last_verified_at else "recorded"
     return RealityEventOut(
@@ -151,6 +161,7 @@ def _facility_event(row: AnimalFacility) -> RealityEventOut:
         time_basis=basis,
         facility_type=_enum_text(row.facility_type),
         facility_state=_enum_text(row.operational_state),
+        facility_purpose_state=_enum_text(row.purpose_state),
         facility_access_mode=_enum_text(row.access_mode),
         facility_capacity=row.capacity,
         facility_size_limit=row.size_limit,
@@ -163,6 +174,7 @@ def _facility_event(row: AnimalFacility) -> RealityEventOut:
         facility_operator_provided=row.operator_provided,
         source_id=row.source_id,
         evidence_bundle_id=row.evidence_bundle_id,
+        submitted_at=submitted_at,
         verification_status=_enum_text(row.verification_status) or "unverified",
         freshness_state=_enum_text(row.freshness_state),
         last_verified_at=row.last_verified_at,
@@ -206,7 +218,36 @@ def consumer_reality_events(
         .order_by(AnimalFacility.created_at.desc())
         .limit(limit)
     ).all()
-    events = [*map(_presence_event, presence), *map(_staff_event, staff), *map(_facility_event, facilities)]
+    candidate_ids = {
+        row.candidate_id
+        for row in [*presence, *staff, *facilities]
+        if row.candidate_id
+    }
+    submitted_by_candidate: dict[str, datetime | None] = {}
+    if candidate_ids:
+        submission_rows = db.execute(
+            select(RealityCandidate.id, RealityReport.submitted_at)
+            .outerjoin(RealityReport, RealityReport.id == RealityCandidate.report_id)
+            .where(RealityCandidate.id.in_(candidate_ids))
+        ).all()
+        submitted_by_candidate = {
+            candidate_id: submitted_at for candidate_id, submitted_at in submission_rows
+        }
+
+    events = [
+        *[
+            _presence_event(row, submitted_by_candidate.get(row.candidate_id))
+            for row in presence
+        ],
+        *[
+            _staff_event(row, submitted_by_candidate.get(row.candidate_id))
+            for row in staff
+        ],
+        *[
+            _facility_event(row, submitted_by_candidate.get(row.candidate_id))
+            for row in facilities
+        ],
+    ]
     return sorted(events, key=lambda item: item.event_at, reverse=True)[:limit]
 
 
@@ -447,6 +488,7 @@ def _publish_claim(db: Session, cand: RealityCandidate):
             actor_role=payload.get("actor_role", "unknown_staff"),
             trigger_context=payload.get("trigger_context"),
             response_action=payload.get("response_action"),
+            staff_awareness_state=payload.get("staff_awareness_state", "awareness_unknown"),
             response_outcome=payload.get("response_outcome"),
             policy_statement_verbatim=payload.get("policy_statement_verbatim"),
             observed_at=cand.observed_at,
@@ -463,6 +505,7 @@ def _publish_claim(db: Session, cand: RealityCandidate):
             place_id=cand.place_id,
             zone_id=cand.zone_id,
             facility_type=payload.get("facility_type"),
+            purpose_state=payload.get("purpose_state", "purpose_unknown"),
             operator_provided=payload.get("operator_provided", False),
             access_mode=payload.get("access_mode", "unknown"),
             capacity=payload.get("capacity"),
