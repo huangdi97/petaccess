@@ -12,6 +12,8 @@ import type { RealityEventView, Zone } from "@petaccess/client-core";
 import { zoneConsumerLine } from "../../consumer/labels";
 import {
   realityEventDetail,
+  realityEventDisplayDate,
+  realityEventDisplayTime,
   realityEventHeadline,
   realityEventTimeBasis,
   realityEventVerification,
@@ -33,10 +35,6 @@ function zoneNameFor(event: RealityEventView): string {
   return zone ? zoneConsumerLine(zone) : "分区待确认";
 }
 
-function timeOnly(iso: string): string {
-  return iso.length >= 16 ? iso.slice(11, 16) : "";
-}
-
 interface EventGroup {
   date: string;
   items: RealityEventView[];
@@ -45,7 +43,7 @@ interface EventGroup {
 const groups = computed<EventGroup[]>(() => {
   const byDate = new Map<string, RealityEventView[]>();
   for (const event of props.events) {
-    const date = event.event_at.slice(0, 10);
+    const date = realityEventDisplayDate(event);
     const list = byDate.get(date);
     if (list) list.push(event);
     else byDate.set(date, [event]);
@@ -87,7 +85,7 @@ const visibleGroups = computed<EventGroup[]>(() => {
           :data-event-type="event.event_type"
         >
           <time class="trace-row__time" data-ui="reality-event-time">
-            {{ timeOnly(event.event_at) || "—" }}
+            {{ realityEventDisplayTime(event) }}
           </time>
           <span class="trace-row__dot" aria-hidden="true" data-ui="reality-event-marker"></span>
           <div class="trace-row__content">
