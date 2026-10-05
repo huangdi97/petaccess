@@ -75,6 +75,7 @@ const evidenceSummaryLine = computed(
  * while staff handling / facilities remain factual Reality details. */
 const staffSummaryLine = computed(() => {
   const rows = props.coexistence?.staff_response_summary ?? [];
+  if (!rows.length) return "暂无经核验的工作人员处理记录";
   return rows
     .slice(0, 2)
     .map((item) => `${staffActionLabel(item.response_action)} × ${item.count}`)
@@ -83,6 +84,7 @@ const staffSummaryLine = computed(() => {
 
 const facilitySummaryLine = computed(() => {
   const rows = props.coexistence?.facility_summary ?? [];
+  if (!rows.length) return "暂无经核验的动物设施记录";
   return rows
     .slice(0, 1)
     .map((item) => {
@@ -207,9 +209,13 @@ const divergenceLine = computed(() => {
         latestVerifiedAt ?? "暂无"
       }}</span>
       <span class="evidence-summary-grid__label">现场来源</span>
-      <span class="evidence-summary-grid__value" data-testid="overview-observation-count">{{
-        observationCount
-      }}</span>
+      <span class="evidence-summary-grid__value" data-testid="overview-observation-count">
+        {{
+          coexistence?.evidence_summary.reality_distinct_source_count
+            ? `${coexistence.evidence_summary.reality_distinct_source_count} 个来源`
+            : "暂无"
+        }}
+      </span>
     </div>
     <RouterLink class="btn-inline" :to="`?view=evidence`" data-testid="overview-evidence-link">
       查看证据与来源 →
