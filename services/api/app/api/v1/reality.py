@@ -62,6 +62,11 @@ from app.services.reality_summary import (
 router = APIRouter(tags=["reality"])
 admin = APIRouter(tags=["admin:reality"])
 
+VERIFIED_STATUS_VALUES = [
+    RealityVerificationStatus.HUMAN_VERIFIED.value,
+    RealityVerificationStatus.HUMAN_VERIFIED_WITH_NOTE.value,
+]
+
 
 def _freshness_state(observed_at: datetime | None) -> RealityFreshnessState | None:
     """Map a summary-bucket string onto the stored enum value."""
@@ -169,7 +174,7 @@ def consumer_reality_events(
         select(ObservedPresence)
         .where(
             ObservedPresence.place_id == place_id,
-            ObservedPresence.verification_status.in_(VERIFIED),
+            ObservedPresence.verification_status.in_(VERIFIED_STATUS_VALUES),
         )
         .order_by(ObservedPresence.observed_at.desc())
         .limit(limit)
@@ -178,7 +183,7 @@ def consumer_reality_events(
         select(StaffResponseObservation)
         .where(
             StaffResponseObservation.place_id == place_id,
-            StaffResponseObservation.verification_status.in_(VERIFIED),
+            StaffResponseObservation.verification_status.in_(VERIFIED_STATUS_VALUES),
         )
         .order_by(StaffResponseObservation.observed_at.desc())
         .limit(limit)
@@ -187,7 +192,7 @@ def consumer_reality_events(
         select(AnimalFacility)
         .where(
             AnimalFacility.place_id == place_id,
-            AnimalFacility.verification_status.in_(VERIFIED),
+            AnimalFacility.verification_status.in_(VERIFIED_STATUS_VALUES),
         )
         .order_by(AnimalFacility.created_at.desc())
         .limit(limit)
