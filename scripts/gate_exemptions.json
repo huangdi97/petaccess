@@ -1405,6 +1405,13 @@
       "symbol": "consumer_reality_events",
       "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
       "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "contribute_rule_lead",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
     }
   ]
 }
