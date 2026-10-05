@@ -512,10 +512,22 @@ def _publish_claim(db: Session, cand: RealityCandidate):
     The claim copies the source/evidence linkage and verification posture from
     the candidate; it never asserts anything the candidate review did not.
 
-    ``captured_at`` is NOT NULL on the published claim tables, so it falls back
-    to the observed-at time when the candidate never recorded a capture time
-    (e.g. contributions that carry only ``observed_at``).
+    Report-backed candidates may publish only when the report matches an exact
+    place/subplace. AREA_ONLY / PARENT_PLACE_ONLY / UNRESOLVED / CONFLICTED are
+    valuable review leads, but the current public claim schema cannot express
+    that spatial uncertainty without falsely pinning the fact to one Place.
     """
+    if cand.report_id:
+        report = db.get(RealityReport, cand.report_id)
+        if report is not None and report.place_match_state not in {
+            "exact_place",
+            "exact_subplace",
+        }:
+            raise ApiError(
+                "地点尚未精确匹配到具体场所，不能发布为场所现场事实",
+                code="reality_exact_place_required",
+            )
+
     payload = cand.payload or {}
     event_anchor, event_time_known = _candidate_event_anchor(db, cand)
     if cand.candidate_type in {"observed_presence", "staff_response"} and event_anchor is None:
