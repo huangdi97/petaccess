@@ -10,8 +10,6 @@ import { expect, test } from "@playwright/test";
 const BASE = "http://127.0.0.1:5175";
 /** 云栖中心·测试商场 — the richest seeded place (rules, sources, reality). */
 const MALL_ID = "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e";
-/** 星河咖啡·测试店 — the seeded place with 2 observations (reality-ready). */
-const CAFE_ID = "8412b521-5e1c-505d-9dec-568acb860c76";
 test("A1 — 概览现场 CTA 进入现场 view；直接深链可访问", async ({ page }) => {
   await page.goto(`${BASE}/#/place/${MALL_ID}`);
   await expect(page.getByTestId("overview-reality")).toBeVisible();
@@ -24,9 +22,9 @@ test("A1 — 概览现场 CTA 进入现场 view；直接深链可访问", async 
 });
 
 test("A2/B2 — v0.2.4：timeline 首屏 + 一行 metadata，无原始枚举", async ({ page }) => {
-  // 星河咖啡·测试店（8412b521）带 2 条现场记录，是 reality-ready fixture；
-  // 云栖中心·测试商场（MALL_ID）在 demo seed 无 observations，走 empty 态（A3 覆盖）。
-  await page.goto(`${BASE}/#/place/${CAFE_ID}/reality`);
+  // 云栖中心·测试商场带完整 v0.9 published Reality facts：
+  // presence + staff response + animal facility share one canonical event stream.
+  await page.goto(`${BASE}/#/place/${MALL_ID}/reality`);
   await expect(page.getByTestId("trace-summary")).toBeVisible();
   // §34：summary 收为一行 metadata；timeline 紧随其后进入首屏。
   await expect(page.getByTestId("reality-summary")).toBeVisible();
@@ -57,8 +55,8 @@ test("A3 — 观察时间线渲染；空时间线走 REALITY empty copy", async 
   await expect(rows.first().or(empty).first()).toBeVisible();
 
   // Forced-empty observations → the shared REALITY empty copy.
-  await page.route("**/api/v1/places/*/observations**", (route) =>
-    route.fulfill({ json: { items: [], total: 0, limit: 20, offset: 0 } }),
+  await page.route("**/api/v1/places/*/reality/events**", (route) =>
+    route.fulfill({ json: [] }),
   );
   await page.goto(`${BASE}/#/place/${MALL_ID}/reality`);
   await expect(page.getByTestId("trace-empty")).toBeVisible();
@@ -69,7 +67,7 @@ test("A4 — 深链标题正确；错误统一呈现且不泄漏内部字样", a
   await page.goto(`${BASE}/#/place/${MALL_ID}/reality`);
   await expect(page).toHaveTitle("现场轨迹 · PetAccess");
 
-  await page.route("**/api/v1/places/*/observations**", (route) =>
+  await page.route("**/api/v1/places/*/reality/events**", (route) =>
     route.fulfill({
       status: 500,
       contentType: "application/json",
