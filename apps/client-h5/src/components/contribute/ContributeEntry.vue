@@ -48,8 +48,8 @@ const OPTIONS: EntryOption[] = [
     kind: "reality",
     key: "staff_response",
     testid: "entry-reality-staff_response",
-    label: "工作人员进行了处理",
-    description: "如何引导、提示或允许进入",
+    label: "我看到工作人员怎么处理",
+    description: "如何引导、提示、要求，或本次没有观察到进一步处理",
     icon: "info",
   },
   {
