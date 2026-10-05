@@ -157,42 +157,4 @@ const freshness = computed(() =>
   </div>
 </template>
 
-<style scoped>
-/* v0.2.4 §30：附近/待核实 = divider rows，非卡（无圆角/无阴影/无 surface 填充）。 */
-.home-row {
-  cursor: pointer;
-  padding: var(--pa-space-4) 0;
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
-  margin-bottom: 0;
-  transition: background-color var(--pa-motion-fast) var(--pa-motion-ease);
-}
-
-.home-row:hover {
-  background: var(--pa-color-surface-interactive);
-}
-
-.home-row:last-child {
-  border-bottom: none;
-}
-
-.home-row__head {
-  justify-content: space-between;
-}
-
-.home-row__evidence-link {
-  margin-top: var(--pa-space-2);
-  font-size: var(--pa-font-size-sm);
-}
-
-.home-section-title--stacked {
-  margin: var(--pa-space-5) 0 var(--pa-space-2);
-}
-
-.home-section-title {
-  margin: 0;
-  font-size: var(--pa-font-size-xl);
-  font-weight: var(--pa-font-weight-650);
-  line-height: var(--pa-line-height-26);
-  color: var(--pa-color-text-primary);
-}
-</style>
+<style scoped src="./HomeNearbySection.css"></style>
