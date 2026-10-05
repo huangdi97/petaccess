@@ -19,8 +19,8 @@ defineProps<{
 <template>
   <div data-ui="place-reality-view" data-testid="place-reality-view">
     <section class="reality-fact-section" data-ui="place-staff-response">
-      <h2 class="reality-fact-section__title">工作人员处理</h2>
-      <p v-if="!staffResponses.length" class="muted">暂无已收录的工作人员处理记录。</p>
+      <h2 class="reality-fact-section__title">近 30 天工作人员处理</h2>
+      <p v-if="!staffResponses.length" class="muted">近 30 天暂无经核验的工作人员处理记录。</p>
       <div
         v-for="item in staffResponses"
         :key="item.response_action"
