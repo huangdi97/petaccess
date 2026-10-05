@@ -174,6 +174,9 @@ class RealityEventOut(BaseModel):
     event_at: datetime
     time_basis: str
     time_evidence_state: str | None = None
+    origin: str | None = None
+    fact_evidence_state: str | None = None
+    place_match_state: str | None = None
     content_published_at: datetime | None = None
     claimed_event_at: datetime | None = None
     animal_scope: str | None = None
