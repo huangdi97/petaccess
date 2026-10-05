@@ -1,15 +1,12 @@
 <script setup lang="ts">
 /**
- * ContributeRuleForm — structured Rule lead, never an Observation.
- *
- * A visitor can report what they saw/heard about a rule, but the submission
- * remains review evidence until a reviewer creates/accepts a RuleCandidate.
- * Observation != Rule is structural here: this form never calls the onsite
- * Observation endpoint.
+ * Rule contribution stays a review transaction:
+ * existing-rule confirmation / changed-rule lead / new-rule lead + optional
+ * signage evidence. Nothing here writes ObservationClaim or publishes Rule.
  */
 import { computed, ref } from "vue";
 import { client } from "@petaccess/client-core";
-import { proximity } from "./contributeSupport";
+import { evidenceRefs, proximity } from "./contributeSupport";
 import { presentDescription } from "../../errors";
 import ContributionStepShell from "./ContributionStepShell.vue";
 
@@ -24,53 +21,127 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{ done: [msg: string]; back: [] }>();
 
-const knowRule = ref<"allowed" | "restricted" | "conditional" | "">("");
+type RuleIntent = "still_valid" | "changed" | "new_lead";
+const intent = ref<RuleIntent>("new_lead");
+const effect = ref<"allowed" | "restricted" | "conditional" | "">("");
 const zone = ref("");
 const conditions = ref<string[]>([]);
+const mediaId = ref<string | null>(null);
+const uploadMsg = ref("");
+const ocrText = ref("");
+const uploading = ref(false);
 const busy = ref(false);
 const error = ref("");
+
+const INTENTS = [
+  { key: "still_valid", label: "页面规则仍然如此", hint: "确认已收录规则目前仍与现场一致" },
+  { key: "changed", label: "页面规则已经变化", hint: "指出现在了解到的新情况" },
+  { key: "new_lead", label: "我看到或了解到一条规则", hint: "提交新的规则线索，等待人工核验" },
+] as const;
 
 const CONDITION_OPTIONS = [
   { key: "leash_required", label: "需牵引" },
   { key: "carrier_required", label: "需宠物包" },
   { key: "stroller_required", label: "需推车" },
   { key: "no_ground", label: "不可落地" },
-];
+] as const;
 
-const canSubmit = computed(() => props.online && props.signedIn && !busy.value);
+const needsRuleDescription = computed(() => intent.value !== "still_valid");
+const canSubmit = computed(
+  () =>
+    props.online &&
+    props.signedIn &&
+    !busy.value &&
+    !uploading.value &&
+    (!needsRuleDescription.value || Boolean(effect.value)),
+);
 
 function toggleCondition(key: string) {
   conditions.value = conditions.value.includes(key)
-    ? conditions.value.filter((k) => k !== key)
+    ? conditions.value.filter((value) => value !== key)
     : [...conditions.value, key];
 }
 
+async function upload(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0] ?? null;
+  if (!file) return;
+  error.value = "";
+  uploadMsg.value = "";
+  uploading.value = true;
+  try {
+    const media = await client.uploadMedia(file, "signage_evidence", {
+      ownerType: "place",
+      ownerId: props.placeId,
+    });
+    mediaId.value = media.id;
+    uploadMsg.value = "规则牌照片已作为私有审核证据上传，不会直接公开。";
+    const meta = await client.mediaMeta(media.id).catch(() => null);
+    ocrText.value = meta?.ocr_text ?? "";
+  } catch (e) {
+    error.value = presentDescription(e);
+  } finally {
+    uploading.value = false;
+    input.value = "";
+  }
+}
+
 async function submit() {
-  if (!canSubmit.value || !knowRule.value) return;
+  if (!canSubmit.value || !props.placeId) return;
   error.value = "";
   busy.value = true;
   try {
-    const resultLabel =
-      knowRule.value === "allowed"
+    const currentRules = await client.rules(props.placeId);
+    const target = currentRules.find((rule) => rule.status === "current") ?? null;
+    if (intent.value !== "new_lead" && !target) {
+      error.value = "当前没有可核验的已收录规则。请选择“我看到或了解到一条规则”提交新线索。";
+      return;
+    }
+
+    const effectLabel =
+      effect.value === "allowed"
         ? "明确允许"
-        : knowRule.value === "restricted"
+        : effect.value === "restricted"
           ? "明确限制"
-          : "有条件进入";
+          : effect.value === "conditional"
+            ? "有条件进入"
+            : "";
     const zoneLabel = props.zones.find((item) => item.id === zone.value)?.name ?? "全场 / 不确定";
     const conditionLabel = conditions.value.length ? conditions.value.join("、") : "未补充条件";
+    const evidenceNote = ocrText.value.trim()
+      ? `；OCR 待人工核对：${ocrText.value.trim().slice(0, 300)}`
+      : "";
+
+    if (intent.value === "still_valid") {
+      await client.verify({
+        place_id: props.placeId,
+        zone_id: zone.value || null,
+        rule_id: target?.id ?? null,
+        event_type: "field_check",
+        result: "still_valid",
+        note: "现场核验：页面规则仍然如此",
+        evidence_refs: evidenceRefs(mediaId.value),
+        ...proximity(),
+      });
+      emit("done", "核验已提交。它会补充该规则的核验记录，但不会改写规则内容。");
+      return;
+    }
+
     await client.verify({
       place_id: props.placeId,
       zone_id: zone.value || null,
-      rule_id: null,
-      event_type: "rule_lead_submitted",
-      result: "uncertain",
-      note: `规则线索：${resultLabel}；区域：${zoneLabel}；条件：${conditionLabel}`,
-      evidence_refs: null,
+      rule_id: intent.value === "changed" ? target?.id ?? null : null,
+      event_type: intent.value === "changed" ? "rule_changed" : "rule_lead_submitted",
+      result: intent.value === "changed" ? "changed" : "uncertain",
+      note: `规则线索：${effectLabel}；区域：${zoneLabel}；条件：${conditionLabel}${evidenceNote}`,
+      evidence_refs: evidenceRefs(mediaId.value),
       ...proximity(),
     });
     emit(
       "done",
-      "规则线索已提交，等待人工复核。它不会作为现场 Observation 展示，也不会自动变成正式规则。",
+      intent.value === "changed"
+        ? "规则变化线索已提交，进入人工复核；现有正式规则不会自动改写。"
+        : "新规则线索已提交，进入人工复核；核验并进入正式候选流程前不会改变准入结论。",
     );
   } catch (e) {
     error.value = presentDescription(e);
@@ -85,118 +156,94 @@ async function submit() {
     :place-name="placeName"
     :step="1"
     :total="3"
-    title="我看到或了解到一条规则"
-    description="先把它作为规则线索提交。人工核验并形成正式 RuleCandidate 之前，不会改变页面上的正式规则结论。"
+    title="补充规则线索"
+    description="确认、变化和新规则都先作为可核验线索提交；现场 Observation 与正式 Rule 始终分开。"
     @back="emit('back')"
   >
     <div v-if="error" class="notice" data-testid="rule-error">{{ error }}</div>
 
-    <label for="rule-known">你了解到的规则是</label>
-    <select v-model="knowRule" id="rule-known" data-testid="rule-known">
-      <option value="">请选择</option>
-      <option value="allowed">明确允许</option>
-      <option value="restricted">明确限制</option>
-      <option value="conditional">有条件进入</option>
-    </select>
-
-    <label for="rule-zone">适用区域</label>
-    <select v-model="zone" id="rule-zone">
-      <option value="">全场 / 不确定</option>
-      <option v-for="z in zones" :key="z.id" :value="z.id">{{ z.name }}</option>
-    </select>
-
-    <label>条件（可多选 / 全不选）</label>
-    <!-- §31 checkbox option rows（多选，非 pill）。 -->
-    <div class="option-group" role="group" aria-label="规则条件">
+    <div class="rule-intents" role="radiogroup" aria-label="规则线索类型">
       <button
-        v-for="c in CONDITION_OPTIONS"
-        :key="c.key"
+        v-for="option in INTENTS"
+        :key="option.key"
         type="button"
-        class="option-row"
-        role="checkbox"
-        :aria-checked="conditions.includes(c.key)"
-        :class="{ 'option-row--active': conditions.includes(c.key) }"
-        @click="toggleCondition(c.key)"
+        class="rule-intent"
+        :class="{ 'rule-intent--active': intent === option.key }"
+        role="radio"
+        :aria-checked="intent === option.key"
+        :data-testid="`rule-intent-${option.key}`"
+        @click="intent = option.key"
       >
-        <span class="option-row__checkbox" aria-hidden="true" />
-        <span class="option-row__text">
-          <span class="option-row__label">{{ c.label }}</span>
+        <span class="rule-intent__mark" aria-hidden="true" />
+        <span class="rule-intent__copy">
+          <span class="rule-intent__label">{{ option.label }}</span>
+          <span class="muted rule-intent__hint">{{ option.hint }}</span>
         </span>
       </button>
     </div>
 
+    <div v-if="needsRuleDescription" class="rule-fields" data-ui="rule-lead-fields">
+      <h3>你现在了解到的规则</h3>
+      <label for="rule-known">结论</label>
+      <select id="rule-known" v-model="effect" data-testid="rule-known">
+        <option value="">请选择</option>
+        <option value="allowed">明确允许</option>
+        <option value="restricted">明确限制</option>
+        <option value="conditional">有条件进入</option>
+      </select>
+
+      <label for="rule-zone">适用区域</label>
+      <select id="rule-zone" v-model="zone">
+        <option value="">全场 / 不确定</option>
+        <option v-for="item in zones" :key="item.id" :value="item.id">{{ item.name }}</option>
+      </select>
+
+      <label>已知条件（可多选）</label>
+      <div class="condition-options" role="group" aria-label="规则条件">
+        <button
+          v-for="option in CONDITION_OPTIONS"
+          :key="option.key"
+          type="button"
+          class="condition-option"
+          :class="{ 'condition-option--active': conditions.includes(option.key) }"
+          role="checkbox"
+          :aria-checked="conditions.includes(option.key)"
+          @click="toggleCondition(option.key)"
+        >
+          <span class="condition-option__mark" aria-hidden="true" />
+          <span class="condition-option__label">{{ option.label }}</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="rule-evidence">
+      <h3>规则牌 / 公告照片（可选）</h3>
+      <label for="rule-evidence-file">上传照片</label>
+      <input
+        id="rule-evidence-file"
+        type="file"
+        accept="image/png,image/jpeg,image/webp"
+        capture="environment"
+        :disabled="uploading"
+        data-testid="rule-evidence-file"
+        @change="upload"
+      />
+      <p v-if="uploading" class="rule-upload-note">上传中…</p>
+      <p v-else-if="uploadMsg" class="rule-upload-note" data-testid="rule-upload-msg">
+        {{ uploadMsg }}
+      </p>
+      <p v-if="ocrText" class="rule-ocr">
+        OCR 仅供人工核对：{{ ocrText.slice(0, 240) }}
+      </p>
+      <p class="rule-upload-note">照片和 OCR 都只是证据材料，不会自动生成或发布规则。</p>
+    </div>
+
     <template #primary>
-      <button
-        class="primary"
-        :disabled="!canSubmit || !knowRule"
-        data-testid="rule-submit"
-        @click="submit"
-      >
-        {{ busy ? "提交中…" : "提交" }}
+      <button class="primary" :disabled="!canSubmit" data-testid="rule-submit" @click="submit">
+        {{ busy ? "提交中…" : "提交规则线索" }}
       </button>
     </template>
   </ContributionStepShell>
 </template>
 
-<style scoped>
-.option-group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--pa-space-2);
-}
-.option-row {
-  display: flex;
-  align-items: center;
-  gap: var(--pa-space-3);
-  min-height: 56px;
-  padding: var(--pa-space-2) var(--pa-space-3);
-  border: var(--pa-border-width) solid var(--pa-color-border);
-  border-radius: var(--pa-radius-md);
-  background: var(--pa-color-surface);
-  text-align: left;
-  cursor: pointer;
-}
-.option-row--active {
-  border-color: var(--pa-color-accent);
-  background: var(--pa-color-accent-weak);
-}
-.option-row__checkbox {
-  width: 18px;
-  height: 18px;
-  border-radius: 5px;
-  border: 2px solid var(--pa-color-border-strong);
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-.option-row--active .option-row__checkbox {
-  border-color: var(--pa-color-accent);
-  background: var(--pa-color-accent);
-}
-.option-row--active .option-row__checkbox::after {
-  content: "✓";
-  color: var(--pa-color-surface);
-  font-size: 13px;
-  line-height: 1;
-}
-.option-row__text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.option-row__label {
-  font-size: var(--pa-font-size-base);
-  font-weight: var(--pa-font-weight-600);
-  color: var(--pa-color-text-primary);
-}
-.option-row__hint {
-  font-size: var(--pa-font-size-sm);
-}
-.option-row:hover,
-.option-row:focus-visible {
-  border-color: var(--pa-color-accent);
-  outline: 2px solid var(--pa-color-border-focus);
-  outline-offset: -1px;
-}
-</style>
+<style scoped src="./ContributeRuleForm.css"></style>
