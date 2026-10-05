@@ -19,6 +19,7 @@ import {
 } from "@petaccess/client-core";
 import { zoneConsumerLine } from "../consumer/labels";
 import {
+  displayRealityEventTime,
   displayRealityTime,
   realityEventDetail,
   realityEventEvidenceState,
@@ -90,16 +91,28 @@ const recordIdentity = computed(() => {
   return {
     placeName: place.value?.canonical_name ?? null,
     zoneName: zone ? zoneConsumerLine(zone) : "场所范围",
-    eventTime: displayRealityTime(latest.event_at),
+    eventTime: displayRealityEventTime(latest),
     timeBasis: realityEventTimeBasis(latest),
   };
 });
 
 const observedTime = computed(() => {
   const latestObserved = events.value
-    .filter((event) => event.time_basis === "observed")
+    .filter(
+      (event) =>
+        event.time_basis === "observed" && event.time_evidence_state !== "publication_time_only",
+    )
     .sort((a, b) => b.event_at.localeCompare(a.event_at))[0];
-  return latestObserved ? displayRealityTime(latestObserved.event_at) : "";
+  return latestObserved ? displayRealityEventTime(latestObserved) : "";
+});
+
+const submittedTime = computed(() => {
+  const latest = events.value
+    .map((event) => event.submitted_at)
+    .filter((value): value is string => Boolean(value))
+    .sort()
+    .at(-1);
+  return latest ? displayRealityTime(latest) : "";
 });
 
 const reviewedTime = computed(() => {
@@ -249,7 +262,9 @@ const uiFixture = computed<string>(() =>
             </div>
             <div class="evidence-timefact">
               <span class="evidence-timefact__label">提交时间</span>
-              <strong class="evidence-timefact__value" data-ui="submitted-time">未记录</strong>
+              <strong class="evidence-timefact__value" data-ui="submitted-time">
+                {{ submittedTime || "未记录" }}
+              </strong>
             </div>
             <div class="evidence-timefact">
               <span class="evidence-timefact__label">核验时间</span>
@@ -268,7 +283,7 @@ const uiFixture = computed<string>(() =>
           <div v-for="event in events" :key="event.id" class="surface-row evidence-item">
             <div class="evidence-item__main">
               <EvidenceStatus :state="realityEventEvidenceState(event)" />
-              <time class="muted">{{ displayRealityTime(event.event_at) }}</time>
+              <time class="muted">{{ displayRealityEventTime(event) }}</time>
             </div>
             <p class="evidence-item__text">{{ realityEventHeadline(event) }}</p>
             <p v-if="realityEventDetail(event)" class="muted evidence-item__note">
