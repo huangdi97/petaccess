@@ -179,7 +179,7 @@ def _seed_v09_reality_demo(
             collected_at=captured_at,
             publisher_type=PublisherType.ORDINARY_USER,
             captured_excerpt=excerpt,
-            evidence_strength="direct",
+            evidence_strength="user_submitted",
             storage_allowed=True,
             display_allowed=False,
             redistribution_allowed=False,
