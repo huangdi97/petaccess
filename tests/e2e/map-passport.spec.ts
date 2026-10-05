@@ -31,9 +31,12 @@ test("A4 — /#/map?place= 深链预选；页面选择后 back/forward 同步", 
   await expect(page.getByTestId("preview-empty")).toBeVisible();
 });
 
-test("A1 — desktop 地图 split-view 渲染地图 + 详情面板", async ({ page }) => {
+test("A1 — desktop 地图 split-view + 四 Lens + 详情面板", async ({ page }) => {
   await page.goto(`${BASE}/#/map`);
   await expect(page.getByTestId("map")).toBeVisible();
+  for (const lens of ["rule", "reality", "facility", "divergence"]) {
+    await expect(page.getByTestId(`map-lens-${lens}`)).toBeVisible();
+  }
   // Desktop auto-selects the first hit so the pane is populated, not empty.
   await expect(page.getByTestId("place-preview")).toBeVisible();
   await expect(page.getByTestId("preview-open")).toBeVisible();
@@ -81,8 +84,8 @@ test("B1/B2 — Place Dossier 概览 + 规则/现场 view 关键段齐备", asyn
   await page.goto(`${BASE}/#/place/${MALL_ID}?view=rules`);
   await expect(page.getByTestId("place-rules-view")).toBeVisible();
   await expect(page.getByTestId("rule-source").first()).toBeVisible();
-  // Reality view hosts the shared event log (cafe has observations).
-  await page.goto(`${BASE}/#/place/${CAFE_ID}?view=reality`);
+  // Reality view hosts the shared published v0.9 event log.
+  await page.goto(`${BASE}/#/place/${MALL_ID}?view=reality`);
   await expect(page.getByTestId("place-reality-view")).toBeVisible();
   await expect(
     page.getByTestId("place-reality-view").locator("[data-ui='reality-event-log']"),
