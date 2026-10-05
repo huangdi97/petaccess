@@ -68,10 +68,6 @@ export function useMapWorkspace() {
     return out;
   });
 
-  const missingSpatialCount = computed(
-    () => places.value.filter((p) => p.latitude == null || p.longitude == null).length,
-  );
-
   const markers = computed<MapMarker[]>(() =>
     places.value.flatMap((p) => {
       const hasVerifiedPoint = p.latitude != null && p.longitude != null;
@@ -280,7 +276,6 @@ export function useMapWorkspace() {
     activeFilters,
     clusters,
     coverage,
-    missingSpatialCount,
     visiblePlaces,
     locate,
     load,
