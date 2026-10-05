@@ -692,7 +692,6 @@ class PublishIn(BaseModel):
     exception_of_rule_id: str | None = Field(default=None, max_length=36)
 
 
-@admin.get("/candidates/{candidate_id}/preflight")
 def admin_candidate_preflight(
     candidate_id: str,
     user: User = Depends(require_role(UserRole.MODERATOR)),
@@ -718,6 +717,13 @@ def admin_candidate_preflight(
             {"code": violation.code, "message": violation.message} for violation in violations
         ],
     }
+
+
+admin.add_api_route(
+    "/candidates/{candidate_id}/preflight",
+    admin_candidate_preflight,
+    methods=["GET"],
+)
 
 
 @admin.post("/candidates/{candidate_id}/publish")
