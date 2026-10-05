@@ -266,9 +266,7 @@ test("A3 — 规则线索直接进入 RuleCandidate review，不走 Observation"
   await page.locator("[data-testid='rule-effect']").selectOption("conditional");
 
   const leadRequest = page.waitForRequest(
-    (r) =>
-      r.method() === "POST" &&
-      r.url().includes(`/api/v1/places/${MALL_ID}/rule-leads`),
+    (r) => r.method() === "POST" && r.url().includes(`/api/v1/places/${MALL_ID}/rule-leads`),
   );
   await page.getByTestId("rule-submit").click();
   const req = await leadRequest;
