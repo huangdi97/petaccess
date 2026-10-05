@@ -191,6 +191,45 @@ def test_report_candidate_has_private_traceable_evidence_bundle(client, place_id
         session.close()
 
 
+def test_effort_only_report_keeps_parent_evidence_provenance(client, place_id, signed_user):
+    """A no-animal observation stays an effort row linked to its private report evidence."""
+    observed = (datetime.now(UTC) - timedelta(minutes=20)).isoformat()
+    r = client.post(
+        f"/api/v1/places/{place_id}/reality/reports",
+        headers=signed_user,
+        json={
+            "report": _report("on_site_past", observed_at=observed),
+            "candidates": [],
+            "effort": {
+                "place_id": place_id,
+                "duration_bucket": "min_10_30",
+                "covered_zone_ids": [],
+                "animal_observed": False,
+                "observed_at": observed,
+            },
+        },
+    )
+    assert r.status_code == 201, r.text
+    body = r.json()
+    assert body["candidates"] == []
+    assert body["effort_id"]
+
+    from app.db.session import get_session_factory
+    from app.models import ObservationEffort
+    from app.models.evidence import EvidenceBundle
+
+    session = get_session_factory()()
+    try:
+        effort = session.get(ObservationEffort, body["effort_id"])
+        assert effort is not None
+        assert effort.animal_observed is False
+        assert effort.report_id == body["report"]["id"]
+        assert effort.evidence_bundle_id is not None
+        assert session.get(EvidenceBundle, effort.evidence_bundle_id) is not None
+    finally:
+        session.close()
+
+
 def test_raw_reality_report_parents_are_not_public(client, place_id):
     """Report parents keep private provenance/tokens; published claims are the public layer."""
     r = client.get(f"/api/v1/places/{place_id}/reality/reports")
