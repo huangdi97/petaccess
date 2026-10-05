@@ -58,7 +58,7 @@ const glyph = (status: MapMarker["status"]) => STATUS_GLYPHS[status] ?? STATUS_G
 function markerLabel(cluster: MapCluster): string {
   if (cluster.count > 1) return `${cluster.count} 个场所`;
   const id = cluster.memberIds[0];
-  return props.lensLabels[id] ?? glyph(cluster.status);
+  return id ? (props.lensLabels[id] ?? glyph(cluster.status)) : glyph(cluster.status);
 }
 
 /* ---- Abstract urban spatial canvas (v0.2.7 §8) -------------------------
