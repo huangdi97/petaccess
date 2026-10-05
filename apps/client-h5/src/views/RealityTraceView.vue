@@ -42,7 +42,11 @@ const summaryLine = computed(() => {
   const presence = events.value.filter((event) => event.event_type === "observed_presence").length;
   const staff = events.value.filter((event) => event.event_type === "staff_response").length;
   const facility = events.value.filter((event) => event.event_type === "animal_facility").length;
-  const parts = [`${events.value.length} 条经核验事实`, `最近 ${latest.event_at.slice(0, 10)}`];
+  const latestLabel =
+    latest.time_evidence_state === "publication_time_only"
+      ? `最近一条为 ${latest.event_at.slice(0, 10)} 发布的公开内容`
+      : `最近现场日期 ${latest.event_at.slice(0, 10)}`;
+  const parts = [`${events.value.length} 条经核验事实`, latestLabel];
   if (presence) parts.push(`${presence} 条动物现场`);
   if (staff) parts.push(`${staff} 条工作人员处理`);
   if (facility) parts.push(`${facility} 条设施`);
