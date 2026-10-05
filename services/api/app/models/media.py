@@ -15,11 +15,12 @@ from app.db.base import Base, PkMixin, TimestampMixin
 
 class MediaPurpose:
     SIGNAGE_EVIDENCE = "signage_evidence"
+    REALITY_EVIDENCE = "reality_evidence"
     SCENE_PHOTO = "scene_photo"
     AVATAR = "avatar"
     IMPORT_DOCUMENT = "import_document"
 
-    ALL = [SIGNAGE_EVIDENCE, SCENE_PHOTO, AVATAR, IMPORT_DOCUMENT]
+    ALL = [SIGNAGE_EVIDENCE, REALITY_EVIDENCE, SCENE_PHOTO, AVATAR, IMPORT_DOCUMENT]
 
 
 class MediaPrivacyClass:
