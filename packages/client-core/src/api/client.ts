@@ -639,6 +639,27 @@ export const client = {
   }) {
     return api.request<{ id: string }>("post", "/verifications", { body });
   },
+  async contributeRuleLead(
+    placeId: string,
+    body: {
+      zone_id?: string | null;
+      animal_scope: "dog" | "cat" | "ordinary_pet" | "other";
+      effect: "allowed" | "prohibited" | "conditional";
+      proposed_conditions?: string[];
+      raw_text?: string | null;
+      media_id?: string | null;
+      current_rule_id?: string | null;
+      proximity_verified?: boolean;
+      distance_bucket?: string | null;
+      accuracy_bucket?: string | null;
+    },
+  ) {
+    return api.request<{ id: string; review_status: string }>(
+      "post",
+      `/places/${placeId}/rule-leads`,
+      { body },
+    );
+  },
   async verifications(placeId: string) {
     const res = await api.request<
       Page<{
