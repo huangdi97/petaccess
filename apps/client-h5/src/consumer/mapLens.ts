@@ -101,10 +101,15 @@ export function mapLensCoverage(
 ): MapLensCoverage {
   if (lens === "rule") return coverageHint(markers);
 
+  // Coverage text describes the spatial canvas, so only rows that have a
+  // marker in the current projection may contribute to the numerator.
+  const markerIds = new Set(markers.map((marker) => marker.id));
+  const visibleFacts = [...facts.entries()]
+    .filter(([placeId]) => markerIds.has(placeId))
+    .map(([, row]) => row);
+
   if (lens === "reality") {
-    const covered = [...facts.values()].filter(
-      (row) => (row.reality?.evidence_count ?? 0) > 0,
-    ).length;
+    const covered = visibleFacts.filter((row) => (row.reality?.evidence_count ?? 0) > 0).length;
     return {
       covered,
       unknown: Math.max(0, markers.length - covered),
@@ -113,7 +118,7 @@ export function mapLensCoverage(
   }
 
   if (lens === "facility") {
-    const covered = [...facts.values()].filter((row) =>
+    const covered = visibleFacts.filter((row) =>
       (row.snapshot?.facility_summary ?? []).some((item) => item.count > 0),
     ).length;
     return {
@@ -123,7 +128,7 @@ export function mapLensCoverage(
     };
   }
 
-  const covered = [...facts.values()].filter((row) => {
+  const covered = visibleFacts.filter((row) => {
     const state = row.snapshot?.divergence?.state;
     return Boolean(state && !["RULE_REALITY_ALIGNED", "INSUFFICIENT_DATA"].includes(state));
   }).length;
