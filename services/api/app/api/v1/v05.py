@@ -150,7 +150,9 @@ def contribute_rule_lead(
         issuer_verification=IssuerVerification.UNVERIFIED,
         source_url=None,
         collected_at=now,
-        observed_at=now,
+        # Upload/submit time is not the time the signage was observed.
+        # Only set observed_at when a real proximity check exists.
+        observed_at=now if body.proximity_verified else None,
         published_at=None,
         source_availability=SourceAvailability.AVAILABLE_OFFLINE,
         directness=Directness.DIRECT,
