@@ -24,6 +24,7 @@ import {
   realityEventDetail,
   realityEventEvidenceState,
   realityEventHeadline,
+  realityEventProvenance,
   realityEventTimeBasis,
 } from "../consumer/realityEvent";
 import { snapshotFor } from "../consumer/repository";
@@ -289,6 +290,9 @@ const uiFixture = computed<string>(() =>
             <p v-if="realityEventDetail(event)" class="muted evidence-item__note">
               {{ realityEventDetail(event) }}
             </p>
+            <p v-if="realityEventProvenance(event)" class="muted evidence-item__provenance">
+              {{ realityEventProvenance(event) }}
+            </p>
             <p class="muted evidence-item__basis">{{ realityEventTimeBasis(event) }}</p>
           </div>
           <div v-if="!events.length" class="evidence-empty-inline" data-testid="evidence-empty">
@@ -453,12 +457,14 @@ const uiFixture = computed<string>(() =>
 
 .evidence-item__text,
 .evidence-item__note,
+.evidence-item__provenance,
 .evidence-item__basis {
   margin: 0;
   font-size: var(--pa-font-size-md);
   line-height: var(--pa-line-height-base);
 }
 
+.evidence-item__provenance,
 .evidence-item__basis {
   font-size: var(--pa-font-size-sm);
 }
