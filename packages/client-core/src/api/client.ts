@@ -231,6 +231,9 @@ export interface RealityEventView {
   zone_id: string | null;
   event_at: string;
   time_basis: "observed" | "verified" | "recorded";
+  time_evidence_state: string | null;
+  content_published_at: string | null;
+  claimed_event_at: string | null;
   animal_scope: string | null;
   observed_action: string | null;
   observed_context: string | null;
