@@ -11,7 +11,6 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import {
   clusterMarkers,
-  coverageHint,
   session,
   synthDemoCamera,
   synthMarkerPosition,
@@ -22,8 +21,12 @@ import {
   type PlaceSummary,
 } from "@petaccess/client-core";
 
-import { answerStatusKey, answerVerdictLabel } from "../answer";
-import { divergenceLabel, realityStateLabel } from "../reality";
+import {
+  mapLensCoverage,
+  mapLensLabel,
+  mapLensTone,
+  type MapLensKey,
+} from "../consumer/mapLens";
 import { enrichRows, nearbyPlaces, snapshotFor, type RowFacts } from "../consumer/repository";
 import { presentDescription } from "../errors";
 import { useBreakpoint } from "./useBreakpoint";
@@ -34,8 +37,6 @@ export interface PreviewState {
   loading: boolean;
   error: string;
 }
-
-export type MapLensKey = "rule" | "reality" | "facility" | "divergence";
 
 export function useMapWorkspace() {
   const router = useRouter();
@@ -54,65 +55,15 @@ export function useMapWorkspace() {
   const preview = ref<PreviewState>({ snapshot: null, loading: false, error: "" });
   const activeFilters = ref<string[]>([]);
 
-  function toneFor(row: RowFacts | undefined): MapMarker["status"] {
-    if (!row) return "UNKNOWN";
-    if (lens.value === "rule") return answerStatusKey(row.answer);
-
-    if (lens.value === "reality") {
-      switch (row.reality?.state) {
-        case "OBSERVED_RECENTLY":
-        case "MULTI_EVIDENCE_OBSERVED":
-          return "ALLOWED";
-        case "OBSERVED_HISTORICALLY":
-          return "STALE";
-        case "DISPUTED":
-          return "CONFLICT";
-        default:
-          return "UNKNOWN";
-      }
-    }
-
-    if (lens.value === "facility") {
-      const facilities = row.snapshot?.facility_summary ?? [];
-      if (facilities.some((item) => item.operational_state === "active" && item.count > 0))
-        return "ALLOWED";
-      if (facilities.some((item) => item.count > 0)) return "CONDITIONAL";
-      return "UNKNOWN";
-    }
-
-    const state = row.snapshot?.divergence?.state;
-    if (state === "RULE_REALITY_ALIGNED") return "ALLOWED";
-    if (state === "RULE_ALLOWS_BUT_NO_RECENT_RECORD") return "STALE";
-    if (state && state !== "INSUFFICIENT_DATA") return "CONFLICT";
-    return "UNKNOWN";
-  }
-
-  function lensLabelFor(row: RowFacts | undefined): string {
-    if (!row) return "信息不足";
-    if (lens.value === "rule") return answerVerdictLabel(row.answer);
-    if (lens.value === "reality") return realityStateLabel(row.reality);
-    if (lens.value === "facility") {
-      const facilities = row.snapshot?.facility_summary ?? [];
-      const total = facilities.reduce((sum, item) => sum + item.count, 0);
-      const active = facilities
-        .filter((item) => item.operational_state === "active")
-        .reduce((sum, item) => sum + item.count, 0);
-      if (active > 0) return `${active} 处已核验动物设施`;
-      if (total > 0) return `${total} 处动物设施记录`;
-      return "暂无已核验动物设施";
-    }
-    return divergenceLabel(row.snapshot?.divergence ?? null);
-  }
-
   const statuses = computed<Record<string, MapMarker["status"]>>(() => {
     const out: Record<string, MapMarker["status"]> = {};
-    for (const p of places.value) out[p.id] = toneFor(facts.value.get(p.id));
+    for (const p of places.value) out[p.id] = mapLensTone(lens.value, facts.value.get(p.id));
     return out;
   });
 
   const lensLabels = computed<Record<string, string>>(() => {
     const out: Record<string, string> = {};
-    for (const p of places.value) out[p.id] = lensLabelFor(facts.value.get(p.id));
+    for (const p of places.value) out[p.id] = mapLensLabel(lens.value, facts.value.get(p.id));
     return out;
   });
 
@@ -130,38 +81,7 @@ export function useMapWorkspace() {
   );
 
   const clusters = computed(() => clusterMarkers(markers.value, camera.value.zoom));
-  const coverage = computed(() => {
-    if (lens.value === "rule") return coverageHint(markers.value);
-    if (lens.value === "reality") {
-      const count = [...facts.value.values()].filter(
-        (row) => (row.reality?.evidence_count ?? 0) > 0,
-      ).length;
-      return {
-        covered: count,
-        unknown: Math.max(0, places.value.length - count),
-        text: `当前视野 ${places.value.length} 个场所：${count} 个有现场证据。暂无记录不代表现场没有动物。`,
-      };
-    }
-    if (lens.value === "facility") {
-      const count = [...facts.value.values()].filter((row) =>
-        (row.snapshot?.facility_summary ?? []).some((item) => item.count > 0),
-      ).length;
-      return {
-        covered: count,
-        unknown: Math.max(0, places.value.length - count),
-        text: `当前视野 ${places.value.length} 个场所：${count} 个有动物设施记录。设施存在不等于允许进入。`,
-      };
-    }
-    const count = [...facts.value.values()].filter((row) => {
-      const state = row.snapshot?.divergence?.state;
-      return Boolean(state && !["RULE_REALITY_ALIGNED", "INSUFFICIENT_DATA"].includes(state));
-    }).length;
-    return {
-      covered: count,
-      unknown: Math.max(0, places.value.length - count),
-      text: `当前视野 ${places.value.length} 个场所：${count} 个存在规则与现场差异。`,
-    };
-  });
+  const coverage = computed(() => mapLensCoverage(lens.value, facts.value, markers.value));
 
   const visiblePlaces = computed(() => {
     if (lens.value !== "rule" || !activeFilters.value.length) return places.value;
