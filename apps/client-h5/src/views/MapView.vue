@@ -215,7 +215,6 @@ function chooseMapResult(id: string) {
           :camera="camera"
           :clusters="clusters"
           :lens="lens"
-          :lens-labels="lensLabels"
           :selected-id="selected?.id ?? null"
           @select="onSelectCluster"
           @zoom="zoomMap"
