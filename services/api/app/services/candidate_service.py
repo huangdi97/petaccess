@@ -180,10 +180,19 @@ def publish(
         normative_effect=candidate.normative_effect,
         holder_scope=candidate.holder_scope,
         operator_obligations=candidate.operator_obligations,
+        supersedes_rule_id=candidate.supersedes_rule_id,
         note=f"published from candidate {candidate.id} ({candidate.extraction_method})",
     )
     db.add(rule)
     db.flush()
+
+    # Explicit reviewed replacement wins over source-identity heuristics. The
+    # publish gate has already verified owner/action/layer/current-state.
+    if candidate.supersedes_rule_id:
+        explicit_target = db.get(AccessRule, candidate.supersedes_rule_id)
+        if explicit_target is None:
+            raise ApiError("待替换规则不存在", code="supersession_target_missing")
+        explicit_target.status = RuleStatus.SUPERSEDED
 
     # Same-issuer policy change: the source updated its own rule, so current
     # rules from THAT source with the same owner+scope+action are superseded
@@ -203,7 +212,8 @@ def publish(
     ).all()
     for old_rule in superseded_same_source:
         old_rule.status = RuleStatus.SUPERSEDED
-        rule.supersedes_rule_id = old_rule.id
+        if rule.supersedes_rule_id is None:
+            rule.supersedes_rule_id = old_rule.id
 
     # Atomic compare-and-set on the candidate status: two reviewers publishing
     # the same APPROVED candidate must yield exactly one AccessRule. The loser's
