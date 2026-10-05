@@ -13,6 +13,7 @@
  */
 
 import type { RealityAnswer, RuleRealityDivergence } from "@petaccess/client-core";
+import { animalFacilityLabel, facilityStateLabel, staffActionLabel } from "./consumer/labels";
 
 /** One-line reader copy for each of the six RealitySummary states. */
 export const REALITY_STATE_LABELS: Record<string, string> = {
@@ -70,7 +71,7 @@ export function divergenceLabel(d: RuleRealityDivergence | null | undefined): st
 
 /** Human-readable staff response action counts (facts only, no score). */
 export function staffResponseLines(staff: { response_action: string; count: number }[]): string[] {
-  return staff.map((s) => `${s.response_action}：${s.count} 次`);
+  return staff.map((s) => `${staffActionLabel(s.response_action)}：${s.count} 次`);
 }
 
 /** Facility facts with verified freshness. */
@@ -83,9 +84,9 @@ export function facilityLines(
   }[],
 ): string[] {
   return facilities.map((f) => {
-    const op = f.operational_state === "active" ? "" : `（${f.operational_state}）`;
+    const state = facilityStateLabel(f.operational_state);
     const fresh = f.last_verified_at ? `，最近核验 ${f.last_verified_at.slice(0, 10)}` : "";
-    return `${f.facility_type}${op}：${f.count} 处${fresh}`;
+    return `${animalFacilityLabel(f.facility_type)}（${state}）：${f.count} 处${fresh}`;
   });
 }
 
