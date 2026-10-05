@@ -502,7 +502,11 @@ def reality_trace(
         RealityTraceSection(
             label="一手来源", value="是" if has_first_hand_source else "待补充"
         ),
-        RealityTraceSection(label="是否存在争议", value="无已登记争议"),
+        RealityTraceSection(
+            label="争议 / 纠错",
+            value="当前未单独聚合",
+            note="如发现现场事实有误，可从场所页提交补充或纠错线索；平台不会把“未展示争议状态”解释成“没有争议”。",
+        ),
     ]
     return RealityTraceOut(
         place_id=place_id,
