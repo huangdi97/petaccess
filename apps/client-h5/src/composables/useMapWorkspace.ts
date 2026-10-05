@@ -70,7 +70,13 @@ export function useMapWorkspace() {
 
   const markers = computed<MapMarker[]>(() =>
     places.value.map((p) => {
-      const pos = synthMarkerPosition(p.id, camera.value);
+      // Production/seeded places use their verified PostGIS representative
+      // point. Synthetic positioning is a dev/test fallback only for legacy
+      // payloads that genuinely have no coordinates.
+      const pos =
+        p.latitude != null && p.longitude != null
+          ? { lat: p.latitude, lng: p.longitude }
+          : synthMarkerPosition(p.id, camera.value);
       return {
         id: p.id,
         lat: pos.lat,
@@ -126,7 +132,7 @@ export function useMapWorkspace() {
     loading.value = true;
     error.value = "";
     try {
-      const res = await nearbyPlaces();
+      const res = await nearbyPlaces(camera.value);
       places.value = res.items;
       await loadFacts(places.value);
       resolveSelection();
