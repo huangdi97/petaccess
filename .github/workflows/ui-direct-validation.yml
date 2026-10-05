@@ -38,7 +38,7 @@ jobs:
       - name: ESLint
         run: pnpm lint:fe
       - name: Apply canonical Prettier formatting
-        run: pnpm exec prettier --write "apps/client-h5/src/**/*.{vue,ts}" "docs/ui/contracts/json/*.json" "tests/ui-oracle/*.ts"
+        run: pnpm exec prettier --write "apps/client-h5/src/**/*.{vue,ts}" "apps/admin/src/**/*.{vue,ts}" "docs/ui/contracts/json/*.json" "tests/ui-oracle/*.ts"
       - name: Commit formatting on direct branch pushes
         if: github.event_name == 'push' && github.actor != 'github-actions[bot]'
         shell: bash
@@ -49,7 +49,7 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add apps/client-h5/src docs/ui/contracts/json tests/ui-oracle
+          git add apps/client-h5/src apps/admin/src docs/ui/contracts/json tests/ui-oracle
           git commit -m "style(ui): apply canonical Prettier formatting"
           git push origin HEAD:feat/ui-direct-craft-v8
       - name: Prettier check
