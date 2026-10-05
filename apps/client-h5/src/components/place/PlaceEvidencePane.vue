@@ -8,7 +8,7 @@
  */
 import type { RealityEventView, SourceView } from "@petaccess/client-core";
 import {
-  displayRealityTime,
+  displayRealityEventTime,
   realityEventDetail,
   realityEventEvidenceState,
   realityEventHeadline,
@@ -54,7 +54,7 @@ const LABELS: Record<string, string> = {
       <div v-for="event in events" :key="event.id" class="surface-row evidence-item">
         <div class="evidence-item__main">
           <EvidenceStatus :state="realityEventEvidenceState(event)" />
-          <time class="muted">{{ displayRealityTime(event.event_at) }}</time>
+          <time class="muted">{{ displayRealityEventTime(event) }}</time>
         </div>
         <p class="evidence-item__text">{{ realityEventHeadline(event) }}</p>
         <p v-if="realityEventDetail(event)" class="muted evidence-item__detail">
