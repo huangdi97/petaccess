@@ -70,10 +70,7 @@ test("A2 — 现场记录经父流提交，候选进入人工审核队列", asyn
   await expect(page.getByTestId("contribute-result")).toContainText(/已提交/);
 });
 
-test("A2.0 — 外部帖子只记录发布时间，不把发布时间伪装成事件时间", async ({
-  page,
-  request,
-}) => {
+test("A2.0 — 外部帖子只记录发布时间，不把发布时间伪装成事件时间", async ({ page, request }) => {
   const token = await signIn(request);
   await page.addInitScript((t) => localStorage.setItem("pa_token", t), token);
   await page.goto(`${BASE}/#/contribute/${MALL_ID}`, { waitUntil: "load" });
