@@ -180,6 +180,8 @@ function goHome() {
         :snapshot="preview.snapshot"
         :loading="preview.loading"
         :error="preview.error"
+        :map-lens-name="lens === 'reality' ? '现场' : lens === 'facility' ? '设施' : lens === 'divergence' ? '规则×现场' : ''"
+        :map-lens-label="selected && lens !== 'rule' ? lensLabels[selected.id] : ''"
       />
     </div>
     <!-- 移动端：选中场所 = 真实 overlay bottom sheet（v0.2.5 §22–24）。 -->
@@ -190,6 +192,8 @@ function goHome() {
       :snapshot="preview.snapshot"
       :loading="preview.loading"
       :error="preview.error"
+      :map-lens-name="lens === 'reality' ? '现场' : lens === 'facility' ? '设施' : lens === 'divergence' ? '规则×现场' : ''"
+      :map-lens-label="selected && lens !== 'rule' ? lensLabels[selected.id] : ''"
       @close="
         selected = null;
         syncRoutePlace(null);
