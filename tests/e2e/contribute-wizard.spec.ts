@@ -137,6 +137,9 @@ test("A2.2 — 规则线索进入 RuleCandidate review，而不是 Observation/R
   const body = leadRequest.postDataJSON() as Record<string, unknown>;
   expect(body.animal_scope).toBe("ordinary_pet");
   expect(body.effect).toBe("conditional");
+  expect(body.proximity_verified).toBe(false);
+  expect(body.distance_bucket).toBeNull();
+  expect(body.accuracy_bucket).toBeNull();
   await expect(page.getByTestId("contribute-result")).toContainText("人工复核", {
     timeout: 15000,
   });
@@ -158,6 +161,7 @@ test("A2.3 — 场所纠错只提交 review lead，不直接修改场所", async
   const body = correctionRequest.postDataJSON() as Record<string, unknown>;
   expect(body.event_type).toBe("place_correction");
   expect(body.result).toBe("uncertain");
+  expect(body.proximity_verified).toBe(false);
   await expect(page.getByTestId("contribute-result")).toContainText("人工核验", {
     timeout: 15000,
   });
