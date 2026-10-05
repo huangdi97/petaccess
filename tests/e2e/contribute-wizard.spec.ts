@@ -131,6 +131,7 @@ test("A2.1 — Staff / Facility contribution uses canonical Reality domain value
   };
   expect(staffBody.report.place_match_state).toBe("exact_place");
   expect(staffBody.report.place_match_evidence_types).toEqual(["user_confirmation"]);
+  expect(staffBody.report.time_evidence_state).toBe("live_device_time");
   expect(staffBody.report.fact_evidence_state).toBe("first_hand_no_media");
   expect(staffBody.candidates[0]?.payload.response_action).toBe("direct_to_allowed_zone");
   expect(staffBody.candidates[0]?.payload.actor_role).toBe("unknown_staff");
