@@ -252,10 +252,7 @@ async function toggleWatch() {
 }
 
 type RealityConfirmationType =
-  | "still_present"
-  | "not_seen_now"
-  | "facility_still_present"
-  | "facility_removed";
+  "still_present" | "not_seen_now" | "facility_still_present" | "facility_removed";
 
 async function confirmReality(event: RealityEventView, type: RealityConfirmationType) {
   if (!session.signedIn || confirmationBusyId.value) return;
