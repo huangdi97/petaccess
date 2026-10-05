@@ -16,7 +16,7 @@ Hard rules enforced here (and by the schema):
 - AI-derived (unverified) rows never appear in consumer aggregates.
 """
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import TypedDict
 
 from fastapi import APIRouter, Depends, Query
@@ -852,12 +852,17 @@ def _presence_summary(db: Session, place_id: str, now: datetime):
     )
 
 
-def _staff_response_summary(db: Session, place_id: str) -> list[dict]:
+def _staff_response_summary(
+    db: Session, place_id: str, now: datetime | None = None
+) -> list[dict]:
+    """Summarize verified staff handling in the consumer's recent 30-day window."""
+    cutoff = (now or datetime.now(UTC)) - timedelta(days=30)
     rows = db.execute(
         select(StaffResponseObservation.response_action, func.count())
         .where(
             StaffResponseObservation.place_id == place_id,
             StaffResponseObservation.verification_status.in_(VERIFIED_REALITY_STATUSES),
+            StaffResponseObservation.observed_at >= cutoff,
         )
         .group_by(StaffResponseObservation.response_action)
     ).all()
@@ -930,7 +935,7 @@ def _reality_answer_for_place(db: Session, place_id: str, now: datetime) -> dict
         "distinct_source_count": summary.distinct_source_count,
         "observed_zones": list(summary.observed_zones),
         "observed_actions": list(summary.observed_actions),
-        "staff_response_summary": _staff_response_summary(db, place_id),
+        "staff_response_summary": _staff_response_summary(db, place_id, now),
         "facility_summary": _facility_summary(db, place_id),
         "freshness_state": summary.freshness_state,
         "verification_state": summary.verification_state,
