@@ -156,7 +156,7 @@ def _supersession_target_violations(
     same_layer = (target.rule_layer or "OPERATOR_POLICY") == (
         candidate.rule_layer or "OPERATOR_POLICY"
     )
-    current = target.status in ("current", RuleStatus.CURRENT.value)
+    current = str(target.status) == "current"
     return [
         (
             "supersession_target_not_current",
