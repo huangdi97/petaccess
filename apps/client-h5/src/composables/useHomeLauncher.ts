@@ -178,7 +178,6 @@ export function useHomeLauncher() {
           answer: null,
           answerError: true,
           reality: null,
-          snapshot: null,
           realityError: true,
           stale: false,
           fetchedAtMs: null,
