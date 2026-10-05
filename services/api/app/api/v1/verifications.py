@@ -10,9 +10,10 @@ from app.core.config import get_settings
 from app.core.errors import NotFound
 from app.core.idempotency import check_inflight, get_cached, store
 from app.core.ratelimit import check_rate_limit
-from app.core.security import get_current_user, get_optional_user
+from app.core.security import get_current_user, get_optional_user, require_role
 from app.db.session import get_db
 from app.models import AccessRule, Place, User, VerificationEvent
+from app.models.enums import UserRole, VerificationEventType
 from app.schemas.civic import VerificationIn, VerificationOut
 from app.schemas.common import Page
 
@@ -29,8 +30,30 @@ def list_place_verifications(
 ) -> Page[VerificationOut]:
     stmt = (
         select(VerificationEvent)
-        .where(VerificationEvent.place_id == place_id)
+        .where(
+            VerificationEvent.place_id == place_id,
+            VerificationEvent.event_type != VerificationEventType.PLACE_CORRECTION,
+        )
         .order_by(VerificationEvent.occurred_at.desc())
+    )
+    total = db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
+    rows = db.scalars(stmt.limit(limit).offset(offset)).all()
+    return Page(items=rows, total=total, limit=limit, offset=offset)
+
+
+@router.get("/admin/place-corrections", response_model=Page[VerificationOut])
+def list_place_corrections(
+    limit: int = Query(default=50, le=100),
+    offset: int = Query(default=0, ge=0),
+    user: User = Depends(require_role(UserRole.MODERATOR)),
+    db: Session = Depends(get_db),
+) -> Page[VerificationOut]:
+    """Moderator-only queue for user-submitted place correction leads."""
+
+    stmt = (
+        select(VerificationEvent)
+        .where(VerificationEvent.event_type == VerificationEventType.PLACE_CORRECTION)
+        .order_by(VerificationEvent.created_at.desc())
     )
     total = db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
     rows = db.scalars(stmt.limit(limit).offset(offset)).all()
