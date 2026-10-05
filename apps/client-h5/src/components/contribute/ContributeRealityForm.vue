@@ -33,9 +33,13 @@ const animal = ref("dog");
 const count = ref("");
 const action = ref("present");
 const staffAction = ref("unknown");
+const staffAwareness = ref("awareness_unknown");
 const staffOutcome = ref("");
 const facilityType = ref("");
 const facilityOperational = ref("unknown");
+const facilityPurpose = ref("purpose_unknown");
+const facilityAccessMode = ref("unknown");
+const facilityCapacity = ref("");
 const context = ref("");
 const effortBucket = ref("lt_10_min");
 
@@ -96,6 +100,27 @@ const FACILITY_TYPE_KEYS = [
 
 const FACILITY_STATE_KEYS = ["active", "temporarily_unavailable", "removed", "unknown"] as const;
 
+const STAFF_AWARENESS_OPTIONS = [
+  { key: "awareness_confirmed", label: "明确看到工作人员注意到该情况" },
+  { key: "awareness_likely", label: "工作人员可能注意到了" },
+  { key: "awareness_unknown", label: "不确定工作人员是否注意到" },
+] as const;
+
+const FACILITY_PURPOSE_OPTIONS = [
+  { key: "purpose_signage_supported", label: "现场标识明确说明用途" },
+  { key: "purpose_staff_stated", label: "工作人员说明过用途" },
+  { key: "purpose_confirmed", label: "有其他明确依据确认用途" },
+  { key: "purpose_user_inferred", label: "我是根据外观判断" },
+  { key: "purpose_unknown", label: "不确定用途" },
+] as const;
+
+const FACILITY_ACCESS_OPTIONS = [
+  { key: "operator_provided", label: "由场所提供 / 管理" },
+  { key: "self_service", label: "可以自助使用" },
+  { key: "staff_assisted", label: "需要工作人员协助" },
+  { key: "unknown", label: "使用方式不确定" },
+] as const;
+
 const busy = ref(false);
 const error = ref("");
 const canSubmit = computed(
@@ -112,22 +137,33 @@ async function submit() {
   busy.value = true;
   try {
     const kind = props.kind;
-    const at = isoAt(occurredAt.value);
+    const today = new Date().toISOString().slice(0, 10);
+    const isToday = occurredAt.value === today;
+    const at = isToday ? new Date().toISOString() : isoAt(occurredAt.value);
     const { payload, animalScope } = realityPayload(props.kind, {
       animal: animal.value,
       count: count.value,
       action: action.value,
       context: context.value,
       staffAction: staffAction.value,
+      staffAwareness: staffAwareness.value,
       staffOutcome: staffOutcome.value,
       facilityType: facilityType.value,
       facilityOperational: facilityOperational.value,
+      facilityPurpose: facilityPurpose.value,
+      facilityAccessMode: facilityAccessMode.value,
+      facilityCapacity: facilityCapacity.value,
     });
     const res = await client.createRealityReport(props.placeId, {
       report: {
         origin: reportOrigin(occurredAt.value),
         place_id: props.placeId,
+        place_match_state: "exact_place",
+        place_match_evidence_types: ["user_confirmation"],
         observed_at: at,
+        time_evidence_state: isToday ? "live_device_time" : "exact_event_date",
+        time_certainty: "exact",
+        fact_evidence_state: "first_hand_no_media",
         privacy_state: "private",
       },
       candidates: [
@@ -228,6 +264,16 @@ async function submit() {
               {{ STAFF_ACTION_LABELS[key] }}
             </option>
           </select>
+          <label for="reality-staff-awareness">你能确认工作人员注意到这个情况吗？</label>
+          <select
+            id="reality-staff-awareness"
+            v-model="staffAwareness"
+            data-testid="reality-staff-awareness"
+          >
+            <option v-for="item in STAFF_AWARENESS_OPTIONS" :key="item.key" :value="item.key">
+              {{ item.label }}
+            </option>
+          </select>
           <label for="reality-staff-outcome">结果（可选）</label>
           <input
             v-model="staffOutcome"
@@ -244,12 +290,41 @@ async function submit() {
               {{ ANIMAL_FACILITY_LABELS[key] }}
             </option>
           </select>
+          <label for="reality-facility-purpose">你怎么确认它是动物相关设施？</label>
+          <select
+            id="reality-facility-purpose"
+            v-model="facilityPurpose"
+            data-testid="reality-facility-purpose"
+          >
+            <option v-for="item in FACILITY_PURPOSE_OPTIONS" :key="item.key" :value="item.key">
+              {{ item.label }}
+            </option>
+          </select>
           <label for="reality-facility-status">状态</label>
           <select v-model="facilityOperational" id="reality-facility-status">
             <option v-for="key in FACILITY_STATE_KEYS" :key="key" :value="key">
               {{ FACILITY_STATE_LABELS[key] }}
             </option>
           </select>
+          <label for="reality-facility-access">使用方式（可选）</label>
+          <select
+            id="reality-facility-access"
+            v-model="facilityAccessMode"
+            data-testid="reality-facility-access"
+          >
+            <option v-for="item in FACILITY_ACCESS_OPTIONS" :key="item.key" :value="item.key">
+              {{ item.label }}
+            </option>
+          </select>
+          <label for="reality-facility-capacity">数量 / 容量（可选）</label>
+          <input
+            id="reality-facility-capacity"
+            v-model="facilityCapacity"
+            type="number"
+            min="1"
+            placeholder="例如 2"
+            data-testid="reality-facility-capacity"
+          />
         </template>
 
         <label for="reality-context">补充（可选）</label>
