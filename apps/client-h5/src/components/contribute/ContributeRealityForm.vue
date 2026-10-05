@@ -178,8 +178,6 @@ async function submit() {
   busy.value = true;
   try {
     const kind = props.kind;
-    const today = new Date().toISOString().slice(0, 10);
-    const isToday = occurredAt.value === today;
     const onsiteAt =
       sourceMode.value === "on_site_now"
         ? new Date().toISOString()
@@ -234,7 +232,7 @@ async function submit() {
           ? externalEventIso
             ? "exact_event_date"
             : "publication_time_only"
-          : sourceMode.value === "on_site_now" && isToday
+          : sourceMode.value === "on_site_now"
             ? "live_device_time"
             : "exact_event_date",
         time_certainty: isExternal.value ? (externalEventIso ? "exact" : "unknown") : "exact",
