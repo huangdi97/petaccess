@@ -73,6 +73,9 @@ VERIFIED_STATUS_VALUES = [
 class _EventReportMeta(TypedDict):
     submitted_at: datetime | None
     time_evidence_state: str | None
+    origin: str | None
+    fact_evidence_state: str | None
+    place_match_state: str | None
     content_published_at: datetime | None
     claimed_event_at: datetime | None
 
@@ -121,6 +124,9 @@ def _presence_event(
         event_at=row.observed_at,
         time_basis="observed",
         time_evidence_state=report_meta.get("time_evidence_state"),
+        origin=report_meta.get("origin"),
+        fact_evidence_state=report_meta.get("fact_evidence_state"),
+        place_match_state=report_meta.get("place_match_state"),
         content_published_at=report_meta.get("content_published_at"),
         claimed_event_at=report_meta.get("claimed_event_at"),
         animal_scope=_enum_text(row.animal_scope),
@@ -147,6 +153,9 @@ def _staff_event(
         event_at=row.observed_at,
         time_basis="observed",
         time_evidence_state=report_meta.get("time_evidence_state"),
+        origin=report_meta.get("origin"),
+        fact_evidence_state=report_meta.get("fact_evidence_state"),
+        place_match_state=report_meta.get("place_match_state"),
         content_published_at=report_meta.get("content_published_at"),
         claimed_event_at=report_meta.get("claimed_event_at"),
         observed_context=row.trigger_context,
@@ -177,6 +186,9 @@ def _facility_event(
         event_at=event_at,
         time_basis=basis,
         time_evidence_state=report_meta.get("time_evidence_state"),
+        origin=report_meta.get("origin"),
+        fact_evidence_state=report_meta.get("fact_evidence_state"),
+        place_match_state=report_meta.get("place_match_state"),
         content_published_at=report_meta.get("content_published_at"),
         claimed_event_at=report_meta.get("claimed_event_at"),
         facility_type=_enum_text(row.facility_type),
@@ -250,6 +262,9 @@ def consumer_reality_events(
                 RealityCandidate.id,
                 RealityReport.submitted_at,
                 RealityReport.time_evidence_state,
+                RealityReport.origin,
+                RealityReport.fact_evidence_state,
+                RealityReport.place_match_state,
                 RealityReport.content_published_at,
                 RealityReport.claimed_event_at,
             )
@@ -260,6 +275,9 @@ def consumer_reality_events(
             candidate_id: {
                 "submitted_at": submitted_at,
                 "time_evidence_state": time_evidence_state,
+                "origin": origin,
+                "fact_evidence_state": fact_evidence_state,
+                "place_match_state": place_match_state,
                 "content_published_at": content_published_at,
                 "claimed_event_at": claimed_event_at,
             }
@@ -267,6 +285,9 @@ def consumer_reality_events(
                 candidate_id,
                 submitted_at,
                 time_evidence_state,
+                origin,
+                fact_evidence_state,
+                place_match_state,
                 content_published_at,
                 claimed_event_at,
             ) in report_rows
