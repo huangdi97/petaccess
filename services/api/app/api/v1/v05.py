@@ -130,6 +130,12 @@ def contribute_rule_lead(
         current = db.get(AccessRule, body.current_rule_id)
         if current is None or current.place_id != place_id:
             raise NotFound("待更新规则不属于该场所")
+        if str(current.status) != "current":
+            raise ApiError(
+                "待更新规则已经不是现行版本，请刷新后重新选择",
+                code="supersession_target_not_current",
+                status_code=409,
+            )
 
     media: MediaObject | None = None
     if body.media_id:
