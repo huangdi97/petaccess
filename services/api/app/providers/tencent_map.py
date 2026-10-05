@@ -173,8 +173,41 @@ class TencentMapProvider(MapProvider):
         }
 
     def render_config(self) -> dict[str, Any]:
-        # the key NEVER appears here; client uses its own map component config
-        return {"provider": self.provider_name, "key_configured": True}
+        # The SERVER key never appears here. Browser GL uses a separately
+        # restricted client key supplied by the HTTP config endpoint.
+        return {
+            "provider": self.provider_name,
+            "key_configured": True,
+            "input_coordinate_system": "EPSG:4326",
+            "render_coordinate_system": "GCJ-02",
+        }
+
+    def translate_coordinates(self, coordinates: list[tuple[float, float]]) -> list[dict[str, float]]:
+        """WGS84/GPS -> Tencent GCJ-02 via the official WebService API.
+
+        Tencent's JS GL basemap consumes GCJ-02 while PetAccess persists
+        governed geometry as EPSG:4326. Conversion therefore happens only at
+        the provider boundary; converted values are presentation data and are
+        never written back to Place.location.
+        """
+        if not coordinates:
+            return []
+        locations = ";".join(f"{lat:.12f},{lng:.12f}" for lat, lng in coordinates)
+        payload = self._get(
+            "/ws/coord/v1/translate",
+            {
+                "locations": locations,
+                # Tencent docs: type=1 is standard GPS coordinates (WGS84).
+                "type": "1",
+            },
+        )
+        rows = payload.get("locations") or []
+        if len(rows) != len(coordinates):
+            raise ProviderError(
+                "malformed_response",
+                "map provider coordinate conversion count mismatch",
+            )
+        return [{"lat": float(row["lat"]), "lng": float(row["lng"])} for row in rows]
 
     def open_navigation(self, lat: float, lng: float, name: str) -> dict[str, Any]:
         uri = (
