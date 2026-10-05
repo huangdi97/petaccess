@@ -479,6 +479,24 @@ export interface WatchView {
   created_at?: string | null;
 }
 
+
+export interface MapRenderConfig {
+  provider: "mock" | "tencent" | string;
+  center: { lat: number; lng: number };
+  zoom: number;
+  real_enabled: boolean;
+  client_key: string | null;
+  input_coordinate_system: string;
+  render_coordinate_system: string;
+  attribution: string | null;
+  reason: string | null;
+}
+
+export interface MapTranslatedCoordinate {
+  lat: number;
+  lng: number;
+}
+
 const asParams = (q: Record<string, unknown>) =>
   Object.fromEntries(Object.entries(q).filter(([, v]) => v !== undefined)) as Record<
     string,
@@ -732,10 +750,14 @@ export const client = {
     );
   },
   async mapConfig() {
-    return api.request<{ provider: string; center: { lat: number; lng: number }; zoom: number }>(
-      "get",
-      "/ai/map/config",
-    );
+    return api.request<MapRenderConfig>("get", "/ai/map/config");
+  },
+  async translateMapCoordinates(coordinates: MapTranslatedCoordinate[]) {
+    return api.request<{
+      provider: string;
+      coordinate_system: string;
+      coordinates: MapTranslatedCoordinate[];
+    }>("post", "/ai/map/translate", { body: { coordinates } });
   },
 
   // ------------------------------------------------------------- v0.5 domain
