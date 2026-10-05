@@ -859,7 +859,10 @@ def _reality_evidence_stats(db: Session, place_id: str) -> tuple[int, int, str |
             ObservedPresence.place_id == place_id,
             ObservedPresence.verification_status.in_(VERIFIED_REALITY_STATUSES),
         ),
-        select(StaffResponseObservation.source_id, StaffResponseObservation.evidence_bundle_id).where(
+        select(
+            StaffResponseObservation.source_id,
+            StaffResponseObservation.evidence_bundle_id,
+        ).where(
             StaffResponseObservation.place_id == place_id,
             StaffResponseObservation.verification_status.in_(VERIFIED_REALITY_STATUSES),
         ),
