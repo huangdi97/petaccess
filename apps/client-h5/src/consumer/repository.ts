@@ -181,6 +181,7 @@ export async function enrichRows(list: PlaceSummary[], limit = 4): Promise<Map<s
           answer: null,
           answerError: true,
           reality: null,
+          snapshot: null,
           realityError: true,
           stale: false,
           fetchedAtMs: null,
