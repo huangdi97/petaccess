@@ -968,7 +968,7 @@ const selectedId = ref<string | null>(null);
 
 .result-row__condition {
   font-size: var(--pa-font-size-md);
-  font-weight: 400;
+  font-weight: var(--pa-font-weight-regular);
   color: var(--pa-color-text-secondary);
 }
 
