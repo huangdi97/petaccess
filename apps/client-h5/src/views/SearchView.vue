@@ -565,20 +565,14 @@ const selectedId = ref<string | null>(null);
 
                 <!-- Rule stays visible beneath a Reality-first headline. -->
                 <p
-                  v-if="
-                    facts.get(p.id)?.answerError &&
-                    lensProjectionFor(p).headline !== 'rule'
-                  "
+                  v-if="facts.get(p.id)?.answerError && lensProjectionFor(p).headline !== 'rule'"
                   class="result-row__error"
                   data-testid="row-answer-error"
                 >
                   规则结论暂时无法取得 —— 请检查网络后重试。
                 </p>
                 <p
-                  v-else-if="
-                    facts.get(p.id)?.answer &&
-                    lensProjectionFor(p).headline !== 'rule'
-                  "
+                  v-else-if="facts.get(p.id)?.answer && lensProjectionFor(p).headline !== 'rule'"
                   class="result-row__decision"
                   data-testid="row-rule"
                 >
@@ -590,10 +584,7 @@ const selectedId = ref<string | null>(null);
 
                 <!-- Rules lens still keeps Reality visible as the secondary fact. -->
                 <p
-                  v-if="
-                    lensProjectionFor(p).headline === 'rule' &&
-                    !facts.get(p.id)?.realityError
-                  "
+                  v-if="lensProjectionFor(p).headline === 'rule' && !facts.get(p.id)?.realityError"
                   class="result-row__reality-line"
                   data-testid="result-reality"
                 >
