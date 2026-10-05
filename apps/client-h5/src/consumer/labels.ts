@@ -213,6 +213,16 @@ export function staffRoleLabel(value: string | null | undefined): string {
   return STAFF_ROLE_LABELS[value ?? ""] ?? "工作人员";
 }
 
+export const STAFF_AWARENESS_LABELS: Record<string, string> = {
+  awareness_confirmed: "已确认工作人员注意到该情况",
+  awareness_likely: "工作人员可能注意到该情况",
+  awareness_unknown: "是否被工作人员注意到尚不明确",
+};
+
+export function staffAwarenessLabel(value: string | null | undefined): string {
+  return STAFF_AWARENESS_LABELS[value ?? ""] ?? "是否被工作人员注意到尚不明确";
+}
+
 /** Facility operational states (FacilityOperationalState). */
 export const FACILITY_STATE_LABELS: Record<string, string> = {
   active: "正常使用中",
@@ -258,6 +268,24 @@ export const FACILITY_ACCESS_MODE_LABELS: Record<string, string> = {
 
 export function facilityAccessModeLabel(value: string | null | undefined): string {
   return FACILITY_ACCESS_MODE_LABELS[value ?? ""] ?? "使用方式未确认";
+}
+
+export const FACILITY_PURPOSE_LABELS: Record<string, string> = {
+  purpose_confirmed: "用途已核验",
+  purpose_staff_stated: "用途来自工作人员说明",
+  purpose_signage_supported: "用途有现场标识支持",
+  purpose_user_inferred: "用途为用户推测",
+  purpose_unknown: "用途待核验",
+};
+
+export function facilityPurposeLabel(value: string | null | undefined): string {
+  return FACILITY_PURPOSE_LABELS[value ?? ""] ?? "用途待核验";
+}
+
+export function facilityPurposeIsConfirmed(value: string | null | undefined): boolean {
+  return ["purpose_confirmed", "purpose_staff_stated", "purpose_signage_supported"].includes(
+    value ?? "",
+  );
 }
 
 export function verifiedBooleanLabel(value: boolean | null | undefined): string {
