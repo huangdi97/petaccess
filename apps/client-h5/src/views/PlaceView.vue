@@ -39,7 +39,6 @@ import PlaceSpacePane from "../components/place/PlaceSpacePane.vue";
 import PlaceRulesPane from "../components/place/PlaceRulesPane.vue";
 import PlaceRealityPane from "../components/place/PlaceRealityPane.vue";
 import PlaceEvidencePane from "../components/place/PlaceEvidencePane.vue";
-import PlaceUnknownPane from "../components/place/PlaceUnknownPane.vue";
 import { sourceLabel } from "../consumer/labels";
 import { answerStatusKey } from "../answer";
 import { presentDescription } from "../errors";
@@ -320,16 +319,11 @@ const placeFixture = computed<string>(() => {
           <!-- 2. 本地 section 导航（§15） -->
           <PlaceSectionNav :active="view" :place-id="placeId" />
 
-          <PlaceUnknownPane
-            v-if="view === 'overview' && placeState === 'unknown'"
-            :place-id="placeId"
-            :has-rules="currentRules.length > 0"
-            :has-observations="observations.length > 0"
-            :zone-count="zones.length"
-            :has-sources="sources.length > 0"
-          />
+          <!-- Rule UNKNOWN must never hide Reality / Staff / Facility / Evidence.
+               A valid place always renders the Coexistence overview; unknown is
+               expressed inside the Rule block as one fact dimension. -->
           <PlaceOverviewPane
-            v-else-if="view === 'overview' && overviewFiveBlocks"
+            v-if="view === 'overview' && overviewFiveBlocks"
             :answer="answer"
             :coexistence="coexistence"
             :zone-summary="zones"
