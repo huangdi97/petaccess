@@ -24,7 +24,9 @@ const cards = computed(() => [...props.verified, ...props.pending]);
 const recommendationTitle = computed(() => (props.interest ? "按你的关注推荐" : "近期值得先看"));
 
 function hasUsefulFact(card: HomeCard): boolean {
-  return Boolean(card.facts.answer || (card.facts.reality?.evidence_count ?? 0) > 0);
+  const realityEvidence = card.facts.reality?.evidence_count ?? 0;
+  const ruleEvidence = card.facts.snapshot?.evidence_summary.rule_evidence.length ?? 0;
+  return realityEvidence > 0 || ruleEvidence > 0 || card.status !== "UNKNOWN";
 }
 
 /**
