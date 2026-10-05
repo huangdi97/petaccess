@@ -2,9 +2,10 @@
 /**
  * ContributeView — M7 contribution wizard orchestrator (A1/A4).
  * Keeps the gating (place / signed-in), the step machine and the shared form
- * props; every screen is a step component. Reality contributions go through
- * the parent-flow API (ContributeRealityForm); quick / signage / rule /
- * experience keep their legacy endpoints. No free-text comment box.
+ * props; every screen is a step component. The only active lanes are:
+ * Rule lead/confirmation, RealityReport facts, and Place correction.
+ * Legacy signage/Observation screens are intentionally not wired as parallel
+ * truth paths. No free-text comment box.
  */
 import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
@@ -13,9 +14,7 @@ import QueryContextBar from "../components/domain/QueryContextBar.vue";
 import StateMessage from "../components/StateMessage.vue";
 import ContributeEntry from "../components/contribute/ContributeEntry.vue";
 import ContributeQuickForm from "../components/contribute/ContributeQuickForm.vue";
-import ContributeSignageForm from "../components/contribute/ContributeSignageForm.vue";
 import ContributeRuleForm from "../components/contribute/ContributeRuleForm.vue";
-import ContributeObservationForm from "../components/contribute/ContributeObservationForm.vue";
 import ContributeRealityForm from "../components/contribute/ContributeRealityForm.vue";
 import ContributeDone from "../components/contribute/ContributeDone.vue";
 import { useBreakpoint } from "../composables/useBreakpoint";
@@ -23,7 +22,7 @@ import { useOnline } from "../composables/useOnline";
 
 defineOptions({ name: "ContributeView" });
 
-type Step = "entry" | "quick" | "signage" | "rule" | "experience" | "reality" | "done";
+type Step = "entry" | "quick" | "rule" | "reality" | "done";
 type RealityKind = "observed_presence" | "staff_response" | "animal_facility";
 
 const route = useRoute();
@@ -183,28 +182,8 @@ const { desktop: isDesktop } = useBreakpoint();
               @done="done"
               @back="reset"
             />
-            <ContributeSignageForm
-              v-else-if="step === 'signage'"
-              :place-id="placeId"
-              :place-name="placeName"
-              :zones="zones"
-              :online="online"
-              :signed-in="signedIn"
-              @done="done"
-              @back="reset"
-            />
             <ContributeRuleForm
               v-else-if="step === 'rule'"
-              :place-id="placeId"
-              :place-name="placeName"
-              :zones="zones"
-              :online="online"
-              :signed-in="signedIn"
-              @done="done"
-              @back="reset"
-            />
-            <ContributeObservationForm
-              v-else-if="step === 'experience'"
               :place-id="placeId"
               :place-name="placeName"
               :zones="zones"
