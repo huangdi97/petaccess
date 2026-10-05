@@ -32,6 +32,17 @@ def user_token(client):
     return r.json()["access_token"]
 
 
+@pytest.fixture(scope="module")
+def other_user_token(client):
+    email = f"media-other-{uuid.uuid4().hex[:8]}@example.com"
+    r = client.post(
+        "/api/v1/auth/register",
+        json={"display_name": "其他媒体用户", "email": email, "password": "passw0rd123"},
+    )
+    assert r.status_code == 201
+    return r.json()["access_token"]
+
+
 def _auth(tok):
     return {"Authorization": f"Bearer {tok}"}
 
@@ -103,6 +114,31 @@ def test_upload_minio_object_metadata_and_presigned(client, user_token):
     ).all()
     assert len(a) == 1
     s.close()
+
+
+def test_private_media_is_not_readable_or_deletable_by_other_user(
+    client, user_token, other_user_token
+):
+    r = client.post(
+        "/api/v1/media/upload",
+        params={"purpose": "scene_photo", "owner_type": "place", "owner_id": "demo-place"},
+        files={"file": ("private.png", _png_bytes(b"private"), "image/png")},
+        headers=_auth(user_token),
+    )
+    assert r.status_code == 201, r.text
+    media_id = r.json()["id"]
+
+    assert client.get(
+        f"/api/v1/media/{media_id}", headers=_auth(other_user_token)
+    ).status_code == 404
+    assert client.get(
+        f"/api/v1/media/{media_id}/url", headers=_auth(other_user_token)
+    ).status_code == 404
+    assert client.delete(
+        f"/api/v1/media/{media_id}", headers=_auth(other_user_token)
+    ).status_code == 404
+
+    assert client.get(f"/api/v1/media/{media_id}", headers=_auth(user_token)).status_code == 200
 
 
 def test_upload_rejects_bad_content(client, user_token):
