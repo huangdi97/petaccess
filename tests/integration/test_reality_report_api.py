@@ -146,6 +146,51 @@ def test_anonymous_on_site_now_report_with_candidate_never_verifies(client, plac
     assert body["report"]["anonymous_token"]
 
 
+def test_report_candidate_has_private_traceable_evidence_bundle(client, place_id, signed_user):
+    """Every report-backed candidate gets Artifact -> EvidenceBundle provenance."""
+    observed = (datetime.now(UTC) - timedelta(hours=1)).isoformat()
+    r = client.post(
+        f"/api/v1/places/{place_id}/reality/reports",
+        headers=signed_user,
+        json={
+            "report": _report("on_site_past", observed_at=observed),
+            "candidates": [
+                {
+                    "candidate_type": "observed_presence",
+                    "animal_scope": "dog",
+                    "observed_at": observed,
+                    "payload": {"observed_action": "present"},
+                }
+            ],
+        },
+    )
+    assert r.status_code == 201, r.text
+    report_id = r.json()["report"]["id"]
+    cand_id = r.json()["candidates"][0]["id"]
+
+    from app.db.session import get_session_factory
+    from app.models import RealityCandidate
+    from app.models.evidence import EvidenceBundle, SourceArtifact
+
+    session = get_session_factory()()
+    try:
+        candidate = session.get(RealityCandidate, cand_id)
+        assert candidate is not None
+        assert candidate.evidence_bundle_id is not None
+        bundle = session.get(EvidenceBundle, candidate.evidence_bundle_id)
+        assert bundle is not None
+        artifact = session.get(SourceArtifact, bundle.artifact_id)
+        assert artifact is not None
+        assert artifact.source_content_id == report_id
+        assert artifact.display_allowed is False
+        assert artifact.redistribution_allowed is False
+        assert bundle.place_match_evidence["state"] == "exact_place"
+        assert bundle.temporal_evidence["observed_at"] is not None
+        assert bundle.license_metadata["structured_fact_publication_only"] is True
+    finally:
+        session.close()
+
+
 def test_raw_reality_report_parents_are_not_public(client, place_id):
     """Report parents keep private provenance/tokens; published claims are the public layer."""
     r = client.get(f"/api/v1/places/{place_id}/reality/reports")
