@@ -66,6 +66,50 @@ test("A2 — 现场记录经父流提交，候选进入人工审核队列", asyn
   await expect(page.getByTestId("contribute-result")).toContainText(/已提交/);
 });
 
+test("A2.1 — Staff / Facility contribution uses canonical Reality domain values", async ({
+  page,
+  request,
+}) => {
+  const token = await signIn(request);
+  await page.addInitScript((t) => localStorage.setItem("pa_token", t), token);
+
+  await page.goto(`${BASE}/#/contribute/${MALL_ID}`, { waitUntil: "load" });
+  await expect(page.getByTestId("entry-reality-staff_response")).toBeVisible({ timeout: 15000 });
+  await page.getByTestId("entry-reality-staff_response").click();
+  await page.locator("#reality-staff-action").selectOption("direct_to_allowed_zone");
+
+  const staffRequestPromise = page.waitForRequest(
+    (r) => r.method() === "POST" && r.url().includes(`/places/${MALL_ID}/reality/reports`),
+  );
+  await page.getByTestId("reality-submit").click();
+  const staffRequest = await staffRequestPromise;
+  const staffBody = staffRequest.postDataJSON() as {
+    candidates: { payload: Record<string, unknown> }[];
+  };
+  expect(staffBody.candidates[0]?.payload.response_action).toBe("direct_to_allowed_zone");
+  expect(staffBody.candidates[0]?.payload.actor_role).toBe("unknown_staff");
+  await expect(page.getByTestId("contribute-result")).toBeVisible({ timeout: 15000 });
+
+  await page.goto(`${BASE}/#/contribute/${MALL_ID}`, { waitUntil: "load" });
+  await expect(page.getByTestId("entry-reality-animal_facility")).toBeVisible({ timeout: 15000 });
+  await page.getByTestId("entry-reality-animal_facility").click();
+  await page.locator("#reality-facility-type").selectOption("pet_waiting_area");
+  await page.locator("#reality-facility-status").selectOption("temporarily_unavailable");
+
+  const facilityRequestPromise = page.waitForRequest(
+    (r) => r.method() === "POST" && r.url().includes(`/places/${MALL_ID}/reality/reports`),
+  );
+  await page.getByTestId("reality-submit").click();
+  const facilityRequest = await facilityRequestPromise;
+  const facilityBody = facilityRequest.postDataJSON() as {
+    candidates: { payload: Record<string, unknown> }[];
+  };
+  expect(facilityBody.candidates[0]?.payload.facility_type).toBe("pet_waiting_area");
+  expect(facilityBody.candidates[0]?.payload.operational_state).toBe("temporarily_unavailable");
+  expect(facilityBody.candidates[0]?.payload).not.toHaveProperty("operator_provided");
+  await expect(page.getByTestId("contribute-result")).toBeVisible({ timeout: 15000 });
+});
+
 test("B2 — 我的贡献：提交后可见、空时走统一空态", async ({ page, request }) => {
   // Fresh user with no contributions → unified empty copy.
   const tokenA = await signIn(request);
