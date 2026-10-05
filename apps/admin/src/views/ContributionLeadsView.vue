@@ -23,6 +23,7 @@ interface RuleCandidateLead {
   raw_text: string | null;
   media_id: string | null;
   review_status: string;
+  supersedes_rule_id: string | null;
   created_at: string | null;
 }
 
@@ -91,6 +92,7 @@ onMounted(load);
             <th>场所</th>
             <th>作用域</th>
             <th>效果</th>
+            <th>线索类型</th>
             <th>线索摘要</th>
             <th>证据</th>
             <th>创建时间</th>
@@ -107,12 +109,18 @@ onMounted(load);
             </td>
             <td>{{ item.animal_scope || "待审核" }}</td>
             <td>{{ item.effect || "待审核" }}</td>
+            <td>
+              <span v-if="item.supersedes_rule_id">
+                报告现行规则变化 · {{ shortId(item.supersedes_rule_id) }}
+              </span>
+              <span v-else>新增 / 未指定替换对象</span>
+            </td>
             <td class="lead-note">{{ item.raw_text || "未补充文字说明" }}</td>
             <td>{{ item.media_id ? "含媒体证据" : "无媒体" }}</td>
             <td>{{ ts(item.created_at) }}</td>
           </tr>
           <tr v-if="!loading && !ruleCandidates.length">
-            <td colspan="7" class="muted">当前没有待审核规则候选。</td>
+            <td colspan="8" class="muted">当前没有待审核规则候选。</td>
           </tr>
         </tbody>
       </table>
