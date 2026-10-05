@@ -55,7 +55,7 @@ const facilityPurpose = ref("purpose_unknown");
 const facilityAccessMode = ref("unknown");
 const facilityCapacity = ref("");
 const context = ref("");
-const effortBucket = ref("lt_10_min");
+const effortBucket = ref("unknown");
 
 const EFFORT_LABELS: Record<string, string> = {
   lt_10_min: "不到 10 分钟",
