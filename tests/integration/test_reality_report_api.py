@@ -351,6 +351,31 @@ def test_reality_trace_distinguishes_fact_from_review(client, place_id):
     }
 
 
+def test_reality_events_expose_only_published_verified_facts(client, place_id, signed_user):
+    """Consumer timeline must not leak review-pending candidates or staff identity."""
+    pending = client.post(
+        f"/api/v1/places/{place_id}/reality/contributions",
+        headers=signed_user,
+        json={
+            "candidate_type": "observed_presence",
+            "place_id": place_id,
+            "animal_scope": "dog",
+            "observed_at": (datetime.now(UTC) - timedelta(minutes=30)).isoformat(),
+            "payload": {"observed_action": "present", "observed_context": "待审核事件"},
+        },
+    )
+    assert pending.status_code == 201, pending.text
+    pending_id = pending.json()["id"]
+
+    r = client.get(f"/api/v1/places/{place_id}/reality/events")
+    assert r.status_code == 200, r.text
+    events = r.json()
+    assert all(event["verification_status"] in {"human_verified", "human_verified_with_note"} for event in events)
+    assert all(event["id"] != pending_id for event in events)
+    assert all("reviewer" not in event for event in events)
+    assert all("policy_statement_verbatim" not in event for event in events)
+
+
 def _make_verified_presence(client, place_id, auth) -> str:
     """Create + human-verify one observed-presence candidate (v0.9 §7.4)."""
     r = client.post(
