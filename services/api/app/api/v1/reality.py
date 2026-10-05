@@ -17,6 +17,7 @@ Hard rules enforced here (and by the schema):
 """
 
 from datetime import UTC, datetime
+from typing import TypedDict
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import func, select, union_all
@@ -69,6 +70,13 @@ VERIFIED_STATUS_VALUES = [
 ]
 
 
+class _EventReportMeta(TypedDict):
+    submitted_at: datetime | None
+    time_evidence_state: str | None
+    content_published_at: datetime | None
+    claimed_event_at: datetime | None
+
+
 def _freshness_state(observed_at: datetime | None) -> RealityFreshnessState | None:
     """Map a summary-bucket string onto the stored enum value."""
     if observed_at is None:
@@ -102,7 +110,7 @@ def _enum_text(value: object | None) -> str | None:
 
 
 def _presence_event(
-    row: ObservedPresence, report_meta: dict[str, object | None] | None = None
+    row: ObservedPresence, report_meta: _EventReportMeta | None = None
 ) -> RealityEventOut:
     report_meta = report_meta or {}
     return RealityEventOut(
@@ -128,7 +136,7 @@ def _presence_event(
 
 
 def _staff_event(
-    row: StaffResponseObservation, report_meta: dict[str, object | None] | None = None
+    row: StaffResponseObservation, report_meta: _EventReportMeta | None = None
 ) -> RealityEventOut:
     report_meta = report_meta or {}
     return RealityEventOut(
@@ -156,7 +164,7 @@ def _staff_event(
 
 
 def _facility_event(
-    row: AnimalFacility, report_meta: dict[str, object | None] | None = None
+    row: AnimalFacility, report_meta: _EventReportMeta | None = None
 ) -> RealityEventOut:
     report_meta = report_meta or {}
     event_at = row.observed_at or row.last_verified_at or row.created_at
@@ -235,7 +243,7 @@ def consumer_reality_events(
         for row in [*presence, *staff, *facilities]
         if row.candidate_id
     }
-    report_meta_by_candidate: dict[str, dict[str, object | None]] = {}
+    report_meta_by_candidate: dict[str, _EventReportMeta] = {}
     if candidate_ids:
         report_rows = db.execute(
             select(
