@@ -438,11 +438,7 @@ export interface PetView {
 // ----------------------------------------------------------------- media
 
 export type MediaPurposeKey =
-  | "signage_evidence"
-  | "reality_evidence"
-  | "scene_photo"
-  | "avatar"
-  | "import_document";
+  "signage_evidence" | "reality_evidence" | "scene_photo" | "avatar" | "import_document";
 
 export interface MediaView {
   id: string;
