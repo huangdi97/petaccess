@@ -14,7 +14,13 @@
  * than losing the list/detail information workspace.
  */
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { client, STATUS_GLYPHS, type MapCamera, type MapCluster, type MapMarker } from "@petaccess/client-core";
+import {
+  client,
+  STATUS_GLYPHS,
+  type MapCamera,
+  type MapCluster,
+  type MapMarker,
+} from "@petaccess/client-core";
 
 interface TencentLatLng {
   getLat?: () => number;
@@ -99,7 +105,9 @@ function loadTencentSdk(key: string): Promise<TencentApi> {
 
   sdkPromise = new Promise<TencentApi>((resolve, reject) => {
     const callback = "__petaccessTencentMapReady";
-    const existing = document.querySelector<HTMLScriptElement>('script[data-petaccess-tencent-map="1"]');
+    const existing = document.querySelector<HTMLScriptElement>(
+      'script[data-petaccess-tencent-map="1"]',
+    );
 
     const finish = () => {
       if (window.TMap) resolve(window.TMap);
@@ -119,8 +127,7 @@ function loadTencentSdk(key: string): Promise<TencentApi> {
     script.charset = "utf-8";
     script.async = true;
     script.dataset.petaccessTencentMap = "1";
-    script.src =
-      `https://map.qq.com/api/gljs?v=1.exp&key=${encodeURIComponent(key)}&callback=${callback}`;
+    script.src = `https://map.qq.com/api/gljs?v=1.exp&key=${encodeURIComponent(key)}&callback=${callback}`;
     script.addEventListener("error", () => reject(new Error("腾讯地图 SDK 加载失败")), {
       once: true,
     });
@@ -169,7 +176,9 @@ async function syncClusters() {
   const instance = map.value;
   if (!api || !instance) return;
 
-  const converted = await translate(props.clusters.map((cluster) => ({ lat: cluster.lat, lng: cluster.lng })));
+  const converted = await translate(
+    props.clusters.map((cluster) => ({ lat: cluster.lat, lng: cluster.lng })),
+  );
   rendered.value = props.clusters.map((cluster, index) => ({
     cluster,
     lat: converted[index]!.lat,
@@ -252,9 +261,10 @@ watch(
 
 watch(
   () => props.clusters,
-  () => void syncClusters().catch((error) =>
-    emit("error", error instanceof Error ? error.message : "地图点位转换失败"),
-  ),
+  () =>
+    void syncClusters().catch((error) =>
+      emit("error", error instanceof Error ? error.message : "地图点位转换失败"),
+    ),
   { deep: true },
 );
 
@@ -281,10 +291,20 @@ onBeforeUnmount(() => {
     <span class="tencent-map__provider muted">{{ providerLabel }}</span>
 
     <div class="map-zoom" role="group" aria-label="缩放">
-      <button type="button" aria-label="放大" :disabled="camera.zoom >= 18" @click="emit('zoom', 1)">
+      <button
+        type="button"
+        aria-label="放大"
+        :disabled="camera.zoom >= 18"
+        @click="emit('zoom', 1)"
+      >
         ＋
       </button>
-      <button type="button" aria-label="缩小" :disabled="camera.zoom <= 8" @click="emit('zoom', -1)">
+      <button
+        type="button"
+        aria-label="缩小"
+        :disabled="camera.zoom <= 8"
+        @click="emit('zoom', -1)"
+      >
         －
       </button>
     </div>
@@ -301,18 +321,13 @@ onBeforeUnmount(() => {
       :style="{ left: item.left + 'px', top: item.top + 'px' }"
       :aria-label="`${item.cluster.count} 个场所，${markerLabel(item.cluster)}`"
       :data-testid="
-        item.cluster.count > 1
-          ? 'cluster-' + item.cluster.id
-          : 'pin-' + item.cluster.memberIds[0]
+        item.cluster.count > 1 ? 'cluster-' + item.cluster.id : 'pin-' + item.cluster.memberIds[0]
       "
       @click="emit('select', item.cluster)"
     >
       <span v-if="item.cluster.count > 1" class="real-pin__cluster">{{ item.cluster.count }}</span>
       <span v-else class="real-pin__dot"></span>
-      <span
-        v-if="selectedId === item.cluster.memberIds[0]"
-        class="real-pin__label"
-      >
+      <span v-if="selectedId === item.cluster.memberIds[0]" class="real-pin__label">
         {{ markerLabel(item.cluster) }}
       </span>
     </button>
@@ -435,7 +450,9 @@ onBeforeUnmount(() => {
 
 .real-pin--selected .real-pin__dot,
 .real-pin--selected .real-pin__cluster {
-  box-shadow: 0 0 0 4px var(--pa-color-accent-weak), var(--pa-elevation-2);
+  box-shadow:
+    0 0 0 4px var(--pa-color-accent-weak),
+    var(--pa-elevation-2);
 }
 
 .s-ALLOWED .real-pin__dot,
