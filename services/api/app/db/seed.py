@@ -705,6 +705,16 @@ def run_demo_seed() -> dict[str, int]:  # noqa: PLR0915 - linear demo data scrip
         directness=Directness.DIRECT,
         spatial_precision=SpatialPrecision.UNKNOWN,
     )
+    src_user_alice = Source(
+        id=uid("src_user_alice"),
+        source_type=SourceType.ORDINARY_USER,
+        issuer="演示用户 A",
+        issuer_verification=IssuerVerification.UNVERIFIED,
+        collected_at=NOW - D(days=3),
+        observed_at=NOW - D(days=3),
+        directness=Directness.DIRECT,
+        spatial_precision=SpatialPrecision.PRECISE,
+    )
     src_user_bob = Source(
         id=uid("src_user_bob"),
         source_type=SourceType.ORDINARY_USER,
@@ -724,6 +734,7 @@ def run_demo_seed() -> dict[str, int]:  # noqa: PLR0915 - linear demo data scrip
             src_mall_policy_old,
             src_community_property,
             src_city_regulation,
+            src_user_alice,
             src_user_bob,
         ]
     )
