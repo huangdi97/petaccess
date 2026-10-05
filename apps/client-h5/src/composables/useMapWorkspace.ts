@@ -68,27 +68,43 @@ export function useMapWorkspace() {
     return out;
   });
 
+  const missingSpatialCount = computed(
+    () => places.value.filter((p) => p.latitude == null || p.longitude == null).length,
+  );
+
   const markers = computed<MapMarker[]>(() =>
-    places.value.map((p) => {
-      // Production/seeded places use their verified PostGIS representative
-      // point. Synthetic positioning is a dev/test fallback only for legacy
-      // payloads that genuinely have no coordinates.
-      const pos =
-        p.latitude != null && p.longitude != null
-          ? { lat: p.latitude, lng: p.longitude }
-          : synthMarkerPosition(p.id, camera.value);
-      return {
-        id: p.id,
-        lat: pos.lat,
-        lng: pos.lng,
-        label: p.canonical_name,
-        status: statuses.value[p.id] ?? "UNKNOWN",
-      };
+    places.value.flatMap((p) => {
+      const hasVerifiedPoint = p.latitude != null && p.longitude != null;
+
+      // Production must fail honest: a place without a verified representative
+      // point stays in the adjacent list but is not invented onto the map.
+      // Synthetic positions exist only in Vite development / visual fixtures.
+      if (!hasVerifiedPoint && !import.meta.env.DEV) return [];
+
+      const pos = hasVerifiedPoint
+        ? { lat: p.latitude as number, lng: p.longitude as number }
+        : synthMarkerPosition(p.id, camera.value);
+      return [
+        {
+          id: p.id,
+          lat: pos.lat,
+          lng: pos.lng,
+          label: p.canonical_name,
+          status: statuses.value[p.id] ?? "UNKNOWN",
+        },
+      ];
     }),
   );
 
   const clusters = computed(() => clusterMarkers(markers.value, camera.value.zoom));
-  const coverage = computed(() => mapLensCoverage(lens.value, facts.value, markers.value));
+  const coverage = computed(() => {
+    const base = mapLensCoverage(lens.value, facts.value, markers.value);
+    if (!missingSpatialCount.value || import.meta.env.DEV) return base;
+    return {
+      ...base,
+      text: `${base.text} 另有 ${missingSpatialCount.value} 个场所缺少已核验坐标，仅在列表显示。`,
+    };
+  });
 
   const visiblePlaces = computed(() => {
     if (lens.value !== "rule" || !activeFilters.value.length) return places.value;
@@ -254,6 +270,7 @@ export function useMapWorkspace() {
     activeFilters,
     clusters,
     coverage,
+    missingSpatialCount,
     visiblePlaces,
     locate,
     load,
