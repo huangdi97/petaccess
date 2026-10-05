@@ -1,17 +1,15 @@
 <script setup lang="ts">
 /**
- * RealityTraceView — v0.2.4 Reality v4 (§34–36): Timeline-First.
+ * RealityTraceView — timeline-first consumer Reality surface.
  *
- * The page's FIRST surface is the event log — the summary ledgers that used
- * to sit above the fold (观察到的事实 / 核验姿态) are gone; at most ONE line of
- * metadata (N 条记录 · 最近日期 · M 条待核验) separates the header from the
- * timeline. Timeline rendering is the shared RealityEventLog (§24 reuse).
- * Filter state lives here (§34 筛选：全部 ▾) and constrains the observations
- * passed down. Empty state is inline, not a card.
+ * Reads published, human-verified v0.9 Reality events. Legacy
+ * ObservationClaim is intentionally not used here: StaffResponse and
+ * AnimalFacility are first-class facts beside observed presence, while all
+ * remain separate from Rule / OperatorPolicy.
  */
 import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
-import { client, type ObservationView, type Zone } from "@petaccess/client-core";
+import { client, type RealityEventView, type Zone } from "@petaccess/client-core";
 import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
 import QueryContextBar from "../components/domain/QueryContextBar.vue";
@@ -21,37 +19,34 @@ import { presentDescription } from "../errors";
 const route = useRoute();
 const placeId = computed(() => (route.params.id ? String(route.params.id) : ""));
 
-const observations = ref<ObservationView[]>([]);
+const events = ref<RealityEventView[]>([]);
 const zones = ref<Zone[]>([]);
 const loading = ref(true);
 const error = ref("");
-/** 筛选：全部 / 已核验 / 待核验（§34 筛选：全部 ▾）。 */
-const filter = ref<"all" | "verified" | "pending">("all");
+const filter = ref<"all" | "presence" | "staff" | "facility">("all");
 
-function evidenceStateFor(o: ObservationView): "verified" | "pending" | "disputed" | "historical" {
-  if (o.dispute_status === "DISPUTED") return "disputed";
-  if (o.dispute_status && o.dispute_status !== "NONE") return "pending";
-  return "verified";
-}
-
-/** §34 one-line metadata（可省但非表格）：N 条记录 · 最近 DATE · M 条待核验。 */
-const summaryLine = computed(() => {
-  const n = observations.value.length;
-  if (!n) return "";
-  const latest = [...observations.value].sort((a, b) =>
-    b.occurred_at.localeCompare(a.occurred_at),
-  )[0];
-  const pending = observations.value.filter((o) => evidenceStateFor(o) !== "verified").length;
-  const parts = [`${n} 条记录`, `最近 ${latest.occurred_at.slice(0, 10)}`];
-  if (pending > 0) parts.push(`${pending} 条待核验`);
-  return parts.join(" · ");
+const visibleEvents = computed(() => {
+  if (filter.value === "all") return events.value;
+  const wanted =
+    filter.value === "presence"
+      ? "observed_presence"
+      : filter.value === "staff"
+        ? "staff_response"
+        : "animal_facility";
+  return events.value.filter((event) => event.event_type === wanted);
 });
 
-/** Filter applied before handing off to the shared event log. */
-const visibleObservations = computed<ObservationView[]>(() => {
-  if (filter.value === "all") return observations.value;
-  const wantVerified = filter.value === "verified";
-  return observations.value.filter((o) => (evidenceStateFor(o) === "verified") === wantVerified);
+const summaryLine = computed(() => {
+  if (!events.value.length) return "";
+  const latest = [...events.value].sort((a, b) => b.event_at.localeCompare(a.event_at))[0];
+  const presence = events.value.filter((event) => event.event_type === "observed_presence").length;
+  const staff = events.value.filter((event) => event.event_type === "staff_response").length;
+  const facility = events.value.filter((event) => event.event_type === "animal_facility").length;
+  const parts = [`${events.value.length} 条经核验事实`, `最近 ${latest.event_at.slice(0, 10)}`];
+  if (presence) parts.push(`${presence} 条动物现场`);
+  if (staff) parts.push(`${staff} 条工作人员处理`);
+  if (facility) parts.push(`${facility} 条设施`);
+  return parts.join(" · ");
 });
 
 async function load() {
@@ -59,12 +54,12 @@ async function load() {
   loading.value = true;
   error.value = "";
   try {
-    const [obs, zs] = await Promise.all([
-      client.observations(placeId.value),
+    const [eventRows, zoneRows] = await Promise.all([
+      client.realityEvents(placeId.value),
       client.zones(placeId.value),
     ]);
-    observations.value = obs;
-    zones.value = zs;
+    events.value = eventRows;
+    zones.value = zoneRows;
   } catch (e) {
     error.value = presentDescription(e);
   } finally {
@@ -74,17 +69,17 @@ async function load() {
 
 watch(placeId, () => void load(), { immediate: true });
 
-/** O6 capture-state integrity: ready = observations exist. */
 const uiState = computed<string>(() => {
   if (loading.value) return "loading";
   if (error.value) return "error";
-  return observations.value.length > 0 ? "ready" : "empty";
+  return events.value.length > 0 ? "ready" : "empty";
 });
+
 const uiFixture = computed<string>(() =>
   uiState.value === "ready"
-    ? "reality-ready-v1"
+    ? "reality-ready-v2"
     : uiState.value === "empty"
-      ? "reality-empty-v1"
+      ? "reality-empty-v2"
       : "reality-other",
 );
 </script>
@@ -108,10 +103,11 @@ const uiFixture = computed<string>(() =>
       </StateMessage>
 
       <template v-else>
-        <!-- v0.2.4 §34：页顶只允许 title + 一句说明 + 筛选；随后就是 Timeline。 -->
         <header class="reality-head" data-testid="trace-summary">
           <h2 class="reality-head__title">现场记录</h2>
-          <p class="muted reality-head__intro">这些记录描述现场观察，不代表运营方正式规则。</p>
+          <p class="muted reality-head__intro">
+            这里只展示经人工核验的现场事实；工作人员处理与设施记录都不等于正式准入规则。
+          </p>
           <div class="reality-head__meta">
             <span
               v-if="summaryLine"
@@ -128,9 +124,10 @@ const uiFixture = computed<string>(() =>
               data-testid="reality-filter"
               data-ui="reality-filter"
             >
-              <option value="all">全部记录</option>
-              <option value="verified">已核验</option>
-              <option value="pending">待核验</option>
+              <option value="all">全部事实</option>
+              <option value="presence">动物现场</option>
+              <option value="staff">工作人员处理</option>
+              <option value="facility">动物设施</option>
             </select>
           </div>
         </header>
@@ -140,14 +137,14 @@ const uiFixture = computed<string>(() =>
           data-testid="trace-observations"
           data-ui="reality-timeline"
         >
-          <RealityEventLog :observations="visibleObservations" :zones="zones" :place-id="placeId">
+          <RealityEventLog :events="visibleEvents" :zones="zones" :place-id="placeId">
             <template #empty-action>
               <RouterLink
                 class="btn primary"
-                :to="`/place/${placeId}`"
+                :to="`/contribute/${placeId}`"
                 data-testid="reality-go-enter"
               >
-                记录现场情况
+                补充现场情况
               </RouterLink>
             </template>
           </RealityEventLog>
@@ -161,6 +158,7 @@ const uiFixture = computed<string>(() =>
 .reality-workspace {
   min-height: 100%;
 }
+
 .reality-workspace__body {
   display: flex;
   flex-direction: column;
@@ -169,11 +167,12 @@ const uiFixture = computed<string>(() =>
   max-width: var(--pa-layout-content-820);
   margin: 0 auto;
 }
-/* §34：头部必须轻 —— title + 一句说明 + 筛选行，timeline 才能进入首屏。 */
+
 .reality-head {
   padding-bottom: var(--pa-space-3);
   border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
 }
+
 .reality-head__title {
   margin: 0 0 var(--pa-space-1);
   font-size: var(--pa-font-size-22);
@@ -181,10 +180,12 @@ const uiFixture = computed<string>(() =>
   line-height: var(--pa-line-height-26);
   color: var(--pa-color-text-primary);
 }
+
 .reality-head__intro {
   margin: 0;
   line-height: var(--pa-line-height-base);
 }
+
 .reality-head__meta {
   display: flex;
   align-items: center;
@@ -192,12 +193,14 @@ const uiFixture = computed<string>(() =>
   gap: var(--pa-space-3);
   margin-top: var(--pa-space-4);
 }
+
 .reality-filter {
   width: auto;
   min-height: var(--pa-size-control-md);
   margin: 0 0 0 auto;
   background: var(--pa-color-surface);
 }
+
 .reality-head__summary {
   font-size: var(--pa-font-size-md);
 }
