@@ -217,11 +217,7 @@ async function submit() {
           : sourceMode.value === "on_site_now" && isToday
             ? "live_device_time"
             : "exact_event_date",
-        time_certainty: isExternal.value
-          ? externalEventIso
-            ? "exact"
-            : "unknown"
-          : "exact",
+        time_certainty: isExternal.value ? (externalEventIso ? "exact" : "unknown") : "exact",
         fact_evidence_state: isExternal.value
           ? mediaId.value
             ? "external_media"
@@ -358,12 +354,7 @@ async function submit() {
         <legend class="cluster__title">什么时候？</legend>
         <template v-if="sourceMode === 'on_site_past'">
           <label for="reality-date">发生日期</label>
-          <input
-            id="reality-date"
-            v-model="occurredAt"
-            type="date"
-            data-testid="reality-date"
-          />
+          <input id="reality-date" v-model="occurredAt" type="date" data-testid="reality-date" />
         </template>
         <p v-else class="muted source-note">将使用提交时的当前时间记录这次现场观察。</p>
         <label for="reality-effort">在场时长</label>
