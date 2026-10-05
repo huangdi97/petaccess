@@ -117,7 +117,7 @@ const STEP_LABELS: Record<string, string> = {
   done: "提交完成",
 };
 const contributionKindLabel = computed(() =>
-  step.value === "effort" ? "本次未观察到动物" : STEP_LABELS[uiState.value] ?? "现场贡献",
+  step.value === "effort" ? "本次未观察到动物" : (STEP_LABELS[uiState.value] ?? "现场贡献"),
 );
 /** §15 context rail：适用区域 —— 真实 zones 数据（无则保持 shell 默认）。 */
 const contextZoneLabel = computed(() => {
