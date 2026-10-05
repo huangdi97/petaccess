@@ -4,6 +4,12 @@ import { computed, ref } from "vue";
 import { client } from "@petaccess/client-core";
 import { isoAt, realityPayload, reportOrigin } from "./contributeSupport";
 import { presentDescription } from "../../errors";
+import {
+  ANIMAL_FACILITY_LABELS,
+  FACILITY_STATE_LABELS,
+  OBSERVED_ACTION_LABELS,
+  STAFF_ACTION_LABELS,
+} from "../../consumer/labels";
 import ContributionStepShell from "./ContributionStepShell.vue";
 defineOptions({ name: "ContributeRealityForm" });
 const props = defineProps<{
@@ -25,11 +31,11 @@ const occurredAt = ref(new Date().toISOString().slice(0, 10));
 const zone = ref("");
 const animal = ref("dog");
 const count = ref("");
-const action = ref("");
-const staffAction = ref("");
+const action = ref("present");
+const staffAction = ref("unknown");
 const staffOutcome = ref("");
-const facilityType = ref("");
-const facilityOperational = ref("active");
+const facilityType = ref("other");
+const facilityOperational = ref("unknown");
 const context = ref("");
 const effortBucket = ref("lt_10_min");
 
@@ -40,6 +46,60 @@ const EFFORT_LABELS: Record<string, string> = {
   gt_120_min: "超过 2 小时",
   unknown: "不确定",
 };
+
+const OBSERVED_ACTION_KEYS = [
+  "present",
+  "entered",
+  "stayed",
+  "dined_near_table",
+  "leashed",
+  "off_leash",
+  "in_carrier",
+  "in_stroller",
+] as const;
+
+const STAFF_RESPONSE_KEYS = [
+  "proactive_accommodation",
+  "provide_water",
+  "provide_container_or_stroller",
+  "direct_to_allowed_zone",
+  "remind_leash",
+  "require_carrier",
+  "request_relocation",
+  "request_wait_outside",
+  "deny_entry",
+  "request_exit",
+  "policy_explanation",
+  "escalate_to_manager",
+  "no_intervention_observed",
+  "unknown",
+] as const;
+
+const FACILITY_TYPE_KEYS = [
+  "outdoor_holding_cage",
+  "kennel",
+  "tether_point",
+  "pet_waiting_area",
+  "pet_parking",
+  "water_bowl",
+  "pet_stroller",
+  "carrier_storage",
+  "pet_entrance",
+  "pet_elevator",
+  "dedicated_pet_zone",
+  "waste_bag_station",
+  "cleaning_station",
+  "washing_point",
+  "dedicated_pet_tableware",
+  "other",
+] as const;
+
+const FACILITY_STATE_KEYS = [
+  "active",
+  "temporarily_unavailable",
+  "removed",
+  "unknown",
+] as const;
 
 const busy = ref(false);
 const error = ref("");
@@ -154,21 +214,18 @@ async function submit() {
           />
           <label for="reality-action">在做什么</label>
           <select v-model="action" id="reality-action">
-            <option value="present">在场</option>
-            <option value="walking">行走</option>
-            <option value="waiting">等待</option>
-            <option value="entering">进入</option>
-            <option value="dining">用餐</option>
+            <option v-for="key in OBSERVED_ACTION_KEYS" :key="key" :value="key">
+              {{ OBSERVED_ACTION_LABELS[key] }}
+            </option>
           </select>
         </template>
 
         <template v-else-if="kind === 'staff_response'">
           <label for="reality-staff-action">工作人员做了什么</label>
           <select v-model="staffAction" id="reality-staff-action">
-            <option value="provided_guidance">引导 / 说明</option>
-            <option value="asked_to_leave">要求离开</option>
-            <option value="offered_assistance">提供协助</option>
-            <option value="no_interaction">未与顾客互动</option>
+            <option v-for="key in STAFF_RESPONSE_KEYS" :key="key" :value="key">
+              {{ STAFF_ACTION_LABELS[key] }}
+            </option>
           </select>
           <label for="reality-staff-outcome">结果（可选）</label>
           <input
@@ -181,17 +238,15 @@ async function submit() {
         <template v-else>
           <label for="reality-facility-type">设施类型</label>
           <select v-model="facilityType" id="reality-facility-type">
-            <option value="waiting_area">宠物等候区 / 笼</option>
-            <option value="water_station">饮水点 / 水碗</option>
-            <option value="pet_elevator">宠物电梯</option>
-            <option value="designated_zone">专用活动区</option>
-            <option value="other_facility">其他设施</option>
+            <option v-for="key in FACILITY_TYPE_KEYS" :key="key" :value="key">
+              {{ ANIMAL_FACILITY_LABELS[key] }}
+            </option>
           </select>
           <label for="reality-facility-status">状态</label>
           <select v-model="facilityOperational" id="reality-facility-status">
-            <option value="active">正常可用</option>
-            <option value="removed">已拆除</option>
-            <option value="out_of_service">停用</option>
+            <option v-for="key in FACILITY_STATE_KEYS" :key="key" :value="key">
+              {{ FACILITY_STATE_LABELS[key] }}
+            </option>
           </select>
         </template>
 
