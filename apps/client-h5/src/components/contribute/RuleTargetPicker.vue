@@ -57,7 +57,9 @@ onMounted(load);
       :disabled="loading || !rules.length"
     >
       <option value="">
-        {{ loading ? "正在读取已收录规则…" : rules.length ? "请选择具体规则" : "当前没有可核验规则" }}
+        {{
+          loading ? "正在读取已收录规则…" : rules.length ? "请选择具体规则" : "当前没有可核验规则"
+        }}
       </option>
       <option v-for="rule in rules" :key="rule.id" :value="rule.id">
         {{ label(rule) }}
