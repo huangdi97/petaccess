@@ -232,6 +232,9 @@ export interface RealityEventView {
   event_at: string;
   time_basis: "observed" | "verified" | "recorded";
   time_evidence_state: string | null;
+  origin: string | null;
+  fact_evidence_state: string | null;
+  place_match_state: string | null;
   content_published_at: string | null;
   claimed_event_at: string | null;
   animal_scope: string | null;
