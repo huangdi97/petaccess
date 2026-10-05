@@ -4,9 +4,10 @@
  * zones / entrances / paths / facilities / staff-response location facts。
  * 不放 Rule History（那属于 规则 view）。
  */
-import type { PlaceExtras, Zone } from "@petaccess/client-core";
+import type { FacilitySummaryItem, PlaceExtras, Zone } from "@petaccess/client-core";
 import {
   amenityLabel,
+  animalFacilityLabel,
   coexistenceLabel,
   coexistenceValueLabel,
   entranceLabel,
@@ -17,6 +18,7 @@ import {
 defineProps<{
   zones: Zone[];
   extras: PlaceExtras | null;
+  facilitySummary: FacilitySummaryItem[];
 }>();
 </script>
 
@@ -55,8 +57,32 @@ defineProps<{
       </div>
     </section>
 
+    <section
+      class="place-section"
+      data-testid="animal-facilities"
+      data-ui="place-animal-facilities"
+    >
+      <h2 class="place-section__title">动物设施</h2>
+      <p v-if="!facilitySummary.length" class="muted">暂无已核验的动物设施记录。</p>
+      <div
+        v-for="item in facilitySummary"
+        :key="item.facility_type"
+        class="zone-row"
+        data-testid="animal-facility-summary-row"
+      >
+        <span class="zone-row__name">{{ animalFacilityLabel(item.facility_type) }}</span>
+        <span class="muted">
+          {{ facilityStateLabel(item.operational_state) }} · {{ item.count }} 处
+          <template v-if="item.last_verified_at">
+            · 最近核验 {{ item.last_verified_at.slice(0, 10) }}
+          </template>
+        </span>
+      </div>
+      <p class="facility-note muted">设施存在不等于允许动物进入；这里只描述现场设施事实。</p>
+    </section>
+
     <section class="place-section" data-testid="amenities">
-      <h2 class="place-section__title">设施</h2>
+      <h2 class="place-section__title">场所设施</h2>
       <div v-if="!extras?.amenities.length" class="muted">暂无设施记录</div>
       <div v-for="a in extras?.amenities ?? []" :key="a.id" class="zone-row">
         <span class="zone-row__name">{{ amenityLabel(a.amenity_type) }}</span>
@@ -113,6 +139,12 @@ defineProps<{
 .zone-row__meta {
   font-size: var(--pa-font-size-sm);
 }
+.facility-note {
+  margin: var(--pa-space-3) 0 0;
+  font-size: var(--pa-font-size-sm);
+  line-height: var(--pa-line-height-20);
+}
+
 .notice {
   font-size: var(--pa-font-size-sm);
   color: var(--pa-color-text-muted);
