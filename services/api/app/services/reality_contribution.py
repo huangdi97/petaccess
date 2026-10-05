@@ -40,6 +40,13 @@ from app.models import (
     RealityReport,
     User,
 )
+from app.models.evidence import (
+    CollectorType,
+    EvidenceBundle,
+    EvidenceClass,
+    SourceArtifact,
+    SourcePlatform,
+)
 from app.models.enums import (
     ContributionAbuseFlag,
     RealityCandidateType,
@@ -275,6 +282,99 @@ def create_report(
     return report, flags
 
 
+def materialize_report_evidence(db: Session, report: RealityReport) -> EvidenceBundle:
+    """Create the immutable provenance anchor every report-backed candidate cites.
+
+    RealityReport is the user-facing contribution container; EvidenceBundle is
+    the publication-grade provenance layer.  The bridge deliberately stores
+    references and structured evidence axes, not a redistributable copy of
+    third-party content.  Multiple private media refs remain on RealityReport;
+    the aggregate media hash anchors integrity without pretending one image is
+    the whole report.
+    """
+    external = report.origin == "external_online_content"
+    onsite = report.origin in {"on_site_now", "on_site_past"}
+    source_platform = SourcePlatform.USER_LINK if external else SourcePlatform.ONSITE
+    collector_type = CollectorType.USER_LINK if external else CollectorType.ONSITE_EVIDENCE
+    artifact_type = (
+        "external_content_reference"
+        if external
+        else "structured_firsthand_report" if onsite else "structured_reality_report"
+    )
+    publisher_type = (
+        "ordinary_user"
+        if report.origin in {"on_site_now", "on_site_past", "external_online_content"}
+        else "official_operator" if report.origin == "operator_provided" else "unknown"
+    )
+    artifact = SourceArtifact(
+        source_id=None,
+        source_platform=source_platform,
+        collector_type=collector_type,
+        artifact_type=artifact_type,
+        source_url=report.source_url,
+        source_content_id=str(report.id),
+        media_id=None,
+        snapshot_ref=None,
+        content_hash=report.content_hash or report.media_hash,
+        collected_at=report.submitted_at or datetime.now(UTC),
+        publisher_type=publisher_type,
+        published_at=report.content_published_at,
+        captured_excerpt=None,
+        evidence_strength="user_submitted",
+        storage_allowed=True,
+        display_allowed=False,
+        redistribution_allowed=False,
+    )
+    db.add(artifact)
+    db.flush()
+
+    bundle = EvidenceBundle(
+        artifact_id=artifact.id,
+        source_id=None,
+        source_platform=artifact.source_platform,
+        source_url=artifact.source_url,
+        publisher_type=artifact.publisher_type,
+        published_at=artifact.published_at,
+        captured_at=artifact.collected_at,
+        quoted_fragment=None,
+        extracted_fragment=None,
+        evidence_class=EvidenceClass.ORIGINAL,
+        content_hash=artifact.content_hash,
+        place_match_evidence={
+            "state": report.place_match_state,
+            "types": report.place_match_evidence_types or [],
+            "place_id": report.place_id,
+            "container_place_id": report.container_place_id,
+            "subject_place_id": report.subject_place_id,
+        },
+        temporal_evidence={
+            "state": report.time_evidence_state,
+            "time_certainty": report.time_certainty,
+            "content_published_at": (
+                report.content_published_at.isoformat() if report.content_published_at else None
+            ),
+            "claimed_event_at": (
+                report.claimed_event_at.isoformat() if report.claimed_event_at else None
+            ),
+            "observed_at": report.observed_at.isoformat() if report.observed_at else None,
+        },
+        extraction_method="manual",
+        license_metadata={
+            "storage_allowed": True,
+            "display_allowed": False,
+            "redistribution_allowed": False,
+            "structured_fact_publication_only": True,
+        },
+        privacy_notes=(
+            "RealityReport provenance is private review material. Consumer surfaces may expose "
+            "only the reviewed structured fact and non-sensitive provenance summary."
+        ),
+    )
+    db.add(bundle)
+    db.flush()
+    return bundle
+
+
 def attach_candidate(
     db: Session,
     report: RealityReport,
@@ -285,6 +385,7 @@ def attach_candidate(
     payload: dict[str, Any],
     zone_id: str | None = None,
     observed_at: datetime | None = None,
+    evidence_bundle_id: str | None = None,
     request=None,
 ) -> RealityCandidate:
     """Attach one REVIEW_PENDING candidate to a report.
@@ -299,6 +400,7 @@ def attach_candidate(
         place_id=place_id,
         zone_id=zone_id,
         animal_scope=payload.get("animal_scope"),
+        evidence_bundle_id=evidence_bundle_id,
         observed_at=observed_at or report.observed_at,
         captured_at=observed_at or report.observed_at,
         payload=payload,
@@ -322,6 +424,7 @@ def attach_candidate(
         after_state={
             "report_id": str(report.id),
             "candidate_type": cand.candidate_type,
+            "evidence_bundle_id": cand.evidence_bundle_id,
             "review_status": cand.review_status,
             "verification_status": cand.verification_status.value,
         },
