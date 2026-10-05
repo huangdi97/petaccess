@@ -36,7 +36,7 @@ from app.core.config import get_settings
 from app.core.errors import ApiError, NotFound
 from app.core.idempotency import check_inflight, get_cached, store
 from app.core.ratelimit import check_rate_limit
-from app.core.security import get_optional_user
+from app.core.security import get_optional_user, require_role
 from app.db.session import get_db
 from app.models import (
     AnimalFacility,
@@ -53,6 +53,7 @@ from app.models.enums import (
     PlaceMatchState,
     RealityCandidateType,
     RealityVerificationStatus,
+    UserRole,
 )
 from app.schemas.common import Page
 from app.schemas.reality import RealityReportOut
@@ -329,15 +330,25 @@ def create_reality_report(
     return out
 
 
-@router.get("/places/{place_id}/reality/reports", response_model=Page[RealityReportOut])
+@router.get(
+    "/places/{place_id}/reality/reports",
+    response_model=Page[RealityReportOut],
+    tags=["admin:reality"],
+)
 def list_reality_reports(
     place_id: str,
     limit: int = Query(default=20, le=100),
     offset: int = Query(default=0, ge=0),
-    user: User | None = Depends(get_optional_user),
+    user: User = Depends(require_role(UserRole.MODERATOR)),
     db: Session = Depends(get_db),
 ) -> Page[RealityReportOut]:
-    """List reports for a place (consumer Reality Trace surface)."""
+    """Review-only report parent rows.
+
+    RealityReport contains private provenance, media references and the
+    one-time anonymous receipt token. Consumer surfaces must use published
+    Reality events/claims instead; pending/private report parents are never
+    exposed as a public trace.
+    """
     if db.get(Place, place_id) is None:
         raise NotFound("场所不存在")
     stmt = (
