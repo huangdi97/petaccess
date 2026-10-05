@@ -113,3 +113,31 @@ def test_verification_rate_limited(client, user):
         if r.status_code == 429:
             break
     assert 429 in codes, f"expected 429 within {max_calls + 1} calls, got {codes[-5:]}"
+
+
+def test_place_correction_is_not_exposed_in_public_verification_feed(client, user):
+    place_id = _some_place_id(client)
+    created = client.post(
+        "/api/v1/verifications",
+        json={
+            "place_id": place_id,
+            "event_type": "place_correction",
+            "result": "uncertain",
+            "note": "地址楼层需要人工复核",
+        },
+        headers=_auth(user["token"]),
+    )
+    assert created.status_code == 201, created.text
+    correction_id = created.json()["id"]
+
+    public = client.get(f"/api/v1/places/{place_id}/verifications")
+    assert public.status_code == 200, public.text
+    assert all(item["id"] != correction_id for item in public.json()["items"])
+
+
+def test_place_correction_queue_requires_moderator(client, user):
+    response = client.get(
+        "/api/v1/admin/place-corrections",
+        headers=_auth(user["token"]),
+    )
+    assert response.status_code == 403
