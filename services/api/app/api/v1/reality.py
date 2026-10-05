@@ -840,7 +840,8 @@ def _presence_summary(db: Session, place_id: str, now: datetime):
         [
             _Row(
                 observed_at=claim.observed_at,
-                source_id=claim.source_id,
+                source_id=claim.source_id
+                or (f"evidence:{claim.evidence_bundle_id}" if claim.evidence_bundle_id else None),
                 evidence_id=claim.evidence_bundle_id,
                 zone_name=zone_name,
                 action=claim.observed_action if claim.observed_action else None,
@@ -920,9 +921,13 @@ def _reality_evidence_stats(db: Session, place_id: str) -> tuple[int, int, str |
     ).subquery()
     values = db.execute(select(rows.c.source_id, rows.c.evidence_bundle_id)).all()
     evidence_ids = {evidence_id for _, evidence_id in values if evidence_id}
-    source_ids = {source_id for source_id, _ in values if source_id}
+    source_anchors = {
+        source_id or (f"evidence:{evidence_id}" if evidence_id else None)
+        for source_id, evidence_id in values
+    }
+    source_anchors.discard(None)
     verification = "human_verified" if values else None
-    return len(evidence_ids), len(source_ids), verification
+    return len(evidence_ids), len(source_anchors), verification
 
 
 def _reality_answer_for_place(db: Session, place_id: str, now: datetime) -> dict:
