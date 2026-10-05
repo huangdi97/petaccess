@@ -1,0 +1,30 @@
+name: Prettier Diff Diagnostic
+
+on:
+  push:
+    branches:
+      - feat/ui-direct-craft-v8
+    paths:
+      - .github/workflows/prettier-diff-diagnostic.yml
+
+permissions:
+  contents: read
+
+jobs:
+  format-diff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.4.1
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Show canonical Prettier diff
+        shell: bash
+        run: |
+          pnpm exec prettier --write packages/client-core/src/api/client.ts tests/e2e/contribute-wizard.spec.ts
+          git diff -- packages/client-core/src/api/client.ts tests/e2e/contribute-wizard.spec.ts
