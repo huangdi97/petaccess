@@ -146,6 +146,7 @@ async function load() {
   error.value = "";
   partial.value = [];
   const degrade = (label: string) => partial.value.push(label);
+  await session.restore();
   try {
     place.value = await client.place(placeId.value);
   } catch (e) {
@@ -237,10 +238,10 @@ async function quickConfirm(ruleId: string, result: "still_valid" | "changed" | 
       place_id: placeId.value,
       rule_id: ruleId,
       result,
-      note: "Quick Confirm（现场快捷确认）",
-      proximity_verified: true,
-      distance_bucket: "<100m",
-      accuracy_bucket: "10-50m",
+      note: "页面规则快捷确认（未采集定位距离证据）",
+      proximity_verified: false,
+      distance_bucket: null,
+      accuracy_bucket: null,
     });
     quickMsg.value =
       result === "still_valid"
@@ -372,7 +373,7 @@ const placeFixture = computed<string>(() => {
           />
 
           <section
-            v-if="view === 'overview' && isDesktop && currentRules.length"
+            v-if="view === 'overview' && isDesktop && session.signedIn && currentRules.length"
             class="place-section"
             data-testid="quick-confirm"
           >
