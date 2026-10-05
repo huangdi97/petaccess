@@ -158,45 +158,4 @@ async function submit() {
   </ContributionStepShell>
 </template>
 
-<style scoped>
-.effort-form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--pa-space-5);
-}
-
-.effort-cluster {
-  display: flex;
-  flex-direction: column;
-  gap: var(--pa-space-2);
-  margin: 0;
-  padding: 0 0 var(--pa-space-5);
-  border: 0;
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
-}
-
-.effort-cluster legend {
-  margin-bottom: var(--pa-space-1);
-  font-size: var(--pa-font-size-base);
-  font-weight: var(--pa-font-weight-600);
-  color: var(--pa-color-text-primary);
-}
-
-.effort-cluster label {
-  font-size: var(--pa-font-size-sm);
-  color: var(--pa-color-text-secondary);
-}
-
-.effort-cluster input,
-.effort-cluster select {
-  min-height: var(--pa-size-control-md);
-  margin: 0;
-}
-
-.effort-note {
-  margin: 0;
-  font-size: var(--pa-font-size-sm);
-  line-height: var(--pa-line-height-20);
-  color: var(--pa-color-text-secondary);
-}
-</style>
+<style scoped src="./ContributeEffortForm.css"></style>
