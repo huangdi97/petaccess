@@ -27,7 +27,7 @@ import DesktopContentContainer from "./layout/DesktopContentContainer.vue";
 }
 
 .secondary-page {
-  padding: var(--pa-space-6) 0 var(--pa-space-8);
+  padding: var(--pa-space-6) 0 var(--pa-space-64);
 }
 
 @media (max-width: 767px) {
