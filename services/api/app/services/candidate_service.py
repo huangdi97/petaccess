@@ -57,6 +57,7 @@ def create_from_extraction(
     raw_text: str | None = None,
     media_id: str | None = None,
     evidence_bundle_id: str | None = None,
+    supersedes_rule_id: str | None = None,
     # --- ADR-025 / ADR-028: source-faithful scope ---------------------------
     source_scope_exact: str | None = None,
     subject_scope_normalized: str | None = None,
@@ -95,6 +96,7 @@ def create_from_extraction(
         raw_text=raw_text[:4000] if raw_text else None,
         media_id=media_id,
         evidence_bundle_id=evidence_bundle_id,
+        supersedes_rule_id=supersedes_rule_id,
         review_status=status,
         # ADR-025 / ADR-028: what the source literally said, and how it was
         # turned into the stored subject. Publishing copies these verbatim, so a
