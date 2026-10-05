@@ -1,0 +1,83 @@
+"""Consumer rule-lead boundary: user input becomes review candidate, never Rule."""
+
+import uuid
+
+import pytest
+from fastapi.testclient import TestClient
+from sqlalchemy import func, select
+
+from app.db.session import get_session_factory
+from app.main import app
+from app.models import AccessRule, RuleCandidate
+
+
+@pytest.fixture(scope="module")
+def client():
+    with TestClient(app) as c:
+        yield c
+
+
+@pytest.fixture(scope="module")
+def signed_user(client) -> dict[str, str]:
+    email = f"rule-lead-{uuid.uuid4().hex[:8]}@example.com"
+    registered = client.post(
+        "/api/v1/auth/register",
+        json={"display_name": "规则线索测试用户", "email": email, "password": "passw0rd123"},
+    )
+    assert registered.status_code == 201, registered.text
+    return {"Authorization": f"Bearer {registered.json()['access_token']}"}
+
+
+def _place_id(client) -> str:
+    response = client.get("/api/v1/places", params={"q": "云栖", "limit": 10})
+    assert response.status_code == 200, response.text
+    items = response.json()["items"]
+    assert items
+    return items[0]["id"]
+
+
+def test_rule_lead_creates_review_candidate_without_publishing_rule(client, signed_user):
+    place_id = _place_id(client)
+    factory = get_session_factory()
+    with factory() as db:
+        before_rules = db.scalar(
+            select(func.count()).select_from(AccessRule).where(AccessRule.place_id == place_id)
+        )
+
+    response = client.post(
+        f"/api/v1/places/{place_id}/rule-leads",
+        headers=signed_user,
+        json={
+            "animal_scope": "ordinary_pet",
+            "effect": "conditional",
+            "proposed_conditions": ["carrier_required"],
+            "raw_text": "入口告示写明普通宠物需装入宠物包。",
+            "proximity_verified": True,
+            "distance_bucket": "<100m",
+            "accuracy_bucket": "10-50m",
+        },
+    )
+    assert response.status_code == 201, response.text
+    receipt = response.json()
+    assert receipt["review_status"] == "REVIEW_PENDING"
+
+    with factory() as db:
+        candidate = db.get(RuleCandidate, receipt["id"])
+        assert candidate is not None
+        assert candidate.place_id == place_id
+        assert candidate.review_status == "REVIEW_PENDING"
+        assert candidate.effect == "conditional"
+        assert candidate.proposed_conditions == [{"condition_type": "carrier_required"}]
+        after_rules = db.scalar(
+            select(func.count()).select_from(AccessRule).where(AccessRule.place_id == place_id)
+        )
+    assert after_rules == before_rules
+
+
+def test_rule_lead_requires_authentication(client):
+    place_id = _place_id(client)
+    response = client.post(
+        f"/api/v1/places/{place_id}/rule-leads",
+        json={"animal_scope": "dog", "effect": "allowed"},
+    )
+    assert response.status_code == 401
