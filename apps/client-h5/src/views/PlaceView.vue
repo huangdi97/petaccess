@@ -303,13 +303,19 @@ const placeFixture = computed<string>(() => {
               {{ placeTypeLabel(place.place_type) }} ·
               {{ place.canonical_address ?? "地址未收录" }}
             </p>
-            <div v-if="isDesktop" class="row place-dossier__actions">
-              <button @click="toggleWatch">
-                {{ watching ? "已关注规则变化 ✓（点击取消）" : "关注此场所规则变化" }}
-              </button>
-              <RouterLink :to="`/place/${placeId}/why`" class="btn-inline">
-                为什么是这个结果 →
+            <div class="place-dossier__actions" aria-label="场所操作">
+              <RouterLink :to="`/place/${placeId}/evidence`" class="btn-inline">
+                查看证据 →
               </RouterLink>
+              <RouterLink :to="`/place/${placeId}/why`" class="btn-inline">
+                为什么？ →
+              </RouterLink>
+              <RouterLink :to="`/contribute/${placeId}`" class="btn-inline">
+                纠错 / 补充 →
+              </RouterLink>
+              <button class="place-dossier__watch" type="button" @click="toggleWatch">
+                {{ watching ? "已关注变化 · 取消" : "关注规则变化" }}
+              </button>
             </div>
           </header>
 
@@ -465,7 +471,28 @@ const placeFixture = computed<string>(() => {
 }
 
 .place-dossier__actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--pa-space-4);
   margin-top: var(--pa-space-2);
+}
+
+.place-dossier__watch {
+  margin-left: auto;
+  min-height: var(--pa-size-control-md);
+  border: none;
+  background: transparent;
+  color: var(--pa-color-text-secondary);
+  padding: 0;
+  cursor: pointer;
+}
+
+.place-dossier__watch:hover,
+.place-dossier__watch:focus-visible {
+  color: var(--pa-color-accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 /* Sections: divider-led rhythm, not a flat wall of equal-weight panels. */
@@ -511,6 +538,16 @@ const placeFixture = computed<string>(() => {
   .place-dossier__head {
     padding-bottom: var(--pa-space-4);
     margin-bottom: var(--pa-space-3);
+  }
+
+  .place-dossier__actions {
+    gap: var(--pa-space-3);
+  }
+
+  .place-dossier__watch {
+    width: 100%;
+    margin-left: 0;
+    text-align: left;
   }
 
   .place-dossier__name {
