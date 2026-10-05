@@ -141,3 +141,52 @@ def test_place_correction_queue_requires_moderator(client, user):
         headers=_auth(user["token"]),
     )
     assert response.status_code == 403
+
+
+def test_rule_lead_is_accepted_but_not_exposed_in_public_verification_feed(client, user):
+    place_id = _some_place_id(client)
+    created = client.post(
+        "/api/v1/verifications",
+        json={
+            "place_id": place_id,
+            "event_type": "rule_lead_submitted",
+            "result": "uncertain",
+            "note": "规则线索：有条件进入；条件：需宠物包",
+        },
+        headers=_auth(user["token"]),
+    )
+    assert created.status_code == 201, created.text
+    lead_id = created.json()["id"]
+    assert created.json()["event_type"] == "rule_lead_submitted"
+
+    public = client.get(f"/api/v1/places/{place_id}/verifications")
+    assert public.status_code == 200, public.text
+    assert all(item["id"] != lead_id for item in public.json()["items"])
+
+
+def test_signage_evidence_is_not_exposed_before_rule_review(client, user):
+    place_id = _some_place_id(client)
+    created = client.post(
+        "/api/v1/verifications",
+        json={
+            "place_id": place_id,
+            "event_type": "signage_uploaded",
+            "result": "uncertain",
+            "note": "规则牌证据待人工审核",
+        },
+        headers=_auth(user["token"]),
+    )
+    assert created.status_code == 201, created.text
+    event_id = created.json()["id"]
+
+    public = client.get(f"/api/v1/places/{place_id}/verifications")
+    assert public.status_code == 200, public.text
+    assert all(item["id"] != event_id for item in public.json()["items"])
+
+
+def test_rule_lead_queue_requires_moderator(client, user):
+    response = client.get(
+        "/api/v1/admin/rule-leads",
+        headers=_auth(user["token"]),
+    )
+    assert response.status_code == 403
