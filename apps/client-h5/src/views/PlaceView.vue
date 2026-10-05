@@ -77,6 +77,7 @@ const loading = ref(true);
 const partial = ref<string[]>([]);
 const watching = ref(false);
 const quickMsg = ref("");
+const watchMsg = ref("");
 const coexistence = ref<CoexistenceSnapshot | null>(null);
 const coexistenceLoaded = ref(false);
 
@@ -154,6 +155,18 @@ async function load() {
     loading.value = false;
     return;
   }
+  if (session.signedIn) {
+    try {
+      const mine = await client.myWatches();
+      watching.value = mine.some(
+        (item) => item.target_type === "place" && item.target_id === placeId.value,
+      );
+    } catch {
+      degrade("关注状态");
+    }
+  } else {
+    watching.value = false;
+  }
   try {
     zones.value = await client.zones(placeId.value);
   } catch {
@@ -208,6 +221,8 @@ watch(
     error.value = "";
     partial.value = [];
     quickMsg.value = "";
+    watchMsg.value = "";
+    watching.value = false;
     coexistence.value = null;
     coexistenceLoaded.value = false;
     if (placeId.value) void load();
@@ -216,6 +231,7 @@ watch(
 );
 
 async function toggleWatch() {
+  watchMsg.value = "";
   try {
     const mine = await client.myWatches();
     const existing = mine.find((w) => w.target_type === "place" && w.target_id === placeId.value);
@@ -227,7 +243,7 @@ async function toggleWatch() {
       watching.value = true;
     }
   } catch (e) {
-    quickMsg.value = `关注失败（需登录）：${presentDescription(e)}`;
+    watchMsg.value = `关注状态未能更新：${presentDescription(e)}`;
   }
 }
 
@@ -317,10 +333,19 @@ const placeFixture = computed<string>(() => {
               <RouterLink :to="`/contribute/${placeId}`" class="btn-inline">
                 纠错 / 补充 →
               </RouterLink>
-              <button class="place-dossier__watch" type="button" @click="toggleWatch">
+              <button
+                v-if="session.signedIn"
+                class="place-dossier__watch"
+                type="button"
+                @click="toggleWatch"
+              >
                 {{ watching ? "已关注变化 · 取消" : "关注规则变化" }}
               </button>
+              <RouterLink v-else class="btn-inline" to="/onboarding">登录后关注 →</RouterLink>
             </div>
+            <p v-if="watchMsg" class="muted place-dossier__watch-msg" role="status">
+              {{ watchMsg }}
+            </p>
           </header>
 
           <!-- 2. 本地 section 导航（§15） -->
