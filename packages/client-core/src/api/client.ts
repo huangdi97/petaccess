@@ -236,9 +236,11 @@ export interface RealityEventView {
   observed_context: string | null;
   staff_actor_role: string | null;
   staff_action: string | null;
+  staff_awareness_state: string | null;
   staff_outcome: string | null;
   facility_type: string | null;
   facility_state: string | null;
+  facility_purpose_state: string | null;
   facility_access_mode: string | null;
   facility_capacity: number | null;
   facility_size_limit: string | null;
@@ -251,6 +253,7 @@ export interface RealityEventView {
   facility_operator_provided: boolean | null;
   source_id: string | null;
   evidence_bundle_id: string | null;
+  submitted_at: string | null;
   verification_status: string;
   freshness_state: string | null;
   last_verified_at: string | null;
