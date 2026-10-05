@@ -20,6 +20,7 @@ from app.db.session import get_db
 from app.models import (
     AccessRule,
     JurisdictionException,
+    MediaObject,
     Place,
     RuleException,
     Source,
@@ -28,12 +29,19 @@ from app.models import (
 )
 from app.models.enums import (
     AnimalScope,
+    Directness,
     HolderScope,
+    IssuerVerification,
     NormalizationType,
     NormativeEffect,
+    RuleEffect,
     RuleStatus,
+    SourceAvailability,
+    SourceType,
+    SpatialPrecision,
     UserRole,
 )
+from app.models.media import MediaPurpose
 from app.models.v05 import (
     AccessPath,
     Amenity,
@@ -75,6 +83,109 @@ admin = APIRouter(prefix="/admin", tags=["admin:v05"])
 
 
 # ------------------------------------------------------------------- candidates
+
+
+class ConsumerRuleLeadIn(BaseModel):
+    """Structured consumer rule lead. Creates a candidate, never a Rule."""
+
+    zone_id: str | None = None
+    animal_scope: AnimalScope = AnimalScope.ORDINARY_PET
+    effect: RuleEffect
+    proposed_conditions: list[str] = []
+    raw_text: str | None = Field(default=None, max_length=4000)
+    media_id: str | None = None
+    current_rule_id: str | None = None
+    proximity_verified: bool = False
+    distance_bucket: str | None = Field(default=None, max_length=16)
+    accuracy_bucket: str | None = Field(default=None, max_length=16)
+
+
+@router.post("/places/{place_id}/rule-leads", status_code=201)
+def contribute_rule_lead(
+    place_id: str,
+    body: ConsumerRuleLeadIn,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Put a user rule lead into RuleCandidate review, never Observation/Rule."""
+
+    place = db.get(Place, place_id)
+    if place is None:
+        raise NotFound("场所不存在")
+    if body.zone_id:
+        zone = db.get(Zone, body.zone_id)
+        if zone is None or zone.place_id != place_id:
+            raise NotFound("区域不属于该场所")
+    if body.current_rule_id:
+        current = db.get(AccessRule, body.current_rule_id)
+        if current is None or current.place_id != place_id:
+            raise NotFound("待更新规则不属于该场所")
+
+    media: MediaObject | None = None
+    if body.media_id:
+        media = db.get(MediaObject, body.media_id)
+        if (
+            media is None
+            or media.created_by_user_id != user.id
+            or media.owner_id != place_id
+            or media.purpose != MediaPurpose.SIGNAGE_EVIDENCE
+            or media.deleted_at is not None
+        ):
+            raise ApiError("规则证据不可用或不属于当前账号/场所", code="invalid_rule_evidence", status_code=403)
+
+    now = datetime.now(UTC)
+    source = Source(
+        source_type=SourceType.ONSITE_SIGNAGE if media else SourceType.ORDINARY_USER,
+        issuer="用户提交的现场规则线索",
+        issuer_verification=IssuerVerification.UNVERIFIED,
+        source_url=None,
+        collected_at=now,
+        observed_at=now,
+        published_at=None,
+        source_availability=SourceAvailability.AVAILABLE_OFFLINE,
+        directness=Directness.DIRECT,
+        spatial_precision=(
+            SpatialPrecision.PRECISE if body.proximity_verified else SpatialPrecision.UNKNOWN
+        ),
+        notes="消费者规则线索；人工复核前不得视为正式规则。",
+    )
+    db.add(source)
+    db.flush()
+
+    candidate = create_from_extraction(
+        db,
+        source_id=source.id,
+        place_id=place_id,
+        zone_id=body.zone_id,
+        animal_scope=body.animal_scope.value,
+        action="enter",
+        effect=body.effect.value,
+        proposed_conditions=body.proposed_conditions,
+        extraction_method="manual",
+        raw_text=body.raw_text,
+        media_id=body.media_id,
+    )
+    transition(candidate, "REVIEW_PENDING")
+    record_audit(
+        db,
+        request=None,
+        actor_user_id=user.id,
+        actor_role=str(user.role),
+        action=AuditEvent.CANDIDATE_CREATE.value,
+        target_type="rule_candidate",
+        target_id=candidate.id,
+        after_state={
+            "status": candidate.review_status,
+            "place_id": place_id,
+            "zone_id": body.zone_id,
+            "consumer_rule_lead": True,
+            "current_rule_id": body.current_rule_id,
+            "has_media": bool(media),
+        },
+    )
+    db.commit()
+    db.refresh(candidate)
+    return {"id": candidate.id, "review_status": candidate.review_status}
 
 
 class CandidateIn(BaseModel):
