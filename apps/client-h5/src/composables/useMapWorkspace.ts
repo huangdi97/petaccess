@@ -96,21 +96,31 @@ export function useMapWorkspace() {
     }),
   );
 
-  const clusters = computed(() => clusterMarkers(markers.value, camera.value.zoom));
-  const coverage = computed(() => {
-    const base = mapLensCoverage(lens.value, facts.value, markers.value);
-    if (!missingSpatialCount.value || import.meta.env.DEV) return base;
-    return {
-      ...base,
-      text: `${base.text} 另有 ${missingSpatialCount.value} 个场所缺少已核验坐标，仅在列表显示。`,
-    };
-  });
-
   const visiblePlaces = computed(() => {
     if (lens.value !== "rule" || !activeFilters.value.length) return places.value;
     return places.value.filter((p) =>
       activeFilters.value.includes(statuses.value[p.id] ?? "UNKNOWN"),
     );
+  });
+
+  const visiblePlaceIds = computed(() => new Set(visiblePlaces.value.map((place) => place.id)));
+  const visibleMarkers = computed(() =>
+    markers.value.filter((marker) => visiblePlaceIds.value.has(marker.id)),
+  );
+  const visibleMissingSpatialCount = computed(
+    () =>
+      visiblePlaces.value.filter((place) => place.latitude == null || place.longitude == null)
+        .length,
+  );
+
+  const clusters = computed(() => clusterMarkers(visibleMarkers.value, camera.value.zoom));
+  const coverage = computed(() => {
+    const base = mapLensCoverage(lens.value, facts.value, visibleMarkers.value);
+    if (!visibleMissingSpatialCount.value || import.meta.env.DEV) return base;
+    return {
+      ...base,
+      text: `${base.text} 另有 ${visibleMissingSpatialCount.value} 个场所缺少已核验坐标，仅在列表显示。`,
+    };
   });
 
   /** One-shot geolocation (ADR-012: no continuous location history). */
