@@ -325,6 +325,13 @@ def reality_trace(
         for c in claims
     ]
     summary = summarize(rows, now=now)
+    published_rows = [*claims, *staff_rows, *facility_rows]
+    evidence_ids = {
+        row.evidence_bundle_id
+        for row in published_rows
+        if getattr(row, "evidence_bundle_id", None)
+    }
+    has_first_hand_source = any(getattr(row, "source_id", None) for row in published_rows)
 
     fact_sections = [
         RealityTraceSection(
@@ -360,11 +367,11 @@ def reality_trace(
     review_sections = [
         RealityTraceSection(
             label="核验",
-            value="经人工核验" if claims else "信息待核验",
+            value="经人工核验" if published_rows else "信息待核验",
             note="平台核验只说明事实被确认，不改变“未观察到”的含义",
         ),
         RealityTraceSection(
-            label="一手来源", value="是" if any(c.source_id for c in claims) else "待补充"
+            label="一手来源", value="是" if has_first_hand_source else "待补充"
         ),
         RealityTraceSection(label="是否存在争议", value="无已登记争议"),
     ]
@@ -373,7 +380,7 @@ def reality_trace(
         summary=REALITY_STATE_LABELS.get(summary.state, summary.state),
         fact_sections=fact_sections,
         review_sections=review_sections,
-        evidence_count=summary.evidence_count,
+        evidence_count=len(evidence_ids),
     )
 
 
