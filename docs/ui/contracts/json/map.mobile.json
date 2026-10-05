@@ -31,7 +31,9 @@
       "route": "/#/map?place=8412b521-5e1c-505d-9dec-568acb860c76",
       "interactions": [
         {
-          "clickSelectors": ["[data-testid='sheet-handle']"],
+          "clickSelectors": [
+            "[data-testid='sheet-handle']"
+          ],
           "waitForSelector": "[data-testid='sheet-verdict']"
         }
       ],
@@ -52,12 +54,16 @@
         }
       },
       "severity": "FAIL",
-      "fallbacks": ["[data-testid='view-map'], [data-testid='view-list']"]
+      "fallbacks": [
+        "[data-testid='view-map'], [data-testid='view-list']"
+      ]
     },
     {
       "id": "MAP_MOBILE_SHEET_OVERLAY",
       "ui": "map-mobile-sheet",
-      "fallbacks": ["[data-testid='map-mobile-sheet']"],
+      "fallbacks": [
+        "[data-testid='map-mobile-sheet']"
+      ],
       "props": {
         "count": {
           "min": 1
@@ -71,12 +77,16 @@
         }
       },
       "severity": "FAIL",
-      "pages": ["map-mobile-selected-half"]
+      "pages": [
+        "map-mobile-selected-half"
+      ]
     },
     {
       "id": "MAP_MOBILE_SHEET_ABOVE_TABBAR",
       "ui": "map-mobile-sheet",
-      "fallbacks": ["[data-testid='map-mobile-sheet']"],
+      "fallbacks": [
+        "[data-testid='map-mobile-sheet']"
+      ],
       "props": {
         "top": {
           "min": 300,
@@ -88,12 +98,16 @@
         }
       },
       "severity": "FAIL",
-      "pages": ["map-mobile-selected-half"]
+      "pages": [
+        "map-mobile-selected-half"
+      ]
     },
     {
       "id": "MAP_MOBILE_SHEET_EXPANDED_HEIGHT",
       "ui": "map-mobile-sheet",
-      "fallbacks": ["[data-testid='map-mobile-sheet']"],
+      "fallbacks": [
+        "[data-testid='map-mobile-sheet']"
+      ],
       "props": {
         "height": {
           "min": 340,
@@ -101,8 +115,23 @@
         }
       },
       "severity": "FAIL",
-      "pages": ["map-mobile-expanded"],
+      "pages": [
+        "map-mobile-expanded"
+      ],
       "note": "Expanded sheet must visibly exceed half state and remain below the tab bar; sparse content should fit naturally without artificial filler."
+    },
+    {
+      "id": "MAP_MOBILE_LENSBAR_PRESENT",
+      "ui": "map-lensbar",
+      "fallbacks": [
+        "[data-ui='map-lensbar']"
+      ],
+      "props": {
+        "count": {
+          "min": 1
+        }
+      },
+      "severity": "FAIL"
     }
   ],
   "structure": [
@@ -111,15 +140,32 @@
       "selector": "[data-testid='map-mobile-sheet'] .status-badge--block, [data-testid='map-mobile-sheet'] [style*='border']",
       "max": 0,
       "severity": "FAIL",
-      "pages": ["map-mobile-selected-half"]
+      "pages": [
+        "map-mobile-selected-half"
+      ]
     },
     {
       "id": "MAP_EXPANDED_NO_FAKE_FILLER",
       "selector": "[data-testid='map-mobile-sheet'] [class*='placeholder'], [data-testid='map-mobile-sheet'] [data-ui*='filler'], [data-testid='map-mobile-sheet'] [class*='lorem']",
       "max": 0,
       "severity": "FAIL",
-      "pages": ["map-mobile-expanded"],
+      "pages": [
+        "map-mobile-expanded"
+      ],
       "note": "v0.2.7 §13/§40：expanded 禁止伪造/占位内容，只允许真实已有信息。"
+    },
+    {
+      "id": "MAP_MOBILE_FOUR_LENSES",
+      "selector": "[data-ui='map-lensbar'] button",
+      "min": 4,
+      "max": 4,
+      "severity": "FAIL",
+      "mustContainTexts": [
+        "规则",
+        "现场",
+        "设施",
+        "规则×现场"
+      ]
     }
   ],
   "density": [
@@ -130,7 +176,10 @@
       "min": 8,
       "max": 58,
       "severity": "FAIL",
-      "pages": ["map-mobile-selected-half", "map-mobile-expanded"],
+      "pages": [
+        "map-mobile-selected-half",
+        "map-mobile-expanded"
+      ],
       "note": "Expanded content may breathe, but actions must not be pinned down to manufacture empty space."
     }
   ],
@@ -142,7 +191,9 @@
       "min": 3,
       "max": 6,
       "severity": "FAIL",
-      "pages": ["map-mobile-expanded"],
+      "pages": [
+        "map-mobile-expanded"
+      ],
       "note": "v0.2.7 §13：expanded 只含真实信息块（decision/condition/reality/evidence/CTA）。"
     }
   ],
@@ -153,7 +204,10 @@
       "b": "[data-testid='map-mobile-sheet'] .sheet__meta",
       "minRatio": 1.3,
       "severity": "FAIL",
-      "pages": ["map-mobile-selected-half", "map-mobile-expanded"]
+      "pages": [
+        "map-mobile-selected-half",
+        "map-mobile-expanded"
+      ]
     },
     {
       "id": "STATUS_BADGE_NOT_PRIMARY",
@@ -161,7 +215,10 @@
       "b": "[data-testid='map-mobile-sheet'] .sheet__name",
       "maxRatio": 0.9,
       "severity": "FAIL",
-      "pages": ["map-mobile-selected-half", "map-mobile-expanded"]
+      "pages": [
+        "map-mobile-selected-half",
+        "map-mobile-expanded"
+      ]
     }
   ],
   "language": {
@@ -171,5 +228,5 @@
     "allcapsTokens": true,
     "refs": true
   },
-  "notes": "v0.2.5 §22–24/§49：mobile map 恒 overlay；selected = real bottom sheet（fixed overlay、radius 16、half 280–340、top < 700、不与 tabbar 重叠）。"
+  "notes": "Mobile map keeps map/list mode plus the canonical four information lenses; selected place remains a real overlay bottom sheet above the tab bar."
 }
