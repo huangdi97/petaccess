@@ -35,7 +35,7 @@ async function resolveRules() {
           service_role: session.activePet.service_role ?? "none",
           declared_role: session.activePet.declared_role ?? null,
         }
-      : { animal: "dog", service_role: session.mode === "service_dog" ? "service_dog" : "none" };
+      : { animal: "dog", service_role: session.mode === "service_dog" ? "working" : "none" };
     resolved.value = await client.accessAnswer(placeId.value, { ...animal, action: "enter" });
   } catch (e) {
     error.value = presentDescription(e);
