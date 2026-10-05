@@ -481,6 +481,7 @@ def admin_create_candidate(
             "source_scope_exact": cand.source_scope_exact,
             "subject_scope_normalized": cand.subject_scope_normalized,
             "normalization_type": cand.normalization_type,
+            "supersedes_rule_id": cand.supersedes_rule_id,
         },
     )
     db.commit()
@@ -689,6 +690,35 @@ class PublishIn(BaseModel):
     """
 
     exception_of_rule_id: str | None = Field(default=None, max_length=36)
+
+
+@admin.get("/candidates/{candidate_id}/preflight")
+def admin_candidate_preflight(
+    candidate_id: str,
+    user: User = Depends(require_role(UserRole.MODERATOR)),
+    db: Session = Depends(get_db),
+):
+    """Read-only publish readiness for one candidate.
+
+    Reviewers should see every current gate failure before the irreversible
+    publish action. This endpoint calls the exact same evaluator as publish;
+    it never implements a second, weaker checklist.
+    """
+    from app.services.publish_gate import evaluate_for_publish
+
+    cand = db.get(RuleCandidate, candidate_id)
+    if cand is None:
+        raise NotFound("候选不存在")
+    violations = evaluate_for_publish(db, cand)
+    return {
+        "candidate_id": cand.id,
+        "review_status": cand.review_status,
+        "publishable": not violations and cand.review_status == "APPROVED",
+        "violations": [
+            {"code": violation.code, "message": violation.message}
+            for violation in violations
+        ],
+    }
 
 
 @admin.post("/candidates/{candidate_id}/publish")
