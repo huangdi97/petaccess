@@ -25,7 +25,7 @@ from typing import Any
 from app.services.rule_reality_divergence import Divergence, divergence
 
 #: Bump when the shape or derivation rules change. Consumers key off this.
-COEXISTENCE_SNAPSHOT_VERSION = "coexistence-snapshot/1"
+COEXISTENCE_SNAPSHOT_VERSION = "coexistence-snapshot/2"
 
 
 @dataclass(frozen=True)
