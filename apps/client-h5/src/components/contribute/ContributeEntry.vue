@@ -5,14 +5,14 @@ import PaIcon from "../ui/PaIcon.vue";
 defineOptions({ name: "ContributeEntry" });
 
 const emit = defineEmits<{
-  select: [step: "quick" | "signage" | "rule" | "experience"];
+  select: [step: "quick" | "rule"];
   reality: [kind: "observed_presence" | "staff_response" | "animal_facility"];
 }>();
 
 type EntryOption =
   | {
       kind: "select";
-      key: "quick" | "signage" | "rule" | "experience";
+      key: "quick" | "rule";
       testid: string;
       label: string;
       description: string;
@@ -103,91 +103,4 @@ function choose(opt: EntryOption) {
   </div>
 </template>
 
-<style scoped>
-.entry-question {
-  margin: 0;
-  /* §44 mobile：24/32/650；desktop 保持页级标题。 */
-  font-size: var(--pa-font-size-2xl);
-  font-weight: var(--pa-font-weight-650);
-  line-height: var(--pa-line-height-32);
-  color: var(--pa-color-text-primary);
-}
-.entry-hint {
-  margin: var(--pa-space-1) 0 0;
-}
-.entry-options {
-  margin: var(--pa-space-5) 0 0;
-  padding: 0;
-  list-style: none;
-}
-/* §41：choice row 64–72px，icon + title + one-line desc + chevron + divider。 */
-.entry-option {
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
-}
-.entry-option:last-child {
-  border-bottom: none;
-}
-.entry-option__button {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  min-height: 68px;
-  padding: var(--pa-space-3) var(--pa-space-2);
-  border: none;
-  border-radius: 0;
-  background: transparent;
-  color: var(--pa-color-text-primary);
-  font-size: var(--pa-font-size-base);
-  text-align: left;
-  cursor: pointer;
-  gap: var(--pa-space-3);
-}
-.entry-option__button:hover,
-.entry-option__button:focus-visible {
-  color: var(--pa-color-accent);
-  background: var(--pa-color-surface-interactive);
-}
-.entry-option__icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 34px;
-  width: 34px;
-  height: 34px;
-  border-radius: var(--pa-radius-control);
-  background: var(--pa-color-accent-weak);
-  color: var(--pa-color-accent);
-}
-.entry-option__text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-.entry-option__label {
-  font-size: var(--pa-font-size-base);
-  font-weight: var(--pa-font-weight-medium);
-  color: var(--pa-color-text-primary);
-}
-.entry-option__description {
-  font-size: var(--pa-font-size-sm);
-  line-height: var(--pa-line-height-20);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.entry-option__chevron {
-  margin-left: auto;
-  flex-shrink: 0;
-  color: var(--pa-color-text-muted);
-  font-size: var(--pa-font-size-lg);
-}
-.entry-note {
-  margin: var(--pa-space-4) 0 0;
-}
-
-.entry-option__button:hover .entry-option__chevron,
-.entry-option__button:focus-visible .entry-option__chevron {
-  color: var(--pa-color-accent);
-}
-</style>
+<style scoped src="./ContributeEntry.css"></style>
