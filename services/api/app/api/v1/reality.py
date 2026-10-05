@@ -20,7 +20,7 @@ from datetime import UTC, datetime
 from typing import TypedDict
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import func, select, union_all
+from sqlalchemy import func, or_, select, union_all
 from sqlalchemy.orm import Session
 
 from app.core.audit import record_audit
@@ -482,6 +482,29 @@ def decide_reality_candidate(
     return cand
 
 
+def _candidate_event_anchor(
+    db: Session, cand: RealityCandidate
+) -> tuple[datetime | None, bool]:
+    """Return a display anchor and whether it is a real event-time anchor.
+
+    Publication-only external content may use content_published_at to place a
+    record on the timeline, but that timestamp must never feed Reality
+    freshness or "recent现场" aggregation.
+    """
+    if cand.observed_at is not None:
+        return cand.observed_at, True
+    if not cand.report_id:
+        return None, False
+    report = db.get(RealityReport, cand.report_id)
+    if (
+        report is not None
+        and report.time_evidence_state == "publication_time_only"
+        and report.content_published_at is not None
+    ):
+        return report.content_published_at, False
+    return None, False
+
+
 def _publish_claim(db: Session, cand: RealityCandidate):
     """Project a VERIFIED candidate into its published claim table (v0.9 §7.4).
 
@@ -494,12 +517,18 @@ def _publish_claim(db: Session, cand: RealityCandidate):
     (e.g. contributions that carry only ``observed_at``).
     """
     payload = cand.payload or {}
+    event_anchor, event_time_known = _candidate_event_anchor(db, cand)
+    if cand.candidate_type in {"observed_presence", "staff_response"} and event_anchor is None:
+        raise ApiError(
+            "缺少可展示的事件时间或内容发布时间，不能发布现场事实",
+            code="reality_time_required",
+        )
     status = (
         RealityVerificationStatus.HUMAN_VERIFIED_WITH_NOTE
         if cand.decision_note
         else RealityVerificationStatus.HUMAN_VERIFIED
     )
-    captured_at = cand.captured_at or cand.observed_at
+    captured_at = cand.captured_at or event_anchor
     claim: ObservedPresence | StaffResponseObservation | AnimalFacility
     if cand.candidate_type == "observed_presence":
         claim = ObservedPresence(
@@ -510,12 +539,12 @@ def _publish_claim(db: Session, cand: RealityCandidate):
             animal_count_estimate=payload.get("animal_count_estimate"),
             observed_action=payload.get("observed_action"),
             observed_context=payload.get("observed_context"),
-            observed_at=cand.observed_at,
+            observed_at=event_anchor,
             captured_at=captured_at,
             source_id=cand.source_id,
             evidence_bundle_id=cand.evidence_bundle_id,
             verification_status=status,
-            freshness_state=_freshness_state(cand.observed_at),
+            freshness_state=_freshness_state(event_anchor) if event_time_known else None,
             last_verified_at=cand.decided_at,
         )
     elif cand.candidate_type == "staff_response":
@@ -529,12 +558,12 @@ def _publish_claim(db: Session, cand: RealityCandidate):
             staff_awareness_state=payload.get("staff_awareness_state", "awareness_unknown"),
             response_outcome=payload.get("response_outcome"),
             policy_statement_verbatim=payload.get("policy_statement_verbatim"),
-            observed_at=cand.observed_at,
+            observed_at=event_anchor,
             captured_at=captured_at,
             source_id=cand.source_id,
             evidence_bundle_id=cand.evidence_bundle_id,
             verification_status=status,
-            freshness_state=_freshness_state(cand.observed_at),
+            freshness_state=_freshness_state(event_anchor) if event_time_known else None,
             last_verified_at=cand.decided_at,
         )
     elif cand.candidate_type == "animal_facility":
@@ -555,12 +584,12 @@ def _publish_claim(db: Session, cand: RealityCandidate):
             supervision_state=payload.get("supervision_state"),
             security_or_lock_state=payload.get("security_or_lock_state"),
             operational_state=payload.get("operational_state", "active"),
-            observed_at=cand.observed_at,
+            observed_at=event_anchor,
             last_verified_at=cand.decided_at,
             source_id=cand.source_id,
             evidence_bundle_id=cand.evidence_bundle_id,
             verification_status=status,
-            freshness_state=_freshness_state(cand.observed_at),
+            freshness_state=_freshness_state(event_anchor) if event_time_known else None,
         )
     else:
         raise ValueError(f"unknown candidate_type: {cand.candidate_type}")
@@ -753,9 +782,15 @@ def _presence_summary(db: Session, place_id: str, now: datetime):
     claims = db.execute(
         select(ObservedPresence, Zone.name)
         .outerjoin(Zone, Zone.id == ObservedPresence.zone_id)
+        .outerjoin(RealityCandidate, RealityCandidate.id == ObservedPresence.candidate_id)
+        .outerjoin(RealityReport, RealityReport.id == RealityCandidate.report_id)
         .where(
             ObservedPresence.place_id == place_id,
             ObservedPresence.verification_status.in_(VERIFIED_REALITY_STATUSES),
+            or_(
+                RealityReport.id.is_(None),
+                RealityReport.time_evidence_state != "publication_time_only",
+            ),
         )
         .order_by(ObservedPresence.observed_at.asc())
     ).all()
