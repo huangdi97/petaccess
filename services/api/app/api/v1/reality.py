@@ -360,6 +360,10 @@ def contribute_reality(
         cand.freshness_state = _freshness_state(cand.observed_at)
     db.add(cand)
     db.flush()
+    from app.services.reality_contribution import materialize_legacy_candidate_evidence
+
+    evidence_bundle = materialize_legacy_candidate_evidence(db, cand)
+    cand.evidence_bundle_id = evidence_bundle.id
     record_audit(
         db,
         request=None,
@@ -548,11 +552,11 @@ def _publish_claim(db: Session, cand: RealityCandidate):
                 "地点尚未精确匹配到具体场所，不能发布为场所现场事实",
                 code="reality_exact_place_required",
             )
-        if not cand.evidence_bundle_id:
-            raise ApiError(
-                "现场候选缺少可追溯证据包，不能发布",
-                code="reality_evidence_required",
-            )
+    if not cand.evidence_bundle_id:
+        raise ApiError(
+            "现场候选缺少可追溯证据包，不能发布",
+            code="reality_evidence_required",
+        )
 
     payload = cand.payload or {}
     event_anchor, event_time_known = _candidate_event_anchor(db, cand)
