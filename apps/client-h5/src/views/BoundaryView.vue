@@ -14,6 +14,7 @@ const msg = ref("");
 const busy = ref(false);
 const loaded = ref(false);
 const loading = ref(true);
+const signedIn = ref(false);
 const { online } = useOnline();
 
 function apply(profile: BoundaryProfile | null) {
@@ -29,9 +30,10 @@ async function load() {
   error.value = "";
   loading.value = true;
   try {
-    if (!session.signedIn) {
+    await session.restore();
+    signedIn.value = session.signedIn;
+    if (!signedIn.value) {
       apply(null);
-      error.value = "共处边界保存在你的账号下：登录后即可设置并同步到各页面。";
       return;
     }
     apply((await client.defaultBoundaryProfile()).profile);
@@ -99,6 +101,18 @@ onMounted(load);
     >
       <template #action>
         <button class="primary" @click="load">重试</button>
+      </template>
+    </StateMessage>
+
+    <StateMessage
+      v-else-if="!signedIn"
+      kind="PERMISSION_DENIED"
+      title="登录后设置共处边界"
+      description="共处边界属于你的私有出行偏好，需要登录后保存和同步。公开规则与现场事实仍可免登录查看。"
+      data-testid="boundary-sign-in"
+    >
+      <template #action>
+        <RouterLink class="btn primary" to="/onboarding">登录 / 注册</RouterLink>
       </template>
     </StateMessage>
 
