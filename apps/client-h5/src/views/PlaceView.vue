@@ -251,8 +251,7 @@ async function toggleWatch() {
   }
 }
 
-type RealityConfirmationType =
-  "still_present" | "not_seen_now" | "facility_still_present" | "facility_removed";
+type RealityConfirmationType = "still_present" | "facility_still_present" | "facility_removed";
 
 async function confirmReality(event: RealityEventView, type: RealityConfirmationType) {
   if (!session.signedIn || confirmationBusyId.value) return;
@@ -274,16 +273,7 @@ async function confirmReality(event: RealityEventView, type: RealityConfirmation
         privacy_state: "private",
       },
       candidates: [],
-      effort:
-        type === "not_seen_now"
-          ? {
-              place_id: placeId.value,
-              duration_bucket: "lt_10_min",
-              covered_zone_ids: event.zone_id ? [event.zone_id] : [],
-              animal_observed: false,
-              observed_at: observedAt,
-            }
-          : null,
+      effort: null,
       confirmation: {
         confirmation_type: type,
         place_id: placeId.value,
@@ -293,11 +283,9 @@ async function confirmReality(event: RealityEventView, type: RealityConfirmation
       external_content: null,
     });
     confirmationMsg.value =
-      type === "not_seen_now"
-        ? "已记录：本次没有看到动物。它不会删除或否定较早的现场记录。"
-        : type === "facility_removed"
-          ? "已记录设施撤除线索，等待核验；历史设施记录不会被直接删除。"
-          : "已记录本次现场确认，等待核验。";
+      type === "facility_removed"
+        ? "已记录设施撤除线索，等待核验；历史设施记录不会被直接删除。"
+        : "已记录本次现场确认，等待核验。";
   } catch (e) {
     confirmationMsg.value = `确认未提交：${presentDescription(e)}`;
   } finally {
