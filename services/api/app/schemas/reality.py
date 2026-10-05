@@ -223,6 +223,7 @@ class FacilitySummaryItem(BaseModel):
     """One animal facility, with its verified freshness (facts only)."""
 
     facility_type: AnimalFacilityType
+    purpose_state: FacilityPurposeState
     count: int
     operational_state: FacilityOperationalState
     last_verified_at: datetime | None
