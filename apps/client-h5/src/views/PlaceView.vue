@@ -78,6 +78,8 @@ const partial = ref<string[]>([]);
 const watching = ref(false);
 const quickMsg = ref("");
 const watchMsg = ref("");
+const confirmationMsg = ref("");
+const confirmationBusyId = ref<string | null>(null);
 const coexistence = ref<CoexistenceSnapshot | null>(null);
 const coexistenceLoaded = ref(false);
 
@@ -222,6 +224,8 @@ watch(
     partial.value = [];
     quickMsg.value = "";
     watchMsg.value = "";
+    confirmationMsg.value = "";
+    confirmationBusyId.value = null;
     watching.value = false;
     coexistence.value = null;
     coexistenceLoaded.value = false;
@@ -244,6 +248,63 @@ async function toggleWatch() {
     }
   } catch (e) {
     watchMsg.value = `关注状态未能更新：${presentDescription(e)}`;
+  }
+}
+
+type RealityConfirmationType =
+  | "still_present"
+  | "not_seen_now"
+  | "facility_still_present"
+  | "facility_removed";
+
+async function confirmReality(event: RealityEventView, type: RealityConfirmationType) {
+  if (!session.signedIn || confirmationBusyId.value) return;
+  confirmationMsg.value = "";
+  confirmationBusyId.value = event.id;
+  const observedAt = new Date().toISOString();
+  try {
+    await client.createRealityReport(placeId.value, {
+      report: {
+        origin: "on_site_now",
+        place_id: placeId.value,
+        subject_place_id: placeId.value,
+        place_match_state: "exact_place",
+        place_match_evidence_types: ["user_confirmation"],
+        time_evidence_state: "live_device_time",
+        observed_at: observedAt,
+        time_certainty: "exact",
+        fact_evidence_state: "first_hand_no_media",
+        privacy_state: "private",
+      },
+      candidates: [],
+      effort:
+        type === "not_seen_now"
+          ? {
+              place_id: placeId.value,
+              duration_bucket: "lt_10_min",
+              covered_zone_ids: event.zone_id ? [event.zone_id] : [],
+              animal_observed: false,
+              observed_at: observedAt,
+            }
+          : null,
+      confirmation: {
+        confirmation_type: type,
+        place_id: placeId.value,
+        target_claim_id: event.id,
+        observed_at: observedAt,
+      },
+      external_content: null,
+    });
+    confirmationMsg.value =
+      type === "not_seen_now"
+        ? "已记录：本次没有看到动物。它不会删除或否定较早的现场记录。"
+        : type === "facility_removed"
+          ? "已记录设施撤除线索，等待核验；历史设施记录不会被直接删除。"
+          : "已记录本次现场确认，等待核验。";
+  } catch (e) {
+    confirmationMsg.value = `确认未提交：${presentDescription(e)}`;
+  } finally {
+    confirmationBusyId.value = null;
   }
 }
 
@@ -387,6 +448,10 @@ const placeFixture = computed<string>(() => {
             :staff-responses="coexistence?.staff_response_summary ?? []"
             :zones="zones"
             :place-id="placeId"
+            :signed-in="session.signedIn"
+            :busy-event-id="confirmationBusyId"
+            :confirmation-message="confirmationMsg"
+            @confirm="confirmReality"
           />
           <PlaceEvidencePane
             v-else-if="view === 'evidence'"
