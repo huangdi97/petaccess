@@ -1005,7 +1005,7 @@ const selectedId = ref<string | null>(null);
   }
 
   .result-row__link {
-    padding: var(--pa-space-3) 0;
+    padding: var(--pa-space-2) 0;
   }
 
   .result-row__name {
