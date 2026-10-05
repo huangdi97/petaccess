@@ -180,7 +180,15 @@ function goHome() {
         :snapshot="preview.snapshot"
         :loading="preview.loading"
         :error="preview.error"
-        :map-lens-name="lens === 'reality' ? '现场' : lens === 'facility' ? '设施' : lens === 'divergence' ? '规则×现场' : ''"
+        :map-lens-name="
+          lens === 'reality'
+            ? '现场'
+            : lens === 'facility'
+              ? '设施'
+              : lens === 'divergence'
+                ? '规则×现场'
+                : ''
+        "
         :map-lens-label="selected && lens !== 'rule' ? lensLabels[selected.id] : ''"
       />
     </div>
@@ -192,7 +200,15 @@ function goHome() {
       :snapshot="preview.snapshot"
       :loading="preview.loading"
       :error="preview.error"
-      :map-lens-name="lens === 'reality' ? '现场' : lens === 'facility' ? '设施' : lens === 'divergence' ? '规则×现场' : ''"
+      :map-lens-name="
+        lens === 'reality'
+          ? '现场'
+          : lens === 'facility'
+            ? '设施'
+            : lens === 'divergence'
+              ? '规则×现场'
+              : ''
+      "
       :map-lens-label="selected && lens !== 'rule' ? lensLabels[selected.id] : ''"
       @close="
         selected = null;
