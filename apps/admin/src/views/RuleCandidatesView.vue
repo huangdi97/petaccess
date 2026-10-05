@@ -269,9 +269,9 @@ onMounted(() => {
                   <dd class="mono">{{ c.published_rule_id ?? "未发布" }}</dd>
                   <dt>明确替换目标</dt>
                   <dd>
-                    <RouterLink v-if="c.supersedes_rule_id" :to="`/rules/${c.supersedes_rule_id}`">
+                    <span v-if="c.supersedes_rule_id" class="mono">
                       规则 {{ shortId(c.supersedes_rule_id) }}
-                    </RouterLink>
+                    </span>
                     <span v-else>无；按普通候选处理</span>
                   </dd>
                   <dt>复核备注</dt>
