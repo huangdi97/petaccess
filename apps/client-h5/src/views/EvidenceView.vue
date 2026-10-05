@@ -176,9 +176,9 @@ const uiState = computed<string>(() => {
 
 const uiFixture = computed<string>(() =>
   uiState.value === "ready"
-    ? "evidence-records-v2"
+    ? "evidence-records-v1"
     : uiState.value === "empty"
-      ? "evidence-empty-v2"
+      ? "evidence-empty-v1"
       : "evidence-other",
 );
 </script>
