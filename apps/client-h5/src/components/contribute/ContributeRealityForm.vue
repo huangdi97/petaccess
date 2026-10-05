@@ -34,7 +34,7 @@ const count = ref("");
 const action = ref("present");
 const staffAction = ref("unknown");
 const staffOutcome = ref("");
-const facilityType = ref("other");
+const facilityType = ref("");
 const facilityOperational = ref("unknown");
 const context = ref("");
 const effortBucket = ref("lt_10_min");
@@ -98,7 +98,13 @@ const FACILITY_STATE_KEYS = ["active", "temporarily_unavailable", "removed", "un
 
 const busy = ref(false);
 const error = ref("");
-const canSubmit = computed(() => props.online && props.signedIn && !busy.value);
+const canSubmit = computed(
+  () =>
+    props.online &&
+    props.signedIn &&
+    !busy.value &&
+    (props.kind !== "animal_facility" || Boolean(facilityType.value)),
+);
 
 async function submit() {
   if (!canSubmit.value || !props.placeId) return;
@@ -233,6 +239,7 @@ async function submit() {
         <template v-else>
           <label for="reality-facility-type">设施类型</label>
           <select v-model="facilityType" id="reality-facility-type">
+            <option value="" disabled>请选择设施类型</option>
             <option v-for="key in FACILITY_TYPE_KEYS" :key="key" :value="key">
               {{ ANIMAL_FACILITY_LABELS[key] }}
             </option>
