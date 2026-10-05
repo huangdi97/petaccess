@@ -715,8 +715,7 @@ def admin_candidate_preflight(
         "review_status": cand.review_status,
         "publishable": not violations and cand.review_status == "APPROVED",
         "violations": [
-            {"code": violation.code, "message": violation.message}
-            for violation in violations
+            {"code": violation.code, "message": violation.message} for violation in violations
         ],
     }
 
