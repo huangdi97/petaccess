@@ -50,6 +50,7 @@ from app.schemas.reality import (
     RealityCandidateIn,
     RealityCandidateOut,
     RealityDecisionIn,
+    RealityEventOut,
     StaffResponseObservationOut,
 )
 from app.services.reality_summary import (
@@ -84,6 +85,115 @@ def place_reality(
     if db.get(Place, place_id) is None:
         raise NotFound("场所不存在")
     return RealityAnswer(**_reality_answer_for_place(db, place_id, datetime.now(UTC)))
+
+
+
+def _enum_text(value: object | None) -> str | None:
+    """Return the stable string value of a SQLAlchemy enum/string field."""
+    if value is None:
+        return None
+    return str(getattr(value, "value", value))
+
+
+def _presence_event(row: ObservedPresence) -> RealityEventOut:
+    return RealityEventOut(
+        id=row.id,
+        event_type="observed_presence",
+        place_id=row.place_id,
+        zone_id=row.zone_id,
+        event_at=row.observed_at,
+        time_basis="observed",
+        animal_scope=_enum_text(row.animal_scope),
+        observed_action=_enum_text(row.observed_action),
+        observed_context=row.observed_context,
+        source_id=row.source_id,
+        evidence_bundle_id=row.evidence_bundle_id,
+        verification_status=_enum_text(row.verification_status) or "unverified",
+        freshness_state=_enum_text(row.freshness_state),
+        last_verified_at=row.last_verified_at,
+    )
+
+
+def _staff_event(row: StaffResponseObservation) -> RealityEventOut:
+    return RealityEventOut(
+        id=row.id,
+        event_type="staff_response",
+        place_id=row.place_id,
+        zone_id=row.zone_id,
+        event_at=row.observed_at,
+        time_basis="observed",
+        observed_context=row.trigger_context,
+        staff_actor_role=_enum_text(row.actor_role),
+        staff_action=_enum_text(row.response_action),
+        staff_outcome=row.response_outcome,
+        source_id=row.source_id,
+        evidence_bundle_id=row.evidence_bundle_id,
+        verification_status=_enum_text(row.verification_status) or "unverified",
+        freshness_state=_enum_text(row.freshness_state),
+        last_verified_at=row.last_verified_at,
+    )
+
+
+def _facility_event(row: AnimalFacility) -> RealityEventOut:
+    event_at = row.observed_at or row.last_verified_at or row.created_at
+    basis = "observed" if row.observed_at else "verified" if row.last_verified_at else "recorded"
+    return RealityEventOut(
+        id=row.id,
+        event_type="animal_facility",
+        place_id=row.place_id,
+        zone_id=row.zone_id,
+        event_at=event_at,
+        time_basis=basis,
+        facility_type=_enum_text(row.facility_type),
+        facility_state=_enum_text(row.operational_state),
+        facility_count=row.capacity,
+        source_id=row.source_id,
+        evidence_bundle_id=row.evidence_bundle_id,
+        verification_status=_enum_text(row.verification_status) or "unverified",
+        freshness_state=_enum_text(row.freshness_state),
+        last_verified_at=row.last_verified_at,
+    )
+
+
+@router.get("/places/{place_id}/reality/events", response_model=list[RealityEventOut])
+def consumer_reality_events(
+    place_id: str,
+    limit: int = Query(default=50, ge=1, le=100),
+    user: User | None = Depends(get_optional_user),
+    db: Session = Depends(get_db),
+) -> list[RealityEventOut]:
+    """Published human-verified Reality facts as one consumer timeline."""
+    if db.get(Place, place_id) is None:
+        raise NotFound("场所不存在")
+    presence = db.scalars(
+        select(ObservedPresence)
+        .where(
+            ObservedPresence.place_id == place_id,
+            ObservedPresence.verification_status.in_(VERIFIED),
+        )
+        .order_by(ObservedPresence.observed_at.desc())
+        .limit(limit)
+    ).all()
+    staff = db.scalars(
+        select(StaffResponseObservation)
+        .where(
+            StaffResponseObservation.place_id == place_id,
+            StaffResponseObservation.verification_status.in_(VERIFIED),
+        )
+        .order_by(StaffResponseObservation.observed_at.desc())
+        .limit(limit)
+    ).all()
+    facilities = db.scalars(
+        select(AnimalFacility)
+        .where(
+            AnimalFacility.place_id == place_id,
+            AnimalFacility.verification_status.in_(VERIFIED),
+        )
+        .order_by(AnimalFacility.created_at.desc())
+        .limit(limit)
+    ).all()
+    events = [*map(_presence_event, presence), *map(_staff_event, staff), *map(_facility_event, facilities)]
+    return sorted(events, key=lambda item: item.event_at, reverse=True)[:limit]
 
 
 # ---------------------------------------------------------------------------
