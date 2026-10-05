@@ -38,6 +38,28 @@
         "entityId": "3b5a341a-e550-5f0c-b35a-319ed43bd840",
         "h1": "星河咖啡·栖霞分店"
       }
+    },
+    {
+      "id": "place-space",
+      "route": "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e?view=space",
+      "expect": {
+        "page": "place",
+        "state": "ready",
+        "fixture": "place-ready-v1",
+        "entityId": "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+        "h1": "云栖中心·测试商场"
+      }
+    },
+    {
+      "id": "place-reality",
+      "route": "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e?view=reality",
+      "expect": {
+        "page": "place",
+        "state": "ready",
+        "fixture": "place-ready-v1",
+        "entityId": "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+        "h1": "云栖中心·测试商场"
+      }
     }
   ],
   "elements": [
@@ -417,6 +439,24 @@
         "查看证据",
         "为什么",
         "纠错"
+      ]
+    },
+    {
+      "id": "PLACE_STAFF_RESPONSE_DETAIL",
+      "selector": "[data-ui='place-staff-response']",
+      "min": 1,
+      "severity": "FAIL",
+      "pages": [
+        "place-reality"
+      ]
+    },
+    {
+      "id": "PLACE_ANIMAL_FACILITY_DETAIL",
+      "selector": "[data-ui='place-animal-facilities']",
+      "min": 1,
+      "severity": "FAIL",
+      "pages": [
+        "place-space"
       ]
     }
   ],
