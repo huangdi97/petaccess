@@ -54,7 +54,8 @@ const realityMetaLine = computed(() => {
   if (!reality) return "";
   const parts: string[] = [];
   if (reality.evidence_count > 0) parts.push(`${reality.evidence_count} 条现场证据`);
-  if (reality.days_since_last_seen != null) parts.push(`最近一次 ${reality.days_since_last_seen} 天前`);
+  if (reality.days_since_last_seen != null)
+    parts.push(`最近一次 ${reality.days_since_last_seen} 天前`);
   return parts.join(" · ");
 });
 const primaryEvidence = computed(

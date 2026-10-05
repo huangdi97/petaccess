@@ -122,9 +122,7 @@ function toggleFilter(key: string) {
         >
           清除筛选
         </button>
-        <p class="muted map-filter__hint">
-          筛选只影响规则镜头；信息不足的场所默认仍然显示。
-        </p>
+        <p class="muted map-filter__hint">筛选只影响规则镜头；信息不足的场所默认仍然显示。</p>
       </div>
     </div>
     <p v-else class="muted map-lens-note" data-testid="map-lens-note">
