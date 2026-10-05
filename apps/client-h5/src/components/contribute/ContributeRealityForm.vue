@@ -15,6 +15,7 @@ defineOptions({ name: "ContributeRealityForm" });
 const props = defineProps<{
   placeId: string;
   placeName: string;
+  parentPlaceId?: string | null;
   zones: { id: string; name: string }[];
   online: boolean;
   signedIn: boolean;
@@ -35,6 +36,9 @@ const externalUrl = ref("");
 const externalPlatform = ref("web");
 const externalPublishedAt = ref("");
 const externalEventAt = ref("");
+const externalPlaceMatch = ref<"exact_place" | "parent_place_only" | "area_only" | "unresolved">(
+  "exact_place",
+);
 const mediaId = ref<string | null>(null);
 const mediaMessage = ref("");
 const uploading = ref(false);
@@ -187,6 +191,15 @@ async function submit() {
     const externalPublishedIso =
       isExternal.value && externalPublishedAt.value ? isoAt(externalPublishedAt.value) : null;
     const eventAt = onsiteAt ?? externalEventIso;
+    const placeMatchState = isExternal.value ? externalPlaceMatch.value : "exact_place";
+    const reportPlaceId =
+      placeMatchState === "parent_place_only" && props.parentPlaceId
+        ? props.parentPlaceId
+        : props.placeId;
+    const candidatePlaceId =
+      placeMatchState === "parent_place_only" && props.parentPlaceId
+        ? props.parentPlaceId
+        : undefined;
     const { payload, animalScope } = realityPayload(props.kind, {
       animal: animal.value,
       count: count.value,
@@ -204,9 +217,14 @@ async function submit() {
     const res = await client.createRealityReport(props.placeId, {
       report: {
         origin: sourceMode.value,
-        place_id: props.placeId,
-        place_match_state: "exact_place",
-        place_match_evidence_types: ["user_confirmation"],
+        place_id: reportPlaceId,
+        container_place_id:
+          placeMatchState === "parent_place_only" && props.parentPlaceId ? props.parentPlaceId : null,
+        subject_place_id: placeMatchState === "exact_place" ? props.placeId : null,
+        place_match_state: placeMatchState,
+        place_match_evidence_types: isExternal.value
+          ? ["source_url", ...(placeMatchState === "exact_place" ? ["user_confirmation"] : [])]
+          : ["user_confirmation"],
         content_published_at: externalPublishedIso,
         claimed_event_at: externalEventIso,
         observed_at: onsiteAt,
@@ -233,7 +251,8 @@ async function submit() {
       candidates: [
         {
           candidate_type: kind,
-          zone_id: zone.value || null,
+          place_id: candidatePlaceId,
+          zone_id: placeMatchState === "exact_place" ? zone.value || null : null,
           animal_scope: animalScope,
           observed_at: eventAt,
           payload,
@@ -302,6 +321,23 @@ async function submit() {
             placeholder="https://…"
             data-testid="reality-source-url"
           />
+          <label for="reality-place-match">内容能定位到哪里？</label>
+          <select
+            id="reality-place-match"
+            v-model="externalPlaceMatch"
+            data-testid="reality-place-match"
+          >
+            <option value="exact_place">能确认就是当前场所</option>
+            <option v-if="parentPlaceId" value="parent_place_only">
+              只能确认到当前场所所在的上级场所
+            </option>
+            <option value="area_only">只能确认到附近区域</option>
+            <option value="unresolved">无法可靠确认具体地点</option>
+          </select>
+          <p class="muted source-note">
+            只有精确匹配到具体场所的记录，才可能在人工核验后成为该场所的公开现场事实。
+          </p>
+
           <label for="reality-source-platform">来源平台</label>
           <select
             id="reality-source-platform"
