@@ -34,6 +34,7 @@ from app.models import (
     RealityCandidate,
     StaffResponseObservation,
     User,
+    Zone,
 )
 from app.models.enums import (
     REALITY_VERIFIED_DECISIONS,
@@ -51,7 +52,6 @@ from app.schemas.reality import (
     RealityCandidateOut,
     RealityDecisionIn,
     StaffResponseObservationOut,
-    StaffResponseSummaryItem,
 )
 from app.services.reality_summary import (
     _Row,
@@ -84,103 +84,7 @@ def place_reality(
     """The reality half of a CoexistenceSnapshot, per place (v0.9 §9)."""
     if db.get(Place, place_id) is None:
         raise NotFound("场所不存在")
-
-    now = datetime.now(UTC)
-
-    # Published, human-verified observed-presence claims (oldest first).
-    claims = db.scalars(
-        select(ObservedPresence)
-        .where(
-            ObservedPresence.place_id == place_id,
-            ObservedPresence.verification_status.in_(
-                [
-                    RealityVerificationStatus.HUMAN_VERIFIED.value,
-                    RealityVerificationStatus.HUMAN_VERIFIED_WITH_NOTE.value,
-                ]
-            ),
-        )
-        .order_by(ObservedPresence.observed_at.asc())
-    ).all()
-
-    rows = [
-        _Row(
-            observed_at=c.observed_at,
-            source_id=c.source_id,
-            evidence_id=c.evidence_bundle_id,
-            zone_name=None,  # zone name resolved by caller if needed
-            action=c.observed_action if c.observed_action else None,
-            human_verified=True,
-        )
-        for c in claims
-    ]
-    summary = summarize(rows, now=now)
-
-    # Staff response summary (facts only: action counts).
-    srows = db.execute(
-        select(StaffResponseObservation.response_action, func.count())
-        .where(
-            StaffResponseObservation.place_id == place_id,
-            StaffResponseObservation.verification_status.in_(
-                [
-                    RealityVerificationStatus.HUMAN_VERIFIED.value,
-                    RealityVerificationStatus.HUMAN_VERIFIED_WITH_NOTE.value,
-                ]
-            ),
-        )
-        .group_by(StaffResponseObservation.response_action)
-    ).all()
-    staff_summary = [
-        StaffResponseSummaryItem(response_action=a, count=n)
-        for a, n in sorted(srows, key=lambda x: str(x[0]))
-        if a
-    ]
-
-    # Facility summary (facts only).
-    frows = db.execute(
-        select(
-            AnimalFacility.facility_type,
-            AnimalFacility.operational_state,
-            func.count(),
-            func.max(AnimalFacility.last_verified_at),
-        )
-        .where(
-            AnimalFacility.place_id == place_id,
-            AnimalFacility.verification_status.in_(
-                [
-                    RealityVerificationStatus.HUMAN_VERIFIED.value,
-                    RealityVerificationStatus.HUMAN_VERIFIED_WITH_NOTE.value,
-                ]
-            ),
-            AnimalFacility.operational_state != "removed",
-        )
-        .group_by(AnimalFacility.facility_type, AnimalFacility.operational_state)
-    ).all()
-    facility_summary = [
-        FacilitySummaryItem(
-            facility_type=ft,
-            count=n,
-            operational_state=st,
-            last_verified_at=maxv,
-        )
-        for ft, st, n, maxv in frows
-    ]
-
-    return RealityAnswer(
-        state=summary.state,
-        last_seen_at=summary.last_seen_at,
-        evidence_count=summary.evidence_count,
-        distinct_source_count=summary.distinct_source_count,
-        observed_zones=list(summary.observed_zones),
-        observed_actions=list(summary.observed_actions),
-        staff_response_summary=staff_summary,
-        facility_summary=facility_summary,
-        freshness_state=summary.freshness_state,
-        verification_state=summary.verification_state,
-        recent_count_7d=summary.recent_count_7d,
-        recent_count_30d=summary.recent_count_30d,
-        days_since_last_seen=summary.days_since_last_seen,
-        note=summary.note,
-    )
+    return RealityAnswer(**_reality_answer_for_place(db, place_id, datetime.now(UTC)))
 
 
 # ---------------------------------------------------------------------------
@@ -628,54 +532,57 @@ def coexistence_snapshot(place_id: str, body: dict, db: Session = Depends(get_db
     return to_plain(snapshot)
 
 
-def _reality_answer_for_place(db: Session, place_id: str, now: datetime) -> dict:
-    """Build the consumer RealityAnswer dict (same logic as GET /reality)."""
-    from app.services.reality_summary import _Row, summarize
+VERIFIED_REALITY_STATUSES = (
+    RealityVerificationStatus.HUMAN_VERIFIED.value,
+    RealityVerificationStatus.HUMAN_VERIFIED_WITH_NOTE.value,
+)
 
-    claims = db.scalars(
-        select(ObservedPresence)
+
+def _presence_summary(db: Session, place_id: str, now: datetime):
+    """Summarize verified presence and preserve the observed Zone names."""
+    claims = db.execute(
+        select(ObservedPresence, Zone.name)
+        .outerjoin(Zone, Zone.id == ObservedPresence.zone_id)
         .where(
             ObservedPresence.place_id == place_id,
-            ObservedPresence.verification_status.in_(
-                [
-                    RealityVerificationStatus.HUMAN_VERIFIED.value,
-                    RealityVerificationStatus.HUMAN_VERIFIED_WITH_NOTE.value,
-                ]
-            ),
+            ObservedPresence.verification_status.in_(VERIFIED_REALITY_STATUSES),
         )
         .order_by(ObservedPresence.observed_at.asc())
     ).all()
-    rows = [
-        _Row(
-            observed_at=c.observed_at,
-            source_id=c.source_id,
-            evidence_id=c.evidence_bundle_id,
-            zone_name=None,
-            action=c.observed_action if c.observed_action else None,
-            human_verified=True,
-        )
-        for c in claims
-    ]
-    summary = summarize(rows, now=now)
+    return summarize(
+        [
+            _Row(
+                observed_at=claim.observed_at,
+                source_id=claim.source_id,
+                evidence_id=claim.evidence_bundle_id,
+                zone_name=zone_name,
+                action=claim.observed_action if claim.observed_action else None,
+                human_verified=True,
+            )
+            for claim, zone_name in claims
+        ],
+        now=now,
+    )
 
-    srows = db.execute(
+
+def _staff_response_summary(db: Session, place_id: str) -> list[dict]:
+    rows = db.execute(
         select(StaffResponseObservation.response_action, func.count())
         .where(
             StaffResponseObservation.place_id == place_id,
-            StaffResponseObservation.verification_status.in_(
-                [
-                    RealityVerificationStatus.HUMAN_VERIFIED.value,
-                    RealityVerificationStatus.HUMAN_VERIFIED_WITH_NOTE.value,
-                ]
-            ),
+            StaffResponseObservation.verification_status.in_(VERIFIED_REALITY_STATUSES),
         )
         .group_by(StaffResponseObservation.response_action)
     ).all()
-    staff_summary = [
-        {"response_action": a, "count": n} for a, n in sorted(srows, key=lambda x: str(x[0])) if a
+    return [
+        {"response_action": action, "count": count}
+        for action, count in sorted(rows, key=lambda item: str(item[0]))
+        if action
     ]
 
-    frows = db.execute(
+
+def _facility_summary(db: Session, place_id: str) -> list[dict]:
+    rows = db.execute(
         select(
             AnimalFacility.facility_type,
             AnimalFacility.operational_state,
@@ -684,25 +591,41 @@ def _reality_answer_for_place(db: Session, place_id: str, now: datetime) -> dict
         )
         .where(
             AnimalFacility.place_id == place_id,
-            AnimalFacility.verification_status.in_(
-                [
-                    RealityVerificationStatus.HUMAN_VERIFIED.value,
-                    RealityVerificationStatus.HUMAN_VERIFIED_WITH_NOTE.value,
-                ]
-            ),
+            AnimalFacility.verification_status.in_(VERIFIED_REALITY_STATUSES),
             AnimalFacility.operational_state != "removed",
         )
         .group_by(AnimalFacility.facility_type, AnimalFacility.operational_state)
     ).all()
-    facility_summary = [
+    return [
         {
-            "facility_type": ft,
-            "count": n,
-            "operational_state": st,
-            "last_verified_at": maxv,
+            "facility_type": facility_type,
+            "count": count,
+            "operational_state": state,
+            "last_verified_at": last_verified_at,
         }
-        for ft, st, n, maxv in frows
+        for facility_type, state, count, last_verified_at in rows
     ]
+
+
+def _reality_answer_for_place(db: Session, place_id: str, now: datetime) -> dict:
+    """Build the one consumer RealityAnswer used by GET and CoexistenceSnapshot."""
+    summary = _presence_summary(db, place_id, now)
+    return {
+        "state": summary.state,
+        "last_seen_at": summary.last_seen_at,
+        "evidence_count": summary.evidence_count,
+        "distinct_source_count": summary.distinct_source_count,
+        "observed_zones": list(summary.observed_zones),
+        "observed_actions": list(summary.observed_actions),
+        "staff_response_summary": _staff_response_summary(db, place_id),
+        "facility_summary": _facility_summary(db, place_id),
+        "freshness_state": summary.freshness_state,
+        "verification_state": summary.verification_state,
+        "recent_count_7d": summary.recent_count_7d,
+        "recent_count_30d": summary.recent_count_30d,
+        "days_since_last_seen": summary.days_since_last_seen,
+        "note": summary.note,
+    }
 
     return {
         "state": summary.state,
