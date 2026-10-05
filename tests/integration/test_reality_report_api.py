@@ -147,7 +147,7 @@ def test_anonymous_on_site_now_report_with_candidate_never_verifies(client, plac
 
 
 def test_raw_reality_report_parents_are_not_public(client, place_id):
-    """Report parents contain private provenance and one-time tokens; claims are the public layer."""
+    """Report parents keep private provenance/tokens; published claims are the public layer."""
     r = client.get(f"/api/v1/places/{place_id}/reality/reports")
     assert r.status_code in (401, 403), r.text
 
@@ -391,7 +391,10 @@ def test_reality_events_expose_only_published_verified_facts(client, place_id, s
     r = client.get(f"/api/v1/places/{place_id}/reality/events")
     assert r.status_code == 200, r.text
     events = r.json()
-    assert all(event["verification_status"] in {"human_verified", "human_verified_with_note"} for event in events)
+    assert all(
+        event["verification_status"] in {"human_verified", "human_verified_with_note"}
+        for event in events
+    )
     assert all(event["id"] != pending_id for event in events)
     assert all("reviewer" not in event for event in events)
     assert all("policy_statement_verbatim" not in event for event in events)
