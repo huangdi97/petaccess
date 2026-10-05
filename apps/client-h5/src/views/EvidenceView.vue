@@ -79,8 +79,8 @@ function issuerVerificationLabel(value: string): string {
   return "核验状态未知";
 }
 
-const latestEvent = computed(() =>
-  [...events.value].sort((a, b) => b.event_at.localeCompare(a.event_at))[0] ?? null,
+const latestEvent = computed(
+  () => [...events.value].sort((a, b) => b.event_at.localeCompare(a.event_at))[0] ?? null,
 );
 
 const recordIdentity = computed(() => {
@@ -131,8 +131,12 @@ const reviewedEventCount = computed(
 
 const sourceSummary = computed(() => {
   if (!sources.value.length) return "来源待补充";
-  const pending = sources.value.filter((source) => source.issuer_verification === "unverified").length;
-  return pending ? `${sources.value.length} 个来源 · ${pending} 个待核验` : `${sources.value.length} 个来源`;
+  const pending = sources.value.filter(
+    (source) => source.issuer_verification === "unverified",
+  ).length;
+  return pending
+    ? `${sources.value.length} 个来源 · ${pending} 个待核验`
+    : `${sources.value.length} 个来源`;
 });
 
 async function load() {
@@ -280,7 +284,11 @@ const uiFixture = computed<string>(() =>
 
         <section class="evidence-section" data-testid="rule-evidence-items" aria-label="规则依据">
           <h2 class="evidence-section__title">规则依据</h2>
-          <div v-for="(item, index) in ruleEvidence" :key="item.source_id + '-' + index" class="surface-row">
+          <div
+            v-for="(item, index) in ruleEvidence"
+            :key="item.source_id + '-' + index"
+            class="surface-row"
+          >
             <span>{{ item.issuer || "来源待补充" }}</span>
             <span class="muted evidence-source__meta">
               {{ sourceTypeLabel(item.source_type || "") }}
