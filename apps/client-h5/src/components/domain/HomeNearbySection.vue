@@ -39,7 +39,6 @@ const emit = defineEmits<{
 const freshness = computed(() =>
   freshnessLineFor(props.listStale, props.nearbyFetchedAtMs, !props.online),
 );
-
 </script>
 
 <template>
@@ -77,7 +76,11 @@ const freshness = computed(() =>
           {{ freshness }}
         </p>
 
-        <HomeDigestHighlights :verified="verified" :pending="pending" @open="emit('open', $event)" />
+        <HomeDigestHighlights
+          :verified="verified"
+          :pending="pending"
+          @open="emit('open', $event)"
+        />
 
         <h2 class="home-section-title home-section-title--stacked">规则与现场速览</h2>
 
@@ -175,5 +178,4 @@ const freshness = computed(() =>
   line-height: var(--pa-line-height-26);
   color: var(--pa-color-text-primary);
 }
-
 </style>
