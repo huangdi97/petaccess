@@ -135,14 +135,23 @@ const divergenceLine = computed(() => {
         <p v-if="staffSummaryLine" class="coexistence-fact">
           <span class="coexistence-fact__label">工作人员处理</span>
           <span>{{ staffSummaryLine }}</span>
+          <RouterLink class="btn-inline coexistence-fact__link" :to="`?view=reality`">
+            查看处理记录 →
+          </RouterLink>
         </p>
         <p v-if="facilitySummaryLine" class="coexistence-fact">
-          <span class="coexistence-fact__label">相关设施</span>
+          <span class="coexistence-fact__label">动物设施</span>
           <span>{{ facilitySummaryLine }}</span>
+          <RouterLink class="btn-inline coexistence-fact__link" :to="`?view=space`">
+            查看设施 →
+          </RouterLink>
         </p>
         <p v-if="divergenceLine" class="coexistence-fact coexistence-fact--divergence">
           <span class="coexistence-fact__label">规则与现场</span>
           <span>{{ divergenceLine }}</span>
+          <RouterLink class="btn-inline coexistence-fact__link" :to="`?view=evidence`">
+            查看依据 →
+          </RouterLink>
         </p>
       </div>
       <RouterLink class="btn-inline" :to="`?view=reality`" data-testid="overview-reality-link">
@@ -356,7 +365,7 @@ const divergenceLine = computed(() => {
 
 .coexistence-fact {
   display: grid;
-  grid-template-columns: 7rem minmax(0, 1fr);
+  grid-template-columns: 7rem minmax(0, 1fr) auto;
   gap: var(--pa-space-3);
   margin: 0;
   font-size: var(--pa-font-size-md);
@@ -366,6 +375,11 @@ const divergenceLine = computed(() => {
 
 .coexistence-fact__label {
   color: var(--pa-color-text-muted);
+}
+
+.coexistence-fact__link {
+  white-space: nowrap;
+  align-self: start;
 }
 
 .coexistence-fact--divergence {
@@ -388,7 +402,9 @@ const divergenceLine = computed(() => {
   }
 
   .coexistence-fact {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
     gap: var(--pa-space-1);
   }
 }
