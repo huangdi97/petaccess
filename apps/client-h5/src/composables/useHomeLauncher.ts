@@ -88,6 +88,7 @@ export function useHomeLauncher() {
     cards.value.filter((card) => {
       if (ANSWERED_STATUSES.includes(card.status)) return true;
       if ((card.facts.reality?.evidence_count ?? 0) > 0) return true;
+      if ((card.facts.snapshot?.evidence_summary.reality_evidence_count ?? 0) > 0) return true;
       return (card.facts.snapshot?.evidence_summary.rule_evidence.length ?? 0) > 0;
     }),
   );
