@@ -223,6 +223,31 @@ export interface CoexistenceSnapshot {
   evidence_summary: EvidenceSummary;
 }
 
+
+/** One published, human-verified Reality fact in the consumer timeline. */
+export interface RealityEventView {
+  id: string;
+  event_type: "observed_presence" | "staff_response" | "animal_facility";
+  place_id: string;
+  zone_id: string | null;
+  event_at: string;
+  time_basis: "observed" | "verified" | "recorded";
+  animal_scope: string | null;
+  observed_action: string | null;
+  observed_context: string | null;
+  staff_actor_role: string | null;
+  staff_action: string | null;
+  staff_outcome: string | null;
+  facility_type: string | null;
+  facility_state: string | null;
+  facility_count: number | null;
+  source_id: string | null;
+  evidence_bundle_id: string | null;
+  verification_status: string;
+  freshness_state: string | null;
+  last_verified_at: string | null;
+}
+
 export interface AnswerCell {
   question: string;
   state: string;
@@ -760,6 +785,9 @@ export const client = {
   },
   async placeReality(placeId: string) {
     return api.request<RealityAnswer>("get", `/places/${placeId}/reality`);
+  },
+  async realityEvents(placeId: string) {
+    return api.request<RealityEventView[]>("get", `/places/${placeId}/reality/events`);
   },
   /**
    * CoexistenceSnapshot — the ONE aggregate every consumer surface reads
