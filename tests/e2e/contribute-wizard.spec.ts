@@ -204,6 +204,58 @@ test("A2.3 — 场所纠错只提交 review lead，不直接修改场所", async
   });
 });
 
+test("A2.4 — “这次没看到”记录 effort，而不是生成动物缺席 claim", async ({
+  page,
+  request,
+}) => {
+  const token = await signIn(request);
+  const eventsResponse = await request.get(`${API}/places/${MALL_ID}/reality/events`);
+  expect(eventsResponse.ok()).toBeTruthy();
+  const events = (await eventsResponse.json()) as {
+    id: string;
+    event_type: string;
+    zone_id: string | null;
+  }[];
+  const target = events.find((event) => event.event_type === "observed_presence");
+  expect(target).toBeTruthy();
+
+  await page.addInitScript((t) => localStorage.setItem("pa_token", t), token);
+  const targetQuery = encodeURIComponent(target!.id);
+  const zoneQuery = target!.zone_id ? `&zone=${encodeURIComponent(target!.zone_id)}` : "";
+  await page.goto(
+    `${BASE}/#/contribute/${MALL_ID}?mode=effort&target=${targetQuery}${zoneQuery}`,
+    { waitUntil: "load" },
+  );
+  await expect(page.getByTestId("effort-duration")).toBeVisible({ timeout: 15000 });
+  await page.getByTestId("effort-duration").selectOption("min_10_30");
+
+  const reportRequestPromise = page.waitForRequest(
+    (r) => r.method() === "POST" && r.url().includes(`/places/${MALL_ID}/reality/reports`),
+  );
+  await page.getByTestId("effort-submit").click();
+  const body = (await reportRequestPromise).postDataJSON() as {
+    candidates: unknown[];
+    effort: {
+      duration_bucket: string;
+      animal_observed: boolean;
+      covered_zone_ids: string[];
+    };
+    confirmation: {
+      confirmation_type: string;
+      target_claim_id: string;
+    };
+  };
+  expect(body.candidates).toEqual([]);
+  expect(body.effort.animal_observed).toBe(false);
+  expect(body.effort.duration_bucket).toBe("min_10_30");
+  if (target!.zone_id) expect(body.effort.covered_zone_ids).toContain(target!.zone_id);
+  expect(body.confirmation.confirmation_type).toBe("not_seen_now");
+  expect(body.confirmation.target_claim_id).toBe(target!.id);
+  await expect(page.getByTestId("contribute-result")).toContainText("不会生成", {
+    timeout: 15000,
+  });
+});
+
 test("B2 — 我的贡献：提交后可见、空时走统一空态", async ({ page, request }) => {
   // Fresh user with no contributions → unified empty copy.
   const tokenA = await signIn(request);
