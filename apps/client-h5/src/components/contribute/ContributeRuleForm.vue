@@ -1,12 +1,15 @@
 <script setup lang="ts">
 /**
- * ContributeRuleForm — 我知道规则（结构化表单，legacy createObservation 规则路径）。
- * 提交为「用户陈述」，与场所正式规则并存展示，不覆盖已收录规则。
- * v0.2.5 §28–32：统一走 ContributeStepShell；条件选项组改为 checkbox option rows（非 pill）。
+ * ContributeRuleForm — structured Rule lead, never an Observation.
+ *
+ * A visitor can report what they saw/heard about a rule, but the submission
+ * remains review evidence until a reviewer creates/accepts a RuleCandidate.
+ * Observation != Rule is structural here: this form never calls the onsite
+ * Observation endpoint.
  */
 import { computed, ref } from "vue";
 import { client } from "@petaccess/client-core";
-import { isoAt, proximity } from "./contributeSupport";
+import { proximity } from "./contributeSupport";
 import { presentDescription } from "../../errors";
 import ContributionStepShell from "./ContributionStepShell.vue";
 
@@ -47,22 +50,27 @@ async function submit() {
   error.value = "";
   busy.value = true;
   try {
-    await client.createObservation({
+    const resultLabel =
+      knowRule.value === "allowed"
+        ? "明确允许"
+        : knowRule.value === "restricted"
+          ? "明确限制"
+          : "有条件进入";
+    const zoneLabel = props.zones.find((item) => item.id === zone.value)?.name ?? "全场 / 不确定";
+    const conditionLabel = conditions.value.length ? conditions.value.join("、") : "未补充条件";
+    await client.verify({
       place_id: props.placeId,
       zone_id: zone.value || null,
-      occurred_at: isoAt(new Date().toISOString().slice(0, 10)),
-      occurred_precision: "same_day",
-      animal_scope: "dog",
-      observed_action: "enter",
-      staff_action: "no_interaction_observed",
-      place_confidence: "confirmed_on_site",
-      note: [`用户声明：${knowRule.value}`, conditions.value.join(",")].filter(Boolean).join(" | "),
+      rule_id: null,
+      event_type: "rule_lead_submitted",
+      result: "uncertain",
+      note: `规则线索：${resultLabel}；区域：${zoneLabel}；条件：${conditionLabel}`,
       evidence_refs: null,
       ...proximity(),
     });
     emit(
       "done",
-      "已提交你的说明。这是「用户陈述」，会与场所正式规则并存展示，不会覆盖已收录的规则。",
+      "规则线索已提交，等待人工复核。它不会作为现场 Observation 展示，也不会自动变成正式规则。",
     );
   } catch (e) {
     error.value = presentDescription(e);
@@ -77,8 +85,8 @@ async function submit() {
     :place-name="placeName"
     :step="1"
     :total="3"
-    title="我知道规则"
-    description="你的说明会以「用户陈述」与场所正式规则并存展示，不会覆盖已收录规则。"
+    title="我看到或了解到一条规则"
+    description="先把它作为规则线索提交。人工核验并形成正式 RuleCandidate 之前，不会改变页面上的正式规则结论。"
     @back="emit('back')"
   >
     <div v-if="error" class="notice" data-testid="rule-error">{{ error }}</div>
