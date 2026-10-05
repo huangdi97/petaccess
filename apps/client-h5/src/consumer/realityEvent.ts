@@ -2,6 +2,7 @@ import type { RealityEventView } from "@petaccess/client-core";
 import {
   animalFacilityLabel,
   animalScopeLabel,
+  facilityAccessModeLabel,
   facilityStateLabel,
   observedActionLabel,
   staffActionLabel,
@@ -24,8 +25,12 @@ export function realityEventDetail(event: RealityEventView): string {
     return event.staff_outcome || event.observed_context || "";
   }
   if (event.event_type === "animal_facility") {
-    const parts = [facilityStateLabel(event.facility_state)];
-    if (event.facility_count != null) parts.push(`容量 ${event.facility_count}`);
+    const parts = [
+      facilityStateLabel(event.facility_state),
+      facilityAccessModeLabel(event.facility_access_mode),
+    ];
+    if (event.facility_capacity != null) parts.push(`容量 ${event.facility_capacity}`);
+    if (event.facility_size_limit) parts.push(`体型限制 ${event.facility_size_limit}`);
     return parts.join(" · ");
   }
   return event.observed_context || "";
