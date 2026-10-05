@@ -263,7 +263,7 @@ test("A3 — 规则线索直接进入 RuleCandidate review，不走 Observation"
   await page.goto(`${BASE}/#/contribute/${MALL_ID}`, { waitUntil: "load" });
   await expect(page.getByTestId("entry-rule")).toBeVisible({ timeout: 15000 });
   await page.getByTestId("entry-rule").click();
-  await page.locator("[data-testid='rule-effect']").selectOption("conditional");
+  await page.getByTestId("rule-known").selectOption("conditional");
 
   const leadRequest = page.waitForRequest(
     (r) => r.method() === "POST" && r.url().includes(`/api/v1/places/${MALL_ID}/rule-leads`),
