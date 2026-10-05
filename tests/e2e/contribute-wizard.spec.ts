@@ -63,7 +63,15 @@ test("A2 — 现场记录经父流提交，候选进入人工审核队列", asyn
   await expect(page.getByTestId("reality-date")).toBeVisible();
   await page.getByTestId("reality-date").fill("2026-09-20");
   await page.getByTestId("reality-count").fill("2");
+  const reportRequestPromise = page.waitForRequest(
+    (r) => r.method() === "POST" && r.url().includes(`/places/${MALL_ID}/reality/reports`),
+  );
   await page.getByTestId("reality-submit").click();
+  const reportBody = (await reportRequestPromise).postDataJSON() as {
+    effort: { duration_bucket: string; animal_observed: boolean };
+  };
+  expect(reportBody.effort.duration_bucket).toBe("unknown");
+  expect(reportBody.effort.animal_observed).toBe(true);
   // Bounded 15s: the parent-flow POST + candidate write can exceed the default
   // 5s expect under parallel workers (same pattern as B2).
   await expect(page.getByTestId("contribute-result")).toBeVisible({ timeout: 15000 });
