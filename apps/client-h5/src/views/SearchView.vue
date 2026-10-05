@@ -171,7 +171,7 @@ function rowEvidenceMeta(p: PlaceSummary): string {
   if (realityMeta) return realityMeta;
 
   const rules = row?.snapshot?.evidence_summary.rule_evidence ?? [];
-  if (!rules.length) return "";
+  if (!rules.length) return "依据待补充";
   const issuer = rules[0]?.issuer;
   return issuer ? `${rules.length} 条规则依据 · ${issuer}` : `${rules.length} 条规则依据`;
 }
