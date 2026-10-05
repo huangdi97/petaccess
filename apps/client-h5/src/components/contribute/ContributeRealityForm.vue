@@ -27,7 +27,17 @@ const KIND_LABELS: Record<string, string> = {
   animal_facility: "我发现这里有动物相关设施",
 };
 
+type SourceMode = "on_site_now" | "on_site_past" | "external_online_content";
+
+const sourceMode = ref<SourceMode>("on_site_now");
 const occurredAt = ref(new Date().toISOString().slice(0, 10));
+const externalUrl = ref("");
+const externalPlatform = ref("web");
+const externalPublishedAt = ref("");
+const externalEventAt = ref("");
+const mediaId = ref<string | null>(null);
+const mediaMessage = ref("");
+const uploading = ref(false);
 const zone = ref("");
 const animal = ref("dog");
 const count = ref("");
@@ -123,13 +133,40 @@ const FACILITY_ACCESS_OPTIONS = [
 
 const busy = ref(false);
 const error = ref("");
+const isExternal = computed(() => sourceMode.value === "external_online_content");
 const canSubmit = computed(
   () =>
     props.online &&
     props.signedIn &&
     !busy.value &&
+    !uploading.value &&
+    (!isExternal.value || Boolean(externalUrl.value.trim() && externalPublishedAt.value)) &&
     (props.kind !== "animal_facility" || Boolean(facilityType.value)),
 );
+
+async function uploadEvidence(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0] ?? null;
+  if (!file) return;
+  error.value = "";
+  mediaMessage.value = "";
+  uploading.value = true;
+  try {
+    const media = await client.uploadMedia(file, "reality_evidence", {
+      ownerType: "place",
+      ownerId: props.placeId,
+    });
+    mediaId.value = media.id;
+    mediaMessage.value = media.duplicate_of
+      ? "这份证据此前已上传过；仍会作为本次报告的私有核验材料。"
+      : "证据已上传，仅供审核使用，不会自动公开。";
+  } catch (err) {
+    error.value = presentDescription(err);
+  } finally {
+    uploading.value = false;
+    input.value = "";
+  }
+}
 
 async function submit() {
   if (!canSubmit.value || !props.placeId) return;
@@ -139,7 +176,17 @@ async function submit() {
     const kind = props.kind;
     const today = new Date().toISOString().slice(0, 10);
     const isToday = occurredAt.value === today;
-    const at = isToday ? new Date().toISOString() : isoAt(occurredAt.value);
+    const onsiteAt =
+      sourceMode.value === "on_site_now"
+        ? new Date().toISOString()
+        : sourceMode.value === "on_site_past"
+          ? isoAt(occurredAt.value)
+          : null;
+    const externalEventIso =
+      isExternal.value && externalEventAt.value ? isoAt(externalEventAt.value) : null;
+    const externalPublishedIso =
+      isExternal.value && externalPublishedAt.value ? isoAt(externalPublishedAt.value) : null;
+    const eventAt = onsiteAt ?? externalEventIso;
     const { payload, animalScope } = realityPayload(props.kind, {
       animal: animal.value,
       count: count.value,
@@ -156,33 +203,60 @@ async function submit() {
     });
     const res = await client.createRealityReport(props.placeId, {
       report: {
-        origin: reportOrigin(occurredAt.value),
+        origin: isExternal.value ? "external_online_content" : reportOrigin(occurredAt.value),
         place_id: props.placeId,
         place_match_state: "exact_place",
         place_match_evidence_types: ["user_confirmation"],
-        observed_at: at,
-        time_evidence_state: isToday ? "live_device_time" : "exact_event_date",
-        time_certainty: "exact",
-        fact_evidence_state: "first_hand_no_media",
+        content_published_at: externalPublishedIso,
+        claimed_event_at: externalEventIso,
+        observed_at: onsiteAt,
+        time_evidence_state: isExternal.value
+          ? externalEventIso
+            ? "exact_event_date"
+            : "publication_time_only"
+          : sourceMode.value === "on_site_now" && isToday
+            ? "live_device_time"
+            : "exact_event_date",
+        time_certainty: isExternal.value
+          ? externalEventIso
+            ? "exact"
+            : "unknown"
+          : "exact",
+        fact_evidence_state: isExternal.value
+          ? "text_only_external"
+          : mediaId.value
+            ? "direct_media"
+            : "first_hand_no_media",
         privacy_state: "private",
+        media_refs: mediaId.value ? [{ media_id: mediaId.value }] : null,
+        source_url: isExternal.value ? externalUrl.value.trim() : null,
+        source_platform: isExternal.value ? externalPlatform.value : null,
       },
       candidates: [
         {
           candidate_type: kind,
           zone_id: zone.value || null,
           animal_scope: animalScope,
-          observed_at: at,
+          observed_at: eventAt,
           payload,
         },
       ],
-      effort: {
-        place_id: props.placeId,
-        duration_bucket: effortBucket.value,
-        observed_at: at,
-        animal_observed: kind === "observed_presence" ? true : undefined,
-      },
+      effort: isExternal.value
+        ? null
+        : {
+            place_id: props.placeId,
+            duration_bucket: effortBucket.value,
+            observed_at: onsiteAt,
+            animal_observed: kind === "observed_presence" ? true : undefined,
+          },
       confirmation: null,
-      external_content: null,
+      external_content: isExternal.value
+        ? {
+            source_url: externalUrl.value.trim(),
+            platform: externalPlatform.value,
+            published_at: externalPublishedIso,
+          }
+        : null,
     });
     const pending = res.moderation_state === "pending" || res.moderation_state === "flagged";
     emit(
@@ -205,7 +279,7 @@ async function submit() {
     :step="2"
     :total="3"
     :title="KIND_LABELS[kind]"
-    description="只回答结构化问题。提交进入人工审核队列，AI 不会自动裁定。"
+    description="只回答结构化问题。现场亲历、公开内容与证据媒体会分开记录；提交进入人工审核队列，AI 不会自动裁定。"
     @back="emit('back')"
   >
     <!-- §33 question clusters：什么时候 / 在哪里 / 你看到了什么 -->
@@ -213,6 +287,72 @@ async function submit() {
          测量 group rhythm（When / Where / What 三组，组距 20–28px）。 -->
     <div class="reality-form" data-ui="contribution-form">
       <fieldset class="cluster">
+        <legend class="cluster__title">这条信息来自哪里？</legend>
+        <label for="reality-source-mode">来源方式</label>
+        <select id="reality-source-mode" v-model="sourceMode" data-testid="reality-source-mode">
+          <option value="on_site_now">我现在就在这里</option>
+          <option value="on_site_past">我之前在这里看到过</option>
+          <option value="external_online_content">我在公开帖子 / 视频里看到</option>
+        </select>
+
+        <template v-if="isExternal">
+          <label for="reality-source-url">公开内容链接</label>
+          <input
+            id="reality-source-url"
+            v-model="externalUrl"
+            type="url"
+            placeholder="https://…"
+            data-testid="reality-source-url"
+          />
+          <label for="reality-source-platform">来源平台</label>
+          <select
+            id="reality-source-platform"
+            v-model="externalPlatform"
+            data-testid="reality-source-platform"
+          >
+            <option value="xiaohongshu">小红书</option>
+            <option value="douyin">抖音</option>
+            <option value="dianping">大众点评</option>
+            <option value="weibo">微博</option>
+            <option value="bilibili">哔哩哔哩</option>
+            <option value="web">网页</option>
+            <option value="other">其他</option>
+          </select>
+          <label for="reality-published-date">内容发布时间</label>
+          <input
+            id="reality-published-date"
+            v-model="externalPublishedAt"
+            type="date"
+            data-testid="reality-published-date"
+          />
+          <label for="reality-external-event-date">内容明确说明的发生日期（可选）</label>
+          <input
+            id="reality-external-event-date"
+            v-model="externalEventAt"
+            type="date"
+            data-testid="reality-external-event-date"
+          />
+          <p class="muted source-note">
+            只有发布时间时，平台只会写“某日发布的内容中观察到”，不会把发布时间当成现场发生时间。
+          </p>
+        </template>
+
+        <label for="reality-media">证据图片（可选）</label>
+        <input
+          id="reality-media"
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          :disabled="uploading"
+          data-testid="reality-media"
+          @change="uploadEvidence"
+        />
+        <p v-if="uploading" class="muted source-note">上传中…</p>
+        <p v-if="mediaMessage" class="muted source-note" data-testid="reality-media-message">
+          {{ mediaMessage }}
+        </p>
+      </fieldset>
+
+      <fieldset v-if="!isExternal" class="cluster">
         <legend class="cluster__title">什么时候？</legend>
         <label for="reality-date">日期</label>
         <input v-model="occurredAt" type="date" id="reality-date" data-testid="reality-date" />
@@ -369,6 +509,11 @@ async function submit() {
 .cluster label {
   font-size: var(--pa-font-size-sm);
   color: var(--pa-color-text-secondary);
+}
+.source-note {
+  margin: 0;
+  font-size: var(--pa-font-size-sm);
+  line-height: var(--pa-line-height-20);
 }
 .cluster input,
 .cluster select {
