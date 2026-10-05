@@ -325,6 +325,7 @@ class VerificationEventType(StrEnum):
     SIGNAGE_UPLOADED = "signage_uploaded"
     FIELD_CHECK = "field_check"
     PLACE_CORRECTION = "place_correction"
+    RULE_LEAD_SUBMITTED = "rule_lead_submitted"
 
 
 class VerificationResult(StrEnum):
