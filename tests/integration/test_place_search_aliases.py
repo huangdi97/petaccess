@@ -23,6 +23,7 @@ import uuid
 
 import pytest
 from fastapi.testclient import TestClient
+from geoalchemy2 import WKTElement
 from sqlalchemy import delete, select
 
 from app.db.session import get_session_factory
@@ -48,6 +49,7 @@ def branches():
         place_type="cafe",
         canonical_address=f"{TAG}主街 1 号",
         alias_names=[f"{TAG}咖啡", f"{TAG}老街旧址"],
+        location=WKTElement("POINT(121.472 31.231)", srid=4326),
     )
     sibling = Place(
         id=str(uuid.uuid4()),
@@ -55,6 +57,7 @@ def branches():
         place_type="cafe",
         canonical_address=f"{TAG}副街 2 号",
         alias_names=[f"{TAG}咖啡"],
+        location=WKTElement("POINT(121.478 31.235)", srid=4326),
     )
     session.add_all([flagship, sibling])
     session.flush()
@@ -112,6 +115,21 @@ def test_same_brand_returns_both_branches_labeled(client, branches):
     assert items[sibling]["parent_place_name"] == f"{TAG}·旗舰店"
     # The flagship is the parent, so it must not claim to belong to itself.
     assert items[flagship]["parent_place_name"] is None
+
+
+
+
+
+def test_results_expose_representative_coordinates(client, branches):
+    """Consumer map rows use the governed PostGIS point, never UUID-derived positions."""
+    flagship, sibling = branches
+    r = client.get("/api/v1/places", params={"q": f"{TAG}咖啡"})
+    assert r.status_code == 200, r.text
+    items = {i["id"]: i for i in r.json()["items"]}
+    assert items[flagship]["latitude"] == pytest.approx(31.231)
+    assert items[flagship]["longitude"] == pytest.approx(121.472)
+    assert items[sibling]["latitude"] == pytest.approx(31.235)
+    assert items[sibling]["longitude"] == pytest.approx(121.478)
 
 
 def test_results_carry_freshness_and_rule_material(client, branches):
