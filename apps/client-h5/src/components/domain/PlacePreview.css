@@ -1,0 +1,86 @@
+/* §10：map selected preview = 允许的 floating card；半径 10–12 + elevation。 */
+.place-preview {
+  border: 1px solid var(--pa-color-border);
+  border-radius: var(--pa-radius-md);
+  background: var(--pa-color-surface);
+  padding: var(--pa-space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-3);
+  min-width: 0;
+}
+.place-preview__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-1);
+}
+.place-preview__name {
+  font-size: var(--pa-font-size-xl);
+  font-weight: var(--pa-font-weight-600);
+  line-height: var(--pa-line-height-tight);
+  color: var(--pa-color-text-primary);
+  margin: 0;
+}
+.place-preview__muted {
+  margin: 0;
+  font-size: var(--pa-font-size-md);
+  color: var(--pa-color-text-muted);
+  line-height: var(--pa-line-height-base);
+}
+.place-preview__lens {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-1);
+  padding-bottom: var(--pa-space-3);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.place-preview__lens strong {
+  font-size: var(--pa-font-size-base);
+  line-height: var(--pa-line-height-23);
+  color: var(--pa-color-text-primary);
+}
+
+.place-preview__decision {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--pa-space-1);
+}
+.place-preview__verdict-text {
+  margin: 0;
+  font-size: var(--pa-font-size-xl);
+  font-weight: var(--pa-font-weight-650);
+  color: var(--pa-color-text-primary);
+}
+.place-preview__row {
+  display: flex;
+  gap: var(--pa-space-3);
+  align-items: baseline;
+}
+.place-preview__label {
+  font-size: var(--pa-font-size-md);
+  color: var(--pa-color-text-secondary);
+  flex-shrink: 0;
+}
+.place-preview__value {
+  font-size: var(--pa-font-size-md);
+  color: var(--pa-color-text-primary);
+  line-height: var(--pa-line-height-base);
+  min-width: 0;
+}
+.place-preview__foot {
+  margin-top: var(--pa-space-1);
+  padding-top: var(--pa-space-2);
+  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.place-preview__cta {
+  align-self: flex-start;
+}
+.place-preview__hint {
+  margin: 0;
+  padding: var(--pa-space-6) var(--pa-space-4);
+  text-align: center;
+  color: var(--pa-color-text-muted);
+}
