@@ -154,6 +154,36 @@ class AnimalFacilityOut(BaseModel):
     verification_status: RealityVerificationStatus
     freshness_state: RealityFreshnessState | None
 
+class RealityEventOut(BaseModel):
+    """One public, human-verified Reality event for the consumer timeline.
+
+    event_at always carries time_basis so a verification timestamp is never
+    presented as an observed event time. Staff identity is intentionally
+    absent: only role/action facts may be exposed. Facility facts remain
+    separate from entry policy.
+    """
+
+    id: str
+    event_type: str
+    place_id: str
+    zone_id: str | None = None
+    event_at: datetime
+    time_basis: str
+    animal_scope: str | None = None
+    observed_action: str | None = None
+    observed_context: str | None = None
+    staff_actor_role: str | None = None
+    staff_action: str | None = None
+    staff_outcome: str | None = None
+    facility_type: str | None = None
+    facility_state: str | None = None
+    facility_count: int | None = None
+    source_id: str | None = None
+    evidence_bundle_id: str | None = None
+    verification_status: str
+    freshness_state: str | None = None
+    last_verified_at: datetime | None = None
+
 
 # ---------------------------------------------------------------------------
 # Consumer aggregate — RealityAnswer (v0.9 §9, §11 CoexistenceSnapshot part)
