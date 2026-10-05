@@ -40,13 +40,13 @@ from app.models import (
     RealityReport,
     User,
 )
-from app.models.media import MediaPurpose
 from app.models.enums import (
     ContributionAbuseFlag,
     RealityCandidateType,
     RealityReportModerationState,
     RealityVerificationStatus,
 )
+from app.models.media import MediaPurpose
 from app.schemas.reality import (
     ExternalContentReferenceIn,
     ObservationEffortIn,
