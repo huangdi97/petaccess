@@ -343,6 +343,7 @@ const placeFixture = computed<string>(() => {
             :zones="zones"
             :extras="extras"
             :facility-summary="coexistence?.facility_summary ?? []"
+            :events="realityEvents"
           />
           <PlaceRulesPane
             v-else-if="view === 'rules'"
