@@ -247,12 +247,7 @@ export async function nearbyPlaces(
   camera: MapCamera = synthDemoCamera(),
   radiusM = 5000,
 ): Promise<ListResult<PlaceSummary>> {
-  const key = ConsumerCache.key([
-    "nearby",
-    camera.lat.toFixed(5),
-    camera.lng.toFixed(5),
-    radiusM,
-  ]);
+  const key = ConsumerCache.key(["nearby", camera.lat.toFixed(5), camera.lng.toFixed(5), radiusM]);
   const fetchFn = () => client.nearby(camera.lat, camera.lng, radiusM);
   const cached = cache.get<PlaceSummary[]>(key);
   if (cached && cache.isFresh(key)) {
