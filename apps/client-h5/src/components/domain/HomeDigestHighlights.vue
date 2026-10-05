@@ -145,7 +145,7 @@ function divergenceText(card: HomeCard): string {
 }
 
 .home-digest-note {
-  margin: calc(-1 * var(--pa-space-1)) 0 var(--pa-space-2);
+  margin: 0 0 var(--pa-space-2);
   font-size: var(--pa-font-size-sm);
 }
 
