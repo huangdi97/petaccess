@@ -24,7 +24,6 @@ function clearLocalData() {
   session.logout();
   cleared.value = true;
 }
-
 </script>
 
 <template>
