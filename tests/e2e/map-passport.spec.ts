@@ -92,6 +92,16 @@ test("B1/B2 — Place Dossier 概览 + 规则/现场 view 关键段齐备", asyn
   ).toBeVisible();
 });
 
+test("B2.1 — Space view 展示已核验设施属性且不暗示准入或安全保证", async ({ page }) => {
+  await page.goto(`${BASE}/#/place/${MALL_ID}?view=space`);
+  await expect(page.getByTestId("animal-facilities")).toBeVisible();
+  await expect(page.getByTestId("animal-facility-record").first()).toBeVisible();
+  await expect(page.getByTestId("animal-facilities")).toContainText("使用方式");
+  await expect(page.getByTestId("animal-facilities")).toContainText("最近核验");
+  await expect(page.getByTestId("animal-facilities")).toContainText("不等于允许动物进入");
+  await expect(page.getByTestId("animal-facilities")).toContainText("不构成安全");
+});
+
 test("B3 — Place Evidence view 证据来源链渲染，无原始枚举", async ({ page }) => {
   await page.goto(`${BASE}/#/place/${CAFE_ID}?view=evidence`);
   await expect(page.getByTestId("place-evidence-view")).toBeVisible();
