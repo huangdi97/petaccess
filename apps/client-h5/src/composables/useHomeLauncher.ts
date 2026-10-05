@@ -14,6 +14,7 @@ import { type IconName, type StatusKey } from "@petaccess/design-tokens";
 import { ANSWERED_STATUSES, answerConditions, answerScopeLabel, answerStatusKey } from "../answer";
 import { bootStage } from "../config/bootTrace";
 import { createEpoch, enrichRows, nearbyPlaces, type RowFacts } from "../consumer/repository";
+import type { ConsumerLens } from "../consumer/rowView";
 import { presentDescription } from "../errors";
 import { useOnline } from "./useOnline";
 
@@ -29,7 +30,9 @@ export interface HomeCard {
 }
 
 const RECENT_KEY = "pa.recent.v1";
+const HOME_INTEREST_KEY = "pa.homeInterest.v1";
 const MAX_RECENT = 3;
+const HOME_INTERESTS = new Set<ConsumerLens>(["presence", "indoor", "dining", "rules"]);
 
 export const PERSPECTIVES: { key: Perspective; label: string }[] = [
   { key: "rules", label: "看场所规则" },
@@ -67,6 +70,8 @@ export function useHomeLauncher() {
   const { online } = useOnline();
   const query = ref("");
   const recent = ref<{ id: string; name: string }[]>([]);
+  /** Lightweight attention preference: only changes Consumer ordering/emphasis. */
+  const interest = ref<ConsumerLens>("");
   const epoch = createEpoch();
 
   const speciesLabel = computed(() => {
@@ -95,7 +100,15 @@ export function useHomeLauncher() {
   }
 
   function goEntry(key: string) {
-    void router.push({ name: "search", query: { lens: key } });
+    const next = HOME_INTERESTS.has(key as ConsumerLens) ? (key as ConsumerLens) : "";
+    interest.value = next;
+    try {
+      if (next) localStorage.setItem(HOME_INTEREST_KEY, next);
+      else localStorage.removeItem(HOME_INTEREST_KEY);
+    } catch {
+      /* preference persistence is optional */
+    }
+    void router.push({ name: "search", query: { lens: next || undefined } });
   }
 
   function open(id: string) {
@@ -134,6 +147,15 @@ export function useHomeLauncher() {
         : [];
     } catch {
       recent.value = [];
+    }
+  }
+
+  function loadInterest() {
+    try {
+      const saved = localStorage.getItem(HOME_INTEREST_KEY) as ConsumerLens | null;
+      interest.value = saved && HOME_INTERESTS.has(saved) ? saved : "";
+    } catch {
+      interest.value = "";
     }
   }
 
@@ -178,6 +200,7 @@ export function useHomeLauncher() {
   onMounted(async () => {
     await session.restore();
     loadRecent();
+    loadInterest();
     await load();
     bootStage("HOME_READY");
   });
@@ -185,6 +208,7 @@ export function useHomeLauncher() {
   return {
     query,
     perspective,
+    interest,
     recent,
     loading,
     error,
