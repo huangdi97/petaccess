@@ -54,7 +54,17 @@ const emit = defineEmits<{
         :signed-in="signedIn"
         :busy-event-id="busyEventId"
         @confirm="(event, type) => emit('confirm', event, type)"
-      />
+      >
+        <template #empty-action>
+          <RouterLink
+            v-if="signedIn"
+            class="btn-inline"
+            :to="{ path: `/contribute/${placeId}`, query: { mode: 'effort' } }"
+          >
+            记录这次没看到 →
+          </RouterLink>
+        </template>
+      </RealityEventLog>
       <p v-if="confirmationMessage" class="reality-confirmation-message" role="status">
         {{ confirmationMessage }}
       </p>
