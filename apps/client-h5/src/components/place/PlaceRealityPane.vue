@@ -13,6 +13,16 @@ defineProps<{
   staffResponses: StaffResponseSummaryItem[];
   zones: Zone[];
   placeId: string;
+  signedIn: boolean;
+  busyEventId?: string | null;
+  confirmationMessage?: string;
+}>();
+
+const emit = defineEmits<{
+  confirm: [
+    event: RealityEventView,
+    type: "still_present" | "not_seen_now" | "facility_still_present" | "facility_removed",
+  ];
 }>();
 </script>
 
@@ -37,7 +47,17 @@ defineProps<{
 
     <section class="reality-fact-section" data-ui="place-observation-timeline">
       <h2 class="reality-fact-section__title">现场时间线</h2>
-      <RealityEventLog :events="events" :zones="zones" :place-id="placeId" />
+      <RealityEventLog
+        :events="events"
+        :zones="zones"
+        :place-id="placeId"
+        :signed-in="signedIn"
+        :busy-event-id="busyEventId"
+        @confirm="(event, type) => emit('confirm', event, type)"
+      />
+      <p v-if="confirmationMessage" class="reality-confirmation-message" role="status">
+        {{ confirmationMessage }}
+      </p>
       <RouterLink
         class="btn-inline reality-full-link"
         :to="`/place/${placeId}/reality`"
@@ -82,6 +102,12 @@ defineProps<{
   margin: var(--pa-space-3) 0 0;
   font-size: var(--pa-font-size-sm);
   line-height: var(--pa-line-height-20);
+}
+
+.reality-confirmation-message {
+  margin: var(--pa-space-3) 0 0;
+  font-size: var(--pa-font-size-sm);
+  color: var(--pa-color-text-secondary);
 }
 
 .reality-full-link {
