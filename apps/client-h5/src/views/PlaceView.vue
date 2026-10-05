@@ -22,7 +22,7 @@ import {
   session,
   type AccessAnswer,
   type CoexistenceSnapshot,
-  type ObservationView,
+  type RealityEventView,
   type PlaceDetail,
   type PlaceExtras,
   type RuleView,
@@ -67,7 +67,7 @@ const speciesLabel = computed(() => {
 const place = ref<PlaceDetail | null>(null);
 const zones = ref<Zone[]>([]);
 const rules = ref<RuleView[]>([]);
-const observations = ref<ObservationView[]>([]);
+const realityEvents = ref<RealityEventView[]>([]);
 const sources = ref<SourceView[]>([]);
 const extras = ref<PlaceExtras | null>(null);
 
@@ -109,6 +109,10 @@ const primarySourceLabel = computed(() => {
   const first = currentRules.value[0];
   return first ? sourceLabel(sourceMap.value.get(first.source_id)?.issuer ?? null, true) : null;
 });
+
+const presenceEventCount = computed(
+  () => realityEvents.value.filter((event) => event.event_type === "observed_presence").length,
+);
 
 function queryServiceRole(): string {
   if (session.mode === "service_dog") return "working";
@@ -158,7 +162,7 @@ async function load() {
     degrade("规则");
   }
   try {
-    observations.value = await client.observations(placeId.value);
+    realityEvents.value = await client.realityEvents(placeId.value);
   } catch {
     degrade("现场记录");
   }
@@ -194,7 +198,7 @@ watch(
     place.value = null;
     zones.value = [];
     rules.value = [];
-    observations.value = [];
+    realityEvents.value = [];
     sources.value = [];
     extras.value = null;
     answer.value = null;
@@ -329,7 +333,7 @@ const placeFixture = computed<string>(() => {
             :zone-summary="zones"
             :primary-source-label="primarySourceLabel"
             :latest-verified-at="latestVerifiedAt"
-            :observation-count="observations.length"
+            :observation-count="presenceEventCount"
             :desktop="isDesktop"
           />
           <PlaceSpacePane
@@ -350,7 +354,7 @@ const placeFixture = computed<string>(() => {
           />
           <PlaceRealityPane
             v-else-if="view === 'reality'"
-            :observations="observations"
+            :events="realityEvents"
             :staff-responses="coexistence?.staff_response_summary ?? []"
             :zones="zones"
             :place-id="placeId"
@@ -361,7 +365,7 @@ const placeFixture = computed<string>(() => {
             :observations="observations"
             :sources="sources"
             :rule-evidence-count="currentRules.length"
-            :reviewed-count="observations.length"
+            :reviewed-count="realityEvents.length"
           />
 
           <section
