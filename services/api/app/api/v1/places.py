@@ -70,7 +70,9 @@ def _disambiguation_projection():
         .scalar_subquery()
         .label("last_verified_at")
     )
-    return parent_place_name, rule_count, last_verified_at
+    latitude = func.ST_Y(Place.location).label("latitude")
+    longitude = func.ST_X(Place.location).label("longitude")
+    return parent_place_name, rule_count, last_verified_at, latitude, longitude
 
 
 def _search_order(q: str, rule_count, last_verified_at):
@@ -121,12 +123,14 @@ def _matched_alias(place: Place, q: str) -> str | None:
 
 
 def _to_summary(row, q: str | None = None) -> PlaceSummary:
-    place, parent_place_name, rule_count, last_verified_at = row
+    place, parent_place_name, rule_count, last_verified_at, latitude, longitude = row
     return PlaceSummary(
         id=place.id,
         canonical_name=place.canonical_name,
         place_type=place.place_type,
         canonical_address=place.canonical_address,
+        latitude=float(latitude) if latitude is not None else None,
+        longitude=float(longitude) if longitude is not None else None,
         parent_place_name=parent_place_name,
         matched_alias=_matched_alias(place, q) if q else None,
         alias_names=list(place.alias_names or []),
@@ -143,8 +147,17 @@ def list_places(
     offset: int = Query(default=0, ge=0),
     db: Session = Depends(get_db),
 ) -> Page[PlaceSummary]:
-    parent_place_name, rule_count, last_verified_at = _disambiguation_projection()
-    stmt = select(Place, parent_place_name, rule_count, last_verified_at).where(
+    parent_place_name, rule_count, last_verified_at, latitude, longitude = (
+        _disambiguation_projection()
+    )
+    stmt = select(
+        Place,
+        parent_place_name,
+        rule_count,
+        last_verified_at,
+        latitude,
+        longitude,
+    ).where(
         Place.lifecycle_status == LifecycleStatus.ACTIVE
     )
     if q:
@@ -190,7 +203,9 @@ def nearby_places(
 ) -> Page[PlaceSummary]:
     """PostGIS ST_DWithin nearby search ordered by distance (GIST-indexed)."""
     point = text("ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography")
-    parent_place_name, rule_count, last_verified_at = _disambiguation_projection()
+    parent_place_name, rule_count, last_verified_at, latitude, longitude = (
+        _disambiguation_projection()
+    )
     base = (
         select(
             Place,
@@ -198,6 +213,8 @@ def nearby_places(
             parent_place_name,
             rule_count,
             last_verified_at,
+            latitude,
+            longitude,
         )
         .where(
             Place.lifecycle_status == LifecycleStatus.ACTIVE,
@@ -210,7 +227,7 @@ def nearby_places(
     rows = db.execute(base.order_by(text("distance_m")).limit(limit).offset(offset)).all()
     items = []
     for row in rows:
-        summary = _to_summary((row[0], row[2], row[3], row[4]))
+        summary = _to_summary((row[0], row[2], row[3], row[4], row[5], row[6]))
         summary.distance_m = round(float(row[1] or 0), 1)
         items.append(summary)
     if not items and dev_fixture_active():
