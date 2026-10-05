@@ -5,8 +5,8 @@
  * A negative observation is only interpretable together with observation
  * effort. The form therefore records time + duration + covered zone and never
  * creates a NO_ANIMAL_PRESENCE claim. When opened from an existing presence
- * event it also writes NOT_SEEN_NOW as a separate confirmation, preserving the
- * older event instead of rewriting history.
+ * event it also links the effort to that fact without rewriting history. The
+ * effort stays provenance/coverage data; it is not published as a presence claim.
  */
 import { computed, ref } from "vue";
 import { client } from "@petaccess/client-core";
@@ -146,7 +146,7 @@ async function submit() {
     </div>
 
     <p class="effort-note">
-      这是一条观察覆盖信息，不是动物缺席证明。系统会保留较早的“看到了”记录，并把两次观察分别展示。
+      这是一条观察覆盖信息，不是动物缺席证明。系统会保留较早的“看到了”记录；本次停留作为覆盖信息留存，不会自动进入公开现场事实。
     </p>
     <p v-if="error" class="notice" data-testid="effort-error" role="alert">{{ error }}</p>
 
