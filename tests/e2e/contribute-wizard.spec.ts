@@ -227,10 +227,8 @@ test("A2.4 — “这次没看到”记录 effort，而不是生成动物缺席 
   await page.addInitScript((t) => localStorage.setItem("pa_token", t), token);
   const targetQuery = encodeURIComponent(target!.id);
   const zoneQuery = target!.zone_id ? `&zone=${encodeURIComponent(target!.zone_id)}` : "";
-  await page.goto(
-    `${BASE}/#/contribute/${MALL_ID}?mode=effort&target=${targetQuery}${zoneQuery}`,
-    { waitUntil: "load" },
-  );
+  const effortUrl = `${BASE}/#/contribute/${MALL_ID}?mode=effort&target=${targetQuery}${zoneQuery}`;
+  await page.goto(effortUrl, { waitUntil: "load" });
   await expect(page.getByTestId("effort-duration")).toBeVisible({ timeout: 15000 });
   await page.getByTestId("effort-duration").selectOption("min_10_30");
 
