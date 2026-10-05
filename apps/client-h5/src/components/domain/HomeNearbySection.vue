@@ -81,7 +81,8 @@ function recommendationHeadline(card: HomeCard): string {
 function recommendationMeta(card: HomeCard): string {
   const reality = card.facts.reality;
   const parts: string[] = [];
-  if (reality?.days_since_last_seen != null) parts.push(`${reality.days_since_last_seen} 天前最近记录`);
+  if (reality?.days_since_last_seen != null)
+    parts.push(`${reality.days_since_last_seen} 天前最近记录`);
   if ((reality?.evidence_count ?? 0) > 0) parts.push(`${reality?.evidence_count} 条现场证据`);
   const ruleEvidence = card.facts.snapshot?.evidence_summary.rule_evidence.length ?? 0;
   if (!parts.length && ruleEvidence > 0) parts.push(`${ruleEvidence} 条规则依据`);
