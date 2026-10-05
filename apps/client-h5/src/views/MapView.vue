@@ -58,6 +58,13 @@ const MAP_LENSES = [
 function goHome() {
   void router.push({ name: "home" });
 }
+
+function zoomMap(delta: number) {
+  camera.value = {
+    ...camera.value,
+    zoom: Math.max(8, Math.min(18, camera.value.zoom + delta)),
+  };
+}
 </script>
 
 <template>
@@ -168,6 +175,7 @@ function goHome() {
           :lens-labels="lensLabels"
           :selected-id="selected?.id ?? null"
           @select="onSelectCluster"
+          @zoom="zoomMap"
         />
       </section>
     </div>
