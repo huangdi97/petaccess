@@ -39,9 +39,7 @@
     {
       "id": "SEARCH_RAIL_WIDTH",
       "ui": "app-rail",
-      "fallbacks": [
-        ".desktop-rail"
-      ],
+      "fallbacks": [".desktop-rail"],
       "props": {
         "width": {
           "min": 64,
@@ -53,9 +51,7 @@
     {
       "id": "SEARCH_TOP_CONTEXT_HEIGHT",
       "ui": "query-context",
-      "fallbacks": [
-        "[data-testid='query-context']"
-      ],
+      "fallbacks": ["[data-testid='query-context']"],
       "props": {
         "height": {
           "min": 56,
@@ -67,9 +63,7 @@
     {
       "id": "SEARCH_RESULT_PANE_X",
       "ui": "search-results-pane",
-      "fallbacks": [
-        ".search-result-pane"
-      ],
+      "fallbacks": [".search-result-pane"],
       "props": {
         "left": {
           "min": 60,
@@ -81,9 +75,7 @@
     {
       "id": "SEARCH_RESULT_PANE_WIDTH",
       "ui": "search-results-pane",
-      "fallbacks": [
-        ".search-result-pane"
-      ],
+      "fallbacks": [".search-result-pane"],
       "props": {
         "width": {
           "min": 392,
@@ -95,9 +87,7 @@
     {
       "id": "SEARCH_DETAIL_PANE_X",
       "ui": "search-detail-pane",
-      "fallbacks": [
-        "[data-testid='decision-inspector']"
-      ],
+      "fallbacks": ["[data-testid='decision-inspector']"],
       "props": {
         "left": {
           "min": 460,
@@ -109,9 +99,7 @@
     {
       "id": "SEARCH_DETAIL_PANE_PRESENT",
       "ui": "search-detail-pane",
-      "fallbacks": [
-        "[data-testid='decision-inspector']"
-      ],
+      "fallbacks": ["[data-testid='decision-inspector']"],
       "props": {
         "count": {
           "min": 1
@@ -137,9 +125,7 @@
     {
       "id": "SEARCH_INPUT_HEIGHT",
       "ui": "search-input",
-      "fallbacks": [
-        "[data-testid='search-input']"
-      ],
+      "fallbacks": ["[data-testid='search-input']"],
       "props": {
         "height": {
           "min": 44,
@@ -151,9 +137,7 @@
     {
       "id": "SEARCH_BUTTON_HEIGHT",
       "ui": "search-submit",
-      "fallbacks": [
-        "[data-testid='search-btn']"
-      ],
+      "fallbacks": ["[data-testid='search-btn']"],
       "props": {
         "height": {
           "min": 44,
@@ -181,9 +165,7 @@
     {
       "id": "SEARCH_ROW_RADIUS_ZERO",
       "ui": "search-result-row",
-      "fallbacks": [
-        "ul.result-list li"
-      ],
+      "fallbacks": ["ul.result-list li"],
       "props": {
         "borderRadius": {
           "equals": "0"
@@ -195,9 +177,7 @@
     {
       "id": "SEARCH_ROW_SHADOW_NONE",
       "ui": "search-result-row",
-      "fallbacks": [
-        "ul.result-list li"
-      ],
+      "fallbacks": ["ul.result-list li"],
       "props": {
         "boxShadow": {
           "equals": "none"
@@ -209,9 +189,7 @@
     {
       "id": "SEARCH_ROW_DIVIDER",
       "ui": "search-result-row",
-      "fallbacks": [
-        "ul.result-list li"
-      ],
+      "fallbacks": ["ul.result-list li"],
       "props": {
         "borderBottomWidth": {
           "min": 1
@@ -223,9 +201,7 @@
     {
       "id": "SEARCH_DECISION_FONT_SIZE",
       "ui": "search-decision-text",
-      "fallbacks": [
-        ".inspector-decision"
-      ],
+      "fallbacks": [".inspector-decision"],
       "props": {
         "fontSize": {
           "min": 27,
@@ -237,9 +213,7 @@
     {
       "id": "SEARCH_DECISION_LABEL_SIZE",
       "ui": "search-decision-label",
-      "fallbacks": [
-        ".inspector-block--decision .inspector-block__label"
-      ],
+      "fallbacks": [".inspector-block--decision .inspector-block__label"],
       "props": {
         "fontSize": {
           "min": 12,
@@ -251,9 +225,7 @@
     {
       "id": "SEARCH_PAGE_TITLE_SIZE",
       "ui": "search-detail-name",
-      "fallbacks": [
-        ".decision-inspector__name"
-      ],
+      "fallbacks": [".decision-inspector__name"],
       "props": {
         "fontSize": {
           "min": 27,
@@ -265,9 +237,7 @@
     {
       "id": "SEARCH_COUNT_LINE",
       "ui": "search-count",
-      "fallbacks": [
-        "[data-testid='search-count']"
-      ],
+      "fallbacks": ["[data-testid='search-count']"],
       "props": {
         "count": {
           "min": 1
@@ -280,10 +250,7 @@
     {
       "id": "NO_RESULT_CARD_ROWS",
       "selector": "ul.result-list li",
-      "forbiddenClass": [
-        "card",
-        "panel"
-      ],
+      "forbiddenClass": ["card", "panel"],
       "severity": "FAIL"
     },
     {
@@ -330,20 +297,14 @@
       "selector": "[data-testid='row-lens-headline'].result-row__reality-line--lead",
       "min": 1,
       "severity": "FAIL",
-      "pages": [
-        "search-ready",
-        "search-selected"
-      ]
+      "pages": ["search-ready", "search-selected"]
     },
     {
       "id": "SEARCH_RULE_STAYS_VISIBLE",
       "selector": "[data-testid='row-rule']",
       "min": 1,
       "severity": "FAIL",
-      "pages": [
-        "search-ready",
-        "search-selected"
-      ]
+      "pages": ["search-ready", "search-selected"]
     }
   ],
   "density": [
