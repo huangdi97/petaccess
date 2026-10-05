@@ -41,6 +41,9 @@ class MediaObject(Base, PkMixin, TimestampMixin):
 
     owner_type: Mapped[str | None] = mapped_column(String(40), nullable=True)
     owner_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    created_by_user_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("user.id", ondelete="SET NULL"), nullable=True, index=True
+    )
     purpose: Mapped[str] = mapped_column(String(40), nullable=False)
     privacy_class: Mapped[str] = mapped_column(String(20), nullable=False)
 
