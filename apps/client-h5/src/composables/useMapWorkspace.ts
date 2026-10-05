@@ -133,8 +133,9 @@ export function useMapWorkspace() {
   const coverage = computed(() => {
     if (lens.value === "rule") return coverageHint(markers.value);
     if (lens.value === "reality") {
-      const count = [...facts.value.values()].filter((row) => (row.reality?.evidence_count ?? 0) > 0)
-        .length;
+      const count = [...facts.value.values()].filter(
+        (row) => (row.reality?.evidence_count ?? 0) > 0,
+      ).length;
       return {
         covered: count,
         unknown: Math.max(0, places.value.length - count),
