@@ -1,9 +1,9 @@
 /**
  * Shared support for the contribution step forms (M7).
  *
- * Proximity buckets (ADR-012: raw GPS never sent — only distance/accuracy
- * buckets) and evidence refs are identical across every form, so they live
- * here instead of drifting per-form.
+ * Contribution evidence helpers shared across forms. Proximity is fail-closed:
+ * this module does not read geolocation, so it must never manufacture a
+ * distance/accuracy bucket or mark a place match as GPS-verified.
  */
 export function proximity() {
   // No geolocation measurement happens in this helper. Never fabricate a
