@@ -41,7 +41,6 @@ import {
   freshnessLineFor,
   lensOrderScore,
   lensProjection,
-  realityLineFor,
   type ConsumerLens,
 } from "../consumer/rowView";
 import { placeTypeLabel } from "../consumer/labels";
@@ -104,7 +103,9 @@ const speciesLabel = computed(() => {
 });
 function lensProjectionFor(p: PlaceSummary) {
   const f = facts.value.get(p.id);
-  return lensProjection(lensKey.value, f?.answer, f?.reality);
+  // Canonical Search is Reality-first by default. An explicit rules lens flips
+  // emphasis without changing the underlying Rule / Reality facts.
+  return lensProjection(lensKey.value || "presence", f?.answer, f?.reality);
 }
 const preview = ref<{ snapshot: CoexistenceSnapshot | null; loading: boolean; error: string }>({
   snapshot: null,
@@ -165,7 +166,14 @@ function rowCondition(p: PlaceSummary): string {
 }
 
 function rowEvidenceMeta(p: PlaceSummary): string {
-  return evidenceLineFor(facts.value.get(p.id)?.reality);
+  const row = facts.value.get(p.id);
+  const realityMeta = evidenceLineFor(row?.reality);
+  if (realityMeta) return realityMeta;
+
+  const rules = row?.snapshot?.evidence_summary.rule_evidence ?? [];
+  if (!rules.length) return "";
+  const issuer = rules[0]?.issuer;
+  return issuer ? `${rules.length} 条规则依据 · ${issuer}` : `${rules.length} 条规则依据`;
 }
 
 async function search() {
@@ -524,14 +532,15 @@ const selectedId = ref<string | null>(null);
                   </div>
                 </div>
 
-                <!-- Lens changes emphasis only. Default and presence/indoor/dining
-                     are Reality-first; rules is Rule-first. Both fact layers remain visible. -->
-                <template v-if="lensKey">
-                  <p
-                    v-if="lensProjectionFor(p).headline === 'rule' && facts.get(p.id)?.answer"
-                    class="result-row__decision result-row__decision--lead"
-                    data-testid="row-lens-headline"
-                  >
+                <!-- Default and presence/indoor/dining are Reality-first; only the
+                     explicit rules lens promotes Rule. Both layers remain visible. -->
+                <p
+                  v-if="lensProjectionFor(p).headline === 'rule'"
+                  class="result-row__decision result-row__decision--lead"
+                  data-testid="row-lens-headline"
+                >
+                  <template v-if="facts.get(p.id)?.answerError">规则结论暂时无法取得</template>
+                  <template v-else-if="facts.get(p.id)?.answer">
                     {{
                       facts.get(p.id)?.answer?.normative_result.summary ||
                       answerVerdictLabel(facts.get(p.id)?.answer)
@@ -539,29 +548,36 @@ const selectedId = ref<string | null>(null);
                     <span v-if="rowCondition(p)" class="result-row__condition">
                       · {{ rowCondition(p) }}
                     </span>
-                  </p>
-                  <p
-                    v-else
-                    class="result-row__reality-line result-row__reality-line--lead"
-                    data-testid="row-lens-headline"
-                  >
-                    {{ lensProjectionFor(p).realityLine }}
-                  </p>
-                </template>
-
-                <!-- transport error ≠ domain fact -->
+                  </template>
+                  <template v-else>信息不足</template>
+                </p>
                 <p
-                  v-if="facts.get(p.id)?.answerError"
+                  v-else
+                  class="result-row__reality-line result-row__reality-line--lead"
+                  data-testid="row-lens-headline"
+                >
+                  {{
+                    facts.get(p.id)?.realityError
+                      ? "现场信息暂时无法取得"
+                      : lensProjectionFor(p).realityLine
+                  }}
+                </p>
+
+                <!-- Rule stays visible beneath a Reality-first headline. -->
+                <p
+                  v-if="
+                    facts.get(p.id)?.answerError &&
+                    lensProjectionFor(p).headline !== 'rule'
+                  "
                   class="result-row__error"
                   data-testid="row-answer-error"
                 >
                   规则结论暂时无法取得 —— 请检查网络后重试。
                 </p>
-                <!-- primary decision: verdict + 1 key condition on one line -->
                 <p
                   v-else-if="
                     facts.get(p.id)?.answer &&
-                    (!lensKey || lensProjectionFor(p).headline !== 'rule')
+                    lensProjectionFor(p).headline !== 'rule'
                   "
                   class="result-row__decision"
                   data-testid="row-rule"
@@ -572,22 +588,16 @@ const selectedId = ref<string | null>(null);
                   </span>
                 </p>
 
-                <!-- reality freshness: 一行（v0.2.4 §11 列表缩写；完整措辞进详情） -->
+                <!-- Rules lens still keeps Reality visible as the secondary fact. -->
                 <p
-                  v-if="facts.get(p.id)?.realityError"
-                  class="result-row__error result-row__reality-line"
-                >
-                  现场信息暂时无法取得 —— 请检查网络后重试。
-                </p>
-                <!-- 非 reality-headline lens（rules / 无 lens）才再渲染独立 reality 行；
-                     presence/indoor/dining 时 reality 已是 row-lens-headline，不重复。 -->
-                <p
-                  v-else-if="!lensKey || lensProjectionFor(p).headline !== 'reality'"
+                  v-if="
+                    lensProjectionFor(p).headline === 'rule' &&
+                    !facts.get(p.id)?.realityError
+                  "
                   class="result-row__reality-line"
-                  :class="{ 'result-row__reality-line--lead': !lensKey }"
                   data-testid="result-reality"
                 >
-                  {{ realityLineFor(facts.get(p.id)?.reality) }}
+                  {{ lensProjectionFor(p).realityLine }}
                 </p>
                 <p
                   v-if="rowEvidenceMeta(p)"
