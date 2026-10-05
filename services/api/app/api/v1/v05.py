@@ -91,7 +91,7 @@ class ConsumerRuleLeadIn(BaseModel):
     zone_id: str | None = None
     animal_scope: AnimalScope = AnimalScope.ORDINARY_PET
     effect: RuleEffect
-    proposed_conditions: list[str] = []
+    proposed_conditions: list[str] = Field(default_factory=list)
     raw_text: str | None = Field(default=None, max_length=4000)
     media_id: str | None = None
     current_rule_id: str | None = None
@@ -160,7 +160,9 @@ def contribute_rule_lead(
         animal_scope=body.animal_scope.value,
         action="enter",
         effect=body.effect.value,
-        proposed_conditions=body.proposed_conditions,
+        proposed_conditions=[
+            {"condition_type": condition} for condition in body.proposed_conditions
+        ],
         extraction_method="manual",
         raw_text=body.raw_text,
         media_id=body.media_id,
