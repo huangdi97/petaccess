@@ -114,9 +114,7 @@ const FACT_EVIDENCE_LABELS: Record<string, string> = {
 export function realityEventProvenance(event: RealityEventView): string {
   const parts: string[] = [];
   const origin = event.origin ? ORIGIN_LABELS[event.origin] : "";
-  const evidence = event.fact_evidence_state
-    ? FACT_EVIDENCE_LABELS[event.fact_evidence_state]
-    : "";
+  const evidence = event.fact_evidence_state ? FACT_EVIDENCE_LABELS[event.fact_evidence_state] : "";
   if (origin) parts.push(origin);
   if (evidence) parts.push(evidence);
   if (event.place_match_state === "exact_place") parts.push("地点已精确匹配");
