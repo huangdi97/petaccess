@@ -144,7 +144,14 @@ const reviewedEventCount = computed(
 );
 
 const sourceSummary = computed(() => {
-  if (!sources.value.length) return "来源待补充";
+  if (!sources.value.length) {
+    const bundles = new Set(
+      events.value
+        .map((event) => event.evidence_bundle_id)
+        .filter((id): id is string => Boolean(id)),
+    );
+    return bundles.size ? `${bundles.size} 组可追溯现场材料` : "来源待补充";
+  }
   const pending = sources.value.filter(
     (source) => source.issuer_verification === "unverified",
   ).length;
@@ -326,7 +333,9 @@ const uiFixture = computed<string>(() =>
               {{ source.collected_at.slice(0, 10) }}
             </span>
           </div>
-          <p v-if="!sources.length" class="muted">暂无可展示的现场来源记录。</p>
+          <p v-if="!sources.length" class="muted">
+            原始材料可能受隐私或许可限制；上方现场事实仍显示可公开的来源类型、时间依据与核验状态。
+          </p>
         </section>
       </template>
 
