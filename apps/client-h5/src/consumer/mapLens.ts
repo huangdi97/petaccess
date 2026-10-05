@@ -2,6 +2,7 @@ import { coverageHint, type MapMarker } from "@petaccess/client-core";
 
 import { answerStatusKey, answerVerdictLabel } from "../answer";
 import { divergenceLabel, realityStateLabel } from "../reality";
+import { facilityPurposeIsConfirmed } from "./labels";
 import type { RowFacts } from "./repository";
 
 export type MapLensKey = "rule" | "reality" | "facility" | "divergence";
@@ -40,7 +41,14 @@ export function mapLensTone(lens: MapLensKey, row: RowFacts | undefined): MapMar
 
   if (lens === "facility") {
     const facilities = row.snapshot?.facility_summary ?? [];
-    if (facilities.some((item) => item.operational_state === "active" && item.count > 0))
+    if (
+      facilities.some(
+        (item) =>
+          facilityPurposeIsConfirmed(item.purpose_state) &&
+          item.operational_state === "active" &&
+          item.count > 0,
+      )
+    )
       return "ALLOWED";
     if (facilities.some((item) => item.count > 0)) return "CONDITIONAL";
     return "UNKNOWN";
@@ -61,11 +69,19 @@ export function mapLensLabel(lens: MapLensKey, row: RowFacts | undefined): strin
   if (lens === "facility") {
     const facilities = row.snapshot?.facility_summary ?? [];
     const total = facilities.reduce((sum, item) => sum + item.count, 0);
-    const active = facilities
-      .filter((item) => item.operational_state === "active")
+    const confirmed = facilities
+      .filter((item) => facilityPurposeIsConfirmed(item.purpose_state))
       .reduce((sum, item) => sum + item.count, 0);
-    if (active > 0) return `${active} 处已核验动物设施`;
-    if (total > 0) return `${total} 处动物设施记录`;
+    const activeConfirmed = facilities
+      .filter(
+        (item) =>
+          facilityPurposeIsConfirmed(item.purpose_state) && item.operational_state === "active",
+      )
+      .reduce((sum, item) => sum + item.count, 0);
+    const inferred = Math.max(0, total - confirmed);
+    if (activeConfirmed > 0) return `${activeConfirmed} 处已核验动物设施`;
+    if (confirmed > 0) return `${confirmed} 处动物设施记录`;
+    if (inferred > 0) return `${inferred} 处疑似动物相关设施 · 用途待核验`;
     return "暂无已核验动物设施";
   }
 
