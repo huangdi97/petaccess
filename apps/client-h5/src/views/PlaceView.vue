@@ -332,7 +332,12 @@ const placeFixture = computed<string>(() => {
             :observation-count="observations.length"
             :desktop="isDesktop"
           />
-          <PlaceSpacePane v-else-if="view === 'space'" :zones="zones" :extras="extras" />
+          <PlaceSpacePane
+            v-else-if="view === 'space'"
+            :zones="zones"
+            :extras="extras"
+            :facility-summary="coexistence?.facility_summary ?? []"
+          />
           <PlaceRulesPane
             v-else-if="view === 'rules'"
             :current-rules="currentRules"
@@ -346,6 +351,7 @@ const placeFixture = computed<string>(() => {
           <PlaceRealityPane
             v-else-if="view === 'reality'"
             :observations="observations"
+            :staff-responses="coexistence?.staff_response_summary ?? []"
             :zones="zones"
             :place-id="placeId"
           />
