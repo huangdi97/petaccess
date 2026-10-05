@@ -37,6 +37,7 @@ import StateMessage from "../components/StateMessage.vue";
 import StatusBadge from "../components/StatusBadge.vue";
 import { answerConditions, answerStatusKey, answerVerdictLabel } from "../answer";
 import {
+  evidenceLineFor,
   freshnessLineFor,
   lensOrderScore,
   lensProjection,
@@ -161,6 +162,10 @@ function rowCondition(p: PlaceSummary): string {
   if (!answer) return "";
   const conditions = answerConditions(answer);
   return conditions[0] ?? "";
+}
+
+function rowEvidenceMeta(p: PlaceSummary): string {
+  return evidenceLineFor(facts.value.get(p.id)?.reality);
 }
 
 async function search() {
@@ -502,11 +507,10 @@ const selectedId = ref<string | null>(null);
                 @mouseenter="selectPlace(p)"
                 @focus="selectPlace(p)"
               >
-                <!-- v0.2.4 §11 row budget：4 semantic lines max
-                     line1 Place name + Status（右上）
-                     line2 Type · distance/area
-                     line3 Primary decision（verdict + key condition 同行）
-                     line4 Reality freshness（列表缩写「暂无足够现场记录」） -->
+                <!-- Canonical v0.10-R1 search row:
+                     identity + rule status / type·distance / primary Reality fact /
+                     Rule conclusion + key condition / Evidence·freshness metadata.
+                     Keep it divider-led, never a card wall. -->
                 <div class="result-row__head">
                   <div class="result-row__identity">
                     <strong class="result-row__name">{{ p.canonical_name }}</strong>
@@ -520,8 +524,8 @@ const selectedId = ref<string | null>(null);
                   </div>
                 </div>
 
-                <!-- lens projection（presentation-only）：只改突出那一行，不加行。
-                     rules → decision 为标题行；presence → reality 为标题行。 -->
+                <!-- Lens changes emphasis only. Default and presence/indoor/dining
+                     are Reality-first; rules is Rule-first. Both fact layers remain visible. -->
                 <template v-if="lensKey">
                   <p
                     v-if="lensProjectionFor(p).headline === 'rule' && facts.get(p.id)?.answer"
@@ -578,9 +582,17 @@ const selectedId = ref<string | null>(null);
                 <p
                   v-else-if="!lensKey || lensProjectionFor(p).headline !== 'reality'"
                   class="result-row__reality-line"
+                  :class="{ 'result-row__reality-line--lead': !lensKey }"
                   data-testid="result-reality"
                 >
                   {{ realityLineFor(facts.get(p.id)?.reality) }}
+                </p>
+                <p
+                  v-if="rowEvidenceMeta(p)"
+                  class="result-row__evidence-meta"
+                  data-testid="result-evidence-meta"
+                >
+                  {{ rowEvidenceMeta(p) }}
                 </p>
               </RouterLink>
             </li>
@@ -866,8 +878,8 @@ const selectedId = ref<string | null>(null);
   border-radius: var(--pa-radius-row-zero);
   background: transparent;
   box-shadow: none;
-  min-height: 92px;
-  max-height: 108px;
+  min-height: 116px;
+  max-height: 136px;
   /* §11 divider=yes：每行自带底部 divider，保证任意第一行也满足
    * borderBottomWidth ≥1（oracle 对第一行测量，不能只有第二行有线）。 */
   border-bottom: var(--pa-border-width) solid var(--pa-color-border);
@@ -895,7 +907,7 @@ const selectedId = ref<string | null>(null);
   padding: var(--pa-space-3) var(--pa-space-1);
   text-decoration: none;
   color: inherit;
-  min-height: 92px;
+  min-height: 116px;
   box-sizing: border-box;
 }
 
@@ -969,6 +981,13 @@ const selectedId = ref<string | null>(null);
   color: var(--pa-color-accent);
 }
 
+.result-row__evidence-meta {
+  margin: var(--pa-space-1) 0 0;
+  font-size: var(--pa-font-size-md);
+  line-height: var(--pa-line-height-20);
+  color: var(--pa-color-text-muted);
+}
+
 .result-row__error {
   margin: var(--pa-space-1) 0 0;
   color: var(--pa-color-text-secondary);
@@ -978,8 +997,8 @@ const selectedId = ref<string | null>(null);
 @media (max-width: 767px) {
   .result-row,
   .result-row__link {
-    min-height: 88px;
-    max-height: 104px;
+    min-height: 112px;
+    max-height: 132px;
   }
 
   .result-row__link {
