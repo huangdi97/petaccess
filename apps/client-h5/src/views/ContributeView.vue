@@ -16,17 +16,24 @@ import ContributeEntry from "../components/contribute/ContributeEntry.vue";
 import ContributeQuickForm from "../components/contribute/ContributeQuickForm.vue";
 import ContributeRuleForm from "../components/contribute/ContributeRuleForm.vue";
 import ContributeRealityForm from "../components/contribute/ContributeRealityForm.vue";
+import ContributeEffortForm from "../components/contribute/ContributeEffortForm.vue";
 import ContributeDone from "../components/contribute/ContributeDone.vue";
 import { useBreakpoint } from "../composables/useBreakpoint";
 import { useOnline } from "../composables/useOnline";
 
 defineOptions({ name: "ContributeView" });
 
-type Step = "entry" | "quick" | "rule" | "reality" | "done";
+type Step = "entry" | "quick" | "rule" | "reality" | "effort" | "done";
 type RealityKind = "observed_presence" | "staff_response" | "animal_facility";
 
 const route = useRoute();
 const placeId = computed(() => (route.params.id ? String(route.params.id) : ""));
+const effortTargetClaimId = computed(() =>
+  typeof route.query.target === "string" ? route.query.target : null,
+);
+const effortInitialZoneId = computed(() =>
+  typeof route.query.zone === "string" ? route.query.zone : null,
+);
 const { online } = useOnline();
 
 const step = ref<Step>("entry");
@@ -41,12 +48,13 @@ const parentPlaceId = ref<string | null>(null);
 // Reactive param + immediate: the router reuses this component across
 // /contribute/:id changes; every submit carries place_id, so re-anchor first.
 watch(
-  placeId,
+  [placeId, () => route.query.mode, () => route.query.target, () => route.query.zone],
   async () => {
     reset();
     zones.value = [];
     placeName.value = "";
     parentPlaceId.value = null;
+    if (route.query.mode === "effort") step.value = "effort";
     await session.restore();
     signedIn.value = session.signedIn;
     if (!signedIn.value || !placeId.value) return;
@@ -92,6 +100,7 @@ const uiState = computed<string>(() => {
     case "done":
       return "done";
     case "reality":
+    case "effort":
       return "step-2";
     default:
       return "step-1";
@@ -107,7 +116,9 @@ const STEP_LABELS: Record<string, string> = {
   "step-2": "现场记录",
   done: "提交完成",
 };
-const contributionKindLabel = computed(() => STEP_LABELS[uiState.value] ?? "现场贡献");
+const contributionKindLabel = computed(() =>
+  step.value === "effort" ? "本次未观察到动物" : STEP_LABELS[uiState.value] ?? "现场贡献",
+);
 /** §15 context rail：适用区域 —— 真实 zones 数据（无则保持 shell 默认）。 */
 const contextZoneLabel = computed(() => {
   const first = zones.value[0];
@@ -204,6 +215,18 @@ const { desktop: isDesktop } = useBreakpoint();
               :online="online"
               :signed-in="signedIn"
               :kind="realityKind"
+              @done="done"
+              @back="reset"
+            />
+            <ContributeEffortForm
+              v-else-if="step === 'effort'"
+              :place-id="placeId"
+              :place-name="placeName"
+              :zones="zones"
+              :online="online"
+              :signed-in="signedIn"
+              :target-claim-id="effortTargetClaimId"
+              :initial-zone-id="effortInitialZoneId"
               @done="done"
               @back="reset"
             />
