@@ -1,25 +1,40 @@
 <script setup lang="ts">
-/**
- * PlaceSpacePane — Place Dossier 空间 view（v0.2.4 §22）。
- * zones / entrances / paths / facilities / staff-response location facts。
- * 不放 Rule History（那属于 规则 view）。
- */
-import type { FacilitySummaryItem, PlaceExtras, Zone } from "@petaccess/client-core";
+import { computed } from "vue";
+import type {
+  FacilitySummaryItem,
+  PlaceExtras,
+  RealityEventView,
+  Zone,
+} from "@petaccess/client-core";
 import {
   amenityLabel,
   animalFacilityLabel,
   coexistenceLabel,
   coexistenceValueLabel,
   entranceLabel,
+  facilityAccessModeLabel,
   facilityStateLabel,
+  verifiedBooleanLabel,
   zoneConsumerLine,
 } from "../../consumer/labels";
+import { displayRealityTime } from "../../consumer/realityEvent";
 
-defineProps<{
+const props = defineProps<{
   zones: Zone[];
   extras: PlaceExtras | null;
   facilitySummary: FacilitySummaryItem[];
+  events: RealityEventView[];
 }>();
+
+const facilityEvents = computed(() =>
+  props.events.filter((event) => event.event_type === "animal_facility"),
+);
+
+function facilityZone(event: RealityEventView): string {
+  if (!event.zone_id) return "场所范围";
+  const zone = props.zones.find((item) => item.id === event.zone_id);
+  return zone ? zoneConsumerLine(zone) : "分区待确认";
+}
 </script>
 
 <template>
@@ -27,13 +42,9 @@ defineProps<{
     <section class="place-section" data-testid="space-zones" data-ui="place-zones">
       <h2 class="place-section__title">空间与区域</h2>
       <p v-if="!zones.length" class="muted">暂无分区域信息。信息不足不代表允许或禁止。</p>
-      <div v-for="z in zones" :key="z.id" class="zone-row" data-ui="zone-row">
-        <span class="zone-row__name">{{ zoneConsumerLine(z) }}</span>
-        <RouterLink
-          class="btn-inline"
-          :to="`/place/${z.place_id}/reality`"
-          data-testid="zone-reality-link"
-        >
+      <div v-for="zone in zones" :key="zone.id" class="zone-row" data-ui="zone-row">
+        <span class="zone-row__name">{{ zoneConsumerLine(zone) }}</span>
+        <RouterLink class="btn-inline" :to="`/place/${zone.place_id}/reality`">
           查看现场 →
         </RouterLink>
       </div>
@@ -41,19 +52,19 @@ defineProps<{
 
     <section class="place-section" data-testid="entrances">
       <h2 class="place-section__title">怎么进入</h2>
-      <div v-if="!extras?.entrances.length && !extras?.access_paths.length" class="muted">
-        暂无入口 / 路径信息
-      </div>
-      <div v-for="e in extras?.entrances ?? []" :key="e.id" class="zone-row">
+      <p v-if="!extras?.entrances.length && !extras?.access_paths.length" class="muted">
+        暂无入口 / 路径信息。
+      </p>
+      <div v-for="entrance in extras?.entrances ?? []" :key="entrance.id" class="zone-row">
         <span class="zone-row__name">
-          {{ e.name }}
-          <span class="muted zone-row__meta">· {{ entranceLabel(e.entrance_type) }}</span>
+          {{ entrance.name }}
+          <span class="muted zone-row__meta">· {{ entranceLabel(entrance.entrance_type) }}</span>
         </span>
-        <span class="muted">{{ e.access_notes ?? "" }}</span>
+        <span class="muted">{{ entrance.access_notes ?? "" }}</span>
       </div>
-      <div v-for="p in extras?.access_paths ?? []" :key="p.id" class="zone-row">
-        <span>{{ p.from_node }} → {{ p.to_node }}</span>
-        <span class="muted">{{ p.name }}</span>
+      <div v-for="path in extras?.access_paths ?? []" :key="path.id" class="zone-row">
+        <span>{{ path.from_node }} → {{ path.to_node }}</span>
+        <span class="muted">{{ path.name }}</span>
       </div>
     </section>
 
@@ -63,106 +74,100 @@ defineProps<{
       data-ui="place-animal-facilities"
     >
       <h2 class="place-section__title">动物设施</h2>
-      <p v-if="!facilitySummary.length" class="muted">暂无已核验的动物设施记录。</p>
-      <div
-        v-for="item in facilitySummary"
-        :key="item.facility_type"
-        class="zone-row"
-        data-testid="animal-facility-summary-row"
-      >
-        <span class="zone-row__name">{{ animalFacilityLabel(item.facility_type) }}</span>
-        <span class="muted">
-          {{ facilityStateLabel(item.operational_state) }} · {{ item.count }} 处
-          <template v-if="item.last_verified_at">
-            · 最近核验 {{ item.last_verified_at.slice(0, 10) }}
-          </template>
-        </span>
-      </div>
-      <p class="facility-note muted">设施存在不等于允许动物进入；这里只描述现场设施事实。</p>
+
+      <template v-if="facilityEvents.length">
+        <article
+          v-for="event in facilityEvents"
+          :key="event.id"
+          class="facility-record"
+          data-testid="animal-facility-record"
+        >
+          <header class="facility-record__head">
+            <strong>{{ animalFacilityLabel(event.facility_type) }}</strong>
+            <span class="facility-record__where">{{ facilityZone(event) }}</span>
+          </header>
+          <dl class="facility-facts">
+            <dt>当前状态</dt>
+            <dd>{{ facilityStateLabel(event.facility_state) }}</dd>
+            <dt>使用方式</dt>
+            <dd>{{ facilityAccessModeLabel(event.facility_access_mode) }}</dd>
+            <template v-if="event.facility_capacity != null">
+              <dt>容量</dt>
+              <dd>{{ event.facility_capacity }}</dd>
+            </template>
+            <template v-if="event.facility_size_limit">
+              <dt>体型限制</dt>
+              <dd>{{ event.facility_size_limit }}</dd>
+            </template>
+            <dt>遮雨</dt>
+            <dd>{{ verifiedBooleanLabel(event.facility_weather_protection) }}</dd>
+            <dt>遮阳</dt>
+            <dd>{{ verifiedBooleanLabel(event.facility_shade) }}</dd>
+            <dt>通风</dt>
+            <dd>{{ verifiedBooleanLabel(event.facility_ventilation) }}</dd>
+            <dt>饮水</dt>
+            <dd>{{ verifiedBooleanLabel(event.facility_water_available) }}</dd>
+            <dt>看护</dt>
+            <dd>{{ event.facility_supervision_state || "未确认" }}</dd>
+            <dt>安全 / 锁闭</dt>
+            <dd>{{ event.facility_security_or_lock_state || "未确认" }}</dd>
+            <dt>最近核验</dt>
+            <dd>
+              {{
+                event.last_verified_at
+                  ? displayRealityTime(event.last_verified_at)
+                  : "未记录"
+              }}
+            </dd>
+          </dl>
+        </article>
+      </template>
+
+      <template v-else>
+        <p v-if="!facilitySummary.length" class="muted">暂无经核验的动物设施记录。</p>
+        <div
+          v-for="item in facilitySummary"
+          :key="item.facility_type"
+          class="zone-row"
+          data-testid="animal-facility-summary-row"
+        >
+          <span class="zone-row__name">{{ animalFacilityLabel(item.facility_type) }}</span>
+          <span class="muted">
+            {{ facilityStateLabel(item.operational_state) }} · {{ item.count }} 处
+            <template v-if="item.last_verified_at">
+              · 最近核验 {{ item.last_verified_at.slice(0, 10) }}
+            </template>
+          </span>
+        </div>
+      </template>
+
+      <p class="facility-note">
+        设施存在只说明这里观察到相关设施；不等于允许动物进入，也不构成安全或动物福利保证。
+      </p>
     </section>
 
     <section class="place-section" data-testid="amenities">
-      <h2 class="place-section__title">场所设施</h2>
-      <div v-if="!extras?.amenities.length" class="muted">暂无设施记录</div>
-      <div v-for="a in extras?.amenities ?? []" :key="a.id" class="zone-row">
-        <span class="zone-row__name">{{ amenityLabel(a.amenity_type) }}</span>
-        <span class="muted">{{ facilityStateLabel(a.status) }}</span>
+      <h2 class="place-section__title">其他场所设施</h2>
+      <p v-if="!extras?.amenities.length" class="muted">暂无其他设施记录。</p>
+      <div v-for="amenity in extras?.amenities ?? []" :key="amenity.id" class="zone-row">
+        <span class="zone-row__name">{{ amenityLabel(amenity.amenity_type) }}</span>
+        <span class="muted">{{ facilityStateLabel(amenity.status) }}</span>
       </div>
     </section>
 
     <section class="place-section" data-testid="coexistence-location-facts">
       <h2 class="place-section__title">空间事实</h2>
-      <div v-if="!extras?.coexistence.length" class="muted">暂无共处边界结构化记录</div>
-      <div v-for="c in extras?.coexistence ?? []" :key="c.id" class="zone-row">
-        <span>{{ coexistenceLabel(c.attribute) }}</span>
+      <p v-if="!extras?.coexistence.length" class="muted">暂无共处边界结构化记录。</p>
+      <div v-for="item in extras?.coexistence ?? []" :key="item.id" class="zone-row">
+        <span>{{ coexistenceLabel(item.attribute) }}</span>
         <span class="muted">
-          {{ coexistenceValueLabel(c.value)
-          }}<span v-if="c.verified_at"> · {{ c.verified_at.slice(0, 10) }}</span>
+          {{ coexistenceValueLabel(item.value) }}
+          <template v-if="item.verified_at"> · {{ item.verified_at.slice(0, 10) }}</template>
         </span>
       </div>
-      <div class="notice">这些信息描述场所空间本身，不代表正式准入规则。</div>
+      <p class="space-note">这些信息描述场所空间本身，不代表正式准入规则。</p>
     </section>
   </div>
 </template>
 
-<style scoped>
-.place-section {
-  margin-bottom: var(--pa-space-5);
-}
-.place-section__title {
-  margin: 0 0 var(--pa-space-3);
-  font-size: var(--pa-font-size-18);
-  font-weight: var(--pa-font-weight-600);
-  line-height: var(--pa-line-height-26);
-  color: var(--pa-color-text-primary);
-}
-.zone-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--pa-space-3);
-  min-height: 48px;
-  max-height: 64px;
-  padding: var(--pa-space-2) 0;
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
-}
-.zone-row:last-child {
-  border-bottom: none;
-}
-.zone-row__name {
-  display: inline-flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--pa-space-1);
-  font-size: var(--pa-font-size-base);
-}
-.zone-row__meta {
-  font-size: var(--pa-font-size-sm);
-}
-.facility-note {
-  margin: var(--pa-space-3) 0 0;
-  font-size: var(--pa-font-size-sm);
-  line-height: var(--pa-line-height-20);
-}
-
-.notice {
-  font-size: var(--pa-font-size-sm);
-  color: var(--pa-color-text-muted);
-  background: var(--pa-color-bg-sunken);
-  border-radius: var(--pa-radius-control);
-  padding: var(--pa-space-2) var(--pa-space-3);
-  margin-top: var(--pa-space-2);
-}
-
-@media (max-width: 767px) {
-  .zone-row {
-    align-items: flex-start;
-    min-height: 52px;
-    max-height: none;
-  }
-
-  .zone-row__name {
-    min-width: 0;
-  }
-}
-</style>
+<style scoped src="./PlaceSpacePane.css"></style>
