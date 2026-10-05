@@ -84,10 +84,15 @@ test("A2.1 — Staff / Facility contribution uses canonical Reality domain value
   await page.getByTestId("reality-submit").click();
   const staffRequest = await staffRequestPromise;
   const staffBody = staffRequest.postDataJSON() as {
+    report: Record<string, unknown>;
     candidates: { payload: Record<string, unknown> }[];
   };
+  expect(staffBody.report.place_match_state).toBe("exact_place");
+  expect(staffBody.report.place_match_evidence_types).toEqual(["user_confirmation"]);
+  expect(staffBody.report.fact_evidence_state).toBe("first_hand_no_media");
   expect(staffBody.candidates[0]?.payload.response_action).toBe("direct_to_allowed_zone");
   expect(staffBody.candidates[0]?.payload.actor_role).toBe("unknown_staff");
+  expect(staffBody.candidates[0]?.payload.staff_awareness_state).toBe("awareness_unknown");
   await expect(page.getByTestId("contribute-result")).toBeVisible({ timeout: 15000 });
 
   await page.goto(`${BASE}/#/contribute/${MALL_ID}`, { waitUntil: "load" });
@@ -106,6 +111,8 @@ test("A2.1 — Staff / Facility contribution uses canonical Reality domain value
   };
   expect(facilityBody.candidates[0]?.payload.facility_type).toBe("pet_waiting_area");
   expect(facilityBody.candidates[0]?.payload.operational_state).toBe("temporarily_unavailable");
+  expect(facilityBody.candidates[0]?.payload.purpose_state).toBe("purpose_unknown");
+  expect(facilityBody.candidates[0]?.payload.access_mode).toBe("unknown");
   expect(facilityBody.candidates[0]?.payload).not.toHaveProperty("operator_provided");
   await expect(page.getByTestId("contribute-result")).toBeVisible({ timeout: 15000 });
 });
