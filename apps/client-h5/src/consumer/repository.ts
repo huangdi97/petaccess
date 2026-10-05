@@ -30,6 +30,7 @@ import {
   session,
   synthDemoCamera,
   type AccessAnswer,
+  type MapCamera,
   type CoexistenceSnapshot,
   type PlaceSummary,
   type RealityAnswer,
@@ -238,11 +239,21 @@ export async function searchPlaces(q: string): Promise<ListResult<PlaceSummary>>
   return { items: res.value, stale: res.stale, fetchedAtMs: cache.fetchedAtMs(key) };
 }
 
-/** Cached nearby list (demo camera, fixed radius), same freshness semantics. */
-export async function nearbyPlaces(): Promise<ListResult<PlaceSummary>> {
-  const key = ConsumerCache.key(["nearby"]);
-  const cam = synthDemoCamera();
-  const fetchFn = () => client.nearby(cam.lat, cam.lng, 5000);
+/** Cached nearby list for the actual map camera, with the same freshness semantics.
+ * Home may omit the camera and use the Shanghai pilot default; Map must always
+ * pass its live one-shot-location/default camera so moving the camera changes
+ * the spatial query instead of only moving the drawing surface. */
+export async function nearbyPlaces(
+  camera: MapCamera = synthDemoCamera(),
+  radiusM = 5000,
+): Promise<ListResult<PlaceSummary>> {
+  const key = ConsumerCache.key([
+    "nearby",
+    camera.lat.toFixed(5),
+    camera.lng.toFixed(5),
+    radiusM,
+  ]);
+  const fetchFn = () => client.nearby(camera.lat, camera.lng, radiusM);
   const cached = cache.get<PlaceSummary[]>(key);
   if (cached && cache.isFresh(key)) {
     return { items: cached, stale: false, fetchedAtMs: cache.fetchedAtMs(key) };
