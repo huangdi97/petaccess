@@ -173,6 +173,9 @@ class RealityEventOut(BaseModel):
     zone_id: str | None = None
     event_at: datetime
     time_basis: str
+    time_evidence_state: str | None = None
+    content_published_at: datetime | None = None
+    claimed_event_at: datetime | None = None
     animal_scope: str | None = None
     observed_action: str | None = None
     observed_context: str | None = None
