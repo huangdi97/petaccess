@@ -405,6 +405,7 @@ const placeFixture = computed<string>(() => {
           :reality-error="coexistenceLoaded && !coexistence?.reality_answer"
           :snapshot="coexistence"
           :species-label="speciesLabel"
+          :latest-verified-at="latestVerifiedAt"
         />
       </aside>
     </div>
