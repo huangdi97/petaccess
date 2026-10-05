@@ -880,8 +880,8 @@ const selectedId = ref<string | null>(null);
   border-radius: var(--pa-radius-row-zero);
   background: transparent;
   box-shadow: none;
-  min-height: 116px;
-  max-height: 136px;
+  min-height: 112px;
+  max-height: 132px;
   /* §11 divider=yes：每行自带底部 divider，保证任意第一行也满足
    * borderBottomWidth ≥1（oracle 对第一行测量，不能只有第二行有线）。 */
   border-bottom: var(--pa-border-width) solid var(--pa-color-border);
@@ -909,7 +909,7 @@ const selectedId = ref<string | null>(null);
   padding: var(--pa-space-3) var(--pa-space-1);
   text-decoration: none;
   color: inherit;
-  min-height: 116px;
+  min-height: 112px;
   box-sizing: border-box;
 }
 
