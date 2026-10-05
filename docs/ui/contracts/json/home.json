@@ -13,7 +13,7 @@
         "page": "home",
         "state": "ready",
         "fixture": "home-ready-v1",
-        "h1": "去之前，先看规则与现场。"
+        "h1": "去之前，先看看这里的规则和现场。"
       }
     }
   ],
@@ -21,7 +21,9 @@
     {
       "id": "HOME_QUERY_CONTEXT",
       "ui": "query-context",
-      "fallbacks": ["[data-testid='query-context']"],
+      "fallbacks": [
+        "[data-testid='query-context']"
+      ],
       "props": {
         "count": {
           "min": 1
@@ -32,7 +34,9 @@
     {
       "id": "HOME_PRIMARY_SEARCH",
       "ui": "home-search",
-      "fallbacks": ["[data-testid='home-search']"],
+      "fallbacks": [
+        "[data-testid='home-search']"
+      ],
       "props": {
         "count": {
           "min": 1
@@ -43,7 +47,9 @@
     {
       "id": "HOME_SEARCH_INPUT_HEIGHT",
       "ui": "home-search-input",
-      "fallbacks": ["[data-testid='home-search-input']"],
+      "fallbacks": [
+        "[data-testid='home-search-input']"
+      ],
       "props": {
         "height": {
           "min": 44
@@ -54,7 +60,9 @@
     {
       "id": "HOME_NEARBY_SECTION",
       "ui": "home-nearby",
-      "fallbacks": ["[data-testid='home-freshness'], [data-testid='home-empty']"],
+      "fallbacks": [
+        "[data-testid='home-freshness'], [data-testid='home-empty']"
+      ],
       "props": {
         "count": {
           "min": 1
@@ -65,7 +73,10 @@
     {
       "id": "HOME_MAX_WIDTH_960",
       "ui": "home",
-      "fallbacks": [".page--home", "[data-ui='home']"],
+      "fallbacks": [
+        ".page--home",
+        "[data-ui='home']"
+      ],
       "props": {
         "width": {
           "max": 960
@@ -92,6 +103,21 @@
       "selector": "[data-ui='home-lens'], .home-lens",
       "containsArrows": true,
       "severity": "WARN"
+    },
+    {
+      "id": "HOME_RECOMMEND_PRESENT",
+      "selector": "[data-ui='home-recommend']",
+      "min": 1,
+      "severity": "FAIL"
+    },
+    {
+      "id": "HOME_DIVERGENCE_NOT_CARD_WALL",
+      "selector": "[data-ui='home-divergence'] .home-divergence__row",
+      "forbiddenClass": [
+        "card",
+        "panel"
+      ],
+      "severity": "FAIL"
     }
   ],
   "density": [
@@ -110,5 +136,5 @@
     "allcapsTokens": true,
     "refs": true
   },
-  "notes": "Home is a task launcher, not a dashboard. Order: Location -> Query -> Search -> Recent -> Nearby -> Lens."
+  "notes": "Home follows canonical v0.10-R1 order: Location -> Query -> Search -> four task lenses -> recommendations -> Rule/Reality overview -> divergence -> recent. Task launcher, not dashboard."
 }
