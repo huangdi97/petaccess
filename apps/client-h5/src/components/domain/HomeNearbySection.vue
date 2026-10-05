@@ -13,7 +13,7 @@ import SkeletonList from "../SkeletonList.vue";
 import StateMessage from "../StateMessage.vue";
 import StatusBadge from "../StatusBadge.vue";
 import { placeTypeLabel } from "@petaccess/client-core";
-import { freshnessLineFor } from "../../consumer/rowView";
+import { freshnessLineFor, type ConsumerLens } from "../../consumer/rowView";
 import type { HomeCard } from "../../composables/useHomeLauncher";
 import HomeDigestHighlights from "./HomeDigestHighlights.vue";
 
@@ -28,6 +28,7 @@ const props = defineProps<{
   online: boolean;
   speciesLabel: string;
   conditionsLabel: Record<string, string>;
+  interest: ConsumerLens;
 }>();
 
 const emit = defineEmits<{
@@ -77,6 +78,8 @@ const freshness = computed(() =>
         </p>
 
         <HomeDigestHighlights
+          section="recommend"
+          :interest="interest"
           :verified="verified"
           :pending="pending"
           @open="emit('open', $event)"
@@ -116,14 +119,10 @@ const freshness = computed(() =>
             </RouterLink>
           </div>
         </div>
-        <RouterLink v-if="verified.length > 3" class="home-more btn-inline" to="/map">
-          在地图查看全部附近场所 →
-        </RouterLink>
-
         <h2 class="home-section-title home-section-title--stacked">附近待补充</h2>
         <p class="muted">这些场所我们目前没有足够依据下结论，信息不足不等于允许或禁止。</p>
         <div
-          v-for="c in pending"
+          v-for="c in pending.slice(0, 2)"
           :key="c.place.id"
           class="home-row"
           :data-testid="'pending-' + c.place.id"
@@ -135,6 +134,22 @@ const freshness = computed(() =>
           </div>
           <span class="muted">{{ placeTypeLabel(c.place.place_type) }}</span>
         </div>
+
+        <RouterLink
+          v-if="verified.length > 3 || pending.length > 2"
+          class="home-more btn-inline"
+          to="/map"
+        >
+          在地图查看全部附近场所 →
+        </RouterLink>
+
+        <HomeDigestHighlights
+          section="divergence"
+          :interest="interest"
+          :verified="verified"
+          :pending="pending"
+          @open="emit('open', $event)"
+        />
       </template>
     </template>
   </div>
