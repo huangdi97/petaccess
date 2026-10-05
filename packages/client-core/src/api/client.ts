@@ -173,6 +173,7 @@ export interface StaffResponseSummaryItem {
 
 export interface FacilitySummaryItem {
   facility_type: string;
+  purpose_state: string;
   count: number;
   operational_state: string;
   last_verified_at: string | null;
