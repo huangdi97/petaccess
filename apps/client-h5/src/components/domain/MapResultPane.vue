@@ -20,9 +20,14 @@ import {
 import SkeletonList from "../SkeletonList.vue";
 import StateMessage from "../StateMessage.vue";
 import StatusBadge from "../StatusBadge.vue";
+import type { RowFacts } from "../../consumer/repository";
+import type { MapLensKey } from "../../composables/useMapWorkspace";
 
 const props = defineProps<{
   places: PlaceSummary[];
+  facts: Map<string, RowFacts>;
+  lens: MapLensKey;
+  lensLabels: Record<string, string>;
   statuses: Record<string, MapMarker["status"]>;
   visiblePlaces: PlaceSummary[];
   loading: boolean;
@@ -43,7 +48,7 @@ const emit = defineEmits<{
 }>();
 /** Status filters, applied to the neutral marker statuses (never a ranking). */
 const STATUS_FILTERS = [
-  { key: "MATCH", label: "明确允许" },
+  { key: "ALLOWED", label: "明确允许" },
   { key: "CONDITIONAL", label: "有条件" },
   { key: "RESTRICTED", label: "明确限制" },
   { key: "UNKNOWN", label: "信息不足" },
@@ -84,8 +89,9 @@ function toggleFilter(key: string) {
       </p>
     </div>
 
-    <!-- 筛选：单个「筛选 N」入口 + 面板（contract MAP_NO_FILTER_PILL_WALL = 0）。 -->
-    <div class="map-filter" data-ui="map-filter">
+    <!-- Rule lens keeps status filtering; other lenses intentionally show the
+         full set because their facts are not access verdicts. -->
+    <div v-if="props.lens === 'rule'" class="map-filter" data-ui="map-filter">
       <button
         type="button"
         class="map-filter__toggle"
@@ -117,10 +123,13 @@ function toggleFilter(key: string) {
           清除筛选
         </button>
         <p class="muted map-filter__hint">
-          筛选是可选的：信息不足的场所默认仍然显示，信息不足不代表允许或禁止。
+          筛选只影响规则镜头；信息不足的场所默认仍然显示。
         </p>
       </div>
     </div>
+    <p v-else class="muted map-lens-note" data-testid="map-lens-note">
+      当前镜头展示全部附近场所；切回“规则”可按准入结论筛选。
+    </p>
 
     <SkeletonList v-if="props.loading" :rows="3" />
     <StateMessage
@@ -178,7 +187,13 @@ function toggleFilter(key: string) {
                   <span v-if="p.distance_m"> · {{ Math.round(p.distance_m) }}m</span>
                 </span>
               </div>
-              <StatusBadge :semantic="props.statuses[p.id] ?? 'UNKNOWN'" />
+              <StatusBadge
+                v-if="props.lens === 'rule'"
+                :semantic="props.statuses[p.id] ?? 'UNKNOWN'"
+              />
+              <span v-else class="map-place-row__lens-fact">
+                {{ props.lensLabels[p.id] ?? "信息不足" }}
+              </span>
             </div>
           </li>
         </ul>
@@ -223,6 +238,13 @@ function toggleFilter(key: string) {
 
 .map-pane__coverage {
   margin-top: var(--pa-space-1);
+}
+
+.map-lens-note {
+  margin: var(--pa-space-2) 0;
+  padding-bottom: var(--pa-space-2);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  font-size: var(--pa-font-size-sm);
 }
 
 .map-pane__title {
@@ -322,5 +344,13 @@ function toggleFilter(key: string) {
   flex-direction: column;
   gap: var(--pa-space-1);
   min-width: 0;
+}
+
+.map-place-row__lens-fact {
+  max-width: 160px;
+  text-align: right;
+  font-size: var(--pa-font-size-md);
+  line-height: var(--pa-line-height-20);
+  color: var(--pa-color-text-secondary);
 }
 </style>
