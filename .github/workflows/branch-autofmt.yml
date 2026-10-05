@@ -25,7 +25,7 @@ jobs:
           npm install --global prettier@3.9.6
       - name: Format Python and the changed E2E spec
         run: |
-          ruff check --fix scripts/android_acceptance scripts/isolated_db.py scripts/visual_db_reset.py services/api/app/api/v1/v05.py services/api/app/services/reality_contribution.py || true
+          ruff check --fix --unsafe-fixes scripts/android_acceptance scripts/isolated_db.py scripts/visual_db_reset.py services/api/app/api/v1/v05.py services/api/app/services/reality_contribution.py || true
           ruff format scripts/android_acceptance scripts/isolated_db.py scripts/visual_db_reset.py services/api/app/api/v1/v05.py services/api/app/services/reality_contribution.py
           prettier --write tests/e2e/contribute-wizard.spec.ts
       - name: Commit formatting
