@@ -74,6 +74,67 @@ def test_rule_lead_creates_review_candidate_without_publishing_rule(client, sign
     assert after_rules == before_rules
 
 
+def test_changed_rule_lead_persists_explicit_supersession_target(client, signed_user):
+    factory = get_session_factory()
+    with factory() as db:
+        target = db.scalars(
+            select(AccessRule).where(AccessRule.status == "current").limit(1)
+        ).first()
+        assert target is not None
+        place_id = target.place_id
+        assert place_id
+
+    response = client.post(
+        f"/api/v1/places/{place_id}/rule-leads",
+        headers=signed_user,
+        json={
+            "animal_scope": target.animal_scope,
+            "effect": "conditional",
+            "proposed_conditions": ["carrier_required"],
+            "raw_text": "用户报告这条现行规则已经变化。",
+            "current_rule_id": target.id,
+        },
+    )
+    assert response.status_code == 201, response.text
+
+    with factory() as db:
+        candidate = db.get(RuleCandidate, response.json()["id"])
+        assert candidate is not None
+        assert candidate.supersedes_rule_id == target.id
+
+
+def test_changed_rule_lead_rejects_noncurrent_target(client, signed_user):
+    factory = get_session_factory()
+    with factory() as db:
+        target = db.scalars(
+            select(AccessRule).where(AccessRule.status == "current").limit(1)
+        ).first()
+        assert target is not None
+        place_id = target.place_id
+        target.status = "superseded"
+        db.commit()
+        target_id = target.id
+
+    try:
+        response = client.post(
+            f"/api/v1/places/{place_id}/rule-leads",
+            headers=signed_user,
+            json={
+                "animal_scope": "dog",
+                "effect": "allowed",
+                "current_rule_id": target_id,
+            },
+        )
+        assert response.status_code == 409, response.text
+        assert response.json()["error"]["code"] == "supersession_target_not_current"
+    finally:
+        with factory() as db:
+            restored = db.get(AccessRule, target_id)
+            assert restored is not None
+            restored.status = "current"
+            db.commit()
+
+
 def test_rule_lead_requires_authentication(client):
     place_id = _place_id(client)
     response = client.post(
