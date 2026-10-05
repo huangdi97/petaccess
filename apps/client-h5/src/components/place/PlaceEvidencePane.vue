@@ -80,7 +80,9 @@ const LABELS: Record<string, string> = {
           {{ source.collected_at.slice(0, 10) }}
         </span>
       </div>
-      <p v-if="!sources.length" class="muted">暂无来源记录。</p>
+      <p v-if="!sources.length" class="muted">
+        原始材料可能受隐私或许可限制；现场事实行已显示可公开的来源类型与核验信息。
+      </p>
     </section>
   </div>
 </template>
