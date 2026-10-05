@@ -65,6 +65,14 @@ function zoomMap(delta: number) {
     zoom: Math.max(8, Math.min(18, camera.value.zoom + delta)),
   };
 }
+
+function chooseMapResult(id: string) {
+  if (!isDesktop.value) {
+    open(id);
+    return;
+  }
+  onSelectCluster({ memberIds: [id], count: 1 });
+}
 </script>
 
 <template>
@@ -133,6 +141,7 @@ function zoomMap(delta: number) {
         :lens="lens"
         :lens-labels="lensLabels"
         :statuses="statuses"
+        :selected-id="selected?.id ?? null"
         :visible-places="visiblePlaces"
         :loading="loading"
         :error="error"
@@ -142,7 +151,7 @@ function zoomMap(delta: number) {
         @update:filters="activeFilters = $event"
         @locate="locate"
         @search="goSearch"
-        @open="open"
+        @open="chooseMapResult"
         @retry="load"
         @clear-filters="activeFilters = []"
         @go-home="goHome"
