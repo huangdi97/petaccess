@@ -267,3 +267,30 @@ TIME → EVENT → LOCATION → STAFF RESPONSE → REVIEW/EVIDENCE。
 - Apple HIG 证明 Search / Maps / Place card 的空间关系应服务任务，不应为了统一模板牺牲平台直觉。
 
 PetAccess 的差异化不在于“也有地图”，而在于 **Rule + Reality + Evidence/Governance + Divergence** 四者在一个现实场所模型里被严格分离又能同时阅读。
+
+
+## 9. 2026-10-05 官方模式研究补强
+
+本轮进一步只看官方设计系统与官方帮助文档，结论与 Canonical 一致：
+
+1. **Apple HIG / Search fields**：搜索需要让范围清楚、结果尽量简化，并允许必要的 scope/filter；在 split-view 信息工具里，搜索与结果列表相邻、选择项持续可见于详情区域，是成熟桌面信息架构。PetAccess 因此继续维持 Search = Results Pane + Detail Inspector，不把桌面退化成移动卡片流。
+   - https://developer.apple.com/design/human-interface-guidelines/search-fields
+2. **Apple HIG / Split views**：主列表选择驱动相邻详情，本质上支持 PetAccess 的 Search List–Detail 与 Map Results–Canvas 结构。selection 必须可见，pane 之间用克制 divider，而不是把每一项包成浮卡。
+   - https://developer.apple.com/design/human-interface-guidelines/split-views
+3. **GOV.UK Summary list**：少量 key facts 应用清晰 row / key-value rhythm，而不是小卡片墙；这强化了 Place Evidence/Settings/Mine 的 divider-led 信息呈现。
+   - https://design-system.service.gov.uk/components/summary-list/
+4. **GOV.UK Tag**：tag 是状态，不应被伪装成链接/按钮。这支持 PetAccess 将 StatusBadge 仅留给 Rule semantic status，并把筛选/“为什么”/查看依据做成真实 action。
+   - https://design-system.service.gov.uk/components/tag/
+5. **Google Maps Edit place information**：用户可以补充、纠正或明确“不知道正确值但现值错误”，提交后由平台核验；照片可以帮助验证。这与 PetAccess 的“不确定是合法答案 + Contribution 待核验 + Evidence 不自动升级成 Rule”完全同向。
+   - https://support.google.com/maps/answer/7084895
+
+这些参考不改变产品定义，只进一步确认：**Task-first Search、持续 selection、少卡片的事实摘要、status/action 分离、不确定与待核验显式存在** 是正确方向。
+
+## 10. Oracle 数值的解释纪律
+
+机器 Oracle 只允许约束“可测的外形代理”，不得反向扭曲 Canonical：
+
+- Search 仍限制为不超过 5 个**语义组**：Identity / Reality(or Rule lead) / Rule(or Reality secondary) / Key condition / Evidence-freshness；浏览器 rendered-line probe 可能把并排 StatusBadge 或窄屏换行单独计数，因此 desktop 机器上限 6、mobile 上限 7，不代表允许新增信息组。
+- Place mobile 第一屏已经按照 Coexistence Passport 恢复 Identity actions + Rule + Reality + Space/Evidence summary；因此旧的 30 rendered-line 上限不再是权威。新上限只用于防止继续膨胀，不允许把 Staff/Facility/History 全量塞回第一屏。
+- Map 的状态筛选只属于 Rule Lens；Reality / Facility / Divergence Lens 必须显示完整空间态势，不能为了让旧 filter gate 通过而套用 Rule status filter。
+
