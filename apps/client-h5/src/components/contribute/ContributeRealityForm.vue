@@ -219,7 +219,9 @@ async function submit() {
         origin: sourceMode.value,
         place_id: reportPlaceId,
         container_place_id:
-          placeMatchState === "parent_place_only" && props.parentPlaceId ? props.parentPlaceId : null,
+          placeMatchState === "parent_place_only" && props.parentPlaceId
+            ? props.parentPlaceId
+            : null,
         subject_place_id: placeMatchState === "exact_place" ? props.placeId : null,
         place_match_state: placeMatchState,
         place_match_evidence_types: isExternal.value
