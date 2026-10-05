@@ -56,6 +56,7 @@ from app.models.enums import (
     RealityVerificationStatus,
 )
 from app.models.media import MediaPurpose
+from app.services.reality_freshness import freshness_state
 from app.schemas.reality import (
     ExternalContentReferenceIn,
     ObservationEffortIn,
@@ -463,9 +464,7 @@ def attach_candidate(
         verification_status=RealityVerificationStatus.UNVERIFIED,
     )
     if cand.observed_at is not None:
-        from app.api.v1.reality import _freshness_state
-
-        cand.freshness_state = _freshness_state(cand.observed_at)
+        cand.freshness_state = freshness_state(cand.observed_at)
     db.add(cand)
     db.flush()
     record_audit(
