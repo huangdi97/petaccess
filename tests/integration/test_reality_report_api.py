@@ -239,6 +239,67 @@ def test_parent_place_only_cannot_pin_candidate_to_tenant(client, place_id):
     assert r.json()["error"]["code"] == "parent_place_escalation"
 
 
+def test_imprecise_place_match_cannot_publish_public_claim(client, place_id):
+    """§21: review may keep an area-level lead, but publication requires an exact place."""
+    email = f"place-match-{uuid.uuid4().hex[:8]}@example.com"
+    registered = client.post(
+        "/api/v1/auth/register",
+        json={"display_name": "地点核验测试", "email": email, "password": "passw0rd123"},
+    )
+    assert registered.status_code in (200, 201), registered.text
+    token = client.post(
+        "/api/v1/auth/login",
+        json={"email": email, "password": "passw0rd123"},
+    ).json()["access_token"]
+
+    created = client.post(
+        f"/api/v1/places/{place_id}/reality/reports",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "report": _report(
+                "external_online_content",
+                place_match_state="area_only",
+                content_published_at=(datetime.now(UTC) - timedelta(days=1)).isoformat(),
+                observed_at=None,
+                claimed_event_at=None,
+                time_evidence_state="publication_time_only",
+            ),
+            "candidates": [
+                {
+                    "candidate_type": "observed_presence",
+                    "animal_scope": "dog",
+                    "payload": {"observed_action": "present"},
+                }
+            ],
+        },
+    )
+    assert created.status_code == 201, created.text
+    cand_id = created.json()["candidates"][0]["id"]
+
+    from app.db.session import get_session_factory
+    from app.models import User
+
+    session = get_session_factory()()
+    try:
+        user = session.query(User).filter(User.email == email).one()
+        user.role = "admin"
+        session.commit()
+    finally:
+        session.close()
+
+    admin_token = client.post(
+        "/api/v1/auth/login",
+        json={"email": email, "password": "passw0rd123"},
+    ).json()["access_token"]
+    decision = client.post(
+        f"/api/v1/reality/candidates/{cand_id}/decision",
+        headers={"Authorization": f"Bearer {admin_token}"},
+        json={"reality_decision": "verified", "decision_note": None},
+    )
+    assert decision.status_code == 400, decision.text
+    assert decision.json()["error"]["code"] == "reality_exact_place_required"
+
+
 def test_effort_never_becomes_no_animal_presence_claim(client, place_id, signed_user):
     """§24: animal_observed=false forms only an ObservationEffort row."""
     before = client.get(f"/api/v1/places/{place_id}/reality").json()
