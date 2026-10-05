@@ -1,8 +1,9 @@
 /**
  * MapProvider adapter interface (ADR-008). Implementations per platform:
- * - H5: canvas/svg mock renderer (apps/client-h5)
- * - uni-app x: <map> component adapter (apps/client platform adapters)
- * A real Tencent key only swaps the provider config — business logic unchanged.
+ * - H5/Tauri current renderer: provider-neutral spatial surface (apps/client-h5)
+ *   driven by the REAL representative coordinates returned by PlaceSummary.
+ * - A Tencent GL renderer remains an external-key integration boundary; swapping
+ *   the visual basemap must not change clustering, lenses, selection or facts.
  *
  * Everything below the `MapAdapter` interface is provider-neutral *behaviour*
  * (clustering, coverage hint, location state) shared by every renderer, so the
@@ -178,13 +179,13 @@ export function coverageHint(markers: MapMarker[]): CoverageHint {
 /* ------------------------------------------------------------- mock geometry */
 
 /**
- * Deterministic synthetic position for the Mock provider.
+ * Deterministic synthetic position used ONLY as a dev/test fallback when an
+ * old or deliberately incomplete payload has no coordinates.
  *
- * The pilot's `nearby` response carries a distance but no coordinate (the real
- * provider resolves coordinates client-side). The Mock provider derives a stable
- * offset from the place id so a place always lands in the same spot — which
- * keeps clustering, screenshots and tests reproducible. Swapping in Tencent
- * replaces this with the provider's own coordinates.
+ * Production/seeded PlaceSummary rows carry governed WGS84 representative
+ * coordinates from PostGIS and must use those coordinates directly. Keeping
+ * this helper preserves deterministic visual fixtures without allowing UUID
+ * geometry to masquerade as a real place position.
  */
 export function synthMarkerPosition(id: string, camera: MapCamera): { lat: number; lng: number } {
   let h = 0;
