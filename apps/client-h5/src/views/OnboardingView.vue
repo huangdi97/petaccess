@@ -91,7 +91,7 @@ async function submit() {
 .auth-page {
   width: min(100%, 520px);
   margin: 0 auto;
-  padding: var(--pa-space-8) 0;
+  padding: var(--pa-space-64) 0;
 }
 
 .auth-head {
