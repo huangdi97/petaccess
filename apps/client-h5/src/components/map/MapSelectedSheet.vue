@@ -30,8 +30,10 @@ const props = withDefaults(
     snapshot?: CoexistenceSnapshot | null;
     loading?: boolean;
     error?: string;
+    mapLensName?: string;
+    mapLensLabel?: string;
   }>(),
-  { status: null, snapshot: null, loading: false, error: "" },
+  { status: null, snapshot: null, loading: false, error: "", mapLensName: "", mapLensLabel: "" },
 );
 
 const emit = defineEmits<{ close: [] }>();
@@ -139,6 +141,10 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
           <p class="muted sheet__meta">
             {{ placeTypeLabel(place.place_type) }}
             <template v-if="place.distance_m"> · {{ Math.round(place.distance_m) }}m</template>
+          </p>
+          <p v-if="mapLensLabel" class="sheet__lens" data-testid="sheet-map-lens">
+            <span class="muted">当前地图 · {{ mapLensName }}</span>
+            <strong>{{ mapLensLabel }}</strong>
           </p>
         </div>
 
@@ -261,6 +267,16 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
 .sheet__meta {
   margin: 0;
   font-size: var(--pa-font-size-md);
+}
+.sheet__lens {
+  display: flex;
+  align-items: baseline;
+  gap: var(--pa-space-2);
+  margin: var(--pa-space-1) 0 0;
+  font-size: var(--pa-font-size-md);
+}
+.sheet__lens strong {
+  color: var(--pa-color-text-primary);
 }
 .sheet__condition {
   margin: 0;
