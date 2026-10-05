@@ -27,6 +27,7 @@ interface Candidate {
   review_status: string;
   review_note: string | null;
   published_rule_id: string | null;
+  supersedes_rule_id: string | null;
   created_at: string | null;
 }
 
@@ -266,6 +267,13 @@ onMounted(() => {
                   </dd>
                   <dt>已发布规则</dt>
                   <dd class="mono">{{ c.published_rule_id ?? "未发布" }}</dd>
+                  <dt>明确替换目标</dt>
+                  <dd>
+                    <RouterLink v-if="c.supersedes_rule_id" :to="`/rules/${c.supersedes_rule_id}`">
+                      规则 {{ shortId(c.supersedes_rule_id) }}
+                    </RouterLink>
+                    <span v-else>无；按普通候选处理</span>
+                  </dd>
                   <dt>复核备注</dt>
                   <dd>{{ c.review_note || "—" }}</dd>
                 </dl>
