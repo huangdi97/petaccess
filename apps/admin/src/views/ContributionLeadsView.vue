@@ -63,7 +63,8 @@ onMounted(load);
       <div>
         <h1>贡献与待核验输入</h1>
         <p class="muted">
-          这里只汇总还没有成为正式事实的输入。规则线索已经进入 RuleCandidate 人工审核路径；场所纠错仍保持独立，避免误写 Rule 或 Reality。
+          这里只汇总还没有成为正式事实的输入。规则线索已经进入 RuleCandidate
+          人工审核路径；场所纠错仍保持独立，避免误写 Rule 或 Reality。
         </p>
       </div>
       <button @click="load">刷新</button>

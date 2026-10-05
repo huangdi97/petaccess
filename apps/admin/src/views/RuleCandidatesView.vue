@@ -68,9 +68,7 @@ async function load() {
 async function loadPreflight(c: Candidate) {
   preflightBusy.value = c.id;
   try {
-    preflight.value[c.id] = await get<CandidatePreflight>(
-      `/admin/candidates/${c.id}/preflight`,
-    );
+    preflight.value[c.id] = await get<CandidatePreflight>(`/admin/candidates/${c.id}/preflight`);
   } catch (e) {
     error.value = errText(e);
   } finally {
@@ -136,9 +134,7 @@ async function publish(c: Candidate) {
     if (!readiness.publishable) {
       expanded.value = c.id;
       const reason = readiness.violations.map((item) => item.message).join("；");
-      error.value = reason
-        ? `发布前置条件未通过：${reason}`
-        : "候选尚未处于可发布状态。";
+      error.value = reason ? `发布前置条件未通过：${reason}` : "候选尚未处于可发布状态。";
       return;
     }
     await post(`/admin/candidates/${c.id}/publish`, {});
