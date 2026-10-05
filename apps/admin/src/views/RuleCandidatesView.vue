@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
-import { page, post, errText, shortId, ts } from "../api";
+import { get, page, post, errText, shortId, ts } from "../api";
 import { CANDIDATE_STATUSES, CANDIDATE_TRANSITIONS, statusTone } from "../v05";
 import {
   ANIMAL_SCOPE_LABELS,
@@ -31,6 +31,13 @@ interface Candidate {
   created_at: string | null;
 }
 
+interface CandidatePreflight {
+  candidate_id: string;
+  review_status: string;
+  publishable: boolean;
+  violations: { code: string; message: string }[];
+}
+
 const items = ref<Candidate[]>([]);
 const total = ref(0);
 const limit = 50;
@@ -40,6 +47,8 @@ const error = ref("");
 const busy = ref("");
 const note = ref<Record<string, string>>({});
 const expanded = ref("");
+const preflight = ref<Record<string, CandidatePreflight>>({});
+const preflightBusy = ref("");
 
 async function load() {
   error.value = "";
@@ -54,6 +63,28 @@ async function load() {
   } catch (e) {
     error.value = errText(e);
   }
+}
+
+async function loadPreflight(c: Candidate) {
+  preflightBusy.value = c.id;
+  try {
+    preflight.value[c.id] = await get<CandidatePreflight>(
+      `/admin/candidates/${c.id}/preflight`,
+    );
+  } catch (e) {
+    error.value = errText(e);
+  } finally {
+    preflightBusy.value = "";
+  }
+}
+
+async function toggleDetails(c: Candidate) {
+  if (expanded.value === c.id) {
+    expanded.value = "";
+    return;
+  }
+  expanded.value = c.id;
+  await loadPreflight(c);
 }
 
 /** Only the transitions the API will actually accept for this status. */
@@ -100,6 +131,16 @@ async function publish(c: Candidate) {
   error.value = "";
   busy.value = `${c.id}:PUBLISH`;
   try {
+    const readiness = await get<CandidatePreflight>(`/admin/candidates/${c.id}/preflight`);
+    preflight.value[c.id] = readiness;
+    if (!readiness.publishable) {
+      expanded.value = c.id;
+      const reason = readiness.violations.map((item) => item.message).join("；");
+      error.value = reason
+        ? `发布前置条件未通过：${reason}`
+        : "候选尚未处于可发布状态。";
+      return;
+    }
     await post(`/admin/candidates/${c.id}/publish`, {});
     await load();
   } catch (e) {
@@ -217,7 +258,7 @@ onMounted(() => {
             </td>
             <td>
               <div class="actions">
-                <button @click="expanded = expanded === c.id ? '' : c.id">
+                <button @click="toggleDetails(c)">
                   {{ expanded === c.id ? "收起" : "详情" }}
                 </button>
                 <template v-for="t in nextStates(c)" :key="t">
@@ -276,6 +317,21 @@ onMounted(() => {
                   </dd>
                   <dt>复核备注</dt>
                   <dd>{{ c.review_note || "—" }}</dd>
+                  <dt>发布预检</dt>
+                  <dd>
+                    <span v-if="preflightBusy === c.id">检查中…</span>
+                    <span v-else-if="preflight[c.id]?.publishable">全部前置门禁通过</span>
+                    <span v-else-if="preflight[c.id]?.violations.length">
+                      <span
+                        v-for="item in preflight[c.id]?.violations ?? []"
+                        :key="item.code"
+                        class="preflight-blocker"
+                      >
+                        {{ item.message }}
+                      </span>
+                    </span>
+                    <span v-else>尚未检查</span>
+                  </dd>
                 </dl>
                 <template v-if="c.raw_text">
                   <div style="margin-top: 8px" class="muted">抽取原文</div>
@@ -322,3 +378,11 @@ onMounted(() => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.preflight-blocker {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--danger);
+}
+</style>
