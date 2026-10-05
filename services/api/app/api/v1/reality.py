@@ -845,14 +845,23 @@ def _presence_summary(db: Session, place_id: str, now: datetime):
 def _staff_response_summary(
     db: Session, place_id: str, now: datetime | None = None
 ) -> list[dict]:
-    """Summarize verified staff handling in the consumer's recent 30-day window."""
+    """Summarize staff handling only when the event date itself is known."""
     cutoff = (now or datetime.now(UTC)) - timedelta(days=30)
     rows = db.execute(
         select(StaffResponseObservation.response_action, func.count())
+        .outerjoin(
+            RealityCandidate,
+            RealityCandidate.id == StaffResponseObservation.candidate_id,
+        )
+        .outerjoin(RealityReport, RealityReport.id == RealityCandidate.report_id)
         .where(
             StaffResponseObservation.place_id == place_id,
             StaffResponseObservation.verification_status.in_(VERIFIED_REALITY_STATUSES),
             StaffResponseObservation.observed_at >= cutoff,
+            or_(
+                RealityReport.id.is_(None),
+                RealityReport.time_evidence_state != "publication_time_only",
+            ),
         )
         .group_by(StaffResponseObservation.response_action)
     ).all()
@@ -864,6 +873,7 @@ def _staff_response_summary(
 
 
 def _facility_summary(db: Session, place_id: str) -> list[dict]:
+    """Current facility summary excludes publication-time-only external records."""
     rows = db.execute(
         select(
             AnimalFacility.facility_type,
@@ -871,10 +881,16 @@ def _facility_summary(db: Session, place_id: str) -> list[dict]:
             func.count(),
             func.max(AnimalFacility.last_verified_at),
         )
+        .outerjoin(RealityCandidate, RealityCandidate.id == AnimalFacility.candidate_id)
+        .outerjoin(RealityReport, RealityReport.id == RealityCandidate.report_id)
         .where(
             AnimalFacility.place_id == place_id,
             AnimalFacility.verification_status.in_(VERIFIED_REALITY_STATUSES),
             AnimalFacility.operational_state != "removed",
+            or_(
+                RealityReport.id.is_(None),
+                RealityReport.time_evidence_state != "publication_time_only",
+            ),
         )
         .group_by(AnimalFacility.facility_type, AnimalFacility.operational_state)
     ).all()
