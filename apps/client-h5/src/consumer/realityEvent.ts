@@ -92,6 +92,40 @@ export function realityEventVerification(event: RealityEventView): string {
   return event.verification_status === "human_verified_with_note" ? "人工核验（附注）" : "人工核验";
 }
 
+const ORIGIN_LABELS: Record<string, string> = {
+  on_site_now: "现场亲历",
+  on_site_past: "过往现场亲历",
+  external_online_content: "公开内容线索",
+  operator_provided: "场所方提供",
+  official_public_content: "官方公开内容",
+};
+
+const FACT_EVIDENCE_LABELS: Record<string, string> = {
+  direct_media: "附现场媒体证据",
+  first_hand_no_media: "一手记录（无媒体）",
+  external_media: "附外部媒体线索",
+  text_only_external: "链接 / 文字线索",
+  operator_statement: "场所方陈述",
+  official_statement: "官方陈述",
+  inferred_from_context: "上下文推断，已人工复核",
+  insufficient: "证据材料有限",
+};
+
+export function realityEventProvenance(event: RealityEventView): string {
+  const parts: string[] = [];
+  const origin = event.origin ? ORIGIN_LABELS[event.origin] : "";
+  const evidence = event.fact_evidence_state
+    ? FACT_EVIDENCE_LABELS[event.fact_evidence_state]
+    : "";
+  if (origin) parts.push(origin);
+  if (evidence) parts.push(evidence);
+  if (event.place_match_state === "exact_place") parts.push("地点已精确匹配");
+  else if (event.place_match_state === "exact_subplace") parts.push("子区域已精确匹配");
+  if (!parts.length && event.evidence_bundle_id) parts.push("已有可追溯核验材料");
+  if (!parts.length && event.source_id) parts.push("已有来源记录");
+  return parts.join(" · ");
+}
+
 export function realityEventEvidenceState(event: RealityEventView): EvidenceVisualState {
   if (event.freshness_state === "historical" || event.freshness_state === "expired_for_summary") {
     return "historical";
