@@ -54,10 +54,7 @@ async function submit() {
       evidence_refs: null,
       ...proximity(),
     });
-    emit(
-      "done",
-      "纠错线索已提交，等待人工核验。核验完成前不会直接改写场所、规则或现场事实。",
-    );
+    emit("done", "纠错线索已提交，等待人工核验。核验完成前不会直接改写场所、规则或现场事实。");
   } catch (e) {
     error.value = presentDescription(e);
   } finally {
