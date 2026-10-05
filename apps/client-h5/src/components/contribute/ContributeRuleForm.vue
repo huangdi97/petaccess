@@ -56,7 +56,9 @@ const canSubmit = computed(
 async function loadCurrentRules() {
   rulesLoading.value = true;
   try {
-    currentRules.value = (await client.rules(props.placeId)).filter((rule) => rule.status === "current");
+    currentRules.value = (await client.rules(props.placeId)).filter(
+      (rule) => rule.status === "current",
+    );
     if (currentRules.value.length === 1) selectedRuleId.value = currentRules.value[0]?.id ?? "";
   } catch {
     currentRules.value = [];
@@ -209,7 +211,13 @@ async function submit() {
         :disabled="rulesLoading || !currentRules.length"
       >
         <option value="">
-          {{ rulesLoading ? "正在读取已收录规则…" : currentRules.length ? "请选择具体规则" : "当前没有可核验规则" }}
+          {{
+            rulesLoading
+              ? "正在读取已收录规则…"
+              : currentRules.length
+                ? "请选择具体规则"
+                : "当前没有可核验规则"
+          }}
         </option>
         <option v-for="rule in currentRules" :key="rule.id" :value="rule.id">
           {{ ruleOptionLabel(rule) }}
