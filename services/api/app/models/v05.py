@@ -132,6 +132,7 @@ class RuleCandidate(Base, PkMixin, TimestampMixin):
     __table_args__ = (
         Index("ix_candidate_status", "review_status"),
         Index("ix_candidate_place", "place_id"),
+        Index("ix_rule_candidate_supersedes_rule", "supersedes_rule_id"),
     )
 
     source_id: Mapped[str] = mapped_column(
@@ -188,7 +189,6 @@ class RuleCandidate(Base, PkMixin, TimestampMixin):
         String(36),
         ForeignKey("access_rule.id", ondelete="SET NULL", name="fk_rule_candidate_supersedes_rule"),
         nullable=True,
-        index=True,
     )
     media_id: Mapped[str | None] = mapped_column(
         String(36), nullable=True
