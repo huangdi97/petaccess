@@ -130,7 +130,7 @@ async function submit() {
     await client.verify({
       place_id: props.placeId,
       zone_id: zone.value || null,
-      rule_id: intent.value === "changed" ? target?.id ?? null : null,
+      rule_id: intent.value === "changed" ? (target?.id ?? null) : null,
       event_type: intent.value === "changed" ? "rule_changed" : "rule_lead_submitted",
       result: intent.value === "changed" ? "changed" : "uncertain",
       note: `规则线索：${effectLabel}；区域：${zoneLabel}；条件：${conditionLabel}${evidenceNote}`,
@@ -232,9 +232,7 @@ async function submit() {
       <p v-else-if="uploadMsg" class="rule-upload-note" data-testid="rule-upload-msg">
         {{ uploadMsg }}
       </p>
-      <p v-if="ocrText" class="rule-ocr">
-        OCR 仅供人工核对：{{ ocrText.slice(0, 240) }}
-      </p>
+      <p v-if="ocrText" class="rule-ocr">OCR 仅供人工核对：{{ ocrText.slice(0, 240) }}</p>
       <p class="rule-upload-note">照片和 OCR 都只是证据材料，不会自动生成或发布规则。</p>
     </div>
 
