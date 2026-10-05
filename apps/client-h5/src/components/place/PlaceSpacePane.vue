@@ -137,9 +137,20 @@ function facilityZone(event: RealityEventView): string {
           class="zone-row"
           data-testid="animal-facility-summary-row"
         >
-          <span class="zone-row__name">{{ animalFacilityLabel(item.facility_type) }}</span>
+          <span class="zone-row__name">
+            {{
+              facilityPurposeIsConfirmed(item.purpose_state)
+                ? animalFacilityLabel(item.facility_type)
+                : "疑似动物相关设施"
+            }}
+          </span>
           <span class="muted">
-            {{ facilityStateLabel(item.operational_state) }} · {{ item.count }} 处
+            {{
+              facilityPurposeIsConfirmed(item.purpose_state)
+                ? facilityStateLabel(item.operational_state)
+                : "用途待核验"
+            }}
+            · {{ item.count }} 处
             <template v-if="item.last_verified_at">
               · 最近核验 {{ item.last_verified_at.slice(0, 10) }}
             </template>
