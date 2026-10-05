@@ -44,10 +44,6 @@ export interface RowFacts {
   /** true when the snapshot fetch failed at transport level (NOT domain UNKNOWN). */
   answerError: boolean;
   reality: RealityAnswer | null;
-  /** Full server aggregate retained for Consumer projections that need
-   * divergence / staff / facility / evidence metadata. This is still the same
-   * CoexistenceSnapshot SSOT; pages must not recompute those semantics. */
-  snapshot: CoexistenceSnapshot | null;
   /** true when the snapshot fetch failed (NOT "no recent record"). */
   realityError: boolean;
   /** entry was older than TTL when served (stale); null when absent. */
@@ -147,7 +143,6 @@ export async function rowFacts(place: PlaceSummary): Promise<RowFacts> {
       answer: snapshot.rule_answer,
       answerError: false,
       reality: snapshot.reality_answer,
-      snapshot,
       realityError: false,
       stale,
       fetchedAtMs,
@@ -158,7 +153,6 @@ export async function rowFacts(place: PlaceSummary): Promise<RowFacts> {
       answer: null,
       answerError: true,
       reality: null,
-      snapshot: null,
       realityError: true,
       stale: false,
       fetchedAtMs: null,
@@ -186,7 +180,6 @@ export async function enrichRows(list: PlaceSummary[], limit = 4): Promise<Map<s
           answer: null,
           answerError: true,
           reality: null,
-          snapshot: null,
           realityError: true,
           stale: false,
           fetchedAtMs: null,
