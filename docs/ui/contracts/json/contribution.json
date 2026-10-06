@@ -39,7 +39,9 @@
       "auth": true,
       "interactions": [
         {
-          "clickSelectors": ["[data-testid='entry-quick']"],
+          "clickSelectors": [
+            "[data-testid='entry-quick']"
+          ],
           "waitForSelector": "[data-testid='quick-submit']"
         }
       ],
@@ -56,7 +58,9 @@
       "auth": true,
       "interactions": [
         {
-          "clickSelectors": ["[data-testid='entry-reality-observed_presence']"],
+          "clickSelectors": [
+            "[data-testid='entry-reality-observed_presence']"
+          ],
           "waitForSelector": "[data-testid='reality-submit']"
         }
       ],
@@ -72,19 +76,25 @@
     {
       "id": "CONTRIBUTE_FIRST_SCREEN",
       "ui": "contribution-flow",
-      "fallbacks": ["[data-testid='contribute-entry'], .contribute-entry"],
+      "fallbacks": [
+        "[data-testid='contribute-entry'], .contribute-entry"
+      ],
       "props": {
         "count": {
           "min": 1
         }
       },
       "severity": "FAIL",
-      "pages": ["contribute-entry"]
+      "pages": [
+        "contribute-entry"
+      ]
     },
     {
       "id": "CONTRIBUTION_MAIN_COLUMN_BOUNDED",
       "ui": "contribution-main",
-      "fallbacks": [".contribute-workspace__main"],
+      "fallbacks": [
+        ".contribute-workspace__main"
+      ],
       "props": {
         "width": {
           "min": 620,
@@ -92,13 +102,19 @@
         }
       },
       "severity": "FAIL",
-      "pages": ["contribute-entry", "contribute-step-1", "contribute-step-2"],
+      "pages": [
+        "contribute-entry",
+        "contribute-step-1",
+        "contribute-step-2"
+      ],
       "note": "v0.2.7 §16/§40：main task column 620–720px（容差到 760）。"
     },
     {
       "id": "CONTRIBUTION_CONTEXT_VISIBLE",
       "ui": "contribution-context",
-      "fallbacks": [".contribute-workspace__context"],
+      "fallbacks": [
+        ".contribute-workspace__context"
+      ],
       "props": {
         "count": {
           "min": 1
@@ -109,34 +125,68 @@
         }
       },
       "severity": "FAIL",
-      "pages": ["contribute-entry", "contribute-step-1", "contribute-step-2"],
+      "pages": [
+        "contribute-entry",
+        "contribute-step-1",
+        "contribute-step-2"
+      ],
       "note": "v0.2.7 §15/§40：desktop secondary context rail 240–300px 真实可见。"
     },
     {
       "id": "CONTRIBUTION_WORKSPACE_NO_HORIZONTAL_OVERFLOW",
       "ui": "contribution-workspace",
-      "fallbacks": [".contribute-workspace"],
-      "props": { "hOverflow": { "equals": 0 } },
+      "fallbacks": [
+        ".contribute-workspace"
+      ],
+      "props": {
+        "hOverflow": {
+          "equals": 0
+        }
+      },
       "severity": "FAIL",
-      "pages": ["contribute-entry", "contribute-step-1", "contribute-step-2"],
+      "pages": [
+        "contribute-entry",
+        "contribute-step-1",
+        "contribute-step-2"
+      ],
       "note": "v0.2.7-R1 P0-1 nested: workspace scrollWidth <= clientWidth + 1."
     },
     {
       "id": "CONTRIBUTION_MAIN_NO_HORIZONTAL_OVERFLOW",
       "ui": "contribution-main",
-      "fallbacks": [".contribute-workspace__main"],
-      "props": { "hOverflow": { "equals": 0 } },
+      "fallbacks": [
+        ".contribute-workspace__main"
+      ],
+      "props": {
+        "hOverflow": {
+          "equals": 0
+        }
+      },
       "severity": "FAIL",
-      "pages": ["contribute-entry", "contribute-step-1", "contribute-step-2"],
+      "pages": [
+        "contribute-entry",
+        "contribute-step-1",
+        "contribute-step-2"
+      ],
       "note": "v0.2.7-R1 P0-1 nested: main column scrollWidth <= clientWidth + 1."
     },
     {
       "id": "CONTRIBUTION_CONTEXT_NO_HORIZONTAL_OVERFLOW",
       "ui": "contribution-context",
-      "fallbacks": [".contribute-workspace__context"],
-      "props": { "hOverflow": { "equals": 0 } },
+      "fallbacks": [
+        ".contribute-workspace__context"
+      ],
+      "props": {
+        "hOverflow": {
+          "equals": 0
+        }
+      },
       "severity": "FAIL",
-      "pages": ["contribute-entry", "contribute-step-1", "contribute-step-2"],
+      "pages": [
+        "contribute-entry",
+        "contribute-step-1",
+        "contribute-step-2"
+      ],
       "note": "v0.2.7-R1 P0-1 nested: context rail scrollWidth <= clientWidth + 1."
     }
   ],
@@ -146,14 +196,18 @@
       "selector": "body",
       "mustContainText": "你刚刚知道了什么",
       "severity": "FAIL",
-      "pages": ["contribute-entry"]
+      "pages": [
+        "contribute-entry"
+      ]
     },
     {
       "id": "CONTRIBUTE_5_OPTIONS",
       "selector": "[data-ui='contribution-flow'] button, .contribute-entry button, [data-testid^='entry-']",
       "min": 5,
       "severity": "FAIL",
-      "pages": ["contribute-entry"]
+      "pages": [
+        "contribute-entry"
+      ]
     },
     {
       "id": "CONTRIBUTE_OPTION_LABELS",
@@ -161,56 +215,80 @@
       "mustContainTexts": [
         "我看到或了解到一条规则",
         "我在现场看到动物",
-        "工作人员进行了处理",
+        "我看到工作人员怎么处理",
         "我发现了相关设施",
         "场所信息有误"
       ],
       "severity": "FAIL",
-      "pages": ["contribute-entry"]
+      "pages": [
+        "contribute-entry"
+      ]
     },
     {
       "id": "CONTRIBUTE_NEEDS_PLACE_GUARD",
       "selector": "[data-testid='contribute-needs-place']",
       "min": 1,
       "severity": "FAIL",
-      "pages": ["contribute-needs-place"]
+      "pages": [
+        "contribute-needs-place"
+      ]
     },
     {
       "id": "CONTRIBUTE_NEEDS_PLACE_HIDES_QUERY",
       "selector": "[data-testid='query-context']",
       "max": 0,
       "severity": "FAIL",
-      "pages": ["contribute-needs-place"]
+      "pages": [
+        "contribute-needs-place"
+      ]
     },
     {
       "id": "CONTRIBUTE_LOCATION_COPY_CORRECT",
       "selector": "body",
-      "mustContainTexts": ["提交内容会进入人工核验"],
-      "forbiddenText": ["ADR-", "GPS 轨迹（", "位置信息仅用于核验场所，不保存连续位置轨迹"],
+      "mustContainTexts": [
+        "提交内容会进入人工核验"
+      ],
+      "forbiddenText": [
+        "ADR-",
+        "GPS 轨迹（",
+        "位置信息仅用于核验场所，不保存连续位置轨迹"
+      ],
       "severity": "FAIL",
-      "pages": ["contribute-entry", "contribute-step-1", "contribute-step-2"]
+      "pages": [
+        "contribute-entry",
+        "contribute-step-1",
+        "contribute-step-2"
+      ]
     },
     {
       "id": "CONTRIBUTE_4_CHOICES_FIRST_VIEWPORT",
       "selector": "[data-ui='contribution-flow'] .entry-option__button, [data-testid^='entry-']",
       "minVisibleInViewport": 4,
       "severity": "FAIL",
-      "pages": ["contribute-entry"]
+      "pages": [
+        "contribute-entry"
+      ]
     },
     {
       "id": "CONTRIBUTION_STEP_CONTEXT_PRESENT",
       "selector": "[data-testid='step-place-context'], [data-testid='contribute-step'], [data-testid='quick-submit'], [data-testid='step-back']",
       "min": 4,
       "severity": "FAIL",
-      "pages": ["contribute-step-1"]
+      "pages": [
+        "contribute-step-1"
+      ]
     },
     {
       "id": "CONTRIBUTION_OPTION_ROWS_NOT_PILLS",
       "selector": "[data-testid='quick-options'] .option-row",
       "min": 3,
-      "forbiddenClass": ["pill"],
+      "forbiddenClass": [
+        "pill"
+      ],
       "severity": "FAIL",
-      "pages": ["contribute-step-1"]
+      "pages": [
+        "contribute-step-1"
+      ]
     }
   ],
   "density": [
@@ -221,7 +299,9 @@
       "min": 16,
       "max": 40,
       "severity": "FAIL",
-      "pages": ["contribute-step-2"],
+      "pages": [
+        "contribute-step-2"
+      ],
       "note": "v0.2.7 §19/§40：When/Where/What 三组间距 20–28px 稳定节奏。"
     }
   ],
@@ -234,7 +314,11 @@
       "min": 0.55,
       "max": 0.8,
       "severity": "FAIL",
-      "pages": ["contribute-entry", "contribute-step-1", "contribute-step-2"],
+      "pages": [
+        "contribute-entry",
+        "contribute-step-1",
+        "contribute-step-2"
+      ],
       "note": "v0.2.7 §15/§40：main column 占 workspace 55–80%，宽屏构图平衡。"
     }
   ],
@@ -245,7 +329,9 @@
       "b": ".entry-hint",
       "minRatio": 1.4,
       "severity": "FAIL",
-      "pages": ["contribute-entry"],
+      "pages": [
+        "contribute-entry"
+      ],
       "note": "v0.2.7 §40：question 必须显著强于 metadata/hint。"
     }
   ],
