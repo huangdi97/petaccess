@@ -192,7 +192,7 @@ export function synthMarkerPosition(id: string, camera: MapCamera): { lat: numbe
   for (const c of id) h = (h * 31 + c.charCodeAt(0)) % 100000;
   const dx = ((h % 41) - 20) / 20; // -1..1
   const dy = ((Math.floor(h / 41) % 37) - 18) / 18; // -1..1
-  const span = 0.02 / Math.max(1, camera.zoom / 14);
+  const span = 0.08 * Math.pow(2, 14 - camera.zoom);
   return { lat: camera.lat + dy * span * 0.3, lng: camera.lng + dx * span * 0.45 };
 }
 
