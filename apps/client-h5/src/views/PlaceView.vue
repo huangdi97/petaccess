@@ -77,7 +77,6 @@ const loading = ref(true);
 const partial = ref<string[]>([]);
 const watchingRule = ref(false);
 const watchingReality = ref(false);
-const quickMsg = ref("");
 const watchMsg = ref("");
 const confirmationMsg = ref("");
 const confirmationBusyId = ref<string | null>(null);
@@ -233,7 +232,6 @@ watch(
     answer.value = null;
     error.value = "";
     partial.value = [];
-    quickMsg.value = "";
     watchMsg.value = "";
     confirmationMsg.value = "";
     confirmationBusyId.value = null;
@@ -312,29 +310,6 @@ async function confirmReality(event: RealityEventView, type: RealityConfirmation
   }
 }
 
-async function quickConfirm(ruleId: string, result: "still_valid" | "changed" | "uncertain") {
-  quickMsg.value = "";
-  try {
-    await client.verify({
-      place_id: placeId.value,
-      rule_id: ruleId,
-      result,
-      note: "页面规则快捷确认（未采集定位距离证据）",
-      proximity_verified: false,
-      distance_bucket: null,
-      accuracy_bucket: null,
-    });
-    quickMsg.value =
-      result === "still_valid"
-        ? "已记录：规则仍有效 ✓"
-        : result === "changed"
-          ? "已记录：规则已变化，进入复核"
-          : "已记录：不确定";
-  } catch (e) {
-    quickMsg.value = `需要登录后才能核验：${presentDescription(e)}`;
-  }
-}
-
 /** §16：Overview 全页长度门由 oracle 测量；这里只渲染 5 块 + CTA links。 */
 const overviewFiveBlocks = computed(() => Boolean(place.value));
 
@@ -398,25 +373,7 @@ const placeFixture = computed<string>(() => {
               <RouterLink :to="`/contribute/${placeId}`" class="btn-inline">
                 纠错 / 补充 →
               </RouterLink>
-              <div v-if="session.signedIn" class="place-dossier__watch-group" aria-label="变化关注">
-                <button
-                  class="place-dossier__watch"
-                  type="button"
-                  data-testid="watch-rule"
-                  @click="toggleWatchDomain('rule')"
-                >
-                  {{ watchingRule ? "规则变化已关注 · 取消" : "关注规则变化" }}
-                </button>
-                <button
-                  class="place-dossier__watch"
-                  type="button"
-                  data-testid="watch-reality"
-                  @click="toggleWatchDomain('reality')"
-                >
-                  {{ watchingReality ? "现场更新已关注 · 取消" : "关注现场更新" }}
-                </button>
-              </div>
-              <RouterLink v-else class="btn-inline" to="/onboarding">登录后关注 →</RouterLink>
+
             </div>
             <p v-if="watchMsg" class="muted place-dossier__watch-msg" role="status">
               {{ watchMsg }}
@@ -439,6 +396,33 @@ const placeFixture = computed<string>(() => {
             :observation-count="presenceEventCount"
             :desktop="isDesktop"
           />
+          <section
+            v-if="view === 'overview'"
+            class="place-follow-strip"
+            aria-label="关注变化"
+            data-ui="place-follow-strip"
+          >
+            <span class="place-follow-strip__label">关注变化</span>
+            <template v-if="session.signedIn">
+              <button
+                class="place-dossier__watch"
+                type="button"
+                data-testid="watch-rule"
+                @click="toggleWatchDomain('rule')"
+              >
+                {{ watchingRule ? "规则变化已关注 · 取消" : "规则变化" }}
+              </button>
+              <button
+                class="place-dossier__watch"
+                type="button"
+                data-testid="watch-reality"
+                @click="toggleWatchDomain('reality')"
+              >
+                {{ watchingReality ? "现场更新已关注 · 取消" : "现场更新" }}
+              </button>
+            </template>
+            <RouterLink v-else class="btn-inline" to="/onboarding">登录后关注 →</RouterLink>
+          </section>
           <PlaceSpacePane
             v-else-if="view === 'space'"
             :zones="zones"
@@ -474,22 +458,7 @@ const placeFixture = computed<string>(() => {
             :sources="sources"
           />
 
-          <section
-            v-if="view === 'overview' && isDesktop && session.signedIn && currentRules.length"
-            class="place-section"
-            data-testid="quick-confirm"
-          >
-            <h2 class="place-section__title">快速确认</h2>
-            <div class="muted">页面显示当前规则，目前仍然如此吗？</div>
-            <div class="row" style="margin-top: 8px">
-              <button @click="quickConfirm(currentRules[0]?.id ?? '', 'still_valid')">
-                仍然如此
-              </button>
-              <button @click="quickConfirm(currentRules[0]?.id ?? '', 'changed')">已变化</button>
-              <button @click="quickConfirm(currentRules[0]?.id ?? '', 'uncertain')">不确定</button>
-            </div>
-            <div v-if="quickMsg" class="notice" data-testid="quick-msg">{{ quickMsg }}</div>
-          </section>
+
         </template>
       </main>
 
@@ -587,13 +556,6 @@ const placeFixture = computed<string>(() => {
   margin-top: var(--pa-space-2);
 }
 
-.place-dossier__watch-group {
-  display: flex;
-  align-items: center;
-  gap: var(--pa-space-3);
-  margin-left: auto;
-}
-
 .place-dossier__watch {
   min-height: var(--pa-size-control-md);
   border: none;
@@ -608,6 +570,22 @@ const placeFixture = computed<string>(() => {
   color: var(--pa-color-accent);
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+
+.place-follow-strip {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--pa-space-3);
+  margin: var(--pa-space-6) 0 0;
+  padding-top: var(--pa-space-4);
+  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.place-follow-strip__label {
+  margin-right: var(--pa-space-1);
+  font-size: var(--pa-font-size-sm);
+  color: var(--pa-color-text-muted);
 }
 
 /* Sections: divider-led rhythm, not a flat wall of equal-weight panels. */
@@ -657,12 +635,6 @@ const placeFixture = computed<string>(() => {
 
   .place-dossier__actions {
     gap: var(--pa-space-3);
-  }
-
-  .place-dossier__watch-group {
-    width: 100%;
-    margin-left: 0;
-    flex-wrap: wrap;
   }
 
   .place-dossier__watch {
