@@ -27,8 +27,7 @@ import {
   type RealityAnswer,
 } from "@petaccess/client-core";
 import { answerConditions, answerVerdictLabel } from "../../answer";
-import { freshnessLineFor } from "../../consumer/rowView";
-import { realityStateLabel } from "../../reality";
+import { coexistenceRealityLine, freshnessLineFor } from "../../consumer/rowView";
 const props = withDefaults(
   defineProps<{
     place: {
@@ -97,6 +96,17 @@ const evidenceLine = computed(() => {
   } else {
     parts.push("规则依据待补充");
   }
+
+  const realityEvidence = props.snapshot?.evidence_summary.reality_evidence_count ?? 0;
+  const realitySources = props.snapshot?.evidence_summary.reality_distinct_source_count ?? 0;
+  if (realityEvidence > 0) {
+    parts.push(
+      realitySources > 0
+        ? `现场 ${realityEvidence} 条依据 / ${realitySources} 个来源`
+        : `现场 ${realityEvidence} 条依据`,
+    );
+  }
+
   // Transport/cache freshness is a separate axis. Only surface it when the
   // current view is actually stale/offline; never present fetch time as
   // evidence verification time.
@@ -114,14 +124,12 @@ const exceptions = computed(() =>
 /** §26：最近核验来自真实规则 last_verified_at，不拿快照生成时间冒充。 */
 const latestVerifiedLabel = computed(() => props.latestVerifiedAt ?? "暂无");
 /** §12（search）one-line reality summary：撇去括号补充，保持单行。 */
-const realityLineForSearch = computed(() => {
-  if (!props.reality) return "暂无足够现场记录";
-  const label = realityStateLabel(props.reality);
-  return label.replace(/\s*（.*?）\s*$/, "");
-});
-/** §26（place）：现场 —— 暂无足够记录，不再输出长解释。 */
+const realityLineForSearch = computed(() =>
+  coexistenceRealityLine(props.snapshot, props.reality).replace(/\s*（.*?）\s*$/, ""),
+);
+/** §26（place）：same CoexistenceSnapshot semantics as Search/Home/Map. */
 const realityLineForPlace = computed(() =>
-  props.reality ? realityStateLabel(props.reality) : "暂无足够记录",
+  coexistenceRealityLine(props.snapshot, props.reality),
 );
 </script>
 
