@@ -11,6 +11,7 @@ import { presentDescription } from "../../errors";
 import ContributionStepShell from "./ContributionStepShell.vue";
 import RuleLeadFields from "./RuleLeadFields.vue";
 import RuleTargetPicker from "./RuleTargetPicker.vue";
+import RuleEvidenceUpload from "./RuleEvidenceUpload.vue";
 
 defineOptions({ name: "ContributeRuleForm" });
 
@@ -30,7 +31,6 @@ const animalScope = ref<"ordinary_pet" | "dog" | "cat" | "other">("ordinary_pet"
 const zone = ref("");
 const conditions = ref<string[]>([]);
 const mediaId = ref<string | null>(null);
-const uploadMsg = ref("");
 const ocrText = ref("");
 const uploading = ref(false);
 const busy = ref(false);
@@ -53,30 +53,6 @@ const canSubmit = computed(
     (!needsRuleDescription.value || Boolean(effect.value)) &&
     (intent.value !== "signage" || Boolean(mediaId.value)),
 );
-
-async function upload(event: Event) {
-  const input = event.target as HTMLInputElement;
-  const file = input.files?.[0] ?? null;
-  if (!file) return;
-  error.value = "";
-  uploadMsg.value = "";
-  uploading.value = true;
-  try {
-    const media = await client.uploadMedia(file, "signage_evidence", {
-      ownerType: "place",
-      ownerId: props.placeId,
-    });
-    mediaId.value = media.id;
-    uploadMsg.value = "规则牌照片已作为私有审核证据上传，不会直接公开。";
-    const meta = await client.mediaMeta(media.id).catch(() => null);
-    ocrText.value = meta?.ocr_text ?? "";
-  } catch (e) {
-    error.value = presentDescription(e);
-  } finally {
-    uploading.value = false;
-    input.value = "";
-  }
-}
 
 async function submit() {
   if (!canSubmit.value || !props.placeId) return;
@@ -192,32 +168,14 @@ async function submit() {
       :zones="zones"
     />
 
-    <div class="rule-evidence">
-      <h3>{{ intent === "signage" ? "规则牌 / 公告照片" : "规则牌 / 公告照片（可选）" }}</h3>
-      <label for="rule-evidence-file">
-        {{ intent === "signage" ? "上传一张可核验照片" : "上传照片" }}
-      </label>
-      <input
-        id="rule-evidence-file"
-        type="file"
-        accept="image/png,image/jpeg,image/webp"
-        capture="environment"
-        :disabled="uploading"
-        data-testid="rule-evidence-file"
-        @change="upload"
-      />
-      <p v-if="uploading" class="rule-upload-note">上传中…</p>
-      <p v-else-if="uploadMsg" class="rule-upload-note" data-testid="rule-upload-msg">
-        {{ uploadMsg }}
-      </p>
-      <p v-if="ocrText" class="rule-ocr">OCR 仅供人工核对：{{ ocrText.slice(0, 240) }}</p>
-      <p class="rule-upload-note">
-        照片和 OCR 都只是证据材料，不会自动生成或发布规则。
-        <template v-if="intent === 'signage'"
-          >你不需要先替平台判断“允许 / 禁止 / 有条件”。</template
-        >
-      </p>
-    </div>
+    <RuleEvidenceUpload
+      v-model:media-id="mediaId"
+      v-model:ocr-text="ocrText"
+      v-model:uploading="uploading"
+      :place-id="placeId"
+      :required="intent === 'signage'"
+      @error="error = $event"
+    />
 
     <template #primary>
       <button class="primary" :disabled="!canSubmit" data-testid="rule-submit" @click="submit">
