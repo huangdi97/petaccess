@@ -971,6 +971,20 @@ export const client = {
     }>("get", `/places/${placeId}/reality/trace`);
   },
 
+  async myContributionActivity() {
+    return api.request<
+      {
+        id: string;
+        kind: "reality" | "verification" | "rule_lead";
+        place_id: string | null;
+        place_name: string | null;
+        created_at: string | null;
+        status: string;
+        summary: string;
+      }[]
+    >("get", "/me/contribution-activity");
+  },
+
   /** M7 B2 — the signed-in user's own reality reports + candidate statuses. */
   async myRealityContributions() {
     return api.request<
