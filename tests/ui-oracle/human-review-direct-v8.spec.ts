@@ -264,8 +264,8 @@ const SHOTS: Shot[] = [
     page: "contribution",
     state: "step-2",
     h1: "现场贡献",
-    requiredTestids: ["reality-date", "reality-submit"],
-    requiredText: ["什么时候", "在哪里", "你看到了什么"],
+    requiredTestids: ["reality-source-mode", "reality-submit"],
+    requiredText: ["这条信息来自哪里", "什么时候", "在哪里", "你看到了什么"],
     note: "Reality contribution is a structured transaction, not a generic comment form.",
   },
   {
@@ -507,7 +507,8 @@ test("direct-v8 canonical human-review packet", async ({ page, request }, testIn
     }
 
     if (shot.submitReality) {
-      await page.getByTestId("reality-date").fill("2026-10-05");
+      const date = page.getByTestId("reality-date");
+      if (await date.isVisible().catch(() => false)) await date.fill("2026-10-05");
       await page.getByTestId("reality-submit").click();
       await page.getByTestId("contribute-result").waitFor({ state: "visible", timeout: 15000 });
       await settle(page);
