@@ -88,8 +88,18 @@ const SOURCE_RATE: Record<string, string> = {
 };
 const evidenceLine = computed(() => {
   const ev = props.answer?.evidence_state.rules[0];
-  const issuer = ev?.issuer ?? SOURCE_RATE[ev?.source_type ?? ""] ?? "来源待补充";
-  return freshness.value ? `${issuer} · ${freshness.value}` : issuer;
+  const parts: string[] = [];
+  if (ev) {
+    parts.push(ev.issuer ?? SOURCE_RATE[ev.source_type ?? ""] ?? "来源待补充");
+    parts.push(props.latestVerifiedAt ? `规则核验 ${props.latestVerifiedAt}` : "规则核验时间待补充");
+  } else {
+    parts.push("规则依据待补充");
+  }
+  // Transport/cache freshness is a separate axis. Only surface it when the
+  // current view is actually stale/offline; never present fetch time as
+  // evidence verification time.
+  if (freshness.value) parts.push(freshness.value);
+  return parts.join(" · ");
 });
 /** §12/§26：Primary Decision 的 key condition（第一条；无则不猜测）。 */
 const keyCondition = computed(() => conditions.value[0] ?? "");
