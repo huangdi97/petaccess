@@ -484,6 +484,12 @@ test("direct-v8 canonical human-review packet", async ({ page, request }, testIn
 
     if (shot.auth) {
       token ??= await signIn(request);
+      // Most packet transitions are hash-only SPA navigations. addInitScript
+      // alone does not run for those because no new Document is created, so
+      // the first authenticated shot could still mount as signed-out. Write
+      // storage in the live document as well; the session token provider reads
+      // the same bound localStorage when the contribution route mounts.
+      await page.evaluate((value) => localStorage.setItem("pa_token", value), token);
       await page.addInitScript((value) => localStorage.setItem("pa_token", value), token);
     }
 
