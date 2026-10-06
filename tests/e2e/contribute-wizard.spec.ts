@@ -149,9 +149,7 @@ test("A2.1 — Staff / Facility contribution uses canonical Reality domain value
   await page.getByTestId("reality-facility-more").locator("summary").click();
   await page.getByTestId("reality-facility-weather").selectOption({ label: "有" });
   await page.getByTestId("reality-facility-water").selectOption({ label: "有" });
-  await page
-    .getByTestId("reality-facility-supervision")
-    .selectOption({ label: "有工作人员看护" });
+  await page.getByTestId("reality-facility-supervision").selectOption({ label: "有工作人员看护" });
 
   const facilityRequestPromise = page.waitForRequest(
     (r) => r.method() === "POST" && r.url().includes(`/places/${MALL_ID}/reality/reports`),
