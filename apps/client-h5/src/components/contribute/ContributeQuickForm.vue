@@ -73,7 +73,7 @@ async function submit() {
 <template>
   <ContributionStepShell
     :place-name="placeName"
-    :step="1"
+    :step="2"
     :total="3"
     title="哪里需要纠正？"
     description="先指出哪类基础信息有误；提交后进入人工核验，不会直接改写场所或规则。"
