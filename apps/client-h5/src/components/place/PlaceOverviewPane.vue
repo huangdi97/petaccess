@@ -233,7 +233,7 @@ const divergenceLine = computed(() => {
     data-testid="overview-evidence"
     data-ui="place-evidence-summary"
   >
-    <span class="overview-summary-row__label">依据</span>
+    <span class="overview-summary-row__label">证据与来源</span>
     <span class="overview-summary-row__value">{{ evidenceSummaryLine }}</span>
     <span class="overview-summary-row__cta">查看 →</span>
   </RouterLink>
