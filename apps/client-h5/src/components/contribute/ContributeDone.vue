@@ -4,6 +4,8 @@
  * 成功态 =「已提交待核验」，明确说明审核完成前不会改变场所规则结论；
  * 绝不把提交成功误写成规则已变更。
  */
+import ContributionProgress from "./ContributionProgress.vue";
+
 defineOptions({ name: "ContributeDone" });
 
 defineProps<{ msg: string; placeId: string }>();
@@ -12,6 +14,7 @@ defineEmits<{ continue: [] }>();
 
 <template>
   <section class="done" data-testid="contribute-result">
+    <ContributionProgress :step="3" :total="3" />
     <h2 class="done__title">已提交待核验</h2>
     <p class="done__body">{{ msg }}</p>
     <p class="done__guard">
