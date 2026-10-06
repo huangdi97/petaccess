@@ -1,13 +1,14 @@
 <script setup lang="ts">
 // @ui-static OnboardingView — 登录/注册流程页，自有表单状态（M3 E1 静态声明）。
 import { ref } from "vue";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { session } from "@petaccess/client-core";
 import AuthModeTabs from "../components/auth/AuthModeTabs.vue";
 import DesktopContentContainer from "../components/layout/DesktopContentContainer.vue";
 import { presentDescription } from "../errors";
 
 const router = useRouter();
+const route = useRoute();
 const mode = ref<"login" | "register">("login");
 const displayName = ref("");
 const email = ref("");
@@ -24,7 +25,12 @@ async function submit() {
     } else {
       await session.register(displayName.value, email.value, password.value);
     }
-    router.push({ name: "home" });
+    const rawNext = typeof route.query.next === "string" ? route.query.next : "";
+    const safeNext =
+      rawNext.startsWith("/") && !rawNext.startsWith("//") && !rawNext.startsWith("/onboarding")
+        ? rawNext
+        : "";
+    await router.replace(safeNext || { name: "home" });
   } catch (e) {
     error.value = presentDescription(e);
   } finally {
@@ -41,6 +47,7 @@ async function submit() {
         <h1>开始使用</h1>
         <p class="muted">
           登录后可以保存宠物档案、关注规则与现场变化，并查看自己的贡献；查询公开场所信息不要求登录。
+          如果你是从某个需要登录的任务来到这里，完成后会回到刚才的任务。
         </p>
       </header>
 
