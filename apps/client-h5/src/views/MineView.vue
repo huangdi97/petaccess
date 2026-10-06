@@ -48,7 +48,7 @@ function setActivePet(pet: (typeof pets.value)[number]) {
       v-if="!session.signedIn"
       kind="EMPTY"
       title="登录后管理你的出行设置"
-      description="宠物档案、规则关注和贡献记录只在登录后显示。公开场所信息仍可免登录浏览。"
+      description="宠物档案、变化关注和贡献记录只在登录后显示。公开场所信息仍可免登录浏览。"
     >
       <template #action>
         <RouterLink class="btn primary" to="/onboarding">登录 / 注册</RouterLink>
