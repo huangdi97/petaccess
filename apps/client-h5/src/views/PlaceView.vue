@@ -472,8 +472,6 @@ const placeFixture = computed<string>(() => {
             :place-id="placeId"
             :events="realityEvents"
             :sources="sources"
-            :rule-evidence-count="coexistence?.evidence_summary.rule_evidence.length ?? 0"
-            :reviewed-count="realityEvents.length"
           />
 
           <section
