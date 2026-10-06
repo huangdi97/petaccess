@@ -25,6 +25,7 @@ import {
   realityEventEvidenceState,
   realityEventHeadline,
   realityEventProvenance,
+  realityProvenanceCounts,
   realityEventTimeBasis,
 } from "../consumer/realityEvent";
 import { snapshotFor } from "../consumer/repository";
@@ -143,6 +144,8 @@ const reviewedEventCount = computed(
     ).length,
 );
 
+const provenanceCounts = computed(() => realityProvenanceCounts(events.value));
+
 const sourceSummary = computed(() => {
   if (!sources.value.length) {
     const bundles = new Set(
@@ -254,9 +257,11 @@ const uiFixture = computed<string>(() =>
         </header>
 
         <EvidenceProvenance
-          :observed-count="realityEvidenceCount"
-          :rule-evidence-count="ruleEvidenceCount"
-          :reviewed-count="reviewedEventCount"
+          :raw-material-count="provenanceCounts.rawMaterialCount"
+          :place-matched-count="provenanceCounts.placeMatchedCount"
+          :time-confirmed-count="provenanceCounts.timeConfirmedCount"
+          :source-count="provenanceCounts.sourceCount"
+          :reviewed-count="provenanceCounts.reviewedCount"
         />
 
         <section class="evidence-section" aria-label="时间记录" data-ui="evidence-times">
