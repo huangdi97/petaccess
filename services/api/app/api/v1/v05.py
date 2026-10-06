@@ -126,9 +126,17 @@ def contribute_rule_lead(
         zone = db.get(Zone, body.zone_id)
         if zone is None or zone.place_id != place_id:
             raise NotFound("区域不属于该场所")
+    current: AccessRule | None = None
+    candidate_zone_id = body.zone_id
     if body.current_rule_id:
         current = db.get(AccessRule, body.current_rule_id)
-        if current is None or current.place_id != place_id:
+        if current is None:
+            raise NotFound("待更新规则不存在")
+        current_owner_place_id = current.place_id
+        if current.zone_id:
+            current_zone = db.get(Zone, current.zone_id)
+            current_owner_place_id = current_zone.place_id if current_zone else None
+        if current_owner_place_id != place_id:
             raise NotFound("待更新规则不属于该场所")
         if str(current.status) != "current":
             raise ApiError(
@@ -136,6 +144,17 @@ def contribute_rule_lead(
                 code="supersession_target_not_current",
                 status_code=409,
             )
+        # A changed-rule lead must preserve the current rule's spatial scope.
+        # Otherwise a consumer could accidentally supersede a place-wide rule
+        # with a zone-only candidate (or the reverse). A genuinely different
+        # scope should be submitted as a new lead and reviewed independently.
+        if body.zone_id and body.zone_id != current.zone_id:
+            raise ApiError(
+                "规则变化线索的区域必须与被修正规则一致；如适用范围不同，请作为新规则线索提交",
+                code="supersession_scope_mismatch",
+                status_code=422,
+            )
+        candidate_zone_id = current.zone_id
 
     media: MediaObject | None = None
     if body.media_id:
@@ -176,7 +195,7 @@ def contribute_rule_lead(
         db,
         source_id=source.id,
         place_id=place_id,
-        zone_id=body.zone_id,
+        zone_id=candidate_zone_id,
         animal_scope=body.animal_scope.value,
         action="enter",
         effect=body.effect.value,
@@ -200,7 +219,7 @@ def contribute_rule_lead(
         after_state={
             "status": candidate.review_status,
             "place_id": place_id,
-            "zone_id": body.zone_id,
+            "zone_id": candidate_zone_id,
             "consumer_rule_lead": True,
             "current_rule_id": body.current_rule_id,
             "has_media": bool(media),
