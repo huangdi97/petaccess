@@ -24,8 +24,6 @@ const props = defineProps<{
   placeId: string;
   events: RealityEventView[];
   sources: SourceView[];
-  ruleEvidenceCount: number;
-  reviewedCount: number;
 }>();
 
 const provenanceCounts = computed(() => realityProvenanceCounts(props.events));
