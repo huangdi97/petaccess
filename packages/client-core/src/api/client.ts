@@ -623,8 +623,8 @@ export const client = {
     placeId: string,
     body: {
       zone_id?: string | null;
-      animal_scope: "dog" | "cat" | "ordinary_pet" | "other";
-      effect: "allowed" | "prohibited" | "conditional";
+      animal_scope?: "dog" | "cat" | "ordinary_pet" | "other" | null;
+      effect?: "allowed" | "prohibited" | "conditional" | null;
       proposed_conditions?: string[];
       raw_text?: string | null;
       media_id?: string | null;
