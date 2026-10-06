@@ -112,7 +112,9 @@ onMounted(load);
       data-testid="boundary-sign-in"
     >
       <template #action>
-        <RouterLink class="btn primary" :to="{ name: 'onboarding', query: { next: '/boundary' } }">登录 / 注册</RouterLink>
+        <RouterLink class="btn primary" :to="{ name: 'onboarding', query: { next: '/boundary' } }"
+          >登录 / 注册</RouterLink
+        >
       </template>
     </StateMessage>
 

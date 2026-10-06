@@ -177,7 +177,11 @@ const { desktop: isDesktop } = useBreakpoint();
             description="贡献需要登录后进行，以便记录来源与核验历史。未登录不会提交任何数据。"
           >
             <template #action>
-              <RouterLink class="btn primary" :to="{ name: 'onboarding', query: { next: route.fullPath } }">登录 / 注册</RouterLink>
+              <RouterLink
+                class="btn primary"
+                :to="{ name: 'onboarding', query: { next: route.fullPath } }"
+                >登录 / 注册</RouterLink
+              >
             </template>
           </StateMessage>
 

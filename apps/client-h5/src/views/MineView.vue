@@ -51,7 +51,9 @@ function setActivePet(pet: (typeof pets.value)[number]) {
       description="宠物档案、变化关注和贡献记录只在登录后显示。公开场所信息仍可免登录浏览。"
     >
       <template #action>
-        <RouterLink class="btn primary" :to="{ name: 'onboarding', query: { next: '/mine' } }">登录 / 注册</RouterLink>
+        <RouterLink class="btn primary" :to="{ name: 'onboarding', query: { next: '/mine' } }"
+          >登录 / 注册</RouterLink
+        >
       </template>
     </StateMessage>
 

@@ -146,7 +146,9 @@ onMounted(load);
       description="宠物档案与账号绑定。登录后可新建、修改或删除档案。"
     >
       <template #action>
-        <RouterLink class="btn primary" :to="{ name: 'onboarding', query: { next: '/pets' } }">登录 / 注册</RouterLink>
+        <RouterLink class="btn primary" :to="{ name: 'onboarding', query: { next: '/pets' } }"
+          >登录 / 注册</RouterLink
+        >
       </template>
     </StateMessage>
     <StateMessage
