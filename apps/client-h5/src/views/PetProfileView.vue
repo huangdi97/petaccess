@@ -17,6 +17,7 @@ const error = ref("");
 const notice = ref("");
 const busy = ref(false);
 const editing = ref<string | null>(null);
+const pendingDelete = ref<PetView | null>(null);
 const draft = ref<PetDraft>(emptyPetDraft());
 const { online } = useOnline();
 
@@ -96,14 +97,22 @@ async function save() {
   }
 }
 
-async function remove(pet: PetView) {
-  if (!confirm(`删除宠物档案「${pet.display_name}」？此操作不可撤销。`)) return;
+function requestRemove(pet: PetView) {
+  pendingDelete.value = pet;
+  notice.value = "";
+  error.value = "";
+}
+
+async function confirmRemove() {
+  const pet = pendingDelete.value;
+  if (!pet) return;
   error.value = "";
   busy.value = true;
   try {
     await client.deletePet(pet.id);
-    pets.value = pets.value.filter((p) => p.id !== pet.id);
+    pets.value = pets.value.filter((item) => item.id !== pet.id);
     if (session.activePet?.id === pet.id) session.activePet = null;
+    pendingDelete.value = null;
     notice.value = `已删除「${pet.display_name}」`;
   } catch (e) {
     error.value = e instanceof ApiError ? e.message : String(e);
@@ -168,6 +177,33 @@ onMounted(load);
             <button class="primary" data-testid="pet-empty-new" @click="startNew">新建档案</button>
           </template>
         </StateMessage>
+        <div
+          v-if="pendingDelete"
+          class="profile-delete-confirm"
+          role="alertdialog"
+          aria-labelledby="pet-delete-title"
+          aria-describedby="pet-delete-description"
+          data-testid="pet-delete-confirm"
+        >
+          <div>
+            <strong id="pet-delete-title">删除「{{ pendingDelete.display_name }}」？</strong>
+            <p id="pet-delete-description" class="muted">
+              这会删除服务器上的宠物档案；不会删除场所、规则或你的其他贡献记录。
+            </p>
+          </div>
+          <div class="profile-delete-confirm__actions">
+            <button
+              type="button"
+              class="danger"
+              :disabled="busy"
+              data-testid="pet-delete-confirm-submit"
+              @click="confirmRemove"
+            >
+              {{ busy ? "删除中…" : "确认删除" }}
+            </button>
+            <button type="button" :disabled="busy" @click="pendingDelete = null">取消</button>
+          </div>
+        </div>
         <PetProfileList
           v-else
           :pets="pets"
@@ -175,7 +211,7 @@ onMounted(load);
           :busy="busy"
           @activate="setActive"
           @edit="startEdit"
-          @remove="remove"
+          @remove="requestRemove"
         />
         <p class="profile-note muted">
           服务犬使用独立通行规则。需要查询时，直接在“当前查询”中切换到服务犬视角。
@@ -195,5 +231,36 @@ onMounted(load);
   margin: var(--pa-space-5) 0 0;
   padding-top: var(--pa-space-4);
   border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.profile-delete-confirm {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--pa-space-5);
+  margin-top: var(--pa-space-4);
+  padding: var(--pa-space-4) 0;
+  border-top: var(--pa-border-width) solid var(--pa-color-status-restricted);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.profile-delete-confirm p {
+  max-width: 560px;
+  margin: var(--pa-space-1) 0 0;
+}
+
+.profile-delete-confirm__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--pa-space-2);
+  flex: 0 0 auto;
+}
+
+.profile-delete-confirm__actions button {
+  min-height: var(--pa-size-control-md);
+}
+
+.profile-delete-confirm__actions .danger {
+  color: var(--pa-color-status-restricted);
 }
 </style>
