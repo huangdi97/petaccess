@@ -6,7 +6,7 @@
  */
 import { computed, ref } from "vue";
 import { client } from "@petaccess/client-core";
-import { proximity } from "./contributeSupport";
+import { evidenceRefs, proximity } from "./contributeSupport";
 import { presentDescription } from "../../errors";
 import ContributionStepShell from "./ContributionStepShell.vue";
 import RuleLeadFields from "./RuleLeadFields.vue";
