@@ -84,3 +84,20 @@
   text-align: center;
   color: var(--pa-color-text-muted);
 }
+
+.place-preview__lens--primary strong {
+  font-size: var(--pa-font-size-lg);
+  font-weight: var(--pa-font-weight-650);
+  line-height: var(--pa-line-height-26);
+}
+
+.place-preview__decision--secondary {
+  padding-top: var(--pa-space-1);
+  border-top: none;
+}
+
+.place-preview__decision--secondary .place-preview__verdict-text {
+  font-size: var(--pa-font-size-base);
+  font-weight: var(--pa-font-weight-600);
+  line-height: var(--pa-line-height-23);
+}
