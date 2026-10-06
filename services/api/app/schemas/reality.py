@@ -186,6 +186,7 @@ class RealityEventOut(BaseModel):
     staff_action: str | None = None
     staff_awareness_state: str | None = None
     staff_outcome: str | None = None
+    staff_policy_statement_verbatim: str | None = None
     facility_type: str | None = None
     facility_state: str | None = None
     facility_purpose_state: str | None = None
