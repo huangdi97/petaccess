@@ -80,7 +80,7 @@ async function unsubscribe(w: WatchView) {
     <header class="notifications-head">
       <h1>通知中心</h1>
       <p class="muted">
-        关注规则变化后，这里会列出你的订阅。规则出现新版本、被替代或恢复旧版本时，才有可能产生提醒。
+        这里管理你主动关注的变化。规则版本变化与经核验现场更新是两条独立订阅，不会相互替代。
       </p>
     </header>
 
@@ -107,19 +107,19 @@ async function unsubscribe(w: WatchView) {
     <StateMessage
       v-else-if="!signedIn"
       kind="PERMISSION_DENIED"
-      description="登录后可查看和管理你的规则变化关注。"
+      description="登录后可查看和管理你的规则变化与现场更新关注。"
     >
       <template #action>
         <button class="primary" @click="router.push({ name: 'mine' })">去登录</button>
       </template>
     </StateMessage>
-    <StateMessage v-else-if="!watches.length" kind="EMPTY" description="还没有关注任何规则变化。">
+    <StateMessage v-else-if="!watches.length" kind="EMPTY" description="还没有关注任何规则变化或现场更新。">
       <template #action>
         <button class="primary" @click="router.push({ name: 'home' })">查找场所</button>
       </template>
     </StateMessage>
 
-    <section v-else class="notifications-list" aria-label="已关注的规则变化">
+    <section v-else class="notifications-list" aria-label="已关注的变化">
       <div v-for="w in watches" :key="w.id" class="notification-row">
         <div class="notification-row__body">
           <strong>{{ targetLabel(w) }}</strong>
