@@ -142,7 +142,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
         <div class="sheet__head">
           <div class="sheet__title-row">
             <h2 class="sheet__name">{{ place.canonical_name }}</h2>
-            <StatusBadge :semantic="statusKey" />
+            <StatusBadge v-if="!mapLensLabel" :semantic="statusKey" />
             <button
               class="sheet__close"
               data-testid="sheet-close"
@@ -156,10 +156,10 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
             {{ placeTypeLabel(place.place_type) }}
             <template v-if="place.distance_m"> · {{ Math.round(place.distance_m) }}m</template>
           </p>
-          <p v-if="mapLensLabel" class="sheet__lens" data-testid="sheet-map-lens">
+          <div v-if="mapLensLabel" class="sheet__lens" data-testid="sheet-map-lens">
             <span class="muted">当前地图 · {{ mapLensName }}</span>
             <strong>{{ mapLensLabel }}</strong>
-          </p>
+          </div>
         </div>
 
         <!-- §13 expanded：Current Decision（真实 verdict，无数据则保持留白不伪造）。 -->
@@ -169,8 +169,14 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
           data-testid="sheet-verdict"
           data-ui="sheet-verdict"
         >
-          <span class="sheet__block-label">结论</span>
-          <p class="sheet__verdict" data-testid="sheet-verdict-text">{{ verdictText }}</p>
+          <span class="sheet__block-label">{{ mapLensLabel ? "规则" : "结论" }}</span>
+          <p
+            class="sheet__verdict"
+            :class="{ 'sheet__verdict--secondary': Boolean(mapLensLabel) }"
+            data-testid="sheet-verdict-text"
+          >
+            {{ verdictText }}
+          </p>
         </div>
 
         <p v-if="keyCondition" class="sheet__condition" data-testid="sheet-condition">
@@ -284,13 +290,18 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
 }
 .sheet__lens {
   display: flex;
-  align-items: baseline;
-  gap: var(--pa-space-2);
-  margin: var(--pa-space-1) 0 0;
+  flex-direction: column;
+  gap: var(--pa-space-1);
+  margin: var(--pa-space-2) 0 0;
+  padding-bottom: var(--pa-space-3);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
   font-size: var(--pa-font-size-md);
 }
 .sheet__lens strong {
   color: var(--pa-color-text-primary);
+  font-size: var(--pa-font-size-lg);
+  font-weight: var(--pa-font-weight-650);
+  line-height: var(--pa-line-height-26);
 }
 .sheet__condition {
   margin: 0;
@@ -314,6 +325,11 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   font-weight: var(--pa-font-weight-650);
   line-height: var(--pa-line-height-26);
   color: var(--pa-color-text-primary);
+}
+.sheet__verdict--secondary {
+  font-size: var(--pa-font-size-base);
+  font-weight: var(--pa-font-weight-600);
+  line-height: var(--pa-line-height-23);
 }
 .sheet__evidence-line {
   margin: 0;
