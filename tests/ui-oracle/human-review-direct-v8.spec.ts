@@ -74,7 +74,7 @@ const SHOTS: Shot[] = [
     state: "empty",
     h1: "搜索场所规则",
     requiredTestids: ["search-empty", "search-empty-contribute"],
-    requiredText: ["没有找到匹配场所"],
+    requiredText: ["没有找到已收录场所"],
     note: "Search empty keeps context and one primary contribution/recovery action.",
   },
   {
@@ -332,7 +332,7 @@ const SHOTS: Shot[] = [
     auth: true,
     h1: "新建宠物档案",
     requiredTestids: ["pet-name", "pet-species", "pet-service-role", "pet-save"],
-    requiredText: ["留空字段保持未知", "平台不会通过照片或品种推断"],
+    requiredText: ["只填写规则判断真正需要的信息", "平台不会通过照片或品种推断"],
     note: "Pet input is minimal query context; missing attributes stay unknown and service-dog role is user-declared.",
   },
   {
