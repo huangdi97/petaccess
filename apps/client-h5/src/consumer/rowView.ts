@@ -101,12 +101,13 @@ export function lensProjection(
   lens: ConsumerLens,
   answer: AccessAnswer | null | undefined,
   reality: RealityAnswer | null | undefined,
+  snapshot?: CoexistenceSnapshot | null,
 ): LensProjection {
   const ruleFirst = lens === "rules";
   const zoneFacts = lens === "indoor" || lens === "dining" ? (reality?.observed_zones ?? []) : [];
   return {
     headline: ruleFirst ? "rule" : "reality",
-    realityLine: realityLineFor(reality),
+    realityLine: coexistenceRealityLine(snapshot, reality),
     evidenceLine: evidenceLineFor(reality),
     zoneFacts,
   };
