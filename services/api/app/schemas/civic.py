@@ -23,6 +23,7 @@ from app.models.enums import (
     TemporaryAction,
     VerificationEventType,
     VerificationResult,
+    WatchDomain,
     WatchStatus,
     WatchTargetType,
     normalize_mandatory_level,
@@ -290,6 +291,7 @@ class DisputeOut(BaseModel):
 
 # --- watches (design #24) ---
 class WatchIn(BaseModel):
+    watch_domain: WatchDomain = WatchDomain.RULE
     target_type: WatchTargetType
     target_id: str
     channels: list[str] = ["in_app"]
@@ -300,6 +302,7 @@ class WatchOut(BaseModel):
 
     id: str
     user_id: str
+    watch_domain: WatchDomain
     target_type: WatchTargetType
     target_id: str
     channels: list
