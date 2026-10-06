@@ -44,10 +44,11 @@ export function coexistenceRealityLine(
   );
   if (presenceInformative) return realityLineFor(reality);
 
-  const staffCount = (snapshot?.staff_response_summary ?? reality.staff_response_summary ?? []).reduce(
-    (sum, item) => sum + item.count,
-    0,
-  );
+  const staffCount = (
+    snapshot?.staff_response_summary ??
+    reality.staff_response_summary ??
+    []
+  ).reduce((sum, item) => sum + item.count, 0);
   const facilityCount = (snapshot?.facility_summary ?? reality.facility_summary ?? []).reduce(
     (sum, item) => sum + item.count,
     0,
