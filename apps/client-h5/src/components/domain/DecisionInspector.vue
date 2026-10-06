@@ -128,9 +128,7 @@ const realityLineForSearch = computed(() =>
   coexistenceRealityLine(props.snapshot, props.reality).replace(/\s*（.*?）\s*$/, ""),
 );
 /** §26（place）：same CoexistenceSnapshot semantics as Search/Home/Map. */
-const realityLineForPlace = computed(() =>
-  coexistenceRealityLine(props.snapshot, props.reality),
-);
+const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot, props.reality));
 </script>
 
 <template>
