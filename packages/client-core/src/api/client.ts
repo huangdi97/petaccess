@@ -480,7 +480,6 @@ export interface WatchView {
   created_at?: string | null;
 }
 
-
 export interface MapRenderConfig {
   provider: "mock" | "tencent" | string;
   center: { lat: number; lng: number };
