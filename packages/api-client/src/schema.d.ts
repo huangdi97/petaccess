@@ -4522,8 +4522,15 @@ export interface components {
          * @enum {string}
          */
         VerificationResult: "still_valid" | "changed" | "uncertain";
+        /**
+         * WatchDomain
+         * @enum {string}
+         */
+        WatchDomain: "rule" | "reality";
         /** WatchIn */
         WatchIn: {
+            /** @default rule */
+            watch_domain: components["schemas"]["WatchDomain"];
             target_type: components["schemas"]["WatchTargetType"];
             /** Target Id */
             target_id: string;
@@ -4541,6 +4548,7 @@ export interface components {
             id: string;
             /** User Id */
             user_id: string;
+            watch_domain: components["schemas"]["WatchDomain"];
             target_type: components["schemas"]["WatchTargetType"];
             /** Target Id */
             target_id: string;
