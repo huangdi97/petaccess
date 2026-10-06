@@ -31,9 +31,7 @@
     {
       "id": "EVIDENCE_MAX_WIDTH",
       "ui": "evidence-body",
-      "fallbacks": [
-        ".evidence-workspace__body"
-      ],
+      "fallbacks": [".evidence-workspace__body"],
       "props": {
         "width": {
           "min": 780,
@@ -45,9 +43,7 @@
     {
       "id": "EVIDENCE_PROVENANCE",
       "ui": "evidence-provenance",
-      "fallbacks": [
-        "[data-testid='evidence-provenance']"
-      ],
+      "fallbacks": ["[data-testid='evidence-provenance']"],
       "props": {
         "count": {
           "min": 1
@@ -58,9 +54,7 @@
     {
       "id": "EVIDENCE_RAIL_WIDTH",
       "ui": "evidence-prov-rail-line",
-      "fallbacks": [
-        ".provenance-rail__line"
-      ],
+      "fallbacks": [".provenance-rail__line"],
       "props": {
         "width": {
           "equals": 2
@@ -71,9 +65,7 @@
     {
       "id": "EVIDENCE_RAIL_CONTINUOUS",
       "ui": "evidence-prov-rail-line",
-      "fallbacks": [
-        ".provenance-rail__line"
-      ],
+      "fallbacks": [".provenance-rail__line"],
       "props": {
         "height": {
           "min": 140
@@ -84,9 +76,7 @@
     {
       "id": "EVIDENCE_MARKER_COL",
       "ui": "evidence-prov-step",
-      "fallbacks": [
-        ".provenance-step"
-      ],
+      "fallbacks": [".provenance-step"],
       "props": {
         "gridTemplateColumns": {
           "startsWith": "24px"
@@ -97,9 +87,7 @@
     {
       "id": "EVIDENCE_ITEMS",
       "ui": "evidence-items",
-      "fallbacks": [
-        "[data-testid='evidence-items']"
-      ],
+      "fallbacks": ["[data-testid='evidence-items']"],
       "props": {
         "count": {
           "min": 1
@@ -110,9 +98,7 @@
     {
       "id": "EVIDENCE_SOURCES",
       "ui": "evidence-sources",
-      "fallbacks": [
-        "[data-testid='evidence-sources']"
-      ],
+      "fallbacks": ["[data-testid='evidence-sources']"],
       "props": {
         "count": {
           "min": 1
@@ -123,9 +109,7 @@
     {
       "id": "EVIDENCE_QUERY_CONTEXT",
       "ui": "query-context",
-      "fallbacks": [
-        "[data-testid='query-context']"
-      ],
+      "fallbacks": ["[data-testid='query-context']"],
       "props": {
         "count": {
           "min": 1
@@ -145,13 +129,7 @@
     {
       "id": "EVIDENCE_PROVENANCE_STEP_LABELS",
       "selector": "body",
-      "mustContainTexts": [
-        "原始材料",
-        "地点匹配",
-        "时间确认",
-        "来源确认",
-        "人工核验"
-      ],
+      "mustContainTexts": ["原始材料", "地点匹配", "时间确认", "来源确认", "人工核验"],
       "severity": "FAIL"
     },
     {
@@ -185,18 +163,14 @@
       "selector": "[data-testid='evidence-head']",
       "minVisibleInViewport": 1,
       "severity": "FAIL",
-      "pages": [
-        "evidence-records"
-      ]
+      "pages": ["evidence-records"]
     },
     {
       "id": "EVIDENCE_PROVENANCE_3_STEPS_VISIBLE",
       "selector": "[data-ui='evidence-prov-step'], .provenance-step",
       "minVisibleInViewport": 3,
       "severity": "FAIL",
-      "pages": [
-        "evidence-records"
-      ]
+      "pages": ["evidence-records"]
     }
   ],
   "density": [
