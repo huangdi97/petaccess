@@ -4,20 +4,23 @@ import { useRoute } from "vue-router";
 import {
   client,
   ApiError,
-  session,
   type AccessAnswer,
   type BoundaryMatchResult,
+  type CoexistenceSnapshot,
 } from "@petaccess/client-core";
 import AppShell from "../components/AppShell.vue";
 import BoundaryMatchPanel from "../components/explain/BoundaryMatchPanel.vue";
 import ExplainResultPanel from "../components/explain/ExplainResultPanel.vue";
 import StateMessage from "../components/StateMessage.vue";
 import { consumerExplanation } from "../consumer/explanation";
+import { snapshotFor } from "../consumer/repository";
+import { divergenceLabel, FRESHNESS_LABELS, realityStateLabel } from "../reality";
 import { presentDescription } from "../errors";
 
 const route = useRoute();
 const placeId = computed(() => (route.params.id ? String(route.params.id) : ""));
 const resolved = ref<AccessAnswer | null>(null);
+const coexistence = ref<CoexistenceSnapshot | null>(null);
 const boundary = ref<BoundaryMatchResult | null>(null);
 const error = ref("");
 const note = ref("");
@@ -25,19 +28,35 @@ const busy = ref(false);
 
 const steps = computed(() => (resolved.value ? consumerExplanation(resolved.value) : []));
 
+const realityExplanation = computed(() => {
+  const snapshot = coexistence.value;
+  if (!snapshot) return [];
+  const reality = snapshot.reality_answer;
+  const lines = [
+    realityStateLabel(reality),
+    reality.evidence_count
+      ? `现场摘要来自 ${reality.evidence_count} 条经核验记录、${reality.distinct_source_count} 个来源。`
+      : "当前没有足够的经核验现场记录；这不等于现场没有动物。",
+  ];
+  if (reality.last_seen_at) lines.push(`最近一条现场记录：${reality.last_seen_at.slice(0, 10)}。`);
+  if (reality.freshness_state) {
+    lines.push(`现场信息时效：${FRESHNESS_LABELS[reality.freshness_state] ?? "时效待核对"}。`);
+  }
+  lines.push(`规则与现场关系：${divergenceLabel(snapshot.divergence)}。`);
+  lines.push("现场事实、工作人员处理和设施记录只描述实际发生的事，不会改写正式规则。");
+  return lines;
+});
+
 async function resolveRules() {
   error.value = "";
   busy.value = true;
   try {
-    const animal = session.activePet
-      ? {
-          animal: session.activePet.species,
-          service_role: session.activePet.service_role ?? "none",
-          declared_role: session.activePet.declared_role ?? null,
-        }
-      : { animal: "dog", service_role: session.mode === "service_dog" ? "working" : "none" };
-    resolved.value = await client.accessAnswer(placeId.value, { ...animal, action: "enter" });
+    const result = await snapshotFor(placeId.value);
+    coexistence.value = result.snapshot;
+    resolved.value = result.snapshot.rule_answer;
   } catch (e) {
+    coexistence.value = null;
+    resolved.value = null;
     error.value = presentDescription(e);
   } finally {
     busy.value = false;
@@ -103,6 +122,17 @@ watch(
     </StateMessage>
 
     <ExplainResultPanel v-if="resolved" :answer="resolved" :steps="steps" />
+
+    <section v-if="coexistence" class="reality-explain" data-testid="reality-explanation">
+      <h2>为什么现场摘要这样显示</h2>
+      <ol>
+        <li v-for="(line, index) in realityExplanation" :key="index">{{ line }}</li>
+      </ol>
+      <RouterLink class="btn-inline" :to="`/place/${placeId}/evidence`">
+        查看现场证据与来源 →
+      </RouterLink>
+    </section>
+
     <BoundaryMatchPanel :boundary="boundary" :note="note" />
   </AppShell>
 </template>
@@ -120,6 +150,27 @@ watch(
 .explain-head p {
   max-width: 680px;
   margin: var(--pa-space-2) 0 0;
+  line-height: var(--pa-line-height-23);
+}
+
+.reality-explain {
+  padding: var(--pa-space-5) 0;
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.reality-explain h2 {
+  margin: 0 0 var(--pa-space-2);
+  font-size: var(--pa-font-size-lg);
+  font-weight: var(--pa-font-weight-650);
+}
+
+.reality-explain ol {
+  margin: var(--pa-space-3) 0;
+  padding-left: var(--pa-space-5);
+}
+
+.reality-explain li {
+  margin-bottom: var(--pa-space-2);
   line-height: var(--pa-line-height-23);
 }
 
