@@ -106,10 +106,7 @@ async function submit() {
         evidence_refs: evidenceRefs(mediaId.value),
         ...proximity(),
       });
-      emit(
-        "done",
-        "规则牌证据已提交，等待人工核验。照片与 OCR 都不会自动生成或发布正式规则。",
-      );
+      emit("done", "规则牌证据已提交，等待人工核验。照片与 OCR 都不会自动生成或发布正式规则。");
       return;
     }
 
@@ -216,7 +213,9 @@ async function submit() {
       <p v-if="ocrText" class="rule-ocr">OCR 仅供人工核对：{{ ocrText.slice(0, 240) }}</p>
       <p class="rule-upload-note">
         照片和 OCR 都只是证据材料，不会自动生成或发布规则。
-        <template v-if="intent === 'signage'">你不需要先替平台判断“允许 / 禁止 / 有条件”。</template>
+        <template v-if="intent === 'signage'"
+          >你不需要先替平台判断“允许 / 禁止 / 有条件”。</template
+        >
       </p>
     </div>
 
