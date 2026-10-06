@@ -9,6 +9,7 @@ import {
   FACILITY_STATE_LABELS,
   OBSERVED_ACTION_LABELS,
   STAFF_ACTION_LABELS,
+  STAFF_ROLE_LABELS,
 } from "../../consumer/labels";
 import ContributionStepShell from "./ContributionStepShell.vue";
 defineOptions({ name: "ContributeRealityForm" });
@@ -46,6 +47,7 @@ const zone = ref("");
 const animal = ref("dog");
 const count = ref("");
 const action = ref("present");
+const staffRole = ref("unknown_staff");
 const staffAction = ref("unknown");
 const staffAwareness = ref("awareness_unknown");
 const staffOutcome = ref("");
@@ -54,6 +56,13 @@ const facilityOperational = ref("unknown");
 const facilityPurpose = ref("purpose_unknown");
 const facilityAccessMode = ref("unknown");
 const facilityCapacity = ref("");
+const facilitySizeLimit = ref("");
+const facilityWeatherProtection = ref<boolean | null>(null);
+const facilityShade = ref<boolean | null>(null);
+const facilityVentilation = ref<boolean | null>(null);
+const facilityWaterAvailable = ref<boolean | null>(null);
+const facilitySupervisionState = ref("");
+const facilitySecurityState = ref("");
 const context = ref("");
 const effortBucket = ref("unknown");
 
@@ -91,6 +100,17 @@ const STAFF_RESPONSE_KEYS = [
   "escalate_to_manager",
   "no_intervention_observed",
   "unknown",
+] as const;
+
+const STAFF_ROLE_KEYS = [
+  "owner",
+  "manager",
+  "frontline_staff",
+  "server",
+  "security",
+  "cleaning_staff",
+  "front_desk",
+  "unknown_staff",
 ] as const;
 
 const FACILITY_TYPE_KEYS = [
@@ -133,6 +153,24 @@ const FACILITY_ACCESS_OPTIONS = [
   { key: "self_service", label: "可以自助使用" },
   { key: "staff_assisted", label: "需要工作人员协助" },
   { key: "unknown", label: "使用方式不确定" },
+] as const;
+
+const FACILITY_BOOLEAN_OPTIONS: { value: boolean | null; label: string }[] = [
+  { value: null, label: "未确认" },
+  { value: true, label: "有" },
+  { value: false, label: "没有" },
+];
+
+const FACILITY_SUPERVISION_OPTIONS = [
+  { key: "", label: "未确认" },
+  { key: "有工作人员看护", label: "有工作人员看护" },
+  { key: "无人固定看护", label: "无人固定看护" },
+] as const;
+
+const FACILITY_SECURITY_OPTIONS = [
+  { key: "", label: "未确认" },
+  { key: "可锁闭 / 有安全门", label: "可锁闭 / 有安全门" },
+  { key: "开放式 / 不可锁闭", label: "开放式 / 不可锁闭" },
 ] as const;
 
 const busy = ref(false);
@@ -203,6 +241,7 @@ async function submit() {
       count: count.value,
       action: action.value,
       context: context.value,
+      staffRole: staffRole.value,
       staffAction: staffAction.value,
       staffAwareness: staffAwareness.value,
       staffOutcome: staffOutcome.value,
@@ -211,6 +250,13 @@ async function submit() {
       facilityPurpose: facilityPurpose.value,
       facilityAccessMode: facilityAccessMode.value,
       facilityCapacity: facilityCapacity.value,
+      facilitySizeLimit: facilitySizeLimit.value,
+      facilityWeatherProtection: facilityWeatherProtection.value,
+      facilityShade: facilityShade.value,
+      facilityVentilation: facilityVentilation.value,
+      facilityWaterAvailable: facilityWaterAvailable.value,
+      facilitySupervisionState: facilitySupervisionState.value,
+      facilitySecurityState: facilitySecurityState.value,
     });
     const res = await client.createRealityReport(props.placeId, {
       report: {
@@ -435,6 +481,13 @@ async function submit() {
         </template>
 
         <template v-else-if="kind === 'staff_response'">
+          <label for="reality-staff-role">是哪类工作人员（可选）</label>
+          <select id="reality-staff-role" v-model="staffRole" data-testid="reality-staff-role">
+            <option v-for="key in STAFF_ROLE_KEYS" :key="key" :value="key">
+              {{ STAFF_ROLE_LABELS[key] }}
+            </option>
+          </select>
+          <p class="muted source-note">只记录岗位角色，不收集工作人员姓名或身份。</p>
           <label for="reality-staff-action">工作人员做了什么</label>
           <select v-model="staffAction" id="reality-staff-action">
             <option v-for="key in STAFF_RESPONSE_KEYS" :key="key" :value="key">
@@ -502,6 +555,89 @@ async function submit() {
             placeholder="例如 2"
             data-testid="reality-facility-capacity"
           />
+
+          <details class="facility-more" data-testid="reality-facility-more">
+            <summary>补充设施使用与安全信息（可选）</summary>
+            <div class="facility-more__fields">
+              <label for="reality-facility-size">体型限制</label>
+              <input
+                id="reality-facility-size"
+                v-model="facilitySizeLimit"
+                maxlength="80"
+                placeholder="例如：仅小型犬；不确定可留空"
+                data-testid="reality-facility-size"
+              />
+
+              <label for="reality-facility-weather">有遮雨</label>
+              <select
+                id="reality-facility-weather"
+                v-model="facilityWeatherProtection"
+                data-testid="reality-facility-weather"
+              >
+                <option v-for="item in FACILITY_BOOLEAN_OPTIONS" :key="String(item.value)" :value="item.value">
+                  {{ item.label }}
+                </option>
+              </select>
+
+              <label for="reality-facility-shade">有遮阳</label>
+              <select
+                id="reality-facility-shade"
+                v-model="facilityShade"
+                data-testid="reality-facility-shade"
+              >
+                <option v-for="item in FACILITY_BOOLEAN_OPTIONS" :key="String(item.value)" :value="item.value">
+                  {{ item.label }}
+                </option>
+              </select>
+
+              <label for="reality-facility-ventilation">有通风</label>
+              <select
+                id="reality-facility-ventilation"
+                v-model="facilityVentilation"
+                data-testid="reality-facility-ventilation"
+              >
+                <option v-for="item in FACILITY_BOOLEAN_OPTIONS" :key="String(item.value)" :value="item.value">
+                  {{ item.label }}
+                </option>
+              </select>
+
+              <label for="reality-facility-water">可获得饮水</label>
+              <select
+                id="reality-facility-water"
+                v-model="facilityWaterAvailable"
+                data-testid="reality-facility-water"
+              >
+                <option v-for="item in FACILITY_BOOLEAN_OPTIONS" :key="String(item.value)" :value="item.value">
+                  {{ item.label }}
+                </option>
+              </select>
+
+              <label for="reality-facility-supervision">看护情况</label>
+              <select
+                id="reality-facility-supervision"
+                v-model="facilitySupervisionState"
+                data-testid="reality-facility-supervision"
+              >
+                <option v-for="item in FACILITY_SUPERVISION_OPTIONS" :key="item.key" :value="item.key">
+                  {{ item.label }}
+                </option>
+              </select>
+
+              <label for="reality-facility-security">安全 / 锁闭情况</label>
+              <select
+                id="reality-facility-security"
+                v-model="facilitySecurityState"
+                data-testid="reality-facility-security"
+              >
+                <option v-for="item in FACILITY_SECURITY_OPTIONS" :key="item.key" :value="item.key">
+                  {{ item.label }}
+                </option>
+              </select>
+            </div>
+            <p class="muted source-note">
+              这些字段只描述你实际看到的设施属性；不表示设施“安全”，也不推导动物可以进入场所。
+            </p>
+          </details>
         </template>
 
         <label for="reality-context">补充（可选）</label>
@@ -561,5 +697,27 @@ async function submit() {
   font-size: var(--pa-font-size-base);
   background: var(--pa-color-surface);
   color: var(--pa-color-text-primary);
+}
+
+.facility-more {
+  margin-top: var(--pa-space-3);
+  padding-top: var(--pa-space-3);
+  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.facility-more summary {
+  min-height: var(--pa-size-control-md);
+  display: flex;
+  align-items: center;
+  color: var(--pa-color-accent);
+  font-size: var(--pa-font-size-md);
+  cursor: pointer;
+}
+
+.facility-more__fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-2);
+  padding: var(--pa-space-2) 0;
 }
 </style>
