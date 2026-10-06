@@ -21,7 +21,7 @@ const emit = defineEmits<{
 }>();
 
 const cards = computed(() => [...props.verified, ...props.pending]);
-const recommendationTitle = computed(() => (props.interest ? "按你的关注推荐" : "近期值得先看"));
+const recommendationTitle = computed(() => (props.interest ? "按你的关注先看" : "近期有依据的场所"));
 
 function hasUsefulFact(card: HomeCard): boolean {
   const presenceEvidence = card.facts.reality?.evidence_count ?? 0;
@@ -106,7 +106,7 @@ function divergenceText(card: HomeCard): string {
     data-ui="home-recommend"
   >
     <h2 class="home-digest-title">{{ recommendationTitle }}</h2>
-    <p v-if="interest" class="home-digest-note muted">只调整信息顺序，不对场所评分。</p>
+    <p v-if="interest" class="home-digest-note muted">只调整展示顺序，不形成场所推荐分或排名。</p>
     <button
       v-for="card in recommended"
       :key="'recommend-' + card.place.id"
