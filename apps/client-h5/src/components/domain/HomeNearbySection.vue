@@ -104,6 +104,7 @@ const freshness = computed(() =>
             :answer="c.facts.answer"
             :answer-error="c.facts.answerError"
             :reality="c.facts.reality"
+            :snapshot="c.facts.snapshot"
             :reality-error="c.facts.realityError"
             :species-label="speciesLabel"
             :conditions-label="conditionsLabel"
