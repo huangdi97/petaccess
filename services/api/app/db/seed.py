@@ -124,6 +124,7 @@ def _seed_v09_reality_demo(
         EvidenceBundle,
         ObservedPresence,
         RealityCandidate,
+        RealityReport,
         SourceArtifact,
         StaffResponseObservation,
     )
@@ -133,13 +134,21 @@ def _seed_v09_reality_demo(
         FacilityAccessMode,
         FacilityOperationalState,
         FacilityPurposeState,
+        FactEvidenceState,
+        ObservationOrigin,
         ObservedAction,
+        PlaceMatchEvidenceType,
+        PlaceMatchState,
         RealityDecision,
         RealityFreshnessState,
+        RealityReportModerationState,
+        RealityReportPrivacyState,
         RealityVerificationStatus,
         StaffActorRole,
         StaffAwarenessState,
         StaffResponseAction,
+        TimeCertainty,
+        TimeEvidenceState,
     )
     from app.models.evidence import (
         CollectorType,
@@ -315,8 +324,32 @@ def _seed_v09_reality_demo(
     candidates: dict[str, RealityCandidate] = {}
     for spec in candidate_specs:
         key = str(spec["key"])
+        observed_at = spec["observed_at"]
+        report = RealityReport(
+            id=uid(f"reality_report_mall_{key}"),
+            anonymous_token=f"demo-{key}",
+            origin=ObservationOrigin.ON_SITE_PAST,
+            place_id=mall.id,
+            place_match_state=PlaceMatchState.EXACT_PLACE,
+            place_match_evidence_types=[
+                PlaceMatchEvidenceType.USER_CONFIRMATION.value,
+                PlaceMatchEvidenceType.POI_METADATA.value,
+            ],
+            time_evidence_state=TimeEvidenceState.EXACT_EVENT_TIME,
+            observed_at=observed_at,
+            claimed_event_at=observed_at,
+            time_certainty=TimeCertainty.EXACT,
+            fact_evidence_state=FactEvidenceState.DIRECT_MEDIA,
+            privacy_state=RealityReportPrivacyState.PRIVATE,
+            moderation_state=RealityReportModerationState.APPROVED,
+            submitted_at=observed_at + D(minutes=10),
+        )
+        session.add(report)
+        session.flush()
+
         candidate = RealityCandidate(
             id=uid(f"reality_candidate_mall_{key}"),
+            report_id=report.id,
             candidate_type=str(spec["candidate_type"]),
             place_id=mall.id,
             zone_id=spec["zone"].id,
