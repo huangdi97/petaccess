@@ -9,6 +9,7 @@ from sqlalchemy import func, select
 from app.db.session import get_session_factory
 from app.main import app
 from app.models import AccessRule, RuleCandidate, Zone
+from app.models.media import MediaObject
 
 
 @pytest.fixture(scope="module")
@@ -207,6 +208,55 @@ def test_changed_rule_lead_rejects_noncurrent_target(client, signed_user):
             assert restored is not None
             restored.status = "current"
             db.commit()
+
+
+def test_signage_only_rule_lead_enters_extraction_without_guessed_rule(client, signed_user):
+    place_id = _place_id(client)
+    me = client.get("/api/v1/auth/me", headers=signed_user)
+    assert me.status_code == 200, me.text
+    user_id = me.json()["id"]
+
+    factory = get_session_factory()
+    with factory() as db:
+        media = MediaObject(
+            owner_type="place",
+            owner_id=place_id,
+            created_by_user_id=user_id,
+            purpose="signage_evidence",
+            privacy_class="private",
+            bucket="test",
+            object_key=f"test/signage-{uuid.uuid4().hex}.png",
+            mime_type="image/png",
+            byte_size=68,
+            sha256=uuid.uuid4().hex + uuid.uuid4().hex,
+            original_filename="signage.png",
+            upload_status="stored",
+            moderation_status="pending",
+        )
+        db.add(media)
+        db.commit()
+        db.refresh(media)
+        media_id = media.id
+
+    response = client.post(
+        f"/api/v1/places/{place_id}/rule-leads",
+        headers=signed_user,
+        json={
+            "media_id": media_id,
+            "raw_text": "规则牌照片；OCR 尚未完成人工核对。",
+        },
+    )
+    assert response.status_code == 201, response.text
+    assert response.json()["review_status"] == "EXTRACTED"
+
+    with factory() as db:
+        candidate = db.get(RuleCandidate, response.json()["id"])
+        assert candidate is not None
+        assert candidate.media_id == media_id
+        assert candidate.effect is None
+        assert candidate.animal_scope is None
+        assert candidate.action is None
+        assert candidate.extraction_method == "user_upload"
 
 
 def test_rule_lead_requires_authentication(client):
