@@ -454,6 +454,13 @@ class WatchTargetType(StrEnum):
     RULE = "rule"
 
 
+class WatchDomain(StrEnum):
+    """What kind of reviewed change the user is asking PetAccess to follow."""
+
+    RULE = "rule"
+    REALITY = "reality"
+
+
 class WatchStatus(StrEnum):
     ACTIVE = "active"
     PAUSED = "paused"
