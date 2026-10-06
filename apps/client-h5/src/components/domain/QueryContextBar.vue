@@ -56,7 +56,7 @@ function selectMode(m: QueryMode) {
     <PaDialog :open="open" :title="'当前查询：' + summary" @close="open = false">
       <div class="query-context__form">
         <p class="query-context__hint">
-          查询对象与视角决定「进入 / 限制」结论的求值上下文；切换后结果会按新上下文重新获取。
+          你带哪类动物、以什么身份进入，会影响页面显示的准入结论。修改后会按新的问题重新查询。
         </p>
         <div class="query-context__modes" role="group" aria-label="查询视角">
           <button
@@ -72,7 +72,7 @@ function selectMode(m: QueryMode) {
           </button>
         </div>
         <p class="query-context__note muted">
-          动作：进入（当前仅支持进入查询）；范围：公共区域。服务犬模式按「工作犬」求值。
+          当前问题是「进入公共区域」。选择服务犬通行时，会按服务犬对应的规则条件查询。
         </p>
       </div>
     </PaDialog>
