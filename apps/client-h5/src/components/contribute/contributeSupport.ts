@@ -45,13 +45,15 @@ export function presencePayload(o: {
 }
 
 export function staffPayload(o: {
+  role: string;
   action: string;
   awareness: string;
   context: string;
   outcome: string;
 }): Record<string, unknown> {
   return {
-    actor_role: "unknown_staff",
+    // Role is useful context; personal identity is deliberately never asked.
+    actor_role: o.role || "unknown_staff",
     trigger_context: o.context.trim() || null,
     response_action: o.action || "unknown",
     staff_awareness_state: o.awareness || "awareness_unknown",
@@ -65,13 +67,28 @@ export function facilityPayload(o: {
   purpose: string;
   accessMode: string;
   capacity: string;
+  sizeLimit: string;
+  weatherProtection: boolean | null;
+  shade: boolean | null;
+  ventilation: boolean | null;
+  waterAvailable: boolean | null;
+  supervisionState: string;
+  securityState: string;
 }): Record<string, unknown> {
   return {
     facility_type: o.type || "other",
     operational_state: o.operational,
     purpose_state: o.purpose || "purpose_unknown",
     access_mode: o.accessMode || "unknown",
+    operator_provided: o.accessMode === "operator_provided",
     capacity: o.capacity ? Number(o.capacity) : null,
+    size_limit: o.sizeLimit.trim() || null,
+    weather_protection: o.weatherProtection,
+    shade: o.shade,
+    ventilation: o.ventilation,
+    water_available: o.waterAvailable,
+    supervision_state: o.supervisionState || null,
+    security_or_lock_state: o.securityState || null,
   };
 }
 
@@ -83,6 +100,7 @@ export function realityPayload(
     count: string;
     action: string;
     context: string;
+    staffRole: string;
     staffAction: string;
     staffAwareness: string;
     staffOutcome: string;
@@ -91,6 +109,13 @@ export function realityPayload(
     facilityPurpose: string;
     facilityAccessMode: string;
     facilityCapacity: string;
+    facilitySizeLimit: string;
+    facilityWeatherProtection: boolean | null;
+    facilityShade: boolean | null;
+    facilityVentilation: boolean | null;
+    facilityWaterAvailable: boolean | null;
+    facilitySupervisionState: string;
+    facilitySecurityState: string;
   },
 ): { payload: Record<string, unknown>; animalScope: string | null } {
   if (kind === "observed_presence") {
@@ -107,6 +132,7 @@ export function realityPayload(
   if (kind === "staff_response") {
     return {
       payload: staffPayload({
+        role: f.staffRole,
         action: f.staffAction,
         awareness: f.staffAwareness,
         context: f.context,
@@ -122,6 +148,13 @@ export function realityPayload(
       purpose: f.facilityPurpose,
       accessMode: f.facilityAccessMode,
       capacity: f.facilityCapacity,
+      sizeLimit: f.facilitySizeLimit,
+      weatherProtection: f.facilityWeatherProtection,
+      shade: f.facilityShade,
+      ventilation: f.facilityVentilation,
+      waterAvailable: f.facilityWaterAvailable,
+      supervisionState: f.facilitySupervisionState,
+      securityState: f.facilitySecurityState,
     }),
     animalScope: null,
   };
