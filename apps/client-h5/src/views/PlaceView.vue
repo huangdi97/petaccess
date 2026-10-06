@@ -373,7 +373,6 @@ const placeFixture = computed<string>(() => {
               <RouterLink :to="`/contribute/${placeId}`" class="btn-inline">
                 纠错 / 补充 →
               </RouterLink>
-
             </div>
             <p v-if="watchMsg" class="muted place-dossier__watch-msg" role="status">
               {{ watchMsg }}
@@ -457,8 +456,6 @@ const placeFixture = computed<string>(() => {
             :events="realityEvents"
             :sources="sources"
           />
-
-
         </template>
       </main>
 
