@@ -20,6 +20,7 @@ Invariants enforced by the schema shape (and by the handler):
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -67,7 +68,7 @@ class ContributionActivityOut(BaseModel):
     """One user-owned contribution transaction across governed data lanes."""
 
     id: str
-    kind: str
+    kind: Literal["reality", "verification", "rule_lead"]
     place_id: str | None = None
     place_name: str | None = None
     created_at: datetime | None = None
