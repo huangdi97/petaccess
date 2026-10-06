@@ -55,11 +55,15 @@ const realityLine = computed(() =>
 );
 const realityMetaLine = computed(() => {
   const reality = props.coexistence?.reality_answer;
-  if (!reality) return "";
+  const evidence = props.coexistence?.evidence_summary;
+  if (!reality && !evidence) return "";
   const parts: string[] = [];
-  if (reality.evidence_count > 0) parts.push(`${reality.evidence_count} 条现场证据`);
-  if (reality.days_since_last_seen != null)
-    parts.push(`最近一次 ${reality.days_since_last_seen} 天前`);
+  const factCount = evidence?.reality_evidence_count ?? 0;
+  const sourceCount = evidence?.reality_distinct_source_count ?? 0;
+  if (factCount > 0) parts.push(`${factCount} 条经核验现场事实`);
+  if (sourceCount > 0) parts.push(`${sourceCount} 个来源`);
+  if (reality?.days_since_last_seen != null)
+    parts.push(`最近动物记录 ${reality.days_since_last_seen} 天前`);
   return parts.join(" · ");
 });
 const primaryEvidence = computed(
