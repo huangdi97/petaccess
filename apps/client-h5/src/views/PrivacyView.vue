@@ -18,7 +18,7 @@ const inventory = [
     stored: "按许可处理",
     detail: "作为私有核验材料保存；不可公开再分发的内容不会直接向消费者展示。",
   },
-  { item: "规则关注", stored: "保存", detail: "仅保存你主动关注的规则变化。" },
+  { item: "变化关注", stored: "保存", detail: "仅保存你主动关注的规则变化或经核验现场更新。" },
 ];
 
 const signedIn = computed(() => session.signedIn);
