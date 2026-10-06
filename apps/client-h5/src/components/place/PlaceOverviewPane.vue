@@ -113,7 +113,7 @@ const divergenceLine = computed(() => {
   <div class="place-overview-lead" data-ui="place-coexistence-lead">
     <!-- Current Decision（§17：完整 status surface 仅此一处；§9 自然语言补充） -->
     <section class="place-section" data-testid="section-answer" data-ui="place-decision">
-      <h2 class="place-section__title">当前结论</h2>
+      <h2 class="place-section__title">规则</h2>
       <div class="sub-answer sub-answer--mine" data-testid="answer">
         <p v-if="desktop" class="muted sub-answer__context" data-testid="answer-context">
           {{ petContext }} · {{ speciesLabel }} · 进入 · 公共区域
