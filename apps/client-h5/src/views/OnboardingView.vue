@@ -40,7 +40,7 @@ async function submit() {
         <p class="auth-brand">PetAccess</p>
         <h1>开始使用</h1>
         <p class="muted">
-          登录后可以保存宠物档案、关注规则变化和查看自己的贡献；查询公开场所信息不要求登录。
+          登录后可以保存宠物档案、关注规则与现场变化，并查看自己的贡献；查询公开场所信息不要求登录。
         </p>
       </header>
 
