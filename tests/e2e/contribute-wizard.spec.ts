@@ -188,10 +188,7 @@ test("A2.2 — 规则线索进入 RuleCandidate review，而不是 Observation/R
   });
 });
 
-test("A2.2b — 规则牌可独立提交证据，不要求用户先解释准入结论", async ({
-  page,
-  request,
-}) => {
+test("A2.2b — 规则牌可独立提交证据，不要求用户先解释准入结论", async ({ page, request }) => {
   const token = await signIn(request);
   await page.addInitScript((t) => localStorage.setItem("pa_token", t), token);
   await page.goto(`${BASE}/#/contribute/${MALL_ID}`, { waitUntil: "load" });
