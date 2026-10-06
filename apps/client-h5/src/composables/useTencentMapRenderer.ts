@@ -151,6 +151,8 @@ function markerColor(lens: string, status: MapMarker["status"]): string {
   }
   if (lens === "divergence") {
     if (status === "CONFLICT") return tokenColor("--pa-color-status-conflict");
+    if (status === "CONDITIONAL") return tokenColor("--pa-color-status-conditional");
+    if (status === "STALE") return tokenColor("--pa-color-status-stale");
     if (status === "ALLOWED") return tokenColor("--pa-color-reality-observed");
     return tokenColor("--pa-color-reality-insufficient");
   }
