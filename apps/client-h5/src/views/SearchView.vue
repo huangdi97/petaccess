@@ -37,7 +37,7 @@ import StateMessage from "../components/StateMessage.vue";
 import StatusBadge from "../components/StatusBadge.vue";
 import { answerConditions, answerStatusKey, answerVerdictLabel } from "../answer";
 import {
-  evidenceLineFor,
+  coexistenceEvidenceLine,
   freshnessLineFor,
   lensOrderScore,
   lensProjection,
@@ -167,23 +167,10 @@ function rowCondition(p: PlaceSummary): string {
 
 function rowEvidenceMeta(p: PlaceSummary): string {
   const row = facts.value.get(p.id);
-  const summary = row?.snapshot?.evidence_summary;
-  const realityParts: string[] = [];
-  if ((summary?.reality_evidence_count ?? 0) > 0) {
-    realityParts.push(`${summary?.reality_evidence_count} 条现场依据`);
-  }
-  if ((summary?.reality_distinct_source_count ?? 0) > 0) {
-    realityParts.push(`${summary?.reality_distinct_source_count} 个现场来源`);
-  }
-  if (row?.reality?.days_since_last_seen != null) {
-    realityParts.push(`${row.reality.days_since_last_seen} 天前最近动物现场`);
-  }
-  if (realityParts.length) return realityParts.join(" · ");
+  const realityMeta = coexistenceEvidenceLine(row?.snapshot, row?.reality);
+  if (realityMeta) return realityMeta;
 
-  const presenceMeta = evidenceLineFor(row?.reality);
-  if (presenceMeta) return presenceMeta;
-
-  const rules = summary?.rule_evidence ?? [];
+  const rules = row?.snapshot?.evidence_summary.rule_evidence ?? [];
   if (!rules.length) return "依据待补充";
   const issuer = rules[0]?.issuer;
   return issuer ? `${rules.length} 条规则依据 · ${issuer}` : `${rules.length} 条规则依据`;
