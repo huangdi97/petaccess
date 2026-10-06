@@ -626,6 +626,7 @@ const selectedId = ref<string | null>(null);
           :fetched-at-ms="selectedPlace ? (facts.get(selectedPlace.id)?.fetchedAtMs ?? null) : null"
           :offline="!online"
           :species-label="speciesLabel"
+          :latest-verified-at="selectedPlace?.last_verified_at?.slice(0, 10) ?? null"
         />
       </aside>
     </div>
