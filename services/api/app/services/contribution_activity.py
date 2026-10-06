@@ -128,10 +128,10 @@ def _rule_lead_rows(db: Session, user_id: str) -> list[ContributionActivity]:
     ).all()
     audits = [row for row in audits if (row.after_state or {}).get("consumer_rule_lead") is True]
     candidate_ids = {row.target_id for row in audits}
-    candidates = {
-        row.id: row
-        for row in db.scalars(select(RuleCandidate).where(RuleCandidate.id.in_(candidate_ids))).all()
-    }
+    candidate_rows = db.scalars(
+        select(RuleCandidate).where(RuleCandidate.id.in_(candidate_ids))
+    ).all()
+    candidates = {row.id: row for row in candidate_rows}
     place_ids = {candidate.place_id for candidate in candidates.values() if candidate.place_id}
     place_names = _place_names(db, place_ids)
     out: list[ContributionActivity] = []
