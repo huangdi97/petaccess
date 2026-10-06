@@ -55,7 +55,11 @@ function toggleCondition(key: string) {
     </button>
   </div>
 
-  <div v-if="intent === 'changed' || intent === 'new_lead'" class="rule-fields" data-ui="rule-lead-fields">
+  <div
+    v-if="intent === 'changed' || intent === 'new_lead'"
+    class="rule-fields"
+    data-ui="rule-lead-fields"
+  >
     <h3>你现在了解到的规则</h3>
     <label for="rule-known">结论</label>
     <select id="rule-known" v-model="effect" data-testid="rule-known">
