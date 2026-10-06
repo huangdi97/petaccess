@@ -240,6 +240,14 @@ async function selectPlace(p: PlaceSummary) {
   }
 }
 
+/** Desktop is a true List–Detail workspace: clicking a result selects it.
+ * Mobile keeps normal navigation into the Place dossier. */
+function handleResultClick(event: MouseEvent, place: PlaceSummary) {
+  if (!isDesktop.value) return;
+  event.preventDefault();
+  void selectPlace(place);
+}
+
 /** Back/forward or an external deep link changes route.query.q → re-run. */
 watch(
   () => route.query.q,
@@ -518,6 +526,7 @@ const selectedId = ref<string | null>(null);
                 :data-testid="'result-' + p.canonical_name"
                 @mouseenter="selectPlace(p)"
                 @focus="selectPlace(p)"
+                @click="handleResultClick($event, p)"
               >
                 <!-- Canonical v0.10-R1 search row:
                      identity + rule status / type·distance / primary Reality fact /
