@@ -14,7 +14,7 @@ celery_app = Celery(
     "petaccess-worker",
     broker=settings.redis_url,
     backend=settings.redis_url,
-    include=["app.worker.tasks"],
+    include=["app.worker.tasks", "app.worker.reality_watch_tasks"],
 )
 
 celery_app.conf.update(
@@ -36,7 +36,7 @@ celery_app.conf.update(
             "schedule": 3600.0,
         },
         "watch-reality-notify-sweep": {
-            "task": "app.worker.tasks.notify_reality_changes",
+            "task": "app.worker.reality_watch_tasks.notify_reality_changes",
             "schedule": 3600.0,
         },
         # hourly TTL purge for expired media (design #20/#28)
