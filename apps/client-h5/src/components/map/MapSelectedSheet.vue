@@ -78,12 +78,28 @@ const realityLine = computed(() =>
 );
 /** §13 expanded：Current Decision —— 真实 verdict（不伪造）。 */
 const verdictText = computed(() => (props.loading ? "加载中…" : answerVerdictLabel(answer.value)));
-/** §13 expanded：Evidence/Freshness —— 真实来源 issuer + snapshot 生成时间。 */
+/** Evidence/Freshness must describe evidence, not the time this snapshot was assembled. */
 const evidenceLine = computed(() => {
   const ev = answer.value?.evidence_state.rules[0] ?? null;
-  const issuer = sourceLabel(ev?.issuer ?? null, Boolean(ev));
-  const gen = props.snapshot?.generated_at?.slice(0, 10);
-  return gen ? `${issuer} · 更新于 ${gen}` : issuer;
+  const parts: string[] = [];
+  if (ev) {
+    parts.push(sourceLabel(ev.issuer ?? null, true));
+    parts.push(
+      props.place?.last_verified_at
+        ? `规则核验 ${props.place.last_verified_at.slice(0, 10)}`
+        : "规则核验时间待补充",
+    );
+  } else {
+    parts.push("规则依据待补充");
+  }
+
+  const evidence = props.snapshot?.evidence_summary;
+  if ((evidence?.reality_evidence_count ?? 0) > 0) {
+    parts.push(
+      `现场 ${evidence?.reality_evidence_count ?? 0} 条证据 · ${evidence?.reality_distinct_source_count ?? 0} 个来源`,
+    );
+  }
+  return parts.join(" · ");
 });
 
 function onKey(e: KeyboardEvent) {
@@ -170,7 +186,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
           </span>
         </div>
 
-        <!-- §13 expanded：Evidence/Freshness（真实来源 + 快照更新时间，不伪造）。 -->
+        <!-- Evidence/Freshness：真实来源 + 规则核验时间 + Reality 证据计数。 -->
         <div
           v-if="phase === 'expanded'"
           class="sheet__block"
