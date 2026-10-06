@@ -137,8 +137,8 @@ export function useMapWorkspace() {
         void load();
       },
       () => {
-        // Permission refused is not a dead end: the map falls back to a manual
-        // area (Consumer UX §20) instead of an empty screen.
+        // Permission refused is not a dead end: keep the current/default area
+        // usable and let the adjacent Search handle place / district / address queries.
         locationState.value = "DENIED";
       },
       { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 },
