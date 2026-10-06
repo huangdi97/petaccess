@@ -10,7 +10,7 @@
  * what order rows sort — never the facts the server returned and never the
  * request. "暂无记录 ≠ 没有动物" is preserved verbatim.
  */
-import type { AccessAnswer, RealityAnswer } from "@petaccess/client-core";
+import type { AccessAnswer, CoexistenceSnapshot, RealityAnswer } from "@petaccess/client-core";
 import { REALITY_STATE_LABELS } from "../reality";
 
 export type ConsumerLens = "" | "presence" | "rules" | "indoor" | "dining";
@@ -21,6 +21,44 @@ export function realityLineFor(reality: RealityAnswer | null | undefined): strin
   if (!reality) return "暂无足够现场记录";
   const label = REALITY_STATE_LABELS[reality.state] ?? reality.state;
   return label === "暂无足够现场记录（≠ 没有动物）" ? "暂无足够现场记录" : label;
+}
+
+/**
+ * Canonical coexistence headline for compact consumer rows.
+ *
+ * Presence is one Reality dimension, not the whole layer. When presence itself
+ * is insufficient but published StaffResponse / Facility facts exist, keep
+ * those facts visible instead of collapsing the row to a misleading generic
+ * empty-looking state. The wording still preserves the semantic boundary:
+ * staff/facility facts do not imply policy or access.
+ */
+export function coexistenceRealityLine(
+  snapshot: CoexistenceSnapshot | null | undefined,
+  fallback?: RealityAnswer | null,
+): string {
+  const reality = snapshot?.reality_answer ?? fallback ?? null;
+  if (!reality) return "暂无足够现场记录";
+
+  const presenceInformative = !["NO_RECENT_RECORD", "INSUFFICIENT_OBSERVATION"].includes(
+    reality.state,
+  );
+  if (presenceInformative) return realityLineFor(reality);
+
+  const staffCount = (snapshot?.staff_response_summary ?? reality.staff_response_summary ?? []).reduce(
+    (sum, item) => sum + item.count,
+    0,
+  );
+  const facilityCount = (snapshot?.facility_summary ?? reality.facility_summary ?? []).reduce(
+    (sum, item) => sum + item.count,
+    0,
+  );
+
+  if (staffCount > 0 && facilityCount > 0) {
+    return "有经核验工作人员处理与设施记录；动物出现记录不足";
+  }
+  if (staffCount > 0) return "有经核验工作人员处理；动物出现记录不足";
+  if (facilityCount > 0) return "有经核验动物设施记录；动物出现记录不足";
+  return realityLineFor(reality);
 }
 
 /** Evidence / freshness metadata line; empty when there is genuinely nothing. */
