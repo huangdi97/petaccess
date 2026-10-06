@@ -3,11 +3,7 @@ import { computed } from "vue";
 
 import { answerVerdictLabel } from "../../answer";
 import type { HomeCard } from "../../composables/useHomeLauncher";
-import {
-  coexistenceRealityLine,
-  lensOrderScore,
-  type ConsumerLens,
-} from "../../consumer/rowView";
+import { coexistenceRealityLine, lensOrderScore, type ConsumerLens } from "../../consumer/rowView";
 import { divergenceLabel } from "../../reality";
 
 const props = withDefaults(
