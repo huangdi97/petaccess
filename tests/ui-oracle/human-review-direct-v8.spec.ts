@@ -90,7 +90,13 @@ const SHOTS: Shot[] = [
     route: "/#/map?lens=rule",
     page: "map",
     h1: "规则与现场地图",
-    requiredTestids: ["map", "map-lens-rule", "map-lens-reality", "map-lens-facility", "map-lens-divergence"],
+    requiredTestids: [
+      "map",
+      "map-lens-rule",
+      "map-lens-reality",
+      "map-lens-facility",
+      "map-lens-divergence",
+    ],
     requiredText: ["规则", "现场", "设施", "不一致"],
     note: "Spatial Workspace: four first-class lenses share one place/snapshot model.",
   },
@@ -339,7 +345,10 @@ async function assertShot(page: Page, shot: Shot): Promise<Record<string, unknow
     });
   }
   for (const value of shot.requiredText ?? []) {
-    await expect(page.getByText(value, { exact: false }).first(), `${shot.name}: ${value}`).toBeVisible({
+    await expect(
+      page.getByText(value, { exact: false }).first(),
+      `${shot.name}: ${value}`,
+    ).toBeVisible({
       timeout: 15000,
     });
   }
