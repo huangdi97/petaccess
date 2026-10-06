@@ -13,7 +13,7 @@
         "page": "map",
         "state": "ready",
         "fixture": "map-ready-v1",
-        "h1": "规则地图"
+        "h1": "规则与现场地图"
       }
     },
     {
@@ -23,7 +23,7 @@
         "page": "map",
         "state": "ready",
         "fixture": "map-ready-v1",
-        "h1": "规则地图"
+        "h1": "规则与现场地图"
       }
     },
     {
@@ -33,7 +33,7 @@
         "page": "map",
         "state": "ready",
         "fixture": "map-ready-v1",
-        "h1": "规则地图"
+        "h1": "规则与现场地图"
       }
     },
     {
@@ -43,7 +43,7 @@
         "page": "map",
         "state": "ready",
         "fixture": "map-ready-v1",
-        "h1": "规则地图"
+        "h1": "规则与现场地图"
       }
     }
   ],
