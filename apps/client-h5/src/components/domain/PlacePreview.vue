@@ -19,7 +19,7 @@ import {
   type PlaceSummary,
 } from "@petaccess/client-core";
 import { answerConditions, answerStatusKey, answerVerdictLabel } from "../../answer";
-import { realityStateLabel } from "../../reality";
+import { coexistenceRealityLine } from "../../consumer/rowView";
 import StatusBadge from "../StatusBadge.vue";
 
 const props = withDefaults(
@@ -43,9 +43,7 @@ const realityLine = computed(() =>
     ? "加载现场摘要中…"
     : props.error
       ? "现场摘要暂时无法取得"
-      : props.snapshot?.reality_answer
-        ? realityStateLabel(props.snapshot.reality_answer)
-        : "暂无足够现场记录",
+      : coexistenceRealityLine(props.snapshot, props.snapshot?.reality_answer),
 );
 const metaLine = computed(() => {
   const parts: string[] = [placeTypeLabel(props.place?.place_type ?? "")];
@@ -81,7 +79,7 @@ const metaLine = computed(() => {
 
       <!-- §32：最近现场 one line -->
       <div class="place-preview__row">
-        <span class="place-preview__label">最近现场</span>
+        <span class="place-preview__label">现场概览</span>
         <span class="place-preview__value" data-testid="preview-reality">{{ realityLine }}</span>
       </div>
 
