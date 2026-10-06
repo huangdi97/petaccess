@@ -152,6 +152,7 @@ def _staff_event(
         staff_action=_enum_text(row.response_action),
         staff_awareness_state=_enum_text(row.staff_awareness_state),
         staff_outcome=row.response_outcome,
+        staff_policy_statement_verbatim=row.policy_statement_verbatim,
         source_id=row.source_id,
         evidence_bundle_id=row.evidence_bundle_id,
         submitted_at=report_meta.get("submitted_at"),
