@@ -177,42 +177,44 @@ onMounted(load);
             <button class="primary" data-testid="pet-empty-new" @click="startNew">新建档案</button>
           </template>
         </StateMessage>
-        <div
-          v-if="pendingDelete"
-          class="profile-delete-confirm"
-          role="alertdialog"
-          aria-labelledby="pet-delete-title"
-          aria-describedby="pet-delete-description"
-          data-testid="pet-delete-confirm"
-        >
-          <div>
-            <strong id="pet-delete-title">删除「{{ pendingDelete.display_name }}」？</strong>
-            <p id="pet-delete-description" class="muted">
-              这会删除服务器上的宠物档案；不会删除场所、规则或你的其他贡献记录。
-            </p>
+        <template v-else>
+          <div
+            v-if="pendingDelete"
+            class="profile-delete-confirm"
+            role="alertdialog"
+            aria-labelledby="pet-delete-title"
+            aria-describedby="pet-delete-description"
+            data-testid="pet-delete-confirm"
+          >
+            <div>
+              <strong id="pet-delete-title">删除「{{ pendingDelete.display_name }}」？</strong>
+              <p id="pet-delete-description" class="muted">
+                这会删除服务器上的宠物档案；不会删除场所、规则或你的其他贡献记录。
+              </p>
+            </div>
+            <div class="profile-delete-confirm__actions">
+              <button
+                type="button"
+                class="danger"
+                :disabled="busy"
+                data-testid="pet-delete-confirm-submit"
+                @click="confirmRemove"
+              >
+                {{ busy ? "删除中…" : "确认删除" }}
+              </button>
+              <button type="button" :disabled="busy" @click="pendingDelete = null">取消</button>
+            </div>
           </div>
-          <div class="profile-delete-confirm__actions">
-            <button
-              type="button"
-              class="danger"
-              :disabled="busy"
-              data-testid="pet-delete-confirm-submit"
-              @click="confirmRemove"
-            >
-              {{ busy ? "删除中…" : "确认删除" }}
-            </button>
-            <button type="button" :disabled="busy" @click="pendingDelete = null">取消</button>
-          </div>
-        </div>
-        <PetProfileList
-          v-else
-          :pets="pets"
-          :active-id="activeId"
-          :busy="busy"
-          @activate="setActive"
-          @edit="startEdit"
-          @remove="requestRemove"
-        />
+          <PetProfileList
+            v-else
+            :pets="pets"
+            :active-id="activeId"
+            :busy="busy"
+            @activate="setActive"
+            @edit="startEdit"
+            @remove="requestRemove"
+          />
+        </template>
         <p class="profile-note muted">
           服务犬使用独立通行规则。需要查询时，直接在“当前查询”中切换到服务犬视角。
         </p>
@@ -262,5 +264,12 @@ onMounted(load);
 
 .profile-delete-confirm__actions .danger {
   color: var(--pa-color-status-restricted);
+}
+
+@media (max-width: 767px) {
+  .profile-delete-confirm {
+    flex-direction: column;
+    gap: var(--pa-space-3);
+  }
 }
 </style>
