@@ -23,7 +23,7 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{ done: [msg: string]; back: [] }>();
 
-type RuleIntent = "still_valid" | "changed" | "new_lead";
+type RuleIntent = "still_valid" | "changed" | "signage" | "new_lead";
 const intent = ref<RuleIntent>("new_lead");
 const effect = ref<"allowed" | "restricted" | "conditional" | "">("");
 const animalScope = ref<"ordinary_pet" | "dog" | "cat" | "other">("ordinary_pet");
@@ -37,15 +37,21 @@ const busy = ref(false);
 const error = ref("");
 const selectedRuleId = ref("");
 
-const needsRuleDescription = computed(() => intent.value !== "still_valid");
+const needsRuleDescription = computed(
+  () => intent.value === "changed" || intent.value === "new_lead",
+);
+const needsExistingRule = computed(
+  () => intent.value === "still_valid" || intent.value === "changed",
+);
 const canSubmit = computed(
   () =>
     props.online &&
     props.signedIn &&
     !busy.value &&
     !uploading.value &&
-    (intent.value === "new_lead" || Boolean(selectedRuleId.value)) &&
-    (!needsRuleDescription.value || Boolean(effect.value)),
+    (!needsExistingRule.value || Boolean(selectedRuleId.value)) &&
+    (!needsRuleDescription.value || Boolean(effect.value)) &&
+    (intent.value !== "signage" || Boolean(mediaId.value)),
 );
 
 async function upload(event: Event) {
@@ -77,8 +83,33 @@ async function submit() {
   error.value = "";
   busy.value = true;
   try {
-    if (intent.value !== "new_lead" && !selectedRuleId.value) {
+    if (needsExistingRule.value && !selectedRuleId.value) {
       error.value = "请选择这次要确认或修正的具体规则。";
+      return;
+    }
+    if (intent.value === "signage" && !mediaId.value) {
+      error.value = "请先上传规则牌或公告照片。";
+      return;
+    }
+
+    if (intent.value === "signage") {
+      const note = ocrText.value.trim()
+        ? `规则牌 / 公告证据；OCR 待人工核对：${ocrText.value.trim().slice(0, 500)}`
+        : "规则牌 / 公告证据；OCR 未取得或未完成。";
+      await client.verify({
+        place_id: props.placeId,
+        zone_id: zone.value || null,
+        rule_id: null,
+        event_type: "signage_uploaded",
+        result: "uncertain",
+        note,
+        evidence_refs: evidenceRefs(mediaId.value),
+        ...proximity(),
+      });
+      emit(
+        "done",
+        "规则牌证据已提交，等待人工核验。照片与 OCR 都不会自动生成或发布正式规则。",
+      );
       return;
     }
 
@@ -101,7 +132,7 @@ async function submit() {
         place_id: props.placeId,
         zone_id: zone.value || null,
         rule_id: selectedRuleId.value || null,
-        event_type: "field_check",
+        event_type: "rule_confirmed",
         result: "still_valid",
         note: "现场核验：页面规则仍然如此",
         evidence_refs: evidenceRefs(mediaId.value),
@@ -142,8 +173,8 @@ async function submit() {
     :place-name="placeName"
     :step="1"
     :total="3"
-    title="补充规则线索"
-    description="确认、变化和新规则都先作为可核验线索提交；现场 Observation 与正式 Rule 始终分开。"
+    title="补充规则信息"
+    description="可以确认现有规则、报告变化、只提交规则牌证据，或提供新规则线索；所有内容都先进入核验流程。"
     @back="emit('back')"
   >
     <div v-if="error" class="notice" data-testid="rule-error">{{ error }}</div>
@@ -158,15 +189,17 @@ async function submit() {
     />
 
     <RuleTargetPicker
-      v-if="intent !== 'new_lead'"
+      v-if="intent === 'still_valid' || intent === 'changed'"
       v-model="selectedRuleId"
       :place-id="placeId"
       :zones="zones"
     />
 
     <div class="rule-evidence">
-      <h3>规则牌 / 公告照片（可选）</h3>
-      <label for="rule-evidence-file">上传照片</label>
+      <h3>{{ intent === "signage" ? "规则牌 / 公告照片" : "规则牌 / 公告照片（可选）" }}</h3>
+      <label for="rule-evidence-file">
+        {{ intent === "signage" ? "上传一张可核验照片" : "上传照片" }}
+      </label>
       <input
         id="rule-evidence-file"
         type="file"
@@ -181,12 +214,23 @@ async function submit() {
         {{ uploadMsg }}
       </p>
       <p v-if="ocrText" class="rule-ocr">OCR 仅供人工核对：{{ ocrText.slice(0, 240) }}</p>
-      <p class="rule-upload-note">照片和 OCR 都只是证据材料，不会自动生成或发布规则。</p>
+      <p class="rule-upload-note">
+        照片和 OCR 都只是证据材料，不会自动生成或发布规则。
+        <template v-if="intent === 'signage'">你不需要先替平台判断“允许 / 禁止 / 有条件”。</template>
+      </p>
     </div>
 
     <template #primary>
       <button class="primary" :disabled="!canSubmit" data-testid="rule-submit" @click="submit">
-        {{ busy ? "提交中…" : "提交规则线索" }}
+        {{
+          busy
+            ? "提交中…"
+            : intent === "signage"
+              ? "提交规则牌证据"
+              : intent === "still_valid"
+                ? "提交核验"
+                : "提交规则线索"
+        }}
       </button>
     </template>
   </ContributionStepShell>
