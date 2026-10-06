@@ -35,8 +35,11 @@ const props = withDefaults(
 
 const emit = defineEmits<{ select: [cluster: MapCluster]; zoom: [delta: number] }>();
 
-/** Degrees of longitude visible at this zoom (deterministic, provider-free). */
-const spanDeg = computed(() => 0.02 / Math.max(1, props.camera.zoom / 14));
+/** Approximate longitude span of a ~desktop map viewport.
+ * Web maps scale by 2× per zoom level; keeping the fallback on the same
+ * exponential model prevents nearby results from collapsing onto the edge and
+ * makes +/- a real spatial zoom rather than a decorative control. */
+const spanDeg = computed(() => 0.08 * Math.pow(2, 14 - props.camera.zoom));
 
 /** Projection, clamped so the whole pin box stays inside the surface. */
 const PIN_HEIGHT_PX = 44;
