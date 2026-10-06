@@ -31,6 +31,7 @@ def subscribe(
     existing = db.scalar(
         select(WatchSubscription).where(
             WatchSubscription.user_id == user.id,
+            WatchSubscription.watch_domain == body.watch_domain,
             WatchSubscription.target_type == body.target_type,
             WatchSubscription.target_id == body.target_id,
         )
@@ -43,6 +44,7 @@ def subscribe(
         return existing
     sub = WatchSubscription(
         user_id=user.id,
+        watch_domain=body.watch_domain,
         target_type=body.target_type,
         target_id=body.target_id,
         channels=body.channels,
