@@ -110,9 +110,9 @@ const uiFixture = computed<string>(() =>
   >
     <QueryContextBar />
     <div class="reality-workspace__body">
-      <h1 class="visually-hidden">现场轨迹</h1>
+      <h1 class="visually-hidden">现场记录</h1>
       <SkeletonList v-if="loading" :rows="4" />
-      <StateMessage v-else-if="error" kind="ERROR" title="未能取得现场轨迹" :description="error">
+      <StateMessage v-else-if="error" kind="ERROR" title="未能取得现场记录" :description="error">
         <template #action>
           <button class="primary" @click="load">重试</button>
         </template>
