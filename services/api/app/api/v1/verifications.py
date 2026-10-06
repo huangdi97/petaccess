@@ -107,11 +107,10 @@ def create_verification(
         occurred_at=datetime.now(UTC),
     )
     db.add(ev)
-    # touching a rule refreshes its last-verified time (still_valid only)
-    if body.rule_id and body.result == "still_valid":
-        rule = db.get(AccessRule, body.rule_id)
-        if rule:
-            rule.last_verified_at = datetime.now(UTC)
+    # A consumer confirmation is evidence, not Human Review. It must not
+    # refresh AccessRule.last_verified_at: that field is displayed as governed
+    # rule freshness across Home/Search/Place and may only move on a reviewed
+    # rule-governance path.
     db.commit()
     db.refresh(ev)
     if idem_key:
