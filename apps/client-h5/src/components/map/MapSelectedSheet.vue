@@ -17,7 +17,7 @@ import {
   type PlaceSummary,
 } from "@petaccess/client-core";
 import { answerConditions, answerStatusKey, answerVerdictLabel } from "../../answer";
-import { realityStateLabel } from "../../reality";
+import { coexistenceRealityLine } from "../../consumer/rowView";
 import { sourceLabel } from "../../consumer/labels";
 import StatusBadge from "../StatusBadge.vue";
 import PaIcon from "../ui/PaIcon.vue";
@@ -72,9 +72,7 @@ const statusKey = computed<import("@petaccess/design-tokens").StatusKey>(() =>
 );
 const keyCondition = computed(() => answerConditions(answer.value)[0] ?? "");
 const realityLine = computed(() =>
-  props.snapshot?.reality_answer
-    ? realityStateLabel(props.snapshot.reality_answer)
-    : "暂无足够记录",
+  coexistenceRealityLine(props.snapshot, props.snapshot?.reality_answer),
 );
 /** §13 expanded：Current Decision —— 真实 verdict（不伪造）。 */
 const verdictText = computed(() => (props.loading ? "加载中…" : answerVerdictLabel(answer.value)));
@@ -180,7 +178,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
         </p>
 
         <div class="sheet__reality">
-          <span class="muted sheet__reality-label">最近现场</span>
+          <span class="muted sheet__reality-label">现场概览</span>
           <span class="sheet__reality-line">
             {{ loading ? "加载中…" : error ? "暂时无法取得" : realityLine }}
           </span>
