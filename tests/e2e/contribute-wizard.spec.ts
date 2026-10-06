@@ -296,10 +296,7 @@ test("A3.1 — 场所纠错允许只知道当前值错误", async ({ page, reque
   await expect(page.getByTestId("contribute-result")).toBeVisible({ timeout: 15000 });
 });
 
-test("A2.2 — Rule lead 与场所纠错都进入人工核验并出现在统一贡献历史", async ({
-  page,
-  request,
-}) => {
+test("A2.2 — Rule lead 与场所纠错都进入人工核验并出现在统一贡献历史", async ({ page, request }) => {
   const token = await signIn(request);
   await page.addInitScript((value) => localStorage.setItem("pa_token", value), token);
 
