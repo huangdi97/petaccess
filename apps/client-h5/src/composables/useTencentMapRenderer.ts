@@ -134,38 +134,48 @@ async function translate(points: { lat: number; lng: number }[]) {
   });
 }
 
+function tokenColor(name: string): string {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || "currentColor";
+}
+
 function markerColor(lens: string, status: MapMarker["status"]): string {
   if (lens === "reality") {
-    if (status === "ALLOWED") return "#2f6e8c";
-    if (status === "CONFLICT") return "#8a5f18";
-    return "#5c6873";
+    if (status === "ALLOWED") return tokenColor("--pa-color-reality-observed");
+    if (status === "CONFLICT") return tokenColor("--pa-color-reality-disputed");
+    return tokenColor("--pa-color-reality-insufficient");
   }
-  if (lens === "facility") return status === "ALLOWED" ? "#2f6d5e" : "#69747f";
+  if (lens === "facility") {
+    return status === "ALLOWED"
+      ? tokenColor("--pa-color-facility-confirmed")
+      : tokenColor("--pa-color-facility-unverified");
+  }
   if (lens === "divergence") {
-    if (status === "CONFLICT") return "#6f5a9e";
-    if (status === "ALLOWED") return "#2f6e8c";
-    return "#5c6873";
+    if (status === "CONFLICT") return tokenColor("--pa-color-status-conflict");
+    if (status === "ALLOWED") return tokenColor("--pa-color-reality-observed");
+    return tokenColor("--pa-color-reality-insufficient");
   }
-  const colors: Record<string, string> = {
-    ALLOWED: "#277348",
-    CONDITIONAL: "#8a5f18",
-    RESTRICTED: "#8f4a3a",
-    CONFLICT: "#6f5a9e",
-    STALE: "#8a5f18",
-    UNKNOWN: "#5c6873",
+  const tokenByStatus: Record<string, string> = {
+    ALLOWED: "--pa-color-status-allowed",
+    CONDITIONAL: "--pa-color-status-conditional",
+    RESTRICTED: "--pa-color-status-restricted",
+    CONFLICT: "--pa-color-status-conflict",
+    STALE: "--pa-color-status-stale",
+    UNKNOWN: "--pa-color-status-unknown",
   };
-  return colors[status] ?? colors.UNKNOWN!;
+  return tokenColor(tokenByStatus[status] ?? "--pa-color-status-unknown");
 }
 
 function markerSvg(color: string, count: number, selected: boolean): string {
+  const accent = tokenColor("--pa-color-accent");
+  const surface = tokenColor("--pa-color-surface");
   const ring = selected
-    ? '<circle cx="18" cy="18" r="15" fill="none" stroke="#34618e" stroke-width="3"/>'
+    ? `<circle cx="18" cy="18" r="15" fill="none" stroke="${accent}" stroke-width="3"/>`
     : "";
   const text =
     count > 1
-      ? `<text x="18" y="22" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" font-weight="700" fill="#fff">${Math.min(count, 99)}</text>`
+      ? `<text x="18" y="22" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" font-weight="700" fill="${surface}">${Math.min(count, 99)}</text>`
       : "";
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36">${ring}<circle cx="18" cy="18" r="${selected ? 10 : 9}" fill="${color}" stroke="#fff" stroke-width="2"/>${text}</svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36">${ring}<circle cx="18" cy="18" r="${selected ? 10 : 9}" fill="${color}" stroke="${surface}" stroke-width="2"/>${text}</svg>`;
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
 
