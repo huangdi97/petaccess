@@ -1,18 +1,28 @@
 <script setup lang="ts">
 // @ui-form PetNewView — 表单页：提交流错误内联呈现，无列表加载（M3 E1 表单声明）。
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { client, session } from "@petaccess/client-core";
 import AppShell from "../components/AppShell.vue";
 import PetImageSuggestion from "../components/pets/PetImageSuggestion.vue";
+import StateMessage from "../components/StateMessage.vue";
 
 const router = useRouter();
 const pet = ref({ display_name: "", species: "dog", breed_text: "", weight_kg: "" });
 const serviceRole = ref("none");
 const error = ref("");
 const saving = ref(false);
+const loadingSession = ref(true);
+const signedIn = ref(false);
+
+onMounted(async () => {
+  await session.restore();
+  signedIn.value = session.signedIn;
+  loadingSession.value = false;
+});
 
 async function save() {
+  if (!signedIn.value) return;
   error.value = "";
   saving.value = true;
   try {
@@ -49,7 +59,24 @@ async function save() {
       </p>
     </header>
 
-    <form class="pet-new-form" @submit.prevent="save">
+    <p v-if="loadingSession" class="muted pet-new-loading">正在确认登录状态…</p>
+    <StateMessage
+      v-else-if="!signedIn"
+      kind="PERMISSION_DENIED"
+      title="登录后新建宠物档案"
+      description="宠物档案属于你的私有查询上下文。公开场所规则与现场事实仍可免登录浏览。"
+    >
+      <template #action>
+        <RouterLink
+          class="btn primary"
+          :to="{ name: 'onboarding', query: { next: '/pet/new' } }"
+        >
+          登录 / 注册
+        </RouterLink>
+      </template>
+    </StateMessage>
+
+    <form v-else class="pet-new-form" @submit.prevent="save">
       <section class="pet-new-section">
         <h2>基本信息</h2>
         <label class="pet-new-field">
@@ -131,6 +158,10 @@ async function save() {
 
 .pet-new-form {
   max-width: 680px;
+}
+
+.pet-new-loading {
+  margin: var(--pa-space-5) 0 0;
 }
 
 .pet-new-section {
