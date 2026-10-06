@@ -255,7 +255,7 @@ function chooseMapResult(id: string) {
             : lens === 'facility'
               ? '设施'
               : lens === 'divergence'
-                ? '规则×现场'
+                ? '不一致'
                 : ''
         "
         :map-lens-label="selected && lens !== 'rule' ? lensLabels[selected.id] : ''"
