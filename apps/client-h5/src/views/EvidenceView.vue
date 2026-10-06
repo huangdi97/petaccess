@@ -137,13 +137,6 @@ const ruleEvidenceCount = computed(() => ruleEvidence.value.length);
 const realityEvidenceCount = computed(
   () => snapshot.value?.evidence_summary.reality_evidence_count ?? events.value.length,
 );
-const reviewedEventCount = computed(
-  () =>
-    events.value.filter((event) =>
-      ["human_verified", "human_verified_with_note"].includes(event.verification_status),
-    ).length,
-);
-
 const provenanceCounts = computed(() => realityProvenanceCounts(events.value));
 
 const sourceSummary = computed(() => {
