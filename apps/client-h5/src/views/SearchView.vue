@@ -333,7 +333,7 @@ const selectedId = ref<string | null>(null);
       <!-- result pane（v0.2.3 §21：ResultsPane x=68 w=400 全出血；§22 内容列不铺满） -->
       <section class="search-result-pane" aria-label="搜索结果" data-ui="search-results-pane">
         <header class="search-result-pane__head">
-          <h1 class="visually-hidden">搜索场所规则</h1>
+          <h1 class="visually-hidden">搜索场所的规则与现场</h1>
           <form class="search-field" @submit.prevent="search">
             <input
               v-model="q"
