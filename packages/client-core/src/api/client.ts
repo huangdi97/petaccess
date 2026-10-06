@@ -224,47 +224,8 @@ export interface CoexistenceSnapshot {
   evidence_summary: EvidenceSummary;
 }
 
-/** One published, human-verified Reality fact in the consumer timeline. */
-export interface RealityEventView {
-  id: string;
-  event_type: "observed_presence" | "staff_response" | "animal_facility";
-  place_id: string;
-  zone_id: string | null;
-  event_at: string;
-  time_basis: "observed" | "verified" | "recorded";
-  time_evidence_state: string | null;
-  origin: string | null;
-  fact_evidence_state: string | null;
-  place_match_state: string | null;
-  content_published_at: string | null;
-  claimed_event_at: string | null;
-  animal_scope: string | null;
-  observed_action: string | null;
-  observed_context: string | null;
-  staff_actor_role: string | null;
-  staff_action: string | null;
-  staff_awareness_state: string | null;
-  staff_outcome: string | null;
-  facility_type: string | null;
-  facility_state: string | null;
-  facility_purpose_state: string | null;
-  facility_access_mode: string | null;
-  facility_capacity: number | null;
-  facility_size_limit: string | null;
-  facility_weather_protection: boolean | null;
-  facility_shade: boolean | null;
-  facility_ventilation: boolean | null;
-  facility_water_available: boolean | null;
-  facility_supervision_state: string | null;
-  facility_security_or_lock_state: string | null;
-  facility_operator_provided: boolean | null;
-  source_id: string | null;
-  evidence_bundle_id: string | null;
-  submitted_at: string | null;
-  verification_status: string;
-  freshness_state: string | null;
-  last_verified_at: string | null;
-}
+/** Published Reality event, generated from FastAPI OpenAPI (SSOT). */
+export type RealityEventView = ApiSchemas["RealityEventOut"];
 
 export interface AnswerCell {
   question: string;
