@@ -292,7 +292,11 @@ const SHOTS: Shot[] = [
     page: "contribution",
     state: "step-2",
     h1: "现场贡献",
-    requiredTestids: ["reality-facility-purpose", "reality-facility-access", "reality-facility-more"],
+    requiredTestids: [
+      "reality-facility-purpose",
+      "reality-facility-access",
+      "reality-facility-more",
+    ],
     requiredText: ["你怎么确认它是动物相关设施", "补充设施使用与安全信息"],
     note: "Facility contribution asks purpose certainty first and keeps optional safety/use attributes behind progressive disclosure.",
   },
