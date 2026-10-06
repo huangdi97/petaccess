@@ -20,8 +20,8 @@ import {
 import StatusBadge from "../StatusBadge.vue";
 import { answerConditions, answerStatusKey, answerVerdictLabel } from "../../answer";
 import {
+  coexistenceEvidenceLine,
   coexistenceRealityLine,
-  evidenceLineFor,
   lensProjection,
   type ConsumerLens,
 } from "../../consumer/rowView";
@@ -55,7 +55,7 @@ const props = withDefaults(
 const status = computed(() => answerStatusKey(props.answer));
 const conditions = computed(() => answerConditions(props.answer, props.conditionsLabel));
 const realityLine = computed(() => coexistenceRealityLine(props.snapshot, props.reality));
-const evidenceLine = computed(() => evidenceLineFor(props.reality));
+const evidenceLine = computed(() => coexistenceEvidenceLine(props.snapshot, props.reality));
 const projection = computed(() =>
   lensProjection(props.lens, props.answer, props.reality, props.snapshot),
 );
