@@ -1,4 +1,4 @@
-"""Celery worker app: rule-change watch notifications (design #24, GOAL #16).
+"""Celery worker app: reviewed Rule/Reality watch notifications (design #24).
 
 Uses the mock notification provider by default; real channel adapters land
 with credentials (see BLOCKERS.md).
@@ -30,8 +30,15 @@ celery_app.conf.update(
     # bounded redelivery: visibility_timeout guards against lost workers
     broker_transport_options={"visibility_timeout": 3600},
     beat_schedule={
-        # hourly sweep for due rule-change notifications
-        "watch-notify-sweep": {"task": "app.worker.tasks.notify_rule_changes", "schedule": 3600.0},
+        # reviewed Rule and Reality watches are separate product domains.
+        "watch-rule-notify-sweep": {
+            "task": "app.worker.tasks.notify_rule_changes",
+            "schedule": 3600.0,
+        },
+        "watch-reality-notify-sweep": {
+            "task": "app.worker.tasks.notify_reality_changes",
+            "schedule": 3600.0,
+        },
         # hourly TTL purge for expired media (design #20/#28)
         "media-ttl-sweep": {
             "task": "app.worker.tasks.cleanup_expired_scene_photos",
