@@ -13,7 +13,7 @@
         "page": "reality",
         "state": "ready",
         "fixture": "reality-ready-v1",
-        "h1": "现场轨迹"
+        "h1": "现场记录"
       }
     },
     {
@@ -23,7 +23,7 @@
         "page": "reality",
         "state": "empty",
         "fixture": "reality-empty-v1",
-        "h1": "现场轨迹"
+        "h1": "现场记录"
       }
     }
   ],
