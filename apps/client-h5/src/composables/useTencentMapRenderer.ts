@@ -215,7 +215,8 @@ export function useTencentMapRenderer(options: TencentRendererOptions) {
     );
     const styles: Record<string, unknown> = {};
     const geometries = clusters.map((cluster, index) => {
-      const selected = Boolean(options.selectedId() && cluster.memberIds.includes(options.selectedId()!));
+      const selectedId = options.selectedId();
+      const selected = selectedId ? cluster.memberIds.includes(selectedId) : false;
       const styleId = `${options.lens()}-${cluster.status}-${cluster.count}-${selected ? "selected" : "plain"}`;
       if (!styles[styleId]) {
         styles[styleId] = new api.MarkerStyle({
