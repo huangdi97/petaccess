@@ -17,8 +17,14 @@ router = APIRouter(tags=["watches"])
 
 @router.get("/watches", response_model=list[WatchOut])
 def my_watches(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Return current subscriptions only; an unsubscribed row is history, not UI state."""
     return list(
-        db.scalars(select(WatchSubscription).where(WatchSubscription.user_id == user.id)).all()
+        db.scalars(
+            select(WatchSubscription).where(
+                WatchSubscription.user_id == user.id,
+                WatchSubscription.status != WatchStatus.UNSUBSCRIBED,
+            )
+        ).all()
     )
 
 
