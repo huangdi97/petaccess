@@ -65,7 +65,7 @@ const OPTIONS: EntryOption[] = [
     key: "quick",
     testid: "entry-quick",
     label: "场所信息有误",
-    description: "名称、地址或当前结论需要纠正",
+    description: "名称、地址或场所状态需要纠正",
     icon: "flag",
   },
 ];
