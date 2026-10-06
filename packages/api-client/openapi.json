@@ -15287,8 +15287,20 @@
         ],
         "title": "VerificationResult"
       },
+      "WatchDomain": {
+        "type": "string",
+        "enum": [
+          "rule",
+          "reality"
+        ],
+        "title": "WatchDomain"
+      },
       "WatchIn": {
         "properties": {
+          "watch_domain": {
+            "$ref": "#/components/schemas/WatchDomain",
+            "default": "rule"
+          },
           "target_type": {
             "$ref": "#/components/schemas/WatchTargetType"
           },
@@ -15323,6 +15335,9 @@
           "user_id": {
             "type": "string",
             "title": "User Id"
+          },
+          "watch_domain": {
+            "$ref": "#/components/schemas/WatchDomain"
           },
           "target_type": {
             "$ref": "#/components/schemas/WatchTargetType"
@@ -15361,6 +15376,7 @@
         "required": [
           "id",
           "user_id",
+          "watch_domain",
           "target_type",
           "target_id",
           "channels",
