@@ -108,4 +108,3 @@ test("B4 — sign-in returns to the interrupted private task", async ({ page }) 
   await expect(page).toHaveURL(/#\/boundary$/);
   await expect(page.getByRole("heading", { name: "共处边界" })).toBeVisible();
 });
-
