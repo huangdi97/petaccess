@@ -140,3 +140,56 @@ export function realityEventEvidenceState(event: RealityEventView): EvidenceVisu
 export function displayRealityTime(iso: string): string {
   return iso.length >= 16 ? `${iso.slice(0, 10)} ${iso.slice(11, 16)}` : iso;
 }
+
+
+export interface RealityProvenanceCounts {
+  rawMaterialCount: number;
+  placeMatchedCount: number;
+  timeConfirmedCount: number;
+  sourceCount: number;
+  reviewedCount: number;
+}
+
+/**
+ * Five independent provenance dimensions for the Evidence rail.
+ *
+ * Do not infer one stage from another: a human-reviewed event can still have
+ * weak place/time/source anchors. Counts deliberately come from published
+ * event metadata instead of UI assumptions.
+ */
+export function realityProvenanceCounts(events: RealityEventView[]): RealityProvenanceCounts {
+  const rawMaterialCount = events.filter(
+    (event) =>
+      Boolean(event.evidence_bundle_id) ||
+      Boolean(event.source_id) ||
+      Boolean(event.fact_evidence_state && event.fact_evidence_state !== "insufficient"),
+  ).length;
+
+  const placeMatchedCount = events.filter((event) =>
+    ["exact_place", "exact_subplace"].includes(event.place_match_state ?? ""),
+  ).length;
+
+  const timeConfirmedCount = events.filter(
+    (event) =>
+      Boolean(event.time_evidence_state) &&
+      !["publication_time_only", "unknown"].includes(event.time_evidence_state ?? ""),
+  ).length;
+
+  const sourceAnchors = new Set<string>();
+  for (const event of events) {
+    if (event.source_id) sourceAnchors.add(`source:${event.source_id}`);
+    else if (event.evidence_bundle_id) sourceAnchors.add(`bundle:${event.evidence_bundle_id}`);
+  }
+
+  const reviewedCount = events.filter((event) =>
+    ["human_verified", "human_verified_with_note"].includes(event.verification_status),
+  ).length;
+
+  return {
+    rawMaterialCount,
+    placeMatchedCount,
+    timeConfirmedCount,
+    sourceCount: sourceAnchors.size,
+    reviewedCount,
+  };
+}
