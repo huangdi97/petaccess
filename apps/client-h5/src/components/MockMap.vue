@@ -61,6 +61,10 @@ function markerLabel(cluster: MapCluster): string {
   return id ? (props.lensLabels[id] ?? glyph(cluster.status)) : glyph(cluster.status);
 }
 
+function isSelectedCluster(cluster: MapCluster): boolean {
+  return props.selectedId ? cluster.memberIds.includes(props.selectedId) : false;
+}
+
 /* ---- Abstract urban spatial canvas (v0.2.7 §8) -------------------------
  * Everything is pure decoration; no data semantics live here. The palette
  * stays very light cool neutral and low-contrast so the map never competes
@@ -166,11 +170,11 @@ const MASS = [
       v-for="c in clusters"
       :key="c.id"
       class="map-pin"
-      :class="{ 'map-pin--selected': selectedId === c.memberIds[0] }"
-      :data-selected="selectedId === c.memberIds[0] ? 'true' : undefined"
+      :class="{ 'map-pin--selected': isSelectedCluster(c) }"
+      :data-selected="isSelectedCluster(c) ? 'true' : undefined"
       :data-ui="
         c.count > 1
-          ? selectedId === c.memberIds[0]
+          ? isSelectedCluster(c)
             ? 'map-marker-selected'
             : 'map-marker'
           : undefined
@@ -189,15 +193,15 @@ const MASS = [
       <template v-else>
         <!-- v0.2.5 §26：未选中 marker 只显示小 symbol，不永久铺满状态字；
              只有选中的（或 hover）才上 label。 -->
-        <div v-if="selectedId === c.memberIds[0]" class="lbl" :class="'s-' + c.status">
+        <div v-if="isSelectedCluster(c)" class="lbl" :class="'s-' + c.status">
           {{ markerLabel(c) }}
         </div>
         <!-- v0.2.7 §10：dot 是 marker 本体（含语义形状），data-ui 供几何 gate 测量：
              map-marker / map-marker-selected（scale + halo + elevation）。 -->
         <div
           class="dot"
-          :class="['s-' + c.status, { 'dot--selected': selectedId === c.memberIds[0] }]"
-          :data-ui="selectedId === c.memberIds[0] ? 'map-marker-selected' : 'map-marker'"
+          :class="['s-' + c.status, { 'dot--selected': isSelectedCluster(c) }]"
+          :data-ui="isSelectedCluster(c) ? 'map-marker-selected' : 'map-marker'"
         ></div>
       </template>
     </div>
