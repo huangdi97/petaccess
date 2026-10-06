@@ -42,7 +42,7 @@ const SHOTS: Shot[] = [
     state: "ready",
     h1: "去之前，先看看这里的规则和现场。",
     requiredTestids: ["entry-presence", "entry-indoor", "entry-dining", "entry-rules"],
-    requiredText: ["按你的关注推荐", "规则与现场速览"],
+    requiredText: ["近期值得先看", "规则与现场速览"],
     note: "Home = Query Launcher + four task lenses + recommendation + coexistence digest.",
   },
   {
