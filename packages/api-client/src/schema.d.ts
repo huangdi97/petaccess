@@ -4530,7 +4530,7 @@ export interface components {
         /** WatchIn */
         WatchIn: {
             /** @default rule */
-            watch_domain: components["schemas"]["WatchDomain"];
+            watch_domain?: components["schemas"]["WatchDomain"];
             target_type: components["schemas"]["WatchTargetType"];
             /** Target Id */
             target_id: string;
