@@ -13,7 +13,7 @@ export const routes: RouteRecordRaw[] = [
     path: "/map",
     name: "map",
     component: () => import("./views/MapView.vue"),
-    meta: { title: "规则地图" },
+    meta: { title: "规则与现场地图" },
   },
   {
     path: "/onboarding",
@@ -105,7 +105,7 @@ export const routes: RouteRecordRaw[] = [
     path: "/place/:id/reality",
     name: "reality-trace",
     component: () => import("./views/RealityTraceView.vue"),
-    meta: { title: "现场轨迹" },
+    meta: { title: "现场记录" },
   },
   // UI Reconstruction: Evidence Record + Provenance (§9).
   {
