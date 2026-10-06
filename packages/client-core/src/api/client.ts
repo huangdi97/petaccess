@@ -469,9 +469,10 @@ export interface MediaMetaView {
 
 // --------------------------------------------------------------- watches
 
-/** A subscription to changes on a place / zone / rule (notification centre). */
+/** A subscription to one reviewed change domain on a place / zone / rule. */
 export interface WatchView {
   id: string;
+  watch_domain: "rule" | "reality";
   target_type: string;
   target_id: string;
   channels?: string[];
@@ -690,9 +691,18 @@ export const client = {
     >("get", `/places/${placeId}/verifications`);
     return res.items;
   },
-  async watch(targetType: string, targetId: string) {
-    return api.request<{ id: string }>("post", "/watches", {
-      body: { target_type: targetType, target_id: targetId, channels: ["in_app"] },
+  async watch(
+    targetType: string,
+    targetId: string,
+    watchDomain: "rule" | "reality" = "rule",
+  ) {
+    return api.request<WatchView>("post", "/watches", {
+      body: {
+        watch_domain: watchDomain,
+        target_type: targetType,
+        target_id: targetId,
+        channels: ["in_app"],
+      },
     });
   },
   async unwatch(watchId: string) {
