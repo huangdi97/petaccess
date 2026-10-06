@@ -109,7 +109,7 @@ async function unsubscribe(w: WatchView) {
       description="登录后可查看和管理你的规则变化与现场更新关注。"
     >
       <template #action>
-        <button class="primary" @click="router.push({ name: 'mine' })">去登录</button>
+        <button class="primary" @click="router.push({ name: 'onboarding', query: { next: '/notifications' } })">去登录</button>
       </template>
     </StateMessage>
     <StateMessage
