@@ -8,6 +8,8 @@
  * Step content max width 640；视觉区域至少 440–520（靠 layout，不塞内容）。
  * §50 gate：option group 不使用 pill 风格（radio rows），primary CTA 恰 1、secondary back 恰 1。
  */
+import ContributionProgress from "./ContributionProgress.vue";
+
 defineOptions({ name: "ContributionStepShell" });
 
 withDefaults(
@@ -36,19 +38,7 @@ defineEmits<{ back: [] }>();
       <span>· {{ placeZone }}</span>
     </p>
 
-    <!-- §30 progress：3-segment 条 + 文本 -->
-    <div class="step-shell__progress" role="group" aria-label="步骤进度">
-      <div
-        v-for="i in total"
-        :key="i"
-        class="step-shell__segment"
-        :class="{ 'step-shell__segment--active': i <= step }"
-        aria-hidden="true"
-      />
-      <span class="muted step-shell__progress-label" data-testid="contribute-step">
-        步骤 {{ step }} / {{ total }}
-      </span>
-    </div>
+    <ContributionProgress :step="step" :total="total" />
 
     <h2 class="step-shell__title">{{ title }}</h2>
     <p v-if="description" class="muted step-shell__desc">{{ description }}</p>
@@ -108,28 +98,7 @@ defineEmits<{ back: [] }>();
   font-size: var(--pa-font-size-sm);
   color: var(--pa-color-text-muted);
 }
-.step-shell__progress {
-  display: flex;
-  align-items: center;
-  gap: var(--pa-space-2);
-  margin-top: var(--pa-space-1);
-}
-.step-shell__segment {
-  flex: 1 1 0;
-  height: 4px;
-  border-radius: var(--pa-radius-pill);
-  background: var(--pa-color-border);
-}
-.step-shell__segment--active {
-  background: var(--pa-color-accent);
-}
-.step-shell__progress-label {
-  margin-left: var(--pa-space-2);
-  white-space: nowrap;
-  /* v0.2.7 §17：progress 退后 —— label 更小更轻，question 成为焦点。 */
-  font-size: var(--pa-font-size-sm);
-  letter-spacing: var(--pa-letter-spacing-wide);
-}
+
 .step-shell__title {
   margin: var(--pa-space-1) 0 0;
   font-size: var(--pa-font-size-26);
