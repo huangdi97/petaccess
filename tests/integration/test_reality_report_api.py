@@ -602,6 +602,22 @@ def test_reality_trace_uses_consumer_language_for_verified_demo_facts(client):
         assert raw not in visible
 
 
+def test_demo_reality_events_preserve_observed_submitted_reviewed_axes(client):
+    """Visual/demo fixture must exercise all three provenance times without conflation."""
+    places = client.get("/api/v1/places", params={"q": "云栖", "limit": 10})
+    assert places.status_code == 200, places.text
+    mall = next(item for item in places.json()["items"] if item["canonical_name"] == "云栖中心·测试商场")
+
+    response = client.get(f"/api/v1/places/{mall['id']}/reality/events")
+    assert response.status_code == 200, response.text
+    events = response.json()
+    assert events
+    assert all(event["time_evidence_state"] == "exact_event_time" for event in events)
+    assert all(event["submitted_at"] is not None for event in events)
+    assert all(event["last_verified_at"] is not None for event in events)
+    assert all(event["submitted_at"] != event["last_verified_at"] for event in events)
+
+
 def test_reality_events_expose_only_published_verified_facts(client, place_id, signed_user):
     """Consumer timeline must not leak review-pending candidates or staff identity."""
     pending = client.post(
