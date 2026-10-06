@@ -3,8 +3,12 @@ import { computed } from "vue";
 
 import { answerVerdictLabel } from "../../answer";
 import type { HomeCard } from "../../composables/useHomeLauncher";
-import { lensOrderScore, type ConsumerLens } from "../../consumer/rowView";
-import { divergenceLabel, realityStateLabel } from "../../reality";
+import {
+  coexistenceRealityLine,
+  lensOrderScore,
+  type ConsumerLens,
+} from "../../consumer/rowView";
+import { divergenceLabel } from "../../reality";
 
 const props = withDefaults(
   defineProps<{
@@ -74,7 +78,10 @@ function headline(card: HomeCard): string {
     return answerVerdictLabel(card.facts.answer);
   }
   const reality = card.facts.reality;
-  if (reality && reality.evidence_count > 0) return realityStateLabel(reality);
+  if ((card.facts.snapshot?.evidence_summary.reality_evidence_count ?? 0) > 0 || reality) {
+    const line = coexistenceRealityLine(card.facts.snapshot, reality);
+    if (line !== "暂无足够现场记录") return line;
+  }
   if (card.facts.answer) return answerVerdictLabel(card.facts.answer);
   return "信息不足";
 }
