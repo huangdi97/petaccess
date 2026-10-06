@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { client } from "@petaccess/client-core";
 import { EMPTY_STATE_COPY } from "@petaccess/design-tokens";
-import { CANDIDATE_TYPE_LABELS, contributionStatusLabel } from "../../reality";
 
 type Watch = Awaited<ReturnType<typeof client.myWatches>>[number];
-type Contribution = Awaited<ReturnType<typeof client.myRealityContributions>>[number];
+type Contribution = Awaited<ReturnType<typeof client.myContributionActivity>>[number];
 
 defineProps<{ watches: Watch[]; contributions: Contribution[] }>();
 
@@ -58,7 +57,7 @@ function watchHint(watch: Watch): string {
 
     <div
       v-for="item in contributions"
-      :key="item.report_id"
+      :key="item.kind + item.id"
       class="mine-contribution"
       data-testid="contribution-row"
     >
@@ -66,13 +65,9 @@ function watchHint(watch: Watch): string {
         {{ new Date(item.created_at ?? 0).toLocaleDateString("zh-CN") }}
       </time>
       <div class="mine-contribution__facts">
-        <span
-          v-for="candidate in item.candidates"
-          :key="candidate.candidate_type + (candidate.observed_at ?? '')"
-        >
-          {{ CANDIDATE_TYPE_LABELS[candidate.candidate_type] ?? "现场信息" }}
-          · {{ contributionStatusLabel(candidate) }}
-        </span>
+        <strong>{{ item.summary }}</strong>
+        <span v-if="item.place_name" class="muted">{{ item.place_name }}</span>
+        <span>{{ item.status }}</span>
       </div>
     </div>
 
