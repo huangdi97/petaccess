@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from "vue";
 /**
  * PlaceEvidencePane — compact evidence view inside the Place dossier.
  *
@@ -13,6 +14,7 @@ import {
   realityEventEvidenceState,
   realityEventHeadline,
   realityEventProvenance,
+  realityProvenanceCounts,
   realityEventTimeBasis,
 } from "../../consumer/realityEvent";
 import EvidenceProvenance from "../domain/EvidenceProvenance.vue";
@@ -25,6 +27,8 @@ const props = defineProps<{
   ruleEvidenceCount: number;
   reviewedCount: number;
 }>();
+
+const provenanceCounts = computed(() => realityProvenanceCounts(props.events));
 
 const LABELS: Record<string, string> = {
   statute_or_regulation: "法规",
@@ -44,9 +48,11 @@ const LABELS: Record<string, string> = {
 <template>
   <div data-ui="place-evidence-view" data-testid="place-evidence-view">
     <EvidenceProvenance
-      :observed-count="events.length"
-      :rule-evidence-count="ruleEvidenceCount"
-      :reviewed-count="reviewedCount"
+      :raw-material-count="provenanceCounts.rawMaterialCount"
+      :place-matched-count="provenanceCounts.placeMatchedCount"
+      :time-confirmed-count="provenanceCounts.timeConfirmedCount"
+      :source-count="provenanceCounts.sourceCount"
+      :reviewed-count="provenanceCounts.reviewedCount"
     />
 
     <section class="place-section" data-testid="evidence-items" aria-label="现场证据事实">
