@@ -58,9 +58,7 @@ const provenance = computed<ProvenanceStep[]>(() => [
     key: "review",
     label: "人工核验",
     count: props.reviewedCount,
-    note: props.reviewedCount
-      ? `${props.reviewedCount} 条事实已完成人工核验`
-      : "尚未完成人工核验",
+    note: props.reviewedCount ? `${props.reviewedCount} 条事实已完成人工核验` : "尚未完成人工核验",
   },
 ]);
 
@@ -94,7 +92,11 @@ function stepStatus(step: ProvenanceStep): string {
         :data-step-state="step.count > 0 ? 'complete' : 'pending'"
         data-ui="evidence-prov-step"
       >
-        <span class="provenance-step__mark" aria-hidden="true" data-ui="evidence-prov-marker"></span>
+        <span
+          class="provenance-step__mark"
+          aria-hidden="true"
+          data-ui="evidence-prov-marker"
+        ></span>
         <div class="provenance-step__body">
           <span class="provenance-step__title-row">
             <span class="provenance-step__label">{{ step.label }}</span>
