@@ -8,7 +8,7 @@
   "pages": [
     {
       "id": "evidence-empty",
-      "route": "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e/evidence",
+      "route": "/#/place/8412b521-5e1c-505d-9dec-568acb860c76/evidence",
       "expect": {
         "page": "evidence",
         "state": "empty",
@@ -18,7 +18,7 @@
     },
     {
       "id": "evidence-records",
-      "route": "/#/place/8412b521-5e1c-505d-9dec-568acb860c76/evidence",
+      "route": "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e/evidence",
       "expect": {
         "page": "evidence",
         "state": "ready",
@@ -31,7 +31,9 @@
     {
       "id": "EVIDENCE_MAX_WIDTH",
       "ui": "evidence-body",
-      "fallbacks": [".evidence-workspace__body"],
+      "fallbacks": [
+        ".evidence-workspace__body"
+      ],
       "props": {
         "width": {
           "min": 780,
@@ -43,7 +45,9 @@
     {
       "id": "EVIDENCE_PROVENANCE",
       "ui": "evidence-provenance",
-      "fallbacks": ["[data-testid='evidence-provenance']"],
+      "fallbacks": [
+        "[data-testid='evidence-provenance']"
+      ],
       "props": {
         "count": {
           "min": 1
@@ -54,7 +58,9 @@
     {
       "id": "EVIDENCE_RAIL_WIDTH",
       "ui": "evidence-prov-rail-line",
-      "fallbacks": [".provenance-rail__line"],
+      "fallbacks": [
+        ".provenance-rail__line"
+      ],
       "props": {
         "width": {
           "equals": 2
@@ -65,7 +71,9 @@
     {
       "id": "EVIDENCE_RAIL_CONTINUOUS",
       "ui": "evidence-prov-rail-line",
-      "fallbacks": [".provenance-rail__line"],
+      "fallbacks": [
+        ".provenance-rail__line"
+      ],
       "props": {
         "height": {
           "min": 140
@@ -76,7 +84,9 @@
     {
       "id": "EVIDENCE_MARKER_COL",
       "ui": "evidence-prov-step",
-      "fallbacks": [".provenance-step"],
+      "fallbacks": [
+        ".provenance-step"
+      ],
       "props": {
         "gridTemplateColumns": {
           "startsWith": "24px"
@@ -87,7 +97,9 @@
     {
       "id": "EVIDENCE_ITEMS",
       "ui": "evidence-items",
-      "fallbacks": ["[data-testid='evidence-items']"],
+      "fallbacks": [
+        "[data-testid='evidence-items']"
+      ],
       "props": {
         "count": {
           "min": 1
@@ -98,7 +110,9 @@
     {
       "id": "EVIDENCE_SOURCES",
       "ui": "evidence-sources",
-      "fallbacks": ["[data-testid='evidence-sources']"],
+      "fallbacks": [
+        "[data-testid='evidence-sources']"
+      ],
       "props": {
         "count": {
           "min": 1
@@ -109,7 +123,9 @@
     {
       "id": "EVIDENCE_QUERY_CONTEXT",
       "ui": "query-context",
-      "fallbacks": ["[data-testid='query-context']"],
+      "fallbacks": [
+        "[data-testid='query-context']"
+      ],
       "props": {
         "count": {
           "min": 1
@@ -129,7 +145,13 @@
     {
       "id": "EVIDENCE_PROVENANCE_STEP_LABELS",
       "selector": "body",
-      "mustContainTexts": ["原始证据", "地点匹配", "时间确认", "来源确认", "人工核验"],
+      "mustContainTexts": [
+        "原始证据",
+        "地点匹配",
+        "时间确认",
+        "来源确认",
+        "人工核验"
+      ],
       "severity": "FAIL"
     },
     {
@@ -163,14 +185,18 @@
       "selector": "[data-testid='evidence-head']",
       "minVisibleInViewport": 1,
       "severity": "FAIL",
-      "pages": ["evidence-records"]
+      "pages": [
+        "evidence-records"
+      ]
     },
     {
       "id": "EVIDENCE_PROVENANCE_3_STEPS_VISIBLE",
       "selector": "[data-ui='evidence-prov-step'], .provenance-step",
       "minVisibleInViewport": 3,
       "severity": "FAIL",
-      "pages": ["evidence-records"]
+      "pages": [
+        "evidence-records"
+      ]
     }
   ],
   "density": [
@@ -190,5 +216,5 @@
     "allcapsTokens": true,
     "refs": true
   },
-  "notes": "v0.2.3 §39: content max width 820, provenance marker col 24px + content remaining, marker x identical, continuous rail, step gap 28-36, exactly 5 steps (原始证据/地点匹配/时间确认/来源确认/人工核验), no UUIDs. ready = 星河咖啡 (seeded observations), empty = 云栖中心."
+  "notes": "v0.2.3 §39 + v0.10-R1: content max width 820, provenance marker col 24px + content remaining, marker x identical, continuous rail, step gap 28-36, exactly 5 steps (原始证据/地点匹配/时间确认/来源确认/人工核验), no UUIDs. ready = 云栖中心（published v0.9 Reality + Rule evidence）；empty = 星河咖啡（legacy observation 不再当作 Consumer evidence truth）。"
 }
