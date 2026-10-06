@@ -50,6 +50,7 @@ export function staffPayload(o: {
   awareness: string;
   context: string;
   outcome: string;
+  policyStatement: string;
 }): Record<string, unknown> {
   return {
     // Role is useful context; personal identity is deliberately never asked.
@@ -58,6 +59,7 @@ export function staffPayload(o: {
     response_action: o.action || "unknown",
     staff_awareness_state: o.awareness || "awareness_unknown",
     response_outcome: o.outcome.trim() || null,
+    policy_statement_verbatim: o.policyStatement.trim() || null,
   };
 }
 
@@ -104,6 +106,7 @@ export function realityPayload(
     staffAction: string;
     staffAwareness: string;
     staffOutcome: string;
+    staffPolicyStatement: string;
     facilityType: string;
     facilityOperational: string;
     facilityPurpose: string;
@@ -137,6 +140,7 @@ export function realityPayload(
         awareness: f.staffAwareness,
         context: f.context,
         outcome: f.staffOutcome,
+        policyStatement: f.staffPolicyStatement,
       }),
       animalScope: null,
     };
