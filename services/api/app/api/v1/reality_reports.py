@@ -73,6 +73,7 @@ from app.services.reality_contribution import (
     create_report,
     materialize_report_evidence,
 )
+from app.services.contribution_activity import contribution_activity
 from app.services.reality_summary import freshness_for
 
 router = APIRouter(tags=["reality"])
@@ -515,6 +516,21 @@ def reality_trace(
         review_sections=review_sections,
         evidence_count=len(evidence_ids),
     )
+
+
+@router.get("/me/contribution-activity")
+def my_contribution_activity(
+    user: User | None = Depends(get_optional_user),
+    db: Session = Depends(get_db),
+) -> list[dict]:
+    """All of the caller's governed Consumer contribution lanes in one read model."""
+    if not user:
+        raise ApiError(
+            "登录后才能查看贡献历史",
+            code="auth_required",
+            status_code=401,
+        )
+    return contribution_activity(db, user.id)
 
 
 @router.get("/me/reality-contributions")
