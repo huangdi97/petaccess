@@ -12,6 +12,8 @@ import { expect, test, type APIRequestContext, type Page } from "@playwright/tes
 
 const API = "http://127.0.0.1:8012/api/v1";
 const MALL_ID = "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e";
+const CAFE_ID = "8412b521-5e1c-505d-9dec-568acb860c76";
+const BRANCH_ID = "3b5a341a-e550-5f0c-b35a-319ed43bd840";
 const OUT = path.resolve("artifacts/ui-direct-v8/HUMAN_REVIEW");
 
 type Scope = "desktop" | "mobile" | "both";
@@ -22,6 +24,7 @@ interface Shot {
   auth?: boolean;
   clickTestid?: string;
   waitTestid?: string;
+  submitReality?: boolean;
   page?: string;
   state?: string;
   h1?: string;
@@ -53,6 +56,28 @@ const SHOTS: Shot[] = [
     note: "Search = List–Detail on desktop / compact list on mobile; Rule+Reality+Evidence stay together.",
   },
   {
+    name: "02a_search_filter",
+    scope: "both",
+    route: "/#/search",
+    clickTestid: "filter-toggle",
+    page: "search",
+    state: "filter",
+    h1: "搜索场所规则",
+    requiredText: ["筛选只影响显示，不改变任何结论"],
+    note: "Filter is a compact presentation control; it never changes Rule/Reality facts.",
+  },
+  {
+    name: "02b_search_empty",
+    scope: "both",
+    route: "/#/search?q=不存在的场所zzz",
+    page: "search",
+    state: "empty",
+    h1: "搜索场所规则",
+    requiredTestids: ["search-empty", "search-empty-contribute"],
+    requiredText: ["没有找到匹配场所"],
+    note: "Search empty keeps context and one primary contribution/recovery action.",
+  },
+  {
     name: "03_place_overview",
     scope: "both",
     route: `/#/place/${MALL_ID}`,
@@ -62,6 +87,16 @@ const SHOTS: Shot[] = [
     requiredTestids: ["section-answer", "overview-reality", "overview-evidence"],
     requiredText: ["规则", "现场概览", "工作人员处理", "动物设施", "证据与来源"],
     note: "Place first screen = Coexistence Passport, not a generic detail page.",
+  },
+  {
+    name: "03a_place_unknown",
+    scope: "both",
+    route: `/#/place/${BRANCH_ID}`,
+    page: "place",
+    state: "unknown",
+    h1: "星河咖啡·栖霞分店",
+    requiredText: ["信息不足"],
+    note: "Unknown is a first-class answer; no fabricated allow/prohibit verdict.",
   },
   {
     name: "04_place_rules",
@@ -152,6 +187,17 @@ const SHOTS: Shot[] = [
     note: "Reality = published v0.9 event log: presence/staff/facility, human-verified and time-basis explicit.",
   },
   {
+    name: "11a_reality_empty",
+    scope: "desktop",
+    route: `/#/place/${CAFE_ID}/reality`,
+    page: "reality",
+    state: "empty",
+    h1: "现场轨迹",
+    requiredTestids: ["trace-observations", "reality-go-enter"],
+    requiredText: ["暂无近期现场记录", "并不代表现场没有动物"],
+    note: "No published Reality event is explicitly not 'no animal presence'.",
+  },
+  {
     name: "12_evidence",
     scope: "both",
     route: `/#/place/${MALL_ID}/evidence`,
@@ -223,6 +269,21 @@ const SHOTS: Shot[] = [
     note: "Reality contribution is a structured transaction, not a generic comment form.",
   },
   {
+    name: "16a_contribution_done",
+    scope: "desktop",
+    route: `/#/contribute/${MALL_ID}`,
+    auth: true,
+    clickTestid: "entry-reality-observed_presence",
+    waitTestid: "reality-submit",
+    submitReality: true,
+    page: "contribution",
+    state: "done",
+    h1: "现场贡献",
+    requiredTestids: ["contribute-result", "done-mine", "done-place"],
+    requiredText: ["已提交待核验", "审核完成前"],
+    note: "Successful contribution remains review-pending and never claims the Rule changed.",
+  },
+  {
     name: "17_mine",
     scope: "desktop",
     route: "/#/mine",
@@ -263,6 +324,16 @@ const SHOTS: Shot[] = [
     auth: true,
     h1: "宠物档案",
     note: "Pet profiles remain an optional query-context input, not a social profile surface.",
+  },
+  {
+    name: "21a_pet_new",
+    scope: "both",
+    route: "/#/pet/new",
+    auth: true,
+    h1: "新建宠物档案",
+    requiredTestids: ["pet-name", "pet-species", "pet-service-role", "pet-save"],
+    requiredText: ["留空字段保持未知", "平台不会通过照片或品种推断"],
+    note: "Pet input is minimal query context; missing attributes stay unknown and service-dog role is user-declared.",
   },
   {
     name: "22_boundary",
@@ -392,6 +463,13 @@ test("direct-v8 canonical human-review packet", async ({ page, request }, testIn
       if (shot.waitTestid) {
         await page.getByTestId(shot.waitTestid).waitFor({ state: "visible", timeout: 15000 });
       }
+      await settle(page);
+    }
+
+    if (shot.submitReality) {
+      await page.getByTestId("reality-date").fill("2026-10-05");
+      await page.getByTestId("reality-submit").click();
+      await page.getByTestId("contribute-result").waitFor({ state: "visible", timeout: 15000 });
       await settle(page);
     }
 
