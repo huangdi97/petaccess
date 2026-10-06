@@ -104,6 +104,14 @@ function chooseMapResult(id: string) {
     open(id);
     return;
   }
+  const place = places.value.find((item) => item.id === id);
+  if (place?.latitude != null && place.longitude != null) {
+    camera.value = {
+      ...camera.value,
+      lat: place.latitude,
+      lng: place.longitude,
+    };
+  }
   onSelectCluster({ memberIds: [id], count: 1 });
 }
 </script>
