@@ -91,7 +91,9 @@ const evidenceLine = computed(() => {
   const parts: string[] = [];
   if (ev) {
     parts.push(ev.issuer ?? SOURCE_RATE[ev.source_type ?? ""] ?? "来源待补充");
-    parts.push(props.latestVerifiedAt ? `规则核验 ${props.latestVerifiedAt}` : "规则核验时间待补充");
+    parts.push(
+      props.latestVerifiedAt ? `规则核验 ${props.latestVerifiedAt}` : "规则核验时间待补充",
+    );
   } else {
     parts.push("规则依据待补充");
   }
