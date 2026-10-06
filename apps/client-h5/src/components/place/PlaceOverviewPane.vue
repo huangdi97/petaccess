@@ -47,8 +47,8 @@ const speciesLabel = computed(() => {
   if (session.activePet?.service_role === "working") return "服务犬";
   return s === "dog" ? "普通犬" : s === "cat" ? "猫" : "其他宠物";
 });
-const petContext = computed(() =>
-  session.activePet ? `我的宠物：${session.activePet.display_name}` : "我的宠物：未设置",
+const querySubject = computed(() =>
+  session.activePet ? `查询对象：${session.activePet.display_name}` : "查询对象",
 );
 const realityLine = computed(() =>
   coexistenceRealityLine(props.coexistence, props.coexistence?.reality_answer),
@@ -119,7 +119,7 @@ const divergenceLine = computed(() => {
       <h2 class="place-section__title">规则</h2>
       <div class="sub-answer sub-answer--mine" data-testid="answer">
         <p v-if="desktop" class="muted sub-answer__context" data-testid="answer-context">
-          {{ petContext }} · {{ speciesLabel }} · 进入 · 公共区域
+          {{ querySubject }} · {{ speciesLabel }} · 进入 · 公共区域
         </p>
         <StatusBadge :semantic="statusKey" />
         <p class="status" data-testid="answer-status">{{ verdict }}</p>
