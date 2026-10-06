@@ -554,6 +554,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/places/{place_id}/reality/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consumer Reality Events
+         * @description Published human-verified Reality facts as one consumer timeline.
+         */
+        get: operations["consumer_reality_events_api_v1_places__place_id__reality_events_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/places/{place_id}/reality/contributions": {
         parameters: {
             query?: never;
@@ -3859,6 +3879,96 @@ export interface components {
          * @description Moderation posture of a report (addendum PHASE 12–13 Anti-Abuse).
          * @enum {string}
          */
+        /**
+         * RealityEventOut
+         * @description One public, human-verified Reality event for the consumer timeline.
+         *
+         *     event_at always carries time_basis so a verification timestamp is never
+         *     presented as an observed event time. Staff identity is intentionally
+         *     absent: only role/action facts may be exposed. Facility facts remain
+         *     separate from entry policy.
+         */
+        RealityEventOut: {
+            /** Id */
+            id: string;
+            /** Event Type */
+            event_type: string;
+            /** Place Id */
+            place_id: string;
+            /** Zone Id */
+            zone_id?: string | null;
+            /**
+             * Event At
+             * Format: date-time
+             */
+            event_at: string;
+            /** Time Basis */
+            time_basis: string;
+            /** Time Evidence State */
+            time_evidence_state?: string | null;
+            /** Origin */
+            origin?: string | null;
+            /** Fact Evidence State */
+            fact_evidence_state?: string | null;
+            /** Place Match State */
+            place_match_state?: string | null;
+            /** Content Published At */
+            content_published_at?: string | null;
+            /** Claimed Event At */
+            claimed_event_at?: string | null;
+            /** Animal Scope */
+            animal_scope?: string | null;
+            /** Observed Action */
+            observed_action?: string | null;
+            /** Observed Context */
+            observed_context?: string | null;
+            /** Staff Actor Role */
+            staff_actor_role?: string | null;
+            /** Staff Action */
+            staff_action?: string | null;
+            /** Staff Awareness State */
+            staff_awareness_state?: string | null;
+            /** Staff Outcome */
+            staff_outcome?: string | null;
+            /** Facility Type */
+            facility_type?: string | null;
+            /** Facility State */
+            facility_state?: string | null;
+            /** Facility Purpose State */
+            facility_purpose_state?: string | null;
+            /** Facility Access Mode */
+            facility_access_mode?: string | null;
+            /** Facility Capacity */
+            facility_capacity?: number | null;
+            /** Facility Size Limit */
+            facility_size_limit?: string | null;
+            /** Facility Weather Protection */
+            facility_weather_protection?: boolean | null;
+            /** Facility Shade */
+            facility_shade?: boolean | null;
+            /** Facility Ventilation */
+            facility_ventilation?: boolean | null;
+            /** Facility Water Available */
+            facility_water_available?: boolean | null;
+            /** Facility Supervision State */
+            facility_supervision_state?: string | null;
+            /** Facility Security Or Lock State */
+            facility_security_or_lock_state?: string | null;
+            /** Facility Operator Provided */
+            facility_operator_provided?: boolean | null;
+            /** Source Id */
+            source_id?: string | null;
+            /** Evidence Bundle Id */
+            evidence_bundle_id?: string | null;
+            /** Submitted At */
+            submitted_at?: string | null;
+            /** Verification Status */
+            verification_status: string;
+            /** Freshness State */
+            freshness_state?: string | null;
+            /** Last Verified At */
+            last_verified_at?: string | null;
+        };
         RealityReportModerationState: "pending" | "flagged" | "approved" | "rejected" | "removed";
         /** RealityReportOut */
         RealityReportOut: {
@@ -5695,6 +5805,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RealityAnswer"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    consumer_reality_events_api_v1_places__place_id__reality_events_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                place_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RealityEventOut"][];
                 };
             };
             /** @description Validation Error */
