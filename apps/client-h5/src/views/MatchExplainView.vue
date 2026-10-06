@@ -33,13 +33,16 @@ const realityExplanation = computed(() => {
   const snapshot = coexistence.value;
   if (!snapshot) return [];
   const reality = snapshot.reality_answer;
+  const evidence = snapshot.evidence_summary;
   const lines = [
     realityStateLabel(reality),
-    reality.evidence_count
-      ? `现场摘要来自 ${reality.evidence_count} 条经核验记录、${reality.distinct_source_count} 个来源。`
-      : "当前没有足够的经核验现场记录；这不等于现场没有动物。",
+    evidence.reality_evidence_count
+      ? `现场层共有 ${evidence.reality_evidence_count} 条经核验依据、${evidence.reality_distinct_source_count} 个来源锚点；其中动物出现、工作人员处理和设施事实分开记录。`
+      : "当前没有足够的经核验现场依据；这不等于现场没有动物。",
   ];
-  if (reality.last_seen_at) lines.push(`最近一条现场记录：${reality.last_seen_at.slice(0, 10)}。`);
+  if (reality.last_seen_at) {
+    lines.push(`最近一条动物出现记录：${reality.last_seen_at.slice(0, 10)}。`);
+  }
   if (reality.freshness_state) {
     lines.push(`现场信息时效：${FRESHNESS_LABELS[reality.freshness_state] ?? "时效待核对"}。`);
   }
