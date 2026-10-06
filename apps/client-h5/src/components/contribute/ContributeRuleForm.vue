@@ -144,7 +144,7 @@ async function submit() {
 <template>
   <ContributionStepShell
     :place-name="placeName"
-    :step="1"
+    :step="2"
     :total="3"
     title="补充规则信息"
     description="可以确认现有规则、报告变化、只提交规则牌证据，或提供新规则线索；所有内容都先进入核验流程。"
