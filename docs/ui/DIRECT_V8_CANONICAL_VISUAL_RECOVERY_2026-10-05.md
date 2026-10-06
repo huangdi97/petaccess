@@ -340,3 +340,34 @@ PetAccess 的差异化不在于“也有地图”，而在于 **Rule + Reality +
 - Contribution：Rule lead / Place correction / Reality fact 分不同治理通道，Observation 永不自动成为 Rule；
 - Facility：用途确认度、运行状态、使用方式与可用安全属性；Facility 永不推导 EntryPolicy。
 
+
+## 12. 2026-10-06：Source Fidelity Closure Checkpoint
+
+这一轮不再以“旧截图是否像”作为代码判断依据，而是从 Canonical 不变量反查运行链路。当前 source 已明确做到：
+
+- **Home**：任务入口 → 个性化关注推荐 → Rule / Reality 共处速览；有 Reality 依据但 Rule UNKNOWN 的场所不会被错误藏进“待补充”。
+- **Search**：desktop 持续 List–Detail；默认 Reality-first，同时保留 Rule 语义状态、关键条件、Evidence / Freshness；筛选只改变显示。
+- **Place**：以 `CoexistenceSnapshot` 为 Rule / Reality 同屏 SSOT；Rule UNKNOWN 不会吞掉 StaffResponse / Facility / Evidence；规则核验日期使用真实 `last_verified_at`，不拿 snapshot 生成时间冒充。
+- **Map**：Rule / Reality / Facility / Divergence 四 Lens 共用同一 Place + Snapshot；真实坐标从 PostGIS 投影到 Consumer；生产环境缺坐标时不伪造 marker；配置可用时走 TencentMap，provider 不可用才明确降级到简化空间底图。
+- **Reality**：Consumer timeline 读取经人工核验的 v0.9 published events（presence / staff response / facility）；Staff role 可展示、个人身份不采集；staff statement 仍只是具体事件事实，不能升级成 OperatorPolicy。
+- **Facility**：用途确认度、运行状态、使用方式、容量与可核验的遮雨 / 遮阳 / 通风 / 饮水 / 看护 / 安全属性进入 Space dossier；任何设施属性都不得推导 EntryPolicy 或安全保证。
+- **Evidence**：Rule evidence 与完整 Reality layer provenance 并列；Observed / Submitted / Reviewed 时间保持不同字段，外部内容只有发布时间时不得伪装成现场发生时间。
+- **Contribution**：Rule confirmation / changed-rule lead / new-rule lead / signage evidence、Reality facts、Place correction 各走自己的治理通道；Rule lead 不写 Observation；“不知道正确值”是合法纠错输入；所有结果先进入 review。
+- **Secondary surfaces**：Mine / Notifications 将 Rule watch 与 Reality watch 分开；Privacy 对尚未实现的服务端账号删除/导出流程明确写不可用，不用本地按钮伪装已提交。
+
+### 12.1 Human-review runner 纪律
+
+`tests/ui-oracle/human-review-direct-v8.spec.ts` 的每一个 shot 都必须从新 Document 启动。原因不是视觉偏好，而是同一个 Contribution hash route 会承载多个独立状态；若只做 hash 导航，前一 shot 的 step state 会污染后一 shot。Capture URL 的 outer query 只用于强制重新 bootstrap，真实 hash route 不变。
+
+`UI Direct Autofmt` 现在同时格式化 `packages/client-core/src/api/client.ts`。Shared client 是 Consumer UI 的实际类型/调用边界，不能再出现“app 目录已经 prettier，但共享 client 让全仓 format gate 失败”的假红。
+
+### 12.2 当前停止线
+
+Source / contract / capture runner 完成不等于 Human Visual PASS。最终仍必须对**同一最终 HEAD**重新取得：
+
+1. Web authoritative HUMAN_REVIEW desktop + mobile；
+2. Windows Tauri / WebView2 当前 HEAD；
+3. Android AVD 当前 HEAD；
+4. 配置真实地图 provider 时，至少一张 real-map runtime 证据；若环境没有 provider key，必须把“简化空间底图”明确记录为外部配置 blocker，而不是假装真实地图已验收。
+
+在上述证据由真人看过以前，`UI_HUMAN_VISUAL_ACCEPTANCE` 保持 `REJECTED_REOPENED / PENDING_REVIEW`，PR #1 保持 draft，master / tag / Release 不动。
