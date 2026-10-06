@@ -9,7 +9,7 @@ import { presentDescription } from "../errors";
 
 const pets = ref<Awaited<ReturnType<typeof client.myPets>>>([]);
 const watches = ref<Awaited<ReturnType<typeof client.myWatches>>>([]);
-const contributions = ref<Awaited<ReturnType<typeof client.myRealityContributions>>>([]);
+const contributions = ref<Awaited<ReturnType<typeof client.myContributionActivity>>>([]);
 const error = ref("");
 
 onMounted(async () => {
@@ -19,7 +19,7 @@ onMounted(async () => {
     [pets.value, watches.value, contributions.value] = await Promise.all([
       client.myPets(),
       client.myWatches(),
-      client.myRealityContributions(),
+      client.myContributionActivity(),
     ]);
   } catch (e) {
     error.value = presentDescription(e);
