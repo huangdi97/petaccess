@@ -42,11 +42,13 @@ async function load() {
     await session.restore();
     signedIn.value = session.signedIn;
     watches.value = signedIn.value ? await client.myWatches() : [];
-    const placeIds = [...new Set(
-      watches.value
-        .filter((watch) => watch.target_type === "place")
-        .map((watch) => watch.target_id),
-    )];
+    const placeIds = [
+      ...new Set(
+        watches.value
+          .filter((watch) => watch.target_type === "place")
+          .map((watch) => watch.target_id),
+      ),
+    ];
     const names = await Promise.all(
       placeIds.map(async (id) => {
         const place = await client.place(id).catch(() => null);
@@ -123,11 +125,7 @@ async function unsubscribe(w: WatchView) {
           <strong>{{ targetLabel(w) }}</strong>
           <span>{{ domainLabel(w) }}</span>
           <span class="muted">
-            {{
-              w.watch_domain === "reality"
-                ? "等待新的经核验现场事实"
-                : "等待新的正式规则版本"
-            }}
+            {{ w.watch_domain === "reality" ? "等待新的经核验现场事实" : "等待新的正式规则版本" }}
           </span>
         </div>
         <button class="notification-row__action" type="button" @click="unsubscribe(w)">
