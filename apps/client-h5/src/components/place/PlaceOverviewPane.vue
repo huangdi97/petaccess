@@ -19,7 +19,8 @@ import {
   zoneConsumerLine,
 } from "../../consumer/labels";
 import { answerConditions, answerStatusKey, answerVerdictLabel } from "../../answer";
-import { divergenceLabel, realityStateLabel } from "../../reality";
+import { coexistenceRealityLine } from "../../consumer/rowView";
+import { divergenceLabel } from "../../reality";
 import StatusBadge from "../StatusBadge.vue";
 import { session } from "@petaccess/client-core";
 
@@ -50,9 +51,7 @@ const petContext = computed(() =>
   session.activePet ? `我的宠物：${session.activePet.display_name}` : "我的宠物：未设置",
 );
 const realityLine = computed(() =>
-  props.coexistence?.reality_answer
-    ? realityStateLabel(props.coexistence.reality_answer)
-    : "暂无足够现场记录",
+  coexistenceRealityLine(props.coexistence, props.coexistence?.reality_answer),
 );
 const realityMetaLine = computed(() => {
   const reality = props.coexistence?.reality_answer;
@@ -129,7 +128,7 @@ const divergenceLine = computed(() => {
 
     <!-- Recent Reality：mobile 保留一行 teaser + CTA（§11）。 -->
     <section class="place-section" data-ui="place-reality-overview" data-testid="overview-reality">
-      <h2 class="place-section__title">最近现场</h2>
+      <h2 class="place-section__title">现场概览</h2>
       <p class="place-reality-headline" data-testid="overview-reality-line">{{ realityLine }}</p>
       <p v-if="realityMetaLine" class="muted overview-note">{{ realityMetaLine }}</p>
       <p v-else-if="observationCount > 0 && desktop" class="muted overview-note">
