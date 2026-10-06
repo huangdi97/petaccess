@@ -54,9 +54,9 @@ def _reality_rows(db: Session, user_id: str) -> list[ContributionActivity]:
             .order_by(RealityCandidate.created_at.asc())
         ).all()
         labels = {
-            "observed_presence": "动物现场",
-            "staff_response": "工作人员处理",
-            "animal_facility": "动物设施",
+            "observed_presence": "现场出现记录",
+            "staff_response": "工作人员处理记录",
+            "animal_facility": "动物设施记录",
         }
         summary = "、".join(
             labels.get(_enum_text(candidate.candidate_type), "现场信息")
