@@ -6,7 +6,7 @@
  */
 import { computed, ref } from "vue";
 import { client } from "@petaccess/client-core";
-import { evidenceRefs, proximity } from "./contributeSupport";
+import { proximity } from "./contributeSupport";
 import { presentDescription } from "../../errors";
 import ContributionStepShell from "./ContributionStepShell.vue";
 import RuleLeadFields from "./RuleLeadFields.vue";
@@ -69,20 +69,19 @@ async function submit() {
     }
 
     if (intent.value === "signage") {
-      const note = ocrText.value.trim()
+      const rawText = ocrText.value.trim()
         ? `规则牌 / 公告证据；OCR 待人工核对：${ocrText.value.trim().slice(0, 500)}`
         : "规则牌 / 公告证据；OCR 未取得或未完成。";
-      await client.verify({
-        place_id: props.placeId,
+      await client.contributeRuleLead(props.placeId, {
         zone_id: zone.value || null,
-        rule_id: null,
-        event_type: "signage_uploaded",
-        result: "uncertain",
-        note,
-        evidence_refs: evidenceRefs(mediaId.value),
+        raw_text: rawText,
+        media_id: mediaId.value,
         ...proximity(),
       });
-      emit("done", "规则牌证据已提交，等待人工核验。照片与 OCR 都不会自动生成或发布正式规则。");
+      emit(
+        "done",
+        "规则牌证据已进入规则候选提取与人工审核流程。系统不会因为照片或 OCR 自动猜测允许 / 禁止，也不会自动发布正式规则。",
+      );
       return;
     }
 
