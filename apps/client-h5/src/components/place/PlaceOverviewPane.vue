@@ -414,11 +414,25 @@ const divergenceLine = computed(() => {
     border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
   }
 
-  .coexistence-fact {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
+  .coexistence-facts {
     gap: var(--pa-space-1);
+    margin-top: var(--pa-space-3);
+    padding-top: var(--pa-space-2);
+  }
+
+  .coexistence-fact {
+    display: grid;
+    grid-template-columns: 6.4rem minmax(0, 1fr);
+    align-items: start;
+    gap: var(--pa-space-1) var(--pa-space-2);
+  }
+
+  .coexistence-fact__label {
+    font-size: var(--pa-font-size-sm);
+  }
+
+  .coexistence-fact__link {
+    display: none;
   }
 }
 
