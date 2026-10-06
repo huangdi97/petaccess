@@ -117,7 +117,7 @@ function chooseMapResult(id: string) {
     data-ui-state="ready"
     data-ui-fixture="map-ready-v1"
   >
-    <h1 class="visually-hidden">规则地图</h1>
+    <h1 class="visually-hidden">规则与现场地图</h1>
     <QueryContextBar />
 
     <!-- Canonical v0.10-R1 Map: Rule / Reality / Facility / Divergence are
@@ -196,7 +196,7 @@ function chooseMapResult(id: string) {
         class="map-canvas"
         data-testid="map"
         data-ui="map-canvas"
-        aria-label="规则地图"
+        aria-label="规则与现场地图"
       >
         <StateMessage
           v-if="error && !isDesktop"
