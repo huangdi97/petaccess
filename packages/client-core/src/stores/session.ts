@@ -85,5 +85,10 @@ export const session = reactive({
   logout(): void {
     platformStorage.remove(TOKEN_KEY);
     this.user = null;
+    // Pet context belongs to the authenticated user. Keeping it alive after
+    // logout can leak the previous account's profile into the next public
+    // query or a different user's session in the same app runtime.
+    this.activePet = null;
+    this.mode = "with_pet";
   },
 });
