@@ -27,7 +27,11 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Format direct UI work
         run: |
-          pnpm exec prettier --write             "apps/client-h5/src/**/*.{vue,ts}"             "docs/ui/contracts/json/*.json"             "tests/ui-oracle/*.ts"
+          pnpm exec prettier --write \
+            "apps/client-h5/src/**/*.{vue,ts}" \
+            "packages/client-core/src/api/client.ts" \
+            "docs/ui/contracts/json/*.json" \
+            "tests/ui-oracle/*.ts"
       - name: Commit formatting when needed
         shell: bash
         run: |
@@ -37,6 +41,6 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add apps/client-h5/src docs/ui/contracts/json tests/ui-oracle
+          git add apps/client-h5/src packages/client-core/src/api/client.ts docs/ui/contracts/json tests/ui-oracle
           git commit -m "style(ui): apply canonical Prettier formatting"
           git push origin HEAD:feat/ui-direct-craft-v8

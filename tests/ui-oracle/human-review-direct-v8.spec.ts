@@ -484,16 +484,18 @@ test("direct-v8 canonical human-review packet", async ({ page, request }, testIn
 
     if (shot.auth) {
       token ??= await signIn(request);
-      // Most packet transitions are hash-only SPA navigations. addInitScript
-      // alone does not run for those because no new Document is created, so
-      // the first authenticated shot could still mount as signed-out. Write
-      // storage in the live document as well; the session token provider reads
-      // the same bound localStorage when the contribution route mounts.
-      await page.evaluate((value) => localStorage.setItem("pa_token", value), token);
       await page.addInitScript((value) => localStorage.setItem("pa_token", value), token);
     }
 
-    await page.goto(shot.route);
+    // Every shot must start from a fresh Document, not just a new hash. Several
+    // human-review states intentionally reuse the same Contribution URL; a
+    // hash-only page.goto would preserve the previous component's step state
+    // and make the next entry button disappear. The harmless outer query
+    // forces a hard bootstrap while preserving the requested hash route.
+    const captureRoute = shot.route.startsWith("/#")
+      ? `/?human_review_shot=${encodeURIComponent(shot.name)}${shot.route.slice(1)}`
+      : shot.route;
+    await page.goto(captureRoute);
     await settle(page);
 
     if (shot.clickTestid) {
