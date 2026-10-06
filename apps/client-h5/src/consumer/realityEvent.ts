@@ -141,7 +141,6 @@ export function displayRealityTime(iso: string): string {
   return iso.length >= 16 ? `${iso.slice(0, 10)} ${iso.slice(11, 16)}` : iso;
 }
 
-
 export interface RealityProvenanceCounts {
   rawMaterialCount: number;
   placeMatchedCount: number;
