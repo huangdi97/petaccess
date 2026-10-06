@@ -87,8 +87,7 @@ async function unsubscribe(w: WatchView) {
     <div class="notifications-channel">
       <strong>关注类型</strong>
       <p class="muted">
-        规则变化只跟踪经过 Review 的正式规则版本；现场更新只跟踪新发布的经核验 Reality
-        事实、工作人员处理与设施变化。两类关注互不替代。
+        规则变化只跟踪经过人工核验的正式规则版本；现场更新只跟踪新发布且经核验的现场事实、工作人员处理与设施变化。两类关注互不替代。
       </p>
       <p v-if="signedIn" class="muted notifications-channel__counts">
         当前：规则变化 {{ activeRuleCount }} · 现场更新 {{ activeRealityCount }}
