@@ -173,11 +173,7 @@ const MASS = [
       :class="{ 'map-pin--selected': isSelectedCluster(c) }"
       :data-selected="isSelectedCluster(c) ? 'true' : undefined"
       :data-ui="
-        c.count > 1
-          ? isSelectedCluster(c)
-            ? 'map-marker-selected'
-            : 'map-marker'
-          : undefined
+        c.count > 1 ? (isSelectedCluster(c) ? 'map-marker-selected' : 'map-marker') : undefined
       "
       :style="project(c.lat, c.lng)"
       :data-testid="c.count > 1 ? 'cluster-' + c.id : 'pin-' + c.memberIds[0]"
