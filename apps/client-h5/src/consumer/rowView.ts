@@ -74,6 +74,27 @@ export function evidenceLineFor(reality: RealityAnswer | null | undefined): stri
   return parts.join(" · ");
 }
 
+/** Evidence/freshness for the complete Reality layer, not presence alone. */
+export function coexistenceEvidenceLine(
+  snapshot: CoexistenceSnapshot | null | undefined,
+  fallback?: RealityAnswer | null,
+): string {
+  if (!snapshot) return evidenceLineFor(fallback);
+  const parts: string[] = [];
+  const evidence = snapshot.evidence_summary;
+  if (evidence.reality_evidence_count > 0) {
+    parts.push(`${evidence.reality_evidence_count} 条现场依据`);
+  }
+  if (evidence.reality_distinct_source_count > 0) {
+    parts.push(`${evidence.reality_distinct_source_count} 个现场来源`);
+  }
+  const reality = snapshot.reality_answer ?? fallback ?? null;
+  if (reality?.days_since_last_seen != null) {
+    parts.push(`${reality.days_since_last_seen} 天前最近动物现场`);
+  }
+  return parts.join(" · ");
+}
+
 /** Compact recency line for a result row's right side — "N 天前记录". */
 export function recentLineFor(reality: RealityAnswer | null | undefined): string {
   if (!reality || reality.days_since_last_seen == null) return "";
