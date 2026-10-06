@@ -13,15 +13,16 @@ import { computed } from "vue";
 import {
   placeTypeLabel,
   type AccessAnswer,
+  type CoexistenceSnapshot,
   type PlaceSummary,
   type RealityAnswer,
 } from "@petaccess/client-core";
 import StatusBadge from "../StatusBadge.vue";
 import { answerConditions, answerStatusKey, answerVerdictLabel } from "../../answer";
 import {
+  coexistenceRealityLine,
   evidenceLineFor,
   lensProjection,
-  realityLineFor,
   type ConsumerLens,
 } from "../../consumer/rowView";
 
@@ -31,6 +32,7 @@ const props = withDefaults(
     answer?: AccessAnswer | null;
     answerError?: boolean;
     reality?: RealityAnswer | null;
+    snapshot?: CoexistenceSnapshot | null;
     realityError?: boolean;
     /** 非空时渲染为关键 divergence（仅相关时出现）。 */
     divergence?: string;
@@ -43,6 +45,7 @@ const props = withDefaults(
     answer: null,
     answerError: false,
     reality: null,
+    snapshot: null,
     realityError: false,
     divergence: "",
     lens: "",
@@ -51,9 +54,11 @@ const props = withDefaults(
 
 const status = computed(() => answerStatusKey(props.answer));
 const conditions = computed(() => answerConditions(props.answer, props.conditionsLabel));
-const realityLine = computed(() => realityLineFor(props.reality));
+const realityLine = computed(() => coexistenceRealityLine(props.snapshot, props.reality));
 const evidenceLine = computed(() => evidenceLineFor(props.reality));
-const projection = computed(() => lensProjection(props.lens, props.answer, props.reality));
+const projection = computed(() =>
+  lensProjection(props.lens, props.answer, props.reality, props.snapshot),
+);
 </script>
 
 <template>
