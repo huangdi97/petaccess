@@ -1,7 +1,8 @@
 import { coverageHint, type MapMarker } from "@petaccess/client-core";
 
 import { answerStatusKey, answerVerdictLabel } from "../answer";
-import { divergenceLabel, realityStateLabel } from "../reality";
+import { divergenceLabel } from "../reality";
+import { coexistenceRealityLine } from "./rowView";
 import { facilityPurposeIsConfirmed } from "./labels";
 import type { RowFacts } from "./repository";
 
@@ -35,7 +36,11 @@ export function mapLensTone(lens: MapLensKey, row: RowFacts | undefined): MapMar
       case "DISPUTED":
         return "CONFLICT";
       default:
-        return "UNKNOWN";
+        // Reality includes verified StaffResponse / Facility facts as well as
+        // animal presence. Presence-insufficient must not erase those facts.
+        return (row.snapshot?.evidence_summary.reality_evidence_count ?? 0) > 0
+          ? "ALLOWED"
+          : "UNKNOWN";
     }
   }
 
@@ -64,7 +69,7 @@ export function mapLensTone(lens: MapLensKey, row: RowFacts | undefined): MapMar
 export function mapLensLabel(lens: MapLensKey, row: RowFacts | undefined): string {
   if (!row) return "信息不足";
   if (lens === "rule") return answerVerdictLabel(row.answer);
-  if (lens === "reality") return realityStateLabel(row.reality);
+  if (lens === "reality") return coexistenceRealityLine(row.snapshot, row.reality);
 
   if (lens === "facility") {
     const facilities = row.snapshot?.facility_summary ?? [];
@@ -109,11 +114,13 @@ export function mapLensCoverage(
     .map(([, row]) => row);
 
   if (lens === "reality") {
-    const covered = visibleFacts.filter((row) => (row.reality?.evidence_count ?? 0) > 0).length;
+    const covered = visibleFacts.filter(
+      (row) => (row.snapshot?.evidence_summary.reality_evidence_count ?? 0) > 0,
+    ).length;
     return {
       covered,
       unknown: Math.max(0, markers.length - covered),
-      text: `当前视野 ${markers.length} 个场所：${covered} 个有现场证据。暂无记录不代表现场没有动物。`,
+      text: `当前视野 ${markers.length} 个场所：${covered} 个有经核验现场事实。动物出现、工作人员处理与设施事实彼此独立；暂无动物记录不代表现场没有动物。`,
     };
   }
 
