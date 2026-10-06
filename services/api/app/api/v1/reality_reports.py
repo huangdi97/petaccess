@@ -58,6 +58,7 @@ from app.models.enums import (
 from app.schemas.common import Page
 from app.schemas.reality import RealityReportOut
 from app.schemas.reality_reports import (
+    ContributionActivityOut,
     RealityCandidateBrief,
     RealityCandidateDraft,
     RealityContributionIn,
@@ -518,7 +519,7 @@ def reality_trace(
     )
 
 
-@router.get("/me/contribution-activity")
+@router.get("/me/contribution-activity", response_model=list[ContributionActivityOut])
 def my_contribution_activity(
     user: User | None = Depends(get_optional_user),
     db: Session = Depends(get_db),
