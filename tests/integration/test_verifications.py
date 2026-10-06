@@ -9,7 +9,11 @@ import uuid
 import pytest
 from fastapi.testclient import TestClient
 
+from sqlalchemy import select
+
+from app.db.session import get_session_factory
 from app.main import app
+from app.models import AccessRule
 
 
 @pytest.fixture(scope="module")
@@ -58,6 +62,37 @@ def test_create_and_list_verification(client, user):
     page = r2.json()
     assert page["total"] >= 1
     assert any(item["id"] == ev["id"] for item in page["items"])
+
+
+def test_user_confirmation_does_not_refresh_governed_rule_freshness(client, user):
+    factory = get_session_factory()
+    with factory() as db:
+        rule = db.scalars(
+            select(AccessRule).where(AccessRule.status == "current").limit(1)
+        ).first()
+        assert rule is not None
+        rule_id = rule.id
+        place_id = rule.place_id
+        before = rule.last_verified_at
+        assert place_id
+
+    response = client.post(
+        "/api/v1/verifications",
+        json={
+            "place_id": place_id,
+            "rule_id": rule_id,
+            "event_type": "rule_confirmed",
+            "result": "still_valid",
+            "note": "用户现场确认，仅作为待治理证据。",
+        },
+        headers=_auth(user["token"]),
+    )
+    assert response.status_code == 201, response.text
+
+    with factory() as db:
+        refreshed = db.get(AccessRule, rule_id)
+        assert refreshed is not None
+        assert refreshed.last_verified_at == before
 
 
 def test_verification_unknown_place_is_404(client, user):
