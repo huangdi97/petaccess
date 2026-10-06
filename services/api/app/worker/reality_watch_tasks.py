@@ -26,7 +26,9 @@ def _reality_changed_for_watch(
 ) -> int:
     """Count newly published Reality facts after this subscription watermark."""
 
-    def count_model(model) -> int:  # noqa: ANN001
+    def count_model(
+        model: type[ObservedPresence] | type[StaffResponseObservation] | type[AnimalFacility],
+    ) -> int:
         predicates = [
             model.verification_status.in_(VERIFIED_REALITY_STATUSES),
             func.coalesce(model.last_verified_at, model.created_at) > since,
@@ -47,12 +49,11 @@ def _reality_changed_for_watch(
 
 @celery_app.task(
     name="app.worker.reality_watch_tasks.notify_reality_changes",
-    bind=True,
     max_retries=3,
     autoretry_for=(Exception,),
     retry_backoff=True,
 )
-def notify_reality_changes(self) -> dict:  # noqa: ANN001
+def notify_reality_changes() -> dict:
     """Notify only on newly published, human-verified Reality facts."""
 
     from app.db.session import get_session_factory
