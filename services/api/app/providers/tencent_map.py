@@ -182,7 +182,9 @@ class TencentMapProvider(MapProvider):
             "render_coordinate_system": "GCJ-02",
         }
 
-    def translate_coordinates(self, coordinates: list[tuple[float, float]]) -> list[dict[str, float]]:
+    def translate_coordinates(
+        self, coordinates: list[tuple[float, float]]
+    ) -> list[dict[str, float]]:
         """WGS84/GPS -> Tencent GCJ-02 via the official WebService API.
 
         Tencent's JS GL basemap consumes GCJ-02 while PetAccess persists
