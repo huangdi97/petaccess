@@ -61,12 +61,12 @@ export function realityTone(state: string | undefined): string {
 
 export function realityStateLabel(answer: RealityAnswer | null | undefined): string {
   if (!answer) return "暂无近期现场记录";
-  return REALITY_STATE_LABELS[answer.state] ?? answer.state;
+  return REALITY_STATE_LABELS[answer.state] ?? "现场状态待确认";
 }
 
 export function divergenceLabel(d: RuleRealityDivergence | null | undefined): string {
   if (!d) return "信息不足，无法对比";
-  return DIVERGENCE_LABELS[d.state] ?? d.state;
+  return DIVERGENCE_LABELS[d.state] ?? "信息不足，无法对比";
 }
 
 /** Human-readable staff response action counts (facts only, no score). */
@@ -111,5 +111,5 @@ export function contributionStatusLabel(candidate: {
   reality_decision: string | null;
 }): string {
   const key = candidate.reality_decision ?? candidate.review_status;
-  return CONTRIBUTION_STATUS_LABELS[key] ?? key;
+  return CONTRIBUTION_STATUS_LABELS[key] ?? "核验状态待确认";
 }
