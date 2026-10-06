@@ -296,6 +296,37 @@ test("A3.1 — 场所纠错允许只知道当前值错误", async ({ page, reque
   await expect(page.getByTestId("contribute-result")).toBeVisible({ timeout: 15000 });
 });
 
+test("A2.2 — Rule lead 与场所纠错都进入人工核验并出现在统一贡献历史", async ({
+  page,
+  request,
+}) => {
+  const token = await signIn(request);
+  await page.addInitScript((value) => localStorage.setItem("pa_token", value), token);
+
+  await page.goto(`${BASE}/#/contribute/${MALL_ID}`, { waitUntil: "load" });
+  await expect(page.getByTestId("entry-rule")).toBeVisible({ timeout: 15000 });
+  await page.getByTestId("entry-rule").click();
+  await page.getByTestId("rule-known").selectOption("conditional");
+  await page.getByTestId("rule-submit").click();
+  await expect(page.getByTestId("contribute-result")).toContainText("人工复核", {
+    timeout: 15000,
+  });
+
+  await page.goto(`${BASE}/#/contribute/${MALL_ID}`, { waitUntil: "load" });
+  await page.getByTestId("entry-quick").click();
+  await page.getByTestId("correction-detail").fill("该场所楼层信息需要核验");
+  await page.getByTestId("quick-submit").click();
+  await expect(page.getByTestId("contribute-result")).toContainText("人工核验", {
+    timeout: 15000,
+  });
+
+  await page.goto(`${BASE}/#/mine`);
+  const rows = page.getByTestId("contribution-row");
+  await expect(rows.filter({ hasText: "新规则线索" })).toBeVisible({ timeout: 15000 });
+  await expect(rows.filter({ hasText: "场所信息纠错" })).toBeVisible({ timeout: 15000 });
+  await expect(rows.filter({ hasText: "REVIEW_PENDING" })).toHaveCount(0);
+});
+
 test("B2 — 我的贡献：提交后可见、空时走统一空态", async ({ page, request }) => {
   // Fresh user with no contributions → unified empty copy.
   const tokenA = await signIn(request);
