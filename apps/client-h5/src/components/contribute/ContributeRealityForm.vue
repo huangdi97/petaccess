@@ -574,7 +574,11 @@ async function submit() {
                 v-model="facilityWeatherProtection"
                 data-testid="reality-facility-weather"
               >
-                <option v-for="item in FACILITY_BOOLEAN_OPTIONS" :key="String(item.value)" :value="item.value">
+                <option
+                  v-for="item in FACILITY_BOOLEAN_OPTIONS"
+                  :key="String(item.value)"
+                  :value="item.value"
+                >
                   {{ item.label }}
                 </option>
               </select>
@@ -585,7 +589,11 @@ async function submit() {
                 v-model="facilityShade"
                 data-testid="reality-facility-shade"
               >
-                <option v-for="item in FACILITY_BOOLEAN_OPTIONS" :key="String(item.value)" :value="item.value">
+                <option
+                  v-for="item in FACILITY_BOOLEAN_OPTIONS"
+                  :key="String(item.value)"
+                  :value="item.value"
+                >
                   {{ item.label }}
                 </option>
               </select>
@@ -596,7 +604,11 @@ async function submit() {
                 v-model="facilityVentilation"
                 data-testid="reality-facility-ventilation"
               >
-                <option v-for="item in FACILITY_BOOLEAN_OPTIONS" :key="String(item.value)" :value="item.value">
+                <option
+                  v-for="item in FACILITY_BOOLEAN_OPTIONS"
+                  :key="String(item.value)"
+                  :value="item.value"
+                >
                   {{ item.label }}
                 </option>
               </select>
@@ -607,7 +619,11 @@ async function submit() {
                 v-model="facilityWaterAvailable"
                 data-testid="reality-facility-water"
               >
-                <option v-for="item in FACILITY_BOOLEAN_OPTIONS" :key="String(item.value)" :value="item.value">
+                <option
+                  v-for="item in FACILITY_BOOLEAN_OPTIONS"
+                  :key="String(item.value)"
+                  :value="item.value"
+                >
                   {{ item.label }}
                 </option>
               </select>
@@ -618,7 +634,11 @@ async function submit() {
                 v-model="facilitySupervisionState"
                 data-testid="reality-facility-supervision"
               >
-                <option v-for="item in FACILITY_SUPERVISION_OPTIONS" :key="item.key" :value="item.key">
+                <option
+                  v-for="item in FACILITY_SUPERVISION_OPTIONS"
+                  :key="item.key"
+                  :value="item.key"
+                >
                   {{ item.label }}
                 </option>
               </select>
