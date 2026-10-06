@@ -81,7 +81,11 @@ def notify_rule_changes(self) -> dict:  # noqa: ANN001
                 ).all()
             else:  # rule-level watch
                 single = session.get(AccessRule, w.target_id)
-                rules = [] if single is None else [single]
+                rules = (
+                    []
+                    if single is None or _dt(single.updated_at) <= since
+                    else [single]
+                )
             recent = [r for r in rules if (now - _dt(r.updated_at)).total_seconds() < 26 * 3600]
             if not recent:
                 continue
