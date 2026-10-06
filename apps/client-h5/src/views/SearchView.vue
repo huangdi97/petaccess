@@ -246,6 +246,10 @@ watch(
   (v) => {
     const next = typeof v === "string" ? v : "";
     if (next === q.value) return;
+    // Filter is transient presentation state. A new/deep-linked query starts
+    // from its own result state instead of inheriting an open panel from the
+    // previous search.
+    filterOpen.value = false;
     q.value = next;
     void search();
   },
