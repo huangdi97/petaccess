@@ -113,7 +113,11 @@ async function unsubscribe(w: WatchView) {
         <button class="primary" @click="router.push({ name: 'mine' })">去登录</button>
       </template>
     </StateMessage>
-    <StateMessage v-else-if="!watches.length" kind="EMPTY" description="还没有关注任何规则变化或现场更新。">
+    <StateMessage
+      v-else-if="!watches.length"
+      kind="EMPTY"
+      description="还没有关注任何规则变化或现场更新。"
+    >
       <template #action>
         <button class="primary" @click="router.push({ name: 'home' })">查找场所</button>
       </template>
