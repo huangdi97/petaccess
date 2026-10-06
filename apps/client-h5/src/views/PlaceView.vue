@@ -75,7 +75,8 @@ const answer = ref<AccessAnswer | null>(null);
 const error = ref("");
 const loading = ref(true);
 const partial = ref<string[]>([]);
-const watching = ref(false);
+const watchingRule = ref(false);
+const watchingReality = ref(false);
 const quickMsg = ref("");
 const watchMsg = ref("");
 const confirmationMsg = ref("");
@@ -160,14 +161,24 @@ async function load() {
   if (session.signedIn) {
     try {
       const mine = await client.myWatches();
-      watching.value = mine.some(
-        (item) => item.target_type === "place" && item.target_id === placeId.value,
+      watchingRule.value = mine.some(
+        (item) =>
+          item.watch_domain === "rule" &&
+          item.target_type === "place" &&
+          item.target_id === placeId.value,
+      );
+      watchingReality.value = mine.some(
+        (item) =>
+          item.watch_domain === "reality" &&
+          item.target_type === "place" &&
+          item.target_id === placeId.value,
       );
     } catch {
       degrade("关注状态");
     }
   } else {
-    watching.value = false;
+    watchingRule.value = false;
+    watchingReality.value = false;
   }
   try {
     zones.value = await client.zones(placeId.value);
@@ -226,7 +237,8 @@ watch(
     watchMsg.value = "";
     confirmationMsg.value = "";
     confirmationBusyId.value = null;
-    watching.value = false;
+    watchingRule.value = false;
+    watchingReality.value = false;
     coexistence.value = null;
     coexistenceLoaded.value = false;
     if (placeId.value) void load();
@@ -234,17 +246,24 @@ watch(
   { immediate: true },
 );
 
-async function toggleWatch() {
+async function toggleWatchDomain(domain: "rule" | "reality") {
   watchMsg.value = "";
   try {
     const mine = await client.myWatches();
-    const existing = mine.find((w) => w.target_type === "place" && w.target_id === placeId.value);
+    const existing = mine.find(
+      (watch) =>
+        watch.watch_domain === domain &&
+        watch.target_type === "place" &&
+        watch.target_id === placeId.value,
+    );
     if (existing) {
       await client.unwatch(existing.id);
-      watching.value = false;
+      if (domain === "rule") watchingRule.value = false;
+      else watchingReality.value = false;
     } else {
-      await client.watch("place", placeId.value);
-      watching.value = true;
+      await client.watch("place", placeId.value, domain);
+      if (domain === "rule") watchingRule.value = true;
+      else watchingReality.value = true;
     }
   } catch (e) {
     watchMsg.value = `关注状态未能更新：${presentDescription(e)}`;
@@ -379,14 +398,24 @@ const placeFixture = computed<string>(() => {
               <RouterLink :to="`/contribute/${placeId}`" class="btn-inline">
                 纠错 / 补充 →
               </RouterLink>
-              <button
-                v-if="session.signedIn"
-                class="place-dossier__watch"
-                type="button"
-                @click="toggleWatch"
-              >
-                {{ watching ? "已关注变化 · 取消" : "关注规则变化" }}
-              </button>
+              <div v-if="session.signedIn" class="place-dossier__watch-group" aria-label="变化关注">
+                <button
+                  class="place-dossier__watch"
+                  type="button"
+                  data-testid="watch-rule"
+                  @click="toggleWatchDomain('rule')"
+                >
+                  {{ watchingRule ? "规则变化已关注 · 取消" : "关注规则变化" }}
+                </button>
+                <button
+                  class="place-dossier__watch"
+                  type="button"
+                  data-testid="watch-reality"
+                  @click="toggleWatchDomain('reality')"
+                >
+                  {{ watchingReality ? "现场更新已关注 · 取消" : "关注现场更新" }}
+                </button>
+              </div>
               <RouterLink v-else class="btn-inline" to="/onboarding">登录后关注 →</RouterLink>
             </div>
             <p v-if="watchMsg" class="muted place-dossier__watch-msg" role="status">
@@ -560,8 +589,14 @@ const placeFixture = computed<string>(() => {
   margin-top: var(--pa-space-2);
 }
 
-.place-dossier__watch {
+.place-dossier__watch-group {
+  display: flex;
+  align-items: center;
+  gap: var(--pa-space-3);
   margin-left: auto;
+}
+
+.place-dossier__watch {
   min-height: var(--pa-size-control-md);
   border: none;
   background: transparent;
@@ -626,9 +661,13 @@ const placeFixture = computed<string>(() => {
     gap: var(--pa-space-3);
   }
 
-  .place-dossier__watch {
+  .place-dossier__watch-group {
     width: 100%;
     margin-left: 0;
+    flex-wrap: wrap;
+  }
+
+  .place-dossier__watch {
     text-align: left;
   }
 
