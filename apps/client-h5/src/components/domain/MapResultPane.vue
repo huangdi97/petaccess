@@ -84,7 +84,7 @@ function toggleFilter(key: string) {
         搜索场所 / 类别 / 附近
       </button>
       <p v-if="props.locationState === 'DENIED'" class="notice" data-testid="location-denied">
-        未获得定位权限。你仍可手动选择区域，或直接搜索场所名。
+        未获得定位权限。地图会保留当前区域；你仍可直接搜索场所、商圈或地址。
       </p>
     </div>
 
