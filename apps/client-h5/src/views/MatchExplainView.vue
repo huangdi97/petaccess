@@ -4,6 +4,7 @@ import { useRoute } from "vue-router";
 import {
   client,
   ApiError,
+  session,
   type AccessAnswer,
   type BoundaryMatchResult,
   type CoexistenceSnapshot,
