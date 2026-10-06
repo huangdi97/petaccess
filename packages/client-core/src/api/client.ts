@@ -608,8 +608,13 @@ export const client = {
     place_id: string;
     zone_id?: string | null;
     rule_id?: string | null;
-    event_type?: string;
-    result: string;
+    event_type?:
+      | "rule_confirmed"
+      | "rule_changed"
+      | "signage_uploaded"
+      | "field_check"
+      | "place_correction";
+    result: "still_valid" | "changed" | "uncertain";
     note?: string | null;
     evidence_refs?: { media_id: string; purpose?: string }[] | null;
     proximity_verified?: boolean;
