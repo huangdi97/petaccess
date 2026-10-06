@@ -66,6 +66,7 @@ from app.schemas.reality_reports import (
     RealityTraceOut,
     RealityTraceSection,
 )
+from app.services.contribution_activity import contribution_activity
 from app.services.reality_contribution import (
     attach_candidate,
     create_confirmation,
@@ -74,7 +75,6 @@ from app.services.reality_contribution import (
     create_report,
     materialize_report_evidence,
 )
-from app.services.contribution_activity import contribution_activity
 from app.services.reality_summary import freshness_for
 
 router = APIRouter(tags=["reality"])
