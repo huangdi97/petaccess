@@ -216,3 +216,28 @@ def test_rule_lead_requires_authentication(client):
         json={"animal_scope": "dog", "effect": "allowed"},
     )
     assert response.status_code == 401
+
+
+def test_unified_contribution_activity_includes_rule_lead_and_correction(client, signed_user):
+    place_id = _place_id(client)
+    correction = client.post(
+        "/api/v1/verifications",
+        headers=signed_user,
+        json={
+            "place_id": place_id,
+            "rule_id": None,
+            "event_type": "place_correction",
+            "result": "uncertain",
+            "note": "地址楼层需要人工核验",
+        },
+    )
+    assert correction.status_code == 201, correction.text
+
+    response = client.get("/api/v1/me/contribution-activity", headers=signed_user)
+    assert response.status_code == 200, response.text
+    rows = response.json()
+    assert any(row["kind"] == "rule_lead" and "规则" in row["summary"] for row in rows)
+    assert any(
+        row["kind"] == "verification" and row["summary"] == "场所信息纠错" for row in rows
+    )
+    assert all("place_name" in row for row in rows)
