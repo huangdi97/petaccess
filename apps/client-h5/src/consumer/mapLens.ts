@@ -62,7 +62,10 @@ export function mapLensTone(lens: MapLensKey, row: RowFacts | undefined): MapMar
   const state = row.snapshot?.divergence?.state;
   if (state === "RULE_REALITY_ALIGNED") return "ALLOWED";
   if (state === "RULE_ALLOWS_BUT_NO_RECENT_RECORD") return "STALE";
-  if (state && state !== "INSUFFICIENT_DATA") return "CONFLICT";
+  if (state === "RULE_PROHIBITS_BUT_OBSERVED") return "CONFLICT";
+  if (state === "RULE_CONDITIONAL_AND_OBSERVED" || state === "RULE_UNKNOWN_BUT_OBSERVED") {
+    return "CONDITIONAL";
+  }
   return "UNKNOWN";
 }
 
@@ -142,6 +145,6 @@ export function mapLensCoverage(
   return {
     covered,
     unknown: Math.max(0, markers.length - covered),
-    text: `当前视野 ${markers.length} 个场所：${covered} 个存在规则与现场差异。`,
+    text: `当前视野 ${markers.length} 个场所：${covered} 个需要重点对照规则与现场。`,
   };
 }
