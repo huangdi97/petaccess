@@ -21,9 +21,7 @@ const emit = defineEmits<{
 }>();
 
 const cards = computed(() => [...props.verified, ...props.pending]);
-const recommendationTitle = computed(() =>
-  props.interest ? "按你的关注推荐" : "近期值得先看",
-);
+const recommendationTitle = computed(() => (props.interest ? "按你的关注推荐" : "近期值得先看"));
 
 function hasUsefulFact(card: HomeCard): boolean {
   const presenceEvidence = card.facts.reality?.evidence_count ?? 0;
