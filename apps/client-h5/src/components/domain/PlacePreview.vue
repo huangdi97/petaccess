@@ -61,14 +61,25 @@ const metaLine = computed(() => {
         <p class="place-preview__muted">{{ metaLine }}</p>
       </header>
 
-      <div v-if="mapLensLabel" class="place-preview__lens" data-testid="preview-map-lens">
+      <div
+        v-if="mapLensLabel"
+        class="place-preview__lens place-preview__lens--primary"
+        data-testid="preview-map-lens"
+      >
         <span class="place-preview__label">当前地图 · {{ mapLensName }}</span>
         <strong>{{ mapLensLabel }}</strong>
       </div>
 
-      <!-- §32：Primary status + key condition -->
-      <div class="place-preview__decision" data-testid="preview-verdict">
-        <StatusBadge :semantic="statusKey" />
+      <!-- Rule Lens: rule is primary. Other lenses: rule remains visible but
+           secondary, so green/allowed semantics never become the visible
+           meaning of a Reality/Facility/Divergence marker. -->
+      <div
+        class="place-preview__decision"
+        :class="{ 'place-preview__decision--secondary': Boolean(mapLensLabel) }"
+        data-testid="preview-verdict"
+      >
+        <span v-if="mapLensLabel" class="place-preview__label">规则</span>
+        <StatusBadge v-if="!mapLensLabel" :semantic="statusKey" />
         <p class="place-preview__verdict-text" data-testid="preview-verdict-text">
           {{ answerVerdictLabel(answer) }}
         </p>
