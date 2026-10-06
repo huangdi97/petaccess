@@ -1,76 +1,71 @@
 <script setup lang="ts">
 /**
- * EvidenceProvenance — the five-step provenance chain of a place's evidence
- * record (§39): 原始证据 → 地点匹配 → 时间确认 → 来源确认 → 人工核验.
+ * EvidenceProvenance — factual five-step provenance rail.
  *
- * v0.2.4 §39：保留当前成功的 5 步 rail，并增强为每步「形状 + 状态文字 + 一句解释」。
- * 步骤只从可用数据推导；缺失渲染「待补充」，不猜测（空态仍保留 5 步结构）。
- *
- * Blueprint geometry (O2): marker column = 24px, content column = remaining,
- * marker x identical across steps, continuous vertical rail, step gap 28–36px.
+ * Every step is driven by the published RealityEvent metadata. A later stage
+ * never implies an earlier one: source confirmation, place matching, time
+ * evidence and human review are independent provenance dimensions.
  */
 import { computed } from "vue";
 
-interface Props {
-  observedCount: number;
-  ruleEvidenceCount: number;
+const props = defineProps<{
+  rawMaterialCount: number;
+  placeMatchedCount: number;
+  timeConfirmedCount: number;
+  sourceCount: number;
   reviewedCount: number;
-}
-
-const props = defineProps<Props>();
+}>();
 
 interface ProvenanceStep {
   key: string;
   label: string;
-  /** complete / pending（当前无历史记录则 pending）。 */
-  filled: boolean;
-  /** 每步一句解释（§39）。 */
+  count: number;
   note: string;
 }
 
-const provenance = computed<ProvenanceStep[]>(() => {
-  const observed = props.observedCount > 0;
-  const reviewed = props.reviewedCount > 0;
-  return [
-    {
-      key: "photo",
-      label: "原始证据",
-      filled: observed,
-      note: observed ? "现场记录已收录" : "暂无原始证据",
-    },
-    {
-      key: "place",
-      label: "地点匹配",
-      filled: observed,
-      note: observed ? "记录绑定到该场所" : "尚无绑定记录",
-    },
-    {
-      key: "observed",
-      label: "时间确认",
-      filled: observed,
-      note: observed ? "已记录观察时间" : "暂无观察时间",
-    },
-    {
-      key: "source",
-      label: "来源确认",
-      filled: props.ruleEvidenceCount > 0,
-      note:
-        props.ruleEvidenceCount > 0
-          ? `${props.ruleEvidenceCount} 条规则依据`
-          : "正式规则依据：0（来源待补充）",
-    },
-    {
-      key: "review",
-      label: "人工核验",
-      filled: reviewed,
-      note: reviewed ? "已有人工核验记录" : "尚未完成人工核验",
-    },
-  ];
-});
+const provenance = computed<ProvenanceStep[]>(() => [
+  {
+    key: "material",
+    label: "原始材料",
+    count: props.rawMaterialCount,
+    note: props.rawMaterialCount
+      ? `${props.rawMaterialCount} 条事实带有可追溯材料或来源锚点`
+      : "暂无可公开确认的原始材料锚点",
+  },
+  {
+    key: "place",
+    label: "地点匹配",
+    count: props.placeMatchedCount,
+    note: props.placeMatchedCount
+      ? `${props.placeMatchedCount} 条事实已绑定到当前场所或明确子区域`
+      : "地点匹配依据待补充",
+  },
+  {
+    key: "time",
+    label: "时间确认",
+    count: props.timeConfirmedCount,
+    note: props.timeConfirmedCount
+      ? `${props.timeConfirmedCount} 条事实具有事件时间依据`
+      : "仅有发布时间或未确认事件时间",
+  },
+  {
+    key: "source",
+    label: "来源确认",
+    count: props.sourceCount,
+    note: props.sourceCount ? `${props.sourceCount} 个可追溯来源 / 证据锚点` : "来源待补充",
+  },
+  {
+    key: "review",
+    label: "人工核验",
+    count: props.reviewedCount,
+    note: props.reviewedCount
+      ? `${props.reviewedCount} 条事实已完成人工核验`
+      : "尚未完成人工核验",
+  },
+]);
 
-/** §39：每步状态文字 —— complete / pending。 */
-function stepStatus(p: ProvenanceStep): string {
-  return p.filled ? "已完成" : "待补充";
+function stepStatus(step: ProvenanceStep): string {
+  return step.count > 0 ? "已记录" : "待补充";
 }
 </script>
 
@@ -79,9 +74,12 @@ function stepStatus(p: ProvenanceStep): string {
     class="evidence-section"
     data-testid="evidence-provenance"
     data-ui="evidence-provenance"
-    aria-label="证据来源链"
+    aria-label="现场证据来源链"
   >
-    <h2 class="evidence-section__title">证据来源链</h2>
+    <h2 class="evidence-section__title">现场证据来源链</h2>
+    <p class="muted evidence-section__intro">
+      五个环节分别记录，不会因为“已人工核验”就自动推断地点、时间或来源也已经充分确认。
+    </p>
     <ol class="provenance-rail" data-ui="evidence-prov-rail">
       <span
         class="provenance-rail__line"
@@ -89,28 +87,25 @@ function stepStatus(p: ProvenanceStep): string {
         aria-hidden="true"
       ></span>
       <li
-        v-for="p in provenance"
-        :key="p.key"
+        v-for="step in provenance"
+        :key="step.key"
         class="provenance-step"
-        :class="p.filled ? 'provenance-step--filled' : 'provenance-step--pending'"
-        :data-step-state="p.filled ? 'complete' : 'pending'"
+        :class="step.count > 0 ? 'provenance-step--filled' : 'provenance-step--pending'"
+        :data-step-state="step.count > 0 ? 'complete' : 'pending'"
         data-ui="evidence-prov-step"
       >
-        <span
-          class="provenance-step__mark"
-          aria-hidden="true"
-          data-ui="evidence-prov-marker"
-        ></span>
+        <span class="provenance-step__mark" aria-hidden="true" data-ui="evidence-prov-marker"></span>
         <div class="provenance-step__body">
           <span class="provenance-step__title-row">
-            <span class="provenance-step__label">{{ p.label }}</span>
+            <span class="provenance-step__label">{{ step.label }}</span>
             <span
               class="provenance-step__status"
-              :data-step-state="p.filled ? 'complete' : 'pending'"
-              >{{ stepStatus(p) }}</span
+              :data-step-state="step.count > 0 ? 'complete' : 'pending'"
             >
+              {{ stepStatus(step) }}
+            </span>
           </span>
-          <span class="muted provenance-step__note">{{ p.note }}</span>
+          <span class="muted provenance-step__note">{{ step.note }}</span>
         </div>
       </li>
     </ol>
@@ -130,7 +125,13 @@ function stepStatus(p: ProvenanceStep): string {
   color: var(--pa-color-text-primary);
 }
 
-/* §39: marker col 24px + content column, continuous rail, gap 28–36. */
+.evidence-section__intro {
+  margin: 0 0 var(--pa-space-3);
+  max-width: 680px;
+  font-size: var(--pa-font-size-sm);
+  line-height: var(--pa-line-height-20);
+}
+
 .provenance-rail {
   position: relative;
   margin: 0;
@@ -139,7 +140,6 @@ function stepStatus(p: ProvenanceStep): string {
 }
 
 .provenance-rail__line {
-  content: "";
   position: absolute;
   left: 11px;
   top: 6px;
@@ -155,16 +155,12 @@ function stepStatus(p: ProvenanceStep): string {
   grid-template-columns: 24px 1fr;
   gap: 0 var(--pa-space-3);
   margin-bottom: var(--pa-space-6);
-  background: transparent;
-  border-radius: 0;
-  box-shadow: none;
 }
 
 .provenance-step:last-child {
   margin-bottom: 0;
 }
 
-/* §39 形状：pending = 空心圆 + 中性边框；complete = 实心 accent。 */
 .provenance-step__mark {
   width: 12px;
   height: 12px;
@@ -198,8 +194,12 @@ function stepStatus(p: ProvenanceStep): string {
   font-weight: var(--pa-font-weight-600);
 }
 
-.provenance-step__status {
+.provenance-step__status,
+.provenance-step__note {
   font-size: var(--pa-font-size-sm);
+}
+
+.provenance-step__status {
   color: var(--pa-color-text-muted);
 }
 
@@ -208,7 +208,6 @@ function stepStatus(p: ProvenanceStep): string {
 }
 
 .provenance-step__note {
-  font-size: var(--pa-font-size-sm);
   line-height: var(--pa-line-height-20);
 }
 </style>
