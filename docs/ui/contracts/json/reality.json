@@ -31,9 +31,7 @@
     {
       "id": "REALITY_MAX_WIDTH",
       "ui": "reality-body",
-      "fallbacks": [
-        ".reality-workspace__body"
-      ],
+      "fallbacks": [".reality-workspace__body"],
       "props": {
         "width": {
           "min": 780,
@@ -45,73 +43,55 @@
     {
       "id": "REALITY_RAIL_WIDTH",
       "ui": "reality-rail",
-      "fallbacks": [
-        ".timeline-rail"
-      ],
+      "fallbacks": [".timeline-rail"],
       "props": {
         "width": {
           "equals": 2
         }
       },
       "severity": "FAIL",
-      "pages": [
-        "reality-ready"
-      ]
+      "pages": ["reality-ready"]
     },
     {
       "id": "REALITY_RAIL_CONTINUOUS",
       "ui": "reality-rail",
-      "fallbacks": [
-        ".timeline-rail"
-      ],
+      "fallbacks": [".timeline-rail"],
       "props": {
         "height": {
           "min": 60
         }
       },
       "severity": "FAIL",
-      "pages": [
-        "reality-ready"
-      ]
+      "pages": ["reality-ready"]
     },
     {
       "id": "REALITY_DATE_GROUP_SEP",
       "ui": "timeline-date",
-      "fallbacks": [
-        ".timeline-date"
-      ],
+      "fallbacks": [".timeline-date"],
       "props": {
         "margin": {
           "min": 28
         }
       },
       "severity": "FAIL",
-      "pages": [
-        "reality-ready"
-      ]
+      "pages": ["reality-ready"]
     },
     {
       "id": "REALITY_TIME_COL",
       "ui": "reality-event",
-      "fallbacks": [
-        ".trace-row"
-      ],
+      "fallbacks": [".trace-row"],
       "props": {
         "gridTemplateColumns": {
           "startsWith": "72px 24px"
         }
       },
       "severity": "FAIL",
-      "pages": [
-        "reality-ready"
-      ]
+      "pages": ["reality-ready"]
     },
     {
       "id": "REALITY_TRACE_ROWS",
       "ui": "reality-timeline",
-      "fallbacks": [
-        "[data-testid='trace-observations']"
-      ],
+      "fallbacks": ["[data-testid='trace-observations']"],
       "props": {
         "count": {
           "min": 1
@@ -122,78 +102,56 @@
     {
       "id": "REALITY_EVENT_ROW_COUNT",
       "ui": "reality-event",
-      "fallbacks": [
-        "[data-ui='reality-event'], .trace-row"
-      ],
+      "fallbacks": ["[data-ui='reality-event'], .trace-row"],
       "props": {
         "count": {
           "min": 1
         }
       },
       "severity": "FAIL",
-      "pages": [
-        "reality-ready"
-      ]
+      "pages": ["reality-ready"]
     },
     {
       "id": "REALITY_FIRST_EVENT_TOP",
       "ui": "reality-event",
-      "fallbacks": [
-        ".trace-row"
-      ],
+      "fallbacks": [".trace-row"],
       "props": {
         "top": {
           "max": 360
         }
       },
       "severity": "FAIL",
-      "pages": [
-        "reality-ready"
-      ]
+      "pages": ["reality-ready"]
     }
   ],
   "structure": [
     {
       "id": "REALITY_EVENT_NOT_CARD",
       "selector": "[data-ui='reality-event'], .trace-row",
-      "forbiddenClass": [
-        "panel",
-        "card"
-      ],
+      "forbiddenClass": ["panel", "card"],
       "severity": "FAIL",
-      "pages": [
-        "reality-ready"
-      ]
+      "pages": ["reality-ready"]
     },
     {
       "id": "REALITY_TIME_X_CONSISTENT",
       "selector": ".trace-row__time",
       "xConsistent": true,
       "severity": "FAIL",
-      "pages": [
-        "reality-ready"
-      ]
+      "pages": ["reality-ready"]
     },
     {
       "id": "REALITY_MARKER_X_CONSISTENT",
       "selector": ".trace-row__dot",
       "xConsistent": true,
       "severity": "FAIL",
-      "pages": [
-        "reality-ready"
-      ]
+      "pages": ["reality-ready"]
     },
     {
       "id": "REALITY_EMPTY_COPY",
       "selector": "body",
-      "mustContainTexts": [
-        "暂无近期现场记录",
-        "这并不代表现场没有动物"
-      ],
+      "mustContainTexts": ["暂无近期现场记录", "这并不代表现场没有动物"],
       "severity": "FAIL",
-      "pages": [
-        "reality-empty"
-      ]
+      "pages": ["reality-empty"]
     },
     {
       "id": "REALITY_NO_INVARIANT_TEXT",
@@ -213,9 +171,7 @@
       "selector": "[data-ui='reality-event'], .trace-row",
       "minVisibleInViewport": 1,
       "severity": "FAIL",
-      "pages": [
-        "reality-ready"
-      ]
+      "pages": ["reality-ready"]
     }
   ],
   "density": [
@@ -226,18 +182,14 @@
       "min": 20,
       "max": 28,
       "severity": "FAIL",
-      "pages": [
-        "reality-ready"
-      ]
+      "pages": ["reality-ready"]
     },
     {
       "id": "REALITY_EMPTY_STATE_HAS_ACTIONS",
       "selector": "[data-ui='reality-empty'], [data-testid='trace-empty']",
       "hasOnePrimaryAction": true,
       "severity": "FAIL",
-      "pages": [
-        "reality-empty"
-      ]
+      "pages": ["reality-empty"]
     }
   ],
   "hierarchy": [
