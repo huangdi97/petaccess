@@ -7,8 +7,19 @@ from datetime import UTC, datetime
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session as OrmSession
 
-from app.models import AnimalFacility, ObservedPresence, Place, StaffResponseObservation, WatchSubscription
-from app.models.enums import RealityVerificationStatus, WatchDomain, WatchStatus, WatchTargetType
+from app.models import (
+    AnimalFacility,
+    ObservedPresence,
+    Place,
+    StaffResponseObservation,
+    WatchSubscription,
+)
+from app.models.enums import (
+    RealityVerificationStatus,
+    WatchDomain,
+    WatchStatus,
+    WatchTargetType,
+)
 from app.providers.factory import get_notification_provider
 
 from .celery_app import celery_app
