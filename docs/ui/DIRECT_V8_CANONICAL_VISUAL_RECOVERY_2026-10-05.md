@@ -294,3 +294,49 @@ PetAccess 的差异化不在于“也有地图”，而在于 **Rule + Reality +
 - Place mobile 第一屏已经按照 Coexistence Passport 恢复 Identity actions + Rule + Reality + Space/Evidence summary；因此旧的 30 rendered-line 上限不再是权威。新上限只用于防止继续膨胀，不允许把 Staff/Facility/History 全量塞回第一屏。
 - Map 的状态筛选只属于 Rule Lens；Reality / Facility / Divergence Lens 必须显示完整空间态势，不能为了让旧 filter gate 通过而套用 Rule status filter。
 
+
+
+## 11. 2026-10-06：Human Review 证据模型重置
+
+### 11.1 为什么旧 direct-v8 截图不再有效
+
+`artifacts/ui-direct-craft-v8-local-acceptance/HUMAN_REVIEW/` 保留为历史 runtime 证据，但它拍摄的产品状态已被后续 canonical recovery 明确替代：
+
+- Home 当时缺少完整四任务 lens / recommendation / Coexistence Digest；
+- Map 当时没有以 Rule / Reality / Facility / Divergence 四 Lens 作为一等视图；
+- Place 首屏尚未完整呈现 StaffResponse / AnimalFacility / divergence / 完整 Reality evidence；
+- Reality 仍是旧 Observation-only 表达；
+- Contribution 的代表图包含未登录门禁，而非真实五入口与 structured flow；
+- Evidence 尚未与 v0.9 published Reality event stream 完整对齐。
+
+因此，任何 `UI Direct Validation = green`、旧 Oracle PASS 或上述旧 PNG 都不得再写成
+`UI_HUMAN_VISUAL_ACCEPTANCE = PASS`。
+
+### 11.2 当前 authoritative Web 人审包
+
+唯一 canonical capture 定义：
+
+`tests/ui-oracle/human-review-direct-v8.spec.ts`
+
+输出：
+
+`artifacts/ui-direct-v8/HUMAN_REVIEW/{desktop,mobile}/`
+
+规则：
+
+1. 只有真实 DOM 已出现冻结 archetype 的关键状态/内容，才允许保存截图；
+2. capture 本身只证明“拍到了正确产品状态”，不证明“视觉已经好看”；
+3. manifest 固定标记 `machineValidatedOnly=true`、`humanVisualAcceptance=PENDING`；
+4. 最终 PASS 仍由真人检查当前 HEAD 的 Web / Windows / Android 真实画面后给出。
+
+### 11.3 当前必须一起出现的产品事实
+
+人审不能再只看 Rule verdict。核心 surface 必须同时能检查：
+
+- Rule：当前查询、结论、条件、真实 Rule verification freshness；
+- Reality：animal presence / staff response / animal facility 三类经核验事实；
+- Evidence：Rule 与 Reality 来源/证据并列，Observed / Submitted / Reviewed 时间不混写；
+- Map：四 Lens 共用同一批 Place + CoexistenceSnapshot；
+- Contribution：Rule lead / Place correction / Reality fact 分不同治理通道，Observation 永不自动成为 Rule；
+- Facility：用途确认度、运行状态、使用方式与可用安全属性；Facility 永不推导 EntryPolicy。
+
