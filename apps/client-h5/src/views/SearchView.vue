@@ -125,7 +125,7 @@ const FILTERS = [
   { key: "RESTRICTED", label: "明确限制" },
   { key: "UNKNOWN", label: "信息不足" },
   { key: "CONFLICT", label: "来源不一致" },
-  { key: "verified", label: "已核验" },
+  { key: "verified", label: "规则已核验" },
 ];
 const active = ref<string[]>([]);
 const filterOpen = ref(false);
@@ -142,7 +142,7 @@ const visible = computed(() => {
     if (statusFilters.length) {
       checks.push(statusFilters.includes(statuses.value[p.id] ?? "UNKNOWN"));
     }
-    if (active.value.includes("verified")) checks.push(Boolean(p.rule_count > 0));
+    if (active.value.includes("verified")) checks.push(Boolean(p.last_verified_at));
     return checks.every(Boolean);
   });
   // M3.1 lens ordering — presentation-only sort on server facts.
