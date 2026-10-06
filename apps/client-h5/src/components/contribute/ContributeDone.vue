@@ -13,7 +13,10 @@ defineEmits<{ continue: [] }>();
 <template>
   <section class="done" data-testid="contribute-result">
     <h2 class="done__title">已提交待核验</h2>
-    <p class="done__body">感谢提供事实记录。审核完成前，它不会直接改变场所规则结论。</p>
+    <p class="done__body">{{ msg }}</p>
+    <p class="done__guard">
+      审核完成前，本次提交不会直接改写正式规则、场所基础信息或已发布现场事实。
+    </p>
 
     <div class="done__actions">
       <RouterLink class="btn-inline" :to="{ name: 'mine' }" data-testid="done-mine">
@@ -46,11 +49,17 @@ defineEmits<{ continue: [] }>();
   line-height: var(--pa-line-height-32);
   color: var(--pa-color-text-primary);
 }
-.done__body {
+.done__body,
+.done__guard {
   margin: 0;
   font-size: var(--pa-font-size-base);
   line-height: var(--pa-line-height-23);
   color: var(--pa-color-text-secondary);
+}
+
+.done__guard {
+  font-size: var(--pa-font-size-sm);
+  color: var(--pa-color-text-muted);
 }
 .done__actions {
   display: flex;
