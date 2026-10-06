@@ -8,7 +8,6 @@ import uuid
 
 import pytest
 from fastapi.testclient import TestClient
-
 from sqlalchemy import select
 
 from app.db.session import get_session_factory
