@@ -2,6 +2,7 @@
 /** Contribution entry: five focused transaction launchers, not a generic form. */
 import { type IconName } from "@petaccess/design-tokens";
 import PaIcon from "../ui/PaIcon.vue";
+import ContributionProgress from "./ContributionProgress.vue";
 defineOptions({ name: "ContributeEntry" });
 
 const emit = defineEmits<{
@@ -78,6 +79,7 @@ function choose(opt: EntryOption) {
 
 <template>
   <div data-ui="contribution-flow">
+    <ContributionProgress :step="1" :total="3" />
     <h2 class="entry-question" data-testid="contribute-question">你刚刚知道了什么？</h2>
     <p class="muted entry-hint">选择最接近的一项。</p>
     <ul class="entry-options" role="list">
