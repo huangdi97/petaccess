@@ -9,7 +9,7 @@ from app.core.errors import ApiError, NotFound
 from app.core.security import get_current_user
 from app.db.session import get_db
 from app.models import User, WatchSubscription
-from app.models.enums import WatchStatus
+from app.models.enums import WatchDomain, WatchStatus, WatchTargetType
 from app.schemas.civic import WatchIn, WatchOut
 
 router = APIRouter(tags=["watches"])
@@ -34,6 +34,12 @@ def subscribe(
 ) -> WatchSubscription:
     if not get_settings().feature_watch:
         raise ApiError("关注功能未开放", code="feature_disabled", status_code=403)
+    if body.watch_domain == WatchDomain.REALITY and body.target_type == WatchTargetType.RULE:
+        raise ApiError(
+            "现场更新只能关注场所或区域，不能把一条规范规则当作 Reality 目标",
+            code="invalid_reality_watch_target",
+            status_code=422,
+        )
     existing = db.scalar(
         select(WatchSubscription).where(
             WatchSubscription.user_id == user.id,
