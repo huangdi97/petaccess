@@ -8,13 +8,19 @@ collapsing their semantics or turning one domain into another.
 
 from __future__ import annotations
 
-from datetime import datetime
 from typing import TypedDict
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import AuditLog, Place, RealityCandidate, RealityReport, RuleCandidate, VerificationEvent
+from app.models import (
+    AuditLog,
+    Place,
+    RealityCandidate,
+    RealityReport,
+    RuleCandidate,
+    VerificationEvent,
+)
 
 
 class ContributionActivity(TypedDict):
@@ -157,8 +163,4 @@ def contribution_activity(db: Session, user_id: str) -> list[ContributionActivit
         *_rule_lead_rows(db, user_id),
     ]
 
-    def sort_key(row: ContributionActivity) -> datetime:
-        value = row["created_at"]
-        return datetime.fromisoformat(value) if value else datetime.min
-
-    return sorted(rows, key=sort_key, reverse=True)[:100]
+    return sorted(rows, key=lambda row: row["created_at"] or "", reverse=True)[:100]
