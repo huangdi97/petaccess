@@ -147,6 +147,10 @@ const MASS = [
       />
     </svg>
 
+    <span class="map-provider muted" data-testid="map-provider-fallback">
+      简化空间底图
+    </span>
+
     <div class="map-zoom" data-testid="map-zoom" data-ui="map-zoom" role="group" aria-label="缩放">
       <button
         type="button"
@@ -268,7 +272,7 @@ const MASS = [
   opacity: 0.65;
 }
 
-/* 缩放控件：空间感 affordance（mock 阶段为展示性控件）。 */
+/* 缩放控件：mock fallback 也保持真实交互，不展示道具按钮。 */
 .map-zoom {
   position: absolute;
   right: var(--pa-space-3);
@@ -293,6 +297,18 @@ const MASS = [
 .map-zoom button:disabled {
   cursor: default;
   opacity: 0.45;
+}
+
+.map-provider {
+  position: absolute;
+  left: var(--pa-space-3);
+  bottom: var(--pa-space-2);
+  z-index: 2;
+  padding: 2px var(--pa-space-1);
+  border-radius: var(--pa-radius-sm);
+  background: color-mix(in srgb, var(--pa-color-surface) 88%, transparent);
+  font-size: var(--pa-font-size-xs);
+  pointer-events: none;
 }
 
 /* ---- pins ---- */
