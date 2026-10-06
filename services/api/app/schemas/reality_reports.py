@@ -63,6 +63,18 @@ class RealityContributionIn(BaseModel):
     external_content: ExternalContentReferenceIn | None = None
 
 
+class ContributionActivityOut(BaseModel):
+    """One user-owned contribution transaction across governed data lanes."""
+
+    id: str
+    kind: str
+    place_id: str | None = None
+    place_name: str | None = None
+    created_at: datetime | None = None
+    status: str
+    summary: str
+
+
 class RealityCandidateBrief(BaseModel):
     """Candidate receipt returned after creation (no internal fields)."""
 
