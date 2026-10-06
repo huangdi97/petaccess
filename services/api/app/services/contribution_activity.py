@@ -37,6 +37,21 @@ def _enum_text(value: object | None) -> str:
     return str(getattr(value, "value", value or ""))
 
 
+def _review_status_label(value: object | None) -> str:
+    labels = {
+        "DISCOVERED": "已收到",
+        "EXTRACTED": "整理中",
+        "MATCH_PENDING": "等待地点匹配",
+        "REVIEW_PENDING": "等待人工复核",
+        "APPROVED": "已通过复核",
+        "PUBLISHED": "已发布为正式规则",
+        "REJECTED": "未采纳",
+        "SUPERSEDED": "已被后续版本替代",
+    }
+    raw = _enum_text(value)
+    return labels.get(raw, "处理中" if raw else "已提交")
+
+
 def _place_names(db: Session, place_ids: set[str]) -> dict[str, str]:
     if not place_ids:
         return {}
@@ -68,11 +83,12 @@ def _reality_rows(db: Session, user_id: str) -> list[ContributionActivity]:
             labels.get(_enum_text(candidate.candidate_type), "现场信息")
             for candidate in candidates
         ) or "现场信息"
-        status = (
-            "等待人工核验"
-            if any(candidate.review_status == "REVIEW_PENDING" for candidate in candidates)
-            else _enum_text(report.moderation_state) or "已提交"
-        )
+        if any(candidate.review_status == "REVIEW_PENDING" for candidate in candidates):
+            status = "等待人工核验"
+        elif candidates:
+            status = _review_status_label(candidates[0].review_status)
+        else:
+            status = "已提交"
         out.append(
             {
                 "id": report.id,
@@ -147,9 +163,7 @@ def _rule_lead_rows(db: Session, user_id: str) -> list[ContributionActivity]:
                 "place_id": candidate.place_id,
                 "place_name": place_names.get(candidate.place_id or ""),
                 "created_at": audit.created_at.isoformat() if audit.created_at else None,
-                "status": "等待人工复核"
-                if candidate.review_status == "REVIEW_PENDING"
-                else candidate.review_status,
+                "status": _review_status_label(candidate.review_status),
                 "summary": "规则变化线索" if changed else "新规则线索",
             }
         )
