@@ -147,9 +147,7 @@ const MASS = [
       />
     </svg>
 
-    <span class="map-provider muted" data-testid="map-provider-fallback">
-      简化空间底图
-    </span>
+    <span class="map-provider muted" data-testid="map-provider-fallback"> 简化空间底图 </span>
 
     <div class="map-zoom" data-testid="map-zoom" data-ui="map-zoom" role="group" aria-label="缩放">
       <button
