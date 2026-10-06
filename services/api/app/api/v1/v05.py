@@ -91,8 +91,8 @@ class ConsumerRuleLeadIn(BaseModel):
     """Structured consumer rule lead. Creates a candidate, never a Rule."""
 
     zone_id: str | None = None
-    animal_scope: AnimalScope = AnimalScope.ORDINARY_PET
-    effect: RuleEffect
+    animal_scope: AnimalScope | None = None
+    effect: RuleEffect | None = None
     proposed_conditions: list[str] = Field(default_factory=list)
     raw_text: str | None = Field(default=None, max_length=4000)
     media_id: str | None = None
@@ -156,6 +156,19 @@ def contribute_rule_lead(
             )
         candidate_zone_id = current.zone_id
 
+    if body.effect is None and not body.media_id:
+        raise ApiError(
+            "规则线索需要结构化结论，或至少提供规则牌 / 公告证据",
+            code="rule_lead_missing_fact_or_evidence",
+            status_code=422,
+        )
+    if body.effect is not None and body.animal_scope is None:
+        raise ApiError(
+            "结构化规则线索需要明确适用动物；不确定时可只提交规则牌证据",
+            code="rule_lead_missing_animal_scope",
+            status_code=422,
+        )
+
     media: MediaObject | None = None
     if body.media_id:
         media = db.get(MediaObject, body.media_id)
@@ -191,23 +204,25 @@ def contribute_rule_lead(
     db.add(source)
     db.flush()
 
+    structured = body.effect is not None and body.animal_scope is not None
     candidate = create_from_extraction(
         db,
         source_id=source.id,
         place_id=place_id,
         zone_id=candidate_zone_id,
-        animal_scope=body.animal_scope.value,
-        action="enter",
-        effect=body.effect.value,
+        animal_scope=body.animal_scope.value if body.animal_scope else None,
+        action="enter" if structured else None,
+        effect=body.effect.value if body.effect else None,
         proposed_conditions=[
             {"condition_type": condition} for condition in body.proposed_conditions
         ],
-        extraction_method="manual",
+        extraction_method="manual" if structured else "user_upload",
         raw_text=body.raw_text,
         media_id=body.media_id,
         supersedes_rule_id=body.current_rule_id,
     )
-    transition(candidate, "REVIEW_PENDING")
+    if candidate.review_status == "MATCH_PENDING":
+        transition(candidate, "REVIEW_PENDING")
     record_audit(
         db,
         request=None,
@@ -223,6 +238,7 @@ def contribute_rule_lead(
             "consumer_rule_lead": True,
             "current_rule_id": body.current_rule_id,
             "has_media": bool(media),
+            "structured": structured,
         },
     )
     db.commit()
