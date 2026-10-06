@@ -67,10 +67,7 @@ async function save() {
       description="宠物档案属于你的私有查询上下文。公开场所规则与现场事实仍可免登录浏览。"
     >
       <template #action>
-        <RouterLink
-          class="btn primary"
-          :to="{ name: 'onboarding', query: { next: '/pet/new' } }"
-        >
+        <RouterLink class="btn primary" :to="{ name: 'onboarding', query: { next: '/pet/new' } }">
           登录 / 注册
         </RouterLink>
       </template>
