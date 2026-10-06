@@ -609,11 +609,7 @@ export const client = {
     zone_id?: string | null;
     rule_id?: string | null;
     event_type?:
-      | "rule_confirmed"
-      | "rule_changed"
-      | "signage_uploaded"
-      | "field_check"
-      | "place_correction";
+      "rule_confirmed" | "rule_changed" | "signage_uploaded" | "field_check" | "place_correction";
     result: "still_valid" | "changed" | "uncertain";
     note?: string | null;
     evidence_refs?: { media_id: string; purpose?: string }[] | null;
@@ -656,11 +652,7 @@ export const client = {
     >("get", `/places/${placeId}/verifications`);
     return res.items;
   },
-  async watch(
-    targetType: string,
-    targetId: string,
-    watchDomain: "rule" | "reality" = "rule",
-  ) {
+  async watch(targetType: string, targetId: string, watchDomain: "rule" | "reality" = "rule") {
     return api.request<WatchView>("post", "/watches", {
       body: {
         watch_domain: watchDomain,
