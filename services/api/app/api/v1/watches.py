@@ -1,7 +1,7 @@
 """Watch subscription endpoints (design #24, GOAL #16)."""
 
 from fastapi import APIRouter, Depends
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
@@ -40,6 +40,7 @@ def subscribe(
             code="invalid_reality_watch_target",
             status_code=422,
         )
+    baseline = db.scalar(select(func.now()))
     existing = db.scalar(
         select(WatchSubscription).where(
             WatchSubscription.user_id == user.id,
@@ -51,6 +52,7 @@ def subscribe(
     if existing:
         if existing.status == WatchStatus.UNSUBSCRIBED:
             existing.status = WatchStatus.ACTIVE
+            existing.last_notified_at = baseline
             db.commit()
             db.refresh(existing)
         return existing
@@ -60,6 +62,7 @@ def subscribe(
         target_type=body.target_type,
         target_id=body.target_id,
         channels=body.channels,
+        last_notified_at=baseline,
     )
     db.add(sub)
     db.commit()
