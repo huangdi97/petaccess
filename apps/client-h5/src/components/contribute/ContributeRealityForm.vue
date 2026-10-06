@@ -51,6 +51,7 @@ const staffRole = ref("unknown_staff");
 const staffAction = ref("unknown");
 const staffAwareness = ref("awareness_unknown");
 const staffOutcome = ref("");
+const staffPolicyStatement = ref("");
 const facilityType = ref("");
 const facilityOperational = ref("unknown");
 const facilityPurpose = ref("purpose_unknown");
@@ -245,6 +246,7 @@ async function submit() {
       staffAction: staffAction.value,
       staffAwareness: staffAwareness.value,
       staffOutcome: staffOutcome.value,
+      staffPolicyStatement: staffPolicyStatement.value,
       facilityType: facilityType.value,
       facilityOperational: facilityOperational.value,
       facilityPurpose: facilityPurpose.value,
@@ -510,6 +512,19 @@ async function submit() {
             placeholder="一两句话即可，不填也可以"
             id="reality-staff-outcome"
           />
+
+          <label for="reality-staff-statement">工作人员明确原话（可选）</label>
+          <textarea
+            id="reality-staff-statement"
+            v-model="staffPolicyStatement"
+            rows="3"
+            maxlength="500"
+            placeholder="只填写你能确认的原话；不确定就留空"
+            data-testid="reality-staff-statement"
+          />
+          <p class="muted source-note">
+            原话会作为具体事件的核验材料；即使审核通过，也不会自动成为运营方正式政策。
+          </p>
         </template>
 
         <template v-else>
@@ -709,7 +724,8 @@ async function submit() {
   line-height: var(--pa-line-height-20);
 }
 .cluster input,
-.cluster select {
+.cluster select,
+.cluster textarea {
   min-height: var(--pa-size-control-md);
   border: var(--pa-border-width) solid var(--pa-color-border-strong);
   border-radius: var(--pa-radius-control);
