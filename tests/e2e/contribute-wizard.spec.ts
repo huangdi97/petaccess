@@ -188,6 +188,42 @@ test("A2.2 — 规则线索进入 RuleCandidate review，而不是 Observation/R
   });
 });
 
+test("A2.2b — 规则牌可独立提交证据，不要求用户先解释准入结论", async ({
+  page,
+  request,
+}) => {
+  const token = await signIn(request);
+  await page.addInitScript((t) => localStorage.setItem("pa_token", t), token);
+  await page.goto(`${BASE}/#/contribute/${MALL_ID}`, { waitUntil: "load" });
+  await page.getByTestId("entry-rule").click();
+  await page.getByTestId("rule-intent-signage").click();
+
+  // Valid 1×1 PNG: the flow is tested as an evidence upload, not as an OCR-quality test.
+  const png = Buffer.from(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl8WQAAAABJRU5ErkJggg==",
+    "base64",
+  );
+  await page.getByTestId("rule-evidence-file").setInputFiles({
+    name: "signage.png",
+    mimeType: "image/png",
+    buffer: png,
+  });
+  await expect(page.getByTestId("rule-upload-msg")).toBeVisible({ timeout: 15000 });
+
+  const verificationRequest = page.waitForRequest(
+    (r) => r.method() === "POST" && r.url().endsWith("/api/v1/verifications"),
+  );
+  await page.getByTestId("rule-submit").click();
+  const body = (await verificationRequest).postDataJSON() as Record<string, unknown>;
+  expect(body.event_type).toBe("signage_uploaded");
+  expect(body.result).toBe("uncertain");
+  expect(body.rule_id).toBeNull();
+  expect(Array.isArray(body.evidence_refs)).toBeTruthy();
+  await expect(page.getByTestId("contribute-result")).toContainText("不会自动生成", {
+    timeout: 15000,
+  });
+});
+
 test("A2.3 — 场所纠错只提交 review lead，不直接修改场所", async ({ page, request }) => {
   const token = await signIn(request);
   await page.addInitScript((t) => localStorage.setItem("pa_token", t), token);
