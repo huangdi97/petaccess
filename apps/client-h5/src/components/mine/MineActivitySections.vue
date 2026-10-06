@@ -8,20 +8,31 @@ type Contribution = Awaited<ReturnType<typeof client.myRealityContributions>>[nu
 
 defineProps<{ watches: Watch[]; contributions: Contribution[] }>();
 
-const WATCH_LABELS: Record<string, string> = {
-  place: "场所规则变化",
-  zone: "区域规则变化",
-  rule: "规则变化",
-  regulation: "法规变化",
+const WATCH_TARGET_LABELS: Record<string, string> = {
+  place: "场所",
+  zone: "区域",
+  rule: "具体规则",
+  regulation: "法规",
 };
+
+function watchLabel(watch: Watch): string {
+  const target = WATCH_TARGET_LABELS[watch.target_type] ?? "关注对象";
+  return watch.watch_domain === "reality" ? `${target} · 现场更新` : `${target} · 规则变化`;
+}
+
+function watchHint(watch: Watch): string {
+  return watch.watch_domain === "reality"
+    ? "等待新的经核验现场事实、工作人员处理或设施变化"
+    : "等待经过 Review 的正式规则版本变化";
+}
 </script>
 
 <template>
   <section class="mine-section">
     <div class="mine-section__head">
       <div>
-        <h2>关注的规则变化</h2>
-        <p class="muted">只显示你主动关注的变化，不把它们解释成新的准入结论。</p>
+        <h2>关注的变化</h2>
+        <p class="muted">规则变化与现场更新分开关注；任何提醒都不会被自动解释成新的准入结论。</p>
       </div>
       <RouterLink class="btn-inline" to="/notifications" data-testid="open-notifications">
         通知中心 →
@@ -30,8 +41,8 @@ const WATCH_LABELS: Record<string, string> = {
 
     <div v-for="watch in watches" :key="watch.id" class="mine-row">
       <div class="mine-row__body">
-        <strong>{{ WATCH_LABELS[watch.target_type] ?? "已关注的规则变化" }}</strong>
-        <span class="muted">等待后续规则版本更新</span>
+        <strong>{{ watchLabel(watch) }}</strong>
+        <span class="muted">{{ watchHint(watch) }}</span>
       </div>
     </div>
     <p v-if="!watches.length" class="mine-empty">暂无关注。</p>
