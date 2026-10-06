@@ -22,7 +22,7 @@ const emit = defineEmits<{
 
 const cards = computed(() => [...props.verified, ...props.pending]);
 const recommendationTitle = computed(() =>
-  props.interest ? "按你的关注先看" : "近期有依据的场所",
+  props.interest ? "按你的关注推荐" : "近期值得先看",
 );
 
 function hasUsefulFact(card: HomeCard): boolean {
