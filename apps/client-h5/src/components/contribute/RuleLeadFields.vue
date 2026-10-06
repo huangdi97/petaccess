@@ -1,5 +1,5 @@
 <script setup lang="ts">
-type RuleIntent = "still_valid" | "changed" | "new_lead";
+type RuleIntent = "still_valid" | "changed" | "signage" | "new_lead";
 
 defineProps<{ zones: { id: string; name: string }[] }>();
 
@@ -16,7 +16,8 @@ const conditions = defineModel<string[]>("conditions", { required: true });
 const INTENTS = [
   { key: "still_valid", label: "页面规则仍然如此", hint: "确认已收录规则目前仍与现场一致" },
   { key: "changed", label: "页面规则已经变化", hint: "指出现在了解到的新情况" },
-  { key: "new_lead", label: "我看到或了解到一条规则", hint: "提交新的规则线索，等待人工核验" },
+  { key: "signage", label: "我拍到了规则牌 / 公告", hint: "只提交证据也可以，不要求你先解释规则" },
+  { key: "new_lead", label: "我知道或了解到一条规则", hint: "提交新的规则线索，等待人工核验" },
 ] as const;
 
 const CONDITION_OPTIONS = [
@@ -54,7 +55,7 @@ function toggleCondition(key: string) {
     </button>
   </div>
 
-  <div v-if="intent !== 'still_valid'" class="rule-fields" data-ui="rule-lead-fields">
+  <div v-if="intent === 'changed' || intent === 'new_lead'" class="rule-fields" data-ui="rule-lead-fields">
     <h3>你现在了解到的规则</h3>
     <label for="rule-known">结论</label>
     <select id="rule-known" v-model="effect" data-testid="rule-known">
