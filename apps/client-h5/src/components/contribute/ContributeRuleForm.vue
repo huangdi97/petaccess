@@ -81,6 +81,7 @@ async function submit() {
       await client.contributeRuleLead(props.placeId, {
         zone_id: zone.value || null,
         raw_text: rawText,
+        source_basis: "onsite_signage",
         media_id: mediaId.value,
         ...proximity(),
       });
@@ -122,6 +123,14 @@ async function submit() {
       effect: canonicalEffect,
       proposed_conditions: conditions.value,
       raw_text: `规则线索：${effectLabel}；来源：${sourceBasisLabel}；区域：${zoneLabel}；条件：${conditionLabel}${evidenceNote}`,
+      source_basis:
+        sourceBasis.value === "onsite_signage" ||
+        sourceBasis.value === "staff_statement" ||
+        sourceBasis.value === "official_online" ||
+        sourceBasis.value === "other" ||
+        sourceBasis.value === "uncertain"
+          ? sourceBasis.value
+          : "uncertain",
       media_id: mediaId.value,
       current_rule_id: intent.value === "changed" ? selectedRuleId.value || null : null,
       ...proximity(),
