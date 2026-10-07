@@ -15,7 +15,10 @@
  *     zone facts surfaced), never the domain facts themselves.
  */
 import { expect, test } from "@playwright/test";
-import { currentQueryContext, snapshotKey } from "../../apps/client-h5/src/consumer/repository";
+import {
+  currentQueryContext,
+  snapshotKey,
+} from "../../apps/client-h5/src/consumer/repository";
 import { lensOrderScore } from "../../apps/client-h5/src/consumer/rowView";
 import { session } from "../../packages/client-core/src/index";
 
@@ -229,7 +232,9 @@ test("C5: lens changes consumer projection without changing domain facts", async
   await expect(indoorRow.locator("[data-testid=row-lens-headline]")).toContainText(
     "室内区域有经核验动物出现",
   );
-  await expect(indoorRow.locator("[data-testid=row-lens-headline]")).toContainText("一层公共区域");
+  await expect(indoorRow.locator("[data-testid=row-lens-headline]")).toContainText(
+    "一层公共区域",
+  );
 
   await page.goto("/#/search?lens=dining");
   await page.getByTestId("search-input").fill("契约");
@@ -238,7 +243,9 @@ test("C5: lens changes consumer projection without changing domain facts", async
   await expect(diningRow.locator("[data-testid=row-lens-headline]")).toContainText(
     "餐饮区域有经核验动物出现",
   );
-  await expect(diningRow.locator("[data-testid=row-lens-headline]")).toContainText("餐饮堂食区");
+  await expect(diningRow.locator("[data-testid=row-lens-headline]")).toContainText(
+    "餐饮堂食区",
+  );
   await expect(diningRow.locator("[data-testid=row-lens-headline]")).not.toContainText(
     "一层公共区域",
   );
