@@ -354,6 +354,7 @@ PetAccess 的差异化不在于“也有地图”，而在于 **Rule + Reality +
 - **Evidence**：Rule evidence 与完整 Reality layer provenance 并列；Observed / Submitted / Reviewed 时间保持不同字段，外部内容只有发布时间时不得伪装成现场发生时间。
 - **Contribution**：Rule confirmation / changed-rule lead / new-rule lead / signage evidence、Reality facts、Place correction 各走自己的治理通道；Rule lead 不写 Observation；“不知道正确值”是合法纠错输入；所有结果先进入 review。
 - **Secondary surfaces**：Mine / Notifications 将 Rule watch 与 Reality watch 分开；Privacy 对尚未实现的服务端账号删除/导出流程明确写不可用，不用本地按钮伪装已提交。
+- **Dispute / correction**：Published Reality fact 的异议不删除事实、不修改 Rule；Evidence 与 timeline 显示“异议处理中”，presence 异议会把 Reality summary 降级为 DISPUTED，StaffResponse / Facility 的 open dispute count 继续投影到 Place Overview / Space / Map Facility Lens，避免把有争议事实伪装成干净摘要。
 
 ### 12.1 Human-review runner 纪律
 
