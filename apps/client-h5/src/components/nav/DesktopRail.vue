@@ -144,7 +144,8 @@ const compactVersion = version.split("-")[0]!.split(".").slice(0, 2).join(".");
   border-radius: var(--pa-radius-control);
   background: var(--pa-color-accent);
   color: var(--pa-color-text-inverse);
-  box-shadow: inset 0 0 0 var(--pa-border-width) color-mix(in srgb, var(--pa-color-text-inverse) 24%, transparent);
+  box-shadow: inset 0 0 0 var(--pa-border-width)
+    color-mix(in srgb, var(--pa-color-text-inverse) 24%, transparent);
 }
 
 .desktop-rail__group {
