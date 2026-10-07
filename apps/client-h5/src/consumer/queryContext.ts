@@ -17,8 +17,11 @@ const SERVICE_ROLE_LABELS: Record<string, string> = {
 export function queryAnimalLabel(): string {
   if (session.mode === "service_dog") {
     const role = session.declaredRole ?? session.activePet?.declared_role ?? "";
-    return SERVICE_ROLE_LABELS[role] ?? "服务犬";
+    return SERVICE_ROLE_LABELS[role] ?? "服务犬（角色未细分）";
   }
+  if (session.activePet?.service_role === "working") return "服务犬（角色未细分）";
+  if (session.activePet?.service_role === "in_training") return "服务犬（训练中）";
+  if (session.activePet?.service_role === "unknown") return "服务犬身份未确认";
   const species = session.activePet?.species ?? "dog";
   return species === "dog" ? "普通犬" : species === "cat" ? "猫" : "其他宠物";
 }
@@ -26,7 +29,10 @@ export function queryAnimalLabel(): string {
 export function querySubjectLabel(): string {
   if (session.mode === "service_dog") {
     const role = session.declaredRole ?? session.activePet?.declared_role ?? "";
-    return SERVICE_ROLE_LABELS[role] ?? "服务犬（角色未细分）";
+    const label = SERVICE_ROLE_LABELS[role] ?? "服务犬（角色未细分）";
+    return session.activePet?.service_role === "working"
+      ? `${session.activePet.display_name}（${label}）`
+      : label;
   }
 
   const animal = queryAnimalLabel();
