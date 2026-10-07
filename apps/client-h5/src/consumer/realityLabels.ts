@@ -81,6 +81,19 @@ export function staffAwarenessLabel(value: string | null | undefined): string {
   return STAFF_AWARENESS_LABELS[value ?? ""] ?? "是否被工作人员注意到尚不明确";
 }
 
+/** Aggregate copy must retain awareness for "no intervention observed". */
+export function staffResponseSummaryLabel(
+  action: string | null | undefined,
+  awareness: string | null | undefined,
+): string {
+  if (action === "no_intervention_observed") {
+    return awareness === "awareness_confirmed"
+      ? "已注意到，本次未观察到进一步处理"
+      : "本次未观察到工作人员处理";
+  }
+  return staffActionLabel(action);
+}
+
 /** Facility operational states (FacilityOperationalState). */
 export const FACILITY_STATE_LABELS: Record<string, string> = {
   active: "正常使用中",
