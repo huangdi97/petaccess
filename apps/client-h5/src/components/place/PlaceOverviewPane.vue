@@ -20,7 +20,7 @@ import {
 } from "../../consumer/labels";
 import { answerConditions, answerStatusKey, answerVerdictLabel } from "../../answer";
 import { coexistenceRealityLine } from "../../consumer/rowView";
-import { queryAnimalLabel, querySubjectLabel } from "../../consumer/queryContext";
+import { querySubjectLabel } from "../../consumer/queryContext";
 import { divergenceLabel } from "../../reality";
 import StatusBadge from "../StatusBadge.vue";
 
@@ -42,7 +42,6 @@ const conditions = computed(() => answerConditions(props.answer));
 const keyCondition = computed(() => conditions.value[0] ?? "");
 const verdict = computed(() => answerVerdictLabel(props.answer));
 const statusKey = computed(() => answerStatusKey(props.answer));
-const speciesLabel = computed(() => queryAnimalLabel());
 const querySubject = computed(() => `查询对象：${querySubjectLabel()}`);
 const realityLine = computed(() =>
   coexistenceRealityLine(props.coexistence, props.coexistence?.reality_answer),
@@ -113,7 +112,7 @@ const divergenceLine = computed(() => {
       <h2 class="place-section__title">规则</h2>
       <div class="sub-answer sub-answer--mine" data-testid="answer">
         <p v-if="desktop" class="muted sub-answer__context" data-testid="answer-context">
-          {{ querySubject }} · {{ speciesLabel }} · 进入 · 公共区域
+          {{ querySubject }} · 进入 · 公共区域
         </p>
         <StatusBadge :semantic="statusKey" />
         <p class="status" data-testid="answer-status">{{ verdict }}</p>
