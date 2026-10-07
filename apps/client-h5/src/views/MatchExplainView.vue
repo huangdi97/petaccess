@@ -14,7 +14,7 @@ import BoundaryMatchPanel from "../components/explain/BoundaryMatchPanel.vue";
 import ExplainResultPanel from "../components/explain/ExplainResultPanel.vue";
 import StateMessage from "../components/StateMessage.vue";
 import { consumerExplanation } from "../consumer/explanation";
-import { snapshotFor } from "../consumer/repository";
+import { currentQueryContext, snapshotFor } from "../consumer/repository";
 import { divergenceLabel, FRESHNESS_LABELS, realityStateLabel } from "../reality";
 import { presentDescription } from "../errors";
 
@@ -97,6 +97,11 @@ watch(
   },
   { immediate: true },
 );
+
+watch(currentQueryContext, () => {
+  if (!placeId.value || busy.value) return;
+  void resolveRules();
+});
 </script>
 
 <template>
