@@ -32,7 +32,9 @@ const emit = defineEmits<{
       :data-testid="'entry-' + e.key"
       @click="emit('select', e.key)"
     >
-      <PaIcon :name="e.icon" size="lg" class="entry-icon" />
+      <span class="entry-icon-shell" aria-hidden="true">
+        <PaIcon :name="e.icon" size="md" class="entry-icon" />
+      </span>
       <span class="entry-label">{{ e.label }}</span>
       <span class="entry-hint">{{ e.hint }}</span>
       <span class="entry-arrow" aria-hidden="true">→</span>
@@ -70,8 +72,20 @@ const emit = defineEmits<{
   color: var(--pa-color-accent);
 }
 
-.entry-icon {
+.entry-icon-shell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  border-radius: var(--pa-radius-control);
+  background: var(--pa-color-accent-weak);
   color: var(--pa-color-accent);
+}
+
+.entry-icon {
+  color: currentColor;
   flex-shrink: 0;
 }
 
