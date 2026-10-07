@@ -92,11 +92,12 @@ const facilitySummaryLine = computed(() => {
   const confirmed = rows.find((item) => facilityPurposeIsConfirmed(item.purpose_state));
   const item = confirmed ?? rows[0];
   if (!item) return "暂无经核验的动物设施记录";
+  const location = item.zone_name ? `${item.zone_name} · ` : "";
   const verified = item.last_verified_at ? ` · 核验 ${item.last_verified_at.slice(0, 10)}` : "";
   const label = facilityPurposeIsConfirmed(item.purpose_state)
     ? animalFacilityLabel(item.facility_type)
     : "疑似动物相关设施 · 用途待核验";
-  return `${label} × ${item.count}${verified}`;
+  return `${location}${label} × ${item.count}${verified}`;
 });
 
 const divergenceLine = computed(() => {
