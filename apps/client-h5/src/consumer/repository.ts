@@ -81,12 +81,16 @@ export interface QueryContext {
 export function currentQueryContext(): QueryContext {
   // service-dog mode asks as a working (assistance) dog even without a pet
   // profile (mirrors PlaceView.queryServiceRole, ADR-025).
-  const serviceRole =
-    session.mode === "service_dog" ? "working" : (session.activePet?.service_role ?? "none");
+  const serviceDogQuery = session.mode === "service_dog";
+  const serviceRole = serviceDogQuery ? "working" : (session.activePet?.service_role ?? "none");
   return {
-    animal: session.activePet?.species ?? "dog",
+    // Service-dog mode is always a dog query. Reusing an active cat/other pet
+    // here would create an impossible animal=cat + service_role=working request.
+    animal: serviceDogQuery ? "dog" : (session.activePet?.species ?? "dog"),
     service_role: serviceRole,
-    declared_role: session.activePet?.declared_role ?? null,
+    declared_role: serviceDogQuery
+      ? (session.declaredRole ?? session.activePet?.declared_role ?? null)
+      : null,
     action: "enter",
     zone_id: null,
   };
