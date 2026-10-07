@@ -33,6 +33,8 @@ const {
   loading,
   error,
   locationState,
+  mapSearchLoading,
+  mapSearchError,
   view,
   selected,
   isDesktop,
@@ -45,7 +47,7 @@ const {
   load,
   open,
   onSelectCluster,
-  goSearch,
+  searchMap,
   syncRoutePlace,
 } = useMapWorkspace();
 const router = useRouter();
@@ -199,9 +201,11 @@ function chooseMapResult(id: string) {
         :coverage-text="coverage.text"
         :location-state="locationState"
         :filters="activeFilters"
+        :search-loading="mapSearchLoading"
+        :search-error="mapSearchError"
         @update:filters="activeFilters = $event"
         @locate="locate"
-        @search="goSearch"
+        @search="searchMap"
         @open="chooseMapResult"
         @retry="load"
         @clear-filters="activeFilters = []"
