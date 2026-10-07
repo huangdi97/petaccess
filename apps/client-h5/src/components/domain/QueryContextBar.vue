@@ -8,12 +8,7 @@
  * Consumer question instead of being fake controls.
  */
 import { computed, ref } from "vue";
-import {
-  client,
-  session,
-  type PetView,
-  type QueryMode,
-} from "@petaccess/client-core";
+import { client, session, type PetView, type QueryMode } from "@petaccess/client-core";
 import PaDialog from "../ui/PaDialog.vue";
 import { presentDescription } from "../../errors";
 
@@ -137,7 +132,12 @@ function selectServiceRole(event: Event) {
           </div>
           <p v-if="loadingPets" class="muted query-context__hint">正在读取宠物档案…</p>
           <p v-else-if="petError" class="query-context__error">{{ petError }}</p>
-          <div v-else-if="pets.length" class="query-context__pets" role="group" aria-label="宠物档案">
+          <div
+            v-else-if="pets.length"
+            class="query-context__pets"
+            role="group"
+            aria-label="宠物档案"
+          >
             <button
               v-for="pet in pets"
               :key="pet.id"
@@ -182,8 +182,14 @@ function selectServiceRole(event: Event) {
         <section class="query-context__section" aria-label="当前固定查询范围">
           <h3>当前问题</h3>
           <dl class="query-context__facts">
-            <div><dt>动作</dt><dd>进入</dd></div>
-            <div><dt>范围</dt><dd>场所公共区域</dd></div>
+            <div>
+              <dt>动作</dt>
+              <dd>进入</dd>
+            </div>
+            <div>
+              <dt>范围</dt>
+              <dd>场所公共区域</dd>
+            </div>
           </dl>
           <p class="muted query-context__hint">
             具体楼层、餐饮区或其他 Zone 的规则在场所档案中单独查看，不会被 place-level 结论覆盖。
@@ -192,7 +198,12 @@ function selectServiceRole(event: Event) {
       </div>
 
       <template #actions>
-        <button type="button" class="primary" data-testid="query-context-done" @click="open = false">
+        <button
+          type="button"
+          class="primary"
+          data-testid="query-context-done"
+          @click="open = false"
+        >
           完成
         </button>
       </template>
