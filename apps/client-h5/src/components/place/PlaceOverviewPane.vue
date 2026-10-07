@@ -15,7 +15,7 @@ import type { AccessAnswer, CoexistenceSnapshot, Zone } from "@petaccess/client-
 import {
   animalFacilityLabel,
   facilityPurposeIsConfirmed,
-  staffActionLabel,
+  staffResponseSummaryLabel,
   zoneConsumerLine,
 } from "../../consumer/labels";
 import { answerConditions, answerStatusKey, answerVerdictLabel } from "../../answer";
@@ -79,7 +79,7 @@ const staffSummaryLine = computed(() => {
   if (!rows.length) return "暂无经核验的工作人员处理记录";
   return rows
     .slice(0, 2)
-    .map((item) => `${staffActionLabel(item.response_action)} × ${item.count}`)
+    .map((item) => `${staffResponseSummaryLabel(item.response_action, item.staff_awareness_state)} × ${item.count}`)
     .join(" · ");
 });
 
