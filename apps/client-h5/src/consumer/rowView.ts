@@ -107,8 +107,8 @@ export function recentLineFor(reality: RealityAnswer | null | undefined): string
  *
  *   presence → Reality-first (headline = reality line)
  *   rules    → Rule-first (headline = rule conclusion)
- *   indoor   → zone facts surfaced from reality_answer.observed_zones
- *   dining   → zone facts surfaced from reality_answer.observed_zones
+ *   indoor   → only verified facts whose Zone is INDOOR
+ *   dining   → only verified facts whose ZoneType is DINING_AREA
  */
 export interface LensProjection {
   headline: "rule" | "reality";
@@ -118,6 +118,51 @@ export interface LensProjection {
   zoneFacts: string[];
 }
 
+function exactZoneFacts(
+  lens: ConsumerLens,
+  reality: RealityAnswer | null | undefined,
+): string[] {
+  const rows = reality?.observed_zone_facts ?? [];
+  if (lens === "indoor") {
+    return rows
+      .filter((item) => item.indoor_outdoor === "indoor")
+      .map((item) => item.name);
+  }
+  if (lens === "dining") {
+    return rows
+      .filter((item) => item.zone_type === "dining_area")
+      .map((item) => item.name);
+  }
+  return [];
+}
+
+function hasExactZoneFacet(
+  lens: ConsumerLens,
+  reality: RealityAnswer | null | undefined,
+): boolean {
+  if (!reality) return false;
+  if (exactZoneFacts(lens, reality).length > 0) return true;
+  // Backward-compatible aggregate facets are allowed only as a yes/no signal.
+  // We never guess a Zone name from independent arrays.
+  if (lens === "indoor") return (reality.observed_indoor_outdoor ?? []).includes("indoor");
+  if (lens === "dining") return (reality.observed_zone_types ?? []).includes("dining_area");
+  return false;
+}
+
+function spatialLensLine(
+  lens: ConsumerLens,
+  reality: RealityAnswer | null | undefined,
+): string | null {
+  if (lens !== "indoor" && lens !== "dining") return null;
+  const zones = exactZoneFacts(lens, reality);
+  const matched = hasExactZoneFacet(lens, reality);
+  const label = lens === "indoor" ? "室内区域" : "餐饮区域";
+  if (!matched) return `暂无经核验的${label}动物出现记录`;
+  return zones.length
+    ? `${label}有经核验动物出现 · ${zones.slice(0, 2).join("、")}`
+    : `${label}有经核验动物出现记录`;
+}
+
 export function lensProjection(
   lens: ConsumerLens,
   answer: AccessAnswer | null | undefined,
@@ -125,11 +170,11 @@ export function lensProjection(
   snapshot?: CoexistenceSnapshot | null,
 ): LensProjection {
   const ruleFirst = lens === "rules";
-  const zoneFacts = lens === "indoor" || lens === "dining" ? (reality?.observed_zones ?? []) : [];
+  const zoneFacts = exactZoneFacts(lens, reality);
   return {
     headline: ruleFirst ? "rule" : "reality",
-    realityLine: coexistenceRealityLine(snapshot, reality),
-    evidenceLine: evidenceLineFor(reality),
+    realityLine: spatialLensLine(lens, reality) ?? coexistenceRealityLine(snapshot, reality),
+    evidenceLine: coexistenceEvidenceLine(snapshot, reality),
     zoneFacts,
   };
 }
@@ -139,7 +184,7 @@ export function lensProjection(
  *
  *   presence → most recent on-site record first (null recency = last)
  *   rules    → places with an answered rule conclusion first
- *   indoor / dining → places with observed zones first, then by name
+ *   indoor / dining → only places with matching structured Zone facets first
  *   (default) → no reordering (server order)
  */
 export function lensOrderScore(
@@ -158,7 +203,7 @@ export function lensOrderScore(
       return answer ? 1 : 0;
     case "indoor":
     case "dining":
-      return (reality?.observed_zones.length ?? 0) > 0 ? 1 : 0;
+      return hasExactZoneFacet(lens, reality) ? 1 : 0;
     default:
       return 0;
   }
