@@ -96,13 +96,16 @@ class ConsumerRuleLeadIn(BaseModel):
     effect: RuleEffect | None = None
     proposed_conditions: list[str] = Field(default_factory=list)
     raw_text: str | None = Field(default=None, max_length=4000)
-    source_basis: Literal[
-        "onsite_signage",
-        "staff_statement",
-        "official_online",
-        "other",
-        "uncertain",
-    ] | None = None
+    source_basis: (
+        Literal[
+            "onsite_signage",
+            "staff_statement",
+            "official_online",
+            "other",
+            "uncertain",
+        ]
+        | None
+    ) = None
     media_id: str | None = None
     current_rule_id: str | None = None
     proximity_verified: bool = False
@@ -220,8 +223,7 @@ def contribute_rule_lead(
             SpatialPrecision.PRECISE if body.proximity_verified else SpatialPrecision.UNKNOWN
         ),
         notes=(
-            f"消费者规则线索；source_basis={source_basis}；"
-            "人工复核前不得视为正式规则或运营方政策。"
+            f"消费者规则线索；source_basis={source_basis}；人工复核前不得视为正式规则或运营方政策。"
         ),
     )
     db.add(source)
