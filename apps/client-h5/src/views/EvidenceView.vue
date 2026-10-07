@@ -28,7 +28,7 @@ import {
   realityProvenanceCounts,
   realityEventTimeBasis,
 } from "../consumer/realityEvent";
-import { snapshotFor } from "../consumer/repository";
+import { currentQueryContext, snapshotFor } from "../consumer/repository";
 import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
 import QueryContextBar from "../components/domain/QueryContextBar.vue";
@@ -187,6 +187,11 @@ async function load() {
 }
 
 watch(placeId, () => void load(), { immediate: true });
+
+watch(currentQueryContext, () => {
+  if (!placeId.value || loading.value) return;
+  void load();
+});
 
 const uiState = computed<string>(() => {
   if (loading.value) return "loading";
