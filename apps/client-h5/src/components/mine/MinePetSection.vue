@@ -10,7 +10,9 @@ const emit = defineEmits<{ activate: [pet: Pet] }>();
 function petMeta(pet: Pet): string {
   const parts = [animalScopeLabel(pet.species), pet.breed_text ?? ""].filter(Boolean);
   if (pet.weight_kg) parts.push(`${pet.weight_kg} kg`);
-  if (pet.service_role !== "none") parts.push("服务犬（用户声明）");
+  if (pet.service_role === "working") parts.push("服务犬（在役 · 用户声明）");
+  else if (pet.service_role === "in_training") parts.push("服务犬（训练中 · 用户声明）");
+  else if (pet.service_role === "unknown") parts.push("服务犬身份未确认");
   return parts.join(" · ");
 }
 </script>
