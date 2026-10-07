@@ -31,7 +31,9 @@ jobs:
             "apps/client-h5/src/**/*.{vue,ts}" \
             "packages/client-core/src/api/client.ts" \
             "docs/ui/contracts/json/*.json" \
-            "tests/ui-oracle/*.ts"
+            "tests/ui-oracle/*.ts" \
+            "tests/e2e/consumer-contract-closure.spec.ts" \
+            "tests/e2e/contribute-wizard.spec.ts"
       - name: Commit formatting when needed
         shell: bash
         run: |
@@ -41,6 +43,6 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add apps/client-h5/src packages/client-core/src/api/client.ts docs/ui/contracts/json tests/ui-oracle
+          git add apps/client-h5/src packages/client-core/src/api/client.ts docs/ui/contracts/json tests/ui-oracle tests/e2e/consumer-contract-closure.spec.ts tests/e2e/contribute-wizard.spec.ts
           git commit -m "style(ui): apply canonical Prettier formatting"
           git push origin HEAD:feat/ui-direct-craft-v8
