@@ -593,14 +593,15 @@ watch(currentQueryContext, () => {
                   规则结论暂时无法取得 —— 请检查网络后重试。
                 </p>
                 <p
-                  v-else-if="facts.get(p.id)?.answer && lensProjectionFor(p).headline !== 'rule'"
-                  class="result-row__decision"
-                  data-testid="row-rule"
+                  v-else-if="
+                    facts.get(p.id)?.answer &&
+                    lensProjectionFor(p).headline !== 'rule' &&
+                    rowCondition(p)
+                  "
+                  class="result-row__condition-line"
+                  data-testid="row-rule-condition"
                 >
-                  {{ answerVerdictLabel(facts.get(p.id)?.answer) }}
-                  <span v-if="rowCondition(p)" class="result-row__condition">
-                    · {{ rowCondition(p) }}
-                  </span>
+                  进入前需满足：{{ rowCondition(p) }}
                 </p>
 
                 <!-- Rules lens still keeps Reality visible as the secondary fact. -->
@@ -997,6 +998,13 @@ watch(currentQueryContext, () => {
 .result-row__condition {
   font-size: var(--pa-font-size-md);
   font-weight: var(--pa-font-weight-regular);
+  color: var(--pa-color-text-secondary);
+}
+
+.result-row__condition-line {
+  margin: var(--pa-space-1) 0 0;
+  font-size: var(--pa-font-size-md);
+  line-height: var(--pa-line-height-20);
   color: var(--pa-color-text-secondary);
 }
 
