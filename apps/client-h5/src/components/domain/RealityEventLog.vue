@@ -116,6 +116,7 @@ const visibleGroups = computed<EventGroup[]>(() => {
           v-for="event in group.items"
           :key="event.id"
           class="trace-row"
+          :class="{ 'trace-row--disputed': event.dispute_open }"
           role="listitem"
           data-ui="reality-event"
           :data-event-type="event.event_type"
@@ -248,6 +249,11 @@ const visibleGroups = computed<EventGroup[]>(() => {
 
 .trace-row:last-child {
   border-bottom: none;
+}
+
+.trace-row--disputed {
+  border-left: 3px solid var(--pa-color-evidence-disputed);
+  padding-left: var(--pa-space-3);
 }
 
 .trace-row__time {
