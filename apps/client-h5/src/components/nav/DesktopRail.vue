@@ -54,7 +54,9 @@ const compactVersion = version.split("-")[0]!.split(".").slice(0, 2).join(".");
     aria-label="主导航"
   >
     <RouterLink to="/" class="desktop-rail__brand" aria-label="PetAccess 首页">
-      <span class="desktop-rail__brand-mark" aria-hidden="true">PA</span>
+      <span class="desktop-rail__brand-mark" aria-hidden="true">
+        <PaIcon name="location" size="md" />
+      </span>
     </RouterLink>
 
     <nav class="desktop-rail__group" aria-label="主要页面">
@@ -142,8 +144,7 @@ const compactVersion = version.split("-")[0]!.split(".").slice(0, 2).join(".");
   border-radius: var(--pa-radius-control);
   background: var(--pa-color-accent);
   color: var(--pa-color-text-inverse);
-  font-size: var(--pa-font-size-sm);
-  font-weight: var(--pa-font-weight-bold);
+  box-shadow: inset 0 0 0 var(--pa-border-width) color-mix(in srgb, var(--pa-color-text-inverse) 24%, transparent);
 }
 
 .desktop-rail__group {
