@@ -3,7 +3,9 @@ import { computed, ref } from "vue";
 import { client, type RealityEventView } from "@petaccess/client-core";
 import { presentDescription } from "../../errors";
 
-const props = defineProps<{ event: RealityEventView }>();
+const props = withDefaults(defineProps<{ event: RealityEventView; signedIn?: boolean }>(), {
+  signedIn: false,
+});
 
 const open = ref(false);
 const submitted = ref(Boolean(props.event.dispute_open));
@@ -47,7 +49,7 @@ async function submit() {
       异议处理中 · 原记录会保留并标记，核验结论不会被用户直接改写。
     </p>
 
-    <template v-else>
+    <template v-else-if="signedIn">
       <button
         v-if="!open"
         type="button"
@@ -99,6 +101,15 @@ async function submit() {
         </p>
       </form>
     </template>
+
+    <RouterLink
+      v-else
+      class="btn-inline evidence-dispute__trigger"
+      :to="{ name: 'onboarding', query: { next: `/place/${event.place_id}/evidence` } }"
+      data-testid="reality-dispute-sign-in"
+    >
+      登录后提出异议 →
+    </RouterLink>
   </div>
 </template>
 
