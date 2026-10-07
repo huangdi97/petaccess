@@ -32,6 +32,7 @@ import {
   currentQueryContext,
   enrichRows,
   nearbyPlaces,
+  searchPlaces,
   snapshotFor,
   type RowFacts,
 } from "../consumer/repository";
@@ -57,6 +58,8 @@ export function useMapWorkspace() {
   const loading = ref(true);
   const error = ref("");
   const locationState = ref<LocationState>("IDLE");
+  const mapSearchLoading = ref(false);
+  const mapSearchError = ref("");
   const view = ref<"map" | "list">("map");
   const selected = ref<PlaceSummary | null>(null);
   const { desktop: isDesktop } = useBreakpoint();
@@ -177,8 +180,50 @@ export function useMapWorkspace() {
     camera.value = { ...camera.value, zoom: Math.min(18, camera.value.zoom + 1) };
   }
 
-  function goSearch() {
-    router.push({ name: "search" });
+  async function searchMap(query: string) {
+    const q = query.trim();
+    if (!q) return;
+    mapSearchLoading.value = true;
+    mapSearchError.value = "";
+    try {
+      const result = await searchPlaces(q);
+      if (!result.items.length) {
+        mapSearchError.value = "没有找到已收录场所。试试其他名称、商圈或地址。";
+        return;
+      }
+
+      const target = result.items.find(
+        (place) => place.latitude != null && place.longitude != null,
+      ) ?? result.items[0]!;
+
+      if (target.latitude != null && target.longitude != null) {
+        camera.value = {
+          ...camera.value,
+          lat: target.latitude,
+          lng: target.longitude,
+          zoom: Math.max(camera.value.zoom, 15),
+        };
+        await load();
+        const spatialTarget = places.value.find((place) => place.id === target.id) ?? target;
+        selected.value = spatialTarget;
+        syncRoutePlace(spatialTarget.id);
+        await selectPlace(spatialTarget);
+      } else {
+        // A real search hit without governed coordinates remains useful as a
+        // list result, but it must never be invented onto the spatial canvas.
+        places.value = result.items;
+        facts.value = await enrichRows(result.items);
+        selected.value = target;
+        syncRoutePlace(target.id);
+        await selectPlace(target);
+        mapSearchError.value = "已找到场所，但缺少已核验坐标；当前仅在列表显示。";
+        view.value = "list";
+      }
+    } catch (e) {
+      mapSearchError.value = presentDescription(e);
+    } finally {
+      mapSearchLoading.value = false;
+    }
   }
 
   /** M4 A4 — the selected place is a route query so deep links and history work. */
@@ -280,6 +325,8 @@ export function useMapWorkspace() {
     loading,
     error,
     locationState,
+    mapSearchLoading,
+    mapSearchError,
     view,
     selected,
     isDesktop,
@@ -292,7 +339,7 @@ export function useMapWorkspace() {
     load,
     open,
     onSelectCluster,
-    goSearch,
+    searchMap,
     syncRoutePlace,
   };
 }
