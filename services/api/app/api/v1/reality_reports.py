@@ -212,24 +212,69 @@ def _validate_report_times(body: RealityContributionIn) -> None:
 def _candidate_place(
     body: RealityContributionIn, path_place_id: str, candidate: RealityCandidateDraft
 ) -> str:
-    """Resolve the candidate's place, refusing place-match escalation.
+    """Resolve one candidate without upgrading place-match precision.
 
-    A PARENT_PLACE_ONLY report (e.g. mall-level) must never surface a
-    candidate pinned to a tenant the reporter did not actually match.
+    RealityReport may legitimately exist with 0 candidates. AREA_ONLY /
+    UNRESOLVED / CONFLICTED therefore stay report-level evidence until a
+    reviewer resolves the place; they must never borrow the route's Place id.
     """
+
     report = body.report
-    report_place = report.place_id or path_place_id
-    if report.place_match_state == PlaceMatchState.PARENT_PLACE_ONLY:
-        allowed = {report_place, report.container_place_id, report.subject_place_id}
-        allowed.discard(None)
-        if candidate.place_id not in allowed:
+    state = report.place_match_state
+
+    if state in {
+        PlaceMatchState.AREA_ONLY,
+        PlaceMatchState.UNRESOLVED,
+        PlaceMatchState.CONFLICTED,
+    }:
+        raise ApiError(
+            "地点尚未精确匹配时只能提交线索报告，不能生成具体场所事实候选",
+            code="reality_candidate_exact_place_required",
+            status_code=422,
+        )
+
+    if state == PlaceMatchState.PARENT_PLACE_ONLY:
+        target = report.container_place_id
+        if not target:
+            raise ApiError(
+                "仅匹配到上级场所时必须明确上级场所",
+                code="parent_place_required",
+                status_code=422,
+            )
+        if candidate.place_id not in {None, target}:
             raise ApiError(
                 "仅匹配到上级场所（如商场）时，不能把记录挂在具体店铺上",
                 code="parent_place_escalation",
                 status_code=422,
             )
-        return str(candidate.place_id or report.container_place_id or report_place)
-    return str(candidate.place_id or report.subject_place_id or report_place)
+        return target
+
+    if state == PlaceMatchState.EXACT_SUBPLACE:
+        target = report.subject_place_id
+        if not target:
+            raise ApiError(
+                "精确子场所匹配必须明确具体子场所",
+                code="exact_subplace_required",
+                status_code=422,
+            )
+        if candidate.place_id not in {None, target}:
+            raise ApiError(
+                "候选地点与已确认的具体子场所不一致",
+                code="exact_place_escalation",
+                status_code=422,
+            )
+        return target
+
+    # EXACT_PLACE: this endpoint is entered from one selected Place. An
+    # arbitrary candidate.place_id must not escape that scoped context.
+    target = report.subject_place_id or report.place_id or path_place_id
+    if target != path_place_id or candidate.place_id not in {None, target}:
+        raise ApiError(
+            "候选地点与当前已确认场所不一致",
+            code="exact_place_escalation",
+            status_code=422,
+        )
+    return target
 
 
 @router.post(
@@ -267,7 +312,40 @@ def create_reality_report(
 
     _validate_report_times(body)
 
-    body.report.place_id = body.report.place_id or place_id
+    match_state = body.report.place_match_state
+    if match_state == PlaceMatchState.EXACT_PLACE:
+        if body.report.place_id not in {None, place_id} or body.report.subject_place_id not in {
+            None,
+            place_id,
+        }:
+            raise ApiError(
+                "精确地点与当前场所不一致",
+                code="exact_place_escalation",
+                status_code=422,
+            )
+        body.report.place_id = place_id
+        body.report.subject_place_id = place_id
+    elif match_state == PlaceMatchState.PARENT_PLACE_ONLY:
+        if not body.report.container_place_id:
+            raise ApiError(
+                "仅匹配到上级场所时必须明确上级场所",
+                code="parent_place_required",
+                status_code=422,
+            )
+        if db.get(Place, body.report.container_place_id) is None:
+            raise NotFound("上级场所不存在")
+        body.report.place_id = body.report.container_place_id
+        body.report.subject_place_id = None
+    elif match_state in {
+        PlaceMatchState.AREA_ONLY,
+        PlaceMatchState.UNRESOLVED,
+        PlaceMatchState.CONFLICTED,
+    }:
+        # The route Place is only where the user launched the contribution.
+        # It is not evidence that the external content depicts that Place.
+        body.report.place_id = None
+        body.report.subject_place_id = None
+
     report, flags = create_report(db, user, body.report, request=request)
     if user is None:
         # Privacy by design: one token per report, returned exactly once.
