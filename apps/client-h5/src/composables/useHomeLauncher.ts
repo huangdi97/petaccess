@@ -25,8 +25,6 @@ import { queryAnimalLabel } from "../consumer/queryContext";
 import { presentDescription } from "../errors";
 import { useOnline } from "./useOnline";
 
-export type Perspective = "rules" | "animal" | "coexist";
-
 /** One derived home row: rule conclusion + reality summary over one place. */
 export interface HomeCard {
   place: PlaceSummary;
@@ -40,12 +38,6 @@ const RECENT_KEY = "pa.recent.v1";
 const HOME_INTEREST_KEY = "pa.homeInterest.v1";
 const MAX_RECENT = 3;
 const HOME_INTERESTS = new Set<ConsumerLens>(["presence", "indoor", "dining", "rules"]);
-
-export const PERSPECTIVES: { key: Perspective; label: string }[] = [
-  { key: "rules", label: "看场所规则" },
-  { key: "animal", label: "携带动物" },
-  { key: "coexist", label: "共处偏好" },
-];
 
 export const CONDITION_ZH: Record<string, string> = {
   leash_required: "全程牵引",
@@ -71,7 +63,6 @@ export function useHomeLauncher() {
   const error = ref("");
   const places = ref<PlaceSummary[]>([]);
   const cards = ref<HomeCard[]>([]);
-  const perspective = ref<Perspective>("rules");
   const listStale = ref(false);
   const nearbyFetchedAtMs = ref<number | null>(null);
   const { online } = useOnline();
@@ -96,16 +87,6 @@ export function useHomeLauncher() {
     }),
   );
   const pending = computed(() => cards.value.filter((card) => !verified.value.includes(card)));
-
-  function setPerspective(p: Perspective) {
-    perspective.value = p;
-    if (p === "coexist") {
-      void router.push({ name: "boundary" });
-      return;
-    }
-    session.mode = p === "rules" ? "rules_only" : "with_pet";
-    void load();
-  }
 
   function submitSearch() {
     const q = query.value.trim();
@@ -229,7 +210,6 @@ export function useHomeLauncher() {
 
   return {
     query,
-    perspective,
     interest,
     recent,
     loading,
@@ -241,7 +221,6 @@ export function useHomeLauncher() {
     speciesLabel,
     verified,
     pending,
-    setPerspective,
     submitSearch,
     goEntry,
     open,
