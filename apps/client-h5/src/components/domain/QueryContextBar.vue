@@ -1,12 +1,4 @@
 <script setup lang="ts">
-/**
- * QueryContextBar — one real query primitive shared by Home/Search/Map/Place.
- *
- * The editor only exposes fields that truly alter the CoexistenceSnapshot
- * request. Pet selection and service-dog role are real query inputs; action
- * and place-level scope are shown explicitly as fixed for the current
- * Consumer question instead of being fake controls.
- */
 import { computed, ref } from "vue";
 import { client, session, type PetView, type QueryMode } from "@petaccess/client-core";
 import PaDialog from "../ui/PaDialog.vue";
