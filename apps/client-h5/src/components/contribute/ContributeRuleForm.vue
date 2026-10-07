@@ -30,6 +30,7 @@ const effect = ref<"allowed" | "restricted" | "conditional" | "">("");
 const animalScope = ref<"ordinary_pet" | "dog" | "cat" | "other">("ordinary_pet");
 const zone = ref("");
 const conditions = ref<string[]>([]);
+const sourceBasis = ref("");
 const mediaId = ref<string | null>(null);
 const ocrText = ref("");
 const uploading = ref(false);
@@ -50,7 +51,7 @@ const canSubmit = computed(
     !busy.value &&
     !uploading.value &&
     (!needsExistingRule.value || Boolean(selectedRuleId.value)) &&
-    (!needsRuleDescription.value || Boolean(effect.value)) &&
+    (!needsRuleDescription.value || (Boolean(effect.value) && Boolean(sourceBasis.value))) &&
     (intent.value !== "signage" || Boolean(mediaId.value)),
 );
 
@@ -95,6 +96,16 @@ async function submit() {
             : "";
     const zoneLabel = props.zones.find((item) => item.id === zone.value)?.name ?? "全场 / 不确定";
     const conditionLabel = conditions.value.length ? conditions.value.join("、") : "未补充条件";
+    const sourceBasisLabel =
+      sourceBasis.value === "onsite_signage"
+        ? "现场规则牌 / 公告"
+        : sourceBasis.value === "staff_statement"
+          ? "工作人员口头说明"
+          : sourceBasis.value === "official_online"
+            ? "官方公开信息"
+            : sourceBasis.value === "other"
+              ? "其他线索"
+              : "来源类型不确定";
     const evidenceNote = ocrText.value.trim()
       ? `；OCR 待人工核对：${ocrText.value.trim().slice(0, 300)}`
       : "";
@@ -121,7 +132,7 @@ async function submit() {
       animal_scope: animalScope.value,
       effect: canonicalEffect,
       proposed_conditions: conditions.value,
-      raw_text: `规则线索：${effectLabel}；区域：${zoneLabel}；条件：${conditionLabel}${evidenceNote}`,
+      raw_text: `规则线索：${effectLabel}；来源：${sourceBasisLabel}；区域：${zoneLabel}；条件：${conditionLabel}${evidenceNote}`,
       media_id: mediaId.value,
       current_rule_id: intent.value === "changed" ? selectedRuleId.value || null : null,
       ...proximity(),
@@ -157,6 +168,7 @@ async function submit() {
       v-model:animal-scope="animalScope"
       v-model:zone="zone"
       v-model:conditions="conditions"
+      v-model:source-basis="sourceBasis"
       :zones="zones"
     />
 
