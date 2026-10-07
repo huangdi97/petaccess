@@ -372,10 +372,7 @@ test("A2.2 — Rule lead 与场所纠错都进入人工核验并出现在统一�
   await expect(rows.filter({ hasText: "REVIEW_PENDING" })).toHaveCount(0);
 });
 
-test("A2.2 — area-only 外部内容只保存线索，不冒充当前场所事实", async ({
-  page,
-  request,
-}) => {
+test("A2.2 — area-only 外部内容只保存线索，不冒充当前场所事实", async ({ page, request }) => {
   const token = await signIn(request);
   await page.addInitScript((value) => localStorage.setItem("pa_token", value), token);
   await page.goto(`${BASE}/#/contribute/${MALL_ID}`, { waitUntil: "load" });
