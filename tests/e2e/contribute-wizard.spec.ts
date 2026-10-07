@@ -181,6 +181,7 @@ test("A2.2 — 规则线索进入 RuleCandidate review，而不是 Observation/R
   await expect(page.getByTestId("entry-rule")).toBeVisible({ timeout: 15000 });
   await page.getByTestId("entry-rule").click();
   await page.getByTestId("rule-known").selectOption("conditional");
+  await page.getByTestId("rule-source-basis").selectOption("staff_statement");
   await page.getByTestId("rule-animal-scope").selectOption("ordinary_pet");
 
   const leadRequestPromise = page.waitForRequest(
@@ -191,6 +192,7 @@ test("A2.2 — 规则线索进入 RuleCandidate review，而不是 Observation/R
   const body = leadRequest.postDataJSON() as Record<string, unknown>;
   expect(body.animal_scope).toBe("ordinary_pet");
   expect(body.effect).toBe("conditional");
+  expect(String(body.raw_text)).toContain("来源：工作人员口头说明");
   expect(body.proximity_verified).toBe(false);
   expect(body.distance_bucket).toBeNull();
   expect(body.accuracy_bucket).toBeNull();
@@ -218,15 +220,15 @@ test("A2.2b — 规则牌可独立提交证据，不要求用户先解释准入�
   });
   await expect(page.getByTestId("rule-upload-msg")).toBeVisible({ timeout: 15000 });
 
-  const verificationRequest = page.waitForRequest(
-    (r) => r.method() === "POST" && r.url().endsWith("/api/v1/verifications"),
+  const ruleLeadRequest = page.waitForRequest(
+    (r) => r.method() === "POST" && r.url().includes(`/places/${MALL_ID}/rule-leads`),
   );
   await page.getByTestId("rule-submit").click();
-  const body = (await verificationRequest).postDataJSON() as Record<string, unknown>;
-  expect(body.event_type).toBe("signage_uploaded");
-  expect(body.result).toBe("uncertain");
-  expect(body.rule_id).toBeNull();
-  expect(Array.isArray(body.evidence_refs)).toBeTruthy();
+  const body = (await ruleLeadRequest).postDataJSON() as Record<string, unknown>;
+  expect(body.media_id).toBeTruthy();
+  expect(body.effect).toBeNull();
+  expect(body.animal_scope).toBeNull();
+  expect(String(body.raw_text)).toContain("规则牌 / 公告证据");
   await expect(page.getByTestId("contribute-result")).toContainText("不会自动生成", {
     timeout: 15000,
   });
@@ -308,6 +310,7 @@ test("A3 — 规则线索直接进入 RuleCandidate review，不走 Observation"
   await expect(page.getByTestId("entry-rule")).toBeVisible({ timeout: 15000 });
   await page.getByTestId("entry-rule").click();
   await page.getByTestId("rule-known").selectOption("conditional");
+  await page.getByTestId("rule-source-basis").selectOption("official_online");
 
   const leadRequest = page.waitForRequest(
     (r) => r.method() === "POST" && r.url().includes(`/api/v1/places/${MALL_ID}/rule-leads`),
@@ -348,6 +351,7 @@ test("A2.2 — Rule lead 与场所纠错都进入人工核验并出现在统一�
   await expect(page.getByTestId("entry-rule")).toBeVisible({ timeout: 15000 });
   await page.getByTestId("entry-rule").click();
   await page.getByTestId("rule-known").selectOption("conditional");
+  await page.getByTestId("rule-source-basis").selectOption("uncertain");
   await page.getByTestId("rule-submit").click();
   await expect(page.getByTestId("contribute-result")).toContainText("人工复核", {
     timeout: 15000,
