@@ -127,7 +127,7 @@ const {
         </section>
 
         <p class="home-semantics" data-testid="home-semantics">
-          信息不足不等于允许或禁止；每个结论都只针对当前查询。
+          没有足够信息时，PetAccess 会直接显示“信息不足”，不会替你猜；不同携带方式可能得到不同结果。
           <RouterLink class="btn-inline" to="/settings">了解判断方式 →</RouterLink>
         </p>
 
