@@ -186,6 +186,8 @@ export interface RealityAnswer {
   evidence_count: number;
   distinct_source_count: number;
   observed_zones: string[];
+  observed_zone_types: string[];
+  observed_indoor_outdoor: string[];
   observed_actions: string[];
   staff_response_summary: StaffResponseSummaryItem[];
   facility_summary: FacilitySummaryItem[];
