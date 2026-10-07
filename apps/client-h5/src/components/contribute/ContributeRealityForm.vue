@@ -177,6 +177,15 @@ const FACILITY_SECURITY_OPTIONS = [
 const busy = ref(false);
 const error = ref("");
 const isExternal = computed(() => sourceMode.value === "external_online_content");
+const hasClaimablePlaceMatch = computed(
+  () =>
+    !isExternal.value ||
+    externalPlaceMatch.value === "exact_place" ||
+    externalPlaceMatch.value === "parent_place_only",
+);
+const canUseCurrentZones = computed(
+  () => !isExternal.value || externalPlaceMatch.value === "exact_place",
+);
 const canSubmit = computed(
   () =>
     props.online &&
@@ -230,9 +239,11 @@ async function submit() {
     const eventAt = onsiteAt ?? externalEventIso;
     const placeMatchState = isExternal.value ? externalPlaceMatch.value : "exact_place";
     const reportPlaceId =
-      placeMatchState === "parent_place_only" && props.parentPlaceId
-        ? props.parentPlaceId
-        : props.placeId;
+      placeMatchState === "exact_place"
+        ? props.placeId
+        : placeMatchState === "parent_place_only" && props.parentPlaceId
+          ? props.parentPlaceId
+          : null;
     const candidatePlaceId =
       placeMatchState === "parent_place_only" && props.parentPlaceId
         ? props.parentPlaceId
@@ -296,16 +307,18 @@ async function submit() {
         source_url: isExternal.value ? externalUrl.value.trim() : null,
         source_platform: isExternal.value ? externalPlatform.value : null,
       },
-      candidates: [
-        {
-          candidate_type: kind,
-          place_id: candidatePlaceId,
-          zone_id: placeMatchState === "exact_place" ? zone.value || null : null,
-          animal_scope: animalScope,
-          observed_at: eventAt,
-          payload,
-        },
-      ],
+      candidates: hasClaimablePlaceMatch.value
+        ? [
+            {
+              candidate_type: kind,
+              place_id: candidatePlaceId,
+              zone_id: placeMatchState === "exact_place" ? zone.value || null : null,
+              animal_scope: animalScope,
+              observed_at: eventAt,
+              payload,
+            },
+          ]
+        : [],
       effort: isExternal.value
         ? null
         : {
@@ -326,9 +339,11 @@ async function submit() {
     const pending = res.moderation_state === "pending" || res.moderation_state === "flagged";
     emit(
       "done",
-      pending
-        ? "现场情况已提交，进入人工审核队列。AI 不会自动裁定 —— 审核通过后才作为现场事实展示。"
-        : "现场情况已提交并记录。审核通过后才会作为现场事实展示。",
+      !hasClaimablePlaceMatch.value
+        ? "外部内容线索已提交。地点尚未精确匹配，因此没有生成当前场所的事实候选；人工完成地点核验后才能继续形成可审核事实。"
+        : pending
+          ? "现场情况已提交，进入人工审核队列。AI 不会自动裁定 —— 审核通过后才作为现场事实展示。"
+          : "现场情况已提交并记录。审核通过后才会作为现场事实展示。",
     );
   } catch (e) {
     error.value = presentDescription(e);
@@ -449,11 +464,20 @@ async function submit() {
 
       <fieldset class="cluster">
         <legend class="cluster__title">在哪里？</legend>
-        <label for="reality-zone">适用区域</label>
-        <select v-model="zone" id="reality-zone">
-          <option value="">全场 / 不确定</option>
-          <option v-for="z in zones" :key="z.id" :value="z.id">{{ z.name }}</option>
-        </select>
+        <template v-if="canUseCurrentZones">
+          <label for="reality-zone">适用区域</label>
+          <select v-model="zone" id="reality-zone">
+            <option value="">全场 / 不确定</option>
+            <option v-for="z in zones" :key="z.id" :value="z.id">{{ z.name }}</option>
+          </select>
+        </template>
+        <p v-else class="muted source-note" data-testid="reality-imprecise-place-note">
+          {{
+            externalPlaceMatch === "parent_place_only"
+              ? "当前只能确认到上级场所，因此不会使用这个具体场所的分区。"
+              : "地点尚未精确匹配；本次先保存来源与事实线索，不会把它挂成当前场所的事实。"
+          }}
+        </p>
       </fieldset>
 
       <fieldset class="cluster">
