@@ -8,7 +8,8 @@ from sqlalchemy import func, select
 
 from app.db.session import get_session_factory
 from app.main import app
-from app.models import AccessRule, RuleCandidate, Zone
+from app.models import AccessRule, RuleCandidate, Source, Zone
+from app.models.evidence import EvidenceBundle, SourceArtifact
 from app.models.media import MediaObject
 
 
@@ -52,7 +53,8 @@ def test_rule_lead_creates_review_candidate_without_publishing_rule(client, sign
             "animal_scope": "ordinary_pet",
             "effect": "conditional",
             "proposed_conditions": ["carrier_required"],
-            "raw_text": "入口告示写明普通宠物需装入宠物包。",
+            "raw_text": "工作人员口头说明普通宠物需装入宠物包。",
+            "source_basis": "staff_statement",
             "proximity_verified": True,
             "distance_bucket": "<100m",
             "accuracy_bucket": "10-50m",
@@ -69,6 +71,18 @@ def test_rule_lead_creates_review_candidate_without_publishing_rule(client, sign
         assert candidate.review_status == "REVIEW_PENDING"
         assert candidate.effect == "conditional"
         assert candidate.proposed_conditions == [{"condition_type": "carrier_required"}]
+        assert candidate.evidence_bundle_id is not None
+        bundle = db.get(EvidenceBundle, candidate.evidence_bundle_id)
+        assert bundle is not None
+        artifact = db.get(SourceArtifact, bundle.artifact_id)
+        assert artifact is not None
+        source = db.get(Source, candidate.source_id)
+        assert source is not None
+        assert str(source.source_type) == "ordinary_user"
+        assert str(source.directness) == "secondary"
+        assert artifact.source_platform == "platform_upload"
+        assert artifact.evidence_strength == "user_submitted"
+        assert artifact.captured_excerpt == "工作人员口头说明普通宠物需装入宠物包。"
         after_rules = db.scalar(
             select(func.count()).select_from(AccessRule).where(AccessRule.place_id == place_id)
         )
@@ -257,6 +271,19 @@ def test_signage_only_rule_lead_enters_extraction_without_guessed_rule(client, s
         assert candidate.animal_scope is None
         assert candidate.action is None
         assert candidate.extraction_method == "user_upload"
+        assert candidate.evidence_bundle_id is not None
+        bundle = db.get(EvidenceBundle, candidate.evidence_bundle_id)
+        assert bundle is not None
+        artifact = db.get(SourceArtifact, bundle.artifact_id)
+        assert artifact is not None
+        source = db.get(Source, candidate.source_id)
+        assert source is not None
+        assert str(source.source_type) == "onsite_signage"
+        assert str(source.directness) == "direct"
+        assert artifact.source_platform == "onsite"
+        assert artifact.media_id == media_id
+        assert artifact.content_hash == media.sha256
+        assert artifact.evidence_strength == "primary_captured"
 
 
 def test_rule_lead_requires_authentication(client):
