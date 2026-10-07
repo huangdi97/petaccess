@@ -175,6 +175,8 @@ export interface StaffResponseSummaryItem {
 export interface FacilitySummaryItem {
   facility_type: string;
   purpose_state: string;
+  zone_id: string | null;
+  zone_name: string | null;
   count: number;
   operational_state: string;
   last_verified_at: string | null;
