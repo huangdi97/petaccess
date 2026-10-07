@@ -89,7 +89,9 @@ export function displayRealityEventTime(event: RealityEventView): string {
 }
 
 export function realityEventVerification(event: RealityEventView): string {
-  return event.verification_status === "human_verified_with_note" ? "人工核验（附注）" : "人工核验";
+  const verified =
+    event.verification_status === "human_verified_with_note" ? "人工核验（附注）" : "人工核验";
+  return event.dispute_open ? `${verified} · 异议处理中` : verified;
 }
 
 const ORIGIN_LABELS: Record<string, string> = {
@@ -125,6 +127,7 @@ export function realityEventProvenance(event: RealityEventView): string {
 }
 
 export function realityEventEvidenceState(event: RealityEventView): EvidenceVisualState {
+  if (event.dispute_open) return "disputed";
   if (event.freshness_state === "historical" || event.freshness_state === "expired_for_summary") {
     return "historical";
   }
