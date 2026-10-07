@@ -100,7 +100,7 @@ const SHOTS: Shot[] = [
   },
   {
     name: "04_place_rules",
-    scope: "desktop",
+    scope: "both",
     route: `/#/place/${MALL_ID}?view=rules`,
     page: "place",
     state: "ready",
@@ -110,7 +110,7 @@ const SHOTS: Shot[] = [
   },
   {
     name: "05_place_space",
-    scope: "desktop",
+    scope: "both",
     route: `/#/place/${MALL_ID}?view=space`,
     page: "place",
     state: "ready",
@@ -121,7 +121,7 @@ const SHOTS: Shot[] = [
   },
   {
     name: "06_map_rule",
-    scope: "desktop",
+    scope: "both",
     route: "/#/map?lens=rule",
     page: "map",
     h1: "规则与现场地图",
@@ -137,7 +137,7 @@ const SHOTS: Shot[] = [
   },
   {
     name: "07_map_reality",
-    scope: "desktop",
+    scope: "both",
     route: "/#/map?lens=reality",
     page: "map",
     h1: "规则与现场地图",
@@ -147,7 +147,7 @@ const SHOTS: Shot[] = [
   },
   {
     name: "08_map_facility",
-    scope: "desktop",
+    scope: "both",
     route: "/#/map?lens=facility",
     page: "map",
     h1: "规则与现场地图",
@@ -157,7 +157,7 @@ const SHOTS: Shot[] = [
   },
   {
     name: "09_map_divergence",
-    scope: "desktop",
+    scope: "both",
     route: "/#/map?lens=divergence",
     page: "map",
     h1: "规则与现场地图",
@@ -228,7 +228,7 @@ const SHOTS: Shot[] = [
   },
   {
     name: "14_contribution_rule",
-    scope: "desktop",
+    scope: "both",
     route: `/#/contribute/${MALL_ID}`,
     auth: true,
     clickTestid: "entry-rule",
@@ -242,7 +242,7 @@ const SHOTS: Shot[] = [
   },
   {
     name: "15_contribution_correction",
-    scope: "desktop",
+    scope: "both",
     route: `/#/contribute/${MALL_ID}`,
     auth: true,
     clickTestid: "entry-quick",
@@ -256,7 +256,7 @@ const SHOTS: Shot[] = [
   },
   {
     name: "16_contribution_reality",
-    scope: "desktop",
+    scope: "both",
     route: `/#/contribute/${MALL_ID}`,
     auth: true,
     clickTestid: "entry-reality-observed_presence",
@@ -270,7 +270,7 @@ const SHOTS: Shot[] = [
   },
   {
     name: "16a_contribution_staff",
-    scope: "desktop",
+    scope: "both",
     route: `/#/contribute/${MALL_ID}`,
     auth: true,
     clickTestid: "entry-reality-staff_response",
@@ -284,7 +284,7 @@ const SHOTS: Shot[] = [
   },
   {
     name: "16b_contribution_facility",
-    scope: "desktop",
+    scope: "both",
     route: `/#/contribute/${MALL_ID}`,
     auth: true,
     clickTestid: "entry-reality-animal_facility",
@@ -302,7 +302,7 @@ const SHOTS: Shot[] = [
   },
   {
     name: "16c_contribution_done",
-    scope: "desktop",
+    scope: "both",
     route: `/#/contribute/${MALL_ID}`,
     auth: true,
     clickTestid: "entry-reality-observed_presence",
@@ -317,7 +317,7 @@ const SHOTS: Shot[] = [
   },
   {
     name: "17_mine",
-    scope: "desktop",
+    scope: "both",
     route: "/#/mine",
     auth: true,
     h1: "我的",
@@ -326,14 +326,14 @@ const SHOTS: Shot[] = [
   },
   {
     name: "18_settings",
-    scope: "desktop",
+    scope: "both",
     route: "/#/settings",
     h1: "设置与说明",
     note: "Secondary reading workspace; no ModeBar/card-wall regression.",
   },
   {
     name: "19_privacy",
-    scope: "desktop",
+    scope: "both",
     route: "/#/privacy",
     auth: true,
     h1: "隐私与数据",
@@ -342,7 +342,7 @@ const SHOTS: Shot[] = [
   },
   {
     name: "20_notifications",
-    scope: "desktop",
+    scope: "both",
     route: "/#/notifications",
     auth: true,
     h1: "通知中心",
@@ -369,7 +369,7 @@ const SHOTS: Shot[] = [
   },
   {
     name: "22_boundary",
-    scope: "desktop",
+    scope: "both",
     route: "/#/boundary",
     auth: true,
     h1: "共处边界",
@@ -378,7 +378,7 @@ const SHOTS: Shot[] = [
   },
   {
     name: "23_why",
-    scope: "desktop",
+    scope: "both",
     route: `/#/place/${MALL_ID}/why`,
     h1: "为什么是这个结果",
     requiredText: ["规则与现场关系", "不会用一次现场观察替代正式规则"],
@@ -386,21 +386,21 @@ const SHOTS: Shot[] = [
   },
   {
     name: "24_about",
-    scope: "desktop",
+    scope: "both",
     route: "/#/about",
     h1: "关于 PetAccess",
     note: "Methodology is a reading workspace, not an engineering dashboard.",
   },
   {
     name: "25_onboarding",
-    scope: "desktop",
+    scope: "both",
     route: "/#/onboarding",
     h1: "开始使用",
     note: "Authentication stays quiet and task-oriented.",
   },
   {
     name: "26_not_found",
-    scope: "desktop",
+    scope: "both",
     route: "/#/this-route-does-not-exist",
     h1: "这个页面不存在",
     note: "404 uses the same consumer shell and recovery affordances.",
