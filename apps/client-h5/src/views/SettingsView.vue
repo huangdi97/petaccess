@@ -66,9 +66,7 @@ const EVIDENCE = [
     <section class="settings-section" data-testid="evidence-strength">
       <div class="settings-section__lead">
         <h2>证据如何呈现</h2>
-        <p class="muted">
-          来源强弱描述的是证据本身；它不会把一次现场观察自动变成正式准入规则。
-        </p>
+        <p class="muted">来源强弱描述的是证据本身；它不会把一次现场观察自动变成正式准入规则。</p>
       </div>
       <div class="settings-section__body">
         <div v-for="evidence in EVIDENCE" :key="evidence.label" class="settings-row">
