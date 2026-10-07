@@ -33,14 +33,9 @@ async function save() {
       weight_kg: pet.value.weight_kg ? Number(pet.value.weight_kg) : null,
       service_role: serviceRole.value,
     });
-    session.activePet = {
-      id: created.id,
-      display_name: pet.value.display_name,
-      species: pet.value.species,
-      breed_text: pet.value.breed_text || null,
-      weight_kg: pet.value.weight_kg ? Number(pet.value.weight_kg) : null,
-      service_role: serviceRole.value,
-    };
+    session.setActivePet(created);
+    session.setDeclaredRole(null);
+    session.mode = created.service_role === "working" ? "service_dog" : "with_pet";
     router.push({ name: "home" });
   } catch (e) {
     error.value = e instanceof Error ? `保存失败（需登录）：${e.message}` : String(e);
@@ -112,6 +107,7 @@ async function save() {
           <option value="none">普通宠物</option>
           <option value="working">服务犬（在役）</option>
           <option value="in_training">服务犬（训练中）</option>
+          <option value="unknown">服务犬身份未确认</option>
         </select>
       </section>
 
