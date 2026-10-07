@@ -8,7 +8,7 @@ import PetImageSuggestion from "../components/pets/PetImageSuggestion.vue";
 import StateMessage from "../components/StateMessage.vue";
 
 const router = useRouter();
-const pet = ref({ display_name: "", species: "dog", breed_text: "", weight_kg: "" });
+const pet = ref({ display_name: "", species: "dog", breed_text: "", weight_kg: "", shoulder_height_cm: "" });
 const serviceRole = ref("none");
 const error = ref("");
 const saving = ref(false);
@@ -31,6 +31,9 @@ async function save() {
       species: pet.value.species,
       breed_text: pet.value.breed_text || null,
       weight_kg: pet.value.weight_kg ? Number(pet.value.weight_kg) : null,
+      shoulder_height_cm: pet.value.shoulder_height_cm
+        ? Number(pet.value.shoulder_height_cm)
+        : null,
       service_role: serviceRole.value,
     });
     session.setActivePet(created);
@@ -101,6 +104,18 @@ async function save() {
               data-testid="pet-weight"
             />
             <small>只有规则涉及体重限制时才会使用；不填写就保持未知。</small>
+          </label>
+          <label class="pet-new-field">
+            <span>肩高 cm（可选）</span>
+            <input
+              v-model="pet.shoulder_height_cm"
+              type="number"
+              step="1"
+              min="0"
+              max="250"
+              data-testid="pet-shoulder"
+            />
+            <small>只有规则涉及体型限制时才会使用；不填写就保持未知。</small>
           </label>
         </div>
       </section>
