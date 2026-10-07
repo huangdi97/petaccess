@@ -29,6 +29,7 @@ import {
   type MapLensKey,
 } from "../consumer/mapLens";
 import {
+  createEpoch,
   currentQueryContext,
   enrichRows,
   nearbyPlaces,
@@ -60,6 +61,8 @@ export function useMapWorkspace() {
   const selected = ref<PlaceSummary | null>(null);
   const { desktop: isDesktop } = useBreakpoint();
   const preview = ref<PreviewState>({ snapshot: null, loading: false, error: "" });
+  const loadEpoch = createEpoch();
+  const previewEpoch = createEpoch();
   const activeFilters = ref<string[]>([]);
 
   const statuses = computed<Record<string, MapMarker["status"]>>(() => {
@@ -151,23 +154,23 @@ export function useMapWorkspace() {
     );
   }
 
-  /** Load the same CoexistenceSnapshot rows used by Home/Search/Place. */
-  async function loadFacts(list: PlaceSummary[]) {
-    facts.value = await enrichRows(list);
-  }
-
   async function load() {
+    const epoch = loadEpoch.begin();
     loading.value = true;
     error.value = "";
     try {
       const res = await nearbyPlaces(camera.value);
-      places.value = res.items;
-      await loadFacts(places.value);
+      if (!loadEpoch.isCurrent(epoch)) return;
+      const nextPlaces = res.items;
+      const nextFacts = await enrichRows(nextPlaces);
+      if (!loadEpoch.isCurrent(epoch)) return;
+      places.value = nextPlaces;
+      facts.value = nextFacts;
       resolveSelection();
     } catch (e) {
-      error.value = presentDescription(e);
+      if (loadEpoch.isCurrent(epoch)) error.value = presentDescription(e);
     } finally {
-      loading.value = false;
+      if (loadEpoch.isCurrent(epoch)) loading.value = false;
     }
   }
 
@@ -228,11 +231,14 @@ export function useMapWorkspace() {
   async function selectPlace(p: PlaceSummary) {
     // v0.2.5 §24：mobile selected sheet 需要 key condition + 最近现场，
     // snapshot 不再只给 desktop 取。
+    const epoch = previewEpoch.begin();
     preview.value = { snapshot: null, loading: true, error: "" };
     try {
       const { snapshot } = await snapshotFor(p.id);
+      if (!previewEpoch.isCurrent(epoch) || selected.value?.id !== p.id) return;
       preview.value = { snapshot, loading: false, error: "" };
     } catch (e) {
+      if (!previewEpoch.isCurrent(epoch) || selected.value?.id !== p.id) return;
       preview.value = { snapshot: null, loading: false, error: presentDescription(e) };
     }
   }
