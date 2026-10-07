@@ -41,6 +41,7 @@ const EVIDENCE = [
 <template>
   <AppShell>
     <header class="settings-head">
+      <p class="settings-head__kicker">方法与偏好</p>
       <h1>设置与说明</h1>
       <p class="muted">
         PetAccess 只整理规则、现场事实和证据，不给场所打“友好分”，也不把信息不足解释成允许或禁止。
@@ -48,30 +49,41 @@ const EVIDENCE = [
     </header>
 
     <section class="settings-section" data-testid="methodology">
-      <h2>规则如何组织</h2>
-      <p class="muted settings-section__intro">
-        同一场所可能同时存在多个层级的规则。当前查询只展示真正适用于对象、动作与区域的结论。
-      </p>
-      <div v-for="l in RULE_LAYERS" :key="l.label" class="settings-row">
-        <strong>{{ l.label }}</strong>
-        <span class="muted">{{ l.note }}</span>
+      <div class="settings-section__lead">
+        <h2>规则如何组织</h2>
+        <p class="muted">
+          同一场所可能同时存在多个层级的规则。当前查询只展示真正适用于对象、动作与区域的结论。
+        </p>
+      </div>
+      <div class="settings-section__body">
+        <div v-for="layer in RULE_LAYERS" :key="layer.label" class="settings-row">
+          <strong>{{ layer.label }}</strong>
+          <span class="muted">{{ layer.note }}</span>
+        </div>
       </div>
     </section>
 
     <section class="settings-section" data-testid="evidence-strength">
-      <h2>证据如何呈现</h2>
-      <p class="muted settings-section__intro">
-        来源强弱描述的是证据本身；它不会把一次现场观察自动变成正式准入规则。
-      </p>
-      <div v-for="e in EVIDENCE" :key="e.label" class="settings-row">
-        <strong>{{ e.label }}</strong>
-        <span class="muted">{{ e.note }}</span>
+      <div class="settings-section__lead">
+        <h2>证据如何呈现</h2>
+        <p class="muted">
+          来源强弱描述的是证据本身；它不会把一次现场观察自动变成正式准入规则。
+        </p>
+      </div>
+      <div class="settings-section__body">
+        <div v-for="evidence in EVIDENCE" :key="evidence.label" class="settings-row">
+          <strong>{{ evidence.label }}</strong>
+          <span class="muted">{{ evidence.note }}</span>
+        </div>
       </div>
     </section>
 
     <section class="settings-section" data-testid="limits">
-      <h2>产品边界</h2>
-      <div class="settings-points">
+      <div class="settings-section__lead">
+        <h2>产品边界</h2>
+        <p class="muted">这些限制是产品的一部分，不会因为信息变多而取消。</p>
+      </div>
+      <div class="settings-section__body settings-points">
         <p>{{ REQUIRED_COPY.noRankingDisclaimer }}</p>
         <p>不预测现场一定会不会遇到动物。</p>
         <p>自动解析只能生成待审候选，不会直接改变正式规则结论。</p>
@@ -81,21 +93,35 @@ const EVIDENCE = [
     </section>
 
     <section class="settings-section">
-      <h2>相关设置</h2>
-      <nav class="settings-links" aria-label="相关设置">
-        <RouterLink class="btn-inline" to="/boundary">共处边界 →</RouterLink>
-        <RouterLink class="btn-inline" to="/privacy">隐私与数据 →</RouterLink>
-        <RouterLink class="btn-inline" to="/notifications">通知 →</RouterLink>
-        <RouterLink v-if="signedIn" class="btn-inline" to="/pets">宠物档案 →</RouterLink>
+      <div class="settings-section__lead">
+        <h2>相关设置</h2>
+        <p class="muted">管理个人偏好、隐私、关注与查询对象。</p>
+      </div>
+      <nav class="settings-section__body settings-links" aria-label="相关设置">
+        <RouterLink class="settings-link" to="/boundary">
+          <span>共处边界</span><span aria-hidden="true">→</span>
+        </RouterLink>
+        <RouterLink class="settings-link" to="/privacy">
+          <span>隐私与数据</span><span aria-hidden="true">→</span>
+        </RouterLink>
+        <RouterLink class="settings-link" to="/notifications">
+          <span>通知</span><span aria-hidden="true">→</span>
+        </RouterLink>
+        <RouterLink v-if="signedIn" class="settings-link" to="/pets">
+          <span>宠物档案</span><span aria-hidden="true">→</span>
+        </RouterLink>
       </nav>
     </section>
 
     <section class="settings-section" data-testid="about-section">
-      <h2>关于 PetAccess</h2>
-      <p class="settings-about">
-        城市公共空间动物通行规则与现场事实查询工具。去之前，先看规则与现场。
-      </p>
-      <p class="muted">当前版本 v{{ appVersion }} · 上海试点 · 开发预览阶段</p>
+      <div class="settings-section__lead">
+        <h2>关于 PetAccess</h2>
+        <p class="muted">当前版本 v{{ appVersion }} · 上海试点 · 开发预览阶段</p>
+      </div>
+      <div class="settings-section__body settings-about">
+        <p>城市公共空间动物通行规则与现场事实查询工具。去之前，先看规则与现场。</p>
+        <RouterLink class="btn-inline" to="/about">查看产品原则 →</RouterLink>
+      </div>
     </section>
 
     <footer class="settings-foot">
@@ -109,68 +135,119 @@ const EVIDENCE = [
 
 <style scoped>
 .settings-head {
-  padding-bottom: var(--pa-space-5);
+  padding-bottom: var(--pa-space-6);
   border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
 }
 
-.settings-head p {
-  max-width: 680px;
+.settings-head__kicker {
+  margin: 0 0 var(--pa-space-2);
+  color: var(--pa-color-accent);
+  font-size: var(--pa-font-size-sm);
+  font-weight: var(--pa-font-weight-650);
+  letter-spacing: var(--pa-letter-spacing-wide);
+}
+
+.settings-head p:last-child {
+  max-width: 720px;
   margin: var(--pa-space-2) 0 0;
   line-height: var(--pa-line-height-23);
 }
 
 .settings-section {
-  padding: var(--pa-space-5) 0;
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: var(--pa-space-7);
+  padding: var(--pa-space-6) 0;
   border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
 }
 
-.settings-section h2 {
+.settings-section__lead h2 {
   margin: 0;
-  font-size: var(--pa-font-size-lg);
+  font-size: var(--pa-font-size-18);
   font-weight: var(--pa-font-weight-650);
+  color: var(--pa-color-text-primary);
 }
 
-.settings-section__intro {
-  margin: var(--pa-space-2) 0 var(--pa-space-3);
-  max-width: 680px;
+.settings-section__lead p {
+  margin: var(--pa-space-2) 0 0;
+  font-size: var(--pa-font-size-md);
+  line-height: var(--pa-line-height-20);
+}
+
+.settings-section__body {
+  min-width: 0;
 }
 
 .settings-row {
   display: grid;
-  grid-template-columns: 120px 1fr;
+  grid-template-columns: 132px minmax(0, 1fr);
   gap: var(--pa-space-4);
   padding: var(--pa-space-3) 0;
   border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
 }
 
+.settings-row:first-child {
+  padding-top: 0;
+}
+
 .settings-row:last-child {
   border-bottom: none;
+  padding-bottom: 0;
 }
 
 .settings-row strong {
   font-size: var(--pa-font-size-base);
 }
 
-.settings-points {
-  margin-top: var(--pa-space-3);
+.settings-row span {
+  line-height: var(--pa-line-height-20);
 }
 
 .settings-points p {
   margin: 0;
-  padding: var(--pa-space-2) 0;
+  padding: var(--pa-space-3) 0;
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
   color: var(--pa-color-text-secondary);
+  line-height: var(--pa-line-height-20);
+}
+
+.settings-points p:first-child {
+  padding-top: 0;
+}
+
+.settings-points p:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
 }
 
 .settings-links {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--pa-space-4);
-  margin-top: var(--pa-space-3);
+  flex-direction: column;
 }
 
-.settings-about {
-  margin: var(--pa-space-2) 0;
+.settings-link {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--pa-space-4);
+  min-height: 48px;
+  align-items: center;
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  color: var(--pa-color-text-primary);
+  text-decoration: none;
+}
+
+.settings-link:first-child {
+  margin-top: calc(var(--pa-space-2) * -1);
+}
+
+.settings-link:hover,
+.settings-link:focus-visible {
+  color: var(--pa-color-accent);
+}
+
+.settings-about p {
   max-width: 620px;
+  margin: 0 0 var(--pa-space-3);
   line-height: var(--pa-line-height-23);
 }
 
@@ -185,15 +262,19 @@ const EVIDENCE = [
 }
 
 @media (max-width: 767px) {
+  .settings-section {
+    grid-template-columns: 1fr;
+    gap: var(--pa-space-4);
+    padding: var(--pa-space-5) 0;
+  }
+
   .settings-row {
     grid-template-columns: 1fr;
     gap: var(--pa-space-1);
   }
 
-  .settings-links {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--pa-space-2);
+  .settings-link:first-child {
+    margin-top: 0;
   }
 }
 </style>
