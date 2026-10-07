@@ -40,10 +40,11 @@ import PlaceRulesPane from "../components/place/PlaceRulesPane.vue";
 import PlaceRealityPane from "../components/place/PlaceRealityPane.vue";
 import PlaceEvidencePane from "../components/place/PlaceEvidencePane.vue";
 import { sourceLabel } from "../consumer/labels";
+import { queryAnimalLabel } from "../consumer/queryContext";
 import { answerStatusKey } from "../answer";
 import { presentDescription } from "../errors";
 import { useBreakpoint } from "../composables/useBreakpoint";
-import { snapshotFor } from "../consumer/repository";
+import { currentQueryContext, snapshotFor } from "../consumer/repository";
 
 const route = useRoute();
 const placeId = computed(() => (route.params.id ? String(route.params.id) : ""));
@@ -58,11 +59,7 @@ const view = computed<PlaceViewKey>(() => {
 });
 
 const { desktop: isDesktop } = useBreakpoint();
-const speciesLabel = computed(() => {
-  const s = session.activePet?.species ?? "dog";
-  if (session.activePet?.service_role === "working") return "服务犬";
-  return s === "dog" ? "普通犬" : s === "cat" ? "猫" : "其他宠物";
-});
+const speciesLabel = computed(() => queryAnimalLabel());
 
 const place = ref<PlaceDetail | null>(null);
 const zones = ref<Zone[]>([]);
@@ -132,17 +129,14 @@ async function evaluate() {
   }
 }
 
-// Mode switch (普通携带 ↔ 服务犬通行) must re-evaluate as the new animal:
-// the answer text and verdict change with session.mode / activePet.
-watch(
-  () => [session.mode, session.activePet],
-  () => {
-    if (!placeId.value || loading.value) return;
-    void evaluate().catch(() => {
-      if (!partial.value.includes("当前答案")) partial.value.push("当前答案");
-    });
-  },
-);
+// Every field that actually changes CoexistenceSnapshot must re-evaluate:
+ // mode, active pet/species/service role and ephemeral declared service-dog role.
+watch(currentQueryContext, () => {
+  if (!placeId.value || loading.value) return;
+  void evaluate().catch(() => {
+    if (!partial.value.includes("当前答案")) partial.value.push("当前答案");
+  });
+});
 
 async function load() {
   loading.value = true;
