@@ -214,9 +214,15 @@ class RealityEventOut(BaseModel):
 
 
 class StaffResponseSummaryItem(BaseModel):
-    """Counts of one observed staff response action (facts only)."""
+    """Counts of one observed staff response action (facts only).
+
+    Awareness is part of the fact. It prevents an unknown-awareness
+    no-intervention observation from being summarized as staff "allowing" or
+    consciously ignoring the animal.
+    """
 
     response_action: StaffResponseAction
+    staff_awareness_state: StaffAwarenessState
     count: int
 
 
