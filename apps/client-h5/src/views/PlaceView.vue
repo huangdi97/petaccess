@@ -358,11 +358,22 @@ const placeFixture = computed<string>(() => {
 
           <!-- 1. Identity（§16 Overview 第一块） -->
           <header class="place-dossier__head" data-ui="place-identity">
-            <h1 class="place-dossier__name" data-ui="place-name">{{ place.canonical_name }}</h1>
-            <p class="muted place-dossier__meta">
-              {{ placeTypeLabel(place.place_type) }} ·
-              {{ place.canonical_address ?? "地址未收录" }}
-            </p>
+            <div class="place-dossier__identity-row">
+              <PlaceTypeGlyph :place-type="place.place_type" />
+              <div class="place-dossier__identity-copy">
+                <h1 class="place-dossier__name" data-ui="place-name">{{ place.canonical_name }}</h1>
+                <p class="muted place-dossier__meta">
+                  {{ placeTypeLabel(place.place_type) }} ·
+                  {{ place.canonical_address ?? "地址未收录" }}
+                  <RouterLink
+                    class="place-dossier__map-link"
+                    :to="{ path: '/map', query: { place: placeId } }"
+                  >
+                    地图定位 →
+                  </RouterLink>
+                </p>
+              </div>
+            </div>
             <div class="place-dossier__actions" aria-label="场所操作">
               <RouterLink :to="`/place/${placeId}/evidence`" class="btn-inline">
                 查看证据 →
@@ -527,6 +538,31 @@ const placeFixture = computed<string>(() => {
   padding-bottom: var(--pa-space-5);
   border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
   margin-bottom: var(--pa-space-4);
+}
+
+.place-dossier__identity-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--pa-space-3);
+  min-width: 0;
+}
+
+.place-dossier__identity-copy {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.place-dossier__map-link {
+  margin-left: var(--pa-space-2);
+  color: var(--pa-color-accent);
+  font-size: var(--pa-font-size-sm);
+  white-space: nowrap;
+}
+
+.place-dossier__map-link:hover,
+.place-dossier__map-link:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .place-dossier__name {
