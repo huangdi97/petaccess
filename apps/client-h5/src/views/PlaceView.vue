@@ -130,7 +130,7 @@ async function evaluate() {
 }
 
 // Every field that actually changes CoexistenceSnapshot must re-evaluate:
- // mode, active pet/species/service role and ephemeral declared service-dog role.
+// mode, active pet/species/service role and ephemeral declared service-dog role.
 watch(currentQueryContext, () => {
   if (!placeId.value || loading.value) return;
   void evaluate().catch(() => {
