@@ -44,11 +44,13 @@ import {
   type ConsumerLens,
 } from "../consumer/rowView";
 import { placeTypeLabel } from "../consumer/labels";
+import { queryAnimalLabel } from "../consumer/queryContext";
 import { useBreakpoint } from "../composables/useBreakpoint";
 import { useOnline } from "../composables/useOnline";
 import { presentDescription } from "../errors";
 import {
   createEpoch,
+  currentQueryContext,
   enrichRows,
   searchPlaces,
   snapshotFor,
@@ -96,11 +98,7 @@ const uiFixture = computed<string>(() => {
   if (uiState.value === "empty") return "search-empty-v1";
   return "search-ready-v1";
 });
-const speciesLabel = computed(() => {
-  const s = session.activePet?.species ?? "dog";
-  if (session.activePet?.service_role === "working") return "服务犬";
-  return s === "dog" ? "普通犬" : s === "cat" ? "猫" : "其他宠物";
-});
+const speciesLabel = computed(() => queryAnimalLabel());
 function lensProjectionFor(p: PlaceSummary) {
   const f = facts.value.get(p.id);
   // Canonical Search is Reality-first by default. An explicit rules lens flips
@@ -309,6 +307,8 @@ function clearSearch() {
   if (searched.value) void search();
 }
 
+let queryContextReady = false;
+
 onMounted(async () => {
   await session.restore();
   loadRecent();
@@ -320,10 +320,20 @@ onMounted(async () => {
     }
   }
   await search();
+  queryContextReady = true;
 });
 
 const { desktop: isDesktop, mobile: isMobile } = useBreakpoint();
 const selectedId = ref<string | null>(null);
+
+watch(currentQueryContext, () => {
+  if (!queryContextReady) return;
+  void (async () => {
+    await search();
+    const place = selectedPlace.value;
+    if (place && isDesktop.value) await selectPlace(place);
+  })();
+});
 </script>
 
 <template>
