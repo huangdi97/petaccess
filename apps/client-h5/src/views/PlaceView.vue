@@ -44,7 +44,7 @@ import { queryAnimalLabel } from "../consumer/queryContext";
 import { answerStatusKey } from "../answer";
 import { presentDescription } from "../errors";
 import { useBreakpoint } from "../composables/useBreakpoint";
-import { currentQueryContext, snapshotFor } from "../consumer/repository";
+import { createEpoch, currentQueryContext, snapshotFor } from "../consumer/repository";
 
 const route = useRoute();
 const placeId = computed(() => (route.params.id ? String(route.params.id) : ""));
@@ -79,6 +79,7 @@ const confirmationMsg = ref("");
 const confirmationBusyId = ref<string | null>(null);
 const coexistence = ref<CoexistenceSnapshot | null>(null);
 const coexistenceLoaded = ref(false);
+const evaluationEpoch = createEpoch();
 
 const currentRules = computed(() => rules.value.filter((r) => r.status === "current"));
 const historyRules = computed(() => rules.value.filter((r) => r.status !== "current"));
@@ -115,17 +116,20 @@ const presenceEventCount = computed(
 );
 
 async function evaluate() {
+  const epoch = evaluationEpoch.begin();
   coexistenceLoaded.value = false;
   try {
     const { snapshot } = await snapshotFor(placeId.value);
+    if (!evaluationEpoch.isCurrent(epoch)) return;
     coexistence.value = snapshot;
     answer.value = snapshot.rule_answer;
   } catch (error) {
+    if (!evaluationEpoch.isCurrent(epoch)) return;
     coexistence.value = null;
     answer.value = null;
     throw error;
   } finally {
-    coexistenceLoaded.value = true;
+    if (evaluationEpoch.isCurrent(epoch)) coexistenceLoaded.value = true;
   }
 }
 
