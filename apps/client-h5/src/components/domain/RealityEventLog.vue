@@ -9,6 +9,8 @@
  */
 import { computed } from "vue";
 import type { RealityEventView, Zone } from "@petaccess/client-core";
+import { type IconName } from "@petaccess/design-tokens";
+import PaIcon from "../ui/PaIcon.vue";
 import { zoneConsumerLine } from "../../consumer/labels";
 import {
   realityEventDetail,
@@ -63,6 +65,12 @@ function effortRoute(event: RealityEventView) {
   };
 }
 
+function eventIcon(event: RealityEventView): IconName {
+  if (event.event_type === "staff_response") return "info";
+  if (event.event_type === "animal_facility") return "building";
+  return "eye";
+}
+
 interface EventGroup {
   date: string;
   items: RealityEventView[];
@@ -115,7 +123,14 @@ const visibleGroups = computed<EventGroup[]>(() => {
           <time class="trace-row__time" data-ui="reality-event-time">
             {{ realityEventDisplayTime(event) }}
           </time>
-          <span class="trace-row__dot" aria-hidden="true" data-ui="reality-event-marker"></span>
+          <span
+            class="trace-row__dot"
+            :class="`trace-row__dot--${event.event_type}`"
+            aria-hidden="true"
+            data-ui="reality-event-marker"
+          >
+            <PaIcon :name="eventIcon(event)" size="xs" />
+          </span>
           <div class="trace-row__content">
             <p class="trace-row__event" data-testid="event-fact">
               {{ realityEventHeadline(event) }}
@@ -245,12 +260,28 @@ const visibleGroups = computed<EventGroup[]>(() => {
 }
 
 .trace-row__dot {
-  width: 11px;
-  height: 11px;
-  margin: 6px auto 0;
+  width: 20px;
+  height: 20px;
+  margin: 1px auto 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: var(--pa-border-width) solid var(--pa-color-accent);
   border-radius: var(--pa-radius-pill);
-  background: var(--pa-color-surface);
+  background: var(--pa-color-reality-observed-bg);
+  color: var(--pa-color-accent);
+}
+
+.trace-row__dot--staff_response {
+  border-color: var(--pa-color-status-conditional);
+  background: var(--pa-color-status-conditional-bg);
+  color: var(--pa-color-status-conditional);
+}
+
+.trace-row__dot--animal_facility {
+  border-color: var(--pa-color-facility-confirmed);
+  background: var(--pa-color-facility-confirmed-bg);
+  color: var(--pa-color-facility-confirmed);
 }
 
 .trace-row__content {
