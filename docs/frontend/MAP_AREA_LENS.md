@@ -10,6 +10,7 @@ MAP_SPATIAL_WORKSPACE          = IMPLEMENTED
 MAP_FOUR_LENSES                = IMPLEMENTED
 MAP_REAL_PLACE_COORDINATES     = IMPLEMENTED
 MAP_ONE_SHOT_LOCATION_QUERY    = IMPLEMENTED
+MAP_INLINE_SPATIAL_SEARCH      = IMPLEMENTED
 MAP_REAL_TILE_RENDERER_CODE    = IMPLEMENTED
 MAP_REAL_TILE_RUNTIME          = BLOCKED_EXTERNAL
 MAP_WGS84_TO_GCJ02_BOUNDARY    = IMPLEMENTED
@@ -109,6 +110,31 @@ camera(lat,lng)
 因此一次性定位现在真正改变空间查询，仍遵守 ADR-012：
 不连续追踪、不保存用户移动轨迹。
 
+### 2.5 Map 内搜索是真实空间操作
+
+过去 Map 左栏的“搜索场所 / 类别 / 附近”只是一个跳转到 Search 页的快捷按钮，
+这不符合 Spatial Workspace：用户离开了当前地图、camera 与 selection 也失去连续性。
+
+direct-v8 现在改为：
+
+```text
+Map search input
+→ GET /places?q=
+→ canonical name / alias / canonical address / parent place
+→ 命中有 verified representative point
+→ camera recenter
+→ nearby query
+→ list + marker + selection + preview 同步
+
+命中但没有已核验坐标
+→ 保留为真实 list result
+→ 不生成 marker
+→ 明确提示“仅在列表显示”
+```
+
+这使“商场 / 园区 / 父场所名称”和地址真正可检索，而不只是 UI placeholder 的承诺。
+搜索仍不创建 Place，也不使用第三方 POI 结果绕过 PetAccess 的治理模型。
+
 ## 3. Real Map：代码链已接通，真实运行仍是 External Blocker
 
 当前分支已经不再停在“以后换 provider”的接口注释，而是有两套真实可切换 renderer：
@@ -184,16 +210,28 @@ REAL_TILE_BASEMAP_RUNTIME = PASS  ❌
 
 ## 4. Area selector
 
-Area selector 仍未实现。
+Area selector 仍未实现，而且当前**不应该用一个静态下拉框假装完成**。
 
-如果后续做，Area 应绑定真实 jurisdiction / district / viewport spatial query，
-不得在 synthetic rectangle 上假装是行政区域。至少需要：
+本轮重新审计了当前数据模型：
 
-1. 明确 Area 数据源；
-2. 可追溯 geometry；
-3. Area 改变 nearby/search query；
-4. 区域内外回归断言；
-5. 不把“未收录”解释为“允许”。
+- `PlaceGeometry` 只治理 Place / Zone 的空间几何；
+- `JurisdictionRule` 有 `jurisdiction_level / jurisdiction_id`，但没有可用于地图裁剪的
+  jurisdiction / district geometry；
+- 当前没有一套带 provenance 的行政区 / 商圈 Area 实体与边界数据。
+
+因此现在能真实完成的是 Place / parent-place / address search + camera / viewport spatial query；
+不能把名字字符串或 synthetic rectangle 冒充 Area geometry。
+
+后续若把 Area 纳入发行范围，至少需要：
+
+1. 明确 Area 数据源和许可；
+2. 建立可追溯的 Area geometry（WGS84 internal truth）；
+3. Area selection 真正改变 nearby/search spatial query；
+4. 区域内外 / 边界 / 缺失 geometry 回归断言；
+5. provider 坐标转换仍只发生在 presentation boundary；
+6. 不把“区域未收录”解释为“允许”。
+
+所以这里的 `NOT_IMPLEMENTED` 是**诚实的数据能力边界**，不是一个应该用假 UI 填掉的视觉缺口。
 
 ## 5. Map UX 研究约束
 
