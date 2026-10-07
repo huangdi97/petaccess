@@ -6,6 +6,7 @@ Old endpoints unchanged (additive). Admin review actions are audited.
 
 from datetime import UTC, datetime
 from types import SimpleNamespace
+from typing import Literal
 
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel, Field
@@ -95,6 +96,13 @@ class ConsumerRuleLeadIn(BaseModel):
     effect: RuleEffect | None = None
     proposed_conditions: list[str] = Field(default_factory=list)
     raw_text: str | None = Field(default=None, max_length=4000)
+    source_basis: Literal[
+        "onsite_signage",
+        "staff_statement",
+        "official_online",
+        "other",
+        "uncertain",
+    ] | None = None
     media_id: str | None = None
     current_rule_id: str | None = None
     proximity_verified: bool = False
@@ -184,9 +192,21 @@ def contribute_rule_lead(
             )
 
     now = datetime.now(UTC)
+    source_basis = body.source_basis or ("onsite_signage" if media else "uncertain")
+    source_basis_labels = {
+        "onsite_signage": "现场规则牌 / 公告",
+        "staff_statement": "工作人员口头说明",
+        "official_online": "官方公开信息（用户转述）",
+        "other": "其他规则线索",
+        "uncertain": "来源类型未确认",
+    }
+    # A user's statement about staff/official content is still an ordinary-user
+    # lead until the underlying source itself is verified. Never promote it to
+    # OperatorPolicy / GovernmentService from the submitter's description.
+    source_type = SourceType.ONSITE_SIGNAGE if media else SourceType.ORDINARY_USER
     source = Source(
-        source_type=SourceType.ONSITE_SIGNAGE if media else SourceType.ORDINARY_USER,
-        issuer="用户提交的现场规则线索",
+        source_type=source_type,
+        issuer=f"用户提交 · {source_basis_labels[source_basis]}",
         issuer_verification=IssuerVerification.UNVERIFIED,
         source_url=None,
         collected_at=now,
@@ -199,7 +219,10 @@ def contribute_rule_lead(
         spatial_precision=(
             SpatialPrecision.PRECISE if body.proximity_verified else SpatialPrecision.UNKNOWN
         ),
-        notes="消费者规则线索；人工复核前不得视为正式规则。",
+        notes=(
+            f"消费者规则线索；source_basis={source_basis}；"
+            "人工复核前不得视为正式规则或运营方政策。"
+        ),
     )
     db.add(source)
     db.flush()
@@ -239,6 +262,7 @@ def contribute_rule_lead(
             "current_rule_id": body.current_rule_id,
             "has_media": bool(media),
             "structured": structured,
+            "source_basis": source_basis,
         },
     )
     db.commit()
