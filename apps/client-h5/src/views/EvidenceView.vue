@@ -11,6 +11,7 @@ import { useRoute } from "vue-router";
 import {
   client,
   placeTypeLabel,
+  session,
   type CoexistenceSnapshot,
   type PlaceDetail,
   type RealityEventView,
@@ -316,7 +317,7 @@ const uiFixture = computed<string>(() =>
               {{ realityEventProvenance(event) }}
             </p>
             <p class="muted evidence-item__basis">{{ realityEventTimeBasis(event) }}</p>
-            <EvidenceDisputeAction :event="event" />
+            <EvidenceDisputeAction :event="event" :signed-in="session.signedIn" />
           </div>
           <div v-if="!events.length" class="evidence-empty-inline" data-testid="evidence-empty">
             <p>暂无经核验现场事实</p>
