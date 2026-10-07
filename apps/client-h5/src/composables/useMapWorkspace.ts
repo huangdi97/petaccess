@@ -13,7 +13,6 @@ import {
   clusterMarkers,
   session,
   synthDemoCamera,
-  synthMarkerPosition,
   type CoexistenceSnapshot,
   type LocationState,
   type MapCamera,
@@ -37,6 +36,7 @@ import {
   type RowFacts,
 } from "../consumer/repository";
 import { presentDescription } from "../errors";
+import { mapMarkersFor, visibleMapPlaces } from "../consumer/mapSpatialProjection";
 import { useBreakpoint } from "./useBreakpoint";
 
 /** Load state of the floating preview for the selected place. */
@@ -78,35 +78,12 @@ export function useMapWorkspace() {
   });
 
   const markers = computed<MapMarker[]>(() =>
-    places.value.flatMap((p) => {
-      const hasVerifiedPoint = p.latitude != null && p.longitude != null;
-
-      // Production must fail honest: a place without a verified representative
-      // point stays in the adjacent list but is not invented onto the map.
-      // Synthetic positions exist only in Vite development / visual fixtures.
-      if (!hasVerifiedPoint && !import.meta.env.DEV) return [];
-
-      const pos = hasVerifiedPoint
-        ? { lat: p.latitude as number, lng: p.longitude as number }
-        : synthMarkerPosition(p.id, camera.value);
-      return [
-        {
-          id: p.id,
-          lat: pos.lat,
-          lng: pos.lng,
-          label: p.canonical_name,
-          status: statuses.value[p.id] ?? "UNKNOWN",
-        },
-      ];
-    }),
+    mapMarkersFor(places.value, camera.value, statuses.value, import.meta.env.DEV),
   );
 
-  const visiblePlaces = computed(() => {
-    if (lens.value !== "rule" || !activeFilters.value.length) return places.value;
-    return places.value.filter((p) =>
-      activeFilters.value.includes(statuses.value[p.id] ?? "UNKNOWN"),
-    );
-  });
+  const visiblePlaces = computed(() =>
+    visibleMapPlaces(lens.value, activeFilters.value, places.value, statuses.value),
+  );
 
   const visiblePlaceIds = computed(() => new Set(visiblePlaces.value.map((place) => place.id)));
   const visibleMarkers = computed(() =>
