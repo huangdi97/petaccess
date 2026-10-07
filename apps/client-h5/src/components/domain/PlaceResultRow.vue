@@ -18,6 +18,7 @@ import {
   type RealityAnswer,
 } from "@petaccess/client-core";
 import StatusBadge from "../StatusBadge.vue";
+import PlaceTypeGlyph from "./PlaceTypeGlyph.vue";
 import { answerConditions, answerStatusKey, answerVerdictLabel } from "../../answer";
 import {
   coexistenceEvidenceLine,
@@ -64,15 +65,18 @@ const projection = computed(() =>
 <template>
   <div class="place-result-row">
     <div class="place-result-row__head">
-      <div class="place-result-row__identity">
-        <strong class="place-result-row__name">{{ place.canonical_name }}</strong>
-        <span v-if="place.parent_place_name" class="place-result-row__meta"
-          >所属 {{ place.parent_place_name }}</span
-        >
-        <span class="place-result-row__meta"
-          >{{ placeTypeLabel(place.place_type) }} ·
-          {{ place.canonical_address ?? "地址待补充" }}</span
-        >
+      <div class="place-result-row__identity-wrap">
+        <PlaceTypeGlyph :place-type="place.place_type" />
+        <div class="place-result-row__identity">
+          <strong class="place-result-row__name">{{ place.canonical_name }}</strong>
+          <span v-if="place.parent_place_name" class="place-result-row__meta"
+            >所属 {{ place.parent_place_name }}</span
+          >
+          <span class="place-result-row__meta"
+            >{{ placeTypeLabel(place.place_type) }} ·
+            {{ place.canonical_address ?? "地址待补充" }}</span
+          >
+        </div>
       </div>
       <StatusBadge :semantic="status" class="place-result-row__badge" />
     </div>
@@ -144,6 +148,13 @@ const projection = computed(() =>
   justify-content: space-between;
   align-items: flex-start;
   gap: var(--pa-space-3);
+}
+
+.place-result-row__identity-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--pa-space-3);
+  min-width: 0;
 }
 
 .place-result-row__identity {
