@@ -372,6 +372,43 @@ test("A2.2 — Rule lead 与场所纠错都进入人工核验并出现在统一�
   await expect(rows.filter({ hasText: "REVIEW_PENDING" })).toHaveCount(0);
 });
 
+test("A2.2 — area-only 外部内容只保存线索，不冒充当前场所事实", async ({
+  page,
+  request,
+}) => {
+  const token = await signIn(request);
+  await page.addInitScript((value) => localStorage.setItem("pa_token", value), token);
+  await page.goto(`${BASE}/#/contribute/${MALL_ID}`, { waitUntil: "load" });
+  await expect(page.getByTestId("entry-reality-observed_presence")).toBeVisible({ timeout: 15000 });
+  await page.getByTestId("entry-reality-observed_presence").click();
+
+  await page.getByTestId("reality-source-mode").selectOption("external_online_content");
+  await page.getByTestId("reality-source-url").fill("https://example.com/area-only-pet-post");
+  await page.getByTestId("reality-place-match").selectOption("area_only");
+  await page.getByTestId("reality-published-date").fill("2026-10-05");
+
+  await expect(page.getByTestId("reality-imprecise-place-note")).toContainText(
+    "不会把它挂成当前场所的事实",
+  );
+
+  const reportRequestPromise = page.waitForRequest(
+    (r) => r.method() === "POST" && r.url().includes(`/places/${MALL_ID}/reality/reports`),
+  );
+  await page.getByTestId("reality-submit").click();
+  const reportRequest = await reportRequestPromise;
+  const body = reportRequest.postDataJSON() as {
+    report: { place_id: string | null; subject_place_id: string | null; place_match_state: string };
+    candidates: unknown[];
+  };
+  expect(body.report.place_match_state).toBe("area_only");
+  expect(body.report.place_id).toBeNull();
+  expect(body.report.subject_place_id).toBeNull();
+  expect(body.candidates).toEqual([]);
+
+  await expect(page.getByTestId("contribute-result")).toBeVisible({ timeout: 15000 });
+  await expect(page.getByTestId("contribute-result")).toContainText("没有生成当前场所的事实候选");
+});
+
 test("B2 — 我的贡献：提交后可见、空时走统一空态", async ({ page, request }) => {
   // Fresh user with no contributions → unified empty copy.
   const tokenA = await signIn(request);
