@@ -14,7 +14,7 @@ import BoundaryMatchPanel from "../components/explain/BoundaryMatchPanel.vue";
 import ExplainResultPanel from "../components/explain/ExplainResultPanel.vue";
 import StateMessage from "../components/StateMessage.vue";
 import { consumerExplanation } from "../consumer/explanation";
-import { currentQueryContext, snapshotFor } from "../consumer/repository";
+import { createEpoch, currentQueryContext, snapshotFor } from "../consumer/repository";
 import { divergenceLabel, FRESHNESS_LABELS, realityStateLabel } from "../reality";
 import { presentDescription } from "../errors";
 
@@ -26,6 +26,7 @@ const boundary = ref<BoundaryMatchResult | null>(null);
 const error = ref("");
 const note = ref("");
 const busy = ref(false);
+const resolveEpoch = createEpoch();
 
 const steps = computed(() => (resolved.value ? consumerExplanation(resolved.value) : []));
 
@@ -52,18 +53,21 @@ const realityExplanation = computed(() => {
 });
 
 async function resolveRules() {
+  const epoch = resolveEpoch.begin();
   error.value = "";
   busy.value = true;
   try {
     const result = await snapshotFor(placeId.value);
+    if (!resolveEpoch.isCurrent(epoch)) return;
     coexistence.value = result.snapshot;
     resolved.value = result.snapshot.rule_answer;
   } catch (e) {
+    if (!resolveEpoch.isCurrent(epoch)) return;
     coexistence.value = null;
     resolved.value = null;
     error.value = presentDescription(e);
   } finally {
-    busy.value = false;
+    if (resolveEpoch.isCurrent(epoch)) busy.value = false;
   }
 }
 
@@ -99,7 +103,7 @@ watch(
 );
 
 watch(currentQueryContext, () => {
-  if (!placeId.value || busy.value) return;
+  if (!placeId.value) return;
   void resolveRules();
 });
 </script>
