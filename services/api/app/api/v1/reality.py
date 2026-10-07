@@ -847,6 +847,23 @@ def _presence_summary(db: Session, place_id: str, now: datetime):
         ],
         now=now,
     )
+    zone_facts = [
+        {
+            "name": zone_name,
+            "zone_type": enum_text(zone_type),
+            "indoor_outdoor": enum_text(spatial),
+        }
+        for _, zone_name, zone_type, spatial in claims
+        if zone_name
+    ]
+    # Preserve one row per semantic zone tuple; multiple observations in the
+    # same zone must not turn the consumer lens into a frequency score.
+    zone_facts = list(
+        {
+            (item["name"], item["zone_type"], item["indoor_outdoor"]): item
+            for item in zone_facts
+        }.values()
+    )
     zone_types = sorted(
         {value for _, _, zone_type, _ in claims if (value := enum_text(zone_type)) is not None}
     )
@@ -857,7 +874,7 @@ def _presence_summary(db: Session, place_id: str, now: datetime):
             if (value := enum_text(spatial)) is not None
         }
     )
-    return summary, zone_types, indoor_outdoor
+    return summary, zone_facts, zone_types, indoor_outdoor
 
 
 def _staff_response_summary(
@@ -961,13 +978,16 @@ def _reality_evidence_stats(db: Session, place_id: str) -> tuple[int, int, str |
 
 def _reality_answer_for_place(db: Session, place_id: str, now: datetime) -> dict:
     """Build the one consumer RealityAnswer used by GET and CoexistenceSnapshot."""
-    summary, observed_zone_types, observed_indoor_outdoor = _presence_summary(db, place_id, now)
+    summary, observed_zone_facts, observed_zone_types, observed_indoor_outdoor = (
+        _presence_summary(db, place_id, now)
+    )
     return {
         "state": summary.state,
         "last_seen_at": summary.last_seen_at,
         "evidence_count": summary.evidence_count,
         "distinct_source_count": summary.distinct_source_count,
         "observed_zones": list(summary.observed_zones),
+        "observed_zone_facts": observed_zone_facts,
         "observed_zone_types": observed_zone_types,
         "observed_indoor_outdoor": observed_indoor_outdoor,
         "observed_actions": list(summary.observed_actions),
