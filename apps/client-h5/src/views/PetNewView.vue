@@ -70,34 +70,39 @@ async function save() {
 
     <form v-else class="pet-new-form" @submit.prevent="save">
       <section class="pet-new-section">
-        <h2>基本信息</h2>
-        <label class="pet-new-field">
-          <span>名字</span>
-          <input v-model="pet.display_name" data-testid="pet-name" placeholder="如：豆豆" />
-        </label>
-        <label class="pet-new-field">
-          <span>物种</span>
-          <select v-model="pet.species" data-testid="pet-species">
-            <option value="dog">犬</option>
-            <option value="cat">猫</option>
-            <option value="other">其他</option>
-          </select>
-        </label>
-        <label class="pet-new-field">
-          <span>品种（可选）</span>
-          <input v-model="pet.breed_text" placeholder="如：柴犬" />
-        </label>
-        <label class="pet-new-field">
-          <span>体重 kg（可选）</span>
-          <input
-            v-model="pet.weight_kg"
-            type="number"
-            step="0.1"
-            min="0"
-            data-testid="pet-weight"
-          />
-          <small>只有规则涉及体重限制时才会使用；不填写就保持未知。</small>
-        </label>
+        <div class="pet-new-section__lead">
+          <h2>基本信息</h2>
+          <p class="muted">这些字段只在当前规则判断确实需要时参与查询。</p>
+        </div>
+        <div class="pet-new-grid">
+          <label class="pet-new-field">
+            <span>名字</span>
+            <input v-model="pet.display_name" data-testid="pet-name" placeholder="如：豆豆" />
+          </label>
+          <label class="pet-new-field">
+            <span>物种</span>
+            <select v-model="pet.species" data-testid="pet-species">
+              <option value="dog">犬</option>
+              <option value="cat">猫</option>
+              <option value="other">其他</option>
+            </select>
+          </label>
+          <label class="pet-new-field">
+            <span>品种（可选）</span>
+            <input v-model="pet.breed_text" placeholder="如：柴犬" />
+          </label>
+          <label class="pet-new-field">
+            <span>体重 kg（可选）</span>
+            <input
+              v-model="pet.weight_kg"
+              type="number"
+              step="0.1"
+              min="0"
+              data-testid="pet-weight"
+            />
+            <small>只有规则涉及体重限制时才会使用；不填写就保持未知。</small>
+          </label>
+        </div>
       </section>
 
       <section class="pet-new-section">
