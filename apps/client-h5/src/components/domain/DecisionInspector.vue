@@ -26,10 +26,9 @@ import {
   type CoexistenceSnapshot,
   type RealityAnswer,
 } from "@petaccess/client-core";
-import { answerConditions, answerStatusKey, answerVerdictLabel } from "../../answer";
+import { answerConditions, answerVerdictLabel } from "../../answer";
 import { coexistenceRealityLine, freshnessLineFor } from "../../consumer/rowView";
 import { querySummaryLabel } from "../../consumer/queryContext";
-import StatusBadge from "../StatusBadge.vue";
 const props = withDefaults(
   defineProps<{
     place: {
@@ -77,7 +76,6 @@ const verdict = computed(() => answerVerdictLabel(props.answer));
 const conditions = computed(() => answerConditions(props.answer, props.conditionsLabel));
 const freshness = computed(() => freshnessLineFor(props.stale, props.fetchedAtMs, props.offline));
 const queryLabel = computed(() => querySummaryLabel());
-const semanticStatus = computed(() => answerStatusKey(props.answer));
 /** §12 Evidence one-line：来源 issuer + 时效。 */
 const SOURCE_RATE: Record<string, string> = {
   official_operator_policy: "运营方规则",
@@ -149,7 +147,6 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
           <h2 class="decision-inspector__name" data-ui="search-detail-name">
             {{ place.canonical_name }}
           </h2>
-          <StatusBadge :semantic="semanticStatus" />
         </div>
         <p class="decision-inspector__meta">
           {{ placeTypeLabel(place.place_type) }} ·
