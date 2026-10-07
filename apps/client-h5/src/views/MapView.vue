@@ -60,6 +60,16 @@ const useRealMap = computed(
     !realMapError.value,
 );
 
+const simplifiedBasemapCopy = computed(() => {
+  if (realMapError.value) {
+    return "真实底图暂不可用，当前显示简化空间底图；场所点位仍使用已核验坐标。";
+  }
+  if (renderConfig.value && !renderConfig.value.real_enabled) {
+    return "当前环境未配置真实地图底图，显示简化空间底图；场所点位仍使用已核验坐标。";
+  }
+  return "";
+});
+
 onMounted(async () => {
   try {
     renderConfig.value = await client.mapConfig();
@@ -240,11 +250,11 @@ function chooseMapResult(id: string) {
           @zoom="zoomMap"
         />
         <p
-          v-if="realMapError"
+          v-if="simplifiedBasemapCopy"
           class="map-provider-fallback"
           data-testid="map-real-provider-fallback"
         >
-          真实底图暂不可用，已切换到简化空间底图；规则、现场和场所坐标仍来自 PetAccess。
+          {{ simplifiedBasemapCopy }}
         </p>
       </section>
     </div>
