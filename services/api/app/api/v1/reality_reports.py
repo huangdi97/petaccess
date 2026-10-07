@@ -332,10 +332,37 @@ def create_reality_report(
                 code="parent_place_required",
                 status_code=422,
             )
-        if db.get(Place, body.report.container_place_id) is None:
+        container = db.get(Place, body.report.container_place_id)
+        if container is None:
             raise NotFound("上级场所不存在")
-        body.report.place_id = body.report.container_place_id
+        if place.parent_place_id != container.id:
+            raise ApiError(
+                "上级场所必须是当前场所已收录的直接父场所，不能用任意已存在场所提升地点匹配",
+                code="parent_place_relationship_mismatch",
+                status_code=422,
+            )
+        body.report.place_id = container.id
+        body.report.container_place_id = container.id
         body.report.subject_place_id = None
+    elif match_state == PlaceMatchState.EXACT_SUBPLACE:
+        if not body.report.subject_place_id:
+            raise ApiError(
+                "精确子场所匹配必须明确具体子场所",
+                code="exact_subplace_required",
+                status_code=422,
+            )
+        subject = db.get(Place, body.report.subject_place_id)
+        if subject is None:
+            raise NotFound("具体子场所不存在")
+        if subject.parent_place_id != place_id:
+            raise ApiError(
+                "具体子场所必须属于当前场所，不能跨场所提升地点匹配",
+                code="exact_subplace_relationship_mismatch",
+                status_code=422,
+            )
+        body.report.place_id = subject.id
+        body.report.container_place_id = place_id
+        body.report.subject_place_id = subject.id
     elif match_state in {
         PlaceMatchState.AREA_ONLY,
         PlaceMatchState.UNRESOLVED,
