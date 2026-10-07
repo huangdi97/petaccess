@@ -323,6 +323,7 @@ def record_artifact(
         publisher_type=collected.publisher_type,
         published_at=collected.published_at,
         captured_excerpt=collected.captured_excerpt,
+        evidence_strength=evidence_strength,
         storage_allowed=collected.storage_allowed,
         display_allowed=collected.display_allowed,
         redistribution_allowed=collected.redistribution_allowed,
