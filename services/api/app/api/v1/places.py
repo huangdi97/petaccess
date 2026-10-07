@@ -141,7 +141,7 @@ def _to_summary(row, q: str | None = None) -> PlaceSummary:
 
 @router.get("/places", response_model=Page[PlaceSummary])
 def list_places(
-    q: str | None = Query(default=None, max_length=100, description="fuzzy name search"),
+    q: str | None = Query(default=None, max_length=100, description="place, alias, parent-place or address search"),
     place_type: str | None = None,
     limit: int = Query(default=20, le=100),
     offset: int = Query(default=0, ge=0),
