@@ -80,6 +80,7 @@ const searched = ref(false);
 const loading = ref(false);
 const error = ref("");
 const epoch = createEpoch();
+const previewEpoch = createEpoch();
 
 /**
  * O6 capture-state integrity: page/state/fixture narrated by this component.
@@ -221,14 +222,15 @@ function syncRouteQuery(query: string) {
 async function selectPlace(p: PlaceSummary) {
   selectedId.value = p.id;
   if (!isDesktop.value) return;
+
+  const n = previewEpoch.begin();
   preview.value = { snapshot: null, loading: true, error: "" };
   try {
-    preview.value = {
-      snapshot: (await snapshotFor(p.id)).snapshot,
-      loading: false,
-      error: "",
-    };
+    const { snapshot } = await snapshotFor(p.id);
+    if (!previewEpoch.isCurrent(n) || selectedId.value !== p.id) return;
+    preview.value = { snapshot, loading: false, error: "" };
   } catch (e) {
+    if (!previewEpoch.isCurrent(n) || selectedId.value !== p.id) return;
     preview.value = { snapshot: null, loading: false, error: presentDescription(e) };
   }
 }
