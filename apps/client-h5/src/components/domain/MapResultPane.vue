@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
  * MapResultPane — the map workspace's result pane (freeze §9): location row,
- * search shortcut, status filters (筛选 N toggle + panel, never a pill wall),
+ * in-workspace spatial search, status filters (筛选 N toggle + panel, never a pill wall),
  * loading/error/empty/coverage/list rows.
  *
  * Divider-led rows with radius 0 (no cards); the map canvas in the parent
