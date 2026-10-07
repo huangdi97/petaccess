@@ -34,6 +34,7 @@ import StateMessage from "../components/StateMessage.vue";
 import QueryContextBar from "../components/domain/QueryContextBar.vue";
 import EvidenceStatus from "../components/domain/EvidenceStatus.vue";
 import EvidenceProvenance from "../components/domain/EvidenceProvenance.vue";
+import EvidenceDisputeAction from "../components/domain/EvidenceDisputeAction.vue";
 import PaIcon from "../components/ui/PaIcon.vue";
 import { presentDescription } from "../errors";
 
@@ -315,6 +316,7 @@ const uiFixture = computed<string>(() =>
               {{ realityEventProvenance(event) }}
             </p>
             <p class="muted evidence-item__basis">{{ realityEventTimeBasis(event) }}</p>
+            <EvidenceDisputeAction :event="event" />
           </div>
           <div v-if="!events.length" class="evidence-empty-inline" data-testid="evidence-empty">
             <p>暂无经核验现场事实</p>
