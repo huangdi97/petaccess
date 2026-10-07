@@ -771,6 +771,11 @@ def test_published_reality_fact_can_be_disputed_without_becoming_a_rule_mutation
         event = next(item for item in events.json() if item["id"] == claim_id)
         assert event["dispute_open"] is True
 
+        summary = client.get(f"/api/v1/places/{place_id}/reality")
+        assert summary.status_code == 200, summary.text
+        assert summary.json()["state"] == "DISPUTED"
+        assert "争议" in (summary.json().get("note") or "")
+
         with factory() as db:
             preserved = db.get(ObservedPresence, claim_id)
             assert preserved is not None
