@@ -1,3 +1,13 @@
+## Current phase（2026-10-07 — direct-v8 Source Closure / Final Runtime Evidence Pending）
+
+- 分支：`feat/ui-direct-craft-v8`；PR #1 继续 **draft**；base = `feat/ui-product-craft-v7-human-review-final`；master / tag / Release 不动。
+- `UI_HUMAN_VISUAL_ACCEPTANCE = REJECTED_REOPENED / PENDING_REVIEW`。用户对旧 runtime 的视觉否决继续有效，任何机器 Gate 都不能替代新的真人审图。
+- 本轮继续关闭“UI 文案正确、实际链路错误”的问题：Rule lead → RuleCandidate review；Place correction → moderator correction queue；Reality/Evidence → published v0.9 event stream；Map → PostGIS 真实点位 + 可选 Tencent GL；Search/Home 空态不再跳入无法新增 Place 的 Contribution 死循环。
+- Map provider 现在显式区分 `real` 与 `simplified`：无 Key / provider error 时必须展示“简化空间底图”说明，同时点位仍取已核验坐标；Human Review manifest 记录实际 renderer，禁止把 fallback 截图冒充真实地图。
+- Consumer SSOT：Home / Search / Map / Place 使用同一 `CoexistenceSnapshot`；Rule、Presence、StaffResponse、Facility、Evidence、Dispute 的语义边界保持不变。
+- 当前 GitHub Actions 对此前 bot-authored PR runs 返回 `action_required` 且无 jobs；这不是 PASS。最新 source 需要本地 Agent 或获准的 Actions 对最终 HEAD 重跑 lint/typecheck/build/oracle/human-review。
+- authoritative Web 人审包仍应来自 `tests/ui-oracle/human-review-direct-v8.spec.ts` → `artifacts/ui-direct-v8/HUMAN_REVIEW/{desktop,mobile}/`；历史 `artifacts/ui-direct-craft-v8-local-acceptance/` 不得用于当前视觉签字。
+- 最终停止线：Web 新截图 + Windows WebView2 + Android AVD 都必须对应同一最终 HEAD。完成并由用户真人确认前：禁止 baseline promotion、禁止 master 集成、禁止把 PR 转 ready、禁止 tag / Release。
 ## Current phase（2026-10-07 — direct-v8 Canonical Fidelity + Dispute Closure）
 
 - 分支：`feat/ui-direct-craft-v8`；PR #1 保持 **draft**；base = `feat/ui-product-craft-v7-human-review-final`；master / tag / Release 不动。
