@@ -927,10 +927,13 @@ def _facility_summary(db: Session, place_id: str) -> list[dict]:
         select(
             AnimalFacility.facility_type,
             AnimalFacility.purpose_state,
+            AnimalFacility.zone_id,
+            Zone.name,
             AnimalFacility.operational_state,
             func.count(),
             func.max(AnimalFacility.last_verified_at),
         )
+        .outerjoin(Zone, Zone.id == AnimalFacility.zone_id)
         .outerjoin(RealityCandidate, RealityCandidate.id == AnimalFacility.candidate_id)
         .outerjoin(RealityReport, RealityReport.id == RealityCandidate.report_id)
         .where(
@@ -945,6 +948,8 @@ def _facility_summary(db: Session, place_id: str) -> list[dict]:
         .group_by(
             AnimalFacility.facility_type,
             AnimalFacility.purpose_state,
+            AnimalFacility.zone_id,
+            Zone.name,
             AnimalFacility.operational_state,
         )
     ).all()
@@ -952,11 +957,13 @@ def _facility_summary(db: Session, place_id: str) -> list[dict]:
         {
             "facility_type": facility_type,
             "purpose_state": purpose_state,
+            "zone_id": zone_id,
+            "zone_name": zone_name,
             "count": count,
             "operational_state": state,
             "last_verified_at": last_verified_at,
         }
-        for facility_type, purpose_state, state, count, last_verified_at in rows
+        for facility_type, purpose_state, zone_id, zone_name, state, count, last_verified_at in rows
     ]
 
 
