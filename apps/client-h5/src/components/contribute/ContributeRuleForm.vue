@@ -7,7 +7,11 @@
 import { computed, ref } from "vue";
 import { client } from "@petaccess/client-core";
 import { evidenceRefs, proximity } from "./contributeSupport";
-import { ruleLeadConditionLabel, ruleLeadEffectLabel, ruleLeadSourceBasisLabel } from "./ruleLeadCopy";
+import {
+  ruleLeadConditionLabel,
+  ruleLeadEffectLabel,
+  ruleLeadSourceBasisLabel,
+} from "./ruleLeadCopy";
 import { presentDescription } from "../../errors";
 import ContributionStepShell from "./ContributionStepShell.vue";
 import RuleLeadFields from "./RuleLeadFields.vue";

@@ -1,6 +1,4 @@
-export function ruleLeadEffectLabel(
-  effect: "allowed" | "restricted" | "conditional" | "",
-): string {
+export function ruleLeadEffectLabel(effect: "allowed" | "restricted" | "conditional" | ""): string {
   if (effect === "allowed") return "明确允许";
   if (effect === "restricted") return "明确限制";
   if (effect === "conditional") return "有条件进入";
