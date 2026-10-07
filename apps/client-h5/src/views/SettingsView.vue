@@ -4,7 +4,6 @@ import { onMounted, ref } from "vue";
 import { session } from "@petaccess/client-core";
 import { REQUIRED_COPY } from "@petaccess/design-tokens";
 import AppShell from "../components/AppShell.vue";
-import { querySummaryLabel } from "../consumer/queryContext";
 
 const appVersion = import.meta.env.VITE_APP_VERSION ?? "0.2.0-dev";
 const signedIn = ref(false);
@@ -123,10 +122,10 @@ const EVIDENCE = [
     </section>
 
     <footer class="settings-foot">
-      <span>当前查询：{{ querySummaryLabel() }}</span>
       <span>
         {{ signedIn ? `已登录 · ${session.user?.display_name ?? ""}` : "未登录 · 可浏览公开内容" }}
       </span>
+      <span>查询对象与动作请使用页面顶部的“当前查询”统一调整。</span>
     </footer>
   </AppShell>
 </template>
