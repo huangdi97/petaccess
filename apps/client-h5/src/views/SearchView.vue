@@ -198,10 +198,16 @@ async function search() {
     } else {
       syncRouteQuery("");
     }
-    if (isDesktop.value && list.items.length) {
-      const first = list.items[0];
-      if (!selectedId.value || !list.items.some((p) => p.id === selectedId.value)) {
-        void selectPlace(first);
+    if (isDesktop.value) {
+      const firstVisible = visible.value[0] ?? null;
+      const selectedStillVisible = visible.value.some((place) => place.id === selectedId.value);
+      if (!selectedStillVisible) {
+        if (firstVisible) void selectPlace(firstVisible);
+        else {
+          previewEpoch.begin();
+          selectedId.value = null;
+          preview.value = { snapshot: null, loading: false, error: "" };
+        }
       }
     }
   } catch (e) {
@@ -322,6 +328,23 @@ onMounted(async () => {
 
 const { desktop: isDesktop, mobile: isMobile } = useBreakpoint();
 const selectedId = ref<string | null>(null);
+
+// Desktop List–Detail must never show detail for a row hidden by the active
+// filter/lens. Keep selection inside the visible result set.
+watch(visible, (list) => {
+  if (!isDesktop.value) return;
+  if (selectedId.value && list.some((place) => place.id === selectedId.value)) return;
+
+  const next = list[0] ?? null;
+  if (next) {
+    void selectPlace(next);
+    return;
+  }
+
+  previewEpoch.begin();
+  selectedId.value = null;
+  preview.value = { snapshot: null, loading: false, error: "" };
+});
 
 watch(currentQueryContext, () => {
   if (!queryContextReady) return;
