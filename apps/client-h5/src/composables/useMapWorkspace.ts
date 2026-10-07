@@ -28,7 +28,13 @@ import {
   parseMapLens,
   type MapLensKey,
 } from "../consumer/mapLens";
-import { enrichRows, nearbyPlaces, snapshotFor, type RowFacts } from "../consumer/repository";
+import {
+  currentQueryContext,
+  enrichRows,
+  nearbyPlaces,
+  snapshotFor,
+  type RowFacts,
+} from "../consumer/repository";
 import { presentDescription } from "../errors";
 import { useBreakpoint } from "./useBreakpoint";
 
@@ -165,9 +171,12 @@ export function useMapWorkspace() {
     }
   }
 
+  let queryContextReady = false;
+
   onMounted(async () => {
     await session.restore();
     await load();
+    queryContextReady = true;
   });
 
   function open(id: string) {
@@ -268,6 +277,14 @@ export function useMapWorkspace() {
     syncRoutePlace(next?.id ?? null);
     if (next) void selectPlace(next);
     else preview.value = { snapshot: null, loading: false, error: "" };
+  });
+
+  watch(currentQueryContext, () => {
+    if (!queryContextReady) return;
+    void (async () => {
+      await load();
+      if (selected.value) await selectPlace(selected.value);
+    })();
   });
 
   return {
