@@ -83,9 +83,9 @@ const SHOTS: Shot[] = [
     page: "search",
     state: "empty",
     h1: "搜索场所的规则与现场",
-    requiredTestids: ["search-empty", "search-empty-contribute"],
+    requiredTestids: ["search-empty", "search-empty-map"],
     requiredText: ["没有找到已收录场所"],
-    note: "Search empty keeps context and one primary contribution/recovery action.",
+    note: "Search empty keeps context and one implemented recovery action; it does not route into a contribution flow that requires an existing place.",
   },
   {
     name: "03_place_overview",
