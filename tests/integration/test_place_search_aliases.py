@@ -117,6 +117,24 @@ def test_same_brand_returns_both_branches_labeled(client, branches):
     assert items[flagship]["parent_place_name"] is None
 
 
+def test_address_hit_matches_consumer_search_promise(client, branches):
+    """The Search field promises address lookup; the API must actually honor it."""
+    flagship, _ = branches
+    r = client.get("/api/v1/places", params={"q": f"{TAG}主街 1 号"})
+    assert r.status_code == 200, r.text
+    assert flagship in {item["id"] for item in r.json()["items"]}
+
+
+def test_parent_place_hit_returns_child_places(client, branches):
+    """Container/mall/district wording must find children, not only the parent row."""
+    flagship, sibling = branches
+    r = client.get("/api/v1/places", params={"q": f"{TAG}·旗舰店"})
+    assert r.status_code == 200, r.text
+    ids = {item["id"] for item in r.json()["items"]}
+    assert flagship in ids
+    assert sibling in ids, "parent-place search did not surface its child place"
+
+
 
 
 
