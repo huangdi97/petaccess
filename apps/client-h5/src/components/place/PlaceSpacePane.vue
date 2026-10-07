@@ -82,6 +82,7 @@ function facilityZone(event: RealityEventView): string {
           v-for="event in facilityEvents"
           :key="event.id"
           class="facility-record"
+          :class="{ 'facility-record--disputed': event.dispute_open }"
           data-testid="animal-facility-record"
         >
           <header class="facility-record__head">
@@ -125,6 +126,10 @@ function facilityZone(event: RealityEventView): string {
             <dd>
               {{ event.last_verified_at ? displayRealityTime(event.last_verified_at) : "未记录" }}
             </dd>
+            <template v-if="event.dispute_open">
+              <dt>争议状态</dt>
+              <dd>异议处理中 · 原记录保留等待复核</dd>
+            </template>
           </dl>
         </article>
       </template>
@@ -152,6 +157,7 @@ function facilityZone(event: RealityEventView): string {
                 : "用途待核验"
             }}
             · {{ item.count }} 处
+            <template v-if="item.disputed_count"> · {{ item.disputed_count }} 条异议处理中 </template>
             <template v-if="item.last_verified_at">
               · 最近核验 {{ item.last_verified_at.slice(0, 10) }}
             </template>
