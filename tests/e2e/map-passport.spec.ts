@@ -42,6 +42,18 @@ test("A1 — desktop 地图 split-view + 四 Lens + 详情面板", async ({ page
   await expect(page.getByTestId("preview-open")).toBeVisible();
 });
 
+test("A1.1 — Map 内搜索保持 Spatial Workspace 并选择真实场所", async ({ page }) => {
+  await page.goto(`${BASE}/#/map`);
+  await expect(page.getByTestId("map-search-input")).toBeVisible();
+  await page.getByTestId("map-search-input").fill("云栖中心");
+  await page.getByTestId("map-search-submit").click();
+
+  await expect(page).toHaveURL(/#\/map/);
+  await expect(page.getByTestId(`place-${MALL_ID}`)).toBeVisible({ timeout: 15000 });
+  await expect(page.getByTestId(`place-${MALL_ID}`)).toHaveAttribute("data-selected", "true");
+  await expect(page.getByTestId("place-preview")).toContainText("云栖中心");
+});
+
 test("A2 — map 错误统一呈现，不泄漏内部字样", async ({ page }) => {
   await page.route("**/api/v1/places/nearby**", (route) =>
     route.fulfill({
