@@ -40,6 +40,7 @@ from app.core.security import get_optional_user, require_role
 from app.db.session import get_db
 from app.models import (
     AnimalFacility,
+    DisputeCase,
     ObservedPresence,
     Place,
     RealityCandidate,
@@ -49,6 +50,8 @@ from app.models import (
     User,
 )
 from app.models.enums import (
+    DisputeCaseStatus,
+    DisputeTargetType,
     ObservationOrigin,
     PlaceMatchState,
     RealityCandidateType,
@@ -495,6 +498,7 @@ def reality_trace(
             or "暂无经核验的设施记录",
         ),
     ]
+    open_dispute_count = _open_reality_dispute_count(db, claims, staff_rows, facility_rows)
     review_sections = [
         RealityTraceSection(
             label="核验",
@@ -506,8 +510,8 @@ def reality_trace(
         ),
         RealityTraceSection(
             label="争议 / 纠错",
-            value="当前未单独聚合",
-            note="如发现现场事实有误，可从场所页提交补充或纠错线索；平台不会把“未展示争议状态”解释成“没有争议”。",
+            value=f"{open_dispute_count} 条处理中" if open_dispute_count else "暂无待处理异议",
+            note="异议只触发复核，不会由提交者直接删除记录，也不会改写正式规则。",
         ),
     ]
     return RealityTraceOut(
@@ -584,6 +588,38 @@ def my_reality_contributions(
             }
         )
     return out
+
+
+def _open_reality_dispute_count(
+    db: Session,
+    claims: Sequence[ObservedPresence],
+    staff_rows: Sequence[StaffResponseObservation],
+    facility_rows: Sequence[AnimalFacility],
+) -> int:
+    targets = {
+        *(("observed_presence", row.id) for row in claims),
+        *(("staff_response_observation", row.id) for row in staff_rows),
+        *(("animal_facility", row.id) for row in facility_rows),
+    }
+    if not targets:
+        return 0
+    ids = {target_id for _, target_id in targets}
+    rows = db.execute(
+        select(DisputeCase.target_type, DisputeCase.target_id).where(
+            DisputeCase.target_id.in_(ids),
+            DisputeCase.target_type.in_(
+                [
+                    DisputeTargetType.OBSERVED_PRESENCE.value,
+                    DisputeTargetType.STAFF_RESPONSE_OBSERVATION.value,
+                    DisputeTargetType.ANIMAL_FACILITY.value,
+                ]
+            ),
+            DisputeCase.status.notin_(
+                [DisputeCaseStatus.RESOLVED.value, DisputeCaseStatus.WITHDRAWN.value]
+            ),
+        )
+    ).all()
+    return len({(str(target_type), target_id) for target_type, target_id in rows})
 
 
 def _source_type_label(
