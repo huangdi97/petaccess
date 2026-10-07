@@ -16,6 +16,7 @@ import { placeTypeLabel } from "@petaccess/client-core";
 import { freshnessLineFor, type ConsumerLens } from "../../consumer/rowView";
 import type { HomeCard } from "../../composables/useHomeLauncher";
 import HomeDigestHighlights from "./HomeDigestHighlights.vue";
+import PlaceTypeGlyph from "./PlaceTypeGlyph.vue";
 
 const props = defineProps<{
   loading: boolean;
@@ -130,11 +131,16 @@ const freshness = computed(() =>
             :data-testid="'pending-' + c.place.id"
             @click="emit('open', c.place.id)"
           >
-            <div class="row home-row__head">
-              <strong>{{ c.place.canonical_name }}</strong>
-              <StatusBadge :semantic="c.status" />
+            <div class="home-row__pending-identity">
+              <PlaceTypeGlyph :place-type="c.place.place_type" />
+              <div class="home-row__pending-copy">
+                <div class="row home-row__head">
+                  <strong>{{ c.place.canonical_name }}</strong>
+                  <StatusBadge :semantic="c.status" />
+                </div>
+                <span class="muted">{{ placeTypeLabel(c.place.place_type) }}</span>
+              </div>
             </div>
-            <span class="muted">{{ placeTypeLabel(c.place.place_type) }}</span>
           </div>
         </template>
 
