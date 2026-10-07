@@ -502,9 +502,11 @@ watch(currentQueryContext, () => {
           </template>
           <template v-else>
             <p class="search-empty__title">没有找到已收录场所</p>
-            <p class="muted search-empty__body">试试其他关键词，或者提交一个新的场所线索。</p>
-            <RouterLink class="btn primary" to="/contribute" data-testid="search-empty-contribute">
-              提交场所线索
+            <p class="muted search-empty__body">
+              试试其他关键词，或者到地图查看附近已收录场所。当前贡献流程只接受已收录场所的规则、现场与纠错线索。
+            </p>
+            <RouterLink class="btn primary" to="/map" data-testid="search-empty-map">
+              在地图查找
             </RouterLink>
           </template>
         </div>
