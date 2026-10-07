@@ -26,8 +26,10 @@ import {
   type CoexistenceSnapshot,
   type RealityAnswer,
 } from "@petaccess/client-core";
-import { answerConditions, answerVerdictLabel } from "../../answer";
+import { answerConditions, answerStatusKey, answerVerdictLabel } from "../../answer";
 import { coexistenceRealityLine, freshnessLineFor } from "../../consumer/rowView";
+import { querySummaryLabel } from "../../consumer/queryContext";
+import StatusBadge from "../StatusBadge.vue";
 const props = withDefaults(
   defineProps<{
     place: {
@@ -74,6 +76,8 @@ const props = withDefaults(
 const verdict = computed(() => answerVerdictLabel(props.answer));
 const conditions = computed(() => answerConditions(props.answer, props.conditionsLabel));
 const freshness = computed(() => freshnessLineFor(props.stale, props.fetchedAtMs, props.offline));
+const queryLabel = computed(() => querySummaryLabel());
+const semanticStatus = computed(() => answerStatusKey(props.answer));
 /** §12 Evidence one-line：来源 issuer + 时效。 */
 const SOURCE_RATE: Record<string, string> = {
   official_operator_policy: "运营方规则",
@@ -141,9 +145,12 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
       <!-- v0.2.4 §12：Search detail 保留 identity；v0.2.5 §16：place inspector
            不再重复 Place Name/地址（identity 只在 main column）。 -->
       <header v-if="variant === 'search'" class="decision-inspector__head">
-        <h2 class="decision-inspector__name" data-ui="search-detail-name">
-          {{ place.canonical_name }}
-        </h2>
+        <div class="decision-inspector__title-row">
+          <h2 class="decision-inspector__name" data-ui="search-detail-name">
+            {{ place.canonical_name }}
+          </h2>
+          <StatusBadge :semantic="semanticStatus" />
+        </div>
         <p class="decision-inspector__meta">
           {{ placeTypeLabel(place.place_type) }} ·
           {{ place.canonical_address ?? "地址待补充" }}
@@ -155,7 +162,7 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
       <template v-if="variant === 'search'">
         <div class="inspector-block inspector-block--context">
           <span class="inspector-block__label">当前查询</span>
-          <p class="inspector-block__value">{{ speciesLabel }} · 进入 · 公共区域</p>
+          <p class="inspector-block__value">{{ queryLabel }}</p>
         </div>
 
         <div class="inspector-block inspector-block--decision" data-ui="search-decision">
@@ -205,7 +212,7 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
       <template v-else>
         <div class="inspector-block inspector-block--context">
           <span class="inspector-block__label">当前查询</span>
-          <p class="inspector-block__value">{{ speciesLabel }} · 进入 · 公共区域</p>
+          <p class="inspector-block__value">{{ queryLabel }}</p>
         </div>
 
         <div class="inspector-block inspector-block--decision" data-ui="search-decision">
@@ -417,10 +424,10 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
 /* v0.2.7 §22：secondary evidence grouping —— reality + evidence 归组为
    次要信息区（顶部细分隔线），primary decision 保持唯一强焦点。 */
 .inspector-secondary {
-  display: flex;
-  flex-direction: column;
-  gap: var(--pa-space-5);
-  padding-top: var(--pa-space-3);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--pa-space-6);
+  padding-top: var(--pa-space-4);
   border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
 }
 .inspector-secondary .inspector-block--meta {
@@ -483,6 +490,11 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
 
   .decision-inspector__onboarding {
     padding-top: var(--pa-space-6);
+  }
+
+  .inspector-secondary {
+    grid-template-columns: 1fr;
+    gap: var(--pa-space-4);
   }
 
   .inspector-decision {
