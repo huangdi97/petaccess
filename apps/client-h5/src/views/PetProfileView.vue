@@ -31,7 +31,7 @@ async function load() {
     if (!session.signedIn) return;
     pets.value = await client.myPets();
     if (session.activePet && !pets.value.some((p) => p.id === session.activePet?.id)) {
-      session.activePet = null;
+      session.setActivePet(null);
     }
   } catch (e) {
     error.value = e instanceof ApiError ? e.message : String(e);
@@ -86,7 +86,11 @@ async function save() {
     } else if (editing.value) {
       const updated = await client.updatePet(editing.value, body);
       pets.value = pets.value.map((p) => (p.id === updated.id ? updated : p));
-      if (session.activePet?.id === updated.id) session.activePet = updated;
+      if (session.activePet?.id === updated.id) {
+        session.setActivePet(updated);
+        session.setDeclaredRole(null);
+        session.mode = updated.service_role === "working" ? "service_dog" : "with_pet";
+      }
       notice.value = `已更新「${updated.display_name}」`;
     }
     editing.value = null;
@@ -111,7 +115,7 @@ async function confirmRemove() {
   try {
     await client.deletePet(pet.id);
     pets.value = pets.value.filter((item) => item.id !== pet.id);
-    if (session.activePet?.id === pet.id) session.activePet = null;
+    if (session.activePet?.id === pet.id) session.setActivePet(null);
     pendingDelete.value = null;
     notice.value = `已删除「${pet.display_name}」`;
   } catch (e) {
@@ -122,9 +126,13 @@ async function confirmRemove() {
 }
 
 function setActive(pet: PetView) {
-  session.activePet = pet;
-  session.mode = "with_pet";
-  notice.value = `本次查询对象已设为「${pet.display_name}」`;
+  session.setActivePet(pet);
+  session.setDeclaredRole(null);
+  session.mode = pet.service_role === "working" ? "service_dog" : "with_pet";
+  notice.value =
+    pet.service_role === "working"
+      ? `本次查询对象已设为「${pet.display_name}」；请在当前查询中选择具体服务犬角色。`
+      : `本次查询对象已设为「${pet.display_name}」`;
 }
 
 onMounted(load);
