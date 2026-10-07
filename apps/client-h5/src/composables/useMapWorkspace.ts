@@ -192,9 +192,9 @@ export function useMapWorkspace() {
         return;
       }
 
-      const target = result.items.find(
-        (place) => place.latitude != null && place.longitude != null,
-      ) ?? result.items[0]!;
+      const target =
+        result.items.find((place) => place.latitude != null && place.longitude != null) ??
+        result.items[0]!;
 
       if (target.latitude != null && target.longitude != null) {
         camera.value = {

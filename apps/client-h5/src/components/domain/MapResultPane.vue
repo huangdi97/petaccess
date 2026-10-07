@@ -84,7 +84,11 @@ function toggleFilter(key: string) {
           {{ props.locationState === "REQUESTING" ? "定位中…" : "定位" }}
         </button>
       </div>
-      <form class="map-pane__search" data-testid="map-search-form" @submit.prevent="emit('search', searchQuery)">
+      <form
+        class="map-pane__search"
+        data-testid="map-search-form"
+        @submit.prevent="emit('search', searchQuery)"
+      >
         <label class="visually-hidden" for="map-search-input">搜索场所、商圈或地址</label>
         <input
           id="map-search-input"
@@ -102,7 +106,11 @@ function toggleFilter(key: string) {
           {{ props.searchLoading ? "搜索中…" : "搜索" }}
         </button>
       </form>
-      <p v-if="props.searchError" class="notice map-pane__search-feedback" data-testid="map-search-feedback">
+      <p
+        v-if="props.searchError"
+        class="notice map-pane__search-feedback"
+        data-testid="map-search-feedback"
+      >
         {{ props.searchError }}
       </p>
       <p v-if="props.locationState === 'DENIED'" class="notice" data-testid="location-denied">
