@@ -111,12 +111,6 @@ const preview = ref<{ snapshot: CoexistenceSnapshot | null; loading: boolean; er
   error: "",
 });
 const selectedPlace = computed(() => results.value.find((p) => p.id === selectedId.value) ?? null);
-const selectedStatus = computed(() =>
-  selectedId.value && statuses.value[selectedId.value] !== undefined
-    ? statuses.value[selectedId.value]
-    : null,
-);
-
 const FILTERS = [
   { key: "ALLOWED", label: "明确允许" },
   { key: "CONDITIONAL", label: "有条件" },
@@ -637,7 +631,6 @@ watch(currentQueryContext, () => {
           data-ui="search-detail-content"
           variant="search"
           :place="selectedPlace"
-          :status="selectedStatus"
           :answer="selectedPlace ? (facts.get(selectedPlace.id)?.answer ?? null) : null"
           :answer-error="selectedPlace ? Boolean(facts.get(selectedPlace.id)?.answerError) : false"
           :reality="selectedPlace ? (facts.get(selectedPlace.id)?.reality ?? null) : null"
