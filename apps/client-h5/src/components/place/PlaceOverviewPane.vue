@@ -137,7 +137,7 @@ const divergenceLine = computed(() => {
         data-ui="coexistence-facts"
       >
         <p v-if="staffSummaryLine" class="coexistence-fact">
-          <span class="coexistence-fact__label">近 30 天工作人员处理</span>
+          <span class="coexistence-fact__label">工作人员处理</span>
           <span class="coexistence-fact__value">{{ staffSummaryLine }}</span>
           <RouterLink class="btn-inline coexistence-fact__link" :to="`?view=reality`">
             查看处理记录 →
