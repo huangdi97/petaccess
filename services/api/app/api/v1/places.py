@@ -169,12 +169,19 @@ def list_places(
             "EXISTS (SELECT 1 FROM jsonb_array_elements_text(place.alias_names) AS alias_name "
             "WHERE alias_name % :q OR alias_name ILIKE :like)"
         ).params(q=q, like=f"%{q}%")
+        # The Consumer search field promises place / district / address.
+        # Keep that promise in the canonical query instead of making address
+        # text a UI-only affordance. Parent place names cover common
+        # mall/campus/district-container searches; address remains an ILIKE
+        # fallback because CJK street text is often short and exact-ish.
         stmt = stmt.where(
             or_(
                 text("place.canonical_name % :q OR place.canonical_name ILIKE :like").params(
                     q=q, like=f"%{q}%"
                 ),
                 alias_hit,
+                Place.canonical_address.ilike(f"%{q}%"),
+                parent_place_name.ilike(f"%{q}%"),
             )
         )
     if place_type:
