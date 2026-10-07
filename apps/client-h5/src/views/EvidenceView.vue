@@ -34,6 +34,7 @@ import StateMessage from "../components/StateMessage.vue";
 import QueryContextBar from "../components/domain/QueryContextBar.vue";
 import EvidenceStatus from "../components/domain/EvidenceStatus.vue";
 import EvidenceProvenance from "../components/domain/EvidenceProvenance.vue";
+import PaIcon from "../components/ui/PaIcon.vue";
 import { presentDescription } from "../errors";
 
 interface TraceSection {
@@ -232,18 +233,25 @@ const uiFixture = computed<string>(() =>
 
       <template v-else-if="snapshot">
         <header class="evidence-head" data-testid="evidence-head">
-          <h2 class="evidence-head__record" data-testid="evidence-record-place">
-            {{ place?.canonical_name ?? "场所名称待补充" }}
-          </h2>
-          <p class="muted evidence-head__meta" data-testid="evidence-record-zone">
-            <template v-if="recordIdentity">
-              {{ recordIdentity.zoneName }} · {{ recordIdentity.eventTime }} ·
-              {{ recordIdentity.timeBasis }}
-            </template>
-            <template v-else>
-              {{ placeTypeLabel(place?.place_type ?? "") }} · 暂无经核验现场事实
-            </template>
-          </p>
+          <div class="evidence-head__identity">
+            <span class="evidence-head__icon" aria-hidden="true">
+              <PaIcon name="shield-check" size="md" />
+            </span>
+            <div class="evidence-head__identity-copy">
+              <h2 class="evidence-head__record" data-testid="evidence-record-place">
+                {{ place?.canonical_name ?? "场所名称待补充" }}
+              </h2>
+              <p class="muted evidence-head__meta" data-testid="evidence-record-zone">
+                <template v-if="recordIdentity">
+                  {{ recordIdentity.zoneName }} · {{ recordIdentity.eventTime }} ·
+                  {{ recordIdentity.timeBasis }}
+                </template>
+                <template v-else>
+                  {{ placeTypeLabel(place?.place_type ?? "") }} · 暂无经核验现场事实
+                </template>
+              </p>
+            </div>
+          </div>
           <p class="muted evidence-head__count" data-testid="evidence-record-count">
             {{ realityEvidenceCount }} 条现场依据 · {{ ruleEvidenceCount }} 条规则依据 ·
             {{ sourceSummary }}
@@ -370,6 +378,28 @@ const uiFixture = computed<string>(() =>
 .evidence-head {
   padding-bottom: var(--pa-space-5);
   border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.evidence-head__identity {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--pa-space-3);
+}
+
+.evidence-head__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  border-radius: var(--pa-radius-control);
+  background: var(--pa-color-evidence-verified-bg);
+  color: var(--pa-color-evidence-verified);
+}
+
+.evidence-head__identity-copy {
+  min-width: 0;
 }
 
 .evidence-head__record {
