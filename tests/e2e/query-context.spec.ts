@@ -69,7 +69,6 @@ test("query editor exposes only real query inputs", async ({ page }) => {
   await expect(page.getByRole("button", { name: /规则视角/ })).toHaveCount(0);
 });
 
-
 test("working service-dog pet persists as the truthful current query object", async ({
   page,
   request,
