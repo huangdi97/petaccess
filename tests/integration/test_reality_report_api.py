@@ -788,6 +788,58 @@ def test_published_reality_fact_can_be_disputed_without_becoming_a_rule_mutation
                 db.commit()
 
 
+def test_staff_and_facility_disputes_remain_visible_in_place_summaries(client, signed_user):
+    """Overview/map summaries must not silently present disputed factual rows as clean."""
+    places = client.get("/api/v1/places", params={"q": "云栖", "limit": 10})
+    assert places.status_code == 200, places.text
+    mall = next(
+        item
+        for item in places.json()["items"]
+        if item["canonical_name"] == "云栖中心·测试商场"
+    )
+    events = client.get(f"/api/v1/places/{mall['id']}/reality/events")
+    assert events.status_code == 200, events.text
+    rows = events.json()
+    staff = next(item for item in rows if item["event_type"] == "staff_response")
+    facility = next(item for item in rows if item["event_type"] == "animal_facility")
+
+    opened_ids: list[str] = []
+    for target_type, target_id in (
+        ("staff_response_observation", staff["id"]),
+        ("animal_facility", facility["id"]),
+    ):
+        opened = client.post(
+            "/api/v1/disputes",
+            headers=signed_user,
+            json={
+                "target_type": target_type,
+                "target_id": target_id,
+                "reason_code": "incorrect_fact",
+                "notice_text": "这条已发布现场事实需要重新核验。",
+            },
+        )
+        assert opened.status_code == 201, opened.text
+        opened_ids.append(opened.json()["id"])
+
+    from app.db.session import get_session_factory
+    from app.models import DisputeCase
+
+    try:
+        summary = client.get(f"/api/v1/places/{mall['id']}/reality")
+        assert summary.status_code == 200, summary.text
+        body = summary.json()
+        assert any(item["disputed_count"] > 0 for item in body["staff_response_summary"])
+        assert any(item["disputed_count"] > 0 for item in body["facility_summary"])
+    finally:
+        factory = get_session_factory()
+        with factory() as db:
+            for case_id in opened_ids:
+                case = db.get(DisputeCase, case_id)
+                if case is not None:
+                    db.delete(case)
+            db.commit()
+
+
 def test_my_reality_contributions_lists_only_own_reports(client, signed_user, place_id):
     """M7 B1 — GET /me/reality-contributions returns only the caller's own reports."""
     r = client.post(
