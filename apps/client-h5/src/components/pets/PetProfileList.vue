@@ -10,10 +10,9 @@ const emit = defineEmits<{
 
 const SPECIES_LABELS: Record<string, string> = { dog: "犬", cat: "猫", other: "其他" };
 const SERVICE_LABELS: Record<string, string> = {
-  working: "服务犬（在役）",
-  trained: "服务犬（训练中）",
-  in_training: "服务犬（训练中）",
-  retired: "服务犬（已退役）",
+  working: "服务犬（在役 · 用户声明）",
+  in_training: "服务犬（训练中 · 用户声明）",
+  unknown: "服务犬身份未确认",
 };
 </script>
 
@@ -56,7 +55,7 @@ const SERVICE_LABELS: Record<string, string> = {
       </p>
 
       <p v-if="pet.service_role !== 'none'" class="muted profile-row__meta">
-        {{ SERVICE_LABELS[pet.service_role] ?? "服务犬（用户声明）" }}
+        {{ SERVICE_LABELS[pet.service_role] ?? "服务犬身份未确认" }}
       </p>
       <p
         v-if="pet.weight_kg == null || pet.shoulder_height_cm == null"
