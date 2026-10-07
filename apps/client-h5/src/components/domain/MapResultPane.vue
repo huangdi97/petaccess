@@ -35,12 +35,14 @@ const props = defineProps<{
   coverageText: string;
   locationState: LocationState;
   filters: string[];
+  searchLoading?: boolean;
+  searchError?: string;
 }>();
 
 const emit = defineEmits<{
   "update:filters": [value: string[]];
   locate: [];
-  search: [];
+  search: [query: string];
   open: [id: string];
   retry: [];
   clearFilters: [];
@@ -56,6 +58,7 @@ const STATUS_FILTERS = [
 ];
 /** 筛选 N 面板开合（desktop popover / mobile inline panel）。 */
 const filterOpen = ref(false);
+const searchQuery = ref("");
 
 function toggleFilter(key: string) {
   const next = props.filters.includes(key)
@@ -81,9 +84,27 @@ function toggleFilter(key: string) {
           {{ props.locationState === "REQUESTING" ? "定位中…" : "定位" }}
         </button>
       </div>
-      <button type="button" class="block map-pane__search" @click="emit('search')">
-        搜索场所 / 类别 / 附近
-      </button>
+      <form class="map-pane__search" data-testid="map-search-form" @submit.prevent="emit('search', searchQuery)">
+        <label class="visually-hidden" for="map-search-input">搜索场所、商圈或地址</label>
+        <input
+          id="map-search-input"
+          v-model="searchQuery"
+          data-testid="map-search-input"
+          placeholder="搜索场所、商圈或地址"
+          autocomplete="off"
+        />
+        <button
+          type="submit"
+          class="primary"
+          data-testid="map-search-submit"
+          :disabled="props.searchLoading || !searchQuery.trim()"
+        >
+          {{ props.searchLoading ? "搜索中…" : "搜索" }}
+        </button>
+      </form>
+      <p v-if="props.searchError" class="notice map-pane__search-feedback" data-testid="map-search-feedback">
+        {{ props.searchError }}
+      </p>
       <p v-if="props.locationState === 'DENIED'" class="notice" data-testid="location-denied">
         未获得定位权限。地图会保留当前区域；你仍可直接搜索场所、商圈或地址。
       </p>
@@ -241,7 +262,24 @@ function toggleFilter(key: string) {
 }
 
 .map-pane__search {
-  text-align: left;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--pa-space-2);
+  align-items: center;
+}
+
+.map-pane__search input {
+  min-width: 0;
+  min-height: var(--pa-size-control-md);
+}
+
+.map-pane__search button {
+  min-height: var(--pa-size-control-md);
+}
+
+.map-pane__search-feedback {
+  margin: 0;
+  font-size: var(--pa-font-size-sm);
 }
 
 .map-pane__coverage {
