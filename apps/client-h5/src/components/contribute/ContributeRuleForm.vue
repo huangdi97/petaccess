@@ -7,6 +7,7 @@
 import { computed, ref } from "vue";
 import { client } from "@petaccess/client-core";
 import { evidenceRefs, proximity } from "./contributeSupport";
+import { ruleLeadConditionLabel, ruleLeadEffectLabel, ruleLeadSourceBasisLabel } from "./ruleLeadCopy";
 import { presentDescription } from "../../errors";
 import ContributionStepShell from "./ContributionStepShell.vue";
 import RuleLeadFields from "./RuleLeadFields.vue";
@@ -86,26 +87,10 @@ async function submit() {
       return;
     }
 
-    const effectLabel =
-      effect.value === "allowed"
-        ? "明确允许"
-        : effect.value === "restricted"
-          ? "明确限制"
-          : effect.value === "conditional"
-            ? "有条件进入"
-            : "";
+    const effectLabel = ruleLeadEffectLabel(effect.value);
     const zoneLabel = props.zones.find((item) => item.id === zone.value)?.name ?? "全场 / 不确定";
-    const conditionLabel = conditions.value.length ? conditions.value.join("、") : "未补充条件";
-    const sourceBasisLabel =
-      sourceBasis.value === "onsite_signage"
-        ? "现场规则牌 / 公告"
-        : sourceBasis.value === "staff_statement"
-          ? "工作人员口头说明"
-          : sourceBasis.value === "official_online"
-            ? "官方公开信息"
-            : sourceBasis.value === "other"
-              ? "其他线索"
-              : "来源类型不确定";
+    const conditionLabel = ruleLeadConditionLabel(conditions.value);
+    const sourceBasisLabel = ruleLeadSourceBasisLabel(sourceBasis.value);
     const evidenceNote = ocrText.value.trim()
       ? `；OCR 待人工核对：${ocrText.value.trim().slice(0, 300)}`
       : "";
