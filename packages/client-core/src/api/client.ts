@@ -633,6 +633,13 @@ export const client = {
       effect?: "allowed" | "prohibited" | "conditional" | null;
       proposed_conditions?: string[];
       raw_text?: string | null;
+      source_basis?:
+        | "onsite_signage"
+        | "staff_statement"
+        | "official_online"
+        | "other"
+        | "uncertain"
+        | null;
       media_id?: string | null;
       current_rule_id?: string | null;
       proximity_verified?: boolean;
