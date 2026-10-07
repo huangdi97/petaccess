@@ -248,9 +248,7 @@ test("C5: indoor/dining ranking requires the matching structured Zone facet", ()
   const corridorOnly = {
     ...SNAPSHOT_OK.reality_answer,
     observed_zones: ["一层公共区域"],
-    observed_zone_facts: [
-      { name: "一层公共区域", zone_type: "floor", indoor_outdoor: "indoor" },
-    ],
+    observed_zone_facts: [{ name: "一层公共区域", zone_type: "floor", indoor_outdoor: "indoor" }],
     observed_zone_types: ["floor"],
     observed_indoor_outdoor: ["indoor"],
   };
