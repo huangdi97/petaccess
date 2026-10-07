@@ -28,7 +28,7 @@ import {
   realityProvenanceCounts,
   realityEventTimeBasis,
 } from "../consumer/realityEvent";
-import { currentQueryContext, snapshotFor } from "../consumer/repository";
+import { createEpoch, currentQueryContext, snapshotFor } from "../consumer/repository";
 import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
 import QueryContextBar from "../components/domain/QueryContextBar.vue";
@@ -60,6 +60,7 @@ const events = ref<RealityEventView[]>([]);
 const sources = ref<SourceView[]>([]);
 const loading = ref(true);
 const error = ref("");
+const loadEpoch = createEpoch();
 
 function sourceTypeLabel(value: string): string {
   const labels: Record<string, string> = {
@@ -158,6 +159,7 @@ const sourceSummary = computed(() => {
 
 async function load() {
   if (!placeId.value) return;
+  const epoch = loadEpoch.begin();
   loading.value = true;
   error.value = "";
   try {
@@ -169,6 +171,7 @@ async function load() {
       client.zones(placeId.value).catch(() => [] as Zone[]),
       snapshotFor(placeId.value).then((result) => result.snapshot),
     ]);
+    if (!loadEpoch.isCurrent(epoch)) return;
     trace.value = traceRow;
     events.value = eventRows;
     place.value = placeRow;
@@ -180,9 +183,9 @@ async function load() {
     );
     sources.value = sourceRows.filter((source) => relevantSourceIds.has(source.id));
   } catch (e) {
-    error.value = presentDescription(e);
+    if (loadEpoch.isCurrent(epoch)) error.value = presentDescription(e);
   } finally {
-    loading.value = false;
+    if (loadEpoch.isCurrent(epoch)) loading.value = false;
   }
 }
 
