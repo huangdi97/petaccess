@@ -225,6 +225,7 @@ class StaffResponseSummaryItem(BaseModel):
     response_action: StaffResponseAction
     staff_awareness_state: StaffAwarenessState
     count: int
+    disputed_count: int = 0
 
 
 class FacilitySummaryItem(BaseModel):
@@ -235,6 +236,7 @@ class FacilitySummaryItem(BaseModel):
     zone_id: str | None = None
     zone_name: str | None = None
     count: int
+    disputed_count: int = 0
     operational_state: FacilityOperationalState
     last_verified_at: datetime | None
 
