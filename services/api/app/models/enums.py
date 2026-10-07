@@ -428,7 +428,12 @@ class DisputeCaseStatus(StrEnum):
 
 class DisputeTargetType(StrEnum):
     ACCESS_RULE = "access_rule"
+    # Legacy v0.1 observation lane (kept for immutable historical records).
     OBSERVATION_CLAIM = "observation_claim"
+    # v0.9 published Reality facts — disputed independently from Rule.
+    OBSERVED_PRESENCE = "observed_presence"
+    STAFF_RESPONSE_OBSERVATION = "staff_response_observation"
+    ANIMAL_FACILITY = "animal_facility"
 
 
 class TemporaryAction(StrEnum):
