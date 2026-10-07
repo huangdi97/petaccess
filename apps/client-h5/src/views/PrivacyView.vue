@@ -33,6 +33,7 @@ function clearLocalData() {
 <template>
   <AppShell>
     <header class="privacy-head">
+      <p class="privacy-head__kicker">数据与权限</p>
       <h1>隐私与数据</h1>
       <p class="muted">
         只收集完成查询、核验和账号功能所需要的数据；位置不会被默认保存为连续轨迹。
@@ -40,8 +41,11 @@ function clearLocalData() {
     </header>
 
     <section class="privacy-section">
-      <h2>数据清单</h2>
-      <div class="privacy-inventory">
+      <div class="privacy-section__lead">
+        <h2>数据清单</h2>
+        <p class="muted">每一类数据都说明是否保存以及用于什么。</p>
+      </div>
+      <div class="privacy-section__body privacy-inventory">
         <div v-for="row in inventory" :key="row.item" class="privacy-row">
           <div class="privacy-row__body">
             <strong>{{ row.item }}</strong>
@@ -53,88 +57,129 @@ function clearLocalData() {
     </section>
 
     <section class="privacy-section">
-      <h2>本机登录状态</h2>
-      <p class="muted">
-        {{ signedIn ? "当前设备已登录。" : "当前设备未登录。" }}
-        清除本机状态不会删除服务器上的账号数据。
-      </p>
-      <button
-        class="privacy-action"
-        type="button"
-        data-testid="clear-local"
-        :disabled="!signedIn"
-        @click="clearLocalData"
-      >
-        清除本机登录状态
-      </button>
-      <p v-if="cleared" class="privacy-feedback" data-testid="cleared-msg">
-        已清除本机登录状态；服务器上的账号数据未改变。
-      </p>
+      <div class="privacy-section__lead">
+        <h2>本机登录状态</h2>
+        <p class="muted">本机凭据与服务器账号是两件不同的事。</p>
+      </div>
+      <div class="privacy-section__body">
+        <p class="privacy-copy">
+          {{ signedIn ? "当前设备已登录。" : "当前设备未登录。" }}
+          清除本机状态不会删除服务器上的账号数据。
+        </p>
+        <button
+          class="privacy-action"
+          type="button"
+          data-testid="clear-local"
+          :disabled="!signedIn"
+          @click="clearLocalData"
+        >
+          清除本机登录状态
+        </button>
+        <p v-if="cleared" class="privacy-feedback" data-testid="cleared-msg">
+          已清除本机登录状态；服务器上的账号数据未改变。
+        </p>
+      </div>
     </section>
 
     <section class="privacy-section">
-      <h2>定位</h2>
-      <p class="muted">
-        定位只用于当前“附近”查询或现场核验，不持续记录、不在后台建立位置历史。你可以随时在系统设置中关闭定位权限。
-      </p>
+      <div class="privacy-section__lead">
+        <h2>定位</h2>
+        <p class="muted">按次使用，不建立后台轨迹。</p>
+      </div>
+      <div class="privacy-section__body">
+        <p class="privacy-copy">
+          定位只用于当前“附近”查询或现场核验，不持续记录、不在后台建立位置历史。你可以随时在系统设置中关闭定位权限。
+        </p>
+      </div>
     </section>
 
     <section class="privacy-section">
-      <h2>账号删除与数据导出</h2>
-      <StateMessage
-        kind="PARTIAL"
-        description="当前开发预览版尚未接入应用内账号删除与数据导出申请。这里不会用本机按钮假装已经向服务器提交请求；正式开放前会提供可核验的申请与处理状态。"
-      />
+      <div class="privacy-section__lead">
+        <h2>账号删除与数据导出</h2>
+        <p class="muted">未接入的服务端能力不会用本机按钮伪装完成。</p>
+      </div>
+      <div class="privacy-section__body">
+        <StateMessage
+          kind="PARTIAL"
+          description="当前开发预览版尚未接入应用内账号删除与数据导出申请。正式开放前会提供可核验的申请、处理状态与完成记录。"
+        />
+      </div>
     </section>
 
     <section class="privacy-section">
-      <h2>来源与许可</h2>
-      <p class="muted">
-        每条规则和现场事实都保留来源与采集方式。不能公开再分发的材料只用于核验，不直接向消费者展示原文。
-      </p>
+      <div class="privacy-section__lead">
+        <h2>来源与许可</h2>
+        <p class="muted">来源可追溯不等于所有原始材料都能公开。</p>
+      </div>
+      <div class="privacy-section__body">
+        <p class="privacy-copy">
+          每条规则和现场事实都保留来源与采集方式。不能公开再分发的材料只用于核验，不直接向消费者展示原文。
+        </p>
+      </div>
     </section>
   </AppShell>
 </template>
 
 <style scoped>
 .privacy-head {
-  padding-bottom: var(--pa-space-5);
+  padding-bottom: var(--pa-space-6);
   border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
 }
 
-.privacy-head p {
-  max-width: 680px;
+.privacy-head__kicker {
+  margin: 0 0 var(--pa-space-2);
+  color: var(--pa-color-accent);
+  font-size: var(--pa-font-size-sm);
+  font-weight: var(--pa-font-weight-650);
+  letter-spacing: var(--pa-letter-spacing-wide);
+}
+
+.privacy-head p:last-child {
+  max-width: 720px;
   margin: var(--pa-space-2) 0 0;
   line-height: var(--pa-line-height-23);
 }
 
 .privacy-section {
-  padding: var(--pa-space-5) 0;
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: var(--pa-space-7);
+  padding: var(--pa-space-6) 0;
   border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
 }
 
-.privacy-section h2 {
-  margin: 0 0 var(--pa-space-3);
-  font-size: var(--pa-font-size-lg);
+.privacy-section__lead h2 {
+  margin: 0;
+  font-size: var(--pa-font-size-18);
   font-weight: var(--pa-font-weight-650);
+  color: var(--pa-color-text-primary);
 }
 
-.privacy-section > p {
-  max-width: 680px;
-  margin: 0;
-  line-height: var(--pa-line-height-23);
+.privacy-section__lead p {
+  margin: var(--pa-space-2) 0 0;
+  font-size: var(--pa-font-size-md);
+  line-height: var(--pa-line-height-20);
+}
+
+.privacy-section__body {
+  min-width: 0;
 }
 
 .privacy-row {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) 116px;
   gap: var(--pa-space-4);
   padding: var(--pa-space-3) 0;
   border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
 }
 
+.privacy-row:first-child {
+  padding-top: 0;
+}
+
 .privacy-row:last-child {
   border-bottom: none;
+  padding-bottom: 0;
 }
 
 .privacy-row__body {
@@ -143,10 +188,21 @@ function clearLocalData() {
   gap: var(--pa-space-1);
 }
 
+.privacy-row__body span,
+.privacy-copy {
+  line-height: var(--pa-line-height-20);
+}
+
 .privacy-row__state {
   color: var(--pa-color-text-secondary);
   font-size: var(--pa-font-size-md);
   text-align: right;
+}
+
+.privacy-copy {
+  max-width: 620px;
+  margin: 0;
+  color: var(--pa-color-text-secondary);
 }
 
 .privacy-action {
@@ -165,11 +221,17 @@ function clearLocalData() {
 }
 
 .privacy-feedback {
-  margin-top: var(--pa-space-3) !important;
+  margin: var(--pa-space-3) 0 0;
   color: var(--pa-color-text-secondary);
 }
 
 @media (max-width: 767px) {
+  .privacy-section {
+    grid-template-columns: 1fr;
+    gap: var(--pa-space-4);
+    padding: var(--pa-space-5) 0;
+  }
+
   .privacy-row {
     grid-template-columns: 1fr;
     gap: var(--pa-space-1);
