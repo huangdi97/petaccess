@@ -31,6 +31,7 @@ export interface ActivePet {
 }
 
 const TOKEN_KEY = "pa_token";
+const ACTIVE_PET_KEY = "pa_active_pet_id";
 
 function getToken(): string | undefined {
   return platformStorage.get(TOKEN_KEY);
@@ -52,6 +53,8 @@ export const session = reactive({
   user: null as SessionUser | null,
   mode: "with_pet" as QueryMode,
   activePet: null as ActivePet | null,
+  /** Ephemeral query role; never inferred from images or credentials. */
+  declaredRole: null as string | null,
 
   get signedIn(): boolean {
     return getToken() !== undefined;
@@ -61,10 +64,18 @@ export const session = reactive({
     if (!getToken()) return null;
     try {
       this.user = await client.me();
+      const activePetId = platformStorage.get(ACTIVE_PET_KEY);
+      if (activePetId && this.activePet?.id !== activePetId) {
+        const pets = await client.myPets();
+        this.activePet = pets.find((pet) => pet.id === activePetId) ?? null;
+        if (!this.activePet) platformStorage.remove(ACTIVE_PET_KEY);
+      }
     } catch (e: unknown) {
       if (e instanceof ApiError && e.status === 401) {
         platformStorage.remove(TOKEN_KEY);
+        platformStorage.remove(ACTIVE_PET_KEY);
         this.user = null;
+        this.activePet = null;
       }
     }
     return this.user;
@@ -82,13 +93,25 @@ export const session = reactive({
     await this.restore();
   },
 
+  setActivePet(pet: ActivePet | null): void {
+    this.activePet = pet;
+    if (pet) platformStorage.set(ACTIVE_PET_KEY, pet.id);
+    else platformStorage.remove(ACTIVE_PET_KEY);
+  },
+
+  setDeclaredRole(role: string | null): void {
+    this.declaredRole = role;
+  },
+
   logout(): void {
     platformStorage.remove(TOKEN_KEY);
+    platformStorage.remove(ACTIVE_PET_KEY);
     this.user = null;
     // Pet context belongs to the authenticated user. Keeping it alive after
     // logout can leak the previous account's profile into the next public
     // query or a different user's session in the same app runtime.
     this.activePet = null;
+    this.declaredRole = null;
     this.mode = "with_pet";
   },
 });
