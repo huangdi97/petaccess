@@ -8,7 +8,13 @@ import PetImageSuggestion from "../components/pets/PetImageSuggestion.vue";
 import StateMessage from "../components/StateMessage.vue";
 
 const router = useRouter();
-const pet = ref({ display_name: "", species: "dog", breed_text: "", weight_kg: "", shoulder_height_cm: "" });
+const pet = ref({
+  display_name: "",
+  species: "dog",
+  breed_text: "",
+  weight_kg: "",
+  shoulder_height_cm: "",
+});
 const serviceRole = ref("none");
 const error = ref("");
 const saving = ref(false);
