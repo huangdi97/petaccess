@@ -45,6 +45,11 @@
   border-bottom: none;
 }
 
+.facility-record--disputed {
+  border-left: 3px solid var(--pa-color-evidence-disputed);
+  padding-left: var(--pa-space-3);
+}
+
 .facility-record__head {
   display: flex;
   align-items: baseline;
