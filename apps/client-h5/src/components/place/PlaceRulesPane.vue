@@ -20,6 +20,7 @@
 import { computed, ref } from "vue";
 import type { AccessAnswer, RuleView, SourceView, Zone } from "@petaccess/client-core";
 import {
+  mandatoryLevelLabel,
   ruleLayerLabel,
   ruleStatusLabel,
   ruleSubjectLine,
@@ -132,6 +133,11 @@ function ruleConditionLines(r: RuleView): string[] {
           {{ c }}
         </p>
         <p class="muted rule-card__meta" data-testid="rule-source">
+          <template v-if="r.rule_layer">
+            {{ ruleLayerLabel(r.rule_layer) }}
+            <template v-if="r.mandatory_level"> · {{ mandatoryLevelLabel(r.mandatory_level) }}</template>
+            ·
+          </template>
           {{ sourceLabel(sourceMap.get(r.source_id)?.issuer ?? null, true) }}
           <span v-if="r.last_verified_at"> · 最近核验 {{ r.last_verified_at.slice(0, 10) }}</span>
           <span v-else> · 来源仍待补充</span>
