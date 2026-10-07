@@ -1,9 +1,10 @@
 <script setup lang="ts">
 // @ui-static SettingsView — 设置入口页，无列表数据加载。
 import { onMounted, ref } from "vue";
-import { MODE_LABELS, session } from "@petaccess/client-core";
+import { session } from "@petaccess/client-core";
 import { REQUIRED_COPY } from "@petaccess/design-tokens";
 import AppShell from "../components/AppShell.vue";
+import { querySummaryLabel } from "../consumer/queryContext";
 
 const appVersion = import.meta.env.VITE_APP_VERSION ?? "0.2.0-dev";
 const signedIn = ref(false);
@@ -98,7 +99,7 @@ const EVIDENCE = [
     </section>
 
     <footer class="settings-foot">
-      <span>当前查询：{{ MODE_LABELS[session.mode] }}</span>
+      <span>当前查询：{{ querySummaryLabel() }}</span>
       <span>
         {{ signedIn ? `已登录 · ${session.user?.display_name ?? ""}` : "未登录 · 可浏览公开内容" }}
       </span>
