@@ -108,13 +108,11 @@ const projection = computed(() =>
       规则结论暂时无法取得 —— 请检查网络后重试。
     </p>
 
-    <!-- Rule 主结论：scope + conditions -->
-    <template v-else-if="answer">
-      <p class="place-result-row__rule" data-testid="row-rule">{{ answerVerdictLabel(answer) }}</p>
-      <p v-if="conditions.length" class="place-result-row__conditions">
-        进入前需满足：{{ conditions.join("、") }}
-      </p>
-    </template>
+    <!-- Rule status is already carried by the semantic badge above.
+         Only non-redundant conditions consume another scan line here. -->
+    <p v-else-if="answer && conditions.length" class="place-result-row__conditions">
+      进入前需满足：{{ conditions[0] }}
+    </p>
 
     <!-- Reality 摘要：现场事实层，区别于 Rule -->
     <div class="place-result-row__reality">
