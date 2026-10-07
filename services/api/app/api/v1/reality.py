@@ -30,6 +30,7 @@ from app.core.security import get_optional_user, require_role
 from app.db.session import get_db
 from app.models import (
     AnimalFacility,
+    DisputeCase,
     ObservedPresence,
     Place,
     RealityCandidate,
@@ -40,6 +41,8 @@ from app.models import (
 )
 from app.models.enums import (
     REALITY_VERIFIED_DECISIONS,
+    DisputeCaseStatus,
+    DisputeTargetType,
     RealityVerificationStatus,
     UserRole,
 )
@@ -102,7 +105,10 @@ def _enum_text(value: object | None) -> str | None:
 
 
 def _presence_event(
-    row: ObservedPresence, report_meta: _EventReportMeta | None = None
+    row: ObservedPresence,
+    report_meta: _EventReportMeta | None = None,
+    *,
+    dispute_open: bool = False,
 ) -> RealityEventOut:
     report_meta = report_meta or {}
     return RealityEventOut(
@@ -124,6 +130,7 @@ def _presence_event(
         source_id=row.source_id,
         evidence_bundle_id=row.evidence_bundle_id,
         submitted_at=report_meta.get("submitted_at"),
+        dispute_open=dispute_open,
         verification_status=_enum_text(row.verification_status) or "unverified",
         freshness_state=_enum_text(row.freshness_state),
         last_verified_at=row.last_verified_at,
@@ -131,7 +138,10 @@ def _presence_event(
 
 
 def _staff_event(
-    row: StaffResponseObservation, report_meta: _EventReportMeta | None = None
+    row: StaffResponseObservation,
+    report_meta: _EventReportMeta | None = None,
+    *,
+    dispute_open: bool = False,
 ) -> RealityEventOut:
     report_meta = report_meta or {}
     return RealityEventOut(
@@ -156,6 +166,7 @@ def _staff_event(
         source_id=row.source_id,
         evidence_bundle_id=row.evidence_bundle_id,
         submitted_at=report_meta.get("submitted_at"),
+        dispute_open=dispute_open,
         verification_status=_enum_text(row.verification_status) or "unverified",
         freshness_state=_enum_text(row.freshness_state),
         last_verified_at=row.last_verified_at,
@@ -163,7 +174,10 @@ def _staff_event(
 
 
 def _facility_event(
-    row: AnimalFacility, report_meta: _EventReportMeta | None = None
+    row: AnimalFacility,
+    report_meta: _EventReportMeta | None = None,
+    *,
+    dispute_open: bool = False,
 ) -> RealityEventOut:
     report_meta = report_meta or {}
     event_at = row.observed_at or row.last_verified_at or row.created_at
@@ -197,6 +211,7 @@ def _facility_event(
         source_id=row.source_id,
         evidence_bundle_id=row.evidence_bundle_id,
         submitted_at=report_meta.get("submitted_at"),
+        dispute_open=dispute_open,
         verification_status=_enum_text(row.verification_status) or "unverified",
         freshness_state=_enum_text(row.freshness_state),
         last_verified_at=row.last_verified_at,
@@ -283,17 +298,54 @@ def consumer_reality_events(
             ) in report_rows
         }
 
+    reality_targets = {
+        *(("observed_presence", row.id) for row in presence),
+        *(("staff_response_observation", row.id) for row in staff),
+        *(("animal_facility", row.id) for row in facilities),
+    }
+    open_disputes: set[tuple[str, str]] = set()
+    if reality_targets:
+        target_ids = {target_id for _, target_id in reality_targets}
+        dispute_rows = db.execute(
+            select(DisputeCase.target_type, DisputeCase.target_id).where(
+                DisputeCase.target_id.in_(target_ids),
+                DisputeCase.target_type.in_(
+                    [
+                        DisputeTargetType.OBSERVED_PRESENCE.value,
+                        DisputeTargetType.STAFF_RESPONSE_OBSERVATION.value,
+                        DisputeTargetType.ANIMAL_FACILITY.value,
+                    ]
+                ),
+                DisputeCase.status.notin_(
+                    [DisputeCaseStatus.RESOLVED.value, DisputeCaseStatus.WITHDRAWN.value]
+                ),
+            )
+        ).all()
+        open_disputes = {(str(target_type), target_id) for target_type, target_id in dispute_rows}
+
     events = [
         *[
-            _presence_event(row, report_meta_by_candidate.get(row.candidate_id))
+            _presence_event(
+                row,
+                report_meta_by_candidate.get(row.candidate_id),
+                dispute_open=("observed_presence", row.id) in open_disputes,
+            )
             for row in presence
         ],
         *[
-            _staff_event(row, report_meta_by_candidate.get(row.candidate_id))
+            _staff_event(
+                row,
+                report_meta_by_candidate.get(row.candidate_id),
+                dispute_open=("staff_response_observation", row.id) in open_disputes,
+            )
             for row in staff
         ],
         *[
-            _facility_event(row, report_meta_by_candidate.get(row.candidate_id))
+            _facility_event(
+                row,
+                report_meta_by_candidate.get(row.candidate_id),
+                dispute_open=("animal_facility", row.id) in open_disputes,
+            )
             for row in facilities
         ],
     ]
