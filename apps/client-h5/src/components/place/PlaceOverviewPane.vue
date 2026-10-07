@@ -138,21 +138,21 @@ const divergenceLine = computed(() => {
       >
         <p v-if="staffSummaryLine" class="coexistence-fact">
           <span class="coexistence-fact__label">近 30 天工作人员处理</span>
-          <span>{{ staffSummaryLine }}</span>
+          <span class="coexistence-fact__value">{{ staffSummaryLine }}</span>
           <RouterLink class="btn-inline coexistence-fact__link" :to="`?view=reality`">
             查看处理记录 →
           </RouterLink>
         </p>
         <p v-if="facilitySummaryLine" class="coexistence-fact">
           <span class="coexistence-fact__label">动物设施</span>
-          <span>{{ facilitySummaryLine }}</span>
+          <span class="coexistence-fact__value">{{ facilitySummaryLine }}</span>
           <RouterLink class="btn-inline coexistence-fact__link" :to="`?view=space`">
             查看设施 →
           </RouterLink>
         </p>
         <p v-if="divergenceLine" class="coexistence-fact coexistence-fact--divergence">
           <span class="coexistence-fact__label">规则与现场</span>
-          <span>{{ divergenceLine }}</span>
+          <span class="coexistence-fact__value">{{ divergenceLine }}</span>
           <RouterLink class="btn-inline coexistence-fact__link" :to="`?view=evidence`">
             查看依据 →
           </RouterLink>
@@ -426,6 +426,13 @@ const divergenceLine = computed(() => {
 
   .coexistence-fact__label {
     font-size: var(--pa-font-size-sm);
+  }
+
+  .coexistence-fact__value {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .coexistence-fact__link {
