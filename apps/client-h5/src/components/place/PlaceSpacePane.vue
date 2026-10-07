@@ -157,7 +157,9 @@ function facilityZone(event: RealityEventView): string {
                 : "用途待核验"
             }}
             · {{ item.count }} 处
-            <template v-if="item.disputed_count"> · {{ item.disputed_count }} 条异议处理中 </template>
+            <template v-if="item.disputed_count">
+              · {{ item.disputed_count }} 条异议处理中
+            </template>
             <template v-if="item.last_verified_at">
               · 最近核验 {{ item.last_verified_at.slice(0, 10) }}
             </template>
