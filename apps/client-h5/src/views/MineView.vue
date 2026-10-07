@@ -27,7 +27,8 @@ onMounted(async () => {
 });
 
 function setActivePet(pet: (typeof pets.value)[number]) {
-  session.activePet = pet;
+  session.setActivePet(pet);
+  session.setDeclaredRole(null);
   session.mode = "with_pet";
 }
 </script>
