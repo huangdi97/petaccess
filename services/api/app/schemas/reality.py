@@ -231,6 +231,8 @@ class FacilitySummaryItem(BaseModel):
 
     facility_type: AnimalFacilityType
     purpose_state: FacilityPurposeState
+    zone_id: str | None = None
+    zone_name: str | None = None
     count: int
     operational_state: FacilityOperationalState
     last_verified_at: datetime | None
