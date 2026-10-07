@@ -14,7 +14,6 @@ import {
   session,
   synthDemoCamera,
   type CoexistenceSnapshot,
-  type LocationState,
   type MapCamera,
   type MapMarker,
   type PlaceSummary,
@@ -32,13 +31,14 @@ import {
   currentQueryContext,
   enrichRows,
   nearbyPlaces,
-  searchPlaces,
   snapshotFor,
   type RowFacts,
 } from "../consumer/repository";
 import { presentDescription } from "../errors";
 import { mapMarkersFor, visibleMapPlaces } from "../consumer/mapSpatialProjection";
 import { useBreakpoint } from "./useBreakpoint";
+import { useMapSearch } from "./useMapSearch";
+import { useOneShotMapLocation } from "./useOneShotMapLocation";
 
 /** Load state of the floating preview for the selected place. */
 export interface PreviewState {
@@ -57,9 +57,6 @@ export function useMapWorkspace() {
   const lens = ref<MapLensKey>(parseMapLens(route.query.lens));
   const loading = ref(true);
   const error = ref("");
-  const locationState = ref<LocationState>("IDLE");
-  const mapSearchLoading = ref(false);
-  const mapSearchError = ref("");
   const view = ref<"map" | "list">("map");
   const selected = ref<PlaceSummary | null>(null);
   const { desktop: isDesktop } = useBreakpoint();
@@ -108,32 +105,6 @@ export function useMapWorkspace() {
     };
   });
 
-  /** One-shot geolocation (ADR-012: no continuous location history). */
-  function locate() {
-    if (!("geolocation" in navigator)) {
-      locationState.value = "UNAVAILABLE";
-      return;
-    }
-    locationState.value = "REQUESTING";
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        camera.value = {
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-          zoom: camera.value.zoom,
-        };
-        locationState.value = "GRANTED";
-        void load();
-      },
-      () => {
-        // Permission refused is not a dead end: keep the current/default area
-        // usable and let the adjacent Search handle place / district / address queries.
-        locationState.value = "DENIED";
-      },
-      { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 },
-    );
-  }
-
   async function load() {
     const epoch = loadEpoch.begin();
     loading.value = true;
@@ -180,52 +151,6 @@ export function useMapWorkspace() {
     camera.value = { ...camera.value, zoom: Math.min(18, camera.value.zoom + 1) };
   }
 
-  async function searchMap(query: string) {
-    const q = query.trim();
-    if (!q) return;
-    mapSearchLoading.value = true;
-    mapSearchError.value = "";
-    try {
-      const result = await searchPlaces(q);
-      if (!result.items.length) {
-        mapSearchError.value = "没有找到已收录场所。试试其他名称、商圈或地址。";
-        return;
-      }
-
-      const target =
-        result.items.find((place) => place.latitude != null && place.longitude != null) ??
-        result.items[0]!;
-
-      if (target.latitude != null && target.longitude != null) {
-        camera.value = {
-          ...camera.value,
-          lat: target.latitude,
-          lng: target.longitude,
-          zoom: Math.max(camera.value.zoom, 15),
-        };
-        await load();
-        const spatialTarget = places.value.find((place) => place.id === target.id) ?? target;
-        selected.value = spatialTarget;
-        syncRoutePlace(spatialTarget.id);
-        await selectPlace(spatialTarget);
-      } else {
-        // A real search hit without governed coordinates remains useful as a
-        // list result, but it must never be invented onto the spatial canvas.
-        places.value = result.items;
-        facts.value = await enrichRows(result.items);
-        selected.value = target;
-        syncRoutePlace(target.id);
-        await selectPlace(target);
-        mapSearchError.value = "已找到场所，但缺少已核验坐标；当前仅在列表显示。";
-        view.value = "list";
-      }
-    } catch (e) {
-      mapSearchError.value = presentDescription(e);
-    } finally {
-      mapSearchLoading.value = false;
-    }
-  }
-
   /** M4 A4 — the selected place is a route query so deep links and history work. */
   function syncRoutePlace(id: string | null) {
     const current = typeof route.query.place === "string" ? route.query.place : null;
@@ -265,6 +190,27 @@ export function useMapWorkspace() {
     }
   }
 
+  const { state: locationState, locate } = useOneShotMapLocation({
+    camera,
+    reload: load,
+  });
+
+  const {
+    loading: mapSearchLoading,
+    error: mapSearchError,
+    search: searchMap,
+  } = useMapSearch({
+    camera,
+    places,
+    facts,
+    view,
+    loadNearby: load,
+    selectTarget: async (place) => {
+      selected.value = place;
+      syncRoutePlace(place.id);
+      await selectPlace(place);
+    },
+  });
   // Back/forward or an external deep link changes ?place= → update the selection
   // (guard keeps this from looping when it was our own push).
   watch(lens, (value) => {
