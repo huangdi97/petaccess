@@ -135,7 +135,9 @@ function ruleConditionLines(r: RuleView): string[] {
         <p class="muted rule-card__meta" data-testid="rule-source">
           <template v-if="r.rule_layer">
             {{ ruleLayerLabel(r.rule_layer) }}
-            <template v-if="r.mandatory_level"> · {{ mandatoryLevelLabel(r.mandatory_level) }}</template>
+            <template v-if="r.mandatory_level">
+              · {{ mandatoryLevelLabel(r.mandatory_level) }}</template
+            >
             ·
           </template>
           {{ sourceLabel(sourceMap.get(r.source_id)?.issuer ?? null, true) }}
