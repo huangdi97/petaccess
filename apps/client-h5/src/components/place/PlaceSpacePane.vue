@@ -133,7 +133,7 @@ function facilityZone(event: RealityEventView): string {
         <p v-if="!facilitySummary.length" class="muted">暂无经核验的动物设施记录。</p>
         <div
           v-for="item in facilitySummary"
-          :key="item.facility_type"
+          :key="`${item.facility_type}:${item.purpose_state}:${item.zone_id ?? 'place'}`"
           class="zone-row"
           data-testid="animal-facility-summary-row"
         >
@@ -145,6 +145,7 @@ function facilityZone(event: RealityEventView): string {
             }}
           </span>
           <span class="muted">
+            <template v-if="item.zone_name">{{ item.zone_name }} · </template>
             {{
               facilityPurposeIsConfirmed(item.purpose_state)
                 ? facilityStateLabel(item.operational_state)
