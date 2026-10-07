@@ -1,9 +1,4 @@
 <script setup lang="ts">
-/**
- * Rule contribution stays a review transaction:
- * existing-rule confirmation / changed-rule lead / new-rule lead + optional
- * signage evidence. Nothing here writes ObservationClaim or publishes Rule.
- */
 import { computed, ref } from "vue";
 import { client } from "@petaccess/client-core";
 import { evidenceRefs, proximity } from "./contributeSupport";
