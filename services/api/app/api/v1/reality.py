@@ -810,9 +810,9 @@ VERIFIED_REALITY_STATUSES = (
 
 
 def _presence_summary(db: Session, place_id: str, now: datetime):
-    """Summarize verified presence and preserve the observed Zone names."""
+    """Summarize verified presence and preserve names + spatial zone facets."""
     claims = db.execute(
-        select(ObservedPresence, Zone.name)
+        select(ObservedPresence, Zone.name, Zone.zone_type, Zone.indoor_outdoor)
         .outerjoin(Zone, Zone.id == ObservedPresence.zone_id)
         .outerjoin(RealityCandidate, RealityCandidate.id == ObservedPresence.candidate_id)
         .outerjoin(RealityReport, RealityReport.id == RealityCandidate.report_id)
@@ -826,7 +826,13 @@ def _presence_summary(db: Session, place_id: str, now: datetime):
         )
         .order_by(ObservedPresence.observed_at.asc())
     ).all()
-    return summarize(
+
+    def enum_text(value: object | None) -> str | None:
+        if value is None:
+            return None
+        return str(getattr(value, "value", value))
+
+    summary = summarize(
         [
             _Row(
                 observed_at=claim.observed_at,
@@ -837,10 +843,21 @@ def _presence_summary(db: Session, place_id: str, now: datetime):
                 action=claim.observed_action if claim.observed_action else None,
                 human_verified=True,
             )
-            for claim, zone_name in claims
+            for claim, zone_name, _, _ in claims
         ],
         now=now,
     )
+    zone_types = sorted(
+        {value for _, _, zone_type, _ in claims if (value := enum_text(zone_type)) is not None}
+    )
+    indoor_outdoor = sorted(
+        {
+            value
+            for _, _, _, spatial in claims
+            if (value := enum_text(spatial)) is not None
+        }
+    )
+    return summary, zone_types, indoor_outdoor
 
 
 def _staff_response_summary(
@@ -944,13 +961,15 @@ def _reality_evidence_stats(db: Session, place_id: str) -> tuple[int, int, str |
 
 def _reality_answer_for_place(db: Session, place_id: str, now: datetime) -> dict:
     """Build the one consumer RealityAnswer used by GET and CoexistenceSnapshot."""
-    summary = _presence_summary(db, place_id, now)
+    summary, observed_zone_types, observed_indoor_outdoor = _presence_summary(db, place_id, now)
     return {
         "state": summary.state,
         "last_seen_at": summary.last_seen_at,
         "evidence_count": summary.evidence_count,
         "distinct_source_count": summary.distinct_source_count,
         "observed_zones": list(summary.observed_zones),
+        "observed_zone_types": observed_zone_types,
+        "observed_indoor_outdoor": observed_indoor_outdoor,
         "observed_actions": list(summary.observed_actions),
         "staff_response_summary": _staff_response_summary(db, place_id, now),
         "facility_summary": _facility_summary(db, place_id),
