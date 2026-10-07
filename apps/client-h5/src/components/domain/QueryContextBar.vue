@@ -11,6 +11,7 @@ import { computed, ref } from "vue";
 import { client, session, type PetView, type QueryMode } from "@petaccess/client-core";
 import PaDialog from "../ui/PaDialog.vue";
 import { presentDescription } from "../../errors";
+import { querySummaryLabel } from "../../consumer/queryContext";
 
 defineOptions({ name: "QueryContextBar" });
 
@@ -34,20 +35,7 @@ const SERVICE_ROLES = [
   { key: "other_service_dog", label: "其他服务犬" },
 ] as const;
 
-const speciesLabel = computed(() => {
-  if (session.mode === "service_dog") {
-    const role = SERVICE_ROLES.find((item) => item.key === (session.declaredRole ?? ""));
-    return role?.key ? role.label : "服务犬（角色未细分）";
-  }
-  const species = session.activePet?.species ?? "dog";
-  const label = species === "dog" ? "普通犬" : species === "cat" ? "猫" : "其他宠物";
-  if (session.activePet && session.mode === "with_pet") {
-    return `${session.activePet.display_name}（${label}）`;
-  }
-  return session.mode === "rules_only" ? `规则视角 · ${label}` : label;
-});
-
-const summary = computed(() => `${speciesLabel.value} · 进入 · 公共区域`);
+const summary = computed(() => querySummaryLabel());
 
 async function openEditor() {
   open.value = true;
