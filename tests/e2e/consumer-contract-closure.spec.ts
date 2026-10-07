@@ -40,7 +40,12 @@ const SNAPSHOT_OK = {
       governing_layer: ["OPERATOR_POLICY"],
       mandatory_levels: ["mandatory"],
     },
-    condition_evaluation: { conditions: [], unmet: [], missing_inputs: [], pending_exceptions: [] },
+    condition_evaluation: {
+      conditions: [],
+      unmet: [],
+      missing_inputs: [],
+      pending_exceptions: [],
+    },
     scope_summary: {
       place: { id: PLACE.id, name: PLACE.canonical_name, place_type: "cafe" },
       zone: null,
@@ -160,8 +165,6 @@ test("C2: transport error is never served as a cached fact — recovery re-reque
     "规则结论暂时无法取得",
   );
 
-  // Network recovers. The same query again must RE-REQUEST (the failed value
-  // was never cached), and the row now shows the real ALLOWED answer.
   // Network recovers. The same query again must RE-REQUEST (the failed value
   // was never cached), and the row now shows the real ALLOWED badge.
   fail = false;
