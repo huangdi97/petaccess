@@ -880,10 +880,14 @@ def _presence_summary(db: Session, place_id: str, now: datetime):
 def _staff_response_summary(
     db: Session, place_id: str, now: datetime | None = None
 ) -> list[dict]:
-    """Summarize staff handling only when the event date itself is known."""
+    """Summarize recent staff handling without discarding awareness context."""
     cutoff = (now or datetime.now(UTC)) - timedelta(days=30)
     rows = db.execute(
-        select(StaffResponseObservation.response_action, func.count())
+        select(
+            StaffResponseObservation.response_action,
+            StaffResponseObservation.staff_awareness_state,
+            func.count(),
+        )
         .outerjoin(
             RealityCandidate,
             RealityCandidate.id == StaffResponseObservation.candidate_id,
@@ -898,11 +902,21 @@ def _staff_response_summary(
                 RealityReport.time_evidence_state != "publication_time_only",
             ),
         )
-        .group_by(StaffResponseObservation.response_action)
+        .group_by(
+            StaffResponseObservation.response_action,
+            StaffResponseObservation.staff_awareness_state,
+        )
     ).all()
     return [
-        {"response_action": action, "count": count}
-        for action, count in sorted(rows, key=lambda item: str(item[0]))
+        {
+            "response_action": action,
+            "staff_awareness_state": awareness,
+            "count": count,
+        }
+        for action, awareness, count in sorted(
+            rows,
+            key=lambda item: (str(item[0]), str(item[1])),
+        )
         if action
     ]
 
