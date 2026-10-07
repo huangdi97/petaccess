@@ -168,6 +168,7 @@ export interface BoundaryMatchResult {
  */
 export interface StaffResponseSummaryItem {
   response_action: string;
+  staff_awareness_state: string;
   count: number;
 }
 
