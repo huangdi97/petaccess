@@ -46,6 +46,7 @@ export function mapLensTone(lens: MapLensKey, row: RowFacts | undefined): MapMar
 
   if (lens === "facility") {
     const facilities = row.snapshot?.facility_summary ?? [];
+    if (facilities.some((item) => (item.disputed_count ?? 0) > 0)) return "CONFLICT";
     if (
       facilities.some(
         (item) =>
@@ -87,6 +88,8 @@ export function mapLensLabel(lens: MapLensKey, row: RowFacts | undefined): strin
       )
       .reduce((sum, item) => sum + item.count, 0);
     const inferred = Math.max(0, total - confirmed);
+    const disputed = facilities.reduce((sum, item) => sum + (item.disputed_count ?? 0), 0);
+    if (disputed > 0) return `${disputed} 处设施记录存在异议`;
     if (activeConfirmed > 0) return `${activeConfirmed} 处已核验动物设施`;
     if (confirmed > 0) return `${confirmed} 处动物设施记录`;
     if (inferred > 0) return `${inferred} 处疑似动物相关设施 · 用途待核验`;
