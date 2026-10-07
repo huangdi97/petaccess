@@ -33,6 +33,7 @@ from app.models import (
 from app.models.enums import (
     AnimalScope,
     Directness,
+    EvidenceStrength,
     HolderScope,
     IssuerVerification,
     NormalizationType,
@@ -206,7 +207,18 @@ def contribute_rule_lead(
     # A user's statement about staff/official content is still an ordinary-user
     # lead until the underlying source itself is verified. Never promote it to
     # OperatorPolicy / GovernmentService from the submitter's description.
-    source_type = SourceType.ONSITE_SIGNAGE if media else SourceType.ORDINARY_USER
+    source_type = (
+        SourceType.ONSITE_SIGNAGE
+        if media is not None and source_basis == "onsite_signage"
+        else SourceType.ORDINARY_USER
+    )
+    directness = (
+        Directness.DIRECT
+        if source_type == SourceType.ONSITE_SIGNAGE
+        else Directness.SECONDARY
+        if source_basis in {"staff_statement", "official_online", "onsite_signage"}
+        else Directness.TERTIARY
+    )
     source = Source(
         source_type=source_type,
         issuer=f"用户提交 · {source_basis_labels[source_basis]}",
@@ -218,7 +230,7 @@ def contribute_rule_lead(
         observed_at=now if body.proximity_verified else None,
         published_at=None,
         source_availability=SourceAvailability.AVAILABLE_OFFLINE,
-        directness=Directness.DIRECT,
+        directness=directness,
         spatial_precision=(
             SpatialPrecision.PRECISE if body.proximity_verified else SpatialPrecision.UNKNOWN
         ),
@@ -228,6 +240,47 @@ def contribute_rule_lead(
     )
     db.add(source)
     db.flush()
+
+    # Every consumer RuleCandidate cites an attributable EvidenceBundle. A
+    # photo is original captured evidence; a text-only lead is a stored user
+    # statement. OCR/structured interpretation remains on the candidate as
+    # derived review material and never masquerades as the original artifact.
+    collected = CollectedArtifact(
+        source_platform=SourcePlatform.ONSITE if media else SourcePlatform.PLATFORM_UPLOAD,
+        artifact_type="signage_photo" if media else "user_statement",
+        collector_type=CollectorType.ONSITE_EVIDENCE if media else "ConsumerRuleLead",
+        media_id=media.id if media else None,
+        content_hash=media.sha256 if media else None,
+        publisher_type="unknown" if media else "ordinary_user",
+        captured_excerpt=None if media else body.raw_text,
+        display_allowed=False,
+        redistribution_allowed=False,
+    )
+    artifact = record_artifact(
+        db,
+        collected,
+        source_id=source.id,
+        evidence_strength=(
+            EvidenceStrength.PRIMARY_CAPTURED.value
+            if media
+            else EvidenceStrength.USER_SUBMITTED.value
+        ),
+        now=now,
+    )
+    bundle = create_bundle(
+        db,
+        artifact,
+        source_id=source.id,
+        place_match_evidence={
+            "place_id": place_id,
+            "zone_id": candidate_zone_id,
+            "proximity_verified": body.proximity_verified,
+            "distance_bucket": body.distance_bucket,
+            "accuracy_bucket": body.accuracy_bucket,
+        },
+        privacy_notes="消费者规则线索审核证据；默认不公开原始媒体。",
+        now=now,
+    )
 
     structured = body.effect is not None and body.animal_scope is not None
     candidate = create_from_extraction(
@@ -244,6 +297,7 @@ def contribute_rule_lead(
         extraction_method="manual" if structured else "user_upload",
         raw_text=body.raw_text,
         media_id=body.media_id,
+        evidence_bundle_id=bundle.id,
         supersedes_rule_id=body.current_rule_id,
     )
     if candidate.review_status == "MATCH_PENDING":
