@@ -20,7 +20,7 @@ from datetime import UTC, datetime, timedelta
 from typing import TypedDict
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import func, or_, select, union_all
+from sqlalchemy import and_, func, or_, select, union_all
 from sqlalchemy.orm import Session
 
 from app.core.audit import record_audit
@@ -948,19 +948,30 @@ def _presence_summary(db: Session, place_id: str, now: datetime):
 def _staff_response_summary(
     db: Session, place_id: str, now: datetime | None = None
 ) -> list[dict]:
-    """Summarize recent staff handling without discarding awareness context."""
+    """Summarize recent staff handling and keep open disputes visible."""
     cutoff = (now or datetime.now(UTC)) - timedelta(days=30)
     rows = db.execute(
         select(
             StaffResponseObservation.response_action,
             StaffResponseObservation.staff_awareness_state,
-            func.count(),
+            func.count(func.distinct(StaffResponseObservation.id)),
+            func.count(func.distinct(DisputeCase.target_id)),
         )
         .outerjoin(
             RealityCandidate,
             RealityCandidate.id == StaffResponseObservation.candidate_id,
         )
         .outerjoin(RealityReport, RealityReport.id == RealityCandidate.report_id)
+        .outerjoin(
+            DisputeCase,
+            and_(
+                DisputeCase.target_id == StaffResponseObservation.id,
+                DisputeCase.target_type == DisputeTargetType.STAFF_RESPONSE_OBSERVATION.value,
+                DisputeCase.status.notin_(
+                    [DisputeCaseStatus.RESOLVED.value, DisputeCaseStatus.WITHDRAWN.value]
+                ),
+            ),
+        )
         .where(
             StaffResponseObservation.place_id == place_id,
             StaffResponseObservation.verification_status.in_(VERIFIED_REALITY_STATUSES),
@@ -980,8 +991,9 @@ def _staff_response_summary(
             "response_action": action,
             "staff_awareness_state": awareness,
             "count": count,
+            "disputed_count": disputed_count,
         }
-        for action, awareness, count in sorted(
+        for action, awareness, count, disputed_count in sorted(
             rows,
             key=lambda item: (str(item[0]), str(item[1])),
         )
@@ -990,7 +1002,7 @@ def _staff_response_summary(
 
 
 def _facility_summary(db: Session, place_id: str) -> list[dict]:
-    """Current facility summary excludes publication-time-only external records."""
+    """Current facility summary excludes publication-only facts and exposes disputes."""
     rows = db.execute(
         select(
             AnimalFacility.facility_type,
@@ -998,12 +1010,23 @@ def _facility_summary(db: Session, place_id: str) -> list[dict]:
             AnimalFacility.zone_id,
             Zone.name,
             AnimalFacility.operational_state,
-            func.count(),
+            func.count(func.distinct(AnimalFacility.id)),
+            func.count(func.distinct(DisputeCase.target_id)),
             func.max(AnimalFacility.last_verified_at),
         )
         .outerjoin(Zone, Zone.id == AnimalFacility.zone_id)
         .outerjoin(RealityCandidate, RealityCandidate.id == AnimalFacility.candidate_id)
         .outerjoin(RealityReport, RealityReport.id == RealityCandidate.report_id)
+        .outerjoin(
+            DisputeCase,
+            and_(
+                DisputeCase.target_id == AnimalFacility.id,
+                DisputeCase.target_type == DisputeTargetType.ANIMAL_FACILITY.value,
+                DisputeCase.status.notin_(
+                    [DisputeCaseStatus.RESOLVED.value, DisputeCaseStatus.WITHDRAWN.value]
+                ),
+            ),
+        )
         .where(
             AnimalFacility.place_id == place_id,
             AnimalFacility.verification_status.in_(VERIFIED_REALITY_STATUSES),
@@ -1028,10 +1051,20 @@ def _facility_summary(db: Session, place_id: str) -> list[dict]:
             "zone_id": zone_id,
             "zone_name": zone_name,
             "count": count,
+            "disputed_count": disputed_count,
             "operational_state": state,
             "last_verified_at": last_verified_at,
         }
-        for facility_type, purpose_state, zone_id, zone_name, state, count, last_verified_at in rows
+        for (
+            facility_type,
+            purpose_state,
+            zone_id,
+            zone_name,
+            state,
+            count,
+            disputed_count,
+            last_verified_at,
+        ) in rows
     ]
 
 
