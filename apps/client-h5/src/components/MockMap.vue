@@ -41,6 +41,13 @@ const emit = defineEmits<{ select: [cluster: MapCluster]; zoom: [delta: number] 
  * makes +/- a real spatial zoom rather than a decorative control. */
 const spanDeg = computed(() => 0.08 * Math.pow(2, 14 - props.camera.zoom));
 
+const scaleLabel = computed(() => {
+  if (props.camera.zoom >= 17) return "100 m";
+  if (props.camera.zoom >= 15) return "250 m";
+  if (props.camera.zoom >= 13) return "500 m";
+  return "1 km";
+});
+
 /** Projection, clamped so the whole pin box stays inside the surface. */
 const PIN_HEIGHT_PX = 44;
 const PIN_HALF_WIDTH_PX = 32;
@@ -141,16 +148,38 @@ const MASS = [
         :height="m.split(',')[3]"
       />
       <polygon v-for="b in BLOCKS" :key="b" class="basemap-block" :points="b" />
-      <path v-for="r in ROADS_PRIMARY" :key="r" class="basemap-road basemap-road--primary" :d="r" />
+      <path
+        v-for="r in ROADS_PRIMARY"
+        :key="'primary-casing-' + r"
+        class="basemap-road basemap-road--primary-casing"
+        :d="r"
+      />
+      <path
+        v-for="r in ROADS_PRIMARY"
+        :key="'primary-fill-' + r"
+        class="basemap-road basemap-road--primary"
+        :d="r"
+      />
       <path
         v-for="r in ROADS_SECONDARY"
-        :key="r"
+        :key="'secondary-casing-' + r"
+        class="basemap-road basemap-road--secondary-casing"
+        :d="r"
+      />
+      <path
+        v-for="r in ROADS_SECONDARY"
+        :key="'secondary-fill-' + r"
         class="basemap-road basemap-road--secondary"
         :d="r"
       />
     </svg>
 
     <span class="map-provider muted" data-testid="map-provider-fallback"> 简化空间底图 </span>
+
+    <div class="map-spatial-aids" aria-hidden="true">
+      <span class="map-compass">N</span>
+      <span class="map-scale"><span class="map-scale__bar"></span>{{ scaleLabel }}</span>
+    </div>
 
     <div class="map-zoom" data-testid="map-zoom" data-ui="map-zoom" role="group" aria-label="缩放">
       <button
@@ -262,15 +291,31 @@ const MASS = [
 /* 道路层级：primary 更宽更明确，secondary 更细更弱。 */
 .basemap-road {
   fill: none;
-  stroke: var(--pa-color-map-grid-b);
+  vector-effect: non-scaling-stroke;
 }
+
+.basemap-road--primary-casing {
+  stroke: var(--pa-color-border);
+  stroke-width: 8;
+  opacity: 0.7;
+}
+
 .basemap-road--primary {
+  stroke: var(--pa-color-surface);
   stroke-width: 5;
-  opacity: 0.9;
+  opacity: 0.95;
 }
+
+.basemap-road--secondary-casing {
+  stroke: var(--pa-color-border-subtle);
+  stroke-width: 4;
+  opacity: 0.75;
+}
+
 .basemap-road--secondary {
+  stroke: var(--pa-color-surface);
   stroke-width: 2;
-  opacity: 0.65;
+  opacity: 0.9;
 }
 
 /* 缩放控件：mock fallback 也保持真实交互，不展示道具按钮。 */
@@ -310,6 +355,53 @@ const MASS = [
   background: color-mix(in srgb, var(--pa-color-surface) 88%, transparent);
   font-size: var(--pa-font-size-xs);
   pointer-events: none;
+}
+
+.map-spatial-aids {
+  position: absolute;
+  right: var(--pa-space-3);
+  bottom: var(--pa-space-3);
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  gap: var(--pa-space-3);
+  color: var(--pa-color-text-secondary);
+  pointer-events: none;
+}
+
+.map-compass {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: var(--pa-border-width) solid var(--pa-color-border);
+  border-radius: var(--pa-radius-pill);
+  background: color-mix(in srgb, var(--pa-color-surface) 92%, transparent);
+  font-family: var(--pa-font-family-numeric);
+  font-size: var(--pa-font-size-xs);
+  font-weight: var(--pa-font-weight-650);
+}
+
+.map-scale {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  padding: 2px var(--pa-space-1);
+  border-radius: var(--pa-radius-sm);
+  background: color-mix(in srgb, var(--pa-color-surface) 88%, transparent);
+  font-family: var(--pa-font-family-numeric);
+  font-size: var(--pa-font-size-xs);
+}
+
+.map-scale__bar {
+  display: block;
+  width: 48px;
+  height: 5px;
+  border-left: var(--pa-border-width) solid currentColor;
+  border-right: var(--pa-border-width) solid currentColor;
+  border-bottom: var(--pa-border-width-strong) solid currentColor;
 }
 
 /* ---- pins ---- */
