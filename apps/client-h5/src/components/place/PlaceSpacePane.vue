@@ -29,11 +29,7 @@ const props = defineProps<{
 }>();
 
 const facilityEvents = computed(() =>
-  props.events.filter(
-    (event) =>
-      event.event_type === "animal_facility" &&
-      event.time_evidence_state !== "publication_time_only",
-  ),
+  props.events.filter((event) => event.event_type === "animal_facility"),
 );
 
 function facilityZone(event: RealityEventView): string {
