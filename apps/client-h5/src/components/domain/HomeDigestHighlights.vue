@@ -3,7 +3,12 @@ import { computed } from "vue";
 
 import { answerVerdictLabel } from "../../answer";
 import type { HomeCard } from "../../composables/useHomeLauncher";
-import { coexistenceRealityLine, lensOrderScore, type ConsumerLens } from "../../consumer/rowView";
+import {
+  coexistenceRealityLine,
+  lensOrderScore,
+  lensProjection,
+  type ConsumerLens,
+} from "../../consumer/rowView";
 import { divergenceLabel } from "../../reality";
 
 const props = withDefaults(
@@ -75,9 +80,21 @@ const divergences = computed(() =>
 );
 
 function headline(card: HomeCard): string {
-  if (props.interest === "rules" && card.facts.answer) {
-    return answerVerdictLabel(card.facts.answer);
+  if (props.interest) {
+    const projection = lensProjection(
+      props.interest,
+      card.facts.answer,
+      card.facts.reality,
+      card.facts.snapshot,
+    );
+    if (props.interest === "rules" && card.facts.answer) {
+      return answerVerdictLabel(card.facts.answer);
+    }
+    if (props.interest === "indoor" || props.interest === "dining") {
+      return projection.realityLine;
+    }
   }
+
   const reality = card.facts.reality;
   if ((card.facts.snapshot?.evidence_summary.reality_evidence_count ?? 0) > 0 || reality) {
     const line = coexistenceRealityLine(card.facts.snapshot, reality);
