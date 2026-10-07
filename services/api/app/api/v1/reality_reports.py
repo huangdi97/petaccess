@@ -427,7 +427,7 @@ def reality_trace(
 
     from app.api.v1.reality import _presence_summary
 
-    summary = _presence_summary(db, place_id, now)
+    summary, _, _, _ = _presence_summary(db, place_id, now)
     published_rows = [*claims, *staff_rows, *facility_rows]
     evidence_ids = {
         row.evidence_bundle_id
