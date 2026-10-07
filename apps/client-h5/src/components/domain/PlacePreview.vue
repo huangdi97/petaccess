@@ -21,6 +21,7 @@ import {
 import { answerConditions, answerStatusKey, answerVerdictLabel } from "../../answer";
 import { coexistenceRealityLine } from "../../consumer/rowView";
 import StatusBadge from "../StatusBadge.vue";
+import PlaceTypeGlyph from "./PlaceTypeGlyph.vue";
 
 const props = withDefaults(
   defineProps<{
@@ -57,8 +58,11 @@ const metaLine = computed(() => {
     <template v-if="place">
       <!-- §32：Place + Type·distance -->
       <header class="place-preview__head">
-        <h2 class="place-preview__name">{{ place.canonical_name }}</h2>
-        <p class="place-preview__muted">{{ metaLine }}</p>
+        <PlaceTypeGlyph :place-type="place.place_type" />
+        <div class="place-preview__identity">
+          <h2 class="place-preview__name">{{ place.canonical_name }}</h2>
+          <p class="place-preview__muted">{{ metaLine }}</p>
+        </div>
       </header>
 
       <div
