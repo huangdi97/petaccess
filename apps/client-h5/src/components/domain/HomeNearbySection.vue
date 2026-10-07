@@ -58,13 +58,13 @@ const freshness = computed(() =>
         kind="EMPTY"
         data-testid="home-empty"
         title="当前还没有已发布的场所数据"
-        description="你仍然可以了解 PetAccess 如何区分规则与现场，或者提交第一条线索。"
+        description="你仍然可以通过地图或搜索确认是否有已收录场所。贡献规则、现场与纠错线索需要先绑定到一个已收录场所。"
       >
         <template #action>
           <RouterLink class="primary" to="/map" data-testid="home-empty-map">探索地图</RouterLink>
-          <RouterLink class="secondary" to="/contribute" data-testid="home-empty-contribute"
-            >贡献线索</RouterLink
-          >
+          <RouterLink class="secondary" to="/search" data-testid="home-empty-search">
+            搜索场所
+          </RouterLink>
         </template>
       </StateMessage>
 
