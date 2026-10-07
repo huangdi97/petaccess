@@ -20,6 +20,7 @@ import {
 import SkeletonList from "../SkeletonList.vue";
 import StateMessage from "../StateMessage.vue";
 import StatusBadge from "../StatusBadge.vue";
+import PlaceTypeGlyph from "./PlaceTypeGlyph.vue";
 import type { MapLensKey } from "../../consumer/mapLens";
 
 const props = defineProps<{
@@ -184,12 +185,15 @@ function toggleFilter(key: string) {
             @keydown.space.prevent="emit('open', p.id)"
           >
             <div class="map-place-row__head">
-              <div class="map-place-row__identity">
-                <strong>{{ p.canonical_name }}</strong>
-                <span class="muted">
-                  {{ placeTypeLabel(p.place_type) }}
-                  <span v-if="p.distance_m"> · {{ Math.round(p.distance_m) }}m</span>
-                </span>
+              <div class="map-place-row__identity-wrap">
+                <PlaceTypeGlyph :place-type="p.place_type" size="sm" />
+                <div class="map-place-row__identity">
+                  <strong>{{ p.canonical_name }}</strong>
+                  <span class="muted">
+                    {{ placeTypeLabel(p.place_type) }}
+                    <span v-if="p.distance_m"> · {{ Math.round(p.distance_m) }}m</span>
+                  </span>
+                </div>
               </div>
               <StatusBadge
                 v-if="props.lens === 'rule'"
@@ -356,6 +360,13 @@ function toggleFilter(key: string) {
   justify-content: space-between;
   align-items: flex-start;
   gap: var(--pa-space-3);
+}
+
+.map-place-row__identity-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--pa-space-3);
+  min-width: 0;
 }
 
 .map-place-row__identity {
