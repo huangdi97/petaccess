@@ -27,6 +27,11 @@ export function mapLensTone(lens: MapLensKey, row: RowFacts | undefined): MapMar
   if (lens === "rule") return answerStatusKey(row.answer);
 
   if (lens === "reality") {
+    const factualDisputes = [
+      ...(row.snapshot?.staff_response_summary ?? []),
+      ...(row.snapshot?.facility_summary ?? []),
+    ].reduce((sum, item) => sum + (item.disputed_count ?? 0), 0);
+    if (factualDisputes > 0) return "CONFLICT";
     switch (row.reality?.state) {
       case "OBSERVED_RECENTLY":
       case "MULTI_EVIDENCE_OBSERVED":
