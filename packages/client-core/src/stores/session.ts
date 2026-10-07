@@ -68,7 +68,14 @@ export const session = reactive({
       if (activePetId && this.activePet?.id !== activePetId) {
         const pets = await client.myPets();
         this.activePet = pets.find((pet) => pet.id === activePetId) ?? null;
-        if (!this.activePet) platformStorage.remove(ACTIVE_PET_KEY);
+        if (!this.activePet) {
+          platformStorage.remove(ACTIVE_PET_KEY);
+        } else if (this.mode === "with_pet" && this.activePet.service_role === "working") {
+          // A persisted working service-dog profile must reopen in the matching
+          // query mode so the UI can ask for the precise declared role instead
+          // of silently presenting a generic ordinary-pet context.
+          this.mode = "service_dog";
+        }
       }
     } catch (e: unknown) {
       if (e instanceof ApiError && e.status === 401) {
