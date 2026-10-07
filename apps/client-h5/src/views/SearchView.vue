@@ -35,6 +35,7 @@ import PaBottomSheet from "../components/ui/PaBottomSheet.vue";
 import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
 import StatusBadge from "../components/StatusBadge.vue";
+import PlaceTypeGlyph from "../components/domain/PlaceTypeGlyph.vue";
 import { answerConditions, answerStatusKey, answerVerdictLabel } from "../answer";
 import {
   coexistenceEvidenceLine,
@@ -537,12 +538,15 @@ watch(currentQueryContext, () => {
                      Rule conclusion + key condition / Evidence·freshness metadata.
                      Keep it divider-led, never a card wall. -->
                 <div class="result-row__head">
-                  <div class="result-row__identity">
-                    <strong class="result-row__name">{{ p.canonical_name }}</strong>
-                    <span class="muted result-row__meta">
-                      {{ placeTypeLabel(p.place_type) }}
-                      <template v-if="p.distance_m"> · {{ Math.round(p.distance_m) }}m</template>
-                    </span>
+                  <div class="result-row__identity-wrap">
+                    <PlaceTypeGlyph :place-type="p.place_type" />
+                    <div class="result-row__identity">
+                      <strong class="result-row__name">{{ p.canonical_name }}</strong>
+                      <span class="muted result-row__meta">
+                        {{ placeTypeLabel(p.place_type) }}
+                        <template v-if="p.distance_m"> · {{ Math.round(p.distance_m) }}m</template>
+                      </span>
+                    </div>
                   </div>
                   <div class="result-row__head-right">
                     <StatusBadge :semantic="statuses[p.id] ?? 'UNKNOWN'" />
@@ -940,6 +944,13 @@ watch(currentQueryContext, () => {
   justify-content: space-between;
   align-items: baseline;
   gap: var(--pa-space-3);
+}
+
+.result-row__identity-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--pa-space-3);
+  min-width: 0;
 }
 
 .result-row__identity {
