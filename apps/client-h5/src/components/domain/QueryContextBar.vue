@@ -21,10 +21,11 @@ const petsLoaded = ref(false);
 const loadingPets = ref(false);
 const petError = ref("");
 
-const MODES: { key: QueryMode; label: string; hint: string }[] = [
+type EditableQueryMode = Extract<QueryMode, "with_pet" | "service_dog">;
+
+const MODES: { key: EditableQueryMode; label: string; hint: string }[] = [
   { key: "with_pet", label: "普通携带", hint: "按当前宠物档案或默认普通犬查询" },
   { key: "service_dog", label: "服务犬通行", hint: "按用户声明的服务犬角色查询适用规则" },
-  { key: "rules_only", label: "规则视角", hint: "不套用个人偏好，只看当前动物对象的规则" },
 ];
 
 const SERVICE_ROLES = [
@@ -53,7 +54,7 @@ async function openEditor() {
   }
 }
 
-function selectMode(mode: QueryMode) {
+function selectMode(mode: EditableQueryMode) {
   session.mode = mode;
   if (mode !== "service_dog") session.setDeclaredRole(null);
 }
@@ -94,7 +95,7 @@ function selectServiceRole(event: Event) {
     >
       <div class="query-context__form">
         <section class="query-context__section">
-          <h3>查询视角</h3>
+          <h3>携带情境</h3>
           <div class="query-context__modes" role="group" aria-label="查询视角">
             <button
               v-for="mode in MODES"
