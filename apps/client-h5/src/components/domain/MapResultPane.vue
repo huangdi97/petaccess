@@ -177,7 +177,11 @@ function toggleFilter(key: string) {
             :aria-current="props.selectedId === p.id ? 'true' : undefined"
             :data-selected="props.selectedId === p.id ? 'true' : undefined"
             :data-testid="'place-' + p.id"
+            role="button"
+            tabindex="0"
             @click="emit('open', p.id)"
+            @keydown.enter="emit('open', p.id)"
+            @keydown.space.prevent="emit('open', p.id)"
           >
             <div class="map-place-row__head">
               <div class="map-place-row__identity">
