@@ -733,6 +733,56 @@ def _make_verified_presence(client, place_id, auth) -> str:
     return cand_id
 
 
+def test_published_reality_fact_can_be_disputed_without_becoming_a_rule_mutation(
+    client, signed_user, place_id
+):
+    """Public Reality correction opens a case and marks the event, preserving the fact row."""
+    cand_id = _make_verified_presence(client, place_id, signed_user)
+
+    from sqlalchemy import select
+
+    from app.db.session import get_session_factory
+    from app.models import DisputeCase, ObservedPresence
+
+    factory = get_session_factory()
+    with factory() as db:
+        claim = db.scalar(
+            select(ObservedPresence).where(ObservedPresence.candidate_id == cand_id)
+        )
+        assert claim is not None
+        claim_id = claim.id
+
+    opened = client.post(
+        "/api/v1/disputes",
+        headers=signed_user,
+        json={
+            "target_type": "observed_presence",
+            "target_id": claim_id,
+            "reason_code": "wrong_place",
+            "notice_text": "该记录对应的是另一处入口，需要重新核验地点。",
+        },
+    )
+    assert opened.status_code == 201, opened.text
+    case_id = opened.json()["id"]
+
+    try:
+        events = client.get(f"/api/v1/places/{place_id}/reality/events")
+        assert events.status_code == 200, events.text
+        event = next(item for item in events.json() if item["id"] == claim_id)
+        assert event["dispute_open"] is True
+
+        with factory() as db:
+            preserved = db.get(ObservedPresence, claim_id)
+            assert preserved is not None
+            assert str(preserved.verification_status) == "human_verified"
+    finally:
+        with factory() as db:
+            case = db.get(DisputeCase, case_id)
+            if case is not None:
+                db.delete(case)
+                db.commit()
+
+
 def test_my_reality_contributions_lists_only_own_reports(client, signed_user, place_id):
     """M7 B1 — GET /me/reality-contributions returns only the caller's own reports."""
     r = client.post(
