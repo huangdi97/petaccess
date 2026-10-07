@@ -26,11 +26,11 @@ const emit = defineEmits<{
 }>();
 
 const cards = computed(() => [...props.verified, ...props.pending]);
-const recommendationTitle = computed(() => (props.interest ? "按你的关注推荐" : "近期值得先看"));
+const recommendationTitle = computed(() => (props.interest ? "按你的关注先看" : "附近近期有依据"));
 const recommendationNote = computed(() =>
   props.interest
-    ? "只调整展示顺序，不形成场所推荐分或排名。"
-    : "尚未选择关注维度；当前按近期事实与证据完整度排序，不形成场所推荐分或排名。",
+    ? "先显示与你当前关注更相关的事实；不代表场所好坏。"
+    : "先显示最近有现场事实或较完整依据的场所；不代表场所好坏。",
 );
 
 function hasUsefulFact(card: HomeCard): boolean {
