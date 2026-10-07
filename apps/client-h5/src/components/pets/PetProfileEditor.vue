@@ -63,7 +63,6 @@ const emit = defineEmits<{ save: []; cancel: [] }>();
         <option value="none">普通宠物</option>
         <option value="working">服务犬（在役）</option>
         <option value="in_training">服务犬（训练中）</option>
-        <option value="retired">服务犬（已退役）</option>
       </select>
     </fieldset>
 
