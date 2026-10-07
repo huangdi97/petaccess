@@ -372,3 +372,64 @@ Source / contract / capture runner 完成不等于 Human Visual PASS。最终仍
 4. 配置真实地图 provider 时，至少一张 real-map runtime 证据；若环境没有 provider key，必须把“简化空间底图”明确记录为外部配置 blocker，而不是假装真实地图已验收。
 
 在上述证据由真人看过以前，`UI_HUMAN_VISUAL_ACCEPTANCE` 保持 `REJECTED_REOPENED / PENDING_REVIEW`，PR #1 保持 draft，master / tag / Release 不动。
+
+## 11. 2026-10-07 Source Closure Addendum
+
+### 11.1 本轮判断纪律
+
+direct-v8 现在必须区分三种状态，禁止互相代替：
+
+1. **SOURCE_CLOSURE**：代码、数据落点、产品语义与冻结设计一致。
+2. **RUNTIME_CLOSURE**：最终 HEAD 在 Web / Windows WebView2 / Android 真机构建、交互、无溢出、无崩溃。
+3. **HUMAN_VISUAL_ACCEPTANCE**：人实际看最终 runtime 截图/软件后，确认视觉与产品设计一致。
+
+机器 Oracle、DOM contract、lint/build 即使全绿，也只能支撑前两类证据的一部分，**不能自动签 Human Visual Acceptance**。
+
+### 11.2 已完成的 Consumer Source Closure
+
+- **Rule lead 不再落入 Observation**：消费者提交规则线索进入 Source + EvidenceBundle + RuleCandidate review lane；Staff statement / official-content 转述在底层来源未被核实时仍是 ordinary-user lead，不会自动成为 OperatorPolicy。
+- **Place correction 不直接改数据**：场所纠错进入 moderator-visible Verification/Correction queue；“当前信息有误，但不知道正确值”是合法输入。
+- **Reality 不再以 legacy Observation 作为 Consumer 真相**：Reality / Evidence / Place 统一读取 published human-verified v0.9 presence / staff response / facility event stream。
+- **StaffResponse 保持事实层**：展示角色、处理动作、awareness 与 outcome，不展示工作人员身份，也不升级为 OperatorPolicy。
+- **Facility 保持事实层**：用途确认、使用方式、容量、遮雨/遮阳/通风/饮水、看护、安全/锁闭、状态、核验时间可进入 Space dossier；任何设施信息都明确不等于准入、不构成安全/动物福利保证。
+- **Evidence 三类时间不混淆**：Observed / Submitted / Reviewed 分开；publication-time-only 不能伪装成 event time。
+- **Reality dispute / correction 不改写 Rule**：异议状态可以上浮到 Reality / Evidence / Place / Map，但只能触发复核。
+- **CoexistenceSnapshot 是 Consumer SSOT**：Home / Search / Map / Place 不再各自重新算 Rule/Reality。
+- **Map 空间事实恢复**：PlaceSummary 使用 PostGIS representative coordinates；production 不再用 UUID 合成坐标。地图定位后 nearby query 跟随实际 camera。
+- **真实地图 provider 已接入**：Tencent GL + server-side WGS84→GCJ-02 provider boundary 已实现；client key/server key 未配置时使用简化底图。
+- **简化底图必须诚实**：当 real provider 未配置或运行失败时，UI 明确写“简化空间底图”，同时说明场所点位仍使用已核验坐标；Human Review capture 会校验该声明。
+- **Rule filter 真正影响 Spatial Workspace**：列表、markers、coverage、selection 同步，不再出现“列表过滤了但地图还留着”的双重状态。
+- **Search/Home 空态不再提供假动作**：当前产品没有“新增 Place”流程，因此空搜索/空附近不再把“新增场所线索”CTA错误指向一个要求现有 placeId 的 Contribution 页面。
+
+### 11.3 当前 UI 结构仍保持冻结
+
+- Home = Query Launcher
+- Search = List–Detail
+- Place = Coexistence Passport / Dossier
+- Map = Spatial Workspace
+- Reality = Event Log
+- Evidence = Provenance Record
+- Contribution = Structured Transaction Flow
+
+设计语言继续是 **Clear / Calm / Spatial / Evidence-led**。
+
+### 11.4 Map 的唯一外部能力边界
+
+真实腾讯底图不是 Source defect：
+
+- 源码已具备 Tencent GL renderer；
+- 浏览器 client key 与服务端 WebService key 分离；
+- WGS84 持久化不变，GCJ-02 只在 provider presentation boundary 产生；
+- Key 不存在时不伪造“真实地图已完成”，而是诚实降级为简化空间底图。
+
+最终 Human Visual Acceptance 必须记录 renderer 是 real 还是 simplified；simplified 模式必须出现 fallback disclosure。若最终发行要求真实底图，则 provider key / domain restriction / live smoke 属于 **EXTERNAL_RUNTIME_BLOCKER**，不能用 mock screenshot 代替。
+
+### 11.5 当前停止线
+
+- DIRECT_V8_SOURCE_CLOSURE = ADVANCED / REVIEWABLE
+- HUMAN_VISUAL_ACCEPTANCE = PENDING
+- FINAL_RUNTIME_BASELINE = PENDING
+- MASTER_PROMOTION = FORBIDDEN
+- TAG / RELEASE = FORBIDDEN
+
+下一次允许改变这些状态的证据只能是**最终 HEAD**的新 Web / Windows / Android runtime 与 canonical Human Review screenshots，而不是历史截图、旧 PASS 或机器合同数字。
