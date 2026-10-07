@@ -5,6 +5,7 @@
  * written only after the DOM proves the frozen product archetype is actually
  * present. Machine validity is still NOT human visual acceptance.
  */
+import { execFileSync } from "node:child_process";
 import { mkdirSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
@@ -15,6 +16,15 @@ const MALL_ID = "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e";
 const CAFE_ID = "8412b521-5e1c-505d-9dec-568acb860c76";
 const BRANCH_ID = "3b5a341a-e550-5f0c-b35a-319ed43bd840";
 const OUT = path.resolve("artifacts/ui-direct-v8/HUMAN_REVIEW");
+
+function currentHead(): string {
+  if (process.env.GITHUB_SHA) return process.env.GITHUB_SHA;
+  try {
+    return execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
+  } catch {
+    return "unknown";
+  }
+}
 
 type Scope = "desktop" | "mobile" | "both";
 interface Shot {
@@ -532,6 +542,8 @@ test("direct-v8 canonical human-review packet", async ({ page, request }, testIn
     JSON.stringify(
       {
         project: testInfo.project.name,
+        sourceHead: currentHead(),
+        sourceBranch: process.env.GITHUB_HEAD_REF || process.env.GITHUB_REF_NAME || "local",
         machineValidatedOnly: true,
         humanVisualAcceptance: "PENDING",
         generatedAt: new Date().toISOString(),
