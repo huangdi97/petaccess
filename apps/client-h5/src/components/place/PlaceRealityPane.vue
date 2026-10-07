@@ -6,7 +6,7 @@
  */
 import type { RealityEventView, StaffResponseSummaryItem, Zone } from "@petaccess/client-core";
 import RealityEventLog from "../domain/RealityEventLog.vue";
-import { staffActionLabel } from "../../consumer/labels";
+import { staffResponseSummaryLabel } from "../../consumer/labels";
 
 defineProps<{
   events: RealityEventView[];
@@ -37,7 +37,7 @@ const emit = defineEmits<{
         class="reality-fact-row"
         data-testid="staff-response-summary-row"
       >
-        <span>{{ staffActionLabel(item.response_action) }}</span>
+        <span>{{ staffResponseSummaryLabel(item.response_action, item.staff_awareness_state) }}</span>
         <strong>× {{ item.count }}</strong>
       </div>
       <p class="reality-fact-section__note muted">
