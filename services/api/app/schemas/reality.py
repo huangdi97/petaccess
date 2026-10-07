@@ -230,6 +230,14 @@ class FacilitySummaryItem(BaseModel):
     last_verified_at: datetime | None
 
 
+class ObservedZoneFact(BaseModel):
+    """Published spatial facet attached to a verified presence fact."""
+
+    name: str
+    zone_type: str | None = None
+    indoor_outdoor: str | None = None
+
+
 class RealityAnswer(BaseModel):
     """RealityAnswer — the reality half of a CoexistenceSnapshot (v0.9 §9)."""
 
@@ -238,6 +246,7 @@ class RealityAnswer(BaseModel):
     evidence_count: int = 0
     distinct_source_count: int = 0
     observed_zones: list[str] = []
+    observed_zone_facts: list[ObservedZoneFact] = []
     observed_zone_types: list[str] = []
     observed_indoor_outdoor: list[str] = []
     observed_actions: list[str] = []
