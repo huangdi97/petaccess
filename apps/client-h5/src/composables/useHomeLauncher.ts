@@ -7,14 +7,21 @@
  * as UNKNOWN or an empty state. Recent history is localStorage-backed and
  * re-evaluated on open — old answers are never reused.
  */
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { session, type PlaceSummary } from "@petaccess/client-core";
 import { type IconName, type StatusKey } from "@petaccess/design-tokens";
 import { ANSWERED_STATUSES, answerConditions, answerScopeLabel, answerStatusKey } from "../answer";
 import { bootStage } from "../config/bootTrace";
-import { createEpoch, enrichRows, nearbyPlaces, type RowFacts } from "../consumer/repository";
+import {
+  createEpoch,
+  currentQueryContext,
+  enrichRows,
+  nearbyPlaces,
+  type RowFacts,
+} from "../consumer/repository";
 import type { ConsumerLens } from "../consumer/rowView";
+import { queryAnimalLabel } from "../consumer/queryContext";
 import { presentDescription } from "../errors";
 import { useOnline } from "./useOnline";
 
@@ -74,11 +81,7 @@ export function useHomeLauncher() {
   const interest = ref<ConsumerLens>("");
   const epoch = createEpoch();
 
-  const speciesLabel = computed(() => {
-    const s = session.activePet?.species ?? "dog";
-    if (session.activePet?.service_role === "working") return "服务犬";
-    return s === "dog" ? "普通犬" : s === "cat" ? "猫" : "其他宠物";
-  });
+  const speciesLabel = computed(() => queryAnimalLabel());
 
   // Home is Rule + Reality, not a "rules verified" dashboard. A place with
   // useful published Reality evidence remains a substantive digest row even
@@ -208,11 +211,19 @@ export function useHomeLauncher() {
     }
   }
 
+  let queryContextReady = false;
+
+  watch(currentQueryContext, () => {
+    if (!queryContextReady) return;
+    void load();
+  });
+
   onMounted(async () => {
     await session.restore();
     loadRecent();
     loadInterest();
     await load();
+    queryContextReady = true;
     bootStage("HOME_READY");
   });
 
