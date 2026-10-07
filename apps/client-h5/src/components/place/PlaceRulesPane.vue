@@ -41,10 +41,18 @@ const props = defineProps<{
 
 const historyOpen = ref(false);
 
-/** zone_id → consumer context label（§12：不许出现 7 个相同 title；用真实 zone 名）。 */
+/** zone_id → consumer context label.
+ * Use the real Zone name first ("一层" / "四层餐饮区"), not only the coarse
+ * zone type ("楼层"). Collapsing several named zones into one heading recreates
+ * the exact repeated-rule problem this view was designed to remove.
+ */
 const zoneNameById = computed(() => {
   const m = new Map<string, string>();
-  for (const z of props.zoneList) m.set(z.id, zoneTypeLabel(z.zone_type));
+  for (const zone of props.zoneList) {
+    const type = zoneTypeLabel(zone.zone_type);
+    const name = zone.name?.trim();
+    m.set(zone.id, name && name !== type ? `${name} · ${type}` : name || type || "分区");
+  }
   return m;
 });
 
