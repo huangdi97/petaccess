@@ -62,7 +62,7 @@ function selectMode(mode: EditableQueryMode) {
 function selectPet(pet: PetView) {
   session.setActivePet(pet);
   session.setDeclaredRole(null);
-  session.mode = "with_pet";
+  session.mode = pet.service_role === "working" ? "service_dog" : "with_pet";
 }
 
 function selectServiceRole(event: Event) {
