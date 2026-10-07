@@ -238,6 +238,8 @@ class RealityAnswer(BaseModel):
     evidence_count: int = 0
     distinct_source_count: int = 0
     observed_zones: list[str] = []
+    observed_zone_types: list[str] = []
+    observed_indoor_outdoor: list[str] = []
     observed_actions: list[str] = []
     staff_response_summary: list[StaffResponseSummaryItem] = []
     facility_summary: list[FacilitySummaryItem] = []
