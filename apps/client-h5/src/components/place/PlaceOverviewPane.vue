@@ -80,8 +80,10 @@ const staffSummaryLine = computed(() => {
   return rows
     .slice(0, 2)
     .map(
-      (item) =>
-        `${staffResponseSummaryLabel(item.response_action, item.staff_awareness_state)} × ${item.count}`,
+      (item) => {
+        const disputed = item.disputed_count ? ` · ${item.disputed_count} 条异议处理中` : "";
+        return `${staffResponseSummaryLabel(item.response_action, item.staff_awareness_state)} × ${item.count}${disputed}`;
+      },
     )
     .join(" · ");
 });
@@ -94,10 +96,11 @@ const facilitySummaryLine = computed(() => {
   if (!item) return "暂无经核验的动物设施记录";
   const location = item.zone_name ? `${item.zone_name} · ` : "";
   const verified = item.last_verified_at ? ` · 核验 ${item.last_verified_at.slice(0, 10)}` : "";
+  const disputed = item.disputed_count ? ` · ${item.disputed_count} 条异议处理中` : "";
   const label = facilityPurposeIsConfirmed(item.purpose_state)
     ? animalFacilityLabel(item.facility_type)
     : "疑似动物相关设施 · 用途待核验";
-  return `${location}${label} × ${item.count}${verified}`;
+  return `${location}${label} × ${item.count}${verified}${disputed}`;
 });
 
 const divergenceLine = computed(() => {
