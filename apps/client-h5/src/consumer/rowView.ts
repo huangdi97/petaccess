@@ -39,6 +39,16 @@ export function coexistenceRealityLine(
   const reality = snapshot?.reality_answer ?? fallback ?? null;
   if (!reality) return "暂无足够现场记录";
 
+  const factualDisputes = [
+    ...(snapshot?.staff_response_summary ?? reality.staff_response_summary ?? []),
+    ...(snapshot?.facility_summary ?? reality.facility_summary ?? []),
+  ].reduce((sum, item) => sum + (item.disputed_count ?? 0), 0);
+  if (reality.state === "DISPUTED" || factualDisputes > 0) {
+    return factualDisputes > 0
+      ? `现场事实存在异议（${factualDisputes} 条处理中）`
+      : realityLineFor(reality);
+  }
+
   const presenceInformative = !["NO_RECENT_RECORD", "INSUFFICIENT_OBSERVATION"].includes(
     reality.state,
   );
