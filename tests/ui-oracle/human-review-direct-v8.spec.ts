@@ -465,15 +465,33 @@ async function assertShot(page: Page, shot: Shot): Promise<Record<string, unknow
       timeout: 15000,
     });
   }
+
+  if (shot.page === "map") {
+    const mock = page.locator('[data-ui="mock-map"]');
+    if (await mock.isVisible().catch(() => false)) {
+      await expect(
+        page.getByTestId("map-real-provider-fallback"),
+        `${shot.name}: simplified basemap disclosure`,
+      ).toContainText("简化空间底图");
+      await expect(page.getByTestId("map-real-provider-fallback")).toContainText("已核验坐标");
+    }
+  }
+
   return page.evaluate(() => {
     const host = document.querySelector("[data-ui-page]");
     const h1 = document.querySelector("h1");
+    const mapRenderer = document.querySelector('[data-ui="real-map"]')
+      ? "real"
+      : document.querySelector('[data-ui="mock-map"]')
+        ? "simplified"
+        : null;
     return {
       route: location.hash,
       page: host?.getAttribute("data-ui-page") ?? null,
       state: host?.getAttribute("data-ui-state") ?? null,
       fixture: host?.getAttribute("data-ui-fixture") ?? null,
       h1: h1?.textContent?.trim() ?? null,
+      mapRenderer,
     };
   });
 }
