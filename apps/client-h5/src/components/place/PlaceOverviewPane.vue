@@ -20,9 +20,9 @@ import {
 } from "../../consumer/labels";
 import { answerConditions, answerStatusKey, answerVerdictLabel } from "../../answer";
 import { coexistenceRealityLine } from "../../consumer/rowView";
+import { queryAnimalLabel, querySubjectLabel } from "../../consumer/queryContext";
 import { divergenceLabel } from "../../reality";
 import StatusBadge from "../StatusBadge.vue";
-import { session } from "@petaccess/client-core";
 
 const props = withDefaults(
   defineProps<{
@@ -42,14 +42,8 @@ const conditions = computed(() => answerConditions(props.answer));
 const keyCondition = computed(() => conditions.value[0] ?? "");
 const verdict = computed(() => answerVerdictLabel(props.answer));
 const statusKey = computed(() => answerStatusKey(props.answer));
-const speciesLabel = computed(() => {
-  const s = session.activePet?.species ?? "dog";
-  if (session.activePet?.service_role === "working") return "服务犬";
-  return s === "dog" ? "普通犬" : s === "cat" ? "猫" : "其他宠物";
-});
-const querySubject = computed(() =>
-  session.activePet ? `查询对象：${session.activePet.display_name}` : "查询对象",
-);
+const speciesLabel = computed(() => queryAnimalLabel());
+const querySubject = computed(() => `查询对象：${querySubjectLabel()}`);
 const realityLine = computed(() =>
   coexistenceRealityLine(props.coexistence, props.coexistence?.reality_answer),
 );
