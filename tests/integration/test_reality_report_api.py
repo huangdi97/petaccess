@@ -323,31 +323,22 @@ def test_parent_place_only_cannot_pin_candidate_to_tenant(client, place_id):
     assert r.json()["error"]["code"] == "parent_place_escalation"
 
 
-def test_imprecise_place_match_cannot_publish_public_claim(client, place_id):
-    """§21: review may keep an area-level lead, but publication requires an exact place."""
-    email = f"place-match-{uuid.uuid4().hex[:8]}@example.com"
-    registered = client.post(
-        "/api/v1/auth/register",
-        json={"display_name": "地点核验测试", "email": email, "password": "passw0rd123"},
+def test_imprecise_place_match_stays_report_only_until_resolved(client, place_id):
+    """§25.5/§25.7: an area-level lead is Report/Evidence, not a Place Candidate."""
+    published = (datetime.now(UTC) - timedelta(days=1)).isoformat()
+    report = _report(
+        "external_online_content",
+        place_match_state="area_only",
+        content_published_at=published,
+        observed_at=None,
+        claimed_event_at=None,
+        time_evidence_state="publication_time_only",
     )
-    assert registered.status_code in (200, 201), registered.text
-    token = client.post(
-        "/api/v1/auth/login",
-        json={"email": email, "password": "passw0rd123"},
-    ).json()["access_token"]
 
-    created = client.post(
+    escalated = client.post(
         f"/api/v1/places/{place_id}/reality/reports",
-        headers={"Authorization": f"Bearer {token}"},
         json={
-            "report": _report(
-                "external_online_content",
-                place_match_state="area_only",
-                content_published_at=(datetime.now(UTC) - timedelta(days=1)).isoformat(),
-                observed_at=None,
-                claimed_event_at=None,
-                time_evidence_state="publication_time_only",
-            ),
+            "report": report,
             "candidates": [
                 {
                     "candidate_type": "observed_presence",
@@ -357,31 +348,19 @@ def test_imprecise_place_match_cannot_publish_public_claim(client, place_id):
             ],
         },
     )
-    assert created.status_code == 201, created.text
-    cand_id = created.json()["candidates"][0]["id"]
+    assert escalated.status_code == 422, escalated.text
+    assert escalated.json()["error"]["code"] == "reality_candidate_exact_place_required"
 
-    from app.db.session import get_session_factory
-    from app.models import User
-
-    session = get_session_factory()()
-    try:
-        user = session.query(User).filter(User.email == email).one()
-        user.role = "admin"
-        session.commit()
-    finally:
-        session.close()
-
-    admin_token = client.post(
-        "/api/v1/auth/login",
-        json={"email": email, "password": "passw0rd123"},
-    ).json()["access_token"]
-    decision = client.post(
-        f"/api/v1/reality/candidates/{cand_id}/decision",
-        headers={"Authorization": f"Bearer {admin_token}"},
-        json={"reality_decision": "verified", "decision_note": None},
+    lead_only = client.post(
+        f"/api/v1/places/{place_id}/reality/reports",
+        json={"report": report, "candidates": []},
     )
-    assert decision.status_code == 400, decision.text
-    assert decision.json()["error"]["code"] == "reality_exact_place_required"
+    assert lead_only.status_code == 201, lead_only.text
+    body = lead_only.json()
+    assert body["candidates"] == []
+    assert body["report"]["place_match_state"] == "area_only"
+    assert body["report"]["place_id"] is None
+    assert body["report"]["subject_place_id"] is None
 
 
 def test_publication_only_facts_stay_out_of_recent_and_current_summaries(
