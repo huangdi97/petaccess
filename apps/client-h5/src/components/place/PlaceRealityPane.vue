@@ -37,7 +37,9 @@ const emit = defineEmits<{
         class="reality-fact-row"
         data-testid="staff-response-summary-row"
       >
-        <span>{{ staffResponseSummaryLabel(item.response_action, item.staff_awareness_state) }}</span>
+        <span>{{
+          staffResponseSummaryLabel(item.response_action, item.staff_awareness_state)
+        }}</span>
         <strong>× {{ item.count }}</strong>
       </div>
       <p class="reality-fact-section__note muted">

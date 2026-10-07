@@ -79,7 +79,10 @@ const staffSummaryLine = computed(() => {
   if (!rows.length) return "暂无经核验的工作人员处理记录";
   return rows
     .slice(0, 2)
-    .map((item) => `${staffResponseSummaryLabel(item.response_action, item.staff_awareness_state)} × ${item.count}`)
+    .map(
+      (item) =>
+        `${staffResponseSummaryLabel(item.response_action, item.staff_awareness_state)} × ${item.count}`,
+    )
     .join(" · ");
 });
 
