@@ -84,18 +84,31 @@ async function unsubscribe(w: WatchView) {
       </p>
     </header>
 
-    <div class="notifications-channel">
-      <strong>关注类型</strong>
-      <p class="muted">
-        规则变化只跟踪经过人工核验的正式规则版本；现场更新只跟踪新发布且经核验的现场事实、工作人员处理与设施变化。两类关注互不替代。
-      </p>
-      <p v-if="signedIn" class="muted notifications-channel__counts">
-        当前：规则变化 {{ activeRuleCount }} · 现场更新 {{ activeRealityCount }}
-      </p>
-      <p class="muted">
-        当前版本尚未接入系统推送；这里展示应用内关注列表，不代表任何外部提醒已经发送。
-      </p>
-    </div>
+    <section class="notifications-channel" aria-label="关注类型">
+      <div class="notifications-channel__lead">
+        <h2>关注类型</h2>
+        <p class="muted">规则变化与现场更新是两条独立订阅；一个变化不会替代另一个。</p>
+      </div>
+      <div class="notifications-channel__body">
+        <div class="channel-row">
+          <div>
+            <strong>规则变化</strong>
+            <p class="muted">只跟踪经过人工核验并发布的正式规则版本。</p>
+          </div>
+          <span v-if="signedIn" class="channel-row__count">{{ activeRuleCount }} 项</span>
+        </div>
+        <div class="channel-row">
+          <div>
+            <strong>现场更新</strong>
+            <p class="muted">跟踪新发布且经核验的动物出现、工作人员处理与设施事实。</p>
+          </div>
+          <span v-if="signedIn" class="channel-row__count">{{ activeRealityCount }} 项</span>
+        </div>
+        <p class="notifications-channel__delivery muted">
+          当前版本尚未接入系统推送；这里是应用内关注列表，不代表外部提醒已经发送。
+        </p>
+      </div>
+    </section>
 
     <SkeletonList v-if="loading" :rows="3" />
     <StateMessage v-else-if="error" kind="ERROR" :description="error">
