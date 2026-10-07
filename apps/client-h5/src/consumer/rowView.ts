@@ -118,28 +118,18 @@ export interface LensProjection {
   zoneFacts: string[];
 }
 
-function exactZoneFacts(
-  lens: ConsumerLens,
-  reality: RealityAnswer | null | undefined,
-): string[] {
+function exactZoneFacts(lens: ConsumerLens, reality: RealityAnswer | null | undefined): string[] {
   const rows = reality?.observed_zone_facts ?? [];
   if (lens === "indoor") {
-    return rows
-      .filter((item) => item.indoor_outdoor === "indoor")
-      .map((item) => item.name);
+    return rows.filter((item) => item.indoor_outdoor === "indoor").map((item) => item.name);
   }
   if (lens === "dining") {
-    return rows
-      .filter((item) => item.zone_type === "dining_area")
-      .map((item) => item.name);
+    return rows.filter((item) => item.zone_type === "dining_area").map((item) => item.name);
   }
   return [];
 }
 
-function hasExactZoneFacet(
-  lens: ConsumerLens,
-  reality: RealityAnswer | null | undefined,
-): boolean {
+function hasExactZoneFacet(lens: ConsumerLens, reality: RealityAnswer | null | undefined): boolean {
   if (!reality) return false;
   if (exactZoneFacts(lens, reality).length > 0) return true;
   // Backward-compatible aggregate facets are allowed only as a yes/no signal.
