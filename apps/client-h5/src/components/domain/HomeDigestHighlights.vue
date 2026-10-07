@@ -26,7 +26,7 @@ const emit = defineEmits<{
 }>();
 
 const cards = computed(() => [...props.verified, ...props.pending]);
-const recommendationTitle = computed(() => (props.interest ? "按你的关注先看" : "附近近期有依据"));
+const recommendationTitle = computed(() => (props.interest ? "按你的关注推荐" : "近期值得先看"));
 const recommendationNote = computed(() =>
   props.interest
     ? "先显示与你当前关注更相关的事实；不代表场所好坏。"
