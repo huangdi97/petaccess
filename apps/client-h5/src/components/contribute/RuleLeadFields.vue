@@ -12,6 +12,7 @@ const animalScope = defineModel<"ordinary_pet" | "dog" | "cat" | "other">("anima
 });
 const zone = defineModel<string>("zone", { required: true });
 const conditions = defineModel<string[]>("conditions", { required: true });
+const sourceBasis = defineModel<string>("sourceBasis", { required: true });
 
 const INTENTS = [
   { key: "still_valid", label: "页面规则仍然如此", hint: "确认已收录规则目前仍与现场一致" },
@@ -25,6 +26,14 @@ const CONDITION_OPTIONS = [
   { key: "carrier_required", label: "需宠物包" },
   { key: "stroller_required", label: "需推车" },
   { key: "no_ground", label: "不可落地" },
+] as const;
+
+const SOURCE_BASIS_OPTIONS = [
+  { key: "onsite_signage", label: "现场规则牌 / 公告" },
+  { key: "staff_statement", label: "工作人员口头说明" },
+  { key: "official_online", label: "场所或政府官方公开信息" },
+  { key: "other", label: "其他线索" },
+  { key: "uncertain", label: "不确定来源类型" },
 ] as const;
 
 function toggleCondition(key: string) {
@@ -68,6 +77,17 @@ function toggleCondition(key: string) {
       <option value="restricted">明确限制</option>
       <option value="conditional">有条件进入</option>
     </select>
+
+    <label for="rule-source-basis">你是怎么知道的？</label>
+    <select id="rule-source-basis" v-model="sourceBasis" data-testid="rule-source-basis">
+      <option value="">请选择</option>
+      <option v-for="option in SOURCE_BASIS_OPTIONS" :key="option.key" :value="option.key">
+        {{ option.label }}
+      </option>
+    </select>
+    <p class="muted rule-fields__source-note">
+      工作人员口头说明只作为待核验线索，不会自动变成管理方正式政策。
+    </p>
 
     <label for="rule-animal-scope">适用动物</label>
     <select id="rule-animal-scope" v-model="animalScope" data-testid="rule-animal-scope">
