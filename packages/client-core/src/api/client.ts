@@ -170,6 +170,7 @@ export interface StaffResponseSummaryItem {
   response_action: string;
   staff_awareness_state: string;
   count: number;
+  disputed_count: number;
 }
 
 export interface FacilitySummaryItem {
@@ -178,6 +179,7 @@ export interface FacilitySummaryItem {
   zone_id: string | null;
   zone_name: string | null;
   count: number;
+  disputed_count: number;
   operational_state: string;
   last_verified_at: string | null;
 }
