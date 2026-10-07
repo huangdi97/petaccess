@@ -16,6 +16,7 @@
  */
 import { expect, test } from "@playwright/test";
 import { currentQueryContext, snapshotKey } from "../../apps/client-h5/src/consumer/repository";
+import { lensOrderScore } from "../../apps/client-h5/src/consumer/rowView";
 import { session } from "../../packages/client-core/src/index";
 
 const PLACE = {
@@ -81,6 +82,12 @@ const SNAPSHOT_OK = {
     evidence_count: 2,
     distinct_source_count: 2,
     observed_zones: ["一层公共区域", "餐饮堂食区"],
+    observed_zone_facts: [
+      { name: "一层公共区域", zone_type: "floor", indoor_outdoor: "indoor" },
+      { name: "餐饮堂食区", zone_type: "dining_area", indoor_outdoor: "indoor" },
+    ],
+    observed_zone_types: ["dining_area", "floor"],
+    observed_indoor_outdoor: ["indoor"],
     observed_actions: ["entered_with_leash"],
     staff_response_summary: [],
     facility_summary: [],
@@ -215,9 +222,35 @@ test("C5: lens changes consumer projection without changing domain facts", async
   await page.getByTestId("search-input").fill("契约");
   await page.getByTestId("search-btn").click();
   await expect(page.getByTestId("result-契约测试场所")).toBeVisible();
-  // v0.2.4 §11：row 预算收紧为 4 条 semantic lines，indoor lens 的 zone facts
-  // 不再铺在行上（进详情）；lens 仍只改 presentation，不改 domain facts。
   const indoorRow = page.getByTestId("result-契约测试场所");
-  await expect(indoorRow.locator("[data-testid=row-lens-zones]")).toHaveCount(0);
-  await expect(indoorRow.locator("[data-testid=row-lens-headline]")).toBeVisible();
+  await expect(indoorRow.locator("[data-testid=row-lens-headline]")).toContainText(
+    "室内区域有经核验动物出现",
+  );
+  await expect(indoorRow.locator("[data-testid=row-lens-headline]")).toContainText("一层公共区域");
+
+  await page.goto("/#/search?lens=dining");
+  await page.getByTestId("search-input").fill("契约");
+  await page.getByTestId("search-btn").click();
+  const diningRow = page.getByTestId("result-契约测试场所");
+  await expect(diningRow.locator("[data-testid=row-lens-headline]")).toContainText(
+    "餐饮区域有经核验动物出现",
+  );
+  await expect(diningRow.locator("[data-testid=row-lens-headline]")).toContainText("餐饮堂食区");
+  await expect(diningRow.locator("[data-testid=row-lens-headline]")).not.toContainText(
+    "一层公共区域",
+  );
+});
+
+test("C5: indoor/dining ranking requires the matching structured Zone facet", () => {
+  const corridorOnly = {
+    ...SNAPSHOT_OK.reality_answer,
+    observed_zones: ["一层公共区域"],
+    observed_zone_facts: [
+      { name: "一层公共区域", zone_type: "floor", indoor_outdoor: "indoor" },
+    ],
+    observed_zone_types: ["floor"],
+    observed_indoor_outdoor: ["indoor"],
+  };
+  expect(lensOrderScore("indoor", null, corridorOnly)).toBe(1);
+  expect(lensOrderScore("dining", null, corridorOnly)).toBe(0);
 });
