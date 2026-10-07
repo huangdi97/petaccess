@@ -19,6 +19,18 @@
   justify-content: space-between;
 }
 
+.home-row__pending-identity {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--pa-space-3);
+  min-width: 0;
+}
+
+.home-row__pending-copy {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .home-row__evidence-link {
   margin-top: var(--pa-space-2);
   font-size: var(--pa-font-size-sm);
