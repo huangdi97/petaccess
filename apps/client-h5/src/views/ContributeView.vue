@@ -110,15 +110,20 @@ const uiState = computed<string>(() => {
 const choiceCount = computed<number>(() => (uiState.value === "choose-type" ? 5 : 0));
 
 /** §15 context rail：本次贡献类型 —— 从真实 step 状态推导，不伪造。 */
-const STEP_LABELS: Record<string, string> = {
-  "choose-type": "选择贡献类型",
-  "step-1": "提交确认信息",
-  "step-2": "现场记录",
-  done: "提交完成",
+const REALITY_KIND_LABELS: Record<RealityKind, string> = {
+  observed_presence: "动物出现记录",
+  staff_response: "工作人员处理记录",
+  animal_facility: "动物相关设施记录",
 };
-const contributionKindLabel = computed(() =>
-  step.value === "effort" ? "本次未观察到动物" : (STEP_LABELS[uiState.value] ?? "现场贡献"),
-);
+const contributionKindLabel = computed(() => {
+  if (step.value === "entry") return "选择贡献类型";
+  if (step.value === "quick") return "场所信息纠错";
+  if (step.value === "rule") return "规则线索 / 核验";
+  if (step.value === "reality") return REALITY_KIND_LABELS[realityKind.value];
+  if (step.value === "effort") return "本次未观察到动物";
+  if (step.value === "done") return "提交完成";
+  return "现场贡献";
+});
 /** §15 context rail：适用区域 —— 真实 zones 数据（无则保持 shell 默认）。 */
 const contextZoneLabel = computed(() => {
   const first = zones.value[0];
