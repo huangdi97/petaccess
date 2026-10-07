@@ -879,6 +879,21 @@ def _presence_summary(db: Session, place_id: str, now: datetime):
         .order_by(ObservedPresence.observed_at.asc())
     ).all()
 
+    claim_ids = {claim.id for claim, _, _, _ in claims}
+    disputed_ids: set[str] = set()
+    if claim_ids:
+        disputed_ids = set(
+            db.scalars(
+                select(DisputeCase.target_id).where(
+                    DisputeCase.target_type == DisputeTargetType.OBSERVED_PRESENCE.value,
+                    DisputeCase.target_id.in_(claim_ids),
+                    DisputeCase.status.notin_(
+                        [DisputeCaseStatus.RESOLVED.value, DisputeCaseStatus.WITHDRAWN.value]
+                    ),
+                )
+            )
+        )
+
     def enum_text(value: object | None) -> str | None:
         if value is None:
             return None
@@ -893,6 +908,7 @@ def _presence_summary(db: Session, place_id: str, now: datetime):
                 evidence_id=claim.evidence_bundle_id,
                 zone_name=zone_name,
                 action=claim.observed_action if claim.observed_action else None,
+                disputed=claim.id in disputed_ids,
                 human_verified=True,
             )
             for claim, zone_name, _, _ in claims
