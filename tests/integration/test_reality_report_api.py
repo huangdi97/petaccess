@@ -604,6 +604,24 @@ def test_staff_response_summary_preserves_awareness_axis(client):
     assert all(row.get("staff_awareness_state") for row in rows)
 
 
+def test_facility_summary_preserves_verified_location(client):
+    """§61: first-screen facility summaries must retain where the facility is."""
+    places = client.get("/api/v1/places", params={"q": "云栖", "limit": 10})
+    assert places.status_code == 200, places.text
+    mall = next(
+        item
+        for item in places.json()["items"]
+        if item["canonical_name"] == "云栖中心·测试商场"
+    )
+
+    response = client.get(f"/api/v1/places/{mall['id']}/reality")
+    assert response.status_code == 200, response.text
+    rows = response.json()["facility_summary"]
+    assert rows, "demo fixture must exercise facility summaries"
+    assert all("zone_id" in row and "zone_name" in row for row in rows)
+    assert any(row["zone_name"] for row in rows)
+
+
 def test_reality_trace_uses_consumer_language_for_verified_demo_facts(client):
     """Trace sections must not leak raw enum vocabulary from staff/facility/freshness axes."""
     r = client.get("/api/v1/places", params={"q": "云栖"})
