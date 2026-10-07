@@ -21,6 +21,7 @@ import { coexistenceRealityLine } from "../../consumer/rowView";
 import { sourceLabel } from "../../consumer/labels";
 import StatusBadge from "../StatusBadge.vue";
 import PaIcon from "../ui/PaIcon.vue";
+import PlaceTypeGlyph from "../domain/PlaceTypeGlyph.vue";
 
 const props = withDefaults(
   defineProps<{
@@ -141,6 +142,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
       <div class="sheet__body">
         <div class="sheet__head">
           <div class="sheet__title-row">
+            <PlaceTypeGlyph :place-type="place.place_type" size="sm" />
             <h2 class="sheet__name">{{ place.canonical_name }}</h2>
             <StatusBadge v-if="!mapLensLabel" :semantic="statusKey" />
             <button
