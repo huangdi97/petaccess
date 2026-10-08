@@ -75,13 +75,13 @@ from app.rulespec.v05_resolver import (
 )
 from app.schemas.common import Page
 from app.services.answerability import compute_answerability
-from app.services.evidence_service import CollectedArtifact, create_bundle, record_artifact
 from app.services.candidate_service import (
     create_from_extraction,
     publish,
     publish_exception,
     transition,
 )
+from app.services.evidence_service import CollectedArtifact, create_bundle, record_artifact
 from app.services.publish_gate import LAYER_VALUES, MANDATORY_LEVEL_VALUES
 
 router = APIRouter(tags=["v05"])
