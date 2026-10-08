@@ -55,7 +55,14 @@ _REALITY_TARGET_MODELS = {
 
 
 def _require_target(db: Session, target_type: str, target_id: str):
-    target: AccessRule | ObservationClaim | ObservedPresence | StaffResponseObservation | AnimalFacility | None
+    target: (
+        AccessRule
+        | ObservationClaim
+        | ObservedPresence
+        | StaffResponseObservation
+        | AnimalFacility
+        | None
+    )
     if target_type == DisputeTargetType.ACCESS_RULE.value:
         target = db.get(AccessRule, target_id)
     elif target_type == DisputeTargetType.OBSERVATION_CLAIM.value:

@@ -293,11 +293,15 @@ def consumer_reality_events(
         .limit(limit)
     ).all()
     candidate_ids = {
-        getattr(row, "candidate_id", None) for row in [*presence, *staff, *facilities] if getattr(row, "candidate_id", None)
+        getattr(row, "candidate_id", None)
+        for row in [*presence, *staff, *facilities]
+        if getattr(row, "candidate_id", None)
     }
 
     evidence_bundle_ids = {
-        getattr(row, "evidence_bundle_id", None) for row in [*presence, *staff, *facilities] if getattr(row, "evidence_bundle_id", None)
+        getattr(row, "evidence_bundle_id", None)
+        for row in [*presence, *staff, *facilities]
+        if getattr(row, "evidence_bundle_id", None)
     }
     evidence_meta_by_bundle: dict[str, _EventEvidenceMeta] = {}
     if evidence_bundle_ids:
@@ -394,7 +398,9 @@ def consumer_reality_events(
         # those confirmations back to the published claim so the consumer
         # evidence rail counts both valid linkage forms.
         claim_id_by_candidate = {
-            getattr(row, "candidate_id"): getattr(row, "id") for row in [*presence, *staff, *facilities] if getattr(row, "candidate_id", None)
+            getattr(row, "candidate_id"): getattr(row, "id")
+            for row in [*presence, *staff, *facilities]
+            if getattr(row, "candidate_id", None)
         }
         candidate_confirmation_rows = db.execute(
             select(RealityConfirmation.target_candidate_id, func.count())
