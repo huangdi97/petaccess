@@ -36,7 +36,7 @@ import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
 import StatusBadge from "../components/StatusBadge.vue";
 import PlaceTypeGlyph from "../components/domain/PlaceTypeGlyph.vue";
-import { answerConditions, answerPrimarySummary, answerStatusKey, answerVerdictLabel } from "../answer";
+import { answerConditions, answerPrimarySummary, answerStatusKey } from "../answer";
 import {
   coexistenceEvidenceLine,
   freshnessLineFor,
