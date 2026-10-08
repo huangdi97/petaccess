@@ -79,7 +79,7 @@ function sourceTypeLabel(value: string): string {
   return labels[value] ?? "其他来源";
 }
 
- const latestEvent = computed(
+const latestEvent = computed(
   () => [...events.value].sort((a, b) => b.event_at.localeCompare(a.event_at))[0] ?? null,
 );
 
@@ -160,9 +160,7 @@ const sourceSummary = computed(() => {
   const sourceCount = provenanceCounts.value.sourceCount;
   if (sourceCount) return `${sourceCount} 个可追溯来源`;
   const bundles = new Set(
-    events.value
-      .map((event) => event.evidence_bundle_id)
-      .filter((id): id is string => Boolean(id)),
+    events.value.map((event) => event.evidence_bundle_id).filter((id): id is string => Boolean(id)),
   );
   return bundles.size ? `${bundles.size} 组可追溯现场材料` : "来源待补充";
 });
