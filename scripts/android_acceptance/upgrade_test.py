@@ -17,7 +17,10 @@ from scripts.android_acceptance.adb import wait_for_device  # noqa: E402
 
 SERIAL = "emulator-5562"
 V010 = r"E:\AI\宠物管理\artifacts\v0.1.0\PetAccess_0.1.0-android-universal.apk"
-CURRENT = r"C:\Users\Kaiser\.pi-desktop\scratch\904b046b-0060-4ba0-8d43-d36da17a9ecd\current-release-signed.apk"
+CURRENT = (
+    r"C:\Users\Kaiser\.pi-desktop\scratch\"
+    r"904b046b-0060-4ba0-8d43-d36da17a9ecd\current-release-signed.apk"
+)
 EVIDENCE = Path(r"E:\AI\宠物管理\artifacts\android_acceptance\upgrade")
 
 
