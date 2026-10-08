@@ -1042,6 +1042,8 @@ watch(currentQueryContext, () => {
 }
 
 .result-row__reality-line--lead {
+  font-size: var(--pa-font-size-lg);
+  line-height: var(--pa-line-height-tight);
   font-weight: var(--pa-font-weight-650);
   color: var(--pa-color-accent);
 }
@@ -1078,7 +1080,8 @@ watch(currentQueryContext, () => {
     font-size: var(--pa-font-size-md);
   }
 
-  .result-row__decision {
+  .result-row__decision,
+  .result-row__reality-line--lead {
     font-size: var(--pa-font-size-xl);
   }
 }
