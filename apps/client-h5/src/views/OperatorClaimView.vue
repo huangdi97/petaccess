@@ -18,7 +18,6 @@ const zones = ref<Zone[]>([]);
 const activeClaimId = ref("");
 const loading = ref(true);
 const error = ref("");
-const busy = ref(false);
 const submitted = ref(false);
 const claimStatus = ref("");
 const previousClaimStatus = ref("");
