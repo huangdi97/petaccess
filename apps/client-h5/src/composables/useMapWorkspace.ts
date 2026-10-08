@@ -77,9 +77,7 @@ export function useMapWorkspace() {
     return out;
   });
 
-  const markers = computed<MapMarker[]>(() =>
-    mapMarkersFor(places.value, statuses.value),
-  );
+  const markers = computed<MapMarker[]>(() => mapMarkersFor(places.value, statuses.value));
 
   const visiblePlaces = computed(() =>
     visibleMapPlaces(lens.value, activeFilters.value, places.value, statuses.value),

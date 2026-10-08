@@ -263,7 +263,11 @@ function chooseMapResult(id: string) {
           <p v-if="mapSearchError" class="map-mobile-tools__feedback" role="status">
             {{ mapSearchError }}
           </p>
-          <p v-else-if="locationState === 'DENIED'" class="map-mobile-tools__feedback" role="status">
+          <p
+            v-else-if="locationState === 'DENIED'"
+            class="map-mobile-tools__feedback"
+            role="status"
+          >
             未获得定位权限，可直接搜索场所。
           </p>
         </div>
