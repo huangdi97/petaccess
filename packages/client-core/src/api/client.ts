@@ -783,6 +783,26 @@ export const client = {
    * v0.9-R1: a signed-in visitor contributes an on-site reality fact (§25.2).
    * Lands as a REVIEW_PENDING candidate; AI never sets reality_decision.
    */
+  async submitOperatorClaim(body: {
+    place_id: string;
+    operator_name: string;
+    org_type: "company" | "government" | "property_mgmt" | "individual_owner" | "other";
+    work_email?: string | null;
+    website?: string | null;
+    verification_method: "work_email" | "official_domain" | "business_document" | "other";
+    verification_note?: string | null;
+  }) {
+    return api.request<{
+      id: string;
+      place_id: string;
+      operator_id: string;
+      claimant_user_id: string;
+      status: string;
+      verification_method: string | null;
+      created_at: string;
+    }>("post", "/operator-claims/self-serve", { body });
+  },
+
   async submitRealityContribution(
     placeId: string,
     body: {
