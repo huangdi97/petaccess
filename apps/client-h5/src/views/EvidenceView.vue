@@ -316,6 +316,14 @@ const uiFixture = computed<string>(() =>
             <p v-if="realityEventProvenance(event)" class="muted evidence-item__provenance">
               {{ realityEventProvenance(event) }}
             </p>
+            <p
+              v-if="event.event_type === 'staff_response' && event.staff_policy_statement_verbatim"
+              class="evidence-item__quote"
+            >
+              <span class="evidence-item__quote-label">本次事件中记录的原话</span>
+              “{{ event.staff_policy_statement_verbatim }}”
+              <span class="muted">· 不代表运营方正式政策</span>
+            </p>
             <p class="muted evidence-item__basis">{{ realityEventTimeBasis(event) }}</p>
             <EvidenceDisputeAction :event="event" :signed-in="session.signedIn" />
           </div>
@@ -515,6 +523,21 @@ const uiFixture = computed<string>(() =>
 .evidence-item__provenance,
 .evidence-item__basis {
   font-size: var(--pa-font-size-sm);
+}
+
+.evidence-item__quote {
+  margin: var(--pa-space-1) 0 0;
+  padding-left: var(--pa-space-3);
+  border-left: 2px solid var(--pa-color-border);
+  font-size: var(--pa-font-size-sm);
+  line-height: var(--pa-line-height-20);
+  color: var(--pa-color-text-primary);
+}
+
+.evidence-item__quote-label {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--pa-color-text-muted);
 }
 
 .evidence-source__issuer {
