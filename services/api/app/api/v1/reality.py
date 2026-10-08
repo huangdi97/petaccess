@@ -72,7 +72,7 @@ VERIFIED_STATUS_VALUES = [
 ]
 
 
-class _EventReportMeta(TypedDict):
+class _EventReportMeta(TypedDict, total=False):
     submitted_at: datetime | None
     time_evidence_state: str | None
     origin: str | None
@@ -82,7 +82,7 @@ class _EventReportMeta(TypedDict):
     claimed_event_at: datetime | None
 
 
-class _EventEvidenceMeta(TypedDict):
+class _EventEvidenceMeta(TypedDict, total=False):
     material_type: str | None
     source_platform: str | None
     publisher_type: str | None
@@ -122,8 +122,8 @@ def _presence_event(
     confirmation_count: int = 0,
     dispute_open: bool = False,
 ) -> RealityEventOut:
-    report_meta = report_meta or {}
-    evidence_meta = evidence_meta or {}
+    report_meta = report_meta if report_meta is not None else _EventReportMeta()
+    evidence_meta = evidence_meta if evidence_meta is not None else _EventEvidenceMeta()
     return RealityEventOut(
         id=row.id,
         event_type="observed_presence",
@@ -164,8 +164,8 @@ def _staff_event(
     confirmation_count: int = 0,
     dispute_open: bool = False,
 ) -> RealityEventOut:
-    report_meta = report_meta or {}
-    evidence_meta = evidence_meta or {}
+    report_meta = report_meta if report_meta is not None else _EventReportMeta()
+    evidence_meta = evidence_meta if evidence_meta is not None else _EventEvidenceMeta()
     return RealityEventOut(
         id=row.id,
         event_type="staff_response",
@@ -209,8 +209,8 @@ def _facility_event(
     confirmation_count: int = 0,
     dispute_open: bool = False,
 ) -> RealityEventOut:
-    report_meta = report_meta or {}
-    evidence_meta = evidence_meta or {}
+    report_meta = report_meta if report_meta is not None else _EventReportMeta()
+    evidence_meta = evidence_meta if evidence_meta is not None else _EventEvidenceMeta()
     event_at = row.observed_at or row.last_verified_at or row.created_at
     basis = "observed" if row.observed_at else "verified" if row.last_verified_at else "recorded"
     return RealityEventOut(
@@ -293,11 +293,11 @@ def consumer_reality_events(
         .limit(limit)
     ).all()
     candidate_ids = {
-        row.candidate_id for row in [*presence, *staff, *facilities] if row.candidate_id
+        getattr(row, "candidate_id", None) for row in [*presence, *staff, *facilities] if getattr(row, "candidate_id", None)
     }
 
     evidence_bundle_ids = {
-        row.evidence_bundle_id for row in [*presence, *staff, *facilities] if row.evidence_bundle_id
+        getattr(row, "evidence_bundle_id", None) for row in [*presence, *staff, *facilities] if getattr(row, "evidence_bundle_id", None)
     }
     evidence_meta_by_bundle: dict[str, _EventEvidenceMeta] = {}
     if evidence_bundle_ids:
@@ -394,7 +394,7 @@ def consumer_reality_events(
         # those confirmations back to the published claim so the consumer
         # evidence rail counts both valid linkage forms.
         claim_id_by_candidate = {
-            row.candidate_id: row.id for row in [*presence, *staff, *facilities] if row.candidate_id
+            getattr(row, "candidate_id"): getattr(row, "id") for row in [*presence, *staff, *facilities] if getattr(row, "candidate_id", None)
         }
         candidate_confirmation_rows = db.execute(
             select(RealityConfirmation.target_candidate_id, func.count())
