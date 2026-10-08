@@ -255,7 +255,7 @@ def get_place(place_id: str, db: Session = Depends(get_db)) -> Place | PlaceOut:
             fixture = fixture_place_out(place_id)
             if fixture is not None:
                 return fixture
-        raise NotFound("鍦烘墍涓嶅瓨鍦?")
+        raise NotFound("场所不存在")
     return place
 
 
