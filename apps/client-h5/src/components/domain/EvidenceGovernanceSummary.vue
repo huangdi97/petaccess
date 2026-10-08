@@ -17,6 +17,13 @@ const humanAccepted = computed(
 
 const openDisputes = computed(() => props.events.filter((event) => event.dispute_open).length);
 
+const independentlyConfirmed = computed(
+  () => props.events.filter((event) => (event.confirmation_count ?? 0) > 0).length,
+);
+const confirmationTotal = computed(() =>
+  props.events.reduce((total, event) => total + (event.confirmation_count ?? 0), 0),
+);
+
 const origins = computed(() =>
   [...new Set(props.events.map((event) => realityOriginLabel(event.origin)))].filter(Boolean),
 );
@@ -58,6 +65,17 @@ const bundleCount = computed(
         <dd>
           {{ bundleCount ? `${bundleCount} 个可追溯证据包` : "暂无证据包锚点" }}
           <span class="muted">· 当前公开接口不推断包内材料数量</span>
+        </dd>
+      </div>
+      <div class="evidence-governance__row">
+        <dt>独立确认</dt>
+        <dd>
+          <template v-if="confirmationTotal">
+            {{ independentlyConfirmed }} 条事实另有 {{ confirmationTotal }} 条独立确认
+          </template>
+          <template v-else>
+            当前已发布事实尚无额外独立确认；这不影响其既有人工核验状态
+          </template>
         </dd>
       </div>
       <div class="evidence-governance__row">
