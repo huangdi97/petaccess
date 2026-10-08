@@ -28,6 +28,8 @@ const note = ref("");
 const busy = ref(false);
 const resolveEpoch = createEpoch();
 const boundaryEpoch = createEpoch();
+const bootstrapEpoch = createEpoch();
+const sessionReady = ref(false);
 
 const steps = computed(() => (resolved.value ? consumerExplanation(resolved.value) : []));
 
@@ -101,17 +103,21 @@ async function loadBoundary() {
   }
 }
 
-watch(
-  placeId,
-  () => {
-    if (!placeId.value) return;
-    void Promise.all([resolveRules(), loadBoundary()]);
-  },
-  { immediate: true },
-);
+async function bootstrap() {
+  const id = placeId.value;
+  if (!id) return;
+  const epoch = bootstrapEpoch.begin();
+  sessionReady.value = false;
+  await session.restore();
+  if (!bootstrapEpoch.isCurrent(epoch) || placeId.value !== id) return;
+  sessionReady.value = true;
+  await Promise.all([resolveRules(), loadBoundary()]);
+}
+
+watch(placeId, () => void bootstrap(), { immediate: true });
 
 watch(currentQueryContext, () => {
-  if (!placeId.value) return;
+  if (!placeId.value || !sessionReady.value) return;
   void resolveRules();
 });
 </script>
