@@ -179,7 +179,26 @@ def test_operator_claim_full_loop(client):
     place_after = client.get(f"/api/v1/places/{place_id}").json()
     assert place_after["operator_id"] == operator_id
 
-    # 5. questionnaire → new operator rules supersede community rule
+    # 5. questionnaire → only matching prior OPERATOR_POLICY is versioned
+    # A conditional policy without an explicit structured condition is not a
+    # valid consumer transaction; reject it before any Rule write.
+    invalid_conditional = client.post(
+        f"/api/v1/operator-claims/{claim_id}/questionnaire",
+        json={
+            "answers": [
+                {
+                    "zone_id": None,
+                    "animal_scope": "ordinary_pet",
+                    "action": "enter",
+                    "effect": "conditional",
+                    "conditions": [],
+                }
+            ]
+        },
+        headers=_auth(op_tok),
+    )
+    assert invalid_conditional.status_code == 422
+
     q = client.post(
         f"/api/v1/operator-claims/{claim_id}/questionnaire",
         json={
@@ -221,6 +240,12 @@ def test_operator_claim_full_loop(client):
     assert all(rule["rule_layer"] == "OPERATOR_POLICY" for rule in created)
     assert all(rule["mandatory_level"] == "operator_discretion" for rule in created)
     assert old_operator_rule_id in {rule["id"] for rule in superseded}
+    ordinary_policy = next(
+        rule
+        for rule in created
+        if rule["animal_scope"] == "ordinary_pet" and rule["action"] == "enter"
+    )
+    assert ordinary_policy["supersedes_rule_id"] == old_operator_rule_id
 
     # 6. evaluator reflects the new operator rules
     ev = client.post(
