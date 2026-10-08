@@ -299,14 +299,28 @@ def test_external_content_keeps_published_and_event_time_separate(client, place_
 
 
 def test_parent_place_only_cannot_pin_candidate_to_tenant(client, place_id):
-    """§21: mall-level matches must not surface tenant-level reality."""
+    """§21: an actual parent-child match cannot escalate a fact to a tenant."""
+    from sqlalchemy import select
+
+    from app.db.session import get_session_factory
+    from app.models import Place
+
+    with get_session_factory()() as db:
+        tenant = db.scalars(
+            select(Place).where(Place.parent_place_id.isnot(None)).limit(1)
+        ).first()
+        if tenant is None:
+            pytest.skip("seed needs an actual parent-child place pair")
+        tenant_id = tenant.id
+        container_id = tenant.parent_place_id
+
     r = client.post(
-        f"/api/v1/places/{place_id}/reality/reports",
+        f"/api/v1/places/{tenant_id}/reality/reports",
         json={
             "report": _report(
                 "on_site_now",
                 place_match_state="parent_place_only",
-                container_place_id=place_id,
+                container_place_id=container_id,
                 subject_place_id=None,
             ),
             # a candidate pinned to a *different* tenant than the container
