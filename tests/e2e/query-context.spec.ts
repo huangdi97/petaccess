@@ -107,3 +107,51 @@ test("working service-dog pet persists as the truthful current query object", as
   await expect(page.getByTestId("query-service-role")).toBeVisible();
   await expect(page.getByTestId("query-service-role")).toHaveValue("");
 });
+
+
+test("cold Evidence and Why deep links restore the persisted active pet before resolving", async ({
+  page,
+  request,
+}) => {
+  const token = await signedToken(request);
+  const created = await request.post(`${API}/pets`, {
+    headers: { Authorization: `Bearer ${token}` },
+    data: {
+      display_name: "深链服务犬",
+      species: "dog",
+      breed_text: null,
+      weight_kg: null,
+      shoulder_height_cm: null,
+      service_role: "working",
+      registration_status: null,
+      vaccination_status: null,
+      avatar_url: null,
+    },
+  });
+  expect(created.ok(), await created.text()).toBeTruthy();
+  const pet = (await created.json()) as { id: string };
+
+  await page.addInitScript(
+    ({ accessToken, activePetId }) => {
+      localStorage.setItem("pa_token", accessToken);
+      localStorage.setItem("pa_active_pet_id", activePetId);
+    },
+    { accessToken: token, activePetId: pet.id },
+  );
+
+  for (const route of [
+    `/#/place/${MALL_ID}/evidence`,
+    `/#/place/${MALL_ID}/why`,
+  ]) {
+    const snapshot = page.waitForRequest((req) => {
+      if (req.method() !== "POST" || !req.url().includes("/coexistence")) return false;
+      const body = req.postDataJSON() as Record<string, unknown>;
+      return body.service_role === "working" && body.animal === "dog";
+    });
+    await page.goto(`${BASE}${route}`);
+    const requestRow = await snapshot;
+    const body = requestRow.postDataJSON() as Record<string, unknown>;
+    expect(body.service_role).toBe("working");
+    await expect(page.getByTestId("query-context-summary")).toContainText("深链服务犬");
+  }
+});
