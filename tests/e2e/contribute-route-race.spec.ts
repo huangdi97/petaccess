@@ -11,7 +11,7 @@ const MALL_ID = "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e";
 
 test("late place A response cannot overwrite place B contribution context", async ({ page }) => {
   await page.goto("/#/onboarding");
-  await page.getByRole("button", { name: "注册", exact: true }).click();
+  await page.getByRole("tab", { name: "注册", exact: true }).click();
   await page.locator('input[autocomplete="name"]').fill("场所切换验收");
   await page.locator('input[type="email"]').fill(`place-switch-${Date.now()}@example.com`);
   await page.locator('input[type="password"]').fill("passw0rd123");
