@@ -3,9 +3,7 @@ import { client, session, type RealityEventView } from "@petaccess/client-core";
 import { presentDescription } from "../errors";
 
 export type RealityConfirmationType =
-  | "still_present"
-  | "facility_still_present"
-  | "facility_removed";
+  "still_present" | "facility_still_present" | "facility_removed";
 
 /**
  * Shared lightweight confirmation flow for published Reality facts.
