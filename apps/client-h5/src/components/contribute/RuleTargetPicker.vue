@@ -8,6 +8,7 @@ const props = defineProps<{
 }>();
 
 const model = defineModel<string>({ required: true });
+const emit = defineEmits<{ selected: [rule: RuleView | null] }>();
 const rules = ref<RuleView[]>([]);
 const loading = ref(false);
 
@@ -15,12 +16,19 @@ async function load() {
   loading.value = true;
   try {
     rules.value = (await client.rules(props.placeId)).filter((rule) => rule.status === "current");
-    if (rules.value.length === 1 && !model.value) model.value = rules.value[0]?.id ?? "";
+    if (rules.value.length === 1 && !model.value) {
+      model.value = rules.value[0]?.id ?? "";
+      emit("selected", rules.value[0] ?? null);
+    }
   } catch {
     rules.value = [];
   } finally {
     loading.value = false;
   }
+}
+
+function notifySelected() {
+  emit("selected", rules.value.find((rule) => rule.id === model.value) ?? null);
 }
 
 function label(rule: RuleView): string {
@@ -55,6 +63,7 @@ onMounted(load);
       v-model="model"
       data-testid="rule-target"
       :disabled="loading || !rules.length"
+      @change="notifySelected"
     >
       <option value="">
         {{
