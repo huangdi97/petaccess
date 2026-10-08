@@ -63,8 +63,10 @@
 .desktop-rail__item {
   position: relative;
   display: inline-flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 2px;
   width: var(--pa-layout-touch-target);
   height: var(--pa-layout-touch-target);
   border-radius: var(--pa-radius-control);
@@ -89,4 +91,15 @@
 
 .desktop-rail__icon {
   color: currentColor;
+}
+
+.desktop-rail__caption {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: clip;
+  white-space: nowrap;
+  color: currentColor;
+  font-size: 10px;
+  font-weight: var(--pa-font-weight-600);
+  line-height: 12px;
 }
