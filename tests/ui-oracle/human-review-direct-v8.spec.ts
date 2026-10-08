@@ -561,7 +561,10 @@ async function prepareApprovedOperatorPolicy(
       location_wkt: "POINT(121.4737 31.2304)",
     },
   });
-  expect(place.ok(), `create operator-policy fixture place failed: ${await place.text()}`).toBeTruthy();
+  expect(
+    place.ok(),
+    `create operator-policy fixture place failed: ${await place.text()}`,
+  ).toBeTruthy();
   const placeId = (await place.json()).id as string;
 
   const claim = await request.post(`${API}/operator-claims/self-serve`, {
