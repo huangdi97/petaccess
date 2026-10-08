@@ -52,25 +52,39 @@ function facilityZone(event: RealityEventView): string {
           <span class="facility-record__where">{{ facilityZone(event) }}</span>
         </header>
         <dl class="facility-facts">
-          <dt>用途依据</dt><dd>{{ facilityPurposeLabel(event.facility_purpose_state) }}</dd>
-          <dt>当前状态</dt><dd>{{ facilityStateLabel(event.facility_state) }}</dd>
-          <dt>使用方式</dt><dd>{{ facilityAccessModeLabel(event.facility_access_mode) }}</dd>
+          <dt>用途依据</dt>
+          <dd>{{ facilityPurposeLabel(event.facility_purpose_state) }}</dd>
+          <dt>当前状态</dt>
+          <dd>{{ facilityStateLabel(event.facility_state) }}</dd>
+          <dt>使用方式</dt>
+          <dd>{{ facilityAccessModeLabel(event.facility_access_mode) }}</dd>
           <template v-if="event.facility_capacity != null">
-            <dt>容量</dt><dd>{{ event.facility_capacity }}</dd>
+            <dt>容量</dt>
+            <dd>{{ event.facility_capacity }}</dd>
           </template>
           <template v-if="event.facility_size_limit">
-            <dt>体型限制</dt><dd>{{ event.facility_size_limit }}</dd>
+            <dt>体型限制</dt>
+            <dd>{{ event.facility_size_limit }}</dd>
           </template>
-          <dt>遮雨</dt><dd>{{ verifiedBooleanLabel(event.facility_weather_protection) }}</dd>
-          <dt>遮阳</dt><dd>{{ verifiedBooleanLabel(event.facility_shade) }}</dd>
-          <dt>通风</dt><dd>{{ verifiedBooleanLabel(event.facility_ventilation) }}</dd>
-          <dt>饮水</dt><dd>{{ verifiedBooleanLabel(event.facility_water_available) }}</dd>
-          <dt>看护</dt><dd>{{ event.facility_supervision_state || "未确认" }}</dd>
-          <dt>安全 / 锁闭</dt><dd>{{ event.facility_security_or_lock_state || "未确认" }}</dd>
+          <dt>遮雨</dt>
+          <dd>{{ verifiedBooleanLabel(event.facility_weather_protection) }}</dd>
+          <dt>遮阳</dt>
+          <dd>{{ verifiedBooleanLabel(event.facility_shade) }}</dd>
+          <dt>通风</dt>
+          <dd>{{ verifiedBooleanLabel(event.facility_ventilation) }}</dd>
+          <dt>饮水</dt>
+          <dd>{{ verifiedBooleanLabel(event.facility_water_available) }}</dd>
+          <dt>看护</dt>
+          <dd>{{ event.facility_supervision_state || "未确认" }}</dd>
+          <dt>安全 / 锁闭</dt>
+          <dd>{{ event.facility_security_or_lock_state || "未确认" }}</dd>
           <dt>最近核验</dt>
-          <dd>{{ event.last_verified_at ? displayRealityTime(event.last_verified_at) : "未记录" }}</dd>
+          <dd>
+            {{ event.last_verified_at ? displayRealityTime(event.last_verified_at) : "未记录" }}
+          </dd>
           <template v-if="event.dispute_open">
-            <dt>争议状态</dt><dd>异议处理中 · 原记录保留等待复核</dd>
+            <dt>争议状态</dt>
+            <dd>异议处理中 · 原记录保留等待复核</dd>
           </template>
         </dl>
       </article>
@@ -100,7 +114,9 @@ function facilityZone(event: RealityEventView): string {
           }}
           · {{ item.count }} 处
           <template v-if="item.disputed_count"> · {{ item.disputed_count }} 条异议处理中</template>
-          <template v-if="item.last_verified_at"> · 最近核验 {{ item.last_verified_at.slice(0, 10) }}</template>
+          <template v-if="item.last_verified_at">
+            · 最近核验 {{ item.last_verified_at.slice(0, 10) }}</template
+          >
         </span>
       </div>
     </template>

@@ -21,7 +21,6 @@ const props = defineProps<{
   facilitySummary: FacilitySummaryItem[];
   events: RealityEventView[];
 }>();
-
 </script>
 
 <template>
@@ -55,11 +54,7 @@ const props = defineProps<{
       </div>
     </section>
 
-    <PlaceFacilitySection
-      :zones="zones"
-      :facility-summary="facilitySummary"
-      :events="events"
-    />
+    <PlaceFacilitySection :zones="zones" :facility-summary="facilitySummary" :events="events" />
 
     <section class="place-section" data-testid="amenities">
       <h2 class="place-section__title">其他场所设施</h2>

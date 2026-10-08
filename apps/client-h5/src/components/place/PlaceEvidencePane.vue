@@ -86,7 +86,11 @@ const LABELS: Record<string, string> = {
 
     <section class="place-section" data-testid="place-rule-evidence" aria-label="规则依据">
       <h2 class="place-section__title">规则依据</h2>
-      <div v-for="(item, index) in ruleEvidence" :key="item.rule_id + '-' + index" class="surface-row">
+      <div
+        v-for="(item, index) in ruleEvidence"
+        :key="item.rule_id + '-' + index"
+        class="surface-row"
+      >
         <span class="evidence-source__issuer">{{ item.issuer || "来源待补充" }}</span>
         <span class="muted evidence-source__meta">
           {{ item.provenance_statement || LABELS[item.source_type ?? ""] || "规则来源待核验" }}
