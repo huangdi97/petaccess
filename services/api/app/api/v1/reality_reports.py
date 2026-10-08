@@ -92,7 +92,7 @@ REALITY_STATE_LABELS: dict[str, str] = {
     "OBSERVED_RECENTLY": "近期现场有动物出现",
     "OBSERVED_HISTORICALLY": "仅有历史记录，未呈现为近期",
     "MULTI_EVIDENCE_OBSERVED": "多来源证实近期现场有动物",
-    "NO_RECENT_RECORD": "暂无近期现场记录（≠ 没有动物）",
+    "NO_RECENT_RECORD": "暂无近期现场记录，不代表没有动物",
     "INSUFFICIENT_OBSERVATION": "现场记录不足或未完成人工核验",
     "DISPUTED": "现场记录存在争议",
 }
