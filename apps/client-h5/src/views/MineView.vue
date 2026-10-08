@@ -2,6 +2,7 @@
 import { onMounted, ref } from "vue";
 import { client, session } from "@petaccess/client-core";
 import AppShell from "../components/AppShell.vue";
+import SkeletonList from "../components/SkeletonList.vue";
 import MineActivitySections from "../components/mine/MineActivitySections.vue";
 import MinePetSection from "../components/mine/MinePetSection.vue";
 import StateMessage from "../components/StateMessage.vue";
@@ -11,20 +12,48 @@ const pets = ref<Awaited<ReturnType<typeof client.myPets>>>([]);
 const watches = ref<Awaited<ReturnType<typeof client.myWatches>>>([]);
 const contributions = ref<Awaited<ReturnType<typeof client.myContributionActivity>>>([]);
 const error = ref("");
+const loading = ref(true);
+const signedIn = ref(false);
 
-onMounted(async () => {
-  await session.restore();
-  if (!session.signedIn) return;
+async function load() {
+  loading.value = true;
+  error.value = "";
   try {
-    [pets.value, watches.value, contributions.value] = await Promise.all([
+    await session.restore();
+    signedIn.value = session.signedIn;
+    if (!signedIn.value) {
+      pets.value = [];
+      watches.value = [];
+      contributions.value = [];
+      return;
+    }
+    // Only show an account's data when all three scoped API calls succeed.
+    // A partial failure must not look like an empty contribution history.
+    const [nextPets, nextWatches, nextContributions] = await Promise.all([
       client.myPets(),
       client.myWatches(),
       client.myContributionActivity(),
     ]);
+    pets.value = nextPets;
+    watches.value = nextWatches;
+    contributions.value = nextContributions;
   } catch (e) {
     error.value = presentDescription(e);
+  } finally {
+    loading.value = false;
   }
-});
+}
+
+onMounted(load);
+
+function logout() {
+  session.logout();
+  signedIn.value = false;
+  pets.value = [];
+  watches.value = [];
+  contributions.value = [];
+  error.value = "";
+}
 
 function setActivePet(pet: (typeof pets.value)[number]) {
   session.setActivePet(pet);
@@ -37,16 +66,21 @@ function setActivePet(pet: (typeof pets.value)[number]) {
   <AppShell>
     <header class="mine-head">
       <h1>我的</h1>
-      <template v-if="session.signedIn">
+      <template v-if="signedIn">
         <strong class="mine-head__name">{{ session.user?.display_name }}</strong>
         <span class="muted">{{ session.user?.email }}</span>
       </template>
     </header>
 
-    <StateMessage v-if="error" kind="ERROR" :description="error" data-testid="mine-error" />
+    <SkeletonList v-if="loading" :rows="3" />
+    <StateMessage v-else-if="error" kind="ERROR" :description="error" data-testid="mine-error">
+      <template #action>
+        <button class="primary" type="button" @click="load">重试</button>
+      </template>
+    </StateMessage>
 
     <StateMessage
-      v-if="!session.signedIn"
+      v-else-if="!signedIn"
       kind="EMPTY"
       title="登录后管理你的出行设置"
       description="宠物档案、变化关注和贡献记录只在登录后显示。公开场所信息仍可免登录浏览。"
@@ -93,7 +127,7 @@ function setActivePet(pet: (typeof pets.value)[number]) {
         </div>
       </section>
 
-      <button class="mine-logout" type="button" @click="session.logout()">退出登录</button>
+      <button class="mine-logout" type="button" @click="logout">退出登录</button>
     </template>
   </AppShell>
 </template>
