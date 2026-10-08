@@ -663,7 +663,7 @@
             }
           }
         },
-        "description": "Exact-ID public spatial/list projection. Returns only active places and does not synthesize missing coordinates."
+        "description": "Exact-ID public map/list projection, independent of fuzzy search limits.\n\nNever guess a coordinate or serve an unpublished place as a public\ndestination. This uses the very same projected Rule/Reality metadata and\nPostGIS representative point as /places and /places/nearby."
       }
     },
     "/api/v1/places/{place_id}": {
