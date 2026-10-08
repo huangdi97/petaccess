@@ -17,6 +17,8 @@ import RealityEventLog from "../components/domain/RealityEventLog.vue";
 import { presentDescription } from "../errors";
 import { useRealityConfirmation } from "../composables/useRealityConfirmation";
 import { realityEventDisplayDate } from "../consumer/realityEvent";
+import { zoneConsumerLine } from "../consumer/labels";
+import { createEpoch } from "../consumer/repository";
 
 const route = useRoute();
 const placeId = computed(() => (route.params.id ? String(route.params.id) : ""));
@@ -28,23 +30,30 @@ const zones = ref<Zone[]>([]);
 const loading = ref(true);
 const error = ref("");
 const filter = ref<"all" | "presence" | "staff" | "facility">("all");
+const zoneId = computed(() => (typeof route.query.zone === "string" ? route.query.zone : ""));
+const activeZone = computed(() => zones.value.find((zone) => zone.id === zoneId.value));
+const scopedEvents = computed(() =>
+  zoneId.value ? events.value.filter((event) => event.zone_id === zoneId.value) : events.value,
+);
 
 const visibleEvents = computed(() => {
-  if (filter.value === "all") return events.value;
+  if (filter.value === "all") return scopedEvents.value;
   const wanted =
     filter.value === "presence"
       ? "observed_presence"
       : filter.value === "staff"
         ? "staff_response"
         : "animal_facility";
-  return events.value.filter((event) => event.event_type === wanted);
+  return scopedEvents.value.filter((event) => event.event_type === wanted);
 });
 
 const emptyCopy = computed(() =>
   filter.value === "all"
     ? {
-        title: "暂无近期现场记录",
-        description: "这并不代表现场没有动物。",
+        title: zoneId.value ? "该区域暂无经核验现场记录" : "暂无近期现场记录",
+        description: zoneId.value
+          ? "仅显示所选区域的事实。无记录不代表该区域没有动物，可返回全部区域查看。"
+          : "这并不代表现场没有动物。",
       }
     : {
         title: "当前筛选下没有对应记录",
@@ -53,38 +62,45 @@ const emptyCopy = computed(() =>
 );
 
 const summaryLine = computed(() => {
-  if (!events.value.length) return "";
-  const latest = [...events.value].sort((a, b) => b.event_at.localeCompare(a.event_at))[0];
-  const presence = events.value.filter((event) => event.event_type === "observed_presence").length;
-  const staff = events.value.filter((event) => event.event_type === "staff_response").length;
-  const facility = events.value.filter((event) => event.event_type === "animal_facility").length;
+  if (!scopedEvents.value.length) return "";
+  const latest = [...scopedEvents.value].sort((a, b) => b.event_at.localeCompare(a.event_at))[0];
+  const presence = scopedEvents.value.filter((event) => event.event_type === "observed_presence").length;
+  const staff = scopedEvents.value.filter((event) => event.event_type === "staff_response").length;
+  const facility = scopedEvents.value.filter((event) => event.event_type === "animal_facility").length;
   const latestDate = realityEventDisplayDate(latest);
   const latestLabel =
     latest.time_evidence_state === "publication_time_only"
       ? `最近一条为 ${latestDate} 发布的公开内容`
       : `最近现场日期 ${latestDate}`;
-  const parts = [`${events.value.length} 条经核验事实`, latestLabel];
+  const parts = [`${scopedEvents.value.length} 条经核验事实`, latestLabel];
   if (presence) parts.push(`${presence} 条动物现场`);
   if (staff) parts.push(`${staff} 条工作人员处理`);
   if (facility) parts.push(`${facility} 条设施`);
   return parts.join(" · ");
 });
 
+const loadEpoch = createEpoch();
 async function load() {
-  if (!placeId.value) return;
+  const id = placeId.value;
+  if (!id) return;
+  const epoch = loadEpoch.begin();
   loading.value = true;
   error.value = "";
+  events.value = [];
+  zones.value = [];
+  const isCurrent = () => loadEpoch.isCurrent(epoch) && placeId.value === id;
   try {
     const [eventRows, zoneRows] = await Promise.all([
-      client.realityEvents(placeId.value),
-      client.zones(placeId.value),
+      client.realityEvents(id),
+      client.zones(id),
     ]);
+    if (!isCurrent()) return;
     events.value = eventRows;
     zones.value = zoneRows;
   } catch (e) {
-    error.value = presentDescription(e);
+    if (isCurrent()) error.value = presentDescription(e);
   } finally {
-    loading.value = false;
+    if (isCurrent()) loading.value = false;
   }
 }
 
@@ -126,6 +142,12 @@ const uiFixture = computed<string>(() =>
       <template v-else>
         <header class="reality-head" data-testid="trace-summary">
           <h2 class="reality-head__title">现场记录</h2>
+          <p v-if="zoneId" class="reality-head__zone" data-testid="reality-zone-scope">
+            <span>{{ activeZone ? zoneConsumerLine(activeZone) : "所选区域未收录" }} · 区域筛选</span>
+            <RouterLink :to="{ name: 'reality-trace', params: { id: placeId } }">
+              查看全部区域 →
+            </RouterLink>
+          </p>
           <p class="muted reality-head__intro">
             这里只展示经人工核验的现场事实；工作人员处理与设施记录都不等于正式准入规则。
           </p>
@@ -168,7 +190,7 @@ const uiFixture = computed<string>(() =>
             :empty-description="emptyCopy.description"
             @confirm="realityConfirmation.confirm"
           >
-            <template v-if="!events.length" #empty-action>
+            <template v-if="!scopedEvents.length" #empty-action>
               <RouterLink
                 class="btn primary"
                 :to="`/contribute/${placeId}`"
@@ -221,6 +243,16 @@ const uiFixture = computed<string>(() =>
 .reality-head__intro {
   margin: 0;
   line-height: var(--pa-line-height-base);
+}
+.reality-head__zone {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pa-space-3);
+  margin: var(--pa-space-3) 0;
+  padding: var(--pa-space-2) 0;
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  font-size: var(--pa-font-size-md);
 }
 
 .reality-head__meta {
