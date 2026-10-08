@@ -129,6 +129,9 @@ export function realityEventProvenance(event: RealityEventView): string {
   if (evidence) parts.push(evidence);
   if (event.place_match_state === "exact_place") parts.push("地点已精确匹配");
   else if (event.place_match_state === "exact_subplace") parts.push("子区域已精确匹配");
+  if ((event.confirmation_count ?? 0) > 0) {
+    parts.push(`另有 ${event.confirmation_count} 条独立确认`);
+  }
   if (!parts.length && event.evidence_bundle_id) parts.push("已有可追溯核验材料");
   if (!parts.length && event.source_id) parts.push("已有来源记录");
   return parts.join(" · ");
