@@ -78,6 +78,7 @@ const partial = ref<string[]>([]);
 const watchingRule = ref(false);
 const watchingReality = ref(false);
 const watchMsg = ref("");
+const watchBusy = ref<"rule" | "reality" | null>(null);
 const coexistence = ref<CoexistenceSnapshot | null>(null);
 const coexistenceLoaded = ref(false);
 const evaluationEpoch = createEpoch();
@@ -262,6 +263,7 @@ watch(
     error.value = "";
     partial.value = [];
     watchMsg.value = "";
+    watchBusy.value = null;
     realityConfirmation.message.value = "";
     realityConfirmation.busyEventId.value = null;
     watchingRule.value = false;
@@ -274,26 +276,38 @@ watch(
 );
 
 async function toggleWatchDomain(domain: "rule" | "reality") {
+  if (watchBusy.value) return;
+  const targetPlaceId = placeId.value;
+  if (!targetPlaceId) return;
+  const current = () => placeId.value === targetPlaceId;
   watchMsg.value = "";
+  watchBusy.value = domain;
   try {
     const mine = await client.myWatches();
+    // The route may switch places while the watch list is loading.
+    // Never submit the pending action for a different destination.
+    if (!current()) return;
     const existing = mine.find(
       (watch) =>
         watch.watch_domain === domain &&
         watch.target_type === "place" &&
-        watch.target_id === placeId.value,
+        watch.target_id === targetPlaceId,
     );
     if (existing) {
       await client.unwatch(existing.id);
+      if (!current()) return;
       if (domain === "rule") watchingRule.value = false;
       else watchingReality.value = false;
     } else {
-      await client.watch("place", placeId.value, domain);
+      await client.watch("place", targetPlaceId, domain);
+      if (!current()) return;
       if (domain === "rule") watchingRule.value = true;
       else watchingReality.value = true;
     }
   } catch (e) {
-    watchMsg.value = `关注状态未能更新：${presentDescription(e)}`;
+    if (current()) watchMsg.value = `关注状态未能更新：${presentDescription(e)}`;
+  } finally {
+    if (current()) watchBusy.value = null;
   }
 }
 
@@ -405,6 +419,7 @@ const placeFixture = computed<string>(() => {
                 class="place-dossier__watch"
                 type="button"
                 data-testid="watch-rule"
+                :disabled="Boolean(watchBusy)"
                 @click="toggleWatchDomain('rule')"
               >
                 {{ watchingRule ? "规则变化已关注 · 取消" : "关注规则变化" }}
@@ -413,6 +428,7 @@ const placeFixture = computed<string>(() => {
                 class="place-dossier__watch"
                 type="button"
                 data-testid="watch-reality"
+                :disabled="Boolean(watchBusy)"
                 @click="toggleWatchDomain('reality')"
               >
                 {{ watchingReality ? "现场更新已关注 · 取消" : "关注现场更新" }}
