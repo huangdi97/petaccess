@@ -58,7 +58,7 @@ test("mode switch re-evaluates: service dog → allowed", async ({ page }) => {
   await page.getByTestId("query-context-edit").click();
   await page.getByRole("button", { name: "服务犬通行" }).click();
   // service-dog mode asks as a working (assistance) dog → place-level allowed
-  await expect(page.getByTestId("answer-status")).toHaveText("可以进入");
+  await expect(page.getByTestId("inspector-verdict")).toHaveText("可以进入");
   await page.getByTestId("query-context-edit").click();
   await page.getByRole("button", { name: "普通携带" }).click();
   await expect(page.getByTestId("place-unknown")).toBeVisible();
