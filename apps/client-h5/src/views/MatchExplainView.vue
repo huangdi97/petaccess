@@ -27,6 +27,7 @@ const error = ref("");
 const note = ref("");
 const busy = ref(false);
 const resolveEpoch = createEpoch();
+const boundaryEpoch = createEpoch();
 
 const steps = computed(() => (resolved.value ? consumerExplanation(resolved.value) : []));
 
@@ -72,15 +73,21 @@ async function resolveRules() {
 }
 
 async function loadBoundary() {
+  const id = placeId.value;
+  const epoch = boundaryEpoch.begin();
   note.value = "";
   if (!session.signedIn) {
+    if (!boundaryEpoch.isCurrent(epoch) || placeId.value !== id) return;
     boundary.value = null;
     note.value = "尚未设置共处边界，设置后可在此逐项比对。";
     return;
   }
   try {
-    boundary.value = await client.boundaryMatch(placeId.value);
+    const result = await client.boundaryMatch(id);
+    if (!boundaryEpoch.isCurrent(epoch) || placeId.value !== id) return;
+    boundary.value = result;
   } catch (e) {
+    if (!boundaryEpoch.isCurrent(epoch) || placeId.value !== id) return;
     if (
       e instanceof ApiError &&
       (e as unknown as { code?: string }).code === "no_boundary_profile"
@@ -89,6 +96,7 @@ async function loadBoundary() {
       note.value = "尚未设置共处边界，设置后可在此逐项比对。";
       return;
     }
+    boundary.value = null;
     note.value = presentDescription(e);
   }
 }
