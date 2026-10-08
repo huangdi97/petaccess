@@ -108,9 +108,7 @@ test("A1.3 — missing coordinates never create fictional map pins, even in dev"
   await expect(page.getByTestId("coverage-hint")).toContainText("缺少已核验坐标");
 });
 
-test("A1.4 — missing-coordinate named search preserves desktop List + Map", async ({
-  page,
-}) => {
+test("A1.4 — missing-coordinate named search preserves desktop List + Map", async ({ page }) => {
   await page.route("**/api/v1/places?*", async (route) => {
     const response = await route.fetch();
     const payload = await response.json();
