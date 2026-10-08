@@ -34,13 +34,22 @@ export function useObservationEffortContribution(
   submit: () => Promise<void>;
 } {
   const sourceMode = ref<ObservationEffortSourceMode>("on_site_now");
-  const occurredAt = ref(new Date().toISOString().slice(0, 10));
+  // A retrospective "not seen" report must never silently inherit today's
+  // date. The time range is substantive evidence, not a UI convenience.
+  const occurredAt = ref("");
+  const today = new Date().toISOString().slice(0, 10);
   const durationBucket = ref("");
   const zoneId = ref(props.initialZoneId ?? "");
   const busy = ref(false);
   const error = ref("");
   const canSubmit = computed(
-    () => props.online && props.signedIn && !busy.value && Boolean(durationBucket.value),
+    () =>
+      props.online &&
+      props.signedIn &&
+      !busy.value &&
+      Boolean(durationBucket.value) &&
+      (sourceMode.value !== "on_site_past" ||
+        Boolean(occurredAt.value && occurredAt.value <= today)),
   );
 
   async function submit() {
