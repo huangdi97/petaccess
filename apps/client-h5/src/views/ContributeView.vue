@@ -12,6 +12,7 @@ import { useRoute } from "vue-router";
 import { client, session } from "@petaccess/client-core";
 import QueryContextBar from "../components/domain/QueryContextBar.vue";
 import StateMessage from "../components/StateMessage.vue";
+import SkeletonList from "../components/SkeletonList.vue";
 import ContributeEntry from "../components/contribute/ContributeEntry.vue";
 import ContributeQuickForm from "../components/contribute/ContributeQuickForm.vue";
 import ContributeRuleForm from "../components/contribute/ContributeRuleForm.vue";
@@ -40,6 +41,8 @@ const step = ref<Step>("entry");
 const realityKind = ref<RealityKind>("observed_presence");
 const msg = ref("");
 const signedIn = ref(false);
+const contextLoading = ref(true);
+const contextError = ref("");
 const zones = ref<{ id: string; name: string }[]>([]);
 /** §29：step shell 顶部显示「我给哪个场所提交」。 */
 const placeName = ref("");
@@ -49,37 +52,43 @@ const parentPlaceId = ref<string | null>(null);
 // the target ID once per generation: a late A response must not insert A's
 // zones/name into B's form, where the subsequent submit would target B.
 let placeContextGeneration = 0;
-watch(
-  [placeId, () => route.query.mode, () => route.query.target, () => route.query.zone],
-  async () => {
-    const generation = ++placeContextGeneration;
-    const targetPlaceId = placeId.value;
-    reset();
-    signedIn.value = false;
-    zones.value = [];
-    placeName.value = "";
-    parentPlaceId.value = null;
-    if (route.query.mode === "effort") step.value = "effort";
+async function loadContext() {
+  const generation = ++placeContextGeneration;
+  const targetPlaceId = placeId.value;
+  reset();
+  contextLoading.value = true;
+  contextError.value = "";
+  signedIn.value = false;
+  zones.value = [];
+  placeName.value = "";
+  parentPlaceId.value = null;
+  if (route.query.mode === "effort") step.value = "effort";
+  try {
     await session.restore();
     if (generation !== placeContextGeneration) return;
     signedIn.value = session.signedIn;
     if (!signedIn.value || !targetPlaceId) return;
-    try {
-      const [zs, place] = await Promise.all([
-        client.zones(targetPlaceId),
-        client.place(targetPlaceId).catch(() => null),
-      ]);
-      if (generation !== placeContextGeneration || placeId.value !== targetPlaceId) return;
-      zones.value = zs;
-      placeName.value = place?.canonical_name ?? "";
-      parentPlaceId.value = place?.parent_place_id ?? null;
-    } catch {
-      // Failure stays scoped to this place generation. Do not leak old
-      // context into the current form while the user changes destinations.
+    // Both identity and zone scope must be retrieved before a fact is
+    // submitted. A missing place is never a valid fallback form target.
+    const [place, nextZones] = await Promise.all([
+      client.place(targetPlaceId),
+      client.zones(targetPlaceId),
+    ]);
+    if (generation !== placeContextGeneration || placeId.value !== targetPlaceId) return;
+    placeName.value = place.canonical_name;
+    zones.value = nextZones;
+    parentPlaceId.value = place.parent_place_id ?? null;
+  } catch {
+    if (generation === placeContextGeneration) {
+      contextError.value = "无法确认当前场所及区域，请重试或重新选择场所。没有提交任何信息。";
     }
-  },
-  { immediate: true },
-);
+  } finally {
+    if (generation === placeContextGeneration) contextLoading.value = false;
+  }
+}
+
+watch([placeId, () => route.query.mode, () => route.query.target, () => route.query.zone],
+  loadContext, { immediate: true });
 
 function reset() {
   step.value = "entry";
@@ -101,6 +110,8 @@ function done(m: string) {
  * step-2 = reality parent-flow), done. Every value maps to an actual screen. */
 const uiState = computed<string>(() => {
   if (!placeId.value) return "needs-place";
+  if (contextLoading.value) return "loading-place";
+  if (contextError.value) return "place-error";
   if (!signedIn.value) return "sign-in-required";
   switch (step.value) {
     case "entry":
@@ -184,6 +195,19 @@ const { desktop: isDesktop } = useBreakpoint();
             </template>
           </StateMessage>
 
+          <SkeletonList v-else-if="contextLoading" :rows="4" />
+          <StateMessage
+            v-else-if="contextError"
+            kind="ERROR"
+            :description="contextError"
+            data-testid="contribution-context-error"
+          >
+            <template #action>
+              <button class="primary" type="button" @click="loadContext">重试</button>
+              <RouterLink class="btn" to="/search">重新选择场所</RouterLink>
+            </template>
+          </StateMessage>
+
           <StateMessage
             v-else-if="!signedIn"
             kind="PERMISSION_DENIED"
@@ -259,7 +283,7 @@ const { desktop: isDesktop } = useBreakpoint();
         <!-- §15/§16 secondary context rail（desktop only）：只放真实上下文，
              不新增营销文案 / 统计 / badge wall。 -->
         <aside
-          v-if="isDesktop && placeId && signedIn && uiState !== 'done'"
+          v-if="isDesktop && placeId && signedIn && !contextLoading && !contextError && uiState !== 'done'"
           class="contribute-workspace__context"
           data-ui="contribution-context"
           aria-label="本次贡献说明"
