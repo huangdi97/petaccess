@@ -34,3 +34,24 @@ test("late previous-place response never contaminates the current dossier", asyn
   await expect(dossier).toContainText("云栖中心");
   await expect(dossier).not.toContainText("星河咖啡");
 });
+
+
+test("operator claim cannot inherit the previous place's owner and zone context", async ({
+  page,
+}) => {
+  await page.route(`**/api/v1/places/${CAFE_ID}`, async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 900));
+    await route.continue();
+  });
+
+  await page.goto(`${BASE}/#/place/${CAFE_ID}/operator-claim`);
+  await page.evaluate((id) => {
+    window.location.hash = `#/place/${id}/operator-claim`;
+  }, MALL_ID);
+
+  const claim = page.getByTestId("operator-claim-page");
+  await expect(claim).toContainText("云栖中心", { timeout: 15000 });
+  await page.waitForTimeout(1100);
+  await expect(claim).toContainText("云栖中心");
+  await expect(claim).not.toContainText("星河咖啡");
+});
