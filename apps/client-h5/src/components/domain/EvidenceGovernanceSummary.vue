@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import type { RealityEventView } from "@petaccess/client-core";
-import { factEvidenceLabel, realityOriginLabel } from "../../consumer/realityEvent";
+import { evidenceMaterialLabel, factEvidenceLabel, realityOriginLabel } from "../../consumer/realityEvent";
 
 const props = defineProps<{
   events: RealityEventView[];
@@ -34,6 +34,16 @@ const evidencePostures = computed(() =>
   ),
 );
 
+const materialPostures = computed(() =>
+  [
+    ...new Set(
+      props.events
+        .filter((event) => Boolean(event.evidence_bundle_id))
+        .map((event) => evidenceMaterialLabel(event)),
+    ),
+  ].filter(Boolean),
+);
+
 const bundleCount = computed(
   () =>
     new Set(
@@ -59,6 +69,17 @@ const bundleCount = computed(
       <div class="evidence-governance__row">
         <dt>证据形态</dt>
         <dd>{{ evidencePostures.length ? evidencePostures.join(" · ") : "未记录" }}</dd>
+      </div>
+      <div class="evidence-governance__row">
+        <dt>原始材料 / 许可</dt>
+        <dd>
+          <template v-if="materialPostures.length">
+            <span v-for="(item, index) in materialPostures" :key="item">
+              {{ item }}<template v-if="index < materialPostures.length - 1">；</template>
+            </span>
+          </template>
+          <template v-else>暂无可公开确认的原始材料元数据</template>
+        </dd>
       </div>
       <div class="evidence-governance__row">
         <dt>证据包</dt>
