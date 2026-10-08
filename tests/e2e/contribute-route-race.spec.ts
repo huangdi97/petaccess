@@ -27,10 +27,11 @@ test("late place A response cannot overwrite place B contribution context", asyn
     await route.continue();
   });
 
-  await page.goto(`/#/contribute/${CAFE_ID}`);
-  await page.waitForRequest((request) =>
+  const oldZonesRequested = page.waitForRequest((request) =>
     request.url().includes(`/api/v1/places/${CAFE_ID}/zones`),
   );
+  await page.goto(`/#/contribute/${CAFE_ID}`);
+  await oldZonesRequested;
   await page.goto(`/#/contribute/${MALL_ID}`);
   const context = page.locator('[data-ui="contribution-context-place"]');
   await expect(context).toContainText("云栖中心·测试商场", { timeout: 15000 });
