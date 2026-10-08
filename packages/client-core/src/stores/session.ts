@@ -49,6 +49,8 @@ export function bindStorage(impl: Pick<typeof platformStorage, "get" | "set" | "
   setTokenProvider(getToken);
 }
 
+let restoreInFlight: Promise<SessionUser | null> | null = null;
+
 export const session = reactive({
   user: null as SessionUser | null,
   mode: "with_pet" as QueryMode,
@@ -62,30 +64,41 @@ export const session = reactive({
 
   async restore(): Promise<SessionUser | null> {
     if (!getToken()) return null;
-    try {
-      this.user = await client.me();
-      const activePetId = platformStorage.get(ACTIVE_PET_KEY);
-      if (activePetId && this.activePet?.id !== activePetId) {
-        const pets = await client.myPets();
-        this.activePet = pets.find((pet) => pet.id === activePetId) ?? null;
-        if (!this.activePet) {
+    // QueryContextBar and the active page can mount together. Share one
+    // in-flight restore so every surface sees the same persisted subject
+    // without issuing duplicate /me and /pets requests.
+    if (restoreInFlight) return restoreInFlight;
+    restoreInFlight = (async () => {
+      try {
+        this.user = await client.me();
+        const activePetId = platformStorage.get(ACTIVE_PET_KEY);
+        if (activePetId && this.activePet?.id !== activePetId) {
+          const pets = await client.myPets();
+          this.activePet = pets.find((pet) => pet.id === activePetId) ?? null;
+          if (!this.activePet) {
+            platformStorage.remove(ACTIVE_PET_KEY);
+          } else if (this.mode === "with_pet" && this.activePet.service_role === "working") {
+            // A persisted working service-dog profile must reopen in the matching
+            // query mode so the UI can ask for the precise declared role instead
+            // of silently presenting a generic ordinary-pet context.
+            this.mode = "service_dog";
+          }
+        }
+      } catch (e: unknown) {
+        if (e instanceof ApiError && e.status === 401) {
+          platformStorage.remove(TOKEN_KEY);
           platformStorage.remove(ACTIVE_PET_KEY);
-        } else if (this.mode === "with_pet" && this.activePet.service_role === "working") {
-          // A persisted working service-dog profile must reopen in the matching
-          // query mode so the UI can ask for the precise declared role instead
-          // of silently presenting a generic ordinary-pet context.
-          this.mode = "service_dog";
+          this.user = null;
+          this.activePet = null;
         }
       }
-    } catch (e: unknown) {
-      if (e instanceof ApiError && e.status === 401) {
-        platformStorage.remove(TOKEN_KEY);
-        platformStorage.remove(ACTIVE_PET_KEY);
-        this.user = null;
-        this.activePet = null;
-      }
+      return this.user;
+    })();
+    try {
+      return await restoreInFlight;
+    } finally {
+      restoreInFlight = null;
     }
-    return this.user;
   },
 
   async login(email: string, password: string): Promise<void> {
