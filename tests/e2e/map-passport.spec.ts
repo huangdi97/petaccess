@@ -44,7 +44,7 @@ test("A1 — desktop 地图 split-view + 四 Lens + 详情面板", async ({ page
 
 test("A1.0.1 — fallback marker 不靠颜色单独表达语义", async ({ page }) => {
   await page.goto(`${BASE}/#/map`);
-  const marker = page.locator("[data-ui='map-marker']").first();
+  const marker = page.locator(".dot[data-ui='map-marker']").first();
   await expect(marker).toBeVisible({ timeout: 15000 });
   await expect(marker.locator(".dot__glyph")).not.toHaveText("");
   const pin = marker.locator("xpath=..");
