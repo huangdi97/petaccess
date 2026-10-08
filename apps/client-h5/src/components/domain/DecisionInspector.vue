@@ -76,6 +76,9 @@ const props = withDefaults(
 );
 
 const verdict = computed(() => answerVerdictLabel(props.answer));
+const needsRuleEvidence = computed(
+  () => !props.answerError && verdict.value === "信息不足",
+);
 /** A recorded coordinate allows a direct spatial deep link. No coordinate means
  * no map marker: a name/address alone is never geocoded or guessed here. */
 const mapLocationAvailable = computed(
@@ -127,9 +130,11 @@ const evidenceLine = computed(() => {
 const keyCondition = computed(() => conditions.value[0] ?? "");
 /** §26：限制区域（例外区域列表；无则整块不渲染）。 */
 const exceptions = computed(() =>
-  (props.answer?.condition_evaluation.pending_exceptions ?? []).map(
-    (e) => props.conditionsLabel[e] ?? e,
-  ),
+  props.answer?.conflict_state?.has_conflict
+    ? []
+    : (props.answer?.condition_evaluation.pending_exceptions ?? []).map(
+        (e) => props.conditionsLabel[e] ?? e,
+      ),
 );
 /** §26：最近核验来自真实规则 last_verified_at，不拿快照生成时间冒充。 */
 const latestVerifiedLabel = computed(() => props.latestVerifiedAt ?? "暂无");
@@ -221,6 +226,19 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
               {{ evidenceLine }}
             </p>
           </div>
+        </div>
+        <div
+          v-if="needsRuleEvidence"
+          class="inspector-block inspector-block--missing"
+          data-testid="inspector-missing-evidence"
+        >
+          <span class="inspector-block__label">还需要什么</span>
+          <p class="inspector-block__value">
+            当前查询缺少足以确定准入结论的规则依据。信息不足不等于允许或禁止。
+          </p>
+          <RouterLink class="btn-inline" :to="`/contribute/${place.id}`">
+            补充规则线索或现场情况 →
+          </RouterLink>
         </div>
         <footer class="decision-inspector__foot decision-inspector__foot--primary">
           <RouterLink class="btn primary" :to="`/place/${place.id}`" data-testid="inspector-open">
