@@ -21,7 +21,9 @@ def client():
         yield c
 
 
-@pytest.fixture(scope="module")
+# Keep each test's rate-limit bucket independent; the explicit 429 case
+# still exercises its own user's entire configured quota.
+@pytest.fixture
 def user(client):
     email = f"verif-{uuid.uuid4().hex[:8]}@example.com"
     r = client.post(
@@ -66,7 +68,11 @@ def test_create_and_list_verification(client, user):
 def test_user_confirmation_does_not_refresh_governed_rule_freshness(client, user):
     factory = get_session_factory()
     with factory() as db:
-        rule = db.scalars(select(AccessRule).where(AccessRule.status == "current").limit(1)).first()
+        rule = db.scalars(
+            select(AccessRule)
+            .where(AccessRule.status == "current", AccessRule.place_id.isnot(None))
+            .limit(1)
+        ).first()
         assert rule is not None
         rule_id = rule.id
         place_id = rule.place_id
