@@ -433,6 +433,25 @@ function chooseMapResult(id: string) {
   background: var(--pa-color-map-grid-a);
 }
 
+/* Map is a viewport workspace on phones, not a fixed-height illustration.
+ * The global shell reserves the fixed bottom nav; fill precisely the area
+ * above it so the map never leaves a blank 150–200px strip on tall screens. */
+@media (max-width: 767px) {
+  .map-workspace {
+    height: calc(100vh - var(--pa-safe-total-bottom));
+    height: calc(100dvh - var(--pa-safe-total-bottom));
+    min-height: 540px;
+  }
+
+  .map-workspace__body {
+    min-height: 0;
+  }
+
+  .map-canvas {
+    min-height: 0;
+  }
+}
+
 @media (min-width: 768px) {
   .map-workspace__body {
     height: calc(100vh - 112px);
