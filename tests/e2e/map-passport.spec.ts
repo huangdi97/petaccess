@@ -155,6 +155,7 @@ test("A1.3 — missing coordinates never create fictional map pins, even in dev"
   await expect(page.getByTestId("map-surface")).toBeVisible();
   await expect(page.locator(".map-pin")).toHaveCount(0);
   await expect(page.getByTestId("coverage-hint")).toContainText("缺少可用位置坐标");
+  await expect(page.getByTestId("coverage-hint")).toContainText("当前查询没有可显示的位置点");
 });
 
 test("A1.4 — missing-coordinate named search preserves desktop List + Map", async ({ page }) => {
