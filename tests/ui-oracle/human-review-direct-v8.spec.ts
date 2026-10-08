@@ -553,7 +553,7 @@ async function prepareApprovedOperatorPolicy(
   const adminToken = await signInAdmin(request);
   const suffix = `${projectName}-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
 
-  const place = await request.post(`${API}/admin/places`, {
+  const place = await request.post(`${API}/places`, {
     headers: { Authorization: `Bearer ${adminToken}` },
     data: {
       canonical_name: `人审管理方场所·${suffix}`,
@@ -584,7 +584,7 @@ async function prepareApprovedOperatorPolicy(
   expect(claim.ok(), `create operator claim failed: ${await claim.text()}`).toBeTruthy();
   const claimId = (await claim.json()).id as string;
 
-  const review = await request.post(`${API}/admin/operator-claims/${claimId}/review`, {
+  const review = await request.post(`${API}/operator-claims/${claimId}/review`, {
     headers: { Authorization: `Bearer ${adminToken}` },
     data: { approve: true, rejection_reason: null },
   });
