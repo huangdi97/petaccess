@@ -160,6 +160,7 @@ def _presence_event(
 def _staff_event(
     row: StaffResponseObservation,
     report_meta: _EventReportMeta | None = None,
+    evidence_meta: _EventEvidenceMeta | None = None,
     *,
     confirmation_count: int = 0,
     dispute_open: bool = False,
@@ -204,6 +205,7 @@ def _staff_event(
 def _facility_event(
     row: AnimalFacility,
     report_meta: _EventReportMeta | None = None,
+    evidence_meta: _EventEvidenceMeta | None = None,
     *,
     confirmation_count: int = 0,
     dispute_open: bool = False,
@@ -448,6 +450,7 @@ def consumer_reality_events(
             _staff_event(
                 row,
                 report_meta_by_candidate.get(row.candidate_id),
+                evidence_meta_by_bundle.get(row.evidence_bundle_id or ""),
                 confirmation_count=confirmation_counts.get(row.id, 0),
                 dispute_open=("staff_response_observation", row.id) in open_disputes,
             )
@@ -457,6 +460,7 @@ def consumer_reality_events(
             _facility_event(
                 row,
                 report_meta_by_candidate.get(row.candidate_id),
+                evidence_meta_by_bundle.get(row.evidence_bundle_id or ""),
                 confirmation_count=confirmation_counts.get(row.id, 0),
                 dispute_open=("animal_facility", row.id) in open_disputes,
             )
