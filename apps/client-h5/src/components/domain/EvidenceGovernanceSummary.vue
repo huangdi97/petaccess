@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import type { RealityEventView } from "@petaccess/client-core";
-import { evidenceMaterialLabel, factEvidenceLabel, realityOriginLabel } from "../../consumer/realityEvent";
+import {
+  evidenceMaterialLabel,
+  factEvidenceLabel,
+  realityOriginLabel,
+} from "../../consumer/realityEvent";
 
 const props = defineProps<{
   events: RealityEventView[];
