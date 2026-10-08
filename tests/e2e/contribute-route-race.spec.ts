@@ -41,3 +41,30 @@ test("late place A response cannot overwrite place B contribution context", asyn
   await expect(context).not.toContainText("星河咖啡");
   await expect(page).toHaveURL(new RegExp(`#/contribute/${MALL_ID}$`));
 });
+
+test("unresolved place scope blocks fact submission and offers a real retry", async ({
+  page,
+  request,
+}) => {
+  const email = `scope-${Date.now()}@example.com`;
+  const registered = await request.post("http://127.0.0.1:8010/api/v1/auth/register", {
+    data: { display_name: "贡献范围校验", email, password: "passw0rd123" },
+  });
+  expect(registered.ok(), await registered.text()).toBeTruthy();
+  const token = (await registered.json()).access_token as string;
+  await page.addInitScript((value) => localStorage.setItem("pa_token", value), token);
+
+  await page.route(`**/api/v1/places/${MALL_ID}/zones`, (route) =>
+    route.fulfill({ status: 503, json: { detail: "unavailable" } }),
+  );
+  await page.goto(`/#/contribute/${MALL_ID}`);
+
+  const failure = page.getByTestId("contribution-context-error");
+  await expect(failure).toContainText("无法确认当前场所及区域");
+  await expect(page.getByTestId("entry-rule")).toHaveCount(0);
+  await expect(page.getByTestId("entry-reality-observed_presence")).toHaveCount(0);
+
+  await page.unroute(`**/api/v1/places/${MALL_ID}/zones`);
+  await failure.getByRole("button", { name: "重试" }).click();
+  await expect(page.getByTestId("entry-rule")).toBeVisible();
+});
