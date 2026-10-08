@@ -27,9 +27,7 @@ const CLAIM_STATUS_LABELS: Record<string, string> = {
   revoked: "认领已撤销",
 };
 
-const claimStatusLabel = computed(
-  () => CLAIM_STATUS_LABELS[claimStatus.value] ?? "等待人工核验",
-);
+const claimStatusLabel = computed(() => CLAIM_STATUS_LABELS[claimStatus.value] ?? "等待人工核验");
 const previousClaimStatusLabel = computed(
   () => CLAIM_STATUS_LABELS[previousClaimStatus.value] ?? "",
 );
