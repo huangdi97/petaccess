@@ -53,7 +53,14 @@ const { sourceMode, occurredAt, durationBucket, zoneId, busy, error, canSubmit, 
         </select>
         <template v-if="sourceMode === 'on_site_past'">
           <label for="effort-date">日期</label>
-          <input id="effort-date" v-model="occurredAt" type="date" data-testid="effort-date" />
+          <input
+            id="effort-date"
+            v-model="occurredAt"
+            type="date"
+            :max="new Date().toISOString().slice(0, 10)"
+            required
+            data-testid="effort-date"
+          />
         </template>
       </fieldset>
 
