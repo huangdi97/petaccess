@@ -1,6 +1,16 @@
-import type { AccessAnswer, PlaceSummary, RealityAnswer, CoexistenceSnapshot } from "@petaccess/client-core";
+import type {
+  AccessAnswer,
+  PlaceSummary,
+  RealityAnswer,
+  CoexistenceSnapshot,
+} from "@petaccess/client-core";
 import { answerVerdictLabel } from "../answer";
-import { coexistenceRealityLine, lensOrderScore, lensProjection, type ConsumerLens } from "./rowView";
+import {
+  coexistenceRealityLine,
+  lensOrderScore,
+  lensProjection,
+  type ConsumerLens,
+} from "./rowView";
 import { divergenceLabel } from "../reality";
 
 export interface HomeDigestCard {
@@ -61,7 +71,8 @@ export function homeDigestHeadline(card: HomeDigestCard, interest: ConsumerLens)
 export function homeDigestMeta(card: HomeDigestCard): string {
   const parts: string[] = [];
   const reality = card.facts.reality;
-  if (reality?.days_since_last_seen != null) parts.push(`${reality.days_since_last_seen} 天前最近记录`);
+  if (reality?.days_since_last_seen != null)
+    parts.push(`${reality.days_since_last_seen} 天前最近记录`);
   const realityEvidence = card.facts.snapshot?.evidence_summary.reality_evidence_count ?? 0;
   if (realityEvidence > 0) parts.push(`${realityEvidence} 条现场证据`);
   const ruleEvidence = card.facts.snapshot?.evidence_summary.rule_evidence.length ?? 0;
