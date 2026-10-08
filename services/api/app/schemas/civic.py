@@ -3,7 +3,7 @@ operator claims, watches, sources (design #13-14, #18, #24, #26)."""
 
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from app.models.enums import (
     AnimalScope,
@@ -266,7 +266,7 @@ class OperatorRuleAnswerIn(BaseModel):
     animal_scope: AnimalScope
     action: RuleAction
     effect: RuleEffect
-    conditions: list[OperatorRuleConditionIn] = []
+    conditions: list[OperatorRuleConditionIn] = Field(default_factory=list)
     review_due_at: datetime | None = None
     note: str | None = Field(default=None, max_length=2000)
 
@@ -280,6 +280,8 @@ class OperatorRuleAnswerIn(BaseModel):
         effect = info.data.get("effect")
         if effect == RuleEffect.CONDITIONAL and not conditions:
             raise ValueError("conditional operator policy requires at least one structured condition")
+        if effect != RuleEffect.CONDITIONAL and conditions:
+            raise ValueError("only conditional operator policy may carry entry conditions")
         return conditions
 
 
@@ -292,6 +294,13 @@ class OperatorQuestionnaire(BaseModel):
 
     effective_from: datetime | None = None
     answers: list[OperatorRuleAnswerIn] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def unique_policy_cells(self) -> "OperatorQuestionnaire":
+        keys = [(item.zone_id, item.animal_scope, item.action) for item in self.answers]
+        if len(keys) != len(set(keys)):
+            raise ValueError("operator questionnaire contains duplicate policy cells")
+        return self
 
 
 # --- disputes (design #26) ---
