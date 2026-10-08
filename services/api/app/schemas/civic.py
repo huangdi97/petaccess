@@ -16,6 +16,7 @@ from app.models.enums import (
     ObservationDisputeStatus,
     ObservationStaffAction,
     OccurredPrecision,
+    OperatorOrgType,
     PlaceConfidence,
     RuleAction,
     RuleEffect,
@@ -212,6 +213,18 @@ class OperatorClaimIn(BaseModel):
     operator_id: str
     verification_method: str = Field(min_length=1, max_length=64)
     evidence_refs: dict | None = None
+
+
+class OperatorClaimSelfServeIn(BaseModel):
+    """Consumer-safe claim request; approval still belongs to moderators."""
+
+    place_id: str
+    operator_name: str = Field(min_length=2, max_length=160)
+    org_type: OperatorOrgType = OperatorOrgType.COMPANY
+    work_email: str | None = Field(default=None, max_length=255)
+    website: str | None = Field(default=None, max_length=512)
+    verification_method: str = Field(min_length=1, max_length=64)
+    verification_note: str | None = Field(default=None, max_length=500)
 
 
 class OperatorClaimReview(BaseModel):
