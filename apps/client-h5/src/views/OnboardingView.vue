@@ -78,39 +78,39 @@ async function submit() {
           role="tabpanel"
           :aria-labelledby="`auth-tab-${mode}`"
         >
-        <form class="auth-form" @submit.prevent="submit">
-          <label v-if="mode === 'register'" class="auth-field">
-            <span>昵称</span>
-            <input v-model="displayName" required autocomplete="name" />
-          </label>
+          <form class="auth-form" @submit.prevent="submit">
+            <label v-if="mode === 'register'" class="auth-field">
+              <span>昵称</span>
+              <input v-model="displayName" required autocomplete="name" />
+            </label>
 
-          <label class="auth-field">
-            <span>邮箱</span>
-            <input v-model="email" type="email" required autocomplete="username" />
-          </label>
+            <label class="auth-field">
+              <span>邮箱</span>
+              <input v-model="email" type="email" required autocomplete="username" />
+            </label>
 
-          <label class="auth-field">
-            <span>密码</span>
-            <input
-              v-model="password"
-              type="password"
-              required
-              minlength="8"
-              :autocomplete="mode === 'login' ? 'current-password' : 'new-password'"
-            />
-            <small v-if="mode === 'register'">至少 8 位。</small>
-          </label>
+            <label class="auth-field">
+              <span>密码</span>
+              <input
+                v-model="password"
+                type="password"
+                required
+                minlength="8"
+                :autocomplete="mode === 'login' ? 'current-password' : 'new-password'"
+              />
+              <small v-if="mode === 'register'">至少 8 位。</small>
+            </label>
 
-          <p v-if="error" class="auth-error" role="alert">{{ error }}</p>
+            <p v-if="error" class="auth-error" role="alert">{{ error }}</p>
 
-          <button class="primary auth-submit" type="submit" :disabled="busy">
-            {{ busy ? "处理中…" : mode === "login" ? "登录" : "注册并开始" }}
-          </button>
-        </form>
+            <button class="primary auth-submit" type="submit" :disabled="busy">
+              {{ busy ? "处理中…" : mode === "login" ? "登录" : "注册并开始" }}
+            </button>
+          </form>
 
-        <p class="auth-privacy">
-          位置只用于当前附近查询与现场核验，不建立连续轨迹；服务犬身份只由用户自行声明。
-        </p>
+          <p class="auth-privacy">
+            位置只用于当前附近查询与现场核验，不建立连续轨迹；服务犬身份只由用户自行声明。
+          </p>
         </div>
       </section>
     </main>

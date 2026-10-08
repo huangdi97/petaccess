@@ -9,10 +9,7 @@ function choose(mode: "login" | "register") {
 function onKeydown(event: KeyboardEvent) {
   if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
   event.preventDefault();
-  const next =
-    event.key === "Home" || event.key === "ArrowLeft"
-      ? "login"
-      : "register";
+  const next = event.key === "Home" || event.key === "ArrowLeft" ? "login" : "register";
   choose(next);
   requestAnimationFrame(() => {
     document.getElementById(`auth-tab-${next}`)?.focus();
