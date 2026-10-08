@@ -66,6 +66,23 @@ def submit_claim(
     return claim
 
 
+@router.get("/operator-claims/mine", response_model=list[OperatorClaimOut])
+def my_operator_claims(
+    place_id: str | None = None,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> list[OperatorClaim]:
+    """Return only the caller's own claim transactions, newest first."""
+    stmt = (
+        select(OperatorClaim)
+        .where(OperatorClaim.claimant_user_id == user.id)
+        .order_by(OperatorClaim.created_at.desc())
+    )
+    if place_id:
+        stmt = stmt.where(OperatorClaim.place_id == place_id)
+    return list(db.scalars(stmt.limit(50)).all())
+
+
 @router.post("/operator-claims/self-serve", response_model=OperatorClaimOut, status_code=201)
 def submit_self_serve_claim(
     body: OperatorClaimSelfServeIn,
