@@ -27,66 +27,6 @@
   border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
 }
 
-.operator-claim__form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--pa-space-4);
-  margin-top: var(--pa-space-5);
-}
-
-.operator-claim__previous {
-  margin: 0;
-  padding: var(--pa-space-3) 0;
-  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
-  color: var(--pa-color-text-secondary);
-  font-size: var(--pa-font-size-sm);
-  line-height: var(--pa-line-height-20);
-}
-
-.operator-claim__field {
-  display: flex;
-  flex-direction: column;
-  gap: var(--pa-space-1);
-}
-
-.operator-claim__field span {
-  font-size: var(--pa-font-size-md);
-  font-weight: var(--pa-font-weight-600);
-}
-
-.operator-claim__field small {
-  font-size: var(--pa-font-size-sm);
-  color: var(--pa-color-text-muted);
-}
-
-.operator-claim__form input,
-.operator-claim__form select,
-.operator-claim__form textarea {
-  margin: 0;
-}
-
-.operator-claim__form textarea {
-  min-height: 96px;
-  resize: vertical;
-}
-
-.operator-claim__boundary {
-  margin: 0;
-  padding: var(--pa-space-3) 0;
-  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
-  font-size: var(--pa-font-size-sm);
-  line-height: var(--pa-line-height-20);
-  color: var(--pa-color-text-secondary);
-}
-
-.operator-claim__actions {
-  display: flex;
-  align-items: center;
-  gap: var(--pa-space-4);
-}
-
 .operator-claim__result {
   margin-top: var(--pa-space-6);
 }
@@ -96,8 +36,4 @@
     padding: var(--pa-space-4);
   }
 
-  .operator-claim__actions {
-    align-items: stretch;
-    flex-direction: column;
-  }
 }
