@@ -71,10 +71,10 @@ const useRealMap = computed(
 
 const simplifiedBasemapCopy = computed(() => {
   if (realMapError.value) {
-    return "真实底图暂不可用，当前显示简化空间底图；场所点位仍使用已核验坐标。";
+    return "真实底图暂不可用，显示非测绘示意底图；点位仍依据实际坐标。拖动可查询周边。";
   }
   if (renderConfig.value && !renderConfig.value.real_enabled) {
-    return "当前环境未配置真实地图底图，显示简化空间底图；场所点位仍使用已核验坐标。";
+    return "未配置真实地图底图，当前街道仅为示意；点位依据实际坐标，拖动可查询周边。";
   }
   return "";
 });
@@ -105,6 +105,12 @@ function zoomMap(delta: number) {
     ...camera.value,
     zoom: Math.max(8, Math.min(18, camera.value.zoom + delta)),
   };
+}
+
+function panMap(lat: number, lng: number) {
+  camera.value = { ...camera.value, lat, lng };
+  // Panning changes the geographic query, not only the marker drawing.
+  void load();
 }
 
 function setAbsoluteZoom(zoom: number) {
@@ -303,6 +309,7 @@ function chooseMapResult(id: string) {
           :selected-id="selected?.id ?? null"
           @select="onSelectCluster"
           @zoom="zoomMap"
+          @pan="panMap"
         />
         <p
           v-if="simplifiedBasemapCopy"
