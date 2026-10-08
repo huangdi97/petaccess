@@ -104,15 +104,15 @@ const freshness = computed(() =>
             @click="emit('open', c.place.id)"
           >
             <PlaceResultRow
-            :place="c.place"
-            :answer="c.facts.answer"
-            :answer-error="c.facts.answerError"
-            :reality="c.facts.reality"
-            :snapshot="c.facts.snapshot"
-            :reality-error="c.facts.realityError"
-            :species-label="speciesLabel"
-            :conditions-label="conditionsLabel"
-          />
+              :place="c.place"
+              :answer="c.facts.answer"
+              :answer-error="c.facts.answerError"
+              :reality="c.facts.reality"
+              :snapshot="c.facts.snapshot"
+              :reality-error="c.facts.realityError"
+              :species-label="speciesLabel"
+              :conditions-label="conditionsLabel"
+            />
           </button>
           <div v-if="c.facts.answer" class="home-row__evidence-link">
             <RouterLink
