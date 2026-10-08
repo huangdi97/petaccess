@@ -259,3 +259,206 @@ def test_ttl_purge_removes_expired(client, user_token):
     media = s.get(MediaObject, media_id)
     assert media.upload_status == "deleted"
     s.close()
+
+
+def test_public_evidence_media_requires_display_review_and_published_fact(client, user_token):
+    """A public URL exists only for licensed + approved + human-published evidence."""
+    from datetime import UTC, datetime, timedelta
+
+    from app.db.session import get_session_factory
+    from app.models import (
+        EvidenceBundle,
+        MediaObject,
+        ObservedPresence,
+        RealityCandidate,
+        SourceArtifact,
+    )
+
+    place_response = client.get("/api/v1/places", params={"limit": 1})
+    assert place_response.status_code == 200, place_response.text
+    place_id = place_response.json()["items"][0]["id"]
+
+    uploaded = client.post(
+        "/api/v1/media/upload",
+        params={"purpose": "reality_evidence", "owner_type": "place", "owner_id": place_id},
+        files={"file": ("public-evidence.png", _png_bytes(b"public-evidence"), "image/png")},
+        headers=_auth(user_token),
+    )
+    assert uploaded.status_code == 201, uploaded.text
+    media_id = uploaded.json()["id"]
+
+    factory = get_session_factory()
+    now = datetime.now(UTC)
+    with factory() as db:
+        media = db.get(MediaObject, media_id)
+        assert media is not None
+        # Keep the object alive throughout this test; approval is intentionally
+        # withheld for the first public lookup.
+        media.expires_at = now + timedelta(days=1)
+
+        artifact = SourceArtifact(
+            source_platform="user_upload",
+            collector_type="OnsiteEvidenceCollector",
+            artifact_type="uploaded_image",
+            media_id=media.id,
+            collected_at=now,
+            publisher_type="ordinary_user",
+            display_allowed=True,
+            redistribution_allowed=False,
+        )
+        db.add(artifact)
+        db.flush()
+
+        bundle = EvidenceBundle(
+            artifact_id=artifact.id,
+            source_platform="user_upload",
+            publisher_type="ordinary_user",
+            captured_at=now,
+            evidence_class="original",
+        )
+        db.add(bundle)
+        db.flush()
+
+        candidate = RealityCandidate(
+            candidate_type="observed_presence",
+            place_id=place_id,
+            evidence_bundle_id=bundle.id,
+            animal_scope="dog",
+            observed_at=now,
+            captured_at=now,
+            review_status="APPROVED",
+            reality_decision="VERIFIED",
+            verification_status="human_verified",
+            published_at=now,
+        )
+        db.add(candidate)
+        db.flush()
+
+        fact = ObservedPresence(
+            candidate_id=candidate.id,
+            place_id=place_id,
+            animal_scope="dog",
+            observed_action="present",
+            observed_at=now,
+            captured_at=now,
+            evidence_bundle_id=bundle.id,
+            verification_status="human_verified",
+            last_verified_at=now,
+        )
+        db.add(fact)
+        db.commit()
+        bundle_id = bundle.id
+        fact_id = fact.id
+
+    # The fact may be public, but a pending media review never is.
+    denied = client.get(f"/api/v1/evidence-bundles/{bundle_id}/public-media")
+    assert denied.status_code == 404
+
+    with factory() as db:
+        media = db.get(MediaObject, media_id)
+        assert media is not None
+        media.moderation_status = "approved"
+        db.commit()
+
+    visible = client.get(f"/api/v1/evidence-bundles/{bundle_id}/public-media")
+    assert visible.status_code == 200, visible.text
+    body = visible.json()
+    assert body["evidence_bundle_id"] == bundle_id
+    assert body["media_id"] == media_id
+    assert body["mime_type"] == "image/png"
+    assert body["expires_in"] == 300
+    assert body["url"].startswith(("http", "nullstorage://"))
+
+    # If governance later removes the public verification posture, the same
+    # bundle must immediately stop producing a public media URL.
+    with factory() as db:
+        fact = db.get(ObservedPresence, fact_id)
+        assert fact is not None
+        fact.verification_status = "unverified"
+        db.commit()
+
+    revoked = client.get(f"/api/v1/evidence-bundles/{bundle_id}/public-media")
+    assert revoked.status_code == 404
+
+
+def test_public_evidence_media_rejects_non_displayable_artifact(client, user_token):
+    """Media approval alone cannot override an artifact's licence posture."""
+    from datetime import UTC, datetime, timedelta
+
+    from app.db.session import get_session_factory
+    from app.models import (
+        EvidenceBundle,
+        MediaObject,
+        ObservedPresence,
+        RealityCandidate,
+        SourceArtifact,
+    )
+
+    place_id = client.get("/api/v1/places", params={"limit": 1}).json()["items"][0]["id"]
+    uploaded = client.post(
+        "/api/v1/media/upload",
+        params={"purpose": "reality_evidence", "owner_type": "place", "owner_id": place_id},
+        files={"file": ("private-evidence.png", _png_bytes(b"not-displayable"), "image/png")},
+        headers=_auth(user_token),
+    )
+    media_id = uploaded.json()["id"]
+    now = datetime.now(UTC)
+    factory = get_session_factory()
+    with factory() as db:
+        media = db.get(MediaObject, media_id)
+        assert media is not None
+        media.moderation_status = "approved"
+        media.expires_at = now + timedelta(days=1)
+        artifact = SourceArtifact(
+            source_platform="user_upload",
+            collector_type="OnsiteEvidenceCollector",
+            artifact_type="uploaded_image",
+            media_id=media.id,
+            collected_at=now,
+            publisher_type="ordinary_user",
+            display_allowed=False,
+            redistribution_allowed=False,
+        )
+        db.add(artifact)
+        db.flush()
+        bundle = EvidenceBundle(
+            artifact_id=artifact.id,
+            source_platform="user_upload",
+            publisher_type="ordinary_user",
+            captured_at=now,
+            evidence_class="original",
+        )
+        db.add(bundle)
+        db.flush()
+        candidate = RealityCandidate(
+            candidate_type="observed_presence",
+            place_id=place_id,
+            evidence_bundle_id=bundle.id,
+            animal_scope="dog",
+            observed_at=now,
+            captured_at=now,
+            review_status="APPROVED",
+            reality_decision="VERIFIED",
+            verification_status="human_verified",
+            published_at=now,
+        )
+        db.add(candidate)
+        db.flush()
+        db.add(
+            ObservedPresence(
+                candidate_id=candidate.id,
+                place_id=place_id,
+                animal_scope="dog",
+                observed_action="present",
+                observed_at=now,
+                captured_at=now,
+                evidence_bundle_id=bundle.id,
+                verification_status="human_verified",
+                last_verified_at=now,
+            )
+        )
+        db.commit()
+        bundle_id = bundle.id
+
+    response = client.get(f"/api/v1/evidence-bundles/{bundle_id}/public-media")
+    assert response.status_code == 404
