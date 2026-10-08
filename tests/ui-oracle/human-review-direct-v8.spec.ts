@@ -18,11 +18,13 @@ const BRANCH_ID = "3b5a341a-e550-5f0c-b35a-319ed43bd840";
 const OUT = path.resolve("artifacts/ui-direct-v8/HUMAN_REVIEW");
 
 function currentHead(): string {
-  if (process.env.GITHUB_SHA) return process.env.GITHUB_SHA;
+  // GITHUB_SHA in pull_request runs may refer to a synthetic merge commit.
+  // The capture workflow checks out the exact PR head, so repository HEAD is
+  // the only reliable identifier for the bytes actually used to take shots.
   try {
     return execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
   } catch {
-    return "unknown";
+    return process.env.GITHUB_SHA ?? "unknown";
   }
 }
 
