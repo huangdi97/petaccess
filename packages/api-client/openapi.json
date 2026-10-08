@@ -623,6 +623,49 @@
         }
       }
     },
+    "/api/v1/places/{place_id}/summary": {
+      "get": {
+        "tags": [
+          "places"
+        ],
+        "summary": "Get Place Summary",
+        "operationId": "get_place_summary_api_v1_places__place_id__summary_get",
+        "parameters": [
+          {
+            "name": "place_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Place Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlaceSummary"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "Exact-ID public spatial/list projection. Returns only active places and does not synthesize missing coordinates."
+      }
+    },
     "/api/v1/places/{place_id}": {
       "get": {
         "tags": [
