@@ -558,7 +558,7 @@ def create_confirmation(
             else ObservedPresence
         )
         target = db.get(model, body.target_claim_id)
-        if target is None or target.place_id != body.place_id:
+        if target is None or getattr(target, "place_id", None) != body.place_id:
             raise ApiError("确认目标不存在或不属于当前场所", code="confirmation_target_mismatch")
 
     if body.target_candidate_id:
