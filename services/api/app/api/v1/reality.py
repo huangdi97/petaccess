@@ -31,11 +31,13 @@ from app.db.session import get_db
 from app.models import (
     AnimalFacility,
     DisputeCase,
+    EvidenceBundle,
     ObservedPresence,
     Place,
     RealityCandidate,
     RealityConfirmation,
     RealityReport,
+    SourceArtifact,
     StaffResponseObservation,
     User,
     Zone,
@@ -80,6 +82,14 @@ class _EventReportMeta(TypedDict):
     claimed_event_at: datetime | None
 
 
+class _EventEvidenceMeta(TypedDict):
+    material_type: str | None
+    source_platform: str | None
+    publisher_type: str | None
+    evidence_class: str | None
+    display_allowed: bool | None
+
+
 # ---------------------------------------------------------------------------
 # Consumer — RealityAnswer (v0.9 §9)
 # ---------------------------------------------------------------------------
@@ -108,11 +118,13 @@ def _enum_text(value: object | None) -> str | None:
 def _presence_event(
     row: ObservedPresence,
     report_meta: _EventReportMeta | None = None,
+    evidence_meta: _EventEvidenceMeta | None = None,
     *,
     confirmation_count: int = 0,
     dispute_open: bool = False,
 ) -> RealityEventOut:
     report_meta = report_meta or {}
+    evidence_meta = evidence_meta or {}
     return RealityEventOut(
         id=row.id,
         event_type="observed_presence",
@@ -131,6 +143,11 @@ def _presence_event(
         observed_context=row.observed_context,
         source_id=row.source_id,
         evidence_bundle_id=row.evidence_bundle_id,
+        evidence_material_type=evidence_meta.get("material_type"),
+        evidence_source_platform=evidence_meta.get("source_platform"),
+        evidence_publisher_type=evidence_meta.get("publisher_type"),
+        evidence_class=evidence_meta.get("evidence_class"),
+        evidence_display_allowed=evidence_meta.get("display_allowed"),
         submitted_at=report_meta.get("submitted_at"),
         confirmation_count=confirmation_count,
         dispute_open=dispute_open,
@@ -148,6 +165,7 @@ def _staff_event(
     dispute_open: bool = False,
 ) -> RealityEventOut:
     report_meta = report_meta or {}
+    evidence_meta = evidence_meta or {}
     return RealityEventOut(
         id=row.id,
         event_type="staff_response",
@@ -169,6 +187,11 @@ def _staff_event(
         staff_policy_statement_verbatim=row.policy_statement_verbatim,
         source_id=row.source_id,
         evidence_bundle_id=row.evidence_bundle_id,
+        evidence_material_type=evidence_meta.get("material_type"),
+        evidence_source_platform=evidence_meta.get("source_platform"),
+        evidence_publisher_type=evidence_meta.get("publisher_type"),
+        evidence_class=evidence_meta.get("evidence_class"),
+        evidence_display_allowed=evidence_meta.get("display_allowed"),
         submitted_at=report_meta.get("submitted_at"),
         confirmation_count=confirmation_count,
         dispute_open=dispute_open,
@@ -186,6 +209,7 @@ def _facility_event(
     dispute_open: bool = False,
 ) -> RealityEventOut:
     report_meta = report_meta or {}
+    evidence_meta = evidence_meta or {}
     event_at = row.observed_at or row.last_verified_at or row.created_at
     basis = "observed" if row.observed_at else "verified" if row.last_verified_at else "recorded"
     return RealityEventOut(
@@ -216,6 +240,11 @@ def _facility_event(
         facility_operator_provided=row.operator_provided,
         source_id=row.source_id,
         evidence_bundle_id=row.evidence_bundle_id,
+        evidence_material_type=evidence_meta.get("material_type"),
+        evidence_source_platform=evidence_meta.get("source_platform"),
+        evidence_publisher_type=evidence_meta.get("publisher_type"),
+        evidence_class=evidence_meta.get("evidence_class"),
+        evidence_display_allowed=evidence_meta.get("display_allowed"),
         submitted_at=report_meta.get("submitted_at"),
         confirmation_count=confirmation_count,
         dispute_open=dispute_open,
@@ -267,6 +296,43 @@ def consumer_reality_events(
         for row in [*presence, *staff, *facilities]
         if row.candidate_id
     }
+
+    evidence_bundle_ids = {
+        row.evidence_bundle_id
+        for row in [*presence, *staff, *facilities]
+        if row.evidence_bundle_id
+    }
+    evidence_meta_by_bundle: dict[str, _EventEvidenceMeta] = {}
+    if evidence_bundle_ids:
+        evidence_rows = db.execute(
+            select(
+                EvidenceBundle.id,
+                SourceArtifact.artifact_type,
+                EvidenceBundle.source_platform,
+                EvidenceBundle.publisher_type,
+                EvidenceBundle.evidence_class,
+                SourceArtifact.display_allowed,
+            )
+            .join(SourceArtifact, SourceArtifact.id == EvidenceBundle.artifact_id)
+            .where(EvidenceBundle.id.in_(evidence_bundle_ids))
+        ).all()
+        evidence_meta_by_bundle = {
+            bundle_id: {
+                "material_type": material_type,
+                "source_platform": source_platform,
+                "publisher_type": publisher_type,
+                "evidence_class": evidence_class,
+                "display_allowed": bool(display_allowed),
+            }
+            for (
+                bundle_id,
+                material_type,
+                source_platform,
+                publisher_type,
+                evidence_class,
+                display_allowed,
+            ) in evidence_rows
+        }
     report_meta_by_candidate: dict[str, _EventReportMeta] = {}
     if candidate_ids:
         report_rows = db.execute(
@@ -372,6 +438,7 @@ def consumer_reality_events(
             _presence_event(
                 row,
                 report_meta_by_candidate.get(row.candidate_id),
+                evidence_meta_by_bundle.get(row.evidence_bundle_id or ""),
                 confirmation_count=confirmation_counts.get(row.id, 0),
                 dispute_open=("observed_presence", row.id) in open_disputes,
             )
