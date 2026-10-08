@@ -3964,6 +3964,8 @@ export interface components {
             evidence_bundle_id?: string | null;
             /** Submitted At */
             submitted_at?: string | null;
+            /** Confirmation Count */
+            confirmation_count?: number;
             /** Dispute Open */
             dispute_open?: boolean;
             /** Verification Status */
