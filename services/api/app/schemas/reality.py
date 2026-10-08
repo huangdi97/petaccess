@@ -203,6 +203,7 @@ class RealityEventOut(BaseModel):
     source_id: str | None = None
     evidence_bundle_id: str | None = None
     submitted_at: datetime | None = None
+    confirmation_count: int = 0
     dispute_open: bool = False
     verification_status: str
     freshness_state: str | None = None
