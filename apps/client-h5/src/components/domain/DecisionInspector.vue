@@ -437,12 +437,7 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
 
 .inspector-block--exception {
   padding: var(--pa-space-3) 0 var(--pa-space-3) var(--pa-space-4);
-  border-left: var(--pa-border-width) solid var(--pa-color-status-warn);
-  background: linear-gradient(
-    90deg,
-    var(--pa-color-status-warn-bg),
-    transparent 72%
-  );
+  border-left: var(--pa-border-width) solid var(--pa-color-status-conflict);
 }
 
 .inspector-block--exception .inspector-block__value {
