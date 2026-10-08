@@ -162,8 +162,8 @@ async function submit() {
       </div>
 
       <p class="operator-policy__boundary">
-        这条记录属于 OPERATOR_POLICY。它不会把工作人员的一次处理变成政策，也不能覆盖
-        LEGAL / REGULATORY_GUIDANCE；现场事实与证据仍独立保留。
+        这条记录属于 OPERATOR_POLICY。它不会把工作人员的一次处理变成政策，也不能覆盖 LEGAL /
+        REGULATORY_GUIDANCE；现场事实与证据仍独立保留。
       </p>
 
       <button
