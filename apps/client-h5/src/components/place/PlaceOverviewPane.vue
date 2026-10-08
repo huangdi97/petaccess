@@ -497,6 +497,4 @@ const divergenceLine = computed(() => {
     display: none;
   }
 }
-
-
 </style>
