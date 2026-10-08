@@ -256,6 +256,7 @@ const { desktop: isDesktop } = useBreakpoint();
               :place-name="placeName"
               :parent-place-id="parentPlaceId"
               :zones="zones"
+              :initial-zone-id="effortInitialZoneId"
               :online="online"
               :signed-in="signedIn"
               :kind="realityKind"
