@@ -54,16 +54,16 @@ const emptyCopy = computed(() =>
         description: "当前场所未收录该区域，不能将其他区域的记录归到这里。请返回全部区域重新选择。",
       }
     : filter.value === "all"
-    ? {
-        title: zoneId.value ? "该区域暂无经核验现场记录" : "暂无近期现场记录",
-        description: zoneId.value
-          ? "仅显示所选区域的事实。无记录不代表该区域没有动物，可返回全部区域查看。"
-          : "这并不代表现场没有动物。",
-      }
-    : {
-        title: "当前筛选下没有对应记录",
-        description: "可切换到“全部事实”查看其他经核验记录。",
-      },
+      ? {
+          title: zoneId.value ? "该区域暂无经核验现场记录" : "暂无近期现场记录",
+          description: zoneId.value
+            ? "仅显示所选区域的事实。无记录不代表该区域没有动物，可返回全部区域查看。"
+            : "这并不代表现场没有动物。",
+        }
+      : {
+          title: "当前筛选下没有对应记录",
+          description: "可切换到“全部事实”查看其他经核验记录。",
+        },
 );
 
 const summaryLine = computed(() => {
