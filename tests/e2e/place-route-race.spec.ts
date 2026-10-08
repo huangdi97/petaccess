@@ -35,7 +35,6 @@ test("late previous-place response never contaminates the current dossier", asyn
   await expect(dossier).not.toContainText("星河咖啡");
 });
 
-
 test("operator claim cannot inherit the previous place's owner and zone context", async ({
   page,
 }) => {
