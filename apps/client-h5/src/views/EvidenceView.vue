@@ -166,19 +166,25 @@ const sourceSummary = computed(() => {
 });
 
 async function load() {
-  if (!placeId.value) return;
+  const id = placeId.value;
+  if (!id) return;
   const epoch = loadEpoch.begin();
   loading.value = true;
   error.value = "";
   try {
+    // A direct Evidence deep link must restore the persisted query subject
+    // before taking the rule snapshot; otherwise the same place can briefly
+    // resolve as the default ordinary dog instead of the user's active pet.
+    await session.restore();
+    if (!loadEpoch.isCurrent(epoch) || placeId.value !== id) return;
     const [traceRow, eventRows, placeRow, zoneRows, snapshotRow] = await Promise.all([
-      client.realityTrace(placeId.value),
-      client.realityEvents(placeId.value),
-      client.place(placeId.value),
-      client.zones(placeId.value),
-      snapshotFor(placeId.value).then((result) => result.snapshot),
+      client.realityTrace(id),
+      client.realityEvents(id),
+      client.place(id),
+      client.zones(id),
+      snapshotFor(id).then((result) => result.snapshot),
     ]);
-    if (!loadEpoch.isCurrent(epoch)) return;
+    if (!loadEpoch.isCurrent(epoch) || placeId.value !== id) return;
     trace.value = traceRow;
     events.value = eventRows;
     place.value = placeRow;
