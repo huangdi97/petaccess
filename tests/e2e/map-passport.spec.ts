@@ -65,6 +65,49 @@ test("A1.1 — Map 内搜索保持 Spatial Workspace 并选择真实场所", asy
   await expect(page.getByTestId("place-preview")).toContainText("云栖中心");
 });
 
+test("A1.2 — mobile map searches without leaving the spatial canvas", async ({ page }) => {
+  await page.setViewportSize({ width: 430, height: 932 });
+  await page.goto(`${BASE}/#/map`);
+
+  const input = page.getByTestId("map-mobile-search-input");
+  await expect(input).toBeVisible();
+  await expect(page.getByTestId("map-mobile-locate")).toBeVisible();
+
+  await input.fill("云栖中心");
+  await page.getByTestId("map-mobile-search-submit").click();
+
+  await expect(page.getByTestId("map")).toBeVisible();
+  await expect(page.getByTestId("map-mobile-sheet")).toContainText("云栖中心", {
+    timeout: 15000,
+  });
+});
+
+test("A1.3 — missing coordinates never create fictional map pins, even in dev", async ({
+  page,
+}) => {
+  await page.route("**/api/v1/places/nearby**", async (route) => {
+    const response = await route.fetch();
+    const payload = await response.json();
+    await route.fulfill({
+      status: response.status(),
+      contentType: "application/json",
+      body: JSON.stringify({
+        ...payload,
+        items: payload.items.map((place: Record<string, unknown>) => ({
+          ...place,
+          latitude: null,
+          longitude: null,
+        })),
+      }),
+    });
+  });
+  await page.goto(`${BASE}/#/map`);
+
+  await expect(page.getByTestId("map-surface")).toBeVisible();
+  await expect(page.locator(".map-pin")).toHaveCount(0);
+  await expect(page.getByTestId("coverage-hint")).toContainText("缺少已核验坐标");
+});
+
 test("A2 — map 错误统一呈现，不泄漏内部字样", async ({ page }) => {
   await page.route("**/api/v1/places/nearby**", (route) =>
     route.fulfill({
