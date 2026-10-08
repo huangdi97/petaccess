@@ -47,8 +47,7 @@ test("desktop shows the rail with both groups and no bottom tabs", async ({ page
   const settingsBox = await rail.getByRole("link", { name: "设置", exact: true }).boundingBox();
   expect(railBox).not.toBeNull();
   expect(settingsBox).not.toBeNull();
-  const bottomGap =
-    railBox!.y + railBox!.height - (settingsBox!.y + settingsBox!.height);
+  const bottomGap = railBox!.y + railBox!.height - (settingsBox!.y + settingsBox!.height);
   expect(bottomGap).toBeLessThanOrEqual(32);
 });
 
