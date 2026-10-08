@@ -531,9 +531,14 @@ const placeFixture = computed<string>(() => {
 .place-dossier__head {
   display: flex;
   flex-direction: column;
-  gap: var(--pa-space-2);
-  padding-bottom: var(--pa-space-5);
+  gap: var(--pa-space-3);
+  padding: var(--pa-space-5) var(--pa-space-5) var(--pa-space-4);
   border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  background: linear-gradient(
+    115deg,
+    var(--pa-color-surface-muted) 0%,
+    var(--pa-color-surface) 84%
+  );
   margin-bottom: var(--pa-space-4);
 }
 
@@ -547,6 +552,15 @@ const placeFixture = computed<string>(() => {
 .place-dossier__identity-copy {
   flex: 1 1 auto;
   min-width: 0;
+}
+
+/* Identity anchor is a neutral place-type glyph, not an invented venue photo.
+   Distinguish the Place dossier header from the evidence sections below. */
+.place-dossier__identity-row :deep(.place-type-glyph) {
+  width: 52px;
+  height: 52px;
+  border-color: var(--pa-color-border);
+  background: var(--pa-color-surface);
 }
 
 .place-dossier__map-link {
@@ -668,7 +682,7 @@ const placeFixture = computed<string>(() => {
   }
 
   .place-dossier__head {
-    padding-bottom: var(--pa-space-4);
+    padding: var(--pa-space-4);
     margin-bottom: var(--pa-space-3);
   }
 
