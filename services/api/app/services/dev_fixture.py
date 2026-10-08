@@ -27,6 +27,7 @@ The dataset is deliberately small and clearly fictional (names carry
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from math import asin, cos, radians, sin, sqrt
 
 from app.core.config import Settings, get_settings
 from app.db.safety import DatabaseRole, classify_database_name, database_name_from_url
@@ -112,6 +113,32 @@ def fixture_place_summaries(q: str | None = None) -> list[PlaceSummary]:
     return out
 
 
+def fixture_nearby_summaries(lat: float, lng: float, radius_m: int) -> list[PlaceSummary]:
+    """Return only demo places genuinely within the requested map radius.
+
+    A one-shot device location away from Shanghai must not produce Shanghai
+    fixtures as its 'nearby' results. Distance is based on the fixed WGS84
+    demo points; it is never generated from a place ID.
+    """
+    earth_radius_m = 6_371_008.8
+    nearby: list[PlaceSummary] = []
+    for place in fixture_place_summaries():
+        if place.latitude is None or place.longitude is None:
+            continue
+        lat_delta = radians(place.latitude - lat)
+        lng_delta = radians(place.longitude - lng)
+        a = sin(lat_delta / 2) ** 2 + (
+            cos(radians(lat))
+            * cos(radians(place.latitude))
+            * sin(lng_delta / 2) ** 2
+        )
+        distance_m = 2 * earth_radius_m * asin(min(1.0, sqrt(a)))
+        if distance_m <= radius_m:
+            place.distance_m = round(distance_m, 1)
+            nearby.append(place)
+    return sorted(nearby, key=lambda place: place.distance_m or 0)
+
+
 def is_fixture_place_id(place_id: str) -> bool:
     return any(str(row["id"]) == place_id for row in _FIXTURE_PLACES)
 
@@ -139,6 +166,7 @@ def fixture_place_out(place_id: str) -> PlaceOut | None:
 __all__ = [
     "dev_fixture_active",
     "fixture_place_summaries",
+    "fixture_nearby_summaries",
     "is_fixture_place_id",
     "fixture_place_out",
 ]
