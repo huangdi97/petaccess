@@ -68,3 +68,39 @@ test("unresolved place scope blocks fact submission and offers a real retry", as
   await failure.getByRole("button", { name: "重试" }).click();
   await expect(page.getByTestId("entry-rule")).toBeVisible();
 });
+
+test("scoped Reality contribution selects only a zone owned by the current place", async ({
+  page,
+  request,
+}) => {
+  const created = await request.post("http://127.0.0.1:8010/api/v1/auth/register", {
+    data: {
+      display_name: "区域事实测试",
+      email: `zone-flow-${Date.now()}@example.com`,
+      password: "passw0rd123",
+    },
+  });
+  expect(created.ok(), await created.text()).toBeTruthy();
+  const token = (await created.json()).access_token as string;
+  await page.addInitScript((value) => localStorage.setItem("pa_token", value), token);
+
+  const zonesResponse = await request.get(
+    `http://127.0.0.1:8010/api/v1/places/${MALL_ID}/zones`,
+  );
+  expect(zonesResponse.ok(), await zonesResponse.text()).toBeTruthy();
+  const zones = (await zonesResponse.json()) as { id: string }[];
+  expect(zones.length).toBeGreaterThan(0);
+  const zoneId = zones[0]!.id;
+
+  await page.goto(`/#/contribute/${MALL_ID}?zone=${zoneId}`);
+  await page.getByTestId("entry-reality-observed_presence").click();
+  await expect(page.locator("#reality-zone")).toHaveValue(zoneId);
+
+  // A zone that is not in the loaded place dossier can never become
+  // an implicit submission target merely because it appears in a URL.
+  await page.goto(
+    `/#/contribute/${MALL_ID}?zone=00000000-0000-0000-0000-000000000000`,
+  );
+  await page.getByTestId("entry-reality-observed_presence").click();
+  await expect(page.locator("#reality-zone")).toHaveValue("");
+});
