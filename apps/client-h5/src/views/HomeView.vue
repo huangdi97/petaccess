@@ -115,15 +115,17 @@ const {
             <h2 class="home-section-title">最近查看</h2>
             <button class="btn-inline" data-testid="clear-recent" @click="clearRecent">清空</button>
           </div>
-          <div
+          <button
             v-for="r in recent"
             :key="r.id"
+            type="button"
             class="home-recent__item"
             :data-testid="'recent-' + r.id"
+            :aria-label="`查看最近场所 ${r.name}`"
             @click="open(r.id)"
           >
             <strong>{{ r.name }}</strong>
-          </div>
+          </button>
         </section>
 
         <p class="home-semantics" data-testid="home-semantics">
@@ -229,6 +231,13 @@ const {
 }
 
 .home-recent__item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  font: inherit;
+  color: inherit;
   cursor: pointer;
   padding: var(--pa-space-3) 0;
   border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
@@ -236,6 +245,11 @@ const {
 
 .home-recent__item:last-child {
   border-bottom: none;
+}
+
+.home-recent__item:focus-visible {
+  outline: 2px solid var(--pa-color-border-focus);
+  outline-offset: -2px;
 }
 
 .home-lenses {
