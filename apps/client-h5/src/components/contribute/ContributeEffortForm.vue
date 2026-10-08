@@ -1,18 +1,9 @@
 <script setup lang="ts">
-/**
- * ContributeEffortForm — structured "this visit I did not see an animal" record.
- *
- * A negative observation is only interpretable together with observation
- * effort. The form therefore records time + duration + covered zone and never
- * creates a NO_ANIMAL_PRESENCE claim. When opened from an existing presence
- * event it also links the effort to that fact without rewriting history. The
- * effort stays provenance/coverage data; it is not published as a presence claim.
- */
-import { computed, ref } from "vue";
-import { client } from "@petaccess/client-core";
-import { isoAt } from "./contributeSupport";
-import { presentDescription } from "../../errors";
 import ContributionStepShell from "./ContributionStepShell.vue";
+import {
+  OBSERVATION_EFFORT_OPTIONS,
+  useObservationEffortContribution,
+} from "../../composables/useObservationEffortContribution";
 
 defineOptions({ name: "ContributeEffortForm" });
 
@@ -28,77 +19,19 @@ const props = withDefaults(
   }>(),
   { targetClaimId: null, initialZoneId: null },
 );
-
 const emit = defineEmits<{ done: [msg: string]; back: [] }>();
 
-type SourceMode = "on_site_now" | "on_site_past";
-const sourceMode = ref<SourceMode>("on_site_now");
-const occurredAt = ref(new Date().toISOString().slice(0, 10));
-const durationBucket = ref("");
-const zoneId = ref(props.initialZoneId ?? "");
-const busy = ref(false);
-const error = ref("");
-
-const EFFORT_OPTIONS = [
-  { key: "lt_10_min", label: "不到 10 分钟" },
-  { key: "min_10_30", label: "10–30 分钟" },
-  { key: "min_30_120", label: "30 分钟 – 2 小时" },
-  { key: "gt_120_min", label: "超过 2 小时" },
-] as const;
-
-const canSubmit = computed(
-  () => props.online && props.signedIn && !busy.value && Boolean(durationBucket.value),
-);
-
-async function submit() {
-  if (!canSubmit.value) return;
-  error.value = "";
-  busy.value = true;
-  try {
-    const observedAt =
-      sourceMode.value === "on_site_now" ? new Date().toISOString() : isoAt(occurredAt.value);
-    await client.createRealityReport(props.placeId, {
-      report: {
-        origin: sourceMode.value,
-        place_id: props.placeId,
-        subject_place_id: props.placeId,
-        place_match_state: "exact_place",
-        place_match_evidence_types: ["user_confirmation"],
-        observed_at: observedAt,
-        time_evidence_state:
-          sourceMode.value === "on_site_now" ? "live_device_time" : "exact_event_date",
-        time_certainty: "exact",
-        fact_evidence_state: "first_hand_no_media",
-        privacy_state: "private",
-      },
-      candidates: [],
-      effort: {
-        place_id: props.placeId,
-        duration_bucket: durationBucket.value,
-        covered_zone_ids: zoneId.value ? [zoneId.value] : [],
-        animal_observed: false,
-        observed_at: observedAt,
-      },
-      confirmation: props.targetClaimId
-        ? {
-            confirmation_type: "not_seen_now",
-            place_id: props.placeId,
-            target_claim_id: props.targetClaimId,
-            observed_at: observedAt,
-          }
-        : null,
-      external_content: null,
-    });
-    emit(
-      "done",
-      "已记录这次现场观察：本次停留没有看到动物。它不会删除较早记录，也不会生成“这里没有动物”的结论。",
-    );
-  } catch (e) {
-    error.value = presentDescription(e);
-  } finally {
-    busy.value = false;
-  }
-}
+const { sourceMode, occurredAt, durationBucket, zoneId, busy, error, canSubmit, submit } =
+  useObservationEffortContribution(
+    {
+      placeId: props.placeId,
+      online: props.online,
+      signedIn: props.signedIn,
+      targetClaimId: props.targetClaimId,
+      initialZoneId: props.initialZoneId,
+    },
+    (message) => emit("done", message),
+  );
 </script>
 
 <template>
@@ -129,7 +62,11 @@ async function submit() {
         <label for="effort-duration">在场时长</label>
         <select id="effort-duration" v-model="durationBucket" data-testid="effort-duration">
           <option value="" disabled>请选择</option>
-          <option v-for="item in EFFORT_OPTIONS" :key="item.key" :value="item.key">
+          <option
+            v-for="item in OBSERVATION_EFFORT_OPTIONS"
+            :key="item.key"
+            :value="item.key"
+          >
             {{ item.label }}
           </option>
         </select>
