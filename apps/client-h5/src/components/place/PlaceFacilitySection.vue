@@ -58,8 +58,10 @@ function facilityZone(event: RealityEventView): string {
         <dl class="facility-facts">
           <dt>用途依据</dt>
           <dd>{{ facilityPurposeLabel(event.facility_purpose_state) }}</dd>
-          <dt>当前状态</dt>
+          <dt>记录时状态</dt>
           <dd>{{ facilityStateLabel(event.facility_state) }}</dd>
+          <dt>记录所述日期</dt>
+          <dd>{{ displayRealityTime(event.event_at) }}</dd>
           <dt>使用方式</dt>
           <dd>{{ facilityAccessModeLabel(event.facility_access_mode) }}</dd>
           <template v-if="event.facility_capacity != null">
@@ -113,7 +115,7 @@ function facilityZone(event: RealityEventView): string {
           <template v-if="item.zone_name">{{ item.zone_name }} · </template>
           {{
             facilityPurposeIsConfirmed(item.purpose_state)
-              ? facilityStateLabel(item.operational_state)
+              ? `记录状态：${facilityStateLabel(item.operational_state)}`
               : "用途待核验"
           }}
           · {{ item.count }} 处
@@ -126,7 +128,7 @@ function facilityZone(event: RealityEventView): string {
     </template>
 
     <p class="facility-note">
-      设施存在只说明这里观察到相关设施；不等于允许动物进入，也不构成安全或动物福利保证。
+      设施记录只说明有来源报告过相关设施，记录时状态不保证当前仍可用；不等于允许动物进入，也不构成安全或动物福利保证。
     </p>
   </section>
 </template>
