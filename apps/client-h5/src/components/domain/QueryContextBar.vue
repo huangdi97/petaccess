@@ -1,67 +1,25 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import { client, session, type PetView, type QueryMode } from "@petaccess/client-core";
+import { session } from "@petaccess/client-core";
 import PaDialog from "../ui/PaDialog.vue";
-import { presentDescription } from "../../errors";
-import { querySummaryLabel } from "../../consumer/queryContext";
+import {
+  QUERY_MODES,
+  SERVICE_ROLES,
+  useQueryContextEditor,
+} from "../../composables/useQueryContextEditor";
 
 defineOptions({ name: "QueryContextBar" });
 
-const open = ref(false);
-const pets = ref<PetView[]>([]);
-const petsLoaded = ref(false);
-const loadingPets = ref(false);
-const petError = ref("");
-
-type EditableQueryMode = Extract<QueryMode, "with_pet" | "service_dog">;
-
-const MODES: { key: EditableQueryMode; label: string; hint: string }[] = [
-  { key: "with_pet", label: "普通携带", hint: "按当前宠物档案或默认普通犬查询" },
-  { key: "service_dog", label: "服务犬通行", hint: "按用户声明的服务犬角色查询适用规则" },
-];
-
-const SERVICE_ROLES = [
-  { key: "", label: "角色未细分" },
-  { key: "guide_dog", label: "导盲犬" },
-  { key: "hearing_dog", label: "助听犬" },
-  { key: "assistance_dog", label: "辅助犬" },
-  { key: "other_service_dog", label: "其他服务犬" },
-] as const;
-
-const summary = computed(() => querySummaryLabel());
-
-async function openEditor() {
-  open.value = true;
-  petError.value = "";
-  if (petsLoaded.value || loadingPets.value) return;
-  loadingPets.value = true;
-  try {
-    await session.restore();
-    pets.value = session.signedIn ? await client.myPets() : [];
-    petsLoaded.value = true;
-  } catch (error) {
-    petError.value = presentDescription(error);
-  } finally {
-    loadingPets.value = false;
-  }
-}
-
-function selectMode(mode: EditableQueryMode) {
-  session.mode = mode;
-  if (mode !== "service_dog") session.setDeclaredRole(null);
-}
-
-function selectPet(pet: PetView) {
-  session.setActivePet(pet);
-  session.setDeclaredRole(null);
-  session.mode = pet.service_role === "working" ? "service_dog" : "with_pet";
-}
-
-function selectServiceRole(event: Event) {
-  const value = (event.target as HTMLSelectElement).value;
-  session.setDeclaredRole(value || null);
-  session.mode = "service_dog";
-}
+const {
+  open,
+  pets,
+  loadingPets,
+  petError,
+  summary,
+  selectMode,
+  selectPet,
+  selectServiceRole,
+  openEditor,
+} = useQueryContextEditor();
 </script>
 
 <template>
@@ -90,7 +48,7 @@ function selectServiceRole(event: Event) {
           <h3>携带情境</h3>
           <div class="query-context__modes" role="group" aria-label="查询视角">
             <button
-              v-for="mode in MODES"
+              v-for="mode in QUERY_MODES"
               :key="mode.key"
               type="button"
               class="query-context__mode"
@@ -163,14 +121,8 @@ function selectServiceRole(event: Event) {
         <section class="query-context__section" aria-label="当前固定查询范围">
           <h3>当前问题</h3>
           <dl class="query-context__facts">
-            <div>
-              <dt>动作</dt>
-              <dd>进入</dd>
-            </div>
-            <div>
-              <dt>范围</dt>
-              <dd>场所公共区域</dd>
-            </div>
+            <div><dt>动作</dt><dd>进入</dd></div>
+            <div><dt>范围</dt><dd>场所公共区域</dd></div>
           </dl>
           <p class="muted query-context__hint">
             具体楼层、餐饮区或其他 Zone 的规则在场所档案中单独查看，不会被 place-level 结论覆盖。
@@ -179,12 +131,7 @@ function selectServiceRole(event: Event) {
       </div>
 
       <template #actions>
-        <button
-          type="button"
-          class="primary"
-          data-testid="query-context-done"
-          @click="open = false"
-        >
+        <button type="button" class="primary" data-testid="query-context-done" @click="open = false">
           完成
         </button>
       </template>
