@@ -38,6 +38,7 @@ import { presentDescription } from "../errors";
 import { mapMarkersFor, visibleMapPlaces } from "../consumer/mapSpatialProjection";
 import { useBreakpoint } from "./useBreakpoint";
 import { useMapDeepLink } from "./useMapDeepLink";
+import { useMapLensRoute } from "./useMapLensRoute";
 import { useMapSearch } from "./useMapSearch";
 import { useOneShotMapLocation } from "./useOneShotMapLocation";
 
@@ -230,22 +231,7 @@ export function useMapWorkspace() {
 
   // Back/forward or an external deep link changes ?place= → update the selection
   // (guard keeps this from looping when it was our own push).
-  watch(lens, (value) => {
-    activeFilters.value = [];
-    const routeValue = typeof route.query.lens === "string" ? route.query.lens : "rule";
-    if (routeValue === value || (value === "rule" && routeValue === "rule")) return;
-    void router.replace({
-      query: { ...route.query, lens: value === "rule" ? undefined : value },
-    });
-  });
-
-  watch(
-    () => route.query.lens,
-    (value) => {
-      const next = parseMapLens(value);
-      if (next !== lens.value) lens.value = next;
-    },
-  );
+  useMapLensRoute(lens, activeFilters);
 
   watch(
     () => route.query.place,
