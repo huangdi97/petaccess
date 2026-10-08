@@ -390,11 +390,7 @@ const placeFixture = computed<string>(() => {
             </template>
             <RouterLink v-else class="btn-inline" to="/onboarding">登录后关注 →</RouterLink>
           </section>
-          <div
-            v-if="view === 'overview'"
-            class="place-governance-row"
-            data-ui="place-governance"
-          >
+          <div v-if="view === 'overview'" class="place-governance-row" data-ui="place-governance">
             <span class="muted">你是场所管理方？</span>
             <RouterLink :to="`/place/${placeId}/operator-claim`" class="btn-inline">
               认领场所并提交管理方规则 →
