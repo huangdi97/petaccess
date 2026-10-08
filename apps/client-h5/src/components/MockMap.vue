@@ -221,18 +221,19 @@ const MASS = [
         <div class="map-cluster" :class="'s-' + c.status">{{ c.count }}</div>
       </template>
       <template v-else>
-        <!-- v0.2.5 §26：未选中 marker 只显示小 symbol，不永久铺满状态字；
-             只有选中的（或 hover）才上 label。 -->
-        <div v-if="isSelectedCluster(c)" class="lbl" :class="'s-' + c.status">
+        <!-- Current freeze: the map may stay visually quiet, but status must
+             never be color-only. The text label appears on hover/focus/selection;
+             the marker itself always carries a redundant semantic glyph. -->
+        <div class="lbl" :class="'s-' + c.status">
           {{ markerLabel(c) }}
         </div>
-        <!-- v0.2.7 §10：dot 是 marker 本体（含语义形状），data-ui 供几何 gate 测量：
-             map-marker / map-marker-selected（scale + halo + elevation）。 -->
         <div
           class="dot"
           :class="['s-' + c.status, { 'dot--selected': isSelectedCluster(c) }]"
           :data-ui="isSelectedCluster(c) ? 'map-marker-selected' : 'map-marker'"
-        ></div>
+        >
+          <span class="dot__glyph" aria-hidden="true">{{ glyph(c.status) }}</span>
+        </div>
       </template>
     </div>
     <div v-if="!clusters.length" class="map-empty muted">当前视野内暂无已收录场所</div>
@@ -437,13 +438,30 @@ const MASS = [
 }
 
 .lbl {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-size: var(--pa-font-size-sm);
   font-weight: var(--pa-font-weight-medium);
   white-space: nowrap;
   background: var(--pa-color-map-label-bg);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
   border-radius: var(--pa-radius-sm);
-  padding: 0 var(--pa-space-1);
+  padding: 1px var(--pa-space-1);
   color: var(--pa-color-text-primary);
+  opacity: 0;
+  transform: translateY(2px);
+  pointer-events: none;
+  transition:
+    opacity var(--pa-motion-fast) var(--pa-motion-ease),
+    transform var(--pa-motion-fast) var(--pa-motion-ease);
+}
+
+.map-pin:hover .lbl,
+.map-pin:focus-visible .lbl,
+.map-pin--selected .lbl {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 /* v0.2.7 §10 marker 系统：
@@ -454,22 +472,61 @@ const MASS = [
  * - SELECTED     = scale 1.33x + halo + elevation（dot--selected）
  */
 .dot {
-  width: 12px;
-  height: 12px;
+  width: 18px;
+  height: 18px;
   border-radius: var(--pa-radius-pill);
   border: 2px solid var(--pa-color-map-pin-border);
-  transition: box-shadow var(--pa-motion-fast) var(--pa-motion-ease);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--pa-color-text-inverse);
+  font-family: var(--pa-font-family-numeric);
+  font-size: 10px;
+  font-weight: var(--pa-font-weight-bold);
+  line-height: 1;
+  transition:
+    box-shadow var(--pa-motion-fast) var(--pa-motion-ease),
+    transform var(--pa-motion-fast) var(--pa-motion-ease);
+}
+
+.dot__glyph {
+  transform: translateY(-0.5px);
 }
 
 .dot.s-CONDITIONAL {
-  background: transparent;
+  background: var(--pa-color-surface);
   border-width: 3px;
   border-color: var(--pa-color-status-conditional);
+  color: var(--pa-color-status-conditional);
+}
+
+.dot.s-UNKNOWN {
+  background: var(--pa-color-surface);
+  color: var(--pa-color-status-unknown);
+}
+
+.dot.s-RESTRICTED {
+  border-radius: 5px;
+}
+
+.dot.s-CONFLICT {
+  border-radius: 4px;
+  transform: rotate(45deg);
+}
+
+.dot.s-CONFLICT .dot__glyph {
+  transform: rotate(-45deg) translateY(-0.5px);
+}
+
+.dot.s-STALE {
+  background: var(--pa-color-surface);
+  border-style: dashed;
+  color: var(--pa-color-status-stale);
 }
 
 .dot--selected {
-  width: 16px;
-  height: 16px;
+  width: 22px;
+  height: 22px;
   box-shadow:
     0 0 0 4px var(--pa-color-accent-weak),
     var(--pa-elevation-2);
