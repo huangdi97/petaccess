@@ -269,8 +269,10 @@ def test_external_content_requires_time_evidence(client, place_id):
 
 def test_external_content_keeps_published_and_event_time_separate(client, place_id, signed_user):
     """§20: content_published_at stays distinct from observed_at in the record."""
-    published = (datetime.now(UTC) - timedelta(days=3)).isoformat()
-    observed = (datetime.now(UTC) - timedelta(days=1)).isoformat()
+    # A retrospective public post is published *after* the described event.
+    # The original fixture reversed this order while testing field separation.
+    published = (datetime.now(UTC) - timedelta(days=1)).isoformat()
+    observed = (datetime.now(UTC) - timedelta(days=3)).isoformat()
     r = client.post(
         f"/api/v1/places/{place_id}/reality/reports",
         headers=signed_user,
@@ -282,7 +284,7 @@ def test_external_content_keeps_published_and_event_time_separate(client, place_
                 observed_at=observed,
                 time_certainty="approximate",
             ),
-            "candidates": [_presence_candidate()],
+            "candidates": [{**_presence_candidate(), "observed_at": observed}],
             "external_content": {
                 "source_url": "https://example.com/pet-post-1",
                 "platform": "xiaohongshu",
