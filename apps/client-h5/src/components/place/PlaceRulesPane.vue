@@ -153,10 +153,7 @@ function ruleConditionLines(r: RuleView): string[] {
     <section v-if="conflicts.hasConflict" class="rule-conflict" data-testid="rule-conflict">
       <p class="rule-conflict__title">△ 来源不一致</p>
       <p class="muted rule-conflict__note">{{ conflicts.note }}</p>
-      <RouterLink
-        class="btn-inline"
-        :to="`/place/${placeId}?view=evidence`"
-      >
+      <RouterLink class="btn-inline" :to="`/place/${placeId}?view=evidence`">
         查看差异 →
       </RouterLink>
     </section>
@@ -190,9 +187,7 @@ function ruleConditionLines(r: RuleView): string[] {
       <p class="muted history-note">
         管理方声明与用户观察并存：认领后管理方规则标注来源，用户仍可提交现场记录。
       </p>
-      <RouterLink class="btn-inline" :to="`/contribute/${placeId}`">
-        报告规则 / 贡献 →
-      </RouterLink>
+      <RouterLink class="btn-inline" :to="`/contribute/${placeId}`"> 报告规则 / 贡献 → </RouterLink>
     </section>
   </div>
 </template>
