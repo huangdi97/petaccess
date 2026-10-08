@@ -130,7 +130,9 @@ test("runtime console gate: no unexpected console.error / pageerror on Home+Sear
   expect(errors, `unexpected console errors: ${errors.join(" | ")}`).toEqual([]);
 });
 
-test("evidence rail exposes governance state instead of a generic trust badge", async ({ page }) => {
+test("evidence rail exposes governance state instead of a generic trust badge", async ({
+  page,
+}) => {
   await page.goto(`/#/place/${MALL_ID}/evidence`);
   await expect(page.getByTestId("evidence-workspace")).toBeVisible();
   const governance = page.locator('[data-ui="evidence-governance"]');
