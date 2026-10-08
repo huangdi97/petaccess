@@ -89,6 +89,62 @@ const STATUS_PRIORITY: MapMarker["status"][] = [
 ];
 
 /**
+ * Merge clusters whose anchors collide on a typical map canvas at this zoom.
+ * It is important to do this in the shared projection, not by offsetting
+ * displayed pins away from their actual WGS84 position. A merged anchor is the
+ * count-weighted centroid of recorded positions; all member IDs are retained.
+ * At higher zoom the proximity threshold shrinks and nearby places separate.
+ */
+function mergeCrowdedClusters(clusters: MapCluster[], zoom: number): MapCluster[] {
+  const spanLng = 0.08 * Math.pow(2, 14 - zoom);
+  const gapLng = spanLng * 0.055;
+  const gapLat = spanLng * 0.62 * 0.055;
+  const ordered = [...clusters].sort((a, b) => a.id.localeCompare(b.id));
+  const roots = ordered.map((_, i) => i);
+
+  function find(i: number): number {
+    while (roots[i] !== i) {
+      roots[i] = roots[roots[i]];
+      i = roots[i];
+    }
+    return i;
+  }
+
+  for (let i = 0; i < ordered.length; i++) {
+    for (let j = i + 1; j < ordered.length; j++) {
+      if (
+        Math.abs(ordered[i].lng - ordered[j].lng) <= gapLng &&
+        Math.abs(ordered[i].lat - ordered[j].lat) <= gapLat
+      ) {
+        roots[find(j)] = find(i);
+      }
+    }
+  }
+
+  const groups = new Map<number, MapCluster[]>();
+  ordered.forEach((cluster, i) => {
+    const key = find(i);
+    const members = groups.get(key) ?? [];
+    members.push(cluster);
+    groups.set(key, members);
+  });
+
+  return [...groups.values()].map((group) => {
+    if (group.length === 1) return group[0];
+    const count = group.reduce((sum, cluster) => sum + cluster.count, 0);
+    const memberIds = group.flatMap((cluster) => cluster.memberIds).sort();
+    return {
+      id: `near:${memberIds[0]}`,
+      count,
+      lat: group.reduce((sum, cluster) => sum + cluster.lat * cluster.count, 0) / count,
+      lng: group.reduce((sum, cluster) => sum + cluster.lng * cluster.count, 0) / count,
+      status: STATUS_PRIORITY.find((status) => group.some((cluster) => cluster.status === status)) ?? "UNKNOWN",
+      memberIds,
+    };
+  }).sort((a, b) => a.id.localeCompare(b.id));
+}
+
+/**
  * Deterministic grid clustering.
  *
  * Above `unclusterAt` zoom every marker stands alone (the user is close enough
@@ -105,14 +161,17 @@ export function clusterMarkers(
   const baseCellDeg = opts.baseCellDeg ?? 0.02;
 
   if (zoom >= unclusterAt) {
-    return markers.map((m) => ({
-      id: `m:${m.id}`,
-      count: 1,
-      lat: m.lat,
-      lng: m.lng,
-      status: m.status,
-      memberIds: [m.id],
-    }));
+    return mergeCrowdedClusters(
+      markers.map((m) => ({
+        id: `m:${m.id}`,
+        count: 1,
+        lat: m.lat,
+        lng: m.lng,
+        status: m.status,
+        memberIds: [m.id],
+      })),
+      zoom,
+    );
   }
 
   const cell = baseCellDeg * Math.pow(2, unclusterAt - zoom);
@@ -146,7 +205,7 @@ export function clusterMarkers(
   }
   // stable order so screenshots and tests do not flake
   clusters.sort((a, b) => a.id.localeCompare(b.id));
-  return clusters;
+  return mergeCrowdedClusters(clusters, zoom);
 }
 
 /* ------------------------------------------------------------------ coverage */
