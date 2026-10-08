@@ -8,6 +8,7 @@ import StateMessage from "../components/StateMessage.vue";
 import OperatorClaimForm from "../components/operator/OperatorClaimForm.vue";
 import OperatorPolicyForm from "../components/operator/OperatorPolicyForm.vue";
 import { presentDescription } from "../errors";
+import { createEpoch } from "../consumer/repository";
 
 const route = useRoute();
 const router = useRouter();
@@ -35,35 +36,44 @@ const previousClaimStatusLabel = computed(
   () => CLAIM_STATUS_LABELS[previousClaimStatus.value] ?? "",
 );
 
+const loadEpoch = createEpoch();
+
 async function load() {
+  const generation = loadEpoch.begin();
+  const id = placeId.value;
   loading.value = true;
   error.value = "";
   try {
     await session.restore();
-    [place.value, zones.value] = await Promise.all([
-      client.place(placeId.value),
-      client.zones(placeId.value).catch(() => [] as Zone[]),
-    ]);
+    if (!loadEpoch.isCurrent(generation)) return;
+    // Zones and the owner's claim are part of one place-scoped transaction:
+    // silently treating a failed zone request as "no zones" could publish
+    // policy about the wrong scope. Never present partial authoring data.
+    const [nextPlace, nextZones] = await Promise.all([client.place(id), client.zones(id)]);
+    if (!loadEpoch.isCurrent(generation)) return;
+
+    const ownClaims = session.signedIn ? await client.myOperatorClaims(id) : [];
+    if (!loadEpoch.isCurrent(generation)) return;
+
+    place.value = nextPlace;
+    zones.value = nextZones;
     submitted.value = false;
     claimStatus.value = "";
     previousClaimStatus.value = "";
     activeClaimId.value = "";
-    if (session.signedIn) {
-      const mine = await client.myOperatorClaims(placeId.value);
-      const latest = mine[0];
-      if (latest) {
-        previousClaimStatus.value = latest.status;
-        activeClaimId.value = latest.id;
-        if (["submitted", "verifying", "approved"].includes(latest.status)) {
-          claimStatus.value = latest.status;
-          submitted.value = true;
-        }
+    const latest = ownClaims[0];
+    if (latest) {
+      previousClaimStatus.value = latest.status;
+      activeClaimId.value = latest.id;
+      if (["submitted", "verifying", "approved"].includes(latest.status)) {
+        claimStatus.value = latest.status;
+        submitted.value = true;
       }
     }
   } catch (e) {
-    error.value = presentDescription(e);
+    if (loadEpoch.isCurrent(generation)) error.value = presentDescription(e);
   } finally {
-    loading.value = false;
+    if (loadEpoch.isCurrent(generation)) loading.value = false;
   }
 }
 
