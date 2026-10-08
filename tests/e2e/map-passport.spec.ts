@@ -93,7 +93,10 @@ test("A1.0.2 — nearby venue cluster is neutral and requires per-place inspecti
   page,
 }) => {
   await page.goto(`${BASE}/#/map`);
-  const group = page.locator(".map-pin").filter({ has: page.locator(".map-cluster") }).first();
+  const group = page
+    .locator(".map-pin")
+    .filter({ has: page.locator(".map-cluster") })
+    .first();
   await expect(group).toBeVisible({ timeout: 15000 });
   await expect(group).toHaveAttribute("aria-label", /准入结论需分别查看/);
   await expect(group.locator(".map-cluster")).toHaveClass("map-cluster");
