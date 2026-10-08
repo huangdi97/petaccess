@@ -143,35 +143,50 @@ watch(currentQueryContext, () => {
   });
 });
 
+const loadEpoch = createEpoch();
+
 async function load() {
+  const epoch = loadEpoch.begin();
+  const id = placeId.value;
+  const isCurrent = () => loadEpoch.isCurrent(epoch) && placeId.value === id;
   loading.value = true;
   error.value = "";
   partial.value = [];
-  const degrade = (label: string) => partial.value.push(label);
+  const degrade = (label: string) => {
+    if (isCurrent() && !partial.value.includes(label)) partial.value.push(label);
+  };
   await session.restore();
+  if (!isCurrent()) return;
+
   try {
-    place.value = await client.place(placeId.value);
+    const result = await client.place(id);
+    if (!isCurrent()) return;
+    place.value = result;
   } catch (e) {
+    if (!isCurrent()) return;
     error.value = presentDescription(e);
     loading.value = false;
     return;
   }
+
   if (session.signedIn) {
     try {
       const mine = await client.myWatches();
+      if (!isCurrent()) return;
       watchingRule.value = mine.some(
         (item) =>
           item.watch_domain === "rule" &&
           item.target_type === "place" &&
-          item.target_id === placeId.value,
+          item.target_id === id,
       );
       watchingReality.value = mine.some(
         (item) =>
           item.watch_domain === "reality" &&
           item.target_type === "place" &&
-          item.target_id === placeId.value,
+          item.target_id === id,
       );
     } catch {
+      if (!isCurrent()) return;
       degrade("关注状态");
     }
   } else {
@@ -179,18 +194,27 @@ async function load() {
     watchingReality.value = false;
   }
   try {
-    zones.value = await client.zones(placeId.value);
+    const rows = await client.zones(id);
+    if (!isCurrent()) return;
+    zones.value = rows;
   } catch {
+    if (!isCurrent()) return;
     degrade("分区域");
   }
   try {
-    rules.value = await client.rules(placeId.value);
+    const rows = await client.rules(id);
+    if (!isCurrent()) return;
+    rules.value = rows;
   } catch {
+    if (!isCurrent()) return;
     degrade("规则");
   }
   try {
-    realityEvents.value = await client.realityEvents(placeId.value);
+    const rows = await client.realityEvents(id);
+    if (!isCurrent()) return;
+    realityEvents.value = rows;
   } catch {
+    if (!isCurrent()) return;
     degrade("现场记录");
   }
   try {
@@ -198,30 +222,40 @@ async function load() {
       ...rules.value.map((rule) => rule.source_id),
       ...realityEvents.value
         .map((event) => event.source_id)
-        .filter((id): id is string => Boolean(id)),
+        .filter((sourceId): sourceId is string => Boolean(sourceId)),
     ]);
-    sources.value = (await client.allSources()).filter((source) =>
-      relevantSourceIds.has(source.id),
-    );
+    const rows = await client.allSources();
+    if (!isCurrent()) return;
+    sources.value = rows.filter((source) => relevantSourceIds.has(source.id));
   } catch {
+    if (!isCurrent()) return;
     degrade("来源");
   }
   try {
-    extras.value = await client.placeExtras(placeId.value);
+    const result = await client.placeExtras(id);
+    if (!isCurrent()) return;
+    extras.value = result;
   } catch {
+    if (!isCurrent()) return;
     degrade("空间信息");
   }
   try {
     await evaluate();
+    if (!isCurrent()) return;
   } catch {
+    if (!isCurrent()) return;
     degrade("当前答案");
   }
-  loading.value = false;
+  if (isCurrent()) loading.value = false;
 }
 
 watch(
   placeId,
   () => {
+    // Invalidate in-flight Place and Coexistence requests before clearing the
+    // previous dossier. A slow response must never write into a new place.
+    loadEpoch.begin();
+    evaluationEpoch.begin();
     place.value = null;
     zones.value = [];
     rules.value = [];
