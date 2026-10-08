@@ -204,5 +204,11 @@ jobs:
       - name: Install Playwright chromium
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: Playwright shell subset
-        run: pnpm exec playwright test tests/e2e/h5-shell.spec.ts
+      - name: Playwright shell and consumer critical journeys
+        run: |
+          pnpm exec playwright test \
+            tests/e2e/h5-shell.spec.ts \
+            tests/e2e/map-passport.spec.ts \
+            tests/e2e/watch-domains.spec.ts \
+            tests/e2e/contribute-route-race.spec.ts \
+            --workers=1
