@@ -45,6 +45,7 @@ from app.models.enums import (
     SpatialPrecision,
     UserRole,
 )
+from app.models.evidence import CollectorType, SourcePlatform
 from app.models.media import MediaPurpose
 from app.models.v05 import (
     AccessPath,
@@ -74,6 +75,7 @@ from app.rulespec.v05_resolver import (
 )
 from app.schemas.common import Page
 from app.services.answerability import compute_answerability
+from app.services.evidence_service import CollectedArtifact, create_bundle, record_artifact
 from app.services.candidate_service import (
     create_from_extraction,
     publish,
