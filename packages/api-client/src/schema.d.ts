@@ -3930,6 +3930,8 @@ export interface components {
             staff_awareness_state?: string | null;
             /** Staff Outcome */
             staff_outcome?: string | null;
+            /** Staff Policy Statement Verbatim */
+            staff_policy_statement_verbatim?: string | null;
             /** Facility Type */
             facility_type?: string | null;
             /** Facility State */
