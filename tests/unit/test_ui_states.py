@@ -44,6 +44,7 @@ REQUIRED_PER_VIEW = {
     "MapView.vue": ("SkeletonList", "StateMessage"),
     "ContributeView.vue": ("StateMessage",),
     "MineView.vue": ("StateMessage",),
+    "OperatorClaimView.vue": ("SkeletonList", "StateMessage"),
     "PetProfileView.vue": ("SkeletonList", "StateMessage"),
     "NotificationsView.vue": ("SkeletonList", "StateMessage"),
     "BoundaryView.vue": ("SkeletonList", "StateMessage"),
