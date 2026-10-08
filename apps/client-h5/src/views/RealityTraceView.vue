@@ -48,7 +48,12 @@ const visibleEvents = computed(() => {
 });
 
 const emptyCopy = computed(() =>
-  filter.value === "all"
+  zoneId.value && !activeZone.value
+    ? {
+        title: "所选区域无法确认",
+        description: "当前场所未收录该区域，不能将其他区域的记录归到这里。请返回全部区域重新选择。",
+      }
+    : filter.value === "all"
     ? {
         title: zoneId.value ? "该区域暂无经核验现场记录" : "暂无近期现场记录",
         description: zoneId.value
@@ -110,7 +115,9 @@ watch(placeId, () => void load(), { immediate: true });
 const uiState = computed<string>(() => {
   if (loading.value) return "loading";
   if (error.value) return "error";
-  return events.value.length > 0 ? "ready" : "empty";
+  // A filtered-out timeline is visibly empty, even when the unfiltered
+  // location holds other facts. Screenshot states follow what users see.
+  return visibleEvents.value.length > 0 ? "ready" : "empty";
 });
 
 const uiFixture = computed<string>(() =>
@@ -193,7 +200,7 @@ const uiFixture = computed<string>(() =>
             :empty-description="emptyCopy.description"
             @confirm="realityConfirmation.confirm"
           >
-            <template v-if="!scopedEvents.length" #empty-action>
+            <template v-if="!scopedEvents.length && (!zoneId || activeZone)" #empty-action>
               <RouterLink
                 class="btn primary"
                 :to="`/contribute/${placeId}`"
