@@ -15,7 +15,7 @@ import {
 } from "../../consumer/labels";
 import PlaceFacilitySection from "./PlaceFacilitySection.vue";
 
-const props = defineProps<{
+defineProps<{
   zones: Zone[];
   extras: PlaceExtras | null;
   facilitySummary: FacilitySummaryItem[];
