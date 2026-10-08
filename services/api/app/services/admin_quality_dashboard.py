@@ -4,6 +4,7 @@ from datetime import datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
+from sqlalchemy.sql.elements import ColumnElement
 
 from app.models import (
     AccessRule,
@@ -44,7 +45,7 @@ OFFICIAL_SOURCE_TYPES = [
 ]
 
 
-def _count(db: Session, model: type, *predicates: object) -> int:
+def _count(db: Session, model: type, *predicates: ColumnElement[bool]) -> int:
     stmt = select(func.count()).select_from(model)
     if predicates:
         stmt = stmt.where(*predicates)
