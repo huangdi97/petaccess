@@ -140,30 +140,25 @@ function setActivePet(pet: (typeof pets.value)[number]) {
   padding-bottom: var(--pa-space-5);
   border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
 }
-
 .mine-head__name {
   margin-top: var(--pa-space-2);
   font-size: var(--pa-font-size-lg);
 }
-
 .mine-section {
   padding: var(--pa-space-5) 0;
   border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
 }
-
 .mine-section__head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--pa-space-4);
 }
-
 .mine-section h2 {
   margin: 0;
   font-size: var(--pa-font-size-lg);
   font-weight: var(--pa-font-weight-650);
 }
-
 .mine-section__head p {
   max-width: 560px;
   margin: var(--pa-space-1) 0 0;
