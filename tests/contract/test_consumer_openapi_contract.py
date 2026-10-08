@@ -49,6 +49,7 @@ def test_reality_event_feed_exists_in_live_and_committed_openapi() -> None:
         "staff_policy_statement_verbatim",
         "facility_purpose_state",
         "dispute_open",
+        "confirmation_count",
         "source_id",
         "evidence_bundle_id",
         "submitted_at",
