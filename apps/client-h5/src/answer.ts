@@ -47,6 +47,14 @@ export function answerVerdictLabel(answer: AccessAnswer | null | undefined): str
   }
 }
 
+/** A compact headline cannot bypass a conflicting status using the
+ * resolver's provisional summary. Never advertise permission during a
+ * published-rule conflict, even in a one-line search result. */
+export function answerPrimarySummary(answer: AccessAnswer | null | undefined): string {
+  if (!answer || answer.conflict_state?.has_conflict) return answerVerdictLabel(answer);
+  return answer.normative_result.summary?.trim() || answerVerdictLabel(answer);
+}
+
 /**
  * 「已核验：<动物 · 区域>」 — the §12.1 requirement that a scope is named
  * precisely rather than as "示例公园 A 已核验".
@@ -79,7 +87,9 @@ export function answerConditions(
   answer: AccessAnswer | null | undefined,
   obligationLabels: Record<string, string> = {},
 ): string[] {
-  if (!answer) return [];
+  if (!answer || answer.conflict_state?.has_conflict) return [];
+  // Conflicting rule sources cannot yield actionable entry conditions until
+  // reviewed, even if the provisional resolver reports a conditional effect.
   const out: string[] = [];
   const push = (label: string) => {
     if (label && !out.includes(label)) out.push(label);
