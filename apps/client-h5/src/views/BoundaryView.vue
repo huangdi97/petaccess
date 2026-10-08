@@ -10,6 +10,7 @@ import { useOnline } from "../composables/useOnline";
 const profileName = ref("我的共处边界");
 const chosen = ref<Record<string, string>>({});
 const error = ref("");
+const loadError = ref("");
 const msg = ref("");
 const busy = ref(false);
 const loaded = ref(false);
@@ -28,6 +29,8 @@ function apply(profile: BoundaryProfile | null) {
 
 async function load() {
   error.value = "";
+  loadError.value = "";
+  loaded.value = false;
   loading.value = true;
   try {
     await session.restore();
@@ -38,9 +41,11 @@ async function load() {
     }
     apply((await client.defaultBoundaryProfile()).profile);
   } catch (e) {
-    error.value = e instanceof ApiError ? e.message : String(e);
+    // Failure to retrieve the saved profile must not be mistaken for a
+    // never-configured boundary or a signed-out account.
+    loadError.value = e instanceof ApiError ? e.message : String(e);
   } finally {
-    loaded.value = true;
+    loaded.value = !loadError.value;
     loading.value = false;
   }
 }
@@ -103,9 +108,9 @@ onMounted(load);
     <SkeletonList v-if="loading" :rows="4" />
 
     <StateMessage
-      v-else-if="error && !loaded"
+      v-else-if="loadError"
       kind="ERROR"
-      :description="`未能取得共处边界：${error}`"
+      :description="`未能取得共处边界：${loadError}`"
     >
       <template #action>
         <button class="primary" @click="load">重试</button>
