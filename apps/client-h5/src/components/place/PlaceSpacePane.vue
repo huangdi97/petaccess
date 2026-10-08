@@ -30,8 +30,12 @@ defineProps<{
       <p v-if="!zones.length" class="muted">暂无分区域信息。信息不足不代表允许或禁止。</p>
       <div v-for="zone in zones" :key="zone.id" class="zone-row" data-ui="zone-row">
         <span class="zone-row__name">{{ zoneConsumerLine(zone) }}</span>
-        <RouterLink class="btn-inline" :to="`/place/${zone.place_id}/reality`">
-          查看现场 →
+        <RouterLink
+          class="btn-inline"
+          :to="{ name: 'reality-trace', params: { id: zone.place_id }, query: { zone: zone.id } }"
+          :aria-label="`查看${zoneConsumerLine(zone)}的经核验现场记录`"
+        >
+          查看此区域现场 →
         </RouterLink>
       </div>
     </section>
