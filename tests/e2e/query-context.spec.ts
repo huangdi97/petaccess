@@ -108,7 +108,6 @@ test("working service-dog pet persists as the truthful current query object", as
   await expect(page.getByTestId("query-service-role")).toHaveValue("");
 });
 
-
 test("cold Evidence and Why deep links restore the persisted active pet before resolving", async ({
   page,
   request,
@@ -139,10 +138,7 @@ test("cold Evidence and Why deep links restore the persisted active pet before r
     { accessToken: token, activePetId: pet.id },
   );
 
-  for (const route of [
-    `/#/place/${MALL_ID}/evidence`,
-    `/#/place/${MALL_ID}/why`,
-  ]) {
+  for (const route of [`/#/place/${MALL_ID}/evidence`, `/#/place/${MALL_ID}/why`]) {
     const snapshot = page.waitForRequest((req) => {
       if (req.method() !== "POST" || !req.url().includes("/coexistence")) return false;
       const body = req.postDataJSON() as Record<string, unknown>;
