@@ -12,7 +12,8 @@ from sqlalchemy.orm import Session
 
 from app.core.audit import record_audit
 from app.core.audit_events import AuditEvent
-from app.models import AccessRule, Operator, OperatorClaim, RuleCondition, Source, User
+from app.models import AccessRule, Operator, OperatorClaim, RuleCondition, Source, User, Zone
+from app.core.errors import NotFound
 from app.models.enums import RuleOrigin, RuleStatus
 from app.schemas.civic import OperatorQuestionnaire
 
@@ -77,6 +78,10 @@ def apply_operator_questionnaire(
     superseded_rules: list[str] = []
 
     for answer in body.answers:
+        if answer.zone_id is not None:
+            zone = db.get(Zone, answer.zone_id)
+            if zone is None or zone.place_id != claim.place_id:
+                raise NotFound("区域不属于当前认领场所")
         prior_rules = _matching_operator_rules(db, claim, answer)
         predecessor = max(
             prior_rules,
