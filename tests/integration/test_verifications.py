@@ -12,7 +12,7 @@ from sqlalchemy import select
 
 from app.db.session import get_session_factory
 from app.main import app
-from app.models import AccessRule
+from app.models import AccessRule, Place, Zone
 
 
 @pytest.fixture(scope="module")
@@ -96,6 +96,55 @@ def test_user_confirmation_does_not_refresh_governed_rule_freshness(client, user
         refreshed = db.get(AccessRule, rule_id)
         assert refreshed is not None
         assert refreshed.last_verified_at == before
+
+
+def test_verification_rejects_rule_owned_by_another_place(client, user):
+    factory = get_session_factory()
+    with factory() as db:
+        rule = db.scalars(select(AccessRule).where(AccessRule.status == "current").limit(1)).first()
+        assert rule is not None
+        owner_place_id = rule.place_id
+        if rule.zone_id:
+            zone = db.get(Zone, rule.zone_id)
+            assert zone is not None
+            owner_place_id = zone.place_id
+        assert owner_place_id is not None
+        other = db.scalars(select(Place).where(Place.id != owner_place_id).limit(1)).first()
+        assert other is not None
+
+    response = client.post(
+        "/api/v1/verifications",
+        json={
+            "place_id": other.id,
+            "rule_id": rule.id,
+            "event_type": "rule_confirmed",
+            "result": "still_valid",
+        },
+        headers=_auth(user["token"]),
+    )
+    assert response.status_code == 404
+    assert "规则不属于该场所" in response.text
+
+
+def test_verification_rejects_zone_from_another_place(client, user):
+    factory = get_session_factory()
+    with factory() as db:
+        zone = db.scalars(select(Zone).limit(1)).first()
+        assert zone is not None
+        other = db.scalars(select(Place).where(Place.id != zone.place_id).limit(1)).first()
+        assert other is not None
+
+    response = client.post(
+        "/api/v1/verifications",
+        json={
+            "place_id": other.id,
+            "zone_id": zone.id,
+            "result": "still_valid",
+        },
+        headers=_auth(user["token"]),
+    )
+    assert response.status_code == 404
+    assert "区域不属于该场所" in response.text
 
 
 def test_verification_unknown_place_is_404(client, user):
