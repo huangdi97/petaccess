@@ -48,6 +48,30 @@ test("A1/A4 — 向导入口与现场记录表单渲染（已登录）", async (
   await expect(page.getByTestId("reality-date")).toBeVisible();
 });
 
+test("A1.1 — retrospective and external dates cannot silently claim event timing", async ({
+  page,
+  request,
+}) => {
+  const token = await signIn(request);
+  await page.addInitScript((t) => localStorage.setItem("pa_token", t), token);
+  await page.goto(`${BASE}/#/contribute/${MALL_ID}`);
+  await page.getByTestId("entry-reality-observed_presence").click();
+
+  await page.getByTestId("reality-source-mode").selectOption("on_site_past");
+  await expect(page.getByTestId("reality-date")).toHaveValue("");
+  await expect(page.getByTestId("reality-submit")).toBeDisabled();
+  await page.getByTestId("reality-date").fill("2026-09-20");
+  await expect(page.getByTestId("reality-submit")).toBeEnabled();
+
+  await page.getByTestId("reality-source-mode").selectOption("external_online_content");
+  await page.getByTestId("reality-source-url").fill("https://example.com/evidence");
+  await page.getByTestId("reality-published-date").fill("2026-09-20");
+  await page.getByTestId("reality-external-event-date").fill("2026-09-21");
+  await expect(page.getByTestId("reality-submit")).toBeDisabled();
+  await page.getByTestId("reality-external-event-date").fill("2026-09-19");
+  await expect(page.getByTestId("reality-submit")).toBeEnabled();
+});
+
 test("A2 — 现场记录经父流提交，候选进入人工审核队列", async ({ page, request }) => {
   const token = await signIn(request);
   // Same deterministic token injection as A1: single full-page goto boots
