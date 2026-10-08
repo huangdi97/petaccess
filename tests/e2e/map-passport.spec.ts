@@ -353,6 +353,9 @@ test("B2.5 — adding Reality from an empty scoped timeline retains the verified
 });
 
 test("B3 — Place Evidence view 证据来源链渲染，无原始枚举", async ({ page }) => {
+  // Evidence is place-scoped. The consumer must not enumerate the global
+  // source registry and accidentally treat its first page as complete.
+  await page.route("**/api/v1/sources**", (route) => route.abort());
   await page.goto(`${BASE}/#/place/${CAFE_ID}?view=evidence`);
   await expect(page.getByTestId("place-evidence-view")).toBeVisible();
   await expect(page.getByTestId("evidence-provenance")).toBeVisible();
