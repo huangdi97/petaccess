@@ -36,6 +36,7 @@ interface Shot {
   waitTestid?: string;
   selectTestid?: { id: string; value: string };
   openDetailsTestid?: string;
+  prepareOperatorPolicy?: boolean;
   submitReality?: boolean;
   page?: string;
   state?: string;
@@ -438,6 +439,31 @@ const SHOTS: Shot[] = [
     note: "Operator claim is a governed identity transaction; submission itself never changes Rule or Reality.",
   },
   {
+    name: "20b_operator_policy_approved",
+    scope: "both",
+    route: "/#/place/__OPERATOR_POLICY_PLACE__/operator-claim",
+    auth: true,
+    prepareOperatorPolicy: true,
+    h1: "场所方认领",
+    requiredTestids: [
+      "operator-claim-result",
+      "operator-policy",
+      "operator-policy-zone",
+      "operator-policy-animal",
+      "operator-policy-action",
+      "operator-policy-effect",
+      "operator-policy-submit",
+    ],
+    requiredText: [
+      "场所方身份已核验",
+      "维护管理方规则",
+      "场所管理方正式政策",
+      "工作人员的一次处理自动变成政策",
+      "法律或监管规则",
+    ],
+    note: "Approved operator governance is human-reviewed too: identity approval unlocks structured operator policy without leaking internal rule-layer enums.",
+  },
+  {
     name: "21_pets",
     scope: "both",
     route: "/#/pets",
@@ -507,6 +533,59 @@ async function signIn(request: APIRequestContext): Promise<string> {
   });
   expect(login.ok(), await login.text()).toBeTruthy();
   return (await login.json()).access_token as string;
+}
+
+async function signInAdmin(request: APIRequestContext): Promise<string> {
+  const login = await request.post(`${API}/auth/login`, {
+    data: { email: "admin@demo-petaccess.com", password: "admin12345" },
+  });
+  expect(login.ok(), `admin login failed: ${await login.text()}`).toBeTruthy();
+  return (await login.json()).access_token as string;
+}
+
+async function prepareApprovedOperatorPolicy(
+  request: APIRequestContext,
+  userToken: string,
+  projectName: string,
+): Promise<string> {
+  const adminToken = await signInAdmin(request);
+  const suffix = `${projectName}-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+
+  const place = await request.post(`${API}/admin/places`, {
+    headers: { Authorization: `Bearer ${adminToken}` },
+    data: {
+      canonical_name: `人审管理方场所·${suffix}`,
+      place_type: "mall",
+      canonical_address: "人审专用测试地址",
+      lifecycle_status: "active",
+      location_wkt: "POINT(121.4737 31.2304)",
+    },
+  });
+  expect(place.ok(), `create operator-policy fixture place failed: ${await place.text()}`).toBeTruthy();
+  const placeId = (await place.json()).id as string;
+
+  const claim = await request.post(`${API}/operator-claims/self-serve`, {
+    headers: { Authorization: `Bearer ${userToken}` },
+    data: {
+      place_id: placeId,
+      operator_name: `人审测试管理方·${suffix}`,
+      org_type: "company",
+      work_email: "ops-human-review@example.com",
+      website: null,
+      verification_method: "work_email",
+      verification_note: "仅用于 direct-v8 人工视觉验收 fixture",
+    },
+  });
+  expect(claim.ok(), `create operator claim failed: ${await claim.text()}`).toBeTruthy();
+  const claimId = (await claim.json()).id as string;
+
+  const review = await request.post(`${API}/admin/operator-claims/${claimId}/review`, {
+    headers: { Authorization: `Bearer ${adminToken}` },
+    data: { approve: true, rejection_reason: null },
+  });
+  expect(review.ok(), `approve operator claim failed: ${await review.text()}`).toBeTruthy();
+
+  return placeId;
 }
 
 async function settle(page: Page): Promise<void> {
@@ -582,6 +661,7 @@ test("direct-v8 canonical human-review packet", async ({ page, request }, testIn
   mkdirSync(out, { recursive: true });
 
   let token: string | null = null;
+  let operatorPolicyPlaceId: string | null = null;
   const rows: Record<string, unknown>[] = [];
 
   for (const shot of SHOTS.filter((item) => item.scope === "both" || item.scope === targetScope)) {
@@ -593,19 +673,32 @@ test("direct-v8 canonical human-review packet", async ({ page, request }, testIn
       await page.addInitScript((value) => localStorage.setItem("pa_token", value), token);
     }
 
+    if (shot.prepareOperatorPolicy) {
+      if (!token) throw new Error("approved operator policy fixture requires signed-in user");
+      operatorPolicyPlaceId ??= await prepareApprovedOperatorPolicy(
+        request,
+        token,
+        testInfo.project.name,
+      );
+    }
+
+    const resolvedRoute = operatorPolicyPlaceId
+      ? shot.route.replace("__OPERATOR_POLICY_PLACE__", operatorPolicyPlaceId)
+      : shot.route;
+
     // Every shot must start from a fresh Document, not just a new hash. Several
     // human-review states intentionally reuse the same Contribution URL; a
     // hash-only page.goto would preserve the previous component's step state
     // and make the next entry button disappear. The harmless outer query
     // forces a hard bootstrap while preserving the requested hash route.
-    const captureRoute = shot.route.startsWith("/#")
-      ? `/?human_review_shot=${encodeURIComponent(shot.name)}${shot.route.slice(1)}`
-      : shot.route;
+    const captureRoute = resolvedRoute.startsWith("/#")
+      ? `/?human_review_shot=${encodeURIComponent(shot.name)}${resolvedRoute.slice(1)}`
+      : resolvedRoute;
     await page.goto(captureRoute);
     await settle(page);
 
     if (shot.clickTestid) {
-      await page.getByTestId(shot.clickTestid).click();
+      await page.getByTestId(shot.clickTestid).first().click();
       if (shot.waitTestid) {
         await page.getByTestId(shot.waitTestid).waitFor({ state: "visible", timeout: 15000 });
       }
@@ -638,7 +731,7 @@ test("direct-v8 canonical human-review packet", async ({ page, request }, testIn
     rows.push({
       name: shot.name,
       viewport: `${viewport.width}x${viewport.height}`,
-      route: shot.route,
+      route: resolvedRoute,
       note: shot.note,
       actual,
       bytes: statSync(file).size,
