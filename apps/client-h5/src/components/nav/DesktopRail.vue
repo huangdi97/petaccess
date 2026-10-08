@@ -3,9 +3,9 @@
  * DesktopRail — 68px icon navigation rail for viewports >= 768px
  * (UI_RECONSTRUCTION_DESIGN_FREEZE §4). Primary: 首页 / 搜索 / 地图 / 贡献;
  * secondary: 我的 / 设置. About has moved INTO Settings (no first-level slot).
- * Labels are exposed via native title + aria-label so the rail stays an icon
- * rail, not a sidebar, and no custom tooltip can be clipped by the rail's
- * overflow clamp.
+ * Short visible labels supplement native title + aria-label so first-time
+ * users can recognize destinations without guessing icons. The rail remains
+ * a compact 68px navigation surface, never a full sidebar.
  */
 import { useRoute } from "vue-router";
 import { Z_INDEX, type IconName } from "@petaccess/design-tokens";
@@ -64,6 +64,7 @@ function isActive(to: string): boolean {
         :title="item.label"
       >
         <PaIcon class="desktop-rail__icon" :name="item.icon" size="lg" />
+        <span class="desktop-rail__caption" aria-hidden="true">{{ item.label }}</span>
       </RouterLink>
     </nav>
 
@@ -81,6 +82,7 @@ function isActive(to: string): boolean {
         :title="item.label"
       >
         <PaIcon class="desktop-rail__icon" :name="item.icon" size="lg" />
+        <span class="desktop-rail__caption" aria-hidden="true">{{ item.label }}</span>
       </RouterLink>
     </nav>
   </aside>
