@@ -7,6 +7,7 @@ operators — disputes go through this auditable pipeline instead.
 """
 
 from datetime import UTC, datetime
+from typing import cast
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import func, select
@@ -69,7 +70,12 @@ def _require_target(db: Session, target_type: str, target_id: str):
         target = db.get(ObservationClaim, target_id)
     else:
         model = _REALITY_TARGET_MODELS.get(target_type)
-        target = db.get(model, target_id) if model is not None else None
+        # The registry contains only these three immutable Reality target
+        # models. Dynamic SQLAlchemy db.get otherwise widens to Base.
+        target = cast(
+            ObservedPresence | StaffResponseObservation | AnimalFacility | None,
+            db.get(model, target_id) if model is not None else None,
+        )
     if target is None:
         raise NotFound("异议目标不存在")
     return target
