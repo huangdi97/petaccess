@@ -642,6 +642,14 @@ def test_demo_reality_events_preserve_observed_submitted_reviewed_axes(client):
     assert all(event["submitted_at"] is not None for event in events)
     assert all(event["last_verified_at"] is not None for event in events)
     assert all(event["submitted_at"] != event["last_verified_at"] for event in events)
+    # Consumer gets material provenance/permission posture, never private raw
+    # object references or captured excerpts.
+    assert all("evidence_material_type" in event for event in events)
+    assert all("evidence_source_platform" in event for event in events)
+    assert all("evidence_display_allowed" in event for event in events)
+    assert all("captured_excerpt" not in event for event in events)
+    assert all("snapshot_ref" not in event for event in events)
+    assert all("media_id" not in event for event in events)
 
 
 def test_reality_events_expose_only_published_verified_facts(client, place_id, signed_user):
