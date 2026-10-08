@@ -174,13 +174,14 @@ async function load() {
   }
 
   try {
-    placeSummary.value = await client.placeSummary(id);
+    const summary = await client.placeSummary(id);
+    if (!isCurrent()) return;
+    placeSummary.value = summary;
   } catch {
     if (!isCurrent()) return;
     placeSummary.value = null;
     degrade("地图位置");
   }
-  if (!isCurrent()) return;
 
   if (session.signedIn) {
     try {
