@@ -98,10 +98,13 @@ function toggleCondition(key: string) {
     </select>
 
     <label for="rule-zone">适用区域</label>
-    <select id="rule-zone" v-model="zone">
+    <select id="rule-zone" v-model="zone" :disabled="intent === 'changed'">
       <option value="">全场 / 不确定</option>
       <option v-for="item in zones" :key="item.id" :value="item.id">{{ item.name }}</option>
     </select>
+    <p v-if="intent === 'changed'" class="muted rule-fields__source-note">
+      规则变化必须沿用所选现行规则的空间范围；选择具体规则后会自动带入。
+    </p>
 
     <label>已知条件（可多选）</label>
     <div class="condition-options" role="group" aria-label="规则条件">
@@ -119,6 +122,18 @@ function toggleCondition(key: string) {
         <span class="condition-option__label">{{ option.label }}</span>
       </button>
     </div>
+  </div>
+
+  <div v-if="intent === 'signage'" class="rule-fields" data-ui="rule-signage-scope">
+    <h3>这张规则牌在哪里？</h3>
+    <label for="rule-signage-zone">所在区域（可选）</label>
+    <select id="rule-signage-zone" v-model="zone" data-testid="rule-signage-zone">
+      <option value="">场所范围 / 不确定</option>
+      <option v-for="item in zones" :key="item.id" :value="item.id">{{ item.name }}</option>
+    </select>
+    <p class="muted rule-fields__source-note">
+      只记录你能确认的空间范围；不确定时保持场所范围，不从照片内容猜测区域。
+    </p>
   </div>
 </template>
 
