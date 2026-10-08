@@ -11,12 +11,10 @@ import { type PlaceSummary } from "@petaccess/client-core";
 import PlaceResultRow from "./PlaceResultRow.vue";
 import SkeletonList from "../SkeletonList.vue";
 import StateMessage from "../StateMessage.vue";
-import StatusBadge from "../StatusBadge.vue";
-import { placeTypeLabel } from "@petaccess/client-core";
 import { freshnessLineFor, type ConsumerLens } from "../../consumer/rowView";
 import type { HomeCard } from "../../composables/useHomeLauncher";
 import HomeDigestHighlights from "./HomeDigestHighlights.vue";
-import PlaceTypeGlyph from "./PlaceTypeGlyph.vue";
+import HomePendingSection from "./HomePendingSection.vue";
 
 const props = defineProps<{
   loading: boolean;
@@ -121,28 +119,7 @@ const freshness = computed(() =>
             </RouterLink>
           </div>
         </div>
-        <template v-if="pending.length">
-          <h2 class="home-section-title home-section-title--stacked">附近待补充</h2>
-          <p class="muted">这些场所目前没有足够依据下结论，信息不足不等于允许或禁止。</p>
-          <div
-            v-for="c in pending.slice(0, 2)"
-            :key="c.place.id"
-            class="home-row"
-            :data-testid="'pending-' + c.place.id"
-            @click="emit('open', c.place.id)"
-          >
-            <div class="home-row__pending-identity">
-              <PlaceTypeGlyph :place-type="c.place.place_type" />
-              <div class="home-row__pending-copy">
-                <div class="row home-row__head">
-                  <strong>{{ c.place.canonical_name }}</strong>
-                  <StatusBadge :semantic="c.status" />
-                </div>
-                <span class="muted">{{ placeTypeLabel(c.place.place_type) }}</span>
-              </div>
-            </div>
-          </div>
-        </template>
+        <HomePendingSection :pending="pending" @open="emit('open', $event)" />
 
         <RouterLink
           v-if="verified.length > 3 || pending.length > 2"
