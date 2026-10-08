@@ -615,6 +615,23 @@ const MASS = [
   background: var(--pa-color-status-conflict);
 }
 
+/* Text labels stay neutral. Semantic tone belongs to the marker shape; this
+ * avoids turning hover labels into a traffic-light UI. */
+.lbl.s-ALLOWED,
+.lbl.s-MATCH,
+.lbl.s-CONDITIONAL,
+.lbl.s-RESTRICTED,
+.lbl.s-UNKNOWN,
+.lbl.s-CONFLICT,
+.lbl.s-STALE,
+.map-surface--reality .lbl,
+.map-surface--facility .lbl,
+.map-surface--divergence .lbl {
+  background: var(--pa-color-map-label-bg);
+  color: var(--pa-color-text-primary);
+  border-color: var(--pa-color-border-subtle);
+}
+
 .map-empty {
   position: absolute;
   inset: 0;
