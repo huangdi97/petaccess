@@ -93,7 +93,9 @@ def test_changed_rule_lead_persists_explicit_supersession_target(client, signed_
     factory = get_session_factory()
     with factory() as db:
         target = db.scalars(
-            select(AccessRule).where(AccessRule.status == "current").limit(1)
+            select(AccessRule)
+            .where(AccessRule.status == "current", AccessRule.place_id.isnot(None))
+            .limit(1)
         ).first()
         assert target is not None
         place_id = target.place_id
@@ -202,7 +204,9 @@ def test_changed_rule_lead_rejects_noncurrent_target(client, signed_user):
     factory = get_session_factory()
     with factory() as db:
         target = db.scalars(
-            select(AccessRule).where(AccessRule.status == "current").limit(1)
+            select(AccessRule)
+            .where(AccessRule.status == "current", AccessRule.place_id.isnot(None))
+            .limit(1)
         ).first()
         assert target is not None
         place_id = target.place_id
