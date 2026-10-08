@@ -398,7 +398,7 @@ def consumer_reality_events(
         # those confirmations back to the published claim so the consumer
         # evidence rail counts both valid linkage forms.
         claim_id_by_candidate = {
-            getattr(row, "candidate_id"): getattr(row, "id")
+            row.candidate_id: row.id
             for row in [*presence, *staff, *facilities]
             if getattr(row, "candidate_id", None)
         }
