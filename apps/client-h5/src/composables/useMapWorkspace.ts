@@ -201,6 +201,7 @@ export function useMapWorkspace() {
         return;
       }
       if (target.latitude != null && target.longitude != null) {
+        view.value = "map";
         camera.value = {
           ...camera.value,
           lat: target.latitude,
