@@ -102,7 +102,7 @@ export function useMapWorkspace() {
     if (!visibleMissingSpatialCount.value) return base;
     return {
       ...base,
-      text: `${base.text} 另有 ${visibleMissingSpatialCount.value} 个场所缺少已核验坐标，仅在列表显示。`,
+      text: `${base.text} 另有 ${visibleMissingSpatialCount.value} 个场所缺少可用位置坐标，仅在列表显示。`,
     };
   });
 
@@ -212,7 +212,7 @@ export function useMapWorkspace() {
       }
       if (target.latitude == null || target.longitude == null) {
         view.value = isDesktop.value ? "map" : "list";
-        mapSearchError.value = "该场所缺少已核验坐标，仅可在列表中查看，未生成地图点位。";
+        mapSearchError.value = "该场所缺少可用位置坐标，仅可在列表中查看，未生成地图点位。";
       }
       selected.value = inNearby ?? target;
       await selectPlace(selected.value);
