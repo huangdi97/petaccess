@@ -332,6 +332,28 @@ test("B2.3 — Reality keeps the selected zone isolated from other areas", async
   await expect(page.locator('[data-ui="reality-event"]')).toHaveCount(2);
 });
 
+test("B2.5 — adding Reality from an empty scoped timeline retains the verified zone", async ({
+  page,
+  request,
+}) => {
+  const response = await request.get(`http://127.0.0.1:8010/api/v1/places/${MALL_ID}/zones`);
+  expect(response.ok(), await response.text()).toBeTruthy();
+  const zones = (await response.json()) as { id: string }[];
+  const zoneId = zones[0]?.id;
+  expect(zoneId).toBeDefined();
+
+  await page.route(`**/api/v1/places/${MALL_ID}/reality/events**`, (route) =>
+    route.fulfill({ json: [] }),
+  );
+  await page.goto(`${BASE}/#/place/${MALL_ID}/reality?zone=${zoneId}`);
+  const contribute = page.getByTestId("reality-go-enter");
+  await expect(contribute).toBeVisible();
+  await expect(contribute).toHaveAttribute(
+    "href",
+    `#/contribute/${MALL_ID}?zone=${zoneId}`,
+  );
+});
+
 test("B3 — Place Evidence view 证据来源链渲染，无原始枚举", async ({ page }) => {
   await page.goto(`${BASE}/#/place/${CAFE_ID}?view=evidence`);
   await expect(page.getByTestId("place-evidence-view")).toBeVisible();
