@@ -36,7 +36,7 @@ import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
 import StatusBadge from "../components/StatusBadge.vue";
 import PlaceTypeGlyph from "../components/domain/PlaceTypeGlyph.vue";
-import { answerConditions, answerStatusKey, answerVerdictLabel } from "../answer";
+import { answerConditions, answerPrimarySummary, answerStatusKey, answerVerdictLabel } from "../answer";
 import {
   coexistenceEvidenceLine,
   freshnessLineFor,
@@ -593,8 +593,7 @@ watch(currentQueryContext, () => {
                   <template v-if="facts.get(p.id)?.answerError">规则结论暂时无法取得</template>
                   <template v-else-if="facts.get(p.id)?.answer">
                     {{
-                      facts.get(p.id)?.answer?.normative_result.summary ||
-                      answerVerdictLabel(facts.get(p.id)?.answer)
+                      answerPrimarySummary(facts.get(p.id)?.answer)
                     }}
                     <span v-if="rowCondition(p)" class="result-row__condition">
                       · {{ rowCondition(p) }}
