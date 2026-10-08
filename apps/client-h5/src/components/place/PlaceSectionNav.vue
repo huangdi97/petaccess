@@ -2,7 +2,7 @@
 /**
  * PlaceSectionNav — Place Dossier local section navigation (§15).
  *
- * 概览 / 空间 / 规则 / 现场 / 证据。Desktop = text tab + underline；
+ * 概览 / 规则 / 现场 / 空间 / 证据。Desktop = text tab + underline；
  * Mobile = horizontal scroll text tab。不是 pill。切换写回 ?view= query so
  * deep link / back-forward / refresh 全部可用。
  */
@@ -21,9 +21,9 @@ const ROUTE_BY_VIEW: Record<PlaceViewKey, string> = {
 
 const TABS: { key: PlaceViewKey; label: string }[] = [
   { key: "overview", label: "概览" },
-  { key: "space", label: "空间" },
   { key: "rules", label: "规则" },
   { key: "reality", label: "现场" },
+  { key: "space", label: "空间" },
   { key: "evidence", label: "证据" },
 ];
 
