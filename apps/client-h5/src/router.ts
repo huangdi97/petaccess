@@ -114,6 +114,12 @@ export const routes: RouteRecordRaw[] = [
     component: () => import("./views/EvidenceView.vue"),
     meta: { title: "证据与来源" },
   },
+  {
+    path: "/place/:id/operator-claim",
+    name: "operator-claim",
+    component: () => import("./views/OperatorClaimView.vue"),
+    meta: { title: "场所方认领" },
+  },
   // M3: unknown paths land on the unified NotFound state instead of a blank
   // router warning (A1). Order matters: catch-all must be last.
   {
