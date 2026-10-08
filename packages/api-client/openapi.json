@@ -13406,6 +13406,11 @@
             "type": "boolean",
             "title": "Dispute Open",
             "default": false
+          },
+          "confirmation_count": {
+            "type": "integer",
+            "title": "Confirmation Count",
+            "default": 0
           }
         },
         "type": "object",
