@@ -31,6 +31,10 @@ export const ANSWERED_STATUSES: readonly StatusKey[] = ["ALLOWED", "CONDITIONAL"
  * one screen said 「有条件进入」 about the answer another called 「有条件可进入」.
  */
 export function answerVerdictLabel(answer: AccessAnswer | null | undefined): string {
+  // The status badge and the large natural-language verdict must agree.
+  // A provisional normative effect must never be presented as permission
+  // when the server also reports unresolved source conflicts.
+  if (answer?.conflict_state?.has_conflict) return "来源不一致，待复核";
   switch (answer?.normative_result.effect) {
     case "allowed":
       return "可以进入";
