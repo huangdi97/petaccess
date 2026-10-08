@@ -433,3 +433,48 @@ direct-v8 现在必须区分三种状态，禁止互相代替：
 - TAG / RELEASE = FORBIDDEN
 
 下一次允许改变这些状态的证据只能是**最终 HEAD**的新 Web / Windows / Android runtime 与 canonical Human Review screenshots，而不是历史截图、旧 PASS 或机器合同数字。
+
+
+## 12. 2026-10-08 Spatial / Accessibility 复核
+
+本轮继续只吸收官方交互机制，不改变 PetAccess 产品定义。
+
+### 12.1 Apple HIG Maps
+
+Apple 当前 Maps HIG 明确强调：
+
+- 地图通常应可 zoom / pan 等真实交互；
+- selected area / place 应有清晰的视觉选中态；
+- 重叠 POI 应 cluster，并随 zoom 逐步展开；
+- place detail / place card 出现时仍应尽量保持地点在地图中可见；
+- 地图 detail 应随 zoom 逐层增加，避免一次塞满。
+
+来源：
+https://developer.apple.com/design/human-interface-guidelines/maps
+
+PetAccess 对应冻结：
+
+- Map 继续是 Canvas，不把详情永久压满画布；
+- results pane / selected preview 与地图 selection 必须同步；
+- cluster 属于空间可读性，不是视觉装饰；
+- fallback 与真实 provider 都必须保留真实 zoom / selection；
+- selected preview 不得遮掉整个地图空间。
+
+### 12.2 WCAG 2.2 / W3C：状态不得 color-only
+
+WCAG 2.2 1.4.1 与 WAI 指引明确要求：颜色不能作为传达信息、动作或状态的唯一视觉手段。
+
+来源：
+https://www.w3.org/WAI/WCAG22/quickref/
+https://www.w3.org/WAI/fundamentals/accessibility-principles/
+
+因此 Map marker 的当前冻结升级为：
+
+- **shape / glyph + semantic tone + adjacent/interactive text**；
+- Rule / Reality / Facility / Divergence 的状态差异不得只靠 marker 颜色；
+- hover / keyboard focus / selection 可展开当前 Lens 的文字标签；
+- 常态 marker 保持小而克制，禁止为了“有文字”把整张地图铺成 label wall；
+- result pane 与 selected preview 永久提供完整文字语义；
+- Tencent renderer 与 fallback renderer 必须遵循同一状态冗余原则。
+
+旧实现中“未选中 marker 只用纯色小圆点”的说明不再具有约束力；若与本节冲突，以本节与 Canonical Design Freeze 为准。
