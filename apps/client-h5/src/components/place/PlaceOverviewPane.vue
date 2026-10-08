@@ -192,10 +192,17 @@ const divergenceLine = computed(() => {
     data-testid="overview-zones"
   >
     <h2 class="place-section__title">空间概览</h2>
-    <div v-for="z in zoneSummary.slice(0, 3)" :key="z.id" class="zone-row" data-ui="zone-row">
+    <RouterLink
+      v-for="z in zoneSummary.slice(0, 3)"
+      :key="z.id"
+      class="zone-row"
+      data-ui="zone-row"
+      :to="'?view=space'"
+      :aria-label="`查看场所空间与区域信息：${zoneConsumerLine(z)}`"
+    >
       <span class="zone-row__name">{{ zoneConsumerLine(z) }}</span>
-      <span class="muted zone-row__hint">查看分区结论</span>
-    </div>
+      <span class="zone-row__hint">查看空间 →</span>
+    </RouterLink>
     <p v-if="!zoneSummary.length" class="muted">暂无已收录的分区域信息</p>
     <RouterLink class="btn-inline" :to="`?view=space`" data-testid="overview-space-link">
       查看全部空间 →
@@ -333,8 +340,22 @@ const divergenceLine = computed(() => {
 .zone-row:last-child {
   border-bottom: none;
 }
+.zone-row {
+  text-decoration: none;
+  color: var(--pa-color-text-primary);
+}
+.zone-row:hover .zone-row__hint,
+.zone-row:focus-visible .zone-row__hint {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.zone-row:focus-visible {
+  outline: 2px solid var(--pa-color-border-focus);
+  outline-offset: 2px;
+}
 .zone-row__hint {
   font-size: var(--pa-font-size-sm);
+  color: var(--pa-color-accent);
 }
 .evidence-summary-grid {
   display: grid;
