@@ -41,8 +41,9 @@ jobs:
 
   backend:
     name: Backend mypy + tests
+    # Keep the quality gate mandatory, but let runtime tests report their
+    # own result when an unrelated formatting debt blocks the lint job.
     runs-on: ubuntu-latest
-    needs: engineering-gate
     services:
       postgres:
         image: postgis/postgis:17-3.5
@@ -117,7 +118,6 @@ jobs:
   frontend:
     name: Frontend typecheck + build
     runs-on: windows-latest
-    needs: engineering-gate
     steps:
       - uses: actions/checkout@v4
 
