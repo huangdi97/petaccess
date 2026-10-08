@@ -34,6 +34,16 @@
   margin-top: var(--pa-space-5);
 }
 
+.operator-claim__previous {
+  margin: 0;
+  padding: var(--pa-space-3) 0;
+  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  color: var(--pa-color-text-secondary);
+  font-size: var(--pa-font-size-sm);
+  line-height: var(--pa-line-height-20);
+}
+
 .operator-claim__field {
   display: flex;
   flex-direction: column;
