@@ -119,17 +119,19 @@ watch(placeId, () => void load(), { immediate: true });
           </template>
         </StateMessage>
 
-        <StateMessage
+        <section
           v-else-if="submitted"
-          kind="SUCCESS"
-          title="认领申请已提交"
-          description="申请已进入人工核验。审核通过前，你不会获得管理方权限，页面上的正式规则也不会因此改变。"
+          class="operator-claim__result"
           data-testid="operator-claim-result"
+          role="status"
         >
-          <template #action>
-            <RouterLink class="btn primary" :to="`/place/${placeId}`">返回场所</RouterLink>
-          </template>
-        </StateMessage>
+          <strong>认领申请已提交</strong>
+          <p>
+            当前状态：{{ claimStatus || "等待人工核验" }}。审核通过前，你不会获得管理方权限，
+            页面上的正式规则也不会因此改变。
+          </p>
+          <RouterLink class="btn primary" :to="`/place/${placeId}`">返回场所</RouterLink>
+        </section>
 
         <form v-else class="operator-claim__form" @submit.prevent="submit">
           <label class="operator-claim__field">
