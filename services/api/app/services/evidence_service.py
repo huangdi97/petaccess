@@ -642,7 +642,7 @@ def strength_for_artifact(artifact, source) -> str | None:
         if directness == Directness.DIRECT.value:
             return EvidenceStrength.PRIMARY_DIRECT.value
         return EvidenceStrength.SECONDARY_REPUTABLE.value
-    if collector in (CollectorType.ONSITE_EVIDENCE,):
+    if collector == CollectorType.ONSITE_EVIDENCE.lower():
         return EvidenceStrength.PRIMARY_CAPTURED.value
     if stype == SourceType.ORDINARY_USER.value:
         return EvidenceStrength.USER_SUBMITTED.value
