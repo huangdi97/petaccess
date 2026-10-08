@@ -397,7 +397,7 @@ direct-v8 现在必须区分三种状态，禁止互相代替：
 - **CoexistenceSnapshot 是 Consumer SSOT**：Home / Search / Map / Place 不再各自重新算 Rule/Reality。
 - **Map 空间事实恢复**：PlaceSummary 使用 PostGIS representative coordinates；production 不再用 UUID 合成坐标。地图定位后 nearby query 跟随实际 camera。
 - **真实地图 provider 已接入**：Tencent GL + server-side WGS84→GCJ-02 provider boundary 已实现；client key/server key 未配置时使用简化底图。
-- **简化底图必须诚实**：当 real provider 未配置或运行失败时，UI 明确写“简化空间底图”，同时说明场所点位仍使用已核验坐标；Human Review capture 会校验该声明。
+- **简化底图必须诚实**：当 real provider 未配置或运行失败时，UI 明确写“简化空间底图”，同时说明场所点位使用已收录位置坐标，且“已收录”不代表位置经过实地核验；Human Review capture 会校验该声明。
 - **Rule filter 真正影响 Spatial Workspace**：列表、markers、coverage、selection 同步，不再出现“列表过滤了但地图还留着”的双重状态。
 - **Search/Home 空态不再提供假动作**：当前产品没有“新增 Place”流程，因此空搜索/空附近不再把“新增场所线索”CTA错误指向一个要求现有 placeId 的 Contribution 页面。
 
