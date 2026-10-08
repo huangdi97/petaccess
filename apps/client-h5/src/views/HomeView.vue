@@ -49,7 +49,7 @@ const {
       >
         <!-- location + map link -->
         <div class="home-topline">
-          <strong data-testid="coverage-area">上海 · 试点</strong>
+          <strong data-testid="coverage-area"><span class="home-brand">PetAccess</span> · 上海 · 试点</strong>
           <RouterLink class="btn-inline" to="/map" data-testid="go-map">看地图 →</RouterLink>
         </div>
 
@@ -166,6 +166,11 @@ const {
   gap: var(--pa-space-2);
   margin: 0 0 var(--pa-space-5);
   color: var(--pa-color-text-secondary);
+}
+
+.home-brand {
+  color: var(--pa-color-text-primary);
+  font-weight: var(--pa-font-weight-650);
 }
 
 .home-intro {
