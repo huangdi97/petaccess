@@ -49,6 +49,7 @@ export default defineConfigWithVueTs(
             "tests/ui-reconstruction/*.ts",
             "tests/ui-oracle/*.ts",
             "tools/ui-oracle/*.ts",
+            "tools/ui-oracle/*.mjs",
             "playwright.ui-reconstruction.config.ts",
             "playwright.ui-oracle.config.ts",
             "scripts/*.mjs",
