@@ -861,3 +861,38 @@ def test_my_reality_contributions_lists_only_own_reports(client, signed_user, pl
 
     anon = client.get("/api/v1/me/reality-contributions")
     assert anon.status_code == 401, anon.text
+
+
+def test_future_observation_is_rejected_before_creating_a_fact(client, place_id, signed_user):
+    future = (datetime.now(UTC) + timedelta(days=2)).isoformat()
+    response = client.post(
+        f"/api/v1/places/{place_id}/reality/reports",
+        headers=signed_user,
+        json={
+            "report": _report("on_site_past", observed_at=future),
+            "candidates": [],
+        },
+    )
+    assert response.status_code == 422, response.text
+    assert response.json()["error"]["code"] == "reality_future_time_not_allowed"
+
+
+def test_external_claim_cannot_postdate_its_publication(client, place_id, signed_user):
+    published = (datetime.now(UTC) - timedelta(days=2)).isoformat()
+    impossible_event = (datetime.now(UTC) - timedelta(days=1)).isoformat()
+    response = client.post(
+        f"/api/v1/places/{place_id}/reality/reports",
+        headers=signed_user,
+        json={
+            "report": _report(
+                "external_online_content",
+                observed_at=None,
+                content_published_at=published,
+                claimed_event_at=impossible_event,
+                time_evidence_state="exact_event_date",
+            ),
+            "candidates": [],
+        },
+    )
+    assert response.status_code == 422, response.text
+    assert response.json()["error"]["code"] == "reality_event_after_publication"
