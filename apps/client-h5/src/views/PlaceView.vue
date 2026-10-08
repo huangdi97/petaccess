@@ -31,6 +31,7 @@ import {
 } from "@petaccess/client-core";
 import DecisionInspector from "../components/domain/DecisionInspector.vue";
 import QueryContextBar from "../components/domain/QueryContextBar.vue";
+import PlaceTypeGlyph from "../components/domain/PlaceTypeGlyph.vue";
 import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
 import PlaceSectionNav, { type PlaceViewKey } from "../components/place/PlaceSectionNav.vue";
