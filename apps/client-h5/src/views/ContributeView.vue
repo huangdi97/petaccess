@@ -148,6 +148,8 @@ const contributionKindLabel = computed(() => {
 });
 /** §15 context rail：适用区域 —— 真实 zones 数据（无则保持 shell 默认）。 */
 const contextZoneLabel = computed(() => {
+  const scoped = zones.value.find((item) => item.id === effortInitialZoneId.value);
+  if (scoped) return `本次所选区域：${scoped.name}`;
   const first = zones.value[0];
   return first ? `${first.name} 等 ${zones.value.length} 个区域` : "暂未收录具体区域";
 });
