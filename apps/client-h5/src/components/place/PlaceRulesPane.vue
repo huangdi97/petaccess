@@ -30,6 +30,7 @@ import {
 import StatusBadge from "../StatusBadge.vue";
 
 const props = defineProps<{
+  placeId: string;
   currentRules: RuleView[];
   historyRules: RuleView[];
   sourceMap: Map<string, SourceView>;
@@ -154,7 +155,7 @@ function ruleConditionLines(r: RuleView): string[] {
       <p class="muted rule-conflict__note">{{ conflicts.note }}</p>
       <RouterLink
         class="btn-inline"
-        :to="`/place/${currentRules[0]?.place_id ?? ''}?view=evidence`"
+        :to="`/place/${placeId}?view=evidence`"
       >
         查看差异 →
       </RouterLink>
@@ -189,7 +190,7 @@ function ruleConditionLines(r: RuleView): string[] {
       <p class="muted history-note">
         管理方声明与用户观察并存：认领后管理方规则标注来源，用户仍可提交现场记录。
       </p>
-      <RouterLink class="btn-inline" :to="`/contribute/${currentRules[0]?.place_id ?? ''}`">
+      <RouterLink class="btn-inline" :to="`/contribute/${placeId}`">
         报告规则 / 贡献 →
       </RouterLink>
     </section>
