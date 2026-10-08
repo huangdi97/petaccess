@@ -8,7 +8,7 @@
  * No image manipulation and no third-party assets or dependencies.
  */
 import { execFileSync } from "node:child_process";
-import { copyFileSync, existsSync, mkdirSync, readdirSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
 const out = path.resolve("artifacts/ui-direct-v8/HUMAN_REVIEW");
@@ -33,9 +33,20 @@ if (hasReference) copyFileSync(reference, path.join(out, "approved-reference.png
 
 const screens = ["desktop", "mobile"].flatMap((scope) => {
   const folder = path.join(out, scope);
-  if (!existsSync(folder)) return [];
+  const manifestFile = path.join(folder, "manifest.json");
+  if (!existsSync(manifestFile)) return [];
+  let manifest;
+  try {
+    manifest = JSON.parse(readFileSync(manifestFile, "utf8"));
+  } catch {
+    return []; // Fail closed: untraceable screenshots are never represented as current.
+  }
+  // The screenshot generator supplies a HEAD-bound manifest. A leftover local
+  // file from a previous build must not be relabelled as this commit's evidence.
+  if (manifest.sourceHead !== head) return [];
+  const captured = new Set((manifest.shots ?? []).map((shot) => `${shot.name}.png`));
   return readdirSync(folder)
-    .filter((name) => name.endsWith(".png"))
+    .filter((name) => name.endsWith(".png") && captured.has(name))
     .sort()
     .map((name) => ({ scope, name, url: `${scope}/${encodeURIComponent(name)}` }));
 });
