@@ -424,6 +424,7 @@ const placeFixture = computed<string>(() => {
             :place-id="placeId"
             :events="realityEvents"
             :sources="sources"
+            :rule-evidence="coexistence?.evidence_summary.rule_evidence ?? []"
           />
         </template>
       </main>
