@@ -72,6 +72,12 @@ async function submit() {
       <section class="auth-workspace" aria-label="登录或注册">
         <AuthModeTabs :mode="mode" @change="mode = $event" />
 
+        <div
+          id="auth-panel"
+          class="auth-panel"
+          role="tabpanel"
+          :aria-labelledby="`auth-tab-${mode}`"
+        >
         <form class="auth-form" @submit.prevent="submit">
           <label v-if="mode === 'register'" class="auth-field">
             <span>昵称</span>
@@ -105,6 +111,7 @@ async function submit() {
         <p class="auth-privacy">
           位置只用于当前附近查询与现场核验，不建立连续轨迹；服务犬身份只由用户自行声明。
         </p>
+        </div>
       </section>
     </main>
   </DesktopContentContainer>
