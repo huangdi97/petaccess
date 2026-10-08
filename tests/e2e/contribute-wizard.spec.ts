@@ -227,10 +227,16 @@ test("A2.2 — 规则线索进入 RuleCandidate review，而不是 Observation/R
 
 test("A2.2b — 规则牌可独立提交证据，不要求用户先解释准入结论", async ({ page, request }) => {
   const token = await signIn(request);
+  const zonesResponse = await request.get(`${API}/places/${MALL_ID}/zones`);
+  expect(zonesResponse.ok(), await zonesResponse.text()).toBeTruthy();
+  const zones = (await zonesResponse.json()) as { id: string }[];
+  const zoneId = zones[0]?.id;
+  expect(zoneId).toBeDefined();
   await page.addInitScript((t) => localStorage.setItem("pa_token", t), token);
   await page.goto(`${BASE}/#/contribute/${MALL_ID}`, { waitUntil: "load" });
   await page.getByTestId("entry-rule").click();
   await page.getByTestId("rule-intent-signage").click();
+  await page.getByTestId("rule-signage-zone").selectOption(zoneId!);
 
   // Valid 1×1 PNG: the flow is tested as an evidence upload, not as an OCR-quality test.
   const png = Buffer.from(
@@ -250,12 +256,31 @@ test("A2.2b — 规则牌可独立提交证据，不要求用户先解释准入�
   await page.getByTestId("rule-submit").click();
   const body = (await ruleLeadRequest).postDataJSON() as Record<string, unknown>;
   expect(body.media_id).toBeTruthy();
+  expect(body.zone_id).toBe(zoneId);
   expect(body.effect).toBeNull();
   expect(body.animal_scope).toBeNull();
   expect(String(body.raw_text)).toContain("规则牌 / 公告证据");
   await expect(page.getByTestId("contribute-result")).toContainText("不会自动生成", {
     timeout: 15000,
   });
+});
+
+test("A2.2c — switching rule intent clears a hidden spatial scope", async ({ page, request }) => {
+  const token = await signIn(request);
+  const zonesResponse = await request.get(`${API}/places/${MALL_ID}/zones`);
+  expect(zonesResponse.ok(), await zonesResponse.text()).toBeTruthy();
+  const zones = (await zonesResponse.json()) as { id: string }[];
+  const zoneId = zones[0]?.id;
+  expect(zoneId).toBeDefined();
+
+  await page.addInitScript((t) => localStorage.setItem("pa_token", t), token);
+  await page.goto(`${BASE}/#/contribute/${MALL_ID}`, { waitUntil: "load" });
+  await page.getByTestId("entry-rule").click();
+  await page.locator("#rule-zone").selectOption(zoneId!);
+  await expect(page.locator("#rule-zone")).toHaveValue(zoneId!);
+
+  await page.getByTestId("rule-intent-signage").click();
+  await expect(page.getByTestId("rule-signage-zone")).toHaveValue("");
 });
 
 test("A2.3 — 场所纠错只提交 review lead，不直接修改场所", async ({ page, request }) => {
