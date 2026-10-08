@@ -61,6 +61,9 @@ const { sourceMode, occurredAt, durationBucket, zoneId, busy, error, canSubmit, 
             required
             data-testid="effort-date"
           />
+          <p v-if="!occurredAt" class="effort-note">
+            请填写你实际停留的日期；未填写时不能提交历史观察。
+          </p>
         </template>
       </fieldset>
 
