@@ -56,7 +56,7 @@ def _place_names(db: Session, place_ids: set[str]) -> dict[str, str]:
     if not place_ids:
         return {}
     rows = db.execute(select(Place.id, Place.canonical_name).where(Place.id.in_(place_ids))).all()
-    return dict(rows)
+    return {place_id: name for place_id, name in rows}
 
 
 def _reality_rows(db: Session, user_id: str) -> list[ContributionActivity]:
