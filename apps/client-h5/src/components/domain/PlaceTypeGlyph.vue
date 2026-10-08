@@ -15,7 +15,7 @@ import PaIcon from "../ui/PaIcon.vue";
 const props = withDefaults(
   defineProps<{
     placeType?: string | null;
-    size?: "sm" | "md";
+    size?: "sm" | "md" | "lg";
   }>(),
   { placeType: null, size: "md" },
 );
@@ -35,7 +35,7 @@ const icon = computed<IconName>(() => {
     aria-hidden="true"
     data-ui="place-type-glyph"
   >
-    <PaIcon :name="icon" :size="size === 'sm' ? 'sm' : 'md'" />
+    <PaIcon :name="icon" :size="size === 'sm' ? 'sm' : size === 'lg' ? 'lg' : 'md'" />
   </span>
 </template>
 
@@ -49,11 +49,49 @@ const icon = computed<IconName>(() => {
   border-radius: var(--pa-radius-control);
   background: var(--pa-color-surface-muted);
   color: var(--pa-color-accent);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Venue media requires approved provenance. This quiet abstract backdrop
+   is a type glyph, not a photograph or a claim about a specific building. */
+.place-type-glyph::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    145deg,
+    var(--pa-color-surface-muted),
+    var(--pa-color-accent-weak)
+  );
+}
+
+.place-type-glyph::after {
+  content: "";
+  position: absolute;
+  right: -8px;
+  bottom: -12px;
+  width: 36px;
+  height: 36px;
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  transform: rotate(-18deg);
+}
+
+.place-type-glyph :deep(svg) {
+  position: relative;
+  z-index: 1;
 }
 
 .place-type-glyph--md {
   width: 40px;
   height: 40px;
+}
+
+.place-type-glyph--lg {
+  width: 56px;
+  height: 56px;
+  border-color: var(--pa-color-border);
+  border-radius: var(--pa-radius-md);
 }
 
 .place-type-glyph--sm {
