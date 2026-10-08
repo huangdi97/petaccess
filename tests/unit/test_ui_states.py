@@ -87,7 +87,6 @@ def _view_plus_imports(path: Path) -> str:
     return "\n".join(parts)
 
 
-
 # ------------------------------------------------------------- §5.5 vocabulary
 
 

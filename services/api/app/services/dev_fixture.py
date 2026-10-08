@@ -128,9 +128,7 @@ def fixture_nearby_summaries(lat: float, lng: float, radius_m: int) -> list[Plac
         lat_delta = radians(place.latitude - lat)
         lng_delta = radians(place.longitude - lng)
         a = sin(lat_delta / 2) ** 2 + (
-            cos(radians(lat))
-            * cos(radians(place.latitude))
-            * sin(lng_delta / 2) ** 2
+            cos(radians(lat)) * cos(radians(place.latitude)) * sin(lng_delta / 2) ** 2
         )
         distance_m = 2 * earth_radius_m * asin(min(1.0, sqrt(a)))
         if distance_m <= radius_m:

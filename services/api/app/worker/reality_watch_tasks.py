@@ -53,8 +53,7 @@ def _reality_changed_for_watch(
         return session.scalar(select(func.count()).select_from(model).where(*predicates)) or 0
 
     return sum(
-        count_model(model)
-        for model in (ObservedPresence, StaffResponseObservation, AnimalFacility)
+        count_model(model) for model in (ObservedPresence, StaffResponseObservation, AnimalFacility)
     )
 
 

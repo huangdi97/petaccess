@@ -107,7 +107,6 @@ def place_reality(
     return RealityAnswer(**_reality_answer_for_place(db, place_id, datetime.now(UTC)))
 
 
-
 def _enum_text(value: object | None) -> str | None:
     """Return the stable string value of a SQLAlchemy enum/string field."""
     if value is None:
@@ -294,15 +293,11 @@ def consumer_reality_events(
         .limit(limit)
     ).all()
     candidate_ids = {
-        row.candidate_id
-        for row in [*presence, *staff, *facilities]
-        if row.candidate_id
+        row.candidate_id for row in [*presence, *staff, *facilities] if row.candidate_id
     }
 
     evidence_bundle_ids = {
-        row.evidence_bundle_id
-        for row in [*presence, *staff, *facilities]
-        if row.evidence_bundle_id
+        row.evidence_bundle_id for row in [*presence, *staff, *facilities] if row.evidence_bundle_id
     }
     evidence_meta_by_bundle: dict[str, _EventEvidenceMeta] = {}
     if evidence_bundle_ids:
@@ -399,9 +394,7 @@ def consumer_reality_events(
         # those confirmations back to the published claim so the consumer
         # evidence rail counts both valid linkage forms.
         claim_id_by_candidate = {
-            row.candidate_id: row.id
-            for row in [*presence, *staff, *facilities]
-            if row.candidate_id
+            row.candidate_id: row.id for row in [*presence, *staff, *facilities] if row.candidate_id
         }
         candidate_confirmation_rows = db.execute(
             select(RealityConfirmation.target_candidate_id, func.count())
@@ -667,9 +660,7 @@ def decide_reality_candidate(
     return cand
 
 
-def _candidate_event_anchor(
-    db: Session, cand: RealityCandidate
-) -> tuple[datetime | None, bool]:
+def _candidate_event_anchor(db: Session, cand: RealityCandidate) -> tuple[datetime | None, bool]:
     """Return a display anchor and whether it is a real event-time anchor.
 
     Publication-only external content may use content_published_at to place a
@@ -956,8 +947,8 @@ def coexistence_snapshot(place_id: str, body: dict, db: Session = Depends(get_db
 
     reality_answer = _reality_answer_for_place(db, place_id, now)
 
-    reality_evidence_count, reality_source_count, reality_verification = (
-        _reality_evidence_stats(db, place_id)
+    reality_evidence_count, reality_source_count, reality_verification = _reality_evidence_stats(
+        db, place_id
     )
     snapshot = build_coexistence_snapshot(
         place_id=place_id,
@@ -1046,26 +1037,19 @@ def _presence_summary(db: Session, place_id: str, now: datetime):
     # same zone must not turn the consumer lens into a frequency score.
     zone_facts = list(
         {
-            (item["name"], item["zone_type"], item["indoor_outdoor"]): item
-            for item in zone_facts
+            (item["name"], item["zone_type"], item["indoor_outdoor"]): item for item in zone_facts
         }.values()
     )
     zone_types = sorted(
         {value for _, _, zone_type, _ in claims if (value := enum_text(zone_type)) is not None}
     )
     indoor_outdoor = sorted(
-        {
-            value
-            for _, _, _, spatial in claims
-            if (value := enum_text(spatial)) is not None
-        }
+        {value for _, _, _, spatial in claims if (value := enum_text(spatial)) is not None}
     )
     return summary, zone_facts, zone_types, indoor_outdoor
 
 
-def _staff_response_summary(
-    db: Session, place_id: str, now: datetime | None = None
-) -> list[dict]:
+def _staff_response_summary(db: Session, place_id: str, now: datetime | None = None) -> list[dict]:
     """Summarize recent staff handling and keep open disputes visible."""
     cutoff = (now or datetime.now(UTC)) - timedelta(days=30)
     rows = db.execute(
@@ -1218,8 +1202,8 @@ def _reality_evidence_stats(db: Session, place_id: str) -> tuple[int, int, str |
 
 def _reality_answer_for_place(db: Session, place_id: str, now: datetime) -> dict:
     """Build the one consumer RealityAnswer used by GET and CoexistenceSnapshot."""
-    summary, observed_zone_facts, observed_zone_types, observed_indoor_outdoor = (
-        _presence_summary(db, place_id, now)
+    summary, observed_zone_facts, observed_zone_types, observed_indoor_outdoor = _presence_summary(
+        db, place_id, now
     )
     return {
         "state": summary.state,
@@ -1240,4 +1224,3 @@ def _reality_answer_for_place(db: Session, place_id: str, now: datetime) -> dict
         "days_since_last_seen": summary.days_since_last_seen,
         "note": summary.note,
     }
-

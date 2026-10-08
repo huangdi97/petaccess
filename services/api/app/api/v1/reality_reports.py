@@ -182,8 +182,6 @@ def _facility_trace_label(row: AnimalFacility) -> str:
     return FACILITY_LABELS.get(_enum_value(row.facility_type), "动物相关设施")
 
 
-
-
 def _validate_report_times(body: RealityContributionIn) -> None:
     """Enforce origin-specific time rules before any row is written."""
     origin = body.report.origin
@@ -552,14 +550,10 @@ def reality_trace(
     summary, _, _, _ = _presence_summary(db, place_id, now)
     published_rows = [*claims, *staff_rows, *facility_rows]
     evidence_ids = {
-        row.evidence_bundle_id
-        for row in published_rows
-        if getattr(row, "evidence_bundle_id", None)
+        row.evidence_bundle_id for row in published_rows if getattr(row, "evidence_bundle_id", None)
     }
     candidate_ids = {
-        row.candidate_id
-        for row in published_rows
-        if getattr(row, "candidate_id", None)
+        row.candidate_id for row in published_rows if getattr(row, "candidate_id", None)
     }
     report_origins = (
         list(
@@ -572,9 +566,7 @@ def reality_trace(
         if candidate_ids
         else []
     )
-    source_ids = {
-        row.source_id for row in published_rows if getattr(row, "source_id", None)
-    }
+    source_ids = {row.source_id for row in published_rows if getattr(row, "source_id", None)}
     directness_values = (
         list(db.scalars(select(Source.directness).where(Source.id.in_(source_ids))))
         if source_ids
@@ -624,9 +616,7 @@ def reality_trace(
             value="经人工核验" if published_rows else "信息待核验",
             note="平台核验只说明事实被确认，不改变“未观察到”的含义",
         ),
-        RealityTraceSection(
-            label="一手来源", value="是" if has_first_hand_source else "待补充"
-        ),
+        RealityTraceSection(label="一手来源", value="是" if has_first_hand_source else "待补充"),
         RealityTraceSection(
             label="争议 / 纠错",
             value=f"{open_dispute_count} 条处理中" if open_dispute_count else "暂无待处理异议",
@@ -749,19 +739,14 @@ def _source_type_label(
     report_origins: Sequence[object] = (),
 ) -> str:
     """Describe explicit Source rows and RealityReport origins without guessing."""
-    source_ids = {
-        row.source_id
-        for row in [*claims, *staff_rows, *facility_rows]
-        if row.source_id
-    }
+    source_ids = {row.source_id for row in [*claims, *staff_rows, *facility_rows] if row.source_id}
     source_types = (
         db.scalars(select(Source.source_type).where(Source.id.in_(source_ids))).all()
         if source_ids
         else []
     )
     labels = {
-        SOURCE_TYPE_LABELS.get(_enum_value(source_type), "其他来源")
-        for source_type in source_types
+        SOURCE_TYPE_LABELS.get(_enum_value(source_type), "其他来源") for source_type in source_types
     }
     origin_labels = {
         "on_site_now": "现场亲历",

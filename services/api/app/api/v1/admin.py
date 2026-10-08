@@ -16,6 +16,7 @@ from app.services.admin_quality_dashboard import build_quality_dashboard
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
+
 @router.get("/audit", response_model=Page[AuditOut])
 def list_audit(
     target_type: str | None = None,

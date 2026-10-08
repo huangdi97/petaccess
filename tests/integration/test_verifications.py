@@ -66,9 +66,7 @@ def test_create_and_list_verification(client, user):
 def test_user_confirmation_does_not_refresh_governed_rule_freshness(client, user):
     factory = get_session_factory()
     with factory() as db:
-        rule = db.scalars(
-            select(AccessRule).where(AccessRule.status == "current").limit(1)
-        ).first()
+        rule = db.scalars(select(AccessRule).where(AccessRule.status == "current").limit(1)).first()
         assert rule is not None
         rule_id = rule.id
         place_id = rule.place_id
@@ -195,5 +193,3 @@ def test_signage_evidence_is_not_exposed_before_rule_review(client, user):
     public = client.get(f"/api/v1/places/{place_id}/verifications")
     assert public.status_code == 200, public.text
     assert all(item["id"] != event_id for item in public.json()["items"])
-
-

@@ -128,15 +128,17 @@ def test_private_media_is_not_readable_or_deletable_by_other_user(
     assert r.status_code == 201, r.text
     media_id = r.json()["id"]
 
-    assert client.get(
-        f"/api/v1/media/{media_id}", headers=_auth(other_user_token)
-    ).status_code == 404
-    assert client.get(
-        f"/api/v1/media/{media_id}/url", headers=_auth(other_user_token)
-    ).status_code == 404
-    assert client.delete(
-        f"/api/v1/media/{media_id}", headers=_auth(other_user_token)
-    ).status_code == 404
+    assert (
+        client.get(f"/api/v1/media/{media_id}", headers=_auth(other_user_token)).status_code == 404
+    )
+    assert (
+        client.get(f"/api/v1/media/{media_id}/url", headers=_auth(other_user_token)).status_code
+        == 404
+    )
+    assert (
+        client.delete(f"/api/v1/media/{media_id}", headers=_auth(other_user_token)).status_code
+        == 404
+    )
 
     assert client.get(f"/api/v1/media/{media_id}", headers=_auth(user_token)).status_code == 200
 

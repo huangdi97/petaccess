@@ -142,11 +142,13 @@ def _supersession_target_violations(
         return []
     target = db.get(AccessRule, target_id)
     if target is None:
-        return [(
-            "supersession_target_missing",
-            True,
-            "候选指向的待替换规则不存在，不能发布",
-        )]
+        return [
+            (
+                "supersession_target_missing",
+                True,
+                "候选指向的待替换规则不存在，不能发布",
+            )
+        ]
 
     # Supersession may legitimately narrow/widen/move a rule between zones.
     # The immutable boundary is the owning Place, not the old zone id.

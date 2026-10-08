@@ -57,7 +57,9 @@ def _rule_metrics(db: Session, now: datetime) -> tuple[dict, dict]:
     with_source = _count(db, AccessRule, AccessRule.source_id.isnot(None))
     places_total = _count(db, Place)
     places_with_rules = (
-        db.scalar(select(func.count()).select_from(select(AccessRule.place_id).distinct().subquery()))
+        db.scalar(
+            select(func.count()).select_from(select(AccessRule.place_id).distinct().subquery())
+        )
         or 0
     )
     due_rows = db.execute(

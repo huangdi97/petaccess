@@ -158,6 +158,7 @@ class AnimalFacilityOut(BaseModel):
     verification_status: RealityVerificationStatus
     freshness_state: RealityFreshnessState | None
 
+
 class RealityEventOut(BaseModel):
     """One public, human-verified Reality event for the consumer timeline.
 

@@ -579,9 +579,7 @@ def test_staff_response_summary_preserves_awareness_axis(client):
     places = client.get("/api/v1/places", params={"q": "云栖", "limit": 10})
     assert places.status_code == 200, places.text
     mall = next(
-        item
-        for item in places.json()["items"]
-        if item["canonical_name"] == "云栖中心·测试商场"
+        item for item in places.json()["items"] if item["canonical_name"] == "云栖中心·测试商场"
     )
 
     response = client.get(f"/api/v1/places/{mall['id']}/reality")
@@ -596,9 +594,7 @@ def test_facility_summary_preserves_verified_location(client):
     places = client.get("/api/v1/places", params={"q": "云栖", "limit": 10})
     assert places.status_code == 200, places.text
     mall = next(
-        item
-        for item in places.json()["items"]
-        if item["canonical_name"] == "云栖中心·测试商场"
+        item for item in places.json()["items"] if item["canonical_name"] == "云栖中心·测试商场"
     )
 
     response = client.get(f"/api/v1/places/{mall['id']}/reality")
@@ -629,9 +625,7 @@ def test_demo_reality_events_preserve_observed_submitted_reviewed_axes(client):
     places = client.get("/api/v1/places", params={"q": "云栖", "limit": 10})
     assert places.status_code == 200, places.text
     mall = next(
-        item
-        for item in places.json()["items"]
-        if item["canonical_name"] == "云栖中心·测试商场"
+        item for item in places.json()["items"] if item["canonical_name"] == "云栖中心·测试商场"
     )
 
     response = client.get(f"/api/v1/places/{mall['id']}/reality/events")
@@ -741,9 +735,7 @@ def test_published_reality_fact_can_be_disputed_without_becoming_a_rule_mutation
 
     factory = get_session_factory()
     with factory() as db:
-        claim = db.scalar(
-            select(ObservedPresence).where(ObservedPresence.candidate_id == cand_id)
-        )
+        claim = db.scalar(select(ObservedPresence).where(ObservedPresence.candidate_id == cand_id))
         assert claim is not None
         claim_id = claim.id
 
@@ -788,9 +780,7 @@ def test_staff_and_facility_disputes_remain_visible_in_place_summaries(client, s
     places = client.get("/api/v1/places", params={"q": "云栖", "limit": 10})
     assert places.status_code == 200, places.text
     mall = next(
-        item
-        for item in places.json()["items"]
-        if item["canonical_name"] == "云栖中心·测试商场"
+        item for item in places.json()["items"] if item["canonical_name"] == "云栖中心·测试商场"
     )
     events = client.get(f"/api/v1/places/{mall['id']}/reality/events")
     assert events.status_code == 200, events.text

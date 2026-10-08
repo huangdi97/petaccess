@@ -135,9 +135,6 @@ def test_parent_place_hit_returns_child_places(client, branches):
     assert sibling in ids, "parent-place search did not surface its child place"
 
 
-
-
-
 def test_results_expose_representative_coordinates(client, branches):
     """Consumer map rows use the governed PostGIS point, never UUID-derived positions."""
     flagship, sibling = branches

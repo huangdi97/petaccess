@@ -162,9 +162,7 @@ def list_places(
         last_verified_at,
         latitude,
         longitude,
-    ).where(
-        Place.lifecycle_status == LifecycleStatus.ACTIVE
-    )
+    ).where(Place.lifecycle_status == LifecycleStatus.ACTIVE)
     if q:
         # pg_trgm similarity + ILIKE fallback in one OR for CJK friendliness.
         # Aliases get the same treatment: a hit on a former name or a brand

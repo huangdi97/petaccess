@@ -79,10 +79,13 @@ def _reality_rows(db: Session, user_id: str) -> list[ContributionActivity]:
             "staff_response": "工作人员处理记录",
             "animal_facility": "动物设施记录",
         }
-        summary = "、".join(
-            labels.get(_enum_text(candidate.candidate_type), "现场信息")
-            for candidate in candidates
-        ) or "现场信息"
+        summary = (
+            "、".join(
+                labels.get(_enum_text(candidate.candidate_type), "现场信息")
+                for candidate in candidates
+            )
+            or "现场信息"
+        )
         if any(candidate.review_status == "REVIEW_PENDING" for candidate in candidates):
             status = "等待人工核验"
         elif candidates:
