@@ -138,6 +138,7 @@ test("evidence rail exposes governance state instead of a generic trust badge", 
   await expect(governance).toContainText("人工接受");
   await expect(governance).toContainText("来源方式");
   await expect(governance).toContainText("证据形态");
+  await expect(governance).toContainText("独立确认");
   await expect(governance).toContainText("规则来源升级");
   await expect(governance).toContainText("争议 / 纠错");
   await expect(governance).toContainText("当前公开接口不推断包内材料数量");
