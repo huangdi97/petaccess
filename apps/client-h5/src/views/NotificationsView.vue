@@ -86,7 +86,7 @@ async function unsubscribe(w: WatchView) {
 </script>
 
 <template>
-  <AppShell>
+  <AppShell data-testid="notifications-page">
     <header class="notifications-head">
       <h1>通知中心</h1>
       <p class="muted">
