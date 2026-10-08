@@ -152,7 +152,7 @@ const PUBLISHER_TYPE_LABELS: Record<string, string> = {
 };
 
 export function evidenceMaterialLabel(event: RealityEventView): string {
-  if (!event.evidence_bundle_id) return "未绑定证据包";
+  if (!event.evidence_bundle_id) return "暂无可追溯原始材料";
   const parts: string[] = [];
   if (event.evidence_material_type) {
     parts.push(MATERIAL_TYPE_LABELS[event.evidence_material_type] ?? "其他原始材料");
@@ -168,7 +168,7 @@ export function evidenceMaterialLabel(event: RealityEventView): string {
   }
   if (event.evidence_display_allowed === false) parts.push("原始内容受许可 / 隐私限制");
   else if (event.evidence_display_allowed === true) parts.push("允许公开展示原始材料");
-  return parts.length ? parts.join(" · ") : "已有可追溯证据包";
+  return parts.length ? parts.join(" · ") : "已有可追溯材料";
 }
 
 export function realityEventProvenance(event: RealityEventView): string {
@@ -183,7 +183,7 @@ export function realityEventProvenance(event: RealityEventView): string {
     parts.push(`另有 ${event.confirmation_count} 条独立确认`);
   }
   if (event.evidence_bundle_id) parts.push(evidenceMaterialLabel(event));
-  if (!parts.length && event.evidence_bundle_id) parts.push("已有可追溯核验材料");
+  if (!parts.length && event.evidence_bundle_id) parts.push("已有可追溯材料");
   if (!parts.length && event.source_id) parts.push("已有来源记录");
   return parts.join(" · ");
 }
