@@ -557,6 +557,10 @@ export const client = {
     });
     return res.items;
   },
+  async placeSummary(id: string): Promise<PlaceSummary> {
+    // Exact ID, not an unbounded fuzzy-name lookup. May carry null coords.
+    return api.request<PlaceSummary>("get", `/places/${id}/summary`);
+  },
   async place(id: string) {
     // Derived, not hand-written — same reason as `PlaceSummary` above. The
     // hand-written copy here had already lost `parent_place_id`,
