@@ -19,7 +19,11 @@ def _id() -> str:
 
 
 def _place(db_session, name: str = "替换规则测试场所") -> Place:
-    row = Place(id=_id(), canonical_name=f"{name}-{uuid.uuid4().hex[:6]}", place_type=PlaceType.MALL)
+    row = Place(
+        id=_id(),
+        canonical_name=f"{name}-{uuid.uuid4().hex[:6]}",
+        place_type=PlaceType.MALL,
+    )
     db_session.add(row)
     db_session.flush()
     return row
