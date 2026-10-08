@@ -23,6 +23,7 @@ from app.models.enums import OperatorClaimStatus, RuleOrigin, RuleStatus, UserRo
 from app.schemas.civic import (
     OperatorClaimIn,
     OperatorClaimOut,
+    OperatorClaimSelfServeIn,
     OperatorClaimReview,
     OperatorQuestionnaire,
 )
@@ -60,6 +61,85 @@ def submit_claim(
         evidence_refs=body.evidence_refs,
     )
     db.add(claim)
+    db.commit()
+    db.refresh(claim)
+    return claim
+
+
+@router.post("/operator-claims/self-serve", response_model=OperatorClaimOut, status_code=201)
+def submit_self_serve_claim(
+    body: OperatorClaimSelfServeIn,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> OperatorClaim:
+    """Start a venue/operator claim without exposing internal operator IDs.
+
+    Submission grants no authority. It creates or reuses an unverified
+    Operator identity and leaves the claim in the normal moderator review
+    workflow; rules remain untouched until a later approved questionnaire.
+    """
+    if not get_settings().feature_operator_claim:
+        raise ApiError("管理方认领未开放", code="feature_disabled", status_code=403)
+
+    place = db.get(Place, body.place_id)
+    if place is None:
+        raise NotFound("场所不存在")
+
+    existing = db.scalar(
+        select(OperatorClaim).where(
+            OperatorClaim.place_id == body.place_id,
+            OperatorClaim.status.in_(["submitted", "verifying", "approved"]),
+        )
+    )
+    if existing:
+        raise ApiError("该场所已有进行中的认领", code="claim_conflict", status_code=409)
+
+    operator = db.get(Operator, place.operator_id) if place.operator_id else None
+    if operator is None:
+        normalized_name = body.operator_name.strip()
+        operator = db.scalar(
+            select(Operator).where(func.lower(Operator.name) == normalized_name.lower())
+        )
+        if operator is None:
+            operator = Operator(
+                name=normalized_name,
+                org_type=body.org_type,
+                contact_email=body.work_email,
+                website=body.website,
+                verified=False,
+            )
+            db.add(operator)
+            db.flush()
+
+    claim = OperatorClaim(
+        place_id=body.place_id,
+        operator_id=operator.id,
+        claimant_user_id=user.id,
+        verification_method=body.verification_method,
+        evidence_refs={
+            "work_email": body.work_email,
+            "website": body.website,
+            "verification_note": body.verification_note,
+            "self_serve": True,
+        },
+    )
+    db.add(claim)
+    db.flush()
+    record_audit(
+        db,
+        request=None,
+        actor_user_id=user.id,
+        actor_role=str(user.role),
+        action=AuditEvent.OPERATOR_CLAIM_CREATE.value,
+        target_type="operator_claim",
+        target_id=claim.id,
+        after_state={
+            "place_id": body.place_id,
+            "operator_id": operator.id,
+            "status": str(claim.status),
+            "self_serve": True,
+        },
+    )
     db.commit()
     db.refresh(claim)
     return claim
