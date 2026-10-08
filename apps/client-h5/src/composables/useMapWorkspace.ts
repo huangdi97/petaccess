@@ -202,6 +202,7 @@ export function useMapWorkspace() {
     places,
     facts,
     view,
+    isDesktop,
     loadNearby: load,
     selectTarget: async (place) => {
       selected.value = place;
