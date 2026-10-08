@@ -550,12 +550,12 @@ def reality_trace(
     summary, _, _, _ = _presence_summary(db, place_id, now)
     published_rows = [*claims, *staff_rows, *facility_rows]
     evidence_ids = {
-        getattr(row, "evidence_bundle_id")
+        row.evidence_bundle_id
         for row in published_rows
         if getattr(row, "evidence_bundle_id", None)
     }
     candidate_ids = {
-        getattr(row, "candidate_id") for row in published_rows if getattr(row, "candidate_id", None)
+        row.candidate_id for row in published_rows if getattr(row, "candidate_id", None)
     }
     report_origins = (
         list(
@@ -569,7 +569,7 @@ def reality_trace(
         else []
     )
     source_ids = {
-        getattr(row, "source_id") for row in published_rows if getattr(row, "source_id", None)
+        row.source_id for row in published_rows if getattr(row, "source_id", None)
     }
     directness_values = (
         list(db.scalars(select(Source.directness).where(Source.id.in_(source_ids))))
@@ -744,7 +744,7 @@ def _source_type_label(
 ) -> str:
     """Describe explicit Source rows and RealityReport origins without guessing."""
     source_ids = {
-        getattr(row, "source_id")
+        row.source_id
         for row in [*claims, *staff_rows, *facility_rows]
         if getattr(row, "source_id", None)
     }
