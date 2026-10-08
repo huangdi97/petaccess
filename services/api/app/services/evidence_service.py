@@ -611,7 +611,7 @@ def record_monitor_change(
 # ------------------------------------------------------- evidence strength (S7)
 
 
-def strength_for_artifact(artifact, source) -> str:
+def strength_for_artifact(artifact, source) -> str | None:
     """Descriptive capture posture (EvidenceStrength). NOT a trust score.
 
     Deterministic mapping from how the artifact was captured and what kind of
@@ -646,4 +646,5 @@ def strength_for_artifact(artifact, source) -> str:
         return EvidenceStrength.PRIMARY_CAPTURED.value
     if stype == SourceType.ORDINARY_USER.value:
         return EvidenceStrength.USER_SUBMITTED.value
-    return "unknown"
+    # No invented strength: NULL remains explicitly unclassified until review.
+    return None
