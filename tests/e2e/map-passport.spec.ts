@@ -31,6 +31,26 @@ test("A4 — /#/map?place= 深链预选；页面选择后 back/forward 同步", 
   await expect(page.getByTestId("preview-empty")).toBeVisible();
 });
 
+test("A4.1 — a Place-to-Map link resolves an exact place outside nearby results", async ({
+  page,
+}) => {
+  // Simulate a user opening a place outside the default camera's nearby
+  // result set. The exact place may still be resolved through search by ID.
+  await page.route("**/api/v1/places/nearby?*", async (route) => {
+    await route.fulfill({
+      json: { items: [], total: 0, limit: 30, offset: 0 },
+    });
+  });
+
+  await page.goto(`${BASE}/#/map?place=${MALL_ID}`);
+  await expect(page.getByTestId("map")).toBeVisible();
+  await expect(page.getByTestId("place-preview")).toContainText("云栖中心", {
+    timeout: 15000,
+  });
+  await expect(page.getByTestId(`place-${MALL_ID}`)).toBeVisible();
+  await expect(page.getByTestId("preview-open")).toHaveAttribute("href", `#/place/${MALL_ID}`);
+});
+
 test("A1 — desktop 地图 split-view + 四 Lens + 详情面板", async ({ page }) => {
   await page.goto(`${BASE}/#/map`);
   await expect(page.getByTestId("map")).toBeVisible();
