@@ -292,6 +292,46 @@ test("B2.2 — 仅有发布时间的设施线索不冒充当前空间设施事�
   await expect(page.getByTestId("animal-facility-summary-row").first()).toBeVisible();
 });
 
+test("B2.3 — Reality keeps the selected zone isolated from other areas", async ({
+  page,
+  request,
+}) => {
+  const response = await request.get(`http://127.0.0.1:8010/api/v1/places/${MALL_ID}/zones`);
+  expect(response.ok(), await response.text()).toBeTruthy();
+  const zones = (await response.json()) as { id: string }[];
+  expect(zones.length).toBeGreaterThanOrEqual(2);
+  const [first, second] = zones;
+  expect(first).toBeDefined();
+  expect(second).toBeDefined();
+
+  const makeEvent = (id: string, zoneId: string) => ({
+    id,
+    place_id: MALL_ID,
+    zone_id: zoneId,
+    event_type: "observed_presence",
+    event_at: "2026-09-24T18:42:00Z",
+    time_basis: "observed",
+    time_evidence_state: "observed_time_verified",
+    verification_status: "verified",
+    animal_scope: "dog",
+    observed_action: "present",
+  });
+  await page.route(`**/api/v1/places/${MALL_ID}/reality/events**`, (route) =>
+    route.fulfill({
+      json: [
+        makeEvent("11111111-1111-4111-8111-111111111111", first!.id),
+        makeEvent("22222222-2222-4222-8222-222222222222", second!.id),
+      ],
+    }),
+  );
+  await page.goto(`${BASE}/#/place/${MALL_ID}/reality?zone=${first!.id}`);
+
+  await expect(page.getByTestId("reality-zone-scope")).toBeVisible();
+  await expect(page.locator('[data-ui="reality-event"]')).toHaveCount(1);
+  await page.getByRole("link", { name: "查看全部区域" }).click();
+  await expect(page.locator('[data-ui="reality-event"]')).toHaveCount(2);
+});
+
 test("B3 — Place Evidence view 证据来源链渲染，无原始枚举", async ({ page }) => {
   await page.goto(`${BASE}/#/place/${CAFE_ID}?view=evidence`);
   await expect(page.getByTestId("place-evidence-view")).toBeVisible();
