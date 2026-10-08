@@ -559,7 +559,6 @@ watch(currentQueryContext, () => {
                 :to="{ name: 'place', params: { id: p.id } }"
                 class="result-row__link"
                 :data-testid="'result-' + p.canonical_name"
-                @mouseenter="selectPlace(p)"
                 @focus="selectPlace(p)"
                 @click="handleResultClick($event, p)"
               >
