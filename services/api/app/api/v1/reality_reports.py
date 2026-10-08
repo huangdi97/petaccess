@@ -548,7 +548,9 @@ def reality_trace(
     from app.api.v1.reality import _presence_summary
 
     summary, _, _, _ = _presence_summary(db, place_id, now)
-    published_rows = [*claims, *staff_rows, *facility_rows]
+    published_rows: list[
+        ObservedPresence | StaffResponseObservation | AnimalFacility
+    ] = [*claims, *staff_rows, *facility_rows]
     evidence_ids = {
         row.evidence_bundle_id for row in published_rows if getattr(row, "evidence_bundle_id", None)
     }
@@ -739,10 +741,11 @@ def _source_type_label(
     report_origins: Sequence[object] = (),
 ) -> str:
     """Describe explicit Source rows and RealityReport origins without guessing."""
+    published_source_rows: list[
+        ObservedPresence | StaffResponseObservation | AnimalFacility
+    ] = [*claims, *staff_rows, *facility_rows]
     source_ids = {
-        row.source_id
-        for row in [*claims, *staff_rows, *facility_rows]
-        if getattr(row, "source_id", None)
+        row.source_id for row in published_source_rows if getattr(row, "source_id", None)
     }
     source_types = (
         db.scalars(select(Source.source_type).where(Source.id.in_(source_ids))).all()
