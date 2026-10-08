@@ -80,8 +80,12 @@ test("A1.0.1 — fallback marker 不靠颜色单独表达语义", async ({ page 
   await expect(marker).toBeVisible({ timeout: 15000 });
   await expect(marker.locator(".dot__glyph")).not.toHaveText("");
   const pin = marker.locator("xpath=..");
-  await pin.hover();
+  // Labels are intentionally pointer-transparent so neighboring markers
+  // remain clickable. Test the actual glyph's hit target, and keyboard
+  // focus as a separate non-color-only path.
+  await marker.hover();
   await expect(pin.locator(".lbl")).toBeVisible();
+  await pin.focus();
   await expect(pin.locator(".lbl")).not.toHaveText("");
 });
 
