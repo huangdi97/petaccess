@@ -47,7 +47,7 @@ async function load() {
 
 function pick(attribute: string, stance: string) {
   const next = { ...chosen.value };
-  if (next[attribute] === stance) delete next[attribute];
+  if (!stance) delete next[attribute];
   else next[attribute] = stance;
   chosen.value = next;
 }
