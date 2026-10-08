@@ -96,9 +96,14 @@ const freshness = computed(() =>
           :key="c.place.id"
           class="home-row"
           :data-testid="'verified-' + c.place.id"
-          @click="emit('open', c.place.id)"
         >
-          <PlaceResultRow
+          <button
+            type="button"
+            class="home-row__open"
+            :aria-label="`查看场所 ${c.place.canonical_name}`"
+            @click="emit('open', c.place.id)"
+          >
+            <PlaceResultRow
             :place="c.place"
             :answer="c.facts.answer"
             :answer-error="c.facts.answerError"
@@ -108,6 +113,7 @@ const freshness = computed(() =>
             :species-label="speciesLabel"
             :conditions-label="conditionsLabel"
           />
+          </button>
           <div v-if="c.facts.answer" class="home-row__evidence-link">
             <RouterLink
               class="btn-inline"
