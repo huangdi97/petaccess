@@ -384,6 +384,7 @@ const placeFixture = computed<string>(() => {
                   {{ place.canonical_address ?? "地址未收录" }}
                   <RouterLink
                     class="place-dossier__map-link"
+                    data-testid="place-map-link"
                     :to="{ path: '/map', query: { place: placeId } }"
                   >
                     {{
