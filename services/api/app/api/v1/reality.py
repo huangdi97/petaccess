@@ -34,6 +34,7 @@ from app.models import (
     ObservedPresence,
     Place,
     RealityCandidate,
+    RealityConfirmation,
     RealityReport,
     StaffResponseObservation,
     User,
@@ -108,6 +109,7 @@ def _presence_event(
     row: ObservedPresence,
     report_meta: _EventReportMeta | None = None,
     *,
+    confirmation_count: int = 0,
     dispute_open: bool = False,
 ) -> RealityEventOut:
     report_meta = report_meta or {}
@@ -130,6 +132,7 @@ def _presence_event(
         source_id=row.source_id,
         evidence_bundle_id=row.evidence_bundle_id,
         submitted_at=report_meta.get("submitted_at"),
+        confirmation_count=confirmation_count,
         dispute_open=dispute_open,
         verification_status=_enum_text(row.verification_status) or "unverified",
         freshness_state=_enum_text(row.freshness_state),
@@ -141,6 +144,7 @@ def _staff_event(
     row: StaffResponseObservation,
     report_meta: _EventReportMeta | None = None,
     *,
+    confirmation_count: int = 0,
     dispute_open: bool = False,
 ) -> RealityEventOut:
     report_meta = report_meta or {}
@@ -166,6 +170,7 @@ def _staff_event(
         source_id=row.source_id,
         evidence_bundle_id=row.evidence_bundle_id,
         submitted_at=report_meta.get("submitted_at"),
+        confirmation_count=confirmation_count,
         dispute_open=dispute_open,
         verification_status=_enum_text(row.verification_status) or "unverified",
         freshness_state=_enum_text(row.freshness_state),
@@ -177,6 +182,7 @@ def _facility_event(
     row: AnimalFacility,
     report_meta: _EventReportMeta | None = None,
     *,
+    confirmation_count: int = 0,
     dispute_open: bool = False,
 ) -> RealityEventOut:
     report_meta = report_meta or {}
@@ -211,6 +217,7 @@ def _facility_event(
         source_id=row.source_id,
         evidence_bundle_id=row.evidence_bundle_id,
         submitted_at=report_meta.get("submitted_at"),
+        confirmation_count=confirmation_count,
         dispute_open=dispute_open,
         verification_status=_enum_text(row.verification_status) or "unverified",
         freshness_state=_enum_text(row.freshness_state),
@@ -303,6 +310,23 @@ def consumer_reality_events(
         *(("staff_response_observation", row.id) for row in staff),
         *(("animal_facility", row.id) for row in facilities),
     }
+
+    confirmation_counts: dict[str, int] = {}
+    if reality_targets:
+        target_ids = {target_id for _, target_id in reality_targets}
+        confirmation_rows = db.execute(
+            select(RealityConfirmation.target_claim_id, func.count())
+            .where(
+                RealityConfirmation.place_id == place_id,
+                RealityConfirmation.target_claim_id.in_(target_ids),
+            )
+            .group_by(RealityConfirmation.target_claim_id)
+        ).all()
+        confirmation_counts = {
+            target_id: int(count)
+            for target_id, count in confirmation_rows
+            if target_id
+        }
     open_disputes: set[tuple[str, str]] = set()
     if reality_targets:
         target_ids = {target_id for _, target_id in reality_targets}
@@ -328,6 +352,7 @@ def consumer_reality_events(
             _presence_event(
                 row,
                 report_meta_by_candidate.get(row.candidate_id),
+                confirmation_count=confirmation_counts.get(row.id, 0),
                 dispute_open=("observed_presence", row.id) in open_disputes,
             )
             for row in presence
@@ -336,6 +361,7 @@ def consumer_reality_events(
             _staff_event(
                 row,
                 report_meta_by_candidate.get(row.candidate_id),
+                confirmation_count=confirmation_counts.get(row.id, 0),
                 dispute_open=("staff_response_observation", row.id) in open_disputes,
             )
             for row in staff
@@ -344,6 +370,7 @@ def consumer_reality_events(
             _facility_event(
                 row,
                 report_meta_by_candidate.get(row.candidate_id),
+                confirmation_count=confirmation_counts.get(row.id, 0),
                 dispute_open=("animal_facility", row.id) in open_disputes,
             )
             for row in facilities
