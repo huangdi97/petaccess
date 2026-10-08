@@ -155,6 +155,21 @@ def test_operator_claim_full_loop(client):
     assert claim.status_code == 201, claim.text
     claim_id = claim.json()["id"]
 
+    mine = client.get(
+        f"/api/v1/operator-claims/mine?place_id={place_id}",
+        headers=_auth(op_tok),
+    )
+    assert mine.status_code == 200, mine.text
+    assert mine.json()[0]["id"] == claim_id
+    assert mine.json()[0]["status"] == "submitted"
+
+    other_user_claims = client.get(
+        f"/api/v1/operator-claims/mine?place_id={place_id}",
+        headers=_auth(member["token"]),
+    )
+    assert other_user_claims.status_code == 200, other_user_claims.text
+    assert other_user_claims.json() == []
+
     # 4. moderator approves → operator becomes place operator
     review = client.post(
         f"/api/v1/operator-claims/{claim_id}/review", json={"approve": True}, headers=_auth(mod_tok)
