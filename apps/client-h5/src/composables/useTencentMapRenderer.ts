@@ -1,5 +1,11 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch } from "vue";
-import { client, type MapCamera, type MapCluster, type MapMarker } from "@petaccess/client-core";
+import {
+  client,
+  STATUS_GLYPHS,
+  type MapCamera,
+  type MapCluster,
+  type MapMarker,
+} from "@petaccess/client-core";
 
 interface TencentLatLng {
   getLat?: () => number;
@@ -167,17 +173,47 @@ function markerColor(lens: string, status: MapMarker["status"]): string {
   return tokenColor(tokenByStatus[status] ?? "--pa-color-status-unknown");
 }
 
-function markerSvg(color: string, count: number, selected: boolean): string {
+function markerSvg(
+  color: string,
+  count: number,
+  selected: boolean,
+  status: MapMarker["status"],
+): string {
   const accent = tokenColor("--pa-color-accent");
   const surface = tokenColor("--pa-color-surface");
+  const textPrimary = tokenColor("--pa-color-text-primary");
   const ring = selected
     ? `<circle cx="18" cy="18" r="15" fill="none" stroke="${accent}" stroke-width="3"/>`
     : "";
-  const text =
-    count > 1
-      ? `<text x="18" y="22" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" font-weight="700" fill="${surface}">${Math.min(count, 99)}</text>`
-      : "";
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36">${ring}<circle cx="18" cy="18" r="${selected ? 10 : 9}" fill="${color}" stroke="${surface}" stroke-width="2"/>${text}</svg>`;
+
+  if (count > 1) {
+    const cluster = `<circle cx="18" cy="18" r="${selected ? 10 : 9}" fill="${color}" stroke="${surface}" stroke-width="2"/><text x="18" y="22" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" font-weight="700" fill="${surface}">${Math.min(count, 99)}</text>`;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36">${ring}${cluster}</svg>`;
+    return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+  }
+
+  const size = selected ? 10 : 9;
+  let shape = `<circle cx="18" cy="18" r="${size}" fill="${color}" stroke="${surface}" stroke-width="2"/>`;
+  let glyphFill = surface;
+
+  if (status === "CONDITIONAL") {
+    shape = `<circle cx="18" cy="18" r="${size}" fill="${surface}" stroke="${color}" stroke-width="3"/>`;
+    glyphFill = color;
+  } else if (status === "UNKNOWN") {
+    shape = `<circle cx="18" cy="18" r="${size}" fill="${surface}" stroke="${color}" stroke-width="2"/>`;
+    glyphFill = color;
+  } else if (status === "RESTRICTED") {
+    shape = `<rect x="9" y="13" width="18" height="10" rx="3" fill="${color}" stroke="${surface}" stroke-width="2"/>`;
+  } else if (status === "CONFLICT") {
+    shape = `<polygon points="18,7 29,18 18,29 7,18" fill="${color}" stroke="${surface}" stroke-width="2"/>`;
+  } else if (status === "STALE") {
+    shape = `<circle cx="18" cy="18" r="${size}" fill="${surface}" stroke="${color}" stroke-width="2" stroke-dasharray="3 2"/>`;
+    glyphFill = color;
+  }
+
+  const glyph = STATUS_GLYPHS[status] ?? STATUS_GLYPHS.UNKNOWN;
+  const glyphText = `<text x="18" y="21" text-anchor="middle" font-family="Arial,sans-serif" font-size="8" font-weight="700" fill="${glyphFill || textPrimary}">${glyph}</text>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36">${ring}${shape}${glyphText}</svg>`;
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
 
@@ -224,7 +260,12 @@ export function useTencentMapRenderer(options: TencentRendererOptions) {
         styles[styleId] = new api.MarkerStyle({
           width: 36,
           height: 36,
-          src: markerSvg(markerColor(options.lens(), cluster.status), cluster.count, selected),
+          src: markerSvg(
+            markerColor(options.lens(), cluster.status),
+            cluster.count,
+            selected,
+            cluster.status,
+          ),
         });
       }
       const point = converted[index]!;
