@@ -230,11 +230,7 @@ const SHOTS: Shot[] = [
     page: "evidence",
     state: "ready",
     h1: "证据与来源",
-    requiredTestids: [
-      "reality-dispute-reason",
-      "reality-dispute-note",
-      "reality-dispute-submit",
-    ],
+    requiredTestids: ["reality-dispute-reason", "reality-dispute-note", "reality-dispute-submit"],
     requiredText: ["问题类型", "需要核验什么", "不会删除记录", "不会自动改变规则"],
     note: "Correction/dispute is a governed transaction on one published Reality fact, never a direct edit.",
   },
