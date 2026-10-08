@@ -92,7 +92,7 @@ const MAP_LENSES = [
   { key: "rule", label: "规则" },
   { key: "reality", label: "现场" },
   { key: "facility", label: "设施" },
-  { key: "divergence", label: "不一致" },
+  { key: "divergence", label: "差异" },
 ] as const;
 
 /** The pane's empty-state action leads back to the task launcher. */
@@ -338,7 +338,7 @@ function chooseMapResult(id: string) {
             : lens === 'facility'
               ? '设施'
               : lens === 'divergence'
-                ? '不一致'
+                ? '差异'
                 : ''
         "
         :map-lens-label="selected && lens !== 'rule' ? lensLabels[selected.id] : ''"
@@ -358,7 +358,7 @@ function chooseMapResult(id: string) {
           : lens === 'facility'
             ? '设施'
             : lens === 'divergence'
-              ? '不一致'
+              ? '差异'
               : ''
       "
       :map-lens-label="selected && lens !== 'rule' ? lensLabels[selected.id] : ''"
