@@ -341,6 +341,9 @@ const placeFixture = computed<string>(() => {
               <RouterLink :to="`/contribute/${placeId}`" class="btn-inline">
                 纠错 / 补充 →
               </RouterLink>
+              <RouterLink :to="`/place/${placeId}/operator-claim`" class="btn-inline">
+                场所方认领 →
+              </RouterLink>
             </div>
             <p v-if="watchMsg" class="muted place-dossier__watch-msg" role="status">
               {{ watchMsg }}
