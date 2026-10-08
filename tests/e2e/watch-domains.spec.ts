@@ -59,3 +59,35 @@ test("cancelled watch stays absent after notification-page reload", async ({ pag
   await page.reload();
   await expect(page.locator(".notification-row").filter({ hasText: "现场更新" })).toHaveCount(0);
 });
+
+
+test("failed unwatch retains the server subscription and allows retry", async ({ page, request }) => {
+  const token = await signIn(request);
+  const headers = { Authorization: `Bearer ${token}` };
+  const created = await request.post(`${API}/watches`, {
+    headers,
+    data: {
+      watch_domain: "rule",
+      target_type: "place",
+      target_id: MALL_ID,
+      channels: ["in_app"],
+    },
+  });
+  expect(created.ok(), await created.text()).toBeTruthy();
+
+  await page.addInitScript((value) => localStorage.setItem("pa_token", value), token);
+  await page.route("**/api/v1/watches/*", async (route) => {
+    if (route.request().method() === "DELETE") {
+      await route.fulfill({ status: 503, json: { detail: "unavailable" } });
+    } else {
+      await route.continue();
+    }
+  });
+  await page.goto(`${BASE}/#/notifications`);
+  const row = page.locator(".notification-row").filter({ hasText: "规则变化" });
+  await expect(row).toBeVisible();
+  await row.getByRole("button", { name: /取消关注/ }).click();
+  await expect(row).toBeVisible();
+  await expect(page.getByRole("alert")).toContainText("取消关注失败");
+  await expect(row.getByRole("button", { name: /取消关注/ })).toBeEnabled();
+});
