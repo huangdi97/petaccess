@@ -448,6 +448,14 @@ async function submit() {
           <p class="muted source-note">
             只有发布时间时，平台只会写“某日发布的内容中观察到”，不会把发布时间当成现场发生时间。
           </p>
+          <p
+            v-if="externalEventAt && externalPublishedAt && externalEventAt > externalPublishedAt"
+            class="notice"
+            role="alert"
+            data-testid="reality-date-order-error"
+          >
+            发生日期不能晚于这条内容的发布时间，请核对来源。
+          </p>
         </template>
 
         <label for="reality-media">证据图片（可选）</label>
@@ -477,6 +485,9 @@ async function submit() {
             required
             data-testid="reality-date"
           />
+          <p v-if="!occurredAt" class="muted source-note">
+            请明确选择当时观察的日期，系统不会自动填入今天。
+          </p>
         </template>
         <p v-else class="muted source-note">将使用提交时的当前时间记录这次现场观察。</p>
         <label for="reality-effort">在场时长</label>
