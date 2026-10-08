@@ -42,6 +42,17 @@ test("A1 — desktop 地图 split-view + 四 Lens + 详情面板", async ({ page
   await expect(page.getByTestId("preview-open")).toBeVisible();
 });
 
+test("A1.0.1 — fallback marker 不靠颜色单独表达语义", async ({ page }) => {
+  await page.goto(`${BASE}/#/map`);
+  const marker = page.locator("[data-ui='map-marker']").first();
+  await expect(marker).toBeVisible({ timeout: 15000 });
+  await expect(marker.locator(".dot__glyph")).not.toHaveText("");
+  const pin = marker.locator("xpath=..");
+  await pin.hover();
+  await expect(pin.locator(".lbl")).toBeVisible();
+  await expect(pin.locator(".lbl")).not.toHaveText("");
+});
+
 test("A1.1 — Map 内搜索保持 Spatial Workspace 并选择真实场所", async ({ page }) => {
   await page.goto(`${BASE}/#/map`);
   await expect(page.getByTestId("map-search-input")).toBeVisible();
