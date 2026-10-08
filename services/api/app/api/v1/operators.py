@@ -23,8 +23,8 @@ from app.models.enums import OperatorClaimStatus, UserRole
 from app.schemas.civic import (
     OperatorClaimIn,
     OperatorClaimOut,
-    OperatorClaimSelfServeIn,
     OperatorClaimReview,
+    OperatorClaimSelfServeIn,
     OperatorQuestionnaire,
 )
 from app.schemas.common import Page
