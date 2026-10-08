@@ -108,6 +108,35 @@ test("A1.3 — missing coordinates never create fictional map pins, even in dev"
   await expect(page.getByTestId("coverage-hint")).toContainText("缺少已核验坐标");
 });
 
+test("A1.4 — missing-coordinate named search preserves desktop List + Map", async ({
+  page,
+}) => {
+  await page.route("**/api/v1/places?*", async (route) => {
+    const response = await route.fetch();
+    const payload = await response.json();
+    await route.fulfill({
+      status: response.status(),
+      contentType: "application/json",
+      body: JSON.stringify({
+        ...payload,
+        items: payload.items.map((place: Record<string, unknown>) => ({
+          ...place,
+          latitude: null,
+          longitude: null,
+        })),
+      }),
+    });
+  });
+  await page.goto(`${BASE}/#/map`);
+  await page.getByTestId("map-search-input").fill("云栖中心");
+  await page.getByTestId("map-search-submit").click();
+
+  await expect(page.getByTestId("map")).toBeVisible();
+  await expect(page.getByTestId(`place-${MALL_ID}`)).toBeVisible();
+  await expect(page.getByTestId("map-search-feedback")).toContainText("缺少已核验坐标");
+  await expect(page.getByTestId("place-preview")).toContainText("云栖中心");
+});
+
 test("A2 — map 错误统一呈现，不泄漏内部字样", async ({ page }) => {
   await page.route("**/api/v1/places/nearby**", (route) =>
     route.fulfill({
