@@ -341,9 +341,6 @@ const placeFixture = computed<string>(() => {
               <RouterLink :to="`/contribute/${placeId}`" class="btn-inline">
                 纠错 / 补充 →
               </RouterLink>
-              <RouterLink :to="`/place/${placeId}/operator-claim`" class="btn-inline">
-                场所方认领 →
-              </RouterLink>
             </div>
             <p v-if="watchMsg" class="muted place-dossier__watch-msg" role="status">
               {{ watchMsg }}
@@ -393,6 +390,16 @@ const placeFixture = computed<string>(() => {
             </template>
             <RouterLink v-else class="btn-inline" to="/onboarding">登录后关注 →</RouterLink>
           </section>
+          <div
+            v-if="view === 'overview'"
+            class="place-governance-row"
+            data-ui="place-governance"
+          >
+            <span class="muted">你是场所管理方？</span>
+            <RouterLink :to="`/place/${placeId}/operator-claim`" class="btn-inline">
+              认领场所并提交管理方规则 →
+            </RouterLink>
+          </div>
           <PlaceSpacePane
             v-else-if="view === 'space'"
             :zones="zones"
@@ -581,6 +588,17 @@ const placeFixture = computed<string>(() => {
   margin-right: var(--pa-space-1);
   font-size: var(--pa-font-size-sm);
   color: var(--pa-color-text-muted);
+}
+
+.place-governance-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--pa-space-2);
+  margin-top: var(--pa-space-5);
+  padding-top: var(--pa-space-3);
+  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  font-size: var(--pa-font-size-sm);
 }
 
 /* Sections: divider-led rhythm, not a flat wall of equal-weight panels. */
