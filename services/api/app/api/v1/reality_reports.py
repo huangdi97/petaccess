@@ -277,6 +277,78 @@ def _candidate_place(
     return target
 
 
+def _normalize_report_place(db: Session, path_place: Place, body: RealityContributionIn) -> None:
+    """Bind a contribution to exactly the place precision its evidence supports."""
+    place_id = path_place.id
+    report = body.report
+    state = report.place_match_state
+
+    if state == PlaceMatchState.EXACT_PLACE:
+        if report.place_id not in {None, place_id} or report.subject_place_id not in {
+            None,
+            place_id,
+        }:
+            raise ApiError(
+                "精确地点与当前场所不一致",
+                code="exact_place_escalation",
+                status_code=422,
+            )
+        report.place_id = place_id
+        report.subject_place_id = place_id
+        return
+
+    if state == PlaceMatchState.PARENT_PLACE_ONLY:
+        if not report.container_place_id:
+            raise ApiError(
+                "仅匹配到上级场所时必须明确上级场所",
+                code="parent_place_required",
+                status_code=422,
+            )
+        container = db.get(Place, report.container_place_id)
+        if container is None:
+            raise NotFound("上级场所不存在")
+        if path_place.parent_place_id != container.id:
+            raise ApiError(
+                "上级场所必须是当前场所已收录的直接父场所，不能用任意已存在场所提升地点匹配",
+                code="parent_place_relationship_mismatch",
+                status_code=422,
+            )
+        report.place_id = container.id
+        report.container_place_id = container.id
+        report.subject_place_id = None
+        return
+
+    if state == PlaceMatchState.EXACT_SUBPLACE:
+        if not report.subject_place_id:
+            raise ApiError(
+                "精确子场所匹配必须明确具体子场所",
+                code="exact_subplace_required",
+                status_code=422,
+            )
+        subject = db.get(Place, report.subject_place_id)
+        if subject is None:
+            raise NotFound("具体子场所不存在")
+        if subject.parent_place_id != place_id:
+            raise ApiError(
+                "具体子场所必须属于当前场所，不能跨场所提升地点匹配",
+                code="exact_subplace_relationship_mismatch",
+                status_code=422,
+            )
+        report.place_id = subject.id
+        report.container_place_id = place_id
+        report.subject_place_id = subject.id
+        return
+
+    if state in {
+        PlaceMatchState.AREA_ONLY,
+        PlaceMatchState.UNRESOLVED,
+        PlaceMatchState.CONFLICTED,
+    }:
+        # The launch Place is UI context, not proof that external content depicts it.
+        report.place_id = None
+        report.subject_place_id = None
+
+
 @router.post(
     "/places/{place_id}/reality/reports",
     response_model=RealityContributionOut,
@@ -313,66 +385,7 @@ def create_reality_report(
 
     _validate_report_times(body)
 
-    match_state = body.report.place_match_state
-    if match_state == PlaceMatchState.EXACT_PLACE:
-        if body.report.place_id not in {None, place_id} or body.report.subject_place_id not in {
-            None,
-            place_id,
-        }:
-            raise ApiError(
-                "精确地点与当前场所不一致",
-                code="exact_place_escalation",
-                status_code=422,
-            )
-        body.report.place_id = place_id
-        body.report.subject_place_id = place_id
-    elif match_state == PlaceMatchState.PARENT_PLACE_ONLY:
-        if not body.report.container_place_id:
-            raise ApiError(
-                "仅匹配到上级场所时必须明确上级场所",
-                code="parent_place_required",
-                status_code=422,
-            )
-        container = db.get(Place, body.report.container_place_id)
-        if container is None:
-            raise NotFound("上级场所不存在")
-        if place.parent_place_id != container.id:
-            raise ApiError(
-                "上级场所必须是当前场所已收录的直接父场所，不能用任意已存在场所提升地点匹配",
-                code="parent_place_relationship_mismatch",
-                status_code=422,
-            )
-        body.report.place_id = container.id
-        body.report.container_place_id = container.id
-        body.report.subject_place_id = None
-    elif match_state == PlaceMatchState.EXACT_SUBPLACE:
-        if not body.report.subject_place_id:
-            raise ApiError(
-                "精确子场所匹配必须明确具体子场所",
-                code="exact_subplace_required",
-                status_code=422,
-            )
-        subject = db.get(Place, body.report.subject_place_id)
-        if subject is None:
-            raise NotFound("具体子场所不存在")
-        if subject.parent_place_id != place_id:
-            raise ApiError(
-                "具体子场所必须属于当前场所，不能跨场所提升地点匹配",
-                code="exact_subplace_relationship_mismatch",
-                status_code=422,
-            )
-        body.report.place_id = subject.id
-        body.report.container_place_id = place_id
-        body.report.subject_place_id = subject.id
-    elif match_state in {
-        PlaceMatchState.AREA_ONLY,
-        PlaceMatchState.UNRESOLVED,
-        PlaceMatchState.CONFLICTED,
-    }:
-        # The route Place is only where the user launched the contribution.
-        # It is not evidence that the external content depicts that Place.
-        body.report.place_id = None
-        body.report.subject_place_id = None
+    _normalize_report_place(db, place, body)
 
     report, flags = create_report(db, user, body.report, request=request)
     if user is None:
