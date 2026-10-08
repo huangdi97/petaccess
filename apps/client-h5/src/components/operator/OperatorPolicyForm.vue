@@ -26,7 +26,9 @@ const CONDITION_OPTIONS = [
   { key: "no_ground", label: "不可落地" },
 ];
 
-const canSubmit = computed(() => !busy.value);
+const canSubmit = computed(
+  () => !busy.value && (effect.value !== "conditional" || conditions.value.length > 0),
+);
 
 function toggleCondition(key: string) {
   conditions.value = conditions.value.includes(key)
@@ -136,7 +138,9 @@ async function submit() {
             <span>{{ item.label }}</span>
           </label>
         </div>
-        <small>只勾选管理方明确规定的条件；没有把握的条件不要补写。</small>
+        <small>
+          “有条件允许”至少需要一项明确条件；没有把握的条件不要补写，也不要用自由文本代替结构化条件。
+        </small>
       </fieldset>
 
       <div class="operator-policy__grid">
