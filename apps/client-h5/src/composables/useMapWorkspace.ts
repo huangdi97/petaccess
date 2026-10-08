@@ -32,7 +32,6 @@ import {
   currentQueryContext,
   enrichRows,
   nearbyPlaces,
-  searchPlaces,
   snapshotFor,
   type RowFacts,
 } from "../consumer/repository";
@@ -178,9 +177,9 @@ export function useMapWorkspace() {
 
   /**
    * A Place → "地图定位" deep link must work beyond the default pilot camera.
-   * PlaceOut does not expose geography; resolve the exact ID through its
-   * canonical name's PlaceSummary projection, which carries governed WGS84.
-   * Never guess position from a similar name or from a UUID.
+   * Resolve the exact ID through the canonical PlaceSummary projection.
+   * An ambiguous name search (or its first 20 hits) cannot locate a place
+   * reliably. Null geography stays list-only and is never synthesized.
    */
   function requestDeepLinkedPlace(id: string) {
     if (lastRequestedPlaceId === id) return;
@@ -191,15 +190,8 @@ export function useMapWorkspace() {
   async function focusDeepLinkedPlace(id: string) {
     const epoch = deepLinkEpoch.begin();
     try {
-      const detail = await client.place(id);
+      const target = await client.placeSummary(id);
       if (!deepLinkEpoch.isCurrent(epoch) || route.query.place !== id) return;
-      const matches = await searchPlaces(detail.canonical_name);
-      if (!deepLinkEpoch.isCurrent(epoch) || route.query.place !== id) return;
-      const target = matches.items.find((place) => place.id === id);
-      if (!target) {
-        mapSearchError.value = "无法定位当前场所：精确场所记录尚未包含在搜索结果中。";
-        return;
-      }
       if (target.latitude != null && target.longitude != null) {
         view.value = "map";
         camera.value = {
@@ -293,12 +285,14 @@ export function useMapWorkspace() {
     () => route.query.place,
     (v) => {
       const next = typeof v === "string" ? v : null;
-      const cur = selected.value?.id ?? null;
-      if (next === cur) return;
-      if (!next) {
+      // Also invalidate an in-flight deep link when navigation clears ?place
+      // while no place has been selected yet (next and cur may both be null).
+      if (next !== lastRequestedPlaceId) {
         deepLinkEpoch.begin();
         lastRequestedPlaceId = null;
       }
+      const cur = selected.value?.id ?? null;
+      if (next === cur) return;
       const p = places.value.find((x) => x.id === next) ?? null;
       selected.value = p;
       if (p) void selectPlace(p);
