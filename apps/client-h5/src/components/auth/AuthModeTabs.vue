@@ -1,25 +1,50 @@
 <script setup lang="ts">
-defineProps<{ mode: "login" | "register" }>();
+const props = defineProps<{ mode: "login" | "register" }>();
 const emit = defineEmits<{ change: [mode: "login" | "register"] }>();
+
+function choose(mode: "login" | "register") {
+  if (mode !== props.mode) emit("change", mode);
+}
+
+function onKeydown(event: KeyboardEvent) {
+  if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+  event.preventDefault();
+  const next =
+    event.key === "Home" || event.key === "ArrowLeft"
+      ? "login"
+      : "register";
+  choose(next);
+  requestAnimationFrame(() => {
+    document.getElementById(`auth-tab-${next}`)?.focus();
+  });
+}
 </script>
 
 <template>
   <div class="auth-mode" role="tablist" aria-label="账号操作">
     <button
+      id="auth-tab-login"
       type="button"
       role="tab"
+      aria-controls="auth-panel"
+      :tabindex="mode === 'login' ? 0 : -1"
       :aria-selected="mode === 'login'"
       :class="{ 'auth-mode__item--active': mode === 'login' }"
-      @click="emit('change', 'login')"
+      @keydown="onKeydown"
+      @click="choose('login')"
     >
       登录
     </button>
     <button
+      id="auth-tab-register"
       type="button"
       role="tab"
+      aria-controls="auth-panel"
+      :tabindex="mode === 'register' ? 0 : -1"
       :aria-selected="mode === 'register'"
       :class="{ 'auth-mode__item--active': mode === 'register' }"
-      @click="emit('change', 'register')"
+      @keydown="onKeydown"
+      @click="choose('register')"
     >
       注册
     </button>
