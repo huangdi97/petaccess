@@ -11,7 +11,6 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import {
   clusterMarkers,
-  client,
   session,
   synthDemoCamera,
   type CoexistenceSnapshot,
@@ -38,6 +37,7 @@ import {
 import { presentDescription } from "../errors";
 import { mapMarkersFor, visibleMapPlaces } from "../consumer/mapSpatialProjection";
 import { useBreakpoint } from "./useBreakpoint";
+import { useMapDeepLink } from "./useMapDeepLink";
 import { useMapSearch } from "./useMapSearch";
 import { useOneShotMapLocation } from "./useOneShotMapLocation";
 
@@ -64,8 +64,7 @@ export function useMapWorkspace() {
   const preview = ref<PreviewState>({ snapshot: null, loading: false, error: "" });
   const loadEpoch = createEpoch();
   const previewEpoch = createEpoch();
-  const deepLinkEpoch = createEpoch();
-  let lastRequestedPlaceId: string | null = null;
+
   const activeFilters = ref<string[]>([]);
 
   const statuses = computed<Record<string, MapMarker["status"]>>(() => {
@@ -175,54 +174,6 @@ export function useMapWorkspace() {
     }
   }
 
-  /**
-   * A Place → "地图定位" deep link must work beyond the default pilot camera.
-   * Resolve the exact ID through the canonical PlaceSummary projection.
-   * An ambiguous name search (or its first 20 hits) cannot locate a place
-   * reliably. Null geography stays list-only and is never synthesized.
-   */
-  function requestDeepLinkedPlace(id: string) {
-    if (lastRequestedPlaceId === id) return;
-    lastRequestedPlaceId = id;
-    void focusDeepLinkedPlace(id);
-  }
-
-  async function focusDeepLinkedPlace(id: string) {
-    const epoch = deepLinkEpoch.begin();
-    try {
-      const target = await client.placeSummary(id);
-      if (!deepLinkEpoch.isCurrent(epoch) || route.query.place !== id) return;
-      if (target.latitude != null && target.longitude != null) {
-        view.value = "map";
-        camera.value = {
-          ...camera.value,
-          lat: target.latitude,
-          lng: target.longitude,
-          zoom: Math.max(camera.value.zoom, 15),
-        };
-        await load();
-        if (!deepLinkEpoch.isCurrent(epoch) || route.query.place !== id) return;
-      }
-      const inNearby = places.value.find((place) => place.id === id);
-      if (!inNearby) {
-        const newFacts = await enrichRows([target]);
-        if (!deepLinkEpoch.isCurrent(epoch) || route.query.place !== id) return;
-        places.value = [target, ...places.value];
-        facts.value = new Map([...facts.value, ...newFacts]);
-      }
-      if (target.latitude == null || target.longitude == null) {
-        view.value = isDesktop.value ? "map" : "list";
-        mapSearchError.value = "该场所缺少可用位置坐标，仅可在列表中查看，未生成地图点位。";
-      }
-      selected.value = inNearby ?? target;
-      await selectPlace(selected.value);
-    } catch (cause) {
-      if (deepLinkEpoch.isCurrent(epoch) && route.query.place === id) {
-        mapSearchError.value = presentDescription(cause);
-      }
-    }
-  }
-
   /** M4 A1 — the floating preview fetches the ONE CoexistenceSnapshot for the
    *  place via the consumer repository (SSOT, same cache as rows). */
   async function selectPlace(p: PlaceSummary) {
@@ -262,6 +213,21 @@ export function useMapWorkspace() {
       await selectPlace(place);
     },
   });
+  const { request: requestDeepLinkedPlace, invalidate: invalidateDeepLink } = useMapDeepLink({
+    route,
+    camera,
+    places,
+    facts,
+    view,
+    isDesktop,
+    error: mapSearchError,
+    loadNearby: load,
+    select: async (place) => {
+      selected.value = place;
+      await selectPlace(place);
+    },
+  });
+
   // Back/forward or an external deep link changes ?place= → update the selection
   // (guard keeps this from looping when it was our own push).
   watch(lens, (value) => {
@@ -285,12 +251,8 @@ export function useMapWorkspace() {
     () => route.query.place,
     (v) => {
       const next = typeof v === "string" ? v : null;
-      // Also invalidate an in-flight deep link when navigation clears ?place
-      // while no place has been selected yet (next and cur may both be null).
-      if (next !== lastRequestedPlaceId) {
-        deepLinkEpoch.begin();
-        lastRequestedPlaceId = null;
-      }
+      // Invalidate even if both the new route and selection are null.
+      invalidateDeepLink();
       const cur = selected.value?.id ?? null;
       if (next === cur) return;
       const p = places.value.find((x) => x.id === next) ?? null;
