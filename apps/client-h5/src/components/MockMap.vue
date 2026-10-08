@@ -18,7 +18,7 @@
  * amber ring, ALLOWED = subtle positive fill, RESTRICTED = subtle restriction
  * fill, SELECTED = scale + halo + elevation. No big coloured pins, no emoji.
  */
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import type { MapCamera, MapCluster, MapMarker } from "@petaccess/client-core";
 
 const props = withDefaults(
@@ -32,7 +32,11 @@ const props = withDefaults(
   { selectedId: null, lens: "rule", lensLabels: () => ({}) },
 );
 
-const emit = defineEmits<{ select: [cluster: MapCluster]; zoom: [delta: number] }>();
+const emit = defineEmits<{
+  select: [cluster: MapCluster];
+  zoom: [delta: number];
+  pan: [lat: number, lng: number];
+}>();
 
 /** Approximate longitude span of a ~desktop map viewport.
  * Web maps scale by 2× per zoom level; keeping the fallback on the same
@@ -47,7 +51,18 @@ const scaleLabel = computed(() => {
   return "1 km";
 });
 
-/** Projection, clamped so the whole pin box stays inside the surface. */
+/** Only on-viewport clusters receive marker DOM; no out-of-range point can
+ * be clamped into a false edge location. The list still contains all nearby
+ * locations even when they are beyond this zoom's current view. */
+const visibleClusters = computed(() =>
+  props.clusters.filter(
+    (cluster) =>
+      Math.abs(cluster.lng - props.camera.lng) <= spanDeg.value / 2 &&
+      Math.abs(cluster.lat - props.camera.lat) <= (spanDeg.value * 0.62) / 2,
+  ),
+);
+
+/** Projection, clamped only for an actually visible edge point. */
 const PIN_HEIGHT_PX = 44;
 const PIN_HALF_WIDTH_PX = 32;
 /** Keeps pins off the bottom edge, where the surface border sits. */
@@ -60,6 +75,45 @@ function project(lat: number, lng: number): { left: string; top: string } {
     left: `clamp(${PIN_HALF_WIDTH_PX}px, ${relX * 100}%, calc(100% - ${PIN_HALF_WIDTH_PX}px))`,
     top: `clamp(${PIN_HEIGHT_PX}px, ${relY * 100}%, ${MAX_Y_PCT}%)`,
   };
+}
+
+const dragStart = ref<{ x: number; y: number; pointerId: number } | null>(null);
+const dragging = ref(false);
+
+function startPan(event: PointerEvent) {
+  if (event.button !== 0) return;
+  if ((event.target as HTMLElement).closest(".map-pin, .map-zoom, button, input")) return;
+  dragStart.value = { x: event.clientX, y: event.clientY, pointerId: event.pointerId };
+  (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+}
+
+function updatePan(event: PointerEvent) {
+  if (dragStart.value?.pointerId !== event.pointerId) return;
+  dragging.value =
+    Math.hypot(event.clientX - dragStart.value.x, event.clientY - dragStart.value.y) > 8;
+}
+
+function endPan(event: PointerEvent) {
+  const start = dragStart.value;
+  if (!start || start.pointerId !== event.pointerId) return;
+  const el = event.currentTarget as HTMLElement;
+  if (el.hasPointerCapture(event.pointerId)) el.releasePointerCapture(event.pointerId);
+  dragStart.value = null;
+  dragging.value = false;
+  const dx = event.clientX - start.x;
+  const dy = event.clientY - start.y;
+  if (Math.hypot(dx, dy) <= 8) return;
+  const bounds = el.getBoundingClientRect();
+  if (!bounds.width || !bounds.height) return;
+
+  const lat = Math.max(-90, Math.min(90, props.camera.lat + (dy / bounds.height) * spanDeg.value * 0.62));
+  const lng = props.camera.lng - (dx / bounds.width) * spanDeg.value;
+  emit("pan", lat, ((lng + 180) % 360 + 360) % 360 - 180);
+}
+
+function cancelPan() {
+  dragStart.value = null;
+  dragging.value = false;
 }
 
 const MARKER_GLYPHS: Record<MapMarker["status"], string> = {
@@ -131,9 +185,14 @@ const MASS = [
 <template>
   <div
     class="map-surface"
-    :class="`map-surface--${lens}`"
+    :class="[`map-surface--${lens}`, { 'map-surface--dragging': dragging }]"
     data-testid="map-surface"
     data-ui="mock-map"
+    aria-label="简化空间底图，可拖动调整附近查询区域"
+    @pointerdown="startPan"
+    @pointermove="updatePan"
+    @pointerup="endPan"
+    @pointercancel="cancelPan"
   >
     <!-- 空间基底：道路层级/街区/开放空间/建筑体块/水系（SVG，纯表现，不承载数据语义） -->
     <svg
@@ -182,7 +241,7 @@ const MASS = [
       />
     </svg>
 
-    <span class="map-provider muted" data-testid="map-provider-fallback"> 简化空间底图 </span>
+    <span class="map-provider muted" data-testid="map-provider-fallback"> 示意底图（非真实街道） · 拖动查看周边 </span>
 
     <div class="map-spatial-aids" aria-hidden="true">
       <span class="map-compass">N</span>
@@ -209,7 +268,7 @@ const MASS = [
     </div>
 
     <div
-      v-for="c in clusters"
+      v-for="c in visibleClusters"
       :key="c.id"
       class="map-pin"
       :class="{ 'map-pin--selected': isSelectedCluster(c) }"
@@ -244,7 +303,9 @@ const MASS = [
         </div>
       </template>
     </div>
-    <div v-if="!clusters.length" class="map-empty muted">当前视野内暂无已收录场所</div>
+    <div v-if="!visibleClusters.length" class="map-empty muted">
+      当前画面暂无点位；附近结果仍可在列表查看
+    </div>
   </div>
 </template>
 
@@ -255,6 +316,12 @@ const MASS = [
   height: 100%;
   min-height: 480px;
   overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+}
+
+.map-surface--dragging {
+  cursor: grabbing;
 }
 
 /* 空间基底：轻量抽象城市画布 —— 不是灰网格+数字（v0.2.7 §8）。 */
