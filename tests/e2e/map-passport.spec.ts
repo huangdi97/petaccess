@@ -135,6 +135,34 @@ test("A1.4 — missing-coordinate named search preserves desktop List + Map", as
   await expect(page.getByTestId("place-preview")).toContainText("云栖中心");
 });
 
+test("A1.5 — dragging the fallback map requests places at the new center", async ({
+  page,
+}) => {
+  await page.goto(`${BASE}/#/map`);
+  const surface = page.getByTestId("map-surface");
+  await expect(surface).toBeVisible();
+  const box = await surface.boundingBox();
+  expect(box).not.toBeNull();
+  if (!box) return;
+
+  const lngChanged = page.waitForRequest((request) => {
+    if (!request.url().includes("/api/v1/places/nearby?")) return false;
+    const lng = Number(new URL(request.url()).searchParams.get("lng"));
+    return Number.isFinite(lng) && Math.abs(lng - 121.47) > 0.001;
+  });
+
+  const x = box.x + box.width * 0.4;
+  const y = box.y + box.height * 0.24;
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x + 140, y + 35, { steps: 5 });
+  await page.mouse.up();
+  await lngChanged;
+
+  await expect(page.getByTestId("map")).toBeVisible();
+  await expect(page.getByTestId("map-provider-fallback")).toContainText("示意底图");
+});
+
 test("A2 — map 错误统一呈现，不泄漏内部字样", async ({ page }) => {
   await page.route("**/api/v1/places/nearby**", (route) =>
     route.fulfill({
