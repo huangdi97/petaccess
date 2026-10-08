@@ -14,6 +14,7 @@ const pets = ref<PetView[]>([]);
 const loading = ref(true);
 const loaded = ref(false);
 const error = ref("");
+const loadError = ref("");
 const notice = ref("");
 const busy = ref(false);
 const editing = ref<string | null>(null);
@@ -25,6 +26,8 @@ const isNew = computed(() => editing.value === "new");
 const activeId = computed(() => session.activePet?.id ?? null);
 async function load() {
   error.value = "";
+  loadError.value = "";
+  loaded.value = false;
   loading.value = true;
   try {
     await session.restore();
@@ -34,9 +37,9 @@ async function load() {
       session.setActivePet(null);
     }
   } catch (e) {
-    error.value = e instanceof ApiError ? e.message : String(e);
+    loadError.value = e instanceof ApiError ? e.message : String(e);
   } finally {
-    loaded.value = true;
+    loaded.value = !loadError.value;
     loading.value = false;
   }
 }
@@ -149,6 +152,14 @@ onMounted(load);
 
     <SkeletonList v-if="loading" :rows="3" />
     <StateMessage
+      v-else-if="loadError"
+      kind="ERROR"
+      :description="`未能取得宠物档案：${loadError}`"
+      data-testid="pet-load-error"
+    >
+      <template #action><button class="primary" @click="load">重试</button></template>
+    </StateMessage>
+    <StateMessage
       v-else-if="!session.signedIn"
       kind="PERMISSION_DENIED"
       description="宠物档案与账号绑定。登录后可新建、修改或删除档案。"
@@ -158,13 +169,6 @@ onMounted(load);
           >登录 / 注册</RouterLink
         >
       </template>
-    </StateMessage>
-    <StateMessage
-      v-else-if="error && !loaded"
-      kind="ERROR"
-      :description="`未能取得宠物档案：${error}`"
-    >
-      <template #action><button class="primary" @click="load">重试</button></template>
     </StateMessage>
     <template v-else>
       <p v-if="error" class="profile-feedback" data-testid="pet-error">{{ error }}</p>
