@@ -202,6 +202,11 @@ class RealityEventOut(BaseModel):
     facility_operator_provided: bool | None = None
     source_id: str | None = None
     evidence_bundle_id: str | None = None
+    evidence_material_type: str | None = None
+    evidence_source_platform: str | None = None
+    evidence_publisher_type: str | None = None
+    evidence_class: str | None = None
+    evidence_display_allowed: bool | None = None
     submitted_at: datetime | None = None
     confirmation_count: int = 0
     dispute_open: bool = False
