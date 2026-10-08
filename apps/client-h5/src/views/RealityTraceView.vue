@@ -16,6 +16,7 @@ import QueryContextBar from "../components/domain/QueryContextBar.vue";
 import RealityEventLog from "../components/domain/RealityEventLog.vue";
 import { presentDescription } from "../errors";
 import { useRealityConfirmation } from "../composables/useRealityConfirmation";
+import { realityEventDisplayDate } from "../consumer/realityEvent";
 
 const route = useRoute();
 const placeId = computed(() => (route.params.id ? String(route.params.id) : ""));
@@ -57,10 +58,11 @@ const summaryLine = computed(() => {
   const presence = events.value.filter((event) => event.event_type === "observed_presence").length;
   const staff = events.value.filter((event) => event.event_type === "staff_response").length;
   const facility = events.value.filter((event) => event.event_type === "animal_facility").length;
+  const latestDate = realityEventDisplayDate(latest);
   const latestLabel =
     latest.time_evidence_state === "publication_time_only"
-      ? `最近一条为 ${latest.event_at.slice(0, 10)} 发布的公开内容`
-      : `最近现场日期 ${latest.event_at.slice(0, 10)}`;
+      ? `最近一条为 ${latestDate} 发布的公开内容`
+      : `最近现场日期 ${latestDate}`;
   const parts = [`${events.value.length} 条经核验事实`, latestLabel];
   if (presence) parts.push(`${presence} 条动物现场`);
   if (staff) parts.push(`${staff} 条工作人员处理`);
