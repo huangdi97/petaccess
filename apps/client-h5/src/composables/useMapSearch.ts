@@ -82,7 +82,7 @@ export function useMapSearch(deps: MapSearchDeps) {
       deps.view.value = deps.isDesktop.value ? "map" : "list";
       await deps.selectTarget(target);
       if (generation === searchGeneration) {
-        error.value = "已找到场所，但缺少已核验坐标；当前仅在列表显示。";
+        error.value = "已找到场所，但缺少可用位置坐标；当前仅在列表显示。";
       }
     } catch (cause) {
       if (generation === searchGeneration) error.value = presentDescription(cause);
