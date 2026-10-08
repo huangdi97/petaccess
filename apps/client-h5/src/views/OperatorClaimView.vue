@@ -33,7 +33,8 @@ const methodReady = computed(() => {
   return note.value.trim().length >= 4;
 });
 const canSubmit = computed(
-  () => session.signedIn && operatorName.value.trim().length >= 2 && methodReady.value && !busy.value,
+  () =>
+    session.signedIn && operatorName.value.trim().length >= 2 && methodReady.value && !busy.value,
 );
 
 async function load() {
@@ -162,13 +163,23 @@ watch(placeId, () => void load(), { immediate: true });
 
           <label v-if="method === 'work_email'" class="operator-claim__field">
             <span>工作邮箱</span>
-            <input v-model="workEmail" type="email" autocomplete="email" data-testid="operator-email" />
+            <input
+              v-model="workEmail"
+              type="email"
+              autocomplete="email"
+              data-testid="operator-email"
+            />
             <small>建议使用与管理方域名一致的工作邮箱。</small>
           </label>
 
           <label v-if="method === 'official_domain'" class="operator-claim__field">
             <span>官方网站</span>
-            <input v-model="website" type="url" placeholder="https://…" data-testid="operator-website" />
+            <input
+              v-model="website"
+              type="url"
+              placeholder="https://…"
+              data-testid="operator-website"
+            />
             <small>填写能确认主体与当前场所关系的官网页面。</small>
           </label>
 
@@ -188,7 +199,12 @@ watch(placeId, () => void load(), { immediate: true });
           </p>
 
           <div class="operator-claim__actions">
-            <button class="primary" type="submit" :disabled="!canSubmit" data-testid="operator-claim-submit">
+            <button
+              class="primary"
+              type="submit"
+              :disabled="!canSubmit"
+              data-testid="operator-claim-submit"
+            >
               {{ busy ? "提交中…" : "提交认领申请" }}
             </button>
             <RouterLink class="btn-inline" :to="`/place/${placeId}`">取消并返回</RouterLink>
