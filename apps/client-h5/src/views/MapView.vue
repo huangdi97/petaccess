@@ -108,6 +108,9 @@ function zoomMap(delta: number) {
 }
 
 function panMap(lat: number, lng: number) {
+  // Moving the map leaves the previously selected location behind.
+  selected.value = null;
+  syncRoutePlace(null);
   camera.value = { ...camera.value, lat, lng };
   // Panning changes the geographic query, not only the marker drawing.
   void load();
