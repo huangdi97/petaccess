@@ -478,3 +478,38 @@ https://www.w3.org/WAI/fundamentals/accessibility-principles/
 - Tencent renderer 与 fallback renderer 必须遵循同一状态冗余原则。
 
 旧实现中“未选中 marker 只用纯色小圆点”的说明不再具有约束力；若与本节冲突，以本节与 Canonical Design Freeze 为准。
+
+
+## 13. 2026-10-08 source closure checkpoint
+
+本节只记录当前 source / CI 事实，不等于 Human Visual Acceptance。
+
+### 13.1 本轮实际关闭的结构问题
+
+- Map：真实 PostGIS 坐标贯穿 API → generated contract → consumer workspace；生产环境缺坐标时不再合成假点位。Tencent renderer 与 simplified fallback 共享同一 marker / cluster / lens 语义。
+- Map：Rule / Reality / Facility / Divergence 四 Lens 的 row、marker、selection、coverage 同步；Rule filter 只作用于 Rule Lens。
+- Reality：Consumer timeline 统一读取 v0.9 已发布、人工核验的 presence / staff-response / facility facts；legacy ObservationClaim 不再充当第二套 Consumer truth。
+- Evidence：Place / Evidence Viewer 与 Reality timeline 共用同一 published event stream；Rule provenance 与 Reality provenance 分列，不再用一层来源代替另一层。
+- Staff：角色、处理动作、awareness 与本次事件原话可作为经核验事实展示；工作人员原话始终带“具体事件记录，不代表运营方正式政策”边界。
+- Facility：用途确认、运行状态、使用方式、容量/体型、遮雨/遮阳/通风/饮水、看护、安全/锁闭与最近核验均进入 Space Dossier；用途不确定时不把设施外观推断成确定用途。
+- Contribution：Rule lead 不再写入 Observation；Place correction 不再伪装成 Rule verification；“本次没看到”记录为 Observation Effort，明确 No Observation != No Animal Presence。
+- Query Context：携带情境、宠物档案、用户声明的服务犬角色与固定查询动作/范围已经成为可编辑的真实上下文，而不是装饰性 ModeBar。
+- UI source quality：拆分 Home digest、Query Context、Contribution controller、Facility section、Desktop rail / pet editor / evidence 等 SFC；Tencent renderer 已从 >300 行 hard fail 拆到 hard gate 以下。
+
+### 13.2 CI 边界
+
+最近一次直接提交的 Engineering Quality hard gate 已不再由 UI / Map source 触发。PR CI 后续仍可能被仓库既有 Android acceptance Python Ruff debt 阻断（例如 scripts/android_acceptance 下历史 E501 / SIM115）；这类 debt 不应为了 Consumer UI 验收而混入设计改动。
+
+UI Direct Validation / UI Direct Visual 必须在**最终非 bot HEAD**重新运行。GitHub Actions 的自动 Prettier commit 会产生 action_required，这是权限/actor 行为，不代表产品失败；下一条人工/direct commit 必须重新触发最终验证。
+
+### 13.3 Stop line
+
+当前仍保持：
+
+- `HUMAN_VISUAL_ACCEPTANCE = PENDING`
+- PR #1 = draft
+- 不动 master
+- 不 tag
+- 不 Release
+
+只有最终 HEAD 的 Web / Windows / Android 真实运行截图由人审通过后，才允许写 `HUMAN_VISUAL_ACCEPTED` 与进入 baseline promotion。
