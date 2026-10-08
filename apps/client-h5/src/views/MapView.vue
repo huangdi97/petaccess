@@ -54,6 +54,13 @@ const router = useRouter();
 
 const renderConfig = ref<MapRenderConfig | null>(null);
 const realMapError = ref("");
+const mobileMapQuery = ref("");
+
+function submitMobileMapSearch() {
+  const value = mobileMapQuery.value.trim();
+  if (!value || mapSearchLoading.value) return;
+  void searchMap(value);
+}
 const useRealMap = computed(
   () =>
     renderConfig.value?.provider === "tencent" &&
@@ -220,6 +227,46 @@ function chooseMapResult(id: string) {
         data-ui="map-canvas"
         aria-label="规则与现场地图"
       >
+        <!-- On mobile, searching the map must not require leaving the canvas.
+             Use the same governed search as the desktop result pane. -->
+        <div v-if="!isDesktop" class="map-mobile-tools">
+          <form
+            class="map-mobile-tools__search"
+            role="search"
+            @submit.prevent="submitMobileMapSearch"
+          >
+            <input
+              v-model="mobileMapQuery"
+              data-testid="map-mobile-search-input"
+              aria-label="在地图中搜索场所、商圈或地址"
+              placeholder="搜索场所、商圈或地址"
+              autocomplete="off"
+            />
+            <button
+              type="submit"
+              data-testid="map-mobile-search-submit"
+              :disabled="!mobileMapQuery.trim() || mapSearchLoading"
+            >
+              {{ mapSearchLoading ? "查询中…" : "搜索" }}
+            </button>
+            <button
+              type="button"
+              class="map-mobile-tools__locate"
+              data-testid="map-mobile-locate"
+              aria-label="使用当前定位搜索附近场所"
+              :disabled="locationState === 'REQUESTING'"
+              @click="locate"
+            >
+              定位
+            </button>
+          </form>
+          <p v-if="mapSearchError" class="map-mobile-tools__feedback" role="status">
+            {{ mapSearchError }}
+          </p>
+          <p v-else-if="locationState === 'DENIED'" class="map-mobile-tools__feedback" role="status">
+            未获得定位权限，可直接搜索场所。
+          </p>
+        </div>
         <StateMessage
           v-if="error && !isDesktop"
           kind="ERROR"
@@ -465,6 +512,84 @@ function chooseMapResult(id: string) {
 
   .map-canvas {
     min-height: 0;
+  }
+}
+
+/* Search remains inside the spatial surface on mobile; the desktop
+   workspace continues using its dedicated list/search pane. */
+.map-mobile-tools {
+  position: absolute;
+  top: var(--pa-space-3);
+  left: var(--pa-space-3);
+  right: 64px;
+  z-index: 9;
+  pointer-events: none;
+}
+
+.map-mobile-tools__search {
+  display: flex;
+  gap: var(--pa-space-1);
+  align-items: stretch;
+  pointer-events: auto;
+  background: var(--pa-color-surface);
+  border: var(--pa-border-width) solid var(--pa-color-border);
+  border-radius: var(--pa-radius-control);
+  padding: var(--pa-space-1);
+  box-shadow: var(--pa-elevation-1);
+}
+
+.map-mobile-tools__search input {
+  min-width: 0;
+  width: 100%;
+  flex: 1 1 0;
+  border: 0;
+  background: transparent;
+  padding: 0 var(--pa-space-2);
+  font-size: var(--pa-font-size-md);
+}
+
+.map-mobile-tools__search input:focus-visible {
+  outline: 2px solid var(--pa-color-border-focus);
+  outline-offset: -2px;
+}
+
+.map-mobile-tools__search button {
+  border: 0;
+  background: var(--pa-color-accent);
+  color: var(--pa-color-text-inverse);
+  padding: 0 var(--pa-space-2);
+  min-height: var(--pa-size-control-md);
+  border-radius: var(--pa-radius-control);
+  flex: 0 0 auto;
+  cursor: pointer;
+  font-size: var(--pa-font-size-sm);
+}
+
+.map-mobile-tools__search button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.map-mobile-tools__search .map-mobile-tools__locate {
+  background: var(--pa-color-accent-weak);
+  color: var(--pa-color-accent);
+}
+
+.map-mobile-tools__feedback {
+  max-width: 100%;
+  pointer-events: auto;
+  margin: var(--pa-space-1) 0 0;
+  padding: var(--pa-space-2);
+  border-radius: var(--pa-radius-control);
+  background: var(--pa-color-surface);
+  color: var(--pa-color-text-secondary);
+  font-size: var(--pa-font-size-sm);
+}
+
+@media (max-width: 379px) {
+  .map-mobile-tools {
+    right: var(--pa-space-3);
+    top: 60px;
   }
 }
 
