@@ -1,30 +1,20 @@
-import {
-  synthMarkerPosition,
-  type MapCamera,
-  type MapMarker,
-  type PlaceSummary,
-} from "@petaccess/client-core";
+import { type MapMarker, type PlaceSummary } from "@petaccess/client-core";
 import type { MapLensKey } from "./mapLens";
 
 export function mapMarkersFor(
   places: PlaceSummary[],
-  camera: MapCamera,
   statuses: Record<string, MapMarker["status"]>,
-  allowSynthetic: boolean,
 ): MapMarker[] {
+  // Do not turn a database identifier into a geographic claim, even in
+  // development. A place without real coordinates belongs in the list only.
   return places.flatMap((place) => {
-    const hasVerifiedPoint = place.latitude != null && place.longitude != null;
-    if (!hasVerifiedPoint && !allowSynthetic) return [];
-
-    const position = hasVerifiedPoint
-      ? { lat: place.latitude as number, lng: place.longitude as number }
-      : synthMarkerPosition(place.id, camera);
+    if (place.latitude == null || place.longitude == null) return [];
 
     return [
       {
         id: place.id,
-        lat: position.lat,
-        lng: position.lng,
+        lat: place.latitude,
+        lng: place.longitude,
         label: place.canonical_name,
         status: statuses[place.id] ?? "UNKNOWN",
       },
