@@ -37,6 +37,8 @@ const props = withDefaults(
       canonical_name: string;
       place_type: string;
       canonical_address?: string | null;
+      latitude?: number | null;
+      longitude?: number | null;
     } | null;
     answer?: AccessAnswer | null;
     answerError?: boolean;
@@ -74,6 +76,11 @@ const props = withDefaults(
 );
 
 const verdict = computed(() => answerVerdictLabel(props.answer));
+/** A recorded coordinate allows a direct spatial deep link. No coordinate means
+ * no map marker: a name/address alone is never geocoded or guessed here. */
+const mapLocationAvailable = computed(
+  () => props.place?.latitude != null && props.place?.longitude != null,
+);
 const conditions = computed(() => answerConditions(props.answer, props.conditionsLabel));
 const freshness = computed(() => freshnessLineFor(props.stale, props.fetchedAtMs, props.offline));
 const queryLabel = computed(() => querySummaryLabel());
@@ -219,6 +226,15 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
           <RouterLink class="btn primary" :to="`/place/${place.id}`" data-testid="inspector-open">
             查看完整场所
           </RouterLink>
+          <RouterLink
+            v-if="mapLocationAvailable"
+            class="btn-inline inspector-map-link"
+            :to="{ name: 'map', query: { place: place.id } }"
+            data-testid="inspector-map-location"
+          >
+            在地图中定位 →
+          </RouterLink>
+          <span v-else class="muted inspector-map-unavailable">位置坐标待补充</span>
         </footer>
       </template>
 
@@ -471,6 +487,18 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
 .decision-inspector__foot--primary .btn {
   min-width: 148px;
   justify-content: center;
+}
+
+.decision-inspector__foot--primary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--pa-space-4);
+}
+
+.inspector-map-link,
+.inspector-map-unavailable {
+  font-size: var(--pa-font-size-md);
 }
 
 /* §26：place inspector 底部用 text link（查看完整证据 →），不放 CTA 大按钮。 */
