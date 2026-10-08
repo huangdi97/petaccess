@@ -397,9 +397,11 @@ def consumer_reality_events(
         # published claim id and therefore target the reviewed candidate. Map
         # those confirmations back to the published claim so the consumer
         # evidence rail counts both valid linkage forms.
-        published_claim_rows: list[
-            ObservedPresence | StaffResponseObservation | AnimalFacility
-        ] = [*presence, *staff, *facilities]
+        published_claim_rows: list[ObservedPresence | StaffResponseObservation | AnimalFacility] = [
+            *presence,
+            *staff,
+            *facilities,
+        ]
         claim_id_by_candidate = {
             row.candidate_id: row.id
             for row in published_claim_rows
