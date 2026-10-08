@@ -41,7 +41,12 @@ jobs:
       VISUAL_REDIS_URL: redis://127.0.0.1:6379/2
       UI_ORACLE_STAGE: ui-direct-v8
     steps:
+      # PR event GITHUB_SHA points at a synthetic merge ref. Human-review
+      # screenshots must match the actual Consumer UI branch commit instead.
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
 
       - name: Set up Python
         uses: actions/setup-python@v5
