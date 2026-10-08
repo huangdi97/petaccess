@@ -26,7 +26,7 @@ from __future__ import annotations
 
 import uuid
 from collections.abc import Sequence
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy import func, select
@@ -183,8 +183,41 @@ def _facility_trace_label(row: AnimalFacility) -> str:
 
 
 def _validate_report_times(body: RealityContributionIn) -> None:
-    """Enforce origin-specific time rules before any row is written."""
+    """Enforce origin-specific time and provenance order before any row is written."""
     origin = body.report.origin
+    now = datetime.now(UTC)
+    # Allow minor device clock drift; never admit observations or publications
+    # that claim to have happened materially in the future.
+    latest_permitted = now + timedelta(minutes=10)
+    timestamps = {
+        "observed_at": body.report.observed_at,
+        "claimed_event_at": body.report.claimed_event_at,
+        "content_published_at": body.report.content_published_at,
+    }
+    for candidate in body.candidates:
+        if candidate.observed_at is not None:
+            timestamps[f"candidate.{candidate.candidate_type}.observed_at"] = candidate.observed_at
+    for field, raw_value in timestamps.items():
+        if raw_value is None:
+            continue
+        recorded = raw_value if raw_value.tzinfo else raw_value.replace(tzinfo=UTC)
+        if recorded > latest_permitted:
+            raise ApiError(
+                "事件、现场观察或内容发布时间不得晚于当前时间",
+                code="reality_future_time_not_allowed",
+                status_code=422,
+            )
+    published = body.report.content_published_at
+    event = body.report.claimed_event_at
+    if published is not None and event is not None:
+        publication_time = published if published.tzinfo else published.replace(tzinfo=UTC)
+        claimed_time = event if event.tzinfo else event.replace(tzinfo=UTC)
+        if claimed_time > publication_time:
+            raise ApiError(
+                "来源声称的事件时间不能晚于该内容的发布时间",
+                code="reality_event_after_publication",
+                status_code=422,
+            )
     if origin == ObservationOrigin.ON_SITE_PAST and body.report.observed_at is None:
         raise ApiError(
             "请选择你到场观察到的时间（提交时间不会自动成为事件时间）",
