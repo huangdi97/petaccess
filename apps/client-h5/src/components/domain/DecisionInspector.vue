@@ -76,9 +76,7 @@ const props = withDefaults(
 );
 
 const verdict = computed(() => answerVerdictLabel(props.answer));
-const needsRuleEvidence = computed(
-  () => !props.answerError && verdict.value === "信息不足",
-);
+const needsRuleEvidence = computed(() => !props.answerError && verdict.value === "信息不足");
 /** A recorded coordinate allows a direct spatial deep link. No coordinate means
  * no map marker: a name/address alone is never geocoded or guessed here. */
 const mapLocationAvailable = computed(

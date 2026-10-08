@@ -481,8 +481,6 @@ const MASS = [
   font-size: var(--pa-font-size-xs);
 }
 
-
-
 /* ---- pins ---- */
 .map-pin {
   position: absolute;
