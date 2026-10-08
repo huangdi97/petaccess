@@ -279,7 +279,9 @@ class OperatorRuleAnswerIn(BaseModel):
     ) -> list[OperatorRuleConditionIn]:
         effect = info.data.get("effect")
         if effect == RuleEffect.CONDITIONAL and not conditions:
-            raise ValueError("conditional operator policy requires at least one structured condition")
+            raise ValueError(
+                "conditional operator policy requires at least one structured condition"
+            )
         if effect != RuleEffect.CONDITIONAL and conditions:
             raise ValueError("only conditional operator policy may carry entry conditions")
         return conditions
