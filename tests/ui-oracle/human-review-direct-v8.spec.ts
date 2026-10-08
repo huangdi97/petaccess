@@ -635,7 +635,7 @@ async function assertShot(page: Page, shot: Shot): Promise<Record<string, unknow
         page.getByTestId("map-real-provider-fallback"),
         `${shot.name}: simplified basemap disclosure`,
       ).toContainText("简化空间底图");
-      await expect(page.getByTestId("map-real-provider-fallback")).toContainText("已核验坐标");
+      await expect(page.getByTestId("map-real-provider-fallback")).toContainText("已收录坐标");
     }
   }
 
