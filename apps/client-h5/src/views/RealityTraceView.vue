@@ -9,15 +9,18 @@
  */
 import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
-import { client, type RealityEventView, type Zone } from "@petaccess/client-core";
+import { client, session, type RealityEventView, type Zone } from "@petaccess/client-core";
 import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
 import QueryContextBar from "../components/domain/QueryContextBar.vue";
 import RealityEventLog from "../components/domain/RealityEventLog.vue";
 import { presentDescription } from "../errors";
+import { useRealityConfirmation } from "../composables/useRealityConfirmation";
 
 const route = useRoute();
 const placeId = computed(() => (route.params.id ? String(route.params.id) : ""));
+
+const realityConfirmation = useRealityConfirmation(() => placeId.value);
 
 const events = ref<RealityEventView[]>([]);
 const zones = ref<Zone[]>([]);
@@ -157,8 +160,11 @@ const uiFixture = computed<string>(() =>
             :events="visibleEvents"
             :zones="zones"
             :place-id="placeId"
+            :signed-in="session.signedIn"
+            :busy-event-id="realityConfirmation.busyEventId.value"
             :empty-title="emptyCopy.title"
             :empty-description="emptyCopy.description"
+            @confirm="realityConfirmation.confirm"
           >
             <template v-if="!events.length" #empty-action>
               <RouterLink
@@ -170,6 +176,13 @@ const uiFixture = computed<string>(() =>
               </RouterLink>
             </template>
           </RealityEventLog>
+          <p
+            v-if="realityConfirmation.message.value"
+            class="reality-confirmation-message"
+            role="status"
+          >
+            {{ realityConfirmation.message.value }}
+          </p>
         </section>
       </template>
     </div>
@@ -225,6 +238,12 @@ const uiFixture = computed<string>(() =>
 
 .reality-head__summary {
   font-size: var(--pa-font-size-md);
+}
+
+.reality-confirmation-message {
+  margin: var(--pa-space-3) 0 0;
+  font-size: var(--pa-font-size-sm);
+  color: var(--pa-color-text-secondary);
 }
 
 @media (max-width: 767px) {
