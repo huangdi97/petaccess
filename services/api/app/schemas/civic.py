@@ -19,6 +19,7 @@ from app.models.enums import (
     OperatorOrgType,
     PlaceConfidence,
     RuleAction,
+    RuleConditionType,
     RuleEffect,
     SourceType,
     TemporaryAction,
@@ -248,13 +249,49 @@ class OperatorClaimOut(BaseModel):
     created_at: datetime
 
 
+class OperatorRuleConditionIn(BaseModel):
+    """One structured condition in an operator-declared policy cell."""
+
+    condition_type: RuleConditionType
+    value_flag: bool | None = None
+    value_numeric: float | None = None
+    value_text: str | None = Field(default=None, max_length=200)
+    value_json: dict | list | None = None
+
+
+class OperatorRuleAnswerIn(BaseModel):
+    """One versionable OPERATOR_POLICY cell from an approved venue representative."""
+
+    zone_id: str | None = None
+    animal_scope: AnimalScope
+    action: RuleAction
+    effect: RuleEffect
+    conditions: list[OperatorRuleConditionIn] = []
+    review_due_at: datetime | None = None
+    note: str | None = Field(default=None, max_length=2000)
+
+    @field_validator("conditions")
+    @classmethod
+    def conditional_requires_condition(
+        cls,
+        conditions: list[OperatorRuleConditionIn],
+        info,
+    ) -> list[OperatorRuleConditionIn]:
+        effect = info.data.get("effect")
+        if effect == RuleEffect.CONDITIONAL and not conditions:
+            raise ValueError("conditional operator policy requires at least one structured condition")
+        return conditions
+
+
 class OperatorQuestionnaire(BaseModel):
-    """Spokin-style structured questionnaire answers → operator-declared rules
-    (design #16). Answers are converted into AccessRule rows versioned by
-    superseding the previous operator rules."""
+    """Structured operator policy submission after an approved place claim.
+
+    Each answer is one OPERATOR_POLICY cell. The service may version a matching
+    prior operator cell, but it must never mutate LEGAL / REGULATORY_GUIDANCE.
+    """
 
     effective_from: datetime | None = None
-    answers: list[dict] = Field(min_length=1)
+    answers: list[OperatorRuleAnswerIn] = Field(min_length=1)
 
 
 # --- disputes (design #26) ---
