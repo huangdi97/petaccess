@@ -291,7 +291,8 @@ def create_reality_report(
     db: Session = Depends(get_db),
 ) -> RealityContributionOut:
     """Create one parent-flow Contribution (report + candidates + optional extras)."""
-    if db.get(Place, place_id) is None:
+    place = db.get(Place, place_id)
+    if place is None:
         raise NotFound("场所不存在")
 
     settings = get_settings()
