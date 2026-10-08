@@ -17,6 +17,7 @@ const error = ref("");
 const busy = ref(false);
 const submitted = ref(false);
 const claimStatus = ref("");
+const previousClaimStatus = ref("");
 
 const CLAIM_STATUS_LABELS: Record<string, string> = {
   submitted: "等待人工核验",
@@ -28,6 +29,9 @@ const CLAIM_STATUS_LABELS: Record<string, string> = {
 
 const claimStatusLabel = computed(
   () => CLAIM_STATUS_LABELS[claimStatus.value] ?? "等待人工核验",
+);
+const previousClaimStatusLabel = computed(
+  () => CLAIM_STATUS_LABELS[previousClaimStatus.value] ?? "",
 );
 
 const operatorName = ref("");
@@ -55,6 +59,20 @@ async function load() {
   try {
     await session.restore();
     place.value = await client.place(placeId.value);
+    submitted.value = false;
+    claimStatus.value = "";
+    previousClaimStatus.value = "";
+    if (session.signedIn) {
+      const mine = await client.myOperatorClaims(placeId.value);
+      const latest = mine[0];
+      if (latest) {
+        previousClaimStatus.value = latest.status;
+        if (["submitted", "verifying", "approved"].includes(latest.status)) {
+          claimStatus.value = latest.status;
+          submitted.value = true;
+        }
+      }
+    }
   } catch (e) {
     error.value = presentDescription(e);
   } finally {
@@ -147,6 +165,13 @@ watch(placeId, () => void load(), { immediate: true });
         </section>
 
         <form v-else class="operator-claim__form" @submit.prevent="submit">
+          <p
+            v-if="previousClaimStatus && ['rejected', 'revoked'].includes(previousClaimStatus)"
+            class="operator-claim__previous"
+            role="status"
+          >
+            上一次申请：{{ previousClaimStatusLabel }}。你可以修正核验信息后重新提交。
+          </p>
           <label class="operator-claim__field">
             <span>管理方名称</span>
             <input v-model="operatorName" required maxlength="160" data-testid="operator-name" />
