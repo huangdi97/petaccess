@@ -78,7 +78,7 @@ export function useMapWorkspace() {
   });
 
   const markers = computed<MapMarker[]>(() =>
-    mapMarkersFor(places.value, camera.value, statuses.value, import.meta.env.DEV),
+    mapMarkersFor(places.value, statuses.value),
   );
 
   const visiblePlaces = computed(() =>
@@ -98,7 +98,7 @@ export function useMapWorkspace() {
   const clusters = computed(() => clusterMarkers(visibleMarkers.value, camera.value.zoom));
   const coverage = computed(() => {
     const base = mapLensCoverage(lens.value, facts.value, visibleMarkers.value);
-    if (!visibleMissingSpatialCount.value || import.meta.env.DEV) return base;
+    if (!visibleMissingSpatialCount.value) return base;
     return {
       ...base,
       text: `${base.text} 另有 ${visibleMissingSpatialCount.value} 个场所缺少已核验坐标，仅在列表显示。`,
