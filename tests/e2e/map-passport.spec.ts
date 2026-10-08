@@ -89,6 +89,16 @@ test("A1.0.1 — fallback marker 不靠颜色单独表达语义", async ({ page 
   await expect(pin.locator(".lbl")).not.toHaveText("");
 });
 
+test("A1.0.2 — nearby venue cluster is neutral and requires per-place inspection", async ({
+  page,
+}) => {
+  await page.goto(`${BASE}/#/map`);
+  const group = page.locator(".map-pin").filter({ has: page.locator(".map-cluster") }).first();
+  await expect(group).toBeVisible({ timeout: 15000 });
+  await expect(group).toHaveAttribute("aria-label", /准入结论需分别查看/);
+  await expect(group.locator(".map-cluster")).toHaveClass("map-cluster");
+});
+
 test("A1.1 — Map 内搜索保持 Spatial Workspace 并选择真实场所", async ({ page }) => {
   await page.goto(`${BASE}/#/map`);
   await expect(page.getByTestId("map-search-input")).toBeVisible();
