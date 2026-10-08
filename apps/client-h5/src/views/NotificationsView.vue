@@ -12,6 +12,8 @@ const watches = ref<WatchView[]>([]);
 const targetNames = ref<Record<string, string>>({});
 const loading = ref(true);
 const error = ref("");
+const actionError = ref("");
+const unsubscribing = ref<string | null>(null);
 const signedIn = ref(false);
 
 const TARGET_LABELS: Record<string, string> = {
@@ -38,6 +40,7 @@ function targetLabel(watch: WatchView): string {
 async function load() {
   loading.value = true;
   error.value = "";
+  actionError.value = "";
   try {
     await session.restore();
     signedIn.value = session.signedIn;
@@ -66,11 +69,18 @@ async function load() {
 onMounted(load);
 
 async function unsubscribe(w: WatchView) {
+  if (unsubscribing.value) return;
+  unsubscribing.value = w.id;
+  actionError.value = "";
   try {
     await client.unwatch(w.id);
+    // Only remove after a server-confirmed response; a failed call retains
+    // the existing subscription and its control for a retry.
     watches.value = watches.value.filter((x) => x.id !== w.id);
   } catch (e) {
-    error.value = presentDescription(e);
+    actionError.value = presentDescription(e);
+  } finally {
+    unsubscribing.value = null;
   }
 }
 </script>
@@ -141,6 +151,9 @@ async function unsubscribe(w: WatchView) {
     </StateMessage>
 
     <section v-else class="notifications-list" aria-label="已关注的变化">
+      <p v-if="actionError" class="notifications-action-error" role="alert">
+        取消关注失败，原有订阅仍保留：{{ actionError }}
+      </p>
       <div v-for="w in watches" :key="w.id" class="notification-row">
         <div class="notification-row__body">
           <strong>{{ targetLabel(w) }}</strong>
@@ -149,8 +162,14 @@ async function unsubscribe(w: WatchView) {
             {{ w.watch_domain === "reality" ? "等待新的经核验现场事实" : "等待新的正式规则版本" }}
           </span>
         </div>
-        <button class="notification-row__action" type="button" @click="unsubscribe(w)">
-          取消关注
+        <button
+          class="notification-row__action"
+          type="button"
+          :disabled="Boolean(unsubscribing)"
+          :aria-label="`取消关注 ${targetLabel(w)}的${domainLabel(w)}`"
+          @click="unsubscribe(w)"
+        >
+          {{ unsubscribing === w.id ? "取消中…" : "取消关注" }}
         </button>
       </div>
     </section>
