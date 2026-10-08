@@ -19,7 +19,7 @@ import {
 } from "@petaccess/client-core";
 import StatusBadge from "../StatusBadge.vue";
 import PlaceTypeGlyph from "./PlaceTypeGlyph.vue";
-import { answerConditions, answerStatusKey, answerVerdictLabel } from "../../answer";
+import { answerConditions, answerPrimarySummary, answerStatusKey } from "../../answer";
 import {
   coexistenceEvidenceLine,
   coexistenceRealityLine,
@@ -89,7 +89,7 @@ const projection = computed(() =>
         class="place-result-row__rule"
         data-testid="row-lens-headline"
       >
-        {{ answer.normative_result.summary || answerVerdictLabel(answer) }}
+        {{ answerPrimarySummary(answer) }}
       </p>
       <p v-else class="place-result-row__reality-line" data-testid="row-lens-headline">
         {{ projection.realityLine }}
