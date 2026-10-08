@@ -121,6 +121,56 @@ export function factEvidenceLabel(value: string | null | undefined): string {
   return value ? (FACT_EVIDENCE_LABELS[value] ?? "证据类型未归类") : "证据类型未记录";
 }
 
+const MATERIAL_TYPE_LABELS: Record<string, string> = {
+  url: "网页原始材料",
+  page_snapshot: "网页快照",
+  official_notice: "官方通知",
+  signage_photo: "现场规则牌照片",
+  uploaded_image: "上传图片",
+  video_keyframe: "视频关键帧",
+  phone_note: "人工核验记录",
+};
+
+const SOURCE_PLATFORM_LABELS: Record<string, string> = {
+  official_web: "官方网站",
+  operator_site: "场所方渠道",
+  search_discovery: "搜索发现",
+  social_platform: "社交平台线索",
+  user_link: "用户提供链接",
+  manual_verification: "人工核验",
+  onsite: "现场采集",
+  platform_upload: "平台上传",
+};
+
+const PUBLISHER_TYPE_LABELS: Record<string, string> = {
+  government: "政府 / 主管部门",
+  official_operator: "场所管理方",
+  staff: "工作人员",
+  trusted_verifier: "认证核验方",
+  ordinary_user: "普通用户",
+  unknown: "发布主体未确认",
+};
+
+export function evidenceMaterialLabel(event: RealityEventView): string {
+  if (!event.evidence_bundle_id) return "未绑定证据包";
+  const parts: string[] = [];
+  if (event.evidence_material_type) {
+    parts.push(MATERIAL_TYPE_LABELS[event.evidence_material_type] ?? "其他原始材料");
+  }
+  if (event.evidence_source_platform) {
+    parts.push(SOURCE_PLATFORM_LABELS[event.evidence_source_platform] ?? "其他来源平台");
+  }
+  if (event.evidence_publisher_type) {
+    parts.push(PUBLISHER_TYPE_LABELS[event.evidence_publisher_type] ?? "发布主体未归类");
+  }
+  if (event.evidence_class) {
+    parts.push(event.evidence_class === "original" ? "原始证据" : "派生证据");
+  }
+  if (event.evidence_display_allowed === false) parts.push("原始内容受许可 / 隐私限制");
+  else if (event.evidence_display_allowed === true) parts.push("允许公开展示原始材料");
+  return parts.length ? parts.join(" · ") : "已有可追溯证据包";
+}
+
 export function realityEventProvenance(event: RealityEventView): string {
   const parts: string[] = [];
   const origin = event.origin ? realityOriginLabel(event.origin) : "";
@@ -132,6 +182,7 @@ export function realityEventProvenance(event: RealityEventView): string {
   if ((event.confirmation_count ?? 0) > 0) {
     parts.push(`另有 ${event.confirmation_count} 条独立确认`);
   }
+  if (event.evidence_bundle_id) parts.push(evidenceMaterialLabel(event));
   if (!parts.length && event.evidence_bundle_id) parts.push("已有可追溯核验材料");
   if (!parts.length && event.source_id) parts.push("已有来源记录");
   return parts.join(" · ");
