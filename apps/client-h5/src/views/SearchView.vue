@@ -171,10 +171,8 @@ function rowEvidenceMeta(p: PlaceSummary): string {
 }
 
 async function search() {
-  if (!online.value) {
-    error.value = "当前无网络连接，搜索需要联网。";
-    return;
-  }
+  // The repository can serve an explicitly stale cached result offline.
+  // Blocking all searches before consulting it discards useful last-known facts.
   const query = q.value.trim();
   const n = epoch.begin();
   error.value = "";
@@ -183,12 +181,14 @@ async function search() {
   try {
     const list = query ? await searchPlaces(query) : await searchPlaces("");
     if (!epoch.isCurrent(n)) return; // a newer search superseded this one
-    results.value = list.items;
-    listStale.value = list.stale;
-    listFetchedAtMs.value = list.fetchedAtMs;
     const f = await enrichRows(list.items);
     if (!epoch.isCurrent(n)) return; // a newer search superseded this one
+    // Publish rows and their Rule/Reality facts together, never a new list
+    // alongside the previous query context's stale decision statuses.
+    results.value = list.items;
     facts.value = f;
+    listStale.value = list.stale;
+    listFetchedAtMs.value = list.fetchedAtMs;
     const st: Record<string, StatusKey> = {};
     for (const [id, row] of f) st[id] = answerStatusKey(row.answer);
     statuses.value = st;
@@ -211,7 +211,11 @@ async function search() {
       }
     }
   } catch (e) {
-    if (epoch.isCurrent(n)) error.value = presentDescription(e);
+    if (epoch.isCurrent(n)) {
+      error.value = online.value
+        ? presentDescription(e)
+        : "当前离线且没有可用的已缓存搜索结果，请恢复网络后重试。";
+    }
   } finally {
     if (epoch.isCurrent(n)) loading.value = false;
   }
@@ -379,7 +383,6 @@ watch(currentQueryContext, () => {
               placeholder="搜索场所、商圈或地址"
               data-testid="search-input"
               data-ui="search-input"
-              @keydown.enter="search"
             />
             <button
               v-if="q"
