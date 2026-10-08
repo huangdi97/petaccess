@@ -803,6 +803,24 @@ export const client = {
     }>("post", "/operator-claims/self-serve", { body });
   },
 
+  async myOperatorClaims(placeId?: string) {
+    return api.request<
+      {
+        id: string;
+        place_id: string;
+        operator_id: string;
+        claimant_user_id: string;
+        status: string;
+        verification_method: string | null;
+        created_at: string;
+        reviewed_at?: string | null;
+        rejection_reason?: string | null;
+      }[]
+    >("get", "/operator-claims/mine", {
+      query: asParams({ place_id: placeId }),
+    });
+  },
+
   async submitRealityContribution(
     placeId: string,
     body: {
