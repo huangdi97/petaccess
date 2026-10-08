@@ -1,11 +1,13 @@
 <script setup lang="ts">
 // @ui-form PetNewView — 表单页：提交流错误内联呈现，无列表加载（M3 E1 表单声明）。
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { client, session } from "@petaccess/client-core";
 import AppShell from "../components/AppShell.vue";
 import PetImageSuggestion from "../components/pets/PetImageSuggestion.vue";
 import StateMessage from "../components/StateMessage.vue";
+import { presentDescription } from "../errors";
+import { useOnline } from "../composables/useOnline";
 
 const router = useRouter();
 const pet = ref({
@@ -20,6 +22,10 @@ const error = ref("");
 const saving = ref(false);
 const loadingSession = ref(true);
 const signedIn = ref(false);
+const { online } = useOnline();
+const canSave = computed(
+  () => signedIn.value && online.value && !saving.value && pet.value.display_name.trim().length > 0,
+);
 
 onMounted(async () => {
   await session.restore();
@@ -30,10 +36,14 @@ onMounted(async () => {
 async function save() {
   if (!signedIn.value) return;
   error.value = "";
+  if (!online.value) {
+    error.value = "当前无网络连接，宠物档案尚未保存。";
+    return;
+  }
   saving.value = true;
   try {
     const created = await client.createPet({
-      display_name: pet.value.display_name,
+      display_name: pet.value.display_name.trim(),
       species: pet.value.species,
       breed_text: pet.value.breed_text || null,
       weight_kg: pet.value.weight_kg ? Number(pet.value.weight_kg) : null,
@@ -47,7 +57,7 @@ async function save() {
     session.mode = created.service_role === "working" ? "service_dog" : "with_pet";
     router.push({ name: "home" });
   } catch (e) {
-    error.value = e instanceof Error ? `保存失败（需登录）：${e.message}` : String(e);
+    error.value = presentDescription(e);
   } finally {
     saving.value = false;
   }
@@ -78,6 +88,9 @@ async function save() {
     </StateMessage>
 
     <form v-else class="pet-new-form" @submit.prevent="save">
+      <p v-if="!online" class="pet-new-feedback" role="status">
+        当前无网络连接：可以继续填写，恢复网络后再保存。
+      </p>
       <section class="pet-new-section">
         <div class="pet-new-section__lead">
           <h2>基本信息</h2>
@@ -150,7 +163,7 @@ async function save() {
         <button
           class="primary"
           type="submit"
-          :disabled="!pet.display_name || saving"
+          :disabled="!canSave"
           data-testid="pet-save"
         >
           {{ saving ? "保存中…" : "保存并设为本次对象" }}
