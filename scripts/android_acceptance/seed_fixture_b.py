@@ -113,8 +113,7 @@ def _create_place(token: str, name: str, place_type: str) -> str:
         "place_type": place_type,
         "canonical_address": "上海市测试区",
         "location_wkt": (
-            f"POINT({121.40 + (len(name) % 5) * 0.01} "
-            f"{31.20 + (len(name) % 3) * 0.01})"
+            f"POINT({121.40 + (len(name) % 5) * 0.01} {31.20 + (len(name) % 3) * 0.01})"
         ),
         "alias_names": [],
     }
