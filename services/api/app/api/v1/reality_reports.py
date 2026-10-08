@@ -197,7 +197,7 @@ def _validate_report_times(body: RealityContributionIn) -> None:
     for candidate in body.candidates:
         if candidate.observed_at is not None:
             timestamps[f"candidate.{candidate.candidate_type}.observed_at"] = candidate.observed_at
-    for field, raw_value in timestamps.items():
+    for raw_value in timestamps.values():
         if raw_value is None:
             continue
         recorded = raw_value if raw_value.tzinfo else raw_value.replace(tzinfo=UTC)
