@@ -140,6 +140,13 @@ const divergenceLine = computed(() => {
           需满足：{{ keyCondition }}
         </p>
         <p v-if="answer" class="muted sub-answer__note">当前结论仅适用于这次查询。</p>
+        <RouterLink
+          class="btn-inline sub-answer__details-link"
+          :to="'?view=rules'"
+          data-testid="overview-rule-link"
+        >
+          查看规则、适用范围与例外 →
+        </RouterLink>
       </div>
     </section>
 
@@ -309,6 +316,11 @@ const divergenceLine = computed(() => {
 .sub-answer__note {
   margin: var(--pa-space-2) 0 0;
   color: var(--pa-color-text-secondary);
+}
+.sub-answer__details-link {
+  display: inline-flex;
+  margin-top: var(--pa-space-3);
+  font-size: var(--pa-font-size-md);
 }
 .status {
   margin: var(--pa-space-2) 0 var(--pa-space-1);
