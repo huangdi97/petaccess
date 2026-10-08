@@ -90,6 +90,7 @@ class AuditEvent(StrEnum):
     POLICY_TEMPLATE_CREATE = "policy_template.create"
     EVENT_POLICY_CREATE = "event_policy.create"
     ORGANIZATION_CREATE = "organization.create"
+    OPERATOR_CLAIM_CREATE = "operator_claim.create"
     OPERATOR_CLAIM_REVIEW = "operator_claim.review"
     OPERATOR_CLAIM_APPROVE = "operator_claim.approve"
     OPERATOR_QUESTIONNAIRE_SUBMIT = "operator_questionnaire.submit"
