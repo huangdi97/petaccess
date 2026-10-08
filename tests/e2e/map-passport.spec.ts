@@ -135,9 +135,7 @@ test("A1.4 — missing-coordinate named search preserves desktop List + Map", as
   await expect(page.getByTestId("place-preview")).toContainText("云栖中心");
 });
 
-test("A1.5 — dragging the fallback map requests places at the new center", async ({
-  page,
-}) => {
+test("A1.5 — dragging the fallback map requests places at the new center", async ({ page }) => {
   await page.goto(`${BASE}/#/map`);
   const surface = page.getByTestId("map-surface");
   await expect(surface).toBeVisible();
