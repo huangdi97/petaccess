@@ -12,11 +12,13 @@ const emit = defineEmits<{ open: [id: string] }>();
   <template v-if="pending.length">
     <h2 class="home-section-title home-section-title--stacked">附近待补充</h2>
     <p class="muted">这些场所目前没有足够依据下结论，信息不足不等于允许或禁止。</p>
-    <div
+    <button
       v-for="card in pending.slice(0, 2)"
+      type="button"
       :key="card.place.id"
       class="home-row"
       :data-testid="'pending-' + card.place.id"
+      :aria-label="`查看场所 ${card.place.canonical_name}`"
       @click="emit('open', card.place.id)"
     >
       <div class="home-row__pending-identity">
@@ -29,12 +31,18 @@ const emit = defineEmits<{ open: [id: string] }>();
           <span class="muted">{{ placeTypeLabel(card.place.place_type) }}</span>
         </div>
       </div>
-    </div>
+    </button>
   </template>
 </template>
 
 <style scoped>
 .home-row {
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: inherit;
   cursor: pointer;
   padding: var(--pa-space-4) 0;
   border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
@@ -42,6 +50,10 @@ const emit = defineEmits<{ open: [id: string] }>();
 }
 .home-row:hover {
   background: var(--pa-color-surface-interactive);
+}
+.home-row:focus-visible {
+  outline: 2px solid var(--pa-color-border-focus);
+  outline-offset: -2px;
 }
 .home-row__head {
   justify-content: space-between;
