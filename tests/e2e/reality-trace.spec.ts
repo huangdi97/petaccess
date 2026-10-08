@@ -5,11 +5,26 @@
  * 云栖中心·测试商场 (rules + reality data) and 星河咖啡·栖霞分店 (0 rules).
  * The e2e viewport (1280x720) is desktop.
  */
-import { expect, test } from "@playwright/test";
+import { expect, test, type APIRequestContext } from "@playwright/test";
 
 const BASE = "http://127.0.0.1:5175";
+const API = "http://127.0.0.1:8010/api/v1";
 /** 云栖中心·测试商场 — the richest seeded place (rules, sources, reality). */
 const MALL_ID = "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e";
+
+async function signIn(request: APIRequestContext): Promise<string> {
+  const email = `reality-confirm-${Date.now()}-${Math.floor(Math.random() * 1e5)}@example.com`;
+  const register = await request.post(`${API}/auth/register`, {
+    data: { display_name: "Reality 确认测试", email, password: "passw0rd123" },
+  });
+  expect(register.ok(), `register failed: ${await register.text()}`).toBeTruthy();
+  const login = await request.post(`${API}/auth/login`, {
+    data: { email, password: "passw0rd123" },
+  });
+  expect(login.ok(), `login failed: ${await login.text()}`).toBeTruthy();
+  return (await login.json()).access_token as string;
+}
+
 test("A1 — 概览现场 CTA 进入现场 view；直接深链可访问", async ({ page }) => {
   await page.goto(`${BASE}/#/place/${MALL_ID}`);
   await expect(page.getByTestId("overview-reality")).toBeVisible();
@@ -59,6 +74,37 @@ test("A3 — 观察时间线渲染；空时间线走 REALITY empty copy", async 
   await page.goto(`${BASE}/#/place/${MALL_ID}/reality`);
   await expect(page.getByTestId("trace-empty")).toBeVisible();
   await expect(page.getByTestId("trace-empty")).toContainText("暂无近期现场记录");
+});
+
+test("A3.1 — 轻量现场确认只新增 Confirmation，不创建新事实候选", async ({
+  page,
+  request,
+}) => {
+  const token = await signIn(request);
+  await page.addInitScript((value) => localStorage.setItem("pa_token", value), token);
+  await page.goto(`${BASE}/#/place/${MALL_ID}/reality`);
+
+  await page.getByTestId("reality-filter").selectOption("presence");
+  const confirm = page.getByRole("button", { name: "我现在也看到了" }).first();
+  await expect(confirm).toBeVisible({ timeout: 15000 });
+
+  const submission = page.waitForRequest(
+    (req) =>
+      req.method() === "POST" &&
+      req.url().includes(`/places/${MALL_ID}/reality/reports`),
+  );
+  await confirm.click();
+  const body = (await submission).postDataJSON() as {
+    candidates?: unknown[];
+    confirmation?: { confirmation_type?: string; target_claim_id?: string | null };
+    effort?: unknown;
+  };
+
+  expect(body.candidates ?? []).toHaveLength(0);
+  expect(body.effort ?? null).toBeNull();
+  expect(body.confirmation?.confirmation_type).toBe("still_present");
+  expect(body.confirmation?.target_claim_id).toBeTruthy();
+  await expect(page.getByRole("status")).toContainText("已记录本次现场确认");
 });
 
 test("A4 — 深链标题正确；错误统一呈现且不泄漏内部字样", async ({ page }) => {
