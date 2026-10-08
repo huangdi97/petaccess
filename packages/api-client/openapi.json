@@ -13390,6 +13390,22 @@
               }
             ],
             "title": "Last Verified At"
+          },
+          "staff_policy_statement_verbatim": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Staff Policy Statement Verbatim"
+          },
+          "dispute_open": {
+            "type": "boolean",
+            "title": "Dispute Open",
+            "default": false
           }
         },
         "type": "object",
