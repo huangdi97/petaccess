@@ -366,9 +366,11 @@ test("B4.3 — Place identity renders and map CTA reflects coordinate availabili
   page,
 }) => {
   await page.goto(`${BASE}/#/place/${MALL_ID}`);
-  await expect(page.locator('[data-ui="place-identity"] [data-ui="place-type-glyph"]')).toBeVisible({
-    timeout: 15000,
-  });
+  await expect(page.locator('[data-ui="place-identity"] [data-ui="place-type-glyph"]')).toBeVisible(
+    {
+      timeout: 15000,
+    },
+  );
   await expect(page.getByTestId("place-map-link")).toContainText("地图定位");
 
   await page.route(`**/api/v1/places/${MALL_ID}/summary`, async (route) => {
