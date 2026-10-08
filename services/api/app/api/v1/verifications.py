@@ -12,7 +12,7 @@ from app.core.idempotency import check_inflight, get_cached, store
 from app.core.ratelimit import check_rate_limit
 from app.core.security import get_current_user, get_optional_user, require_role
 from app.db.session import get_db
-from app.models import AccessRule, Place, User, VerificationEvent
+from app.models import AccessRule, Place, User, VerificationEvent, Zone
 from app.models.enums import UserRole, VerificationEventType
 from app.schemas.civic import VerificationIn, VerificationOut
 from app.schemas.common import Page
@@ -91,8 +91,22 @@ def create_verification(
     )
     if db.get(Place, body.place_id) is None:
         raise NotFound("场所不存在")
-    if body.rule_id and db.get(AccessRule, body.rule_id) is None:
-        raise NotFound("规则不存在")
+    if body.zone_id:
+        zone = db.get(Zone, body.zone_id)
+        if zone is None or zone.place_id != body.place_id:
+            raise NotFound("区域不属于该场所")
+    if body.rule_id:
+        rule = db.get(AccessRule, body.rule_id)
+        if rule is None:
+            raise NotFound("规则不存在")
+        owner_place_id = rule.place_id
+        if rule.zone_id:
+            rule_zone = db.get(Zone, rule.zone_id)
+            owner_place_id = rule_zone.place_id if rule_zone else None
+        if owner_place_id != body.place_id:
+            raise NotFound("规则不属于该场所")
+        if body.zone_id and body.zone_id != rule.zone_id:
+            raise NotFound("核验区域与规则适用区域不一致")
     idem_key = request.headers.get("Idempotency-Key", "")
     if idem_key:
         cached = get_cached("verification", idem_key)
