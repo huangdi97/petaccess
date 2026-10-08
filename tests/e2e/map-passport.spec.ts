@@ -125,7 +125,7 @@ test("A1.3 — missing coordinates never create fictional map pins, even in dev"
 
   await expect(page.getByTestId("map-surface")).toBeVisible();
   await expect(page.locator(".map-pin")).toHaveCount(0);
-  await expect(page.getByTestId("coverage-hint")).toContainText("缺少已核验坐标");
+  await expect(page.getByTestId("coverage-hint")).toContainText("缺少可用位置坐标");
 });
 
 test("A1.4 — missing-coordinate named search preserves desktop List + Map", async ({ page }) => {
@@ -151,7 +151,7 @@ test("A1.4 — missing-coordinate named search preserves desktop List + Map", as
 
   await expect(page.getByTestId("map")).toBeVisible();
   await expect(page.getByTestId(`place-${MALL_ID}`)).toBeVisible();
-  await expect(page.getByTestId("map-search-feedback")).toContainText("缺少已核验坐标");
+  await expect(page.getByTestId("map-search-feedback")).toContainText("缺少可用位置坐标");
   await expect(page.getByTestId("place-preview")).toContainText("云栖中心");
 });
 
