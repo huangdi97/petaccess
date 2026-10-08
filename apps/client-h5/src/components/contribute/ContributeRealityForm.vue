@@ -32,7 +32,11 @@ const KIND_LABELS: Record<string, string> = {
 type SourceMode = "on_site_now" | "on_site_past" | "external_online_content";
 
 const sourceMode = ref<SourceMode>("on_site_now");
-const occurredAt = ref(new Date().toISOString().slice(0, 10));
+// A past observation must have an intentionally selected date, never
+// silently default to today and manufacture false temporal precision.
+const occurredAt = ref("");
+const today = new Date().toISOString().slice(0, 10);
+const validPastDate = (date: string) => Boolean(date && date <= today);
 const externalUrl = ref("");
 const externalPlatform = ref("web");
 const externalPublishedAt = ref("");
@@ -181,7 +185,16 @@ const hasClaimablePlaceMatch = computed(
   () =>
     !isExternal.value ||
     externalPlaceMatch.value === "exact_place" ||
-    externalPlaceMatch.value === "parent_place_only",
+    (externalPlaceMatch.value === "parent_place_only" && Boolean(props.parentPlaceId)),
+);
+const validEventDate = computed(() =>
+  sourceMode.value === "on_site_past"
+    ? validPastDate(occurredAt.value)
+    : !isExternal.value ||
+      (validPastDate(externalPublishedAt.value) &&
+        (!externalEventAt.value ||
+          (validPastDate(externalEventAt.value) &&
+            externalEventAt.value <= externalPublishedAt.value))),
 );
 const canUseCurrentZones = computed(
   () => !isExternal.value || externalPlaceMatch.value === "exact_place",
@@ -192,6 +205,7 @@ const canSubmit = computed(
     props.signedIn &&
     !busy.value &&
     !uploading.value &&
+    validEventDate.value &&
     (!isExternal.value || Boolean(externalUrl.value.trim() && externalPublishedAt.value)) &&
     (props.kind !== "animal_facility" || Boolean(facilityType.value)),
 );
@@ -420,6 +434,7 @@ async function submit() {
             id="reality-published-date"
             v-model="externalPublishedAt"
             type="date"
+            :max="today"
             data-testid="reality-published-date"
           />
           <label for="reality-external-event-date">内容明确说明的发生日期（可选）</label>
@@ -427,6 +442,7 @@ async function submit() {
             id="reality-external-event-date"
             v-model="externalEventAt"
             type="date"
+            :max="externalPublishedAt || today"
             data-testid="reality-external-event-date"
           />
           <p class="muted source-note">
@@ -453,7 +469,14 @@ async function submit() {
         <legend class="cluster__title">什么时候？</legend>
         <template v-if="sourceMode === 'on_site_past'">
           <label for="reality-date">发生日期</label>
-          <input id="reality-date" v-model="occurredAt" type="date" data-testid="reality-date" />
+          <input
+            id="reality-date"
+            v-model="occurredAt"
+            type="date"
+            :max="today"
+            required
+            data-testid="reality-date"
+          />
         </template>
         <p v-else class="muted source-note">将使用提交时的当前时间记录这次现场观察。</p>
         <label for="reality-effort">在场时长</label>
