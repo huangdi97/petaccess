@@ -7,7 +7,7 @@ import { computed } from "vue";
  * evidence pane and Reality timeline cannot disagree by reading two different
  * generations of the data model.
  */
-import type { RealityEventView, SourceView } from "@petaccess/client-core";
+import type { AccessAnswerEvidence, RealityEventView, SourceView } from "@petaccess/client-core";
 import {
   displayRealityEventTime,
   realityEventDetail,
@@ -24,6 +24,7 @@ const props = defineProps<{
   placeId: string;
   events: RealityEventView[];
   sources: SourceView[];
+  ruleEvidence: AccessAnswerEvidence[];
 }>();
 
 const provenanceCounts = computed(() => realityProvenanceCounts(props.events));
@@ -81,6 +82,19 @@ const LABELS: Record<string, string> = {
       <RouterLink class="btn-inline" :to="`/place/${props.placeId}/evidence`">
         查看完整证据记录 →
       </RouterLink>
+    </section>
+
+    <section class="place-section" data-testid="place-rule-evidence" aria-label="规则依据">
+      <h2 class="place-section__title">规则依据</h2>
+      <div v-for="(item, index) in ruleEvidence" :key="item.rule_id + '-' + index" class="surface-row">
+        <span class="evidence-source__issuer">{{ item.issuer || "来源待补充" }}</span>
+        <span class="muted evidence-source__meta">
+          {{ item.provenance_statement || LABELS[item.source_type ?? ""] || "规则来源待核验" }}
+        </span>
+      </div>
+      <p v-if="!ruleEvidence.length" class="muted">
+        暂无可靠规则依据。规则依据不足不影响下方已核验现场事实的独立展示。
+      </p>
     </section>
 
     <section class="place-section" data-testid="evidence-sources" aria-label="来源列表">
