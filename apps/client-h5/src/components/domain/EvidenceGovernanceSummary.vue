@@ -73,9 +73,7 @@ const bundleCount = computed(
           <template v-if="confirmationTotal">
             {{ independentlyConfirmed }} 条事实另有 {{ confirmationTotal }} 条独立确认
           </template>
-          <template v-else>
-            当前已发布事实尚无额外独立确认；这不影响其既有人工核验状态
-          </template>
+          <template v-else> 当前已发布事实尚无额外独立确认；这不影响其既有人工核验状态 </template>
         </dd>
       </div>
       <div class="evidence-governance__row">
