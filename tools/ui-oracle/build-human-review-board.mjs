@@ -8,7 +8,14 @@
  * No image manipulation and no third-party assets or dependencies.
  */
 import { execFileSync } from "node:child_process";
-import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  writeFileSync,
+} from "node:fs";
 import path from "node:path";
 
 const out = path.resolve("artifacts/ui-direct-v8/HUMAN_REVIEW");
@@ -16,8 +23,10 @@ const reference = path.resolve("docs/ui/reference/PetAccess_UI_APPROVED_REFERENC
 mkdirSync(out, { recursive: true });
 
 const escapeHtml = (value) =>
-  String(value).replace(/[&<>"']/g, (character) =>
-    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character],
+  String(value).replace(
+    /[&<>"']/g,
+    (character) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character],
   );
 
 const head = (() => {
@@ -51,7 +60,9 @@ const screens = ["desktop", "mobile"].flatMap((scope) => {
     .map((name) => ({ scope, name, url: `${scope}/${encodeURIComponent(name)}` }));
 });
 
-const cards = screens.map(({ scope, name, url }) => `
+const cards = screens
+  .map(
+    ({ scope, name, url }) => `
   <article class="comparison">
     <header><strong>${escapeHtml(scope)} · ${escapeHtml(name)}</strong><span>人工判断：待确认</span></header>
     <div class="pair">
@@ -64,7 +75,9 @@ const cards = screens.map(({ scope, name, url }) => `
         <figcaption>${escapeHtml(scope)} · 本次实际运行截图</figcaption>
       </figure>
     </div>
-  </article>`).join("\n");
+  </article>`,
+  )
+  .join("\n");
 
 const html = `<!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8" />

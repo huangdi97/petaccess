@@ -84,9 +84,7 @@ test("scoped Reality contribution selects only a zone owned by the current place
   const token = (await created.json()).access_token as string;
   await page.addInitScript((value) => localStorage.setItem("pa_token", value), token);
 
-  const zonesResponse = await request.get(
-    `http://127.0.0.1:8010/api/v1/places/${MALL_ID}/zones`,
-  );
+  const zonesResponse = await request.get(`http://127.0.0.1:8010/api/v1/places/${MALL_ID}/zones`);
   expect(zonesResponse.ok(), await zonesResponse.text()).toBeTruthy();
   const zones = (await zonesResponse.json()) as { id: string }[];
   expect(zones.length).toBeGreaterThan(0);
@@ -98,9 +96,7 @@ test("scoped Reality contribution selects only a zone owned by the current place
 
   // A zone that is not in the loaded place dossier can never become
   // an implicit submission target merely because it appears in a URL.
-  await page.goto(
-    `/#/contribute/${MALL_ID}?zone=00000000-0000-0000-0000-000000000000`,
-  );
+  await page.goto(`/#/contribute/${MALL_ID}?zone=00000000-0000-0000-0000-000000000000`);
   await page.getByTestId("entry-reality-observed_presence").click();
   await expect(page.locator("#reality-zone")).toHaveValue("");
 });
