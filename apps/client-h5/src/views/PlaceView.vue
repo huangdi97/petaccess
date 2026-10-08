@@ -24,6 +24,7 @@ import {
   type CoexistenceSnapshot,
   type RealityEventView,
   type PlaceDetail,
+  type PlaceSummary,
   type PlaceExtras,
   type RuleView,
   type SourceView,
@@ -66,6 +67,7 @@ const { desktop: isDesktop } = useBreakpoint();
 const speciesLabel = computed(() => queryAnimalLabel());
 
 const place = ref<PlaceDetail | null>(null);
+const placeSummary = ref<PlaceSummary | null>(null);
 const zones = ref<Zone[]>([]);
 const rules = ref<RuleView[]>([]);
 const realityEvents = ref<RealityEventView[]>([]);
@@ -171,6 +173,15 @@ async function load() {
     return;
   }
 
+  try {
+    placeSummary.value = await client.placeSummary(id);
+  } catch {
+    if (!isCurrent()) return;
+    placeSummary.value = null;
+    degrade("地图位置");
+  }
+  if (!isCurrent()) return;
+
   if (session.signedIn) {
     try {
       const mine = await client.myWatches();
@@ -255,6 +266,7 @@ watch(
     loadEpoch.begin();
     evaluationEpoch.begin();
     place.value = null;
+    placeSummary.value = null;
     zones.value = [];
     rules.value = [];
     realityEvents.value = [];
@@ -373,7 +385,11 @@ const placeFixture = computed<string>(() => {
                     class="place-dossier__map-link"
                     :to="{ path: '/map', query: { place: placeId } }"
                   >
-                    地图定位 →
+                    {{
+                      placeSummary?.latitude != null && placeSummary?.longitude != null
+                        ? "地图定位 →"
+                        : "地图列表查看 →"
+                    }}
                   </RouterLink>
                 </p>
               </div>
