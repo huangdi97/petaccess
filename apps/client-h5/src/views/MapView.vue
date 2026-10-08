@@ -71,10 +71,10 @@ const useRealMap = computed(
 
 const simplifiedBasemapCopy = computed(() => {
   if (realMapError.value) {
-    return "真实底图暂不可用，显示简化空间底图（示意街道）；场所点位仍使用已核验坐标，可拖动查询周边。";
+    return "真实底图暂不可用，显示简化空间底图（示意街道）；点位依据已收录坐标显示（位置未必经过实地核验），可拖动查询周边。";
   }
   if (renderConfig.value && !renderConfig.value.real_enabled) {
-    return "当前环境未配置真实地图底图，显示简化空间底图（示意街道）；场所点位仍使用已核验坐标，可拖动查询周边。";
+    return "当前环境未配置真实地图底图，显示简化空间底图（示意街道）；点位依据已收录坐标显示（位置未必经过实地核验），可拖动查询周边。";
   }
   return "";
 });
