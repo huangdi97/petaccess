@@ -9,6 +9,7 @@ interface MapSearchDeps {
   places: Ref<PlaceSummary[]>;
   facts: Ref<Map<string, RowFacts>>;
   view: Ref<"map" | "list">;
+  isDesktop: Readonly<Ref<boolean>>;
   loadNearby: () => Promise<void>;
   selectTarget: (place: PlaceSummary) => Promise<void>;
 }
@@ -76,7 +77,9 @@ export function useMapSearch(deps: MapSearchDeps) {
       if (generation !== searchGeneration) return;
       deps.places.value = result.items;
       deps.facts.value = facts;
-      deps.view.value = "list";
+      // Desktop is always List + Map. Only mobile swaps into list mode
+      // for a named place that has no trustworthy spatial point.
+      deps.view.value = deps.isDesktop.value ? "map" : "list";
       await deps.selectTarget(target);
       if (generation === searchGeneration) {
         error.value = "已找到场所，但缺少已核验坐标；当前仅在列表显示。";
