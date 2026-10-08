@@ -175,15 +175,11 @@ async function load() {
       if (!isCurrent()) return;
       watchingRule.value = mine.some(
         (item) =>
-          item.watch_domain === "rule" &&
-          item.target_type === "place" &&
-          item.target_id === id,
+          item.watch_domain === "rule" && item.target_type === "place" && item.target_id === id,
       );
       watchingReality.value = mine.some(
         (item) =>
-          item.watch_domain === "reality" &&
-          item.target_type === "place" &&
-          item.target_id === id,
+          item.watch_domain === "reality" && item.target_type === "place" && item.target_id === id,
       );
     } catch {
       if (!isCurrent()) return;
