@@ -117,8 +117,8 @@ export function mapLensCoverage(
 ): MapLensCoverage {
   if (lens === "rule") return coverageHint(markers);
 
-  // Coverage text describes the spatial canvas, so only rows that have a
-  // marker in the current projection may contribute to the numerator.
+  // Coverage text describes query results with real map coordinates, not every
+  // pixel-visible marker in the current viewport. Only geolocated queried rows count.
   const markerIds = new Set(markers.map((marker) => marker.id));
   const visibleFacts = [...facts.entries()]
     .filter(([placeId]) => markerIds.has(placeId))
@@ -131,7 +131,7 @@ export function mapLensCoverage(
     return {
       covered,
       unknown: Math.max(0, markers.length - covered),
-      text: `当前视野 ${markers.length} 个场所：${covered} 个有经核验现场事实。动物出现、工作人员处理与设施事实彼此独立；暂无动物记录不代表现场没有动物。`,
+      text: `当前查询中 ${markers.length} 个可定位场所：${covered} 个有经核验现场事实。动物出现、工作人员处理与设施事实彼此独立；暂无动物记录不代表现场没有动物。`,
     };
   }
 
@@ -142,7 +142,7 @@ export function mapLensCoverage(
     return {
       covered,
       unknown: Math.max(0, markers.length - covered),
-      text: `当前视野 ${markers.length} 个场所：${covered} 个有动物设施记录。设施存在不等于允许进入。`,
+      text: `当前查询中 ${markers.length} 个可定位场所：${covered} 个有动物设施记录。设施存在不等于允许进入。`,
     };
   }
 
@@ -153,6 +153,6 @@ export function mapLensCoverage(
   return {
     covered,
     unknown: Math.max(0, markers.length - covered),
-    text: `当前视野 ${markers.length} 个场所：${covered} 个需要重点对照规则与现场。`,
+    text: `当前查询中 ${markers.length} 个可定位场所：${covered} 个需要重点对照规则与现场。`,
   };
 }
