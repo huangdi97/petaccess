@@ -569,7 +569,7 @@ watch(currentQueryContext, () => {
                      Keep it divider-led, never a card wall. -->
                 <div class="result-row__head">
                   <div class="result-row__identity-wrap">
-                    <PlaceTypeGlyph :place-type="p.place_type" />
+                    <PlaceTypeGlyph :place-type="p.place_type" size="lg" />
                     <div class="result-row__identity">
                       <strong class="result-row__name">{{ p.canonical_name }}</strong>
                       <span class="muted result-row__meta">
