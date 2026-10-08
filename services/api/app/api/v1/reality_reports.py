@@ -550,9 +550,7 @@ def reality_trace(
     summary, _, _, _ = _presence_summary(db, place_id, now)
     published_rows = [*claims, *staff_rows, *facility_rows]
     evidence_ids = {
-        row.evidence_bundle_id
-        for row in published_rows
-        if getattr(row, "evidence_bundle_id", None)
+        row.evidence_bundle_id for row in published_rows if getattr(row, "evidence_bundle_id", None)
     }
     candidate_ids = {
         row.candidate_id for row in published_rows if getattr(row, "candidate_id", None)
@@ -568,9 +566,7 @@ def reality_trace(
         if candidate_ids
         else []
     )
-    source_ids = {
-        row.source_id for row in published_rows if getattr(row, "source_id", None)
-    }
+    source_ids = {row.source_id for row in published_rows if getattr(row, "source_id", None)}
     directness_values = (
         list(db.scalars(select(Source.directness).where(Source.id.in_(source_ids))))
         if source_ids
