@@ -86,10 +86,10 @@ const bundleCount = computed(
         </dd>
       </div>
       <div class="evidence-governance__row">
-        <dt>证据包</dt>
+        <dt>可追溯材料</dt>
         <dd>
-          {{ bundleCount ? `${bundleCount} 个可追溯证据包` : "暂无证据包锚点" }}
-          <span class="muted">· 当前公开接口不推断包内材料数量</span>
+          {{ bundleCount ? `${bundleCount} 组可追溯材料` : "暂无可追溯材料" }}
+          <span class="muted">· 一组材料不自动等于多份独立证据</span>
         </dd>
       </div>
       <div class="evidence-governance__row">
@@ -102,7 +102,7 @@ const bundleCount = computed(
         </dd>
       </div>
       <div class="evidence-governance__row">
-        <dt>规则来源升级</dt>
+        <dt>一手规则来源</dt>
         <dd>{{ ruleFirstPartyPending ? "仍待一手 / 管理方来源补强" : "当前无待升级标记" }}</dd>
       </div>
       <div class="evidence-governance__row">
