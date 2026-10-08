@@ -243,37 +243,65 @@ def submit_questionnaire(
         db.flush()
 
     created_rules: list[str] = []
-    # operator declaration is authoritative: supersede ALL current rules on
-    # the place regardless of origin (community/signage rules are archived as history)
-    prior_rules = db.scalars(
-        select(AccessRule).where(
-            AccessRule.place_id == claim.place_id,
-            AccessRule.status == "current",
-        )
-    ).all()
-    for prior in prior_rules:
-        prior.status = RuleStatus.SUPERSEDED
-        prior.effective_to = datetime.now(UTC)
+    superseded_rules: list[str] = []
+    now = datetime.now(UTC)
 
+    # An approved operator may version only the OPERATOR_POLICY lane. A venue
+    # declaration must never supersede LEGAL / REGULATORY_GUIDANCE rules, and
+    # omission from one questionnaire is not interpreted as deleting another
+    # operator policy. We therefore supersede only the same policy cell:
+    # place + zone + animal scope + action.
     for ans in body.answers:
+        zone_id = ans.get("zone_id")
+        prior_operator_rules = db.scalars(
+            select(AccessRule).where(
+                AccessRule.place_id == claim.place_id,
+                AccessRule.status == RuleStatus.CURRENT,
+                AccessRule.zone_id.is_(None) if zone_id is None else AccessRule.zone_id == zone_id,
+                AccessRule.animal_scope == ans["animal_scope"],
+                AccessRule.action == ans["action"],
+                (
+                    (AccessRule.rule_layer == "OPERATOR_POLICY")
+                    | (AccessRule.rule_origin == RuleOrigin.OPERATOR_DECLARED)
+                ),
+            )
+        ).all()
+
+        # Keep one explicit predecessor link for the new version while retaining
+        # every superseded id in the audit record.
+        predecessor = max(
+            prior_operator_rules,
+            key=lambda item: item.effective_from or item.recorded_at,
+            default=None,
+        )
+        for prior in prior_operator_rules:
+            prior.status = RuleStatus.SUPERSEDED
+            prior.effective_to = now
+            superseded_rules.append(prior.id)
+
         rule = AccessRule(
             place_id=claim.place_id,
-            zone_id=ans.get("zone_id"),
+            zone_id=zone_id,
             animal_scope=ans["animal_scope"],
             action=ans["action"],
             effect=ans["effect"],
             source_id=source.id,
             rule_origin=RuleOrigin.OPERATOR_DECLARED,
-            recorded_at=datetime.now(UTC),
-            effective_from=body.effective_from or datetime.now(UTC),
+            rule_layer="OPERATOR_POLICY",
+            mandatory_level="operator_discretion",
+            origin_authority=operator.name,
+            recorded_at=now,
+            effective_from=body.effective_from or now,
+            last_verified_at=now,
             review_due_at=ans.get("review_due_at"),
-            status="current",
+            status=RuleStatus.CURRENT,
+            supersedes_rule_id=predecessor.id if predecessor else None,
             note=ans.get("note"),
         )
         db.add(rule)
         db.flush()
-        for c in ans.get("conditions", []):
-            db.add(RuleCondition(rule_id=rule.id, **c))
+        for condition in ans.get("conditions", []):
+            db.add(RuleCondition(rule_id=rule.id, **condition))
         created_rules.append(rule.id)
 
     db.flush()
@@ -285,7 +313,7 @@ def submit_questionnaire(
         action=AuditEvent.OPERATOR_QUESTIONNAIRE_SUBMIT.value,
         target_type="place",
         target_id=claim.place_id,
-        after_state={"created_rules": created_rules, "superseded": [r.id for r in prior_rules]},
+        after_state={"created_rules": created_rules, "superseded": superseded_rules},
     )
     db.commit()
     return {"created_rules": created_rules, "source_id": source.id}
