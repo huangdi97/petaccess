@@ -27,6 +27,7 @@ import {
   type RealityAnswer,
 } from "@petaccess/client-core";
 import { answerConditions, answerVerdictLabel } from "../../answer";
+import PlaceTypeGlyph from "./PlaceTypeGlyph.vue";
 import { coexistenceRealityLine, freshnessLineFor } from "../../consumer/rowView";
 import { querySummaryLabel } from "../../consumer/queryContext";
 import { divergenceLabel } from "../../reality";
@@ -160,15 +161,20 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
       <!-- v0.2.4 §12：Search detail 保留 identity；v0.2.5 §16：place inspector
            不再重复 Place Name/地址（identity 只在 main column）。 -->
       <header v-if="variant === 'search'" class="decision-inspector__head">
-        <div class="decision-inspector__title-row">
-          <h2 class="decision-inspector__name" data-ui="search-detail-name">
-            {{ place.canonical_name }}
-          </h2>
+        <div class="decision-inspector__identity">
+          <PlaceTypeGlyph :place-type="place.place_type" size="lg" />
+          <div class="decision-inspector__identity-copy">
+            <div class="decision-inspector__title-row">
+              <h2 class="decision-inspector__name" data-ui="search-detail-name">
+                {{ place.canonical_name }}
+              </h2>
+            </div>
+            <p class="decision-inspector__meta">
+              {{ placeTypeLabel(place.place_type) }} ·
+              {{ place.canonical_address ?? "地址待补充" }}
+            </p>
+          </div>
         </div>
-        <p class="decision-inspector__meta">
-          {{ placeTypeLabel(place.place_type) }} ·
-          {{ place.canonical_address ?? "地址待补充" }}
-        </p>
       </header>
 
       <!-- Search detail（§12 严格顺序）：Identity → Query → Decision → Reality →
@@ -350,6 +356,18 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
   display: flex;
   flex-direction: column;
   gap: var(--pa-space-1);
+}
+
+.decision-inspector__identity {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--pa-space-4);
+  min-width: 0;
+}
+
+.decision-inspector__identity-copy {
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 /* §22：detail 内容列最大 704px，不铺满整个 DetailPane（972）。 */
