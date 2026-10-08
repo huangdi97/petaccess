@@ -3,7 +3,8 @@
 import AppShell from "../components/AppShell.vue";
 import PaIcon from "../components/ui/PaIcon.vue";
 
-const version = import.meta.env.VITE_APP_VERSION ?? "0.2.0-dev";
+const version = import.meta.env.VITE_APP_VERSION;
+const versionLabel = version ? `v${version}` : "开发版";
 
 const PRINCIPLES = [
   { icon: "document" as const, title: "规则", text: "说明当前查询适用的允许、限制与条件。" },
@@ -32,7 +33,7 @@ const PRINCIPLES = [
     </section>
 
     <section class="about-meta" aria-label="版本">
-      <p>当前版本 v{{ version }}</p>
+      <p>当前版本 {{ versionLabel }}</p>
       <p class="muted">上海试点 · 开发预览阶段</p>
       <RouterLink class="btn-inline" to="/settings">查看设置与完整方法说明 →</RouterLink>
     </section>
