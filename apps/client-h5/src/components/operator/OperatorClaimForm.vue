@@ -109,8 +109,8 @@ async function submit() {
     </label>
 
     <p class="operator-claim-form__boundary">
-      认领只建立“谁可以代表场所提交管理方声明”的身份关系。认领本身不是准入政策，
-      也不会把一次工作人员处理升级成管理方规则。
+      认领申请会先进入人工核验。它只建立“谁可以代表场所提交管理方声明”的身份关系；
+      认领本身不是准入政策，也不会把一次工作人员处理升级成管理方规则。
     </p>
 
     <div class="operator-claim-form__actions">
