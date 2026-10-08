@@ -360,6 +360,21 @@ const SHOTS: Shot[] = [
     note: "Notifications separate Rule and Reality watches; no fake push-delivery claim.",
   },
   {
+    name: "20a_operator_claim",
+    scope: "both",
+    route: `/#/place/${MALL_ID}/operator-claim`,
+    auth: true,
+    h1: "场所方认领",
+    requiredTestids: [
+      "operator-name",
+      "operator-org-type",
+      "operator-verification-method",
+      "operator-claim-submit",
+    ],
+    requiredText: ["人工核验", "不会自动改变任何准入规则"],
+    note: "Operator claim is a governed identity transaction; submission itself never changes Rule or Reality.",
+  },
+  {
     name: "21_pets",
     scope: "both",
     route: "/#/pets",
