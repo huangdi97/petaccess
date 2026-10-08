@@ -90,6 +90,12 @@ jobs:
       - name: Compare UI contracts
         run: node --experimental-strip-types tools/ui-oracle/compare.ts ui-direct-v8
 
+      # Screenshot capture can fail after writing some images. Still publish
+      # a reviewable, head-bound comparison instead of hiding partial evidence.
+      - name: Assemble approved-reference human review board
+        if: always()
+        run: node tools/ui-oracle/build-human-review-board.mjs
+
       - name: Upload UI screenshots and reports
         if: always()
         uses: actions/upload-artifact@v4
