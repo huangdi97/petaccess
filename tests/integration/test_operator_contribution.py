@@ -198,6 +198,8 @@ def test_operator_claim_full_loop(client):
         headers=_auth(op_tok),
     )
     assert invalid_conditional.status_code == 422
+    assert invalid_conditional.json()["error"]["code"] == "validation_error"
+    assert "ValueError" not in invalid_conditional.text
 
     duplicate_cells = client.post(
         f"/api/v1/operator-claims/{claim_id}/questionnaire",
