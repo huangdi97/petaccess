@@ -11,6 +11,7 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import {
   clusterMarkers,
+  client,
   session,
   synthDemoCamera,
   type CoexistenceSnapshot,
@@ -31,6 +32,7 @@ import {
   currentQueryContext,
   enrichRows,
   nearbyPlaces,
+  searchPlaces,
   snapshotFor,
   type RowFacts,
 } from "../consumer/repository";
@@ -63,6 +65,8 @@ export function useMapWorkspace() {
   const preview = ref<PreviewState>({ snapshot: null, loading: false, error: "" });
   const loadEpoch = createEpoch();
   const previewEpoch = createEpoch();
+  const deepLinkEpoch = createEpoch();
+  let lastRequestedPlaceId: string | null = null;
   const activeFilters = ref<string[]>([]);
 
   const statuses = computed<Record<string, MapMarker["status"]>>(() => {
@@ -163,11 +167,66 @@ export function useMapWorkspace() {
       const p = places.value.find((x) => x.id === fromQuery) ?? null;
       selected.value = p;
       if (p) void selectPlace(p);
+      else requestDeepLinkedPlace(fromQuery);
       return;
     }
     if (!selected.value || !places.value.some((p) => p.id === selected.value?.id)) {
       selected.value = isDesktop.value && places.value.length ? places.value[0] : null;
       if (selected.value) void selectPlace(selected.value);
+    }
+  }
+
+  /**
+   * A Place → "地图定位" deep link must work beyond the default pilot camera.
+   * PlaceOut does not expose geography; resolve the exact ID through its
+   * canonical name's PlaceSummary projection, which carries governed WGS84.
+   * Never guess position from a similar name or from a UUID.
+   */
+  function requestDeepLinkedPlace(id: string) {
+    if (lastRequestedPlaceId === id) return;
+    lastRequestedPlaceId = id;
+    void focusDeepLinkedPlace(id);
+  }
+
+  async function focusDeepLinkedPlace(id: string) {
+    const epoch = deepLinkEpoch.begin();
+    try {
+      const detail = await client.place(id);
+      if (!deepLinkEpoch.isCurrent(epoch) || route.query.place !== id) return;
+      const matches = await searchPlaces(detail.canonical_name);
+      if (!deepLinkEpoch.isCurrent(epoch) || route.query.place !== id) return;
+      const target = matches.items.find((place) => place.id === id);
+      if (!target) {
+        mapSearchError.value = "无法定位当前场所：精确场所记录尚未包含在搜索结果中。";
+        return;
+      }
+      if (target.latitude != null && target.longitude != null) {
+        camera.value = {
+          ...camera.value,
+          lat: target.latitude,
+          lng: target.longitude,
+          zoom: Math.max(camera.value.zoom, 15),
+        };
+        await load();
+        if (!deepLinkEpoch.isCurrent(epoch) || route.query.place !== id) return;
+      }
+      const inNearby = places.value.find((place) => place.id === id);
+      if (!inNearby) {
+        const newFacts = await enrichRows([target]);
+        if (!deepLinkEpoch.isCurrent(epoch) || route.query.place !== id) return;
+        places.value = [target, ...places.value];
+        facts.value = new Map([...facts.value, ...newFacts]);
+      }
+      if (target.latitude == null || target.longitude == null) {
+        view.value = isDesktop.value ? "map" : "list";
+        mapSearchError.value = "该场所缺少已核验坐标，仅可在列表中查看，未生成地图点位。";
+      }
+      selected.value = inNearby ?? target;
+      await selectPlace(selected.value);
+    } catch (cause) {
+      if (deepLinkEpoch.isCurrent(epoch) && route.query.place === id) {
+        mapSearchError.value = presentDescription(cause);
+      }
     }
   }
 
@@ -235,9 +294,14 @@ export function useMapWorkspace() {
       const next = typeof v === "string" ? v : null;
       const cur = selected.value?.id ?? null;
       if (next === cur) return;
+      if (!next) {
+        deepLinkEpoch.begin();
+        lastRequestedPlaceId = null;
+      }
       const p = places.value.find((x) => x.id === next) ?? null;
       selected.value = p;
       if (p) void selectPlace(p);
+      else if (next) requestDeepLinkedPlace(next);
     },
   );
 
