@@ -147,6 +147,31 @@ def test_results_expose_representative_coordinates(client, branches):
     assert items[sibling]["longitude"] == pytest.approx(121.478)
 
 
+def test_exact_public_summary_resolves_sibling_without_name_search(client, branches):
+    """A Place-to-Map link must resolve its UUID regardless of fuzzy ordering."""
+    flagship, sibling = branches
+    for place_id, name, lng in [
+        (flagship, "旗舰店", 121.472),
+        (sibling, "分店", 121.478),
+    ]:
+        r = client.get(f"/api/v1/places/{place_id}/summary")
+        assert r.status_code == 200, r.text
+        place = r.json()
+        assert place["id"] == place_id
+        assert place["canonical_name"].endswith(name)
+        assert place["longitude"] == pytest.approx(lng)
+        assert place["latitude"] is not None
+        assert "rule_count" in place
+        assert "last_verified_at" in place
+
+
+def test_exact_public_summary_rejects_unknown_place(client):
+    missing = str(uuid.uuid4())
+    r = client.get(f"/api/v1/places/{missing}/summary")
+    assert r.status_code == 404
+    assert "latitude" not in r.text
+
+
 def test_results_carry_freshness_and_rule_material(client, branches):
     """Every row can state how much rule material exists and how fresh it is."""
     r = client.get("/api/v1/places", params={"q": f"{TAG}咖啡"})
