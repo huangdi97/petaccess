@@ -283,14 +283,21 @@ const MASS = [
       "
       :style="project(c.lat, c.lng)"
       :data-testid="c.count > 1 ? 'cluster-' + c.id : 'pin-' + c.memberIds[0]"
-      :aria-label="`${c.count} 个场所，${markerLabel(c)}`"
+      :aria-label="
+        c.count > 1
+          ? `${c.count} 个场所；准入结论需分别查看，放大可展开`
+          : `1 个场所，${markerLabel(c)}`
+      "
       role="button"
       tabindex="0"
       @click="emit('select', c)"
       @keydown.enter="emit('select', c)"
+      @keydown.space.prevent="emit('select', c)"
     >
       <template v-if="c.count > 1">
-        <div class="map-cluster" :class="'s-' + c.status">{{ c.count }}</div>
+        <!-- Aggregate counts have no single policy state. Always neutral;
+             a priority status must not be attributed to all member places. -->
+        <div class="map-cluster">{{ c.count }}</div>
       </template>
       <template v-else>
         <!-- Status is never color-only: the compact marker carries a single
@@ -519,6 +526,7 @@ const MASS = [
 }
 
 .map-cluster {
+  background: var(--pa-color-text-secondary);
   min-width: 24px;
   height: 24px;
   border-radius: var(--pa-radius-pill);
