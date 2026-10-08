@@ -18,6 +18,8 @@ const props = defineProps<{
   placeName: string;
   parentPlaceId?: string | null;
   zones: { id: string; name: string }[];
+  /** Only preselect an ID from the currently loaded place's real zones. */
+  initialZoneId?: string | null;
   online: boolean;
   signedIn: boolean;
   kind: "observed_presence" | "staff_response" | "animal_facility";
@@ -47,7 +49,13 @@ const externalPlaceMatch = ref<"exact_place" | "parent_place_only" | "area_only"
 const mediaId = ref<string | null>(null);
 const mediaMessage = ref("");
 const uploading = ref(false);
-const zone = ref("");
+// A scoped Reality → Contribution deep link may suggest its verified zone;
+// never submit a stale/foreign route ID as the current place's scope.
+const zone = ref(
+  props.initialZoneId && props.zones.some((item) => item.id === props.initialZoneId)
+    ? props.initialZoneId
+    : "",
+);
 const animal = ref("dog");
 const count = ref("");
 const action = ref("present");
