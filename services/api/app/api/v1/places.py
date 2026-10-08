@@ -251,6 +251,30 @@ def nearby_places(
     return Page(items=items, total=total, limit=limit, offset=offset)
 
 
+@router.get("/places/{place_id}/summary", response_model=PlaceSummary)
+def get_place_summary(place_id: str, db: Session = Depends(get_db)) -> PlaceSummary:
+    """Exact-ID public map/list projection, independent of fuzzy search limits.
+
+    Never guess a coordinate or serve an unpublished place as a public
+    destination. This uses the very same projected Rule/Reality metadata and
+    PostGIS representative point as /places and /places/nearby.
+    """
+    parent_name, rule_count, verified_at, latitude, longitude = _disambiguation_projection()
+    row = db.execute(
+        select(Place, parent_name, rule_count, verified_at, latitude, longitude).where(
+            Place.id == place_id, Place.lifecycle_status == LifecycleStatus.ACTIVE
+        )
+    ).one_or_none()
+    if row is not None:
+        return _to_summary(row)
+
+    if dev_fixture_active():
+        for fixture in fixture_place_summaries():
+            if fixture.id == place_id:
+                return fixture
+    raise NotFound("场所不存在或尚未公开")
+
+
 @router.get("/places/{place_id}", response_model=PlaceOut)
 def get_place(place_id: str, db: Session = Depends(get_db)) -> Place | PlaceOut:
     place = db.get(Place, place_id)
