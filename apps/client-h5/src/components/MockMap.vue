@@ -498,6 +498,20 @@ const MASS = [
   min-width: 32px;
   cursor: pointer;
   z-index: 1;
+  /* The visible label must not cover another nearby dot's hit target.
+     Only the actual marker glyph receives the pointer; keyboard users
+     can still focus the parent as a single labelled control. */
+  pointer-events: none;
+}
+
+.map-pin .dot,
+.map-pin .map-cluster {
+  pointer-events: auto;
+}
+
+.map-pin:focus-visible,
+.map-pin:hover {
+  z-index: 4;
 }
 
 .map-pin--selected {
