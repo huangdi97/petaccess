@@ -237,6 +237,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/places/{place_id}/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Place Summary */
+        get: operations["get_place_summary_api_v1_places__place_id__summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/places/{place_id}": {
         parameters: {
             query?: never;
@@ -5159,6 +5176,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Page_PlaceSummary_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_place_summary_api_v1_places__place_id__summary_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                place_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlaceSummary"];
                 };
             };
             /** @description Validation Error */
