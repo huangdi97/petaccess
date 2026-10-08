@@ -125,17 +125,11 @@ const divergenceLine = computed(() => {
         <p v-if="desktop" class="muted sub-answer__context" data-testid="answer-context">
           {{ querySubject }} · 进入 · 公共区域
         </p>
-        <!-- On desktop the right Decision Inspector owns the single full
-             verdict. The dossier retains a compact semantic status so the
-             two-column layout does not compete with itself. Mobile has no
-             right inspector and keeps the full verdict here. -->
-        <div v-if="desktop" class="sub-answer__compact-status" data-testid="answer-status">
-          <StatusBadge :semantic="statusKey" />
-        </div>
-        <template v-else>
-          <StatusBadge :semantic="statusKey" />
-          <p class="status" data-testid="answer-status">{{ verdict }}</p>
-        </template>
+        <!-- The dossier answers the current task in its own reading flow;
+             the desktop inspector is a sticky decision aid, not a replacement
+             for the main document's conclusion. -->
+        <StatusBadge :semantic="statusKey" />
+        <p class="status" data-testid="answer-status">{{ verdict }}</p>
         <p v-if="keyCondition" class="muted" data-testid="answer-conditions">
           需满足：{{ keyCondition }}
         </p>
@@ -308,11 +302,6 @@ const divergenceLine = computed(() => {
 .sub-answer__context {
   margin: 0 0 var(--pa-space-1);
 }
-.sub-answer__compact-status {
-  display: flex;
-  align-items: center;
-  min-height: var(--pa-size-control-md);
-}
 .sub-answer__note {
   margin: var(--pa-space-2) 0 0;
   color: var(--pa-color-text-secondary);
@@ -455,6 +444,16 @@ const divergenceLine = computed(() => {
 }
 
 @media (max-width: 767px) {
+  /* Mobile first screen is Decision + a Reality teaser. Staff/facility/
+     divergence details remain available in the dedicated Reality/Space views. */
+  .coexistence-facts {
+    display: none;
+  }
+
+  .sub-answer__note {
+    display: none;
+  }
+
   .place-overview-lead {
     grid-template-columns: 1fr;
     gap: var(--pa-space-5);
