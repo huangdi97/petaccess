@@ -106,9 +106,12 @@ function endPan(event: PointerEvent) {
   const bounds = el.getBoundingClientRect();
   if (!bounds.width || !bounds.height) return;
 
-  const lat = Math.max(-90, Math.min(90, props.camera.lat + (dy / bounds.height) * spanDeg.value * 0.62));
+  const lat = Math.max(
+    -90,
+    Math.min(90, props.camera.lat + (dy / bounds.height) * spanDeg.value * 0.62),
+  );
   const lng = props.camera.lng - (dx / bounds.width) * spanDeg.value;
-  emit("pan", lat, ((lng + 180) % 360 + 360) % 360 - 180);
+  emit("pan", lat, ((((lng + 180) % 360) + 360) % 360) - 180);
 }
 
 function cancelPan() {
@@ -241,7 +244,9 @@ const MASS = [
       />
     </svg>
 
-    <span class="map-provider muted" data-testid="map-provider-fallback"> 示意底图（非真实街道） · 拖动查看周边 </span>
+    <span class="map-provider muted" data-testid="map-provider-fallback">
+      示意底图（非真实街道） · 拖动查看周边
+    </span>
 
     <div class="map-spatial-aids" aria-hidden="true">
       <span class="map-compass">N</span>
