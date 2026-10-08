@@ -89,9 +89,7 @@ def install_error_handlers(app) -> None:
             }
             for item in exc.errors()[:20]
         ]
-        return _payload(
-            request, "validation_error", "请求参数校验失败", 422, {"errors": errors}
-        )
+        return _payload(request, "validation_error", "请求参数校验失败", 422, {"errors": errors})
 
     @app.exception_handler(IntegrityError)
     async def integrity_handler(request: Request, exc: IntegrityError):
