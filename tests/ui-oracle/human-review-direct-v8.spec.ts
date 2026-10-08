@@ -34,6 +34,8 @@ interface Shot {
   auth?: boolean;
   clickTestid?: string;
   waitTestid?: string;
+  selectTestid?: { id: string; value: string };
+  openDetailsTestid?: string;
   submitReality?: boolean;
   page?: string;
   state?: string;
@@ -219,6 +221,24 @@ const SHOTS: Shot[] = [
     note: "Evidence = provenance record with Observed / Submitted / Reviewed kept distinct.",
   },
   {
+    name: "12a_evidence_dispute",
+    scope: "both",
+    route: `/#/place/${MALL_ID}/evidence`,
+    auth: true,
+    clickTestid: "reality-dispute-open",
+    waitTestid: "reality-dispute-note",
+    page: "evidence",
+    state: "ready",
+    h1: "证据与来源",
+    requiredTestids: [
+      "reality-dispute-reason",
+      "reality-dispute-note",
+      "reality-dispute-submit",
+    ],
+    requiredText: ["问题类型", "需要核验什么", "不会删除记录", "不会自动改变规则"],
+    note: "Correction/dispute is a governed transaction on one published Reality fact, never a direct edit.",
+  },
+  {
     name: "13_contribution_choose",
     scope: "both",
     route: `/#/contribute/${MALL_ID}`,
@@ -309,6 +329,53 @@ const SHOTS: Shot[] = [
     ],
     requiredText: ["你怎么确认它是动物相关设施", "补充设施使用与安全信息"],
     note: "Facility contribution asks purpose certainty first and keeps optional safety/use attributes behind progressive disclosure.",
+  },
+  {
+    name: "16d_contribution_external",
+    scope: "both",
+    route: `/#/contribute/${MALL_ID}`,
+    auth: true,
+    clickTestid: "entry-reality-observed_presence",
+    waitTestid: "reality-source-mode",
+    selectTestid: { id: "reality-source-mode", value: "external_online_content" },
+    page: "contribution",
+    state: "step-2",
+    h1: "现场贡献",
+    requiredTestids: [
+      "reality-source-url",
+      "reality-place-match",
+      "reality-published-date",
+      "reality-external-event-date",
+    ],
+    requiredText: [
+      "公开内容链接",
+      "内容能定位到哪里",
+      "内容发布时间",
+      "不会把发布时间当成现场发生时间",
+    ],
+    note: "External content keeps source time, event time and place-match precision separate before review.",
+  },
+  {
+    name: "16e_contribution_facility_details",
+    scope: "both",
+    route: `/#/contribute/${MALL_ID}`,
+    auth: true,
+    clickTestid: "entry-reality-animal_facility",
+    waitTestid: "reality-facility-more",
+    openDetailsTestid: "reality-facility-more",
+    page: "contribution",
+    state: "step-2",
+    h1: "现场贡献",
+    requiredTestids: [
+      "reality-facility-weather",
+      "reality-facility-shade",
+      "reality-facility-ventilation",
+      "reality-facility-water",
+      "reality-facility-supervision",
+      "reality-facility-security",
+    ],
+    requiredText: ["遮雨", "遮阳", "通风", "饮水", "看护情况", "安全 / 锁闭情况"],
+    note: "Facility safety/use facts are progressive disclosure and never a safety score or entry-policy inference.",
   },
   {
     name: "16c_contribution_done",
@@ -546,6 +613,18 @@ test("direct-v8 canonical human-review packet", async ({ page, request }, testIn
       if (shot.waitTestid) {
         await page.getByTestId(shot.waitTestid).waitFor({ state: "visible", timeout: 15000 });
       }
+      await settle(page);
+    }
+
+    if (shot.selectTestid) {
+      await page.getByTestId(shot.selectTestid.id).selectOption(shot.selectTestid.value);
+      await settle(page);
+    }
+
+    if (shot.openDetailsTestid) {
+      const details = page.getByTestId(shot.openDetailsTestid);
+      await details.locator("summary").click();
+      await expect(details).toHaveAttribute("open", "");
       await settle(page);
     }
 
