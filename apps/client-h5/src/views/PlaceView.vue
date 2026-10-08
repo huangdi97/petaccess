@@ -399,6 +399,7 @@ const placeFixture = computed<string>(() => {
           />
           <PlaceRulesPane
             v-else-if="view === 'rules'"
+            :place-id="placeId"
             :current-rules="currentRules"
             :history-rules="historyRules"
             :source-map="sourceMap"
