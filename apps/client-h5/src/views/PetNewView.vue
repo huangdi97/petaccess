@@ -160,12 +160,7 @@ async function save() {
       />
 
       <div class="pet-new-actions">
-        <button
-          class="primary"
-          type="submit"
-          :disabled="!canSave"
-          data-testid="pet-save"
-        >
+        <button class="primary" type="submit" :disabled="!canSave" data-testid="pet-save">
           {{ saving ? "保存中…" : "保存并设为本次对象" }}
         </button>
         <RouterLink class="btn-inline" to="/pets">取消</RouterLink>
