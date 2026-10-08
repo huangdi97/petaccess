@@ -18,8 +18,8 @@ from app.core.config import get_settings
 from app.core.errors import ApiError, NotFound, PermissionDenied
 from app.core.security import get_current_user, require_role
 from app.db.session import get_db
-from app.models import AccessRule, Operator, OperatorClaim, Place, RuleCondition, Source, User
-from app.models.enums import OperatorClaimStatus, RuleOrigin, RuleStatus, UserRole
+from app.models import Operator, OperatorClaim, Place, User
+from app.models.enums import OperatorClaimStatus, UserRole
 from app.schemas.civic import (
     OperatorClaimIn,
     OperatorClaimOut,
@@ -28,6 +28,7 @@ from app.schemas.civic import (
     OperatorQuestionnaire,
 )
 from app.schemas.common import Page
+from app.services.operator_policy import apply_operator_questionnaire
 
 router = APIRouter(tags=["operators"])
 admin = APIRouter(tags=["admin:operators"])
@@ -242,95 +243,10 @@ def submit_questionnaire(
     if operator is None:
         raise NotFound("管理方不存在")
 
-    source = db.scalar(
-        select(Source).where(
-            Source.source_type == "official_operator_policy",
-            Source.issuer == operator.name,
-        )
-    )
-    if source is None:
-        source = Source(
-            source_type="official_operator_policy",
-            issuer=operator.name,
-            issuer_verification="verified",
-            directness="direct",
-            collected_at=datetime.now(UTC),
-        )
-        db.add(source)
-        db.flush()
-
-    created_rules: list[str] = []
-    superseded_rules: list[str] = []
-    now = datetime.now(UTC)
-
-    # An approved operator may version only the OPERATOR_POLICY lane. A venue
-    # declaration must never supersede LEGAL / REGULATORY_GUIDANCE rules, and
-    # omission from one questionnaire is not interpreted as deleting another
-    # operator policy. We therefore supersede only the same policy cell:
-    # place + zone + animal scope + action.
-    for ans in body.answers:
-        zone_id = ans.zone_id
-        prior_operator_rules = db.scalars(
-            select(AccessRule).where(
-                AccessRule.place_id == claim.place_id,
-                AccessRule.status == RuleStatus.CURRENT,
-                AccessRule.zone_id.is_(None) if zone_id is None else AccessRule.zone_id == zone_id,
-                AccessRule.animal_scope == ans.animal_scope,
-                AccessRule.action == ans.action,
-                (
-                    (AccessRule.rule_layer == "OPERATOR_POLICY")
-                    | (AccessRule.rule_origin == RuleOrigin.OPERATOR_DECLARED)
-                ),
-            )
-        ).all()
-
-        # Keep one explicit predecessor link for the new version while retaining
-        # every superseded id in the audit record.
-        predecessor = max(
-            prior_operator_rules,
-            key=lambda item: item.effective_from or item.recorded_at,
-            default=None,
-        )
-        for prior in prior_operator_rules:
-            prior.status = RuleStatus.SUPERSEDED
-            prior.effective_to = now
-            superseded_rules.append(prior.id)
-
-        rule = AccessRule(
-            place_id=claim.place_id,
-            zone_id=zone_id,
-            animal_scope=ans.animal_scope,
-            action=ans.action,
-            effect=ans.effect,
-            source_id=source.id,
-            rule_origin=RuleOrigin.OPERATOR_DECLARED,
-            rule_layer="OPERATOR_POLICY",
-            mandatory_level="operator_discretion",
-            origin_authority=operator.name,
-            recorded_at=now,
-            effective_from=body.effective_from or now,
-            last_verified_at=now,
-            review_due_at=ans.review_due_at,
-            status=RuleStatus.CURRENT,
-            supersedes_rule_id=predecessor.id if predecessor else None,
-            note=ans.note,
-        )
-        db.add(rule)
-        db.flush()
-        for condition in ans.conditions:
-            db.add(RuleCondition(rule_id=rule.id, **condition.model_dump()))
-        created_rules.append(rule.id)
-
-    db.flush()
-    record_audit(
+    return apply_operator_questionnaire(
         db,
-        request=None,
-        actor_user_id=user.id,
-        actor_role=str(user.role),
-        action=AuditEvent.OPERATOR_QUESTIONNAIRE_SUBMIT.value,
-        target_type="place",
-        target_id=claim.place_id,
-        after_state={"created_rules": created_rules, "superseded": superseded_rules},
+        claim=claim,
+        operator=operator,
+        body=body,
+        actor=user,
     )
-    db.commit()
-    return {"created_rules": created_rules, "source_id": source.id}
