@@ -12,8 +12,8 @@ from sqlalchemy.orm import Session
 
 from app.core.audit import record_audit
 from app.core.audit_events import AuditEvent
-from app.models import AccessRule, Operator, OperatorClaim, RuleCondition, Source, User, Zone
 from app.core.errors import NotFound
+from app.models import AccessRule, Operator, OperatorClaim, RuleCondition, Source, User, Zone
 from app.models.enums import RuleOrigin, RuleStatus
 from app.schemas.civic import OperatorQuestionnaire
 
