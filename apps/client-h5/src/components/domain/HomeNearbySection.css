@@ -1,3 +1,20 @@
+.home-row__open {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
+.home-row__open:focus-visible {
+  outline: 2px solid var(--pa-color-border-focus);
+  outline-offset: 3px;
+}
+
 /* v0.2.4 §30：附近/待核实 = divider rows，非卡（无圆角/无阴影/无 surface 填充）。 */
 .home-row {
   cursor: pointer;
