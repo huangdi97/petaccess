@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { RuleView } from "@petaccess/client-core";
 import ContributionStepShell from "./ContributionStepShell.vue";
 import RuleLeadFields from "./RuleLeadFields.vue";
 import RuleTargetPicker from "./RuleTargetPicker.vue";
@@ -32,6 +33,11 @@ const {
   canSubmit,
   submit,
 } = useRuleLeadContribution(props, (message) => emit("done", message));
+
+function applyRuleScope(rule: RuleView | null) {
+  if (intent.value !== "still_valid" && intent.value !== "changed") return;
+  zone.value = rule?.zone_id ?? "";
+}
 </script>
 
 <template>
@@ -60,6 +66,7 @@ const {
       v-model="selectedRuleId"
       :place-id="placeId"
       :zones="zones"
+      @selected="applyRuleScope"
     />
 
     <RuleEvidenceUpload
