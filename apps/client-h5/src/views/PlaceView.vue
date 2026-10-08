@@ -362,7 +362,7 @@ const placeFixture = computed<string>(() => {
           <!-- 1. Identity（§16 Overview 第一块） -->
           <header class="place-dossier__head" data-ui="place-identity">
             <div class="place-dossier__identity-row">
-              <PlaceTypeGlyph :place-type="place.place_type" />
+              <PlaceTypeGlyph :place-type="place.place_type" size="lg" />
               <div class="place-dossier__identity-copy">
                 <h1 class="place-dossier__name" data-ui="place-name">{{ place.canonical_name }}</h1>
                 <p class="muted place-dossier__meta">
