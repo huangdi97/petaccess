@@ -44,12 +44,10 @@ const emit = defineEmits<{
  * makes +/- a real spatial zoom rather than a decorative control. */
 const spanDeg = computed(() => 0.08 * Math.pow(2, 14 - props.camera.zoom));
 
-const scaleLabel = computed(() => {
-  if (props.camera.zoom >= 17) return "100 m";
-  if (props.camera.zoom >= 15) return "250 m";
-  if (props.camera.zoom >= 13) return "500 m";
-  return "1 km";
-});
+// The fallback background is illustrative, not a surveyed basemap.
+// Showing a metric scale bar on synthetic streets would imply unsupported
+// positional/measurement accuracy.
+const scaleLabel = computed(() => `缩放 ${Math.round(props.camera.zoom)} 级 · 示意比例`);
 
 /** Only on-viewport clusters receive marker DOM; no out-of-range point can
  * be clamped into a false edge location. The list still contains all nearby
@@ -250,7 +248,7 @@ const MASS = [
 
     <div class="map-spatial-aids" aria-hidden="true">
       <span class="map-compass">N</span>
-      <span class="map-scale"><span class="map-scale__bar"></span>{{ scaleLabel }}</span>
+      <span class="map-scale">{{ scaleLabel }}</span>
     </div>
 
     <div class="map-zoom" data-testid="map-zoom" data-ui="map-zoom" role="group" aria-label="缩放">
@@ -483,14 +481,7 @@ const MASS = [
   font-size: var(--pa-font-size-xs);
 }
 
-.map-scale__bar {
-  display: block;
-  width: 48px;
-  height: 5px;
-  border-left: var(--pa-border-width) solid currentColor;
-  border-right: var(--pa-border-width) solid currentColor;
-  border-bottom: var(--pa-border-width-strong) solid currentColor;
-}
+
 
 /* ---- pins ---- */
 .map-pin {
