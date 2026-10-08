@@ -37,12 +37,6 @@ function isActive(to: string): boolean {
   return route.path === to || route.path.startsWith(`${to}/`);
 }
 
-const version = import.meta.env.VITE_APP_VERSION ?? "0.2.0-dev";
-const envLabel = import.meta.env.DEV ? "development" : "production";
-// v0.2.7-R1.1 P0-3: the 68px rail only ever shows the compact major.minor
-// version. Full "PetAccess v{version} · {env}" stays in title + data
-// attributes (accessible metadata), never as persistent rail text.
-const compactVersion = version.split("-")[0]!.split(".").slice(0, 2).join(".");
 </script>
 
 <template>
@@ -91,15 +85,6 @@ const compactVersion = version.split("-")[0]!.split(".").slice(0, 2).join(".");
       </RouterLink>
     </nav>
 
-    <div
-      class="desktop-rail__version"
-      data-testid="app-version"
-      :title="`PetAccess v${version} · ${envLabel}`"
-      :data-version="version"
-      :data-env="envLabel"
-    >
-      <span class="desktop-rail__version-compact">v{{ compactVersion }}</span>
-    </div>
   </aside>
 </template>
 
@@ -193,22 +178,4 @@ const compactVersion = version.split("-")[0]!.split(".").slice(0, 2).join(".");
   color: currentColor;
 }
 
-.desktop-rail__version {
-  margin-top: auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 0;
-  padding-top: var(--pa-space-4);
-  color: var(--pa-color-text-muted);
-}
-
-.desktop-rail__version-compact {
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: var(--pa-font-size-xs);
-  line-height: 1;
-}
 </style>
