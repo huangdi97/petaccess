@@ -7,7 +7,6 @@ operators — disputes go through this auditable pipeline instead.
 """
 
 from datetime import UTC, datetime
-from typing import cast
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import func, select
@@ -16,16 +15,13 @@ from sqlalchemy.orm import Session
 from app.core.audit import record_audit
 from app.core.audit_events import AuditEvent
 from app.core.config import get_settings
-from app.core.errors import ApiError, NotFound
+from app.core.errors import ApiError
 from app.core.security import get_current_user, require_role
 from app.db.session import get_db
 from app.models import (
     AccessRule,
-    AnimalFacility,
     DisputeCase,
     ObservationClaim,
-    ObservedPresence,
-    StaffResponseObservation,
     User,
 )
 from app.models.enums import (
@@ -44,46 +40,10 @@ from app.schemas.civic import (
     DisputeReview,
 )
 from app.schemas.common import Page
+from app.services.dispute_targets import is_reality_dispute_target, require_dispute_target
 
 router = APIRouter(tags=["disputes"])
 admin = APIRouter(tags=["admin:disputes"])
-
-_REALITY_TARGET_MODELS = {
-    DisputeTargetType.OBSERVED_PRESENCE.value: ObservedPresence,
-    DisputeTargetType.STAFF_RESPONSE_OBSERVATION.value: StaffResponseObservation,
-    DisputeTargetType.ANIMAL_FACILITY.value: AnimalFacility,
-}
-
-
-def _require_target(db: Session, target_type: str, target_id: str):
-    target: (
-        AccessRule
-        | ObservationClaim
-        | ObservedPresence
-        | StaffResponseObservation
-        | AnimalFacility
-        | None
-    )
-    if target_type == DisputeTargetType.ACCESS_RULE.value:
-        target = db.get(AccessRule, target_id)
-    elif target_type == DisputeTargetType.OBSERVATION_CLAIM.value:
-        target = db.get(ObservationClaim, target_id)
-    else:
-        model = _REALITY_TARGET_MODELS.get(target_type)
-        # The registry contains only these three immutable Reality target
-        # models. Dynamic SQLAlchemy db.get otherwise widens to Base.
-        target = cast(
-            ObservedPresence | StaffResponseObservation | AnimalFacility | None,
-            db.get(model, target_id) if model is not None else None,
-        )
-    if target is None:
-        raise NotFound("异议目标不存在")
-    return target
-
-
-def _is_reality_target(target_type: str) -> bool:
-    return target_type in _REALITY_TARGET_MODELS
-
 
 @router.post("/disputes", response_model=DisputeOut, status_code=201)
 def submit_dispute(
@@ -94,7 +54,7 @@ def submit_dispute(
     if not get_settings().feature_dispute:
         raise ApiError("异议功能未开放", code="feature_disabled", status_code=403)
     target_type = body.target_type.value
-    target = _require_target(db, target_type, body.target_id)
+    target = require_dispute_target(db, target_type, body.target_id)
     case = DisputeCase(
         target_type=target_type,
         target_id=body.target_id,
@@ -259,8 +219,8 @@ def resolve_dispute(
                 applied["withdrawn"] = True
             else:
                 obs.dispute_status = ObservationDisputeStatus.RESOLVED
-    elif _is_reality_target(str(case.target_type)):
-        target = _require_target(db, str(case.target_type), case.target_id)
+    elif is_reality_dispute_target(str(case.target_type)):
+        target = require_dispute_target(db, str(case.target_type), case.target_id)
         # Published Reality facts are immutable history. A correction/archive
         # resolution removes the old fact from consumer aggregates by revoking
         # its verification posture; a corrected replacement must arrive through
