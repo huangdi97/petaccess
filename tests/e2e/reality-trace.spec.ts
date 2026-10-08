@@ -76,10 +76,7 @@ test("A3 — 观察时间线渲染；空时间线走 REALITY empty copy", async 
   await expect(page.getByTestId("trace-empty")).toContainText("暂无近期现场记录");
 });
 
-test("A3.1 — 轻量现场确认只新增 Confirmation，不创建新事实候选", async ({
-  page,
-  request,
-}) => {
+test("A3.1 — 轻量现场确认只新增 Confirmation，不创建新事实候选", async ({ page, request }) => {
   const token = await signIn(request);
   await page.addInitScript((value) => localStorage.setItem("pa_token", value), token);
   await page.goto(`${BASE}/#/place/${MALL_ID}/reality`);
@@ -89,9 +86,7 @@ test("A3.1 — 轻量现场确认只新增 Confirmation，不创建新事实候�
   await expect(confirm).toBeVisible({ timeout: 15000 });
 
   const submission = page.waitForRequest(
-    (req) =>
-      req.method() === "POST" &&
-      req.url().includes(`/places/${MALL_ID}/reality/reports`),
+    (req) => req.method() === "POST" && req.url().includes(`/places/${MALL_ID}/reality/reports`),
   );
   await confirm.click();
   const body = (await submission).postDataJSON() as {
