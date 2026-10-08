@@ -81,12 +81,14 @@ def start_wrapper(
         "--port",
         str(port),
     ]
-    proc = subprocess.Popen(
-        cmd,
-        stdout=open(API_LOG, "ab"),
-        stderr=subprocess.STDOUT,
-        creationflags=getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0),
-    )
+    # The child inherits its own log handle; release the parent's handle.
+    with open(API_LOG, "ab") as api_log:
+        proc = subprocess.Popen(
+            cmd,
+            stdout=api_log,
+            stderr=subprocess.STDOUT,
+            creationflags=getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0),
+        )
     time.sleep(2)
     API_PID_FILE.write_text(str(proc.pid), encoding="utf-8")
     return proc.pid
@@ -100,7 +102,8 @@ def stop_wrapper() -> None:
                 "powershell",
                 "-NoProfile",
                 "-Command",
-                "Get-NetTCPConnection -State Listen -LocalPort 8010 -ErrorAction SilentlyContinue | "
+                "Get-NetTCPConnection -State Listen -LocalPort 8010 "
+                "-ErrorAction SilentlyContinue | "
                 "Select-Object -First 1 -ExpandProperty OwningProcess",
             ],
             capture_output=True,
