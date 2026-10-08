@@ -199,6 +199,53 @@ def test_operator_claim_full_loop(client):
     )
     assert invalid_conditional.status_code == 422
 
+    duplicate_cells = client.post(
+        f"/api/v1/operator-claims/{claim_id}/questionnaire",
+        json={
+            "answers": [
+                {
+                    "zone_id": None,
+                    "animal_scope": "dog",
+                    "action": "enter",
+                    "effect": "allowed",
+                    "conditions": [],
+                },
+                {
+                    "zone_id": None,
+                    "animal_scope": "dog",
+                    "action": "enter",
+                    "effect": "prohibited",
+                    "conditions": [],
+                },
+            ]
+        },
+        headers=_auth(op_tok),
+    )
+    assert duplicate_cells.status_code == 422
+
+    from app.models import Zone
+
+    db = get_session_factory()()
+    foreign_zone = db.query(Zone).filter(Zone.place_id != place_id).first()
+    foreign_zone_id = foreign_zone.id
+    db.close()
+    foreign_zone_policy = client.post(
+        f"/api/v1/operator-claims/{claim_id}/questionnaire",
+        json={
+            "answers": [
+                {
+                    "zone_id": foreign_zone_id,
+                    "animal_scope": "dog",
+                    "action": "enter",
+                    "effect": "allowed",
+                    "conditions": [],
+                }
+            ]
+        },
+        headers=_auth(op_tok),
+    )
+    assert foreign_zone_policy.status_code == 404
+
     q = client.post(
         f"/api/v1/operator-claims/{claim_id}/questionnaire",
         json={
