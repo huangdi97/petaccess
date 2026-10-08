@@ -102,6 +102,10 @@ const ORIGIN_LABELS: Record<string, string> = {
   official_public_content: "官方公开内容",
 };
 
+export function realityOriginLabel(value: string | null | undefined): string {
+  return value ? (ORIGIN_LABELS[value] ?? "其他来源方式") : "来源方式未记录";
+}
+
 const FACT_EVIDENCE_LABELS: Record<string, string> = {
   direct_media: "附现场媒体证据",
   first_hand_no_media: "一手记录（无媒体）",
@@ -113,10 +117,14 @@ const FACT_EVIDENCE_LABELS: Record<string, string> = {
   insufficient: "证据材料有限",
 };
 
+export function factEvidenceLabel(value: string | null | undefined): string {
+  return value ? (FACT_EVIDENCE_LABELS[value] ?? "证据类型未归类") : "证据类型未记录";
+}
+
 export function realityEventProvenance(event: RealityEventView): string {
   const parts: string[] = [];
-  const origin = event.origin ? ORIGIN_LABELS[event.origin] : "";
-  const evidence = event.fact_evidence_state ? FACT_EVIDENCE_LABELS[event.fact_evidence_state] : "";
+  const origin = event.origin ? realityOriginLabel(event.origin) : "";
+  const evidence = event.fact_evidence_state ? factEvidenceLabel(event.fact_evidence_state) : "";
   if (origin) parts.push(origin);
   if (evidence) parts.push(evidence);
   if (event.place_match_state === "exact_place") parts.push("地点已精确匹配");
