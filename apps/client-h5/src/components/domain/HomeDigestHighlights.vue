@@ -1,15 +1,14 @@
 <script setup lang="ts">
 import { computed } from "vue";
-
-import { answerVerdictLabel } from "../../answer";
 import type { HomeCard } from "../../composables/useHomeLauncher";
+import type { ConsumerLens } from "../../consumer/rowView";
 import {
-  coexistenceRealityLine,
-  lensOrderScore,
-  lensProjection,
-  type ConsumerLens,
-} from "../../consumer/rowView";
-import { divergenceLabel } from "../../reality";
+  compareHomeDigest,
+  homeDigestDivergence,
+  homeDigestHasUsefulFact,
+  homeDigestHeadline,
+  homeDigestMeta,
+} from "../../consumer/homeDigest";
 
 const props = withDefaults(
   defineProps<{
@@ -21,10 +20,7 @@ const props = withDefaults(
   { interest: "", section: "recommend" },
 );
 
-const emit = defineEmits<{
-  open: [id: string];
-}>();
-
+const emit = defineEmits<{ open: [id: string] }>();
 const cards = computed(() => [...props.verified, ...props.pending]);
 const recommendationTitle = computed(() => (props.interest ? "按你的关注推荐" : "近期值得先看"));
 const recommendationNote = computed(() =>
@@ -32,44 +28,12 @@ const recommendationNote = computed(() =>
     ? "先显示与你当前关注更相关的事实；不代表场所好坏。"
     : "先显示最近有现场事实或较完整依据的场所；不代表场所好坏。",
 );
-
-function hasUsefulFact(card: HomeCard): boolean {
-  const presenceEvidence = card.facts.reality?.evidence_count ?? 0;
-  const realityEvidence = card.facts.snapshot?.evidence_summary.reality_evidence_count ?? 0;
-  const ruleEvidence = card.facts.snapshot?.evidence_summary.rule_evidence.length ?? 0;
-  return (
-    presenceEvidence > 0 || realityEvidence > 0 || ruleEvidence > 0 || card.status !== "UNKNOWN"
-  );
-}
-
-/**
- * Recommendation is an ordering projection, never a venue score. A saved
- * attention lens gets first priority; neutral Home falls back to recency and
- * evidence availability. No positive/negative morality is inferred.
- */
-function compareRecommendation(a: HomeCard, b: HomeCard): number {
-  if (props.interest) {
-    const byInterest =
-      lensOrderScore(props.interest, b.facts.answer, b.facts.reality) -
-      lensOrderScore(props.interest, a.facts.answer, a.facts.reality);
-    if (byInterest) return byInterest;
-  }
-
-  const aDays = a.facts.reality?.days_since_last_seen ?? Number.POSITIVE_INFINITY;
-  const bDays = b.facts.reality?.days_since_last_seen ?? Number.POSITIVE_INFINITY;
-  if (aDays !== bDays) return aDays - bDays;
-
-  const aEvidence = a.facts.snapshot?.evidence_summary.reality_evidence_count ?? 0;
-  const bEvidence = b.facts.snapshot?.evidence_summary.reality_evidence_count ?? 0;
-  if (aEvidence !== bEvidence) return bEvidence - aEvidence;
-
-  return a.place.canonical_name.localeCompare(b.place.canonical_name, "zh-CN");
-}
-
 const recommended = computed(() =>
-  [...cards.value].filter(hasUsefulFact).sort(compareRecommendation).slice(0, 2),
+  [...cards.value]
+    .filter(homeDigestHasUsefulFact)
+    .sort((a, b) => compareHomeDigest(a, b, props.interest))
+    .slice(0, 2),
 );
-
 const divergences = computed(() =>
   cards.value
     .filter((card) => {
@@ -78,50 +42,6 @@ const divergences = computed(() =>
     })
     .slice(0, 3),
 );
-
-function headline(card: HomeCard): string {
-  if (props.interest) {
-    const projection = lensProjection(
-      props.interest,
-      card.facts.answer,
-      card.facts.reality,
-      card.facts.snapshot,
-    );
-    if (props.interest === "rules" && card.facts.answer) {
-      return answerVerdictLabel(card.facts.answer);
-    }
-    if (props.interest === "indoor" || props.interest === "dining") {
-      return projection.realityLine;
-    }
-  }
-
-  const reality = card.facts.reality;
-  if ((card.facts.snapshot?.evidence_summary.reality_evidence_count ?? 0) > 0 || reality) {
-    const line = coexistenceRealityLine(card.facts.snapshot, reality);
-    if (line !== "暂无足够现场记录") return line;
-  }
-  if (card.facts.answer) return answerVerdictLabel(card.facts.answer);
-  return "信息不足";
-}
-
-function meta(card: HomeCard): string {
-  const reality = card.facts.reality;
-  const parts: string[] = [];
-  if (reality?.days_since_last_seen != null) {
-    parts.push(`${reality.days_since_last_seen} 天前最近记录`);
-  }
-  const allRealityEvidence = card.facts.snapshot?.evidence_summary.reality_evidence_count ?? 0;
-  if (allRealityEvidence > 0) {
-    parts.push(`${allRealityEvidence} 条现场证据`);
-  }
-  const ruleEvidence = card.facts.snapshot?.evidence_summary.rule_evidence.length ?? 0;
-  if (!parts.length && ruleEvidence > 0) parts.push(`${ruleEvidence} 条规则依据`);
-  return parts.join(" · ");
-}
-
-function divergenceText(card: HomeCard): string {
-  return divergenceLabel(card.facts.snapshot?.divergence ?? null);
-}
 </script>
 
 <template>
@@ -141,8 +61,10 @@ function divergenceText(card: HomeCard): string {
       @click="emit('open', card.place.id)"
     >
       <strong class="home-recommend__name">{{ card.place.canonical_name }}</strong>
-      <span class="home-recommend__headline">{{ headline(card) }}</span>
-      <span v-if="meta(card)" class="muted home-recommend__meta">{{ meta(card) }}</span>
+      <span class="home-recommend__headline">{{ homeDigestHeadline(card, interest) }}</span>
+      <span v-if="homeDigestMeta(card)" class="muted home-recommend__meta">
+        {{ homeDigestMeta(card) }}
+      </span>
     </button>
   </section>
 
@@ -161,7 +83,7 @@ function divergenceText(card: HomeCard): string {
       @click="emit('open', card.place.id)"
     >
       <strong>{{ card.place.canonical_name }}</strong>
-      <span>{{ divergenceText(card) }}</span>
+      <span>{{ homeDigestDivergence(card) }}</span>
     </button>
   </section>
 </template>
