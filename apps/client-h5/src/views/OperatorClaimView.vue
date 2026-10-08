@@ -18,6 +18,18 @@ const busy = ref(false);
 const submitted = ref(false);
 const claimStatus = ref("");
 
+const CLAIM_STATUS_LABELS: Record<string, string> = {
+  submitted: "等待人工核验",
+  verifying: "正在核验",
+  approved: "认领已通过",
+  rejected: "认领未通过",
+  revoked: "认领已撤销",
+};
+
+const claimStatusLabel = computed(
+  () => CLAIM_STATUS_LABELS[claimStatus.value] ?? "等待人工核验",
+);
+
 const operatorName = ref("");
 const orgType = ref<"company" | "government" | "property_mgmt" | "individual_owner" | "other">(
   "company",
@@ -128,7 +140,7 @@ watch(placeId, () => void load(), { immediate: true });
         >
           <strong>认领申请已提交</strong>
           <p>
-            当前状态：{{ claimStatus || "等待人工核验" }}。审核通过前，你不会获得管理方权限，
+            当前状态：{{ claimStatusLabel }}。审核通过前，你不会获得管理方权限，
             页面上的正式规则也不会因此改变。
           </p>
           <RouterLink class="btn primary" :to="`/place/${placeId}`">返回场所</RouterLink>
