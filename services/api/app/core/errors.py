@@ -78,8 +78,19 @@ def install_error_handlers(app) -> None:
 
     @app.exception_handler(RequestValidationError)
     async def validation_handler(request: Request, exc: RequestValidationError):
+        # Pydantic model-validator errors can carry an actual ValueError in
+        # ctx.error, which JSONResponse cannot serialize. Also do not echo
+        # input values: they can contain private contribution text or passwords.
+        errors = [
+            {
+                "loc": list(item.get("loc", ())),
+                "type": str(item.get("type", "value_error")),
+                "msg": str(item.get("msg", "请求参数校验失败")),
+            }
+            for item in exc.errors()[:20]
+        ]
         return _payload(
-            request, "validation_error", "请求参数校验失败", 422, {"errors": exc.errors()[:20]}
+            request, "validation_error", "请求参数校验失败", 422, {"errors": errors}
         )
 
     @app.exception_handler(IntegrityError)
