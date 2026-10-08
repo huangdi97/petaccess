@@ -6,7 +6,7 @@ import uuid
 from datetime import UTC, datetime
 
 from app.models import AccessRule, Place, RuleCandidate, Source
-from app.models.enums import PlaceType, RuleStatus, SourceType
+from app.models.enums import Directness, PlaceType, RuleStatus, SourceType
 from app.services.candidate_service import publish
 from app.services.publish_gate import (
     _has_unresolved_conflict,
@@ -35,6 +35,7 @@ def _source(db_session, issuer: str) -> Source:
         source_type=SourceType.OFFICIAL_OPERATOR_POLICY,
         issuer=issuer,
         collected_at=datetime.now(UTC),
+        directness=Directness.SECONDARY,
     )
     db_session.add(row)
     db_session.flush()
