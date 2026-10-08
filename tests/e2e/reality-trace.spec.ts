@@ -89,7 +89,9 @@ test("A3.1 — 轻量现场确认只新增 Confirmation，不创建新事实候�
   await expect(confirm).toBeVisible({ timeout: 15000 });
 
   const submission = page.waitForRequest(
-    (req) => req.method() === "POST" && req.url().includes(`/places/${MALL_ID}/reality/reports`),
+    (req) =>
+      req.method() === "POST" &&
+      req.url().includes(`/places/${MALL_ID}/reality/reports`),
   );
   await confirm.click();
   const body = (await submission).postDataJSON() as {
