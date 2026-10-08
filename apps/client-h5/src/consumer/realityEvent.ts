@@ -222,12 +222,7 @@ export interface RealityProvenanceCounts {
  * event metadata instead of UI assumptions.
  */
 export function realityProvenanceCounts(events: RealityEventView[]): RealityProvenanceCounts {
-  const rawMaterialCount = events.filter(
-    (event) =>
-      Boolean(event.evidence_bundle_id) ||
-      Boolean(event.source_id) ||
-      Boolean(event.fact_evidence_state && event.fact_evidence_state !== "insufficient"),
-  ).length;
+  const rawMaterialCount = events.filter((event) => Boolean(event.evidence_material_type)).length;
 
   const placeMatchedCount = events.filter((event) =>
     ["exact_place", "exact_subplace"].includes(event.place_match_state ?? ""),
@@ -241,8 +236,7 @@ export function realityProvenanceCounts(events: RealityEventView[]): RealityProv
 
   const sourceAnchors = new Set<string>();
   for (const event of events) {
-    if (event.source_id) sourceAnchors.add(`source:${event.source_id}`);
-    else if (event.evidence_bundle_id) sourceAnchors.add(`bundle:${event.evidence_bundle_id}`);
+    if (event.source_id) sourceAnchors.add(event.source_id);
   }
 
   const reviewedCount = events.filter((event) =>
