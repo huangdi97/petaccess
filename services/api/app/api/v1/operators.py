@@ -269,14 +269,14 @@ def submit_questionnaire(
     # operator policy. We therefore supersede only the same policy cell:
     # place + zone + animal scope + action.
     for ans in body.answers:
-        zone_id = ans.get("zone_id")
+        zone_id = ans.zone_id
         prior_operator_rules = db.scalars(
             select(AccessRule).where(
                 AccessRule.place_id == claim.place_id,
                 AccessRule.status == RuleStatus.CURRENT,
                 AccessRule.zone_id.is_(None) if zone_id is None else AccessRule.zone_id == zone_id,
-                AccessRule.animal_scope == ans["animal_scope"],
-                AccessRule.action == ans["action"],
+                AccessRule.animal_scope == ans.animal_scope,
+                AccessRule.action == ans.action,
                 (
                     (AccessRule.rule_layer == "OPERATOR_POLICY")
                     | (AccessRule.rule_origin == RuleOrigin.OPERATOR_DECLARED)
@@ -299,9 +299,9 @@ def submit_questionnaire(
         rule = AccessRule(
             place_id=claim.place_id,
             zone_id=zone_id,
-            animal_scope=ans["animal_scope"],
-            action=ans["action"],
-            effect=ans["effect"],
+            animal_scope=ans.animal_scope,
+            action=ans.action,
+            effect=ans.effect,
             source_id=source.id,
             rule_origin=RuleOrigin.OPERATOR_DECLARED,
             rule_layer="OPERATOR_POLICY",
@@ -310,15 +310,15 @@ def submit_questionnaire(
             recorded_at=now,
             effective_from=body.effective_from or now,
             last_verified_at=now,
-            review_due_at=ans.get("review_due_at"),
+            review_due_at=ans.review_due_at,
             status=RuleStatus.CURRENT,
             supersedes_rule_id=predecessor.id if predecessor else None,
-            note=ans.get("note"),
+            note=ans.note,
         )
         db.add(rule)
         db.flush()
-        for condition in ans.get("conditions", []):
-            db.add(RuleCondition(rule_id=rule.id, **condition))
+        for condition in ans.conditions:
+            db.add(RuleCondition(rule_id=rule.id, **condition.model_dump()))
         created_rules.append(rule.id)
 
     db.flush()
