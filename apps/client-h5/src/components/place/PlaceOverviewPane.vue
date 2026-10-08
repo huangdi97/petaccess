@@ -66,11 +66,17 @@ const primaryEvidence = computed(
 const spaceSummaryLine = computed(() =>
   props.zoneSummary.length ? `${props.zoneSummary.length} 个已收录区域` : "暂无已收录区域",
 );
-/** §11 mobile：evidence summary row 的 value。 */
-const evidenceSummaryLine = computed(
-  () =>
-    `${primaryEvidence.value} · 最近核验${props.latestVerifiedAt ? ` ${props.latestVerifiedAt}` : "暂无"}`,
-);
+/** §11 mobile：Rule 与 Reality 来源同时保留，不用一层来源冒充另一层。 */
+const evidenceSummaryLine = computed(() => {
+  const evidence = props.coexistence?.evidence_summary;
+  const parts: string[] = [];
+  const ruleCount = evidence?.rule_evidence.length ?? 0;
+  const realitySources = evidence?.reality_distinct_source_count ?? 0;
+  parts.push(ruleCount ? `规则：${primaryEvidence.value}` : "规则来源待补充");
+  parts.push(realitySources ? `现场：${realitySources} 个来源` : "现场来源待补充");
+  if (props.latestVerifiedAt) parts.push(`规则核验 ${props.latestVerifiedAt}`);
+  return parts.join(" · ");
+});
 
 /** Canonical first-screen coexistence summary: Rule + Reality stay separate,
  * while staff handling / facilities remain factual Reality details. */
