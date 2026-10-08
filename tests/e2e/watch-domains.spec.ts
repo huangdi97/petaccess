@@ -60,8 +60,10 @@ test("cancelled watch stays absent after notification-page reload", async ({ pag
   await expect(page.locator(".notification-row").filter({ hasText: "现场更新" })).toHaveCount(0);
 });
 
-
-test("failed unwatch retains the server subscription and allows retry", async ({ page, request }) => {
+test("failed unwatch retains the server subscription and allows retry", async ({
+  page,
+  request,
+}) => {
   const token = await signIn(request);
   const headers = { Authorization: `Bearer ${token}` };
   const created = await request.post(`${API}/watches`, {
