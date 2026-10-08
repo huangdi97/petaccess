@@ -203,7 +203,11 @@ const uiFixture = computed<string>(() =>
             <template v-if="!scopedEvents.length && (!zoneId || activeZone)" #empty-action>
               <RouterLink
                 class="btn primary"
-                :to="`/contribute/${placeId}`"
+                :to="{
+                  name: 'contribute',
+                  params: { id: placeId },
+                  query: activeZone ? { zone: activeZone.id } : {},
+                }"
                 data-testid="reality-go-enter"
               >
                 补充现场情况
