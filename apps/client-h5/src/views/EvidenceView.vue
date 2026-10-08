@@ -35,6 +35,7 @@ import StateMessage from "../components/StateMessage.vue";
 import QueryContextBar from "../components/domain/QueryContextBar.vue";
 import EvidenceStatus from "../components/domain/EvidenceStatus.vue";
 import EvidenceProvenance from "../components/domain/EvidenceProvenance.vue";
+import EvidenceGovernanceSummary from "../components/domain/EvidenceGovernanceSummary.vue";
 import EvidenceDisputeAction from "../components/domain/EvidenceDisputeAction.vue";
 import PaIcon from "../components/ui/PaIcon.vue";
 import { presentDescription } from "../errors";
@@ -273,6 +274,11 @@ const uiFixture = computed<string>(() =>
           :time-confirmed-count="provenanceCounts.timeConfirmedCount"
           :source-count="provenanceCounts.sourceCount"
           :reviewed-count="provenanceCounts.reviewedCount"
+        />
+
+        <EvidenceGovernanceSummary
+          :events="events"
+          :rule-first-party-pending="snapshot.evidence_summary.rule_first_party_pending"
         />
 
         <section class="evidence-section" aria-label="时间记录" data-ui="evidence-times">
