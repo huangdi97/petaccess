@@ -142,7 +142,11 @@ function isActive(to: string): boolean {
   border: none;
   border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
   width: calc(100% - var(--pa-space-6));
-  margin: var(--pa-space-4) auto;
+  margin: auto auto var(--pa-space-4);
+}
+
+.desktop-rail__group:last-of-type {
+  padding-bottom: var(--pa-space-3);
 }
 
 .desktop-rail__item {
