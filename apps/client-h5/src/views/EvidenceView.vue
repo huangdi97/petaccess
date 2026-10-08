@@ -15,13 +15,13 @@ import {
   type CoexistenceSnapshot,
   type PlaceDetail,
   type RealityEventView,
-  type SourceView,
   type Zone,
 } from "@petaccess/client-core";
 import { zoneConsumerLine } from "../consumer/labels";
 import {
   displayRealityEventTime,
   displayRealityTime,
+  evidenceMaterialLabel,
   realityEventDetail,
   realityEventEvidenceState,
   realityEventHeadline,
@@ -61,7 +61,6 @@ const snapshot = ref<CoexistenceSnapshot | null>(null);
 const place = ref<PlaceDetail | null>(null);
 const zones = ref<Zone[]>([]);
 const events = ref<RealityEventView[]>([]);
-const sources = ref<SourceView[]>([]);
 const loading = ref(true);
 const error = ref("");
 const loadEpoch = createEpoch();
@@ -80,14 +79,7 @@ function sourceTypeLabel(value: string): string {
   return labels[value] ?? "其他来源";
 }
 
-function issuerVerificationLabel(value: string): string {
-  if (value === "verified") return "已核验来源";
-  if (value === "self_declared") return "自行声明";
-  if (value === "unverified") return "未核验";
-  return "核验状态未知";
-}
-
-const latestEvent = computed(
+ const latestEvent = computed(
   () => [...events.value].sort((a, b) => b.event_at.localeCompare(a.event_at))[0] ?? null,
 );
 
@@ -144,21 +136,35 @@ const realityEvidenceCount = computed(
 );
 const provenanceCounts = computed(() => realityProvenanceCounts(events.value));
 
+const realitySourceRows = computed(() => {
+  // RealityEventOut already carries the public provenance projection needed
+  // by the consumer. Never enumerate the global /sources collection and then
+  // infer that its first page is complete for this place.
+  const seen = new Set<string>();
+  return events.value.flatMap((event) => {
+    const key = event.source_id ?? event.evidence_bundle_id;
+    if (!key || seen.has(key)) return [];
+    seen.add(key);
+    return [
+      {
+        key,
+        material: evidenceMaterialLabel(event),
+        provenance: realityEventProvenance(event) || "已有来源记录",
+        reviewedAt: event.last_verified_at ? displayRealityTime(event.last_verified_at) : "",
+      },
+    ];
+  });
+});
+
 const sourceSummary = computed(() => {
-  if (!sources.value.length) {
-    const bundles = new Set(
-      events.value
-        .map((event) => event.evidence_bundle_id)
-        .filter((id): id is string => Boolean(id)),
-    );
-    return bundles.size ? `${bundles.size} 组可追溯现场材料` : "来源待补充";
-  }
-  const pending = sources.value.filter(
-    (source) => source.issuer_verification === "unverified",
-  ).length;
-  return pending
-    ? `${sources.value.length} 个来源 · ${pending} 个待核验`
-    : `${sources.value.length} 个来源`;
+  const sourceCount = provenanceCounts.value.sourceCount;
+  if (sourceCount) return `${sourceCount} 个可追溯来源`;
+  const bundles = new Set(
+    events.value
+      .map((event) => event.evidence_bundle_id)
+      .filter((id): id is string => Boolean(id)),
+  );
+  return bundles.size ? `${bundles.size} 组可追溯现场材料` : "来源待补充";
 });
 
 async function load() {
@@ -167,12 +173,11 @@ async function load() {
   loading.value = true;
   error.value = "";
   try {
-    const [traceRow, eventRows, sourceRows, placeRow, zoneRows, snapshotRow] = await Promise.all([
+    const [traceRow, eventRows, placeRow, zoneRows, snapshotRow] = await Promise.all([
       client.realityTrace(placeId.value),
       client.realityEvents(placeId.value),
-      client.allSources(),
-      client.place(placeId.value).catch(() => null),
-      client.zones(placeId.value).catch(() => [] as Zone[]),
+      client.place(placeId.value),
+      client.zones(placeId.value),
       snapshotFor(placeId.value).then((result) => result.snapshot),
     ]);
     if (!loadEpoch.isCurrent(epoch)) return;
@@ -181,11 +186,6 @@ async function load() {
     place.value = placeRow;
     zones.value = zoneRows;
     snapshot.value = snapshotRow;
-
-    const relevantSourceIds = new Set(
-      eventRows.map((event) => event.source_id).filter((id): id is string => Boolean(id)),
-    );
-    sources.value = sourceRows.filter((source) => relevantSourceIds.has(source.id));
   } catch (e) {
     if (loadEpoch.isCurrent(epoch)) error.value = presentDescription(e);
   } finally {
@@ -356,15 +356,14 @@ const uiFixture = computed<string>(() =>
 
         <section class="evidence-section" data-testid="evidence-sources" aria-label="现场来源">
           <h2 class="evidence-section__title">现场来源</h2>
-          <div v-for="source in sources" :key="source.id" class="surface-row">
-            <span class="evidence-source__issuer">{{ source.issuer }}</span>
+          <div v-for="source in realitySourceRows" :key="source.key" class="surface-row">
+            <span class="evidence-source__issuer">{{ source.material }}</span>
             <span class="muted evidence-source__meta">
-              {{ sourceTypeLabel(source.source_type) }} ·
-              {{ issuerVerificationLabel(source.issuer_verification) }} · 收集于
-              {{ source.collected_at.slice(0, 10) }}
+              {{ source.provenance }}
+              <template v-if="source.reviewedAt"> · 最近核验 {{ source.reviewedAt }}</template>
             </span>
           </div>
-          <p v-if="!sources.length" class="muted">
+          <p v-if="!realitySourceRows.length" class="muted">
             原始材料可能受隐私或许可限制；上方现场事实仍显示可公开的来源类型、时间依据与核验状态。
           </p>
         </section>
