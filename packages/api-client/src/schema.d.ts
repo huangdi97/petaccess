@@ -3962,6 +3962,16 @@ export interface components {
             source_id?: string | null;
             /** Evidence Bundle Id */
             evidence_bundle_id?: string | null;
+            /** Evidence Material Type */
+            evidence_material_type?: string | null;
+            /** Evidence Source Platform */
+            evidence_source_platform?: string | null;
+            /** Evidence Publisher Type */
+            evidence_publisher_type?: string | null;
+            /** Evidence Class */
+            evidence_class?: string | null;
+            /** Evidence Display Allowed */
+            evidence_display_allowed?: boolean | null;
             /** Submitted At */
             submitted_at?: string | null;
             /** Confirmation Count */
