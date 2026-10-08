@@ -1,9 +1,10 @@
-"""Private media upload and controlled serving.
+"""Private-by-default media upload and controlled serving.
 
-Every object is private. owner_type / owner_id describe the subject a file
-belongs to; created_by_user_id describes who may read/delete it. Reviewers may
-inspect evidence for moderation. Consumer endpoints never return a public
-object-store URL.
+owner_type / owner_id describe the subject a file belongs to;
+created_by_user_id describes who may read/delete it. Reviewers may inspect
+private evidence for moderation. A consumer can receive only a short-lived
+URL for an approved artifact that is explicitly display-allowed *and* already
+backs a human-verified published Reality fact.
 """
 
 import hashlib
@@ -21,8 +22,16 @@ from app.core.errors import ApiError, NotFound
 from app.core.media_sanitize import strip_image_metadata
 from app.core.security import get_current_user
 from app.db.session import get_db
-from app.models import MediaObject, User
-from app.models.enums import UserRole
+from app.models import (
+    AnimalFacility,
+    EvidenceBundle,
+    MediaObject,
+    ObservedPresence,
+    SourceArtifact,
+    StaffResponseObservation,
+    User,
+)
+from app.models.enums import RealityVerificationStatus, UserRole
 from app.models.media import MediaPrivacyClass, MediaPurpose
 from app.providers.factory import get_storage_provider
 
@@ -103,6 +112,67 @@ def _private_media(db: Session, media_id: str, user: User) -> MediaObject:
     if media.created_by_user_id != user.id and not _reviewer(user):
         raise NotFound("媒体不存在")
     return media
+
+
+PUBLIC_REALITY_VERIFICATION = {
+    RealityVerificationStatus.HUMAN_VERIFIED.value,
+    RealityVerificationStatus.HUMAN_VERIFIED_WITH_NOTE.value,
+}
+PUBLIC_MEDIA_URL_SECONDS = 300
+
+
+def _bundle_backs_published_reality(db: Session, bundle_id: str) -> bool:
+    """True only when a human-reviewed public Reality fact cites this bundle."""
+
+    for model in (ObservedPresence, StaffResponseObservation, AnimalFacility):
+        published_id = db.scalar(
+            select(model.id)
+            .where(
+                model.evidence_bundle_id == bundle_id,
+                model.verification_status.in_(PUBLIC_REALITY_VERIFICATION),
+            )
+            .limit(1)
+        )
+        if published_id is not None:
+            return True
+    return False
+
+
+def _public_evidence_media(db: Session, bundle_id: str) -> tuple[MediaObject, str]:
+    """Resolve a display-safe media object without leaking private existence."""
+
+    unavailable = NotFound("公开证据媒体不可用")
+    if not _bundle_backs_published_reality(db, bundle_id):
+        raise unavailable
+
+    bundle = db.get(EvidenceBundle, bundle_id)
+    if bundle is None:
+        raise unavailable
+    artifact = db.get(SourceArtifact, bundle.artifact_id)
+    if artifact is None or not artifact.display_allowed or not artifact.media_id:
+        raise unavailable
+
+    media = db.get(MediaObject, artifact.media_id)
+    now = datetime.now(UTC)
+    if (
+        media is None
+        or media.upload_status != "stored"
+        or media.deleted_at is not None
+        or media.moderation_status != "approved"
+        or media.mime_type not in ALLOWED_MIME
+        or (media.expires_at is not None and media.expires_at <= now)
+    ):
+        raise unavailable
+
+    storage = get_storage_provider()
+    if storage.stat_object(media.object_key, media.bucket) is None:
+        raise unavailable
+    url = storage.presigned_get_url(
+        media.object_key,
+        media.bucket,
+        expires_seconds=PUBLIC_MEDIA_URL_SECONDS,
+    )
+    return media, url
 
 
 def _create_media(
@@ -205,6 +275,25 @@ async def upload_media(
     )
     db.commit()
     return _upload_response(media, duplicate_of)
+
+
+@router.get("/evidence-bundles/{bundle_id}/public-media")
+def public_evidence_media(bundle_id: str, db: Session = Depends(get_db)) -> dict:
+    """Short-lived public image URL for explicitly display-approved evidence.
+
+    This endpoint is deliberately unauthenticated only because qualification
+    is stricter than the public Reality event itself. All other media routes
+    remain uploader/reviewer-only.
+    """
+
+    media, url = _public_evidence_media(db, bundle_id)
+    return {
+        "evidence_bundle_id": bundle_id,
+        "media_id": media.id,
+        "url": url,
+        "mime_type": media.mime_type,
+        "expires_in": PUBLIC_MEDIA_URL_SECONDS,
+    }
 
 
 @router.get("/media/{media_id}/url")
