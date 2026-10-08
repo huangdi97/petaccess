@@ -495,6 +495,14 @@ def test_confirmation_is_append_never_delete(client, place_id, signed_user):
     reality = client.get(f"/api/v1/places/{place_id}/reality").json()
     assert reality["state"] != "no_data"
 
+    # Candidate-linked confirmations must be visible as independent support on
+    # the corresponding published fact; otherwise the Evidence Rail would
+    # incorrectly present a multi-evidence fact as a single-record fact.
+    events = client.get(f"/api/v1/places/{place_id}/reality/events")
+    assert events.status_code == 200, events.text
+    published = next(event for event in events.json() if event["event_type"] == "observed_presence")
+    assert published["confirmation_count"] >= 1
+
 
 def test_statff_awareness_unknown_is_stored(client, place_id, signed_user):
     """§22: staff response with awareness UNKNOWN stays 'no observed handling'."""
