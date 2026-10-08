@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// @ui-static NotFoundView — static route fallback, no external data request.
 import AppShell from "../components/AppShell.vue";
 </script>
 
