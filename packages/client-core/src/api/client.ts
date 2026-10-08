@@ -719,11 +719,11 @@ export const client = {
   }) {
     return api.request<{ id: string }>("post", "/operator-claims", { body });
   },
-  async submitOperatorRules(claimId: string, answers: unknown[]) {
+  async submitOperatorRules(claimId: string, answers: unknown[], effectiveFrom?: string) {
     return api.request<{ created_rules: string[] }>(
       "post",
       `/operator-claims/${claimId}/questionnaire`,
-      { body: { answers } },
+      { body: { answers, effective_from: effectiveFrom } },
     );
   },
   async mapConfig() {
