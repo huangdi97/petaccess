@@ -151,3 +151,40 @@ test("cold Evidence and Why deep links restore the persisted active pet before r
     await expect(page.getByTestId("query-context-summary")).toContainText("深链服务犬");
   }
 });
+
+
+test("secondary Query Context restores the persisted pet without opening the editor", async ({
+  page,
+  request,
+}) => {
+  const token = await signedToken(request);
+  const created = await request.post(`${API}/pets`, {
+    headers: { Authorization: `Bearer ${token}` },
+    data: {
+      display_name: "隐私页查询对象",
+      species: "dog",
+      breed_text: null,
+      weight_kg: 8.5,
+      shoulder_height_cm: null,
+      service_role: "none",
+      registration_status: null,
+      vaccination_status: null,
+      avatar_url: null,
+    },
+  });
+  expect(created.ok(), await created.text()).toBeTruthy();
+  const pet = (await created.json()) as { id: string };
+
+  await page.addInitScript(
+    ({ accessToken, activePetId }) => {
+      localStorage.setItem("pa_token", accessToken);
+      localStorage.setItem("pa_active_pet_id", activePetId);
+    },
+    { accessToken: token, activePetId: pet.id },
+  );
+
+  await page.goto(`${BASE}/#/privacy`);
+  await expect(page.getByTestId("query-context-summary")).toContainText("隐私页查询对象", {
+    timeout: 15000,
+  });
+});
