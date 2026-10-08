@@ -298,9 +298,29 @@ const {
 }
 
 @media (min-width: 768px) {
+  /* The four tasks and a meaningful nearby result should appear within the
+   * first laptop viewport; whitespace is hierarchy, not empty territory. */
+  .page--home {
+    padding-top: var(--pa-space-4);
+  }
+
+  .home-topline {
+    margin-bottom: var(--pa-space-3);
+  }
+
+  .home-intro {
+    margin-bottom: var(--pa-space-3);
+  }
+
   .home-search {
     flex-direction: row;
     align-items: center;
+    margin-bottom: var(--pa-space-4);
+  }
+
+  .home-lenses {
+    margin-bottom: var(--pa-space-4);
+    padding-bottom: var(--pa-space-3);
   }
 
   .home-search input {
