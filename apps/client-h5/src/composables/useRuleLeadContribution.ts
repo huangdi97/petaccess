@@ -1,4 +1,4 @@
-import { computed, ref, type Ref } from "vue";
+import { computed, ref, watch, type Ref } from "vue";
 import { client } from "@petaccess/client-core";
 import { evidenceRefs, proximity } from "../components/contribute/contributeSupport";
 import {
@@ -52,6 +52,13 @@ export function useRuleLeadContribution(
   const busy = ref(false);
   const error = ref("");
   const selectedRuleId = ref("");
+
+  // Intent changes are semantic transaction boundaries. Do not let a hidden
+  // target/zone from the previous flow leak into a new rule or signage lead.
+  watch(intent, () => {
+    selectedRuleId.value = "";
+    zone.value = "";
+  });
 
   const needsRuleDescription = computed(
     () => intent.value === "changed" || intent.value === "new_lead",
