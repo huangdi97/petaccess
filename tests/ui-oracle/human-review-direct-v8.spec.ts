@@ -621,7 +621,7 @@ async function assertShot(page: Page, shot: Shot): Promise<Record<string, unknow
   }
   for (const value of shot.requiredText ?? []) {
     await expect(
-      page.getByText(value, { exact: false }).first(),
+      page.getByText(value, { exact: false }).filter({ visible: true }).first(),
       `${shot.name}: ${value}`,
     ).toBeVisible({
       timeout: 15000,
