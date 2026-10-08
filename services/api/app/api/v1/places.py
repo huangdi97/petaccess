@@ -33,6 +33,7 @@ from app.schemas.places import (
 )
 from app.services.dev_fixture import (
     dev_fixture_active,
+    fixture_nearby_summaries,
     fixture_place_out,
     fixture_place_summaries,
     is_fixture_place_id,
@@ -242,8 +243,13 @@ def nearby_places(
         summary.distance_m = round(float(row[1] or 0), 1)
         items.append(summary)
     if not items and dev_fixture_active():
-        fixtures = fixture_place_summaries()
-        return Page(items=fixtures, total=len(fixtures), limit=limit, offset=offset)
+        fixtures = fixture_nearby_summaries(lat, lng, radius_m)
+        return Page(
+            items=fixtures[offset : offset + limit],
+            total=len(fixtures),
+            limit=limit,
+            offset=offset,
+        )
     return Page(items=items, total=total, limit=limit, offset=offset)
 
 
