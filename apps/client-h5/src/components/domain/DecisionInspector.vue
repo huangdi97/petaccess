@@ -29,6 +29,7 @@ import {
 import { answerConditions, answerVerdictLabel } from "../../answer";
 import { coexistenceRealityLine, freshnessLineFor } from "../../consumer/rowView";
 import { querySummaryLabel } from "../../consumer/queryContext";
+import { divergenceLabel } from "../../reality";
 const props = withDefaults(
   defineProps<{
     place: {
@@ -129,6 +130,12 @@ const latestVerifiedLabel = computed(() => props.latestVerifiedAt ?? "暂无");
 const realityLineForSearch = computed(() =>
   coexistenceRealityLine(props.snapshot, props.reality).replace(/\s*（.*?）\s*$/, ""),
 );
+const majorException = computed(() => {
+  const divergence = props.snapshot?.divergence;
+  if (!divergence) return "";
+  if (["RULE_REALITY_ALIGNED", "INSUFFICIENT_DATA"].includes(divergence.state)) return "";
+  return divergenceLabel(divergence);
+});
 /** §26（place）：same CoexistenceSnapshot semantics as Search/Home/Map. */
 const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot, props.reality));
 </script>
@@ -182,6 +189,16 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
           </p>
         </div>
 
+        <div
+          v-if="majorException"
+          class="inspector-block inspector-block--exception"
+          data-ui="search-divergence"
+          data-testid="inspector-divergence"
+        >
+          <span class="inspector-block__label">规则与现场</span>
+          <p class="inspector-block__value">{{ majorException }}</p>
+        </div>
+
         <div class="inspector-secondary">
           <div class="inspector-block" data-ui="search-reality">
             <span class="inspector-block__label">近期现场</span>
@@ -198,9 +215,9 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
             </p>
           </div>
         </div>
-        <footer class="decision-inspector__foot">
-          <RouterLink class="btn-inline" :to="`/place/${place.id}`" data-testid="inspector-open">
-            查看完整场所 →
+        <footer class="decision-inspector__foot decision-inspector__foot--primary">
+          <RouterLink class="btn primary" :to="`/place/${place.id}`" data-testid="inspector-open">
+            查看完整场所
           </RouterLink>
         </footer>
       </template>
@@ -418,6 +435,20 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
   border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
 }
 
+.inspector-block--exception {
+  padding: var(--pa-space-3) 0 var(--pa-space-3) var(--pa-space-4);
+  border-left: var(--pa-border-width) solid var(--pa-color-status-warn);
+  background: linear-gradient(
+    90deg,
+    var(--pa-color-status-warn-bg),
+    transparent 72%
+  );
+}
+
+.inspector-block--exception .inspector-block__value {
+  font-weight: var(--pa-font-weight-medium);
+}
+
 /* v0.2.7 §22：secondary evidence grouping —— reality + evidence 归组为
    次要信息区（顶部细分隔线），primary decision 保持唯一强焦点。 */
 .inspector-secondary {
@@ -434,6 +465,17 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
 
 .decision-inspector__foot {
   margin-top: var(--pa-space-2);
+}
+
+.decision-inspector__foot--primary {
+  margin-top: var(--pa-space-1);
+  padding-top: var(--pa-space-4);
+  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.decision-inspector__foot--primary .btn {
+  min-width: 148px;
+  justify-content: center;
 }
 
 /* §26：place inspector 底部用 text link（查看完整证据 →），不放 CTA 大按钮。 */
