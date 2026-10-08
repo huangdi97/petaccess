@@ -351,7 +351,6 @@ test("B5 — Search DecisionInspector 查看完整场所 → Place Passport", as
   await expect(page.getByTestId("section-answer")).toBeVisible();
 });
 
-
 test("B2.4 — unknown zone links cannot claim another area's Reality or contribution scope", async ({
   page,
 }) => {
