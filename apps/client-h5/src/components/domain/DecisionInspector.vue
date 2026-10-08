@@ -340,7 +340,7 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
 .decision-inspector {
   display: flex;
   flex-direction: column;
-  gap: var(--pa-space-6);
+  gap: var(--pa-space-5);
   min-width: 0;
   min-height: calc(100vh - 60px);
   align-self: stretch;
@@ -349,13 +349,15 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
 }
 
 .decision-inspector--place {
-  gap: var(--pa-space-5);
+  gap: var(--pa-space-4);
 }
 
 .decision-inspector__head {
   display: flex;
   flex-direction: column;
   gap: var(--pa-space-1);
+  padding-bottom: var(--pa-space-4);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
 }
 
 .decision-inspector__identity {
@@ -499,8 +501,8 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
 .inspector-secondary {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--pa-space-6);
-  padding-top: var(--pa-space-4);
+  gap: var(--pa-space-5);
+  padding-top: var(--pa-space-3);
   border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
 }
 .inspector-secondary .inspector-block--meta {
