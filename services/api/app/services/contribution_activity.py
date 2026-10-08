@@ -56,7 +56,9 @@ def _place_names(db: Session, place_ids: set[str]) -> dict[str, str]:
     if not place_ids:
         return {}
     rows = db.execute(select(Place.id, Place.canonical_name).where(Place.id.in_(place_ids))).all()
-    return dict(rows)
+    # SQLAlchemy Row is tuple-like at runtime but not typed as a tuple by mypy.
+    # Indexing preserves both the lightweight projection and static key types.
+    return {row[0]: row[1] for row in rows}
 
 
 def _reality_rows(db: Session, user_id: str) -> list[ContributionActivity]:
