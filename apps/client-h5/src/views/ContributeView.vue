@@ -149,7 +149,7 @@ const contributionKindLabel = computed(() => {
 /** §15 context rail：适用区域 —— 真实 zones 数据（无则保持 shell 默认）。 */
 const contextZoneLabel = computed(() => {
   const first = zones.value[0];
-  return first ? `${first.name} 等 ${zones.value.length} 个区域` : "公共区域";
+  return first ? `${first.name} 等 ${zones.value.length} 个区域` : "暂未收录具体区域";
 });
 const uiFixture = computed<string>(() => `contribution-${uiState.value}-v1`);
 
