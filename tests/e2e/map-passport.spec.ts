@@ -51,6 +51,18 @@ test("A4.1 — a Place-to-Map link resolves an exact place outside nearby result
   await expect(page.getByTestId("preview-open")).toHaveAttribute("href", `#/place/${MALL_ID}`);
 });
 
+test("A4.2 — Search inspector opens the exact selected place on Map", async ({ page }) => {
+  await page.goto(`${BASE}/#/search?q=云栖`);
+  const mapLink = page.getByTestId("inspector-map-location");
+  await expect(mapLink).toBeVisible({ timeout: 15000 });
+  await expect(mapLink).toHaveAttribute("href", `#/map?place=${MALL_ID}`);
+  await mapLink.click();
+  await expect(page).toHaveURL(/#\/map\?place=/);
+  await expect(page.getByTestId("place-preview")).toContainText("云栖中心", {
+    timeout: 15000,
+  });
+});
+
 test("A1 — desktop 地图 split-view + 四 Lens + 详情面板", async ({ page }) => {
   await page.goto(`${BASE}/#/map`);
   await expect(page.getByTestId("map")).toBeVisible();
