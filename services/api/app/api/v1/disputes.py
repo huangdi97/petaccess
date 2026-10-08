@@ -45,6 +45,7 @@ from app.services.dispute_targets import is_reality_dispute_target, require_disp
 router = APIRouter(tags=["disputes"])
 admin = APIRouter(tags=["admin:disputes"])
 
+
 @router.post("/disputes", response_model=DisputeOut, status_code=201)
 def submit_dispute(
     body: DisputeIn,
