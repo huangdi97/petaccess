@@ -1,7 +1,5 @@
 """Resolve one auditable dispute target without conflating Rule and Reality."""
 
-from typing import cast
-
 from sqlalchemy.orm import Session
 
 from app.core.errors import NotFound
@@ -34,13 +32,14 @@ def require_dispute_target(db: Session, target_type: str, target_id: str):
         target = db.get(AccessRule, target_id)
     elif target_type == DisputeTargetType.OBSERVATION_CLAIM.value:
         target = db.get(ObservationClaim, target_id)
+    elif target_type == DisputeTargetType.OBSERVED_PRESENCE.value:
+        target = db.get(ObservedPresence, target_id)
+    elif target_type == DisputeTargetType.STAFF_RESPONSE_OBSERVATION.value:
+        target = db.get(StaffResponseObservation, target_id)
+    elif target_type == DisputeTargetType.ANIMAL_FACILITY.value:
+        target = db.get(AnimalFacility, target_id)
     else:
-        model = _REALITY_TARGET_MODELS.get(target_type)
-        # The registry contains only these immutable Reality record models.
-        target = cast(
-            ObservedPresence | StaffResponseObservation | AnimalFacility | None,
-            db.get(model, target_id) if model is not None else None,
-        )
+        target = None
     if target is None:
         raise NotFound("异议目标不存在")
     return target
