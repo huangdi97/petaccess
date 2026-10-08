@@ -44,10 +44,13 @@ import { queryAnimalLabel } from "../consumer/queryContext";
 import { answerStatusKey } from "../answer";
 import { presentDescription } from "../errors";
 import { useBreakpoint } from "../composables/useBreakpoint";
+import { useRealityConfirmation } from "../composables/useRealityConfirmation";
 import { createEpoch, currentQueryContext, snapshotFor } from "../consumer/repository";
 
 const route = useRoute();
 const placeId = computed(() => (route.params.id ? String(route.params.id) : ""));
+
+const realityConfirmation = useRealityConfirmation(() => placeId.value);
 
 /** §15：?view= overview|space|rules|reality|evidence（deep link / refresh 安全）。 */
 const VALID_VIEWS: readonly PlaceViewKey[] = ["overview", "space", "rules", "reality", "evidence"];
@@ -75,8 +78,6 @@ const partial = ref<string[]>([]);
 const watchingRule = ref(false);
 const watchingReality = ref(false);
 const watchMsg = ref("");
-const confirmationMsg = ref("");
-const confirmationBusyId = ref<string | null>(null);
 const coexistence = ref<CoexistenceSnapshot | null>(null);
 const coexistenceLoaded = ref(false);
 const evaluationEpoch = createEpoch();
@@ -231,8 +232,8 @@ watch(
     error.value = "";
     partial.value = [];
     watchMsg.value = "";
-    confirmationMsg.value = "";
-    confirmationBusyId.value = null;
+    realityConfirmation.message.value = "";
+    realityConfirmation.busyEventId.value = null;
     watchingRule.value = false;
     watchingReality.value = false;
     coexistence.value = null;
@@ -263,48 +264,6 @@ async function toggleWatchDomain(domain: "rule" | "reality") {
     }
   } catch (e) {
     watchMsg.value = `关注状态未能更新：${presentDescription(e)}`;
-  }
-}
-
-type RealityConfirmationType = "still_present" | "facility_still_present" | "facility_removed";
-
-async function confirmReality(event: RealityEventView, type: RealityConfirmationType) {
-  if (!session.signedIn || confirmationBusyId.value) return;
-  confirmationMsg.value = "";
-  confirmationBusyId.value = event.id;
-  const observedAt = new Date().toISOString();
-  try {
-    await client.createRealityReport(placeId.value, {
-      report: {
-        origin: "on_site_now",
-        place_id: placeId.value,
-        subject_place_id: placeId.value,
-        place_match_state: "exact_place",
-        place_match_evidence_types: ["user_confirmation"],
-        time_evidence_state: "live_device_time",
-        observed_at: observedAt,
-        time_certainty: "exact",
-        fact_evidence_state: "first_hand_no_media",
-        privacy_state: "private",
-      },
-      candidates: [],
-      effort: null,
-      confirmation: {
-        confirmation_type: type,
-        place_id: placeId.value,
-        target_claim_id: event.id,
-        observed_at: observedAt,
-      },
-      external_content: null,
-    });
-    confirmationMsg.value =
-      type === "facility_removed"
-        ? "已记录设施撤除线索，等待核验；历史设施记录不会被直接删除。"
-        : "已记录本次现场确认，等待核验。";
-  } catch (e) {
-    confirmationMsg.value = `确认未提交：${presentDescription(e)}`;
-  } finally {
-    confirmationBusyId.value = null;
   }
 }
 
@@ -455,9 +414,9 @@ const placeFixture = computed<string>(() => {
             :zones="zones"
             :place-id="placeId"
             :signed-in="session.signedIn"
-            :busy-event-id="confirmationBusyId"
-            :confirmation-message="confirmationMsg"
-            @confirm="confirmReality"
+            :busy-event-id="realityConfirmation.busyEventId.value"
+            :confirmation-message="realityConfirmation.message.value"
+            @confirm="realityConfirmation.confirm"
           />
           <PlaceEvidencePane
             v-else-if="view === 'evidence'"
