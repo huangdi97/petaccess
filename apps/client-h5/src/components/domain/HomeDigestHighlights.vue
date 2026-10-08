@@ -2,6 +2,7 @@
 import { computed } from "vue";
 import type { HomeCard } from "../../composables/useHomeLauncher";
 import type { ConsumerLens } from "../../consumer/rowView";
+import PlaceTypeGlyph from "./PlaceTypeGlyph.vue";
 import {
   compareHomeDigest,
   homeDigestDivergence,
@@ -60,6 +61,7 @@ const divergences = computed(() =>
       :data-testid="'recommend-' + card.place.id"
       @click="emit('open', card.place.id)"
     >
+      <PlaceTypeGlyph :place-type="card.place.place_type" size="sm" />
       <strong class="home-recommend__name">{{ card.place.canonical_name }}</strong>
       <span class="home-recommend__headline">{{ homeDigestHeadline(card, interest) }}</span>
       <span v-if="homeDigestMeta(card)" class="muted home-recommend__meta">
