@@ -407,7 +407,7 @@ const placeFixture = computed<string>(() => {
                 data-testid="watch-rule"
                 @click="toggleWatchDomain('rule')"
               >
-                {{ watchingRule ? "规则变化已关注 · 取消" : "规则变化" }}
+                {{ watchingRule ? "规则变化已关注 · 取消" : "关注规则变化" }}
               </button>
               <button
                 class="place-dossier__watch"
@@ -415,7 +415,7 @@ const placeFixture = computed<string>(() => {
                 data-testid="watch-reality"
                 @click="toggleWatchDomain('reality')"
               >
-                {{ watchingReality ? "现场更新已关注 · 取消" : "现场更新" }}
+                {{ watchingReality ? "现场更新已关注 · 取消" : "关注现场更新" }}
               </button>
             </template>
             <RouterLink v-else class="btn-inline" to="/onboarding">登录后关注 →</RouterLink>
