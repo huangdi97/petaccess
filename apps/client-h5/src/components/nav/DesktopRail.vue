@@ -36,7 +36,6 @@ function isActive(to: string): boolean {
   if (to === "/") return route.path === "/";
   return route.path === to || route.path.startsWith(`${to}/`);
 }
-
 </script>
 
 <template>
@@ -84,7 +83,6 @@ function isActive(to: string): boolean {
         <PaIcon class="desktop-rail__icon" :name="item.icon" size="lg" />
       </RouterLink>
     </nav>
-
   </aside>
 </template>
 
@@ -177,5 +175,4 @@ function isActive(to: string): boolean {
 .desktop-rail__icon {
   color: currentColor;
 }
-
 </style>
