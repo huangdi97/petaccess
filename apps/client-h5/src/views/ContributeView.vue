@@ -87,8 +87,11 @@ async function loadContext() {
   }
 }
 
-watch([placeId, () => route.query.mode, () => route.query.target, () => route.query.zone],
-  loadContext, { immediate: true });
+watch(
+  [placeId, () => route.query.mode, () => route.query.target, () => route.query.zone],
+  loadContext,
+  { immediate: true },
+);
 
 function reset() {
   step.value = "entry";
@@ -283,7 +286,14 @@ const { desktop: isDesktop } = useBreakpoint();
         <!-- §15/§16 secondary context rail（desktop only）：只放真实上下文，
              不新增营销文案 / 统计 / badge wall。 -->
         <aside
-          v-if="isDesktop && placeId && signedIn && !contextLoading && !contextError && uiState !== 'done'"
+          v-if="
+            isDesktop &&
+            placeId &&
+            signedIn &&
+            !contextLoading &&
+            !contextError &&
+            uiState !== 'done'
+          "
           class="contribute-workspace__context"
           data-ui="contribution-context"
           aria-label="本次贡献说明"
