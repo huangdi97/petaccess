@@ -45,29 +45,37 @@ const zones = ref<{ id: string; name: string }[]>([]);
 const placeName = ref("");
 const parentPlaceId = ref<string | null>(null);
 
-// Reactive param + immediate: the router reuses this component across
-// /contribute/:id changes; every submit carries place_id, so re-anchor first.
+// The router reuses this component between /contribute/:id routes. Read
+// the target ID once per generation: a late A response must not insert A's
+// zones/name into B's form, where the subsequent submit would target B.
+let placeContextGeneration = 0;
 watch(
   [placeId, () => route.query.mode, () => route.query.target, () => route.query.zone],
   async () => {
+    const generation = ++placeContextGeneration;
+    const targetPlaceId = placeId.value;
     reset();
+    signedIn.value = false;
     zones.value = [];
     placeName.value = "";
     parentPlaceId.value = null;
     if (route.query.mode === "effort") step.value = "effort";
     await session.restore();
+    if (generation !== placeContextGeneration) return;
     signedIn.value = session.signedIn;
-    if (!signedIn.value || !placeId.value) return;
+    if (!signedIn.value || !targetPlaceId) return;
     try {
       const [zs, place] = await Promise.all([
-        client.zones(placeId.value),
-        client.place(placeId.value).catch(() => null),
+        client.zones(targetPlaceId),
+        client.place(targetPlaceId).catch(() => null),
       ]);
+      if (generation !== placeContextGeneration || placeId.value !== targetPlaceId) return;
       zones.value = zs;
       placeName.value = place?.canonical_name ?? "";
       parentPlaceId.value = place?.parent_place_id ?? null;
     } catch {
-      /* best-effort; forms work without zones/name */
+      // Failure stays scoped to this place generation. Do not leak old
+      // context into the current form while the user changes destinations.
     }
   },
   { immediate: true },
