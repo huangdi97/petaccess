@@ -314,7 +314,7 @@ def consumer_reality_events(
     confirmation_counts: dict[str, int] = {}
     if reality_targets:
         target_ids = {target_id for _, target_id in reality_targets}
-        confirmation_rows = db.execute(
+        direct_rows = db.execute(
             select(RealityConfirmation.target_claim_id, func.count())
             .where(
                 RealityConfirmation.place_id == place_id,
@@ -322,11 +322,31 @@ def consumer_reality_events(
             )
             .group_by(RealityConfirmation.target_claim_id)
         ).all()
-        confirmation_counts = {
-            target_id: int(count)
-            for target_id, count in confirmation_rows
-            if target_id
+        for target_id, count in direct_rows:
+            if target_id:
+                confirmation_counts[target_id] = confirmation_counts.get(target_id, 0) + int(count)
+
+        # Confirmations may be submitted before/without the caller knowing the
+        # published claim id and therefore target the reviewed candidate. Map
+        # those confirmations back to the published claim so the consumer
+        # evidence rail counts both valid linkage forms.
+        claim_id_by_candidate = {
+            row.candidate_id: row.id
+            for row in [*presence, *staff, *facilities]
+            if row.candidate_id
         }
+        candidate_confirmation_rows = db.execute(
+            select(RealityConfirmation.target_candidate_id, func.count())
+            .where(
+                RealityConfirmation.place_id == place_id,
+                RealityConfirmation.target_candidate_id.in_(candidate_ids),
+            )
+            .group_by(RealityConfirmation.target_candidate_id)
+        ).all()
+        for candidate_id, count in candidate_confirmation_rows:
+            claim_id = claim_id_by_candidate.get(candidate_id)
+            if claim_id:
+                confirmation_counts[claim_id] = confirmation_counts.get(claim_id, 0) + int(count)
     open_disputes: set[tuple[str, str]] = set()
     if reality_targets:
         target_ids = {target_id for _, target_id in reality_targets}
