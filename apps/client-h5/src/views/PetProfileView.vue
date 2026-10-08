@@ -12,7 +12,6 @@ import { emptyPetDraft, type PetDraft } from "../consumer/petProfileModel";
 
 const pets = ref<PetView[]>([]);
 const loading = ref(true);
-const loaded = ref(false);
 const error = ref("");
 const loadError = ref("");
 const notice = ref("");
@@ -27,7 +26,6 @@ const activeId = computed(() => session.activePet?.id ?? null);
 async function load() {
   error.value = "";
   loadError.value = "";
-  loaded.value = false;
   loading.value = true;
   try {
     await session.restore();
@@ -39,7 +37,6 @@ async function load() {
   } catch (e) {
     loadError.value = e instanceof ApiError ? e.message : String(e);
   } finally {
-    loaded.value = !loadError.value;
     loading.value = false;
   }
 }
