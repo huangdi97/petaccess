@@ -1,4 +1,4 @@
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { client, session, type PetView, type QueryMode } from "@petaccess/client-core";
 import { presentDescription } from "../errors";
 import { querySummaryLabel } from "../consumer/queryContext";
@@ -25,6 +25,12 @@ export function useQueryContextEditor() {
   const loadingPets = ref(false);
   const petError = ref("");
   const summary = computed(() => querySummaryLabel());
+
+  // Query Context is global chrome. Restore persisted subject/role even on
+  // secondary routes that do not otherwise need account data.
+  onMounted(() => {
+    void session.restore();
+  });
 
   async function openEditor() {
     open.value = true;
