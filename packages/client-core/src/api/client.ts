@@ -436,6 +436,14 @@ export interface MediaMetaView {
   deleted_at: string | null;
 }
 
+export interface PublicEvidenceMediaView {
+  evidence_bundle_id: string;
+  media_id: string;
+  url: string;
+  mime_type: string;
+  expires_in: number;
+}
+
 // --------------------------------------------------------------- watches
 
 /** A subscription to one reviewed change domain on a place / zone / rule. */
@@ -540,6 +548,12 @@ export const client = {
   },
   async mediaMeta(mediaId: string) {
     return api.request<MediaMetaView>("get", `/media/${mediaId}`);
+  },
+  async publicEvidenceMedia(bundleId: string) {
+    return api.request<PublicEvidenceMediaView>(
+      "get",
+      `/evidence-bundles/${bundleId}/public-media`,
+    );
   },
   async deleteMedia(mediaId: string) {
     return api.request<void>("delete", `/media/${mediaId}`);
