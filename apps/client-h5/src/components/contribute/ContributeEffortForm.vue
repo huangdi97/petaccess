@@ -62,11 +62,7 @@ const { sourceMode, occurredAt, durationBucket, zoneId, busy, error, canSubmit, 
         <label for="effort-duration">在场时长</label>
         <select id="effort-duration" v-model="durationBucket" data-testid="effort-duration">
           <option value="" disabled>请选择</option>
-          <option
-            v-for="item in OBSERVATION_EFFORT_OPTIONS"
-            :key="item.key"
-            :value="item.key"
-          >
+          <option v-for="item in OBSERVATION_EFFORT_OPTIONS" :key="item.key" :value="item.key">
             {{ item.label }}
           </option>
         </select>

@@ -115,17 +115,16 @@ export function useRuleLeadContribution(
       raw_text:
         `规则线索：${ruleLeadEffectLabel(effect.value)}；来源：${ruleLeadSourceBasisLabel(sourceBasis.value)}；` +
         `区域：${zoneLabel}；条件：${ruleLeadConditionLabel(conditions.value)}${evidenceNote}`,
-      source_basis:
-        ["onsite_signage", "staff_statement", "official_online", "other", "uncertain"].includes(
-          sourceBasis.value,
-        )
-          ? (sourceBasis.value as
-              | "onsite_signage"
-              | "staff_statement"
-              | "official_online"
-              | "other"
-              | "uncertain")
-          : "uncertain",
+      source_basis: [
+        "onsite_signage",
+        "staff_statement",
+        "official_online",
+        "other",
+        "uncertain",
+      ].includes(sourceBasis.value)
+        ? (sourceBasis.value as
+            "onsite_signage" | "staff_statement" | "official_online" | "other" | "uncertain")
+        : "uncertain",
       media_id: mediaId.value,
       current_rule_id: intent.value === "changed" ? selectedRuleId.value || null : null,
       ...proximity(),
