@@ -301,9 +301,9 @@ const divergenceLine = computed(() => {
 }
 .sub-answer--mine {
   border-left: var(--pa-border-width-strong) solid var(--pa-color-accent);
-  border-radius: var(--pa-radius-md);
-  padding: var(--pa-space-4);
-  background: var(--pa-color-surface-muted);
+  border-radius: 0;
+  padding: var(--pa-space-2) 0 var(--pa-space-2) var(--pa-space-4);
+  background: transparent;
 }
 .sub-answer__context {
   margin: 0 0 var(--pa-space-1);
@@ -498,11 +498,5 @@ const divergenceLine = computed(() => {
   }
 }
 
-@media (min-width: 768px) {
-  .sub-answer--mine {
-    border-radius: 0;
-    padding: var(--pa-space-2) 0 var(--pa-space-2) var(--pa-space-4);
-    background: transparent;
-  }
-}
+
 </style>
