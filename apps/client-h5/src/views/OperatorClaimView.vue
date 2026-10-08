@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { client, session, type PlaceDetail } from "@petaccess/client-core";
+import { client, session, type PlaceDetail, type Zone } from "@petaccess/client-core";
 import AppShell from "../components/AppShell.vue";
 import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
+import OperatorPolicyForm from "../components/operator/OperatorPolicyForm.vue";
 import { presentDescription } from "../errors";
 
 const route = useRoute();
@@ -12,6 +13,8 @@ const router = useRouter();
 const placeId = computed(() => String(route.params.id ?? ""));
 
 const place = ref<PlaceDetail | null>(null);
+const zones = ref<Zone[]>([]);
+const activeClaimId = ref("");
 const loading = ref(true);
 const error = ref("");
 const busy = ref(false);
@@ -56,15 +59,20 @@ async function load() {
   error.value = "";
   try {
     await session.restore();
-    place.value = await client.place(placeId.value);
+    [place.value, zones.value] = await Promise.all([
+      client.place(placeId.value),
+      client.zones(placeId.value).catch(() => [] as Zone[]),
+    ]);
     submitted.value = false;
     claimStatus.value = "";
     previousClaimStatus.value = "";
+    activeClaimId.value = "";
     if (session.signedIn) {
       const mine = await client.myOperatorClaims(placeId.value);
       const latest = mine[0];
       if (latest) {
         previousClaimStatus.value = latest.status;
+        activeClaimId.value = latest.id;
         if (["submitted", "verifying", "approved"].includes(latest.status)) {
           claimStatus.value = latest.status;
           submitted.value = true;
@@ -93,6 +101,7 @@ async function submit() {
       verification_note: note.value.trim() || null,
     });
     claimStatus.value = result.status;
+    activeClaimId.value = result.id;
     submitted.value = true;
   } catch (e) {
     error.value = presentDescription(e);
@@ -148,19 +157,29 @@ watch(placeId, () => void load(), { immediate: true });
           </template>
         </StateMessage>
 
-        <section
-          v-else-if="submitted"
-          class="operator-claim__result"
-          data-testid="operator-claim-result"
-          role="status"
-        >
-          <strong>认领申请已提交</strong>
-          <p>
-            当前状态：{{ claimStatusLabel }}。审核通过前，你不会获得管理方权限，
-            页面上的正式规则也不会因此改变。
-          </p>
-          <RouterLink class="btn primary" :to="`/place/${placeId}`">返回场所</RouterLink>
-        </section>
+        <template v-else-if="submitted">
+          <section
+            class="operator-claim__result"
+            data-testid="operator-claim-result"
+            role="status"
+          >
+            <strong>{{ claimStatus === "approved" ? "场所方身份已核验" : "认领申请已提交" }}</strong>
+            <p v-if="claimStatus === "approved"">
+              当前状态：{{ claimStatusLabel }}。你现在可以提交管理方正式政策；法律、监管规则与现场事实仍保持独立。
+            </p>
+            <p v-else>
+              当前状态：{{ claimStatusLabel }}。审核通过前，你不会获得管理方权限，
+              页面上的正式规则也不会因此改变。
+            </p>
+            <RouterLink class="btn-inline" :to="`/place/${placeId}`">返回场所 →</RouterLink>
+          </section>
+
+          <OperatorPolicyForm
+            v-if="claimStatus === 'approved' && activeClaimId"
+            :claim-id="activeClaimId"
+            :zones="zones"
+          />
+        </template>
 
         <form v-else class="operator-claim__form" @submit.prevent="submit">
           <p
