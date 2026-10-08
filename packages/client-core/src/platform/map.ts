@@ -129,28 +129,32 @@ function mergeCrowdedClusters(clusters: MapCluster[], zoom: number): MapCluster[
     groups.set(key, members);
   });
 
-  return [...groups.values()].map((group) => {
-    if (group.length === 1) return group[0];
-    const count = group.reduce((sum, cluster) => sum + cluster.count, 0);
-    const memberIds = group.flatMap((cluster) => cluster.memberIds).sort();
-    return {
-      id: `near:${memberIds[0]}`,
-      count,
-      lat: group.reduce((sum, cluster) => sum + cluster.lat * cluster.count, 0) / count,
-      lng: group.reduce((sum, cluster) => sum + cluster.lng * cluster.count, 0) / count,
-      status: STATUS_PRIORITY.find((status) => group.some((cluster) => cluster.status === status)) ?? "UNKNOWN",
-      memberIds,
-    };
-  }).sort((a, b) => a.id.localeCompare(b.id));
+  return [...groups.values()]
+    .map((group) => {
+      if (group.length === 1) return group[0];
+      const count = group.reduce((sum, cluster) => sum + cluster.count, 0);
+      const memberIds = group.flatMap((cluster) => cluster.memberIds).sort();
+      return {
+        id: `near:${memberIds[0]}`,
+        count,
+        lat: group.reduce((sum, cluster) => sum + cluster.lat * cluster.count, 0) / count,
+        lng: group.reduce((sum, cluster) => sum + cluster.lng * cluster.count, 0) / count,
+        status:
+          STATUS_PRIORITY.find((status) => group.some((cluster) => cluster.status === status)) ??
+          "UNKNOWN",
+        memberIds,
+      };
+    })
+    .sort((a, b) => a.id.localeCompare(b.id));
 }
 
 /**
  * Deterministic grid clustering.
  *
- * Above `unclusterAt` zoom every marker stands alone (the user is close enough
- * to read them). Below it, markers are bucketed into a grid whose cell size
- * shrinks with zoom, and each non-empty cell becomes one cluster. Deterministic
- * and provider-independent so the same data always clusters the same way.
+ * Above `unclusterAt` the renderer keeps one anchor per place except
+ * for collision groups. Below it, larger spatial grid buckets form clusters.
+ * Both routes merge near-overlapping anchors without fabricating geometry.
+ * The grouping is deterministic and provider-independent.
  */
 export function clusterMarkers(
   markers: MapMarker[],
