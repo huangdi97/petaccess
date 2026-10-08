@@ -46,7 +46,9 @@ def test_reality_event_feed_exists_in_live_and_committed_openapi() -> None:
         "fact_evidence_state",
         "place_match_state",
         "staff_awareness_state",
+        "staff_policy_statement_verbatim",
         "facility_purpose_state",
+        "dispute_open",
         "source_id",
         "evidence_bundle_id",
         "submitted_at",
@@ -55,6 +57,10 @@ def test_reality_event_feed_exists_in_live_and_committed_openapi() -> None:
     }
     assert critical <= live_props
     assert critical <= committed_props
+    # The committed snapshot backs generated frontend DTOs. Any extra or
+    # missing consumer event field is drift, even if an older "critical"
+    # subset still happens to pass.
+    assert live_props == committed_props
     assert live_required == committed_required
 
 
