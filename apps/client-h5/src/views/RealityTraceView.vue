@@ -64,9 +64,13 @@ const emptyCopy = computed(() =>
 const summaryLine = computed(() => {
   if (!scopedEvents.value.length) return "";
   const latest = [...scopedEvents.value].sort((a, b) => b.event_at.localeCompare(a.event_at))[0];
-  const presence = scopedEvents.value.filter((event) => event.event_type === "observed_presence").length;
+  const presence = scopedEvents.value.filter(
+    (event) => event.event_type === "observed_presence",
+  ).length;
   const staff = scopedEvents.value.filter((event) => event.event_type === "staff_response").length;
-  const facility = scopedEvents.value.filter((event) => event.event_type === "animal_facility").length;
+  const facility = scopedEvents.value.filter(
+    (event) => event.event_type === "animal_facility",
+  ).length;
   const latestDate = realityEventDisplayDate(latest);
   const latestLabel =
     latest.time_evidence_state === "publication_time_only"
@@ -90,10 +94,7 @@ async function load() {
   zones.value = [];
   const isCurrent = () => loadEpoch.isCurrent(epoch) && placeId.value === id;
   try {
-    const [eventRows, zoneRows] = await Promise.all([
-      client.realityEvents(id),
-      client.zones(id),
-    ]);
+    const [eventRows, zoneRows] = await Promise.all([client.realityEvents(id), client.zones(id)]);
     if (!isCurrent()) return;
     events.value = eventRows;
     zones.value = zoneRows;
@@ -143,7 +144,9 @@ const uiFixture = computed<string>(() =>
         <header class="reality-head" data-testid="trace-summary">
           <h2 class="reality-head__title">现场记录</h2>
           <p v-if="zoneId" class="reality-head__zone" data-testid="reality-zone-scope">
-            <span>{{ activeZone ? zoneConsumerLine(activeZone) : "所选区域未收录" }} · 区域筛选</span>
+            <span
+              >{{ activeZone ? zoneConsumerLine(activeZone) : "所选区域未收录" }} · 区域筛选</span
+            >
             <RouterLink :to="{ name: 'reality-trace', params: { id: placeId } }">
               查看全部区域 →
             </RouterLink>
