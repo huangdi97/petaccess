@@ -348,10 +348,7 @@ test("B2.5 — adding Reality from an empty scoped timeline retains the verified
   await page.goto(`${BASE}/#/place/${MALL_ID}/reality?zone=${zoneId}`);
   const contribute = page.getByTestId("reality-go-enter");
   await expect(contribute).toBeVisible();
-  await expect(contribute).toHaveAttribute(
-    "href",
-    `#/contribute/${MALL_ID}?zone=${zoneId}`,
-  );
+  await expect(contribute).toHaveAttribute("href", `#/contribute/${MALL_ID}?zone=${zoneId}`);
 });
 
 test("B3 — Place Evidence view 证据来源链渲染，无原始枚举", async ({ page }) => {
