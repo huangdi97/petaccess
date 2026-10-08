@@ -5,7 +5,8 @@ import { session } from "@petaccess/client-core";
 import { REQUIRED_COPY } from "@petaccess/design-tokens";
 import AppShell from "../components/AppShell.vue";
 
-const appVersion = import.meta.env.VITE_APP_VERSION ?? "0.2.0-dev";
+const appVersion = import.meta.env.VITE_APP_VERSION;
+const versionLabel = appVersion ? `v${appVersion}` : "开发版";
 const signedIn = ref(false);
 
 onMounted(async () => {
@@ -113,7 +114,7 @@ const EVIDENCE = [
     <section class="settings-section" data-testid="about-section">
       <div class="settings-section__lead">
         <h2>关于 PetAccess</h2>
-        <p class="muted">当前版本 v{{ appVersion }} · 上海试点 · 开发预览阶段</p>
+        <p class="muted">当前版本 {{ versionLabel }} · 上海试点 · 开发预览阶段</p>
       </div>
       <div class="settings-section__body settings-about">
         <p>城市公共空间动物通行规则与现场事实查询工具。去之前，先看规则与现场。</p>
