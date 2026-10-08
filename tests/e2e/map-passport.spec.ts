@@ -362,6 +362,30 @@ test("B3 — Place Evidence view 证据来源链渲染，无原始枚举", async
   }
 });
 
+test("B4.3 — Place identity renders and map CTA reflects coordinate availability", async ({
+  page,
+}) => {
+  await page.goto(`${BASE}/#/place/${MALL_ID}`);
+  await expect(page.locator('[data-ui="place-identity"] [data-ui="place-type-glyph"]')).toBeVisible({
+    timeout: 15000,
+  });
+  await expect(page.getByTestId("place-map-link")).toContainText("地图定位");
+
+  await page.route(`**/api/v1/places/${MALL_ID}/summary`, async (route) => {
+    const response = await route.fetch();
+    const payload = await response.json();
+    await route.fulfill({
+      status: response.status(),
+      contentType: "application/json",
+      body: JSON.stringify({ ...payload, latitude: null, longitude: null }),
+    });
+  });
+  await page.reload();
+  await expect(page.getByTestId("place-map-link")).toContainText("地图列表查看", {
+    timeout: 15000,
+  });
+});
+
 test("B5 — Search DecisionInspector 查看完整场所 → Place Passport", async ({ page }) => {
   // Search the ready mall fixture: the cafe deep-link lands on the §15 Unknown
   // Overview, which has no dossier answer block.
