@@ -350,3 +350,18 @@ test("B5 — Search DecisionInspector 查看完整场所 → Place Passport", as
   await page.getByTestId("inspector-open").click();
   await expect(page.getByTestId("section-answer")).toBeVisible();
 });
+
+
+test("B2.4 — unknown zone links cannot claim another area's Reality or contribution scope", async ({
+  page,
+}) => {
+  const missingZone = "00000000-0000-0000-0000-000000000000";
+  await page.goto(`${BASE}/#/place/${MALL_ID}/reality?zone=${missingZone}`);
+
+  await expect(page.getByTestId("reality-zone-scope")).toContainText("所选区域未收录");
+  await expect(page.getByText("所选区域无法确认")).toBeVisible();
+  await expect(page.getByTestId("reality-go-enter")).toHaveCount(0);
+  await expect(page.getByTestId("reality-workspace")).toHaveAttribute("data-ui-state", "empty");
+  await page.getByRole("link", { name: "查看全部区域 →" }).click();
+  await expect(page).toHaveURL(new RegExp(`#/place/${MALL_ID}/reality$`));
+});
