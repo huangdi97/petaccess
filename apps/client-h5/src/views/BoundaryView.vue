@@ -127,7 +127,6 @@ onMounted(load);
     </StateMessage>
 
     <template v-else>
-
       <p v-if="error" class="boundary-feedback" data-testid="boundary-error">{{ error }}</p>
       <p v-if="msg" class="boundary-feedback" data-testid="boundary-msg">{{ msg }}</p>
 
