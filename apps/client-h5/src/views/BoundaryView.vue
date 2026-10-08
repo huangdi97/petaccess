@@ -92,6 +92,14 @@ onMounted(load);
       <span>当前无网络连接：可查看已加载内容，保存操作已暂停。</span>
     </div>
 
+    <header class="boundary-head">
+      <h1>共处边界</h1>
+      <p class="muted">
+        这是你自己的出行偏好，不是对场所的评分，也不改变场所的准入规则。
+        未设置或没有证据的项目继续保持信息不足。
+      </p>
+    </header>
+
     <SkeletonList v-if="loading" :rows="4" />
 
     <StateMessage
@@ -119,13 +127,6 @@ onMounted(load);
     </StateMessage>
 
     <template v-else>
-      <header class="boundary-head">
-        <h1>共处边界</h1>
-        <p class="muted">
-          这些是你自己的出行偏好，只用于逐项比对场所公开记录，不形成场所总分。
-          没有设置的项目会保持信息不足。
-        </p>
-      </header>
 
       <p v-if="error" class="boundary-feedback" data-testid="boundary-error">{{ error }}</p>
       <p v-if="msg" class="boundary-feedback" data-testid="boundary-msg">{{ msg }}</p>
