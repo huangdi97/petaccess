@@ -20,7 +20,6 @@
  */
 import { computed } from "vue";
 import type { MapCamera, MapCluster, MapMarker } from "@petaccess/client-core";
-import { STATUS_GLYPHS } from "@petaccess/client-core";
 
 const props = withDefaults(
   defineProps<{
@@ -63,12 +62,21 @@ function project(lat: number, lng: number): { left: string; top: string } {
   };
 }
 
-const glyph = (status: MapMarker["status"]) => STATUS_GLYPHS[status] ?? STATUS_GLYPHS.UNKNOWN;
+const MARKER_GLYPHS: Record<MapMarker["status"], string> = {
+  ALLOWED: "✓",
+  CONDITIONAL: "△",
+  RESTRICTED: "▬",
+  UNKNOWN: "?",
+  CONFLICT: "!",
+  STALE: "↻",
+};
+
+const glyph = (status: MapMarker["status"]) => MARKER_GLYPHS[status];
 
 function markerLabel(cluster: MapCluster): string {
   if (cluster.count > 1) return `${cluster.count} 个场所`;
   const id = cluster.memberIds[0];
-  return id ? (props.lensLabels[id] ?? glyph(cluster.status)) : glyph(cluster.status);
+  return id ? (props.lensLabels[id] ?? "信息不足") : "信息不足";
 }
 
 function isSelectedCluster(cluster: MapCluster): boolean {
@@ -221,9 +229,9 @@ const MASS = [
         <div class="map-cluster" :class="'s-' + c.status">{{ c.count }}</div>
       </template>
       <template v-else>
-        <!-- Current freeze: the map may stay visually quiet, but status must
-             never be color-only. The text label appears on hover/focus/selection;
-             the marker itself always carries a redundant semantic glyph. -->
+        <!-- Status is never color-only: the compact marker carries a single
+             shape glyph; full semantic copy stays horizontal in the label,
+             results pane and selected preview. Never put words inside the dot. -->
         <div class="lbl" :class="'s-' + c.status">
           {{ markerLabel(c) }}
         </div>
