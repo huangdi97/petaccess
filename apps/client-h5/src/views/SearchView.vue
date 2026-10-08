@@ -592,9 +592,7 @@ watch(currentQueryContext, () => {
                 >
                   <template v-if="facts.get(p.id)?.answerError">规则结论暂时无法取得</template>
                   <template v-else-if="facts.get(p.id)?.answer">
-                    {{
-                      answerPrimarySummary(facts.get(p.id)?.answer)
-                    }}
+                    {{ answerPrimarySummary(facts.get(p.id)?.answer) }}
                     <span v-if="rowCondition(p)" class="result-row__condition">
                       · {{ rowCondition(p) }}
                     </span>
