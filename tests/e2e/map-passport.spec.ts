@@ -668,6 +668,7 @@ test("B2.3 — Place identity uses only public-gated scene photos", async ({ pag
   const scene = page.getByTestId("place-scene-media");
   await expect(scene).toBeVisible({ timeout: 15000 });
   await expect(scene.locator("img")).toHaveAttribute("alt", "场所场景：云栖中心·测试商场");
+  await expect(scene).toHaveClass(/scene-frame--hero/);
 });
 
 test("B2.4 — approved non-scene evidence never becomes a Place cover", async ({ page }) => {
