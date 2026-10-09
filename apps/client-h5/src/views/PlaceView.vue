@@ -33,7 +33,7 @@ import {
 } from "@petaccess/client-core";
 import DecisionInspector from "../components/domain/DecisionInspector.vue";
 import QueryContextBar from "../components/domain/QueryContextBar.vue";
-import PlaceTypeGlyph from "../components/domain/PlaceTypeGlyph.vue";
+import PlaceSceneFrame from "../components/domain/PlaceSceneFrame.vue";
 import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
 import PlaceSectionNav, { type PlaceViewKey } from "../components/place/PlaceSectionNav.vue";
@@ -390,25 +390,16 @@ const placeFixture = computed<string>(() => {
 
           <!-- 1. Identity（§16 Overview 第一块） -->
           <header
-            class="place-dossier__head"
-            :class="{ 'place-dossier__head--with-scene': Boolean(placeSceneMedia) }"
+            class="place-dossier__head place-dossier__head--with-scene"
             data-ui="place-identity"
           >
             <div class="place-dossier__identity-row">
-              <figure
-                v-if="placeSceneMedia"
+              <PlaceSceneFrame
                 class="place-dossier__scene"
-                data-testid="place-scene-media"
-              >
-                <img
-                  :src="placeSceneMedia.url"
-                  alt="经审核允许公开展示的场所场景照片"
-                  loading="lazy"
-                  decoding="async"
-                  referrerpolicy="no-referrer"
-                />
-              </figure>
-              <PlaceTypeGlyph v-else :place-type="place.place_type" size="lg" />
+                :src="placeSceneMedia?.url ?? null"
+                variant="compact"
+                :data-testid="placeSceneMedia ? 'place-scene-media' : 'place-scene-empty'"
+              />
               <div class="place-dossier__identity-copy">
                 <h1 class="place-dossier__name" data-ui="place-name">{{ place.canonical_name }}</h1>
                 <p class="muted place-dossier__meta">
@@ -622,30 +613,7 @@ const placeFixture = computed<string>(() => {
 }
 
 .place-dossier__scene {
-  flex: 0 0 152px;
-  width: 152px;
-  height: 96px;
   margin: 0;
-  overflow: hidden;
-  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
-  border-radius: var(--pa-radius-control);
-  background: var(--pa-color-surface-muted);
-}
-
-.place-dossier__scene img {
-  width: 100%;
-  height: 100%;
-  display: block;
-  object-fit: cover;
-}
-
-/* Identity anchor is a neutral place-type glyph, not an invented venue photo.
-   Distinguish the Place dossier header from the evidence sections below. */
-.place-dossier__identity-row :deep(.place-type-glyph) {
-  width: 52px;
-  height: 52px;
-  border-color: var(--pa-color-border);
-  background: var(--pa-color-surface);
 }
 
 .place-dossier__map-link {
@@ -770,12 +738,6 @@ const placeFixture = computed<string>(() => {
   .place-dossier__head--with-scene {
     padding: var(--pa-space-4);
     margin-bottom: var(--pa-space-3);
-  }
-
-  .place-dossier__scene {
-    flex-basis: 96px;
-    width: 96px;
-    height: 64px;
   }
 
   .place-dossier__actions {
