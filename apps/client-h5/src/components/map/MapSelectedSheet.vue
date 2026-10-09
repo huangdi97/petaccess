@@ -33,8 +33,17 @@ const props = withDefaults(
     error?: string;
     mapLensName?: string;
     mapLensLabel?: string;
+    sceneMediaUrl?: string | null;
   }>(),
-  { status: null, snapshot: null, loading: false, error: "", mapLensName: "", mapLensLabel: "" },
+  {
+    status: null,
+    snapshot: null,
+    loading: false,
+    error: "",
+    mapLensName: "",
+    mapLensLabel: "",
+    sceneMediaUrl: null,
+  },
 );
 
 const emit = defineEmits<{ close: [] }>();
@@ -163,6 +172,16 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
             <strong>{{ mapLensLabel }}</strong>
           </div>
         </div>
+
+        <img
+          v-if="sceneMediaUrl && phase !== 'closed'"
+          class="sheet__scene"
+          :src="sceneMediaUrl"
+          :alt="`场所场景：${place.canonical_name}`"
+          loading="lazy"
+          decoding="async"
+          referrerpolicy="no-referrer"
+        />
 
         <!-- §13 expanded：Current Decision（真实 verdict，无数据则保持留白不伪造）。 -->
         <div
@@ -299,6 +318,16 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
   font-size: var(--pa-font-size-md);
 }
+.sheet__scene {
+  display: block;
+  width: 100%;
+  max-height: 148px;
+  aspect-ratio: 16 / 7;
+  object-fit: cover;
+  border-radius: var(--pa-radius-control);
+  background: var(--pa-color-surface-muted);
+}
+
 .sheet__lens strong {
   color: var(--pa-color-text-primary);
   font-size: var(--pa-font-size-lg);
