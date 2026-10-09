@@ -22,18 +22,19 @@ from app.core.errors import ApiError, NotFound
 from app.core.media_sanitize import strip_image_metadata
 from app.core.security import get_current_user
 from app.db.session import get_db
-from app.models import (
-    AnimalFacility,
-    EvidenceBundle,
-    MediaObject,
-    ObservedPresence,
-    SourceArtifact,
-    StaffResponseObservation,
-    User,
+from app.models import MediaObject, User
+from app.models.enums import UserRole
+from app.models.media import (
+    MediaModerationStatus,
+    MediaPrivacyClass,
+    MediaPurpose,
+    MediaUploadStatus,
 )
-from app.models.enums import RealityVerificationStatus, UserRole
-from app.models.media import MediaPrivacyClass, MediaPurpose
 from app.providers.factory import get_storage_provider
+from app.services.public_evidence_media import (
+    PUBLIC_MEDIA_URL_SECONDS,
+    resolve_public_evidence_media,
+)
 
 router = APIRouter(tags=["media"])
 
@@ -107,72 +108,11 @@ def _reviewer(user: User) -> bool:
 
 def _private_media(db: Session, media_id: str, user: User) -> MediaObject:
     media = db.get(MediaObject, media_id)
-    if media is None or media.upload_status == "deleted":
+    if media is None or media.upload_status == MediaUploadStatus.DELETED.value:
         raise NotFound("媒体不存在")
     if media.created_by_user_id != user.id and not _reviewer(user):
         raise NotFound("媒体不存在")
     return media
-
-
-PUBLIC_REALITY_VERIFICATION = {
-    RealityVerificationStatus.HUMAN_VERIFIED.value,
-    RealityVerificationStatus.HUMAN_VERIFIED_WITH_NOTE.value,
-}
-PUBLIC_MEDIA_URL_SECONDS = 300
-
-
-def _bundle_backs_published_reality(db: Session, bundle_id: str) -> bool:
-    """True only when a human-reviewed public Reality fact cites this bundle."""
-
-    for model in (ObservedPresence, StaffResponseObservation, AnimalFacility):
-        published_id = db.scalar(
-            select(model.id)
-            .where(
-                model.evidence_bundle_id == bundle_id,
-                model.verification_status.in_(PUBLIC_REALITY_VERIFICATION),
-            )
-            .limit(1)
-        )
-        if published_id is not None:
-            return True
-    return False
-
-
-def _public_evidence_media(db: Session, bundle_id: str) -> tuple[MediaObject, str]:
-    """Resolve a display-safe media object without leaking private existence."""
-
-    unavailable = NotFound("公开证据媒体不可用")
-    if not _bundle_backs_published_reality(db, bundle_id):
-        raise unavailable
-
-    bundle = db.get(EvidenceBundle, bundle_id)
-    if bundle is None:
-        raise unavailable
-    artifact = db.get(SourceArtifact, bundle.artifact_id)
-    if artifact is None or not artifact.display_allowed or not artifact.media_id:
-        raise unavailable
-
-    media = db.get(MediaObject, artifact.media_id)
-    now = datetime.now(UTC)
-    if (
-        media is None
-        or media.upload_status != "stored"
-        or media.deleted_at is not None
-        or media.moderation_status != "approved"
-        or media.mime_type not in ALLOWED_MIME
-        or (media.expires_at is not None and media.expires_at <= now)
-    ):
-        raise unavailable
-
-    storage = get_storage_provider()
-    if storage.stat_object(media.object_key, media.bucket) is None:
-        raise unavailable
-    url = storage.presigned_get_url(
-        media.object_key,
-        media.bucket,
-        expires_seconds=PUBLIC_MEDIA_URL_SECONDS,
-    )
-    return media, url
 
 
 def _create_media(
@@ -191,7 +131,7 @@ def _create_media(
         select(MediaObject).where(
             MediaObject.created_by_user_id == user.id,
             MediaObject.sha256 == digest,
-            MediaObject.upload_status == "stored",
+            MediaObject.upload_status == MediaUploadStatus.STORED.value,
             MediaObject.deleted_at.is_(None),
         )
     )
@@ -212,7 +152,7 @@ def _create_media(
         byte_size=len(data),
         sha256=digest,
         original_filename=filename[:255] or None,
-        moderation_status="pending",
+        moderation_status=MediaModerationStatus.PENDING.value,
         expires_at=datetime.now(UTC) + _ttl_for(privacy_class),
     )
     db.add(media)
@@ -286,7 +226,7 @@ def public_evidence_media(bundle_id: str, db: Session = Depends(get_db)) -> dict
     remain uploader/reviewer-only.
     """
 
-    media, url = _public_evidence_media(db, bundle_id)
+    media, url = resolve_public_evidence_media(db, bundle_id)
     return {
         "evidence_bundle_id": bundle_id,
         "media_id": media.id,
@@ -340,7 +280,7 @@ def delete_media(
 ) -> None:
     media = _private_media(db, media_id, user)
     get_storage_provider().remove_object(media.object_key, media.bucket)
-    media.upload_status = "deleted"
+    media.upload_status = MediaUploadStatus.DELETED.value
     media.deleted_at = datetime.now(UTC)
     record_audit(
         db,
@@ -350,7 +290,7 @@ def delete_media(
         action=AuditEvent.MEDIA_DELETE.value,
         target_type="media_object",
         target_id=media.id,
-        before_state={"upload_status": "stored"},
-        after_state={"upload_status": "deleted"},
+        before_state={"upload_status": MediaUploadStatus.STORED.value},
+        after_state={"upload_status": MediaUploadStatus.DELETED.value},
     )
     db.commit()
