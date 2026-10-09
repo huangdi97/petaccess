@@ -32,6 +32,9 @@ const props = withDefaults(
     primarySourceLabel: string | null;
     latestVerifiedAt: string | null;
     observationCount: number;
+    /** Public Place identity facts only; no inferred hours/coordinates. */
+    placeKindLabel?: string;
+    canonicalAddress?: string | null;
     /** §11：mobile 也要 Space/Evidence summary row（非展开），desktop 五块齐全。 */
     desktop?: boolean;
   }>(),
@@ -190,6 +193,35 @@ const divergenceLine = computed(() => {
     </section>
   </div>
 
+  <!-- Basic identity facts use only canonical Place fields and recorded zone
+       count. Do not infer business hours, friendliness, or access from them. -->
+  <section
+    v-if="desktop"
+    class="place-section place-basics"
+    data-testid="overview-basics"
+    data-ui="place-basic-facts"
+  >
+    <h2 class="place-section__title">基本信息</h2>
+    <dl class="place-basics__grid">
+      <div>
+        <dt>类型</dt>
+        <dd>{{ placeKindLabel || "类型待补充" }}</dd>
+      </div>
+      <div>
+        <dt>地址</dt>
+        <dd>{{ canonicalAddress || "地址待补充" }}</dd>
+      </div>
+      <div>
+        <dt>空间记录</dt>
+        <dd>{{ spaceSummaryLine }}</dd>
+      </div>
+      <div>
+        <dt>规则核验</dt>
+        <dd>{{ latestVerifiedAt || "暂无核验日期" }}</dd>
+      </div>
+    </dl>
+  </section>
+
   <!-- §11 mobile：Space summary row（56–64px，不展开）；desktop 显示多行区。 -->
   <section
     v-if="desktop"
@@ -290,6 +322,38 @@ const divergenceLine = computed(() => {
 
 .place-section {
   margin-bottom: var(--pa-space-5);
+}
+
+.place-basics {
+  padding-bottom: var(--pa-space-4);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.place-basics__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--pa-space-3) var(--pa-space-6);
+  margin: 0;
+}
+
+.place-basics__grid > div {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  gap: var(--pa-space-2);
+  align-items: baseline;
+}
+
+.place-basics__grid dt {
+  color: var(--pa-color-text-muted);
+  font-size: var(--pa-font-size-sm);
+}
+
+.place-basics__grid dd {
+  min-width: 0;
+  margin: 0;
+  color: var(--pa-color-text-primary);
+  font-size: var(--pa-font-size-md);
+  overflow-wrap: anywhere;
 }
 .place-section__title {
   margin: 0 0 var(--pa-space-3);
