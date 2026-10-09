@@ -168,8 +168,14 @@ const sourceSummary = computed(() => {
 });
 
 function publicMediaFor(event: RealityEventView): PublicEvidenceMediaView | null {
-  if (!event.evidence_bundle_id) return null;
-  return publicMediaByBundle.value.get(event.evidence_bundle_id) ?? null;
+  const bundleId = event.evidence_bundle_id;
+  if (!bundleId) return null;
+  // One evidence bundle is one public media record even when several reviewed
+  // facts were extracted from it. Repeating the same image beside every fact
+  // would visually over-count a single piece of evidence.
+  const firstEvent = events.value.find((item) => item.evidence_bundle_id === bundleId);
+  if (firstEvent?.id !== event.id) return null;
+  return publicMediaByBundle.value.get(bundleId) ?? null;
 }
 
 async function loadPublicMedia(eventRows: RealityEventView[], epoch: number) {
