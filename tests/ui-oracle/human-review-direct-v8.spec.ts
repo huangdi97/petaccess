@@ -254,7 +254,7 @@ const SHOTS: Shot[] = [
       "entry-quick",
       "entry-next",
     ],
-    requiredText: ["步骤 1 / 4", "提交内容会进入人工核验"],
+    requiredText: ["1 / 4", "提交内容会进入人工核验"],
     note: "Contribution entry has five consumer intents and no admin/schema language.",
   },
   {
@@ -389,7 +389,7 @@ const SHOTS: Shot[] = [
     page: "contribution",
     h1: "现场贡献",
     requiredTestids: ["contribution-review", "reality-submit"],
-    requiredText: ["提交前核对", "步骤 3 / 4", "人工审核"],
+    requiredText: ["提交前核对", "3 / 4", "人工审核"],
     note: "Step 3 is a real read-only review of the structured fact before any API write.",
   },
   {
