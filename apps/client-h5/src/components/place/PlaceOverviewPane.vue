@@ -23,12 +23,14 @@ import { coexistenceRealityLine } from "../../consumer/rowView";
 import { querySubjectLabel } from "../../consumer/queryContext";
 import { divergenceLabel } from "../../reality";
 import StatusBadge from "../StatusBadge.vue";
+import type { ZoneDecisionState } from "../../composables/useZoneDecisions";
 
 const props = withDefaults(
   defineProps<{
     answer: AccessAnswer | null;
     coexistence: CoexistenceSnapshot | null;
     zoneSummary: Zone[];
+    zoneDecisions: Record<string, ZoneDecisionState>;
     primarySourceLabel: string | null;
     latestVerifiedAt: string | null;
     observationCount: number;
@@ -230,6 +232,14 @@ const divergenceLine = computed(() => {
       :aria-label="`查看场所空间与区域信息：${zoneConsumerLine(z)}`"
     >
       <span class="zone-row__name">{{ zoneConsumerLine(z) }}</span>
+      <span class="zone-row__decision">
+        <span v-if="zoneDecisions[z.id]?.loading" class="muted">查询中…</span>
+        <span v-else-if="zoneDecisions[z.id]?.error" class="muted">暂无法取得</span>
+        <StatusBadge
+          v-else
+          :semantic="answerStatusKey(zoneDecisions[z.id]?.answer ?? null)"
+        />
+      </span>
       <span class="zone-row__hint">查看空间 →</span>
     </RouterLink>
     <p v-if="!zoneSummary.length" class="muted">暂无已收录的分区域信息</p>
@@ -390,8 +400,8 @@ const divergenceLine = computed(() => {
   margin: var(--pa-space-1) 0 0;
 }
 .zone-row {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
   gap: var(--pa-space-3);
   min-height: 48px;
@@ -413,6 +423,13 @@ const divergenceLine = computed(() => {
 .zone-row:focus-visible {
   outline: 2px solid var(--pa-color-border-focus);
   outline-offset: 2px;
+}
+.zone-row__decision {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 5.5rem;
+  font-size: var(--pa-font-size-sm);
 }
 .zone-row__hint {
   font-size: var(--pa-font-size-sm);
