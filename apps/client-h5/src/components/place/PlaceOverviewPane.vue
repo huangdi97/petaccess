@@ -22,6 +22,7 @@ import { answerConditions, answerStatusKey, answerVerdictLabel } from "../../ans
 import { coexistenceRealityLine } from "../../consumer/rowView";
 import { querySubjectLabel } from "../../consumer/queryContext";
 import { divergenceLabel } from "../../reality";
+import { publicSourceIssuer } from "../../consumer/sourcePrivacy";
 import StatusBadge from "../StatusBadge.vue";
 import type { ZoneDecisionState } from "../../composables/useZoneDecisions";
 
@@ -64,9 +65,13 @@ const realityMetaLine = computed(() => {
     parts.push(`最近动物记录 ${reality.days_since_last_seen} 天前`);
   return parts.join(" · ");
 });
-const primaryEvidence = computed(
-  () => props.primarySourceLabel ?? props.answer?.evidence_state.rules[0]?.issuer ?? "来源待补充",
-);
+const primaryEvidence = computed(() => {
+  if (props.primarySourceLabel) return props.primarySourceLabel;
+  const evidence = props.answer?.evidence_state.rules[0];
+  return evidence
+    ? publicSourceIssuer(evidence.source_type, evidence.issuer)
+    : "来源待补充";
+});
 /** §11 mobile：space summary row 的 value。 */
 const spaceSummaryLine = computed(() =>
   props.zoneSummary.length ? `${props.zoneSummary.length} 个已收录区域` : "暂无已收录区域",
