@@ -5,7 +5,7 @@
  * localStorage), then drives the wizard: entry → reality presence form →
  * parent-flow submit (candidate REVIEW_PENDING) → 我的贡献 history row.
  */
-import { expect, test, type APIRequestContext } from "@playwright/test";
+import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
 
 const BASE = "http://127.0.0.1:5175";
 const API = "http://127.0.0.1:8010/api/v1";
@@ -25,6 +25,12 @@ async function signIn(request: APIRequestContext): Promise<string> {
   return (await login.json()).access_token as string;
 }
 
+async function chooseEntry(page: Page, testId: string) {
+  await page.getByTestId(testId).click();
+  await page.getByTestId("entry-next").click();
+}
+
+
 test("A1/A4 — 向导入口与现场记录表单渲染（已登录）", async ({ page, request }) => {
   const token = await signIn(request);
   // Deterministic token injection: addInitScript runs before every page load, so
@@ -40,8 +46,8 @@ test("A1/A4 — 向导入口与现场记录表单渲染（已登录）", async (
   // timeout on first load. Bounded 15s wait, then assert visibility.
   await expect(page.getByTestId("entry-reality-observed_presence")).toBeVisible({ timeout: 15000 });
   await expect(page.getByTestId("entry-quick")).toBeVisible();
-  await page.getByTestId("entry-reality-observed_presence").click();
-  await expect(page.getByTestId("reality-submit")).toBeVisible({ timeout: 15000 });
+  await chooseEntry(page, "entry-reality-observed_presence");
+  await expect(page.getByTestId("reality-review-next")).toBeVisible({ timeout: 15000 });
   await expect(page.getByTestId("reality-source-mode")).toBeVisible();
   await expect(page.getByTestId("reality-effort")).toBeVisible();
   await page.getByTestId("reality-source-mode").selectOption("on_site_past");
@@ -72,15 +78,15 @@ test("A1.0 — contribution header never invents a default public-area scope", a
   await page.goto(`${BASE}/#/contribute/${MALL_ID}`, { waitUntil: "load" });
   await expect(page.getByTestId("entry-quick")).toBeVisible({ timeout: 15000 });
 
-  await page.getByTestId("entry-quick").click();
+  await chooseEntry(page, "entry-quick");
   await expect(page.getByTestId("step-place-context")).toContainText("场所整体");
   await page.getByTestId("step-back").click();
 
-  await page.getByTestId("entry-rule").click();
+  await chooseEntry(page, "entry-rule");
   await expect(page.getByTestId("step-place-context")).toContainText("未限定分区");
   await page.getByTestId("step-back").click();
 
-  await page.getByTestId("entry-reality-observed_presence").click();
+  await chooseEntry(page, "entry-reality-observed_presence");
   await expect(page.getByTestId("step-place-context")).toContainText("未指定分区");
   await expect(page.getByTestId("step-place-context")).not.toContainText("公共区域");
 });
@@ -92,21 +98,21 @@ test("A1.1 — retrospective and external dates cannot silently claim event timi
   const token = await signIn(request);
   await page.addInitScript((t) => localStorage.setItem("pa_token", t), token);
   await page.goto(`${BASE}/#/contribute/${MALL_ID}`);
-  await page.getByTestId("entry-reality-observed_presence").click();
+  await chooseEntry(page, "entry-reality-observed_presence");
 
   await page.getByTestId("reality-source-mode").selectOption("on_site_past");
   await expect(page.getByTestId("reality-date")).toHaveValue("");
-  await expect(page.getByTestId("reality-submit")).toBeDisabled();
+  await expect(page.getByTestId("reality-review-next")).toBeDisabled();
   await page.getByTestId("reality-date").fill("2026-09-20");
-  await expect(page.getByTestId("reality-submit")).toBeEnabled();
+  await expect(page.getByTestId("reality-review-next")).toBeEnabled();
 
   await page.getByTestId("reality-source-mode").selectOption("external_online_content");
   await page.getByTestId("reality-source-url").fill("https://example.com/evidence");
   await page.getByTestId("reality-published-date").fill("2026-09-20");
   await page.getByTestId("reality-external-event-date").fill("2026-09-21");
-  await expect(page.getByTestId("reality-submit")).toBeDisabled();
+  await expect(page.getByTestId("reality-review-next")).toBeDisabled();
   await page.getByTestId("reality-external-event-date").fill("2026-09-19");
-  await expect(page.getByTestId("reality-submit")).toBeEnabled();
+  await expect(page.getByTestId("reality-review-next")).toBeEnabled();
 });
 
 test("A2 — 现场记录经父流提交，候选进入人工审核队列", async ({ page, request }) => {
@@ -118,7 +124,7 @@ test("A2 — 现场记录经父流提交，候选进入人工审核队列", asyn
   // Hardening (same pattern as B2/A1, commit a8bab37): the entry is lazy-
   // loaded and can appear late under parallel workers; wait before clicking.
   await expect(page.getByTestId("entry-reality-observed_presence")).toBeVisible({ timeout: 15000 });
-  await page.getByTestId("entry-reality-observed_presence").click();
+  await chooseEntry(page, "entry-reality-observed_presence");
   await expect(page.getByTestId("reality-source-mode")).toBeVisible({ timeout: 15000 });
   await page.getByTestId("reality-source-mode").selectOption("on_site_past");
   await expect(page.getByTestId("reality-date")).toBeVisible();
@@ -127,6 +133,8 @@ test("A2 — 现场记录经父流提交，候选进入人工审核队列", asyn
   const reportRequestPromise = page.waitForRequest(
     (r) => r.method() === "POST" && r.url().includes(`/places/${MALL_ID}/reality/reports`),
   );
+  await page.getByTestId("reality-review-next").click();
+  await expect(page.getByTestId("contribution-review")).toBeVisible();
   await page.getByTestId("reality-submit").click();
   const reportBody = (await reportRequestPromise).postDataJSON() as {
     effort: { duration_bucket: string; animal_observed: boolean };
@@ -146,7 +154,7 @@ test("A2.0 — 外部帖子只记录发布时间，不把发布时间伪装成�
   await page.addInitScript((t) => localStorage.setItem("pa_token", t), token);
   await page.goto(`${BASE}/#/contribute/${MALL_ID}`, { waitUntil: "load" });
   await expect(page.getByTestId("entry-reality-observed_presence")).toBeVisible({ timeout: 15000 });
-  await page.getByTestId("entry-reality-observed_presence").click();
+  await chooseEntry(page, "entry-reality-observed_presence");
   await page.getByTestId("reality-source-mode").selectOption("external_online_content");
   await page.getByTestId("reality-source-url").fill("https://example.com/public-post");
   await page.getByTestId("reality-source-platform").selectOption("web");
@@ -155,6 +163,8 @@ test("A2.0 — 外部帖子只记录发布时间，不把发布时间伪装成�
   const requestPromise = page.waitForRequest(
     (r) => r.method() === "POST" && r.url().includes(`/places/${MALL_ID}/reality/reports`),
   );
+  await page.getByTestId("reality-review-next").click();
+  await expect(page.getByTestId("contribution-review")).toBeVisible();
   await page.getByTestId("reality-submit").click();
   const requestBody = (await requestPromise).postDataJSON() as {
     report: Record<string, unknown>;
@@ -180,13 +190,15 @@ test("A2.1 — Staff / Facility contribution uses canonical Reality domain value
 
   await page.goto(`${BASE}/#/contribute/${MALL_ID}`, { waitUntil: "load" });
   await expect(page.getByTestId("entry-reality-staff_response")).toBeVisible({ timeout: 15000 });
-  await page.getByTestId("entry-reality-staff_response").click();
+  await chooseEntry(page, "entry-reality-staff_response");
   await page.getByTestId("reality-staff-role").selectOption("security");
   await page.locator("#reality-staff-action").selectOption("direct_to_allowed_zone");
 
   const staffRequestPromise = page.waitForRequest(
     (r) => r.method() === "POST" && r.url().includes(`/places/${MALL_ID}/reality/reports`),
   );
+  await page.getByTestId("reality-review-next").click();
+  await expect(page.getByTestId("contribution-review")).toBeVisible();
   await page.getByTestId("reality-submit").click();
   const staffRequest = await staffRequestPromise;
   const staffBody = staffRequest.postDataJSON() as {
@@ -204,7 +216,7 @@ test("A2.1 — Staff / Facility contribution uses canonical Reality domain value
 
   await page.goto(`${BASE}/#/contribute/${MALL_ID}`, { waitUntil: "load" });
   await expect(page.getByTestId("entry-reality-animal_facility")).toBeVisible({ timeout: 15000 });
-  await page.getByTestId("entry-reality-animal_facility").click();
+  await chooseEntry(page, "entry-reality-animal_facility");
   await page.locator("#reality-facility-type").selectOption("pet_waiting_area");
   await page.locator("#reality-facility-status").selectOption("temporarily_unavailable");
   await page.getByTestId("reality-facility-access").selectOption("operator_provided");
@@ -217,6 +229,8 @@ test("A2.1 — Staff / Facility contribution uses canonical Reality domain value
   const facilityRequestPromise = page.waitForRequest(
     (r) => r.method() === "POST" && r.url().includes(`/places/${MALL_ID}/reality/reports`),
   );
+  await page.getByTestId("reality-review-next").click();
+  await expect(page.getByTestId("contribution-review")).toBeVisible();
   await page.getByTestId("reality-submit").click();
   const facilityRequest = await facilityRequestPromise;
   const facilityBody = facilityRequest.postDataJSON() as {
@@ -242,7 +256,7 @@ test("A2.2 — 规则线索进入 RuleCandidate review，而不是 Observation/R
   await page.addInitScript((t) => localStorage.setItem("pa_token", t), token);
   await page.goto(`${BASE}/#/contribute/${MALL_ID}`, { waitUntil: "load" });
   await expect(page.getByTestId("entry-rule")).toBeVisible({ timeout: 15000 });
-  await page.getByTestId("entry-rule").click();
+  await chooseEntry(page, "entry-rule");
   await page.getByTestId("rule-known").selectOption("conditional");
   await page.getByTestId("rule-source-basis").selectOption("staff_statement");
   await page.getByTestId("rule-animal-scope").selectOption("ordinary_pet");
@@ -250,6 +264,8 @@ test("A2.2 — 规则线索进入 RuleCandidate review，而不是 Observation/R
   const leadRequestPromise = page.waitForRequest(
     (r) => r.method() === "POST" && r.url().includes(`/places/${MALL_ID}/rule-leads`),
   );
+  await page.getByTestId("rule-review-next").click();
+  await expect(page.getByTestId("contribution-review")).toBeVisible();
   await page.getByTestId("rule-submit").click();
   const leadRequest = await leadRequestPromise;
   const body = leadRequest.postDataJSON() as Record<string, unknown>;
@@ -273,7 +289,7 @@ test("A2.2b — 规则牌可独立提交证据，不要求用户先解释准入�
   expect(zoneId).toBeDefined();
   await page.addInitScript((t) => localStorage.setItem("pa_token", t), token);
   await page.goto(`${BASE}/#/contribute/${MALL_ID}`, { waitUntil: "load" });
-  await page.getByTestId("entry-rule").click();
+  await chooseEntry(page, "entry-rule");
   await page.getByTestId("rule-intent-signage").click();
   await page.getByTestId("rule-signage-zone").selectOption(zoneId!);
 
@@ -292,6 +308,8 @@ test("A2.2b — 规则牌可独立提交证据，不要求用户先解释准入�
   const ruleLeadRequest = page.waitForRequest(
     (r) => r.method() === "POST" && r.url().includes(`/places/${MALL_ID}/rule-leads`),
   );
+  await page.getByTestId("rule-review-next").click();
+  await expect(page.getByTestId("contribution-review")).toBeVisible();
   await page.getByTestId("rule-submit").click();
   const body = (await ruleLeadRequest).postDataJSON() as Record<string, unknown>;
   expect(body.media_id).toBeTruthy();
@@ -314,7 +332,7 @@ test("A2.2c — switching rule intent clears a hidden spatial scope", async ({ p
 
   await page.addInitScript((t) => localStorage.setItem("pa_token", t), token);
   await page.goto(`${BASE}/#/contribute/${MALL_ID}`, { waitUntil: "load" });
-  await page.getByTestId("entry-rule").click();
+  await chooseEntry(page, "entry-rule");
   await page.locator("#rule-zone").selectOption(zoneId!);
   await expect(page.locator("#rule-zone")).toHaveValue(zoneId!);
 
@@ -327,12 +345,14 @@ test("A2.3 — 场所纠错只提交 review lead，不直接修改场所", async
   await page.addInitScript((t) => localStorage.setItem("pa_token", t), token);
   await page.goto(`${BASE}/#/contribute/${MALL_ID}`, { waitUntil: "load" });
   await expect(page.getByTestId("entry-quick")).toBeVisible({ timeout: 15000 });
-  await page.getByTestId("entry-quick").click();
+  await chooseEntry(page, "entry-quick");
   await page.getByTestId("correction-detail").fill("地址楼层需要人工复核");
 
   const correctionRequestPromise = page.waitForRequest(
     (r) => r.method() === "POST" && r.url().includes("/verifications"),
   );
+  await page.getByTestId("quick-review-next").click();
+  await expect(page.getByTestId("contribution-review")).toBeVisible();
   await page.getByTestId("quick-submit").click();
   const correctionRequest = await correctionRequestPromise;
   const body = correctionRequest.postDataJSON() as Record<string, unknown>;
@@ -367,6 +387,8 @@ test("A2.4 — “这次没看到”记录 effort，而不是生成动物缺席 
   const reportRequestPromise = page.waitForRequest(
     (r) => r.method() === "POST" && r.url().includes(`/places/${MALL_ID}/reality/reports`),
   );
+  await page.getByTestId("effort-review-next").click();
+  await expect(page.getByTestId("contribution-review")).toBeVisible();
   await page.getByTestId("effort-submit").click();
   const body = (await reportRequestPromise).postDataJSON() as {
     candidates: unknown[];
@@ -396,13 +418,15 @@ test("A3 — 规则线索直接进入 RuleCandidate review，不走 Observation"
   await page.addInitScript((t) => localStorage.setItem("pa_token", t), token);
   await page.goto(`${BASE}/#/contribute/${MALL_ID}`, { waitUntil: "load" });
   await expect(page.getByTestId("entry-rule")).toBeVisible({ timeout: 15000 });
-  await page.getByTestId("entry-rule").click();
+  await chooseEntry(page, "entry-rule");
   await page.getByTestId("rule-known").selectOption("conditional");
   await page.getByTestId("rule-source-basis").selectOption("official_online");
 
   const leadRequest = page.waitForRequest(
     (r) => r.method() === "POST" && r.url().includes(`/api/v1/places/${MALL_ID}/rule-leads`),
   );
+  await page.getByTestId("rule-review-next").click();
+  await expect(page.getByTestId("contribution-review")).toBeVisible();
   await page.getByTestId("rule-submit").click();
   const req = await leadRequest;
   const body = req.postDataJSON() as Record<string, unknown>;
@@ -417,12 +441,14 @@ test("A3.1 — 场所纠错允许只知道当前值错误", async ({ page, reque
   await page.addInitScript((t) => localStorage.setItem("pa_token", t), token);
   await page.goto(`${BASE}/#/contribute/${MALL_ID}`, { waitUntil: "load" });
   await expect(page.getByTestId("entry-quick")).toBeVisible({ timeout: 15000 });
-  await page.getByTestId("entry-quick").click();
+  await chooseEntry(page, "entry-quick");
   await page.getByTestId("correction-unknown").check();
 
   const verificationRequest = page.waitForRequest(
     (r) => r.method() === "POST" && r.url().endsWith("/api/v1/verifications"),
   );
+  await page.getByTestId("quick-review-next").click();
+  await expect(page.getByTestId("contribution-review")).toBeVisible();
   await page.getByTestId("quick-submit").click();
   const req = await verificationRequest;
   const body = req.postDataJSON() as Record<string, unknown>;
@@ -437,17 +463,21 @@ test("A2.2 — Rule lead 与场所纠错都进入人工核验并出现在统一�
 
   await page.goto(`${BASE}/#/contribute/${MALL_ID}`, { waitUntil: "load" });
   await expect(page.getByTestId("entry-rule")).toBeVisible({ timeout: 15000 });
-  await page.getByTestId("entry-rule").click();
+  await chooseEntry(page, "entry-rule");
   await page.getByTestId("rule-known").selectOption("conditional");
   await page.getByTestId("rule-source-basis").selectOption("uncertain");
+  await page.getByTestId("rule-review-next").click();
+  await expect(page.getByTestId("contribution-review")).toBeVisible();
   await page.getByTestId("rule-submit").click();
   await expect(page.getByTestId("contribute-result")).toContainText("人工复核", {
     timeout: 15000,
   });
 
   await page.goto(`${BASE}/#/contribute/${MALL_ID}`, { waitUntil: "load" });
-  await page.getByTestId("entry-quick").click();
+  await chooseEntry(page, "entry-quick");
   await page.getByTestId("correction-detail").fill("该场所楼层信息需要核验");
+  await page.getByTestId("quick-review-next").click();
+  await expect(page.getByTestId("contribution-review")).toBeVisible();
   await page.getByTestId("quick-submit").click();
   await expect(page.getByTestId("contribute-result")).toContainText("人工核验", {
     timeout: 15000,
@@ -465,7 +495,7 @@ test("A2.2 — area-only 外部内容只保存线索，不冒充当前场所事�
   await page.addInitScript((value) => localStorage.setItem("pa_token", value), token);
   await page.goto(`${BASE}/#/contribute/${MALL_ID}`, { waitUntil: "load" });
   await expect(page.getByTestId("entry-reality-observed_presence")).toBeVisible({ timeout: 15000 });
-  await page.getByTestId("entry-reality-observed_presence").click();
+  await chooseEntry(page, "entry-reality-observed_presence");
 
   await page.getByTestId("reality-source-mode").selectOption("external_online_content");
   await page.getByTestId("reality-source-url").fill("https://example.com/area-only-pet-post");
@@ -479,6 +509,8 @@ test("A2.2 — area-only 外部内容只保存线索，不冒充当前场所事�
   const reportRequestPromise = page.waitForRequest(
     (r) => r.method() === "POST" && r.url().includes(`/places/${MALL_ID}/reality/reports`),
   );
+  await page.getByTestId("reality-review-next").click();
+  await expect(page.getByTestId("contribution-review")).toBeVisible();
   await page.getByTestId("reality-submit").click();
   const reportRequest = await reportRequestPromise;
   const body = reportRequest.postDataJSON() as {
@@ -511,11 +543,13 @@ test("B2 — 我的贡献：提交后可见、空时走统一空态", async ({ p
   await expect(page.getByTestId("entry-reality-observed_presence")).toBeVisible({
     timeout: 15000,
   });
-  await page.getByTestId("entry-reality-observed_presence").click();
+  await chooseEntry(page, "entry-reality-observed_presence");
   await expect(page.getByTestId("reality-source-mode")).toBeVisible({ timeout: 15000 });
   await page.getByTestId("reality-source-mode").selectOption("on_site_past");
   await expect(page.getByTestId("reality-date")).toBeVisible();
   await page.getByTestId("reality-date").fill("2026-09-20");
+  await page.getByTestId("reality-review-next").click();
+  await expect(page.getByTestId("contribution-review")).toBeVisible();
   await page.getByTestId("reality-submit").click();
   await expect(page.getByTestId("contribute-result")).toBeVisible({ timeout: 15000 });
   await page.goto(`${BASE}/#/mine`);
