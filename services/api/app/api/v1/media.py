@@ -23,7 +23,6 @@ from app.core.media_sanitize import strip_image_metadata
 from app.core.security import get_current_user
 from app.db.session import get_db
 from app.models import MediaObject, User
-from app.models.enums import UserRole
 from app.models.media import (
     MediaModerationStatus,
     MediaPrivacyClass,
@@ -32,6 +31,7 @@ from app.models.media import (
 )
 from app.providers.factory import get_storage_provider
 from app.schemas.media import MediaMetaOut
+from app.services.media_access import media_meta_response, private_media
 from app.services.public_evidence_media import (
     PUBLIC_MEDIA_URL_SECONDS,
     resolve_public_evidence_media,
@@ -101,19 +101,6 @@ async def _validated_image(file: UploadFile) -> tuple[bytes, str, str, bool]:
 
     sanitized, metadata_stripped = strip_image_metadata(data)
     return sanitized, declared, filename, metadata_stripped
-
-
-def _reviewer(user: User) -> bool:
-    return str(user.role) in {UserRole.MODERATOR.value, UserRole.ADMIN.value}
-
-
-def _private_media(db: Session, media_id: str, user: User) -> MediaObject:
-    media = db.get(MediaObject, media_id)
-    if media is None or media.upload_status == MediaUploadStatus.DELETED.value:
-        raise NotFound("媒体不存在")
-    if media.created_by_user_id != user.id and not _reviewer(user):
-        raise NotFound("媒体不存在")
-    return media
 
 
 def _create_media(
@@ -218,23 +205,6 @@ async def upload_media(
     return _upload_response(media, duplicate_of)
 
 
-def _media_meta_response(media: MediaObject) -> dict:
-    return {
-        "id": media.id,
-        "purpose": media.purpose,
-        "privacy_class": media.privacy_class,
-        "mime_type": media.mime_type,
-        "byte_size": media.byte_size,
-        "moderation_status": media.moderation_status,
-        "ocr_text": media.ocr_text,
-        "ocr_rule_candidates": media.ocr_rule_candidates,
-        "upload_status": media.upload_status,
-        "created_at": media.created_at,
-        "expires_at": media.expires_at,
-        "deleted_at": media.deleted_at,
-    }
-
-
 @router.get("/evidence-bundles/{bundle_id}/public-media")
 def public_evidence_media(bundle_id: str, db: Session = Depends(get_db)) -> dict:
     """Short-lived public image URL for explicitly display-approved evidence.
@@ -271,7 +241,7 @@ def my_media(
         .order_by(MediaObject.created_at.desc())
         .limit(100)
     ).all()
-    return [_media_meta_response(media) for media in rows]
+    return [media_meta_response(media) for media in rows]
 
 
 @router.get("/media/{media_id}/url")
@@ -281,7 +251,7 @@ def media_url(
     db: Session = Depends(get_db),
 ) -> dict:
     """Return a short-lived URL only to the uploader or a reviewer."""
-    media = _private_media(db, media_id, user)
+    media = private_media(db, media_id, user)
     url = get_storage_provider().presigned_get_url(media.object_key, media.bucket)
     return {"id": media.id, "url": url, "expires_in": 900}
 
@@ -292,8 +262,8 @@ def media_meta(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> dict:
-    media = _private_media(db, media_id, user)
-    return _media_meta_response(media)
+    media = private_media(db, media_id, user)
+    return media_meta_response(media)
 
 
 @router.delete("/media/{media_id}", status_code=204)
@@ -303,7 +273,7 @@ def delete_media(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> None:
-    media = _private_media(db, media_id, user)
+    media = private_media(db, media_id, user)
     get_storage_provider().remove_object(media.object_key, media.bucket)
     media.upload_status = MediaUploadStatus.DELETED.value
     media.deleted_at = datetime.now(UTC)
