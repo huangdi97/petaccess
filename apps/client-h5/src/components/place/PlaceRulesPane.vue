@@ -19,7 +19,6 @@
  */
 import { computed, ref } from "vue";
 import {
-  conditionLabel,
   type AccessAnswer,
   type EventPolicyItem,
   type RuleView,
@@ -27,6 +26,7 @@ import {
   type Zone,
 } from "@petaccess/client-core";
 import {
+  conditionLabel,
   mandatoryLevelLabel,
   ruleLayerLabel,
   ruleStatusLabel,
