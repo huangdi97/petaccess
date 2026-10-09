@@ -5,7 +5,8 @@
  * Overlay clicks intentionally do NOT close here — use PaModal when
  * dismissal-by-overlay-tap is wanted.
  */
-import { nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { onBeforeUnmount, onMounted } from "vue";
+import { useDialogFocus } from "../../composables/useDialogFocus";
 
 const props = withDefaults(
   defineProps<{
@@ -22,31 +23,7 @@ const emit = defineEmits<{ close: [] }>();
 
 defineOptions({ name: "PaDialog" });
 
-const panel = ref<HTMLElement | null>(null);
-let returnFocus: HTMLElement | null = null;
-
-const FOCUSABLE =
-  'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
-
-function focusInside() {
-  const target = panel.value?.querySelector<HTMLElement>(FOCUSABLE) ?? panel.value;
-  target?.focus();
-}
-
-watch(
-  () => props.open,
-  async (open) => {
-    if (open) {
-      returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-      await nextTick();
-      focusInside();
-    } else if (returnFocus) {
-      await nextTick();
-      returnFocus.focus();
-      returnFocus = null;
-    }
-  },
-);
+const { panel, keepFocusInside } = useDialogFocus(() => props.open);
 
 /** Close on Escape whether focus is inside the dialog or still in the page. */
 function onWindowKey(e: KeyboardEvent) {
