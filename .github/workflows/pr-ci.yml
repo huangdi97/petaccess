@@ -211,7 +211,12 @@ jobs:
         run: |
           pnpm exec playwright test \
             tests/e2e/h5-shell.spec.ts \
+            tests/e2e/navigation.spec.ts \
+            tests/e2e/responsive.spec.ts \
+            tests/e2e/consumer-contract-closure.spec.ts \
             tests/e2e/map-passport.spec.ts \
+            tests/e2e/place-route-race.spec.ts \
+            tests/e2e/reality-trace.spec.ts \
             tests/e2e/watch-domains.spec.ts \
             tests/e2e/contribute-route-race.spec.ts \
             --workers=1
