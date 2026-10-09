@@ -22,7 +22,7 @@ import PlacePreview from "../components/domain/PlacePreview.vue";
 import QueryContextBar from "../components/domain/QueryContextBar.vue";
 import StateMessage from "../components/StateMessage.vue";
 import { useMapWorkspace } from "../composables/useMapWorkspace";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 
 const {
   camera,
@@ -53,6 +53,7 @@ const {
   syncRoutePlace,
 } = useMapWorkspace();
 const router = useRouter();
+const route = useRoute();
 
 const renderConfig = ref<MapRenderConfig | null>(null);
 const realMapError = ref("");
@@ -132,13 +133,26 @@ function zoomMap(delta: number) {
   };
 }
 
-function panMap(lat: number, lng: number) {
-  // Moving the map leaves the previously selected location behind.
+async function clearSelectedPlaceForSpatialMove() {
   selected.value = null;
-  syncRoutePlace(null);
+  if (typeof route.query.place !== "string") return;
+  const query = { ...route.query };
+  delete query.place;
+  await router.replace({ query });
+}
+
+async function panMap(lat: number, lng: number) {
+  // A spatial move starts a new geographic task. Clear the old deep-linked
+  // place before loading, otherwise resolveSelection() can pull the camera
+  // straight back to the previous selection.
+  await clearSelectedPlaceForSpatialMove();
   camera.value = { ...camera.value, lat, lng };
-  // Panning changes the geographic query, not only the marker drawing.
-  void load();
+  await load();
+}
+
+async function locateMap() {
+  await clearSelectedPlaceForSpatialMove();
+  locate();
 }
 
 function setAbsoluteZoom(zoom: number) {
@@ -248,7 +262,7 @@ function chooseMapResult(id: string) {
         :search-loading="mapSearchLoading"
         :search-error="mapSearchError"
         @update:filters="activeFilters = $event"
-        @locate="locate"
+        @locate="locateMap"
         @search="searchMap"
         @open="chooseMapResult"
         @retry="load"
@@ -292,7 +306,7 @@ function chooseMapResult(id: string) {
               data-testid="map-mobile-locate"
               aria-label="使用当前定位搜索附近场所"
               :disabled="locationState === 'REQUESTING'"
-              @click="locate"
+              @click="locateMap"
             >
               定位
             </button>
