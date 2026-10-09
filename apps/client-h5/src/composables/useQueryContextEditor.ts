@@ -50,11 +50,14 @@ export function useQueryContextEditor() {
 
   function selectMode(mode: EditableQueryMode) {
     session.mode = mode;
-    if (mode !== "service_dog") session.setDeclaredRole(null);
-    // Choosing the primary query mode is itself a complete action. Close the
-    // modal so the user can immediately read the re-evaluated Place/Search
-    // result instead of leaving an invisible-page overlay above the app.
-    open.value = false;
+    if (mode !== "service_dog") {
+      session.setDeclaredRole(null);
+      // Ordinary-pet mode has no required second-stage role choice.
+      open.value = false;
+    }
+    // Service-dog mode stays open so the user can optionally declare the
+    // precise role before applying the query. Closing here would hide the
+    // role selector immediately after it becomes relevant.
   }
 
   function selectPet(pet: PetView) {
