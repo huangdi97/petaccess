@@ -19,6 +19,7 @@ import {
 } from "../../consumer/realityEvent";
 import EvidenceProvenance from "../domain/EvidenceProvenance.vue";
 import EvidenceStatus from "../domain/EvidenceStatus.vue";
+import { publicSourceIssuer } from "../../consumer/sourcePrivacy";
 
 const props = defineProps<{
   placeId: string;
@@ -86,7 +87,9 @@ const LABELS: Record<string, string> = {
         :key="item.rule_id + '-' + index"
         class="surface-row"
       >
-        <span class="evidence-source__issuer">{{ item.issuer || "来源待补充" }}</span>
+        <span class="evidence-source__issuer">{{
+          publicSourceIssuer(item.source_type, item.issuer)
+        }}</span>
         <span class="muted evidence-source__meta">
           {{ item.provenance_statement || LABELS[item.source_type ?? ""] || "规则来源待核验" }}
         </span>
@@ -99,7 +102,9 @@ const LABELS: Record<string, string> = {
     <section class="place-section" data-testid="evidence-sources" aria-label="来源列表">
       <h2 class="place-section__title">来源</h2>
       <div v-for="source in sources" :key="source.id" class="surface-row">
-        <span class="evidence-source__issuer">{{ source.issuer }}</span>
+        <span class="evidence-source__issuer">{{
+          publicSourceIssuer(source.source_type, source.issuer)
+        }}</span>
         <span class="muted evidence-source__meta">
           {{ LABELS[source.source_type] ?? "其他来源" }} · 收集于
           {{ source.collected_at.slice(0, 10) }}
