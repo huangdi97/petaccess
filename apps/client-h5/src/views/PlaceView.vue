@@ -415,6 +415,7 @@ const placeFixture = computed<string>(() => {
                 class="place-dossier__scene"
                 :src="placeSceneMedia?.url ?? null"
                 :alt="`场所场景：${place.canonical_name}`"
+                :place-type="place.place_type"
                 variant="compact"
                 :data-testid="placeSceneMedia ? 'place-scene-media' : 'place-scene-fallback'"
               />
