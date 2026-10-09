@@ -239,26 +239,6 @@ export function coverageHint(markers: MapMarker[]): CoverageHint {
   return { covered, unknown, text };
 }
 
-/* ------------------------------------------------------------- mock geometry */
-
-/**
- * Deterministic synthetic position used ONLY as a dev/test fallback when an
- * old or deliberately incomplete payload has no coordinates.
- *
- * Production/seeded PlaceSummary rows carry governed WGS84 representative
- * coordinates from PostGIS and must use those coordinates directly. Keeping
- * this helper preserves deterministic visual fixtures without allowing UUID
- * geometry to masquerade as a real place position.
- */
-export function synthMarkerPosition(id: string, camera: MapCamera): { lat: number; lng: number } {
-  let h = 0;
-  for (const c of id) h = (h * 31 + c.charCodeAt(0)) % 100000;
-  const dx = ((h % 41) - 20) / 20; // -1..1
-  const dy = ((Math.floor(h / 41) % 37) - 18) / 18; // -1..1
-  const span = 0.08 * Math.pow(2, 14 - camera.zoom);
-  return { lat: camera.lat + dy * span * 0.3, lng: camera.lng + dx * span * 0.45 };
-}
-
 /* ------------------------------------------------------------------ location */
 /**
  * One-shot location state (ADR-012: no continuous location history).
