@@ -101,9 +101,19 @@ const sourceMap = computed(() => {
   return m;
 });
 const latestVerifiedAt = computed(() => {
+  // "最近核验" belongs to the rules that actually produced this query's
+  // answer. A newer, unrelated rule elsewhere in the same place must not
+  // make the current decision look freshly verified.
+  const governingIds = new Set(
+    (answer.value?.evidence_state.rules ?? [])
+      .map((item) => item.rule_id)
+      .filter((id): id is string => Boolean(id)),
+  );
+  if (!governingIds.size) return null;
   const latest = currentRules.value
-    .map((r) => r.last_verified_at)
-    .filter((v): v is string => Boolean(v))
+    .filter((rule) => governingIds.has(rule.id))
+    .map((rule) => rule.last_verified_at)
+    .filter((value): value is string => Boolean(value))
     .sort()
     .at(-1);
   return latest ? latest.slice(0, 10) : null;
