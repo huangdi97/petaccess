@@ -659,10 +659,17 @@ async function assertShot(page: Page, shot: Shot): Promise<Record<string, unknow
 }
 
 test("direct-v8 canonical human-review packet", async ({ page, request }, testInfo) => {
-  const desktop = testInfo.project.name === "oracle-desktop";
-  const targetScope: Scope = desktop ? "desktop" : "mobile";
-  const viewport = desktop ? { width: 1440, height: 900 } : { width: 430, height: 932 };
-  const out = path.join(OUT, targetScope);
+  const projectName = testInfo.project.name;
+  const desktop = projectName === "oracle-desktop";
+  const tablet = projectName === "oracle-tablet";
+  const targetScope: Scope = desktop || tablet ? "desktop" : "mobile";
+  const captureScope = tablet ? "tablet" : targetScope;
+  const viewport = desktop
+    ? { width: 1440, height: 900 }
+    : tablet
+      ? { width: 800, height: 1080 }
+      : { width: 430, height: 932 };
+  const out = path.join(OUT, captureScope);
   mkdirSync(out, { recursive: true });
 
   let token: string | null = null;
