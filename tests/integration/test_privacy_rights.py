@@ -56,6 +56,10 @@ def test_account_deletion_request_is_persisted_and_idempotent(client):
     assert initial.status_code == 200
     assert initial.json()["status"] == "none"
 
+    me = client.get("/api/v1/auth/me", headers=headers)
+    assert me.status_code == 200
+    user_id = me.json()["id"]
+
     first = client.post("/api/v1/privacy/account-deletion-request", headers=headers)
     assert first.status_code == 202, first.text
     assert first.json()["status"] == "submitted"
@@ -74,7 +78,5 @@ def test_account_deletion_request_is_persisted_and_idempotent(client):
                 AuditLog.target_type == "user",
             )
         ).all()
-        # Other tests may have their own requests; this user's idempotent pair
-        # must still have produced a single request row for its target.
-        targets = [row.target_id for row in rows]
-        assert max(targets.count(target) for target in set(targets)) == 1
+        own_rows = [row for row in rows if row.target_id == user_id]
+        assert len(own_rows) == 1
