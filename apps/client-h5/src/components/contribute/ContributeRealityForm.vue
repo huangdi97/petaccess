@@ -12,6 +12,7 @@ import {
   STAFF_ROLE_LABELS,
 } from "../../consumer/labels";
 import ContributionStepShell from "./ContributionStepShell.vue";
+import ContributionReview from "./ContributionReview.vue";
 defineOptions({ name: "ContributeRealityForm" });
 const props = defineProps<{
   placeId: string;
@@ -188,6 +189,7 @@ const FACILITY_SECURITY_OPTIONS = [
 
 const busy = ref(false);
 const error = ref("");
+const reviewing = ref(false);
 const isExternal = computed(() => sourceMode.value === "external_online_content");
 const hasClaimablePlaceMatch = computed(
   () =>
@@ -217,6 +219,52 @@ const contributionScopeLabel = computed(() => {
   if (!zone.value) return "场所范围（未指定分区）";
   return props.zones.find((item) => item.id === zone.value)?.name ?? "分区记录待确认";
 });
+const SOURCE_MODE_LABELS: Record<SourceMode, string> = {
+  on_site_now: "我现在就在这里",
+  on_site_past: "我之前在这里看到过",
+  external_online_content: "我在公开帖子 / 视频里看到",
+};
+const ANIMAL_LABELS: Record<string, string> = { dog: "犬", cat: "猫", other: "其他动物" };
+
+const reviewFact = computed(() => {
+  if (props.kind === "observed_presence") {
+    const countText = count.value ? ` · 约 ${count.value} 只` : "";
+    return `${ANIMAL_LABELS[animal.value] ?? animal.value} · ${OBSERVED_ACTION_LABELS[action.value] ?? action.value}${countText}`;
+  }
+  if (props.kind === "staff_response") {
+    return `${STAFF_ROLE_LABELS[staffRole.value] ?? "工作人员类型未确认"} · ${STAFF_ACTION_LABELS[staffAction.value] ?? "处理方式未确认"}`;
+  }
+  return `${ANIMAL_FACILITY_LABELS[facilityType.value] ?? "设施类型待选择"} · ${FACILITY_STATE_LABELS[facilityOperational.value] ?? "状态未确认"}`;
+});
+
+const reviewTime = computed(() => {
+  if (isExternal.value) {
+    const published = externalPublishedAt.value || "发布时间待填写";
+    return externalEventAt.value
+      ? `明确发生 ${externalEventAt.value} · 内容发布 ${published}`
+      : `仅确认内容发布 ${published}；发生时间未知`;
+  }
+  return sourceMode.value === "on_site_now"
+    ? "现在（以提交时刻记录）"
+    : occurredAt.value || "日期待选择";
+});
+
+const reviewItems = computed(() => {
+  const items = [
+    { label: "场所", value: props.placeName },
+    { label: "事实类型", value: KIND_LABELS[props.kind] ?? "现场事实" },
+    { label: "来源方式", value: SOURCE_MODE_LABELS[sourceMode.value] },
+    { label: "地点范围", value: contributionScopeLabel.value },
+    { label: "时间", value: reviewTime.value },
+    { label: "核心事实", value: reviewFact.value },
+    { label: "证据图片", value: mediaId.value ? "已附私有核验图片" : "未附图片" },
+  ];
+  if (isExternal.value && externalUrl.value.trim()) {
+    items.push({ label: "公开来源", value: externalUrl.value.trim() });
+  }
+  return items;
+});
+
 const canSubmit = computed(
   () =>
     props.online &&
@@ -389,15 +437,20 @@ async function submit() {
   <ContributionStepShell
     :place-name="placeName"
     :place-zone="contributionScopeLabel"
-    :step="2"
-    :total="3"
-    :title="KIND_LABELS[kind]"
-    description="只回答结构化问题。现场亲历、公开内容与证据媒体会分开记录；提交进入人工审核队列，AI 不会自动裁定。"
-    @back="emit('back')"
+    :step="reviewing ? 3 : 2"
+    :total="4"
+    :title="reviewing ? '核对现场事实' : KIND_LABELS[kind]"
+    :description="
+      reviewing
+        ? '请核对场所、范围、时间和事实类型；这里不会把现场事实解释成正式准入规则。'
+        : '只回答结构化问题。现场亲历、公开内容与证据媒体会分开记录；提交进入人工审核队列，AI 不会自动裁定。'
+    "
+    @back="reviewing ? (reviewing = false) : emit('back')"
   >
     <!-- §33 question clusters：什么时候 / 在哪里 / 你看到了什么 -->
     <!-- §19 field groups：真实结构化表单包一层 contribution-form 供几何 gate
          测量 group rhythm（When / Where / What 三组，组距 20–28px）。 -->
+    <template v-if="!reviewing">
     <div class="reality-form" data-ui="contribution-form">
       <fieldset class="cluster">
         <legend class="cluster__title">这条信息来自哪里？</legend>
@@ -769,11 +822,27 @@ async function submit() {
         />
       </fieldset>
     </div>
+    </template>
+
+    <ContributionReview
+      v-else
+      :items="reviewItems"
+      guard="确认提交后内容进入人工审核；工作人员处理、设施存在和动物出现仍是彼此独立的现场事实，不会自动生成运营方正式政策或准入规则。"
+    />
 
     <p v-if="error" class="notice" data-testid="reality-error" role="alert">{{ error }}</p>
     <template #primary>
-      <button class="primary" :disabled="!canSubmit" data-testid="reality-submit" @click="submit">
-        {{ busy ? "提交中…" : "提交现场情况" }}
+      <button
+        v-if="!reviewing"
+        class="primary"
+        :disabled="!canSubmit"
+        data-testid="reality-review-next"
+        @click="reviewing = true"
+      >
+        下一步：核对
+      </button>
+      <button v-else class="primary" :disabled="busy" data-testid="reality-submit" @click="submit">
+        {{ busy ? "提交中…" : "确认提交现场情况" }}
       </button>
     </template>
   </ContributionStepShell>
