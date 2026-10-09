@@ -25,7 +25,7 @@ const props = defineProps<{
   signedIn: boolean;
   kind: "observed_presence" | "staff_response" | "animal_facility";
 }>();
-const emit = defineEmits<{ done: [msg: string]; back: [] }>();
+const emit = defineEmits<{ done: [msg: string]; back: []; reviewing: [value: boolean] }>();
 const KIND_LABELS: Record<string, string> = {
   observed_presence: "我刚刚看到动物",
   staff_response: "我看到工作人员怎么处理",
@@ -190,6 +190,10 @@ const FACILITY_SECURITY_OPTIONS = [
 const busy = ref(false);
 const error = ref("");
 const reviewing = ref(false);
+function setReviewing(value: boolean) {
+  reviewing.value = value;
+  emit("reviewing", value);
+}
 const isExternal = computed(() => sourceMode.value === "external_online_content");
 const hasClaimablePlaceMatch = computed(
   () =>
@@ -445,7 +449,7 @@ async function submit() {
         ? '请核对场所、范围、时间和事实类型；这里不会把现场事实解释成正式准入规则。'
         : '只回答结构化问题。现场亲历、公开内容与证据媒体会分开记录；提交进入人工审核队列，AI 不会自动裁定。'
     "
-    @back="reviewing ? (reviewing = false) : emit('back')"
+    @back="reviewing ? setReviewing(false) : emit('back')"
   >
     <!-- §33 question clusters：什么时候 / 在哪里 / 你看到了什么 -->
     <!-- §19 field groups：真实结构化表单包一层 contribution-form 供几何 gate
@@ -837,7 +841,7 @@ async function submit() {
         class="primary"
         :disabled="!canSubmit"
         data-testid="reality-review-next"
-        @click="reviewing = true"
+        @click="setReviewing(true)"
       >
         下一步：核对
       </button>
