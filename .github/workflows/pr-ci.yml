@@ -216,6 +216,7 @@ jobs:
             tests/e2e/consumer-contract-closure.spec.ts \
             tests/e2e/map-passport.spec.ts \
             tests/e2e/place-route-race.spec.ts \
+            tests/e2e/public-session-degrade.spec.ts \
             tests/e2e/reality-trace.spec.ts \
             tests/e2e/watch-domains.spec.ts \
             tests/e2e/contribute-route-race.spec.ts \
