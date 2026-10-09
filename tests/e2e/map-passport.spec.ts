@@ -63,6 +63,54 @@ test("A4.2 — Search inspector opens the exact selected place on Map", async ({
   });
 });
 
+test("A4.3 — Search inspector only promotes reviewed scene_photo media", async ({ page }) => {
+  const bundleId = "scene-photo-search-fixture";
+  await page.route(`**/api/v1/places/${MALL_ID}/reality/events**`, async (route) => {
+    const response = await route.fetch();
+    const payload = await response.json();
+    const items = Array.isArray(payload) ? payload : [];
+    await route.fulfill({
+      status: response.status(),
+      contentType: "application/json",
+      body: JSON.stringify(
+        items.length
+          ? items.map((item: Record<string, unknown>, index: number) =>
+              index === 0 ? { ...item, evidence_bundle_id: bundleId } : item,
+            )
+          : [
+              {
+                id: "scene-event",
+                event_type: "observed_presence",
+                place_id: MALL_ID,
+                event_at: "2026-10-08T10:00:00Z",
+                time_basis: "event_time",
+                verification_status: "verified",
+                evidence_bundle_id: bundleId,
+              },
+            ],
+      ),
+    });
+  });
+  await page.route(`**/api/v1/evidence-bundles/${bundleId}/public-media`, (route) =>
+    route.fulfill({
+      json: {
+        evidence_bundle_id: bundleId,
+        media_id: "scene-photo-media",
+        purpose: "scene_photo",
+        url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='300'%3E%3Crect width='100%25' height='100%25' fill='%23eef3f6'/%3E%3C/svg%3E",
+        mime_type: "image/svg+xml",
+        expires_in: 300,
+      },
+    }),
+  );
+
+  await page.goto(`${BASE}/#/search?q=云栖`);
+  const scene = page.getByTestId("inspector-scene-media");
+  await expect(scene).toBeVisible({ timeout: 15000 });
+  await expect(scene.locator("img")).toHaveAttribute("alt", /场所场景：云栖中心/);
+  await expect(scene).toContainText("经审核公开的场所场景照片");
+});
+
 test("A1 — desktop 地图 split-view + 四 Lens + 详情面板", async ({ page }) => {
   await page.goto(`${BASE}/#/map`);
   await expect(page.getByTestId("map")).toBeVisible();
