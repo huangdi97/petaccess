@@ -42,7 +42,7 @@ const activeView = computed(() =>
 
 function select(v: PlaceViewKey) {
   if (v === activeView.value) return;
-  void router.replace({
+  void router.push({
     query: { ...route.query, view: ROUTE_BY_VIEW[v] },
   });
 }
