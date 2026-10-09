@@ -244,7 +244,9 @@ test("v0.5: explainable match shows derivation steps", async ({ page }) => {
   await page.goto(`/#/place/${MALL_ID}/why`);
   const rules = page.getByTestId("effective-rules");
   await expect(rules).toBeVisible();
-  await expect(rules).toContainText("推导过程");
+  // The compact decision block owns the current verdict; derivation is a
+  // separate progressive-disclosure section immediately below it.
+  await expect(page.getByRole("heading", { name: "推导过程" })).toBeVisible();
   // compliance state is one of the closed vocabulary
   await expect(rules).toContainText(/各层一致|存在潜在冲突|需人工复核|信息不足/);
 });
