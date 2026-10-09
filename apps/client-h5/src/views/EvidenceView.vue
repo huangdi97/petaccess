@@ -214,6 +214,12 @@ async function load() {
     // but never turn a stale local credential into an Evidence outage.
     try {
       await session.restore();
+      if (session.restoreIssue) {
+        privateContextNote.value =
+          session.restoreIssue === "auth_invalid"
+            ? "登录状态已失效；以下证据仍可公开查看，当前结论使用默认查询上下文。"
+            : "账号查询上下文暂不可用；以下证据仍可公开查看，当前结论使用默认查询上下文。";
+      }
     } catch {
       privateContextNote.value =
         "账号查询上下文暂不可用；以下证据仍可公开查看，当前结论使用默认查询上下文。";
