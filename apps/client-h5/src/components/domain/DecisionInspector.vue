@@ -26,8 +26,9 @@ import {
   type CoexistenceSnapshot,
   type RealityAnswer,
 } from "@petaccess/client-core";
-import { answerConditions, answerVerdictLabel } from "../../answer";
+import { answerConditions, answerStatusKey, answerVerdictLabel } from "../../answer";
 import PlaceTypeGlyph from "./PlaceTypeGlyph.vue";
+import StatusBadge from "../StatusBadge.vue";
 import { coexistenceRealityLine, freshnessLineFor } from "../../consumer/rowView";
 import { querySummaryLabel } from "../../consumer/queryContext";
 import { divergenceLabel } from "../../reality";
@@ -38,6 +39,7 @@ const props = withDefaults(
       canonical_name: string;
       place_type: string;
       canonical_address?: string | null;
+      distance_m?: number | null;
       latitude?: number | null;
       longitude?: number | null;
     } | null;
@@ -80,6 +82,7 @@ const props = withDefaults(
 );
 
 const verdict = computed(() => answerVerdictLabel(props.answer));
+const statusKey = computed(() => answerStatusKey(props.answer));
 const needsRuleEvidence = computed(() => !props.answerError && verdict.value === "信息不足");
 /** A recorded coordinate allows a direct spatial deep link. No coordinate means
  * no map marker: a name/address alone is never geocoded or guessed here. */
@@ -171,10 +174,14 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
               <h2 class="decision-inspector__name" data-ui="search-detail-name">
                 {{ place.canonical_name }}
               </h2>
+              <StatusBadge :semantic="statusKey" />
             </div>
             <p class="decision-inspector__meta">
               {{ placeTypeLabel(place.place_type) }} ·
               {{ place.canonical_address ?? "地址待补充" }}
+              <template v-if="place.distance_m">
+                · {{ place.distance_m >= 1000 ? (place.distance_m / 1000).toFixed(1) + "km" : Math.round(place.distance_m) + "m" }}
+              </template>
             </p>
           </div>
         </div>
