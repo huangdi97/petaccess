@@ -6,19 +6,17 @@
  * reviewed public-media gate. Missing media is a first-class honest state,
  * never replaced by evidence/signage/import imagery or synthetic venue art.
  */
-import PlaceTypeGlyph from "./PlaceTypeGlyph.vue";
+import PaIcon from "../ui/PaIcon.vue";
 
 withDefaults(
   defineProps<{
     src?: string | null;
-    placeType?: string | null;
     alt?: string;
     variant?: "hero" | "compact";
     eager?: boolean;
   }>(),
   {
     src: null,
-    placeType: null,
     alt: "经审核允许公开展示的场所场景照片",
     variant: "hero",
     eager: false,
@@ -38,7 +36,7 @@ withDefaults(
       referrerpolicy="no-referrer"
     />
     <div v-else class="scene-frame__empty" data-testid="scene-media-empty">
-      <PlaceTypeGlyph :place-type="placeType" size="lg" />
+      <span class="scene-frame__camera" aria-hidden="true"><PaIcon name="camera" size="lg" /></span>
       <span class="scene-frame__empty-copy">
         <strong>暂无可公开场景图片</strong>
         <small>仅展示经审核允许公开的场景媒体</small>
@@ -75,6 +73,19 @@ withDefaults(
   background:
     linear-gradient(120deg, var(--pa-color-accent-weak), transparent 48%),
     var(--pa-color-surface-muted);
+}
+
+.scene-frame__camera {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 auto;
+  border: var(--pa-border-width) solid var(--pa-color-border);
+  border-radius: var(--pa-radius-md);
+  background: var(--pa-color-surface);
+  color: var(--pa-color-accent);
 }
 
 .scene-frame__empty-copy {
