@@ -554,6 +554,7 @@ const uiFixture = computed<string>(() =>
 .evidence-hero-media {
   margin: 0;
   min-width: 0;
+  aspect-ratio: 4 / 3;
 }
 
 .evidence-hero-media img {
