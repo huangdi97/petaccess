@@ -71,7 +71,9 @@ test("A3 — 观察时间线渲染；空时间线走 REALITY empty copy", async 
 
   // Forced-empty observations → the shared REALITY empty copy.
   await page.route("**/api/v1/places/*/reality/events**", (route) => route.fulfill({ json: [] }));
-  await page.goto(`${BASE}/#/place/${MALL_ID}/reality`);
+  // Re-entering an identical hash URL can be a browser no-op; reload ensures
+  // the intercepted public Reality request actually runs.
+  await page.reload();
   await expect(page.getByTestId("trace-empty")).toBeVisible();
   await expect(page.getByTestId("trace-empty")).toContainText("暂无近期现场记录");
 });
@@ -104,7 +106,7 @@ test("A3.1 — 轻量现场确认只新增 Confirmation，不创建新事实候�
 
 test("A4 — 深链标题正确；错误统一呈现且不泄漏内部字样", async ({ page }) => {
   await page.goto(`${BASE}/#/place/${MALL_ID}/reality`);
-  await expect(page).toHaveTitle("现场轨迹 · PetAccess");
+  await expect(page).toHaveTitle("现场记录 · PetAccess");
 
   await page.route("**/api/v1/places/*/reality/events**", (route) =>
     route.fulfill({
@@ -115,7 +117,7 @@ test("A4 — 深链标题正确；错误统一呈现且不泄漏内部字样", a
   );
   // Reload (goto to the identical hash URL is a no-op), so the intercepted 500 fires.
   await page.reload();
-  await expect(page.getByText("未能取得现场轨迹")).toBeVisible();
+  await expect(page.getByText("未能取得现场记录")).toBeVisible();
   const text = await page.evaluate(() => document.body.innerText);
   for (const needle of ["SQLAlchemy", "FastAPI", "psycopg2", "Internal Server Error"]) {
     expect(text, `trace must not leak ${needle}`).not.toContain(needle);
