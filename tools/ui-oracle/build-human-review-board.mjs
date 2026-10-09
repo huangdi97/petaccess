@@ -40,7 +40,7 @@ const head = (() => {
 const hasReference = existsSync(reference);
 if (hasReference) copyFileSync(reference, path.join(out, "approved-reference.png"));
 
-const screens = ["desktop", "mobile"].flatMap((scope) => {
+const screens = ["desktop", "tablet", "mobile"].flatMap((scope) => {
   const folder = path.join(out, scope);
   const manifestFile = path.join(folder, "manifest.json");
   if (!existsSync(manifestFile)) return [];
