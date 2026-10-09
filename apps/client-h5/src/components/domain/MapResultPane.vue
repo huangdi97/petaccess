@@ -214,23 +214,23 @@ function toggleFilter(key: string) {
               @click="emit('open', p.id)"
             >
               <div class="map-place-row__head">
-              <div class="map-place-row__identity-wrap">
-                <PlaceTypeGlyph :place-type="p.place_type" size="sm" />
-                <div class="map-place-row__identity">
-                  <strong>{{ p.canonical_name }}</strong>
-                  <span class="muted">
-                    {{ placeTypeLabel(p.place_type) }}
-                    <span v-if="p.distance_m"> · {{ Math.round(p.distance_m) }}m</span>
-                  </span>
+                <div class="map-place-row__identity-wrap">
+                  <PlaceTypeGlyph :place-type="p.place_type" size="sm" />
+                  <div class="map-place-row__identity">
+                    <strong>{{ p.canonical_name }}</strong>
+                    <span class="muted">
+                      {{ placeTypeLabel(p.place_type) }}
+                      <span v-if="p.distance_m"> · {{ Math.round(p.distance_m) }}m</span>
+                    </span>
+                  </div>
                 </div>
-              </div>
-              <StatusBadge
-                v-if="props.lens === 'rule'"
-                :semantic="props.statuses[p.id] ?? 'UNKNOWN'"
-              />
-              <span v-else class="map-place-row__lens-fact">
-                {{ props.lensLabels[p.id] ?? "信息不足" }}
-              </span>
+                <StatusBadge
+                  v-if="props.lens === 'rule'"
+                  :semantic="props.statuses[p.id] ?? 'UNKNOWN'"
+                />
+                <span v-else class="map-place-row__lens-fact">
+                  {{ props.lensLabels[p.id] ?? "信息不足" }}
+                </span>
               </div>
             </button>
           </li>
