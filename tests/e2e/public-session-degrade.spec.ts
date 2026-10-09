@@ -21,9 +21,7 @@ test("public Place dossier remains readable with a broken local session", async 
 test("public Evidence remains readable with a broken local session", async ({ page }) => {
   await page.goto(`${BASE}/#/place/${MALL_ID}/evidence`);
   await expect(page.getByTestId("evidence-workspace")).toBeVisible({ timeout: 15000 });
-  await expect(page.getByTestId("evidence-private-context-note")).toContainText(
-    "证据仍可公开查看",
-  );
+  await expect(page.getByTestId("evidence-private-context-note")).toContainText("证据仍可公开查看");
   await expect(page.getByText("未能取得证据记录")).toHaveCount(0);
 });
 
