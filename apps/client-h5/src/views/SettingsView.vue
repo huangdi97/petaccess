@@ -84,7 +84,9 @@ const EVIDENCE = [
       <div class="settings-section__body settings-points">
         <p>{{ REQUIRED_COPY.noRankingDisclaimer }}</p>
         <p>不预测现场一定会不会遇到动物。</p>
-        <p>自动解析只能生成待审候选，不会直接改变正式规则结论。</p>
+        <p>
+          未接入真实 AI Provider 时不输出模拟识别、OCR 或自然语言解析结果；启用真实服务后，自动解析也只能生成待审候选。
+        </p>
         <p>{{ REQUIRED_COPY.unknownShort }}表示当前依据不足，需要继续查看来源或补充信息。</p>
         <p>不记录小区住户信息；位置只用于当前附近查询或现场核验。</p>
       </div>
