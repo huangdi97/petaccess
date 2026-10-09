@@ -277,11 +277,29 @@ async function load() {
     degrade("现场记录");
   }
   try {
+    const result = await client.placeExtras(id);
+    if (!isCurrent()) return;
+    extras.value = result;
+  } catch {
+    if (!isCurrent()) return;
+    degrade("空间信息");
+  }
+  try {
+    const extraSourceIds = extras.value
+      ? [
+          ...extras.value.coexistence.map((item) => item.source_id),
+          ...extras.value.amenities.map((item) => item.source_id),
+          ...extras.value.entrances.map((item) => item.source_id),
+          ...extras.value.access_paths.map((item) => item.source_id),
+          ...extras.value.event_policies.map((item) => item.source_id),
+        ]
+      : [];
     const relevantSourceIds = [
       ...new Set(
         [
           ...rules.value.map((rule) => rule.source_id),
           ...realityEvents.value.map((event) => event.source_id),
+          ...extraSourceIds,
         ].filter((sourceId): sourceId is string => Boolean(sourceId)),
       ),
     ];
@@ -294,14 +312,6 @@ async function load() {
   } catch {
     if (!isCurrent()) return;
     degrade("来源");
-  }
-  try {
-    const result = await client.placeExtras(id);
-    if (!isCurrent()) return;
-    extras.value = result;
-  } catch {
-    if (!isCurrent()) return;
-    degrade("空间信息");
   }
   try {
     await evaluate();
