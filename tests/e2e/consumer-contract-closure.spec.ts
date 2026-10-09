@@ -208,7 +208,7 @@ test("C5: lens changes consumer projection without changing domain facts", async
   await expect(page.getByTestId(`result-${PLACE.id}`)).toBeVisible();
   // rules lens = Rule-first: the rule conclusion is the row headline.
   const rulesRow = page.getByTestId(`result-${PLACE.id}`);
-  await expect(rulesRow.locator("[data-testid=row-lens-headline]")).toContainText("允许进入");
+  await expect(rulesRow.locator("[data-testid=row-lens-headline]")).toContainText("可以进入");
 
   await page.goto("/#/search?lens=presence");
   await page.getByTestId("search-input").fill("契约");
