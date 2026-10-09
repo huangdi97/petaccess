@@ -52,6 +52,11 @@
   --scene-frame-compact-mobile-height: 66px;
 }
 
+.home-row__scene--glyph {
+  width: 112px;
+  height: 84px;
+}
+
 .home-row:last-child {
   border-bottom: none;
 }
@@ -85,6 +90,11 @@
   .home-row__content--with-scene {
     grid-template-columns: 88px minmax(0, 1fr);
     gap: 0 var(--pa-space-3);
+  }
+
+  .home-row__scene--glyph {
+    width: 88px;
+    height: 66px;
   }
 }
 
