@@ -749,6 +749,9 @@ export const client = {
     >("get", path);
     return res.items;
   },
+  async source(sourceId: string): Promise<SourceView> {
+    return api.request<SourceView>("get", `/sources/${sourceId}`);
+  },
   async allSources() {
     const res = await api.request<
       Page<{
