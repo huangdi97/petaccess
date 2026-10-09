@@ -11,6 +11,7 @@ from . import (
     observations,
     operators,
     pets,
+    privacy,
     places,
     reality,
     reality_reports,
@@ -25,6 +26,7 @@ from . import (
 api_router = APIRouter()
 api_router.include_router(auth.router)
 api_router.include_router(pets.router)
+api_router.include_router(privacy.router)
 api_router.include_router(places.router)
 api_router.include_router(places.admin)
 api_router.include_router(rules.router)
