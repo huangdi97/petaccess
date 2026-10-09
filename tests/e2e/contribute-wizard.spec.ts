@@ -45,8 +45,16 @@ test("A1/A4 — 向导入口与现场记录表单渲染（已登录）", async (
   // timeout on first load. Bounded 15s wait, then assert visibility.
   await expect(page.getByTestId("entry-reality-observed_presence")).toBeVisible({ timeout: 15000 });
   await expect(page.getByTestId("entry-quick")).toBeVisible();
-  await chooseEntry(page, "entry-reality-observed_presence");
+  await expect(page.getByTestId("contribute-step")).toHaveText("步骤 1 / 4");
+
+  // Selecting a type is not submission/navigation by itself. The user reviews
+  // the selected transaction type, then explicitly advances to structured facts.
+  await page.getByTestId("entry-reality-observed_presence").click();
+  await expect(page.getByTestId("reality-source-mode")).toHaveCount(0);
+  await page.getByTestId("entry-next").click();
+
   await expect(page.getByTestId("reality-review-next")).toBeVisible({ timeout: 15000 });
+  await expect(page.getByTestId("contribute-step")).toHaveText("步骤 2 / 4");
   await expect(page.getByTestId("reality-source-mode")).toBeVisible();
   await expect(page.getByTestId("reality-effort")).toBeVisible();
   await page.getByTestId("reality-source-mode").selectOption("on_site_past");
@@ -134,6 +142,7 @@ test("A2 — 现场记录经父流提交，候选进入人工审核队列", asyn
   );
   await page.getByTestId("reality-review-next").click();
   await expect(page.getByTestId("contribution-review")).toBeVisible();
+  await expect(page.getByTestId("contribute-step")).toHaveText("步骤 3 / 4");
   await page.getByTestId("reality-submit").click();
   const reportBody = (await reportRequestPromise).postDataJSON() as {
     effort: { duration_bucket: string; animal_observed: boolean };
