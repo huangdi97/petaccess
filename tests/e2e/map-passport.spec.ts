@@ -165,6 +165,42 @@ test("A4.4 — Map preview promotes only reviewed scene_photo media", async ({ p
   );
 });
 
+test("A4.5 — evidence media never becomes venue identity imagery", async ({ page }) => {
+  const bundleId = "signage-evidence-not-scene";
+  await page.route(`**/api/v1/places/${MALL_ID}/reality/events**`, (route) =>
+    route.fulfill({
+      json: [
+        {
+          id: "signage-event",
+          event_type: "observed_presence",
+          place_id: MALL_ID,
+          event_at: "2026-10-08T10:00:00Z",
+          time_basis: "event_time",
+          verification_status: "verified",
+          evidence_bundle_id: bundleId,
+        },
+      ],
+    }),
+  );
+  await page.route(`**/api/v1/evidence-bundles/${bundleId}/public-media`, (route) =>
+    route.fulfill({
+      json: {
+        evidence_bundle_id: bundleId,
+        media_id: "signage-media",
+        purpose: "signage_evidence",
+        url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='350'%3E%3C/svg%3E",
+        mime_type: "image/svg+xml",
+        expires_in: 300,
+      },
+    }),
+  );
+
+  await page.goto(`${BASE}/#/search?q=云栖`);
+  await expect(page.getByTestId("decision-inspector")).toBeVisible({ timeout: 15000 });
+  await expect(page.getByTestId("inspector-scene-media")).toHaveCount(0);
+  await expect(page.locator(".result-row--selected .result-row__scene")).toHaveCount(0);
+});
+
 test("A1 — desktop 地图 split-view + 四 Lens + 详情面板", async ({ page }) => {
   await page.goto(`${BASE}/#/map`);
   await expect(page.getByTestId("map")).toBeVisible();
