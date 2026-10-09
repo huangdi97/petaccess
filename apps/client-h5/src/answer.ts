@@ -51,8 +51,10 @@ export function answerVerdictLabel(answer: AccessAnswer | null | undefined): str
  * resolver's provisional summary. Never advertise permission during a
  * published-rule conflict, even in a one-line search result. */
 export function answerPrimarySummary(answer: AccessAnswer | null | undefined): string {
-  if (!answer || answer.conflict_state?.has_conflict) return answerVerdictLabel(answer);
-  return answer.normative_result.summary?.trim() || answerVerdictLabel(answer);
+  // Consumer list headlines are a controlled vocabulary. Server summaries are
+  // useful trace material but may contain resolver/internal wording such as
+  // field names; conditions and evidence are rendered in their own rows.
+  return answerVerdictLabel(answer);
 }
 
 /**
