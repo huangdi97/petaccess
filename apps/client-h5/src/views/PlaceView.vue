@@ -420,7 +420,14 @@ const placeFixture = computed<string>(() => {
             v-if="partial.length"
             kind="PARTIAL"
             :description="`部分板块未能加载：${partial.join('、')}。已加载内容仍可查看。`"
-          />
+            data-testid="place-partial"
+          >
+            <template #action>
+              <button type="button" class="primary" data-testid="place-partial-retry" @click="load">
+                重新加载缺失信息
+              </button>
+            </template>
+          </StateMessage>
 
           <!-- 1. Identity（§16 Overview 第一块） -->
           <header
