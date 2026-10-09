@@ -6,6 +6,7 @@ Evidence never gets public URLs — presigned GET only (PROVIDER_HARDENING_SPEC)
 """
 
 from datetime import datetime
+from enum import StrEnum
 
 from sqlalchemy import JSON, DateTime, ForeignKey, Index, Numeric, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
@@ -30,6 +31,19 @@ class MediaPrivacyClass:
     SCENE = "scene"
 
     ALL = [EVIDENCE, SCENE]
+
+
+class MediaUploadStatus(StrEnum):
+    STORED = "stored"
+    DELETED = "deleted"
+    PURGE_FAILED = "purge_failed"
+
+
+class MediaModerationStatus(StrEnum):
+    PENDING = "pending"
+    OCR_DONE = "ocr_done"
+    APPROVED = "approved"
+    REJECTED = "rejected"
 
 
 class MediaObject(Base, PkMixin, TimestampMixin):
@@ -57,10 +71,10 @@ class MediaObject(Base, PkMixin, TimestampMixin):
     original_filename: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     upload_status: Mapped[str] = mapped_column(
-        String(20), default="stored", nullable=False
+        String(20), default=MediaUploadStatus.STORED.value, nullable=False
     )  # stored | deleted | purge_failed
     moderation_status: Mapped[str] = mapped_column(
-        String(20), default="pending", nullable=False
+        String(20), default=MediaModerationStatus.PENDING.value, nullable=False
     )  # pending | ocr_done | approved | rejected
 
     source_id: Mapped[str | None] = mapped_column(
