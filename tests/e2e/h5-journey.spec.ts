@@ -5,6 +5,7 @@
 import { expect, test } from "@playwright/test";
 
 const CAFE_ID = "8412b521-5e1c-505d-9dec-568acb860c76"; // deterministic seed UUID
+const MALL_ID = "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e"; // ready mall fixture
 const BRANCH_ID = "3b5a341a-e550-5f0c-b35a-319ed43bd840"; // 星河咖啡·栖霞分店, 0 rules → UNKNOWN
 
 test("health and decision home render nearby places", async ({ page }) => {
