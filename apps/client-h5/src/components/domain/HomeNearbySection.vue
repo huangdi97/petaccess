@@ -10,6 +10,7 @@ import { computed } from "vue";
 import { type PlaceSummary } from "@petaccess/client-core";
 import PlaceResultRow from "./PlaceResultRow.vue";
 import PlaceSceneFrame from "./PlaceSceneFrame.vue";
+import PlaceTypeGlyph from "./PlaceTypeGlyph.vue";
 import SkeletonList from "../SkeletonList.vue";
 import StateMessage from "../StateMessage.vue";
 import { freshnessLineFor, type ConsumerLens } from "../../consumer/rowView";
@@ -110,12 +111,19 @@ const freshness = computed(() =>
               :class="{ 'home-row__content--with-scene': index === 0 }"
             >
               <PlaceSceneFrame
-                v-if="index === 0"
+                v-if="index === 0 && featuredSceneMediaUrl"
                 class="home-row__scene"
-                :src="featuredSceneMediaUrl ?? null"
+                :src="featuredSceneMediaUrl"
                 :alt="`场所场景：${c.place.canonical_name}`"
                 variant="compact"
-                :data-testid="featuredSceneMediaUrl ? 'home-scene-media' : 'home-scene-empty'"
+                data-testid="home-scene-media"
+              />
+              <PlaceTypeGlyph
+                v-else-if="index === 0"
+                class="home-row__scene home-row__scene--glyph"
+                :place-type="c.place.place_type"
+                size="lg"
+                data-testid="home-scene-fallback"
               />
               <PlaceResultRow
                 :place="c.place"
