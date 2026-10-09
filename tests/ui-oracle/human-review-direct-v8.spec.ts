@@ -560,7 +560,6 @@ async function prepareApprovedOperatorPolicy(
       place_type: "mall",
       canonical_address: "人审专用测试地址",
       lifecycle_status: "active",
-      location_wkt: "POINT(121.4737 31.2304)",
     },
   });
   expect(
