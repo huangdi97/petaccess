@@ -356,7 +356,7 @@ test("A1.2 — mobile map searches without leaving the spatial canvas", async ({
 test("A1.2a — map-config outage never masquerades the simplified canvas as a real map", async ({
   page,
 }) => {
-  await page.route("**/api/v1/map/config", (route) =>
+  await page.route("**/api/v1/ai/map/config", (route) =>
     route.fulfill({ status: 503, json: { detail: "map config unavailable" } }),
   );
   await page.goto(`${BASE}/#/map`);
@@ -664,7 +664,7 @@ test("B2.3 — Place identity uses only public-gated scene photos", async ({ pag
   await page.goto(`${BASE}/#/place/${MALL_ID}`);
   const scene = page.getByTestId("place-scene-media");
   await expect(scene).toBeVisible({ timeout: 15000 });
-  await expect(scene.locator("img")).toHaveAttribute("alt", "经审核允许公开展示的场所场景照片");
+  await expect(scene.locator("img")).toHaveAttribute("alt", "场所场景：云栖中心·测试商场");
 });
 
 test("B2.4 — approved non-scene evidence never becomes a Place cover", async ({ page }) => {
