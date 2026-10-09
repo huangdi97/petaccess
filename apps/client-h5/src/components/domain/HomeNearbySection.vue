@@ -28,6 +28,7 @@ const props = defineProps<{
   speciesLabel: string;
   conditionsLabel: Record<string, string>;
   interest: ConsumerLens;
+  featuredSceneMediaUrl?: string | null;
 }>();
 
 const emit = defineEmits<{
@@ -92,11 +93,20 @@ const freshness = computed(() =>
 
         <!-- v0.2.4 §30：divider rows，非卡。 -->
         <div
-          v-for="c in verified.slice(0, 3)"
+          v-for="(c, index) in verified.slice(0, 3)"
           :key="c.place.id"
           class="home-row"
           :data-testid="'verified-' + c.place.id"
         >
+          <img
+            v-if="index === 0 && featuredSceneMediaUrl"
+            class="home-row__scene"
+            :src="featuredSceneMediaUrl"
+            :alt="`场所场景：${c.place.canonical_name}`"
+            loading="lazy"
+            decoding="async"
+            referrerpolicy="no-referrer"
+          />
           <button
             type="button"
             class="home-row__open"
