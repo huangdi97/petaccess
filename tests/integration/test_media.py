@@ -365,6 +365,7 @@ def test_public_evidence_media_requires_display_review_and_published_fact(client
     body = visible.json()
     assert body["evidence_bundle_id"] == bundle_id
     assert body["media_id"] == media_id
+    assert body["purpose"] == "reality_evidence"
     assert body["mime_type"] == "image/png"
     assert body["expires_in"] == 300
     assert body["url"].startswith(("http", "nullstorage://"))
