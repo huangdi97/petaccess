@@ -198,7 +198,11 @@ test("A4.5 — evidence media never becomes venue identity imagery", async ({ pa
   await page.goto(`${BASE}/#/search?q=云栖`);
   await expect(page.getByTestId("decision-inspector")).toBeVisible({ timeout: 15000 });
   await expect(page.getByTestId("inspector-scene-media")).toHaveCount(0);
-  await expect(page.getByTestId("inspector-scene-empty")).toContainText("暂无可公开场景图片");
+  // No fake empty-image frame: Search falls back to the neutral place-type
+  // glyph when no reviewed venue scene photo is publishable.
+  await expect(
+    page.getByTestId("decision-inspector").locator('[data-ui="place-type-glyph"]').first(),
+  ).toBeVisible();
   await expect(page.locator(".result-row--selected .result-row__scene")).toHaveCount(0);
 });
 
@@ -546,7 +550,7 @@ test("B2.4 — approved non-scene evidence never becomes a Place cover", async (
   await expect(page.getByTestId("section-answer")).toBeVisible({ timeout: 15000 });
   await expect.poll(() => checked).toBeGreaterThan(0);
   await expect(page.getByTestId("place-scene-media")).toHaveCount(0);
-  await expect(page.getByTestId("place-scene-empty")).toContainText("暂无可公开场景图片");
+  await expect(page.getByTestId("place-scene-fallback")).toBeVisible();
 });
 
 test("B3 — Place Evidence view 证据来源链渲染，无原始枚举", async ({ page }) => {
@@ -566,16 +570,11 @@ test("B4.3 — Place identity renders and map CTA reflects coordinate availabili
   page,
 }) => {
   await page.goto(`${BASE}/#/place/${MALL_ID}`);
+  // Identity uses reviewed scene media when available; otherwise it uses the
+  // neutral type glyph. Neither branch invents a venue photograph.
   await expect(
-    page.locator('[data-ui="place-identity"] [data-ui="place-scene-frame"]'),
-  ).toBeVisible({
-    timeout: 15000,
-  });
-  // Identity uses reviewed scene media when available, otherwise the explicit
-  // no-public-scene state. It must never fall back to synthetic venue imagery.
-  await expect(
-    page.getByTestId("place-scene-media").or(page.getByTestId("place-scene-empty")),
-  ).toBeVisible();
+    page.getByTestId("place-scene-media").or(page.getByTestId("place-scene-fallback")),
+  ).toBeVisible({ timeout: 15000 });
   await expect(page.getByTestId("place-map-link")).toContainText("地图定位");
 
   await page.route(`**/api/v1/places/${MALL_ID}/summary`, async (route) => {
