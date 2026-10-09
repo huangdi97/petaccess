@@ -70,11 +70,7 @@ const freshness = computed(() =>
       </StateMessage>
 
       <template v-else>
-        <p
-          v-if="freshness"
-          class="muted home-freshness"
-          data-testid="home-freshness"
-        >
+        <p v-if="freshness" class="muted home-freshness" data-testid="home-freshness">
           {{ freshness }}
         </p>
 
