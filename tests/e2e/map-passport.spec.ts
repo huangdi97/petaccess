@@ -9,6 +9,7 @@
 import { expect, test } from "@playwright/test";
 
 const BASE = "http://127.0.0.1:5175";
+const API = "http://127.0.0.1:8010/api/v1";
 /** Deterministic seed UUID with published rules (h5-journey.spec.ts). */
 const CAFE_ID = "8412b521-5e1c-505d-9dec-568acb860c76";
 /** Ready fixture (place-ready-v1) — unknown places render the §15 Unknown Overview. */
