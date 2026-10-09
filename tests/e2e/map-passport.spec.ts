@@ -108,7 +108,7 @@ test("A4.3 — Search inspector only promotes reviewed scene_photo media", async
   const scene = page.getByTestId("inspector-scene-media");
   await expect(scene).toBeVisible({ timeout: 15000 });
   await expect(scene.locator("img")).toHaveAttribute("alt", /场所场景：云栖中心/);
-  await expect(scene).toContainText("经审核公开的场所场景照片");
+  await expect(scene).toContainText("经审核允许公开展示的场所场景");
   await expect(page.locator(".result-row--selected .result-row__scene")).toHaveAttribute(
     "alt",
     /场所场景：云栖中心/,
@@ -198,6 +198,7 @@ test("A4.5 — evidence media never becomes venue identity imagery", async ({ pa
   await page.goto(`${BASE}/#/search?q=云栖`);
   await expect(page.getByTestId("decision-inspector")).toBeVisible({ timeout: 15000 });
   await expect(page.getByTestId("inspector-scene-media")).toHaveCount(0);
+  await expect(page.getByTestId("inspector-scene-empty")).toContainText("暂无可公开场景图片");
   await expect(page.locator(".result-row--selected .result-row__scene")).toHaveCount(0);
 });
 
@@ -540,7 +541,7 @@ test("B2.4 — approved non-scene evidence never becomes a Place cover", async (
   await expect(page.getByTestId("section-answer")).toBeVisible({ timeout: 15000 });
   await expect.poll(() => checked).toBeGreaterThan(0);
   await expect(page.getByTestId("place-scene-media")).toHaveCount(0);
-  await expect(page.locator('[data-ui="place-type-glyph"]').first()).toBeVisible();
+  await expect(page.getByTestId("place-scene-empty")).toContainText("暂无可公开场景图片");
 });
 
 test("B3 — Place Evidence view 证据来源链渲染，无原始枚举", async ({ page }) => {
