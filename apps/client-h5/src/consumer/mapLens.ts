@@ -22,6 +22,58 @@ export function parseMapLens(value: unknown): MapLensKey {
  * Divergence palette tokens and the visible text always comes from
  * mapLensLabel().
  */
+/**
+ * Marker glyphs are lens semantics, not access verdict aliases.
+ *
+ * MarkerStatus is deliberately reused as a neutral shape/tone carrier, so an
+ * ALLOWED carrier outside the Rule lens must never render a "permission" ✓.
+ * Full human-readable meaning remains in mapLensLabel() and the results pane.
+ */
+export function mapLensGlyph(lens: string, status: MapMarker["status"]): string {
+  if (lens === "reality") {
+    const glyphs: Record<MapMarker["status"], string> = {
+      ALLOWED: "●",
+      CONDITIONAL: "◐",
+      RESTRICTED: "—",
+      UNKNOWN: "?",
+      CONFLICT: "!",
+      STALE: "↻",
+    };
+    return glyphs[status];
+  }
+  if (lens === "facility") {
+    const glyphs: Record<MapMarker["status"], string> = {
+      ALLOWED: "◆",
+      CONDITIONAL: "◇",
+      RESTRICTED: "—",
+      UNKNOWN: "?",
+      CONFLICT: "!",
+      STALE: "↻",
+    };
+    return glyphs[status];
+  }
+  if (lens === "divergence") {
+    const glyphs: Record<MapMarker["status"], string> = {
+      ALLOWED: "=",
+      CONDITIONAL: "△",
+      RESTRICTED: "!",
+      UNKNOWN: "?",
+      CONFLICT: "!",
+      STALE: "↻",
+    };
+    return glyphs[status];
+  }
+  const glyphs: Record<MapMarker["status"], string> = {
+    ALLOWED: "✓",
+    CONDITIONAL: "△",
+    RESTRICTED: "▬",
+    UNKNOWN: "?",
+    CONFLICT: "!",
+    STALE: "↻",
+  };
+  return glyphs[status];
+}
+
 export function mapLensTone(lens: MapLensKey, row: RowFacts | undefined): MapMarker["status"] {
   if (!row) return "UNKNOWN";
   if (lens === "rule") return answerStatusKey(row.answer);
