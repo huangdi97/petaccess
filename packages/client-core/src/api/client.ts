@@ -444,6 +444,13 @@ export interface PublicEvidenceMediaView {
   expires_in: number;
 }
 
+export interface AccountDeletionRequestView {
+  status: "none" | "submitted" | string;
+  requested_at: string | null;
+}
+
+export type PrivacyExportView = Record<string, unknown>;
+
 // --------------------------------------------------------------- watches
 
 /** A subscription to one reviewed change domain on a place / zone / rule. */
@@ -496,6 +503,15 @@ export const client = {
       "get",
       "/auth/me",
     );
+  },
+  async exportMyData() {
+    return api.request<PrivacyExportView>("get", "/privacy/export");
+  },
+  async accountDeletionRequest() {
+    return api.request<AccountDeletionRequestView>("get", "/privacy/account-deletion-request");
+  },
+  async requestAccountDeletion() {
+    return api.request<AccountDeletionRequestView>("post", "/privacy/account-deletion-request");
   },
 
   async myPets() {
