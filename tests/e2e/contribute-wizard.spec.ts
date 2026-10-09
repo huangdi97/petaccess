@@ -48,6 +48,28 @@ test("A1/A4 — 向导入口与现场记录表单渲染（已登录）", async (
   await expect(page.getByTestId("reality-date")).toBeVisible();
 });
 
+test("A1.0 — contribution header never invents a default public-area scope", async ({
+  page,
+  request,
+}) => {
+  const token = await signIn(request);
+  await page.addInitScript((t) => localStorage.setItem("pa_token", t), token);
+  await page.goto(`${BASE}/#/contribute/${MALL_ID}`, { waitUntil: "load" });
+  await expect(page.getByTestId("entry-quick")).toBeVisible({ timeout: 15000 });
+
+  await page.getByTestId("entry-quick").click();
+  await expect(page.getByTestId("step-place-context")).toContainText("场所整体");
+  await page.getByTestId("step-back").click();
+
+  await page.getByTestId("entry-rule").click();
+  await expect(page.getByTestId("step-place-context")).toContainText("未限定分区");
+  await page.getByTestId("step-back").click();
+
+  await page.getByTestId("entry-reality-observed_presence").click();
+  await expect(page.getByTestId("step-place-context")).toContainText("未指定分区");
+  await expect(page.getByTestId("step-place-context")).not.toContainText("公共区域");
+});
+
 test("A1.1 — retrospective and external dates cannot silently claim event timing", async ({
   page,
   request,
