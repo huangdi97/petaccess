@@ -95,6 +95,14 @@ onMounted(async () => {
   }
 });
 
+const uiState = computed(() => {
+  if (loading.value) return "loading";
+  if (error.value) return "error";
+  if (!places.value.length) return "empty";
+  return "ready";
+});
+const uiFixture = computed(() => `map-${uiState.value}-v1`);
+
 const MAP_LENSES = [
   { key: "rule", label: "规则" },
   { key: "reality", label: "现场" },
@@ -157,8 +165,8 @@ function chooseMapResult(id: string) {
     data-testid="map-workspace"
     data-ui="map-shell"
     data-ui-page="map"
-    data-ui-state="ready"
-    data-ui-fixture="map-ready-v1"
+    :data-ui-state="uiState"
+    :data-ui-fixture="uiFixture"
   >
     <h1 class="visually-hidden">规则与现场地图</h1>
     <QueryContextBar />
