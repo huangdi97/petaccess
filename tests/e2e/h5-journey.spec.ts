@@ -36,6 +36,10 @@ test("place detail shows one-sentence answer with zones and provenance", async (
   // references the query context line, never a flattened zone verdict.
   await expect(page.getByTestId("answer-status")).toContainText("有条件");
   await expect(page.getByTestId("overview-reality")).toBeVisible();
+  const basics = page.getByTestId("overview-basics");
+  await expect(basics).toBeVisible();
+  await expect(basics).toContainText("商场");
+  await expect(basics).toContainText("空间记录");
   // space summary shows the mall's first zones by consumer name
   const zones = page.getByTestId("overview-zones");
   await expect(zones).toContainText("一层");
