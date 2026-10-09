@@ -109,6 +109,9 @@ const latestVerifiedAt = computed(() => {
   return latest ? latest.slice(0, 10) : null;
 });
 const primarySourceLabel = computed(() => {
+  const evidence = answer.value?.evidence_state.rules[0];
+  if (evidence) return publicSourceIssuer(evidence.source_type, evidence.issuer);
+
   const first = currentRules.value[0];
   if (!first) return null;
   const source = sourceMap.value.get(first.source_id);
