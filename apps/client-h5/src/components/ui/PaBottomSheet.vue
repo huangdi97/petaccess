@@ -45,6 +45,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onWindowKey));
         aria-modal="true"
         :aria-label="title ?? undefined"
         :aria-hidden="open ? undefined : 'true'"
+        :inert="!open"
         :tabindex="open ? -1 : undefined"
         @keydown.esc.stop="emit('close')"
         @keydown="keepFocusInside"
