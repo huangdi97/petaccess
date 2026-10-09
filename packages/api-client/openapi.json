@@ -3774,8 +3774,7 @@
               "application/json": {
                 "schema": {
                   "items": {
-                    "type": "object",
-                    "additionalProperties": true
+                    "$ref": "#/components/schemas/MediaMetaOut"
                   },
                   "type": "array",
                   "title": "Response My Media Api V1 Media Mine Get"
@@ -3815,9 +3814,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": true,
-                  "title": "Response Media Meta Api V1 Media  Media Id  Get"
+                  "$ref": "#/components/schemas/MediaMetaOut"
                 }
               }
             }
@@ -16241,6 +16238,105 @@
         },
         "type": "object",
         "title": "ZoneUpdate"
+      },
+      "MediaMetaOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "purpose": {
+            "type": "string",
+            "title": "Purpose"
+          },
+          "privacy_class": {
+            "type": "string",
+            "title": "Privacy Class"
+          },
+          "mime_type": {
+            "type": "string",
+            "title": "Mime Type"
+          },
+          "byte_size": {
+            "type": "integer",
+            "title": "Byte Size"
+          },
+          "moderation_status": {
+            "type": "string",
+            "title": "Moderation Status"
+          },
+          "ocr_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ocr Text"
+          },
+          "ocr_rule_candidates": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ocr Rule Candidates"
+          },
+          "upload_status": {
+            "type": "string",
+            "title": "Upload Status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "deleted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deleted At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "purpose",
+          "privacy_class",
+          "mime_type",
+          "byte_size",
+          "moderation_status",
+          "upload_status",
+          "created_at"
+        ],
+        "title": "MediaMetaOut"
       }
     },
     "securitySchemes": {
