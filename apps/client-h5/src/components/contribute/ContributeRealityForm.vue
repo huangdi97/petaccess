@@ -478,14 +478,6 @@ async function submit() {
         </template>
 
         <span class="cluster__field-label">证据图片（可选）</span>
-        <label
-          class="evidence-file-picker"
-          :class="{ 'evidence-file-picker--disabled': uploading }"
-          for="reality-media"
-        >
-          <span>{{ uploading ? "上传中…" : mediaId ? "重新选择证据图片" : "选择证据图片" }}</span>
-          <span class="evidence-file-picker__hint">PNG / JPG / WebP</span>
-        </label>
         <input
           id="reality-media"
           class="visually-hidden-file"
@@ -495,6 +487,14 @@ async function submit() {
           data-testid="reality-media"
           @change="uploadEvidence"
         />
+        <label
+          class="evidence-file-picker"
+          :class="{ 'evidence-file-picker--disabled': uploading }"
+          for="reality-media"
+        >
+          <span>{{ uploading ? "上传中…" : mediaId ? "重新选择证据图片" : "选择证据图片" }}</span>
+          <span class="evidence-file-picker__hint">PNG / JPG / WebP</span>
+        </label>
         <p v-if="mediaMessage" class="muted source-note" data-testid="reality-media-message">
           {{ mediaMessage }}
         </p>
@@ -819,8 +819,13 @@ async function submit() {
   cursor: pointer;
 }
 
-.evidence-file-picker:hover,
-.evidence-file-picker:focus-within {
+.evidence-file-picker:hover {
+  background: var(--pa-color-surface-interactive);
+}
+
+.visually-hidden-file:focus-visible + .evidence-file-picker {
+  outline: 2px solid var(--pa-color-border-focus);
+  outline-offset: 2px;
   background: var(--pa-color-surface-interactive);
 }
 

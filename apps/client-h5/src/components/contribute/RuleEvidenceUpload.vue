@@ -52,14 +52,6 @@ async function upload(event: Event) {
     <span class="rule-evidence__label">
       {{ required ? "上传一张可核验照片" : "上传照片" }}
     </span>
-    <label
-      class="rule-file-picker"
-      :class="{ 'rule-file-picker--disabled': uploading }"
-      for="rule-evidence-file"
-    >
-      <span>{{ uploading ? "上传中…" : mediaId ? "重新选择照片" : "选择规则牌照片" }}</span>
-      <span class="rule-file-picker__hint">PNG / JPG / WebP</span>
-    </label>
     <input
       id="rule-evidence-file"
       class="visually-hidden-file"
@@ -70,6 +62,14 @@ async function upload(event: Event) {
       data-testid="rule-evidence-file"
       @change="upload"
     />
+    <label
+      class="rule-file-picker"
+      :class="{ 'rule-file-picker--disabled': uploading }"
+      for="rule-evidence-file"
+    >
+      <span>{{ uploading ? "上传中…" : mediaId ? "重新选择照片" : "选择规则牌照片" }}</span>
+      <span class="rule-file-picker__hint">PNG / JPG / WebP</span>
+    </label>
     <p v-if="uploading" class="rule-upload-note">上传中…</p>
     <p v-else-if="mediaId" class="rule-upload-note" data-testid="rule-upload-msg">
       规则牌照片已作为私有审核证据上传，不会直接公开。
@@ -125,8 +125,13 @@ async function upload(event: Event) {
   cursor: pointer;
 }
 
-.rule-file-picker:hover,
-.rule-file-picker:focus-within {
+.rule-file-picker:hover {
+  background: var(--pa-color-surface-interactive);
+}
+
+.visually-hidden-file:focus-visible + .rule-file-picker {
+  outline: 2px solid var(--pa-color-border-focus);
+  outline-offset: 2px;
   background: var(--pa-color-surface-interactive);
 }
 
