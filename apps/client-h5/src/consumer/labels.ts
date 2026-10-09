@@ -195,6 +195,40 @@ export function coexistenceValueLabel(value: string | null | undefined): string 
   return COEXISTENCE_VALUE_LABELS[value ?? ""] ?? "状态未知";
 }
 
+/** Facility supervision/security fields can contain reviewed imported
+ * strings. Only known consumer vocabulary is ever rendered; unknown tokens
+ * remain truthful but opaque rather than leaking an internal value. */
+const FACILITY_SUPERVISION_LABELS: Record<string, string> = {
+  "有工作人员看护": "有工作人员看护",
+  "无人固定看护": "无人固定看护",
+  staff_present: "有工作人员看护",
+  supervised: "有工作人员看护",
+  unattended: "无人固定看护",
+  none: "无人固定看护",
+  unknown: "未确认",
+};
+
+export function facilitySupervisionLabel(value: string | null | undefined): string {
+  if (!value) return "未确认";
+  return FACILITY_SUPERVISION_LABELS[value] ?? "看护情况已记录，待核验";
+}
+
+const FACILITY_SECURITY_LABELS: Record<string, string> = {
+  "可锁闭 / 有安全门": "可锁闭 / 有安全门",
+  "开放式 / 不可锁闭": "开放式 / 不可锁闭",
+  lockable: "可锁闭 / 有安全门",
+  locked: "可锁闭 / 有安全门",
+  secure_gate: "可锁闭 / 有安全门",
+  open: "开放式 / 不可锁闭",
+  unlocked: "开放式 / 不可锁闭",
+  unknown: "未确认",
+};
+
+export function facilitySecurityLabel(value: string | null | undefined): string {
+  if (!value) return "未确认";
+  return FACILITY_SECURITY_LABELS[value] ?? "安全情况已记录，待核验";
+}
+
 /** Entrance types (PlaceView ENTRANCE_LABELS). */
 export const ENTRANCE_LABELS: Record<string, string> = {
   GENERAL: "通用入口",
