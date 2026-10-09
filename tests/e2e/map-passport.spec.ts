@@ -109,6 +109,10 @@ test("A4.3 — Search inspector only promotes reviewed scene_photo media", async
   await expect(scene).toBeVisible({ timeout: 15000 });
   await expect(scene.locator("img")).toHaveAttribute("alt", /场所场景：云栖中心/);
   await expect(scene).toContainText("经审核公开的场所场景照片");
+  await expect(page.locator(".result-row--selected .result-row__scene")).toHaveAttribute(
+    "alt",
+    /场所场景：云栖中心/,
+  );
 });
 
 test("A4.4 — Map preview promotes only reviewed scene_photo media", async ({ page }) => {
