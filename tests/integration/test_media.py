@@ -143,6 +143,39 @@ def test_private_media_is_not_readable_or_deletable_by_other_user(
     assert client.get(f"/api/v1/media/{media_id}", headers=_auth(user_token)).status_code == 200
 
 
+def test_my_media_lists_only_active_uploads_owned_by_current_user(
+    client, user_token, other_user_token
+):
+    mine = client.post(
+        "/api/v1/media/upload",
+        params={"purpose": "reality_evidence"},
+        files={"file": ("mine.png", _png_bytes(b"mine-list"), "image/png")},
+        headers=_auth(user_token),
+    )
+    assert mine.status_code == 201, mine.text
+    mine_id = mine.json()["id"]
+
+    other = client.post(
+        "/api/v1/media/upload",
+        params={"purpose": "scene_photo"},
+        files={"file": ("other.png", _png_bytes(b"other-list"), "image/png")},
+        headers=_auth(other_user_token),
+    )
+    assert other.status_code == 201, other.text
+
+    listed = client.get("/api/v1/media/mine", headers=_auth(user_token))
+    assert listed.status_code == 200, listed.text
+    ids = {item["id"] for item in listed.json()}
+    assert mine_id in ids
+    assert other.json()["id"] not in ids
+    assert all("object_key" not in item and "bucket" not in item for item in listed.json())
+
+    deleted = client.delete(f"/api/v1/media/{mine_id}", headers=_auth(user_token))
+    assert deleted.status_code == 204
+    listed_after = client.get("/api/v1/media/mine", headers=_auth(user_token))
+    assert mine_id not in {item["id"] for item in listed_after.json()}
+
+
 def test_upload_rejects_bad_content(client, user_token):
     # text disguised as png → magic mismatch
     r1 = client.post(
