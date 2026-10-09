@@ -30,7 +30,6 @@ async function chooseEntry(page: Page, testId: string) {
   await page.getByTestId("entry-next").click();
 }
 
-
 test("A1/A4 — 向导入口与现场记录表单渲染（已登录）", async ({ page, request }) => {
   const token = await signIn(request);
   // Deterministic token injection: addInitScript runs before every page load, so
