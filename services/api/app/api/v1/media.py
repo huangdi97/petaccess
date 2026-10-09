@@ -31,6 +31,7 @@ from app.models.media import (
     MediaUploadStatus,
 )
 from app.providers.factory import get_storage_provider
+from app.schemas.media import MediaMetaOut
 from app.services.public_evidence_media import (
     PUBLIC_MEDIA_URL_SECONDS,
     resolve_public_evidence_media,
@@ -254,7 +255,7 @@ def public_evidence_media(bundle_id: str, db: Session = Depends(get_db)) -> dict
     }
 
 
-@router.get("/media/mine")
+@router.get("/media/mine", response_model=list[MediaMetaOut])
 def my_media(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -285,7 +286,7 @@ def media_url(
     return {"id": media.id, "url": url, "expires_in": 900}
 
 
-@router.get("/media/{media_id}")
+@router.get("/media/{media_id}", response_model=MediaMetaOut)
 def media_meta(
     media_id: str,
     user: User = Depends(get_current_user),
