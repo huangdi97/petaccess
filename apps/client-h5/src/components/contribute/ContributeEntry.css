@@ -52,6 +52,34 @@
   background: var(--pa-color-accent-weak);
   color: var(--pa-color-accent);
 }
+
+/* These hues encode contribution *type*, never permission or quality. Reuse
+ * existing semantic palettes so the entry screen scans like the approved
+ * reference without inventing a second status system. */
+.entry-option__icon--rule {
+  background: var(--pa-color-accent-weak);
+  color: var(--pa-color-accent);
+}
+
+.entry-option__icon--reality {
+  background: var(--pa-color-reality-observed-bg);
+  color: var(--pa-color-reality-observed);
+}
+
+.entry-option__icon--staff {
+  background: var(--pa-color-status-conditional-bg);
+  color: var(--pa-color-status-conditional);
+}
+
+.entry-option__icon--facility {
+  background: var(--pa-color-facility-confirmed-bg);
+  color: var(--pa-color-facility-confirmed);
+}
+
+.entry-option__icon--correction {
+  background: var(--pa-color-status-conflict-bg);
+  color: var(--pa-color-status-conflict);
+}
 .entry-option__text {
   display: flex;
   flex-direction: column;
