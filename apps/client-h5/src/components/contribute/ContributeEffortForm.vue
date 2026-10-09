@@ -21,7 +21,7 @@ const props = withDefaults(
   }>(),
   { targetClaimId: null, initialZoneId: null },
 );
-const emit = defineEmits<{ done: [msg: string]; back: [] }>();
+const emit = defineEmits<{ done: [msg: string]; back: []; reviewing: [value: boolean] }>();
 
 const { sourceMode, occurredAt, durationBucket, zoneId, busy, error, canSubmit, submit } =
   useObservationEffortContribution(
@@ -41,6 +41,10 @@ const contributionScopeLabel = computed(() => {
 });
 
 const reviewing = ref(false);
+function setReviewing(value: boolean) {
+  reviewing.value = value;
+  emit("reviewing", value);
+}
 const durationLabel = computed(
   () =>
     OBSERVATION_EFFORT_OPTIONS.find((item) => item.key === durationBucket.value)?.label ??
@@ -73,7 +77,7 @@ const reviewItems = computed(() => [
         ? '确认时间、范围与停留时长；这仍只是一条本次观察覆盖记录。'
         : '“没看到”只有和停留时间、观察范围一起记录才有意义；它不会被解释成“这里没有动物”。'
     "
-    @back="reviewing ? (reviewing = false) : emit('back')"
+    @back="reviewing ? setReviewing(false) : emit('back')"
   >
     <template v-if="!reviewing">
       <div class="effort-form" data-ui="contribution-form">
@@ -139,7 +143,7 @@ const reviewItems = computed(() => [
         class="primary"
         :disabled="!canSubmit"
         data-testid="effort-review-next"
-        @click="reviewing = true"
+        @click="setReviewing(true)"
       >
         下一步：核对
       </button>
