@@ -180,7 +180,12 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
               {{ placeTypeLabel(place.place_type) }} ·
               {{ place.canonical_address ?? "地址待补充" }}
               <template v-if="place.distance_m">
-                · {{ place.distance_m >= 1000 ? (place.distance_m / 1000).toFixed(1) + "km" : Math.round(place.distance_m) + "m" }}
+                ·
+                {{
+                  place.distance_m >= 1000
+                    ? (place.distance_m / 1000).toFixed(1) + "km"
+                    : Math.round(place.distance_m) + "m"
+                }}
               </template>
             </p>
           </div>
