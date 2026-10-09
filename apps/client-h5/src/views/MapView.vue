@@ -13,7 +13,12 @@
  * semantic status, never a ranking; map failure surfaces via StateMessage.
  */
 import { computed, onMounted, ref } from "vue";
-import { client, type MapRenderConfig } from "@petaccess/client-core";
+import {
+  client,
+  MAP_MAX_ZOOM,
+  MAP_MIN_ZOOM,
+  type MapRenderConfig,
+} from "@petaccess/client-core";
 import MapResultPane from "../components/domain/MapResultPane.vue";
 import MockMap from "../components/MockMap.vue";
 import TencentMap from "../components/TencentMap.vue";
@@ -126,11 +131,13 @@ function goHome() {
   void router.push({ name: "home" });
 }
 
-function zoomMap(delta: number) {
-  camera.value = {
-    ...camera.value,
-    zoom: Math.max(8, Math.min(18, camera.value.zoom + delta)),
-  };
+async function zoomMap(delta: number) {
+  const zoom = Math.max(MAP_MIN_ZOOM, Math.min(MAP_MAX_ZOOM, camera.value.zoom + delta));
+  if (zoom === camera.value.zoom) return;
+  camera.value = { ...camera.value, zoom };
+  // The nearby radius is derived from zoom. Refresh the geographic query so
+  // "current viewport" never describes a wider area than the fetched data.
+  await load();
 }
 
 async function clearSelectedPlaceForSpatialMove() {
@@ -155,11 +162,11 @@ async function locateMap() {
   locate();
 }
 
-function setAbsoluteZoom(zoom: number) {
-  camera.value = {
-    ...camera.value,
-    zoom: Math.max(8, Math.min(18, zoom)),
-  };
+async function setAbsoluteZoom(zoom: number) {
+  const next = Math.max(MAP_MIN_ZOOM, Math.min(MAP_MAX_ZOOM, zoom));
+  if (Math.abs(next - camera.value.zoom) < 0.01) return;
+  camera.value = { ...camera.value, zoom: next };
+  await load();
 }
 
 function handleRealMapError(message: string) {
