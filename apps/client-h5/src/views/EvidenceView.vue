@@ -65,6 +65,7 @@ const events = ref<RealityEventView[]>([]);
 const publicMediaByBundle = ref<Map<string, PublicEvidenceMediaView>>(new Map());
 const loading = ref(true);
 const error = ref("");
+const privateContextNote = ref("");
 const loadEpoch = createEpoch();
 
 function sourceTypeLabel(value: string): string {
@@ -207,11 +208,16 @@ async function load() {
   const epoch = loadEpoch.begin();
   loading.value = true;
   error.value = "";
+  privateContextNote.value = "";
   try {
-    // A direct Evidence deep link must restore the persisted query subject
-    // before taking the rule snapshot; otherwise the same place can briefly
-    // resolve as the default ordinary dog instead of the user's active pet.
-    await session.restore();
+    // Evidence is public. Restore private pet/boundary context when possible,
+    // but never turn a stale local credential into an Evidence outage.
+    try {
+      await session.restore();
+    } catch {
+      privateContextNote.value =
+        "账号查询上下文暂不可用；以下证据仍可公开查看，当前结论使用默认查询上下文。";
+    }
     if (!loadEpoch.isCurrent(epoch) || placeId.value !== id) return;
     const [traceRow, eventRows, placeRow, zoneRows, snapshotRow] = await Promise.all([
       client.realityTrace(id),
@@ -268,6 +274,12 @@ const uiFixture = computed<string>(() =>
   >
     <QueryContextBar />
     <div class="evidence-workspace__body">
+      <StateMessage
+        v-if="privateContextNote"
+        kind="PARTIAL"
+        :description="privateContextNote"
+        data-testid="evidence-private-context-note"
+      />
       <h1 class="visually-hidden">证据与来源</h1>
       <SkeletonList v-if="loading" :rows="4" />
       <StateMessage v-else-if="error" kind="ERROR" title="未能取得证据记录" :description="error">
