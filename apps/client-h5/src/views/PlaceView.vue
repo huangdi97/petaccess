@@ -469,6 +469,8 @@ const placeFixture = computed<string>(() => {
             :primary-source-label="primarySourceLabel"
             :latest-verified-at="latestVerifiedAt"
             :observation-count="presenceEventCount"
+            :place-kind-label="placeTypeLabel(place.place_type)"
+            :canonical-address="place.canonical_address"
             :desktop="isDesktop"
           />
           <section
