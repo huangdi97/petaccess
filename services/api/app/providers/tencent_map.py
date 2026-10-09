@@ -28,6 +28,7 @@ from urllib.parse import quote
 import httpx
 
 from .base import MapProvider
+from .gcj02 import gcj02_to_wgs84
 
 logger = logging.getLogger(__name__)
 
