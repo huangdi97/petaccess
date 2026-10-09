@@ -128,10 +128,15 @@ test("same-brand branches come back as two labelled rows, answer first", async (
   // Canonical search answers the access question first; Reality remains a
   // separate visible fact. A Reality-first headline only appears after the
   // user explicitly chooses a Reality lens.
-  // The resolver may explain why the rule is unknown, but it must preserve
-  // the safety invariant: missing coverage is never permission.
-  await expect(flagship.getByTestId("row-lens-headline")).toContainText("不得据此认为允许");
-  await expect(branch.getByTestId("row-lens-headline")).toContainText("不得据此认为允许");
+  // Primary decision copy stays in the controlled consumer vocabulary;
+  // the safety guard remains a quieter evidence line, never an internal
+  // resolver field or a verbose server summary.
+  await expect(flagship.getByTestId("row-lens-headline")).toContainText("信息不足");
+  await expect(branch.getByTestId("row-lens-headline")).toContainText("信息不足");
+  await expect(flagship).toContainText("信息不足不等于允许或禁止");
+  await expect(branch).toContainText("信息不足不等于允许或禁止");
+  await expect(flagship).not.toContainText("condition_evaluation");
+  await expect(branch).not.toContainText("condition_evaluation");
   await expect(page.getByTestId("result-rules")).toHaveCount(0);
   await expect(page.locator("ul.result-list > li").first()).toContainText("星河咖啡·测试店");
 
