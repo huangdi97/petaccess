@@ -155,19 +155,15 @@ const divergenceLine = computed(() => {
       <p v-else-if="observationCount > 0 && desktop" class="muted overview-note">
         {{ observationCount }} 条现场记录
       </p>
-      <div
-        v-if="staffSummaryLine || facilitySummaryLine || divergenceLine"
-        class="coexistence-facts"
-        data-ui="coexistence-facts"
-      >
-        <p v-if="staffSummaryLine" class="coexistence-fact">
+      <div class="coexistence-facts" data-ui="coexistence-facts">
+        <p class="coexistence-fact" data-testid="overview-staff-response">
           <span class="coexistence-fact__label">工作人员处理</span>
           <span class="coexistence-fact__value">{{ staffSummaryLine }}</span>
           <RouterLink class="btn-inline coexistence-fact__link" :to="`?view=reality`">
             查看处理记录 →
           </RouterLink>
         </p>
-        <p v-if="facilitySummaryLine" class="coexistence-fact">
+        <p class="coexistence-fact" data-testid="overview-animal-facility">
           <span class="coexistence-fact__label">动物设施</span>
           <span class="coexistence-fact__value">{{ facilitySummaryLine }}</span>
           <RouterLink class="btn-inline coexistence-fact__link" :to="`?view=space`">
