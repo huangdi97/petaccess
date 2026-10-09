@@ -8,11 +8,7 @@
  * verification date is never presented as an observation time.
  */
 import { computed } from "vue";
-import type {
-  PublicEvidenceMediaView,
-  RealityEventView,
-  Zone,
-} from "@petaccess/client-core";
+import type { PublicEvidenceMediaView, RealityEventView, Zone } from "@petaccess/client-core";
 import { type IconName } from "@petaccess/design-tokens";
 import PaIcon from "../ui/PaIcon.vue";
 import { zoneConsumerLine } from "../../consumer/labels";
@@ -151,61 +147,63 @@ const visibleGroups = computed<EventGroup[]>(() => {
           <div class="trace-row__content">
             <div class="trace-row__text">
               <p class="trace-row__event" data-testid="event-fact">
-              {{ realityEventHeadline(event) }}
-            </p>
-            <p class="trace-row__location" data-testid="event-location">
-              {{ zoneNameFor(event) }}
-            </p>
-            <p v-if="realityEventDetail(event)" class="trace-row__detail">
-              {{ realityEventDetail(event) }}
-            </p>
-            <div class="trace-row__meta">
-              <span class="trace-row__status" data-testid="event-status">
-                {{ realityEventVerification(event) }} · {{ realityEventTimeBasis(event) }}
-              </span>
-              <RouterLink
-                v-if="event.evidence_bundle_id"
-                class="btn-inline trace-row__evidence"
-                :to="`/place/${placeId}/evidence`"
-                data-testid="event-evidence-link"
-              >
-                查看证据 →
-              </RouterLink>
-            </div>
-            <div
-              v-if="signedIn && ['observed_presence', 'animal_facility'].includes(event.event_type)"
-              class="trace-row__confirm"
-              aria-label="补充当前现场确认"
-            >
-              <template v-if="event.event_type === 'observed_presence'">
-                <button
-                  type="button"
-                  :disabled="busyEventId === event.id"
-                  @click="emit('confirm', event, 'still_present')"
+                {{ realityEventHeadline(event) }}
+              </p>
+              <p class="trace-row__location" data-testid="event-location">
+                {{ zoneNameFor(event) }}
+              </p>
+              <p v-if="realityEventDetail(event)" class="trace-row__detail">
+                {{ realityEventDetail(event) }}
+              </p>
+              <div class="trace-row__meta">
+                <span class="trace-row__status" data-testid="event-status">
+                  {{ realityEventVerification(event) }} · {{ realityEventTimeBasis(event) }}
+                </span>
+                <RouterLink
+                  v-if="event.evidence_bundle_id"
+                  class="btn-inline trace-row__evidence"
+                  :to="`/place/${placeId}/evidence`"
+                  data-testid="event-evidence-link"
                 >
-                  我现在也看到了
-                </button>
-                <RouterLink class="trace-row__effort-link" :to="effortRoute(event)">
-                  这次没看到
+                  查看证据 →
                 </RouterLink>
-              </template>
-              <template v-else>
-                <button
-                  type="button"
-                  :disabled="busyEventId === event.id"
-                  @click="emit('confirm', event, 'facility_still_present')"
-                >
-                  设施还在
-                </button>
-                <button
-                  type="button"
-                  :disabled="busyEventId === event.id"
-                  @click="emit('confirm', event, 'facility_removed')"
-                >
-                  设施已撤除
-                </button>
-              </template>
-            </div>
+              </div>
+              <div
+                v-if="
+                  signedIn && ['observed_presence', 'animal_facility'].includes(event.event_type)
+                "
+                class="trace-row__confirm"
+                aria-label="补充当前现场确认"
+              >
+                <template v-if="event.event_type === 'observed_presence'">
+                  <button
+                    type="button"
+                    :disabled="busyEventId === event.id"
+                    @click="emit('confirm', event, 'still_present')"
+                  >
+                    我现在也看到了
+                  </button>
+                  <RouterLink class="trace-row__effort-link" :to="effortRoute(event)">
+                    这次没看到
+                  </RouterLink>
+                </template>
+                <template v-else>
+                  <button
+                    type="button"
+                    :disabled="busyEventId === event.id"
+                    @click="emit('confirm', event, 'facility_still_present')"
+                  >
+                    设施还在
+                  </button>
+                  <button
+                    type="button"
+                    :disabled="busyEventId === event.id"
+                    @click="emit('confirm', event, 'facility_removed')"
+                  >
+                    设施已撤除
+                  </button>
+                </template>
+              </div>
             </div>
             <figure
               v-if="publicMediaFor(event)"
