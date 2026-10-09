@@ -180,7 +180,11 @@ const divergenceLine = computed(() => {
           </RouterLink>
         </p>
       </div>
-      <RouterLink class="btn-inline" :to="`?view=reality`" data-testid="overview-reality-link">
+      <RouterLink
+        class="btn-inline overview-reality-link"
+        :to="`?view=reality`"
+        data-testid="overview-reality-link"
+      >
         查看现场记录 →
       </RouterLink>
     </section>
@@ -520,7 +524,10 @@ const divergenceLine = computed(() => {
 @media (max-width: 767px) {
   /* Mobile keeps the same Rule + Reality semantics as desktop. The rows
      collapse to compact two-column facts; only their secondary links hide. */
-  .sub-answer__note {
+  .sub-answer__note,
+  .sub-answer__details-link,
+  .overview-note,
+  .overview-reality-link {
     display: none;
   }
 
