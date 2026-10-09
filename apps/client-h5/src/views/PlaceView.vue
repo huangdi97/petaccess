@@ -17,7 +17,6 @@ import { useRoute } from "vue-router";
 
 import {
   client,
-  conditionLabel,
   placeTypeLabel,
   session,
   type AccessAnswer,
