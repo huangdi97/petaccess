@@ -9,7 +9,13 @@
  */
 import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
-import { client, session, type RealityEventView, type Zone } from "@petaccess/client-core";
+import {
+  client,
+  session,
+  type PublicEvidenceMediaView,
+  type RealityEventView,
+  type Zone,
+} from "@petaccess/client-core";
 import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
 import QueryContextBar from "../components/domain/QueryContextBar.vue";
@@ -27,6 +33,7 @@ const realityConfirmation = useRealityConfirmation(() => placeId.value);
 
 const events = ref<RealityEventView[]>([]);
 const zones = ref<Zone[]>([]);
+const publicMediaByBundle = ref<Map<string, PublicEvidenceMediaView>>(new Map());
 const loading = ref(true);
 const error = ref("");
 const filter = ref<"all" | "presence" | "staff" | "facility">("all");
@@ -89,6 +96,28 @@ const summaryLine = computed(() => {
 });
 
 const loadEpoch = createEpoch();
+
+async function loadPublicMedia(eventRows: RealityEventView[], epoch: number) {
+  const bundleIds = [
+    ...new Set(
+      eventRows.map((event) => event.evidence_bundle_id).filter((id): id is string => Boolean(id)),
+    ),
+  ].slice(0, 8);
+  const rows = await Promise.all(
+    bundleIds.map(async (bundleId) => {
+      try {
+        return [bundleId, await client.publicEvidenceMedia(bundleId)] as const;
+      } catch {
+        // Public display is fail-closed. Missing permission or media never
+        // turns into a placeholder image on the Reality timeline.
+        return null;
+      }
+    }),
+  );
+  if (!loadEpoch.isCurrent(epoch)) return;
+  publicMediaByBundle.value = new Map(rows.filter((row) => row !== null));
+}
+
 async function load() {
   const id = placeId.value;
   if (!id) return;
@@ -97,12 +126,14 @@ async function load() {
   error.value = "";
   events.value = [];
   zones.value = [];
+  publicMediaByBundle.value = new Map();
   const isCurrent = () => loadEpoch.isCurrent(epoch) && placeId.value === id;
   try {
     const [eventRows, zoneRows] = await Promise.all([client.realityEvents(id), client.zones(id)]);
     if (!isCurrent()) return;
     events.value = eventRows;
     zones.value = zoneRows;
+    void loadPublicMedia(eventRows, epoch);
   } catch (e) {
     if (isCurrent()) error.value = presentDescription(e);
   } finally {
@@ -193,6 +224,7 @@ const uiFixture = computed<string>(() =>
           <RealityEventLog
             :events="visibleEvents"
             :zones="zones"
+            :public-media-by-bundle="publicMediaByBundle"
             :place-id="placeId"
             :signed-in="session.signedIn"
             :busy-event-id="realityConfirmation.busyEventId.value"
