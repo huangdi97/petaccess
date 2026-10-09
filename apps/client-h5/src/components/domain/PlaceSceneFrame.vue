@@ -6,9 +6,10 @@
  * reviewed public-media gate. Missing media is a first-class honest state,
  * never replaced by evidence/signage/import imagery or synthetic venue art.
  */
+import { computed, ref, watch } from "vue";
 import PaIcon from "../ui/PaIcon.vue";
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     src?: string | null;
     alt?: string;
@@ -22,22 +23,33 @@ withDefaults(
     eager: false,
   },
 );
+
+const imageFailed = ref(false);
+watch(
+  () => props.src,
+  () => {
+    imageFailed.value = false;
+  },
+);
+
+const showImage = computed(() => Boolean(props.src) && !imageFailed.value);
 </script>
 
 <template>
   <figure
     class="scene-frame"
-    :class="[`scene-frame--${variant}`, { 'scene-frame--empty': !src }]"
+    :class="[`scene-frame--${variant}`, { 'scene-frame--empty': !showImage }]"
     data-ui="place-scene-frame"
   >
     <img
-      v-if="src"
+      v-if="showImage"
       class="scene-frame__image"
-      :src="src"
+      :src="src ?? undefined"
       :alt="alt"
       :loading="eager ? 'eager' : 'lazy'"
       decoding="async"
       referrerpolicy="no-referrer"
+      @error="imageFailed = true"
     />
     <div v-else class="scene-frame__empty" data-testid="scene-media-empty">
       <span class="scene-frame__camera" aria-hidden="true"><PaIcon name="camera" size="lg" /></span>
@@ -46,7 +58,7 @@ withDefaults(
         <small>仅展示经审核允许公开的场景媒体</small>
       </span>
     </div>
-    <figcaption v-if="src" class="scene-frame__caption">经审核允许公开展示的场所场景</figcaption>
+    <figcaption v-if="showImage" class="scene-frame__caption">经审核允许公开展示的场所场景</figcaption>
   </figure>
 </template>
 
