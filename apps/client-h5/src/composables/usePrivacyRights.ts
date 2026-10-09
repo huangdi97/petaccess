@@ -90,5 +90,6 @@ export function usePrivacyRights() {
     loadRightsStatus,
     exportData,
     submitDeletionRequest,
+    loadRightsStatus,
   };
 }
