@@ -10,6 +10,7 @@ interface TencentMapInstance {
   setCenter: (center: unknown) => unknown;
   setZoom: (zoom: number) => unknown;
   getZoom: () => number;
+  getCenter: () => TencentLatLng;
   on: (eventName: string, listener: () => void) => unknown;
   off: (eventName: string, listener: () => void) => unknown;
   destroy: () => void;
@@ -58,6 +59,7 @@ export interface TencentRendererOptions {
   lens: () => string;
   onSelect: (cluster: MapCluster) => void;
   onZoom: (zoom: number) => void;
+  onPan: (lat: number, lng: number) => void;
   onError: (message: string) => void;
 }
 
@@ -142,9 +144,33 @@ export function useTencentMapRenderer(options: TencentRendererOptions) {
   const markerLayer = shallowRef<TencentMarkerLayer | null>(null);
   const providerLabel = computed(() => (ready.value ? "腾讯地图底图" : "正在加载真实地图…"));
 
+  let viewportGeneration = 0;
+
   function onMapIdle() {
-    const zoom = map.value?.getZoom();
+    const instance = map.value;
+    if (!instance) return;
+    const zoom = instance.getZoom();
     if (typeof zoom === "number" && Number.isFinite(zoom)) options.onZoom(zoom);
+
+    const center = instance.getCenter();
+    const lat = center.getLat?.();
+    const lng = center.getLng?.();
+    if (typeof lat !== "number" || typeof lng !== "number") return;
+
+    const generation = ++viewportGeneration;
+    void client
+      .normalizeMapCoordinates([{ lat, lng }])
+      .then((response) => {
+        if (generation !== viewportGeneration || response.coordinate_system !== "EPSG:4326") return;
+        const normalized = response.coordinates[0];
+        if (!normalized) return;
+        const current = options.camera();
+        const moved =
+          Math.abs(normalized.lat - current.lat) > 0.00005 ||
+          Math.abs(normalized.lng - current.lng) > 0.00005;
+        if (moved) options.onPan(normalized.lat, normalized.lng);
+      })
+      .catch((error) => options.onError(failMessage(error, "地图中心坐标归一化失败")));
   }
 
   function onMarkerClick(event: TencentMarkerEvent) {
