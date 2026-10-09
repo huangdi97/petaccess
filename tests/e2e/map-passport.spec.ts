@@ -248,6 +248,27 @@ test("A1.0.2 — nearby venue cluster is neutral and requires per-place inspecti
   await expect(group.locator(".map-cluster")).toHaveClass("map-cluster");
 });
 
+test("A1.0.2 — non-Rule lenses never reuse permission checkmark semantics", async ({
+  page,
+}) => {
+  await page.goto(`${BASE}/#/map`);
+  for (const lens of ["reality", "facility", "divergence"] as const) {
+    await page.getByTestId(`map-lens-${lens}`).click();
+    const glyph = page.locator(".dot__glyph").first();
+    await expect(glyph).toBeVisible({ timeout: 15000 });
+    await expect(glyph).not.toHaveText("✓");
+  }
+
+  // Aggregate markers represent multiple potentially different places, so
+  // they remain neutral instead of inheriting an access/reality status class.
+  await page.getByRole("button", { name: "缩小" }).click();
+  await page.getByRole("button", { name: "缩小" }).click();
+  const cluster = page.locator(".map-cluster").first();
+  if (await cluster.count()) {
+    await expect(cluster).not.toHaveClass(/s-(ALLOWED|CONDITIONAL|RESTRICTED|CONFLICT|STALE)/);
+  }
+});
+
 test("A1.1 — Map 内搜索保持 Spatial Workspace 并选择真实场所", async ({ page }) => {
   await page.goto(`${BASE}/#/map`);
   await expect(page.getByTestId("map-search-input")).toBeVisible();
