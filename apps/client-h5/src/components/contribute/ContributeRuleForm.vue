@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import type { RuleView } from "@petaccess/client-core";
 import ContributionStepShell from "./ContributionStepShell.vue";
 import RuleLeadFields from "./RuleLeadFields.vue";
@@ -38,11 +39,17 @@ function applyRuleScope(rule: RuleView | null) {
   if (intent.value !== "still_valid" && intent.value !== "changed") return;
   zone.value = rule?.zone_id ?? "";
 }
+
+const contributionScopeLabel = computed(() => {
+  if (!zone.value) return "场所整体（未限定分区）";
+  return props.zones.find((item) => item.id === zone.value)?.name ?? "分区记录待确认";
+});
 </script>
 
 <template>
   <ContributionStepShell
     :place-name="placeName"
+    :place-zone="contributionScopeLabel"
     :step="2"
     :total="3"
     title="补充规则信息"
