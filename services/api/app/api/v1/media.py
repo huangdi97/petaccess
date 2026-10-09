@@ -230,6 +230,7 @@ def public_evidence_media(bundle_id: str, db: Session = Depends(get_db)) -> dict
     return {
         "evidence_bundle_id": bundle_id,
         "media_id": media.id,
+        "purpose": media.purpose,
         "url": url,
         "mime_type": media.mime_type,
         "expires_in": PUBLIC_MEDIA_URL_SECONDS,
