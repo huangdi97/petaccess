@@ -139,7 +139,6 @@ export function useMapWorkspace() {
     router.push({ name: "place", params: { id } });
   }
 
-
   const { onSelectCluster } = useMapClusterSelection({
     camera,
     places,

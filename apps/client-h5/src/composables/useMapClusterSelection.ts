@@ -31,8 +31,7 @@ interface ClusterSelectionDeps {
 export function useMapClusterSelection(deps: ClusterSelectionDeps) {
   function onSelectCluster(cluster: MapCluster) {
     if (cluster.count === 1) {
-      const place =
-        deps.places.value.find((item) => item.id === cluster.memberIds[0]) ?? null;
+      const place = deps.places.value.find((item) => item.id === cluster.memberIds[0]) ?? null;
       deps.selected.value = place;
       if (place) {
         deps.syncRoutePlace(place.id);
