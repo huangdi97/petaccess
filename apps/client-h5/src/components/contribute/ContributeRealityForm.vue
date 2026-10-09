@@ -207,6 +207,16 @@ const validEventDate = computed(() =>
 const canUseCurrentZones = computed(
   () => !isExternal.value || externalPlaceMatch.value === "exact_place",
 );
+
+const contributionScopeLabel = computed(() => {
+  if (isExternal.value) {
+    if (externalPlaceMatch.value === "parent_place_only") return "仅能确认到上级场所";
+    if (externalPlaceMatch.value === "area_only") return "仅能确认到附近区域";
+    if (externalPlaceMatch.value === "unresolved") return "地点尚未可靠确认";
+  }
+  if (!zone.value) return "场所范围（未指定分区）";
+  return props.zones.find((item) => item.id === zone.value)?.name ?? "分区记录待确认";
+});
 const canSubmit = computed(
   () =>
     props.online &&
@@ -378,6 +388,7 @@ async function submit() {
 <template>
   <ContributionStepShell
     :place-name="placeName"
+    :place-zone="contributionScopeLabel"
     :step="2"
     :total="3"
     :title="KIND_LABELS[kind]"
