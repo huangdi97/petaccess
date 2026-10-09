@@ -690,7 +690,10 @@ def test_reality_events_expose_only_published_verified_facts(client, place_id, s
     )
     assert all(event["id"] != pending_id for event in events)
     assert all("reviewer" not in event for event in events)
-    assert all("policy_statement_verbatim" not in event for event in events)
+    staff_events = [event for event in events if event["event_type"] == "staff_response"]
+    assert all(event.get("observed_context") is None for event in staff_events)
+    assert all(event.get("staff_outcome") is None for event in staff_events)
+    assert all(event.get("staff_policy_statement_verbatim") is None for event in staff_events)
     assert all("anonymous_token" not in event for event in events)
     assert all("reporter_id" not in event for event in events)
     assert all("media_refs" not in event for event in events)
