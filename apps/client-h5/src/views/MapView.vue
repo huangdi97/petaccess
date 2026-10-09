@@ -189,6 +189,7 @@ function chooseMapResult(id: string) {
           {{ item.label }}
         </button>
       </div>
+      <span class="map-lensbar__hint">“差异”用于查看规则与现场的不一致，不代表当前一定存在冲突。</span>
     </nav>
 
     <!-- v0.2.4 §32：desktop 没有「地图/列表」模式切换 —— desktop 恒为 List+Map。
@@ -443,6 +444,14 @@ function chooseMapResult(id: string) {
   outline: none;
 }
 
+.map-lensbar__hint {
+  margin-left: auto;
+  color: var(--pa-color-text-muted);
+  font-size: var(--pa-font-size-xs);
+  line-height: var(--pa-line-height-20);
+  white-space: nowrap;
+}
+
 /* v0.2.5 §25：compact segmented control（非两个独立 pill）。 */
 .map-viewbar {
   display: flex;
@@ -516,6 +525,17 @@ function chooseMapResult(id: string) {
  * The global shell reserves the fixed bottom nav; fill precisely the area
  * above it so the map never leaves a blank 150–200px strip on tall screens. */
 @media (max-width: 767px) {
+  .map-lensbar {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .map-lensbar__hint {
+    width: 100%;
+    margin-left: 0;
+    white-space: normal;
+  }
+
   .map-workspace {
     height: calc(100vh - var(--pa-safe-total-bottom));
     height: calc(100dvh - var(--pa-safe-total-bottom));
