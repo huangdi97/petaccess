@@ -4,7 +4,6 @@ import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { client, session } from "@petaccess/client-core";
 import AppShell from "../components/AppShell.vue";
-import PetImageSuggestion from "../components/pets/PetImageSuggestion.vue";
 import StateMessage from "../components/StateMessage.vue";
 import { presentDescription } from "../errors";
 import { useOnline } from "../composables/useOnline";
@@ -69,7 +68,7 @@ async function save() {
     <header class="pet-new-head">
       <h1>新建宠物档案</h1>
       <p class="muted">
-        只填写规则判断真正需要的信息。图片识别只提供可修改的建议，不会自动确认物种、体型或服务犬身份。
+        只填写规则判断真正需要的信息。物种、体型与服务犬身份都由你确认；当前不会用模拟图片识别替你填写。
       </p>
     </header>
 
@@ -149,15 +148,6 @@ async function save() {
           <option value="unknown">服务犬身份未确认</option>
         </select>
       </section>
-
-      <PetImageSuggestion
-        @suggest="
-          (species, breed) => {
-            pet.species = species;
-            pet.breed_text = breed;
-          }
-        "
-      />
 
       <div class="pet-new-actions">
         <button class="primary" type="submit" :disabled="!canSave" data-testid="pet-save">
