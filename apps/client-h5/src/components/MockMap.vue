@@ -20,6 +20,7 @@
  */
 import { computed, ref } from "vue";
 import type { MapCamera, MapCluster, MapMarker } from "@petaccess/client-core";
+import { mapLensGlyph } from "../consumer/mapLens";
 
 const props = withDefaults(
   defineProps<{
@@ -117,16 +118,7 @@ function cancelPan() {
   dragging.value = false;
 }
 
-const MARKER_GLYPHS: Record<MapMarker["status"], string> = {
-  ALLOWED: "✓",
-  CONDITIONAL: "△",
-  RESTRICTED: "▬",
-  UNKNOWN: "?",
-  CONFLICT: "!",
-  STALE: "↻",
-};
-
-const glyph = (status: MapMarker["status"]) => MARKER_GLYPHS[status];
+const glyph = (status: MapMarker["status"]) => mapLensGlyph(props.lens, status);
 
 function markerLabel(cluster: MapCluster): string {
   if (cluster.count > 1) return `${cluster.count} 个场所`;
