@@ -51,6 +51,22 @@ function accessPathApplicability(path: PlaceExtras["access_paths"][number]): str
   if (path.time_window && Object.keys(path.time_window).length) parts.push("有时段限制");
   return parts.join(" · ");
 }
+
+function coexistenceConditionLine(item: PlaceExtras["coexistence"][number]): string {
+  const labels = (item.conditions ?? []).flatMap((condition) => {
+    if (typeof condition === "string") return [conditionLabel(condition)];
+    if (!condition || typeof condition !== "object") return [];
+    const row = condition as Record<string, unknown>;
+    const type =
+      typeof row.condition_type === "string"
+        ? row.condition_type
+        : typeof row.type === "string"
+          ? row.type
+          : "";
+    return type ? [conditionLabel(type)] : [];
+  });
+  return [...new Set(labels)].join("、");
+}
 </script>
 
 <template>
@@ -123,7 +139,12 @@ function accessPathApplicability(path: PlaceExtras["access_paths"][number]): str
       <h2 class="place-section__title">空间事实</h2>
       <p v-if="!extras?.coexistence.length" class="muted">暂无共处边界结构化记录。</p>
       <div v-for="item in extras?.coexistence ?? []" :key="item.id" class="zone-row">
-        <span>{{ coexistenceLabel(item.attribute) }}</span>
+        <span class="zone-row__name-stack">
+          <span>{{ coexistenceLabel(item.attribute) }}</span>
+          <span v-if="coexistenceConditionLine(item)" class="muted zone-row__condition">
+            条件：{{ coexistenceConditionLine(item) }}
+          </span>
+        </span>
         <span class="muted">
           {{ coexistenceValueLabel(item.value) }}
           <template v-if="item.verified_at"> · {{ item.verified_at.slice(0, 10) }}</template>
