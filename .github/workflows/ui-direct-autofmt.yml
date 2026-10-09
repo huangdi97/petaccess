@@ -6,16 +6,14 @@ on:
       - feat/ui-direct-craft-v8
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   format:
-    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: feat/ui-direct-craft-v8
           fetch-depth: 0
       - uses: pnpm/action-setup@v4
         with:
@@ -25,9 +23,9 @@ jobs:
           node-version: "22"
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Format direct UI work
+      - name: Verify direct UI formatting
         run: |
-          pnpm exec prettier --write \
+          pnpm exec prettier --check \
             "apps/client-h5/src/**/*.{vue,ts}" \
             "packages/client-core/src/api/client.ts" \
             "packages/client-core/src/platform/map.ts" \
@@ -35,15 +33,3 @@ jobs:
             "tests/ui-oracle/*.ts" \
             "tests/e2e/consumer-contract-closure.spec.ts" \
             "tests/e2e/contribute-wizard.spec.ts"
-      - name: Commit formatting when needed
-        shell: bash
-        run: |
-          if git diff --quiet; then
-            echo "No formatting changes."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add apps/client-h5/src packages/client-core/src/api/client.ts packages/client-core/src/platform/map.ts docs/ui/contracts/json tests/ui-oracle tests/e2e/consumer-contract-closure.spec.ts tests/e2e/contribute-wizard.spec.ts
-          git commit -m "style(ui): apply canonical Prettier formatting"
-          git push origin HEAD:feat/ui-direct-craft-v8
