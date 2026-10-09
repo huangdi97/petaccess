@@ -96,34 +96,38 @@ const freshness = computed(() =>
           v-for="(c, index) in verified.slice(0, 3)"
           :key="c.place.id"
           class="home-row"
-          :class="{ 'home-row--with-scene': index === 0 && featuredSceneMediaUrl }"
           :data-testid="'verified-' + c.place.id"
         >
-          <img
-            v-if="index === 0 && featuredSceneMediaUrl"
-            class="home-row__scene"
-            :src="featuredSceneMediaUrl"
-            :alt="`场所场景：${c.place.canonical_name}`"
-            loading="lazy"
-            decoding="async"
-            referrerpolicy="no-referrer"
-          />
           <button
             type="button"
             class="home-row__open"
             :aria-label="`查看场所 ${c.place.canonical_name}`"
             @click="emit('open', c.place.id)"
           >
-            <PlaceResultRow
-              :place="c.place"
-              :answer="c.facts.answer"
-              :answer-error="c.facts.answerError"
-              :reality="c.facts.reality"
-              :snapshot="c.facts.snapshot"
-              :reality-error="c.facts.realityError"
-              :species-label="speciesLabel"
-              :conditions-label="conditionsLabel"
-            />
+            <div
+              class="home-row__content"
+              :class="{ 'home-row__content--with-scene': index === 0 && featuredSceneMediaUrl }"
+            >
+              <img
+                v-if="index === 0 && featuredSceneMediaUrl"
+                class="home-row__scene"
+                :src="featuredSceneMediaUrl"
+                :alt="`场所场景：${c.place.canonical_name}`"
+                loading="lazy"
+                decoding="async"
+                referrerpolicy="no-referrer"
+              />
+              <PlaceResultRow
+                :place="c.place"
+                :answer="c.facts.answer"
+                :answer-error="c.facts.answerError"
+                :reality="c.facts.reality"
+                :snapshot="c.facts.snapshot"
+                :reality-error="c.facts.realityError"
+                :species-label="speciesLabel"
+                :conditions-label="conditionsLabel"
+              />
+            </div>
           </button>
           <div v-if="c.facts.answer" class="home-row__evidence-link">
             <RouterLink
