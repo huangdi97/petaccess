@@ -41,6 +41,7 @@ import EvidenceDisputeAction from "../components/domain/EvidenceDisputeAction.vu
 import ReviewedPublicMedia from "../components/domain/ReviewedPublicMedia.vue";
 import PaIcon from "../components/ui/PaIcon.vue";
 import { presentDescription } from "../errors";
+import { publicSourceIssuer } from "../consumer/sourcePrivacy";
 
 interface TraceSection {
   label: string;
@@ -439,7 +440,7 @@ const uiFixture = computed<string>(() =>
             :key="item.source_id + '-' + index"
             class="surface-row"
           >
-            <span>{{ item.issuer || "来源待补充" }}</span>
+            <span>{{ publicSourceIssuer(item.source_type, item.issuer) }}</span>
             <span class="muted evidence-source__meta">
               {{ sourceTypeLabel(item.source_type || "") }}
             </span>
