@@ -128,7 +128,12 @@ export function useMapWorkspace() {
   let queryContextReady = false;
 
   onMounted(async () => {
-    await session.restore();
+    try {
+      await session.restore();
+    } catch {
+      // Map and nearby queries are public. Account context is optional and
+      // must not turn a stale local token into a spatial-workspace outage.
+    }
     await load();
     queryContextReady = true;
   });
