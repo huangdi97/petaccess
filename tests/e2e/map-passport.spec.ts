@@ -737,6 +737,26 @@ test("B2.4 — approved non-scene evidence never becomes a Place cover", async (
   await expect(page.getByTestId("place-scene-fallback")).toBeVisible();
 });
 
+test("B2.4 — partial Place data exposes a fail-closed retry path", async ({ page }) => {
+  let failZonesOnce = true;
+  await page.route(`**/api/v1/places/${MALL_ID}/zones`, async (route) => {
+    if (failZonesOnce) {
+      failZonesOnce = false;
+      await route.fulfill({ status: 503, json: { detail: "temporary zone outage" } });
+      return;
+    }
+    await route.continue();
+  });
+
+  await page.goto(`${BASE}/#/place/${MALL_ID}`);
+  const partial = page.getByTestId("place-partial");
+  await expect(partial).toContainText("分区域", { timeout: 15000 });
+  await page.getByTestId("place-partial-retry").click();
+
+  await expect(partial).toHaveCount(0, { timeout: 15000 });
+  await expect(page.getByTestId("overview-zones")).toBeVisible();
+});
+
 test("B3 — Place Evidence view 证据来源链渲染，无原始枚举", async ({ page }) => {
   // Evidence is place-scoped. The consumer must not enumerate the global
   // source registry and accidentally treat its first page as complete.
