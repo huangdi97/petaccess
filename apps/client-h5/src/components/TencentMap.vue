@@ -36,6 +36,7 @@ const { host, providerLabel } = useTencentMapRenderer({
   onZoom: (zoom) => {
     if (Math.abs(zoom - props.camera.zoom) > 0.01) emit("zoom-absolute", zoom);
   },
+  onPan: (lat, lng) => emit("pan", lat, lng),
   onError: (message) => emit("error", message),
 });
 </script>
