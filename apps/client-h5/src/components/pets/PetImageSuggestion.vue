@@ -1,37 +1,34 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { client } from "@petaccess/client-core";
 import { animalScopeLabel } from "../../consumer/labels";
 
 const emit = defineEmits<{ suggest: [species: string, breed: string] }>();
 const input = ref<HTMLInputElement | null>(null);
 const fileName = ref("");
 const message = ref("");
+const busy = ref(false);
 
 async function onPickImage(event: Event) {
-  const file = (event.target as HTMLInputElement).files?.[0];
-  if (!file) return;
+  const inputEl = event.target as HTMLInputElement;
+  const file = inputEl.files?.[0];
+  if (!file || busy.value) return;
   fileName.value = file.name;
+  message.value = "";
+  busy.value = true;
 
-  const form = new FormData();
-  form.append("image", file);
   try {
-    const response = await fetch("/api/v1/ai/pet-vision", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${localStorage.getItem("pa_token")}` },
-      body: form,
-    });
-    const data = await response.json();
-    if (!response.ok) {
-      message.value = "图片建议暂不可用，直接手填即可";
-      return;
-    }
-
+    const data = await client.classifyPetImage(file);
     const breed = data.breed_candidates?.[0] ?? "";
     const breedText = (data.breed_candidates ?? []).join(" / ");
     emit("suggest", data.species, breed);
-    message.value = `图片建议：${animalScopeLabel(data.species)}${breedText ? ` · ${breedText}` : ""}（请确认或修改）`;
+    message.value =
+      `图片建议：${animalScopeLabel(data.species)}${breedText ? ` · ${breedText}` : ""}（请确认或修改）`;
   } catch {
     message.value = "图片建议暂不可用，直接手填即可";
+  } finally {
+    busy.value = false;
+    inputEl.value = "";
   }
 }
 </script>
@@ -46,10 +43,13 @@ async function onPickImage(event: Event) {
       type="file"
       accept="image/*"
       data-testid="pet-photo"
+      :disabled="busy"
       @change="onPickImage"
     />
     <div class="pet-image-picker">
-      <button type="button" class="pet-image-button" @click="input?.click()">选择照片</button>
+      <button type="button" class="pet-image-button" :disabled="busy" @click="input?.click()">
+        {{ busy ? "分析中…" : "选择照片" }}
+      </button>
       <span class="muted">{{ fileName || "尚未选择照片" }}</span>
     </div>
     <p v-if="message" class="pet-image-feedback" data-testid="ai-suggestion">{{ message }}</p>
@@ -100,6 +100,11 @@ async function onPickImage(event: Event) {
 .pet-image-button:hover,
 .pet-image-button:focus-visible {
   border-color: var(--pa-color-accent);
+}
+
+.pet-image-button:disabled {
+  cursor: progress;
+  opacity: 0.6;
 }
 
 .pet-image-feedback {
