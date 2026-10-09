@@ -137,9 +137,8 @@ test("A2 — 现场记录经父流提交，候选进入人工审核队列", asyn
   // 5s expect under parallel workers (same pattern as B2).
   await expect(page.getByTestId("contribute-result")).toBeVisible({ timeout: 15000 });
   await expect(page.getByTestId("contribute-result")).toContainText(/已提交/);
-  await page.getByTestId("done-continue").click();
-  await expect(page.getByTestId("entry-reality-observed_presence")).toBeVisible();
-  await expect(page.getByTestId("contribute-result")).toHaveCount(0);
+  await expect(page.getByTestId("done-mine")).toBeVisible();
+  await expect(page.getByTestId("done-place")).toHaveAttribute("href", `#/place/${MALL_ID}`);
 });
 
 test("A2.0 — 外部帖子只记录发布时间，不把发布时间伪装成事件时间", async ({ page, request }) => {
