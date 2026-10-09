@@ -197,7 +197,9 @@ const { desktop: isDesktop } = useBreakpoint();
                 <RouterLink class="btn primary" to="/search" data-testid="contribute-go-search">
                   去搜索场所
                 </RouterLink>
-                <RouterLink class="btn" to="/map" data-testid="contribute-go-map">看地图</RouterLink>
+                <RouterLink class="btn" to="/map" data-testid="contribute-go-map"
+                  >看地图</RouterLink
+                >
               </div>
             </template>
           </StateMessage>
