@@ -8,11 +8,15 @@
  * no pending card rows, no 「为什么？」pill — anything explanatory is a
  * text link（为什么这个结论？ →）.
  */
+import { ref, watch } from "vue";
+import { client, type PublicEvidenceMediaView } from "@petaccess/client-core";
 import DesktopContentContainer from "../components/layout/DesktopContentContainer.vue";
 import HomeEntries from "../components/domain/HomeEntries.vue";
 import HomeNearbySection from "../components/domain/HomeNearbySection.vue";
 import QueryContextBar from "../components/domain/QueryContextBar.vue";
 import { CONDITION_ZH, HOME_ENTRIES, useHomeLauncher } from "../composables/useHomeLauncher";
+import { createEpoch } from "../consumer/repository";
+import { firstApprovedSceneMedia } from "../consumer/publicSceneMedia";
 
 const {
   query,
@@ -34,6 +38,28 @@ const {
   clearRecent,
   load,
 } = useHomeLauncher();
+
+const featuredSceneMedia = ref<PublicEvidenceMediaView | null>(null);
+const sceneEpoch = createEpoch();
+
+watch(
+  () => verified.value[0]?.place.id ?? null,
+  async (placeId) => {
+    const generation = sceneEpoch.begin();
+    featuredSceneMedia.value = null;
+    if (!placeId) return;
+    try {
+      const events = await client.realityEvents(placeId);
+      if (!sceneEpoch.isCurrent(generation)) return;
+      const media = await firstApprovedSceneMedia(events, 4);
+      if (!sceneEpoch.isCurrent(generation)) return;
+      featuredSceneMedia.value = media;
+    } catch {
+      if (sceneEpoch.isCurrent(generation)) featuredSceneMedia.value = null;
+    }
+  },
+  { immediate: true },
+);
 </script>
 
 <template>
@@ -105,6 +131,7 @@ const {
           :species-label="speciesLabel"
           :conditions-label="CONDITION_ZH"
           :interest="interest"
+          :featured-scene-media-url="featuredSceneMedia?.url ?? null"
           @open="open"
           @why="why"
           @retry="load"
