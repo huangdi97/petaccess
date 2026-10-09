@@ -179,10 +179,7 @@ async function load() {
   try {
     await session.restore();
     if (isCurrent() && session.restoreIssue) {
-      sessionRestoreError.value =
-        session.restoreIssue === "auth_invalid"
-          ? "登录状态已失效，已切换为公开浏览。"
-          : "账号状态暂不可用；公开规则与现场信息仍可查看。";
+      sessionRestoreError.value = "账号状态暂不可用；公开规则与现场信息仍可查看。";
     }
   } catch (sessionError) {
     // Defensive fallback: public dossier data must stay readable even if a
