@@ -283,7 +283,9 @@ function ruleConditionLines(r: RuleView): string[] {
         </p>
       </div>
     </section>
-    <p v-if="!currentRules.length" class="muted">暂无可靠规则结论。未收录不代表没有规则。</p>
+    <p v-if="!currentRules.length && !eventPolicyRows.length" class="muted">
+      暂无可靠规则结论。未收录不代表没有规则。
+    </p>
 
     <!-- §14 Rule Conflict：inline，不渲染紫色 badge 为主角。 -->
     <section
