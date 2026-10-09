@@ -22,7 +22,7 @@ const props = defineProps<{
   online: boolean;
   signedIn: boolean;
 }>();
-const emit = defineEmits<{ done: [msg: string]; back: [] }>();
+const emit = defineEmits<{ done: [msg: string]; back: []; reviewing: [value: boolean] }>();
 
 const {
   intent,
@@ -52,6 +52,10 @@ const contributionScopeLabel = computed(() => {
 });
 
 const reviewing = ref(false);
+function setReviewing(value: boolean) {
+  reviewing.value = value;
+  emit("reviewing", value);
+}
 const INTENT_LABELS: Record<string, string> = {
   still_valid: "确认已收录规则仍然有效",
   changed: "报告已收录规则发生变化",
@@ -98,7 +102,7 @@ const reviewItems = computed(() => {
         ? '确认这些结构化信息就是你准备提交的规则线索或核验记录。'
         : '可以确认现有规则、报告变化、只提交规则牌证据，或提供新规则线索；所有内容都先进入核验流程。'
     "
-    @back="reviewing ? (reviewing = false) : emit('back')"
+    @back="reviewing ? setReviewing(false) : emit('back')"
   >
     <div v-if="error" class="notice" data-testid="rule-error">{{ error }}</div>
 
@@ -143,7 +147,7 @@ const reviewItems = computed(() => {
         class="primary"
         :disabled="!canSubmit"
         data-testid="rule-review-next"
-        @click="reviewing = true"
+        @click="setReviewing(true)"
       >
         下一步：核对
       </button>
