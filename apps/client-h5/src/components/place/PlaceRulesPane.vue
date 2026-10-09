@@ -78,15 +78,24 @@ const ruleGroups = computed<RuleGroup[]>(() => {
   return [...groups.entries()].map(([contextLabel, rules]) => ({ contextLabel, rules }));
 });
 
-const conflicts = computed(() => {
-  const bad = props.currentRules.filter((r) => !r.last_verified_at);
-  const hasConflict = (props.answer?.conflict_state?.has_conflict ?? false) || bad.length > 1;
-  const note = props.answer?.conflict_state?.has_conflict
-    ? "部分信息仍待人工复核"
-    : bad.length > 1
-      ? "部分规则缺少核验信息，需要人工复核"
-      : "";
-  return { hasConflict, note };
+const reviewNotice = computed(() => {
+  const unverified = props.currentRules.filter((r) => !r.last_verified_at);
+  const hasConflict = props.answer?.conflict_state?.has_conflict ?? false;
+  if (hasConflict) {
+    return {
+      visible: true,
+      title: "△ 来源不一致",
+      note: "当前规则来源之间存在未解决的不一致，部分信息仍待人工复核。",
+    };
+  }
+  if (unverified.length) {
+    return {
+      visible: true,
+      title: "○ 核验信息待补充",
+      note: `${unverified.length} 条当前规则缺少最近核验时间；这不等于来源冲突。`,
+    };
+  }
+  return { visible: false, title: "", note: "" };
 });
 
 /** 每条 rule 的 conditions（优先 RuleView note / rule_conditions；无则本组 conditions）。 */
@@ -155,9 +164,14 @@ function ruleConditionLines(r: RuleView): string[] {
     <p v-if="!currentRules.length" class="muted">暂无可靠规则结论。未收录不代表没有规则。</p>
 
     <!-- §14 Rule Conflict：inline，不渲染紫色 badge 为主角。 -->
-    <section v-if="conflicts.hasConflict" class="rule-conflict" data-testid="rule-conflict">
-      <p class="rule-conflict__title">△ 来源不一致</p>
-      <p class="muted rule-conflict__note">{{ conflicts.note }}</p>
+    <section
+      v-if="reviewNotice.visible"
+      class="rule-conflict"
+      :data-state="answer?.conflict_state?.has_conflict ? 'conflict' : 'verification-missing'"
+      data-testid="rule-conflict"
+    >
+      <p class="rule-conflict__title">{{ reviewNotice.title }}</p>
+      <p class="muted rule-conflict__note">{{ reviewNotice.note }}</p>
       <RouterLink class="btn-inline" :to="`/place/${placeId}?view=evidence`">
         查看差异 →
       </RouterLink>
