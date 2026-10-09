@@ -179,12 +179,16 @@ def _staff_event(
         place_match_state=report_meta.get("place_match_state"),
         content_published_at=report_meta.get("content_published_at"),
         claimed_event_at=report_meta.get("claimed_event_at"),
-        observed_context=row.trigger_context,
+        # Public Consumer projection is structured-only for staff handling.
+        # Reporter-entered free text can contain names, employee IDs or contact
+        # details even though the form never asks for them. Keep it in the
+        # moderation record, not in the public event stream.
+        observed_context=None,
         staff_actor_role=_enum_text(row.actor_role),
         staff_action=_enum_text(row.response_action),
         staff_awareness_state=_enum_text(row.staff_awareness_state),
-        staff_outcome=row.response_outcome,
-        staff_policy_statement_verbatim=row.policy_statement_verbatim,
+        staff_outcome=None,
+        staff_policy_statement_verbatim=None,
         source_id=row.source_id,
         evidence_bundle_id=row.evidence_bundle_id,
         evidence_material_type=evidence_meta.get("material_type"),
