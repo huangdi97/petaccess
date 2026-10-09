@@ -21,6 +21,15 @@
   gap: var(--pa-space-1);
   min-width: 0;
 }
+
+.place-preview__scene {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 7;
+  object-fit: cover;
+  border-radius: var(--pa-radius-control);
+  background: var(--pa-color-surface-muted);
+}
 .place-preview__name {
   font-size: var(--pa-font-size-xl);
   font-weight: var(--pa-font-weight-600);
