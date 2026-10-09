@@ -2,6 +2,7 @@
 import AppShell from "../components/AppShell.vue";
 import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
+import PrivacyMediaSection from "../components/privacy/PrivacyMediaSection.vue";
 import { usePrivacyRights } from "../composables/usePrivacyRights";
 import { privacyInventory } from "../consumer/privacyInventory";
 
@@ -84,6 +85,8 @@ const {
         </p>
       </div>
     </section>
+
+    <PrivacyMediaSection :signed-in="signedIn" />
 
     <section class="privacy-section">
       <div class="privacy-section__lead">
