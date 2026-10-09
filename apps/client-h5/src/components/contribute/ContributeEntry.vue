@@ -8,6 +8,7 @@ defineOptions({ name: "ContributeEntry" });
 const emit = defineEmits<{
   select: [step: "quick" | "rule"];
   reality: [kind: "observed_presence" | "staff_response" | "animal_facility"];
+  effort: [];
 }>();
 
 type EntryOption =
@@ -101,7 +102,17 @@ function choose(opt: EntryOption) {
         </button>
       </li>
     </ul>
-    <p class="muted entry-note">提交内容会进入人工核验，AI 不会自动裁定。</p>
+    <button
+      type="button"
+      class="entry-effort-link"
+      data-testid="entry-effort"
+      @click="emit('effort')"
+    >
+      这次认真看了，但没有看到动物？记录观察覆盖 →
+    </button>
+    <p class="muted entry-note">
+      “没有看到”只记录本次观察范围与时长，不代表这里没有动物。提交内容会进入人工核验，AI 不会自动裁定。
+    </p>
   </div>
 </template>
 
