@@ -56,21 +56,23 @@ const realityExplanation = computed(() => {
 });
 
 async function resolveRules() {
+  const id = placeId.value;
+  if (!id) return;
   const epoch = resolveEpoch.begin();
   error.value = "";
   busy.value = true;
   try {
-    const result = await snapshotFor(placeId.value);
-    if (!resolveEpoch.isCurrent(epoch)) return;
+    const result = await snapshotFor(id);
+    if (!resolveEpoch.isCurrent(epoch) || placeId.value !== id) return;
     coexistence.value = result.snapshot;
     resolved.value = result.snapshot.rule_answer;
   } catch (e) {
-    if (!resolveEpoch.isCurrent(epoch)) return;
+    if (!resolveEpoch.isCurrent(epoch) || placeId.value !== id) return;
     coexistence.value = null;
     resolved.value = null;
     error.value = presentDescription(e);
   } finally {
-    if (resolveEpoch.isCurrent(epoch)) busy.value = false;
+    if (resolveEpoch.isCurrent(epoch) && placeId.value === id) busy.value = false;
   }
 }
 
@@ -107,6 +109,16 @@ async function bootstrap() {
   const id = placeId.value;
   if (!id) return;
   const epoch = bootstrapEpoch.begin();
+  // Invalidate every place-scoped request immediately. Otherwise an A
+  // response can land while B is still restoring private session context.
+  resolveEpoch.begin();
+  boundaryEpoch.begin();
+  resolved.value = null;
+  coexistence.value = null;
+  boundary.value = null;
+  error.value = "";
+  note.value = "";
+  busy.value = false;
   sessionReady.value = false;
   let privateContextAvailable = true;
   try {
