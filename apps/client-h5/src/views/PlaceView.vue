@@ -611,11 +611,7 @@ const placeFixture = computed<string>(() => {
   gap: var(--pa-space-3);
   padding: var(--pa-space-5) var(--pa-space-5) var(--pa-space-4);
   border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
-  background: linear-gradient(
-    115deg,
-    var(--pa-color-surface-muted) 0%,
-    var(--pa-color-surface) 84%
-  );
+  background: var(--pa-color-surface-muted);
   margin-bottom: var(--pa-space-4);
 }
 
