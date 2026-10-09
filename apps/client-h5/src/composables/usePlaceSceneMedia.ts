@@ -5,7 +5,7 @@
  * remains the authorization boundary; private evidence and non-scene media are
  * never exposed as venue identity imagery.
  */
-import { ref, watch, type Readonly, type Ref } from "vue";
+import { ref, watch, type Ref } from "vue";
 import { client, type PublicEvidenceMediaView } from "@petaccess/client-core";
 import { createEpoch } from "../consumer/repository";
 import { firstApprovedSceneMedia } from "../consumer/publicSceneMedia";
