@@ -539,6 +539,23 @@ function chooseMapResult(id: string) {
   }
 }
 
+@media (min-width: 768px) and (max-width: 1023px) {
+  .map-workspace__body,
+  .map-workspace__body--split {
+    padding: var(--pa-space-2);
+  }
+
+  .map-workspace__body--split .map-pane {
+    flex-basis: 320px;
+    padding-right: var(--pa-space-3);
+  }
+
+  .map-lensbar {
+    gap: var(--pa-space-2);
+    padding-inline: var(--pa-space-3);
+  }
+}
+
 /* Search remains inside the spatial surface on mobile; the desktop
    workspace continues using its dedicated list/search pane. */
 .map-mobile-tools {
