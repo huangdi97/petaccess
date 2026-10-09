@@ -172,6 +172,16 @@
   justify-content: center;
 }
 
+.scene-frame--compact.scene-frame--empty {
+  flex-basis: 64px;
+  width: 64px;
+  height: 64px;
+}
+
+.scene-frame--compact.scene-frame--empty .scene-frame__abstract {
+  display: none;
+}
+
 /* Compact identity placeholders are visual anchors, not repeated error copy.
  * The detailed "reviewed media only" explanation belongs on media surfaces,
  * while Search/Place identity stays quiet when no public photo exists. */
@@ -185,6 +195,12 @@
     flex-basis: var(--scene-frame-compact-mobile-width, 96px);
     width: var(--scene-frame-compact-mobile-width, 96px);
     height: var(--scene-frame-compact-mobile-height, 64px);
+  }
+
+  .scene-frame--compact.scene-frame--empty {
+    flex-basis: 56px;
+    width: 56px;
+    height: 56px;
   }
 
   .scene-frame--compact .scene-frame__empty {
