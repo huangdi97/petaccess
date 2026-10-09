@@ -504,12 +504,8 @@ const divergenceLine = computed(() => {
 }
 
 @media (max-width: 767px) {
-  /* Mobile first screen is Decision + a Reality teaser. Staff/facility/
-     divergence details remain available in the dedicated Reality/Space views. */
-  .coexistence-facts {
-    display: none;
-  }
-
+  /* Mobile keeps the same Rule + Reality semantics as desktop. The rows
+     collapse to compact two-column facts; only their secondary links hide. */
   .sub-answer__note {
     display: none;
   }
