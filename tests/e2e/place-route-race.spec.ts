@@ -54,3 +54,24 @@ test("operator claim cannot inherit the previous place's owner and zone context"
   await expect(claim).toContainText("云栖中心");
   await expect(claim).not.toContainText("星河咖啡");
 });
+
+
+test("dossier section navigation participates in browser history", async ({ page }) => {
+  await page.goto(`${BASE}/#/place/${MALL_ID}`);
+  await expect(page.getByTestId("place-tab-overview")).toHaveAttribute("aria-current", "page");
+
+  await page.getByTestId("place-tab-rules").click();
+  await expect(page).toHaveURL(/view=rules/);
+  await expect(page.getByTestId("place-tab-rules")).toHaveAttribute("aria-current", "page");
+
+  await page.getByTestId("place-tab-reality").click();
+  await expect(page).toHaveURL(/view=reality/);
+
+  await page.goBack();
+  await expect(page).toHaveURL(/view=rules/);
+  await expect(page.getByTestId("place-tab-rules")).toHaveAttribute("aria-current", "page");
+
+  await page.goBack();
+  await expect(page).not.toHaveURL(/view=/);
+  await expect(page.getByTestId("place-tab-overview")).toHaveAttribute("aria-current", "page");
+});
