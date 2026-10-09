@@ -7,7 +7,9 @@ import type {
 } from "@petaccess/client-core";
 import {
   amenityLabel,
+  animalScopeLabel,
   coexistenceLabel,
+  conditionLabel,
   coexistenceValueLabel,
   entranceLabel,
   facilityStateLabel,
@@ -28,6 +30,26 @@ const props = defineProps<{
 
 function zoneCondition(zoneId: string): string {
   return answerConditions(props.zoneDecisions[zoneId]?.answer ?? null)[0] ?? "";
+}
+
+function accessPathApplicability(path: PlaceExtras["access_paths"][number]): string {
+  const parts: string[] = [];
+  if (path.animal_scope) parts.push(`适用：${animalScopeLabel(path.animal_scope)}`);
+  const conditionLabels = (path.conditions ?? []).flatMap((item) => {
+    if (typeof item === "string") return [conditionLabel(item)];
+    if (!item || typeof item !== "object") return [];
+    const row = item as Record<string, unknown>;
+    const type =
+      typeof row.condition_type === "string"
+        ? row.condition_type
+        : typeof row.type === "string"
+          ? row.type
+          : "";
+    return type ? [conditionLabel(type)] : [];
+  });
+  if (conditionLabels.length) parts.push(`条件：${[...new Set(conditionLabels)].join("、")}`);
+  if (path.time_window && Object.keys(path.time_window).length) parts.push("有时段限制");
+  return parts.join(" · ");
 }
 </script>
 
@@ -76,7 +98,12 @@ function zoneCondition(zoneId: string): string {
         <span class="muted">{{ entrance.access_notes ?? "" }}</span>
       </div>
       <div v-for="path in extras?.access_paths ?? []" :key="path.id" class="zone-row">
-        <span>{{ path.from_node }} → {{ path.to_node }}</span>
+        <span class="zone-row__name-stack">
+          <span class="zone-row__name">{{ path.from_node }} → {{ path.to_node }}</span>
+          <span v-if="accessPathApplicability(path)" class="muted zone-row__condition">
+            {{ accessPathApplicability(path) }}
+          </span>
+        </span>
         <span class="muted">{{ path.name }}</span>
       </div>
     </section>
