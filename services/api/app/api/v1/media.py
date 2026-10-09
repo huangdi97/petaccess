@@ -217,6 +217,23 @@ async def upload_media(
     return _upload_response(media, duplicate_of)
 
 
+def _media_meta_response(media: MediaObject) -> dict:
+    return {
+        "id": media.id,
+        "purpose": media.purpose,
+        "privacy_class": media.privacy_class,
+        "mime_type": media.mime_type,
+        "byte_size": media.byte_size,
+        "moderation_status": media.moderation_status,
+        "ocr_text": media.ocr_text,
+        "ocr_rule_candidates": media.ocr_rule_candidates,
+        "upload_status": media.upload_status,
+        "created_at": media.created_at,
+        "expires_at": media.expires_at,
+        "deleted_at": media.deleted_at,
+    }
+
+
 @router.get("/evidence-bundles/{bundle_id}/public-media")
 def public_evidence_media(bundle_id: str, db: Session = Depends(get_db)) -> dict:
     """Short-lived public image URL for explicitly display-approved evidence.
@@ -235,6 +252,25 @@ def public_evidence_media(bundle_id: str, db: Session = Depends(get_db)) -> dict
         "mime_type": media.mime_type,
         "expires_in": PUBLIC_MEDIA_URL_SECONDS,
     }
+
+
+@router.get("/media/mine")
+def my_media(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> list[dict]:
+    """List the caller's active uploads without exposing object-storage URLs."""
+    rows = db.scalars(
+        select(MediaObject)
+        .where(
+            MediaObject.created_by_user_id == user.id,
+            MediaObject.upload_status != MediaUploadStatus.DELETED.value,
+            MediaObject.deleted_at.is_(None),
+        )
+        .order_by(MediaObject.created_at.desc())
+        .limit(100)
+    ).all()
+    return [_media_meta_response(media) for media in rows]
 
 
 @router.get("/media/{media_id}/url")
@@ -256,20 +292,7 @@ def media_meta(
     db: Session = Depends(get_db),
 ) -> dict:
     media = _private_media(db, media_id, user)
-    return {
-        "id": media.id,
-        "purpose": media.purpose,
-        "privacy_class": media.privacy_class,
-        "mime_type": media.mime_type,
-        "byte_size": media.byte_size,
-        "moderation_status": media.moderation_status,
-        "ocr_text": media.ocr_text,
-        "ocr_rule_candidates": media.ocr_rule_candidates,
-        "upload_status": media.upload_status,
-        "created_at": media.created_at,
-        "expires_at": media.expires_at,
-        "deleted_at": media.deleted_at,
-    }
+    return _media_meta_response(media)
 
 
 @router.delete("/media/{media_id}", status_code=204)
