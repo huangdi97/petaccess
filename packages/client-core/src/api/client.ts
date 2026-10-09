@@ -754,6 +754,13 @@ export const client = {
       coordinates: MapTranslatedCoordinate[];
     }>("post", "/ai/map/translate", { body: { coordinates } });
   },
+  async normalizeMapCoordinates(coordinates: MapTranslatedCoordinate[]) {
+    return api.request<{
+      provider: string;
+      coordinate_system: string;
+      coordinates: MapTranslatedCoordinate[];
+    }>("post", "/ai/map/normalize", { body: { coordinates } });
+  },
 
   // ------------------------------------------------------------- v0.5 domain
   // These back the v0.5 H5 surfaces: explainable effective rules, the user's
