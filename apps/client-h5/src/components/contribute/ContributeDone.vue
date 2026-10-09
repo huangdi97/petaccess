@@ -22,14 +22,6 @@ defineEmits<{ continue: [] }>();
     </p>
 
     <div class="done__actions">
-      <button
-        type="button"
-        class="btn primary"
-        data-testid="done-continue"
-        @click="$emit('continue')"
-      >
-        继续补充一条
-      </button>
       <RouterLink class="btn-inline" :to="{ name: 'mine' }" data-testid="done-mine">
         查看我的贡献 →
       </RouterLink>
