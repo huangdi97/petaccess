@@ -212,9 +212,12 @@ test("A1 — desktop 地图 split-view + 四 Lens + 详情面板", async ({ page
   for (const lens of ["rule", "reality", "facility", "divergence"]) {
     await expect(page.getByTestId(`map-lens-${lens}`)).toBeVisible();
   }
-  // Desktop auto-selects the first hit so the pane is populated, not empty.
+  // Desktop auto-selects the first hit so the pane is populated, and the
+  // same identity is visibly selected in the adjacent result list.
   await expect(page.getByTestId("place-preview")).toBeVisible();
   await expect(page.getByTestId("preview-open")).toBeVisible();
+  await expect(page.locator(".map-place-row[data-selected='true']")).toHaveCount(1);
+  await expect(page.getByTestId("map-lens-divergence")).toHaveText("差异");
 });
 
 test("A1.0.1 — fallback marker 不靠颜色单独表达语义", async ({ page }) => {
