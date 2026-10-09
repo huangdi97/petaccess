@@ -6,7 +6,9 @@ import {
   facilityAccessModeLabel,
   facilityPurposeIsConfirmed,
   facilityPurposeLabel,
+  facilitySecurityLabel,
   facilityStateLabel,
+  facilitySupervisionLabel,
   verifiedBooleanLabel,
   zoneConsumerLine,
 } from "../../consumer/labels";
@@ -81,9 +83,9 @@ function facilityZone(event: RealityEventView): string {
           <dt>饮水</dt>
           <dd>{{ verifiedBooleanLabel(event.facility_water_available) }}</dd>
           <dt>看护</dt>
-          <dd>{{ event.facility_supervision_state || "未确认" }}</dd>
+          <dd>{{ facilitySupervisionLabel(event.facility_supervision_state) }}</dd>
           <dt>安全 / 锁闭</dt>
-          <dd>{{ event.facility_security_or_lock_state || "未确认" }}</dd>
+          <dd>{{ facilitySecurityLabel(event.facility_security_or_lock_state) }}</dd>
           <dt>最近核验</dt>
           <dd>
             {{ event.last_verified_at ? displayRealityTime(event.last_verified_at) : "未记录" }}
