@@ -201,6 +201,21 @@ jobs:
       - name: Provision E2E database
         run: uv run python scripts/isolated_db.py --role E2E --reset
 
+      - name: Start S3-compatible E2E media store
+        run: |
+          docker run -d --name minio-e2e -p 9000:9000 -p 9001:9001 \
+            -e MINIO_ROOT_USER=minio \
+            -e MINIO_ROOT_PASSWORD=minio_dev_only \
+            docker.io/pgsty/silo:RELEASE.2026-09-16T00-00-00Z server /data
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:9000/minio/health/live >/dev/null && break
+            sleep 2
+          done
+          curl -sf http://localhost:9000/minio/health/live || {
+            echo "E2E media store did not become healthy"
+            exit 1
+          }
+
       - name: Build H5 (vite preview needs dist/)
         run: pnpm --filter @petaccess/client-h5 build
 
