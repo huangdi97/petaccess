@@ -164,14 +164,17 @@
   gap: var(--pa-space-2);
 }
 
-.scene-frame--compact .scene-frame__empty-copy small {
+.scene-frame--compact .scene-frame__empty-copy {
   display: none;
 }
 
-.scene-frame--compact .scene-frame__empty-copy strong {
-  font-size: var(--pa-font-size-xs);
-  line-height: var(--pa-line-height-20);
+.scene-frame--compact .scene-frame__empty {
+  justify-content: center;
 }
+
+/* Compact identity placeholders are visual anchors, not repeated error copy.
+ * The detailed "reviewed media only" explanation belongs on media surfaces,
+ * while Search/Place identity stays quiet when no public photo exists. */
 
 .scene-frame--compact .scene-frame__caption {
   display: none;
