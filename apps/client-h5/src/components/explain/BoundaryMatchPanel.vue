@@ -16,7 +16,7 @@ const VERDICT_TEXT: Record<string, string> = {
     <div class="boundary-panel__head">
       <div>
         <h2>与我的共处边界比对</h2>
-        <p class="muted">这是个人偏好的逐项比对，不是场所评分。</p>
+        <p class="muted">这是个人偏好的逐项比对，无总分，也不是场所评分。</p>
       </div>
       <RouterLink class="btn-inline" to="/boundary">设置边界 →</RouterLink>
     </div>
