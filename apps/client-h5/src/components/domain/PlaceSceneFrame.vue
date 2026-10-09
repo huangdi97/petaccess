@@ -127,9 +127,9 @@ withDefaults(
 }
 
 .scene-frame--compact {
-  flex: 0 0 152px;
-  width: 152px;
-  height: 96px;
+  flex: 0 0 var(--scene-frame-compact-width, 152px);
+  width: var(--scene-frame-compact-width, 152px);
+  height: var(--scene-frame-compact-height, 96px);
   border-radius: var(--pa-radius-control);
 }
 
@@ -153,9 +153,9 @@ withDefaults(
 
 @media (max-width: 767px) {
   .scene-frame--compact {
-    flex-basis: 96px;
-    width: 96px;
-    height: 64px;
+    flex-basis: var(--scene-frame-compact-mobile-width, 96px);
+    width: var(--scene-frame-compact-mobile-width, 96px);
+    height: var(--scene-frame-compact-mobile-height, 64px);
   }
 
   .scene-frame--compact .scene-frame__empty {
