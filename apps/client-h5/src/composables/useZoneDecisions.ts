@@ -26,7 +26,9 @@ export function useZoneDecisions(
   async function refresh() {
     const generation = epoch.begin();
     const id = placeId.value;
-    const rows = zones.value;
+    // Route params and the previous place's zones can be reactive in the same
+    // tick. Never issue a scoped query with a zone that belongs elsewhere.
+    const rows = zones.value.filter((zone) => zone.place_id === id);
     if (!id || !rows.length) {
       states.value = {};
       return;
