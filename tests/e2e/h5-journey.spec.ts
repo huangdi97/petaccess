@@ -154,6 +154,44 @@ test("register → create pet → shared query context carries pet identity", as
   await expect(page.getByTestId("answer")).toBeVisible();
 });
 
+test("privacy media management reflects real uploader-owned files", async ({ page, request }) => {
+  const email = `e2e-media-${Date.now()}@example.com`;
+
+  await page.goto("/#/onboarding");
+  await page.getByRole("tab", { name: "注册", exact: true }).click();
+  await page.locator("input").nth(0).fill("媒体 E2E");
+  await page.locator('input[type="email"]').fill(email);
+  await page.locator('input[type="password"]').fill("passw0rd123");
+  await page.getByRole("button", { name: "注册并开始" }).click();
+  await expect(page).toHaveURL(/#\/$/);
+
+  const token = await page.evaluate(() => localStorage.getItem("pa_token"));
+  expect(token).toBeTruthy();
+
+  const uploaded = await request.post("http://127.0.0.1:8010/api/v1/media/upload", {
+    headers: { Authorization: `Bearer ${token}` },
+    params: { purpose: "reality_evidence" },
+    multipart: {
+      file: {
+        name: "privacy-e2e.png",
+        mimeType: "image/png",
+        buffer: Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), Buffer.alloc(64)]),
+      },
+    },
+  });
+  expect(uploaded.ok(), await uploaded.text()).toBeTruthy();
+
+  await page.goto("/#/privacy");
+  const media = page.getByTestId("privacy-media-section");
+  await expect(media).toBeVisible();
+  await expect(media).toContainText("现场事实证据");
+  await expect(media).toContainText("默认私有");
+
+  await media.getByRole("button", { name: "删除文件" }).click();
+  await media.getByRole("button", { name: "确认删除" }).click();
+  await expect(media).toContainText("当前没有仍在保存的上传媒体");
+});
+
 /**
  * v0.5 journey: coexistence boundary -> explainable match.
  *
