@@ -51,6 +51,10 @@ export function useQueryContextEditor() {
   function selectMode(mode: EditableQueryMode) {
     session.mode = mode;
     if (mode !== "service_dog") session.setDeclaredRole(null);
+    // Choosing the primary query mode is itself a complete action. Close the
+    // modal so the user can immediately read the re-evaluated Place/Search
+    // result instead of leaving an invisible-page overlay above the app.
+    open.value = false;
   }
 
   function selectPet(pet: PetView) {
