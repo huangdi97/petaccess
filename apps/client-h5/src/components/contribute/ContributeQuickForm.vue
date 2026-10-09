@@ -11,6 +11,7 @@ import { client } from "@petaccess/client-core";
 import { proximity } from "./contributeSupport";
 import { presentDescription } from "../../errors";
 import ContributionStepShell from "./ContributionStepShell.vue";
+import ContributionReview from "./ContributionReview.vue";
 
 defineOptions({ name: "ContributeQuickForm" });
 
@@ -28,6 +29,7 @@ const detail = ref("");
 const correctValueUnknown = ref(false);
 const busy = ref(false);
 const error = ref("");
+const reviewing = ref(false);
 
 const OPTIONS: { key: CorrectionKind; label: string; hint: string }[] = [
   { key: "name", label: "名称有误", hint: "名称、别名或门店标识不准确" },
@@ -35,6 +37,18 @@ const OPTIONS: { key: CorrectionKind; label: string; hint: string }[] = [
   { key: "place_state", label: "场所状态有变化", hint: "例如已关闭、搬迁或重复收录" },
   { key: "other", label: "其他场所信息", hint: "不属于以上类型的基础信息问题" },
 ];
+
+const reviewItems = computed(() => {
+  const selected = OPTIONS.find((option) => option.key === kind.value);
+  return [
+    { label: "场所", value: props.placeName },
+    { label: "纠错类型", value: selected?.label ?? "场所信息纠错" },
+    {
+      label: "需要核验的内容",
+      value: correctValueUnknown.value ? "当前信息有误，但我不知道正确值" : detail.value.trim(),
+    },
+  ];
+});
 
 const canSubmit = computed(
   () =>
@@ -74,14 +88,19 @@ async function submit() {
   <ContributionStepShell
     :place-name="placeName"
     place-zone="场所整体"
-    :step="2"
-    :total="3"
-    title="哪里需要纠正？"
-    description="先指出哪类基础信息有误；提交后进入人工核验，不会直接改写场所或规则。"
-    @back="emit('back')"
+    :step="reviewing ? 3 : 2"
+    :total="4"
+    :title="reviewing ? '核对纠错线索' : '哪里需要纠正？'"
+    :description="
+      reviewing
+        ? '确认下面内容就是你准备提交的场所纠错线索。'
+        : '先指出哪类基础信息有误；提交后进入人工核验，不会直接改写场所或规则。'
+    "
+    @back="reviewing ? (reviewing = false) : emit('back')"
   >
     <div v-if="error" class="notice" data-testid="quick-error">{{ error }}</div>
 
+    <template v-if="!reviewing">
     <div
       class="option-group"
       role="radiogroup"
@@ -126,10 +145,26 @@ async function submit() {
       />
       <small class="muted">只写可核验事实，不需要评价场所。</small>
     </label>
+    </template>
+
+    <ContributionReview
+      v-else
+      :items="reviewItems"
+      guard="确认提交后，这是一条待人工核验的场所纠错线索，不会直接改写场所、规则或现场事实。"
+    />
 
     <template #primary>
-      <button class="primary" :disabled="!canSubmit" data-testid="quick-submit" @click="submit">
-        {{ busy ? "提交中…" : "提交纠错线索" }}
+      <button
+        v-if="!reviewing"
+        class="primary"
+        :disabled="!canSubmit"
+        data-testid="quick-review-next"
+        @click="reviewing = true"
+      >
+        下一步：核对
+      </button>
+      <button v-else class="primary" :disabled="busy" data-testid="quick-submit" @click="submit">
+        {{ busy ? "提交中…" : "确认提交纠错线索" }}
       </button>
     </template>
   </ContributionStepShell>
