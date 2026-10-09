@@ -347,7 +347,7 @@ function chooseMapResult(id: string) {
             : lens === 'facility'
               ? '设施'
               : lens === 'divergence'
-                ? '不一致'
+                ? '差异'
                 : ''
         "
         :map-lens-label="selected && lens !== 'rule' ? lensLabels[selected.id] : ''"
@@ -368,7 +368,7 @@ function chooseMapResult(id: string) {
           : lens === 'facility'
             ? '设施'
             : lens === 'divergence'
-              ? '不一致'
+              ? '差异'
               : ''
       "
       :map-lens-label="selected && lens !== 'rule' ? lensLabels[selected.id] : ''"
