@@ -108,6 +108,7 @@ const reviewNotice = computed(() => {
 
 interface EventPolicyPresentation {
   id: string;
+  name: string;
   scope: string;
   subject: string;
   effect: string;
@@ -160,6 +161,7 @@ const eventPolicyRows = computed<EventPolicyPresentation[]>(() =>
       const source = props.sourceMap.get(policy.source_id);
       return {
         id: policy.id,
+        name: policy.name,
         scope: policy.zone_id
           ? (zoneNameById.value.get(policy.zone_id) ?? "指定分区")
           : "场所整体",
@@ -219,7 +221,9 @@ function ruleConditionLines(r: RuleView): string[] {
         data-testid="event-policy-row"
       >
         <div class="rule-card__head">
-          <span class="rule-card__subject">{{ policy.scope }} · {{ policy.subject }}</span>
+          <span class="rule-card__subject">
+            {{ policy.name }} · {{ policy.scope }} · {{ policy.subject }}
+          </span>
           <StatusBadge :effect="policy.effect" />
         </div>
         <p class="event-policy-row__validity">{{ policy.validity }}</p>
