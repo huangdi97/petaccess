@@ -20,17 +20,28 @@ const serviceRole = ref("none");
 const error = ref("");
 const saving = ref(false);
 const loadingSession = ref(true);
+const sessionError = ref("");
 const signedIn = ref(false);
 const { online } = useOnline();
 const canSave = computed(
   () => signedIn.value && online.value && !saving.value && pet.value.display_name.trim().length > 0,
 );
 
-onMounted(async () => {
-  await session.restore();
-  signedIn.value = session.signedIn;
-  loadingSession.value = false;
-});
+async function loadSession() {
+  loadingSession.value = true;
+  sessionError.value = "";
+  try {
+    await session.restore();
+    signedIn.value = session.signedIn;
+  } catch (e) {
+    signedIn.value = false;
+    sessionError.value = presentDescription(e);
+  } finally {
+    loadingSession.value = false;
+  }
+}
+
+onMounted(loadSession);
 
 async function save() {
   if (!signedIn.value) return;
@@ -73,6 +84,17 @@ async function save() {
     </header>
 
     <p v-if="loadingSession" class="muted pet-new-loading">正在确认登录状态…</p>
+    <StateMessage
+      v-else-if="sessionError"
+      kind="ERROR"
+      title="未能确认登录状态"
+      :description="sessionError"
+      data-testid="pet-new-session-error"
+    >
+      <template #action>
+        <button type="button" class="primary" @click="loadSession">重试</button>
+      </template>
+    </StateMessage>
     <StateMessage
       v-else-if="!signedIn"
       kind="PERMISSION_DENIED"
