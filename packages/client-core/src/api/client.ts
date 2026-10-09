@@ -444,6 +444,8 @@ export interface PublicEvidenceMediaView {
   expires_in: number;
 }
 
+export type PetVisionView = ApiSchemas["PetVisionOut"];
+
 export interface AccountDeletionRequestView {
   status: "none" | "submitted" | string;
   requested_at: string | null;
@@ -532,6 +534,27 @@ export const client = {
   // Multipart upload cannot go through the JSON-only api-client, so this is
   // the one method that talks fetch directly. It still uses the shared base
   // URL and token provider, so auth/error semantics stay identical.
+
+  async classifyPetImage(file: File): Promise<PetVisionView> {
+    const form = new FormData();
+    form.append("image", file);
+    const token = tokenProvider();
+    const res = await fetch(`${base}/ai/pet-vision`, {
+      method: "POST",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: form,
+    });
+    const payload = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+    if (!res.ok) {
+      const err = payload.error as { code?: string; message?: string } | undefined;
+      throw new ApiError(
+        res.status,
+        err?.code ?? "pet_vision_failed",
+        err?.message ?? "图片建议暂不可用",
+      );
+    }
+    return payload as unknown as PetVisionView;
+  },
 
   async uploadMedia(
     file: File,
