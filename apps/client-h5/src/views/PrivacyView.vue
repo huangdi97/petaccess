@@ -182,8 +182,14 @@ onMounted(loadRightsStatus);
           </div>
 
           <div class="privacy-deletion">
-            <p v-if="deletionStatus === 'submitted'" class="privacy-feedback" data-testid="deletion-status">
-              删除申请已提交{{ deletionRequestedAt ? ` · ${deletionRequestedAt.slice(0, 10)}` : "" }}。
+            <p
+              v-if="deletionStatus === 'submitted'"
+              class="privacy-feedback"
+              data-testid="deletion-status"
+            >
+              删除申请已提交{{
+                deletionRequestedAt ? ` · ${deletionRequestedAt.slice(0, 10)}` : ""
+              }}。
               当前账号不会在申请提交瞬间被物理删除；需要长期保留的贡献与证据会先进行保留义务和去标识化审核。
             </p>
             <template v-else>
