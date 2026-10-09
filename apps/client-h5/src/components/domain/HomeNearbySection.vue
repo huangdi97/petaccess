@@ -96,6 +96,7 @@ const freshness = computed(() =>
           v-for="(c, index) in verified.slice(0, 3)"
           :key="c.place.id"
           class="home-row"
+          :class="{ 'home-row--with-scene': index === 0 && featuredSceneMediaUrl }"
           :data-testid="'verified-' + c.place.id"
         >
           <img
