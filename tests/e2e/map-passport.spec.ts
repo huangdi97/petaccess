@@ -352,6 +352,62 @@ test("B2.5 — adding Reality from an empty scoped timeline retains the verified
   await expect(contribute).toHaveAttribute("href", `#/contribute/${MALL_ID}?zone=${zoneId}`);
 });
 
+test("B2.3 — Place identity uses only public-gated scene photos", async ({ page }) => {
+  let released = false;
+  await page.route("**/api/v1/evidence-bundles/*/public-media", async (route) => {
+    const bundleId = route.request().url().split("/evidence-bundles/")[1]?.split("/")[0] ?? "";
+    if (released) {
+      await route.fulfill({ status: 404, json: { detail: "not displayable" } });
+      return;
+    }
+    released = true;
+    await route.fulfill({
+      status: 200,
+      json: {
+        evidence_bundle_id: bundleId,
+        media_id: "scene-photo-test",
+        purpose: "scene_photo",
+        url: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl2iGQAAAAASUVORK5CYII=",
+        mime_type: "image/png",
+        expires_in: 300,
+      },
+    });
+  });
+
+  await page.goto(`${BASE}/#/place/${MALL_ID}`);
+  const scene = page.getByTestId("place-scene-media");
+  await expect(scene).toBeVisible({ timeout: 15000 });
+  await expect(scene.locator("img")).toHaveAttribute(
+    "alt",
+    "经审核允许公开展示的场所场景照片",
+  );
+});
+
+test("B2.4 — approved non-scene evidence never becomes a Place cover", async ({ page }) => {
+  let checked = 0;
+  await page.route("**/api/v1/evidence-bundles/*/public-media", async (route) => {
+    checked += 1;
+    const bundleId = route.request().url().split("/evidence-bundles/")[1]?.split("/")[0] ?? "";
+    await route.fulfill({
+      status: 200,
+      json: {
+        evidence_bundle_id: bundleId,
+        media_id: `signage-${checked}`,
+        purpose: "signage_evidence",
+        url: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl2iGQAAAAASUVORK5CYII=",
+        mime_type: "image/png",
+        expires_in: 300,
+      },
+    });
+  });
+
+  await page.goto(`${BASE}/#/place/${MALL_ID}`);
+  await expect(page.getByTestId("section-answer")).toBeVisible({ timeout: 15000 });
+  await expect.poll(() => checked).toBeGreaterThan(0);
+  await expect(page.getByTestId("place-scene-media")).toHaveCount(0);
+  await expect(page.locator('[data-ui="place-type-glyph"]').first()).toBeVisible();
+});
+
 test("B3 — Place Evidence view 证据来源链渲染，无原始枚举", async ({ page }) => {
   // Evidence is place-scoped. The consumer must not enumerate the global
   // source registry and accidentally treat its first page as complete.
