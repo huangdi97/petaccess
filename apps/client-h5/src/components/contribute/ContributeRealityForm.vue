@@ -455,377 +455,383 @@ async function submit() {
     <!-- §19 field groups：真实结构化表单包一层 contribution-form 供几何 gate
          测量 group rhythm（When / Where / What 三组，组距 20–28px）。 -->
     <template v-if="!reviewing">
-    <div class="reality-form" data-ui="contribution-form">
-      <fieldset class="cluster">
-        <legend class="cluster__title">这条信息来自哪里？</legend>
-        <label for="reality-source-mode">来源方式</label>
-        <select id="reality-source-mode" v-model="sourceMode" data-testid="reality-source-mode">
-          <option value="on_site_now">我现在就在这里</option>
-          <option value="on_site_past">我之前在这里看到过</option>
-          <option value="external_online_content">我在公开帖子 / 视频里看到</option>
-        </select>
-
-        <template v-if="isExternal">
-          <label for="reality-source-url">公开内容链接</label>
-          <input
-            id="reality-source-url"
-            v-model="externalUrl"
-            type="url"
-            placeholder="https://…"
-            data-testid="reality-source-url"
-          />
-          <label for="reality-place-match">内容能定位到哪里？</label>
-          <select
-            id="reality-place-match"
-            v-model="externalPlaceMatch"
-            data-testid="reality-place-match"
-          >
-            <option value="exact_place">能确认就是当前场所</option>
-            <option v-if="parentPlaceId" value="parent_place_only">
-              只能确认到当前场所所在的上级场所
-            </option>
-            <option value="area_only">只能确认到附近区域</option>
-            <option value="unresolved">无法可靠确认具体地点</option>
+      <div class="reality-form" data-ui="contribution-form">
+        <fieldset class="cluster">
+          <legend class="cluster__title">这条信息来自哪里？</legend>
+          <label for="reality-source-mode">来源方式</label>
+          <select id="reality-source-mode" v-model="sourceMode" data-testid="reality-source-mode">
+            <option value="on_site_now">我现在就在这里</option>
+            <option value="on_site_past">我之前在这里看到过</option>
+            <option value="external_online_content">我在公开帖子 / 视频里看到</option>
           </select>
-          <p class="muted source-note">
-            只有精确匹配到具体场所的记录，才可能在人工核验后成为该场所的公开现场事实。
-          </p>
 
-          <label for="reality-source-platform">来源平台</label>
-          <select
-            id="reality-source-platform"
-            v-model="externalPlatform"
-            data-testid="reality-source-platform"
-          >
-            <option value="xiaohongshu">小红书</option>
-            <option value="douyin">抖音</option>
-            <option value="dianping">大众点评</option>
-            <option value="weibo">微博</option>
-            <option value="bilibili">哔哩哔哩</option>
-            <option value="web">网页</option>
-            <option value="other">其他</option>
-          </select>
-          <label for="reality-published-date">内容发布时间</label>
-          <input
-            id="reality-published-date"
-            v-model="externalPublishedAt"
-            type="date"
-            :max="today"
-            data-testid="reality-published-date"
-          />
-          <label for="reality-external-event-date">内容明确说明的发生日期（可选）</label>
-          <input
-            id="reality-external-event-date"
-            v-model="externalEventAt"
-            type="date"
-            :max="externalPublishedAt || today"
-            data-testid="reality-external-event-date"
-          />
-          <p class="muted source-note">
-            只有发布时间时，平台只会写“某日发布的内容中观察到”，不会把发布时间当成现场发生时间。
-          </p>
-          <p
-            v-if="externalEventAt && externalPublishedAt && externalEventAt > externalPublishedAt"
-            class="notice"
-            role="alert"
-            data-testid="reality-date-order-error"
-          >
-            发生日期不能晚于这条内容的发布时间，请核对来源。
-          </p>
-        </template>
-
-        <span class="cluster__field-label">证据图片（可选）</span>
-        <input
-          id="reality-media"
-          class="visually-hidden-file"
-          type="file"
-          accept="image/png,image/jpeg,image/webp"
-          :disabled="uploading"
-          data-testid="reality-media"
-          @change="uploadEvidence"
-        />
-        <label
-          class="evidence-file-picker"
-          :class="{ 'evidence-file-picker--disabled': uploading }"
-          for="reality-media"
-        >
-          <span>{{ uploading ? "上传中…" : mediaId ? "重新选择证据图片" : "选择证据图片" }}</span>
-          <span class="evidence-file-picker__hint">PNG / JPG / WebP</span>
-        </label>
-        <p v-if="mediaMessage" class="muted source-note" data-testid="reality-media-message">
-          {{ mediaMessage }}
-        </p>
-      </fieldset>
-
-      <fieldset v-if="!isExternal" class="cluster">
-        <legend class="cluster__title">什么时候？</legend>
-        <template v-if="sourceMode === 'on_site_past'">
-          <label for="reality-date">发生日期</label>
-          <input
-            id="reality-date"
-            v-model="occurredAt"
-            type="date"
-            :max="today"
-            required
-            data-testid="reality-date"
-          />
-          <p v-if="!occurredAt" class="muted source-note">
-            请明确选择当时观察的日期，系统不会自动填入今天。
-          </p>
-        </template>
-        <p v-else class="muted source-note">将使用提交时的当前时间记录这次现场观察。</p>
-        <label for="reality-effort">在场时长</label>
-        <select v-model="effortBucket" id="reality-effort" data-testid="reality-effort">
-          <option v-for="(label, key) in EFFORT_LABELS" :key="key" :value="key">{{ label }}</option>
-        </select>
-      </fieldset>
-
-      <fieldset class="cluster">
-        <legend class="cluster__title">在哪里？</legend>
-        <template v-if="canUseCurrentZones">
-          <label for="reality-zone">适用区域</label>
-          <select v-model="zone" id="reality-zone">
-            <option value="">全场 / 不确定</option>
-            <option v-for="z in zones" :key="z.id" :value="z.id">{{ z.name }}</option>
-          </select>
-        </template>
-        <p v-else class="muted source-note" data-testid="reality-imprecise-place-note">
-          {{
-            externalPlaceMatch === "parent_place_only"
-              ? "当前只能确认到上级场所，因此不会使用这个具体场所的分区。"
-              : "地点尚未精确匹配；本次先保存来源与事实线索，不会把它挂成当前场所的事实。"
-          }}
-        </p>
-      </fieldset>
-
-      <fieldset class="cluster">
-        <legend class="cluster__title">你看到了什么？</legend>
-        <template v-if="kind === 'observed_presence'">
-          <label for="reality-animal">动物</label>
-          <select v-model="animal" id="reality-animal">
-            <option value="dog">犬</option>
-            <option value="cat">猫</option>
-            <option value="other">其他</option>
-          </select>
-          <label for="reality-count">大概几只</label>
-          <input
-            v-model="count"
-            type="number"
-            min="1"
-            placeholder="1"
-            id="reality-count"
-            data-testid="reality-count"
-          />
-          <label for="reality-action">在做什么</label>
-          <select v-model="action" id="reality-action">
-            <option v-for="key in OBSERVED_ACTION_KEYS" :key="key" :value="key">
-              {{ OBSERVED_ACTION_LABELS[key] }}
-            </option>
-          </select>
-        </template>
-
-        <template v-else-if="kind === 'staff_response'">
-          <label for="reality-staff-role">是哪类工作人员（可选）</label>
-          <select id="reality-staff-role" v-model="staffRole" data-testid="reality-staff-role">
-            <option v-for="key in STAFF_ROLE_KEYS" :key="key" :value="key">
-              {{ STAFF_ROLE_LABELS[key] }}
-            </option>
-          </select>
-          <p class="muted source-note">只记录岗位角色，不收集工作人员姓名或身份。</p>
-          <label for="reality-staff-action">工作人员做了什么</label>
-          <select v-model="staffAction" id="reality-staff-action">
-            <option v-for="key in STAFF_RESPONSE_KEYS" :key="key" :value="key">
-              {{ STAFF_ACTION_LABELS[key] }}
-            </option>
-          </select>
-          <label for="reality-staff-awareness">你能确认工作人员注意到这个情况吗？</label>
-          <select
-            id="reality-staff-awareness"
-            v-model="staffAwareness"
-            data-testid="reality-staff-awareness"
-          >
-            <option v-for="item in STAFF_AWARENESS_OPTIONS" :key="item.key" :value="item.key">
-              {{ item.label }}
-            </option>
-          </select>
-          <label for="reality-staff-outcome">结果（可选）</label>
-          <input
-            v-model="staffOutcome"
-            placeholder="一两句话即可，不填也可以"
-            id="reality-staff-outcome"
-          />
-
-          <label for="reality-staff-statement">工作人员明确原话（可选）</label>
-          <textarea
-            id="reality-staff-statement"
-            v-model="staffPolicyStatement"
-            rows="3"
-            maxlength="500"
-            placeholder="只填写你能确认的原话；不确定就留空"
-            data-testid="reality-staff-statement"
-          />
-          <p class="muted source-note">
-            原话会作为具体事件的核验材料；即使审核通过，也不会自动成为运营方正式政策。
-          </p>
-        </template>
-
-        <template v-else>
-          <label for="reality-facility-type">设施类型</label>
-          <select v-model="facilityType" id="reality-facility-type">
-            <option value="" disabled>请选择设施类型</option>
-            <option v-for="key in FACILITY_TYPE_KEYS" :key="key" :value="key">
-              {{ ANIMAL_FACILITY_LABELS[key] }}
-            </option>
-          </select>
-          <label for="reality-facility-purpose">你怎么确认它是动物相关设施？</label>
-          <select
-            id="reality-facility-purpose"
-            v-model="facilityPurpose"
-            data-testid="reality-facility-purpose"
-          >
-            <option v-for="item in FACILITY_PURPOSE_OPTIONS" :key="item.key" :value="item.key">
-              {{ item.label }}
-            </option>
-          </select>
-          <label for="reality-facility-status">状态</label>
-          <select v-model="facilityOperational" id="reality-facility-status">
-            <option v-for="key in FACILITY_STATE_KEYS" :key="key" :value="key">
-              {{ FACILITY_STATE_LABELS[key] }}
-            </option>
-          </select>
-          <label for="reality-facility-access">使用方式（可选）</label>
-          <select
-            id="reality-facility-access"
-            v-model="facilityAccessMode"
-            data-testid="reality-facility-access"
-          >
-            <option v-for="item in FACILITY_ACCESS_OPTIONS" :key="item.key" :value="item.key">
-              {{ item.label }}
-            </option>
-          </select>
-          <label for="reality-facility-capacity">数量 / 容量（可选）</label>
-          <input
-            id="reality-facility-capacity"
-            v-model="facilityCapacity"
-            type="number"
-            min="1"
-            placeholder="例如 2"
-            data-testid="reality-facility-capacity"
-          />
-
-          <details class="facility-more" data-testid="reality-facility-more">
-            <summary>补充设施使用与安全信息（可选）</summary>
-            <div class="facility-more__fields">
-              <label for="reality-facility-size">体型限制</label>
-              <input
-                id="reality-facility-size"
-                v-model="facilitySizeLimit"
-                maxlength="80"
-                placeholder="例如：仅小型犬；不确定可留空"
-                data-testid="reality-facility-size"
-              />
-
-              <label for="reality-facility-weather">有遮雨</label>
-              <select
-                id="reality-facility-weather"
-                v-model="facilityWeatherProtection"
-                data-testid="reality-facility-weather"
-              >
-                <option
-                  v-for="item in FACILITY_BOOLEAN_OPTIONS"
-                  :key="String(item.value)"
-                  :value="item.value"
-                >
-                  {{ item.label }}
-                </option>
-              </select>
-
-              <label for="reality-facility-shade">有遮阳</label>
-              <select
-                id="reality-facility-shade"
-                v-model="facilityShade"
-                data-testid="reality-facility-shade"
-              >
-                <option
-                  v-for="item in FACILITY_BOOLEAN_OPTIONS"
-                  :key="String(item.value)"
-                  :value="item.value"
-                >
-                  {{ item.label }}
-                </option>
-              </select>
-
-              <label for="reality-facility-ventilation">有通风</label>
-              <select
-                id="reality-facility-ventilation"
-                v-model="facilityVentilation"
-                data-testid="reality-facility-ventilation"
-              >
-                <option
-                  v-for="item in FACILITY_BOOLEAN_OPTIONS"
-                  :key="String(item.value)"
-                  :value="item.value"
-                >
-                  {{ item.label }}
-                </option>
-              </select>
-
-              <label for="reality-facility-water">可获得饮水</label>
-              <select
-                id="reality-facility-water"
-                v-model="facilityWaterAvailable"
-                data-testid="reality-facility-water"
-              >
-                <option
-                  v-for="item in FACILITY_BOOLEAN_OPTIONS"
-                  :key="String(item.value)"
-                  :value="item.value"
-                >
-                  {{ item.label }}
-                </option>
-              </select>
-
-              <label for="reality-facility-supervision">看护情况</label>
-              <select
-                id="reality-facility-supervision"
-                v-model="facilitySupervisionState"
-                data-testid="reality-facility-supervision"
-              >
-                <option
-                  v-for="item in FACILITY_SUPERVISION_OPTIONS"
-                  :key="item.key"
-                  :value="item.key"
-                >
-                  {{ item.label }}
-                </option>
-              </select>
-
-              <label for="reality-facility-security">安全 / 锁闭情况</label>
-              <select
-                id="reality-facility-security"
-                v-model="facilitySecurityState"
-                data-testid="reality-facility-security"
-              >
-                <option v-for="item in FACILITY_SECURITY_OPTIONS" :key="item.key" :value="item.key">
-                  {{ item.label }}
-                </option>
-              </select>
-            </div>
+          <template v-if="isExternal">
+            <label for="reality-source-url">公开内容链接</label>
+            <input
+              id="reality-source-url"
+              v-model="externalUrl"
+              type="url"
+              placeholder="https://…"
+              data-testid="reality-source-url"
+            />
+            <label for="reality-place-match">内容能定位到哪里？</label>
+            <select
+              id="reality-place-match"
+              v-model="externalPlaceMatch"
+              data-testid="reality-place-match"
+            >
+              <option value="exact_place">能确认就是当前场所</option>
+              <option v-if="parentPlaceId" value="parent_place_only">
+                只能确认到当前场所所在的上级场所
+              </option>
+              <option value="area_only">只能确认到附近区域</option>
+              <option value="unresolved">无法可靠确认具体地点</option>
+            </select>
             <p class="muted source-note">
-              这些字段只描述你实际看到的设施属性；不表示设施“安全”，也不推导动物可以进入场所。
+              只有精确匹配到具体场所的记录，才可能在人工核验后成为该场所的公开现场事实。
             </p>
-          </details>
-        </template>
 
-        <label for="reality-context">补充（可选）</label>
-        <input
-          v-model="context"
-          id="reality-context"
-          data-testid="reality-context"
-          placeholder="一两句话即可，不填也可以"
-        />
-      </fieldset>
-    </div>
+            <label for="reality-source-platform">来源平台</label>
+            <select
+              id="reality-source-platform"
+              v-model="externalPlatform"
+              data-testid="reality-source-platform"
+            >
+              <option value="xiaohongshu">小红书</option>
+              <option value="douyin">抖音</option>
+              <option value="dianping">大众点评</option>
+              <option value="weibo">微博</option>
+              <option value="bilibili">哔哩哔哩</option>
+              <option value="web">网页</option>
+              <option value="other">其他</option>
+            </select>
+            <label for="reality-published-date">内容发布时间</label>
+            <input
+              id="reality-published-date"
+              v-model="externalPublishedAt"
+              type="date"
+              :max="today"
+              data-testid="reality-published-date"
+            />
+            <label for="reality-external-event-date">内容明确说明的发生日期（可选）</label>
+            <input
+              id="reality-external-event-date"
+              v-model="externalEventAt"
+              type="date"
+              :max="externalPublishedAt || today"
+              data-testid="reality-external-event-date"
+            />
+            <p class="muted source-note">
+              只有发布时间时，平台只会写“某日发布的内容中观察到”，不会把发布时间当成现场发生时间。
+            </p>
+            <p
+              v-if="externalEventAt && externalPublishedAt && externalEventAt > externalPublishedAt"
+              class="notice"
+              role="alert"
+              data-testid="reality-date-order-error"
+            >
+              发生日期不能晚于这条内容的发布时间，请核对来源。
+            </p>
+          </template>
+
+          <span class="cluster__field-label">证据图片（可选）</span>
+          <input
+            id="reality-media"
+            class="visually-hidden-file"
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            :disabled="uploading"
+            data-testid="reality-media"
+            @change="uploadEvidence"
+          />
+          <label
+            class="evidence-file-picker"
+            :class="{ 'evidence-file-picker--disabled': uploading }"
+            for="reality-media"
+          >
+            <span>{{ uploading ? "上传中…" : mediaId ? "重新选择证据图片" : "选择证据图片" }}</span>
+            <span class="evidence-file-picker__hint">PNG / JPG / WebP</span>
+          </label>
+          <p v-if="mediaMessage" class="muted source-note" data-testid="reality-media-message">
+            {{ mediaMessage }}
+          </p>
+        </fieldset>
+
+        <fieldset v-if="!isExternal" class="cluster">
+          <legend class="cluster__title">什么时候？</legend>
+          <template v-if="sourceMode === 'on_site_past'">
+            <label for="reality-date">发生日期</label>
+            <input
+              id="reality-date"
+              v-model="occurredAt"
+              type="date"
+              :max="today"
+              required
+              data-testid="reality-date"
+            />
+            <p v-if="!occurredAt" class="muted source-note">
+              请明确选择当时观察的日期，系统不会自动填入今天。
+            </p>
+          </template>
+          <p v-else class="muted source-note">将使用提交时的当前时间记录这次现场观察。</p>
+          <label for="reality-effort">在场时长</label>
+          <select v-model="effortBucket" id="reality-effort" data-testid="reality-effort">
+            <option v-for="(label, key) in EFFORT_LABELS" :key="key" :value="key">
+              {{ label }}
+            </option>
+          </select>
+        </fieldset>
+
+        <fieldset class="cluster">
+          <legend class="cluster__title">在哪里？</legend>
+          <template v-if="canUseCurrentZones">
+            <label for="reality-zone">适用区域</label>
+            <select v-model="zone" id="reality-zone">
+              <option value="">全场 / 不确定</option>
+              <option v-for="z in zones" :key="z.id" :value="z.id">{{ z.name }}</option>
+            </select>
+          </template>
+          <p v-else class="muted source-note" data-testid="reality-imprecise-place-note">
+            {{
+              externalPlaceMatch === "parent_place_only"
+                ? "当前只能确认到上级场所，因此不会使用这个具体场所的分区。"
+                : "地点尚未精确匹配；本次先保存来源与事实线索，不会把它挂成当前场所的事实。"
+            }}
+          </p>
+        </fieldset>
+
+        <fieldset class="cluster">
+          <legend class="cluster__title">你看到了什么？</legend>
+          <template v-if="kind === 'observed_presence'">
+            <label for="reality-animal">动物</label>
+            <select v-model="animal" id="reality-animal">
+              <option value="dog">犬</option>
+              <option value="cat">猫</option>
+              <option value="other">其他</option>
+            </select>
+            <label for="reality-count">大概几只</label>
+            <input
+              v-model="count"
+              type="number"
+              min="1"
+              placeholder="1"
+              id="reality-count"
+              data-testid="reality-count"
+            />
+            <label for="reality-action">在做什么</label>
+            <select v-model="action" id="reality-action">
+              <option v-for="key in OBSERVED_ACTION_KEYS" :key="key" :value="key">
+                {{ OBSERVED_ACTION_LABELS[key] }}
+              </option>
+            </select>
+          </template>
+
+          <template v-else-if="kind === 'staff_response'">
+            <label for="reality-staff-role">是哪类工作人员（可选）</label>
+            <select id="reality-staff-role" v-model="staffRole" data-testid="reality-staff-role">
+              <option v-for="key in STAFF_ROLE_KEYS" :key="key" :value="key">
+                {{ STAFF_ROLE_LABELS[key] }}
+              </option>
+            </select>
+            <p class="muted source-note">只记录岗位角色，不收集工作人员姓名或身份。</p>
+            <label for="reality-staff-action">工作人员做了什么</label>
+            <select v-model="staffAction" id="reality-staff-action">
+              <option v-for="key in STAFF_RESPONSE_KEYS" :key="key" :value="key">
+                {{ STAFF_ACTION_LABELS[key] }}
+              </option>
+            </select>
+            <label for="reality-staff-awareness">你能确认工作人员注意到这个情况吗？</label>
+            <select
+              id="reality-staff-awareness"
+              v-model="staffAwareness"
+              data-testid="reality-staff-awareness"
+            >
+              <option v-for="item in STAFF_AWARENESS_OPTIONS" :key="item.key" :value="item.key">
+                {{ item.label }}
+              </option>
+            </select>
+            <label for="reality-staff-outcome">结果（可选）</label>
+            <input
+              v-model="staffOutcome"
+              placeholder="一两句话即可，不填也可以"
+              id="reality-staff-outcome"
+            />
+
+            <label for="reality-staff-statement">工作人员明确原话（可选）</label>
+            <textarea
+              id="reality-staff-statement"
+              v-model="staffPolicyStatement"
+              rows="3"
+              maxlength="500"
+              placeholder="只填写你能确认的原话；不确定就留空"
+              data-testid="reality-staff-statement"
+            />
+            <p class="muted source-note">
+              原话会作为具体事件的核验材料；即使审核通过，也不会自动成为运营方正式政策。
+            </p>
+          </template>
+
+          <template v-else>
+            <label for="reality-facility-type">设施类型</label>
+            <select v-model="facilityType" id="reality-facility-type">
+              <option value="" disabled>请选择设施类型</option>
+              <option v-for="key in FACILITY_TYPE_KEYS" :key="key" :value="key">
+                {{ ANIMAL_FACILITY_LABELS[key] }}
+              </option>
+            </select>
+            <label for="reality-facility-purpose">你怎么确认它是动物相关设施？</label>
+            <select
+              id="reality-facility-purpose"
+              v-model="facilityPurpose"
+              data-testid="reality-facility-purpose"
+            >
+              <option v-for="item in FACILITY_PURPOSE_OPTIONS" :key="item.key" :value="item.key">
+                {{ item.label }}
+              </option>
+            </select>
+            <label for="reality-facility-status">状态</label>
+            <select v-model="facilityOperational" id="reality-facility-status">
+              <option v-for="key in FACILITY_STATE_KEYS" :key="key" :value="key">
+                {{ FACILITY_STATE_LABELS[key] }}
+              </option>
+            </select>
+            <label for="reality-facility-access">使用方式（可选）</label>
+            <select
+              id="reality-facility-access"
+              v-model="facilityAccessMode"
+              data-testid="reality-facility-access"
+            >
+              <option v-for="item in FACILITY_ACCESS_OPTIONS" :key="item.key" :value="item.key">
+                {{ item.label }}
+              </option>
+            </select>
+            <label for="reality-facility-capacity">数量 / 容量（可选）</label>
+            <input
+              id="reality-facility-capacity"
+              v-model="facilityCapacity"
+              type="number"
+              min="1"
+              placeholder="例如 2"
+              data-testid="reality-facility-capacity"
+            />
+
+            <details class="facility-more" data-testid="reality-facility-more">
+              <summary>补充设施使用与安全信息（可选）</summary>
+              <div class="facility-more__fields">
+                <label for="reality-facility-size">体型限制</label>
+                <input
+                  id="reality-facility-size"
+                  v-model="facilitySizeLimit"
+                  maxlength="80"
+                  placeholder="例如：仅小型犬；不确定可留空"
+                  data-testid="reality-facility-size"
+                />
+
+                <label for="reality-facility-weather">有遮雨</label>
+                <select
+                  id="reality-facility-weather"
+                  v-model="facilityWeatherProtection"
+                  data-testid="reality-facility-weather"
+                >
+                  <option
+                    v-for="item in FACILITY_BOOLEAN_OPTIONS"
+                    :key="String(item.value)"
+                    :value="item.value"
+                  >
+                    {{ item.label }}
+                  </option>
+                </select>
+
+                <label for="reality-facility-shade">有遮阳</label>
+                <select
+                  id="reality-facility-shade"
+                  v-model="facilityShade"
+                  data-testid="reality-facility-shade"
+                >
+                  <option
+                    v-for="item in FACILITY_BOOLEAN_OPTIONS"
+                    :key="String(item.value)"
+                    :value="item.value"
+                  >
+                    {{ item.label }}
+                  </option>
+                </select>
+
+                <label for="reality-facility-ventilation">有通风</label>
+                <select
+                  id="reality-facility-ventilation"
+                  v-model="facilityVentilation"
+                  data-testid="reality-facility-ventilation"
+                >
+                  <option
+                    v-for="item in FACILITY_BOOLEAN_OPTIONS"
+                    :key="String(item.value)"
+                    :value="item.value"
+                  >
+                    {{ item.label }}
+                  </option>
+                </select>
+
+                <label for="reality-facility-water">可获得饮水</label>
+                <select
+                  id="reality-facility-water"
+                  v-model="facilityWaterAvailable"
+                  data-testid="reality-facility-water"
+                >
+                  <option
+                    v-for="item in FACILITY_BOOLEAN_OPTIONS"
+                    :key="String(item.value)"
+                    :value="item.value"
+                  >
+                    {{ item.label }}
+                  </option>
+                </select>
+
+                <label for="reality-facility-supervision">看护情况</label>
+                <select
+                  id="reality-facility-supervision"
+                  v-model="facilitySupervisionState"
+                  data-testid="reality-facility-supervision"
+                >
+                  <option
+                    v-for="item in FACILITY_SUPERVISION_OPTIONS"
+                    :key="item.key"
+                    :value="item.key"
+                  >
+                    {{ item.label }}
+                  </option>
+                </select>
+
+                <label for="reality-facility-security">安全 / 锁闭情况</label>
+                <select
+                  id="reality-facility-security"
+                  v-model="facilitySecurityState"
+                  data-testid="reality-facility-security"
+                >
+                  <option
+                    v-for="item in FACILITY_SECURITY_OPTIONS"
+                    :key="item.key"
+                    :value="item.key"
+                  >
+                    {{ item.label }}
+                  </option>
+                </select>
+              </div>
+              <p class="muted source-note">
+                这些字段只描述你实际看到的设施属性；不表示设施“安全”，也不推导动物可以进入场所。
+              </p>
+            </details>
+          </template>
+
+          <label for="reality-context">补充（可选）</label>
+          <input
+            v-model="context"
+            id="reality-context"
+            data-testid="reality-context"
+            placeholder="一两句话即可，不填也可以"
+          />
+        </fieldset>
+      </div>
     </template>
 
     <ContributionReview
