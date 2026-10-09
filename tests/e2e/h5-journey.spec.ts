@@ -145,6 +145,35 @@ test("same-brand branches come back as two labelled rows, answer first", async (
   await expect(presenceFlagship.getByTestId("row-lens-headline")).toContainText("现场");
 });
 
+test("ordinary-user rule provenance stays de-identified in consumer Search", async ({
+  page,
+}) => {
+  const privateIssuer = "PRIVATE_CONTRIBUTOR_DISPLAY_NAME";
+  await page.route(`**/api/v1/places/${MALL_ID}/coexistence`, async (route) => {
+    const response = await route.fetch();
+    const payload = await response.json();
+    const evidence = payload?.rule_answer?.evidence_state?.rules;
+    if (Array.isArray(evidence) && evidence.length) {
+      evidence[0] = {
+        ...evidence[0],
+        source_type: "ordinary_user",
+        issuer: privateIssuer,
+      };
+    }
+    await route.fulfill({
+      status: response.status(),
+      contentType: "application/json",
+      body: JSON.stringify(payload),
+    });
+  });
+
+  await page.goto("/#/search?q=云栖");
+  const inspector = page.getByTestId("decision-inspector");
+  await expect(inspector).toBeVisible({ timeout: 15000 });
+  await expect(inspector).toContainText("普通用户贡献（身份不公开）");
+  await expect(page.locator("body")).not.toContainText(privateIssuer);
+});
+
 test("register → create pet → shared query context carries pet identity", async ({ page }) => {
   const email = `e2e-${Date.now()}@example.com`;
 
