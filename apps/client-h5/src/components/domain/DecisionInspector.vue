@@ -197,13 +197,13 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
       </header>
 
       <PlaceSceneFrame
-        v-if="variant === 'search' && sceneMediaUrl"
+        v-if="variant === 'search'"
         class="decision-inspector__scene"
         :src="sceneMediaUrl"
         :alt="`场所场景：${place.canonical_name}`"
         :place-type="place.place_type"
         variant="hero"
-        data-testid="inspector-scene-media"
+        :data-testid="sceneMediaUrl ? 'inspector-scene-media' : 'inspector-scene-fallback'"
       />
 
       <!-- Search detail（§12 严格顺序）：Identity → Query → Decision → Reality →
@@ -408,7 +408,16 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
 
 .decision-inspector__scene {
   margin: 0;
+  width: min(100%, 620px);
   max-width: 620px;
+}
+
+/* Search is a spatial list-detail workspace. The identity media frame is
+   allowed to own horizontal space even when no reviewed public photo exists;
+   its fallback explicitly says it is abstract and never impersonates a venue. */
+.decision-inspector--search .decision-inspector__scene {
+  max-height: 220px;
+  overflow: hidden;
 }
 
 .decision-inspector__title-row {
