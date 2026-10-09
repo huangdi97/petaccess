@@ -74,3 +74,33 @@ test("dossier section navigation participates in browser history", async ({ page
   await expect(page).not.toHaveURL(/view=/);
   await expect(page.getByTestId("place-tab-overview")).toHaveAttribute("aria-current", "page");
 });
+
+
+test("why/explanation route cannot show a delayed previous-place answer", async ({ page }) => {
+  await page.route(`**/api/v1/places/${CAFE_ID}/coexistence`, async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 900));
+    const response = await route.fetch();
+    const payload = await response.json();
+    if (payload?.rule_answer) {
+      payload.rule_answer.explanation_items = [
+        ...(payload.rule_answer.explanation_items ?? []),
+        "STALE_A_EXPLANATION_MARKER",
+      ];
+    }
+    await route.fulfill({
+      status: response.status(),
+      contentType: "application/json",
+      body: JSON.stringify(payload),
+    });
+  });
+
+  await page.goto(`${BASE}/#/place/${CAFE_ID}/why`);
+  await page.evaluate((id) => {
+    window.location.hash = `#/place/${id}/why`;
+  }, MALL_ID);
+
+  await expect(page.getByRole("heading", { name: "为什么是这个结果" })).toBeVisible();
+  await page.waitForTimeout(1200);
+  await expect(page.locator("body")).not.toContainText("STALE_A_EXPLANATION_MARKER");
+  await expect(page).toHaveURL(new RegExp(`#/place/${MALL_ID}/why$`));
+});
