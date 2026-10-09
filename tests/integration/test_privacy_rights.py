@@ -8,8 +8,8 @@ from sqlalchemy import select
 
 from app.core.audit_events import AuditEvent
 from app.db.session import get_session_factory
-from app.models import AuditLog
 from app.main import app
+from app.models import AuditLog
 
 
 @pytest.fixture(scope="module")
