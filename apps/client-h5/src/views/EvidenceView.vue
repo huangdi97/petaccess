@@ -14,6 +14,7 @@ import {
   session,
   type CoexistenceSnapshot,
   type PlaceDetail,
+  type PublicEvidenceMediaView,
   type RealityEventView,
   type Zone,
 } from "@petaccess/client-core";
@@ -61,6 +62,7 @@ const snapshot = ref<CoexistenceSnapshot | null>(null);
 const place = ref<PlaceDetail | null>(null);
 const zones = ref<Zone[]>([]);
 const events = ref<RealityEventView[]>([]);
+const publicMediaByBundle = ref<Map<string, PublicEvidenceMediaView>>(new Map());
 const loading = ref(true);
 const error = ref("");
 const loadEpoch = createEpoch();
@@ -165,6 +167,32 @@ const sourceSummary = computed(() => {
   return bundles.size ? `${bundles.size} 组可追溯现场材料` : "来源待补充";
 });
 
+function publicMediaFor(event: RealityEventView): PublicEvidenceMediaView | null {
+  if (!event.evidence_bundle_id) return null;
+  return publicMediaByBundle.value.get(event.evidence_bundle_id) ?? null;
+}
+
+async function loadPublicMedia(eventRows: RealityEventView[], epoch: number) {
+  const bundleIds = [
+    ...new Set(
+      eventRows.map((event) => event.evidence_bundle_id).filter((id): id is string => Boolean(id)),
+    ),
+  ].slice(0, 8);
+  const rows = await Promise.all(
+    bundleIds.map(async (bundleId) => {
+      try {
+        return [bundleId, await client.publicEvidenceMedia(bundleId)] as const;
+      } catch {
+        // Public-media qualification is intentionally fail-closed. A 404 means
+        // "do not display" rather than a page-level Evidence failure.
+        return null;
+      }
+    }),
+  );
+  if (!loadEpoch.isCurrent(epoch)) return;
+  publicMediaByBundle.value = new Map(rows.filter((row) => row !== null));
+}
+
 async function load() {
   const id = placeId.value;
   if (!id) return;
@@ -187,9 +215,11 @@ async function load() {
     if (!loadEpoch.isCurrent(epoch) || placeId.value !== id) return;
     trace.value = traceRow;
     events.value = eventRows;
+    publicMediaByBundle.value = new Map();
     place.value = placeRow;
     zones.value = zoneRows;
     snapshot.value = snapshotRow;
+    void loadPublicMedia(eventRows, epoch);
   } catch (e) {
     if (loadEpoch.isCurrent(epoch)) error.value = presentDescription(e);
   } finally {
@@ -323,6 +353,20 @@ const uiFixture = computed<string>(() =>
             <p v-if="realityEventDetail(event)" class="muted evidence-item__note">
               {{ realityEventDetail(event) }}
             </p>
+            <figure
+              v-if="publicMediaFor(event)"
+              class="evidence-item__media"
+              data-testid="public-evidence-media"
+            >
+              <img
+                :src="publicMediaFor(event)!.url"
+                alt="经审核允许公开展示的现场证据图片"
+                loading="lazy"
+                decoding="async"
+                referrerpolicy="no-referrer"
+              />
+              <figcaption>经审核允许公开展示的现场证据图片 · 临时访问链接</figcaption>
+            </figure>
             <p v-if="realityEventProvenance(event)" class="muted evidence-item__provenance">
               {{ realityEventProvenance(event) }}
             </p>
@@ -532,6 +576,28 @@ const uiFixture = computed<string>(() =>
 .evidence-item__provenance,
 .evidence-item__basis {
   font-size: var(--pa-font-size-sm);
+}
+
+.evidence-item__media {
+  margin: var(--pa-space-3) 0 var(--pa-space-1);
+  max-width: 560px;
+}
+
+.evidence-item__media img {
+  display: block;
+  width: 100%;
+  max-height: 360px;
+  object-fit: contain;
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: var(--pa-radius-control);
+  background: var(--pa-color-surface-muted);
+}
+
+.evidence-item__media figcaption {
+  margin-top: var(--pa-space-1);
+  color: var(--pa-color-text-muted);
+  font-size: var(--pa-font-size-xs);
+  line-height: var(--pa-line-height-20);
 }
 
 .evidence-item__quote {
