@@ -155,7 +155,9 @@ const contextZoneLabel = computed(() => {
   const scoped = zones.value.find((item) => item.id === effortInitialZoneId.value);
   if (scoped) return `本次所选区域：${scoped.name}`;
   const first = zones.value[0];
-  return first ? `${first.name} 等 ${zones.value.length} 个区域` : "暂未收录具体区域";
+  if (!first) return "暂未收录具体区域";
+  if (zones.value.length === 1) return `已收录区域：${first.name}`;
+  return `${first.name} 等 ${zones.value.length} 个区域`;
 });
 const uiFixture = computed<string>(() => `contribution-${uiState.value}-v1`);
 
@@ -191,16 +193,12 @@ const { desktop: isDesktop } = useBreakpoint();
             description="现场贡献绑定到具体场所与区域。先在搜索或地图里选定一个场所，再从该场所发起。"
           >
             <template #action>
-              <RouterLink class="btn primary" to="/search" data-testid="contribute-go-search"
-                >去搜索场所</RouterLink
-              >
-              <RouterLink
-                class="btn"
-                to="/map"
-                style="margin-left: 8px"
-                data-testid="contribute-go-map"
-                >看地图</RouterLink
-              >
+              <div class="contribute-needs-place-actions">
+                <RouterLink class="btn primary" to="/search" data-testid="contribute-go-search">
+                  去搜索场所
+                </RouterLink>
+                <RouterLink class="btn" to="/map" data-testid="contribute-go-map">看地图</RouterLink>
+              </div>
             </template>
           </StateMessage>
 
@@ -415,6 +413,12 @@ const { desktop: isDesktop } = useBreakpoint();
     border-left: var(--pa-border-width) solid var(--pa-color-border-subtle);
     padding: var(--pa-space-3) 0 var(--pa-space-3) var(--pa-space-5);
   }
+}
+.contribute-needs-place-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--pa-space-2);
 }
 .contribute-workspace__notice {
   margin-top: var(--pa-space-5);
