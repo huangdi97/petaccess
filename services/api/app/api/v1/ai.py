@@ -202,6 +202,7 @@ def translate_map_coordinates(body: MapTranslateIn) -> dict:
         "coordinates": translated,
     }
 
+
 @router.post("/map/normalize")
 def normalize_map_coordinates(body: MapNormalizeIn) -> dict:
     """Normalize interactive render-center coordinates into EPSG:4326.
@@ -227,4 +228,3 @@ def normalize_map_coordinates(body: MapNormalizeIn) -> dict:
         "coordinate_system": "EPSG:4326",
         "coordinates": normalized,
     }
-

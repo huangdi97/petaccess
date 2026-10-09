@@ -167,9 +167,7 @@ class MockMapProvider:
     def translate_coordinates(self, coordinates: list[tuple[float, float]]) -> list[dict]:
         return [{"lat": lat, "lng": lng} for lat, lng in coordinates]
 
-    def normalize_render_coordinates(
-        self, coordinates: list[tuple[float, float]]
-    ) -> list[dict]:
+    def normalize_render_coordinates(self, coordinates: list[tuple[float, float]]) -> list[dict]:
         return [{"lat": lat, "lng": lng} for lat, lng in coordinates]
 
     def open_navigation(self, lat: float, lng: float, name: str) -> dict:
