@@ -268,6 +268,9 @@ test("A1.2 — mobile map searches without leaving the spatial canvas", async ({
   await expect(page.getByTestId("map-mobile-sheet")).toContainText("云栖中心", {
     timeout: 15000,
   });
+  const fallbackDisclosure = page.getByTestId("map-real-provider-fallback");
+  await expect(fallbackDisclosure).toContainText("点位来自已收录坐标");
+  await expect(fallbackDisclosure).not.toContainText("当前环境未配置真实地图底图");
 });
 
 test("A1.3 — missing coordinates never create fictional map pins, even in dev", async ({
