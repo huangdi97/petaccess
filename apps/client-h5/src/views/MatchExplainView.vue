@@ -108,10 +108,23 @@ async function bootstrap() {
   if (!id) return;
   const epoch = bootstrapEpoch.begin();
   sessionReady.value = false;
-  await session.restore();
+  let privateContextAvailable = true;
+  try {
+    await session.restore();
+  } catch {
+    // Rule/Reality explanations are public. A failed account restore may
+    // suppress the private boundary comparison, but must not blank the page.
+    privateContextAvailable = false;
+    boundary.value = null;
+    note.value = "账号状态暂不可用；公开规则与现场解释仍可查看，共处边界暂未加载。";
+  }
   if (!bootstrapEpoch.isCurrent(epoch) || placeId.value !== id) return;
   sessionReady.value = true;
-  await Promise.all([resolveRules(), loadBoundary()]);
+  if (privateContextAvailable) {
+    await Promise.all([resolveRules(), loadBoundary()]);
+  } else {
+    await resolveRules();
+  }
 }
 
 watch(placeId, () => void bootstrap(), { immediate: true });
