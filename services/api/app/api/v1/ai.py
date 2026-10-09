@@ -41,10 +41,24 @@ async def classify_pet(
     user=Depends(get_current_user),
 ) -> PetVisionOut:
     settings = get_settings()
-    if settings.ai_provider == "mock" and not settings.feature_real_ai:
+    if (
+        not settings.feature_real_ai
+        or settings.vision_provider == "mock"
+        or not settings.ai_api_key
+    ):
+        raise ApiError(
+            "真实宠物图片分析尚未配置，请直接手填并确认宠物信息",
+            code="provider_unavailable",
+            status_code=503,
+        )
+    try:
         provider = get_vision_provider()
-    else:
-        raise ApiError("真实 vision provider 未配置", code="provider_unavailable", status_code=503)
+    except RuntimeError as exc:
+        raise ApiError(
+            "真实宠物图片分析尚未接入，当前不会返回模拟识别结果",
+            code="provider_unavailable",
+            status_code=503,
+        ) from exc
     data = await image.read()
     if len(data) > 10 * 1024 * 1024:
         raise ApiError("图片超过 10MB 限制", code="payload_too_large", status_code=413)
@@ -68,12 +82,29 @@ async def ocr_signage(
     image: UploadFile = File(...),
     user=Depends(get_current_user),
 ) -> OcrOut:
+    settings = get_settings()
+    if (
+        not settings.feature_real_ai
+        or settings.ocr_provider == "mock"
+        or not settings.ai_api_key
+    ):
+        raise ApiError(
+            "真实规则牌 OCR 尚未配置；请手动录入规则线索或证据",
+            code="provider_unavailable",
+            status_code=503,
+        )
+    try:
+        provider = get_ocr_provider()
+    except RuntimeError as exc:
+        raise ApiError(
+            "真实规则牌 OCR 尚未接入，当前不会返回模拟文字或规则候选",
+            code="provider_unavailable",
+            status_code=503,
+        ) from exc
     data = await image.read()
     if len(data) > 10 * 1024 * 1024:
         raise ApiError("图片超过 10MB 限制", code="payload_too_large", status_code=413)
-    result = get_ai_guard().call(
-        "ocr", "extract_text", lambda: get_ocr_provider().extract_text(data)
-    )
+    result = get_ai_guard().call("ocr", "extract_text", lambda: provider.extract_text(data))
     return OcrOut(
         text_blocks=result.text_blocks,
         rule_candidates=result.rule_candidates,
@@ -104,10 +135,25 @@ def parse_query(
     Real LLM adapter would return the same shape; the deterministic evaluator
     remains the only rule judge (ADR-005).
     """
+    settings = get_settings()
+    if not settings.feature_real_ai or not settings.ai_api_key:
+        raise ApiError(
+            "真实自然语言查询解析尚未配置；请使用结构化搜索与查询条件",
+            code="provider_unavailable",
+            status_code=503,
+        )
+    try:
+        provider = get_nl_provider()
+    except RuntimeError as exc:
+        raise ApiError(
+            "真实自然语言查询解析尚未接入，当前不会返回模拟解析结果",
+            code="provider_unavailable",
+            status_code=503,
+        ) from exc
     parsed = get_ai_guard().call(
         "nlq",
         "parse_query",
-        lambda: get_nl_provider().parse_query(body.text, body.lat, body.lng),
+        lambda: provider.parse_query(body.text, body.lat, body.lng),
     )
     return ParseQueryOut(
         intent=parsed["intent"],
