@@ -763,6 +763,38 @@ test("B3.1 — Evidence renders only media explicitly released by the public-med
   await expect(page.getByTestId("public-evidence-media")).toHaveCount(0);
 });
 
+test("B3.2 — expired reviewed Evidence media fails closed without a broken image", async ({
+  page,
+}) => {
+  let released = false;
+  await page.route("**/api/v1/evidence-bundles/*/public-media", async (route) => {
+    const bundleId = route.request().url().split("/evidence-bundles/")[1]?.split("/")[0] ?? "";
+    if (released) {
+      await route.fulfill({ status: 404, json: { detail: "not displayable" } });
+      return;
+    }
+    released = true;
+    await route.fulfill({
+      status: 200,
+      json: {
+        evidence_bundle_id: bundleId,
+        media_id: "expired-public-evidence",
+        purpose: "evidence_photo",
+        url: "http://127.0.0.1:9/expired-reviewed-evidence.jpg",
+        mime_type: "image/jpeg",
+        expires_in: 1,
+      },
+    });
+  });
+
+  await page.goto(`${BASE}/#/place/${MALL_ID}/evidence`);
+  const hero = page.getByTestId("evidence-hero-media");
+  await expect(hero).toBeVisible({ timeout: 15000 });
+  await expect(hero.getByText("公开图片暂不可用")).toBeVisible({ timeout: 15000 });
+  await expect(hero.locator("img")).toHaveCount(0);
+  await expect(page.getByTestId("evidence-provenance")).toBeVisible();
+});
+
 test("B5 — Search DecisionInspector 查看完整场所 → Place Passport", async ({ page }) => {
   // Search the ready mall fixture: the cafe deep-link lands on the §15 Unknown
   // Overview, which has no dossier answer block.
