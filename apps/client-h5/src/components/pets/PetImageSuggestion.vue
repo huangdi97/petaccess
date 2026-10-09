@@ -22,8 +22,7 @@ async function onPickImage(event: Event) {
     const breed = data.breed_candidates?.[0] ?? "";
     const breedText = (data.breed_candidates ?? []).join(" / ");
     emit("suggest", data.species, breed);
-    message.value =
-      `图片建议：${animalScopeLabel(data.species)}${breedText ? ` · ${breedText}` : ""}（请确认或修改）`;
+    message.value = `图片建议：${animalScopeLabel(data.species)}${breedText ? ` · ${breedText}` : ""}（请确认或修改）`;
   } catch {
     message.value = "图片建议暂不可用，直接手填即可";
   } finally {
