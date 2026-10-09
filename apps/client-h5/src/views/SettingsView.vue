@@ -8,10 +8,15 @@ import AppShell from "../components/AppShell.vue";
 const appVersion = import.meta.env.VITE_APP_VERSION;
 const versionLabel = appVersion ? `v${appVersion}` : "开发版";
 const signedIn = ref(false);
+const sessionStateError = ref(false);
 
 onMounted(async () => {
-  await session.restore();
-  signedIn.value = session.signedIn;
+  try {
+    await session.restore();
+    signedIn.value = session.signedIn;
+  } catch {
+    sessionStateError.value = true;
+  }
 });
 
 const RULE_LAYERS = [
@@ -126,7 +131,13 @@ const EVIDENCE = [
 
     <footer class="settings-foot">
       <span>
-        {{ signedIn ? `已登录 · ${session.user?.display_name ?? ""}` : "未登录 · 可浏览公开内容" }}
+        {{
+          sessionStateError
+            ? "账号状态暂不可用 · 公开说明仍可浏览"
+            : signedIn
+              ? `已登录 · ${session.user?.display_name ?? ""}`
+              : "未登录 · 可浏览公开内容"
+        }}
       </span>
       <span>查询对象与动作请使用页面顶部的“当前查询”统一调整。</span>
     </footer>
