@@ -29,6 +29,14 @@ interface ClusterSelectionDeps {
 }
 
 export function useMapClusterSelection(deps: ClusterSelectionDeps) {
+  function selectResult(id: string) {
+    const place = deps.places.value.find((item) => item.id === id) ?? null;
+    deps.selected.value = place;
+    if (!place) return;
+    deps.syncRoutePlace(place.id);
+    void deps.selectPlace(place);
+  }
+
   function onSelectCluster(cluster: MapCluster) {
     if (cluster.count === 1) {
       const place = deps.places.value.find((item) => item.id === cluster.memberIds[0]) ?? null;
@@ -52,5 +60,5 @@ export function useMapClusterSelection(deps: ClusterSelectionDeps) {
     void deps.reload();
   }
 
-  return { onSelectCluster };
+  return { onSelectCluster, selectResult };
 }
