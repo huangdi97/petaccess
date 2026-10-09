@@ -14,7 +14,7 @@ defineEmits<{ continue: [] }>();
 
 <template>
   <section class="done" data-testid="contribute-result">
-    <ContributionProgress :step="3" :total="3" />
+    <ContributionProgress :step="4" :total="4" />
     <h2 class="done__title">已提交待核验</h2>
     <p class="done__body">{{ msg }}</p>
     <p class="done__guard">
