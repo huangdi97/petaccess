@@ -70,21 +70,17 @@ export function useMapWorkspace() {
   );
   const loadEpoch = createEpoch();
   const previewEpoch = createEpoch();
-
   const activeFilters = ref<string[]>([]);
-
   const statuses = computed<Record<string, MapMarker["status"]>>(() => {
     const out: Record<string, MapMarker["status"]> = {};
     for (const p of places.value) out[p.id] = mapLensTone(lens.value, facts.value.get(p.id));
     return out;
   });
-
   const lensLabels = computed<Record<string, string>>(() => {
     const out: Record<string, string> = {};
     for (const p of places.value) out[p.id] = mapLensLabel(lens.value, facts.value.get(p.id));
     return out;
   });
-
   const markers = computed<MapMarker[]>(() => mapMarkersFor(places.value, statuses.value));
 
   const visiblePlaces = computed(() =>
