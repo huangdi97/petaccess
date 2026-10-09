@@ -41,6 +41,23 @@
   color: var(--pa-color-accent);
   background: var(--pa-color-surface-interactive);
 }
+
+.entry-option__button--selected {
+  background: var(--pa-color-accent-weak);
+  box-shadow: inset 2px 0 0 var(--pa-color-accent);
+}
+
+.entry-next {
+  width: 100%;
+  min-height: var(--pa-size-control-lg);
+  margin-top: var(--pa-space-4);
+  justify-content: center;
+}
+
+.entry-next:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 .entry-option__icon {
   display: inline-flex;
   align-items: center;
