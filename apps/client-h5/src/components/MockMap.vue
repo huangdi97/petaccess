@@ -19,7 +19,13 @@
  * fill, SELECTED = scale + halo + elevation. No big coloured pins, no emoji.
  */
 import { computed, ref } from "vue";
-import type { MapCamera, MapCluster, MapMarker } from "@petaccess/client-core";
+import {
+  MAP_MAX_ZOOM,
+  MAP_MIN_ZOOM,
+  type MapCamera,
+  type MapCluster,
+  type MapMarker,
+} from "@petaccess/client-core";
 import { mapLensGlyph } from "../consumer/mapLens";
 
 const props = withDefaults(
@@ -247,7 +253,7 @@ const MASS = [
       <button
         type="button"
         aria-label="放大"
-        :disabled="camera.zoom >= 18"
+        :disabled="camera.zoom >= MAP_MAX_ZOOM"
         @click="emit('zoom', 1)"
       >
         ＋
@@ -255,7 +261,7 @@ const MASS = [
       <button
         type="button"
         aria-label="缩小"
-        :disabled="camera.zoom <= 8"
+        :disabled="camera.zoom <= MAP_MIN_ZOOM"
         @click="emit('zoom', -1)"
       >
         －
