@@ -57,6 +57,12 @@ export const session = reactive({
   activePet: null as ActivePet | null,
   /** Ephemeral query role; never inferred from images or credentials. */
   declaredRole: null as string | null,
+  /**
+   * Last persisted-session restoration problem. Public Rule/Reality/Evidence
+   * surfaces may continue anonymously, but should not silently pretend the
+   * private context was restored successfully.
+   */
+  restoreIssue: null as null | "auth_invalid" | "unavailable",
 
   get signedIn(): boolean {
     return getToken() !== undefined;
@@ -71,6 +77,7 @@ export const session = reactive({
     restoreInFlight = (async () => {
       try {
         this.user = await client.me();
+        this.restoreIssue = null;
         const activePetId = platformStorage.get(ACTIVE_PET_KEY);
         if (activePetId && this.activePet?.id !== activePetId) {
           const pets = await client.myPets();
@@ -90,6 +97,11 @@ export const session = reactive({
           platformStorage.remove(ACTIVE_PET_KEY);
           this.user = null;
           this.activePet = null;
+          this.restoreIssue = "auth_invalid";
+        } else {
+          // Keep the persisted token for a transient network/server failure,
+          // but expose that private context could not be restored.
+          this.restoreIssue = "unavailable";
         }
       }
       return this.user;
@@ -104,12 +116,14 @@ export const session = reactive({
   async login(email: string, password: string): Promise<void> {
     const res = await client.login(email, password);
     platformStorage.set(TOKEN_KEY, res.access_token);
+    this.restoreIssue = null;
     await this.restore();
   },
 
   async register(displayName: string, email: string, password: string): Promise<void> {
     const res = await client.register(displayName, email, password);
     platformStorage.set(TOKEN_KEY, res.access_token);
+    this.restoreIssue = null;
     await this.restore();
   },
 
@@ -132,6 +146,7 @@ export const session = reactive({
     // query or a different user's session in the same app runtime.
     this.activePet = null;
     this.declaredRole = null;
+    this.restoreIssue = null;
     this.mode = "with_pet";
   },
 });
