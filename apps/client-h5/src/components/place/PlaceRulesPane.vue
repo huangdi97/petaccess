@@ -24,9 +24,9 @@ import {
   ruleLayerLabel,
   ruleStatusLabel,
   ruleSubjectLine,
-  sourceLabel,
   zoneTypeLabel,
 } from "../../consumer/labels";
+import { publicSourceIssuer } from "../../consumer/sourcePrivacy";
 import StatusBadge from "../StatusBadge.vue";
 
 const props = defineProps<{
@@ -141,7 +141,12 @@ function ruleConditionLines(r: RuleView): string[] {
             >
             ·
           </template>
-          {{ sourceLabel(sourceMap.get(r.source_id)?.issuer ?? null, true) }}
+          {{
+            publicSourceIssuer(
+              sourceMap.get(r.source_id)?.source_type,
+              sourceMap.get(r.source_id)?.issuer,
+            )
+          }}
           <span v-if="r.last_verified_at"> · 最近核验 {{ r.last_verified_at.slice(0, 10) }}</span>
           <span v-else> · 来源仍待补充</span>
         </p>
