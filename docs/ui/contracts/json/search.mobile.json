@@ -182,11 +182,12 @@
       "severity": "FAIL"
     },
     {
-      "id": "SEARCH_MOBILE_DEFAULT_REALITY_FIRST",
-      "selector": "[data-testid='row-lens-headline'].result-row__reality-line--lead",
+      "id": "SEARCH_MOBILE_DEFAULT_RULE_FIRST",
+      "selector": "[data-testid='row-lens-headline'].result-row__decision--lead",
       "min": 1,
       "severity": "FAIL",
-      "pages": ["search-mobile-ready"]
+      "pages": ["search-mobile-ready"],
+      "note": "Mobile canonical Search keeps the access verdict as the primary row line; Reality-first is opt-in through an explicit lens."
     },
     {
       "id": "SEARCH_MOBILE_RULE_STAYS_VISIBLE",
