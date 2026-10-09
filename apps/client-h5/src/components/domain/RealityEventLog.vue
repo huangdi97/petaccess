@@ -11,6 +11,7 @@ import { computed } from "vue";
 import type { PublicEvidenceMediaView, RealityEventView, Zone } from "@petaccess/client-core";
 import { type IconName } from "@petaccess/design-tokens";
 import PaIcon from "../ui/PaIcon.vue";
+import ReviewedPublicMedia from "./ReviewedPublicMedia.vue";
 import { zoneConsumerLine } from "../../consumer/labels";
 import {
   realityEventDetail,
@@ -210,12 +211,9 @@ const visibleGroups = computed<EventGroup[]>(() => {
               class="trace-row__media"
               data-testid="reality-public-media"
             >
-              <img
+              <ReviewedPublicMedia
                 :src="publicMediaFor(event)!.url"
                 alt="经审核允许公开展示的现场证据图片"
-                loading="lazy"
-                decoding="async"
-                referrerpolicy="no-referrer"
               />
             </figure>
           </div>
