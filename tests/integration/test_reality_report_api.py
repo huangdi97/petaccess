@@ -650,9 +650,7 @@ def test_demo_reality_events_preserve_observed_submitted_reviewed_axes(client):
     # the same seeded place. The canonical demo events must still exercise
     # observed/submitted/reviewed as three distinct axes; a later lead must not
     # make this test claim every public event has exact event time.
-    exact_events = [
-        event for event in events if event["time_evidence_state"] == "exact_event_time"
-    ]
+    exact_events = [event for event in events if event["time_evidence_state"] == "exact_event_time"]
     assert len(exact_events) >= 6
     assert all(event["submitted_at"] is not None for event in exact_events)
     assert all(event["last_verified_at"] is not None for event in exact_events)
