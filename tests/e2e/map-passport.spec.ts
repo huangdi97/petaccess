@@ -476,6 +476,22 @@ test("A1.6 — panning away clears the previous deep-linked place before re-quer
   await expect(page.getByTestId("preview-empty")).toBeVisible();
 });
 
+test("A1.7 — one-shot locate clears the previous selected place", async ({ page, context }) => {
+  await context.grantPermissions(["geolocation"], { origin: BASE });
+  await context.setGeolocation({ latitude: 31.225, longitude: 121.475 });
+
+  await page.goto(`${BASE}/#/map?place=${MALL_ID}`);
+  await expect(page.getByTestId("place-preview")).toContainText("云栖中心", {
+    timeout: 15000,
+  });
+
+  await page.getByTestId("locate-btn").click();
+  await expect(page.getByTestId("location-label")).toContainText("已定位到当前位置", {
+    timeout: 15000,
+  });
+  await expect(page).toHaveURL(/#\/map(?!\?place=)/);
+});
+
 test("A2 — map 错误统一呈现，不泄漏内部字样", async ({ page }) => {
   await page.route("**/api/v1/places/nearby**", (route) =>
     route.fulfill({
