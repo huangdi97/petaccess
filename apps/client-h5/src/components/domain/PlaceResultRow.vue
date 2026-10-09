@@ -17,6 +17,7 @@ import {
   type PlaceSummary,
   type RealityAnswer,
 } from "@petaccess/client-core";
+import { STATUS_SEMANTICS } from "@petaccess/design-tokens";
 import StatusBadge from "../StatusBadge.vue";
 import PlaceTypeGlyph from "./PlaceTypeGlyph.vue";
 import { answerConditions, answerPrimarySummary, answerStatusKey } from "../../answer";
@@ -57,7 +58,18 @@ const props = withDefaults(
 );
 
 const status = computed(() => answerStatusKey(props.answer));
+const statusLabel = computed(() => STATUS_SEMANTICS[status.value].label);
 const conditions = computed(() => answerConditions(props.answer, props.conditionsLabel));
+/** Keep the badge compact while giving the row one readable Rule sentence.
+ * Do not duplicate the badge label; unknown/conflict get an explanatory line
+ * instead of invented permission. */
+const decisionLine = computed(() => {
+  const summary = props.answer ? answerPrimarySummary(props.answer) : "";
+  if (summary && summary !== statusLabel.value) return summary;
+  if (status.value === "UNKNOWN") return "尚缺足够规则依据";
+  if (status.value === "CONFLICT") return "规则来源尚未形成一致结论";
+  return "";
+});
 const realityLine = computed(() => coexistenceRealityLine(props.snapshot, props.reality));
 const evidenceLine = computed(() => coexistenceEvidenceLine(props.snapshot, props.reality));
 const projection = computed(() =>
@@ -111,9 +123,14 @@ const projection = computed(() =>
       规则结论暂时无法取得 —— 请检查网络后重试。
     </p>
 
-    <!-- Rule status is already carried by the semantic badge above.
-         Only non-redundant conditions consume another scan line here. -->
-    <p v-else-if="answer && conditions.length" class="place-result-row__conditions">
+    <!-- The badge answers "which state"; this line answers "what does it mean"
+         without repeating the same short label. -->
+    <p v-else-if="!lens && decisionLine" class="place-result-row__rule" data-testid="row-rule">
+      {{ decisionLine }}
+    </p>
+
+    <!-- Only the most important non-redundant condition consumes another line. -->
+    <p v-if="!answerError && answer && conditions.length" class="place-result-row__conditions">
       进入前需满足：{{ conditions[0] }}
     </p>
 
