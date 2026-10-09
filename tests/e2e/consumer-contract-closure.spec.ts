@@ -160,8 +160,8 @@ test("C2: transport error is never served as a cached fact — recovery re-reque
   await page.goto("/#/search");
   await page.getByTestId("search-input").fill("契约");
   await page.getByTestId("search-btn").click();
-  await expect(page.getByTestId("result-契约测试场所")).toBeVisible();
-  await expect(page.locator('[data-testid="result-契约测试场所"]')).toContainText(
+  await expect(page.getByTestId(`result-${PLACE.id}`)).toBeVisible();
+  await expect(page.locator('[data-testid=`result-${PLACE.id}`]')).toContainText(
     "规则结论暂时无法取得",
   );
 
@@ -169,7 +169,7 @@ test("C2: transport error is never served as a cached fact — recovery re-reque
   // was never cached), and the row now shows the real ALLOWED badge.
   fail = false;
   await page.getByTestId("search-btn").click();
-  await expect(page.locator('[data-testid="result-契约测试场所"]')).toContainText("明确允许");
+  await expect(page.locator('[data-testid=`result-${PLACE.id}`]')).toContainText("明确允许");
 });
 
 // ------------------------------------------------------------------ C3 ---
@@ -207,25 +207,25 @@ test("C5: lens changes consumer projection without changing domain facts", async
   await page.goto("/#/search?lens=rules");
   await page.getByTestId("search-input").fill("契约");
   await page.getByTestId("search-btn").click();
-  await expect(page.getByTestId("result-契约测试场所")).toBeVisible();
+  await expect(page.getByTestId(`result-${PLACE.id}`)).toBeVisible();
   // rules lens = Rule-first: the rule conclusion is the row headline.
-  const rulesRow = page.getByTestId("result-契约测试场所");
+  const rulesRow = page.getByTestId(`result-${PLACE.id}`);
   await expect(rulesRow.locator("[data-testid=row-lens-headline]")).toContainText("允许进入");
 
   await page.goto("/#/search?lens=presence");
   await page.getByTestId("search-input").fill("契约");
   await page.getByTestId("search-btn").click();
-  await expect(page.getByTestId("result-契约测试场所")).toBeVisible();
+  await expect(page.getByTestId(`result-${PLACE.id}`)).toBeVisible();
   // presence lens = Reality-first: the reality line is the row headline.
-  const presenceRow = page.getByTestId("result-契约测试场所");
+  const presenceRow = page.getByTestId(`result-${PLACE.id}`);
   await expect(presenceRow.locator("[data-testid=row-lens-headline]")).toContainText(
     "近期现场有动物出现",
   );
   await page.goto("/#/search?lens=indoor");
   await page.getByTestId("search-input").fill("契约");
   await page.getByTestId("search-btn").click();
-  await expect(page.getByTestId("result-契约测试场所")).toBeVisible();
-  const indoorRow = page.getByTestId("result-契约测试场所");
+  await expect(page.getByTestId(`result-${PLACE.id}`)).toBeVisible();
+  const indoorRow = page.getByTestId(`result-${PLACE.id}`);
   await expect(indoorRow.locator("[data-testid=row-lens-headline]")).toContainText(
     "室内区域有经核验动物出现",
   );
@@ -234,7 +234,7 @@ test("C5: lens changes consumer projection without changing domain facts", async
   await page.goto("/#/search?lens=dining");
   await page.getByTestId("search-input").fill("契约");
   await page.getByTestId("search-btn").click();
-  const diningRow = page.getByTestId("result-契约测试场所");
+  const diningRow = page.getByTestId(`result-${PLACE.id}`);
   await expect(diningRow.locator("[data-testid=row-lens-headline]")).toContainText(
     "餐饮区域有经核验动物出现",
   );
