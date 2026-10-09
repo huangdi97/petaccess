@@ -48,7 +48,8 @@ export function useObservationEffortContribution(
   const busy = ref(false);
   const error = ref("");
   watch(
-    () => [props.placeId, props.initialZoneId, props.zones.map((zone) => zone.id).join("|")] as const,
+    () =>
+      [props.placeId, props.initialZoneId, props.zones.map((zone) => zone.id).join("|")] as const,
     () => {
       // Route reuse is a transaction boundary. A zone from the previous place
       // is never a valid fallback scope for the new observation effort.
