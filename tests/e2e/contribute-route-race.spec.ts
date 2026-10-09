@@ -102,3 +102,31 @@ test("scoped Reality contribution selects only a zone owned by the current place
   await page.getByTestId("entry-next").click();
   await expect(page.locator("#reality-zone")).toHaveValue("");
 });
+
+
+test("observation-effort route accepts only current-place zones", async ({ page, request }) => {
+  const created = await request.post("http://127.0.0.1:8010/api/v1/auth/register", {
+    data: {
+      display_name: "观察覆盖范围测试",
+      email: `effort-zone-${Date.now()}@example.com`,
+      password: "passw0rd123",
+    },
+  });
+  expect(created.ok(), await created.text()).toBeTruthy();
+  const token = (await created.json()).access_token as string;
+  await page.addInitScript((value) => localStorage.setItem("pa_token", value), token);
+
+  const zonesResponse = await request.get(`http://127.0.0.1:8010/api/v1/places/${MALL_ID}/zones`);
+  expect(zonesResponse.ok(), await zonesResponse.text()).toBeTruthy();
+  const zones = (await zonesResponse.json()) as { id: string }[];
+  expect(zones.length).toBeGreaterThan(0);
+  const zoneId = zones[0]!.id;
+
+  await page.goto(`/#/contribute/${MALL_ID}?mode=effort&zone=${zoneId}`);
+  await expect(page.getByTestId("effort-zone")).toHaveValue(zoneId);
+
+  await page.goto(
+    `/#/contribute/${MALL_ID}?mode=effort&zone=00000000-0000-0000-0000-000000000000`,
+  );
+  await expect(page.getByTestId("effort-zone")).toHaveValue("");
+});
