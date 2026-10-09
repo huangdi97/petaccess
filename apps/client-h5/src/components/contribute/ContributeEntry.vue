@@ -19,6 +19,7 @@ type EntryOption =
       label: string;
       description: string;
       icon: IconName;
+      tone: "rule" | "reality" | "staff" | "facility" | "correction";
     }
   | {
       kind: "reality";
@@ -27,6 +28,7 @@ type EntryOption =
       label: string;
       description: string;
       icon: IconName;
+      tone: "rule" | "reality" | "staff" | "facility" | "correction";
     };
 
 const OPTIONS: EntryOption[] = [
@@ -37,6 +39,7 @@ const OPTIONS: EntryOption[] = [
     label: "我看到或了解到一条规则",
     description: "规则牌、公告、工作人员说明或其他线索",
     icon: "document",
+    tone: "rule",
   },
   {
     kind: "reality",
@@ -45,6 +48,7 @@ const OPTIONS: EntryOption[] = [
     label: "我在现场看到动物",
     description: "是什么动物，在哪里，什么时间",
     icon: "eye",
+    tone: "reality",
   },
   {
     kind: "reality",
@@ -53,6 +57,7 @@ const OPTIONS: EntryOption[] = [
     label: "我看到工作人员怎么处理",
     description: "如何引导、提示、要求，或本次没有观察到进一步处理",
     icon: "info",
+    tone: "staff",
   },
   {
     kind: "reality",
@@ -61,6 +66,7 @@ const OPTIONS: EntryOption[] = [
     label: "我发现了相关设施",
     description: "宠物区、饮水点、临时安置等",
     icon: "building",
+    tone: "facility",
   },
   {
     kind: "select",
@@ -69,6 +75,7 @@ const OPTIONS: EntryOption[] = [
     label: "场所信息有误",
     description: "名称、地址或场所状态需要纠正",
     icon: "flag",
+    tone: "correction",
   },
 ];
 
@@ -91,7 +98,11 @@ function choose(opt: EntryOption) {
           :data-testid="opt.testid"
           @click="choose(opt)"
         >
-          <span class="entry-option__icon" aria-hidden="true">
+          <span
+            class="entry-option__icon"
+            :class="`entry-option__icon--${opt.tone}`"
+            aria-hidden="true"
+          >
             <PaIcon :name="opt.icon" size="lg" />
           </span>
           <span class="entry-option__text">
