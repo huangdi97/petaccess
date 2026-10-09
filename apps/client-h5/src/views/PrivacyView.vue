@@ -1,18 +1,8 @@
 <script setup lang="ts">
-// PrivacyView — local controls + authenticated privacy-rights transactions.
-import { computed, onMounted, ref } from "vue";
-import { client, session, platformStorage } from "@petaccess/client-core";
 import AppShell from "../components/AppShell.vue";
+import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
-import { presentDescription } from "../errors";
-
-const cleared = ref(false);
-const exportBusy = ref(false);
-const deletionBusy = ref(false);
-const rightsError = ref("");
-const deletionStatus = ref<"none" | "submitted" | string>("none");
-const deletionRequestedAt = ref<string | null>(null);
-const confirmDeletion = ref(false);
+import { usePrivacyRights } from "../composables/usePrivacyRights";
 
 const inventory = [
   { item: "账号", stored: "保存", detail: "邮箱与显示名，用于登录和会话。" },
@@ -28,66 +18,20 @@ const inventory = [
   { item: "变化关注", stored: "保存", detail: "仅保存你主动关注的规则变化或经核验现场更新。" },
 ];
 
-const signedIn = computed(() => session.signedIn);
-
-function clearLocalData() {
-  platformStorage.remove("pa_token");
-  session.logout();
-  cleared.value = true;
-}
-
-async function loadRightsStatus() {
-  rightsError.value = "";
-  try {
-    await session.restore();
-    if (!session.signedIn) return;
-    const row = await client.accountDeletionRequest();
-    deletionStatus.value = row.status;
-    deletionRequestedAt.value = row.requested_at;
-  } catch (error) {
-    rightsError.value = presentDescription(error);
-  }
-}
-
-async function exportData() {
-  if (!session.signedIn || exportBusy.value) return;
-  exportBusy.value = true;
-  rightsError.value = "";
-  try {
-    const payload = await client.exportMyData();
-    const blob = new Blob([JSON.stringify(payload, null, 2)], {
-      type: "application/json;charset=utf-8",
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `petaccess-data-${new Date().toISOString().slice(0, 10)}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
-  } catch (error) {
-    rightsError.value = presentDescription(error);
-  } finally {
-    exportBusy.value = false;
-  }
-}
-
-async function submitDeletionRequest() {
-  if (!session.signedIn || deletionBusy.value) return;
-  deletionBusy.value = true;
-  rightsError.value = "";
-  try {
-    const row = await client.requestAccountDeletion();
-    deletionStatus.value = row.status;
-    deletionRequestedAt.value = row.requested_at;
-    confirmDeletion.value = false;
-  } catch (error) {
-    rightsError.value = presentDescription(error);
-  } finally {
-    deletionBusy.value = false;
-  }
-}
-
-onMounted(loadRightsStatus);
+const {
+  cleared,
+  loading,
+  exportBusy,
+  deletionBusy,
+  rightsError,
+  deletionStatus,
+  deletionRequestedAt,
+  confirmDeletion,
+  signedIn,
+  clearLocalData,
+  exportData,
+  submitDeletionRequest,
+} = usePrivacyRights();
 </script>
 
 <template>
@@ -159,8 +103,9 @@ onMounted(loadRightsStatus);
         <p class="muted">服务端操作会返回真实状态，不用本机按钮伪装完成。</p>
       </div>
       <div class="privacy-section__body">
+        <SkeletonList v-if="loading" :rows="2" />
         <StateMessage
-          v-if="!signedIn"
+          v-else-if="!signedIn"
           kind="PERMISSION_DENIED"
           description="登录后可以获取自己的数据副本，或提交可追踪的账号删除申请。"
         />
