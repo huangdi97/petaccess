@@ -86,7 +86,6 @@
     grid-template-columns: 88px minmax(0, 1fr);
     gap: 0 var(--pa-space-3);
   }
-
 }
 
 .home-section-title {
