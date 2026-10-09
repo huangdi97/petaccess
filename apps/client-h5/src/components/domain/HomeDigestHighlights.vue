@@ -33,7 +33,7 @@ const recommended = computed(() =>
   [...cards.value]
     .filter(homeDigestHasUsefulFact)
     .sort((a, b) => compareHomeDigest(a, b, props.interest))
-    .slice(0, 2),
+    .slice(0, 1),
 );
 const divergences = computed(() =>
   cards.value
@@ -51,8 +51,10 @@ const divergences = computed(() =>
     class="home-recommend"
     data-ui="home-recommend"
   >
-    <h2 class="home-digest-title">{{ recommendationTitle }}</h2>
-    <p class="home-digest-note muted">{{ recommendationNote }}</p>
+    <div class="home-digest-head">
+      <h2 class="home-digest-title">{{ recommendationTitle }}</h2>
+      <p class="home-digest-note muted">{{ recommendationNote }}</p>
+    </div>
     <button
       v-for="card in recommended"
       :key="'recommend-' + card.place.id"
