@@ -126,8 +126,7 @@ export function clusterMarkers(
     // states stay neutral so a green/amber aggregate can never imply that all
     // places inside the cluster share one access result.
     const memberStatuses = new Set(members.map((member) => member.status));
-    const status: MapMarker["status"] =
-      memberStatuses.size === 1 ? members[0]!.status : "UNKNOWN";
+    const status: MapMarker["status"] = memberStatuses.size === 1 ? members[0]!.status : "UNKNOWN";
     clusters.push({
       id: `c:${key}`,
       count: members.length,
