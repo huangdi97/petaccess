@@ -19,19 +19,23 @@ export function useDialogFocus(isOpen: () => boolean) {
     target?.focus();
   }
 
-  watch(isOpen, async (open) => {
-    if (open) {
-      returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-      await nextTick();
-      focusInside();
-      return;
-    }
-    if (returnFocus) {
-      await nextTick();
-      returnFocus.focus();
-      returnFocus = null;
-    }
-  });
+  watch(
+    isOpen,
+    async (open) => {
+      if (open) {
+        returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+        await nextTick();
+        focusInside();
+        return;
+      }
+      if (returnFocus) {
+        await nextTick();
+        returnFocus.focus();
+        returnFocus = null;
+      }
+    },
+    { immediate: true },
+  );
 
   function keepFocusInside(event: KeyboardEvent) {
     if (event.key !== "Tab" || !panel.value) return;
