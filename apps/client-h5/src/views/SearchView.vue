@@ -694,6 +694,8 @@ watch(currentQueryContext, () => {
 <style scoped>
 .search-workspace {
   min-height: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .search-workspace__body {
@@ -712,6 +714,8 @@ watch(currentQueryContext, () => {
   .search-workspace__body--split {
     flex-direction: row;
     align-items: stretch;
+    width: 100%;
+    min-width: 0;
     max-width: none;
     margin: 0;
     padding: 0;
@@ -720,6 +724,7 @@ watch(currentQueryContext, () => {
 
   .search-result-pane {
     flex: 0 0 var(--pa-layout-result-pane);
+    min-width: 0;
     border-right: var(--pa-border-width) solid var(--pa-color-border);
     background: var(--pa-color-surface-raised);
     /* Results remain a pane, not a card: the surface tint only separates
@@ -739,15 +744,25 @@ watch(currentQueryContext, () => {
   }
 }
 
-@media (min-width: 768px) and (max-width: 1023px) {
+@media (min-width: 768px) and (max-width: 1099px) {
+  /* Responsive contract: tablet is compact list-detail, not a squeezed
+     desktop canvas. Grid minmax(0, 1fr) removes intrinsic-width overflow. */
+  .search-workspace__body--split {
+    display: grid;
+    grid-template-columns: minmax(280px, 42%) minmax(0, 1fr);
+  }
+
   .search-result-pane {
-    flex-basis: 320px;
+    width: auto;
     padding-left: var(--pa-space-4);
     padding-right: var(--pa-space-4);
   }
 
   .search-inspector {
-    padding: var(--pa-space-5) var(--pa-space-4) 0 var(--pa-space-5);
+    width: auto;
+    min-width: 0;
+    max-width: 100%;
+    padding: var(--pa-space-5) var(--pa-space-4) 0 var(--pa-space-4);
   }
 }
 
