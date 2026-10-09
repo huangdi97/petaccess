@@ -276,9 +276,7 @@ const MASS = [
       class="map-pin"
       :class="{ 'map-pin--selected': isSelectedCluster(c) }"
       :data-selected="isSelectedCluster(c) ? 'true' : undefined"
-      :data-ui="
-        c.count > 1 ? (isSelectedCluster(c) ? 'map-marker-selected' : 'map-marker') : undefined
-      "
+      :data-ui="c.count > 1 ? 'map-marker' : undefined"
       :style="project(c.lat, c.lng)"
       :data-testid="c.count > 1 ? 'cluster-' + c.id : 'pin-' + c.memberIds[0]"
       :aria-label="
@@ -295,7 +293,14 @@ const MASS = [
       <template v-if="c.count > 1">
         <!-- Aggregate counts have no single policy state. Always neutral;
              a priority status must not be attributed to all member places. -->
-        <div class="map-cluster">{{ c.count }}</div>
+        <div
+          class="map-cluster"
+          :class="{ 'map-cluster--selected': isSelectedCluster(c) }"
+          :data-ui="isSelectedCluster(c) ? 'map-marker-selected' : 'map-marker'"
+          :data-selected="isSelectedCluster(c) ? 'true' : undefined"
+        >
+          {{ c.count }}
+        </div>
       </template>
       <template v-else>
         <!-- Status is never color-only: the compact marker carries a single
@@ -526,6 +531,14 @@ const MASS = [
   align-items: center;
   justify-content: center;
   padding: 0 var(--pa-space-1);
+}
+
+.map-cluster--selected {
+  min-width: 30px;
+  height: 30px;
+  box-shadow:
+    0 0 0 4px var(--pa-color-accent-weak),
+    var(--pa-elevation-2);
 }
 
 .lbl {
