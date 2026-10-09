@@ -139,6 +139,14 @@ export function useMapWorkspace() {
     router.push({ name: "place", params: { id } });
   }
 
+  function selectResult(id: string) {
+    const place = places.value.find((item) => item.id === id) ?? null;
+    selected.value = place;
+    if (!place) return;
+    syncRoutePlace(place.id);
+    void selectPlace(place);
+  }
+
   const { onSelectCluster } = useMapClusterSelection({
     camera,
     places,
@@ -287,6 +295,7 @@ export function useMapWorkspace() {
     locate,
     load,
     open,
+    selectResult,
     onSelectCluster,
     searchMap,
     syncRoutePlace,
