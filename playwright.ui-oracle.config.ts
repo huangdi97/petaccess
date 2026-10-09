@@ -55,6 +55,7 @@ export default defineConfig({
   ],
   projects: [
     { name: "oracle-desktop", use: { viewport: { width: 1440, height: 900 } } },
+    { name: "oracle-tablet", use: { viewport: { width: 800, height: 1080 }, hasTouch: true } },
     { name: "oracle-mobile", use: { viewport: { width: 430, height: 932 }, hasTouch: true } },
   ],
 });
