@@ -18,7 +18,7 @@ from sqlalchemy.orm import Session
 from app.core.audit import record_audit
 from app.core.audit_events import AuditEvent
 from app.core.config import get_settings
-from app.core.errors import ApiError, NotFound
+from app.core.errors import ApiError
 from app.core.media_sanitize import strip_image_metadata
 from app.core.security import get_current_user
 from app.db.session import get_db
