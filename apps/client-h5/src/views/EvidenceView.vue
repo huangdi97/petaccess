@@ -38,6 +38,7 @@ import EvidenceStatus from "../components/domain/EvidenceStatus.vue";
 import EvidenceProvenance from "../components/domain/EvidenceProvenance.vue";
 import EvidenceGovernanceSummary from "../components/domain/EvidenceGovernanceSummary.vue";
 import EvidenceDisputeAction from "../components/domain/EvidenceDisputeAction.vue";
+import ReviewedPublicMedia from "../components/domain/ReviewedPublicMedia.vue";
 import PaIcon from "../components/ui/PaIcon.vue";
 import { presentDescription } from "../errors";
 
@@ -337,12 +338,10 @@ const uiFixture = computed<string>(() =>
             class="evidence-hero-media"
             data-testid="evidence-hero-media"
           >
-            <img
+            <ReviewedPublicMedia
               :src="heroPublicMedia.url"
               alt="经审核允许公开展示的证据媒体"
               loading="eager"
-              decoding="async"
-              referrerpolicy="no-referrer"
             />
             <figcaption>
               经审核允许公开展示 ·
@@ -412,12 +411,9 @@ const uiFixture = computed<string>(() =>
               class="evidence-item__media"
               data-testid="public-evidence-media"
             >
-              <img
+              <ReviewedPublicMedia
                 :src="publicMediaFor(event)!.url"
                 alt="经审核允许公开展示的现场证据图片"
-                loading="lazy"
-                decoding="async"
-                referrerpolicy="no-referrer"
               />
               <figcaption>经审核允许公开展示的现场证据图片 · 临时访问链接</figcaption>
             </figure>
