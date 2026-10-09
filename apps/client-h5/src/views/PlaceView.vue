@@ -243,15 +243,20 @@ async function load() {
     degrade("现场记录");
   }
   try {
-    const relevantSourceIds = new Set([
-      ...rules.value.map((rule) => rule.source_id),
-      ...realityEvents.value
-        .map((event) => event.source_id)
-        .filter((sourceId): sourceId is string => Boolean(sourceId)),
-    ]);
-    const rows = await client.allSources();
+    const relevantSourceIds = [
+      ...new Set(
+        [
+          ...rules.value.map((rule) => rule.source_id),
+          ...realityEvents.value.map((event) => event.source_id),
+        ].filter((sourceId): sourceId is string => Boolean(sourceId)),
+      ),
+    ];
+    const rows = await Promise.allSettled(
+      relevantSourceIds.map((sourceId) => client.source(sourceId)),
+    );
     if (!isCurrent()) return;
-    sources.value = rows.filter((source) => relevantSourceIds.has(source.id));
+    sources.value = rows.flatMap((row) => (row.status === "fulfilled" ? [row.value] : []));
+    if (rows.some((row) => row.status === "rejected")) degrade("部分来源");
   } catch {
     if (!isCurrent()) return;
     degrade("来源");
