@@ -972,7 +972,8 @@ watch(currentQueryContext, () => {
   background: transparent;
   box-shadow: none;
   min-height: 112px;
-  max-height: 132px;
+  /* Let large text / long translated content expand instead of clipping.
+   * Normal-density oracle still targets the 112–132px visual range. */
   /* §11 divider=yes：每行自带底部 divider，保证任意第一行也满足
    * borderBottomWidth ≥1（oracle 对第一行测量，不能只有第二行有线）。 */
   border-bottom: var(--pa-border-width) solid var(--pa-color-border);
@@ -1129,7 +1130,6 @@ watch(currentQueryContext, () => {
   .result-row,
   .result-row__link {
     min-height: 112px;
-    max-height: 132px;
   }
 
   .result-row__link {
