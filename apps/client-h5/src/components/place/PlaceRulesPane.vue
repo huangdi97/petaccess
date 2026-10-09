@@ -18,7 +18,14 @@
  * 进入「场所整体」；不伪造 zone/context。
  */
 import { computed, ref } from "vue";
-import type { AccessAnswer, RuleView, SourceView, Zone } from "@petaccess/client-core";
+import {
+  conditionLabel,
+  type AccessAnswer,
+  type EventPolicyItem,
+  type RuleView,
+  type SourceView,
+  type Zone,
+} from "@petaccess/client-core";
 import {
   mandatoryLevelLabel,
   ruleLayerLabel,
@@ -33,6 +40,7 @@ const props = defineProps<{
   placeId: string;
   currentRules: RuleView[];
   historyRules: RuleView[];
+  eventPolicies: EventPolicyItem[];
   sourceMap: Map<string, SourceView>;
   conditions: string[];
   answer: AccessAnswer | null;
@@ -98,6 +106,77 @@ const reviewNotice = computed(() => {
   return { visible: false, title: "", note: "" };
 });
 
+interface EventPolicyPresentation {
+  id: string;
+  scope: string;
+  subject: string;
+  effect: string;
+  validity: string;
+  lifecycle: "active" | "upcoming" | "ended" | "unknown";
+  conditions: string[];
+  source: string;
+}
+
+function eventPolicyConditions(raw: unknown[] | null): string[] {
+  if (!raw?.length) return [];
+  return raw.flatMap((item) => {
+    if (typeof item === "string") return [conditionLabel(item)];
+    if (!item || typeof item !== "object") return [];
+    const row = item as Record<string, unknown>;
+    const type =
+      typeof row.condition_type === "string"
+        ? row.condition_type
+        : typeof row.type === "string"
+          ? row.type
+          : "";
+    return type ? [conditionLabel(type)] : [];
+  });
+}
+
+function eventPolicyLifecycle(from: string, to: string): EventPolicyPresentation["lifecycle"] {
+  const start = Date.parse(from);
+  const end = Date.parse(to);
+  const now = Date.now();
+  if (!Number.isFinite(start) || !Number.isFinite(end)) return "unknown";
+  if (now < start) return "upcoming";
+  if (now > end) return "ended";
+  return "active";
+}
+
+const eventPolicyRows = computed<EventPolicyPresentation[]>(() =>
+  props.eventPolicies
+    .map((policy) => {
+      const lifecycle = eventPolicyLifecycle(policy.effective_from, policy.effective_to);
+      const start = policy.effective_from?.slice(0, 10) || "开始时间待确认";
+      const end = policy.effective_to?.slice(0, 10) || "结束时间待确认";
+      const lifecycleLabel =
+        lifecycle === "active"
+          ? "当前有效"
+          : lifecycle === "upcoming"
+            ? "尚未生效"
+            : lifecycle === "ended"
+              ? "已结束"
+              : "有效期待确认";
+      const source = props.sourceMap.get(policy.source_id);
+      return {
+        id: policy.id,
+        scope: policy.zone_id
+          ? (zoneNameById.value.get(policy.zone_id) ?? "指定分区")
+          : "场所整体",
+        subject: ruleSubjectLine(policy.animal_scope, policy.action),
+        effect: policy.effect,
+        validity: `${lifecycleLabel} · ${start} 至 ${end}`,
+        lifecycle,
+        conditions: eventPolicyConditions(policy.conditions),
+        source: publicSourceIssuer(source?.source_type, source?.issuer),
+      };
+    })
+    .sort((a, b) => {
+      const priority = { active: 0, upcoming: 1, unknown: 2, ended: 3 };
+      return priority[a.lifecycle] - priority[b.lifecycle];
+    }),
+);
+
 /** 每条 rule 的 conditions（优先 RuleView note / rule_conditions；无则本组 conditions）。 */
 function ruleConditionLines(r: RuleView): string[] {
   // Only show condition copy that is attached to this rule. A page-wide
@@ -116,6 +195,45 @@ function ruleConditionLines(r: RuleView): string[] {
     >
       <span class="current-query-conditions__label">当前查询需要</span>
       <p class="current-query-conditions__value">{{ conditions.join("、") }}</p>
+    </section>
+
+    <section
+      v-if="eventPolicyRows.length"
+      class="event-policy-section"
+      data-testid="event-policies"
+      aria-labelledby="event-policy-title"
+    >
+      <div class="event-policy-section__head">
+        <div>
+          <h2 id="event-policy-title" class="rule-group__context">临时 / 活动规则</h2>
+          <p class="muted event-policy-section__intro">
+            这些规则有明确有效期；只有处于有效期内的规则才会参与当前准入结论。
+          </p>
+        </div>
+      </div>
+      <div
+        v-for="policy in eventPolicyRows"
+        :key="policy.id"
+        class="rule-card event-policy-row"
+        :class="`event-policy-row--${policy.lifecycle}`"
+        data-testid="event-policy-row"
+      >
+        <div class="rule-card__head">
+          <span class="rule-card__subject">{{ policy.scope }} · {{ policy.subject }}</span>
+          <StatusBadge :effect="policy.effect" />
+        </div>
+        <p class="event-policy-row__validity">{{ policy.validity }}</p>
+        <p
+          v-for="condition in policy.conditions"
+          :key="condition"
+          class="rule-card__condition"
+        >
+          需满足：{{ condition }}
+        </p>
+        <p class="muted rule-card__meta">
+          临时/活动政策 · {{ policy.source }}
+        </p>
+      </div>
     </section>
 
     <!-- §12 Rule Groups：Context → Rule；组间 divider + 20–24 gap，非 card wall。 -->
@@ -233,6 +351,28 @@ function ruleConditionLines(r: RuleView): string[] {
   font-size: var(--pa-font-size-base);
   font-weight: var(--pa-font-weight-600);
   color: var(--pa-color-text-primary);
+}
+
+.event-policy-section {
+  margin: 0 0 var(--pa-space-6);
+  padding: 0 0 var(--pa-space-5);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border);
+}
+
+.event-policy-section__intro {
+  margin: calc(-1 * var(--pa-space-2)) 0 var(--pa-space-2);
+  font-size: var(--pa-font-size-md);
+  line-height: var(--pa-line-height-20);
+}
+
+.event-policy-row__validity {
+  margin: var(--pa-space-1) 0 0;
+  font-size: var(--pa-font-size-md);
+  color: var(--pa-color-text-secondary);
+}
+
+.event-policy-row--ended {
+  opacity: 0.72;
 }
 
 /* 组间 divider + 20–24 gap（§13）；组内非 card wall：divider rows。 */
