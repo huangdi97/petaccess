@@ -173,8 +173,23 @@ async function load() {
   loading.value = true;
   error.value = "";
   partial.value = [];
-  placeSceneMedia.value = null;
   sessionRestoreError.value = "";
+  // A manual retry is a fresh data transaction. Never keep facts from an
+  // earlier load when this load fails to re-fetch that layer.
+  place.value = null;
+  placeSummary.value = null;
+  zones.value = [];
+  rules.value = [];
+  realityEvents.value = [];
+  placeSceneMedia.value = null;
+  sources.value = [];
+  extras.value = null;
+  answer.value = null;
+  coexistence.value = null;
+  coexistenceLoaded.value = false;
+  watchingRule.value = false;
+  watchingReality.value = false;
+  watchMsg.value = "";
   const degrade = (label: string) => {
     if (isCurrent() && !partial.value.includes(label)) partial.value.push(label);
   };
