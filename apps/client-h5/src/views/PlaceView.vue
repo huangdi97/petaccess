@@ -42,7 +42,7 @@ import PlaceSpacePane from "../components/place/PlaceSpacePane.vue";
 import PlaceRulesPane from "../components/place/PlaceRulesPane.vue";
 import PlaceRealityPane from "../components/place/PlaceRealityPane.vue";
 import PlaceEvidencePane from "../components/place/PlaceEvidencePane.vue";
-import { sourceLabel } from "../consumer/labels";
+import { publicSourceIssuer } from "../consumer/sourcePrivacy";
 import { queryAnimalLabel } from "../consumer/queryContext";
 import { answerStatusKey } from "../answer";
 import { presentDescription } from "../errors";
@@ -120,7 +120,9 @@ const latestVerifiedAt = computed(() => {
 });
 const primarySourceLabel = computed(() => {
   const first = currentRules.value[0];
-  return first ? sourceLabel(sourceMap.value.get(first.source_id)?.issuer ?? null, true) : null;
+  if (!first) return null;
+  const source = sourceMap.value.get(first.source_id);
+  return publicSourceIssuer(source?.source_type, source?.issuer);
 });
 
 const presenceEventCount = computed(
