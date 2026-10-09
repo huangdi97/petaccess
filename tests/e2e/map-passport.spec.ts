@@ -248,9 +248,7 @@ test("A1.0.2 — nearby venue cluster is neutral and requires per-place inspecti
   await expect(group.locator(".map-cluster")).toHaveClass("map-cluster");
 });
 
-test("A1.0.2 — non-Rule lenses never reuse permission checkmark semantics", async ({
-  page,
-}) => {
+test("A1.0.2 — non-Rule lenses never reuse permission checkmark semantics", async ({ page }) => {
   await page.goto(`${BASE}/#/map`);
   for (const lens of ["reality", "facility", "divergence"] as const) {
     await page.getByTestId(`map-lens-${lens}`).click();
@@ -465,9 +463,7 @@ test("B2.2 — 仅有发布时间的设施线索不冒充当前空间设施事�
   await expect(page.getByTestId("animal-facility-summary-row").first()).toBeVisible();
 });
 
-test("B2.2a — imported facility state tokens never leak into Consumer copy", async ({
-  page,
-}) => {
+test("B2.2a — imported facility state tokens never leak into Consumer copy", async ({ page }) => {
   await page.route("**/api/v1/places/*/reality/events**", (route) =>
     route.fulfill({
       json: [
