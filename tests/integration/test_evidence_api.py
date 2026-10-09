@@ -75,6 +75,20 @@ def _new_source(client, tok) -> str:
     return r.json()["id"]
 
 
+def test_public_source_lookup_is_exact_and_not_page_dependent(client, moderator):
+    source_id = _new_source(client, moderator)
+
+    exact = client.get(f"/api/v1/sources/{source_id}")
+    assert exact.status_code == 200, exact.text
+    body = exact.json()
+    assert body["id"] == source_id
+    assert body["source_type"] == "official_operator_policy"
+    assert body["issuer"].startswith("证据来源-")
+
+    missing = client.get(f"/api/v1/sources/{uuid.uuid4()}")
+    assert missing.status_code == 404
+
+
 def test_artifact_bundle_chain_over_api(client, moderator):
     """官方来源 → artifact → bundle → 可追溯原文与许可元数据。"""
     src = _new_source(client, moderator)
