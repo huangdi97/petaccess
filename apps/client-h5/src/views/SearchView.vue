@@ -312,7 +312,12 @@ function clearSearch() {
 let queryContextReady = false;
 
 onMounted(async () => {
-  await session.restore();
+  try {
+    await session.restore();
+  } catch {
+    // Search is public; a broken/stale local session may remove private
+    // boundary context but cannot block Rule/Reality lookup.
+  }
   loadRecent();
   if (session.signedIn) {
     try {
