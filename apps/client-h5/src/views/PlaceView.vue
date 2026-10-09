@@ -389,7 +389,11 @@ const placeFixture = computed<string>(() => {
           />
 
           <!-- 1. Identity（§16 Overview 第一块） -->
-          <header class="place-dossier__head" data-ui="place-identity">
+          <header
+            class="place-dossier__head"
+            :class="{ 'place-dossier__head--with-scene': Boolean(placeSceneMedia) }"
+            data-ui="place-identity"
+          >
             <div class="place-dossier__identity-row">
               <figure
                 v-if="placeSceneMedia"
@@ -595,10 +599,14 @@ const placeFixture = computed<string>(() => {
   display: flex;
   flex-direction: column;
   gap: var(--pa-space-3);
-  padding: var(--pa-space-5) var(--pa-space-5) var(--pa-space-4);
+  padding: var(--pa-space-4);
   border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
   background: var(--pa-color-surface-muted);
   margin-bottom: var(--pa-space-4);
+}
+
+.place-dossier__head--with-scene {
+  padding: var(--pa-space-5);
 }
 
 .place-dossier__identity-row {
@@ -614,9 +622,9 @@ const placeFixture = computed<string>(() => {
 }
 
 .place-dossier__scene {
-  flex: 0 0 96px;
-  width: 96px;
-  height: 64px;
+  flex: 0 0 152px;
+  width: 152px;
+  height: 96px;
   margin: 0;
   overflow: hidden;
   border: var(--pa-border-width) solid var(--pa-color-border-subtle);
@@ -758,9 +766,16 @@ const placeFixture = computed<string>(() => {
     padding: var(--pa-space-4);
   }
 
-  .place-dossier__head {
+  .place-dossier__head,
+  .place-dossier__head--with-scene {
     padding: var(--pa-space-4);
     margin-bottom: var(--pa-space-3);
+  }
+
+  .place-dossier__scene {
+    flex-basis: 96px;
+    width: 96px;
+    height: 64px;
   }
 
   .place-dossier__actions {
