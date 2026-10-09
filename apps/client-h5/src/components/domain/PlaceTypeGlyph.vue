@@ -15,7 +15,7 @@ import PaIcon from "../ui/PaIcon.vue";
 const props = withDefaults(
   defineProps<{
     placeType?: string | null;
-    size?: "sm" | "md" | "lg";
+    size?: "sm" | "md" | "lg" | "xl";
   }>(),
   { placeType: null, size: "md" },
 );
@@ -35,7 +35,10 @@ const icon = computed<IconName>(() => {
     aria-hidden="true"
     data-ui="place-type-glyph"
   >
-    <PaIcon :name="icon" :size="size === 'sm' ? 'sm' : size === 'lg' ? 'lg' : 'md'" />
+    <PaIcon
+      :name="icon"
+      :size="size === 'sm' ? 'sm' : size === 'md' ? 'md' : 'lg'"
+    />
   </span>
 </template>
 
@@ -89,6 +92,20 @@ const icon = computed<IconName>(() => {
   height: 56px;
   border-color: var(--pa-color-border);
   border-radius: var(--pa-radius-md);
+}
+
+.place-type-glyph--xl {
+  width: 96px;
+  height: 72px;
+  border-color: var(--pa-color-border);
+  border-radius: var(--pa-radius-md);
+}
+
+.place-type-glyph--xl::after {
+  width: 56px;
+  height: 56px;
+  right: -10px;
+  bottom: -22px;
 }
 
 .place-type-glyph--sm {
