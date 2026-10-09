@@ -25,7 +25,11 @@ withDefaults(
 </script>
 
 <template>
-  <figure class="scene-frame" :class="`scene-frame--${variant}`" data-ui="place-scene-frame">
+  <figure
+    class="scene-frame"
+    :class="[`scene-frame--${variant}`, { 'scene-frame--empty': !src }]"
+    data-ui="place-scene-frame"
+  >
     <img
       v-if="src"
       class="scene-frame__image"
@@ -121,9 +125,17 @@ withDefaults(
   border-radius: var(--pa-radius-control);
 }
 
-.scene-frame--hero .scene-frame__image,
-.scene-frame--hero .scene-frame__empty {
+.scene-frame--hero .scene-frame__image {
   aspect-ratio: 16 / 6;
+}
+
+.scene-frame--hero.scene-frame--empty {
+  max-width: 520px;
+  min-height: 0;
+}
+
+.scene-frame--hero.scene-frame--empty .scene-frame__empty {
+  aspect-ratio: 16 / 4.5;
 }
 
 .scene-frame--compact {
