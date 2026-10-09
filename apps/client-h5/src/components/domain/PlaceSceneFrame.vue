@@ -7,7 +7,7 @@
  * never replaced by evidence/signage/import imagery or synthetic venue art.
  */
 import { computed, ref, watch } from "vue";
-import PaIcon from "../ui/PaIcon.vue";
+import PlaceTypeGlyph from "./PlaceTypeGlyph.vue";
 
 const props = withDefaults(
   defineProps<{
@@ -15,12 +15,14 @@ const props = withDefaults(
     alt?: string;
     variant?: "hero" | "compact";
     eager?: boolean;
+    placeType?: string | null;
   }>(),
   {
     src: null,
     alt: "经审核允许公开展示的场所场景照片",
     variant: "hero",
     eager: false,
+    placeType: null,
   },
 );
 
@@ -52,10 +54,19 @@ const showImage = computed(() => Boolean(props.src) && !imageFailed.value);
       @error="imageFailed = true"
     />
     <div v-else class="scene-frame__empty" data-testid="scene-media-empty">
-      <span class="scene-frame__camera" aria-hidden="true"><PaIcon name="camera" size="lg" /></span>
+      <span class="scene-frame__abstract" aria-hidden="true">
+        <span class="scene-frame__abstract-block scene-frame__abstract-block--a"></span>
+        <span class="scene-frame__abstract-block scene-frame__abstract-block--b"></span>
+        <span class="scene-frame__abstract-path"></span>
+      </span>
+      <PlaceTypeGlyph
+        class="scene-frame__identity-glyph"
+        :place-type="placeType"
+        :size="variant === 'hero' ? 'xl' : 'lg'"
+      />
       <span class="scene-frame__empty-copy">
         <strong>暂无可公开场景图片</strong>
-        <small>仅展示经审核允许公开的场景媒体</small>
+        <small>这里是抽象身份占位，不代表真实建筑或现场；仅展示经审核允许公开的场景媒体。</small>
       </span>
     </div>
     <figcaption v-if="showImage" class="scene-frame__caption">
@@ -81,6 +92,7 @@ const showImage = computed(() => Boolean(props.src) && !imageFailed.value);
 }
 
 .scene-frame__empty {
+  position: relative;
   width: 100%;
   height: 100%;
   display: flex;
@@ -93,20 +105,77 @@ const showImage = computed(() => Boolean(props.src) && !imageFailed.value);
     var(--pa-color-surface-muted);
 }
 
-.scene-frame__camera {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  flex: 0 0 auto;
-  border: var(--pa-border-width) solid var(--pa-color-border);
-  border-radius: var(--pa-radius-md);
-  background: var(--pa-color-surface);
-  color: var(--pa-color-accent);
+.scene-frame__identity-glyph {
+  position: relative;
+  z-index: 2;
+}
+
+.scene-frame__abstract {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.scene-frame__abstract::before,
+.scene-frame__abstract::after,
+.scene-frame__abstract-block,
+.scene-frame__abstract-path {
+  content: "";
+  position: absolute;
+  display: block;
+}
+
+.scene-frame__abstract::before {
+  width: 54%;
+  height: 72%;
+  right: -8%;
+  bottom: -28%;
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  transform: rotate(-9deg);
+  background: color-mix(in srgb, var(--pa-color-surface) 72%, transparent);
+}
+
+.scene-frame__abstract::after {
+  width: 38%;
+  height: 52%;
+  right: 18%;
+  top: -22%;
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  transform: rotate(13deg);
+}
+
+.scene-frame__abstract-block--a {
+  width: 84px;
+  height: 42px;
+  left: 46%;
+  top: 48%;
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  background: color-mix(in srgb, var(--pa-color-surface) 82%, transparent);
+}
+
+.scene-frame__abstract-block--b {
+  width: 56px;
+  height: 32px;
+  left: 66%;
+  top: 32%;
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  background: color-mix(in srgb, var(--pa-color-surface) 76%, transparent);
+}
+
+.scene-frame__abstract-path {
+  width: 74%;
+  height: 1px;
+  left: 33%;
+  top: 62%;
+  background: var(--pa-color-border);
+  transform: rotate(-8deg);
+  opacity: 0.65;
 }
 
 .scene-frame__empty-copy {
+  position: relative;
+  z-index: 2;
   min-width: 0;
   display: flex;
   flex-direction: column;
