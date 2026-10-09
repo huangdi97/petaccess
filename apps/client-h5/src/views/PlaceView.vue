@@ -568,6 +568,7 @@ const placeFixture = computed<string>(() => {
             :place-id="placeId"
             :current-rules="currentRules"
             :history-rules="historyRules"
+            :event-policies="extras?.event_policies ?? []"
             :source-map="sourceMap"
             :conditions="conditions"
             :answer="answer"
