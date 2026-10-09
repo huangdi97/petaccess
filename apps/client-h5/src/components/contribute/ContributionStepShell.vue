@@ -2,7 +2,7 @@
 /**
  * ContributionStepShell — contribution 多步表单的共享 step shell（v0.2.5 §28–32）。
  *
- * 负责：Place context（我在给哪个场所提交）+ progress（3-segment，非纯文本）+ title +
+ * 负责：Place context（我在给哪个场所提交）+ progress（4-segment，非纯文本）+ title +
  * description + question body（slot）+ footer actions（back/secondary 与 primary 各恰一）+ privacy link。
  *
  * Step content max width 640；视觉区域至少 440–520（靠 layout，不塞内容）。
@@ -17,7 +17,7 @@ withDefaults(
     /** §29：我当前在给哪个场所提交。 */
     placeName: string;
     placeZone?: string;
-    /** §30：当前步骤（1/2/3）与总步数。 */
+    /** §30：当前步骤与总步数（canonical flow = 1/4 → 4/4）。 */
     step: number;
     total: number;
     title: string;
