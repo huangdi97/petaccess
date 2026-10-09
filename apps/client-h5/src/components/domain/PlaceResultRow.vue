@@ -41,6 +41,8 @@ const props = withDefaults(
     conditionsLabel: Record<string, string>;
     /** Consumer lens — changes presentation only, never the facts (M3.1 §8.5). */
     lens?: ConsumerLens;
+    /** Home's featured row can provide a larger scene/type anchor externally. */
+    showIdentityGlyph?: boolean;
   }>(),
   {
     answer: null,
@@ -50,6 +52,7 @@ const props = withDefaults(
     realityError: false,
     divergence: "",
     lens: "",
+    showIdentityGlyph: true,
   },
 );
 
@@ -66,7 +69,7 @@ const projection = computed(() =>
   <div class="place-result-row">
     <div class="place-result-row__head">
       <div class="place-result-row__identity-wrap">
-        <PlaceTypeGlyph :place-type="place.place_type" />
+        <PlaceTypeGlyph v-if="showIdentityGlyph" :place-type="place.place_type" />
         <div class="place-result-row__identity">
           <strong class="place-result-row__name">{{ place.canonical_name }}</strong>
           <span v-if="place.parent_place_name" class="place-result-row__meta"
