@@ -23,7 +23,7 @@ withDefaults(
     title: string;
     description?: string;
   }>(),
-  { description: "", placeZone: "公共区域" },
+  { description: "", placeZone: "范围待确认" },
 );
 
 defineEmits<{ back: [] }>();
