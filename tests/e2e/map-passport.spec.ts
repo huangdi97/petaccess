@@ -606,9 +606,12 @@ test("B3.1 — Evidence renders only media explicitly released by the public-med
   });
 
   await page.goto(`${BASE}/#/place/${MALL_ID}/evidence`);
-  const media = page.getByTestId("public-evidence-media");
-  await expect(media).toHaveCount(1, { timeout: 15000 });
-  await expect(media.locator("img")).toHaveAttribute("alt", "经审核允许公开展示的现场证据图片");
+  const hero = page.getByTestId("evidence-hero-media");
+  await expect(hero).toHaveCount(1, { timeout: 15000 });
+  await expect(hero.locator("img")).toHaveAttribute("alt", "经审核允许公开展示的证据媒体");
+  // One released bundle is rendered once: the hero media is paired with the
+  // provenance rail and must not be duplicated beside every derived fact.
+  await expect(page.getByTestId("public-evidence-media")).toHaveCount(0);
 });
 
 test("B5 — Search DecisionInspector 查看完整场所 → Place Passport", async ({ page }) => {
