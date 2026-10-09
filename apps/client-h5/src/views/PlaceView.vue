@@ -412,14 +412,24 @@ const placeFixture = computed<string>(() => {
             class="place-dossier__head place-dossier__head--with-scene"
             data-ui="place-identity"
           >
+            <PlaceSceneFrame
+              v-if="placeSceneMedia"
+              class="place-dossier__scene place-dossier__scene--hero"
+              :src="placeSceneMedia.url"
+              :alt="`场所场景：${place.canonical_name}`"
+              :place-type="place.place_type"
+              variant="hero"
+              data-testid="place-scene-media"
+            />
             <div class="place-dossier__identity-row">
               <PlaceSceneFrame
-                class="place-dossier__scene"
-                :src="placeSceneMedia?.url ?? null"
+                v-if="!placeSceneMedia"
+                class="place-dossier__scene place-dossier__scene--fallback"
+                :src="null"
                 :alt="`场所场景：${place.canonical_name}`"
                 :place-type="place.place_type"
                 variant="compact"
-                :data-testid="placeSceneMedia ? 'place-scene-media' : 'place-scene-fallback'"
+                data-testid="place-scene-fallback"
               />
               <div class="place-dossier__identity-copy">
                 <h1 class="place-dossier__name" data-ui="place-name">{{ place.canonical_name }}</h1>
@@ -661,6 +671,11 @@ const placeFixture = computed<string>(() => {
 
 .place-dossier__scene {
   margin: 0;
+}
+
+.place-dossier__scene--hero {
+  width: 100%;
+  margin-bottom: var(--pa-space-2);
 }
 
 .place-dossier__meta-row {
