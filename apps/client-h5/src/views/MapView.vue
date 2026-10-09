@@ -13,12 +13,7 @@
  * semantic status, never a ranking; map failure surfaces via StateMessage.
  */
 import { computed, onMounted, ref } from "vue";
-import {
-  client,
-  MAP_MAX_ZOOM,
-  MAP_MIN_ZOOM,
-  type MapRenderConfig,
-} from "@petaccess/client-core";
+import { client, MAP_MAX_ZOOM, MAP_MIN_ZOOM, type MapRenderConfig } from "@petaccess/client-core";
 import MapResultPane from "../components/domain/MapResultPane.vue";
 import MockMap from "../components/MockMap.vue";
 import TencentMap from "../components/TencentMap.vue";
