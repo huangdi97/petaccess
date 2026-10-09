@@ -421,20 +421,8 @@ export interface MediaView {
   expires_at: string | null;
 }
 
-export interface MediaMetaView {
-  id: string;
-  purpose: string;
-  privacy_class: string;
-  mime_type: string;
-  byte_size: number;
-  moderation_status: string;
-  ocr_text: string | null;
-  ocr_rule_candidates: unknown[] | null;
-  upload_status: string;
-  created_at: string;
-  expires_at: string | null;
-  deleted_at: string | null;
-}
+/** Uploader-owned media metadata, generated from the API contract. */
+export type MediaMetaView = ApiSchemas["MediaMetaOut"];
 
 export interface PublicEvidenceMediaView {
   evidence_bundle_id: string;
