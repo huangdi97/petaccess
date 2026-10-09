@@ -734,6 +734,18 @@ watch(currentQueryContext, () => {
   }
 }
 
+@media (min-width: 768px) and (max-width: 1023px) {
+  .search-result-pane {
+    flex-basis: 320px;
+    padding-left: var(--pa-space-4);
+    padding-right: var(--pa-space-4);
+  }
+
+  .search-inspector {
+    padding: var(--pa-space-5) var(--pa-space-4) 0 var(--pa-space-5);
+  }
+}
+
 .search-field {
   display: flex;
   gap: var(--pa-space-2);
