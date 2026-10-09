@@ -465,6 +465,40 @@ test("B2.2 — 仅有发布时间的设施线索不冒充当前空间设施事�
   await expect(page.getByTestId("animal-facility-summary-row").first()).toBeVisible();
 });
 
+test("B2.2a — imported facility state tokens never leak into Consumer copy", async ({
+  page,
+}) => {
+  await page.route("**/api/v1/places/*/reality/events**", (route) =>
+    route.fulfill({
+      json: [
+        {
+          id: "facility-consumer-labels",
+          place_id: MALL_ID,
+          zone_id: null,
+          event_type: "animal_facility",
+          event_at: "2026-10-01T10:00:00Z",
+          time_basis: "observed",
+          time_evidence_state: "exact_event_time",
+          verification_status: "verified",
+          facility_type: "water_bowl",
+          facility_purpose_state: "purpose_signage_supported",
+          facility_state: "active",
+          facility_access_mode: "self_service",
+          facility_supervision_state: "staff_present",
+          facility_security_or_lock_state: "lockable",
+        },
+      ],
+    }),
+  );
+  await page.goto(`${BASE}/#/place/${MALL_ID}?view=space`);
+
+  const facilities = page.getByTestId("animal-facilities");
+  await expect(facilities).toContainText("有工作人员看护");
+  await expect(facilities).toContainText("可锁闭 / 有安全门");
+  await expect(facilities).not.toContainText("staff_present");
+  await expect(facilities).not.toContainText("lockable");
+});
+
 test("B2.3 — Reality keeps the selected zone isolated from other areas", async ({
   page,
   request,
