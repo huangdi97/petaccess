@@ -68,9 +68,7 @@ const realityMetaLine = computed(() => {
 const primaryEvidence = computed(() => {
   if (props.primarySourceLabel) return props.primarySourceLabel;
   const evidence = props.answer?.evidence_state.rules[0];
-  return evidence
-    ? publicSourceIssuer(evidence.source_type, evidence.issuer)
-    : "来源待补充";
+  return evidence ? publicSourceIssuer(evidence.source_type, evidence.issuer) : "来源待补充";
 });
 /** §11 mobile：space summary row 的 value。 */
 const spaceSummaryLine = computed(() =>
