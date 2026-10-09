@@ -35,10 +35,7 @@ const icon = computed<IconName>(() => {
     aria-hidden="true"
     data-ui="place-type-glyph"
   >
-    <PaIcon
-      :name="icon"
-      :size="size === 'sm' ? 'sm' : size === 'md' ? 'md' : 'lg'"
-    />
+    <PaIcon :name="icon" :size="size === 'sm' ? 'sm' : size === 'md' ? 'md' : 'lg'" />
   </span>
 </template>
 
