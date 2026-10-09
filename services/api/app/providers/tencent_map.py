@@ -212,6 +212,21 @@ class TencentMapProvider(MapProvider):
             )
         return [{"lat": float(row["lat"]), "lng": float(row["lng"])} for row in rows]
 
+    def normalize_render_coordinates(
+        self, coordinates: list[tuple[float, float]]
+    ) -> list[dict[str, float]]:
+        """GCJ-02 render centers -> WGS84 query coordinates.
+
+        This is the inverse presentation boundary only. The normalized values
+        may drive nearby queries/camera state but provider coordinates are
+        never persisted as Place geometry.
+        """
+        return [
+            {"lat": wgs_lat, "lng": wgs_lng}
+            for lat, lng in coordinates
+            for wgs_lat, wgs_lng in [gcj02_to_wgs84(lat, lng)]
+        ]
+
     def open_navigation(self, lat: float, lng: float, name: str) -> dict[str, Any]:
         uri = (
             f"{_API_ROOT}/uri/v1/routeplan?"
