@@ -13,7 +13,7 @@ test("health and decision home render nearby places", async ({ page }) => {
   // (search-first). The map moved to its own tab.
   await expect(page.getByTestId("home-title")).toBeVisible();
   await expect(page.getByTestId("home-search-input")).toBeVisible();
-  await expect(page.getByText("附近已有依据")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "近期值得先看" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "附近待补充" })).toBeVisible();
 
   // the map tab still renders the full shell; desktop is List+Map split so the
@@ -28,7 +28,6 @@ test("health and decision home render nearby places", async ({ page }) => {
 test("place detail shows one-sentence answer with zones and provenance", async ({ page }) => {
   // v0.2.5 §15: unknown places render the minimal Unknown Overview, so the
   // full dossier (answer/zones/evidence) is asserted on the ready mall fixture.
-  const MALL_ID = "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e";
   await page.goto(`/#/place/${MALL_ID}`);
   const answer = page.getByTestId("answer");
   await expect(answer).toBeVisible();
@@ -223,7 +222,7 @@ test("v0.5: set coexistence boundary and boundary-match explains per item", asyn
 
   // reload: the saved stance is restored (server-persisted, not local state)
   await page.goto("/#/boundary");
-  await expect(page.getByTestId("stance-indoor_access-require_prohibited")).toHaveClass(/active/);
+  await expect(page.getByTestId("stance-indoor_access-require_prohibited")).toBeChecked();
 
   // the explainable-match page shows the per-item comparison
   await page.goto(`/#/place/${CAFE_ID}/why`);
@@ -235,7 +234,7 @@ test("v0.5: set coexistence boundary and boundary-match explains per item", asyn
 });
 
 test("v0.5: explainable match shows derivation steps", async ({ page }) => {
-  await page.goto(`/#/place/${CAFE_ID}/why`);
+  await page.goto(`/#/place/${MALL_ID}/why`);
   const rules = page.getByTestId("effective-rules");
   await expect(rules).toBeVisible();
   await expect(rules).toContainText("推导过程");
