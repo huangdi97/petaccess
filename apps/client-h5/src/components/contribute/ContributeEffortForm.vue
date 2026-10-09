@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import ContributionStepShell from "./ContributionStepShell.vue";
+import ContributionReview from "./ContributionReview.vue";
 import {
   OBSERVATION_EFFORT_OPTIONS,
   useObservationEffortContribution,
@@ -38,18 +39,43 @@ const contributionScopeLabel = computed(() => {
   if (!zoneId.value) return "观察范围未能确认具体分区";
   return props.zones.find((item) => item.id === zoneId.value)?.name ?? "分区记录待确认";
 });
+
+const reviewing = ref(false);
+const durationLabel = computed(
+  () =>
+    OBSERVATION_EFFORT_OPTIONS.find((item) => item.key === durationBucket.value)?.label ??
+    "尚未选择",
+);
+const reviewItems = computed(() => [
+  { label: "场所", value: props.placeName },
+  { label: "观察范围", value: contributionScopeLabel.value },
+  {
+    label: "观察时间",
+    value:
+      sourceMode.value === "on_site_now"
+        ? "现在（以提交时刻记录）"
+        : occurredAt.value || "尚未选择日期",
+  },
+  { label: "停留时长", value: durationLabel.value },
+  { label: "本次事实", value: "这次认真观察，但没有看到动物" },
+]);
 </script>
 
 <template>
   <ContributionStepShell
     :place-name="placeName"
     :place-zone="contributionScopeLabel"
-    :step="2"
-    :total="3"
-    title="记录这次没看到"
-    description="“没看到”只有和停留时间、观察范围一起记录才有意义；它不会被解释成“这里没有动物”。"
-    @back="emit('back')"
+    :step="reviewing ? 3 : 2"
+    :total="4"
+    :title="reviewing ? '核对观察覆盖' : '记录这次没看到'"
+    :description="
+      reviewing
+        ? '确认时间、范围与停留时长；这仍只是一条本次观察覆盖记录。'
+        : '“没看到”只有和停留时间、观察范围一起记录才有意义；它不会被解释成“这里没有动物”。'
+    "
+    @back="reviewing ? (reviewing = false) : emit('back')"
   >
+    <template v-if="!reviewing">
     <div class="effort-form" data-ui="contribution-form">
       <fieldset class="effort-cluster">
         <legend>什么时候？</legend>
@@ -99,10 +125,26 @@ const contributionScopeLabel = computed(() => {
       这是一条观察覆盖信息，不是动物缺席证明。系统会保留较早的“看到了”记录；本次停留作为覆盖信息留存，不会自动进入公开现场事实。
     </p>
     <p v-if="error" class="notice" data-testid="effort-error" role="alert">{{ error }}</p>
+    </template>
+
+    <ContributionReview
+      v-else
+      :items="reviewItems"
+      guard="确认提交后只记录本次观察覆盖；它不是动物缺席证明，也不会删除或否定更早的“看到了”记录。"
+    />
 
     <template #primary>
-      <button class="primary" :disabled="!canSubmit" data-testid="effort-submit" @click="submit">
-        {{ busy ? "提交中…" : "记录这次观察" }}
+      <button
+        v-if="!reviewing"
+        class="primary"
+        :disabled="!canSubmit"
+        data-testid="effort-review-next"
+        @click="reviewing = true"
+      >
+        下一步：核对
+      </button>
+      <button v-else class="primary" :disabled="busy" data-testid="effort-submit" @click="submit">
+        {{ busy ? "提交中…" : "确认记录这次观察" }}
       </button>
     </template>
   </ContributionStepShell>
