@@ -189,7 +189,9 @@ function chooseMapResult(id: string) {
           {{ item.label }}
         </button>
       </div>
-      <span class="map-lensbar__hint">“差异”用于查看规则与现场的不一致，不代表当前一定存在冲突。</span>
+      <span class="map-lensbar__hint"
+        >“差异”用于查看规则与现场的不一致，不代表当前一定存在冲突。</span
+      >
     </nav>
 
     <!-- v0.2.4 §32：desktop 没有「地图/列表」模式切换 —— desktop 恒为 List+Map。
