@@ -301,4 +301,3 @@ def test_ai_consumer_endpoints_fail_closed_without_real_provider(client, user):
     assert r2.status_code == 503
     assert r2.json()["error"]["code"] == "provider_unavailable"
     assert "dog" not in r2.text
-
