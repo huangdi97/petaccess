@@ -2350,7 +2350,11 @@ def place_extras(place_id: str, db: Session = Depends(get_db)):
     amenities = db.scalars(_in_place(Amenity)).all()
     entrances = db.scalars(_in_place(Entrance)).all()
     paths = db.scalars(_in_place(AccessPath, zoned=False)).all()
-    events = db.scalars(_in_place(EventPolicy)).all()
+    # Consumer extras must mirror the evaluator's publication set. Archived
+    # or withdrawn event policies belong to history, not the active Place
+    # surface; temporal windows are still returned so the client can label
+    # active/upcoming/ended state without inventing a second resolver.
+    events = db.scalars(_in_place(EventPolicy).where(EventPolicy.status == "current")).all()
 
     return {
         "coexistence": [
