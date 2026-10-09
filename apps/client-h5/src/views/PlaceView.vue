@@ -433,9 +433,6 @@ const placeFixture = computed<string>(() => {
                 纠错 / 补充 →
               </RouterLink>
             </div>
-            <p v-if="watchMsg" class="muted place-dossier__watch-msg" role="status">
-              {{ watchMsg }}
-            </p>
           </header>
 
           <!-- 2. 本地 section 导航（§15） -->
@@ -482,6 +479,14 @@ const placeFixture = computed<string>(() => {
               </button>
             </template>
             <RouterLink v-else class="btn-inline" to="/onboarding">登录后关注 →</RouterLink>
+            <span
+              v-if="watchMsg"
+              class="muted place-follow-strip__feedback"
+              role="status"
+              aria-live="polite"
+            >
+              {{ watchMsg }}
+            </span>
           </section>
           <div v-if="view === 'overview'" class="place-governance-row" data-ui="place-governance">
             <span class="muted">你是场所管理方？</span>
@@ -680,6 +685,13 @@ const placeFixture = computed<string>(() => {
   margin: var(--pa-space-6) 0 0;
   padding-top: var(--pa-space-4);
   border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.place-follow-strip__feedback {
+  flex: 1 1 100%;
+  margin: 0;
+  font-size: var(--pa-font-size-sm);
+  line-height: var(--pa-line-height-20);
 }
 
 .place-follow-strip__label {
