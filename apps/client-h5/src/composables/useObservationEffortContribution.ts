@@ -47,12 +47,15 @@ export function useObservationEffortContribution(
   const zoneId = ref(validInitialZone());
   const busy = ref(false);
   const error = ref("");
+  let submitGeneration = 0;
   watch(
     () =>
       [props.placeId, props.initialZoneId, props.zones.map((zone) => zone.id).join("|")] as const,
     () => {
-      // Route reuse is a transaction boundary. A zone from the previous place
-      // is never a valid fallback scope for the new observation effort.
+      // Route reuse is a transaction boundary. Invalidate a late submit from
+      // the previous place before resetting the new form.
+      submitGeneration += 1;
+      busy.value = false;
       zoneId.value = validInitialZone();
       durationBucket.value = "";
       occurredAt.value = "";
@@ -72,6 +75,7 @@ export function useObservationEffortContribution(
 
   async function submit() {
     if (!canSubmit.value) return;
+    const generation = ++submitGeneration;
     const targetPlaceId = props.placeId;
     error.value = "";
     busy.value = true;
@@ -110,15 +114,19 @@ export function useObservationEffortContribution(
           : null,
         external_content: null,
       });
-      if (props.placeId === targetPlaceId) {
+      if (generation === submitGeneration && props.placeId === targetPlaceId) {
         onDone(
           "已记录这次现场观察：本次停留没有看到动物。它不会删除较早记录，也不会生成“这里没有动物”的结论。",
         );
       }
     } catch (cause) {
-      error.value = presentDescription(cause);
+      if (generation === submitGeneration && props.placeId === targetPlaceId) {
+        error.value = presentDescription(cause);
+      }
     } finally {
-      busy.value = false;
+      if (generation === submitGeneration && props.placeId === targetPlaceId) {
+        busy.value = false;
+      }
     }
   }
 
