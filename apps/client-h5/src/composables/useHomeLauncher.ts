@@ -4,12 +4,12 @@
  * All row data comes from the consumer repository (CoexistenceSnapshot SSOT):
  * nearbyPlaces() + enrichRows() under a request epoch so a stale load never
  * overwrites a newer one. Transport failures surface as an error line, never
- * as UNKNOWN or an empty state. Recent history is localStorage-backed and
- * re-evaluated on open — old answers are never reused.
+ * as UNKNOWN or an empty state. Recent history is platform-storage-backed
+ * and re-evaluated on open — old answers are never reused.
  */
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
-import { session, type PlaceSummary } from "@petaccess/client-core";
+import { platformStorage, session, type PlaceSummary } from "@petaccess/client-core";
 import { type IconName, type StatusKey } from "@petaccess/design-tokens";
 import { ANSWERED_STATUSES, answerConditions, answerScopeLabel, answerStatusKey } from "../answer";
 import { bootStage } from "../config/bootTrace";
@@ -97,12 +97,8 @@ export function useHomeLauncher() {
   function goEntry(key: string) {
     const next = HOME_INTERESTS.has(key as ConsumerLens) ? (key as ConsumerLens) : "";
     interest.value = next;
-    try {
-      if (next) localStorage.setItem(HOME_INTEREST_KEY, next);
-      else localStorage.removeItem(HOME_INTEREST_KEY);
-    } catch {
-      /* preference persistence is optional */
-    }
+    if (next) platformStorage.set(HOME_INTEREST_KEY, next);
+    else platformStorage.remove(HOME_INTEREST_KEY);
     void router.push({ name: "search", query: { lens: next || undefined } });
   }
 
@@ -118,40 +114,29 @@ export function useHomeLauncher() {
   function remember(id: string) {
     const name = cards.value.find((c) => c.place.id === id)?.place.canonical_name ?? id;
     recent.value = [{ id, name }, ...recent.value.filter((r) => r.id !== id)].slice(0, MAX_RECENT);
-    try {
-      localStorage.setItem(RECENT_KEY, JSON.stringify(recent.value));
-    } catch {
-      /* storage unavailable (private mode): history simply does not persist */
-    }
+    platformStorage.set(RECENT_KEY, JSON.stringify(recent.value));
   }
 
   function clearRecent() {
     recent.value = [];
-    try {
-      localStorage.removeItem(RECENT_KEY);
-    } catch {
-      /* ignore */
-    }
+    platformStorage.remove(RECENT_KEY);
   }
 
   function loadRecent() {
+    const raw = platformStorage.get(RECENT_KEY);
     try {
-      const raw = localStorage.getItem(RECENT_KEY);
       recent.value = raw
         ? (JSON.parse(raw) as { id: string; name: string }[]).slice(0, MAX_RECENT)
         : [];
     } catch {
       recent.value = [];
+      platformStorage.remove(RECENT_KEY);
     }
   }
 
   function loadInterest() {
-    try {
-      const saved = localStorage.getItem(HOME_INTEREST_KEY) as ConsumerLens | null;
-      interest.value = saved && HOME_INTERESTS.has(saved) ? saved : "";
-    } catch {
-      interest.value = "";
-    }
+    const saved = platformStorage.get(HOME_INTEREST_KEY) as ConsumerLens | undefined;
+    interest.value = saved && HOME_INTERESTS.has(saved) ? saved : "";
   }
 
   async function load() {
