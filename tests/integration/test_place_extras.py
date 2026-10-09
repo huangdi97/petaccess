@@ -67,7 +67,7 @@ def test_access_paths_carry_the_route_shape(client):
     """AccessPath has no zone_id; it is scoped by place and shaped by from/to."""
     r = client.get(f"/api/v1/places/{_any_place(client)}/extras")
     for path in r.json()["access_paths"]:
-        assert {"id", "name", "from_node", "to_node", "source_id"} <= set(path)
+        assert {"id", "name", "from_node", "to_node", "conditions", "source_id"} <= set(path)
 
 
 def test_observations_are_never_part_of_extras(client):
