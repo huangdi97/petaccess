@@ -83,6 +83,14 @@ const simplifiedBasemapCopy = computed(() => {
       ? "当前环境未配置真实地图底图，显示简化空间底图（示意街道）；点位依据已收录坐标，这不等于已核验坐标，可拖动查询周边。"
       : compact;
   }
+  if (
+    renderConfig.value &&
+    (renderConfig.value.provider !== "tencent" || !renderConfig.value.client_key)
+  ) {
+    return isDesktop.value
+      ? "真实地图配置不完整，当前显示简化空间底图（示意街道）；点位仍依据已收录坐标。"
+      : `地图配置不完整 · ${compact}`;
+  }
   return "";
 });
 
@@ -90,8 +98,10 @@ onMounted(async () => {
   try {
     renderConfig.value = await client.mapConfig();
   } catch {
-    // Map data/list remains usable even if provider capability detection fails.
+    // Map data/list remains usable, but the user must know the visible canvas
+    // is the simplified renderer rather than silently mistaking it for a real map.
     renderConfig.value = null;
+    realMapError.value = "未能取得真实地图能力配置";
   }
 });
 
