@@ -38,6 +38,13 @@ const {
 } = useHomeLauncher();
 
 const featuredSceneMedia = usePlaceSceneMedia(computed(() => verified.value[0]?.place.id ?? null));
+const homeState = computed(() => {
+  if (loading.value) return "loading";
+  if (error.value) return "error";
+  if (!places.value.length) return "empty";
+  return "ready";
+});
+const homeFixture = computed(() => `home-${homeState.value}-v1`);
 </script>
 
 <template>
@@ -48,8 +55,8 @@ const featuredSceneMedia = usePlaceSceneMedia(computed(() => verified.value[0]?.
         class="page page--home"
         data-ui="home"
         data-ui-page="home"
-        data-ui-state="ready"
-        data-ui-fixture="home-ready-v1"
+        :data-ui-state="homeState"
+        :data-ui-fixture="homeFixture"
       >
         <!-- location + map link -->
         <div class="home-topline">
