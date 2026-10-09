@@ -1,5 +1,11 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch } from "vue";
-import { client, type MapCamera, type MapCluster } from "@petaccess/client-core";
+import {
+  client,
+  MAP_MAX_ZOOM,
+  MAP_MIN_ZOOM,
+  type MapCamera,
+  type MapCluster,
+} from "@petaccess/client-core";
 import { tencentMarkerColor, tencentMarkerSvg } from "./tencentMapMarkerStyle";
 
 interface TencentLatLng {
@@ -241,8 +247,8 @@ export function useTencentMapRenderer(options: TencentRendererOptions) {
         pitch: 0,
         rotation: 0,
         viewMode: "2D",
-        minZoom: 8,
-        maxZoom: 18,
+        minZoom: MAP_MIN_ZOOM,
+        maxZoom: MAP_MAX_ZOOM,
       });
       map.value.on("idle", onMapIdle);
       ready.value = true;
