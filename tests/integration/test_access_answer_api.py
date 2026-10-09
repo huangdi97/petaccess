@@ -112,6 +112,7 @@ def scene(client, moderator):
         "governed": governed,
         "uncovered": uncovered,
         "rule_id": rule.json()["id"],
+        "source_id": src.json()["id"],
     }
 
 
@@ -177,6 +178,52 @@ def test_evidence_state_reports_the_relay_and_the_pending_gap(client, scene):
     assert entry["first_party_operator_source_pending"] is True
     assert ev["first_party_operator_source_pending"] is True
     assert ev["first_party_operator_source_count"] == 0
+
+
+def test_active_temporary_policy_keeps_its_source_in_unified_evidence(client, scene):
+    """An EventPolicy can govern the answer without becoming an evidence gap."""
+    from datetime import UTC, datetime, timedelta
+
+    from app.db.session import get_session_factory
+    from app.models import EventPolicy
+
+    now = datetime.now(UTC)
+    with get_session_factory()() as db:
+        event = EventPolicy(
+            place_id=scene["place_id"],
+            zone_id=None,
+            name="临时活动准入测试",
+            animal_scope="ordinary_pet",
+            action="enter",
+            effect="conditional",
+            conditions=[{"condition_type": "leash_required", "value_flag": True}],
+            effective_from=now - timedelta(hours=1),
+            effective_to=now + timedelta(hours=1),
+            source_id=scene["source_id"],
+            status="current",
+        )
+        db.add(event)
+        db.commit()
+        event_id = event.id
+
+    try:
+        data = _answer(client, scene["place_id"], zone_id=None)
+        expected_rule_id = f"ev-{event_id}"
+        assert expected_rule_id in data["normative_result"]["governing_rule_ids"]
+        entry = next(
+            item for item in data["evidence_state"]["rules"] if item["rule_id"] == expected_rule_id
+        )
+        assert entry["source_id"] == scene["source_id"]
+        assert entry["source_type"] == "government_service"
+        assert entry["directness"] == "secondary"
+        assert entry["issuer"]
+        assert entry["provenance_statement"]
+    finally:
+        with get_session_factory()() as db:
+            row = db.get(EventPolicy, event_id)
+            if row is not None:
+                db.delete(row)
+                db.commit()
 
 
 def test_no_confirmation_claim_is_reachable(client, scene):
