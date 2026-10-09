@@ -101,7 +101,7 @@ test("search finds place by fuzzy name", async ({ page }) => {
   await page.goto("/#/search");
   await page.getByTestId("search-input").fill("星河");
   await page.getByTestId("search-btn").click();
-  await expect(page.getByTestId("result-星河咖啡·测试店")).toBeVisible();
+  await expect(page.getByTestId(`result-${CAFE_ID}`)).toBeVisible();
 });
 
 test("same-brand branches come back as two labelled rows, answer first", async ({ page }) => {
@@ -109,8 +109,8 @@ test("same-brand branches come back as two labelled rows, answer first", async (
   await page.getByTestId("search-input").fill("星河咖啡");
   await page.getByTestId("search-btn").click();
 
-  const flagship = page.getByTestId("result-星河咖啡·测试店");
-  const branch = page.getByTestId("result-星河咖啡·栖霞分店");
+  const flagship = page.getByTestId(`result-${CAFE_ID}`);
+  const branch = page.getByTestId(`result-${BRANCH_ID}`);
   await expect(flagship).toBeVisible();
   await expect(branch).toBeVisible();
 
@@ -118,18 +118,13 @@ test("same-brand branches come back as two labelled rows, answer first", async (
   // is its own place with its own name (the parent-name line was removed).
   await expect(branch.getByTestId("result-branch")).toHaveCount(0);
 
-  // v0.2.3 §21.5: rows carry the decision line, never rule-count tallies
-  // (规则数量/来源计数 forbidden on rows) — both rows show a decision, and
-  // the old result-rules tally must not exist.
-  await expect(flagship.getByTestId("row-rule")).toHaveCount(1);
-  await expect(branch.getByTestId("row-rule")).toHaveCount(1);
+  // Canonical search is Reality-first by default while Rule status remains
+  // visible in the same row. Internal rule/source tallies stay out of the list.
+  await expect(flagship.getByTestId("row-lens-headline")).toHaveCount(1);
+  await expect(branch.getByTestId("row-lens-headline")).toHaveCount(1);
   await expect(page.getByTestId("result-rules")).toHaveCount(0);
-  // The row that can actually answer comes first — a rule-less branch used to
-  // lead on alphabetical order, so the top hit read 「尚未收录规则」 while the
-  // answer sat one row down.
-  await expect(page.locator("[data-testid^='result-星河']").first()).toContainText(
-    "星河咖啡·测试店",
-  );
+  // The branch with stronger governed context remains the first ranked row.
+  await expect(page.locator("ul.result-list > li").first()).toContainText("星河咖啡·测试店");
 });
 
 test("register → create pet → answer carries pet context → quick confirm", async ({ page }) => {
@@ -137,7 +132,7 @@ test("register → create pet → answer carries pet context → quick confirm",
 
   // register
   await page.goto("/#/onboarding");
-  await page.getByRole("button", { name: "注册", exact: true }).click();
+  await page.getByRole("tab", { name: "注册", exact: true }).click();
   await page.locator("input").nth(0).fill("E2E 用户");
   await page.locator('input[type="email"]').fill(email);
   await page.locator('input[type="password"]').fill("passw0rd123");
