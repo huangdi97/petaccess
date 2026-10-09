@@ -6,7 +6,7 @@ withDefaults(
     step: number;
     total?: number;
   }>(),
-  { total: 3 },
+  { total: 4 },
 );
 </script>
 
