@@ -407,8 +407,8 @@ test("B3.1 — Evidence renders only media explicitly released by the public-med
       json: {
         evidence_bundle_id: bundleId,
         media_id: "public-evidence-test",
-        url: "data:image/gif;base64,R0lGODlhAQABAAAAACw=",
-        mime_type: "image/gif",
+        url: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl2iGQAAAAASUVORK5CYII=",
+        mime_type: "image/png",
         expires_in: 300,
       },
     });
