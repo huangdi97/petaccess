@@ -111,7 +111,8 @@ function choose(opt: EntryOption) {
       这次认真看了，但没有看到动物？记录观察覆盖 →
     </button>
     <p class="muted entry-note">
-      “没有看到”只记录本次观察范围与时长，不代表这里没有动物。提交内容会进入人工核验，AI 不会自动裁定。
+      “没有看到”只记录本次观察范围与时长，不代表这里没有动物。提交内容会进入人工核验，AI
+      不会自动裁定。
     </p>
   </div>
 </template>
