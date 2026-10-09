@@ -2428,6 +2428,7 @@ def place_extras(place_id: str, db: Session = Depends(get_db)):
                 "to_node": p.to_node,
                 "steps": p.steps,
                 "animal_scope": p.animal_scope,
+                "conditions": p.conditions,
                 "time_window": p.time_window,
                 "source_id": p.source_id,
             }
