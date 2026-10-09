@@ -12,13 +12,22 @@
  * `superseded`, `floor`).
  */
 import {
-  conditionLabel,
+  conditionLabel as coreConditionLabel,
   placeTypeLabel,
   ruleSummaryLabel,
   type PlaceSummary,
 } from "@petaccess/client-core";
 
-export { conditionLabel, placeTypeLabel, ruleSummaryLabel };
+export { placeTypeLabel, ruleSummaryLabel };
+
+/** Consumer-safe condition copy. The shared core mapper deliberately returns
+ * unknown tokens verbatim for developer compatibility; Consumer surfaces must
+ * not leak a new enum before its wording has been reviewed. */
+export function conditionLabel(value: string | null | undefined): string {
+  if (!value) return "其他已记录条件";
+  const label = coreConditionLabel(value);
+  return label === value ? "其他已记录条件" : label;
+}
 export * from "./realityLabels";
 
 /** Zones (services/api/app/models/enums.py → ZoneType). */
