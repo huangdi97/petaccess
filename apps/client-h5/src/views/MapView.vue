@@ -72,11 +72,17 @@ const useRealMap = computed(
 );
 
 const simplifiedBasemapCopy = computed(() => {
+  const compact =
+    "示意底图 · 点位来自已收录坐标，位置未必经过实地核验。";
   if (realMapError.value) {
-    return "真实底图暂不可用，显示简化空间底图（示意街道）；点位依据已收录坐标显示（位置未必经过实地核验），可拖动查询周边。";
+    return isDesktop.value
+      ? "真实底图暂不可用，显示简化空间底图（示意街道）；点位依据已收录坐标显示（位置未必经过实地核验），可拖动查询周边。"
+      : `真实底图不可用 · ${compact}`;
   }
   if (renderConfig.value && !renderConfig.value.real_enabled) {
-    return "当前环境未配置真实地图底图，显示简化空间底图（示意街道）；点位依据已收录坐标显示（位置未必经过实地核验），可拖动查询周边。";
+    return isDesktop.value
+      ? "当前环境未配置真实地图底图，显示简化空间底图（示意街道）；点位依据已收录坐标显示（位置未必经过实地核验），可拖动查询周边。"
+      : compact;
   }
   return "";
 });
@@ -626,6 +632,17 @@ function chooseMapResult(id: string) {
   color: var(--pa-color-text-secondary);
   font-size: var(--pa-font-size-sm);
   line-height: var(--pa-line-height-20);
+}
+
+@media (max-width: 767px) {
+  .map-provider-fallback {
+    right: var(--pa-space-3);
+    max-width: none;
+    padding: var(--pa-space-1) var(--pa-space-2);
+    border-radius: var(--pa-radius-sm);
+    font-size: var(--pa-font-size-xs);
+    line-height: var(--pa-line-height-20);
+  }
 }
 
 /* 桌面浮动预览：唯一允许的浮动卡片（freeze §5：map preview 10–12px + light shadow）。 */
