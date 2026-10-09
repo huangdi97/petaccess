@@ -24,16 +24,10 @@ const props = withDefaults(
 const emit = defineEmits<{ done: [msg: string]; back: []; reviewing: [value: boolean] }>();
 
 const { sourceMode, occurredAt, durationBucket, zoneId, busy, error, canSubmit, submit } =
-  useObservationEffortContribution(
-    {
-      placeId: props.placeId,
-      online: props.online,
-      signedIn: props.signedIn,
-      targetClaimId: props.targetClaimId,
-      initialZoneId: props.initialZoneId,
-    },
-    (message) => emit("done", message),
-  );
+  // Pass the reactive props proxy itself. Capturing an object literal here
+  // freezes the original place/zone/auth values if Vue reuses this wizard
+  // across route changes, which can mis-attribute an observation effort.
+  useObservationEffortContribution(props, (message) => emit("done", message));
 
 const contributionScopeLabel = computed(() => {
   if (!zoneId.value) return "观察范围未能确认具体分区";
