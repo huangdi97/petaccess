@@ -3754,6 +3754,38 @@
         }
       }
     },
+    "/api/v1/media/mine": {
+      "get": {
+        "tags": [
+          "media"
+        ],
+        "summary": "My Media",
+        "description": "List the caller's active uploads without exposing object-storage URLs.",
+        "operationId": "my_media_api_v1_media_mine_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  "type": "array",
+                  "title": "Response My Media Api V1 Media Mine Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/media/{media_id}": {
       "get": {
         "tags": [
