@@ -293,11 +293,12 @@
       "severity": "WARN"
     },
     {
-      "id": "SEARCH_DEFAULT_REALITY_FIRST",
-      "selector": "[data-testid='row-lens-headline'].result-row__reality-line--lead",
+      "id": "SEARCH_DEFAULT_RULE_FIRST",
+      "selector": "[data-testid='row-lens-headline'].result-row__decision--lead",
       "min": 1,
       "severity": "FAIL",
-      "pages": ["search-ready", "search-selected"]
+      "pages": ["search-ready", "search-selected"],
+      "note": "Canonical Search answers the access question first. Reality-first headlines require an explicit presence/indoor/dining lens."
     },
     {
       "id": "SEARCH_RULE_STAYS_VISIBLE",
