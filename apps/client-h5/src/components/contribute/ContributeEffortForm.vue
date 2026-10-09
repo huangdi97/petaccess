@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import ContributionStepShell from "./ContributionStepShell.vue";
 import {
   OBSERVATION_EFFORT_OPTIONS,
@@ -32,11 +33,17 @@ const { sourceMode, occurredAt, durationBucket, zoneId, busy, error, canSubmit, 
     },
     (message) => emit("done", message),
   );
+
+const contributionScopeLabel = computed(() => {
+  if (!zoneId.value) return "观察范围未能确认具体分区";
+  return props.zones.find((item) => item.id === zoneId.value)?.name ?? "分区记录待确认";
+});
 </script>
 
 <template>
   <ContributionStepShell
     :place-name="placeName"
+    :place-zone="contributionScopeLabel"
     :step="2"
     :total="3"
     title="记录这次没看到"
