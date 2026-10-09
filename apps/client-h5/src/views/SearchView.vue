@@ -122,7 +122,7 @@ const FILTERS = [
   { key: "RESTRICTED", label: "明确限制" },
   { key: "UNKNOWN", label: "信息不足" },
   { key: "CONFLICT", label: "来源不一致" },
-  { key: "verified", label: "规则已核验" },
+  { key: "verified", label: "场所有规则核验记录" },
 ];
 const active = ref<string[]>([]);
 const filterOpen = ref(false);
@@ -687,7 +687,7 @@ watch(currentQueryContext, () => {
           :fetched-at-ms="selectedPlace ? (facts.get(selectedPlace.id)?.fetchedAtMs ?? null) : null"
           :offline="!online"
           :species-label="speciesLabel"
-          :latest-verified-at="selectedPlace?.last_verified_at?.slice(0, 10) ?? null"
+          :latest-verified-at="null"
           :scene-media-url="selectedSceneMedia?.url ?? null"
         />
       </aside>
