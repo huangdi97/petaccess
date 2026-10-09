@@ -92,11 +92,13 @@ test("scoped Reality contribution selects only a zone owned by the current place
 
   await page.goto(`/#/contribute/${MALL_ID}?zone=${zoneId}`);
   await page.getByTestId("entry-reality-observed_presence").click();
+  await page.getByTestId("entry-next").click();
   await expect(page.locator("#reality-zone")).toHaveValue(zoneId);
 
   // A zone that is not in the loaded place dossier can never become
   // an implicit submission target merely because it appears in a URL.
   await page.goto(`/#/contribute/${MALL_ID}?zone=00000000-0000-0000-0000-000000000000`);
   await page.getByTestId("entry-reality-observed_presence").click();
+  await page.getByTestId("entry-next").click();
   await expect(page.locator("#reality-zone")).toHaveValue("");
 });
