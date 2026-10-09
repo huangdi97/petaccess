@@ -59,7 +59,8 @@ const icon = computed<IconName>(() => {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(145deg, var(--pa-color-surface-muted), var(--pa-color-accent-weak));
+  background: var(--pa-color-accent-weak);
+  opacity: 0.55;
 }
 
 .place-type-glyph::after {
