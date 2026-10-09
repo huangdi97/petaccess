@@ -10,6 +10,7 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import {
+  client,
   clusterMarkers,
   session,
   synthDemoCamera,
@@ -17,6 +18,7 @@ import {
   type MapCamera,
   type MapMarker,
   type PlaceSummary,
+  type PublicEvidenceMediaView,
 } from "@petaccess/client-core";
 
 import {
@@ -36,6 +38,7 @@ import {
 } from "../consumer/repository";
 import { presentDescription } from "../errors";
 import { mapMarkersFor, visibleMapPlaces } from "../consumer/mapSpatialProjection";
+import { firstApprovedSceneMedia } from "../consumer/publicSceneMedia";
 import { useBreakpoint } from "./useBreakpoint";
 import { useMapClusterSelection } from "./useMapClusterSelection";
 import { useMapDeepLink } from "./useMapDeepLink";
@@ -64,6 +67,7 @@ export function useMapWorkspace() {
   const selected = ref<PlaceSummary | null>(null);
   const { desktop: isDesktop } = useBreakpoint();
   const preview = ref<PreviewState>({ snapshot: null, loading: false, error: "" });
+  const selectedSceneMedia = ref<PublicEvidenceMediaView | null>(null);
   const loadEpoch = createEpoch();
   const previewEpoch = createEpoch();
 
@@ -178,7 +182,21 @@ export function useMapWorkspace() {
     // v0.2.5 §24：mobile selected sheet 需要 key condition + 最近现场，
     // snapshot 不再只给 desktop 取。
     const epoch = previewEpoch.begin();
+    selectedSceneMedia.value = null;
     preview.value = { snapshot: null, loading: true, error: "" };
+    void (async () => {
+      try {
+        const events = await client.realityEvents(p.id);
+        if (!previewEpoch.isCurrent(epoch) || selected.value?.id !== p.id) return;
+        const media = await firstApprovedSceneMedia(events);
+        if (!previewEpoch.isCurrent(epoch) || selected.value?.id !== p.id) return;
+        selectedSceneMedia.value = media;
+      } catch {
+        if (previewEpoch.isCurrent(epoch) && selected.value?.id === p.id) {
+          selectedSceneMedia.value = null;
+        }
+      }
+    })();
     try {
       const { snapshot } = await snapshotFor(p.id);
       if (!previewEpoch.isCurrent(epoch) || selected.value?.id !== p.id) return;
@@ -256,6 +274,10 @@ export function useMapWorkspace() {
     else preview.value = { snapshot: null, loading: false, error: "" };
   });
 
+  watch(selected, (place) => {
+    if (!place) selectedSceneMedia.value = null;
+  });
+
   watch(currentQueryContext, () => {
     if (!queryContextReady) return;
     void (async () => {
@@ -280,6 +302,7 @@ export function useMapWorkspace() {
     selected,
     isDesktop,
     preview,
+    selectedSceneMedia,
     activeFilters,
     clusters,
     coverage,
