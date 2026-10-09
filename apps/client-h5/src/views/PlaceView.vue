@@ -48,6 +48,7 @@ import { answerStatusKey } from "../answer";
 import { presentDescription } from "../errors";
 import { useBreakpoint } from "../composables/useBreakpoint";
 import { useRealityConfirmation } from "../composables/useRealityConfirmation";
+import { useZoneDecisions } from "../composables/useZoneDecisions";
 import { createEpoch, currentQueryContext, snapshotFor } from "../consumer/repository";
 import { firstApprovedSceneMedia } from "../consumer/publicSceneMedia";
 
@@ -77,6 +78,7 @@ const realityEvents = ref<RealityEventView[]>([]);
 const placeSceneMedia = ref<PublicEvidenceMediaView | null>(null);
 const sources = ref<SourceView[]>([]);
 const extras = ref<PlaceExtras | null>(null);
+const zoneDecisions = useZoneDecisions(placeId, zones);
 
 const answer = ref<AccessAnswer | null>(null);
 const error = ref("");
@@ -460,6 +462,7 @@ const placeFixture = computed<string>(() => {
             :answer="answer"
             :coexistence="coexistence"
             :zone-summary="zones"
+            :zone-decisions="zoneDecisions"
             :primary-source-label="primarySourceLabel"
             :latest-verified-at="latestVerifiedAt"
             :observation-count="presenceEventCount"
@@ -516,6 +519,7 @@ const placeFixture = computed<string>(() => {
           <PlaceSpacePane
             v-else-if="view === 'space'"
             :zones="zones"
+            :zone-decisions="zoneDecisions"
             :extras="extras"
             :facility-summary="coexistence?.facility_summary ?? []"
             :events="realityEvents"
