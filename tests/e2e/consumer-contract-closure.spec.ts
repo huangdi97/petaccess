@@ -161,9 +161,7 @@ test("C2: transport error is never served as a cached fact — recovery re-reque
   await page.getByTestId("search-input").fill("契约");
   await page.getByTestId("search-btn").click();
   await expect(page.getByTestId(`result-${PLACE.id}`)).toBeVisible();
-  await expect(page.getByTestId(`result-${PLACE.id}`)).toContainText(
-    "规则结论暂时无法取得",
-  );
+  await expect(page.getByTestId(`result-${PLACE.id}`)).toContainText("规则结论暂时无法取得");
 
   // Network recovers. The same query again must RE-REQUEST (the failed value
   // was never cached), and the row now shows the real ALLOWED badge.
