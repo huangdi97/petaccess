@@ -130,11 +130,17 @@ const divergenceLine = computed(() => {
         <p v-if="desktop" class="muted sub-answer__context" data-testid="answer-context">
           {{ querySubject }} · 进入 · 公共区域
         </p>
-        <!-- The dossier answers the current task in its own reading flow;
-             the desktop inspector is a sticky decision aid, not a replacement
-             for the main document's conclusion. -->
-        <StatusBadge :semantic="statusKey" />
-        <p class="status" data-testid="answer-status">{{ verdict }}</p>
+        <!-- Desktop has a dedicated sticky Decision Inspector, so the
+             dossier keeps one compact rule state instead of competing with a
+             second full-size verdict. Mobile has no inspector and retains the
+             complete primary decision here. -->
+        <div v-if="desktop" class="sub-answer__compact-status" data-testid="answer-status">
+          <StatusBadge :semantic="statusKey" />
+        </div>
+        <template v-else>
+          <StatusBadge :semantic="statusKey" />
+          <p class="status" data-testid="answer-status">{{ verdict }}</p>
+        </template>
         <p v-if="keyCondition" class="muted" data-testid="answer-conditions">
           需满足：{{ keyCondition }}
         </p>
@@ -372,6 +378,12 @@ const divergenceLine = computed(() => {
 }
 .sub-answer__context {
   margin: 0 0 var(--pa-space-1);
+}
+.sub-answer__compact-status {
+  display: flex;
+  align-items: center;
+  min-height: var(--pa-size-control-md);
+  margin: var(--pa-space-1) 0;
 }
 .sub-answer__note {
   margin: var(--pa-space-2) 0 0;
