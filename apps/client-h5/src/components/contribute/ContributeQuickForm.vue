@@ -73,6 +73,7 @@ async function submit() {
 <template>
   <ContributionStepShell
     :place-name="placeName"
+    place-zone="场所整体"
     :step="2"
     :total="3"
     title="哪里需要纠正？"
