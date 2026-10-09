@@ -83,11 +83,7 @@ async def ocr_signage(
     user=Depends(get_current_user),
 ) -> OcrOut:
     settings = get_settings()
-    if (
-        not settings.feature_real_ai
-        or settings.ocr_provider == "mock"
-        or not settings.ai_api_key
-    ):
+    if not settings.feature_real_ai or settings.ocr_provider == "mock" or not settings.ai_api_key:
         raise ApiError(
             "真实规则牌 OCR 尚未配置；请手动录入规则线索或证据",
             code="provider_unavailable",
