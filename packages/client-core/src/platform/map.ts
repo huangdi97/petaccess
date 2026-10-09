@@ -78,76 +78,6 @@ export interface MapCluster {
   memberIds: string[];
 }
 
-/** Priority used to pick a cluster's representative status (most actionable first). */
-const STATUS_PRIORITY: MapMarker["status"][] = [
-  "CONFLICT",
-  "RESTRICTED",
-  "CONDITIONAL",
-  "ALLOWED",
-  "UNKNOWN",
-  "STALE",
-];
-
-/**
- * Merge clusters whose anchors collide on a typical map canvas at this zoom.
- * It is important to do this in the shared projection, not by offsetting
- * displayed pins away from their actual WGS84 position. A merged anchor is the
- * count-weighted centroid of recorded positions; all member IDs are retained.
- * At higher zoom the proximity threshold shrinks and nearby places separate.
- */
-function mergeCrowdedClusters(clusters: MapCluster[], zoom: number): MapCluster[] {
-  const spanLng = 0.08 * Math.pow(2, 14 - zoom);
-  const gapLng = spanLng * 0.055;
-  const gapLat = spanLng * 0.62 * 0.055;
-  const ordered = [...clusters].sort((a, b) => a.id.localeCompare(b.id));
-  const roots = ordered.map((_, i) => i);
-
-  function find(i: number): number {
-    while (roots[i] !== i) {
-      roots[i] = roots[roots[i]];
-      i = roots[i];
-    }
-    return i;
-  }
-
-  for (let i = 0; i < ordered.length; i++) {
-    for (let j = i + 1; j < ordered.length; j++) {
-      if (
-        Math.abs(ordered[i].lng - ordered[j].lng) <= gapLng &&
-        Math.abs(ordered[i].lat - ordered[j].lat) <= gapLat
-      ) {
-        roots[find(j)] = find(i);
-      }
-    }
-  }
-
-  const groups = new Map<number, MapCluster[]>();
-  ordered.forEach((cluster, i) => {
-    const key = find(i);
-    const members = groups.get(key) ?? [];
-    members.push(cluster);
-    groups.set(key, members);
-  });
-
-  return [...groups.values()]
-    .map((group) => {
-      if (group.length === 1) return group[0];
-      const count = group.reduce((sum, cluster) => sum + cluster.count, 0);
-      const memberIds = group.flatMap((cluster) => cluster.memberIds).sort();
-      return {
-        id: `near:${memberIds[0]}`,
-        count,
-        lat: group.reduce((sum, cluster) => sum + cluster.lat * cluster.count, 0) / count,
-        lng: group.reduce((sum, cluster) => sum + cluster.lng * cluster.count, 0) / count,
-        status:
-          STATUS_PRIORITY.find((status) => group.some((cluster) => cluster.status === status)) ??
-          "UNKNOWN",
-        memberIds,
-      };
-    })
-    .sort((a, b) => a.id.localeCompare(b.id));
-}
-
 /**
  * Deterministic grid clustering.
  *
@@ -191,13 +121,13 @@ export function clusterMarkers(
   for (const [key, members] of buckets) {
     const lat = members.reduce((s, m) => s + m.lat, 0) / members.length;
     const lng = members.reduce((s, m) => s + m.lng, 0) / members.length;
-    let status: MapMarker["status"] = "UNKNOWN";
-    for (const candidate of STATUS_PRIORITY) {
-      if (members.some((m) => m.status === candidate)) {
-        status = candidate;
-        break;
-      }
-    }
+    // A cluster is navigation aggregation, not a venue-level access answer.
+    // Only preserve a semantic status when every member agrees. Mixed venue
+    // states stay neutral so a green/amber aggregate can never imply that all
+    // places inside the cluster share one access result.
+    const memberStatuses = new Set(members.map((member) => member.status));
+    const status: MapMarker["status"] =
+      memberStatuses.size === 1 ? members[0]!.status : "UNKNOWN";
     clusters.push({
       id: `c:${key}`,
       count: members.length,
