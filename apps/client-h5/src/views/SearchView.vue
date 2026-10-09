@@ -28,7 +28,6 @@ import {
   type BoundaryProfile,
   type CoexistenceSnapshot,
   type PlaceSummary,
-  type PublicEvidenceMediaView,
 } from "@petaccess/client-core";
 import { type StatusKey } from "@petaccess/design-tokens";
 import DecisionInspector from "../components/domain/DecisionInspector.vue";
@@ -50,8 +49,8 @@ import { placeTypeLabel } from "../consumer/labels";
 import { queryAnimalLabel } from "../consumer/queryContext";
 import { useBreakpoint } from "../composables/useBreakpoint";
 import { useOnline } from "../composables/useOnline";
+import { usePlaceSceneMedia } from "../composables/usePlaceSceneMedia";
 import { presentDescription } from "../errors";
-import { firstApprovedSceneMedia } from "../consumer/publicSceneMedia";
 import {
   createEpoch,
   currentQueryContext,
@@ -115,7 +114,6 @@ const preview = ref<{ snapshot: CoexistenceSnapshot | null; loading: boolean; er
   loading: false,
   error: "",
 });
-const selectedSceneMedia = ref<PublicEvidenceMediaView | null>(null);
 const selectedPlace = computed(() => results.value.find((p) => p.id === selectedId.value) ?? null);
 const FILTERS = [
   { key: "ALLOWED", label: "明确允许" },
@@ -211,7 +209,6 @@ async function search() {
           previewEpoch.begin();
           selectedId.value = null;
           preview.value = { snapshot: null, loading: false, error: "" };
-          selectedSceneMedia.value = null;
         }
       }
     }
@@ -234,28 +231,12 @@ function syncRouteQuery(query: string) {
 }
 
 /** M3 B/D2: fetch the one CoexistenceSnapshot for the previewed place. */
-async function loadSelectedSceneMedia(placeId: string, generation: number) {
-  try {
-    const events = await client.realityEvents(placeId);
-    if (!previewEpoch.isCurrent(generation) || selectedId.value !== placeId) return;
-    const media = await firstApprovedSceneMedia(events);
-    if (!previewEpoch.isCurrent(generation) || selectedId.value !== placeId) return;
-    selectedSceneMedia.value = media;
-  } catch {
-    if (previewEpoch.isCurrent(generation) && selectedId.value === placeId) {
-      selectedSceneMedia.value = null;
-    }
-  }
-}
-
 async function selectPlace(p: PlaceSummary) {
   selectedId.value = p.id;
-  selectedSceneMedia.value = null;
   if (!isDesktop.value) return;
 
   const n = previewEpoch.begin();
   preview.value = { snapshot: null, loading: true, error: "" };
-  void loadSelectedSceneMedia(p.id, n);
   try {
     const { snapshot } = await snapshotFor(p.id);
     if (!previewEpoch.isCurrent(n) || selectedId.value !== p.id) return;
@@ -346,6 +327,7 @@ onMounted(async () => {
 
 const { desktop: isDesktop, mobile: isMobile } = useBreakpoint();
 const selectedId = ref<string | null>(null);
+const selectedSceneMedia = usePlaceSceneMedia(computed(() => selectedId.value));
 
 // Desktop List–Detail must never show detail for a row hidden by the active
 // filter/lens. Keep selection inside the visible result set.
@@ -362,7 +344,6 @@ watch(visible, (list) => {
   previewEpoch.begin();
   selectedId.value = null;
   preview.value = { snapshot: null, loading: false, error: "" };
-  selectedSceneMedia.value = null;
 });
 
 watch(currentQueryContext, () => {
