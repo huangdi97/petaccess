@@ -155,7 +155,15 @@ function toggleFilter(key: string) {
       </div>
     </div>
     <p v-else class="muted map-lens-note" data-testid="map-lens-note">
-      当前镜头展示全部附近场所；切回“规则”可按准入结论筛选。
+      <template v-if="props.lens === 'reality'">
+        当前镜头展示经核验现场事实；没有记录不代表现场没有动物。
+      </template>
+      <template v-else-if="props.lens === 'facility'">
+        当前镜头展示动物设施事实；设施存在不等于允许进入。
+      </template>
+      <template v-else>
+        当前镜头对照规则与现场的差异；“不一致”只提示需要复核，不会自动改写正式规则。
+      </template>
     </p>
 
     <SkeletonList v-if="props.loading" :rows="3" />
