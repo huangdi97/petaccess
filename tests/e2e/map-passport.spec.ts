@@ -351,6 +351,21 @@ test("A1.2 — mobile map searches without leaving the spatial canvas", async ({
   await expect(fallbackDisclosure).not.toContainText("当前环境未配置真实地图底图");
 });
 
+test("A1.2a — map-config outage never masquerades the simplified canvas as a real map", async ({
+  page,
+}) => {
+  await page.route("**/api/v1/map/config", (route) =>
+    route.fulfill({ status: 503, json: { detail: "map config unavailable" } }),
+  );
+  await page.goto(`${BASE}/#/map`);
+
+  await expect(page.getByTestId("map-surface")).toBeVisible();
+  const disclosure = page.getByTestId("map-real-provider-fallback");
+  await expect(disclosure).toBeVisible();
+  await expect(disclosure).toContainText("真实底图暂不可用");
+  await expect(disclosure).toContainText("已收录坐标");
+});
+
 test("A1.3 — missing coordinates never create fictional map pins, even in dev", async ({
   page,
 }) => {
