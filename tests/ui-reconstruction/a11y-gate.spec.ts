@@ -92,6 +92,8 @@ test("mobile search filter sheet owns focus and returns it on close", async ({ p
   await page.keyboard.press("Escape");
   await expect(sheet).toBeHidden();
   await expect(trigger).toBeFocused();
+  const hiddenPanel = page.locator(".pa-sheet__panel");
+  await expect(hiddenPanel).toHaveAttribute("inert");
 });
 
 test("shipped stylesheet honours prefers-reduced-motion", async ({ page }) => {
