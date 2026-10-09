@@ -126,6 +126,10 @@ class MapTranslateIn(BaseModel):
     coordinates: list[MapCoordinate] = Field(min_length=1, max_length=50)
 
 
+class MapNormalizeIn(BaseModel):
+    coordinates: list[MapCoordinate] = Field(min_length=1, max_length=50)
+
+
 @router.get("/map/config")
 def map_config() -> dict:
     """Public render configuration for the consumer map.
@@ -197,3 +201,30 @@ def translate_map_coordinates(body: MapTranslateIn) -> dict:
         "coordinate_system": "GCJ-02",
         "coordinates": translated,
     }
+
+@router.post("/map/normalize")
+def normalize_map_coordinates(body: MapNormalizeIn) -> dict:
+    """Normalize interactive render-center coordinates into EPSG:4326.
+
+    The browser provider may render a different coordinate system. Nearby
+    queries and persisted PetAccess geometry always remain WGS84.
+    """
+    settings = get_settings()
+    if not (
+        settings.feature_real_map
+        and settings.map_provider == "tencent"
+        and settings.tencent_map_key_server
+    ):
+        normalized = [point.model_dump() for point in body.coordinates]
+        provider = "mock"
+    else:
+        normalized = get_map_provider().normalize_render_coordinates(
+            [(point.lat, point.lng) for point in body.coordinates]
+        )
+        provider = "tencent"
+    return {
+        "provider": provider,
+        "coordinate_system": "EPSG:4326",
+        "coordinates": normalized,
+    }
+
