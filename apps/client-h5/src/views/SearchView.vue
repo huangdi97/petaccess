@@ -1070,8 +1070,8 @@ watch(currentQueryContext, () => {
 }
 
 .result-row__decision--lead {
-  font-weight: var(--pa-font-weight-650);
-  color: var(--pa-color-accent);
+  font-weight: var(--pa-font-weight-medium);
+  color: var(--pa-color-text-primary);
 }
 
 .result-row__condition {
@@ -1103,8 +1103,8 @@ watch(currentQueryContext, () => {
 .result-row__reality-line--lead {
   font-size: var(--pa-font-size-lg);
   line-height: var(--pa-line-height-tight);
-  font-weight: var(--pa-font-weight-650);
-  color: var(--pa-color-accent);
+  font-weight: var(--pa-font-weight-medium);
+  color: var(--pa-color-text-primary);
 }
 
 .result-row__evidence-meta {
