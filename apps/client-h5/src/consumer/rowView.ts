@@ -169,7 +169,11 @@ export function lensProjection(
   reality: RealityAnswer | null | undefined,
   snapshot?: CoexistenceSnapshot | null,
 ): LensProjection {
-  const ruleFirst = lens === "rules";
+  // Canonical search is Rule-first. Reality becomes the headline only when
+  // the user explicitly enters a Reality-oriented lens (presence/indoor/dining).
+  // This keeps "准入结论" as the primary list answer while preserving Reality
+  // as an independent, always-visible secondary fact.
+  const ruleFirst = lens === "" || lens === "rules";
   const zoneFacts = exactZoneFacts(lens, reality);
   return {
     headline: ruleFirst ? "rule" : "reality",
