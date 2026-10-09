@@ -34,7 +34,6 @@ import {
 import DecisionInspector from "../components/domain/DecisionInspector.vue";
 import QueryContextBar from "../components/domain/QueryContextBar.vue";
 import PlaceSceneFrame from "../components/domain/PlaceSceneFrame.vue";
-import PlaceTypeGlyph from "../components/domain/PlaceTypeGlyph.vue";
 import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
 import PlaceSectionNav, { type PlaceViewKey } from "../components/place/PlaceSectionNav.vue";
@@ -413,18 +412,11 @@ const placeFixture = computed<string>(() => {
           >
             <div class="place-dossier__identity-row">
               <PlaceSceneFrame
-                v-if="placeSceneMedia"
                 class="place-dossier__scene"
-                :src="placeSceneMedia.url"
+                :src="placeSceneMedia?.url ?? null"
+                :alt="`场所场景：${place.canonical_name}`"
                 variant="compact"
-                data-testid="place-scene-media"
-              />
-              <PlaceTypeGlyph
-                v-else
-                class="place-dossier__type-glyph"
-                :place-type="place.place_type"
-                size="xl"
-                data-testid="place-scene-fallback"
+                :data-testid="placeSceneMedia ? 'place-scene-media' : 'place-scene-fallback'"
               />
               <div class="place-dossier__identity-copy">
                 <h1 class="place-dossier__name" data-ui="place-name">{{ place.canonical_name }}</h1>
