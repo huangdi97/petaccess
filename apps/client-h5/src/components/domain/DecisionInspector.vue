@@ -28,6 +28,7 @@ import {
 } from "@petaccess/client-core";
 import { answerConditions, answerStatusKey, answerVerdictLabel } from "../../answer";
 import PlaceTypeGlyph from "./PlaceTypeGlyph.vue";
+import PlaceSceneFrame from "./PlaceSceneFrame.vue";
 import StatusBadge from "../StatusBadge.vue";
 import { coexistenceRealityLine, freshnessLineFor } from "../../consumer/rowView";
 import { querySummaryLabel } from "../../consumer/queryContext";
@@ -192,20 +193,14 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
         </div>
       </header>
 
-      <figure
-        v-if="variant === 'search' && sceneMediaUrl"
+      <PlaceSceneFrame
+        v-if="variant === 'search'"
         class="decision-inspector__scene"
-        data-testid="inspector-scene-media"
-      >
-        <img
-          :src="sceneMediaUrl"
-          :alt="`场所场景：${place.canonical_name}`"
-          loading="lazy"
-          decoding="async"
-          referrerpolicy="no-referrer"
-        />
-        <figcaption>经审核公开的场所场景照片</figcaption>
-      </figure>
+        :src="sceneMediaUrl"
+        :alt="`场所场景：${place.canonical_name}`"
+        variant="hero"
+        :data-testid="sceneMediaUrl ? 'inspector-scene-media' : 'inspector-scene-empty'"
+      />
 
       <!-- Search detail（§12 严格顺序）：Identity → Query → Decision → Reality →
            Evidence/Source → CTA；place inspector（§26）走下方紧凑结构。 -->
@@ -410,23 +405,6 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
 .decision-inspector__scene {
   margin: 0;
   max-width: 620px;
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
-  padding-bottom: var(--pa-space-4);
-}
-
-.decision-inspector__scene img {
-  display: block;
-  width: 100%;
-  aspect-ratio: 16 / 6;
-  object-fit: cover;
-  background: var(--pa-color-surface-muted);
-}
-
-.decision-inspector__scene figcaption {
-  margin-top: var(--pa-space-2);
-  color: var(--pa-color-text-muted);
-  font-size: var(--pa-font-size-xs);
-  line-height: var(--pa-line-height-20);
 }
 
 .decision-inspector__title-row {
