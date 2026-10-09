@@ -417,10 +417,7 @@ test("B3.1 — Evidence renders only media explicitly released by the public-med
   await page.goto(`${BASE}/#/place/${MALL_ID}/evidence`);
   const media = page.getByTestId("public-evidence-media");
   await expect(media).toHaveCount(1, { timeout: 15000 });
-  await expect(media.locator("img")).toHaveAttribute(
-    "alt",
-    "经审核允许公开展示的现场证据图片",
-  );
+  await expect(media.locator("img")).toHaveAttribute("alt", "经审核允许公开展示的现场证据图片");
 });
 
 test("B5 — Search DecisionInspector 查看完整场所 → Place Passport", async ({ page }) => {
