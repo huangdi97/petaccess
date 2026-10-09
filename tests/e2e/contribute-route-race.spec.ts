@@ -103,7 +103,6 @@ test("scoped Reality contribution selects only a zone owned by the current place
   await expect(page.locator("#reality-zone")).toHaveValue("");
 });
 
-
 test("observation-effort route accepts only current-place zones", async ({ page, request }) => {
   const created = await request.post("http://127.0.0.1:8010/api/v1/auth/register", {
     data: {
@@ -125,8 +124,6 @@ test("observation-effort route accepts only current-place zones", async ({ page,
   await page.goto(`/#/contribute/${MALL_ID}?mode=effort&zone=${zoneId}`);
   await expect(page.getByTestId("effort-zone")).toHaveValue(zoneId);
 
-  await page.goto(
-    `/#/contribute/${MALL_ID}?mode=effort&zone=00000000-0000-0000-0000-000000000000`,
-  );
+  await page.goto(`/#/contribute/${MALL_ID}?mode=effort&zone=00000000-0000-0000-0000-000000000000`);
   await expect(page.getByTestId("effort-zone")).toHaveValue("");
 });
