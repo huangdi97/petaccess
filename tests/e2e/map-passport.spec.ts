@@ -480,6 +480,24 @@ test("B1/B2 — Place Dossier 概览 + 规则/现场 view 关键段齐备", asyn
   ).toBeVisible();
 });
 
+test("B2.0 — Space view uses independent zone-scoped access decisions", async ({
+  page,
+  request,
+}) => {
+  const response = await request.get(`${API}/places/${MALL_ID}/zones`);
+  expect(response.ok(), await response.text()).toBeTruthy();
+  const zones = (await response.json()) as { id: string }[];
+  expect(zones.length).toBeGreaterThan(0);
+
+  await page.goto(`${BASE}/#/place/${MALL_ID}?view=space`);
+  for (const zone of zones.slice(0, 3)) {
+    const decision = page.getByTestId(`zone-decision-${zone.id}`);
+    await expect(decision).toBeVisible({ timeout: 15000 });
+    await expect(decision.getByRole("status")).toBeVisible();
+    await expect(decision).not.toContainText("暂无法取得");
+  }
+});
+
 test("B2.1 — Space view 展示已核验设施属性且不暗示准入或安全保证", async ({ page }) => {
   await page.goto(`${BASE}/#/place/${MALL_ID}?view=space`);
   await expect(page.getByTestId("animal-facilities")).toBeVisible();
