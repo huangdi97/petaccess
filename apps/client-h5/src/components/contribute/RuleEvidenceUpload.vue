@@ -49,11 +49,20 @@ async function upload(event: Event) {
 <template>
   <section class="rule-evidence" data-ui="rule-evidence">
     <h3>{{ required ? "规则牌 / 公告照片" : "规则牌 / 公告照片（可选）" }}</h3>
-    <label for="rule-evidence-file">
+    <span class="rule-evidence__label">
       {{ required ? "上传一张可核验照片" : "上传照片" }}
+    </span>
+    <label
+      class="rule-file-picker"
+      :class="{ 'rule-file-picker--disabled': uploading }"
+      for="rule-evidence-file"
+    >
+      <span>{{ uploading ? "上传中…" : mediaId ? "重新选择照片" : "选择规则牌照片" }}</span>
+      <span class="rule-file-picker__hint">PNG / JPG / WebP</span>
     </label>
     <input
       id="rule-evidence-file"
+      class="visually-hidden-file"
       type="file"
       accept="image/png,image/jpeg,image/webp"
       capture="environment"
@@ -89,7 +98,7 @@ async function upload(event: Event) {
   font-weight: var(--pa-font-weight-650);
 }
 
-.rule-evidence label,
+.rule-evidence__label,
 .rule-upload-note,
 .rule-ocr {
   font-size: var(--pa-font-size-sm);
@@ -100,6 +109,47 @@ async function upload(event: Event) {
 .rule-ocr {
   margin: 0;
   line-height: var(--pa-line-height-20);
+}
+
+.rule-file-picker {
+  min-height: var(--pa-size-control-lg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pa-space-3);
+  padding: var(--pa-space-2) var(--pa-space-3);
+  border: var(--pa-border-width) solid var(--pa-color-border-strong);
+  border-radius: var(--pa-radius-control);
+  background: var(--pa-color-surface);
+  color: var(--pa-color-accent);
+  cursor: pointer;
+}
+
+.rule-file-picker:hover,
+.rule-file-picker:focus-within {
+  background: var(--pa-color-surface-interactive);
+}
+
+.rule-file-picker--disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.rule-file-picker__hint {
+  color: var(--pa-color-text-muted);
+  font-size: var(--pa-font-size-xs);
+}
+
+.visually-hidden-file {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .rule-ocr {

@@ -322,8 +322,8 @@ const uiFixture = computed<string>(() =>
           </p>
         </header>
 
-        <div v-if="heroPublicMedia" class="evidence-leading">
-          <figure class="evidence-hero-media" data-testid="evidence-hero-media">
+        <div class="evidence-leading" :class="{ 'evidence-leading--without-media': !heroPublicMedia }">
+          <figure v-if="heroPublicMedia" class="evidence-hero-media" data-testid="evidence-hero-media">
             <img
               :src="heroPublicMedia.url"
               alt="经审核允许公开展示的证据媒体"
@@ -336,6 +336,11 @@ const uiFixture = computed<string>(() =>
               {{ heroPublicMedia.purpose === "scene_photo" ? "场所场景" : "证据图片" }}
             </figcaption>
           </figure>
+          <EvidenceGovernanceSummary
+            v-else
+            :events="events"
+            :rule-first-party-pending="snapshot.evidence_summary.rule_first_party_pending"
+          />
           <EvidenceProvenance
             :raw-material-count="provenanceCounts.rawMaterialCount"
             :place-matched-count="provenanceCounts.placeMatchedCount"
@@ -344,16 +349,9 @@ const uiFixture = computed<string>(() =>
             :reviewed-count="provenanceCounts.reviewedCount"
           />
         </div>
-        <EvidenceProvenance
-          v-else
-          :raw-material-count="provenanceCounts.rawMaterialCount"
-          :place-matched-count="provenanceCounts.placeMatchedCount"
-          :time-confirmed-count="provenanceCounts.timeConfirmedCount"
-          :source-count="provenanceCounts.sourceCount"
-          :reviewed-count="provenanceCounts.reviewedCount"
-        />
 
         <EvidenceGovernanceSummary
+          v-if="heroPublicMedia"
           :events="events"
           :rule-first-party-pending="snapshot.evidence_summary.rule_first_party_pending"
         />
@@ -536,6 +534,12 @@ const uiFixture = computed<string>(() =>
   grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
   gap: var(--pa-space-6);
   align-items: start;
+}
+
+.evidence-leading--without-media {
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 0.78fr);
+  padding-bottom: var(--pa-space-4);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
 }
 
 .evidence-hero-media {

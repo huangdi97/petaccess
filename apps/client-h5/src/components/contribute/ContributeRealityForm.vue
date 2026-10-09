@@ -477,16 +477,24 @@ async function submit() {
           </p>
         </template>
 
-        <label for="reality-media">证据图片（可选）</label>
+        <span class="cluster__field-label">证据图片（可选）</span>
+        <label
+          class="evidence-file-picker"
+          :class="{ 'evidence-file-picker--disabled': uploading }"
+          for="reality-media"
+        >
+          <span>{{ uploading ? "上传中…" : mediaId ? "重新选择证据图片" : "选择证据图片" }}</span>
+          <span class="evidence-file-picker__hint">PNG / JPG / WebP</span>
+        </label>
         <input
           id="reality-media"
+          class="visually-hidden-file"
           type="file"
           accept="image/png,image/jpeg,image/webp"
           :disabled="uploading"
           data-testid="reality-media"
           @change="uploadEvidence"
         />
-        <p v-if="uploading" class="muted source-note">上传中…</p>
         <p v-if="mediaMessage" class="muted source-note" data-testid="reality-media-message">
           {{ mediaMessage }}
         </p>
@@ -791,9 +799,51 @@ async function submit() {
   color: var(--pa-color-text-primary);
   margin-bottom: var(--pa-space-2);
 }
-.cluster label {
+.cluster label,
+.cluster__field-label {
   font-size: var(--pa-font-size-sm);
   color: var(--pa-color-text-secondary);
+}
+
+.evidence-file-picker {
+  min-height: var(--pa-size-control-lg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pa-space-3);
+  padding: var(--pa-space-2) var(--pa-space-3);
+  border: var(--pa-border-width) solid var(--pa-color-border-strong);
+  border-radius: var(--pa-radius-control);
+  background: var(--pa-color-surface);
+  color: var(--pa-color-accent);
+  cursor: pointer;
+}
+
+.evidence-file-picker:hover,
+.evidence-file-picker:focus-within {
+  background: var(--pa-color-surface-interactive);
+}
+
+.evidence-file-picker--disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.evidence-file-picker__hint {
+  color: var(--pa-color-text-muted);
+  font-size: var(--pa-font-size-xs);
+}
+
+.visually-hidden-file {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
 .source-note {
   margin: 0;
