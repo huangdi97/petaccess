@@ -29,6 +29,10 @@ const visualDbUrl =
 export default defineConfig({
   testDir: "./tests/ui-oracle",
   timeout: 90000,
+  // All three viewport projects share one deterministic visual database.
+  // Run serially so governance fixtures created for one viewport can never
+  // leak into another viewport's canonical Search/Home/Map screenshots.
+  workers: 1,
   use: {
     headless: true,
     baseURL: `http://127.0.0.1:${PREVIEW_PORT}`,
