@@ -3,8 +3,7 @@ import AppShell from "../components/AppShell.vue";
 import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
 import { usePrivacyRights } from "../composables/usePrivacyRights";
-iem: "变化关注", stored: "保存", detail: "仅保存你主动关注的规则变化或经核验现场更新。" },
-];
+import { privacyInventory } from "../consumer/privacyInventory";
 
 const {
   cleared,
