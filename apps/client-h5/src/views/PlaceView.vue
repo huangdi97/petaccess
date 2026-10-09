@@ -422,7 +422,7 @@ const placeFixture = computed<string>(() => {
                 v-else
                 class="place-dossier__type-glyph"
                 :place-type="place.place_type"
-                size="lg"
+                size="xl"
                 data-testid="place-scene-fallback"
               />
               <div class="place-dossier__identity-copy">
