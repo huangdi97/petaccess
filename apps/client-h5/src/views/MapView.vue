@@ -39,6 +39,7 @@ const {
   selected,
   isDesktop,
   preview,
+  selectedSceneMedia,
   activeFilters,
   clusters,
   coverage,
@@ -334,6 +335,7 @@ function chooseMapResult(id: string) {
         :snapshot="preview.snapshot"
         :loading="preview.loading"
         :error="preview.error"
+        :scene-media-url="selectedSceneMedia?.url ?? null"
         :map-lens-name="
           lens === 'reality'
             ? '现场'
@@ -354,6 +356,7 @@ function chooseMapResult(id: string) {
       :snapshot="preview.snapshot"
       :loading="preview.loading"
       :error="preview.error"
+      :scene-media-url="selectedSceneMedia?.url ?? null"
       :map-lens-name="
         lens === 'reality'
           ? '现场'
