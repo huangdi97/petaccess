@@ -423,9 +423,11 @@ const placeFixture = computed<string>(() => {
               />
               <div class="place-dossier__identity-copy">
                 <h1 class="place-dossier__name" data-ui="place-name">{{ place.canonical_name }}</h1>
-                <p class="muted place-dossier__meta">
-                  {{ placeTypeLabel(place.place_type) }} ·
-                  {{ place.canonical_address ?? "地址未收录" }}
+                <div class="place-dossier__meta-row">
+                  <p class="muted place-dossier__meta">
+                    {{ placeTypeLabel(place.place_type) }} ·
+                    {{ place.canonical_address ?? "地址未收录" }}
+                  </p>
                   <RouterLink
                     class="place-dossier__map-link"
                     data-testid="place-map-link"
@@ -437,7 +439,7 @@ const placeFixture = computed<string>(() => {
                         : "地图列表查看 →"
                     }}
                   </RouterLink>
-                </p>
+                </div>
               </div>
             </div>
             <div class="place-dossier__actions" aria-label="场所操作">
@@ -661,6 +663,14 @@ const placeFixture = computed<string>(() => {
   margin: 0;
 }
 
+.place-dossier__meta-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--pa-space-1) var(--pa-space-2);
+  min-width: 0;
+}
+
 .place-dossier__map-link {
   margin-left: var(--pa-space-2);
   color: var(--pa-color-accent);
@@ -808,11 +818,21 @@ const placeFixture = computed<string>(() => {
     white-space: nowrap;
   }
 
+  .place-dossier__meta-row {
+    align-items: flex-start;
+  }
+
   .place-dossier__meta {
-    display: block;
+    display: -webkit-box;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    white-space: normal;
+  }
+
+  .place-dossier__map-link {
+    margin-left: 0;
+    flex: 0 0 auto;
   }
 
   .place-dossier__watch {
