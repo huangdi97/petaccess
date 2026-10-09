@@ -18,6 +18,15 @@ test("public Place dossier remains readable with a broken local session", async 
   await expect(page.getByText("账号状态暂不可用；公开规则与现场信息仍可查看。")).toBeVisible();
 });
 
+test("public Evidence remains readable with a broken local session", async ({ page }) => {
+  await page.goto(`${BASE}/#/place/${MALL_ID}/evidence`);
+  await expect(page.getByTestId("evidence-workspace")).toBeVisible({ timeout: 15000 });
+  await expect(page.getByTestId("evidence-private-context-note")).toContainText(
+    "证据仍可公开查看",
+  );
+  await expect(page.getByText("未能取得证据记录")).toHaveCount(0);
+});
+
 test("public Search and Map remain usable with a broken local session", async ({ page }) => {
   await page.goto(`${BASE}/#/search?q=云栖`);
   await expect(page.getByTestId(`result-${MALL_ID}`)).toBeVisible({ timeout: 15000 });
