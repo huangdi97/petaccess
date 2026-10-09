@@ -137,6 +137,8 @@ const realityEvidenceCount = computed(
   () => snapshot.value?.evidence_summary.reality_evidence_count ?? events.value.length,
 );
 const provenanceCounts = computed(() => realityProvenanceCounts(events.value));
+const heroPublicMedia = computed(() => [...publicMediaByBundle.value.values()][0] ?? null);
+const heroPublicMediaBundleId = computed(() => heroPublicMedia.value?.evidence_bundle_id ?? null);
 
 const realitySourceRows = computed(() => {
   // RealityEventOut already carries the public provenance projection needed
@@ -169,7 +171,7 @@ const sourceSummary = computed(() => {
 
 function publicMediaFor(event: RealityEventView): PublicEvidenceMediaView | null {
   const bundleId = event.evidence_bundle_id;
-  if (!bundleId) return null;
+  if (!bundleId || bundleId === heroPublicMediaBundleId.value) return null;
   // One evidence bundle is one public media record even when several reviewed
   // facts were extracted from it. Repeating the same image beside every fact
   // would visually over-count a single piece of evidence.
@@ -308,7 +310,30 @@ const uiFixture = computed<string>(() =>
           </p>
         </header>
 
+        <div v-if="heroPublicMedia" class="evidence-leading">
+          <figure class="evidence-hero-media" data-testid="evidence-hero-media">
+            <img
+              :src="heroPublicMedia.url"
+              alt="经审核允许公开展示的证据媒体"
+              loading="eager"
+              decoding="async"
+              referrerpolicy="no-referrer"
+            />
+            <figcaption>
+              经审核允许公开展示 ·
+              {{ heroPublicMedia.purpose === "scene_photo" ? "场所场景" : "证据图片" }}
+            </figcaption>
+          </figure>
+          <EvidenceProvenance
+            :raw-material-count="provenanceCounts.rawMaterialCount"
+            :place-matched-count="provenanceCounts.placeMatchedCount"
+            :time-confirmed-count="provenanceCounts.timeConfirmedCount"
+            :source-count="provenanceCounts.sourceCount"
+            :reviewed-count="provenanceCounts.reviewedCount"
+          />
+        </div>
         <EvidenceProvenance
+          v-else
           :raw-material-count="provenanceCounts.rawMaterialCount"
           :place-matched-count="provenanceCounts.placeMatchedCount"
           :time-confirmed-count="provenanceCounts.timeConfirmedCount"
@@ -499,6 +524,34 @@ const uiFixture = computed<string>(() =>
   color: var(--pa-color-text-secondary);
 }
 
+.evidence-leading {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+  gap: var(--pa-space-6);
+  align-items: start;
+}
+
+.evidence-hero-media {
+  margin: 0;
+  min-width: 0;
+}
+
+.evidence-hero-media img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--pa-radius-control);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  background: var(--pa-color-surface-muted);
+}
+
+.evidence-hero-media figcaption {
+  margin-top: var(--pa-space-2);
+  font-size: var(--pa-font-size-xs);
+  color: var(--pa-color-text-muted);
+}
+
 .evidence-section {
   display: flex;
   flex-direction: column;
@@ -642,6 +695,11 @@ const uiFixture = computed<string>(() =>
 }
 
 @media (max-width: 767px) {
+  .evidence-leading {
+    grid-template-columns: 1fr;
+    gap: var(--pa-space-4);
+  }
+
   .evidence-workspace__body {
     padding: var(--pa-space-4);
   }
