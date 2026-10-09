@@ -115,9 +115,7 @@ test("A4.3 — Search inspector only promotes reviewed scene_photo media", async
   );
 });
 
-test("A4.3b — broken reviewed scene URL falls back to an honest placeholder", async ({
-  page,
-}) => {
+test("A4.3b — broken reviewed scene URL falls back to an honest placeholder", async ({ page }) => {
   const bundleId = "scene-photo-broken-fixture";
   await page.route(`**/api/v1/places/${MALL_ID}/reality/events**`, async (route) => {
     const response = await route.fetch();
