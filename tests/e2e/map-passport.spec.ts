@@ -451,6 +451,28 @@ test("A1.5 — dragging the fallback map requests places at the new center", asy
   await expect(page.getByTestId("map-provider-fallback")).toContainText("示意底图");
 });
 
+test("A1.5.1 — zoom-out expands nearby radius and stops before coverage becomes false", async ({
+  page,
+}) => {
+  await page.goto(`${BASE}/#/map`);
+  const zoom = page.getByTestId("map-zoom");
+  await expect(zoom).toBeVisible();
+
+  const expandedQuery = page.waitForRequest((request) => {
+    if (!request.url().includes("/api/v1/places/nearby?")) return false;
+    return new URL(request.url()).searchParams.get("radius_m") === "10000";
+  });
+  await zoom.getByRole("button", { name: "缩小" }).click();
+  await expandedQuery;
+
+  // Default zoom is 14. Two more zoom-outs reach the truthful lower bound 11
+  // (40 km query radius); the UI must not expose a wider canvas backed by the
+  // API's capped 50 km data query.
+  await zoom.getByRole("button", { name: "缩小" }).click();
+  await zoom.getByRole("button", { name: "缩小" }).click();
+  await expect(zoom.getByRole("button", { name: "缩小" })).toBeDisabled();
+});
+
 test("A1.6 — panning away clears the previous deep-linked place before re-query", async ({
   page,
 }) => {
