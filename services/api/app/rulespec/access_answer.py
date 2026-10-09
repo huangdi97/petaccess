@@ -80,6 +80,7 @@ def _public_issuer(source_type: str | None, issuer: str | None) -> str | None:
         return "普通用户贡献（身份不公开）"
     return issuer
 
+
 #: Sentences that assert a first-party/confirmed status. The model has no field
 #: capable of carrying them when no first-party operator source exists, and
 #: :func:`assert_no_unbacked_first_party_claim` keeps it that way.
