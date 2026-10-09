@@ -26,9 +26,8 @@ import {
   type CoexistenceSnapshot,
   type RealityAnswer,
 } from "@petaccess/client-core";
-import { answerConditions, answerStatusKey, answerVerdictLabel } from "../../answer";
+import { answerConditions, answerVerdictLabel } from "../../answer";
 import PlaceTypeGlyph from "./PlaceTypeGlyph.vue";
-import StatusBadge from "../StatusBadge.vue";
 import PlaceSceneFrame from "./PlaceSceneFrame.vue";
 import { coexistenceRealityLine, freshnessLineFor } from "../../consumer/rowView";
 import { querySummaryLabel } from "../../consumer/queryContext";
@@ -84,7 +83,6 @@ const props = withDefaults(
 );
 
 const verdict = computed(() => answerVerdictLabel(props.answer));
-const statusKey = computed(() => answerStatusKey(props.answer));
 const needsRuleEvidence = computed(() => !props.answerError && verdict.value === "信息不足");
 /** A recorded coordinate allows a direct spatial deep link. No coordinate means
  * no map marker: a name/address alone is never geocoded or guessed here. */
