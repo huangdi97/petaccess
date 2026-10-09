@@ -609,6 +609,29 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
   color: var(--pa-color-text-secondary);
 }
 
+@media (min-width: 768px) and (max-width: 1099px) {
+  .decision-inspector--search {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .decision-inspector__title-row {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .inspector-secondary {
+    grid-template-columns: 1fr;
+    gap: var(--pa-space-3);
+  }
+
+  .decision-inspector__foot--primary {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--pa-space-3);
+  }
+}
+
 /* Narrow screens: keep the decision legible without shrinking the body type. */
 @media (max-width: 767px) {
   .decision-inspector,
