@@ -65,8 +65,8 @@ const showImage = computed(() => Boolean(props.src) && !imageFailed.value);
         :size="variant === 'hero' ? 'xl' : 'lg'"
       />
       <span class="scene-frame__empty-copy">
-        <strong>暂无可公开场景图片</strong>
-        <small>这里是抽象身份占位，不代表真实建筑或现场；仅展示经审核允许公开的场景媒体。</small>
+        <strong>场景图片待补充</strong>
+        <small>仅展示经审核允许公开的场景媒体；不以证据图或合成图冒充真实场所。</small>
       </span>
     </div>
     <figcaption v-if="showImage" class="scene-frame__caption">
