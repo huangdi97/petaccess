@@ -37,6 +37,7 @@ import {
 import { presentDescription } from "../errors";
 import { mapMarkersFor, visibleMapPlaces } from "../consumer/mapSpatialProjection";
 import { useBreakpoint } from "./useBreakpoint";
+import { useMapClusterSelection } from "./useMapClusterSelection";
 import { useMapDeepLink } from "./useMapDeepLink";
 import { useMapLensRoute } from "./useMapLensRoute";
 import { useMapSearch } from "./useMapSearch";
@@ -138,31 +139,16 @@ export function useMapWorkspace() {
     router.push({ name: "place", params: { id } });
   }
 
-  function onSelectCluster(cluster: { memberIds: string[]; count: number }) {
-    if (cluster.count === 1) {
-      const p = places.value.find((x) => x.id === cluster.memberIds[0]) ?? null;
-      selected.value = p;
-      if (p) {
-        syncRoutePlace(p.id);
-        void selectPlace(p);
-      }
-      return;
-    }
-    // A cluster is a spatial target, not only a zoom button. Recenter the
-    // governed WGS84 query on the cluster and reload nearby facts; otherwise
-    // the canvas can move visually while the result pane still describes the
-    // previous query center.
-    selected.value = null;
-    syncRoutePlace(null);
-    preview.value = { snapshot: null, loading: false, error: "" };
-    camera.value = {
-      ...camera.value,
-      lat: cluster.lat,
-      lng: cluster.lng,
-      zoom: Math.min(18, camera.value.zoom + 1),
-    };
-    void load();
-  }
+
+  const { onSelectCluster } = useMapClusterSelection({
+    camera,
+    places,
+    selected,
+    preview,
+    syncRoutePlace,
+    selectPlace,
+    reload: load,
+  });
 
   /** M4 A4 — the selected place is a route query so deep links and history work. */
   function syncRoutePlace(id: string | null) {
