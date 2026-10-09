@@ -125,13 +125,17 @@ test("same-brand branches come back as two labelled rows, answer first", async (
   // is its own place with its own name (the parent-name line was removed).
   await expect(branch.getByTestId("result-branch")).toHaveCount(0);
 
-  // Canonical search is Reality-first by default while Rule status remains
-  // visible in the same row. Internal rule/source tallies stay out of the list.
-  await expect(flagship.getByTestId("row-lens-headline")).toHaveCount(1);
-  await expect(branch.getByTestId("row-lens-headline")).toHaveCount(1);
+  // Canonical search answers the access question first; Reality remains a
+  // separate visible fact. A Reality-first headline only appears after the
+  // user explicitly chooses a Reality lens.
+  await expect(flagship.getByTestId("row-lens-headline")).toContainText("信息不足");
+  await expect(branch.getByTestId("row-lens-headline")).toContainText("信息不足");
   await expect(page.getByTestId("result-rules")).toHaveCount(0);
-  // The branch with stronger governed context remains the first ranked row.
   await expect(page.locator("ul.result-list > li").first()).toContainText("星河咖啡·测试店");
+
+  await page.goto("/#/search?q=星河咖啡&lens=presence");
+  const presenceFlagship = page.getByTestId(`result-${CAFE_ID}`);
+  await expect(presenceFlagship.getByTestId("row-lens-headline")).toContainText("现场");
 });
 
 test("register → create pet → shared query context carries pet identity", async ({ page }) => {
