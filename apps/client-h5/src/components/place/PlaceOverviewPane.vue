@@ -155,11 +155,6 @@ const divergenceLine = computed(() => {
       <p v-else-if="observationCount > 0 && desktop" class="muted overview-note">
         {{ observationCount }} 条现场记录
       </p>
-      <nav v-if="!desktop" class="mobile-reality-quick" aria-label="现场详情">
-        <RouterLink class="btn-inline" :to="`?view=reality`">工作人员处理</RouterLink>
-        <span aria-hidden="true">·</span>
-        <RouterLink class="btn-inline" :to="`?view=space`">动物设施</RouterLink>
-      </nav>
       <div
         v-if="staffSummaryLine || facilitySummaryLine || divergenceLine"
         class="coexistence-facts"
@@ -485,16 +480,6 @@ const divergenceLine = computed(() => {
   margin: var(--pa-space-4) 0 var(--pa-space-2);
   padding-top: var(--pa-space-3);
   border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
-}
-
-.mobile-reality-quick {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--pa-space-2);
-  margin: var(--pa-space-2) 0;
-  font-size: var(--pa-font-size-sm);
-  color: var(--pa-color-text-muted);
 }
 
 .coexistence-fact {
