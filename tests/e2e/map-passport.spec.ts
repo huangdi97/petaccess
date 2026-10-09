@@ -115,6 +115,56 @@ test("A4.3 — Search inspector only promotes reviewed scene_photo media", async
   );
 });
 
+test("A4.3b — broken reviewed scene URL falls back to an honest placeholder", async ({
+  page,
+}) => {
+  const bundleId = "scene-photo-broken-fixture";
+  await page.route(`**/api/v1/places/${MALL_ID}/reality/events**`, async (route) => {
+    const response = await route.fetch();
+    const payload = await response.json();
+    const items = Array.isArray(payload) ? payload : [];
+    await route.fulfill({
+      status: response.status(),
+      contentType: "application/json",
+      body: JSON.stringify(
+        items.length
+          ? items.map((item: Record<string, unknown>, index: number) =>
+              index === 0 ? { ...item, evidence_bundle_id: bundleId } : item,
+            )
+          : [
+              {
+                id: "scene-broken-event",
+                event_type: "observed_presence",
+                place_id: MALL_ID,
+                event_at: "2026-10-08T10:00:00Z",
+                time_basis: "event_time",
+                verification_status: "verified",
+                evidence_bundle_id: bundleId,
+              },
+            ],
+      ),
+    });
+  });
+  await page.route(`**/api/v1/evidence-bundles/${bundleId}/public-media`, (route) =>
+    route.fulfill({
+      json: {
+        evidence_bundle_id: bundleId,
+        media_id: "scene-broken-media",
+        purpose: "scene_photo",
+        url: "http://127.0.0.1:9/reviewed-scene.jpg",
+        mime_type: "image/jpeg",
+        expires_in: 300,
+      },
+    }),
+  );
+
+  await page.goto(`${BASE}/#/search?q=云栖`);
+  const frame = page.getByTestId("inspector-scene-media");
+  await expect(frame).toBeVisible({ timeout: 15000 });
+  await expect(frame).toContainText("暂无可公开场景图片", { timeout: 15000 });
+  await expect(frame.locator("img")).toHaveCount(0);
+});
+
 test("A4.4 — Map preview promotes only reviewed scene_photo media", async ({ page }) => {
   const bundleId = "scene-photo-map-fixture";
   await page.route(`**/api/v1/places/${MALL_ID}/reality/events**`, async (route) => {
