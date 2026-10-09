@@ -5,7 +5,7 @@
  * Overlay clicks intentionally do NOT close here — use PaModal when
  * dismissal-by-overlay-tap is wanted.
  */
-import { onBeforeUnmount, onMounted } from "vue";
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 
 const props = withDefaults(
   defineProps<{
@@ -22,9 +22,56 @@ const emit = defineEmits<{ close: [] }>();
 
 defineOptions({ name: "PaDialog" });
 
+const panel = ref<HTMLElement | null>(null);
+let returnFocus: HTMLElement | null = null;
+
+const FOCUSABLE =
+  'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+function focusInside() {
+  const target = panel.value?.querySelector<HTMLElement>(FOCUSABLE) ?? panel.value;
+  target?.focus();
+}
+
+watch(
+  () => props.open,
+  async (open) => {
+    if (open) {
+      returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      await nextTick();
+      focusInside();
+    } else if (returnFocus) {
+      await nextTick();
+      returnFocus.focus();
+      returnFocus = null;
+    }
+  },
+);
+
 /** Close on Escape whether focus is inside the dialog or still in the page. */
 function onWindowKey(e: KeyboardEvent) {
   if (props.open && e.key === "Escape") emit("close");
+}
+
+function keepFocusInside(e: KeyboardEvent) {
+  if (e.key !== "Tab" || !panel.value) return;
+  const items = [...panel.value.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(
+    (item) => item.offsetParent !== null,
+  );
+  if (!items.length) {
+    e.preventDefault();
+    panel.value.focus();
+    return;
+  }
+  const first = items[0]!;
+  const last = items[items.length - 1]!;
+  if (e.shiftKey && document.activeElement === first) {
+    e.preventDefault();
+    last.focus();
+  } else if (!e.shiftKey && document.activeElement === last) {
+    e.preventDefault();
+    first.focus();
+  }
 }
 
 onMounted(() => window.addEventListener("keydown", onWindowKey));
@@ -36,12 +83,15 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onWindowKey));
     <div v-if="open" class="pa-dialog" data-state="dialog">
       <div class="pa-dialog__overlay" aria-hidden="true"></div>
       <div
+        ref="panel"
         class="pa-dialog__panel"
         :class="`pa-dialog__panel--${width}`"
         role="dialog"
         aria-modal="true"
+        tabindex="-1"
         :aria-label="title ?? undefined"
         @keydown.esc.stop="emit('close')"
+        @keydown="keepFocusInside"
       >
         <header v-if="title || description" class="pa-dialog__header">
           <h2 v-if="title" class="pa-dialog__title">{{ title }}</h2>
