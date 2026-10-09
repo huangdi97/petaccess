@@ -301,6 +301,7 @@ function chooseMapResult(id: string) {
           @select="onSelectCluster"
           @zoom="zoomMap"
           @zoom-absolute="setAbsoluteZoom"
+          @pan="panMap"
           @error="handleRealMapError"
         />
         <MockMap
