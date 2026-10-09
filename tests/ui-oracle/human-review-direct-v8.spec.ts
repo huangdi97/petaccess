@@ -39,6 +39,7 @@ interface Shot {
   selectTestid?: { id: string; value: string };
   openDetailsTestid?: string;
   prepareOperatorPolicy?: boolean;
+  reviewReality?: boolean;
   submitReality?: boolean;
   page?: string;
   state?: string;
@@ -251,8 +252,9 @@ const SHOTS: Shot[] = [
       "entry-reality-staff_response",
       "entry-reality-animal_facility",
       "entry-quick",
+      "entry-next",
     ],
-    requiredText: ["提交内容会进入人工核验"],
+    requiredText: ["步骤 1 / 4", "提交内容会进入人工核验"],
     note: "Contribution entry has five consumer intents and no admin/schema language.",
   },
   {
@@ -261,11 +263,11 @@ const SHOTS: Shot[] = [
     route: `/#/contribute/${MALL_ID}`,
     auth: true,
     clickTestid: "entry-rule",
-    waitTestid: "rule-submit",
+    waitTestid: "rule-review-next",
     page: "contribution",
     state: "step-1",
     h1: "现场贡献",
-    requiredTestids: ["rule-submit"],
+    requiredTestids: ["rule-review-next"],
     requiredText: ["补充规则信息", "不会自动生成或发布规则"],
     note: "Rule lead is governed evidence/review, never Observation and never auto-published Rule.",
   },
@@ -275,11 +277,11 @@ const SHOTS: Shot[] = [
     route: `/#/contribute/${MALL_ID}`,
     auth: true,
     clickTestid: "entry-quick",
-    waitTestid: "quick-submit",
+    waitTestid: "quick-review-next",
     page: "contribution",
     state: "step-1",
     h1: "现场贡献",
-    requiredTestids: ["quick-options", "correction-unknown", "quick-submit"],
+    requiredTestids: ["quick-options", "correction-unknown", "quick-review-next"],
     requiredText: ["哪里需要纠正", "不知道正确值"],
     note: "Place correction is a structured, review-pending lead; uncertainty is a valid answer.",
   },
@@ -289,11 +291,11 @@ const SHOTS: Shot[] = [
     route: `/#/contribute/${MALL_ID}`,
     auth: true,
     clickTestid: "entry-reality-observed_presence",
-    waitTestid: "reality-submit",
+    waitTestid: "reality-review-next",
     page: "contribution",
     state: "step-2",
     h1: "现场贡献",
-    requiredTestids: ["reality-source-mode", "reality-submit"],
+    requiredTestids: ["reality-source-mode", "reality-review-next"],
     requiredText: ["这条信息来自哪里", "什么时候", "在哪里", "你看到了什么"],
     note: "Reality contribution is a structured transaction, not a generic comment form.",
   },
@@ -303,11 +305,11 @@ const SHOTS: Shot[] = [
     route: `/#/contribute/${MALL_ID}`,
     auth: true,
     clickTestid: "entry-reality-staff_response",
-    waitTestid: "reality-submit",
+    waitTestid: "reality-review-next",
     page: "contribution",
     state: "step-2",
     h1: "现场贡献",
-    requiredTestids: ["reality-staff-role", "reality-staff-awareness", "reality-submit"],
+    requiredTestids: ["reality-staff-role", "reality-staff-awareness", "reality-review-next"],
     requiredText: ["是哪类工作人员", "不收集工作人员姓名"],
     note: "Staff response captures role/action/awareness without identity and never becomes OperatorPolicy.",
   },
@@ -317,7 +319,7 @@ const SHOTS: Shot[] = [
     route: `/#/contribute/${MALL_ID}`,
     auth: true,
     clickTestid: "entry-reality-animal_facility",
-    waitTestid: "reality-submit",
+    waitTestid: "reality-review-next",
     page: "contribution",
     state: "step-2",
     h1: "现场贡献",
@@ -377,12 +379,26 @@ const SHOTS: Shot[] = [
     note: "Facility safety/use facts are progressive disclosure and never a safety score or entry-policy inference.",
   },
   {
+    name: "16f_contribution_review",
+    scope: "both",
+    route: `/#/contribute/${MALL_ID}`,
+    auth: true,
+    clickTestid: "entry-reality-observed_presence",
+    waitTestid: "reality-review-next",
+    reviewReality: true,
+    page: "contribution",
+    h1: "现场贡献",
+    requiredTestids: ["contribution-review", "reality-submit"],
+    requiredText: ["提交前核对", "步骤 3 / 4", "人工审核"],
+    note: "Step 3 is a real read-only review of the structured fact before any API write.",
+  },
+  {
     name: "16c_contribution_done",
     scope: "both",
     route: `/#/contribute/${MALL_ID}`,
     auth: true,
     clickTestid: "entry-reality-observed_presence",
-    waitTestid: "reality-submit",
+    waitTestid: "reality-review-next",
     submitReality: true,
     page: "contribution",
     state: "done",
@@ -710,6 +726,9 @@ test("direct-v8 canonical human-review packet", async ({ page, request }, testIn
 
     if (shot.clickTestid) {
       await page.getByTestId(shot.clickTestid).first().click();
+      if (shot.clickTestid.startsWith("entry-") && shot.clickTestid !== "entry-effort") {
+        await page.getByTestId("entry-next").click();
+      }
       if (shot.waitTestid) {
         await page.getByTestId(shot.waitTestid).waitFor({ state: "visible", timeout: 15000 });
       }
@@ -728,9 +747,17 @@ test("direct-v8 canonical human-review packet", async ({ page, request }, testIn
       await settle(page);
     }
 
+    if (shot.reviewReality) {
+      await page.getByTestId("reality-review-next").click();
+      await page.getByTestId("contribution-review").waitFor({ state: "visible", timeout: 15000 });
+      await settle(page);
+    }
+
     if (shot.submitReality) {
       const date = page.getByTestId("reality-date");
       if (await date.isVisible().catch(() => false)) await date.fill("2026-10-05");
+      await page.getByTestId("reality-review-next").click();
+      await page.getByTestId("contribution-review").waitFor({ state: "visible", timeout: 15000 });
       await page.getByTestId("reality-submit").click();
       await page.getByTestId("contribute-result").waitFor({ state: "visible", timeout: 15000 });
       await settle(page);
