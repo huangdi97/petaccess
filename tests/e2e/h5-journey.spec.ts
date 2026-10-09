@@ -62,6 +62,8 @@ test("mode switch re-evaluates: service dog → allowed", async ({ page }) => {
   // Query Context primitive: open the editor and switch to service-dog mode.
   await page.getByTestId("query-context-edit").click();
   await page.getByRole("button", { name: "服务犬通行" }).click();
+  await expect(page.getByTestId("query-service-role")).toBeVisible();
+  await page.getByTestId("query-context-done").click();
   // service-dog mode asks as a working (assistance) dog → place-level allowed
   await expect(page.getByTestId("inspector-verdict")).toHaveText("可以进入");
   await page.getByTestId("query-context-edit").click();
