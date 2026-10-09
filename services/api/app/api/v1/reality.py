@@ -916,7 +916,9 @@ def coexistence_snapshot(place_id: str, body: dict, db: Session = Depends(get_db
     zone: Zone | None = None
     if body.get("zone_id"):
         zone = db.get(Zone, body["zone_id"])
-        if zone is not None and zone.place_id != place_id:
+        if zone is None:
+            raise NotFound("区域不存在")
+        if zone.place_id != place_id:
             raise NotFound("区域不属于该场所")
 
     from app.api.v1.v05 import _load_layered_rules, _load_rule_facts
