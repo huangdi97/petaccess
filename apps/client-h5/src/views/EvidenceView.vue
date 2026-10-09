@@ -137,7 +137,12 @@ const reviewLines = computed(() =>
 const ruleEvidence = computed(() => snapshot.value?.evidence_summary.rule_evidence ?? []);
 const ruleEvidenceCount = computed(() => ruleEvidence.value.length);
 const realityEvidenceCount = computed(
-  () => snapshot.value?.evidence_summary.reality_evidence_count ?? events.value.length,
+  () => snapshot.value?.evidence_summary.reality_evidence_count ?? null,
+);
+const realityEvidenceCountLabel = computed(() =>
+  realityEvidenceCount.value == null
+    ? "现场依据数量待确认"
+    : `${realityEvidenceCount.value} 条现场依据`,
 );
 const provenanceCounts = computed(() => realityProvenanceCounts(events.value));
 const heroPublicMedia = computed(() => [...publicMediaByBundle.value.values()][0] ?? null);
@@ -318,7 +323,7 @@ const uiFixture = computed<string>(() =>
             </div>
           </div>
           <p class="muted evidence-head__count" data-testid="evidence-record-count">
-            {{ realityEvidenceCount }} 条现场依据 · {{ ruleEvidenceCount }} 条规则依据 ·
+            {{ realityEvidenceCountLabel }} · {{ ruleEvidenceCount }} 条规则依据 ·
             {{ sourceSummary }}
           </p>
           <p
