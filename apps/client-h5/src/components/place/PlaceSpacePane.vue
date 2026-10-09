@@ -14,13 +14,21 @@ import {
   zoneConsumerLine,
 } from "../../consumer/labels";
 import PlaceFacilitySection from "./PlaceFacilitySection.vue";
+import StatusBadge from "../StatusBadge.vue";
+import { answerConditions, answerStatusKey } from "../../answer";
+import type { ZoneDecisionState } from "../../composables/useZoneDecisions";
 
-defineProps<{
+const props = defineProps<{
   zones: Zone[];
+  zoneDecisions: Record<string, ZoneDecisionState>;
   extras: PlaceExtras | null;
   facilitySummary: FacilitySummaryItem[];
   events: RealityEventView[];
 }>();
+
+function zoneCondition(zoneId: string): string {
+  return answerConditions(props.zoneDecisions[zoneId]?.answer ?? null)[0] ?? "";
+}
 </script>
 
 <template>
@@ -28,14 +36,32 @@ defineProps<{
     <section class="place-section" data-testid="space-zones" data-ui="place-zones">
       <h2 class="place-section__title">空间与区域</h2>
       <p v-if="!zones.length" class="muted">暂无分区域信息。信息不足不代表允许或禁止。</p>
-      <div v-for="zone in zones" :key="zone.id" class="zone-row" data-ui="zone-row">
-        <span class="zone-row__name">{{ zoneConsumerLine(zone) }}</span>
+      <div
+        v-for="zone in zones"
+        :key="zone.id"
+        class="zone-row zone-row--decision"
+        data-ui="zone-row"
+      >
+        <span class="zone-row__name-stack">
+          <span class="zone-row__name">{{ zoneConsumerLine(zone) }}</span>
+          <span v-if="zoneCondition(zone.id)" class="muted zone-row__condition">
+            需满足：{{ zoneCondition(zone.id) }}
+          </span>
+        </span>
+        <span class="zone-row__decision">
+          <span v-if="zoneDecisions[zone.id]?.loading" class="muted">查询中…</span>
+          <span v-else-if="zoneDecisions[zone.id]?.error" class="muted">暂无法取得</span>
+          <StatusBadge
+            v-else
+            :semantic="answerStatusKey(zoneDecisions[zone.id]?.answer ?? null)"
+          />
+        </span>
         <RouterLink
           class="btn-inline"
           :to="{ name: 'reality-trace', params: { id: zone.place_id }, query: { zone: zone.id } }"
           :aria-label="`查看${zoneConsumerLine(zone)}的经核验现场记录`"
         >
-          查看此区域现场 →
+          查看现场 →
         </RouterLink>
       </div>
     </section>
