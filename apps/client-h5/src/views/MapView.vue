@@ -72,7 +72,7 @@ const useRealMap = computed(
 );
 
 const simplifiedBasemapCopy = computed(() => {
-  const compact = "示意底图 · 点位来自已收录坐标，位置未必经过实地核验。";
+  const compact = "简化空间底图（示意） · 点位来自已收录坐标，位置未必经过实地核验。";
   if (realMapError.value) {
     return isDesktop.value
       ? "真实底图暂不可用，显示简化空间底图（示意街道）；点位依据已收录坐标显示（位置未必经过实地核验），可拖动查询周边。"
