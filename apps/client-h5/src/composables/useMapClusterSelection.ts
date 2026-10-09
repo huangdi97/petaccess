@@ -6,17 +6,23 @@
  */
 import type { Ref } from "vue";
 import type {
+  CoexistenceSnapshot,
   MapCamera,
   MapCluster,
   PlaceSummary,
 } from "@petaccess/client-core";
-import type { PreviewState } from "./useMapWorkspace";
+
+interface ClusterPreviewState {
+  snapshot: CoexistenceSnapshot | null;
+  loading: boolean;
+  error: string;
+}
 
 interface ClusterSelectionDeps {
   camera: Ref<MapCamera>;
   places: Ref<PlaceSummary[]>;
   selected: Ref<PlaceSummary | null>;
-  preview: Ref<PreviewState>;
+  preview: Ref<ClusterPreviewState>;
   syncRoutePlace: (id: string | null) => void;
   selectPlace: (place: PlaceSummary) => Promise<void>;
   reload: () => Promise<void>;
