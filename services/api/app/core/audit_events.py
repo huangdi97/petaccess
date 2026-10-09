@@ -96,6 +96,10 @@ class AuditEvent(StrEnum):
     OPERATOR_QUESTIONNAIRE_SUBMIT = "operator_questionnaire.submit"
     BOUNDARY_PROFILE_UPSERT = "boundary_profile.upsert"
 
+    # --- privacy / account rights -------------------------------------------
+    PRIVACY_EXPORT = "privacy.export"
+    PRIVACY_ACCOUNT_DELETION_REQUEST = "privacy.account_deletion_request"
+
     # --- media ---------------------------------------------------------------
     MEDIA_UPLOAD = "media.upload"
     MEDIA_DELETE = "media.delete"
