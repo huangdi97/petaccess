@@ -66,7 +66,8 @@ const view = computed<PlaceViewKey>(() => {
     : "overview";
 });
 
-const { desktop: isDesktop } = useBreakpoint();
+const { breakpoint } = useBreakpoint();
+const isWideLayout = computed(() => breakpoint.value === "xl");
 const speciesLabel = computed(() => queryAnimalLabel());
 
 const place = ref<PlaceDetail | null>(null);
@@ -384,7 +385,7 @@ const placeFixture = computed<string>(() => {
     :data-ui-entity-id="placeId"
   >
     <QueryContextBar />
-    <div class="place-workspace__body" :class="{ 'place-workspace__body--split': isDesktop }">
+    <div class="place-workspace__body" :class="{ 'place-workspace__body--split': isWideLayout }">
       <!-- main dossier -->
       <main class="place-dossier" data-ui="place-dossier" aria-label="场所档案">
         <SkeletonList v-if="loading" :rows="4" />
@@ -471,7 +472,7 @@ const placeFixture = computed<string>(() => {
             :observation-count="presenceEventCount"
             :place-kind-label="placeTypeLabel(place.place_type)"
             :canonical-address="place.canonical_address"
-            :desktop="isDesktop"
+            :desktop="isWideLayout"
           />
           <section
             v-if="view === 'overview'"
@@ -560,7 +561,7 @@ const placeFixture = computed<string>(() => {
 
       <!-- sticky decision inspector（desktop only；§26 固定内容） -->
       <aside
-        v-if="isDesktop && place"
+        v-if="isWideLayout && place"
         class="place-inspector"
         data-ui="place-inspector"
         aria-label="当前决策"
@@ -595,7 +596,7 @@ const placeFixture = computed<string>(() => {
   margin: 0 auto;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
   .place-workspace__body--split {
     flex-direction: row;
     align-items: flex-start;
@@ -622,19 +623,14 @@ const placeFixture = computed<string>(() => {
 }
 
 @media (min-width: 768px) and (max-width: 1023px) {
-  .place-workspace__body--split {
-    gap: var(--pa-space-4);
-    padding: var(--pa-space-4);
-  }
-
-  .place-inspector {
-    flex-basis: 280px;
-    padding-left: var(--pa-space-4);
+  .place-workspace__body {
+    max-width: 760px;
+    padding: var(--pa-space-5);
   }
 
   .place-dossier__scene {
-    --scene-frame-compact-width: 120px;
-    --scene-frame-compact-height: 80px;
+    --scene-frame-compact-width: 144px;
+    --scene-frame-compact-height: 92px;
   }
 }
 
