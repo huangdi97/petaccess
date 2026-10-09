@@ -212,6 +212,9 @@ test("A1 — desktop 地图 split-view + 四 Lens + 详情面板", async ({ page
   for (const lens of ["rule", "reality", "facility", "divergence"]) {
     await expect(page.getByTestId(`map-lens-${lens}`)).toBeVisible();
   }
+  await expect(page.getByTestId("map-lens-semantics")).toContainText(
+    "不代表当前一定存在冲突",
+  );
   // Desktop auto-selects the first hit so the pane is populated, and the
   // same identity is visibly selected in the adjacent result list.
   await expect(page.getByTestId("place-preview")).toBeVisible();
