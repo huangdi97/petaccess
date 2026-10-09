@@ -1,12 +1,18 @@
 <script setup lang="ts">
+import { computed } from "vue";
+
 defineOptions({ name: "ContributionProgress" });
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     step: number;
     total?: number;
   }>(),
   { total: 4 },
+);
+
+const stageLabel = computed(
+  () => ["选择类型", "填写信息", "核对", "提交"][Math.max(0, Math.min(3, props.step - 1))],
 );
 </script>
 
@@ -17,16 +23,10 @@ withDefaults(
     :aria-label="`贡献进度：第 ${step} 步，共 ${total} 步`"
     data-ui="contribution-progress"
   >
-    <div
-      v-for="index in total"
-      :key="index"
-      class="contribution-progress__segment"
-      :class="{ 'contribution-progress__segment--active': index <= step }"
-      aria-hidden="true"
-    />
-    <span class="muted contribution-progress__label" data-testid="contribute-step">
-      步骤 {{ step }} / {{ total }}
+    <span class="contribution-progress__count" data-testid="contribute-step">
+      {{ step }} / {{ total }}
     </span>
+    <span class="contribution-progress__stage">{{ stageLabel }}</span>
   </div>
 </template>
 
@@ -34,24 +34,21 @@ withDefaults(
 .contribution-progress {
   display: flex;
   align-items: center;
-  gap: var(--pa-space-2);
+  gap: var(--pa-space-4);
+  min-height: var(--pa-size-control-sm);
 }
 
-.contribution-progress__segment {
-  flex: 1 1 0;
-  height: 4px;
-  border-radius: var(--pa-radius-pill);
-  background: var(--pa-color-border);
-}
-
-.contribution-progress__segment--active {
-  background: var(--pa-color-accent);
-}
-
-.contribution-progress__label {
-  margin-left: var(--pa-space-2);
-  white-space: nowrap;
+.contribution-progress__count {
+  font-family: var(--pa-font-family-numeric);
   font-size: var(--pa-font-size-sm);
+  font-weight: var(--pa-font-weight-650);
   letter-spacing: var(--pa-letter-spacing-wide);
+  color: var(--pa-color-text-primary);
+}
+
+.contribution-progress__stage {
+  font-size: var(--pa-font-size-sm);
+  font-weight: var(--pa-font-weight-600);
+  color: var(--pa-color-text-secondary);
 }
 </style>
