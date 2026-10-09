@@ -9,7 +9,7 @@ on:
       - feat/ui-product-craft-v7-human-review-final
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -37,21 +37,6 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: ESLint
         run: pnpm lint:fe
-      - name: Apply canonical Prettier formatting
-        run: pnpm exec prettier --write "apps/client-h5/src/**/*.{vue,ts}" "apps/admin/src/**/*.{vue,ts}" "docs/ui/contracts/json/*.json" "tests/ui-oracle/*.ts" "tests/e2e/consumer-contract-closure.spec.ts" "tests/e2e/contribute-wizard.spec.ts" "tests/e2e/reality-trace.spec.ts" "tests/e2e/navigation.spec.ts" "tests/e2e/map-passport.spec.ts" "tests/e2e/m3-consumer-core.spec.ts"
-      - name: Commit formatting on direct branch pushes
-        if: github.event_name == 'push' && github.actor != 'github-actions[bot]'
-        shell: bash
-        run: |
-          if git diff --quiet; then
-            echo "No formatting changes."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add apps/client-h5/src apps/admin/src docs/ui/contracts/json tests/ui-oracle tests/e2e/consumer-contract-closure.spec.ts tests/e2e/contribute-wizard.spec.ts tests/e2e/reality-trace.spec.ts tests/e2e/navigation.spec.ts tests/e2e/map-passport.spec.ts tests/e2e/m3-consumer-core.spec.ts
-          git commit -m "style(ui): apply canonical Prettier formatting"
-          git push origin HEAD:feat/ui-direct-craft-v8
       - name: Prettier check
         run: pnpm format:check:fe
       - name: client-h5 typecheck + build
