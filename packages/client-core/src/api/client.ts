@@ -439,6 +439,7 @@ export interface MediaMetaView {
 export interface PublicEvidenceMediaView {
   evidence_bundle_id: string;
   media_id: string;
+  purpose: MediaPurposeKey;
   url: string;
   mime_type: string;
   expires_in: number;
