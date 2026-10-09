@@ -110,14 +110,23 @@ function mergeCrowdedClusters(clusters: MapCluster[], zoom: number): MapCluster[
     const seed = pending.shift()!;
     const group = [seed];
 
-    for (let i = pending.length - 1; i >= 0; i -= 1) {
-      const candidate = pending[i]!;
-      if (
-        Math.abs(candidate.lng - seed.lng) <= lngThreshold &&
-        Math.abs(candidate.lat - seed.lat) <= latThreshold
-      ) {
+    // Connected-component grouping: if A collides with B and B collides with C,
+    // all three must share one visual anchor even when A and C are just beyond
+    // the direct threshold. Otherwise B's aggregate can still cover C.
+    let expanded = true;
+    while (expanded) {
+      expanded = false;
+      for (let i = pending.length - 1; i >= 0; i -= 1) {
+        const candidate = pending[i]!;
+        const collides = group.some(
+          (member) =>
+            Math.abs(candidate.lng - member.lng) <= lngThreshold &&
+            Math.abs(candidate.lat - member.lat) <= latThreshold,
+        );
+        if (!collides) continue;
         group.push(candidate);
         pending.splice(i, 1);
+        expanded = true;
       }
     }
 
