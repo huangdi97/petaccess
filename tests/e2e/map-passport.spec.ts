@@ -248,8 +248,10 @@ test("A1.1 — Map 内搜索保持 Spatial Workspace 并选择真实场所", asy
   await page.getByTestId("map-search-submit").click();
 
   await expect(page).toHaveURL(/#\/map/);
-  await expect(page.getByTestId(`place-${MALL_ID}`)).toBeVisible({ timeout: 15000 });
-  await expect(page.getByTestId(`place-${MALL_ID}`)).toHaveAttribute("data-selected", "true");
+  const selectedRow = page.getByTestId(`place-${MALL_ID}`);
+  await expect(selectedRow).toBeVisible({ timeout: 15000 });
+  await expect(selectedRow).toHaveAttribute("data-selected", "true");
+  await expect(selectedRow).toHaveJSProperty("tagName", "BUTTON");
   await expect(page.getByTestId("place-preview")).toContainText("云栖中心");
 });
 
