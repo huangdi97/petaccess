@@ -133,8 +133,11 @@ test("same-brand branches come back as two labelled rows, answer first", async (
   // resolver field or a verbose server summary.
   await expect(flagship.getByTestId("row-lens-headline")).toContainText("信息不足");
   await expect(branch.getByTestId("row-lens-headline")).toContainText("信息不足");
-  await expect(flagship).toContainText("信息不足不等于允许或禁止");
-  await expect(branch).toContainText("信息不足不等于允许或禁止");
+  // The compact Search row carries one controlled decision expression;
+  // the longer safety explanation lives at page/context level, not repeated
+  // in every row. UNKNOWN must still never become affirmative copy.
+  await expect(flagship).not.toContainText("可以进入");
+  await expect(branch).not.toContainText("可以进入");
   await expect(flagship).not.toContainText("condition_evaluation");
   await expect(branch).not.toContainText("condition_evaluation");
   await expect(page.getByTestId("result-rules")).toHaveCount(0);
