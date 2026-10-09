@@ -653,7 +653,7 @@ watch(currentQueryContext, () => {
                   {{ lensProjectionFor(p).realityLine }}
                 </p>
                 <p
-                  v-if="rowEvidenceMeta(p)"
+                  v-if="rowEvidenceMeta(p) && (!isDesktop || selectedId !== p.id)"
                   class="result-row__evidence-meta"
                   data-testid="result-evidence-meta"
                 >
