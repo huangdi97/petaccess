@@ -564,6 +564,46 @@ test("B1/B2 — Place Dossier 概览 + 规则/现场 view 关键段齐备", asyn
   ).toBeVisible();
 });
 
+test("B1.1 — temporary policies that participate in access decisions are visible with validity", async ({
+  page,
+}) => {
+  await page.route(`**/api/v1/places/${MALL_ID}/extras`, async (route) => {
+    const response = await route.fetch();
+    const payload = await response.json();
+    const now = Date.now();
+    await route.fulfill({
+      status: response.status(),
+      contentType: "application/json",
+      body: JSON.stringify({
+        ...payload,
+        event_policies: [
+          ...(payload.event_policies ?? []),
+          {
+            id: "temporary-policy-e2e",
+            zone_id: null,
+            name: "限时活动携宠安排",
+            animal_scope: "dog",
+            action: "enter",
+            effect: "conditional",
+            conditions: [{ condition_type: "leash_required", value_flag: true }],
+            effective_from: new Date(now - 86_400_000).toISOString(),
+            effective_to: new Date(now + 86_400_000).toISOString(),
+            source_id: "temporary-policy-source",
+          },
+        ],
+      }),
+    });
+  });
+
+  await page.goto(`${BASE}/#/place/${MALL_ID}?view=rules`);
+  const section = page.getByTestId("event-policies");
+  await expect(section).toBeVisible();
+  await expect(section).toContainText("限时活动携宠安排");
+  await expect(section).toContainText("当前有效");
+  await expect(section).toContainText("需牵引");
+  await expect(section).not.toContainText("leash_required");
+});
+
 test("B2.0 — Space view uses independent zone-scoped access decisions", async ({
   page,
   request,
