@@ -362,7 +362,7 @@ watch(visible, (list) => {
   previewEpoch.begin();
   selectedId.value = null;
   preview.value = { snapshot: null, loading: false, error: "" };
-          selectedSceneMedia.value = null;
+  selectedSceneMedia.value = null;
 });
 
 watch(currentQueryContext, () => {

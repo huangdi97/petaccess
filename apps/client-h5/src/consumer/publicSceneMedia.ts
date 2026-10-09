@@ -5,7 +5,11 @@
  * photos, signage, avatars and import documents are never promoted into venue
  * identity imagery. Missing/denied media is an ordinary empty result.
  */
-import { client, type PublicEvidenceMediaView, type RealityEventView } from "@petaccess/client-core";
+import {
+  client,
+  type PublicEvidenceMediaView,
+  type RealityEventView,
+} from "@petaccess/client-core";
 
 export async function firstApprovedSceneMedia(
   events: RealityEventView[],
