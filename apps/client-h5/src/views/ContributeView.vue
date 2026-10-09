@@ -232,6 +232,7 @@ const { desktop: isDesktop } = useBreakpoint();
               v-if="step === 'entry'"
               @select="step = $event"
               @reality="startReality"
+              @effort="step = 'effort'"
             />
             <ContributeQuickForm
               v-else-if="step === 'quick'"
