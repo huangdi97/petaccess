@@ -281,21 +281,24 @@ def test_watch_subscribe_unsubscribe(client, user):
     assert client.delete(f"/api/v1/watches/{wid}", headers=_auth(user["token"])).status_code == 204
 
 
-def test_ai_mock_endpoints(client, user):
-    # mock vision: deterministic suggestion, requires confirmation
+def test_ai_consumer_endpoints_fail_closed_without_real_provider(client, user):
+    # Consumer surfaces must never expose deterministic mock AI output as if
+    # it were a real pet-image or natural-language interpretation.
     r = client.post(
         "/api/v1/ai/pet-vision",
         files={"image": ("pet.png", b"\x89PNG fake-bytes", "image/png")},
         headers=_auth(user["token"]),
     )
-    assert r.status_code == 200
-    body = r.json()
-    assert body["requires_user_confirmation"] is True
-    assert body["species"] in ("dog", "cat")
+    assert r.status_code == 503
+    assert r.json()["error"]["code"] == "provider_unavailable"
+    assert "模拟" not in r.text
+
     r2 = client.post(
         "/api/v1/ai/parse-query",
         json={"text": "周六晚上带 9kg 柴犬去商场"},
         headers=_auth(user["token"]),
     )
-    assert r2.status_code == 200
-    assert r2.json()["animal"]["species"] == "dog"
+    assert r2.status_code == 503
+    assert r2.json()["error"]["code"] == "provider_unavailable"
+    assert "dog" not in r2.text
+
