@@ -105,9 +105,9 @@ const uiFixture = computed<string>(() => {
 const speciesLabel = computed(() => queryAnimalLabel());
 function lensProjectionFor(p: PlaceSummary) {
   const f = facts.value.get(p.id);
-  // Canonical Search is Reality-first by default. An explicit rules lens flips
-  // emphasis without changing the underlying Rule / Reality facts.
-  return lensProjection(lensKey.value || "presence", f?.answer, f?.reality, f?.snapshot);
+  // The un-lensed Search page answers the access question first. Explicit
+  // presence/indoor/dining lenses may promote Reality without changing facts.
+  return lensProjection(lensKey.value, f?.answer, f?.reality, f?.snapshot);
 }
 const preview = ref<{ snapshot: CoexistenceSnapshot | null; loading: boolean; error: string }>({
   snapshot: null,
