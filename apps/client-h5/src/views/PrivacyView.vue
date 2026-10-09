@@ -1,11 +1,18 @@
 <script setup lang="ts">
-// @ui-static PrivacyView — static privacy and local-data controls.
-import { computed, ref } from "vue";
-import { session, platformStorage } from "@petaccess/client-core";
+// PrivacyView — local controls + authenticated privacy-rights transactions.
+import { computed, onMounted, ref } from "vue";
+import { client, session, platformStorage } from "@petaccess/client-core";
 import AppShell from "../components/AppShell.vue";
 import StateMessage from "../components/StateMessage.vue";
+import { presentDescription } from "../errors";
 
 const cleared = ref(false);
+const exportBusy = ref(false);
+const deletionBusy = ref(false);
+const rightsError = ref("");
+const deletionStatus = ref<"none" | "submitted" | string>("none");
+const deletionRequestedAt = ref<string | null>(null);
+const confirmDeletion = ref(false);
 
 const inventory = [
   { item: "账号", stored: "保存", detail: "邮箱与显示名，用于登录和会话。" },
@@ -28,6 +35,59 @@ function clearLocalData() {
   session.logout();
   cleared.value = true;
 }
+
+async function loadRightsStatus() {
+  rightsError.value = "";
+  try {
+    await session.restore();
+    if (!session.signedIn) return;
+    const row = await client.accountDeletionRequest();
+    deletionStatus.value = row.status;
+    deletionRequestedAt.value = row.requested_at;
+  } catch (error) {
+    rightsError.value = presentDescription(error);
+  }
+}
+
+async function exportData() {
+  if (!session.signedIn || exportBusy.value) return;
+  exportBusy.value = true;
+  rightsError.value = "";
+  try {
+    const payload = await client.exportMyData();
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {
+      type: "application/json;charset=utf-8",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `petaccess-data-${new Date().toISOString().slice(0, 10)}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    rightsError.value = presentDescription(error);
+  } finally {
+    exportBusy.value = false;
+  }
+}
+
+async function submitDeletionRequest() {
+  if (!session.signedIn || deletionBusy.value) return;
+  deletionBusy.value = true;
+  rightsError.value = "";
+  try {
+    const row = await client.requestAccountDeletion();
+    deletionStatus.value = row.status;
+    deletionRequestedAt.value = row.requested_at;
+    confirmDeletion.value = false;
+  } catch (error) {
+    rightsError.value = presentDescription(error);
+  } finally {
+    deletionBusy.value = false;
+  }
+}
+
+onMounted(loadRightsStatus);
 </script>
 
 <template>
@@ -96,13 +156,72 @@ function clearLocalData() {
     <section class="privacy-section">
       <div class="privacy-section__lead">
         <h2>账号删除与数据导出</h2>
-        <p class="muted">未接入的服务端能力不会用本机按钮伪装完成。</p>
+        <p class="muted">服务端操作会返回真实状态，不用本机按钮伪装完成。</p>
       </div>
       <div class="privacy-section__body">
         <StateMessage
-          kind="PARTIAL"
-          description="当前开发预览版尚未接入应用内账号删除与数据导出申请。正式开放前会提供可核验的申请、处理状态与完成记录。"
+          v-if="!signedIn"
+          kind="PERMISSION_DENIED"
+          description="登录后可以获取自己的数据副本，或提交可追踪的账号删除申请。"
         />
+        <template v-else>
+          <p class="privacy-copy">
+            数据副本包含账号、宠物档案、共处边界、变化关注、贡献活动和上传媒体元数据；
+            不包含密码哈希、对象存储内部路径或其他用户的数据。
+          </p>
+          <div class="privacy-rights-actions">
+            <button
+              type="button"
+              class="privacy-action"
+              data-testid="privacy-export"
+              :disabled="exportBusy"
+              @click="exportData"
+            >
+              {{ exportBusy ? "正在生成…" : "下载我的数据副本（JSON）" }}
+            </button>
+          </div>
+
+          <div class="privacy-deletion">
+            <p v-if="deletionStatus === 'submitted'" class="privacy-feedback" data-testid="deletion-status">
+              删除申请已提交{{ deletionRequestedAt ? ` · ${deletionRequestedAt.slice(0, 10)}` : "" }}。
+              当前账号不会在申请提交瞬间被物理删除；需要长期保留的贡献与证据会先进行保留义务和去标识化审核。
+            </p>
+            <template v-else>
+              <button
+                v-if="!confirmDeletion"
+                type="button"
+                class="privacy-action privacy-action--danger"
+                data-testid="privacy-delete-request-open"
+                @click="confirmDeletion = true"
+              >
+                申请删除账号
+              </button>
+              <div v-else class="privacy-confirm" data-testid="privacy-delete-confirm">
+                <p>
+                  这会提交真实的账号删除申请，但不会谎称已经完成删除。审核处理前账号仍可使用；
+                  已发布贡献可能在去标识化后继续作为可追溯证据保留。
+                </p>
+                <div class="privacy-confirm__actions">
+                  <button
+                    type="button"
+                    class="privacy-action privacy-action--danger"
+                    data-testid="privacy-delete-request-submit"
+                    :disabled="deletionBusy"
+                    @click="submitDeletionRequest"
+                  >
+                    {{ deletionBusy ? "提交中…" : "确认提交删除申请" }}
+                  </button>
+                  <button type="button" class="privacy-action" @click="confirmDeletion = false">
+                    取消
+                  </button>
+                </div>
+              </div>
+            </template>
+          </div>
+          <p v-if="rightsError" class="privacy-feedback privacy-feedback--error" role="alert">
+            {{ rightsError }}
+          </p>
+        </template>
       </div>
     </section>
 
