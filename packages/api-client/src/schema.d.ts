@@ -2931,6 +2931,44 @@ export interface components {
          * @enum {string}
          */
         MandatoryLevel: "mandatory" | "advisory" | "operator_discretion";
+        /** MediaMetaOut */
+        MediaMetaOut: {
+            /** Id */
+            id: string;
+            /** Purpose */
+            purpose: string;
+            /** Privacy Class */
+            privacy_class: string;
+            /** Mime Type */
+            mime_type: string;
+            /** Byte Size */
+            byte_size: number;
+            /** Moderation Status */
+            moderation_status: string;
+            /** Ocr Text */
+            ocr_text?: string | null;
+            /** Ocr Rule Candidates */
+            ocr_rule_candidates?: {
+                [key: string]: unknown;
+            }[] | null;
+            /** Upload Status */
+            upload_status: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at?: string | null;
+            /**
+             * Deleted At
+             * Format: date-time
+             */
+            deleted_at?: string | null;
+        };
         /** MonitorIn */
         MonitorIn: {
             /** Source Id */
@@ -7031,9 +7069,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    }[];
+                    "application/json": components["schemas"]["MediaMetaOut"][];
                 };
             };
         };
@@ -7088,9 +7124,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["MediaMetaOut"];
                 };
             };
             /** @description Validation Error */
