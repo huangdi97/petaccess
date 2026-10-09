@@ -8,7 +8,11 @@
  * verification date is never presented as an observation time.
  */
 import { computed } from "vue";
-import type { RealityEventView, Zone } from "@petaccess/client-core";
+import type {
+  PublicEvidenceMediaView,
+  RealityEventView,
+  Zone,
+} from "@petaccess/client-core";
 import { type IconName } from "@petaccess/design-tokens";
 import PaIcon from "../ui/PaIcon.vue";
 import { zoneConsumerLine } from "../../consumer/labels";
@@ -25,6 +29,7 @@ const props = withDefaults(
   defineProps<{
     events: RealityEventView[];
     zones: Zone[];
+    publicMediaByBundle?: Map<string, PublicEvidenceMediaView>;
     placeId: string;
     limit?: number;
     signedIn?: boolean;
@@ -34,6 +39,7 @@ const props = withDefaults(
   }>(),
   {
     limit: 0,
+    publicMediaByBundle: () => new Map(),
     signedIn: false,
     busyEventId: null,
     emptyTitle: "暂无近期现场记录",
@@ -63,6 +69,16 @@ function effortRoute(event: RealityEventView) {
       ...(event.zone_id ? { zone: event.zone_id } : {}),
     },
   };
+}
+
+function publicMediaFor(event: RealityEventView): PublicEvidenceMediaView | null {
+  const bundleId = event.evidence_bundle_id;
+  if (!bundleId) return null;
+  // One released bundle represents one piece of media even when reviewers
+  // derive several facts from it. Keep the first visible event as its anchor.
+  const first = props.events.find((item) => item.evidence_bundle_id === bundleId);
+  if (first?.id !== event.id) return null;
+  return props.publicMediaByBundle.get(bundleId) ?? null;
 }
 
 function eventIcon(event: RealityEventView): IconName {
@@ -133,7 +149,8 @@ const visibleGroups = computed<EventGroup[]>(() => {
             <PaIcon :name="eventIcon(event)" size="xs" />
           </span>
           <div class="trace-row__content">
-            <p class="trace-row__event" data-testid="event-fact">
+            <div class="trace-row__text">
+              <p class="trace-row__event" data-testid="event-fact">
               {{ realityEventHeadline(event) }}
             </p>
             <p class="trace-row__location" data-testid="event-location">
@@ -189,6 +206,20 @@ const visibleGroups = computed<EventGroup[]>(() => {
                 </button>
               </template>
             </div>
+            </div>
+            <figure
+              v-if="publicMediaFor(event)"
+              class="trace-row__media"
+              data-testid="reality-public-media"
+            >
+              <img
+                :src="publicMediaFor(event)!.url"
+                alt="经审核允许公开展示的现场证据图片"
+                loading="lazy"
+                decoding="async"
+                referrerpolicy="no-referrer"
+              />
+            </figure>
           </div>
         </div>
       </template>
@@ -292,6 +323,31 @@ const visibleGroups = computed<EventGroup[]>(() => {
 
 .trace-row__content {
   min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--pa-space-4);
+  align-items: start;
+}
+
+.trace-row__text {
+  min-width: 0;
+}
+
+.trace-row__media {
+  width: 112px;
+  aspect-ratio: 4 / 3;
+  margin: 0;
+  overflow: hidden;
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: var(--pa-radius-control);
+  background: var(--pa-color-surface-muted);
+}
+
+.trace-row__media img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
 }
 
 .trace-row__event {
@@ -406,6 +462,15 @@ const visibleGroups = computed<EventGroup[]>(() => {
 
   .trace-row__event {
     font-size: var(--pa-font-size-base);
+  }
+
+  .trace-row__content {
+    grid-template-columns: minmax(0, 1fr) 84px;
+    gap: var(--pa-space-2);
+  }
+
+  .trace-row__media {
+    width: 84px;
   }
 
   .trace-row__meta {
