@@ -205,8 +205,10 @@ export async function enrichRows(list: PlaceSummary[], limit = 4): Promise<Map<s
  * presents the explicit Offline state. Success is stored; transport errors
  * never are.
  */
-export async function snapshotFor(placeId: string): Promise<SnapshotResult> {
-  const ctx = currentQueryContext();
+export async function snapshotFor(
+  placeId: string,
+  ctx: QueryContext = currentQueryContext(),
+): Promise<SnapshotResult> {
   const key = snapshotKey(placeId, ctx);
   const cached = cache.get<CoexistenceSnapshot>(key);
 
