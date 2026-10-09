@@ -161,6 +161,8 @@ test("A4.3b — broken reviewed scene URL falls back to an honest placeholder", 
   const frame = page.getByTestId("inspector-scene-media");
   await expect(frame).toBeVisible({ timeout: 15000 });
   await expect(frame).toContainText("暂无可公开场景图片", { timeout: 15000 });
+  await expect(frame).toContainText("抽象身份占位");
+  await expect(frame.locator('[data-ui="place-type-glyph"]')).toBeVisible();
   await expect(frame.locator("img")).toHaveCount(0);
 });
 
