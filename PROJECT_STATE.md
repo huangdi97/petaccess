@@ -1,9 +1,20 @@
+## Current phase（2026-10-09 — direct-v8 Consumer Source Closure / Final Runtime Evidence Pending）
+
+- 分支仍为 `feat/ui-direct-craft-v8`；PR #1 保持 **draft**；master / tag / Release 不动。
+- `UI_HUMAN_VISUAL_ACCEPTANCE = REJECTED_REOPENED / PENDING_REVIEW`：最新机器 Validation/Visual 只证明契约与截图任务可运行，不代表真人已经认可最终视觉。
+- Search 已收口消费者结论词汇：列表主结论只允许“可以进入 / 不可进入 / 有条件进入 / 信息不足 / 来源不一致待复核”；技术 resolver summary 不再直接进入主标题。768–1099px 按响应式契约使用 compact list-detail，禁止横向溢出。
+- Map 坚持真实空间语义：无坐标不画点；Place→Map 按精确 UUID 读取公开 PlaceSummary；缩放与 nearby 查询半径使用同一覆盖模型；fallback / real renderer 共用 Lens glyph 语义。数据库代表点仅称“已收录位置坐标”，**不等于位置经过实地核验**。
+- Place / Why / Contribution / Operator Claim 都采用 route-scoped request generation，迟到的旧场所响应不得覆盖当前场所；Zone 决策按 zone_id 单独请求，不复制场所级答案。
+- Reality / Evidence / Facility 保持 published reviewed facts SSOT；publication-only 设施线索不冒充当前设施事实；工作人员处理不自动生成 Operator Policy。
+- 最终停止线不变：同一最终 HEAD 的 Web HUMAN_REVIEW + Windows WebView2 + Android AVD 真实运行证据由用户人工确认前，不得 baseline promotion、master 集成、PR ready、tag 或 Release。
+- 每次判断机器状态必须重新读取当前 HEAD 的 Actions；历史 PASS、cancelled/action_required run 或旧 screenshot pack 都不能代表当前版本。
+
 ## Current phase（2026-10-07 — direct-v8 Source Closure / Final Runtime Evidence Pending）
 
 - 分支：`feat/ui-direct-craft-v8`；PR #1 继续 **draft**；base = `feat/ui-product-craft-v7-human-review-final`；master / tag / Release 不动。
 - `UI_HUMAN_VISUAL_ACCEPTANCE = REJECTED_REOPENED / PENDING_REVIEW`。用户对旧 runtime 的视觉否决继续有效，任何机器 Gate 都不能替代新的真人审图。
 - 本轮继续关闭“UI 文案正确、实际链路错误”的问题：Rule lead → RuleCandidate review；Place correction → moderator correction queue；Reality/Evidence → published v0.9 event stream；Map → PostGIS 真实点位 + 可选 Tencent GL；Search/Home 空态不再跳入无法新增 Place 的 Contribution 死循环。
-- Map provider 现在显式区分 `real` 与 `simplified`：无 Key / provider error 时必须展示“简化空间底图”说明，同时点位仍取已核验坐标；Human Review manifest 记录实际 renderer，禁止把 fallback 截图冒充真实地图。
+- Map provider 现在显式区分 `real` 与 `simplified`：无 Key / provider error 时必须展示“简化空间底图”说明，同时点位仍取已收录位置坐标（不等于位置经过实地核验）；Human Review manifest 记录实际 renderer，禁止把 fallback 截图冒充真实地图。
 - Consumer SSOT：Home / Search / Map / Place 使用同一 `CoexistenceSnapshot`；Rule、Presence、StaffResponse、Facility、Evidence、Dispute 的语义边界保持不变。
 - 当前 GitHub Actions 对此前 bot-authored PR runs 返回 `action_required` 且无 jobs；这不是 PASS。最新 source 需要本地 Agent 或获准的 Actions 对最终 HEAD 重跑 lint/typecheck/build/oracle/human-review。
 - authoritative Web 人审包仍应来自 `tests/ui-oracle/human-review-direct-v8.spec.ts` → `artifacts/ui-direct-v8/HUMAN_REVIEW/{desktop,mobile}/`；历史 `artifacts/ui-direct-craft-v8-local-acceptance/` 不得用于当前视觉签字。
