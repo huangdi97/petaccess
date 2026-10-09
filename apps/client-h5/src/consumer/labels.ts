@@ -199,8 +199,8 @@ export function coexistenceValueLabel(value: string | null | undefined): string 
  * strings. Only known consumer vocabulary is ever rendered; unknown tokens
  * remain truthful but opaque rather than leaking an internal value. */
 const FACILITY_SUPERVISION_LABELS: Record<string, string> = {
-  "有工作人员看护": "有工作人员看护",
-  "无人固定看护": "无人固定看护",
+  有工作人员看护: "有工作人员看护",
+  无人固定看护: "无人固定看护",
   staff_present: "有工作人员看护",
   supervised: "有工作人员看护",
   unattended: "无人固定看护",
