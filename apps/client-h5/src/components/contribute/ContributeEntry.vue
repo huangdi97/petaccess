@@ -1,5 +1,6 @@
 <script setup lang="ts">
 /** Contribution entry: five focused transaction launchers, not a generic form. */
+import { ref } from "vue";
 import { type IconName } from "@petaccess/design-tokens";
 import PaIcon from "../ui/PaIcon.vue";
 import ContributionProgress from "./ContributionProgress.vue";
@@ -79,7 +80,15 @@ const OPTIONS: EntryOption[] = [
   },
 ];
 
+const selected = ref<EntryOption | null>(null);
+
 function choose(opt: EntryOption) {
+  selected.value = opt;
+}
+
+function continueFlow() {
+  const opt = selected.value;
+  if (!opt) return;
   if (opt.kind === "reality") emit("reality", opt.key);
   else emit("select", opt.key);
 }
@@ -87,7 +96,7 @@ function choose(opt: EntryOption) {
 
 <template>
   <div data-ui="contribution-flow">
-    <ContributionProgress :step="1" :total="3" />
+    <ContributionProgress :step="1" :total="4" />
     <h2 class="entry-question" data-testid="contribute-question">你刚刚知道了什么？</h2>
     <p class="muted entry-hint">选择最接近的一项。</p>
     <ul class="entry-options" role="list">
@@ -95,6 +104,8 @@ function choose(opt: EntryOption) {
         <button
           type="button"
           class="entry-option__button"
+          :class="{ 'entry-option__button--selected': selected?.testid === opt.testid }"
+          :aria-pressed="selected?.testid === opt.testid"
           :data-testid="opt.testid"
           @click="choose(opt)"
         >
@@ -113,6 +124,15 @@ function choose(opt: EntryOption) {
         </button>
       </li>
     </ul>
+    <button
+      type="button"
+      class="entry-next primary"
+      data-testid="entry-next"
+      :disabled="!selected"
+      @click="continueFlow"
+    >
+      下一步 →
+    </button>
     <button
       type="button"
       class="entry-effort-link"
