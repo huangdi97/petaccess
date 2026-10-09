@@ -195,6 +195,7 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
         class="decision-inspector__scene"
         :src="sceneMediaUrl"
         :alt="`场所场景：${place.canonical_name}`"
+        :place-type="place.place_type"
         variant="hero"
         data-testid="inspector-scene-media"
       />
