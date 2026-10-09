@@ -148,8 +148,20 @@ export function useMapWorkspace() {
       }
       return;
     }
-    // zooming in splits the cluster; the user asked to see the members
-    camera.value = { ...camera.value, zoom: Math.min(18, camera.value.zoom + 1) };
+    // A cluster is a spatial target, not only a zoom button. Recenter the
+    // governed WGS84 query on the cluster and reload nearby facts; otherwise
+    // the canvas can move visually while the result pane still describes the
+    // previous query center.
+    selected.value = null;
+    syncRoutePlace(null);
+    preview.value = { snapshot: null, loading: false, error: "" };
+    camera.value = {
+      ...camera.value,
+      lat: cluster.lat,
+      lng: cluster.lng,
+      zoom: Math.min(18, camera.value.zoom + 1),
+    };
+    void load();
   }
 
   /** M4 A4 — the selected place is a route query so deep links and history work. */
