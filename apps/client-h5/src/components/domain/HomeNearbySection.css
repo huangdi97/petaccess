@@ -1,3 +1,7 @@
+.home-freshness {
+  margin: 0 0 var(--pa-space-2);
+}
+
 .home-row__open {
   display: block;
   width: 100%;
