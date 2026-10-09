@@ -31,6 +31,7 @@ const {
   clearLocalData,
   exportData,
   submitDeletionRequest,
+  loadRightsStatus,
 } = usePrivacyRights();
 </script>
 
@@ -104,6 +105,17 @@ const {
       </div>
       <div class="privacy-section__body">
         <SkeletonList v-if="loading" :rows="2" />
+        <StateMessage
+          v-else-if="rightsError && !signedIn"
+          kind="ERROR"
+          title="未能确认账号数据权限"
+          :description="rightsError"
+          data-testid="privacy-rights-load-error"
+        >
+          <template #action>
+            <button type="button" class="primary" @click="loadRightsStatus">重试</button>
+          </template>
+        </StateMessage>
         <StateMessage
           v-else-if="!signedIn"
           kind="PERMISSION_DENIED"
