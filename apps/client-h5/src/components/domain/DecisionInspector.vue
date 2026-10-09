@@ -32,6 +32,7 @@ import StatusBadge from "../StatusBadge.vue";
 import PlaceSceneFrame from "./PlaceSceneFrame.vue";
 import { coexistenceRealityLine, freshnessLineFor } from "../../consumer/rowView";
 import { querySummaryLabel } from "../../consumer/queryContext";
+import { publicSourceIssuer } from "../../consumer/sourcePrivacy";
 import { divergenceLabel } from "../../reality";
 const props = withDefaults(
   defineProps<{
@@ -108,7 +109,12 @@ const evidenceLine = computed(() => {
   const ev = props.answer?.evidence_state.rules[0];
   const parts: string[] = [];
   if (ev) {
-    parts.push(ev.issuer ?? SOURCE_RATE[ev.source_type ?? ""] ?? "来源待补充");
+    parts.push(
+      publicSourceIssuer(
+        ev.source_type,
+        ev.issuer ?? SOURCE_RATE[ev.source_type ?? ""] ?? null,
+      ),
+    );
     parts.push(
       props.latestVerifiedAt ? `规则核验 ${props.latestVerifiedAt}` : "规则核验时间待补充",
     );
