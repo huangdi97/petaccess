@@ -405,7 +405,11 @@ const placeFixture = computed<string>(() => {
           <!-- 1. Identity（§16 Overview 第一块） -->
           <header class="place-dossier__head" data-ui="place-identity">
             <div class="place-dossier__identity-row">
-              <figure v-if="placeSceneMedia" class="place-dossier__scene">
+              <figure
+                v-if="placeSceneMedia"
+                class="place-dossier__scene"
+                data-testid="place-scene-media"
+              >
                 <img
                   :src="placeSceneMedia.url"
                   alt="经审核允许公开展示的场所场景照片"
