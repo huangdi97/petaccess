@@ -75,7 +75,6 @@ test("dossier section navigation participates in browser history", async ({ page
   await expect(page.getByTestId("place-tab-overview")).toHaveAttribute("aria-current", "page");
 });
 
-
 test("why/explanation route cannot show a delayed previous-place answer", async ({ page }) => {
   await page.route(`**/api/v1/places/${CAFE_ID}/coexistence`, async (route) => {
     await new Promise((resolve) => setTimeout(resolve, 900));
