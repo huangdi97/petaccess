@@ -29,7 +29,12 @@ jobs:
           # Keep the formatter's scope identical to the PR format check.
           # This changes whitespace/formatting only; UI visual snapshots stay untouched.
           ruff format services/api services/worker tests scripts
-          prettier --write tests/e2e/contribute-wizard.spec.ts tests/e2e/contribute-route-race.spec.ts tools/ui-oracle/build-human-review-board.mjs
+          prettier --write \
+            tests/e2e/contribute-wizard.spec.ts \
+            tests/e2e/contribute-route-race.spec.ts \
+            tests/e2e/h5-journey.spec.ts \
+            tests/e2e/place-route-race.spec.ts \
+            tools/ui-oracle/build-human-review-board.mjs
       - name: Commit formatting
         run: |
           git config user.name "github-actions[bot]"
