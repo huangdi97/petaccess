@@ -391,6 +391,38 @@ test("B4.3 — Place identity renders and map CTA reflects coordinate availabili
   });
 });
 
+test("B3.1 — Evidence renders only media explicitly released by the public-media gate", async ({
+  page,
+}) => {
+  let released = false;
+  await page.route("**/api/v1/evidence-bundles/*/public-media", async (route) => {
+    const bundleId = route.request().url().split("/evidence-bundles/")[1]?.split("/")[0] ?? "";
+    if (released) {
+      await route.fulfill({ status: 404, json: { detail: "not displayable" } });
+      return;
+    }
+    released = true;
+    await route.fulfill({
+      status: 200,
+      json: {
+        evidence_bundle_id: bundleId,
+        media_id: "public-evidence-test",
+        url: "data:image/gif;base64,R0lGODlhAQABAAAAACw=",
+        mime_type: "image/gif",
+        expires_in: 300,
+      },
+    });
+  });
+
+  await page.goto(`${BASE}/#/place/${MALL_ID}/evidence`);
+  const media = page.getByTestId("public-evidence-media");
+  await expect(media).toHaveCount(1, { timeout: 15000 });
+  await expect(media.locator("img")).toHaveAttribute(
+    "alt",
+    "经审核允许公开展示的现场证据图片",
+  );
+});
+
 test("B5 — Search DecisionInspector 查看完整场所 → Place Passport", async ({ page }) => {
   // Search the ready mall fixture: the cafe deep-link lands on the §15 Unknown
   // Overview, which has no dossier answer block.
