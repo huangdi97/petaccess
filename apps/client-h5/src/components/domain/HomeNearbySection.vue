@@ -72,9 +72,8 @@ const freshness = computed(() =>
       <template v-else>
         <p
           v-if="freshness"
-          class="muted"
+          class="muted home-freshness"
           data-testid="home-freshness"
-          style="margin: 0 0 var(--pa-space-2)"
         >
           {{ freshness }}
         </p>
