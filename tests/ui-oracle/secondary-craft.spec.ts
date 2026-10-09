@@ -63,7 +63,8 @@ test("secondary consumer pages inherit the final visual language", async ({
 }, testInfo) => {
   await mkdir(OUT, { recursive: true });
   const mobile = testInfo.project.name === "oracle-mobile";
-  const suffix = mobile ? "mobile" : "desktop";
+  const tablet = testInfo.project.name === "oracle-tablet";
+  const suffix = mobile ? "mobile" : tablet ? "tablet" : "desktop";
 
   await setToken(page, null);
   await capture(page, `onboarding-${suffix}`, "/#/onboarding");
