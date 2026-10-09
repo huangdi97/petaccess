@@ -801,6 +801,25 @@ const placeFixture = computed<string>(() => {
 
   .place-dossier__actions {
     gap: var(--pa-space-3);
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .place-dossier__actions::-webkit-scrollbar {
+    display: none;
+  }
+
+  .place-dossier__actions .btn-inline {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  .place-dossier__meta {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .place-dossier__watch {
