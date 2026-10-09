@@ -161,9 +161,32 @@ const featuredSceneMedia = usePlaceSceneMedia(computed(() => verified.value[0]?.
 }
 
 .page--home {
+  position: relative;
   max-width: 920px;
   margin: 0 auto;
   padding-top: var(--pa-space-6);
+  isolation: isolate;
+}
+
+/* Quiet spatial texture: purely decorative orientation cue, not a map or
+   statement about the current place. It restores the approved design's
+   spatial character without inventing geography. */
+.page--home::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  right: -6%;
+  width: 48%;
+  height: 188px;
+  pointer-events: none;
+  opacity: 0.7;
+  background:
+    linear-gradient(128deg, transparent 0 44%, var(--pa-color-border-subtle) 44% 45%, transparent 45% 100%),
+    linear-gradient(18deg, transparent 0 58%, var(--pa-color-border-subtle) 58% 59%, transparent 59% 100%),
+    radial-gradient(circle at 72% 42%, var(--pa-color-accent-weak) 0 8%, transparent 8.5%),
+    linear-gradient(90deg, transparent 0 24%, var(--pa-color-surface-muted) 24% 74%, transparent 74%);
+  mask-image: linear-gradient(to left, black 0 70%, transparent 100%);
 }
 
 .home-topline {
@@ -301,6 +324,13 @@ const featuredSceneMedia = usePlaceSceneMedia(computed(() => verified.value[0]?.
 @media (max-width: 767px) {
   .page--home {
     padding-top: var(--pa-space-4);
+  }
+
+  .page--home::before {
+    width: 72%;
+    height: 132px;
+    right: -12%;
+    opacity: 0.45;
   }
 
   .home-intro h1 {
