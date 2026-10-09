@@ -145,6 +145,31 @@ watch(() => props.signedIn, load, { immediate: true });
 </template>
 
 <style scoped>
+.privacy-section {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: var(--pa-space-7);
+  padding: var(--pa-space-6) 0;
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.privacy-section__lead h2 {
+  margin: 0;
+  font-size: var(--pa-font-size-18);
+  font-weight: var(--pa-font-weight-650);
+  color: var(--pa-color-text-primary);
+}
+
+.privacy-section__lead p {
+  margin: var(--pa-space-2) 0 0;
+  font-size: var(--pa-font-size-md);
+  line-height: var(--pa-line-height-20);
+}
+
+.privacy-section__body {
+  min-width: 0;
+}
+
 .privacy-media__empty,
 .privacy-media__note,
 .privacy-media__error {
@@ -218,6 +243,12 @@ watch(() => props.signedIn, load, { immediate: true });
 }
 
 @media (max-width: 767px) {
+  .privacy-section {
+    grid-template-columns: 1fr;
+    gap: var(--pa-space-4);
+    padding: var(--pa-space-5) 0;
+  }
+
   .privacy-media__row {
     align-items: flex-start;
     flex-direction: column;
