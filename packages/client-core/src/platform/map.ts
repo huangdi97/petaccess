@@ -44,6 +44,23 @@ export interface MapCamera {
   zoom: number;
 }
 
+/** Spatial query/renderer bounds.
+ *
+ * The nearby API caps radius at 50 km. Zooming farther out than level 11
+ * would make the visible canvas materially larger than the data query and
+ * falsely imply viewport coverage. Keep both renderers and the query model
+ * on the same truthful range.
+ */
+export const MAP_MIN_ZOOM = 11;
+export const MAP_MAX_ZOOM = 18;
+
+/** Approximate radius needed to cover the provider-neutral 0.08° span used
+ * at zoom 14. Every zoom-out doubles the visible span; clamp to the API cap. */
+export function mapQueryRadiusForZoom(zoom: number): number {
+  const bounded = Math.max(MAP_MIN_ZOOM, Math.min(MAP_MAX_ZOOM, zoom));
+  return Math.min(50_000, Math.round(5_000 * Math.pow(2, 14 - bounded)));
+}
+
 export interface MapAdapter {
   readonly provider: string;
   render(el: unknown, camera: MapCamera): void;
