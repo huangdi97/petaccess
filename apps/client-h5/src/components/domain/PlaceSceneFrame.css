@@ -125,7 +125,7 @@
 
 .scene-frame--hero {
   width: 100%;
-  max-width: 620px;
+  max-width: none;
   min-height: 132px;
   border-radius: var(--pa-radius-control);
 }
@@ -135,12 +135,12 @@
 }
 
 .scene-frame--hero.scene-frame--empty {
-  max-width: 520px;
+  max-width: none;
   min-height: 0;
 }
 
 .scene-frame--hero.scene-frame--empty .scene-frame__empty {
-  aspect-ratio: 16 / 4.5;
+  aspect-ratio: 16 / 6;
 }
 
 .scene-frame--compact {
