@@ -1047,6 +1047,9 @@ watch(currentQueryContext, () => {
   font-weight: var(--pa-font-weight-medium);
   line-height: var(--pa-line-height-tight);
   color: var(--pa-color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .result-row__decision--lead {
@@ -1065,6 +1068,9 @@ watch(currentQueryContext, () => {
   font-size: var(--pa-font-size-md);
   line-height: var(--pa-line-height-20);
   color: var(--pa-color-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .result-row__reality-line {
@@ -1072,6 +1078,9 @@ watch(currentQueryContext, () => {
   font-size: var(--pa-font-size-14);
   line-height: var(--pa-line-height-20);
   color: var(--pa-color-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .result-row__reality-line--lead {
@@ -1086,6 +1095,9 @@ watch(currentQueryContext, () => {
   font-size: var(--pa-font-size-md);
   line-height: var(--pa-line-height-20);
   color: var(--pa-color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .result-row__error {
