@@ -204,6 +204,7 @@ function toggleFilter(key: string) {
             :key="p.id"
             class="map-place-row"
             :class="{ 'map-place-row--selected': props.selectedId === p.id }"
+            :data-selected="props.selectedId === p.id ? 'true' : undefined"
           >
             <button
               type="button"
