@@ -564,7 +564,16 @@ watch(currentQueryContext, () => {
                      Keep it divider-led, never a card wall. -->
                 <div class="result-row__head">
                   <div class="result-row__identity-wrap">
-                    <PlaceTypeGlyph :place-type="p.place_type" size="lg" />
+                    <img
+                      v-if="selectedId === p.id && selectedSceneMedia"
+                      class="result-row__scene"
+                      :src="selectedSceneMedia.url"
+                      :alt="`场所场景：${p.canonical_name}`"
+                      loading="lazy"
+                      decoding="async"
+                      referrerpolicy="no-referrer"
+                    />
+                    <PlaceTypeGlyph v-else :place-type="p.place_type" size="lg" />
                     <div class="result-row__identity">
                       <strong class="result-row__name">{{ p.canonical_name }}</strong>
                       <span class="muted result-row__meta">
@@ -979,6 +988,16 @@ watch(currentQueryContext, () => {
 
 .result-row__identity {
   min-width: 0;
+}
+
+.result-row__scene {
+  width: 56px;
+  height: 44px;
+  flex: 0 0 auto;
+  object-fit: cover;
+  border-radius: var(--pa-radius-control);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  background: var(--pa-color-surface-muted);
 }
 
 .result-row__head-right {
