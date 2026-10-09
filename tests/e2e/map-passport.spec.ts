@@ -561,11 +561,11 @@ test("B4.3 — Place identity renders and map CTA reflects coordinate availabili
   page,
 }) => {
   await page.goto(`${BASE}/#/place/${MALL_ID}`);
-  await expect(page.locator('[data-ui="place-identity"] [data-ui="place-scene-frame"]')).toBeVisible(
-    {
-      timeout: 15000,
-    },
-  );
+  await expect(
+    page.locator('[data-ui="place-identity"] [data-ui="place-scene-frame"]'),
+  ).toBeVisible({
+    timeout: 15000,
+  });
   // Identity uses reviewed scene media when available, otherwise the explicit
   // no-public-scene state. It must never fall back to synthetic venue imagery.
   await expect(
