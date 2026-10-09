@@ -48,6 +48,21 @@ test("A1/A4 — 向导入口与现场记录表单渲染（已登录）", async (
   await expect(page.getByTestId("reality-date")).toBeVisible();
 });
 
+test("A1.-1 — negative observation is reachable without becoming a sixth primary fact type", async ({
+  page,
+  request,
+}) => {
+  const token = await signIn(request);
+  await page.addInitScript((t) => localStorage.setItem("pa_token", t), token);
+  await page.goto(`${BASE}/#/contribute/${MALL_ID}`, { waitUntil: "load" });
+  await expect(page.getByTestId("entry-effort")).toBeVisible({ timeout: 15000 });
+  await expect(page.locator("[data-ui-count='choice-count']")).toHaveText("5");
+
+  await page.getByTestId("entry-effort").click();
+  await expect(page.getByTestId("effort-duration")).toBeVisible();
+  await expect(page.getByText(/不代表这里没有动物/)).toBeVisible();
+});
+
 test("A1.0 — contribution header never invents a default public-area scope", async ({
   page,
   request,
