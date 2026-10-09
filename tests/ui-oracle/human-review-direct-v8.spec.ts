@@ -387,6 +387,7 @@ const SHOTS: Shot[] = [
     waitTestid: "reality-review-next",
     reviewReality: true,
     page: "contribution",
+    state: "review",
     h1: "现场贡献",
     requiredTestids: ["contribution-review", "reality-submit"],
     requiredText: ["提交前核对", "3 / 4", "人工审核"],
