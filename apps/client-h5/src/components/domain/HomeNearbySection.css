@@ -46,12 +46,10 @@
 }
 
 .home-row__scene {
-  display: block;
-  width: 112px;
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
-  border-radius: var(--pa-radius-control);
-  background: var(--pa-color-surface-muted);
+  --scene-frame-compact-width: 112px;
+  --scene-frame-compact-height: 84px;
+  --scene-frame-compact-mobile-width: 88px;
+  --scene-frame-compact-mobile-height: 66px;
 }
 
 .home-row:last-child {
@@ -89,9 +87,6 @@
     gap: 0 var(--pa-space-3);
   }
 
-  .home-row__scene {
-    width: 88px;
-  }
 }
 
 .home-section-title {
