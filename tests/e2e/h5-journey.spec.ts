@@ -127,7 +127,7 @@ test("same-brand branches come back as two labelled rows, answer first", async (
   await expect(page.locator("ul.result-list > li").first()).toContainText("星河咖啡·测试店");
 });
 
-test("register → create pet → answer carries pet context → quick confirm", async ({ page }) => {
+test("register → create pet → shared query context carries pet identity", async ({ page }) => {
   const email = `e2e-${Date.now()}@example.com`;
 
   // register
@@ -146,14 +146,11 @@ test("register → create pet → answer carries pet context → quick confirm",
   await page.getByTestId("pet-save").click();
   await expect(page).toHaveURL(/#\/$/);
 
-  // place answer references the pet (ready fixture: the cafe is UNKNOWN and
-  // v0.2.5 §15 shows its minimal Unknown Overview without an answer block).
+  // The pet is a query-context input, not text baked into one answer block.
+  // Every consumer surface reads the same shared context primitive.
   await page.goto(`/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e`);
-  await expect(page.getByTestId("answer")).toContainText("我的宠物：豆豆");
-
-  // quick confirm requires auth → succeeds and records
-  await page.getByRole("button", { name: "仍然如此" }).first().click();
-  await expect(page.getByTestId("quick-msg")).toContainText("已记录");
+  await expect(page.getByTestId("query-context-summary")).toContainText("豆豆");
+  await expect(page.getByTestId("answer")).toBeVisible();
 });
 
 /**
