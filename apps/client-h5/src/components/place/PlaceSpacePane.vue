@@ -48,7 +48,7 @@ function zoneCondition(zoneId: string): string {
             需满足：{{ zoneCondition(zone.id) }}
           </span>
         </span>
-        <span class="zone-row__decision">
+        <span class="zone-row__decision" :data-testid="`zone-decision-${zone.id}`">
           <span v-if="zoneDecisions[zone.id]?.loading" class="muted">查询中…</span>
           <span v-else-if="zoneDecisions[zone.id]?.error" class="muted">暂无法取得</span>
           <StatusBadge
