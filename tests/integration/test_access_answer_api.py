@@ -201,3 +201,32 @@ def test_zone_from_another_place_is_refused(client, scene, moderator):
     )
     # Answering would resolve this place's rules against another place's zone.
     assert r.status_code == 404
+
+
+def test_coexistence_snapshot_rejects_unknown_zone(client, scene):
+    missing_zone = str(uuid.uuid4())
+    r = client.post(
+        f"/api/v1/places/{scene['place_id']}/coexistence",
+        json={"animal": "dog", "service_role": "none", "action": "enter", "zone_id": missing_zone},
+    )
+    assert r.status_code == 404
+    assert "区域不存在" in r.text
+
+
+def test_coexistence_snapshot_rejects_zone_from_another_place(client, scene, moderator):
+    other = client.post(
+        "/api/v1/places",
+        json={"canonical_name": f"共处快照别处{uuid.uuid4().hex[:6]}", "place_type": "park"},
+        headers=_auth(moderator),
+    ).json()["id"]
+    foreign_zone = client.post(
+        "/api/v1/zones",
+        json={"place_id": other, "name": "外部区域", "zone_type": "area"},
+        headers=_auth(moderator),
+    ).json()["id"]
+    r = client.post(
+        f"/api/v1/places/{scene['place_id']}/coexistence",
+        json={"animal": "dog", "service_role": "none", "action": "enter", "zone_id": foreign_zone},
+    )
+    assert r.status_code == 404
+    assert "区域不属于该场所" in r.text
