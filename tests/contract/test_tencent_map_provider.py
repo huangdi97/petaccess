@@ -202,7 +202,9 @@ def test_translate_coordinates_uses_official_gps_input_and_preserves_order():
 
 
 def test_normalize_render_coordinates_returns_wgs84_query_center_without_http():
-    provider = make_provider(lambda req: pytest.fail("normalization must not call Tencent WebService"))
+    provider = make_provider(
+        lambda req: pytest.fail("normalization must not call Tencent WebService")
+    )
     # A representative Tencent/GCJ-02 point around the seeded Shanghai center.
     normalized = provider.normalize_render_coordinates([(31.22755, 121.46945)])
     assert len(normalized) == 1
