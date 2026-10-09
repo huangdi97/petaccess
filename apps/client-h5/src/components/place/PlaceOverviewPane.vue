@@ -235,10 +235,7 @@ const divergenceLine = computed(() => {
       <span class="zone-row__decision">
         <span v-if="zoneDecisions[z.id]?.loading" class="muted">查询中…</span>
         <span v-else-if="zoneDecisions[z.id]?.error" class="muted">暂无法取得</span>
-        <StatusBadge
-          v-else
-          :semantic="answerStatusKey(zoneDecisions[z.id]?.answer ?? null)"
-        />
+        <StatusBadge v-else :semantic="answerStatusKey(zoneDecisions[z.id]?.answer ?? null)" />
       </span>
       <span class="zone-row__hint">查看空间 →</span>
     </RouterLink>

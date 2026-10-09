@@ -51,10 +51,7 @@ function zoneCondition(zoneId: string): string {
         <span class="zone-row__decision" :data-testid="`zone-decision-${zone.id}`">
           <span v-if="zoneDecisions[zone.id]?.loading" class="muted">查询中…</span>
           <span v-else-if="zoneDecisions[zone.id]?.error" class="muted">暂无法取得</span>
-          <StatusBadge
-            v-else
-            :semantic="answerStatusKey(zoneDecisions[zone.id]?.answer ?? null)"
-          />
+          <StatusBadge v-else :semantic="answerStatusKey(zoneDecisions[zone.id]?.answer ?? null)" />
         </span>
         <RouterLink
           class="btn-inline"
