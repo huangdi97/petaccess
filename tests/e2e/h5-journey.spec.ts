@@ -174,7 +174,9 @@ test("ordinary-user rule provenance stays de-identified in consumer Search", asy
   await expect(page.locator("body")).not.toContainText(privateIssuer);
 });
 
-test("register → create pet → shared query context carries pet identity", async ({ page }) => {
+test("register → create pet → shared query context carries pet identity", async ({
+  page,
+}) => {
   const email = `e2e-${Date.now()}@example.com`;
 
   // register
@@ -200,7 +202,10 @@ test("register → create pet → shared query context carries pet identity", as
   await expect(page.getByTestId("answer")).toBeVisible();
 });
 
-test("privacy media management reflects real uploader-owned files", async ({ page, request }) => {
+test("privacy media management reflects real uploader-owned files", async ({
+  page,
+  request,
+}) => {
   const email = `e2e-media-${Date.now()}@example.com`;
 
   await page.goto("/#/onboarding");
