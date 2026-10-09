@@ -110,10 +110,7 @@ const evidenceLine = computed(() => {
   const parts: string[] = [];
   if (ev) {
     parts.push(
-      publicSourceIssuer(
-        ev.source_type,
-        ev.issuer ?? SOURCE_RATE[ev.source_type ?? ""] ?? null,
-      ),
+      publicSourceIssuer(ev.source_type, ev.issuer ?? SOURCE_RATE[ev.source_type ?? ""] ?? null),
     );
     parts.push(
       props.latestVerifiedAt ? `规则核验 ${props.latestVerifiedAt}` : "规则核验时间待补充",
