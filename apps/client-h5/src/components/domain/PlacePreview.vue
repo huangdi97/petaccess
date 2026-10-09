@@ -32,8 +32,17 @@ const props = withDefaults(
     error?: string;
     mapLensName?: string;
     mapLensLabel?: string;
+    sceneMediaUrl?: string | null;
   }>(),
-  { status: null, snapshot: null, loading: false, error: "", mapLensName: "", mapLensLabel: "" },
+  {
+    status: null,
+    snapshot: null,
+    loading: false,
+    error: "",
+    mapLensName: "",
+    mapLensLabel: "",
+    sceneMediaUrl: null,
+  },
 );
 
 const answer = computed(() => props.snapshot?.rule_answer ?? null);
@@ -64,6 +73,16 @@ const metaLine = computed(() => {
           <p class="place-preview__muted">{{ metaLine }}</p>
         </div>
       </header>
+
+      <img
+        v-if="sceneMediaUrl"
+        class="place-preview__scene"
+        :src="sceneMediaUrl"
+        :alt="`场所场景：${place.canonical_name}`"
+        loading="lazy"
+        decoding="async"
+        referrerpolicy="no-referrer"
+      />
 
       <div
         v-if="mapLensLabel"
