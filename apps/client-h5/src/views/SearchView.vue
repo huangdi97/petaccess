@@ -50,6 +50,7 @@ import { queryAnimalLabel } from "../consumer/queryContext";
 import { useBreakpoint } from "../composables/useBreakpoint";
 import { useOnline } from "../composables/useOnline";
 import { usePlaceSceneMedia } from "../composables/usePlaceSceneMedia";
+import { publicSourceIssuer } from "../consumer/sourcePrivacy";
 import { presentDescription } from "../errors";
 import {
   createEpoch,
@@ -169,7 +170,8 @@ function rowEvidenceMeta(p: PlaceSummary): string {
 
   const rules = row?.snapshot?.evidence_summary.rule_evidence ?? [];
   if (!rules.length) return [safety, "依据待补充"].filter(Boolean).join(" · ");
-  const issuer = rules[0]?.issuer;
+  const primary = rules[0];
+  const issuer = primary ? publicSourceIssuer(primary.source_type, primary.issuer) : "";
   const evidence = issuer ? `${rules.length} 条规则依据 · ${issuer}` : `${rules.length} 条规则依据`;
   return [safety, evidence].filter(Boolean).join(" · ");
 }
