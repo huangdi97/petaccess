@@ -451,6 +451,31 @@ test("A1.5 — dragging the fallback map requests places at the new center", asy
   await expect(page.getByTestId("map-provider-fallback")).toContainText("示意底图");
 });
 
+test("A1.6 — panning away clears the previous deep-linked place before re-query", async ({
+  page,
+}) => {
+  await page.goto(`${BASE}/#/map?place=${MALL_ID}`);
+  await expect(page.getByTestId("place-preview")).toContainText("云栖中心", {
+    timeout: 15000,
+  });
+
+  const surface = page.getByTestId("map-surface");
+  await expect(surface).toBeVisible();
+  const box = await surface.boundingBox();
+  expect(box).not.toBeNull();
+  if (!box) return;
+
+  const x = box.x + box.width * 0.45;
+  const y = box.y + box.height * 0.3;
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x + 120, y + 25, { steps: 5 });
+  await page.mouse.up();
+
+  await expect(page).toHaveURL(/#\/map(?!\?place=)/);
+  await expect(page.getByTestId("preview-empty")).toBeVisible();
+});
+
 test("A2 — map 错误统一呈现，不泄漏内部字样", async ({ page }) => {
   await page.route("**/api/v1/places/nearby**", (route) =>
     route.fulfill({
