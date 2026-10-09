@@ -86,6 +86,62 @@ export interface MapCluster {
  * Both routes merge near-overlapping anchors without fabricating geometry.
  * The grouping is deterministic and provider-independent.
  */
+/**
+ * Merge only anchors that would visually collide at the current zoom.
+ *
+ * This is presentation aggregation, not a geographic inference: every output
+ * center is a count-weighted average of real member coordinates and every
+ * member ID is preserved. Mixed semantic states collapse to UNKNOWN so a
+ * cluster never implies one shared access outcome.
+ */
+function mergeCrowdedClusters(clusters: MapCluster[], zoom: number): MapCluster[] {
+  if (clusters.length < 2) return clusters;
+
+  // The fallback canvas spans roughly 0.08° at z14. These thresholds represent
+  // a ~24 px collision envelope on a typical desktop map and halve each zoom.
+  const scale = Math.pow(2, 14 - zoom);
+  const lngThreshold = 0.0024 * scale;
+  const latThreshold = 0.0015 * scale;
+
+  const pending = [...clusters].sort((a, b) => a.id.localeCompare(b.id));
+  const merged: MapCluster[] = [];
+
+  while (pending.length) {
+    const seed = pending.shift()!;
+    const group = [seed];
+
+    for (let i = pending.length - 1; i >= 0; i -= 1) {
+      const candidate = pending[i]!;
+      if (
+        Math.abs(candidate.lng - seed.lng) <= lngThreshold &&
+        Math.abs(candidate.lat - seed.lat) <= latThreshold
+      ) {
+        group.push(candidate);
+        pending.splice(i, 1);
+      }
+    }
+
+    if (group.length === 1) {
+      merged.push(seed);
+      continue;
+    }
+
+    const totalCount = group.reduce((sum, item) => sum + item.count, 0);
+    const memberIds = group.flatMap((item) => item.memberIds).sort();
+    const statuses = new Set(group.map((item) => item.status));
+    merged.push({
+      id: `x:${memberIds.join("+")}`,
+      count: totalCount,
+      lat: group.reduce((sum, item) => sum + item.lat * item.count, 0) / totalCount,
+      lng: group.reduce((sum, item) => sum + item.lng * item.count, 0) / totalCount,
+      status: statuses.size === 1 ? group[0]!.status : "UNKNOWN",
+      memberIds,
+    });
+  }
+
+  return merged.sort((a, b) => a.id.localeCompare(b.id));
+}
+
 export function clusterMarkers(
   markers: MapMarker[],
   zoom: number,
