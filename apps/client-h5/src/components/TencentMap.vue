@@ -22,6 +22,7 @@ const emit = defineEmits<{
   select: [cluster: MapCluster];
   zoom: [delta: number];
   "zoom-absolute": [zoom: number];
+  pan: [lat: number, lng: number];
   error: [message: string];
 }>();
 
