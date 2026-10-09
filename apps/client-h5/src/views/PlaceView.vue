@@ -26,6 +26,7 @@ import {
   type PlaceDetail,
   type PlaceSummary,
   type PlaceExtras,
+  type PublicEvidenceMediaView,
   type RuleView,
   type SourceView,
   type Zone,
@@ -71,6 +72,7 @@ const placeSummary = ref<PlaceSummary | null>(null);
 const zones = ref<Zone[]>([]);
 const rules = ref<RuleView[]>([]);
 const realityEvents = ref<RealityEventView[]>([]);
+const placeSceneMedia = ref<PublicEvidenceMediaView | null>(null);
 const sources = ref<SourceView[]>([]);
 const extras = ref<PlaceExtras | null>(null);
 
@@ -149,6 +151,31 @@ watch(currentQueryContext, () => {
 
 const loadEpoch = createEpoch();
 
+async function loadPlaceSceneMedia(
+  eventRows: RealityEventView[],
+  epoch: number,
+  expectedPlaceId: string,
+) {
+  const bundleIds = [
+    ...new Set(
+      eventRows.map((event) => event.evidence_bundle_id).filter((id): id is string => Boolean(id)),
+    ),
+  ].slice(0, 8);
+  for (const bundleId of bundleIds) {
+    try {
+      const media = await client.publicEvidenceMedia(bundleId);
+      if (!loadEpoch.isCurrent(epoch) || placeId.value !== expectedPlaceId) return;
+      if (media.purpose === "scene_photo") {
+        placeSceneMedia.value = media;
+        return;
+      }
+    } catch {
+      // Public media is fail-closed; continue looking for another approved
+      // scene photo without revealing private evidence availability.
+    }
+  }
+}
+
 async function load() {
   const epoch = loadEpoch.begin();
   const id = placeId.value;
@@ -156,6 +183,7 @@ async function load() {
   loading.value = true;
   error.value = "";
   partial.value = [];
+  placeSceneMedia.value = null;
   const degrade = (label: string) => {
     if (isCurrent() && !partial.value.includes(label)) partial.value.push(label);
   };
@@ -223,6 +251,7 @@ async function load() {
     const rows = await client.realityEvents(id);
     if (!isCurrent()) return;
     realityEvents.value = rows;
+    void loadPlaceSceneMedia(rows, epoch, id);
   } catch {
     if (!isCurrent()) return;
     degrade("现场记录");
@@ -376,7 +405,16 @@ const placeFixture = computed<string>(() => {
           <!-- 1. Identity（§16 Overview 第一块） -->
           <header class="place-dossier__head" data-ui="place-identity">
             <div class="place-dossier__identity-row">
-              <PlaceTypeGlyph :place-type="place.place_type" size="lg" />
+              <figure v-if="placeSceneMedia" class="place-dossier__scene">
+                <img
+                  :src="placeSceneMedia.url"
+                  alt="经审核允许公开展示的场所场景照片"
+                  loading="lazy"
+                  decoding="async"
+                  referrerpolicy="no-referrer"
+                />
+              </figure>
+              <PlaceTypeGlyph v-else :place-type="place.place_type" size="lg" />
               <div class="place-dossier__identity-copy">
                 <h1 class="place-dossier__name" data-ui="place-name">{{ place.canonical_name }}</h1>
                 <p class="muted place-dossier__meta">
@@ -587,6 +625,24 @@ const placeFixture = computed<string>(() => {
 .place-dossier__identity-copy {
   flex: 1 1 auto;
   min-width: 0;
+}
+
+.place-dossier__scene {
+  flex: 0 0 96px;
+  width: 96px;
+  height: 64px;
+  margin: 0;
+  overflow: hidden;
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: var(--pa-radius-control);
+  background: var(--pa-color-surface-muted);
+}
+
+.place-dossier__scene img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
 }
 
 /* Identity anchor is a neutral place-type glyph, not an invented venue photo.
