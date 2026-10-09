@@ -80,12 +80,23 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
 
       - name: Run UI Oracle and canonical human-review capture
-        run: >-
-          pnpm exec playwright test
-          tests/ui-oracle/oracle.spec.ts
-          tests/ui-oracle/secondary-craft.spec.ts
-          tests/ui-oracle/human-review-direct-v8.spec.ts
-          -c playwright.ui-oracle.config.ts
+        shell: bash
+        run: |
+          set -euo pipefail
+          for project in oracle-desktop oracle-tablet oracle-mobile; do
+            echo "::group::UI Oracle $project"
+            # Each Playwright invocation starts the configured webServer chain,
+            # whose first step resets petaccess_visual. Governance fixtures from
+            # one viewport therefore cannot contaminate another viewport's
+            # Search/Home/Map screenshots.
+            pnpm exec playwright test \
+              tests/ui-oracle/oracle.spec.ts \
+              tests/ui-oracle/secondary-craft.spec.ts \
+              tests/ui-oracle/human-review-direct-v8.spec.ts \
+              -c playwright.ui-oracle.config.ts \
+              --project="$project"
+            echo "::endgroup::"
+          done
 
       - name: Compare UI contracts
         run: node --experimental-strip-types tools/ui-oracle/compare.ts ui-direct-v8
