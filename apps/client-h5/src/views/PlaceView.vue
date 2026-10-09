@@ -79,6 +79,7 @@ const extras = ref<PlaceExtras | null>(null);
 
 const answer = ref<AccessAnswer | null>(null);
 const error = ref("");
+const sessionRestoreError = ref("");
 const loading = ref(true);
 const partial = ref<string[]>([]);
 const watchingRule = ref(false);
@@ -170,10 +171,18 @@ async function load() {
   error.value = "";
   partial.value = [];
   placeSceneMedia.value = null;
+  sessionRestoreError.value = "";
   const degrade = (label: string) => {
     if (isCurrent() && !partial.value.includes(label)) partial.value.push(label);
   };
-  await session.restore();
+  try {
+    await session.restore();
+  } catch (sessionError) {
+    // Place, Rule, Reality and Evidence are public. A stale/broken local
+    // session may disable account-only actions, but must never hide the
+    // public dossier or turn the user into a fictitious "signed-out" state.
+    if (isCurrent()) sessionRestoreError.value = presentDescription(sessionError);
+  }
   if (!isCurrent()) return;
 
   try {
@@ -478,6 +487,9 @@ const placeFixture = computed<string>(() => {
                 {{ watchingReality ? "现场更新已关注 · 取消" : "关注现场更新" }}
               </button>
             </template>
+            <span v-else-if="sessionRestoreError" class="muted place-follow-strip__feedback">
+              账号状态暂不可用；公开规则与现场信息仍可查看。
+            </span>
             <RouterLink v-else class="btn-inline" to="/onboarding">登录后关注 →</RouterLink>
             <span
               v-if="watchMsg"
