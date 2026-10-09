@@ -27,6 +27,7 @@
  */
 import {
   client,
+  mapQueryRadiusForZoom,
   session,
   synthDemoCamera,
   type AccessAnswer,
@@ -251,7 +252,7 @@ export async function searchPlaces(q: string): Promise<ListResult<PlaceSummary>>
  * the spatial query instead of only moving the drawing surface. */
 export async function nearbyPlaces(
   camera: MapCamera = synthDemoCamera(),
-  radiusM = 5000,
+  radiusM = mapQueryRadiusForZoom(camera.zoom),
 ): Promise<ListResult<PlaceSummary>> {
   const key = ConsumerCache.key(["nearby", camera.lat.toFixed(5), camera.lng.toFixed(5), radiusM]);
   const fetchFn = () => client.nearby(camera.lat, camera.lng, radiusM);
