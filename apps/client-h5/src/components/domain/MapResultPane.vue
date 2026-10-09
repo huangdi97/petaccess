@@ -204,16 +204,16 @@ function toggleFilter(key: string) {
             :key="p.id"
             class="map-place-row"
             :class="{ 'map-place-row--selected': props.selectedId === p.id }"
-            :aria-current="props.selectedId === p.id ? 'true' : undefined"
-            :data-selected="props.selectedId === p.id ? 'true' : undefined"
-            :data-testid="'place-' + p.id"
-            role="button"
-            tabindex="0"
-            @click="emit('open', p.id)"
-            @keydown.enter="emit('open', p.id)"
-            @keydown.space.prevent="emit('open', p.id)"
           >
-            <div class="map-place-row__head">
+            <button
+              type="button"
+              class="map-place-row__button"
+              :aria-current="props.selectedId === p.id ? 'true' : undefined"
+              :data-selected="props.selectedId === p.id ? 'true' : undefined"
+              :data-testid="'place-' + p.id"
+              @click="emit('open', p.id)"
+            >
+              <div class="map-place-row__head">
               <div class="map-place-row__identity-wrap">
                 <PlaceTypeGlyph :place-type="p.place_type" size="sm" />
                 <div class="map-place-row__identity">
@@ -231,7 +231,8 @@ function toggleFilter(key: string) {
               <span v-else class="map-place-row__lens-fact">
                 {{ props.lensLabels[p.id] ?? "信息不足" }}
               </span>
-            </div>
+              </div>
+            </button>
           </li>
         </ul>
       </template>
@@ -370,20 +371,36 @@ function toggleFilter(key: string) {
 
 .map-place-row {
   position: relative;
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  margin-bottom: 0;
+}
+
+.map-place-row__button {
+  width: 100%;
+  min-height: var(--pa-size-control-lg);
+  display: block;
   cursor: pointer;
   padding: var(--pa-space-4) var(--pa-space-2);
+  border: 0;
   border-radius: 0;
   background: transparent;
   box-shadow: none;
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
-  margin-bottom: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.map-place-row__button:focus-visible {
+  outline: 2px solid var(--pa-color-border-focus);
+  outline-offset: -2px;
 }
 
 .map-place-row:last-child {
   border-bottom: none;
 }
 
-.map-place-row:hover {
+.map-place-row:hover,
+.map-place-row:focus-within {
   background: var(--pa-color-surface-interactive);
 }
 
