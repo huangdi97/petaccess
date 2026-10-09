@@ -139,8 +139,17 @@
   min-height: 0;
 }
 
+/* A missing reviewed photo is an honest identity placeholder, not a synthetic
+ * hero image. Keep the empty state compact so evidence and decision content
+ * remain above the fold; real reviewed photos still retain the wide 16:6 frame. */
 .scene-frame--hero.scene-frame--empty .scene-frame__empty {
-  aspect-ratio: 16 / 6;
+  height: 136px;
+}
+
+@media (max-width: 767px) {
+  .scene-frame--hero.scene-frame--empty .scene-frame__empty {
+    height: 104px;
+  }
 }
 
 .scene-frame--compact {
