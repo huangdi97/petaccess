@@ -191,7 +191,7 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
       </header>
 
       <PlaceSceneFrame
-        v-if="variant === 'search' && sceneMediaUrl"
+        v-if="variant === 'search'"
         class="decision-inspector__scene"
         :src="sceneMediaUrl"
         :alt="`场所场景：${place.canonical_name}`"
