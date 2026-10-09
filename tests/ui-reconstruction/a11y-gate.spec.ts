@@ -65,16 +65,33 @@ test("status is icon + text, never colour-only", async ({ page }) => {
   }
 });
 
-test("query context editor is a labelled dialog and Escape closes it", async ({ page }) => {
+test("query context editor is a labelled dialog and restores focus", async ({ page }) => {
   await page.goto(`/#/place/${PLACE_ID}`);
   await settle(page);
-  await page.getByTestId("query-context-edit").click();
+  const trigger = page.getByTestId("query-context-edit");
+  await trigger.click();
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
   await expect(dialog).toHaveAttribute("aria-modal", "true");
   await expect(dialog).toHaveAttribute("aria-label");
+  await expect(page.getByRole("button", { name: "普通携带" })).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(dialog).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+});
+
+test("mobile search filter sheet owns focus and returns it on close", async ({ page }) => {
+  await page.setViewportSize({ width: 430, height: 932 });
+  await page.goto("/#/search?q=云栖");
+  await settle(page);
+  const trigger = page.getByTestId("filter-toggle");
+  await trigger.click();
+  const sheet = page.getByRole("dialog", { name: "筛选结果" });
+  await expect(sheet).toBeVisible();
+  await expect(sheet.locator('input[type="checkbox"]').first()).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(sheet).toBeHidden();
+  await expect(trigger).toBeFocused();
 });
 
 test("shipped stylesheet honours prefers-reduced-motion", async ({ page }) => {
