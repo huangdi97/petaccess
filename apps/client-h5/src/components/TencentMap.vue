@@ -3,7 +3,12 @@
  * Optional Tencent GL basemap. Rule/Reality/Facility/Divergence semantics and
  * selection remain owned by the surrounding Spatial Workspace.
  */
-import type { MapCamera, MapCluster } from "@petaccess/client-core";
+import {
+  MAP_MAX_ZOOM,
+  MAP_MIN_ZOOM,
+  type MapCamera,
+  type MapCluster,
+} from "@petaccess/client-core";
 
 import { useTencentMapRenderer } from "../composables/useTencentMapRenderer";
 
@@ -57,7 +62,7 @@ const { host, providerLabel } = useTencentMapRenderer({
       <button
         type="button"
         aria-label="放大"
-        :disabled="camera.zoom >= 18"
+        :disabled="camera.zoom >= MAP_MAX_ZOOM"
         @click="emit('zoom', 1)"
       >
         ＋
@@ -65,7 +70,7 @@ const { host, providerLabel } = useTencentMapRenderer({
       <button
         type="button"
         aria-label="缩小"
-        :disabled="camera.zoom <= 8"
+        :disabled="camera.zoom <= MAP_MIN_ZOOM"
         @click="emit('zoom', -1)"
       >
         －
