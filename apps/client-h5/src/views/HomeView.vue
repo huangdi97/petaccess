@@ -182,10 +182,25 @@ const featuredSceneMedia = usePlaceSceneMedia(computed(() => verified.value[0]?.
   pointer-events: none;
   opacity: 0.7;
   background:
-    linear-gradient(128deg, transparent 0 44%, var(--pa-color-border-subtle) 44% 45%, transparent 45% 100%),
-    linear-gradient(18deg, transparent 0 58%, var(--pa-color-border-subtle) 58% 59%, transparent 59% 100%),
+    linear-gradient(
+      128deg,
+      transparent 0 44%,
+      var(--pa-color-border-subtle) 44% 45%,
+      transparent 45% 100%
+    ),
+    linear-gradient(
+      18deg,
+      transparent 0 58%,
+      var(--pa-color-border-subtle) 58% 59%,
+      transparent 59% 100%
+    ),
     radial-gradient(circle at 72% 42%, var(--pa-color-accent-weak) 0 8%, transparent 8.5%),
-    linear-gradient(90deg, transparent 0 24%, var(--pa-color-surface-muted) 24% 74%, transparent 74%);
+    linear-gradient(
+      90deg,
+      transparent 0 24%,
+      var(--pa-color-surface-muted) 24% 74%,
+      transparent 74%
+    );
   mask-image: linear-gradient(to left, black 0 70%, transparent 100%);
 }
 
