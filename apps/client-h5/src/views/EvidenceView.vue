@@ -689,6 +689,21 @@ const uiFixture = computed<string>(() =>
   margin: 0;
 }
 
+@media (min-width: 768px) and (max-width: 899px) {
+  .evidence-workspace__body {
+    padding-inline: var(--pa-space-4);
+  }
+
+  .evidence-leading {
+    grid-template-columns: 1fr;
+    gap: var(--pa-space-4);
+  }
+
+  .evidence-hero-media {
+    max-width: 560px;
+  }
+}
+
 @media (max-width: 767px) {
   .evidence-leading {
     grid-template-columns: 1fr;
