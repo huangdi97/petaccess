@@ -54,10 +54,11 @@ test("place detail shows one-sentence answer with zones and provenance", async (
 
 test("mode switch re-evaluates: service dog → allowed", async ({ page }) => {
   await page.goto(`/#/place/${CAFE_ID}`);
-  // plain dog at place level: no place-scoped ordinary-pet rule → UNKNOWN
-  // (v0.2.5 §15 renders the minimal Unknown Overview, not a dossier).
-  await expect(page.getByTestId("place-unknown")).toBeVisible();
-  await expect(page.getByTestId("place-unknown")).toContainText("信息不足");
+  // Rule UNKNOWN remains one dimension of the full Coexistence Passport;
+  // Reality / staff / facility / evidence must not disappear with it.
+  await expect(page.getByTestId("place-workspace")).toHaveAttribute("data-ui-state", "unknown");
+  await expect(page.getByTestId("answer-status")).toContainText("信息不足");
+  await expect(page.getByTestId("overview-reality")).toBeVisible();
   // Query Context primitive: open the editor and switch to service-dog mode.
   await page.getByTestId("query-context-edit").click();
   await page.getByRole("button", { name: "服务犬通行" }).click();
@@ -65,8 +66,8 @@ test("mode switch re-evaluates: service dog → allowed", async ({ page }) => {
   await expect(page.getByTestId("inspector-verdict")).toHaveText("可以进入");
   await page.getByTestId("query-context-edit").click();
   await page.getByRole("button", { name: "普通携带" }).click();
-  await expect(page.getByTestId("place-unknown")).toBeVisible();
-  await expect(page.getByTestId("place-unknown")).toContainText("信息不足");
+  await expect(page.getByTestId("place-workspace")).toHaveAttribute("data-ui-state", "unknown");
+  await expect(page.getByTestId("answer-status")).toContainText("信息不足");
 });
 
 /**
@@ -87,9 +88,9 @@ test("switching between two places re-renders the second one", async ({ page }) 
 
   await page.goto(`/#/place/${BRANCH_ID}`);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("星河咖啡·栖霞分店");
-  // the unknown overview has to belong to the new place too, not just the title
-  await expect(page.getByTestId("place-unknown")).toBeVisible();
-  await expect(page.getByTestId("place-unknown")).toContainText("信息不足");
+  // UNKNOWN is the rule state of the new place, not a replacement empty page.
+  await expect(page.getByTestId("place-workspace")).toHaveAttribute("data-ui-state", "unknown");
+  await expect(page.getByTestId("answer-status")).toContainText("信息不足");
 
   // Same mechanism from the user's side: history back and forward.
   await page.goBack();
