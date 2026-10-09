@@ -178,10 +178,15 @@ async function load() {
   };
   try {
     await session.restore();
+    if (isCurrent() && session.restoreIssue) {
+      sessionRestoreError.value =
+        session.restoreIssue === "auth_invalid"
+          ? "登录状态已失效，已切换为公开浏览。"
+          : "账号状态暂不可用；公开规则与现场信息仍可查看。";
+    }
   } catch (sessionError) {
-    // Place, Rule, Reality and Evidence are public. A stale/broken local
-    // session may disable account-only actions, but must never hide the
-    // public dossier or turn the user into a fictitious "signed-out" state.
+    // Defensive fallback: public dossier data must stay readable even if a
+    // future session adapter throws instead of reporting restoreIssue.
     if (isCurrent()) sessionRestoreError.value = presentDescription(sessionError);
   }
   if (!isCurrent()) return;
