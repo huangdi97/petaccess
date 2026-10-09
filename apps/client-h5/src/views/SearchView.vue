@@ -23,6 +23,7 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import {
   client,
+  platformStorage,
   session,
   type BoundaryProfile,
   type CoexistenceSnapshot,
@@ -274,11 +275,7 @@ const MAX_SEARCH_RECENT = 5;
 const recent = ref<string[]>([]);
 
 function saveRecent() {
-  try {
-    localStorage.setItem(SEARCH_RECENT_KEY, JSON.stringify(recent.value));
-  } catch {
-    /* storage unavailable (private mode): history simply does not persist */
-  }
+  platformStorage.set(SEARCH_RECENT_KEY, JSON.stringify(recent.value));
 }
 
 function rememberRecent(text: string) {
@@ -288,19 +285,16 @@ function rememberRecent(text: string) {
 
 function clearRecent() {
   recent.value = [];
-  try {
-    localStorage.removeItem(SEARCH_RECENT_KEY);
-  } catch {
-    /* ignore */
-  }
+  platformStorage.remove(SEARCH_RECENT_KEY);
 }
 
 function loadRecent() {
+  const raw = platformStorage.get(SEARCH_RECENT_KEY);
   try {
-    const raw = localStorage.getItem(SEARCH_RECENT_KEY);
     recent.value = raw ? (JSON.parse(raw) as string[]).slice(0, MAX_SEARCH_RECENT) : [];
   } catch {
     recent.value = [];
+    platformStorage.remove(SEARCH_RECENT_KEY);
   }
 }
 
