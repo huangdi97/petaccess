@@ -168,7 +168,7 @@ test("v0.5: set coexistence boundary and boundary-match explains per item", asyn
 
   // register (a boundary profile is user-scoped)
   await page.goto("/#/onboarding");
-  await page.getByRole("button", { name: "注册", exact: true }).click();
+  await page.getByRole("tab", { name: "注册", exact: true }).click();
   await page.locator("input").nth(0).fill("边界 E2E");
   await page.locator('input[type="email"]').fill(email);
   await page.locator('input[type="password"]').fill("passw0rd123");
