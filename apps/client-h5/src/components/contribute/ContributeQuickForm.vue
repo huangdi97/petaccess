@@ -21,7 +21,7 @@ const props = defineProps<{
   online: boolean;
   signedIn: boolean;
 }>();
-const emit = defineEmits<{ done: [msg: string]; back: [] }>();
+const emit = defineEmits<{ done: [msg: string]; back: []; reviewing: [value: boolean] }>();
 
 type CorrectionKind = "name" | "address" | "place_state" | "other";
 const kind = ref<CorrectionKind>("address");
@@ -30,6 +30,10 @@ const correctValueUnknown = ref(false);
 const busy = ref(false);
 const error = ref("");
 const reviewing = ref(false);
+function setReviewing(value: boolean) {
+  reviewing.value = value;
+  emit("reviewing", value);
+}
 
 const OPTIONS: { key: CorrectionKind; label: string; hint: string }[] = [
   { key: "name", label: "名称有误", hint: "名称、别名或门店标识不准确" },
@@ -96,7 +100,7 @@ async function submit() {
         ? '确认下面内容就是你准备提交的场所纠错线索。'
         : '先指出哪类基础信息有误；提交后进入人工核验，不会直接改写场所或规则。'
     "
-    @back="reviewing ? (reviewing = false) : emit('back')"
+    @back="reviewing ? setReviewing(false) : emit('back')"
   >
     <div v-if="error" class="notice" data-testid="quick-error">{{ error }}</div>
 
@@ -159,7 +163,7 @@ async function submit() {
         class="primary"
         :disabled="!canSubmit"
         data-testid="quick-review-next"
-        @click="reviewing = true"
+        @click="setReviewing(true)"
       >
         下一步：核对
       </button>
