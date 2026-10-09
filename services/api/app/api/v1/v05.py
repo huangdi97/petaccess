@@ -2243,9 +2243,18 @@ def _load_rule_facts(db: Session, rule_ids: list[str]) -> dict:
     if not rule_ids:
         return {}
 
+    access_rule_ids = [rule_id for rule_id in rule_ids if not rule_id.startswith("ev-")]
+    event_ids = [rule_id.removeprefix("ev-") for rule_id in rule_ids if rule_id.startswith("ev-")]
+
     rules = {
         str(r.id): r
-        for r in db.scalars(select(AccessRule).where(AccessRule.id.in_(rule_ids))).all()
+        for r in db.scalars(
+            select(AccessRule).where(AccessRule.id.in_(access_rule_ids))
+        ).all()
+    }
+    event_policies = {
+        f"ev-{event.id}": event
+        for event in db.scalars(select(EventPolicy).where(EventPolicy.id.in_(event_ids))).all()
     }
 
     #: This rule's own publication chain. Joined in one statement so a rule with
@@ -2277,7 +2286,10 @@ def _load_rule_facts(db: Session, rule_ids: list[str]) -> dict:
                 "evidence_strength": row[6],
             }
 
-    source_ids = [str(r.source_id) for r in rules.values() if r.source_id]
+    source_ids = [
+        *[str(rule.source_id) for rule in rules.values() if rule.source_id],
+        *[str(event.source_id) for event in event_policies.values() if event.source_id],
+    ]
     sources = (
         {str(s.id): s for s in db.scalars(select(Source).where(Source.id.in_(source_ids))).all()}
         if source_ids
@@ -2318,6 +2330,23 @@ def _load_rule_facts(db: Session, rule_ids: list[str]) -> dict:
             subject_scope_normalized=r.subject_scope_normalized,
             normalization_type=r.normalization_type,
         )
+    for rule_id, event in event_policies.items():
+        src = sources.get(str(event.source_id)) if event.source_id else None
+        out[rule_id] = RuleFacts(
+            rule_id=rule_id,
+            rule_layer="TEMPORARY_POLICY",
+            mandatory_level=None,
+            source_id=str(event.source_id) if event.source_id else None,
+            source_type=getattr(src, "source_type", None),
+            issuer=getattr(src, "issuer", None),
+            directness=getattr(src, "directness", None),
+            issuer_verification=getattr(src, "issuer_verification", None),
+            evidence_strength=None,
+            source_url=getattr(src, "source_url", None),
+            effective_from=event.effective_from,
+            effective_to=event.effective_to,
+        )
+
     return out
 
 
