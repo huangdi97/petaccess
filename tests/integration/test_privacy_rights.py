@@ -2,11 +2,20 @@
 
 import uuid
 
+import pytest
+from fastapi.testclient import TestClient
 from sqlalchemy import select
 
 from app.core.audit_events import AuditEvent
 from app.db.session import get_session_factory
 from app.models import AuditLog
+from app.main import app
+
+
+@pytest.fixture(scope="module")
+def client():
+    with TestClient(app) as test_client:
+        yield test_client
 
 
 def _register(client):
