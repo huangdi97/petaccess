@@ -81,7 +81,7 @@ async function loadBoundary() {
   if (!session.signedIn) {
     if (!boundaryEpoch.isCurrent(epoch) || placeId.value !== id) return;
     boundary.value = null;
-    note.value = "尚未设置共处边界，设置后可在此逐项比对。";
+    note.value = "登录并加载你的共处边界后，才会在这里逐项比对；公开规则与现场解释不受影响。";
     return;
   }
   try {
