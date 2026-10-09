@@ -53,7 +53,7 @@ const MISSING_INPUT_TEXT: Record<string, string> = {
   </section>
 
   <section class="explain-section">
-    <h2>判断过程</h2>
+    <h2>推导过程</h2>
     <ol class="explain-steps">
       <li v-for="(step, index) in props.steps" :key="index">{{ step }}</li>
     </ol>
