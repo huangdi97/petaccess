@@ -224,11 +224,11 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
 
         <div class="sheet__actions">
           <RouterLink
-            class="btn-inline sheet__cta"
+            class="btn primary sheet__cta"
             :to="`/place/${place.id}`"
             data-testid="sheet-open-detail"
           >
-            查看场所 →
+            查看场所详情 →
           </RouterLink>
         </div>
       </div>
@@ -382,8 +382,22 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   color: var(--pa-color-text-primary);
 }
 .sheet__actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
   margin-top: var(--pa-space-1);
-  padding-top: var(--pa-space-2);
+  padding: var(--pa-space-2) 0 0;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--pa-color-surface) 0%, transparent),
+    var(--pa-color-surface) 28%
+  );
+}
+
+.sheet__cta {
+  width: 100%;
+  min-height: var(--pa-size-control-lg);
+  justify-content: center;
 }
 
 .sheet__close {
