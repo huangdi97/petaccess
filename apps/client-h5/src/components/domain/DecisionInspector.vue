@@ -194,12 +194,12 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
       </header>
 
       <PlaceSceneFrame
-        v-if="variant === 'search'"
+        v-if="variant === 'search' && sceneMediaUrl"
         class="decision-inspector__scene"
         :src="sceneMediaUrl"
         :alt="`场所场景：${place.canonical_name}`"
         variant="hero"
-        :data-testid="sceneMediaUrl ? 'inspector-scene-media' : 'inspector-scene-empty'"
+        data-testid="inspector-scene-media"
       />
 
       <!-- Search detail（§12 严格顺序）：Identity → Query → Decision → Reality →
