@@ -589,6 +589,9 @@ export const client = {
   async mediaMeta(mediaId: string) {
     return api.request<MediaMetaView>("get", `/media/${mediaId}`);
   },
+  async myMedia() {
+    return api.request<MediaMetaView[]>("get", "/media/mine");
+  },
   async publicEvidenceMedia(bundleId: string) {
     return api.request<PublicEvidenceMediaView>(
       "get",
