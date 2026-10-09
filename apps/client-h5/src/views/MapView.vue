@@ -46,6 +46,7 @@ const {
   locate,
   load,
   open,
+  selectResult,
   onSelectCluster,
   searchMap,
   syncRoutePlace,
@@ -140,7 +141,7 @@ function chooseMapResult(id: string) {
       lng: place.longitude,
     };
   }
-  onSelectCluster({ memberIds: [id], count: 1 });
+  selectResult(id);
 }
 </script>
 
