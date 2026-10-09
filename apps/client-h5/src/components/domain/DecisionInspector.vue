@@ -53,6 +53,8 @@ const props = withDefaults(
     conditionsLabel?: Record<string, string>;
     /** Real rule verification date supplied by the Place dossier. */
     latestVerifiedAt?: string | null;
+    /** Reviewed public venue scene photo. Evidence/signage media never enters here. */
+    sceneMediaUrl?: string | null;
     /**
      * v0.2.3 §22/§33：search detail = large identity (28/650) + primary
      * decision 30/650, flat accent, content column ≤704px；place inspector =
@@ -72,6 +74,7 @@ const props = withDefaults(
     speciesLabel: "普通犬",
     conditionsLabel: () => ({}),
     latestVerifiedAt: null,
+    sceneMediaUrl: null,
     variant: "search",
   },
 );
@@ -176,6 +179,21 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
           </div>
         </div>
       </header>
+
+      <figure
+        v-if="variant === 'search' && sceneMediaUrl"
+        class="decision-inspector__scene"
+        data-testid="inspector-scene-media"
+      >
+        <img
+          :src="sceneMediaUrl"
+          :alt="`场所场景：${place.canonical_name}`"
+          loading="lazy"
+          decoding="async"
+          referrerpolicy="no-referrer"
+        />
+        <figcaption>经审核公开的场所场景照片</figcaption>
+      </figure>
 
       <!-- Search detail（§12 严格顺序）：Identity → Query → Decision → Reality →
            Evidence/Source → CTA；place inspector（§26）走下方紧凑结构。 -->
@@ -375,6 +393,28 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
 /* §22：detail 内容列最大 704px，不铺满整个 DetailPane（972）。 */
 .decision-inspector--search {
   max-width: var(--pa-layout-detail-content);
+}
+
+.decision-inspector__scene {
+  margin: 0;
+  max-width: 620px;
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  padding-bottom: var(--pa-space-4);
+}
+
+.decision-inspector__scene img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 6;
+  object-fit: cover;
+  background: var(--pa-color-surface-muted);
+}
+
+.decision-inspector__scene figcaption {
+  margin-top: var(--pa-space-2);
+  color: var(--pa-color-text-muted);
+  font-size: var(--pa-font-size-xs);
+  line-height: var(--pa-line-height-20);
 }
 
 .decision-inspector__title-row {
