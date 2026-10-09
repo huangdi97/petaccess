@@ -176,7 +176,7 @@ const featuredSceneMedia = usePlaceSceneMedia(computed(() => verified.value[0]?.
   position: absolute;
   z-index: -1;
   top: 0;
-  right: -6%;
+  right: 0;
   width: 48%;
   height: 188px;
   pointer-events: none;
@@ -344,7 +344,7 @@ const featuredSceneMedia = usePlaceSceneMedia(computed(() => verified.value[0]?.
   .page--home::before {
     width: 72%;
     height: 132px;
-    right: -12%;
+    right: 0;
     opacity: 0.45;
   }
 
