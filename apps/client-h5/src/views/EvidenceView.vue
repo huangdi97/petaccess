@@ -322,8 +322,15 @@ const uiFixture = computed<string>(() =>
           </p>
         </header>
 
-        <div class="evidence-leading" :class="{ 'evidence-leading--without-media': !heroPublicMedia }">
-          <figure v-if="heroPublicMedia" class="evidence-hero-media" data-testid="evidence-hero-media">
+        <div
+          class="evidence-leading"
+          :class="{ 'evidence-leading--without-media': !heroPublicMedia }"
+        >
+          <figure
+            v-if="heroPublicMedia"
+            class="evidence-hero-media"
+            data-testid="evidence-hero-media"
+          >
             <img
               :src="heroPublicMedia.url"
               alt="经审核允许公开展示的证据媒体"
