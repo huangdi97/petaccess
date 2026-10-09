@@ -596,6 +596,23 @@ const placeFixture = computed<string>(() => {
   }
 }
 
+@media (min-width: 768px) and (max-width: 1023px) {
+  .place-workspace__body--split {
+    gap: var(--pa-space-4);
+    padding: var(--pa-space-4);
+  }
+
+  .place-inspector {
+    flex-basis: 280px;
+    padding-left: var(--pa-space-4);
+  }
+
+  .place-dossier__scene {
+    --scene-frame-compact-width: 120px;
+    --scene-frame-compact-height: 80px;
+  }
+}
+
 .place-dossier__head {
   display: flex;
   flex-direction: column;
