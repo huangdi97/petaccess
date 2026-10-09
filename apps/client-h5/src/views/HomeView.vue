@@ -37,9 +37,7 @@ const {
   load,
 } = useHomeLauncher();
 
-const featuredSceneMedia = usePlaceSceneMedia(
-  computed(() => verified.value[0]?.place.id ?? null),
-);
+const featuredSceneMedia = usePlaceSceneMedia(computed(() => verified.value[0]?.place.id ?? null));
 </script>
 
 <template>

@@ -65,9 +65,7 @@ export function useMapWorkspace() {
   const selected = ref<PlaceSummary | null>(null);
   const { desktop: isDesktop } = useBreakpoint();
   const preview = ref<PreviewState>({ snapshot: null, loading: false, error: "" });
-  const selectedSceneMedia = usePlaceSceneMedia(
-    computed(() => selected.value?.id ?? null),
-  );
+  const selectedSceneMedia = usePlaceSceneMedia(computed(() => selected.value?.id ?? null));
   const loadEpoch = createEpoch();
   const previewEpoch = createEpoch();
   const activeFilters = ref<string[]>([]);
