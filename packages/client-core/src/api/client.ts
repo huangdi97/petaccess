@@ -319,6 +319,7 @@ export interface AccessPathItem {
   to_node: string;
   steps: unknown[] | null;
   animal_scope: string | null;
+  conditions: unknown[] | null;
   time_window: Record<string, unknown> | null;
   source_id: string;
 }
