@@ -30,27 +30,6 @@ function onWindowKey(e: KeyboardEvent) {
   if (props.open && e.key === "Escape") emit("close");
 }
 
-function keepFocusInside(e: KeyboardEvent) {
-  if (e.key !== "Tab" || !panel.value) return;
-  const items = [...panel.value.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(
-    (item) => item.offsetParent !== null,
-  );
-  if (!items.length) {
-    e.preventDefault();
-    panel.value.focus();
-    return;
-  }
-  const first = items[0]!;
-  const last = items[items.length - 1]!;
-  if (e.shiftKey && document.activeElement === first) {
-    e.preventDefault();
-    last.focus();
-  } else if (!e.shiftKey && document.activeElement === last) {
-    e.preventDefault();
-    first.focus();
-  }
-}
-
 onMounted(() => window.addEventListener("keydown", onWindowKey));
 onBeforeUnmount(() => window.removeEventListener("keydown", onWindowKey));
 </script>
