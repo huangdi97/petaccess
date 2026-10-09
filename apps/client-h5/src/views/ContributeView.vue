@@ -40,6 +40,7 @@ const { online } = useOnline();
 const step = ref<Step>("entry");
 const realityKind = ref<RealityKind>("observed_presence");
 const msg = ref("");
+const formReviewing = ref(false);
 const signedIn = ref(false);
 const contextLoading = ref(true);
 const contextError = ref("");
@@ -96,26 +97,29 @@ watch(
 function reset() {
   step.value = "entry";
   msg.value = "";
+  formReviewing.value = false;
 }
 
 function startReality(kind: RealityKind) {
+  formReviewing.value = false;
   realityKind.value = kind;
   step.value = "reality";
 }
 
 function done(m: string) {
+  formReviewing.value = false;
   msg.value = m;
   step.value = "done";
 }
 
-/** O6 capture-state integrity (§40/§41): the wizard exposes real states —
- * choose-type (entry), focused form steps (step-1 = legacy confirmations,
- * step-2 = reality parent-flow), done. Every value maps to an actual screen. */
+/** O6 capture-state integrity: every exposed state maps to the real screen.
+ * choose-type → structured form → read-only review → done. */
 const uiState = computed<string>(() => {
   if (!placeId.value) return "needs-place";
   if (contextLoading.value) return "loading-place";
   if (contextError.value) return "place-error";
   if (!signedIn.value) return "sign-in-required";
+  if (formReviewing.value) return "review";
   switch (step.value) {
     case "entry":
       return "choose-type";
@@ -242,6 +246,7 @@ const { desktop: isDesktop } = useBreakpoint();
               :signed-in="signedIn"
               @done="done"
               @back="reset"
+              @reviewing="formReviewing = $event"
             />
             <ContributeRuleForm
               v-else-if="step === 'rule'"
@@ -252,6 +257,7 @@ const { desktop: isDesktop } = useBreakpoint();
               :signed-in="signedIn"
               @done="done"
               @back="reset"
+              @reviewing="formReviewing = $event"
             />
             <ContributeRealityForm
               v-else-if="step === 'reality'"
@@ -265,6 +271,7 @@ const { desktop: isDesktop } = useBreakpoint();
               :kind="realityKind"
               @done="done"
               @back="reset"
+              @reviewing="formReviewing = $event"
             />
             <ContributeEffortForm
               v-else-if="step === 'effort'"
@@ -277,6 +284,7 @@ const { desktop: isDesktop } = useBreakpoint();
               :initial-zone-id="effortInitialZoneId"
               @done="done"
               @back="reset"
+              @reviewing="formReviewing = $event"
             />
             <ContributeDone
               v-else-if="step === 'done'"
