@@ -175,7 +175,6 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
               <h2 class="decision-inspector__name" data-ui="search-detail-name">
                 {{ place.canonical_name }}
               </h2>
-              <StatusBadge :semantic="statusKey" />
             </div>
             <p class="decision-inspector__meta">
               {{ placeTypeLabel(place.place_type) }} ·
