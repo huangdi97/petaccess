@@ -76,55 +76,55 @@ const reviewItems = computed(() => [
     @back="reviewing ? (reviewing = false) : emit('back')"
   >
     <template v-if="!reviewing">
-    <div class="effort-form" data-ui="contribution-form">
-      <fieldset class="effort-cluster">
-        <legend>什么时候？</legend>
-        <label for="effort-source-mode">这次观察</label>
-        <select id="effort-source-mode" v-model="sourceMode" data-testid="effort-source-mode">
-          <option value="on_site_now">我现在就在这里</option>
-          <option value="on_site_past">我之前在这里停留过</option>
-        </select>
-        <template v-if="sourceMode === 'on_site_past'">
-          <label for="effort-date">日期</label>
-          <input
-            id="effort-date"
-            v-model="occurredAt"
-            type="date"
-            :max="new Date().toISOString().slice(0, 10)"
-            required
-            data-testid="effort-date"
-          />
-          <p v-if="!occurredAt" class="effort-note">
-            请填写你实际停留的日期；未填写时不能提交历史观察。
-          </p>
-        </template>
-      </fieldset>
+      <div class="effort-form" data-ui="contribution-form">
+        <fieldset class="effort-cluster">
+          <legend>什么时候？</legend>
+          <label for="effort-source-mode">这次观察</label>
+          <select id="effort-source-mode" v-model="sourceMode" data-testid="effort-source-mode">
+            <option value="on_site_now">我现在就在这里</option>
+            <option value="on_site_past">我之前在这里停留过</option>
+          </select>
+          <template v-if="sourceMode === 'on_site_past'">
+            <label for="effort-date">日期</label>
+            <input
+              id="effort-date"
+              v-model="occurredAt"
+              type="date"
+              :max="new Date().toISOString().slice(0, 10)"
+              required
+              data-testid="effort-date"
+            />
+            <p v-if="!occurredAt" class="effort-note">
+              请填写你实际停留的日期；未填写时不能提交历史观察。
+            </p>
+          </template>
+        </fieldset>
 
-      <fieldset class="effort-cluster">
-        <legend>观察了多久？</legend>
-        <label for="effort-duration">在场时长</label>
-        <select id="effort-duration" v-model="durationBucket" data-testid="effort-duration">
-          <option value="" disabled>请选择</option>
-          <option v-for="item in OBSERVATION_EFFORT_OPTIONS" :key="item.key" :value="item.key">
-            {{ item.label }}
-          </option>
-        </select>
-      </fieldset>
+        <fieldset class="effort-cluster">
+          <legend>观察了多久？</legend>
+          <label for="effort-duration">在场时长</label>
+          <select id="effort-duration" v-model="durationBucket" data-testid="effort-duration">
+            <option value="" disabled>请选择</option>
+            <option v-for="item in OBSERVATION_EFFORT_OPTIONS" :key="item.key" :value="item.key">
+              {{ item.label }}
+            </option>
+          </select>
+        </fieldset>
 
-      <fieldset class="effort-cluster">
-        <legend>观察了哪里？</legend>
-        <label for="effort-zone">主要停留区域</label>
-        <select id="effort-zone" v-model="zoneId" data-testid="effort-zone">
-          <option value="">未能确认具体分区</option>
-          <option v-for="zone in zones" :key="zone.id" :value="zone.id">{{ zone.name }}</option>
-        </select>
-      </fieldset>
-    </div>
+        <fieldset class="effort-cluster">
+          <legend>观察了哪里？</legend>
+          <label for="effort-zone">主要停留区域</label>
+          <select id="effort-zone" v-model="zoneId" data-testid="effort-zone">
+            <option value="">未能确认具体分区</option>
+            <option v-for="zone in zones" :key="zone.id" :value="zone.id">{{ zone.name }}</option>
+          </select>
+        </fieldset>
+      </div>
 
-    <p class="effort-note">
-      这是一条观察覆盖信息，不是动物缺席证明。系统会保留较早的“看到了”记录；本次停留作为覆盖信息留存，不会自动进入公开现场事实。
-    </p>
-    <p v-if="error" class="notice" data-testid="effort-error" role="alert">{{ error }}</p>
+      <p class="effort-note">
+        这是一条观察覆盖信息，不是动物缺席证明。系统会保留较早的“看到了”记录；本次停留作为覆盖信息留存，不会自动进入公开现场事实。
+      </p>
+      <p v-if="error" class="notice" data-testid="effort-error" role="alert">{{ error }}</p>
     </template>
 
     <ContributionReview

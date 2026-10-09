@@ -101,50 +101,50 @@ async function submit() {
     <div v-if="error" class="notice" data-testid="quick-error">{{ error }}</div>
 
     <template v-if="!reviewing">
-    <div
-      class="option-group"
-      role="radiogroup"
-      aria-label="需要纠正的信息类型"
-      data-testid="quick-options"
-    >
-      <button
-        v-for="option in OPTIONS"
-        :key="option.key"
-        type="button"
-        class="option-row"
-        role="radio"
-        :aria-checked="kind === option.key"
-        :class="{ 'option-row--active': kind === option.key }"
-        @click="kind = option.key"
+      <div
+        class="option-group"
+        role="radiogroup"
+        aria-label="需要纠正的信息类型"
+        data-testid="quick-options"
       >
-        <span class="option-row__radio" aria-hidden="true" />
-        <span class="option-row__text">
-          <span class="option-row__label">{{ option.label }}</span>
-          <span class="muted option-row__hint">{{ option.hint }}</span>
+        <button
+          v-for="option in OPTIONS"
+          :key="option.key"
+          type="button"
+          class="option-row"
+          role="radio"
+          :aria-checked="kind === option.key"
+          :class="{ 'option-row--active': kind === option.key }"
+          @click="kind = option.key"
+        >
+          <span class="option-row__radio" aria-hidden="true" />
+          <span class="option-row__text">
+            <span class="option-row__label">{{ option.label }}</span>
+            <span class="muted option-row__hint">{{ option.hint }}</span>
+          </span>
+        </button>
+      </div>
+
+      <label class="correction-unknown">
+        <input v-model="correctValueUnknown" type="checkbox" data-testid="correction-unknown" />
+        <span>
+          我只知道当前信息有误，不知道正确值
+          <small class="muted">不确定是合法答案；人工核验会继续补充。</small>
         </span>
-      </button>
-    </div>
+      </label>
 
-    <label class="correction-unknown">
-      <input v-model="correctValueUnknown" type="checkbox" data-testid="correction-unknown" />
-      <span>
-        我只知道当前信息有误，不知道正确值
-        <small class="muted">不确定是合法答案；人工核验会继续补充。</small>
-      </span>
-    </label>
-
-    <label v-if="!correctValueUnknown" class="correction-detail" for="correction-detail">
-      <span>正确情况或需要核验的内容</span>
-      <textarea
-        id="correction-detail"
-        v-model="detail"
-        rows="4"
-        maxlength="600"
-        data-testid="correction-detail"
-        placeholder="例如：商场地址应为……；该门店已于……搬迁。"
-      />
-      <small class="muted">只写可核验事实，不需要评价场所。</small>
-    </label>
+      <label v-if="!correctValueUnknown" class="correction-detail" for="correction-detail">
+        <span>正确情况或需要核验的内容</span>
+        <textarea
+          id="correction-detail"
+          v-model="detail"
+          rows="4"
+          maxlength="600"
+          data-testid="correction-detail"
+          placeholder="例如：商场地址应为……；该门店已于……搬迁。"
+        />
+        <small class="muted">只写可核验事实，不需要评价场所。</small>
+      </label>
     </template>
 
     <ContributionReview

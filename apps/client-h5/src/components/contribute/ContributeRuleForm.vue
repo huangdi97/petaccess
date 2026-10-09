@@ -103,32 +103,32 @@ const reviewItems = computed(() => {
     <div v-if="error" class="notice" data-testid="rule-error">{{ error }}</div>
 
     <template v-if="!reviewing">
-    <RuleLeadFields
-      v-model:intent="intent"
-      v-model:effect="effect"
-      v-model:animal-scope="animalScope"
-      v-model:zone="zone"
-      v-model:conditions="conditions"
-      v-model:source-basis="sourceBasis"
-      :zones="zones"
-    />
+      <RuleLeadFields
+        v-model:intent="intent"
+        v-model:effect="effect"
+        v-model:animal-scope="animalScope"
+        v-model:zone="zone"
+        v-model:conditions="conditions"
+        v-model:source-basis="sourceBasis"
+        :zones="zones"
+      />
 
-    <RuleTargetPicker
-      v-if="intent === 'still_valid' || intent === 'changed'"
-      v-model="selectedRuleId"
-      :place-id="placeId"
-      :zones="zones"
-      @selected="applyRuleScope"
-    />
+      <RuleTargetPicker
+        v-if="intent === 'still_valid' || intent === 'changed'"
+        v-model="selectedRuleId"
+        :place-id="placeId"
+        :zones="zones"
+        @selected="applyRuleScope"
+      />
 
-    <RuleEvidenceUpload
-      v-model:media-id="mediaId"
-      v-model:ocr-text="ocrText"
-      v-model:uploading="uploading"
-      :place-id="placeId"
-      :required="intent === 'signage'"
-      @error="error = $event"
-    />
+      <RuleEvidenceUpload
+        v-model:media-id="mediaId"
+        v-model:ocr-text="ocrText"
+        v-model:uploading="uploading"
+        :place-id="placeId"
+        :required="intent === 'signage'"
+        @error="error = $event"
+      />
     </template>
 
     <ContributionReview
