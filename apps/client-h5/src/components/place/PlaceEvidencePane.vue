@@ -68,13 +68,8 @@ const LABELS: Record<string, string> = {
         <p v-if="realityEventProvenance(event)" class="muted evidence-item__provenance">
           {{ realityEventProvenance(event) }}
         </p>
-        <p
-          v-if="event.event_type === 'staff_response' && event.staff_policy_statement_verbatim"
-          class="evidence-item__quote"
-        >
-          <span class="evidence-item__quote-label">本次事件中记录的原话</span>
-          “{{ event.staff_policy_statement_verbatim }}”
-          <span class="muted">· 不代表运营方正式政策</span>
+        <p v-if="event.event_type === 'staff_response'" class="muted evidence-item__privacy">
+          工作人员原话如有提交，仅用于核验；公开页面不展示可能包含个人身份的信息。
         </p>
         <p class="muted evidence-item__time-basis">{{ realityEventTimeBasis(event) }}</p>
       </div>
