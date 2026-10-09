@@ -11,10 +11,15 @@ Needs a live PostgreSQL (ENV-01); the suite is expected to run against the real
 stack now that the dependency services are up.
 """
 
+from datetime import UTC, datetime, timedelta
+
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import select
 
+from app.db.session import get_session_factory
 from app.main import app
+from app.models import EventPolicy, Source
 
 EXTRAS_KEYS = {"coexistence", "amenities", "entrances", "access_paths", "event_policies"}
 
@@ -70,3 +75,40 @@ def test_observations_are_never_part_of_extras(client):
     r = client.get(f"/api/v1/places/{_any_place(client)}/extras")
     assert "observations" not in r.json()
     assert "rules" not in r.json()
+
+
+def test_archived_event_policy_is_not_exposed_as_current_consumer_policy(client):
+    """Archived policy rows cannot reappear on the active Consumer Rules surface."""
+    place_id = _any_place(client)
+    with get_session_factory()() as db:
+        source = db.scalars(select(Source).limit(1)).first()
+        if source is None:
+            pytest.skip("seed needs one source for an EventPolicy")
+        now = datetime.now(UTC)
+        policy = EventPolicy(
+            place_id=place_id,
+            zone_id=None,
+            name="已归档临时规则（测试）",
+            animal_scope="dog",
+            action="enter",
+            effect="prohibited",
+            conditions=[],
+            effective_from=now - timedelta(days=1),
+            effective_to=now + timedelta(days=1),
+            source_id=source.id,
+            status="archived",
+        )
+        db.add(policy)
+        db.commit()
+        policy_id = policy.id
+
+    try:
+        response = client.get(f"/api/v1/places/{place_id}/extras")
+        assert response.status_code == 200, response.text
+        assert policy_id not in {row["id"] for row in response.json()["event_policies"]}
+    finally:
+        with get_session_factory()() as db:
+            row = db.get(EventPolicy, policy_id)
+            if row is not None:
+                db.delete(row)
+                db.commit()
