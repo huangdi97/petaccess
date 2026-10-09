@@ -44,7 +44,7 @@ import PlaceRealityPane from "../components/place/PlaceRealityPane.vue";
 import PlaceEvidencePane from "../components/place/PlaceEvidencePane.vue";
 import { publicSourceIssuer } from "../consumer/sourcePrivacy";
 import { queryAnimalLabel } from "../consumer/queryContext";
-import { answerStatusKey } from "../answer";
+import { answerConditions, answerStatusKey } from "../answer";
 import { presentDescription } from "../errors";
 import { useBreakpoint } from "../composables/useBreakpoint";
 import { useRealityConfirmation } from "../composables/useRealityConfirmation";
@@ -95,16 +95,7 @@ const evaluationEpoch = createEpoch();
 
 const currentRules = computed(() => rules.value.filter((r) => r.status === "current"));
 const historyRules = computed(() => rules.value.filter((r) => r.status !== "current"));
-const conditions = computed(() => {
-  const seen = new Set<string>();
-  for (const r of currentRules.value) {
-    for (const c of (r as unknown as { conditions?: { condition_type?: string }[] }).conditions ??
-      []) {
-      seen.add(conditionLabel(c.condition_type ?? ""));
-    }
-  }
-  return [...seen];
-});
+const conditions = computed(() => answerConditions(answer.value));
 const sourceMap = computed(() => {
   const m = new Map<string, SourceView>();
   for (const s of sources.value) m.set(s.id, s);
