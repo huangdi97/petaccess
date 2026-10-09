@@ -109,4 +109,11 @@ const icon = computed<IconName>(() => {
   width: 32px;
   height: 32px;
 }
+
+@media (max-width: 767px) {
+  .place-type-glyph--xl {
+    width: 72px;
+    height: 54px;
+  }
+}
 </style>
