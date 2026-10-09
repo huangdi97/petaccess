@@ -10,16 +10,16 @@
   margin: var(--pa-space-1) 0 0;
 }
 .entry-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-2);
   margin: var(--pa-space-5) 0 0;
   padding: 0;
   list-style: none;
 }
-/* §41：choice row 64–72px，icon + title + one-line desc + chevron + divider。 */
+/* Canonical transaction row: compact outlined choice, never a pill/card wall. */
 .entry-option {
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
-}
-.entry-option:last-child {
-  border-bottom: none;
+  border: 0;
 }
 .entry-option__button {
   display: flex;
@@ -27,9 +27,9 @@
   width: 100%;
   min-height: 68px;
   padding: var(--pa-space-3) var(--pa-space-2);
-  border: none;
-  border-radius: 0;
-  background: transparent;
+  border: var(--pa-border-width) solid var(--pa-color-border);
+  border-radius: var(--pa-radius-control);
+  background: var(--pa-color-surface);
   color: var(--pa-color-text-primary);
   font-size: var(--pa-font-size-base);
   text-align: left;
@@ -38,13 +38,15 @@
 }
 .entry-option__button:hover,
 .entry-option__button:focus-visible {
-  color: var(--pa-color-accent);
+  color: var(--pa-color-text-primary);
+  border-color: var(--pa-color-border-strong);
   background: var(--pa-color-surface-interactive);
 }
 
 .entry-option__button--selected {
+  border-color: var(--pa-color-accent);
   background: var(--pa-color-accent-weak);
-  box-shadow: inset 2px 0 0 var(--pa-color-accent);
+  box-shadow: inset 3px 0 0 var(--pa-color-accent);
 }
 
 .entry-next {
