@@ -14,7 +14,8 @@
  * Deliberately contains NO Rule/Reality calculations and no API queries —
  * pages own their data; the shell owns only chrome.
  */
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
+import { useRoute } from "vue-router";
 import { useBreakpoint } from "../../composables/useBreakpoint";
 import { bootStage } from "../../config/bootTrace";
 import AppBoundary from "./AppBoundary.vue";
@@ -27,6 +28,18 @@ import DialogHost from "./DialogHost.vue";
 defineOptions({ name: "ConsumerAppShell" });
 
 const { desktop } = useBreakpoint();
+const route = useRoute();
+
+/**
+ * Route params identify a different governed entity. Keep query-only changes
+ * (for example ?view=rules) in the same instance, but never reuse state from
+ * place A when navigation changes the entity ID to place B.
+ */
+const routeInstanceKey = computed(() => {
+  const name = String(route.name ?? route.path);
+  const id = route.params.id;
+  return id == null ? name : `${name}:${String(id)}`;
+});
 
 /** theme hook: light is the shipped theme (tokens.css). */
 const theme = ref<"light" | "dark">("light");
@@ -46,7 +59,7 @@ onMounted(() => {
     <main class="consumer-app-shell__main">
       <AppBoundary>
         <RouterView v-slot="{ Component }">
-          <component :is="Component" />
+          <component :is="Component" :key="routeInstanceKey" />
         </RouterView>
       </AppBoundary>
     </main>
