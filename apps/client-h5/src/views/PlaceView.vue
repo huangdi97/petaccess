@@ -49,6 +49,7 @@ import { presentDescription } from "../errors";
 import { useBreakpoint } from "../composables/useBreakpoint";
 import { useRealityConfirmation } from "../composables/useRealityConfirmation";
 import { createEpoch, currentQueryContext, snapshotFor } from "../consumer/repository";
+import { firstApprovedSceneMedia } from "../consumer/publicSceneMedia";
 
 const route = useRoute();
 const placeId = computed(() => (route.params.id ? String(route.params.id) : ""));
@@ -156,24 +157,9 @@ async function loadPlaceSceneMedia(
   epoch: number,
   expectedPlaceId: string,
 ) {
-  const bundleIds = [
-    ...new Set(
-      eventRows.map((event) => event.evidence_bundle_id).filter((id): id is string => Boolean(id)),
-    ),
-  ].slice(0, 8);
-  for (const bundleId of bundleIds) {
-    try {
-      const media = await client.publicEvidenceMedia(bundleId);
-      if (!loadEpoch.isCurrent(epoch) || placeId.value !== expectedPlaceId) return;
-      if (media.purpose === "scene_photo") {
-        placeSceneMedia.value = media;
-        return;
-      }
-    } catch {
-      // Public media is fail-closed; continue looking for another approved
-      // scene photo without revealing private evidence availability.
-    }
-  }
+  const media = await firstApprovedSceneMedia(eventRows);
+  if (!loadEpoch.isCurrent(epoch) || placeId.value !== expectedPlaceId) return;
+  placeSceneMedia.value = media;
 }
 
 async function load() {
