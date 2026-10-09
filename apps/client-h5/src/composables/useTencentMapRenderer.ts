@@ -209,6 +209,7 @@ export function useTencentMapRenderer(options: TencentRendererOptions) {
             cluster.count,
             selected,
             cluster.status,
+            options.lens(),
           ),
         });
       }
