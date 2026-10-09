@@ -1,4 +1,5 @@
-import { STATUS_GLYPHS, type MapMarker } from "@petaccess/client-core";
+import { type MapMarker } from "@petaccess/client-core";
+import { mapLensGlyph } from "../consumer/mapLens";
 
 function tokenColor(name: string): string {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || "currentColor";
@@ -38,6 +39,7 @@ export function tencentMarkerSvg(
   count: number,
   selected: boolean,
   status: MapMarker["status"],
+  lens: string,
 ): string {
   const accent = tokenColor("--pa-color-accent");
   const surface = tokenColor("--pa-color-surface");
@@ -47,7 +49,11 @@ export function tencentMarkerSvg(
     : "";
 
   if (count > 1) {
-    const cluster = `<circle cx="18" cy="18" r="${selected ? 10 : 9}" fill="${color}" stroke="${surface}" stroke-width="2"/><text x="18" y="22" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" font-weight="700" fill="${surface}">${Math.min(count, 99)}</text>`;
+    // A cluster aggregates places with potentially different Rule/Reality
+    // states. Its fill is deliberately neutral; only count + selection mean
+    // anything until the user zooms in.
+    const clusterColor = tokenColor("--pa-color-text-secondary");
+    const cluster = `<circle cx="18" cy="18" r="${selected ? 10 : 9}" fill="${clusterColor}" stroke="${surface}" stroke-width="2"/><text x="18" y="22" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" font-weight="700" fill="${surface}">${Math.min(count, 99)}</text>`;
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36">${ring}${cluster}</svg>`;
     return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
   }
@@ -71,7 +77,7 @@ export function tencentMarkerSvg(
     glyphFill = color;
   }
 
-  const glyph = STATUS_GLYPHS[status] ?? STATUS_GLYPHS.UNKNOWN;
+  const glyph = mapLensGlyph(lens, status);
   const glyphText = `<text x="18" y="21" text-anchor="middle" font-family="Arial,sans-serif" font-size="8" font-weight="700" fill="${glyphFill || textPrimary}">${glyph}</text>`;
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36">${ring}${shape}${glyphText}</svg>`;
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
