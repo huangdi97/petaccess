@@ -127,6 +127,7 @@ const freshness = computed(() =>
               />
               <PlaceResultRow
                 :place="c.place"
+                :show-identity-glyph="index !== 0"
                 :answer="c.facts.answer"
                 :answer-error="c.facts.answerError"
                 :reality="c.facts.reality"
