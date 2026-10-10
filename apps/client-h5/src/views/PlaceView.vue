@@ -402,7 +402,7 @@ const placeState = computed<string>(() => {
   // user can actually see. Skeleton/loading wins until the transaction ends.
   if (loading.value) return "loading";
   if (error.value || !place.value) return "unavailable";
-  if (coexistenceError.value) return "partial";
+  if (coexistenceError.value || partial.value.length) return "partial";
   if (!answer.value) return "unknown";
   return answerStatusKey(answer.value) === "UNKNOWN" ? "unknown" : "ready";
 });
