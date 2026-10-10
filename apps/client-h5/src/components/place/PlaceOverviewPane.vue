@@ -563,8 +563,8 @@ const divergenceLine = computed(() => {
   display: grid;
   min-width: 0;
   max-width: 100%;
-  grid-template-columns: 7rem minmax(0, 1fr);
-  gap: var(--pa-space-3);
+  grid-template-columns: 6.5rem minmax(0, 1fr) auto;
+  gap: var(--pa-space-2);
   margin: 0;
   font-size: var(--pa-font-size-md);
   line-height: var(--pa-line-height-20);
@@ -576,7 +576,7 @@ const divergenceLine = computed(() => {
 }
 
 .coexistence-fact__link {
-  grid-column: 2;
+  grid-column: 3;
   justify-self: start;
   white-space: nowrap;
   align-self: start;
