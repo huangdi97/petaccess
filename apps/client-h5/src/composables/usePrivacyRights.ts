@@ -35,11 +35,13 @@ export function usePrivacyRights() {
     privateSessionReady.value = false;
     try {
       await session.restore();
+      // Local credential presence and server-restored private rights are two
+      // different states. Reflect the former even when /me is temporarily unavailable.
+      signedIn.value = session.signedIn;
       if (session.restoreIssue === "unavailable") {
         rightsError.value = "账号状态暂不可用；本机凭据未删除，但私有数据操作暂时关闭。";
         return;
       }
-      signedIn.value = session.signedIn;
       if (!signedIn.value) return;
       privateSessionReady.value = true;
       const row = await client.accountDeletionRequest();
