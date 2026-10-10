@@ -36,7 +36,7 @@ import PaBottomSheet from "../components/ui/PaBottomSheet.vue";
 import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
 import StatusBadge from "../components/StatusBadge.vue";
-import PlaceTypeGlyph from "../components/domain/PlaceTypeGlyph.vue";
+import PlaceSceneFrame from "../components/domain/PlaceSceneFrame.vue";
 import { answerConditions, answerPrimarySummary, answerStatusKey } from "../answer";
 import {
   coexistenceEvidenceLine,
@@ -573,18 +573,18 @@ watch(currentQueryContext, () => {
                      Keep it divider-led, never a card wall. -->
                 <div class="result-row__head">
                   <div class="result-row__identity-wrap">
-                    <span class="result-row__visual" aria-hidden="true">
-                      <img
-                        v-if="selectedId === p.id && selectedSceneMedia"
-                        class="result-row__scene"
-                        :src="selectedSceneMedia.url"
-                        :alt="`场所场景：${p.canonical_name}`"
-                        loading="lazy"
-                        decoding="async"
-                        referrerpolicy="no-referrer"
-                      />
-                      <PlaceTypeGlyph v-else :place-type="p.place_type" size="lg" />
-                    </span>
+                    <PlaceSceneFrame
+                      class="result-row__visual"
+                      :src="selectedId === p.id ? (selectedSceneMedia?.url ?? null) : null"
+                      alt=""
+                      :place-type="p.place_type"
+                      variant="compact"
+                      :data-testid="
+                        selectedId === p.id && selectedSceneMedia
+                          ? 'search-row-scene-media'
+                          : 'search-row-scene-fallback'
+                      "
+                    />
                     <div class="result-row__identity">
                       <strong class="result-row__name">{{ p.canonical_name }}</strong>
                       <span class="muted result-row__meta">
