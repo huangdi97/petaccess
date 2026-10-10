@@ -10,7 +10,7 @@
  *   Type·distance + Key condition + 最近现场 + 查看场所 →；close 右上 icon。
  * - `role="dialog"` + Escape 关闭（键盘可达）；reduced-motion 降级。
  */
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import {
   placeTypeLabel,
   type CoexistenceSnapshot,
@@ -117,6 +117,16 @@ function onKey(e: KeyboardEvent) {
 function cyclePhase() {
   phase.value = phase.value === "expanded" ? "half" : "expanded";
 }
+
+// A new selection is a new decision task. Reopen it at the designed half
+// height instead of carrying an expanded/closed phase from the previous place.
+watch(
+  () => [props.open, props.place?.id] as const,
+  ([open, placeId], previous) => {
+    const [wasOpen, previousPlaceId] = previous ?? [false, undefined];
+    if (open && (!wasOpen || placeId !== previousPlaceId)) phase.value = "half";
+  },
+);
 
 onMounted(() => window.addEventListener("keydown", onKey));
 onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
