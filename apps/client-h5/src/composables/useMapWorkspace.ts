@@ -134,8 +134,7 @@ export function useMapWorkspace() {
   onMounted(async () => {
     try {
       await session.restore();
-    } catch {
-    }
+    } catch {}
     await load();
     queryContextReady = true;
   });
