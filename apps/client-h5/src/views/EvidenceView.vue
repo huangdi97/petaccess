@@ -480,6 +480,7 @@ const uiFixture = computed<string>(() =>
 <style scoped>
 .evidence-workspace {
   min-height: 100%;
+  background: var(--pa-color-surface-muted);
 }
 
 .evidence-workspace__body {
@@ -487,13 +488,16 @@ const uiFixture = computed<string>(() =>
   flex-direction: column;
   gap: var(--pa-space-5);
   padding: var(--pa-space-5) var(--pa-space-6) var(--pa-space-7);
-  max-width: var(--pa-layout-content-820);
+  max-width: 980px;
   margin: 0 auto;
 }
 
 .evidence-head {
-  padding-bottom: var(--pa-space-5);
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  padding: var(--pa-space-5);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: calc(var(--pa-radius-md) + 2px);
+  background: var(--pa-color-surface-raised);
+  box-shadow: var(--pa-elevation-1);
 }
 
 .evidence-head__identity {
@@ -555,7 +559,10 @@ const uiFixture = computed<string>(() =>
 .evidence-leading--without-media {
   grid-template-columns: minmax(0, 1fr) minmax(300px, 0.78fr);
   padding-bottom: var(--pa-space-4);
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: var(--pa-radius-md);
+  background: var(--pa-color-surface-raised);
+  padding: var(--pa-space-4);
 }
 
 .evidence-hero-media {
