@@ -13,8 +13,14 @@ const sessionStateError = ref(false);
 onMounted(async () => {
   try {
     await session.restore();
+    if (session.restoreIssue === "unavailable") {
+      signedIn.value = false;
+      sessionStateError.value = true;
+      return;
+    }
     signedIn.value = session.signedIn;
   } catch {
+    signedIn.value = false;
     sessionStateError.value = true;
   }
 });
