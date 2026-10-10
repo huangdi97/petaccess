@@ -889,19 +889,19 @@ const placeFixture = computed<string>(() => {
   }
 
   .place-dossier__actions {
-    gap: var(--pa-space-3);
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-
-  .place-dossier__actions::-webkit-scrollbar {
-    display: none;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--pa-space-1);
+    overflow: visible;
   }
 
   .place-dossier__actions .btn-inline {
-    flex: 0 0 auto;
-    white-space: nowrap;
+    min-width: 0;
+    width: 100%;
+    padding-inline: var(--pa-space-1);
+    white-space: normal;
+    text-align: center;
+    line-height: var(--pa-line-height-20);
   }
 
   .place-dossier__meta-row {
