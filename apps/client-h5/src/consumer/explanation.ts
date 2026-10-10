@@ -14,8 +14,12 @@ export function consumerExplanation(answer: AccessAnswer): string[] {
     steps.push(`当前结论按「${answer.scope_summary.zone?.name ?? "当前区域"}」判断。`);
   } else if (answer.scope_summary.scope_level === "place") {
     steps.push("当前结论适用于场所整体。");
+  } else if (answer.scope_summary.scope_level === "jurisdiction") {
+    steps.push("当前结论由适用的辖区法规决定。");
+  } else if (answer.scope_summary.scope_level === "mixed") {
+    steps.push("当前结论由多个适用层级共同决定，具体范围可在规则与证据中核对。");
   } else {
-    steps.push("当前没有找到足够可靠的适用规则。");
+    steps.push("当前查询没有找到足够可靠的适用规则。");
   }
 
   const evidenceCount = answer.evidence_state.rules.length;
