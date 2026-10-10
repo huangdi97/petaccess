@@ -18,9 +18,14 @@ jobs:
           node-version: "22"
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Format target
-        run: pnpm exec prettier --write apps/client-h5/src/views/HomeView.vue
+      - name: Format targets
+        run: |
+          pnpm exec prettier --write \
+            apps/client-h5/src/views/HomeView.vue \
+            apps/client-h5/src/components/place/PlaceRulesPane.vue
       - uses: actions/upload-artifact@v4
         with:
-          name: ui-direct-formatted-home
-          path: apps/client-h5/src/views/HomeView.vue
+          name: ui-direct-formatted-targets
+          path: |
+            apps/client-h5/src/views/HomeView.vue
+            apps/client-h5/src/components/place/PlaceRulesPane.vue
