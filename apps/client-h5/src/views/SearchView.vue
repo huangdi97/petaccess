@@ -593,6 +593,7 @@ watch(currentQueryContext, () => {
                   </div>
                   <div class="result-row__head-right">
                     <StatusBadge :semantic="statuses[p.id] ?? 'UNKNOWN'" />
+                    <span class="result-row__chevron" aria-hidden="true">›</span>
                   </div>
                 </div>
 
@@ -1053,6 +1054,19 @@ watch(currentQueryContext, () => {
   align-items: center;
   gap: var(--pa-space-2);
   flex-shrink: 0;
+}
+
+
+.result-row__chevron {
+  flex: 0 0 auto;
+  color: var(--pa-color-text-muted);
+  font-size: var(--pa-font-size-xl);
+  line-height: 1;
+  transform: translateY(-1px);
+}
+
+.result-row--selected .result-row__chevron {
+  color: var(--pa-color-accent);
 }
 
 .result-row__name {
