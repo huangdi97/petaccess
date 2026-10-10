@@ -41,6 +41,10 @@ async function load() {
   loading.value = true;
   error.value = "";
   actionError.value = "";
+  // Private account data is a fresh transaction. Never keep previous counts
+  // or venue names visible while the current account refresh is unresolved.
+  watches.value = [];
+  targetNames.value = {};
   try {
     await session.restore();
     signedIn.value = session.signedIn;
@@ -105,14 +109,18 @@ async function unsubscribe(w: WatchView) {
             <strong>规则变化</strong>
             <p class="muted">只跟踪经过人工核验并发布的正式规则版本。</p>
           </div>
-          <span v-if="signedIn" class="channel-row__count">{{ activeRuleCount }} 项</span>
+          <span v-if="signedIn && !loading && !error" class="channel-row__count">
+            {{ activeRuleCount }} 项
+          </span>
         </div>
         <div class="channel-row">
           <div>
             <strong>现场更新</strong>
             <p class="muted">跟踪新发布且经核验的动物出现、工作人员处理与设施事实。</p>
           </div>
-          <span v-if="signedIn" class="channel-row__count">{{ activeRealityCount }} 项</span>
+          <span v-if="signedIn && !loading && !error" class="channel-row__count">
+            {{ activeRealityCount }} 项
+          </span>
         </div>
         <p class="notifications-channel__delivery muted">
           当前版本尚未接入系统推送；这里是应用内关注列表，不代表外部提醒已经发送。
