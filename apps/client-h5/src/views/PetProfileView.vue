@@ -27,6 +27,9 @@ async function load() {
   error.value = "";
   loadError.value = "";
   loading.value = true;
+  pets.value = [];
+  pendingDelete.value = null;
+  editing.value = null;
   try {
     await session.restore();
     if (!session.signedIn) return;
