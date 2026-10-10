@@ -39,8 +39,9 @@ test("Evidence remains public while expired private session offers sign-in, not 
   await expect(signIn).toContainText("登录后提出异议");
 });
 
-
-test("Privacy distinguishes a local token from a restored private-data session", async ({ page }) => {
+test("Privacy distinguishes a local token from a restored private-data session", async ({
+  page,
+}) => {
   await page.addInitScript(() => localStorage.setItem("pa_token", "temporarily-unverified-token"));
   await page.route("**/api/v1/auth/me", async (route) => {
     await route.fulfill({ status: 503, json: { detail: "account service unavailable" } });

@@ -58,12 +58,8 @@ export function homeDigestHeadline(card: HomeDigestCard, interest: ConsumerLens)
 
   if (interest === "presence" || interest === "indoor" || interest === "dining") {
     if (card.facts.realityError) return "现场信息暂时无法取得";
-    return lensProjection(
-      interest,
-      card.facts.answer,
-      card.facts.reality,
-      card.facts.snapshot,
-    ).realityLine;
+    return lensProjection(interest, card.facts.answer, card.facts.reality, card.facts.snapshot)
+      .realityLine;
   }
 
   const reality = card.facts.reality;

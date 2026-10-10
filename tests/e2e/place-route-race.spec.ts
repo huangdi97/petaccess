@@ -104,7 +104,6 @@ test("why/explanation route cannot show a delayed previous-place answer", async 
   await expect(page).toHaveURL(new RegExp(`#/place/${MALL_ID}/why$`));
 });
 
-
 test("coexistence transport failure stays an explicit partial error, never Unknown", async ({
   page,
 }) => {

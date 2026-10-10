@@ -115,8 +115,7 @@ async function restorePrivateSession(epoch: number, id: string) {
     privateSessionReady.value = session.signedIn;
   } catch {
     if (!loadEpoch.isCurrent(epoch) || placeId.value !== id) return;
-    privateSessionNote.value =
-      "账号状态暂不可用；现场事实仍可公开查看，确认操作暂时隐藏。";
+    privateSessionNote.value = "账号状态暂不可用；现场事实仍可公开查看，确认操作暂时隐藏。";
   }
 }
 

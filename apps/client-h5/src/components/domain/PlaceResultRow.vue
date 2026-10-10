@@ -106,11 +106,7 @@ const projection = computed(() =>
         data-testid="row-lens-headline"
       >
         {{
-          answerError
-            ? "规则结论暂时无法取得"
-            : answer
-              ? answerPrimarySummary(answer)
-              : "信息不足"
+          answerError ? "规则结论暂时无法取得" : answer ? answerPrimarySummary(answer) : "信息不足"
         }}
       </p>
       <p v-else class="place-result-row__reality-line" data-testid="row-lens-headline">

@@ -92,9 +92,7 @@ export function useHomeLauncher() {
     cards.value.filter((card) => !hasUsefulPublishedFact(card) && hasTransportFailure(card)),
   );
   const pending = computed(() =>
-    cards.value.filter(
-      (card) => !hasUsefulPublishedFact(card) && !hasTransportFailure(card),
-    ),
+    cards.value.filter((card) => !hasUsefulPublishedFact(card) && !hasTransportFailure(card)),
   );
 
   function submitSearch() {

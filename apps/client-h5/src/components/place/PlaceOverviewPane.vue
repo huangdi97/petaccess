@@ -158,7 +158,12 @@ const divergenceLine = computed(() => {
           </span>
           <p v-else class="status status--error" data-testid="answer-status">{{ verdict }}</p>
         </template>
-        <p v-else class="status" :class="{ 'status--error': snapshotError }" data-testid="answer-status">
+        <p
+          v-else
+          class="status"
+          :class="{ 'status--error': snapshotError }"
+          data-testid="answer-status"
+        >
           {{ verdict }}
         </p>
         <p v-if="keyCondition && !snapshotError" class="muted" data-testid="answer-conditions">

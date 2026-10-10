@@ -629,7 +629,9 @@ const placeFixture = computed<string>(() => {
           :answer="answer"
           :answer-error="Boolean(coexistenceError) || (!coexistenceLoaded && !answer)"
           :reality="coexistence?.reality_answer ?? null"
-          :reality-error="Boolean(coexistenceError) || (coexistenceLoaded && !coexistence?.reality_answer)"
+          :reality-error="
+            Boolean(coexistenceError) || (coexistenceLoaded && !coexistence?.reality_answer)
+          "
           :snapshot="coexistence"
           :species-label="speciesLabel"
           :latest-verified-at="latestVerifiedAt"

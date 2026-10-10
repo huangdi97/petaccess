@@ -175,10 +175,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
           <div class="sheet__title-row">
             <PlaceTypeGlyph :place-type="place.place_type" size="sm" />
             <h2 class="sheet__name">{{ place.canonical_name }}</h2>
-            <StatusBadge
-              v-if="!mapLensLabel && !loading && !error"
-              :semantic="statusKey"
-            />
+            <StatusBadge v-if="!mapLensLabel && !loading && !error" :semantic="statusKey" />
             <button
               class="sheet__close"
               data-testid="sheet-close"
