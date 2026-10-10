@@ -214,9 +214,15 @@ const divergenceLine = computed(() => {
           </RouterLink>
         </p>
         <p v-if="divergenceLine" class="coexistence-fact coexistence-fact--divergence">
-          <span class="coexistence-fact__label">规则与现场</span>
-          <span class="coexistence-fact__value">{{ divergenceLine }}</span>
-          <RouterLink class="btn-inline coexistence-fact__link" :to="`?view=evidence`">
+          <span v-if="desktop" class="coexistence-fact__label">规则与现场</span>
+          <span class="coexistence-fact__value">
+            {{ desktop ? divergenceLine : `规则与现场 · ${divergenceLine}` }}
+          </span>
+          <RouterLink
+            v-if="desktop"
+            class="btn-inline coexistence-fact__link"
+            :to="`?view=evidence`"
+          >
             查看依据 →
           </RouterLink>
         </p>
