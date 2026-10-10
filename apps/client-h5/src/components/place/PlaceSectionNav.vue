@@ -99,4 +99,22 @@ function select(v: PlaceViewKey) {
 .place-nav__tab:hover {
   color: var(--pa-color-accent);
 }
+
+@media (max-width: 767px) {
+  .place-nav {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: visible;
+  }
+
+  .place-nav__tab {
+    min-width: 0;
+    width: 100%;
+    padding-inline: var(--pa-space-1);
+    text-align: center;
+  }
+}
 </style>
