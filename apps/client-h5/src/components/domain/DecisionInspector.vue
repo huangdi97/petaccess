@@ -178,7 +178,16 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
            不再重复 Place Name/地址（identity 只在 main column）。 -->
       <header v-if="variant === 'search'" class="decision-inspector__head">
         <div class="decision-inspector__identity">
-          <PlaceTypeGlyph :place-type="place.place_type" size="lg" />
+          <PlaceSceneFrame
+            v-if="!sceneMediaUrl"
+            class="decision-inspector__identity-scene"
+            :src="null"
+            :place-type="place.place_type"
+            variant="compact"
+            alt=""
+            data-testid="inspector-scene-fallback"
+          />
+          <PlaceTypeGlyph v-else :place-type="place.place_type" size="lg" />
           <div class="decision-inspector__identity-copy">
             <div class="decision-inspector__title-row">
               <h2 class="decision-inspector__name" data-ui="search-detail-name">
@@ -202,7 +211,7 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
       </header>
 
       <PlaceSceneFrame
-        v-if="variant === 'search'"
+        v-if="variant === 'search' && sceneMediaUrl"
         class="decision-inspector__scene"
         :src="sceneMediaUrl"
         :alt="`场所场景：${place.canonical_name}`"
@@ -423,6 +432,26 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
   min-width: 0;
   flex: 1 1 auto;
 }
+
+/* The reference uses imagery as an identity anchor, not an empty banner.
+   Without approved media, keep a small abstract type glyph next to the name
+   and move the real Rule/Reality content into the first viewport. */
+.decision-inspector__identity-scene {
+  --scene-frame-compact-width: 76px;
+  --scene-frame-compact-height: 64px;
+  --scene-frame-compact-empty-width: 76px;
+  --scene-frame-compact-empty-height: 64px;
+  --scene-frame-compact-mobile-width: 64px;
+  --scene-frame-compact-mobile-height: 56px;
+  --scene-frame-compact-empty-mobile-width: 64px;
+  --scene-frame-compact-empty-mobile-height: 56px;
+  flex-shrink: 0;
+}
+
+.decision-inspector--search:not(:has(.decision-inspector__scene)) {
+  gap: var(--pa-space-4);
+}
+
 
 /* §22：detail 内容列最大 704px，不铺满整个 DetailPane（972）。 */
 .decision-inspector--search {
