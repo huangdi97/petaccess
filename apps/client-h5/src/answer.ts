@@ -71,8 +71,9 @@ export function answerScopeLabel(
   if (!answer) return `${speciesLabel} · 场所整体`;
   const scope = answer.scope_summary;
   if (scope.scope_level === "zone" && scope.zone) return `${speciesLabel} · ${scope.zone.name}`;
-  if (scope.scope_level === "none") return `${speciesLabel} · 尚无规则`;
+  if (scope.scope_level === "none") return `${speciesLabel} · 当前查询暂无适用规则`;
   if (scope.scope_level === "jurisdiction") return `${speciesLabel} · 辖区法规`;
+  if (scope.scope_level === "mixed") return `${speciesLabel} · 多层级适用范围`;
   return `${speciesLabel} · 场所整体`;
 }
 
