@@ -166,7 +166,11 @@ const divergenceLine = computed(() => {
           <span class="coexistence-fact__value">
             {{ desktop ? staffSummaryLine : `工作人员处理 · ${staffSummaryLine}` }}
           </span>
-          <RouterLink v-if="desktop" class="btn-inline coexistence-fact__link" :to="`?view=reality`">
+          <RouterLink
+            v-if="desktop"
+            class="btn-inline coexistence-fact__link"
+            :to="`?view=reality`"
+          >
             查看处理记录 →
           </RouterLink>
         </p>
