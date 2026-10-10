@@ -101,7 +101,7 @@ export function answerConditions(
     if (type) push(conditionLabel(type));
   }
   for (const obligation of answer.rights_information?.operator_obligations ?? []) {
-    push(obligationLabels[obligation] ?? "其他需配合事项");
+    push(obligationLabels[obligation] ?? conditionLabel(obligation));
   }
   const missing = answer.condition_evaluation?.missing_inputs ?? [];
   if (missing.length) {
