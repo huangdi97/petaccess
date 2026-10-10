@@ -645,6 +645,9 @@ const placeFixture = computed<string>(() => {
 <style scoped>
 .place-workspace {
   min-height: 100%;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
 }
 
 .place-workspace__body {
