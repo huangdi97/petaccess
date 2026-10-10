@@ -28,6 +28,7 @@ const props = defineProps<{
   lens: MapLensKey;
   lensLabels: Record<string, string>;
   statuses: Record<string, MapMarker["status"]>;
+  unavailablePlaces: Record<string, boolean>;
   selectedId?: string | null;
   visiblePlaces: PlaceSummary[];
   loading: boolean;
@@ -233,8 +234,14 @@ function toggleFilter(key: string) {
                     </span>
                   </div>
                 </div>
+                <span
+                  v-if="props.unavailablePlaces[p.id]"
+                  class="map-place-row__lens-fact map-place-row__lens-fact--unavailable"
+                >
+                  {{ props.lensLabels[p.id] ?? "信息暂时无法取得" }}
+                </span>
                 <StatusBadge
-                  v-if="props.lens === 'rule'"
+                  v-else-if="props.lens === 'rule'"
                   :semantic="props.statuses[p.id] ?? 'UNKNOWN'"
                 />
                 <span v-else class="map-place-row__lens-fact">
@@ -454,5 +461,9 @@ function toggleFilter(key: string) {
   font-size: var(--pa-font-size-md);
   line-height: var(--pa-line-height-20);
   color: var(--pa-color-text-secondary);
+}
+
+.map-place-row__lens-fact--unavailable {
+  color: var(--pa-color-text-muted);
 }
 </style>
