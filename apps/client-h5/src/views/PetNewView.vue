@@ -32,7 +32,12 @@ async function loadSession() {
   sessionError.value = "";
   try {
     await session.restore();
-    signedIn.value = session.signedIn;
+    if (session.restoreIssue === "unavailable") {
+      signedIn.value = false;
+      sessionError.value = "账号状态暂不可用，请恢复网络后重试；公开场所信息仍可免登录浏览。";
+    } else {
+      signedIn.value = session.signedIn;
+    }
   } catch (e) {
     signedIn.value = false;
     sessionError.value = presentDescription(e);
