@@ -1,8 +1,5 @@
 name: UI Direct Format Preview
 
-permissions:
-  contents: write
-
 on:
   push:
     branches:
@@ -55,14 +52,3 @@ jobs:
             tests/e2e/place-route-race.spec.ts
             tests/e2e/public-private-session-boundary.spec.ts
 
-      - name: Commit formatter output
-        run: |
-          if git diff --quiet; then
-            echo "No formatter changes to commit."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add apps/client-h5/src
-          git commit -m "chore: apply direct UI formatting"
-          git push origin HEAD:feat/ui-direct-craft-v8
