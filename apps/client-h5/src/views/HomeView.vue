@@ -29,6 +29,7 @@ const {
   speciesLabel,
   verified,
   pending,
+  unavailable,
   submitSearch,
   goEntry,
   open,
@@ -110,6 +111,7 @@ const homeFixture = computed(() => `home-${homeState.value}-v1`);
           :places="places"
           :verified="verified"
           :pending="pending"
+          :unavailable="unavailable"
           :list-stale="listStale"
           :nearby-fetched-at-ms="nearbyFetchedAtMs"
           :online="online"
