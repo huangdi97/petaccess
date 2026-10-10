@@ -692,7 +692,11 @@ test("B2.2 — 仅有发布时间的设施线索不冒充当前空间设施事�
   await page.goto(`${BASE}/#/place/${MALL_ID}?view=space`);
   await expect(page.getByTestId("animal-facilities")).toBeVisible();
   await expect(page.getByTestId("animal-facility-record")).toHaveCount(0);
-  await expect(page.getByTestId("animal-facility-summary-row").first()).toBeVisible();
+  const lead = page.getByTestId("animal-facility-summary-row").first();
+  await expect(lead).toBeVisible();
+  await expect(lead).toContainText("当前状态待现场核验");
+  await expect(lead).not.toContainText("正常使用中");
+  await expect(lead).not.toContainText("暂时不可用");
 });
 
 test("B2.2a — imported facility state tokens never leak into Consumer copy", async ({ page }) => {
