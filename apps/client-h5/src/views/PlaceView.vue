@@ -648,6 +648,7 @@ const placeFixture = computed<string>(() => {
   min-width: 0;
   width: 100%;
   max-width: 100%;
+  background: var(--pa-color-surface-muted);
 }
 
 .place-workspace__body {
@@ -671,16 +672,17 @@ const placeFixture = computed<string>(() => {
   .place-workspace__body--split {
     flex-direction: row;
     align-items: flex-start;
-    gap: var(--pa-space-7);
-    max-width: none;
-    padding: var(--pa-space-5) var(--pa-space-6);
+    gap: var(--pa-space-6);
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: var(--pa-space-5) var(--pa-space-6) var(--pa-space-8);
   }
 
   .place-dossier {
     flex: 1 1 auto;
     min-width: 0;
     /* v0.2.5 §10：main column max width 820。 */
-    max-width: 820px;
+    max-width: 860px;
   }
 
   .place-inspector {
@@ -688,8 +690,11 @@ const placeFixture = computed<string>(() => {
     min-width: 0;
     position: sticky;
     top: var(--pa-space-5);
-    padding-left: var(--pa-space-6);
-    border-left: var(--pa-border-width) solid var(--pa-color-border-subtle);
+    padding: var(--pa-space-4);
+    border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+    border-radius: calc(var(--pa-radius-md) + 2px);
+    background: var(--pa-color-surface-raised);
+    box-shadow: var(--pa-elevation-1);
   }
 }
 
@@ -708,15 +713,21 @@ const placeFixture = computed<string>(() => {
 .place-dossier__head {
   display: flex;
   flex-direction: column;
-  gap: var(--pa-space-3);
-  padding: var(--pa-space-4);
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
-  background: var(--pa-color-surface-muted);
-  margin-bottom: var(--pa-space-4);
+  gap: var(--pa-space-4);
+  padding: var(--pa-space-5);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: calc(var(--pa-radius-md) + 4px);
+  background: var(--pa-color-surface-raised);
+  box-shadow: var(--pa-elevation-1);
+  margin-bottom: var(--pa-space-5);
+  overflow: hidden;
 }
 
 .place-dossier__head--with-scene {
   padding: var(--pa-space-5);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--pa-color-accent-weak) 28%, transparent), transparent 45%),
+    var(--pa-color-surface-raised);
 }
 
 .place-dossier__head:not(.place-dossier__head--with-scene) {
@@ -986,14 +997,15 @@ const placeFixture = computed<string>(() => {
 
 @media (max-width: 767px) {
   .place-workspace__body {
-    gap: var(--pa-space-5);
-    padding: var(--pa-space-4);
+    gap: var(--pa-space-4);
+    padding: var(--pa-space-3);
   }
 
   .place-dossier__head,
   .place-dossier__head--with-scene {
     padding: var(--pa-space-4);
     margin-bottom: var(--pa-space-3);
+    border-radius: var(--pa-radius-md);
   }
 
   .place-dossier__actions {
