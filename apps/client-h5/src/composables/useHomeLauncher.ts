@@ -78,15 +78,24 @@ export function useHomeLauncher() {
   // useful published Reality evidence remains a substantive digest row even
   // when Rule is UNKNOWN; otherwise the UI would hide the exact divergence
   // the product is designed to surface.
-  const verified = computed(() =>
-    cards.value.filter((card) => {
-      if (ANSWERED_STATUSES.includes(card.status)) return true;
-      if ((card.facts.reality?.evidence_count ?? 0) > 0) return true;
-      if ((card.facts.snapshot?.evidence_summary.reality_evidence_count ?? 0) > 0) return true;
-      return (card.facts.snapshot?.evidence_summary.rule_evidence.length ?? 0) > 0;
-    }),
+  const hasUsefulPublishedFact = (card: HomeCard) => {
+    if (ANSWERED_STATUSES.includes(card.status)) return true;
+    if ((card.facts.reality?.evidence_count ?? 0) > 0) return true;
+    if ((card.facts.snapshot?.evidence_summary.reality_evidence_count ?? 0) > 0) return true;
+    return (card.facts.snapshot?.evidence_summary.rule_evidence.length ?? 0) > 0;
+  };
+  const hasTransportFailure = (card: HomeCard) =>
+    Boolean(card.facts.answerError || card.facts.realityError);
+
+  const verified = computed(() => cards.value.filter(hasUsefulPublishedFact));
+  const unavailable = computed(() =>
+    cards.value.filter((card) => !hasUsefulPublishedFact(card) && hasTransportFailure(card)),
   );
-  const pending = computed(() => cards.value.filter((card) => !verified.value.includes(card)));
+  const pending = computed(() =>
+    cards.value.filter(
+      (card) => !hasUsefulPublishedFact(card) && !hasTransportFailure(card),
+    ),
+  );
 
   function submitSearch() {
     const q = query.value.trim();
@@ -206,6 +215,7 @@ export function useHomeLauncher() {
     speciesLabel,
     verified,
     pending,
+    unavailable,
     submitSearch,
     goEntry,
     open,
