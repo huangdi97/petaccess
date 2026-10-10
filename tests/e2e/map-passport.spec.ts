@@ -162,8 +162,8 @@ test("A4.3b — broken reviewed scene URL falls back to an honest placeholder", 
   await page.goto(`${BASE}/#/search?q=云栖`);
   const frame = page.getByTestId("inspector-scene-media");
   await expect(frame).toBeVisible({ timeout: 15000 });
-  await expect(frame).toContainText("场景图片待补充", { timeout: 15000 });
-  await expect(frame).toContainText("不以证据图或合成图冒充真实场所");
+  await expect(frame).toContainText("暂无可展示的场所照片", { timeout: 15000 });
+  await expect(frame).toContainText("有经审核允许公开的场景照片后，会显示在这里。");
   await expect(frame.locator('[data-ui="place-type-glyph"]')).toBeVisible();
   await expect(frame.locator("img")).toHaveCount(0);
 });
