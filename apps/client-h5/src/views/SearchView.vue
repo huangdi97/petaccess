@@ -589,7 +589,9 @@ watch(currentQueryContext, () => {
                       <strong class="result-row__name">{{ p.canonical_name }}</strong>
                       <span class="muted result-row__meta">
                         {{ placeTypeLabel(p.place_type) }}
-                        <template v-if="p.distance_m != null"> · {{ Math.round(p.distance_m) }}m</template>
+                        <template v-if="p.distance_m != null">
+                          · {{ Math.round(p.distance_m) }}m
+                        </template>
                       </span>
                     </div>
                   </div>
