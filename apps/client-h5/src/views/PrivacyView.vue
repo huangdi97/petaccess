@@ -16,6 +16,7 @@ const {
   deletionRequestedAt,
   confirmDeletion,
   signedIn,
+  privateSessionReady,
   clearLocalData,
   exportData,
   submitDeletionRequest,
@@ -86,7 +87,7 @@ const {
       </div>
     </section>
 
-    <PrivacyMediaSection :signed-in="signedIn" />
+    <PrivacyMediaSection :signed-in="privateSessionReady" />
 
     <section class="privacy-section">
       <div class="privacy-section__lead">
@@ -96,7 +97,7 @@ const {
       <div class="privacy-section__body">
         <SkeletonList v-if="loading" :rows="2" />
         <StateMessage
-          v-else-if="rightsError && !signedIn"
+          v-else-if="rightsError && !privateSessionReady"
           kind="ERROR"
           title="未能确认账号数据权限"
           :description="rightsError"
@@ -107,7 +108,7 @@ const {
           </template>
         </StateMessage>
         <StateMessage
-          v-else-if="!signedIn"
+          v-else-if="!privateSessionReady"
           kind="PERMISSION_DENIED"
           description="登录后可以获取自己的数据副本，或提交可追踪的账号删除申请。"
         />
