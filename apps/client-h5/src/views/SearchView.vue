@@ -650,10 +650,21 @@ watch(currentQueryContext, () => {
                   class="result-row__reality-line"
                   data-testid="result-reality"
                 >
-                  {{ lensProjectionFor(p).realityLine }}
+                  <span>{{ lensProjectionFor(p).realityLine }}</span>
+                  <span
+                    v-if="rowEvidenceMeta(p) && (!isDesktop || selectedId !== p.id)"
+                    class="result-row__evidence-meta result-row__evidence-meta--inline"
+                    data-testid="result-evidence-meta"
+                  >
+                    · {{ rowEvidenceMeta(p) }}
+                  </span>
                 </p>
                 <p
-                  v-if="rowEvidenceMeta(p) && (!isDesktop || selectedId !== p.id)"
+                  v-else-if="
+                    rowEvidenceMeta(p) &&
+                    lensProjectionFor(p).headline !== 'rule' &&
+                    (!isDesktop || selectedId !== p.id)
+                  "
                   class="result-row__evidence-meta"
                   data-testid="result-evidence-meta"
                 >
@@ -998,7 +1009,7 @@ watch(currentQueryContext, () => {
 .result-row__link {
   display: block;
   /* v0.2.4 §11 row internal = 12px。 */
-  padding: var(--pa-space-3) var(--pa-space-1);
+  padding: var(--pa-space-2) var(--pa-space-1);
   text-decoration: none;
   color: inherit;
   min-height: 112px;
@@ -1045,6 +1056,10 @@ watch(currentQueryContext, () => {
 }
 
 .result-row__name {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   font-size: var(--pa-font-size-lg);
   font-weight: var(--pa-font-weight-medium);
   line-height: var(--pa-line-height-tight);
@@ -1053,7 +1068,7 @@ watch(currentQueryContext, () => {
 
 .result-row__meta {
   display: block;
-  margin-top: var(--pa-space-1);
+  margin-top: 0;
   font-size: var(--pa-font-size-md);
   line-height: var(--pa-line-height-tight);
   overflow-wrap: anywhere;
@@ -1062,8 +1077,8 @@ watch(currentQueryContext, () => {
 /* Primary decision: the scannable line of the row; condition sits inline.
  * --lead = lens 标题行（v0.2.4 §11：只改强调，不新增行）。 */
 .result-row__decision {
-  margin: var(--pa-space-1) 0 0;
-  font-size: var(--pa-font-size-lg);
+  margin: 0;
+  font-size: var(--pa-font-size-base);
   font-weight: var(--pa-font-weight-medium);
   line-height: var(--pa-line-height-tight);
   color: var(--pa-color-text-primary);
@@ -1084,7 +1099,7 @@ watch(currentQueryContext, () => {
 }
 
 .result-row__condition-line {
-  margin: var(--pa-space-1) 0 0;
+  margin: 0;
   font-size: var(--pa-font-size-md);
   line-height: var(--pa-line-height-20);
   color: var(--pa-color-text-secondary);
@@ -1094,7 +1109,7 @@ watch(currentQueryContext, () => {
 }
 
 .result-row__reality-line {
-  margin: var(--pa-space-1) 0 0;
+  margin: 0;
   font-size: var(--pa-font-size-14);
   line-height: var(--pa-line-height-20);
   color: var(--pa-color-text-secondary);
@@ -1111,8 +1126,8 @@ watch(currentQueryContext, () => {
 }
 
 .result-row__evidence-meta {
-  margin: var(--pa-space-1) 0 0;
-  font-size: var(--pa-font-size-md);
+  margin: 0;
+  font-size: var(--pa-font-size-sm);
   line-height: var(--pa-line-height-20);
   color: var(--pa-color-text-muted);
   overflow: hidden;
@@ -1120,8 +1135,15 @@ watch(currentQueryContext, () => {
   white-space: nowrap;
 }
 
+.result-row__evidence-meta--inline {
+  display: inline;
+  margin-left: var(--pa-space-1);
+  font-size: var(--pa-font-size-sm);
+  color: var(--pa-color-text-muted);
+}
+
 .result-row__error {
-  margin: var(--pa-space-1) 0 0;
+  margin: 0;
   color: var(--pa-color-text-secondary);
 }
 
@@ -1137,7 +1159,7 @@ watch(currentQueryContext, () => {
   }
 
   .result-row__name {
-    font-size: var(--pa-font-size-xl);
+    font-size: var(--pa-font-size-lg);
   }
 
   .result-row__meta {
