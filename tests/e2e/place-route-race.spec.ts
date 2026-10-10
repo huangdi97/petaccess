@@ -19,11 +19,14 @@ test("late previous-place response never contaminates the current dossier", asyn
   });
 
   await page.goto(`${BASE}/#/place/${CAFE_ID}`);
+  // Wait until the first SPA route has mounted, but not for its deliberately
+  // delayed place request. This keeps the test a real same-document route race.
+  const dossier = page.getByTestId("place-workspace");
+  await expect(dossier).toBeVisible();
+  await expect(dossier).toHaveAttribute("data-ui-entity-id", CAFE_ID);
   await page.evaluate((id) => {
     window.location.hash = `#/place/${id}`;
   }, MALL_ID);
-
-  const dossier = page.getByTestId("place-workspace");
   await expect(dossier).toHaveAttribute("data-ui-entity-id", MALL_ID);
   await expect(dossier).toContainText("云栖中心", { timeout: 15000 });
 
