@@ -48,6 +48,14 @@ test("A2/B2 — v0.2.4：timeline 首屏 + 一行 metadata，无原始枚举", a
   const top = await firstEvent.evaluate((el) => el.getBoundingClientRect().top);
   // §51 gate：first event top <= 360px（不用 scrollTo 证明 timeline 存在）。
   expect(top).toBeLessThanOrEqual(360);
+  // Adjacent dates share one readable event rail. An earlier 112px date gap
+  // pushed legitimate published facts below the first viewport.
+  const laterDate = page.locator("[data-ui='timeline-date']").nth(1);
+  await expect(laterDate).toBeVisible();
+  const dateGap = await laterDate.evaluate((node) =>
+    Number.parseFloat(getComputedStyle(node).marginTop),
+  );
+  expect(dateGap).toBeLessThanOrEqual(32);
   // 无 raw enum / 无内部字段名。
   const text = await page.evaluate(() => document.body.innerText);
   for (const raw of [
