@@ -368,6 +368,10 @@ const homeFixture = computed(() => `home-${homeState.value}-v1`);
    * first laptop viewport; whitespace is hierarchy, not empty territory. */
   .page--home {
     padding-top: var(--pa-space-4);
+    /* A workspace starts next to the navigation rail on wide displays.
+       Avoid a floating narrow site centered in an otherwise empty canvas. */
+    margin-left: 0;
+    margin-right: auto;
   }
 
   .home-topline {
