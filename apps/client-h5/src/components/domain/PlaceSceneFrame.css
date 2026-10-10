@@ -143,12 +143,14 @@
  * hero image. Keep the empty state compact so evidence and decision content
  * remain above the fold; real reviewed photos still retain the wide 16:6 frame. */
 .scene-frame--hero.scene-frame--empty .scene-frame__empty {
-  height: 136px;
+  height: 104px;
+  padding-block: var(--pa-space-3);
 }
 
 @media (max-width: 767px) {
   .scene-frame--hero.scene-frame--empty .scene-frame__empty {
-    height: 104px;
+    height: 88px;
+    padding-block: var(--pa-space-2);
   }
 }
 
