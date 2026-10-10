@@ -179,7 +179,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
           </div>
           <p class="muted sheet__meta">
             {{ placeTypeLabel(place.place_type) }}
-            <template v-if="place.distance_m"> · {{ Math.round(place.distance_m) }}m</template>
+            <template v-if="place.distance_m != null"> · {{ Math.round(place.distance_m) }}m</template>
           </p>
           <div v-if="mapLensLabel" class="sheet__lens" data-testid="sheet-map-lens">
             <span class="muted">当前地图 · {{ mapLensName }}</span>

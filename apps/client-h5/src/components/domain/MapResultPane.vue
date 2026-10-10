@@ -229,7 +229,7 @@ function toggleFilter(key: string) {
                     <strong>{{ p.canonical_name }}</strong>
                     <span class="muted">
                       {{ placeTypeLabel(p.place_type) }}
-                      <span v-if="p.distance_m"> · {{ Math.round(p.distance_m) }}m</span>
+                      <span v-if="p.distance_m != null"> · {{ Math.round(p.distance_m) }}m</span>
                     </span>
                   </div>
                 </div>
