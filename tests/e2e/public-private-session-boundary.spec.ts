@@ -38,3 +38,23 @@ test("Evidence remains public while expired private session offers sign-in, not 
   await expect(signIn).toBeVisible();
   await expect(signIn).toContainText("登录后提出异议");
 });
+
+
+test("Privacy distinguishes a local token from a restored private-data session", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("pa_token", "temporarily-unverified-token"));
+  await page.route("**/api/v1/auth/me", async (route) => {
+    await route.fulfill({ status: 503, json: { detail: "account service unavailable" } });
+  });
+
+  await page.goto(`${BASE}/#/privacy`);
+
+  await expect(page.getByText("当前设备已登录。")).toBeVisible();
+  await expect(page.getByTestId("privacy-rights-load-error")).toContainText("账号状态暂不可用");
+  await expect(page.getByTestId("privacy-export")).toHaveCount(0);
+  await expect(page.getByTestId("privacy-delete-request-open")).toHaveCount(0);
+
+  await page.getByTestId("clear-local").click();
+  await expect(page.getByTestId("cleared-msg")).toBeVisible();
+  await expect(page.getByText("当前设备未登录。")).toBeVisible();
+  await expect(page.getByTestId("privacy-export")).toHaveCount(0);
+});
