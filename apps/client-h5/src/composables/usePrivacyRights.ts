@@ -12,13 +12,16 @@ export function usePrivacyRights() {
   const deletionStatus = ref<"none" | "submitted" | string>("none");
   const deletionRequestedAt = ref<string | null>(null);
   const confirmDeletion = ref(false);
-  /** Local credential presence is not the same as a restored private session. */
-  const signedIn = computed(() => session.signedIn);
+  /** Local credential presence is not the same as a restored private session.
+   * Keep an explicit view-state ref because the shared session object is not a
+   * Vue reactive source by itself. */
+  const signedIn = ref(false);
   const privateSessionReady = ref(false);
 
   function clearLocalData() {
     platformStorage.remove("pa_token");
     session.logout();
+    signedIn.value = false;
     privateSessionReady.value = false;
     deletionStatus.value = "none";
     deletionRequestedAt.value = null;
@@ -36,7 +39,8 @@ export function usePrivacyRights() {
         rightsError.value = "账号状态暂不可用；本机凭据未删除，但私有数据操作暂时关闭。";
         return;
       }
-      if (!session.signedIn) return;
+      signedIn.value = session.signedIn;
+      if (!signedIn.value) return;
       privateSessionReady.value = true;
       const row = await client.accountDeletionRequest();
       deletionStatus.value = row.status;
