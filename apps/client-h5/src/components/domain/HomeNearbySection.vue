@@ -102,8 +102,7 @@ const freshness = computed(() =>
             @click="emit('open', c.place.id)"
           >
             <div
-              class="home-row__content"
-              :class="{ 'home-row__content--with-scene': index === 0 }"
+              class="home-row__content home-row__content--with-scene"
             >
               <PlaceSceneFrame
                 v-if="index === 0 && featuredSceneMediaUrl"
@@ -114,7 +113,7 @@ const freshness = computed(() =>
                 data-testid="home-scene-media"
               />
               <PlaceTypeGlyph
-                v-else-if="index === 0"
+                v-else
                 class="home-row__scene home-row__scene--glyph"
                 :place-type="c.place.place_type"
                 size="lg"
@@ -122,7 +121,7 @@ const freshness = computed(() =>
               />
               <PlaceResultRow
                 :place="c.place"
-                :show-identity-glyph="index !== 0"
+                :show-identity-glyph="false"
                 :answer="c.facts.answer"
                 :answer-error="c.facts.answerError"
                 :reality="c.facts.reality"
