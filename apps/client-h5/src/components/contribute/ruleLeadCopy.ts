@@ -13,6 +13,14 @@ export function ruleLeadSourceBasisLabel(value: string): string {
   return "来源类型不确定";
 }
 
+const RULE_LEAD_CONDITION_LABELS: Record<string, string> = {
+  leash_required: "需牵引",
+  carrier_required: "需宠物包",
+  stroller_required: "需推车",
+  no_ground: "不可落地",
+};
+
 export function ruleLeadConditionLabel(values: string[]): string {
-  return values.length ? values.join("、") : "未补充条件";
+  if (!values.length) return "未补充条件";
+  return values.map((value) => RULE_LEAD_CONDITION_LABELS[value] ?? "其他待核验条件").join("、");
 }
