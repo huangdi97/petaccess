@@ -162,16 +162,20 @@ const divergenceLine = computed(() => {
       </p>
       <div class="coexistence-facts" data-ui="coexistence-facts">
         <p class="coexistence-fact" data-testid="overview-staff-response">
-          <span class="coexistence-fact__label">工作人员处理</span>
-          <span class="coexistence-fact__value">{{ staffSummaryLine }}</span>
-          <RouterLink class="btn-inline coexistence-fact__link" :to="`?view=reality`">
+          <span v-if="desktop" class="coexistence-fact__label">工作人员处理</span>
+          <span class="coexistence-fact__value">
+            {{ desktop ? staffSummaryLine : `工作人员处理 · ${staffSummaryLine}` }}
+          </span>
+          <RouterLink v-if="desktop" class="btn-inline coexistence-fact__link" :to="`?view=reality`">
             查看处理记录 →
           </RouterLink>
         </p>
         <p class="coexistence-fact" data-testid="overview-animal-facility">
-          <span class="coexistence-fact__label">动物设施</span>
-          <span class="coexistence-fact__value">{{ facilitySummaryLine }}</span>
-          <RouterLink class="btn-inline coexistence-fact__link" :to="`?view=space`">
+          <span v-if="desktop" class="coexistence-fact__label">动物设施</span>
+          <span class="coexistence-fact__value">
+            {{ desktop ? facilitySummaryLine : `动物设施 · ${facilitySummaryLine}` }}
+          </span>
+          <RouterLink v-if="desktop" class="btn-inline coexistence-fact__link" :to="`?view=space`">
             查看设施 →
           </RouterLink>
         </p>
@@ -258,9 +262,7 @@ const divergenceLine = computed(() => {
     data-testid="overview-zones"
     data-ui="place-zones-summary"
   >
-    <span class="overview-summary-row__label">空间</span>
-    <span class="overview-summary-row__value">{{ spaceSummaryLine }}</span>
-    <span class="overview-summary-row__cta">查看 →</span>
+    <span class="overview-summary-row__value">空间 · {{ spaceSummaryLine }}</span>
   </RouterLink>
 
   <!-- §11 mobile：Evidence summary row；desktop 显示详情区。 -->
@@ -300,9 +302,7 @@ const divergenceLine = computed(() => {
     data-testid="overview-evidence"
     data-ui="place-evidence-summary"
   >
-    <span class="overview-summary-row__label">证据与来源</span>
-    <span class="overview-summary-row__value">{{ evidenceSummaryLine }}</span>
-    <span class="overview-summary-row__cta">查看 →</span>
+    <span class="overview-summary-row__value">证据与来源 · {{ evidenceSummaryLine }}</span>
   </RouterLink>
 </template>
 
@@ -555,17 +555,11 @@ const divergenceLine = computed(() => {
   }
 
   .coexistence-fact {
-    display: grid;
-    grid-template-columns: 6.4rem minmax(0, 1fr);
-    align-items: start;
-    gap: var(--pa-space-1) var(--pa-space-2);
-  }
-
-  .coexistence-fact__label {
-    font-size: var(--pa-font-size-sm);
+    display: block;
   }
 
   .coexistence-fact__value {
+    display: block;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
