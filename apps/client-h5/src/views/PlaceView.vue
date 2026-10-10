@@ -879,6 +879,37 @@ const placeFixture = computed<string>(() => {
   padding-left: var(--pa-space-5);
 }
 
+/* Reference alignment: identity is a compact dossier masthead, not a
+   large muted card. Keep approved evidence media visible when it exists. */
+@media (min-width: 1024px) {
+  .place-dossier__head:not(.place-dossier__head--with-scene) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--pa-space-3);
+    min-height: 108px;
+    padding: var(--pa-space-3) 0 var(--pa-space-4);
+    background: transparent;
+  }
+
+  .place-dossier__head:not(.place-dossier__head--with-scene) .place-dossier__identity-row {
+    align-items: center;
+  }
+
+  .place-dossier__head:not(.place-dossier__head--with-scene) .place-dossier__actions {
+    width: auto;
+    margin-top: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--pa-space-1);
+  }
+
+  .place-dossier__head:not(.place-dossier__head--with-scene) .place-dossier__scene--fallback {
+    --scene-frame-compact-width: 116px;
+    --scene-frame-compact-height: 76px;
+  }
+}
+
 @media (max-width: 767px) {
   .place-workspace__body {
     gap: var(--pa-space-5);
