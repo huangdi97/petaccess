@@ -720,6 +720,7 @@ watch(currentQueryContext, () => {
   min-height: 100%;
   min-width: 0;
   max-width: 100%;
+  background: var(--pa-color-surface-muted);
 }
 
 .search-workspace__body {
@@ -750,10 +751,8 @@ watch(currentQueryContext, () => {
     flex: 0 0 var(--pa-layout-result-pane);
     min-width: 0;
     border-right: var(--pa-border-width) solid var(--pa-color-border);
-    background: var(--pa-color-surface-raised);
-    /* Results remain a pane, not a card: the surface tint only separates
-       task selection from the decision workspace. */
-    padding: var(--pa-space-5) var(--pa-space-20) 0;
+    background: var(--pa-color-surface);
+    padding: var(--pa-space-5) var(--pa-space-4) var(--pa-space-7);
   }
 
   .search-inspector {
@@ -761,10 +760,11 @@ watch(currentQueryContext, () => {
     min-width: 0;
     /* §22：detail content x = 468 + 40 = 508；宽度由 DecisionInspector
      * 自身 max-width（--pa-layout-detail-content = 704）约束。 */
-    padding: var(--pa-space-6) var(--pa-space-6) 0 var(--pa-space-40);
+    padding: var(--pa-space-5) var(--pa-space-6) var(--pa-space-8);
     position: sticky;
     top: 0;
     align-self: stretch;
+    background: var(--pa-color-surface-raised);
   }
 }
 
@@ -794,6 +794,11 @@ watch(currentQueryContext, () => {
   display: flex;
   gap: var(--pa-space-2);
   align-items: center;
+  padding: var(--pa-space-1);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: calc(var(--pa-radius-md) + 2px);
+  background: var(--pa-color-surface-raised);
+  box-shadow: var(--pa-elevation-1);
 }
 
 .search-field input {
@@ -801,8 +806,8 @@ watch(currentQueryContext, () => {
   min-width: 0;
   min-height: 46px;
   margin: 0;
-  border-color: var(--pa-color-border-strong);
-  background: var(--pa-color-surface);
+  border: 0;
+  background: transparent;
 }
 
 .search-submit {
@@ -988,45 +993,54 @@ watch(currentQueryContext, () => {
  * bottom divider, height 92–108（§11 target），paddings ≤14px。 */
 .result-row {
   position: relative;
-  border-radius: var(--pa-radius-row-zero);
-  background: transparent;
-  box-shadow: none;
-  min-height: 112px;
-  /* Let large text / long translated content expand instead of clipping.
-   * Normal-density oracle still targets the 112–132px visual range. */
-  /* §11 divider=yes：每行自带底部 divider，保证任意第一行也满足
-   * borderBottomWidth ≥1（oracle 对第一行测量，不能只有第二行有线）。 */
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border);
+  min-height: 126px;
+  margin: var(--pa-space-3) 0;
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: calc(var(--pa-radius-md) + 2px);
+  background: var(--pa-color-surface-raised);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--pa-color-text-primary) 4%, transparent);
+  overflow: hidden;
+  transition:
+    transform var(--pa-motion-fast) var(--pa-motion-ease),
+    border-color var(--pa-motion-fast) var(--pa-motion-ease),
+    box-shadow var(--pa-motion-fast) var(--pa-motion-ease);
 }
 
 .result-row--selected {
-  /* v0.2.5 §17：selected tint 更轻、不发米黄；用 subtle blue。 */
-  background: var(--pa-color-accent-weak);
+  border-color: color-mix(in srgb, var(--pa-color-accent) 34%, var(--pa-color-border-subtle));
+  background: color-mix(in srgb, var(--pa-color-accent-weak) 58%, var(--pa-color-surface-raised));
+  box-shadow: var(--pa-elevation-1);
 }
 
 .result-row--selected::before {
   content: "";
   position: absolute;
   left: 0;
-  top: var(--pa-space-3);
-  bottom: var(--pa-space-3);
-  width: var(--pa-border-width-strong);
+  top: var(--pa-space-4);
+  bottom: var(--pa-space-4);
+  width: 3px;
+  border-radius: 999px;
   background: var(--pa-color-accent);
   border-radius: 0;
 }
 
 .result-row__link {
   display: block;
-  /* v0.2.4 §11 row internal = 12px。 */
-  padding: var(--pa-space-2) var(--pa-space-1);
+  padding: var(--pa-space-4);
   text-decoration: none;
   color: inherit;
-  min-height: 112px;
+  min-height: 126px;
   box-sizing: border-box;
 }
 
+.result-row:hover {
+  transform: translateY(-1px);
+  border-color: var(--pa-color-border-strong);
+  box-shadow: var(--pa-elevation-1);
+}
+
 .result-row__link:hover {
-  background: var(--pa-color-surface-interactive);
+  background: transparent;
 }
 
 .result-row__head {
@@ -1048,11 +1062,11 @@ watch(currentQueryContext, () => {
 }
 
 .result-row__visual {
-  --scene-frame-compact-width: 72px;
-  --scene-frame-compact-height: 54px;
-  --scene-frame-compact-empty-width: 72px;
-  --scene-frame-compact-empty-height: 54px;
-  flex: 0 0 72px;
+  --scene-frame-compact-width: 92px;
+  --scene-frame-compact-height: 72px;
+  --scene-frame-compact-empty-width: 92px;
+  --scene-frame-compact-empty-height: 72px;
+  flex: 0 0 92px;
 }
 
 .result-row__head-right {
@@ -1170,11 +1184,15 @@ watch(currentQueryContext, () => {
 @media (max-width: 767px) {
   .result-row,
   .result-row__link {
-    min-height: 112px;
+    min-height: 118px;
+  }
+
+  .result-row {
+    margin: var(--pa-space-2) 0;
   }
 
   .result-row__link {
-    padding: var(--pa-space-2) 0;
+    padding: var(--pa-space-3);
   }
 
   .result-row__name {
