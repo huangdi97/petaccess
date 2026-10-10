@@ -22,7 +22,9 @@ const emit = defineEmits<{ open: [id: string] }>();
       @click="emit('open', card.place.id)"
     >
       <div class="home-row__pending-identity">
-        <PlaceTypeGlyph :place-type="card.place.place_type" />
+        <span class="home-row__pending-visual" aria-hidden="true">
+          <PlaceTypeGlyph :place-type="card.place.place_type" size="lg" />
+        </span>
         <div class="home-row__pending-copy">
           <div class="row home-row__head">
             <strong>{{ card.place.canonical_name }}</strong>
@@ -67,6 +69,29 @@ const emit = defineEmits<{ open: [id: string] }>();
 .home-row__pending-copy {
   flex: 1 1 auto;
   min-width: 0;
+}
+
+.home-row__pending-visual {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 88px;
+  height: 66px;
+  flex: 0 0 88px;
+  overflow: hidden;
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: var(--pa-radius-control);
+  background:
+    linear-gradient(135deg, var(--pa-color-surface-muted), var(--pa-color-surface)),
+    var(--pa-color-surface-muted);
+}
+
+@media (min-width: 768px) {
+  .home-row__pending-visual {
+    width: 112px;
+    height: 84px;
+    flex-basis: 112px;
+  }
 }
 .home-section-title {
   margin: 0;
