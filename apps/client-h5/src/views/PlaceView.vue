@@ -360,7 +360,7 @@ watch(
 );
 
 async function toggleWatchDomain(domain: "rule" | "reality") {
-  if (watchBusy.value) return;
+  if (!privateSessionReady.value || watchBusy.value) return;
   const targetPlaceId = placeId.value;
   if (!targetPlaceId) return;
   const current = () => placeId.value === targetPlaceId;
@@ -601,7 +601,7 @@ const placeFixture = computed<string>(() => {
             :staff-responses="coexistence?.staff_response_summary ?? []"
             :zones="zones"
             :place-id="placeId"
-            :signed-in="session.signedIn"
+            :signed-in="privateSessionReady"
             :busy-event-id="realityConfirmation.busyEventId.value"
             :confirmation-message="realityConfirmation.message.value"
             @confirm="realityConfirmation.confirm"
