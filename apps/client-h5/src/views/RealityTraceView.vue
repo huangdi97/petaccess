@@ -36,6 +36,8 @@ const zones = ref<Zone[]>([]);
 const publicMediaByBundle = ref<Map<string, PublicEvidenceMediaView>>(new Map());
 const loading = ref(true);
 const error = ref("");
+const privateSessionReady = ref(false);
+const privateSessionNote = ref("");
 const filter = ref<"all" | "presence" | "staff" | "facility">("all");
 const zoneId = computed(() => (typeof route.query.zone === "string" ? route.query.zone : ""));
 const activeZone = computed(() => zones.value.find((zone) => zone.id === zoneId.value));
@@ -97,6 +99,27 @@ const summaryLine = computed(() => {
 
 const loadEpoch = createEpoch();
 
+async function restorePrivateSession(epoch: number, id: string) {
+  privateSessionReady.value = false;
+  privateSessionNote.value = "";
+  try {
+    await session.restore();
+    if (!loadEpoch.isCurrent(epoch) || placeId.value !== id) return;
+    if (session.restoreIssue) {
+      privateSessionNote.value =
+        session.restoreIssue === "auth_invalid"
+          ? "登录状态已失效；现场事实仍可公开查看，重新登录后可参与确认。"
+          : "账号状态暂不可用；现场事实仍可公开查看，确认操作暂时隐藏。";
+      return;
+    }
+    privateSessionReady.value = session.signedIn;
+  } catch {
+    if (!loadEpoch.isCurrent(epoch) || placeId.value !== id) return;
+    privateSessionNote.value =
+      "账号状态暂不可用；现场事实仍可公开查看，确认操作暂时隐藏。";
+  }
+}
+
 async function loadPublicMedia(eventRows: RealityEventView[], epoch: number) {
   const bundleIds = [
     ...new Set(
@@ -127,7 +150,10 @@ async function load() {
   events.value = [];
   zones.value = [];
   publicMediaByBundle.value = new Map();
+  privateSessionReady.value = false;
+  privateSessionNote.value = "";
   const isCurrent = () => loadEpoch.isCurrent(epoch) && placeId.value === id;
+  void restorePrivateSession(epoch, id);
   try {
     const [eventRows, zoneRows] = await Promise.all([client.realityEvents(id), client.zones(id)]);
     if (!isCurrent()) return;
@@ -179,6 +205,12 @@ const uiFixture = computed<string>(() =>
       </StateMessage>
 
       <template v-else>
+        <StateMessage
+          v-if="privateSessionNote"
+          kind="PARTIAL"
+          :description="privateSessionNote"
+          data-testid="reality-private-session-note"
+        />
         <header class="reality-head" data-testid="trace-summary">
           <h2 class="reality-head__title">现场记录</h2>
           <p v-if="zoneId" class="reality-head__zone" data-testid="reality-zone-scope">
@@ -226,7 +258,7 @@ const uiFixture = computed<string>(() =>
             :zones="zones"
             :public-media-by-bundle="publicMediaByBundle"
             :place-id="placeId"
-            :signed-in="session.signedIn"
+            :signed-in="privateSessionReady"
             :busy-event-id="realityConfirmation.busyEventId.value"
             :empty-title="emptyCopy.title"
             :empty-description="emptyCopy.description"
