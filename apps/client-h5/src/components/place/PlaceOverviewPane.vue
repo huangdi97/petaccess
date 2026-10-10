@@ -586,6 +586,32 @@ const divergenceLine = computed(() => {
   color: var(--pa-color-status-conflict);
 }
 
+/* At tablet width Place has no sticky desktop inspector, so the dossier
+   renders full rule verdicts and full Reality copy. Never squeeze those
+   mobile-semantic facts into desktop three-column rows. */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .place-overview-lead {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--pa-space-4);
+  }
+
+  .place-overview-lead > .place-section + .place-section {
+    padding-left: 0;
+    padding-top: var(--pa-space-4);
+    border-left: none;
+    border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  }
+
+  .coexistence-fact {
+    display: block;
+  }
+
+  .coexistence-fact__value {
+    display: block;
+    overflow-wrap: anywhere;
+  }
+}
+
 @media (max-width: 767px) {
   /* Mobile keeps the same Rule + Reality semantics as desktop. The rows
      collapse to compact facts; only their secondary links hide. */
