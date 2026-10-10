@@ -448,11 +448,6 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
   flex-shrink: 0;
 }
 
-.decision-inspector--search:not(:has(.decision-inspector__scene)) {
-  gap: var(--pa-space-4);
-}
-
-
 /* §22：detail 内容列最大 704px，不铺满整个 DetailPane（972）。 */
 .decision-inspector--search {
   max-width: var(--pa-layout-detail-content);
