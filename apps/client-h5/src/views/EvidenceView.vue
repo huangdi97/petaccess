@@ -68,6 +68,7 @@ const publicMediaByBundle = ref<Map<string, PublicEvidenceMediaView>>(new Map())
 const loading = ref(true);
 const error = ref("");
 const privateContextNote = ref("");
+const privateSessionReady = computed(() => session.signedIn && !privateContextNote.value);
 const loadEpoch = createEpoch();
 
 function sourceTypeLabel(value: string): string {
@@ -430,7 +431,7 @@ const uiFixture = computed<string>(() =>
               工作人员原话如有提交，仅用于核验；公开页面不展示可能包含个人身份的信息。
             </p>
             <p class="muted evidence-item__basis">{{ realityEventTimeBasis(event) }}</p>
-            <EvidenceDisputeAction :event="event" :signed-in="session.signedIn" />
+            <EvidenceDisputeAction :event="event" :signed-in="privateSessionReady" />
           </div>
           <div v-if="!events.length" class="evidence-empty-inline" data-testid="evidence-empty">
             <p>暂无经核验现场事实</p>
