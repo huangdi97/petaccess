@@ -115,15 +115,10 @@ function facilityZone(event: RealityEventView): string {
         </strong>
         <span class="muted">
           <template v-if="item.zone_name">{{ item.zone_name }} · </template>
-          {{
-            facilityPurposeIsConfirmed(item.purpose_state)
-              ? `记录状态：${facilityStateLabel(item.operational_state)}`
-              : "用途待核验"
-          }}
-          · {{ item.count }} 处
+          已收录设施线索 · 当前状态待现场核验 · {{ item.count }} 处
           <template v-if="item.disputed_count"> · {{ item.disputed_count }} 条异议处理中</template>
           <template v-if="item.last_verified_at">
-            · 最近核验 {{ item.last_verified_at.slice(0, 10) }}</template
+            · 线索最近复核 {{ item.last_verified_at.slice(0, 10) }}</template
           >
         </span>
       </div>
