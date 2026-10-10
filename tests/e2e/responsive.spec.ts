@@ -47,13 +47,32 @@ for (const vp of VIEWPORTS) {
         })
         .catch(() => {});
       await p.waitForTimeout(300);
-      const overflow = await p.evaluate(() => ({
-        scrollWidth: document.documentElement.scrollWidth,
-        innerWidth: window.innerWidth,
-      }));
-      expect(overflow.scrollWidth, `${page.path} @ ${vp.width}px`).toBeLessThanOrEqual(
-        overflow.innerWidth + 1,
-      );
+      const overflow = await p.evaluate(() => {
+        const innerWidth = window.innerWidth;
+        const offenders = Array.from(document.querySelectorAll<HTMLElement>("body *"))
+          .map((element) => {
+            const rect = element.getBoundingClientRect();
+            return {
+              tag: element.tagName.toLowerCase(),
+              className: element.className || "",
+              testId: element.dataset.testid || "",
+              left: Math.round(rect.left),
+              right: Math.round(rect.right),
+              width: Math.round(rect.width),
+            };
+          })
+          .filter((item) => item.left < -1 || item.right > innerWidth + 1)
+          .slice(0, 8);
+        return {
+          scrollWidth: document.documentElement.scrollWidth,
+          innerWidth,
+          offenders,
+        };
+      });
+      expect(
+        overflow.scrollWidth,
+        `${page.path} @ ${vp.width}px offenders=${JSON.stringify(overflow.offenders)}`,
+      ).toBeLessThanOrEqual(overflow.innerWidth + 1);
     });
   }
 }
