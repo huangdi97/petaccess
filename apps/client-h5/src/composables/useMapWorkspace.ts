@@ -79,6 +79,20 @@ export function useMapWorkspace() {
     for (const p of places.value) out[p.id] = mapLensLabel(lens.value, facts.value.get(p.id));
     return out;
   });
+  const unavailablePlaces = computed<Record<string, boolean>>(() => {
+    const out: Record<string, boolean> = {};
+    for (const place of places.value) {
+      const row = facts.value.get(place.id);
+      out[place.id] =
+        !row ||
+        (lens.value === "rule"
+          ? row.answerError
+          : lens.value === "reality" || lens.value === "facility"
+            ? row.realityError
+            : row.answerError || row.realityError);
+    }
+    return out;
+  });
   const markers = computed<MapMarker[]>(() => mapMarkersFor(places.value, statuses.value));
 
   const visiblePlaces = computed(() =>
@@ -274,6 +288,7 @@ export function useMapWorkspace() {
     lens,
     lensLabels,
     statuses,
+    unavailablePlaces,
     loading,
     error,
     locationState,
