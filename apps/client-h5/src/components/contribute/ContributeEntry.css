@@ -12,7 +12,9 @@
 .entry-options {
   display: flex;
   flex-direction: column;
-  gap: var(--pa-space-2);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--pa-space-3);
   margin: var(--pa-space-5) 0 0;
   padding: 0;
   list-style: none;
@@ -25,22 +27,29 @@
   display: flex;
   align-items: center;
   width: 100%;
-  min-height: 68px;
-  padding: var(--pa-space-3) var(--pa-space-2);
-  border: var(--pa-border-width) solid var(--pa-color-border);
-  border-radius: var(--pa-radius-control);
+  min-height: 116px;
+  padding: var(--pa-space-4);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: var(--pa-radius-md);
   background: var(--pa-color-surface);
   color: var(--pa-color-text-primary);
   font-size: var(--pa-font-size-base);
   text-align: left;
   cursor: pointer;
   gap: var(--pa-space-3);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--pa-color-text-primary) 4%, transparent);
+  transition:
+    transform var(--pa-motion-fast) var(--pa-motion-ease),
+    border-color var(--pa-motion-fast) var(--pa-motion-ease),
+    box-shadow var(--pa-motion-fast) var(--pa-motion-ease);
 }
 .entry-option__button:hover,
 .entry-option__button:focus-visible {
   color: var(--pa-color-text-primary);
   border-color: var(--pa-color-border-strong);
   background: var(--pa-color-surface-interactive);
+  transform: translateY(-1px);
+  box-shadow: var(--pa-elevation-1);
 }
 
 .entry-option__button--selected {
@@ -64,10 +73,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex: 0 0 34px;
-  width: 34px;
-  height: 34px;
-  border-radius: var(--pa-radius-control);
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
   background: var(--pa-color-accent-weak);
   color: var(--pa-color-accent);
 }
@@ -148,4 +157,14 @@
 .entry-option__button:hover .entry-option__chevron,
 .entry-option__button:focus-visible .entry-option__chevron {
   color: var(--pa-color-accent);
+}
+
+@media (max-width: 620px) {
+  .entry-options {
+    grid-template-columns: 1fr;
+  }
+
+  .entry-option__button {
+    min-height: 88px;
+  }
 }
