@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { HomeCard } from "../../composables/useHomeLauncher";
 import { placeTypeLabel } from "@petaccess/client-core";
-import PlaceTypeGlyph from "./PlaceTypeGlyph.vue";
+import PlaceSceneFrame from "./PlaceSceneFrame.vue";
 import StatusBadge from "../StatusBadge.vue";
 
 defineProps<{ pending: HomeCard[] }>();
@@ -22,9 +22,13 @@ const emit = defineEmits<{ open: [id: string] }>();
       @click="emit('open', card.place.id)"
     >
       <div class="home-row__pending-identity">
-        <span class="home-row__pending-visual" aria-hidden="true">
-          <PlaceTypeGlyph :place-type="card.place.place_type" size="lg" />
-        </span>
+        <PlaceSceneFrame
+          class="home-row__pending-visual"
+          :src="null"
+          alt=""
+          :place-type="card.place.place_type"
+          variant="compact"
+        />
         <div class="home-row__pending-copy">
           <div class="row home-row__head">
             <strong>{{ card.place.canonical_name }}</strong>
@@ -72,26 +76,14 @@ const emit = defineEmits<{ open: [id: string] }>();
 }
 
 .home-row__pending-visual {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 88px;
-  height: 66px;
-  flex: 0 0 88px;
-  overflow: hidden;
-  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
-  border-radius: var(--pa-radius-control);
-  background:
-    linear-gradient(135deg, var(--pa-color-surface-muted), var(--pa-color-surface)),
-    var(--pa-color-surface-muted);
-}
-
-@media (min-width: 768px) {
-  .home-row__pending-visual {
-    width: 112px;
-    height: 84px;
-    flex-basis: 112px;
-  }
+  --scene-frame-compact-width: 112px;
+  --scene-frame-compact-height: 84px;
+  --scene-frame-compact-empty-width: 112px;
+  --scene-frame-compact-empty-height: 84px;
+  --scene-frame-compact-mobile-width: 88px;
+  --scene-frame-compact-mobile-height: 66px;
+  --scene-frame-compact-empty-mobile-width: 88px;
+  --scene-frame-compact-empty-mobile-height: 66px;
 }
 .home-section-title {
   margin: 0;
