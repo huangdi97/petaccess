@@ -326,9 +326,11 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
           <p class="inspector-block__value">{{ exceptions.join("、") }}</p>
         </div>
 
-        <div class="inspector-block">
-          <span class="inspector-block__label">依据</span>
-          <p class="inspector-block__value">{{ evidenceLine }}</p>
+        <div class="inspector-block inspector-block--meta" data-ui="place-evidence">
+          <span class="inspector-block__label">证据与来源</span>
+          <p class="inspector-block__value" data-testid="inspector-evidence">
+            {{ evidenceLine }}
+          </p>
         </div>
 
         <div class="inspector-block">
