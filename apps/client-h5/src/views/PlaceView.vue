@@ -879,6 +879,78 @@ const placeFixture = computed<string>(() => {
   padding-left: var(--pa-space-5);
 }
 
+/* Approved reference: a real reviewed scene image belongs beside the
+   place identity, not as a tall banner that pushes Rule/Reality below fold. */
+@media (min-width: 1024px) {
+  .place-dossier__head--with-scene {
+    display: grid;
+    grid-template-columns: 144px minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    align-items: center;
+    gap: var(--pa-space-2) var(--pa-space-4);
+    padding: var(--pa-space-3) 0 var(--pa-space-4);
+    background: transparent;
+  }
+
+  .place-dossier__head--with-scene .place-dossier__scene--hero {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    width: 144px;
+    height: 104px;
+    min-height: 0;
+    margin: 0;
+  }
+
+  .place-dossier__head--with-scene .place-dossier__identity-row {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .place-dossier__head--with-scene .place-dossier__actions {
+    grid-column: 2;
+    grid-row: 2;
+    width: auto;
+    margin-top: 0;
+  }
+
+  .place-dossier__head--with-scene :deep(.scene-frame__caption) {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .place-dossier__head--with-scene {
+    display: grid;
+    grid-template-columns: 88px minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    gap: var(--pa-space-3);
+  }
+
+  .place-dossier__head--with-scene .place-dossier__scene--hero {
+    grid-column: 1;
+    grid-row: 1;
+    width: 88px;
+    height: 78px;
+    min-height: 0;
+    margin: 0;
+  }
+
+  .place-dossier__head--with-scene .place-dossier__identity-row {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .place-dossier__head--with-scene .place-dossier__actions {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    margin-top: 0;
+  }
+
+  .place-dossier__head--with-scene :deep(.scene-frame__caption) {
+    display: none;
+  }
+}
+
 /* Reference alignment: identity is a compact dossier masthead, not a
    large muted card. Keep approved evidence media visible when it exists. */
 @media (min-width: 1024px) {
