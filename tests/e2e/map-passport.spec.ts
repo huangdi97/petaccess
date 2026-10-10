@@ -110,10 +110,9 @@ test("A4.3 — Search inspector only promotes reviewed scene_photo media", async
   await expect(scene).toBeVisible({ timeout: 15000 });
   await expect(scene.locator("img")).toHaveAttribute("alt", /场所场景：云栖中心/);
   await expect(scene).toContainText("经审核允许公开展示的场所场景");
-  await expect(page.locator(".result-row--selected .result-row__scene")).toHaveAttribute(
-    "alt",
-    /场所场景：云栖中心/,
-  );
+  const selectedRowScene = page.getByTestId("search-row-scene-media");
+  await expect(selectedRowScene).toBeVisible();
+  await expect(selectedRowScene.locator("img")).toHaveAttribute("alt", /场所场景：云栖中心/);
 });
 
 test("A4.3b — broken reviewed scene URL falls back to an honest placeholder", async ({ page }) => {
