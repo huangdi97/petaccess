@@ -1,4 +1,4 @@
-import { coverageHint, type MapMarker } from "@petaccess/client-core";
+import { type MapMarker } from "@petaccess/client-core";
 
 import { answerStatusKey, answerVerdictLabel } from "../answer";
 import { divergenceLabel } from "../reality";
@@ -75,10 +75,14 @@ export function mapLensGlyph(lens: string, status: MapMarker["status"]): string 
 }
 
 export function mapLensTone(lens: MapLensKey, row: RowFacts | undefined): MapMarker["status"] {
-  if (!row) return "UNKNOWN";
-  if (lens === "rule") return answerStatusKey(row.answer);
+  if (!row) return "STALE";
+  // STALE is used only as a neutral visual carrier for a temporary transport
+  // failure. Human-readable labels below say "暂时无法取得"; they never call
+  // the failure a stale fact or an UNKNOWN domain answer.
+  if (lens === "rule") return row.answerError ? "STALE" : answerStatusKey(row.answer);
 
   if (lens === "reality") {
+    if (row.realityError) return "STALE";
     const factualDisputes = [
       ...(row.snapshot?.staff_response_summary ?? []),
       ...(row.snapshot?.facility_summary ?? []),
@@ -102,6 +106,7 @@ export function mapLensTone(lens: MapLensKey, row: RowFacts | undefined): MapMar
   }
 
   if (lens === "facility") {
+    if (row.realityError) return "STALE";
     const facilities = row.snapshot?.facility_summary ?? [];
     if (facilities.some((item) => (item.disputed_count ?? 0) > 0)) return "CONFLICT";
     if (
@@ -117,6 +122,7 @@ export function mapLensTone(lens: MapLensKey, row: RowFacts | undefined): MapMar
     return "UNKNOWN";
   }
 
+  if (row.answerError || row.realityError) return "STALE";
   const state = row.snapshot?.divergence?.state;
   if (state === "RULE_REALITY_ALIGNED") return "ALLOWED";
   if (state === "RULE_ALLOWS_BUT_NO_RECENT_RECORD") return "STALE";
@@ -128,11 +134,18 @@ export function mapLensTone(lens: MapLensKey, row: RowFacts | undefined): MapMar
 }
 
 export function mapLensLabel(lens: MapLensKey, row: RowFacts | undefined): string {
-  if (!row) return "信息不足";
-  if (lens === "rule") return answerVerdictLabel(row.answer);
-  if (lens === "reality") return coexistenceRealityLine(row.snapshot, row.reality);
+  if (!row) return "信息暂时无法取得";
+  if (lens === "rule") {
+    return row.answerError ? "规则结论暂时无法取得" : answerVerdictLabel(row.answer);
+  }
+  if (lens === "reality") {
+    return row.realityError
+      ? "现场信息暂时无法取得"
+      : coexistenceRealityLine(row.snapshot, row.reality);
+  }
 
   if (lens === "facility") {
+    if (row.realityError) return "设施信息暂时无法取得";
     const facilities = row.snapshot?.facility_summary ?? [];
     const total = facilities.reduce((sum, item) => sum + item.count, 0);
     const confirmed = facilities
@@ -153,6 +166,7 @@ export function mapLensLabel(lens: MapLensKey, row: RowFacts | undefined): strin
     return "暂无已核验动物设施";
   }
 
+  if (row.answerError || row.realityError) return "规则与现场对照暂时无法取得";
   return divergenceLabel(row.snapshot?.divergence ?? null);
 }
 
@@ -167,44 +181,71 @@ export function mapLensCoverage(
   facts: Map<string, RowFacts>,
   markers: MapMarker[],
 ): MapLensCoverage {
-  if (lens === "rule") return coverageHint(markers);
+  const rows = markers.map((marker) => facts.get(marker.id));
+  const unavailable = rows.filter((row) => {
+    if (!row) return true;
+    if (lens === "rule") return row.answerError;
+    if (lens === "reality" || lens === "facility") return row.realityError;
+    return row.answerError || row.realityError;
+  }).length;
+  const availableRows = rows.filter((row): row is RowFacts => {
+    if (!row) return false;
+    if (lens === "rule") return !row.answerError;
+    if (lens === "reality" || lens === "facility") return !row.realityError;
+    return !row.answerError && !row.realityError;
+  });
 
-  // Coverage text describes query results with real map coordinates, not every
-  // pixel-visible marker in the current viewport. Only geolocated queried rows count.
-  const markerIds = new Set(markers.map((marker) => marker.id));
-  const visibleFacts = [...facts.entries()]
-    .filter(([placeId]) => markerIds.has(placeId))
-    .map(([, row]) => row);
-
-  if (lens === "reality") {
-    const covered = visibleFacts.filter(
-      (row) => (row.snapshot?.evidence_summary.reality_evidence_count ?? 0) > 0,
+  if (lens === "rule") {
+    const unknown = availableRows.filter((row) =>
+      ["UNKNOWN", "CONFLICT"].includes(answerStatusKey(row.answer)),
     ).length;
+    const covered = Math.max(0, markers.length - unknown - unavailable);
+    const unavailableCopy = unavailable ? `，${unavailable} 个暂时无法取得规则结论` : "";
     return {
       covered,
-      unknown: Math.max(0, markers.length - covered),
-      text: `当前查询中 ${markers.length} 个可定位场所：${covered} 个有经核验现场事实。动物出现、工作人员处理与设施事实彼此独立；暂无动物记录不代表现场没有动物。`,
+      unknown,
+      text:
+        markers.length === 0
+          ? "当前查询没有可显示的位置点。无地图点位不代表场所没有规则或现场事实。"
+          : `当前查询中 ${markers.length} 个可定位场所：${covered} 个已有规则结论，${unknown} 个信息不足或来源不一致${unavailableCopy}。信息不足不等于允许。`,
+    };
+  }
+
+  if (lens === "reality") {
+    const covered = availableRows.filter(
+      (row) => (row.snapshot?.evidence_summary.reality_evidence_count ?? 0) > 0,
+    ).length;
+    const unknown = Math.max(0, markers.length - covered - unavailable);
+    const unavailableCopy = unavailable ? `，${unavailable} 个现场信息暂时无法取得` : "";
+    return {
+      covered,
+      unknown,
+      text: `当前查询中 ${markers.length} 个可定位场所：${covered} 个有经核验现场事实${unavailableCopy}。动物出现、工作人员处理与设施事实彼此独立；暂无动物记录不代表现场没有动物。`,
     };
   }
 
   if (lens === "facility") {
-    const covered = visibleFacts.filter((row) =>
+    const covered = availableRows.filter((row) =>
       (row.snapshot?.facility_summary ?? []).some((item) => item.count > 0),
     ).length;
+    const unknown = Math.max(0, markers.length - covered - unavailable);
+    const unavailableCopy = unavailable ? `，${unavailable} 个设施信息暂时无法取得` : "";
     return {
       covered,
-      unknown: Math.max(0, markers.length - covered),
-      text: `当前查询中 ${markers.length} 个可定位场所：${covered} 个有动物设施记录。设施存在不等于允许进入。`,
+      unknown,
+      text: `当前查询中 ${markers.length} 个可定位场所：${covered} 个有动物设施记录${unavailableCopy}。设施存在不等于允许进入。`,
     };
   }
 
-  const covered = visibleFacts.filter((row) => {
+  const covered = availableRows.filter((row) => {
     const state = row.snapshot?.divergence?.state;
     return Boolean(state && !["RULE_REALITY_ALIGNED", "INSUFFICIENT_DATA"].includes(state));
   }).length;
+  const unknown = Math.max(0, markers.length - covered - unavailable);
+  const unavailableCopy = unavailable ? `，${unavailable} 个对照结果暂时无法取得` : "";
   return {
     covered,
-    unknown: Math.max(0, markers.length - covered),
-    text: `当前查询中 ${markers.length} 个可定位场所：${covered} 个需要重点对照规则与现场。`,
+    unknown,
+    text: `当前查询中 ${markers.length} 个可定位场所：${covered} 个需要重点对照规则与现场${unavailableCopy}。`,
   };
 }
