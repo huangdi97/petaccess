@@ -1,12 +1,3 @@
-/**
- * useMapWorkspace — Map page data and selection state (freeze §9).
- *
- * Marker statuses derive from the SAME CoexistenceSnapshot rows the other
- * surfaces read (SSOT) via the consumer repository's bounded-concurrency
- * enrichment — never a second resolver. The selected place's floating preview
- * fetches one snapshot through snapshotFor() (same cache as the rows).
- * Geolocation is a one-shot read (ADR-012: no continuous location history).
- */
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import {
@@ -44,7 +35,6 @@ import { useMapSearch } from "./useMapSearch";
 import { useOneShotMapLocation } from "./useOneShotMapLocation";
 import { usePlaceSceneMedia } from "./usePlaceSceneMedia";
 
-/** Load state of the floating preview for the selected place. */
 export interface PreviewState {
   snapshot: CoexistenceSnapshot | null;
   loading: boolean;
@@ -145,8 +135,6 @@ export function useMapWorkspace() {
     try {
       await session.restore();
     } catch {
-      // Map and nearby queries are public. Account context is optional and
-      // must not turn a stale local token into a spatial-workspace outage.
     }
     await load();
     queryContextReady = true;
@@ -166,14 +154,12 @@ export function useMapWorkspace() {
     reload: load,
   });
 
-  /** M4 A4 — the selected place is a route query so deep links and history work. */
   function syncRoutePlace(id: string | null) {
     const current = typeof route.query.place === "string" ? route.query.place : null;
     if (current === id) return;
     void router.push({ query: { ...route.query, place: id || undefined } });
   }
 
-  /** Pick the previewed place from the deep link, else keep a valid selection. */
   function resolveSelection() {
     const fromQuery = typeof route.query.place === "string" ? route.query.place : null;
     if (fromQuery) {
@@ -189,11 +175,7 @@ export function useMapWorkspace() {
     }
   }
 
-  /** M4 A1 — the floating preview fetches the ONE CoexistenceSnapshot for the
-   *  place via the consumer repository (SSOT, same cache as rows). */
   async function selectPlace(p: PlaceSummary) {
-    // v0.2.5 §24：mobile selected sheet 需要 key condition + 最近现场，
-    // snapshot 不再只给 desktop 取。
     const epoch = previewEpoch.begin();
     preview.value = { snapshot: null, loading: true, error: "" };
     try {
@@ -243,15 +225,12 @@ export function useMapWorkspace() {
     },
   });
 
-  // Back/forward or an external deep link changes ?place= → update the selection
-  // (guard keeps this from looping when it was our own push).
   useMapLensRoute(lens, activeFilters);
 
   watch(
     () => route.query.place,
     (v) => {
       const next = typeof v === "string" ? v : null;
-      // Invalidate even if both the new route and selection are null.
       invalidateDeepLink();
       const cur = selected.value?.id ?? null;
       if (next === cur) return;
@@ -262,8 +241,6 @@ export function useMapWorkspace() {
     },
   );
 
-  // A Rule-lens filter is a real spatial filter: a hidden result cannot
-  // remain selected in the preview after its row and marker disappear.
   watch(visiblePlaces, (list) => {
     if (!selected.value || list.some((place) => place.id === selected.value?.id)) return;
     const next = isDesktop.value && list.length ? list[0] : null;
