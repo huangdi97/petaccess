@@ -93,21 +93,28 @@ const projection = computed(() =>
           >
         </div>
       </div>
-      <StatusBadge :semantic="status" class="place-result-row__badge" />
+      <StatusBadge v-if="!answerError" :semantic="status" class="place-result-row__badge" />
+      <span v-else class="place-result-row__unavailable">规则暂不可用</span>
     </div>
 
     <!-- M3.1 lens projection：真实改变 Consumer 呈现（rule-first / reality-first），
          不改变任何 domain 事实；indoor/dining 仅上浮服务端返回的 observed_zones。 -->
     <div v-if="lens" class="place-result-row__lens" data-testid="row-lens">
       <p
-        v-if="projection.headline === 'rule' && answer"
+        v-if="projection.headline === 'rule'"
         class="place-result-row__rule"
         data-testid="row-lens-headline"
       >
-        {{ answerPrimarySummary(answer) }}
+        {{
+          answerError
+            ? "规则结论暂时无法取得"
+            : answer
+              ? answerPrimarySummary(answer)
+              : "信息不足"
+        }}
       </p>
       <p v-else class="place-result-row__reality-line" data-testid="row-lens-headline">
-        {{ projection.realityLine }}
+        {{ realityError ? "现场信息暂时无法取得" : projection.realityLine }}
       </p>
       <p
         v-if="projection.zoneFacts.length"
@@ -196,8 +203,14 @@ const projection = computed(() =>
   overflow-wrap: break-word;
 }
 
-.place-result-row__badge {
+.place-result-row__badge,
+.place-result-row__unavailable {
   flex-shrink: 0;
+}
+
+.place-result-row__unavailable {
+  font-size: var(--pa-font-size-sm);
+  color: var(--pa-color-text-muted);
 }
 
 .place-result-row__rule {
