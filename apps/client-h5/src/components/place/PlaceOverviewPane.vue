@@ -349,6 +349,10 @@ const divergenceLine = computed(() => {
 <style scoped>
 .place-overview-lead {
   display: grid;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
   gap: var(--pa-space-6);
   margin-bottom: var(--pa-space-6);
@@ -366,6 +370,10 @@ const divergenceLine = computed(() => {
 }
 
 .place-section {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   margin-bottom: var(--pa-space-5);
 }
 
@@ -408,6 +416,10 @@ const divergenceLine = computed(() => {
   color: var(--pa-color-text-primary);
 }
 .sub-answer--mine {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   border-left: var(--pa-border-width-strong) solid var(--pa-color-accent);
   border-radius: 0;
   padding: var(--pa-space-2) 0 var(--pa-space-2) var(--pa-space-4);
@@ -537,6 +549,9 @@ const divergenceLine = computed(() => {
 
 .coexistence-facts {
   display: flex;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   flex-direction: column;
   gap: var(--pa-space-2);
   margin: var(--pa-space-4) 0 var(--pa-space-2);
@@ -546,6 +561,8 @@ const divergenceLine = computed(() => {
 
 .coexistence-fact {
   display: grid;
+  min-width: 0;
+  max-width: 100%;
   grid-template-columns: 7rem minmax(0, 1fr);
   gap: var(--pa-space-3);
   margin: 0;
