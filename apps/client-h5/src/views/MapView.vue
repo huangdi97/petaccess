@@ -424,16 +424,17 @@ function chooseMapResult(id: string) {
   min-height: 100%;
   display: flex;
   flex-direction: column;
+  background: var(--pa-color-surface-muted);
 }
 
 .map-lensbar {
   display: flex;
   align-items: center;
-  gap: var(--pa-space-4);
-  min-height: 52px;
+  gap: var(--pa-space-3);
+  min-height: 60px;
   padding: var(--pa-space-2) var(--pa-space-4);
   border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
-  background: var(--pa-color-surface);
+  background: color-mix(in srgb, var(--pa-color-surface) 94%, transparent);
 }
 
 .map-lensbar__label {
@@ -445,9 +446,13 @@ function chooseMapResult(id: string) {
 .map-lensbar__options {
   display: flex;
   align-items: center;
-  gap: var(--pa-space-1);
+  gap: 2px;
   min-width: 0;
   overflow-x: auto;
+  padding: 3px;
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: var(--pa-radius-control);
+  background: var(--pa-color-surface-muted);
 }
 
 .map-lensbar__button {
@@ -455,7 +460,7 @@ function chooseMapResult(id: string) {
   min-height: var(--pa-size-control-md);
   padding: 0 var(--pa-space-3);
   border: none;
-  border-bottom: 2px solid transparent;
+  border-radius: calc(var(--pa-radius-control) - 2px);
   background: transparent;
   color: var(--pa-color-text-secondary);
   font-size: var(--pa-font-size-md);
@@ -463,9 +468,10 @@ function chooseMapResult(id: string) {
 }
 
 .map-lensbar__button--active {
-  border-bottom-color: var(--pa-color-accent);
+  background: var(--pa-color-surface-raised);
   color: var(--pa-color-accent);
   font-weight: var(--pa-font-weight-650);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--pa-color-text-primary) 10%, transparent);
 }
 
 .map-lensbar__button:hover,
@@ -520,7 +526,7 @@ function chooseMapResult(id: string) {
   flex-direction: column;
   flex: 1 1 auto;
   min-height: 0;
-  gap: var(--pa-space-4);
+  gap: var(--pa-space-3);
   padding: var(--pa-space-3);
 }
 
@@ -544,11 +550,10 @@ function chooseMapResult(id: string) {
   flex: 1 1 auto;
   min-width: 0;
   min-height: 320px;
-  border: var(--pa-border-width) solid var(--pa-color-border);
-  border-radius: var(--pa-radius-md);
-  /* v0.2.7 §8/§9：画布基底退回极浅冷中性纯色 —— MockMap 的抽象城市
-     SVG 在其上分层；不再叠加「灰网格+数字」式的 repeating grid。 */
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: calc(var(--pa-radius-md) + 4px);
   background: var(--pa-color-map-grid-a);
+  box-shadow: var(--pa-elevation-1);
 }
 
 /* Map is a viewport workspace on phones, not a fixed-height illustration.
@@ -632,9 +637,9 @@ function chooseMapResult(id: string) {
   pointer-events: auto;
   background: var(--pa-color-surface);
   border: var(--pa-border-width) solid var(--pa-color-border);
-  border-radius: var(--pa-radius-control);
+  border-radius: calc(var(--pa-radius-md) + 2px);
   padding: var(--pa-space-1);
-  box-shadow: var(--pa-elevation-1);
+  box-shadow: var(--pa-elevation-2);
 }
 
 .map-mobile-tools__search input {
@@ -725,7 +730,7 @@ function chooseMapResult(id: string) {
   right: var(--pa-space-5);
   bottom: var(--pa-space-5);
   /* v0.2.3 §37：selected preview 只一个，w 280–320。 */
-  width: min(300px, calc(100% - var(--pa-space-6)));
+  width: min(340px, calc(100% - var(--pa-space-6)));
   max-height: calc(100vh - var(--pa-space-7));
   overflow-y: auto;
   border-radius: var(--pa-radius-md);
