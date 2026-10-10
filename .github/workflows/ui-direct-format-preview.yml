@@ -5,11 +5,16 @@ on:
     branches:
       - feat/ui-direct-craft-v8
 
+permissions:
+  contents: write
+
 jobs:
   format:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: pnpm/action-setup@v4
         with:
           version: 12.4.1
@@ -27,11 +32,24 @@ jobs:
             apps/client-h5/src/components/place/PlaceRulesPane.vue \
             apps/client-h5/src/components/place/PlaceOverviewPane.vue \
             apps/client-h5/src/composables/useHomeLauncher.ts \
+            apps/client-h5/src/composables/useMapWorkspace.ts \
             apps/client-h5/src/consumer/homeDigest.ts \
             apps/client-h5/src/views/PlaceView.vue \
             apps/client-h5/src/views/RealityTraceView.vue \
             tests/e2e/place-route-race.spec.ts \
             tests/e2e/public-private-session-boundary.spec.ts
+      - name: Commit remaining canonical Prettier output once
+        shell: bash
+        run: |
+          if git diff --quiet -- apps/client-h5/src/composables/useMapWorkspace.ts; then
+            echo "No formatting delta."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/client-h5/src/composables/useMapWorkspace.ts
+          git commit -m "style(map): apply canonical Prettier output"
+          git push origin HEAD:feat/ui-direct-craft-v8
       - uses: actions/upload-artifact@v4
         with:
           name: ui-direct-formatted-targets
@@ -42,6 +60,7 @@ jobs:
             apps/client-h5/src/components/place/PlaceRulesPane.vue
             apps/client-h5/src/components/place/PlaceOverviewPane.vue
             apps/client-h5/src/composables/useHomeLauncher.ts
+            apps/client-h5/src/composables/useMapWorkspace.ts
             apps/client-h5/src/consumer/homeDigest.ts
             apps/client-h5/src/views/PlaceView.vue
             apps/client-h5/src/views/RealityTraceView.vue
