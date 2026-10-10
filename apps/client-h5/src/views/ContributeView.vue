@@ -340,12 +340,13 @@ const { desktop: isDesktop } = useBreakpoint();
 <style scoped>
 .contribute-workspace {
   min-height: 100%;
+  background: var(--pa-color-surface-muted);
 }
 .contribute-workspace__body {
   /* v0.2.7 §16：TASK workspace 总宽 900–1040 —— main 680 + gap 48 + context 280。
      Mobile 保持单列（context rail 在桌面才渲染）。 */
   padding: var(--pa-space-4) var(--pa-space-5) var(--pa-space-7);
-  max-width: 1040px;
+  max-width: 1080px;
   margin: 0 auto;
 }
 .contribute-workspace__layout {
@@ -356,7 +357,12 @@ const { desktop: isDesktop } = useBreakpoint();
 .contribute-workspace__main {
   flex: 1 1 auto;
   min-width: 0;
-  max-width: 680px;
+  max-width: 700px;
+  padding: var(--pa-space-5);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: calc(var(--pa-radius-md) + 2px);
+  background: var(--pa-color-surface-raised);
+  box-shadow: var(--pa-elevation-1);
 }
 /* §15/§16 secondary context rail：240–300px，只放真实上下文。 */
 .contribute-workspace__context {
@@ -411,9 +417,10 @@ const { desktop: isDesktop } = useBreakpoint();
   .contribute-workspace__context {
     position: sticky;
     top: var(--pa-space-5);
-    border-top: none;
-    border-left: var(--pa-border-width) solid var(--pa-color-border-subtle);
-    padding: var(--pa-space-3) 0 var(--pa-space-3) var(--pa-space-5);
+    padding: var(--pa-space-4);
+    border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+    border-radius: var(--pa-radius-md);
+    background: var(--pa-color-surface-raised);
   }
 }
 .contribute-needs-place-actions {
