@@ -881,7 +881,7 @@ const placeFixture = computed<string>(() => {
 
 /* Approved reference: a real reviewed scene image belongs beside the
    place identity, not as a tall banner that pushes Rule/Reality below fold. */
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   .place-dossier__head--with-scene {
     display: grid;
     grid-template-columns: 144px minmax(0, 1fr);
