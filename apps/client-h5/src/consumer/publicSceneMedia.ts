@@ -21,14 +21,18 @@ export async function firstApprovedSceneMedia(
     ),
   ].slice(0, maxBundles);
 
-  for (const bundleId of bundleIds) {
-    try {
-      const media = await client.publicEvidenceMedia(bundleId);
-      if (media.purpose === "scene_photo") return media;
-    } catch {
-      // Fail closed: private/unreviewed media is indistinguishable from absent
-      // media to the consumer surface.
-    }
-  }
-  return null;
+  const candidates = await Promise.all(
+    bundleIds.map(async (bundleId) => {
+      try {
+        const media = await client.publicEvidenceMedia(bundleId);
+        return media.purpose === "scene_photo" ? media : null;
+      } catch {
+        // Fail closed: private/unreviewed media is indistinguishable from absent
+        // media to the consumer surface.
+        return null;
+      }
+    }),
+  );
+  // Preserve source order while removing the serial network waterfall.
+  return candidates.find((media) => media !== null) ?? null;
 }
