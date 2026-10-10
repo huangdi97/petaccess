@@ -85,9 +85,17 @@ const realityLine = computed(() =>
   coexistenceRealityLine(props.snapshot, props.snapshot?.reality_answer),
 );
 /** §13 expanded：Current Decision —— 真实 verdict（不伪造）。 */
-const verdictText = computed(() => (props.loading ? "加载中…" : answerVerdictLabel(answer.value)));
+const verdictText = computed(() =>
+  props.loading
+    ? "正在加载规则结论…"
+    : props.error
+      ? "规则结论暂时无法取得"
+      : answerVerdictLabel(answer.value),
+);
 /** Evidence/Freshness must describe evidence, not the time this snapshot was assembled. */
 const evidenceLine = computed(() => {
+  if (props.loading) return "正在加载证据与来源…";
+  if (props.error) return "证据与来源暂时无法取得";
   const ev = answer.value?.evidence_state.rules[0] ?? null;
   const parts: string[] = [];
   if (ev) {
@@ -167,7 +175,10 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
           <div class="sheet__title-row">
             <PlaceTypeGlyph :place-type="place.place_type" size="sm" />
             <h2 class="sheet__name">{{ place.canonical_name }}</h2>
-            <StatusBadge v-if="!mapLensLabel" :semantic="statusKey" />
+            <StatusBadge
+              v-if="!mapLensLabel && !loading && !error"
+              :semantic="statusKey"
+            />
             <button
               class="sheet__close"
               data-testid="sheet-close"
@@ -216,7 +227,11 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
           </p>
         </div>
 
-        <p v-if="keyCondition" class="sheet__condition" data-testid="sheet-condition">
+        <p
+          v-if="keyCondition && !loading && !error"
+          class="sheet__condition"
+          data-testid="sheet-condition"
+        >
           {{ keyCondition }}
         </p>
 
