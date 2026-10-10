@@ -122,4 +122,8 @@ test("coexistence transport failure stays an explicit partial error, never Unkno
   await expect(page.getByTestId("answer-status")).toContainText("暂时无法取得");
   await expect(page.getByTestId("answer-status")).not.toContainText("信息不足");
   await expect(page.getByTestId("overview-reality-line")).toContainText("暂时无法取得");
+  const inspectorEvidence = page.getByTestId("inspector-evidence");
+  await expect(inspectorEvidence).toContainText("规则依据暂时无法取得");
+  await expect(inspectorEvidence).toContainText("现场依据暂时无法取得");
+  await expect(inspectorEvidence).not.toContainText("规则依据待补充");
 });
