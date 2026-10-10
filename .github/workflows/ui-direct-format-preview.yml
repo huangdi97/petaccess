@@ -51,4 +51,3 @@ jobs:
             apps/client-h5/src/views/RealityTraceView.vue
             tests/e2e/place-route-race.spec.ts
             tests/e2e/public-private-session-boundary.spec.ts
-
