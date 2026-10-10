@@ -49,29 +49,53 @@ for (const vp of VIEWPORTS) {
       await p.waitForTimeout(300);
       const overflow = await p.evaluate(() => {
         const innerWidth = window.innerWidth;
-        const offenders = Array.from(document.querySelectorAll<HTMLElement>("body *"))
-          .map((element) => {
+        const offenderElements = Array.from(document.querySelectorAll<HTMLElement>("body *"))
+          .filter((element) => {
             const rect = element.getBoundingClientRect();
-            return {
-              tag: element.tagName.toLowerCase(),
-              className: element.className || "",
-              testId: element.dataset.testid || "",
-              left: Math.round(rect.left),
-              right: Math.round(rect.right),
-              width: Math.round(rect.width),
-            };
-          })
-          .filter((item) => item.left < -1 || item.right > innerWidth + 1)
-          .slice(0, 8);
+            return rect.left < -1 || rect.right > innerWidth + 1;
+          });
+        const offenders = offenderElements.slice(0, 8).map((element) => {
+          const rect = element.getBoundingClientRect();
+          return {
+            tag: element.tagName.toLowerCase(),
+            className: element.className || "",
+            testId: element.dataset.testid || "",
+            left: Math.round(rect.left),
+            right: Math.round(rect.right),
+            width: Math.round(rect.width),
+          };
+        });
+        const first = offenderElements[0];
+        const ancestorChain: Array<Record<string, string | number>> = [];
+        let node: HTMLElement | null = first ?? null;
+        while (node && ancestorChain.length < 10) {
+          const rect = node.getBoundingClientRect();
+          const style = getComputedStyle(node);
+          ancestorChain.push({
+            tag: node.tagName.toLowerCase(),
+            className: node.className || "",
+            testId: node.dataset.testid || "",
+            left: Math.round(rect.left),
+            right: Math.round(rect.right),
+            width: Math.round(rect.width),
+            minWidth: style.minWidth,
+            maxWidth: style.maxWidth,
+            display: style.display,
+            overflowX: style.overflowX,
+          });
+          node = node.parentElement;
+        }
         return {
           scrollWidth: document.documentElement.scrollWidth,
+          bodyScrollWidth: document.body.scrollWidth,
           innerWidth,
           offenders,
+          ancestorChain,
         };
       });
       expect(
         overflow.scrollWidth,
-        `${page.path} @ ${vp.width}px offenders=${JSON.stringify(overflow.offenders)}`,
+        `${page.path} @ ${vp.width}px offenders=${JSON.stringify(overflow.offenders)} ancestors=${JSON.stringify(overflow.ancestorChain)}`,
       ).toBeLessThanOrEqual(overflow.innerWidth + 1);
     });
   }
