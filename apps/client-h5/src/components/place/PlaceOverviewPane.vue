@@ -133,11 +133,15 @@ const divergenceLine = computed(() => {
         <p v-if="desktop" class="muted sub-answer__context" data-testid="answer-context">
           {{ querySubject }} · 进入 · 公共区域
         </p>
-        <!-- The dossier carries the primary decision at reading size on every
-             breakpoint; the desktop inspector is a persistent decision aid,
-             not a replacement for the dossier's own Rule answer. -->
-        <StatusBadge v-if="desktop" :semantic="statusKey" />
-        <p class="status" data-testid="answer-status">{{ verdict }}</p>
+        <!-- Desktop has a persistent Decision Inspector, so the dossier keeps
+             Rule as a compact fact dimension instead of repeating a second
+             giant verdict. Mobile has no side inspector and therefore keeps
+             the full natural-language decision in the main reading flow. -->
+        <template v-if="desktop">
+          <StatusBadge :semantic="statusKey" />
+          <span class="visually-hidden" data-testid="answer-status">{{ verdict }}</span>
+        </template>
+        <p v-else class="status" data-testid="answer-status">{{ verdict }}</p>
         <p v-if="keyCondition" class="muted" data-testid="answer-conditions">
           需满足：{{ keyCondition }}
         </p>
