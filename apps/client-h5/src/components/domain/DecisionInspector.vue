@@ -211,6 +211,22 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
         :data-testid="sceneMediaUrl ? 'inspector-scene-media' : 'inspector-scene-fallback'"
       />
 
+      <!-- Each destination is a real Place view; this compact navigation
+           reflects the approved list-detail reference without duplicating
+           the complete dossier inside Search. -->
+      <nav
+        v-if="variant === 'search'"
+        class="decision-inspector__views"
+        aria-label="场所详情视图"
+        data-testid="inspector-view-links"
+      >
+        <RouterLink :to="`/place/${place.id}?view=overview`">概览</RouterLink>
+        <RouterLink :to="`/place/${place.id}?view=rules`">规则</RouterLink>
+        <RouterLink :to="`/place/${place.id}?view=reality`">现场</RouterLink>
+        <RouterLink :to="`/place/${place.id}?view=space`">空间</RouterLink>
+        <RouterLink :to="`/place/${place.id}?view=evidence`">证据</RouterLink>
+      </nav>
+
       <!-- Search detail（§12 严格顺序）：Identity → Query → Decision → Reality →
            Evidence/Source → CTA；place inspector（§26）走下方紧凑结构。 -->
       <template v-if="variant === 'search'">
@@ -425,6 +441,32 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
 .decision-inspector--search .decision-inspector__scene {
   max-height: 220px;
   overflow: hidden;
+}
+
+.decision-inspector__views {
+  display: flex;
+  align-items: center;
+  gap: var(--pa-space-5);
+  min-height: 44px;
+  overflow-x: auto;
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.decision-inspector__views a {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  min-height: 44px;
+  color: var(--pa-color-text-secondary);
+  font-size: var(--pa-font-size-md);
+  text-decoration: none;
+}
+
+.decision-inspector__views a:hover,
+.decision-inspector__views a:focus-visible {
+  color: var(--pa-color-accent);
+  text-decoration: underline;
+  text-underline-offset: 5px;
 }
 
 .decision-inspector__title-row {
