@@ -18,6 +18,9 @@ const signedIn = ref(false);
 async function load() {
   loading.value = true;
   error.value = "";
+  pets.value = [];
+  watches.value = [];
+  contributions.value = [];
   try {
     await session.restore();
     signedIn.value = session.signedIn;
