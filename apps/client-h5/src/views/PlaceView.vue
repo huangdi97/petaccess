@@ -455,7 +455,8 @@ const placeFixture = computed<string>(() => {
 
           <!-- 1. Identity（§16 Overview 第一块） -->
           <header
-            class="place-dossier__head place-dossier__head--with-scene"
+            class="place-dossier__head"
+            :class="{ 'place-dossier__head--with-scene': Boolean(placeSceneMedia) }"
             data-ui="place-identity"
           >
             <PlaceSceneFrame
@@ -713,6 +714,15 @@ const placeFixture = computed<string>(() => {
 
 .place-dossier__head--with-scene {
   padding: var(--pa-space-5);
+}
+
+.place-dossier__head:not(.place-dossier__head--with-scene) {
+  padding-block: var(--pa-space-3);
+}
+
+.place-dossier__head:not(.place-dossier__head--with-scene) .place-dossier__scene--fallback {
+  --scene-frame-compact-width: 92px;
+  --scene-frame-compact-height: 64px;
 }
 
 .place-dossier__identity-row {
