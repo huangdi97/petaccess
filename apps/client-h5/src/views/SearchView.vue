@@ -1056,7 +1056,6 @@ watch(currentQueryContext, () => {
   flex-shrink: 0;
 }
 
-
 .result-row__chevron {
   flex: 0 0 auto;
   color: var(--pa-color-text-muted);
