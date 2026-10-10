@@ -144,7 +144,9 @@ const projection = computed(() =>
         现场信息暂时无法取得 —— 请检查网络后重试。
       </p>
       <template v-else>
-        <p class="place-result-row__reality-line">{{ realityLine }}</p>
+        <p v-if="!lens || projection.headline === 'rule'" class="place-result-row__reality-line">
+          {{ realityLine }}
+        </p>
         <p v-if="evidenceLine" class="place-result-row__meta">{{ evidenceLine }}</p>
       </template>
     </div>
