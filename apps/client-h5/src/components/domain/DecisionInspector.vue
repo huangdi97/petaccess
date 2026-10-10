@@ -21,6 +21,7 @@
  */
 import { computed } from "vue";
 import {
+  conditionLabel,
   placeTypeLabel,
   type AccessAnswer,
   type CoexistenceSnapshot,
@@ -140,7 +141,7 @@ const exceptions = computed(() =>
   props.answer?.conflict_state?.has_conflict
     ? []
     : (props.answer?.condition_evaluation.pending_exceptions ?? []).map(
-        (e) => props.conditionsLabel[e] ?? e,
+        (e) => props.conditionsLabel[e] ?? conditionLabel(e),
       ),
 );
 /** §26：最近核验来自真实规则 last_verified_at，不拿快照生成时间冒充。 */
