@@ -253,6 +253,11 @@ test("C5: Search inspector links open real Place dossier views", async ({ page }
   await expect(result).toBeVisible();
   await result.focus();
 
+  // A place without an approved public scene photo uses the small spatial
+  // identity anchor. It must not reserve an empty hero banner over Rule/Reality.
+  await expect(page.getByTestId("inspector-scene-fallback")).toBeVisible();
+  await expect(page.locator(".decision-inspector__scene")).toHaveCount(0);
+
   const views = page.getByTestId("inspector-view-links");
   await expect(views).toBeVisible();
   for (const [label, view] of [
