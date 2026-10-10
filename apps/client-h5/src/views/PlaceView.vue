@@ -90,6 +90,7 @@ const watchMsg = ref("");
 const watchBusy = ref<"rule" | "reality" | null>(null);
 const coexistence = ref<CoexistenceSnapshot | null>(null);
 const coexistenceLoaded = ref(false);
+const coexistenceError = ref("");
 const evaluationEpoch = createEpoch();
 
 const currentRules = computed(() => rules.value.filter((r) => r.status === "current"));
@@ -135,6 +136,7 @@ const presenceEventCount = computed(
 async function evaluate() {
   const epoch = evaluationEpoch.begin();
   coexistenceLoaded.value = false;
+  coexistenceError.value = "";
   try {
     const { snapshot } = await snapshotFor(placeId.value);
     if (!evaluationEpoch.isCurrent(epoch)) return;
@@ -144,6 +146,7 @@ async function evaluate() {
     if (!evaluationEpoch.isCurrent(epoch)) return;
     coexistence.value = null;
     answer.value = null;
+    coexistenceError.value = presentDescription(error);
     throw error;
   } finally {
     if (evaluationEpoch.isCurrent(epoch)) coexistenceLoaded.value = true;
@@ -192,6 +195,7 @@ async function load() {
   answer.value = null;
   coexistence.value = null;
   coexistenceLoaded.value = false;
+  coexistenceError.value = "";
   watchingRule.value = false;
   watchingReality.value = false;
   watchMsg.value = "";
@@ -348,6 +352,7 @@ watch(
     watchingReality.value = false;
     coexistence.value = null;
     coexistenceLoaded.value = false;
+    coexistenceError.value = "";
     if (placeId.value) void load();
   },
   { immediate: true },
@@ -395,6 +400,7 @@ const overviewFiveBlocks = computed(() => Boolean(place.value));
 const placeState = computed<string>(() => {
   if (error.value || !place.value) return "unavailable";
   if (loading.value) return "loading";
+  if (coexistenceError.value) return "partial";
   if (!answer.value) return "unknown";
   return answerStatusKey(answer.value) === "UNKNOWN" ? "unknown" : "ready";
 });
@@ -518,6 +524,7 @@ const placeFixture = computed<string>(() => {
             :place-kind-label="placeTypeLabel(place.place_type)"
             :canonical-address="place.canonical_address"
             :desktop="isWideLayout"
+            :snapshot-error="Boolean(coexistenceError)"
           />
           <section
             v-if="view === 'overview'"
@@ -617,9 +624,9 @@ const placeFixture = computed<string>(() => {
           variant="place"
           :place="{ ...place, canonical_address: place.canonical_address ?? null }"
           :answer="answer"
-          :answer-error="!coexistenceLoaded && !answer"
+          :answer-error="Boolean(coexistenceError) || (!coexistenceLoaded && !answer)"
           :reality="coexistence?.reality_answer ?? null"
-          :reality-error="coexistenceLoaded && !coexistence?.reality_answer"
+          :reality-error="Boolean(coexistenceError) || (coexistenceLoaded && !coexistence?.reality_answer)"
           :snapshot="coexistence"
           :species-label="speciesLabel"
           :latest-verified-at="latestVerifiedAt"
