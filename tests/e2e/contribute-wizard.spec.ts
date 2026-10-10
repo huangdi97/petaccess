@@ -268,18 +268,25 @@ test("A2.2 — 规则线索进入 RuleCandidate review，而不是 Observation/R
   await page.getByTestId("rule-known").selectOption("conditional");
   await page.getByTestId("rule-source-basis").selectOption("staff_statement");
   await page.getByTestId("rule-animal-scope").selectOption("ordinary_pet");
+  await page.getByRole("checkbox", { name: "需牵引" }).click();
 
   const leadRequestPromise = page.waitForRequest(
     (r) => r.method() === "POST" && r.url().includes(`/places/${MALL_ID}/rule-leads`),
   );
   await page.getByTestId("rule-review-next").click();
-  await expect(page.getByTestId("contribution-review")).toBeVisible();
+  const review = page.getByTestId("contribution-review");
+  await expect(review).toBeVisible();
+  await expect(review).toContainText("需牵引");
+  await expect(review).not.toContainText("leash_required");
   await page.getByTestId("rule-submit").click();
   const leadRequest = await leadRequestPromise;
   const body = leadRequest.postDataJSON() as Record<string, unknown>;
   expect(body.animal_scope).toBe("ordinary_pet");
   expect(body.effect).toBe("conditional");
+  expect(body.proposed_conditions).toEqual(["leash_required"]);
   expect(String(body.raw_text)).toContain("来源：工作人员口头说明");
+  expect(String(body.raw_text)).toContain("条件：需牵引");
+  expect(String(body.raw_text)).not.toContain("leash_required");
   expect(body.proximity_verified).toBe(false);
   expect(body.distance_bucket).toBeNull();
   expect(body.accuracy_bucket).toBeNull();
