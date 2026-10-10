@@ -242,6 +242,33 @@ test("C5: lens changes consumer projection without changing domain facts", async
   );
 });
 
+test("C5: Search inspector links open real Place dossier views", async ({ page }) => {
+  await mockList(page, [PLACE]);
+  await page.route("**/coexistence", (route) => route.fulfill({ json: SNAPSHOT_OK }));
+
+  await page.goto("/#/search");
+  await page.getByTestId("search-input").fill("契约");
+  await page.getByTestId("search-btn").click();
+  const result = page.getByTestId(`result-${PLACE.id}`);
+  await expect(result).toBeVisible();
+  await result.focus();
+
+  const views = page.getByTestId("inspector-view-links");
+  await expect(views).toBeVisible();
+  for (const [label, view] of [
+    ["概览", "overview"],
+    ["规则", "rules"],
+    ["现场", "reality"],
+    ["空间", "space"],
+    ["证据", "evidence"],
+  ]) {
+    await expect(views.getByRole("link", { name: label })).toHaveAttribute(
+      "href",
+      `#/place/${PLACE.id}?view=${view}`,
+    );
+  }
+});
+
 test("C5: indoor/dining ranking requires the matching structured Zone facet", () => {
   const corridorOnly = {
     ...SNAPSHOT_OK.reality_answer,
