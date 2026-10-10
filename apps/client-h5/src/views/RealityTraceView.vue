@@ -293,6 +293,7 @@ const uiFixture = computed<string>(() =>
 <style scoped>
 .reality-workspace {
   min-height: 100%;
+  background: var(--pa-color-surface-muted);
 }
 
 .reality-workspace__body {
@@ -300,13 +301,16 @@ const uiFixture = computed<string>(() =>
   flex-direction: column;
   gap: var(--pa-space-5);
   padding: var(--pa-space-5) var(--pa-space-6) var(--pa-space-7);
-  max-width: var(--pa-layout-content-820);
+  max-width: 920px;
   margin: 0 auto;
 }
 
 .reality-head {
-  padding-bottom: var(--pa-space-3);
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  padding: var(--pa-space-5);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: calc(var(--pa-radius-md) + 2px);
+  background: var(--pa-color-surface-raised);
+  box-shadow: var(--pa-elevation-1);
 }
 
 .reality-head__title {
