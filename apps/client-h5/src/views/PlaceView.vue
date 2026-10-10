@@ -786,6 +786,9 @@ const placeFixture = computed<string>(() => {
   align-items: center;
   flex-wrap: wrap;
   gap: var(--pa-space-4);
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
   margin-top: var(--pa-space-2);
 }
 
