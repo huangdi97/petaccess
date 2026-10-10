@@ -501,9 +501,11 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
 }
 
 .decision-inspector--place .inspector-decision {
-  font-size: var(--pa-font-size-26);
-  font-weight: var(--pa-font-weight-medium);
-  line-height: var(--pa-line-height-32);
+  /* Place uses the same 28px primary-decision hierarchy as Search on desktop.
+     The sticky inspector is the single full verdict focal point. */
+  font-size: var(--pa-font-size-28);
+  font-weight: var(--pa-font-weight-650);
+  line-height: var(--pa-line-height-decision);
 }
 
 .inspector-scope {
