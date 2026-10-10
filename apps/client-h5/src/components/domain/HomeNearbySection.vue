@@ -16,6 +16,7 @@ import { freshnessLineFor, type ConsumerLens } from "../../consumer/rowView";
 import type { HomeCard } from "../../composables/useHomeLauncher";
 import HomeDigestHighlights from "./HomeDigestHighlights.vue";
 import HomePendingSection from "./HomePendingSection.vue";
+import HomeUnavailableSection from "./HomeUnavailableSection.vue";
 
 const props = defineProps<{
   loading: boolean;
@@ -23,6 +24,7 @@ const props = defineProps<{
   places: PlaceSummary[];
   verified: HomeCard[];
   pending: HomeCard[];
+  unavailable: HomeCard[];
   listStale: boolean;
   nearbyFetchedAtMs: number | null;
   online: boolean;
@@ -135,6 +137,13 @@ const freshness = computed(() =>
             </RouterLink>
           </div>
         </div>
+        <HomeUnavailableSection
+          :unavailable="unavailable"
+          :species-label="speciesLabel"
+          :conditions-label="conditionsLabel"
+          :interest="interest"
+          @open="emit('open', $event)"
+        />
         <HomePendingSection :pending="pending" @open="emit('open', $event)" />
 
         <RouterLink
