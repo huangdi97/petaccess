@@ -153,7 +153,10 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
       <button
         class="sheet__handle"
         data-testid="sheet-handle"
-        aria-label="调整面板"
+        :aria-label="
+          phase === 'half' ? '展开场所面板' : phase === 'expanded' ? '收起场所面板' : '恢复场所面板'
+        "
+        :aria-expanded="phase === 'expanded'"
         @click="cyclePhase"
       >
         <span class="sheet__handle-bar" aria-hidden="true" />
