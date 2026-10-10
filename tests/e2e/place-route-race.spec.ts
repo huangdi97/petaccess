@@ -103,3 +103,23 @@ test("why/explanation route cannot show a delayed previous-place answer", async 
   await expect(page.locator("body")).not.toContainText("STALE_A_EXPLANATION_MARKER");
   await expect(page).toHaveURL(new RegExp(`#/place/${MALL_ID}/why$`));
 });
+
+
+test("coexistence transport failure stays an explicit partial error, never Unknown", async ({
+  page,
+}) => {
+  await page.route(`**/api/v1/places/${MALL_ID}/coexistence`, async (route) => {
+    if (route.request().method() === "POST") {
+      await route.fulfill({ status: 503, json: { detail: "snapshot unavailable" } });
+      return;
+    }
+    await route.continue();
+  });
+
+  await page.goto(`${BASE}/#/place/${MALL_ID}`);
+  await expect(page.getByTestId("place-workspace")).toHaveAttribute("data-ui-state", "partial");
+  await expect(page.getByTestId("place-partial")).toContainText("当前答案");
+  await expect(page.getByTestId("answer-status")).toContainText("暂时无法取得");
+  await expect(page.getByTestId("answer-status")).not.toContainText("信息不足");
+  await expect(page.getByTestId("overview-reality-line")).toContainText("暂时无法取得");
+});
