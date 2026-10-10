@@ -32,6 +32,7 @@ async function load() {
   loadError.value = "";
   loaded.value = false;
   loading.value = true;
+  apply(null);
   try {
     await session.restore();
     signedIn.value = session.signedIn;
