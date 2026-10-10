@@ -52,13 +52,12 @@
 .home-row__scene {
   --scene-frame-compact-width: 112px;
   --scene-frame-compact-height: 84px;
+  --scene-frame-compact-empty-width: 112px;
+  --scene-frame-compact-empty-height: 84px;
   --scene-frame-compact-mobile-width: 88px;
   --scene-frame-compact-mobile-height: 66px;
-}
-
-.home-row__scene--glyph {
-  width: 112px;
-  height: 84px;
+  --scene-frame-compact-empty-mobile-width: 88px;
+  --scene-frame-compact-empty-mobile-height: 66px;
 }
 
 .home-row:last-child {
@@ -96,10 +95,6 @@
     gap: 0 var(--pa-space-3);
   }
 
-  .home-row__scene--glyph {
-    width: 88px;
-    height: 66px;
-  }
 }
 
 .home-section-title {
