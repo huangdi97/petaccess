@@ -1,5 +1,5 @@
 /** Real privacy-rights transactions; no local fake success. */
-import { computed, onMounted, ref } from "vue";
+import { onMounted, ref } from "vue";
 import { client, platformStorage, session } from "@petaccess/client-core";
 import { presentDescription } from "../errors";
 
