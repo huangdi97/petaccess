@@ -970,10 +970,12 @@ const placeFixture = computed<string>(() => {
 
   .place-dossier__head:not(.place-dossier__head--with-scene) .place-dossier__actions {
     width: auto;
+    max-width: 280px;
     margin-top: 0;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--pa-space-1);
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--pa-space-2) var(--pa-space-3);
   }
 
   .place-dossier__head:not(.place-dossier__head--with-scene) .place-dossier__scene--fallback {
