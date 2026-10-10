@@ -175,13 +175,16 @@
 }
 
 .scene-frame--compact.scene-frame--empty {
-  flex-basis: 64px;
-  width: 64px;
-  height: 64px;
+  flex-basis: var(--scene-frame-compact-empty-width, 104px);
+  width: var(--scene-frame-compact-empty-width, 104px);
+  height: var(--scene-frame-compact-empty-height, 72px);
 }
 
+/* Missing reviewed media still needs an identity anchor, but it must read as
+   an abstract spatial placeholder rather than a fake venue photograph. */
 .scene-frame--compact.scene-frame--empty .scene-frame__abstract {
-  display: none;
+  display: block;
+  opacity: 0.72;
 }
 
 /* Compact identity placeholders are visual anchors, not repeated error copy.
@@ -200,9 +203,9 @@
   }
 
   .scene-frame--compact.scene-frame--empty {
-    flex-basis: 56px;
-    width: 56px;
-    height: 56px;
+    flex-basis: var(--scene-frame-compact-empty-mobile-width, 80px);
+    width: var(--scene-frame-compact-empty-mobile-width, 80px);
+    height: var(--scene-frame-compact-empty-mobile-height, 60px);
   }
 
   .scene-frame--compact .scene-frame__empty {
