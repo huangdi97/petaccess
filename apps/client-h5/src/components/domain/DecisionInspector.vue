@@ -560,7 +560,8 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
 .inspector-block--decision {
   position: relative;
   padding: var(--pa-space-5);
-  border: var(--pa-border-width) solid color-mix(in srgb, var(--pa-color-accent) 20%, var(--pa-color-border-subtle));
+  border: var(--pa-border-width) solid
+    color-mix(in srgb, var(--pa-color-accent) 20%, var(--pa-color-border-subtle));
   border-radius: calc(var(--pa-radius-md) + 2px);
   background: color-mix(in srgb, var(--pa-color-accent-weak) 42%, var(--pa-color-surface));
 }

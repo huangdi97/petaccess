@@ -726,7 +726,11 @@ const placeFixture = computed<string>(() => {
 .place-dossier__head--with-scene {
   padding: var(--pa-space-5);
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--pa-color-accent-weak) 28%, transparent), transparent 45%),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--pa-color-accent-weak) 28%, transparent),
+      transparent 45%
+    ),
     var(--pa-color-surface-raised);
 }
 

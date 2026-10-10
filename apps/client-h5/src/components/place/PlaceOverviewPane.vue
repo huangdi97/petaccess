@@ -424,7 +424,8 @@ const divergenceLine = computed(() => {
   min-width: 0;
   box-sizing: border-box;
   padding: var(--pa-space-4);
-  border: var(--pa-border-width) solid color-mix(in srgb, var(--pa-color-accent) 22%, var(--pa-color-border-subtle));
+  border: var(--pa-border-width) solid
+    color-mix(in srgb, var(--pa-color-accent) 22%, var(--pa-color-border-subtle));
   border-radius: var(--pa-radius-md);
   background: color-mix(in srgb, var(--pa-color-accent-weak) 44%, var(--pa-color-surface));
 }
