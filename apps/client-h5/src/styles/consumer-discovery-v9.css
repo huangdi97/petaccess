@@ -95,7 +95,7 @@ body {
 }
 
 #app .home-workspace .home-intro h1 {
-  max-width: 550px;
+  max-width: 450px;
   font-size: clamp(26px, 2.5vw, 39px);
   line-height: 1.29;
   font-weight: 750;
