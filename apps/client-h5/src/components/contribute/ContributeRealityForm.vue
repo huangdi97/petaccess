@@ -2,36 +2,83 @@
 /** ContributeRealityForm — M7 reality contribution on the parent-flow API (A2). */
 import { computed, ref } from "vue";
 import { client } from "@petaccess/client-core";
-import { isoAt, realityPayload, reportOrigin } from "./contributeSupport";
+import { isoAt, realityPayload } from "./contributeSupport";
 import { presentDescription } from "../../errors";
+import {
+  ANIMAL_FACILITY_LABELS,
+  FACILITY_STATE_LABELS,
+  OBSERVED_ACTION_LABELS,
+  STAFF_ACTION_LABELS,
+  STAFF_ROLE_LABELS,
+} from "../../consumer/labels";
 import ContributionStepShell from "./ContributionStepShell.vue";
+import ContributionReview from "./ContributionReview.vue";
 defineOptions({ name: "ContributeRealityForm" });
 const props = defineProps<{
   placeId: string;
   placeName: string;
+  parentPlaceId?: string | null;
   zones: { id: string; name: string }[];
+  /** Only preselect an ID from the currently loaded place's real zones. */
+  initialZoneId?: string | null;
   online: boolean;
   signedIn: boolean;
   kind: "observed_presence" | "staff_response" | "animal_facility";
 }>();
-const emit = defineEmits<{ done: [msg: string]; back: [] }>();
+const emit = defineEmits<{ done: [msg: string]; back: []; reviewing: [value: boolean] }>();
 const KIND_LABELS: Record<string, string> = {
   observed_presence: "我刚刚看到动物",
   staff_response: "我看到工作人员怎么处理",
   animal_facility: "我发现这里有动物相关设施",
 };
 
-const occurredAt = ref(new Date().toISOString().slice(0, 10));
-const zone = ref("");
+type SourceMode = "on_site_now" | "on_site_past" | "external_online_content";
+
+const sourceMode = ref<SourceMode>("on_site_now");
+// A past observation must have an intentionally selected date, never
+// silently default to today and manufacture false temporal precision.
+const occurredAt = ref("");
+const today = new Date().toISOString().slice(0, 10);
+const validPastDate = (date: string) => Boolean(date && date <= today);
+const externalUrl = ref("");
+const externalPlatform = ref("web");
+const externalPublishedAt = ref("");
+const externalEventAt = ref("");
+const externalPlaceMatch = ref<"exact_place" | "parent_place_only" | "area_only" | "unresolved">(
+  "exact_place",
+);
+const mediaId = ref<string | null>(null);
+const mediaMessage = ref("");
+const uploading = ref(false);
+// A scoped Reality → Contribution deep link may suggest its verified zone;
+// never submit a stale/foreign route ID as the current place's scope.
+const zone = ref(
+  props.initialZoneId && props.zones.some((item) => item.id === props.initialZoneId)
+    ? props.initialZoneId
+    : "",
+);
 const animal = ref("dog");
 const count = ref("");
-const action = ref("");
-const staffAction = ref("");
+const action = ref("present");
+const staffRole = ref("unknown_staff");
+const staffAction = ref("unknown");
+const staffAwareness = ref("awareness_unknown");
 const staffOutcome = ref("");
+const staffPolicyStatement = ref("");
 const facilityType = ref("");
-const facilityOperational = ref("active");
+const facilityOperational = ref("unknown");
+const facilityPurpose = ref("purpose_unknown");
+const facilityAccessMode = ref("unknown");
+const facilityCapacity = ref("");
+const facilitySizeLimit = ref("");
+const facilityWeatherProtection = ref<boolean | null>(null);
+const facilityShade = ref<boolean | null>(null);
+const facilityVentilation = ref<boolean | null>(null);
+const facilityWaterAvailable = ref<boolean | null>(null);
+const facilitySupervisionState = ref("");
+const facilitySecurityState = ref("");
 const context = ref("");
-const effortBucket = ref("lt_10_min");
+const effortBucket = ref("unknown");
 
 const EFFORT_LABELS: Record<string, string> = {
   lt_10_min: "不到 10 分钟",
@@ -41,9 +88,221 @@ const EFFORT_LABELS: Record<string, string> = {
   unknown: "不确定",
 };
 
+const OBSERVED_ACTION_KEYS = [
+  "present",
+  "entered",
+  "stayed",
+  "dined_near_table",
+  "leashed",
+  "off_leash",
+  "in_carrier",
+  "in_stroller",
+] as const;
+
+const STAFF_RESPONSE_KEYS = [
+  "proactive_accommodation",
+  "provide_water",
+  "provide_container_or_stroller",
+  "direct_to_allowed_zone",
+  "remind_leash",
+  "require_carrier",
+  "request_relocation",
+  "request_wait_outside",
+  "deny_entry",
+  "request_exit",
+  "policy_explanation",
+  "escalate_to_manager",
+  "no_intervention_observed",
+  "unknown",
+] as const;
+
+const STAFF_ROLE_KEYS = [
+  "owner",
+  "manager",
+  "frontline_staff",
+  "server",
+  "security",
+  "cleaning_staff",
+  "front_desk",
+  "unknown_staff",
+] as const;
+
+const FACILITY_TYPE_KEYS = [
+  "outdoor_holding_cage",
+  "kennel",
+  "tether_point",
+  "pet_waiting_area",
+  "pet_parking",
+  "water_bowl",
+  "pet_stroller",
+  "carrier_storage",
+  "pet_entrance",
+  "pet_elevator",
+  "dedicated_pet_zone",
+  "waste_bag_station",
+  "cleaning_station",
+  "washing_point",
+  "dedicated_pet_tableware",
+  "other",
+] as const;
+
+const FACILITY_STATE_KEYS = ["active", "temporarily_unavailable", "removed", "unknown"] as const;
+
+const STAFF_AWARENESS_OPTIONS = [
+  { key: "awareness_confirmed", label: "明确看到工作人员注意到该情况" },
+  { key: "awareness_likely", label: "工作人员可能注意到了" },
+  { key: "awareness_unknown", label: "不确定工作人员是否注意到" },
+] as const;
+
+const FACILITY_PURPOSE_OPTIONS = [
+  { key: "purpose_signage_supported", label: "现场标识明确说明用途" },
+  { key: "purpose_staff_stated", label: "工作人员说明过用途" },
+  { key: "purpose_confirmed", label: "有其他明确依据确认用途" },
+  { key: "purpose_user_inferred", label: "我是根据外观判断" },
+  { key: "purpose_unknown", label: "不确定用途" },
+] as const;
+
+const FACILITY_ACCESS_OPTIONS = [
+  { key: "operator_provided", label: "由场所提供 / 管理" },
+  { key: "self_service", label: "可以自助使用" },
+  { key: "staff_assisted", label: "需要工作人员协助" },
+  { key: "unknown", label: "使用方式不确定" },
+] as const;
+
+const FACILITY_BOOLEAN_OPTIONS: { value: boolean | null; label: string }[] = [
+  { value: null, label: "未确认" },
+  { value: true, label: "有" },
+  { value: false, label: "没有" },
+];
+
+const FACILITY_SUPERVISION_OPTIONS = [
+  { key: "", label: "未确认" },
+  { key: "有工作人员看护", label: "有工作人员看护" },
+  { key: "无人固定看护", label: "无人固定看护" },
+] as const;
+
+const FACILITY_SECURITY_OPTIONS = [
+  { key: "", label: "未确认" },
+  { key: "可锁闭 / 有安全门", label: "可锁闭 / 有安全门" },
+  { key: "开放式 / 不可锁闭", label: "开放式 / 不可锁闭" },
+] as const;
+
 const busy = ref(false);
 const error = ref("");
-const canSubmit = computed(() => props.online && props.signedIn && !busy.value);
+const reviewing = ref(false);
+function setReviewing(value: boolean) {
+  reviewing.value = value;
+  emit("reviewing", value);
+}
+const isExternal = computed(() => sourceMode.value === "external_online_content");
+const hasClaimablePlaceMatch = computed(
+  () =>
+    !isExternal.value ||
+    externalPlaceMatch.value === "exact_place" ||
+    (externalPlaceMatch.value === "parent_place_only" && Boolean(props.parentPlaceId)),
+);
+const validEventDate = computed(() =>
+  sourceMode.value === "on_site_past"
+    ? validPastDate(occurredAt.value)
+    : !isExternal.value ||
+      (validPastDate(externalPublishedAt.value) &&
+        (!externalEventAt.value ||
+          (validPastDate(externalEventAt.value) &&
+            externalEventAt.value <= externalPublishedAt.value))),
+);
+const canUseCurrentZones = computed(
+  () => !isExternal.value || externalPlaceMatch.value === "exact_place",
+);
+
+const contributionScopeLabel = computed(() => {
+  if (isExternal.value) {
+    if (externalPlaceMatch.value === "parent_place_only") return "仅能确认到上级场所";
+    if (externalPlaceMatch.value === "area_only") return "仅能确认到附近区域";
+    if (externalPlaceMatch.value === "unresolved") return "地点尚未可靠确认";
+  }
+  if (!zone.value) return "场所范围（未指定分区）";
+  return props.zones.find((item) => item.id === zone.value)?.name ?? "分区记录待确认";
+});
+const SOURCE_MODE_LABELS: Record<SourceMode, string> = {
+  on_site_now: "我现在就在这里",
+  on_site_past: "我之前在这里看到过",
+  external_online_content: "我在公开帖子 / 视频里看到",
+};
+const ANIMAL_LABELS: Record<string, string> = { dog: "犬", cat: "猫", other: "其他动物" };
+
+const reviewFact = computed(() => {
+  if (props.kind === "observed_presence") {
+    const countText = count.value ? ` · 约 ${count.value} 只` : "";
+    return `${ANIMAL_LABELS[animal.value] ?? animal.value} · ${OBSERVED_ACTION_LABELS[action.value] ?? action.value}${countText}`;
+  }
+  if (props.kind === "staff_response") {
+    return `${STAFF_ROLE_LABELS[staffRole.value] ?? "工作人员类型未确认"} · ${STAFF_ACTION_LABELS[staffAction.value] ?? "处理方式未确认"}`;
+  }
+  return `${ANIMAL_FACILITY_LABELS[facilityType.value] ?? "设施类型待选择"} · ${FACILITY_STATE_LABELS[facilityOperational.value] ?? "状态未确认"}`;
+});
+
+const reviewTime = computed(() => {
+  if (isExternal.value) {
+    const published = externalPublishedAt.value || "发布时间待填写";
+    return externalEventAt.value
+      ? `明确发生 ${externalEventAt.value} · 内容发布 ${published}`
+      : `仅确认内容发布 ${published}；发生时间未知`;
+  }
+  return sourceMode.value === "on_site_now"
+    ? "现在（以提交时刻记录）"
+    : occurredAt.value || "日期待选择";
+});
+
+const reviewItems = computed(() => {
+  const items = [
+    { label: "场所", value: props.placeName },
+    { label: "事实类型", value: KIND_LABELS[props.kind] ?? "现场事实" },
+    { label: "来源方式", value: SOURCE_MODE_LABELS[sourceMode.value] },
+    { label: "地点范围", value: contributionScopeLabel.value },
+    { label: "时间", value: reviewTime.value },
+    { label: "核心事实", value: reviewFact.value },
+    { label: "证据图片", value: mediaId.value ? "已附私有核验图片" : "未附图片" },
+  ];
+  if (isExternal.value && externalUrl.value.trim()) {
+    items.push({ label: "公开来源", value: externalUrl.value.trim() });
+  }
+  return items;
+});
+
+const canSubmit = computed(
+  () =>
+    props.online &&
+    props.signedIn &&
+    !busy.value &&
+    !uploading.value &&
+    validEventDate.value &&
+    (!isExternal.value || Boolean(externalUrl.value.trim() && externalPublishedAt.value)) &&
+    (props.kind !== "animal_facility" || Boolean(facilityType.value)),
+);
+
+async function uploadEvidence(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0] ?? null;
+  if (!file) return;
+  error.value = "";
+  mediaMessage.value = "";
+  uploading.value = true;
+  try {
+    const media = await client.uploadMedia(file, "reality_evidence", {
+      ownerType: "place",
+      ownerId: props.placeId,
+    });
+    mediaId.value = media.id;
+    mediaMessage.value = media.duplicate_of
+      ? "这份证据此前已上传过；仍会作为本次报告的私有核验材料。"
+      : "证据已上传，仅供审核使用，不会自动公开。";
+  } catch (err) {
+    error.value = presentDescription(err);
+  } finally {
+    uploading.value = false;
+    input.value = "";
+  }
+}
 
 async function submit() {
   if (!canSubmit.value || !props.placeId) return;
@@ -51,48 +310,124 @@ async function submit() {
   busy.value = true;
   try {
     const kind = props.kind;
-    const at = isoAt(occurredAt.value);
+    const onsiteAt =
+      sourceMode.value === "on_site_now"
+        ? new Date().toISOString()
+        : sourceMode.value === "on_site_past"
+          ? isoAt(occurredAt.value)
+          : null;
+    const externalEventIso =
+      isExternal.value && externalEventAt.value ? isoAt(externalEventAt.value) : null;
+    const externalPublishedIso =
+      isExternal.value && externalPublishedAt.value ? isoAt(externalPublishedAt.value) : null;
+    const eventAt = onsiteAt ?? externalEventIso;
+    const placeMatchState = isExternal.value ? externalPlaceMatch.value : "exact_place";
+    const reportPlaceId =
+      placeMatchState === "exact_place"
+        ? props.placeId
+        : placeMatchState === "parent_place_only" && props.parentPlaceId
+          ? props.parentPlaceId
+          : null;
+    const candidatePlaceId =
+      placeMatchState === "parent_place_only" && props.parentPlaceId
+        ? props.parentPlaceId
+        : undefined;
     const { payload, animalScope } = realityPayload(props.kind, {
       animal: animal.value,
       count: count.value,
       action: action.value,
       context: context.value,
+      staffRole: staffRole.value,
       staffAction: staffAction.value,
+      staffAwareness: staffAwareness.value,
       staffOutcome: staffOutcome.value,
+      staffPolicyStatement: staffPolicyStatement.value,
       facilityType: facilityType.value,
       facilityOperational: facilityOperational.value,
+      facilityPurpose: facilityPurpose.value,
+      facilityAccessMode: facilityAccessMode.value,
+      facilityCapacity: facilityCapacity.value,
+      facilitySizeLimit: facilitySizeLimit.value,
+      facilityWeatherProtection: facilityWeatherProtection.value,
+      facilityShade: facilityShade.value,
+      facilityVentilation: facilityVentilation.value,
+      facilityWaterAvailable: facilityWaterAvailable.value,
+      facilitySupervisionState: facilitySupervisionState.value,
+      facilitySecurityState: facilitySecurityState.value,
     });
     const res = await client.createRealityReport(props.placeId, {
       report: {
-        origin: reportOrigin(occurredAt.value),
-        place_id: props.placeId,
-        observed_at: at,
+        origin: sourceMode.value,
+        place_id: reportPlaceId,
+        container_place_id:
+          placeMatchState === "parent_place_only" && props.parentPlaceId
+            ? props.parentPlaceId
+            : null,
+        subject_place_id: placeMatchState === "exact_place" ? props.placeId : null,
+        place_match_state: placeMatchState,
+        place_match_evidence_types: isExternal.value
+          ? ["source_url", ...(placeMatchState === "exact_place" ? ["user_confirmation"] : [])]
+          : ["user_confirmation"],
+        content_published_at: externalPublishedIso,
+        claimed_event_at: externalEventIso,
+        observed_at: onsiteAt,
+        time_evidence_state: isExternal.value
+          ? externalEventIso
+            ? "exact_event_date"
+            : "publication_time_only"
+          : sourceMode.value === "on_site_now"
+            ? "live_device_time"
+            : "exact_event_date",
+        time_certainty: isExternal.value ? (externalEventIso ? "exact" : "unknown") : "exact",
+        fact_evidence_state: isExternal.value
+          ? mediaId.value
+            ? "external_media"
+            : "text_only_external"
+          : mediaId.value
+            ? "direct_media"
+            : "first_hand_no_media",
         privacy_state: "private",
+        media_refs: mediaId.value ? [{ media_id: mediaId.value }] : null,
+        source_url: isExternal.value ? externalUrl.value.trim() : null,
+        source_platform: isExternal.value ? externalPlatform.value : null,
       },
-      candidates: [
-        {
-          candidate_type: kind,
-          zone_id: zone.value || null,
-          animal_scope: animalScope,
-          observed_at: at,
-          payload,
-        },
-      ],
-      effort: {
-        place_id: props.placeId,
-        duration_bucket: effortBucket.value,
-        observed_at: at,
-        animal_observed: kind === "observed_presence" ? true : undefined,
-      },
+      candidates: hasClaimablePlaceMatch.value
+        ? [
+            {
+              candidate_type: kind,
+              place_id: candidatePlaceId,
+              zone_id: placeMatchState === "exact_place" ? zone.value || null : null,
+              animal_scope: animalScope,
+              observed_at: eventAt,
+              payload,
+            },
+          ]
+        : [],
+      effort: isExternal.value
+        ? null
+        : {
+            place_id: props.placeId,
+            duration_bucket: effortBucket.value,
+            observed_at: onsiteAt,
+            animal_observed: kind === "observed_presence" ? true : undefined,
+          },
       confirmation: null,
-      external_content: null,
+      external_content: isExternal.value
+        ? {
+            source_url: externalUrl.value.trim(),
+            platform: externalPlatform.value,
+            published_at: externalPublishedIso,
+          }
+        : null,
     });
     const pending = res.moderation_state === "pending" || res.moderation_state === "flagged";
     emit(
       "done",
-      pending
-        ? "现场情况已提交，进入人工审核队列。AI 不会自动裁定 —— 审核通过后才作为现场事实展示。"
-        : "现场情况已提交并记录。审核通过后才会作为现场事实展示。",
+      !hasClaimablePlaceMatch.value
+        ? "外部内容线索已提交。地点尚未精确匹配，因此没有生成当前场所的事实候选；人工完成地点核验后才能继续形成可审核事实。"
+        : pending
+          ? "现场情况已提交，进入人工审核队列。AI 不会自动裁定 —— 审核通过后才作为现场事实展示。"
+          : "现场情况已提交并记录。审核通过后才会作为现场事实展示。",
     );
   } catch (e) {
     error.value = presentDescription(e);
@@ -105,110 +440,419 @@ async function submit() {
 <template>
   <ContributionStepShell
     :place-name="placeName"
-    :step="2"
-    :total="3"
-    :title="KIND_LABELS[kind]"
-    description="只回答结构化问题。提交进入人工审核队列，AI 不会自动裁定。"
-    @back="emit('back')"
+    :place-zone="contributionScopeLabel"
+    :step="reviewing ? 3 : 2"
+    :total="4"
+    :title="reviewing ? '核对现场事实' : KIND_LABELS[kind]"
+    :description="
+      reviewing
+        ? '请核对场所、范围、时间和事实类型；这里不会把现场事实解释成正式准入规则。'
+        : '只回答结构化问题。现场亲历、公开内容与证据媒体会分开记录；提交进入人工审核队列，AI 不会自动裁定。'
+    "
+    @back="reviewing ? setReviewing(false) : emit('back')"
   >
     <!-- §33 question clusters：什么时候 / 在哪里 / 你看到了什么 -->
     <!-- §19 field groups：真实结构化表单包一层 contribution-form 供几何 gate
          测量 group rhythm（When / Where / What 三组，组距 20–28px）。 -->
-    <div class="reality-form" data-ui="contribution-form">
-      <fieldset class="cluster">
-        <legend class="cluster__title">什么时候？</legend>
-        <label for="reality-date">日期</label>
-        <input v-model="occurredAt" type="date" id="reality-date" data-testid="reality-date" />
-        <label for="reality-effort">在场时长</label>
-        <select v-model="effortBucket" id="reality-effort" data-testid="reality-effort">
-          <option v-for="(label, key) in EFFORT_LABELS" :key="key" :value="key">{{ label }}</option>
-        </select>
-      </fieldset>
-
-      <fieldset class="cluster">
-        <legend class="cluster__title">在哪里？</legend>
-        <label for="reality-zone">适用区域</label>
-        <select v-model="zone" id="reality-zone">
-          <option value="">全场 / 不确定</option>
-          <option v-for="z in zones" :key="z.id" :value="z.id">{{ z.name }}</option>
-        </select>
-      </fieldset>
-
-      <fieldset class="cluster">
-        <legend class="cluster__title">你看到了什么？</legend>
-        <template v-if="kind === 'observed_presence'">
-          <label for="reality-animal">动物</label>
-          <select v-model="animal" id="reality-animal">
-            <option value="dog">犬</option>
-            <option value="cat">猫</option>
-            <option value="other">其他</option>
+    <template v-if="!reviewing">
+      <div class="reality-form" data-ui="contribution-form">
+        <fieldset class="cluster">
+          <legend class="cluster__title">这条信息来自哪里？</legend>
+          <label for="reality-source-mode">来源方式</label>
+          <select id="reality-source-mode" v-model="sourceMode" data-testid="reality-source-mode">
+            <option value="on_site_now">我现在就在这里</option>
+            <option value="on_site_past">我之前在这里看到过</option>
+            <option value="external_online_content">我在公开帖子 / 视频里看到</option>
           </select>
-          <label for="reality-count">大概几只</label>
+
+          <template v-if="isExternal">
+            <label for="reality-source-url">公开内容链接</label>
+            <input
+              id="reality-source-url"
+              v-model="externalUrl"
+              type="url"
+              placeholder="https://…"
+              data-testid="reality-source-url"
+            />
+            <label for="reality-place-match">内容能定位到哪里？</label>
+            <select
+              id="reality-place-match"
+              v-model="externalPlaceMatch"
+              data-testid="reality-place-match"
+            >
+              <option value="exact_place">能确认就是当前场所</option>
+              <option v-if="parentPlaceId" value="parent_place_only">
+                只能确认到当前场所所在的上级场所
+              </option>
+              <option value="area_only">只能确认到附近区域</option>
+              <option value="unresolved">无法可靠确认具体地点</option>
+            </select>
+            <p class="muted source-note">
+              只有精确匹配到具体场所的记录，才可能在人工核验后成为该场所的公开现场事实。
+            </p>
+
+            <label for="reality-source-platform">来源平台</label>
+            <select
+              id="reality-source-platform"
+              v-model="externalPlatform"
+              data-testid="reality-source-platform"
+            >
+              <option value="xiaohongshu">小红书</option>
+              <option value="douyin">抖音</option>
+              <option value="dianping">大众点评</option>
+              <option value="weibo">微博</option>
+              <option value="bilibili">哔哩哔哩</option>
+              <option value="web">网页</option>
+              <option value="other">其他</option>
+            </select>
+            <label for="reality-published-date">内容发布时间</label>
+            <input
+              id="reality-published-date"
+              v-model="externalPublishedAt"
+              type="date"
+              :max="today"
+              data-testid="reality-published-date"
+            />
+            <label for="reality-external-event-date">内容明确说明的发生日期（可选）</label>
+            <input
+              id="reality-external-event-date"
+              v-model="externalEventAt"
+              type="date"
+              :max="externalPublishedAt || today"
+              data-testid="reality-external-event-date"
+            />
+            <p class="muted source-note">
+              只有发布时间时，平台只会写“某日发布的内容中观察到”，不会把发布时间当成现场发生时间。
+            </p>
+            <p
+              v-if="externalEventAt && externalPublishedAt && externalEventAt > externalPublishedAt"
+              class="notice"
+              role="alert"
+              data-testid="reality-date-order-error"
+            >
+              发生日期不能晚于这条内容的发布时间，请核对来源。
+            </p>
+          </template>
+
+          <span class="cluster__field-label">证据图片（可选）</span>
           <input
-            v-model="count"
-            type="number"
-            min="1"
-            placeholder="1"
-            id="reality-count"
-            data-testid="reality-count"
+            id="reality-media"
+            class="visually-hidden-file"
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            :disabled="uploading"
+            data-testid="reality-media"
+            @change="uploadEvidence"
           />
-          <label for="reality-action">在做什么</label>
-          <select v-model="action" id="reality-action">
-            <option value="present">在场</option>
-            <option value="walking">行走</option>
-            <option value="waiting">等待</option>
-            <option value="entering">进入</option>
-            <option value="dining">用餐</option>
-          </select>
-        </template>
+          <label
+            class="evidence-file-picker"
+            :class="{ 'evidence-file-picker--disabled': uploading }"
+            for="reality-media"
+          >
+            <span>{{ uploading ? "上传中…" : mediaId ? "重新选择证据图片" : "选择证据图片" }}</span>
+            <span class="evidence-file-picker__hint">PNG / JPG / WebP</span>
+          </label>
+          <p v-if="mediaMessage" class="muted source-note" data-testid="reality-media-message">
+            {{ mediaMessage }}
+          </p>
+        </fieldset>
 
-        <template v-else-if="kind === 'staff_response'">
-          <label for="reality-staff-action">工作人员做了什么</label>
-          <select v-model="staffAction" id="reality-staff-action">
-            <option value="provided_guidance">引导 / 说明</option>
-            <option value="asked_to_leave">要求离开</option>
-            <option value="offered_assistance">提供协助</option>
-            <option value="no_interaction">未与顾客互动</option>
+        <fieldset v-if="!isExternal" class="cluster">
+          <legend class="cluster__title">什么时候？</legend>
+          <template v-if="sourceMode === 'on_site_past'">
+            <label for="reality-date">发生日期</label>
+            <input
+              id="reality-date"
+              v-model="occurredAt"
+              type="date"
+              :max="today"
+              required
+              data-testid="reality-date"
+            />
+            <p v-if="!occurredAt" class="muted source-note">
+              请明确选择当时观察的日期，系统不会自动填入今天。
+            </p>
+          </template>
+          <p v-else class="muted source-note">将使用提交时的当前时间记录这次现场观察。</p>
+          <label for="reality-effort">在场时长</label>
+          <select v-model="effortBucket" id="reality-effort" data-testid="reality-effort">
+            <option v-for="(label, key) in EFFORT_LABELS" :key="key" :value="key">
+              {{ label }}
+            </option>
           </select>
-          <label for="reality-staff-outcome">结果（可选）</label>
+        </fieldset>
+
+        <fieldset class="cluster">
+          <legend class="cluster__title">在哪里？</legend>
+          <template v-if="canUseCurrentZones">
+            <label for="reality-zone">适用区域</label>
+            <select v-model="zone" id="reality-zone">
+              <option value="">全场 / 不确定</option>
+              <option v-for="z in zones" :key="z.id" :value="z.id">{{ z.name }}</option>
+            </select>
+          </template>
+          <p v-else class="muted source-note" data-testid="reality-imprecise-place-note">
+            {{
+              externalPlaceMatch === "parent_place_only"
+                ? "当前只能确认到上级场所，因此不会使用这个具体场所的分区。"
+                : "地点尚未精确匹配；本次先保存来源与事实线索，不会把它挂成当前场所的事实。"
+            }}
+          </p>
+        </fieldset>
+
+        <fieldset class="cluster">
+          <legend class="cluster__title">你看到了什么？</legend>
+          <template v-if="kind === 'observed_presence'">
+            <label for="reality-animal">动物</label>
+            <select v-model="animal" id="reality-animal">
+              <option value="dog">犬</option>
+              <option value="cat">猫</option>
+              <option value="other">其他</option>
+            </select>
+            <label for="reality-count">大概几只</label>
+            <input
+              v-model="count"
+              type="number"
+              min="1"
+              placeholder="1"
+              id="reality-count"
+              data-testid="reality-count"
+            />
+            <label for="reality-action">在做什么</label>
+            <select v-model="action" id="reality-action">
+              <option v-for="key in OBSERVED_ACTION_KEYS" :key="key" :value="key">
+                {{ OBSERVED_ACTION_LABELS[key] }}
+              </option>
+            </select>
+          </template>
+
+          <template v-else-if="kind === 'staff_response'">
+            <label for="reality-staff-role">是哪类工作人员（可选）</label>
+            <select id="reality-staff-role" v-model="staffRole" data-testid="reality-staff-role">
+              <option v-for="key in STAFF_ROLE_KEYS" :key="key" :value="key">
+                {{ STAFF_ROLE_LABELS[key] }}
+              </option>
+            </select>
+            <p class="muted source-note">只记录岗位角色，不收集工作人员姓名或身份。</p>
+            <label for="reality-staff-action">工作人员做了什么</label>
+            <select v-model="staffAction" id="reality-staff-action">
+              <option v-for="key in STAFF_RESPONSE_KEYS" :key="key" :value="key">
+                {{ STAFF_ACTION_LABELS[key] }}
+              </option>
+            </select>
+            <label for="reality-staff-awareness">你能确认工作人员注意到这个情况吗？</label>
+            <select
+              id="reality-staff-awareness"
+              v-model="staffAwareness"
+              data-testid="reality-staff-awareness"
+            >
+              <option v-for="item in STAFF_AWARENESS_OPTIONS" :key="item.key" :value="item.key">
+                {{ item.label }}
+              </option>
+            </select>
+            <label for="reality-staff-outcome">结果（可选）</label>
+            <input
+              v-model="staffOutcome"
+              placeholder="一两句话即可，不填也可以"
+              id="reality-staff-outcome"
+            />
+
+            <label for="reality-staff-statement">工作人员明确原话（可选）</label>
+            <textarea
+              id="reality-staff-statement"
+              v-model="staffPolicyStatement"
+              rows="3"
+              maxlength="500"
+              placeholder="只填写你能确认的原话；不确定就留空"
+              data-testid="reality-staff-statement"
+            />
+            <p class="muted source-note">
+              原话会作为具体事件的核验材料；即使审核通过，也不会自动成为运营方正式政策。
+            </p>
+          </template>
+
+          <template v-else>
+            <label for="reality-facility-type">设施类型</label>
+            <select v-model="facilityType" id="reality-facility-type">
+              <option value="" disabled>请选择设施类型</option>
+              <option v-for="key in FACILITY_TYPE_KEYS" :key="key" :value="key">
+                {{ ANIMAL_FACILITY_LABELS[key] }}
+              </option>
+            </select>
+            <label for="reality-facility-purpose">你怎么确认它是动物相关设施？</label>
+            <select
+              id="reality-facility-purpose"
+              v-model="facilityPurpose"
+              data-testid="reality-facility-purpose"
+            >
+              <option v-for="item in FACILITY_PURPOSE_OPTIONS" :key="item.key" :value="item.key">
+                {{ item.label }}
+              </option>
+            </select>
+            <label for="reality-facility-status">状态</label>
+            <select v-model="facilityOperational" id="reality-facility-status">
+              <option v-for="key in FACILITY_STATE_KEYS" :key="key" :value="key">
+                {{ FACILITY_STATE_LABELS[key] }}
+              </option>
+            </select>
+            <label for="reality-facility-access">使用方式（可选）</label>
+            <select
+              id="reality-facility-access"
+              v-model="facilityAccessMode"
+              data-testid="reality-facility-access"
+            >
+              <option v-for="item in FACILITY_ACCESS_OPTIONS" :key="item.key" :value="item.key">
+                {{ item.label }}
+              </option>
+            </select>
+            <label for="reality-facility-capacity">数量 / 容量（可选）</label>
+            <input
+              id="reality-facility-capacity"
+              v-model="facilityCapacity"
+              type="number"
+              min="1"
+              placeholder="例如 2"
+              data-testid="reality-facility-capacity"
+            />
+
+            <details class="facility-more" data-testid="reality-facility-more">
+              <summary>补充设施使用与安全信息（可选）</summary>
+              <div class="facility-more__fields">
+                <label for="reality-facility-size">体型限制</label>
+                <input
+                  id="reality-facility-size"
+                  v-model="facilitySizeLimit"
+                  maxlength="80"
+                  placeholder="例如：仅小型犬；不确定可留空"
+                  data-testid="reality-facility-size"
+                />
+
+                <label for="reality-facility-weather">有遮雨</label>
+                <select
+                  id="reality-facility-weather"
+                  v-model="facilityWeatherProtection"
+                  data-testid="reality-facility-weather"
+                >
+                  <option
+                    v-for="item in FACILITY_BOOLEAN_OPTIONS"
+                    :key="String(item.value)"
+                    :value="item.value"
+                  >
+                    {{ item.label }}
+                  </option>
+                </select>
+
+                <label for="reality-facility-shade">有遮阳</label>
+                <select
+                  id="reality-facility-shade"
+                  v-model="facilityShade"
+                  data-testid="reality-facility-shade"
+                >
+                  <option
+                    v-for="item in FACILITY_BOOLEAN_OPTIONS"
+                    :key="String(item.value)"
+                    :value="item.value"
+                  >
+                    {{ item.label }}
+                  </option>
+                </select>
+
+                <label for="reality-facility-ventilation">有通风</label>
+                <select
+                  id="reality-facility-ventilation"
+                  v-model="facilityVentilation"
+                  data-testid="reality-facility-ventilation"
+                >
+                  <option
+                    v-for="item in FACILITY_BOOLEAN_OPTIONS"
+                    :key="String(item.value)"
+                    :value="item.value"
+                  >
+                    {{ item.label }}
+                  </option>
+                </select>
+
+                <label for="reality-facility-water">可获得饮水</label>
+                <select
+                  id="reality-facility-water"
+                  v-model="facilityWaterAvailable"
+                  data-testid="reality-facility-water"
+                >
+                  <option
+                    v-for="item in FACILITY_BOOLEAN_OPTIONS"
+                    :key="String(item.value)"
+                    :value="item.value"
+                  >
+                    {{ item.label }}
+                  </option>
+                </select>
+
+                <label for="reality-facility-supervision">看护情况</label>
+                <select
+                  id="reality-facility-supervision"
+                  v-model="facilitySupervisionState"
+                  data-testid="reality-facility-supervision"
+                >
+                  <option
+                    v-for="item in FACILITY_SUPERVISION_OPTIONS"
+                    :key="item.key"
+                    :value="item.key"
+                  >
+                    {{ item.label }}
+                  </option>
+                </select>
+
+                <label for="reality-facility-security">安全 / 锁闭情况</label>
+                <select
+                  id="reality-facility-security"
+                  v-model="facilitySecurityState"
+                  data-testid="reality-facility-security"
+                >
+                  <option
+                    v-for="item in FACILITY_SECURITY_OPTIONS"
+                    :key="item.key"
+                    :value="item.key"
+                  >
+                    {{ item.label }}
+                  </option>
+                </select>
+              </div>
+              <p class="muted source-note">
+                这些字段只描述你实际看到的设施属性；不表示设施“安全”，也不推导动物可以进入场所。
+              </p>
+            </details>
+          </template>
+
+          <label for="reality-context">补充（可选）</label>
           <input
-            v-model="staffOutcome"
+            v-model="context"
+            id="reality-context"
+            data-testid="reality-context"
             placeholder="一两句话即可，不填也可以"
-            id="reality-staff-outcome"
           />
-        </template>
+        </fieldset>
+      </div>
+    </template>
 
-        <template v-else>
-          <label for="reality-facility-type">设施类型</label>
-          <select v-model="facilityType" id="reality-facility-type">
-            <option value="waiting_area">宠物等候区 / 笼</option>
-            <option value="water_station">饮水点 / 水碗</option>
-            <option value="pet_elevator">宠物电梯</option>
-            <option value="designated_zone">专用活动区</option>
-            <option value="other_facility">其他设施</option>
-          </select>
-          <label for="reality-facility-status">状态</label>
-          <select v-model="facilityOperational" id="reality-facility-status">
-            <option value="active">正常可用</option>
-            <option value="removed">已拆除</option>
-            <option value="out_of_service">停用</option>
-          </select>
-        </template>
-
-        <label for="reality-context">补充（可选）</label>
-        <input
-          v-model="context"
-          id="reality-context"
-          data-testid="reality-context"
-          placeholder="一两句话即可，不填也可以"
-        />
-      </fieldset>
-    </div>
+    <ContributionReview
+      v-else
+      :items="reviewItems"
+      guard="确认提交后内容进入人工审核；工作人员处理、设施存在和动物出现仍是彼此独立的现场事实，不会自动生成运营方正式政策或准入规则。"
+    />
 
     <p v-if="error" class="notice" data-testid="reality-error" role="alert">{{ error }}</p>
     <template #primary>
-      <button class="primary" :disabled="!canSubmit" data-testid="reality-submit" @click="submit">
-        {{ busy ? "提交中…" : "提交现场情况" }}
+      <button
+        v-if="!reviewing"
+        class="primary"
+        :disabled="!canSubmit"
+        data-testid="reality-review-next"
+        @click="setReviewing(true)"
+      >
+        下一步：核对
+      </button>
+      <button v-else class="primary" :disabled="busy" data-testid="reality-submit" @click="submit">
+        {{ busy ? "提交中…" : "确认提交现场情况" }}
       </button>
     </template>
   </ContributionStepShell>
@@ -216,7 +860,6 @@ async function submit() {
 
 <style scoped>
 .cluster {
-  /* v0.2.7 §19：field group 组距 24px —— 不再「一项一巨大 gap」。 */
   margin: 0 0 var(--pa-space-5);
   padding: 0;
   border: none;
@@ -224,24 +867,104 @@ async function submit() {
   flex-direction: column;
   gap: var(--pa-space-2);
 }
+
+.cluster + .cluster {
+  padding-top: var(--pa-space-5);
+  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
 .cluster__title {
   font-size: var(--pa-font-size-base);
   font-weight: var(--pa-font-weight-600);
   color: var(--pa-color-text-primary);
-  margin-bottom: var(--pa-space-1);
+  margin-bottom: var(--pa-space-2);
 }
-.cluster label {
+.cluster label,
+.cluster__field-label {
   font-size: var(--pa-font-size-sm);
   color: var(--pa-color-text-secondary);
 }
+
+.evidence-file-picker {
+  min-height: var(--pa-size-control-lg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pa-space-3);
+  padding: var(--pa-space-2) var(--pa-space-3);
+  border: var(--pa-border-width) solid var(--pa-color-border-strong);
+  border-radius: var(--pa-radius-control);
+  background: var(--pa-color-surface);
+  color: var(--pa-color-accent);
+  cursor: pointer;
+}
+
+.evidence-file-picker:hover {
+  background: var(--pa-color-surface-interactive);
+}
+
+.visually-hidden-file:focus-visible + .evidence-file-picker {
+  outline: 2px solid var(--pa-color-border-focus);
+  outline-offset: 2px;
+  background: var(--pa-color-surface-interactive);
+}
+
+.evidence-file-picker--disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.evidence-file-picker__hint {
+  color: var(--pa-color-text-muted);
+  font-size: var(--pa-font-size-xs);
+}
+
+.visually-hidden-file {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+.source-note {
+  margin: 0;
+  font-size: var(--pa-font-size-sm);
+  line-height: var(--pa-line-height-20);
+}
 .cluster input,
-.cluster select {
+.cluster select,
+.cluster textarea {
   min-height: var(--pa-size-control-md);
-  border: var(--pa-border-width) solid var(--pa-color-border);
+  border: var(--pa-border-width) solid var(--pa-color-border-strong);
   border-radius: var(--pa-radius-control);
   padding: var(--pa-space-1) var(--pa-space-2);
   font-size: var(--pa-font-size-base);
   background: var(--pa-color-surface);
   color: var(--pa-color-text-primary);
+}
+
+.facility-more {
+  margin-top: var(--pa-space-3);
+  padding-top: var(--pa-space-3);
+  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.facility-more summary {
+  min-height: var(--pa-size-control-md);
+  display: flex;
+  align-items: center;
+  color: var(--pa-color-accent);
+  font-size: var(--pa-font-size-md);
+  cursor: pointer;
+}
+
+.facility-more__fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-2);
+  padding: var(--pa-space-2) 0;
 }
 </style>

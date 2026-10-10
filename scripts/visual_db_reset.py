@@ -115,7 +115,15 @@ def run(cmd: list[str], *, database_url: str) -> None:
     # GBK consoles can't decode the UTF-8 alembic/seed output on some Windows
     # locales; replace (not fail) so the reset is not torn down by a reader
     # thread crash after the database was already recreated.
-    proc = subprocess.run(cmd, cwd=API_DIR, env=env, capture_output=True, text=True, encoding="utf-8", errors="replace")
+    proc = subprocess.run(
+        cmd,
+        cwd=API_DIR,
+        env=env,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+    )
     if proc.returncode != 0:
         sys.stderr.write(proc.stdout)
         sys.stderr.write(proc.stderr)

@@ -6,6 +6,7 @@ Old endpoints unchanged (additive). Admin review actions are audited.
 
 from datetime import UTC, datetime
 from types import SimpleNamespace
+from typing import Literal
 
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel, Field
@@ -14,12 +15,15 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.core.audit import record_audit
 from app.core.audit_events import AuditEvent
+from app.core.config import get_settings
 from app.core.errors import ApiError, NotFound
+from app.core.ratelimit import check_rate_limit
 from app.core.security import get_current_user, require_role
 from app.db.session import get_db
 from app.models import (
     AccessRule,
     JurisdictionException,
+    MediaObject,
     Place,
     RuleException,
     Source,
@@ -28,12 +32,21 @@ from app.models import (
 )
 from app.models.enums import (
     AnimalScope,
+    Directness,
+    EvidenceStrength,
     HolderScope,
+    IssuerVerification,
     NormalizationType,
     NormativeEffect,
+    RuleEffect,
     RuleStatus,
+    SourceAvailability,
+    SourceType,
+    SpatialPrecision,
     UserRole,
 )
+from app.models.evidence import CollectorType, SourcePlatform
+from app.models.media import MediaPurpose
 from app.models.v05 import (
     AccessPath,
     Amenity,
@@ -68,6 +81,7 @@ from app.services.candidate_service import (
     publish_exception,
     transition,
 )
+from app.services.evidence_service import CollectedArtifact, create_bundle, record_artifact
 from app.services.publish_gate import LAYER_VALUES, MANDATORY_LEVEL_VALUES
 
 router = APIRouter(tags=["v05"])
@@ -75,6 +89,243 @@ admin = APIRouter(prefix="/admin", tags=["admin:v05"])
 
 
 # ------------------------------------------------------------------- candidates
+
+
+class ConsumerRuleLeadIn(BaseModel):
+    """Structured consumer rule lead. Creates a candidate, never a Rule."""
+
+    zone_id: str | None = None
+    animal_scope: AnimalScope | None = None
+    effect: RuleEffect | None = None
+    proposed_conditions: list[str] = Field(default_factory=list)
+    raw_text: str | None = Field(default=None, max_length=4000)
+    source_basis: (
+        Literal[
+            "onsite_signage",
+            "staff_statement",
+            "official_online",
+            "other",
+            "uncertain",
+        ]
+        | None
+    ) = None
+    media_id: str | None = None
+    current_rule_id: str | None = None
+    proximity_verified: bool = False
+    distance_bucket: str | None = Field(default=None, max_length=16)
+    accuracy_bucket: str | None = Field(default=None, max_length=16)
+
+
+@router.post("/places/{place_id}/rule-leads", status_code=201)
+def contribute_rule_lead(
+    place_id: str,
+    body: ConsumerRuleLeadIn,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Put a user rule lead into RuleCandidate review, never Observation/Rule."""
+
+    settings = get_settings()
+    check_rate_limit(
+        "consumer_rule_leads",
+        user.id,
+        settings.contribution_rate_max,
+        settings.contribution_rate_window_seconds,
+    )
+
+    place = db.get(Place, place_id)
+    if place is None:
+        raise NotFound("场所不存在")
+    if body.zone_id:
+        zone = db.get(Zone, body.zone_id)
+        if zone is None or zone.place_id != place_id:
+            raise NotFound("区域不属于该场所")
+    current: AccessRule | None = None
+    candidate_zone_id = body.zone_id
+    if body.current_rule_id:
+        current = db.get(AccessRule, body.current_rule_id)
+        if current is None:
+            raise NotFound("待更新规则不存在")
+        current_owner_place_id = current.place_id
+        if current.zone_id:
+            current_zone = db.get(Zone, current.zone_id)
+            current_owner_place_id = current_zone.place_id if current_zone else None
+        if current_owner_place_id != place_id:
+            raise NotFound("待更新规则不属于该场所")
+        if str(current.status) != "current":
+            raise ApiError(
+                "待更新规则已经不是现行版本，请刷新后重新选择",
+                code="supersession_target_not_current",
+                status_code=409,
+            )
+        # A changed-rule lead must preserve the current rule's spatial scope.
+        # Otherwise a consumer could accidentally supersede a place-wide rule
+        # with a zone-only candidate (or the reverse). A genuinely different
+        # scope should be submitted as a new lead and reviewed independently.
+        if body.zone_id and body.zone_id != current.zone_id:
+            raise ApiError(
+                "规则变化线索的区域必须与被修正规则一致；如适用范围不同，请作为新规则线索提交",
+                code="supersession_scope_mismatch",
+                status_code=422,
+            )
+        candidate_zone_id = current.zone_id
+
+    if body.effect is None and not body.media_id:
+        raise ApiError(
+            "规则线索需要结构化结论，或至少提供规则牌 / 公告证据",
+            code="rule_lead_missing_fact_or_evidence",
+            status_code=422,
+        )
+    if body.effect is not None and body.animal_scope is None:
+        raise ApiError(
+            "结构化规则线索需要明确适用动物；不确定时可只提交规则牌证据",
+            code="rule_lead_missing_animal_scope",
+            status_code=422,
+        )
+
+    media: MediaObject | None = None
+    if body.media_id:
+        media = db.get(MediaObject, body.media_id)
+        if (
+            media is None
+            or media.created_by_user_id != user.id
+            or media.owner_id != place_id
+            or media.purpose != MediaPurpose.SIGNAGE_EVIDENCE
+            or media.deleted_at is not None
+        ):
+            raise ApiError(
+                "规则证据不可用或不属于当前账号/场所", code="invalid_rule_evidence", status_code=403
+            )
+
+    now = datetime.now(UTC)
+    source_basis = body.source_basis or ("onsite_signage" if media else "uncertain")
+    source_basis_labels = {
+        "onsite_signage": "现场规则牌 / 公告",
+        "staff_statement": "工作人员口头说明",
+        "official_online": "官方公开信息（用户转述）",
+        "other": "其他规则线索",
+        "uncertain": "来源类型未确认",
+    }
+    # A user's statement about staff/official content is still an ordinary-user
+    # lead until the underlying source itself is verified. Never promote it to
+    # OperatorPolicy / GovernmentService from the submitter's description.
+    source_type = (
+        SourceType.ONSITE_SIGNAGE
+        if media is not None and source_basis == "onsite_signage"
+        else SourceType.ORDINARY_USER
+    )
+    directness = (
+        Directness.DIRECT
+        if source_type == SourceType.ONSITE_SIGNAGE
+        else Directness.SECONDARY
+        if source_basis in {"staff_statement", "official_online", "onsite_signage"}
+        else Directness.TERTIARY
+    )
+    source = Source(
+        source_type=source_type,
+        issuer=f"用户提交 · {source_basis_labels[source_basis]}",
+        issuer_verification=IssuerVerification.UNVERIFIED,
+        source_url=None,
+        collected_at=now,
+        # Upload/submit time is not the time the signage was observed.
+        # Only set observed_at when a real proximity check exists.
+        observed_at=now if body.proximity_verified else None,
+        published_at=None,
+        source_availability=SourceAvailability.AVAILABLE_OFFLINE,
+        directness=directness,
+        spatial_precision=(
+            SpatialPrecision.PRECISE if body.proximity_verified else SpatialPrecision.UNKNOWN
+        ),
+        notes=(
+            f"消费者规则线索；source_basis={source_basis}；人工复核前不得视为正式规则或运营方政策。"
+        ),
+    )
+    db.add(source)
+    db.flush()
+
+    # Every consumer RuleCandidate cites an attributable EvidenceBundle. A
+    # photo is original captured evidence; a text-only lead is a stored user
+    # statement. OCR/structured interpretation remains on the candidate as
+    # derived review material and never masquerades as the original artifact.
+    collected = CollectedArtifact(
+        source_platform=SourcePlatform.ONSITE if media else SourcePlatform.PLATFORM_UPLOAD,
+        artifact_type="signage_photo" if media else "user_statement",
+        collector_type=CollectorType.ONSITE_EVIDENCE if media else "ConsumerRuleLead",
+        media_id=media.id if media else None,
+        content_hash=media.sha256 if media else None,
+        publisher_type="unknown" if media else "ordinary_user",
+        captured_excerpt=None if media else body.raw_text,
+        display_allowed=False,
+        redistribution_allowed=False,
+    )
+    artifact = record_artifact(
+        db,
+        collected,
+        source_id=source.id,
+        evidence_strength=(
+            EvidenceStrength.PRIMARY_CAPTURED.value
+            if media
+            else EvidenceStrength.USER_SUBMITTED.value
+        ),
+        now=now,
+    )
+    bundle = create_bundle(
+        db,
+        artifact,
+        source_id=source.id,
+        place_match_evidence={
+            "place_id": place_id,
+            "zone_id": candidate_zone_id,
+            "proximity_verified": body.proximity_verified,
+            "distance_bucket": body.distance_bucket,
+            "accuracy_bucket": body.accuracy_bucket,
+        },
+        privacy_notes="消费者规则线索审核证据；默认不公开原始媒体。",
+        now=now,
+    )
+
+    structured = body.effect is not None and body.animal_scope is not None
+    candidate = create_from_extraction(
+        db,
+        source_id=source.id,
+        place_id=place_id,
+        zone_id=candidate_zone_id,
+        animal_scope=body.animal_scope.value if body.animal_scope else None,
+        action="enter" if structured else None,
+        effect=body.effect.value if body.effect else None,
+        proposed_conditions=[
+            {"condition_type": condition} for condition in body.proposed_conditions
+        ],
+        extraction_method="manual" if structured else "user_upload",
+        raw_text=body.raw_text,
+        media_id=body.media_id,
+        evidence_bundle_id=bundle.id,
+        supersedes_rule_id=body.current_rule_id,
+    )
+    if candidate.review_status == "MATCH_PENDING":
+        transition(candidate, "REVIEW_PENDING")
+    record_audit(
+        db,
+        request=None,
+        actor_user_id=user.id,
+        actor_role=str(user.role),
+        action=AuditEvent.CANDIDATE_CREATE.value,
+        target_type="rule_candidate",
+        target_id=candidate.id,
+        after_state={
+            "status": candidate.review_status,
+            "place_id": place_id,
+            "zone_id": candidate_zone_id,
+            "consumer_rule_lead": True,
+            "current_rule_id": body.current_rule_id,
+            "has_media": bool(media),
+            "structured": structured,
+            "source_basis": source_basis,
+        },
+    )
+    db.commit()
+    db.refresh(candidate)
+    return {"id": candidate.id, "review_status": candidate.review_status}
 
 
 class CandidateIn(BaseModel):
@@ -93,6 +344,7 @@ class CandidateIn(BaseModel):
     raw_text: str | None = None
     media_id: str | None = None
     evidence_bundle_id: str | None = None
+    supersedes_rule_id: str | None = None
     # --- ADR-025 / ADR-028: source-faithful scope ---------------------------
     source_scope_exact: str | None = Field(default=None, max_length=64)
     subject_scope_normalized: str | None = Field(default=None, max_length=32)
@@ -242,6 +494,7 @@ def _candidate_dict(c) -> dict:
         "reviewer_id": c.reviewer_id,
         "review_note": c.review_note,
         "published_rule_id": c.published_rule_id,
+        "supersedes_rule_id": c.supersedes_rule_id,
         "media_id": c.media_id,
         "evidence_bundle_id": c.evidence_bundle_id,
         # --- ADR-025 / ADR-028 scope layer ---
@@ -319,6 +572,7 @@ def admin_create_candidate(
         raw_text=body.raw_text,
         media_id=body.media_id,
         evidence_bundle_id=body.evidence_bundle_id,
+        supersedes_rule_id=body.supersedes_rule_id,
         source_scope_exact=body.source_scope_exact,
         subject_scope_normalized=body.subject_scope_normalized,
         normalization_type=body.normalization_type,
@@ -344,6 +598,7 @@ def admin_create_candidate(
             "source_scope_exact": cand.source_scope_exact,
             "subject_scope_normalized": cand.subject_scope_normalized,
             "normalization_type": cand.normalization_type,
+            "supersedes_rule_id": cand.supersedes_rule_id,
         },
     )
     db.commit()
@@ -552,6 +807,40 @@ class PublishIn(BaseModel):
     """
 
     exception_of_rule_id: str | None = Field(default=None, max_length=36)
+
+
+def admin_candidate_preflight(
+    candidate_id: str,
+    user: User = Depends(require_role(UserRole.MODERATOR)),
+    db: Session = Depends(get_db),
+):
+    """Read-only publish readiness for one candidate.
+
+    Reviewers should see every current gate failure before the irreversible
+    publish action. This endpoint calls the exact same evaluator as publish;
+    it never implements a second, weaker checklist.
+    """
+    from app.services.publish_gate import evaluate_for_publish
+
+    cand = db.get(RuleCandidate, candidate_id)
+    if cand is None:
+        raise NotFound("候选不存在")
+    violations = evaluate_for_publish(db, cand)
+    return {
+        "candidate_id": cand.id,
+        "review_status": cand.review_status,
+        "publishable": not violations and cand.review_status == "APPROVED",
+        "violations": [
+            {"code": violation.code, "message": violation.message} for violation in violations
+        ],
+    }
+
+
+admin.add_api_route(
+    "/candidates/{candidate_id}/preflight",
+    admin_candidate_preflight,
+    methods=["GET"],
+)
 
 
 @admin.post("/candidates/{candidate_id}/publish")
@@ -1954,9 +2243,16 @@ def _load_rule_facts(db: Session, rule_ids: list[str]) -> dict:
     if not rule_ids:
         return {}
 
+    access_rule_ids = [rule_id for rule_id in rule_ids if not rule_id.startswith("ev-")]
+    event_ids = [rule_id.removeprefix("ev-") for rule_id in rule_ids if rule_id.startswith("ev-")]
+
     rules = {
         str(r.id): r
-        for r in db.scalars(select(AccessRule).where(AccessRule.id.in_(rule_ids))).all()
+        for r in db.scalars(select(AccessRule).where(AccessRule.id.in_(access_rule_ids))).all()
+    }
+    event_policies = {
+        f"ev-{event.id}": event
+        for event in db.scalars(select(EventPolicy).where(EventPolicy.id.in_(event_ids))).all()
     }
 
     #: This rule's own publication chain. Joined in one statement so a rule with
@@ -1988,7 +2284,10 @@ def _load_rule_facts(db: Session, rule_ids: list[str]) -> dict:
                 "evidence_strength": row[6],
             }
 
-    source_ids = [str(r.source_id) for r in rules.values() if r.source_id]
+    source_ids = [
+        *[str(rule.source_id) for rule in rules.values() if rule.source_id],
+        *[str(event.source_id) for event in event_policies.values() if event.source_id],
+    ]
     sources = (
         {str(s.id): s for s in db.scalars(select(Source).where(Source.id.in_(source_ids))).all()}
         if source_ids
@@ -2029,6 +2328,23 @@ def _load_rule_facts(db: Session, rule_ids: list[str]) -> dict:
             subject_scope_normalized=r.subject_scope_normalized,
             normalization_type=r.normalization_type,
         )
+    for rule_id, event in event_policies.items():
+        src = sources.get(str(event.source_id)) if event.source_id else None
+        out[rule_id] = RuleFacts(
+            rule_id=rule_id,
+            rule_layer="TEMPORARY_POLICY",
+            mandatory_level=None,
+            source_id=str(event.source_id) if event.source_id else None,
+            source_type=getattr(src, "source_type", None),
+            issuer=getattr(src, "issuer", None),
+            directness=getattr(src, "directness", None),
+            issuer_verification=getattr(src, "issuer_verification", None),
+            evidence_strength=None,
+            source_url=getattr(src, "source_url", None),
+            effective_from=event.effective_from,
+            effective_to=event.effective_to,
+        )
+
     return out
 
 
@@ -2061,7 +2377,11 @@ def place_extras(place_id: str, db: Session = Depends(get_db)):
     amenities = db.scalars(_in_place(Amenity)).all()
     entrances = db.scalars(_in_place(Entrance)).all()
     paths = db.scalars(_in_place(AccessPath, zoned=False)).all()
-    events = db.scalars(_in_place(EventPolicy)).all()
+    # Consumer extras must mirror the evaluator's publication set. Archived
+    # or withdrawn event policies belong to history, not the active Place
+    # surface; temporal windows are still returned so the client can label
+    # active/upcoming/ended state without inventing a second resolver.
+    events = db.scalars(_in_place(EventPolicy).where(EventPolicy.status == "current")).all()
 
     return {
         "coexistence": [
@@ -2106,6 +2426,7 @@ def place_extras(place_id: str, db: Session = Depends(get_db)):
                 "to_node": p.to_node,
                 "steps": p.steps,
                 "animal_scope": p.animal_scope,
+                "conditions": p.conditions,
                 "time_window": p.time_window,
                 "source_id": p.source_id,
             }

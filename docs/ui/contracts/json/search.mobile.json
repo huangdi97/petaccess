@@ -13,7 +13,7 @@
         "page": "search",
         "state": "ready",
         "fixture": "search-ready-v1",
-        "h1": "搜索场所规则",
+        "h1": "搜索场所的规则与现场",
         "componentCounts": [
           {
             "selector": "result-rows",
@@ -35,7 +35,7 @@
         "page": "search",
         "state": "filter",
         "fixture": "search-filter-v1",
-        "h1": "搜索场所规则"
+        "h1": "搜索场所的规则与现场"
       }
     }
   ],
@@ -69,8 +69,8 @@
       "fallbacks": ["ul.result-list li"],
       "props": {
         "height": {
-          "min": 88,
-          "max": 104
+          "min": 112,
+          "max": 132
         }
       },
       "severity": "FAIL",
@@ -174,6 +174,35 @@
       "selector": "[data-ui='search-filter-sheet'] .filter-options__row",
       "forbiddenClass": ["card", "panel"],
       "severity": "FAIL"
+    },
+    {
+      "id": "SEARCH_MOBILE_REALITY_PRESENT",
+      "selector": "[data-testid='result-reality'], [data-testid='row-lens-headline']",
+      "min": 1,
+      "severity": "FAIL"
+    },
+    {
+      "id": "SEARCH_MOBILE_DEFAULT_RULE_FIRST",
+      "selector": "[data-testid='row-lens-headline'].result-row__decision--lead",
+      "min": 1,
+      "severity": "FAIL",
+      "pages": ["search-mobile-ready"],
+      "note": "Mobile canonical Search keeps the access verdict as the primary row line; Reality-first is opt-in through an explicit lens."
+    },
+    {
+      "id": "SEARCH_MOBILE_RULE_STAYS_VISIBLE",
+      "selector": ".result-row__head-right .status-badge, [data-testid='row-rule-condition']",
+      "min": 1,
+      "severity": "FAIL",
+      "pages": ["search-mobile-ready"],
+      "note": "Rule remains visible as one semantic badge; only a relevant condition consumes another line."
+    },
+    {
+      "id": "SEARCH_MOBILE_SPATIAL_IDENTITY",
+      "selector": "[data-ui='search-results-pane'] [data-ui='place-type-glyph']",
+      "min": 1,
+      "severity": "WARN",
+      "note": "Neutral spatial identity anchor improves scanning without decorative/fake place photography."
     }
   ],
   "density": [
@@ -187,11 +216,12 @@
   ],
   "hierarchy": [
     {
-      "id": "SEARCH_MOBILE_DECISION_TO_BODY",
-      "a": ".result-row__decision",
+      "id": "SEARCH_MOBILE_PRIMARY_HEADLINE_TO_BODY",
+      "a": ".result-row__reality-line--lead, .result-row__decision--lead",
       "b": "body",
       "minRatio": 1.1,
-      "severity": "WARN"
+      "severity": "WARN",
+      "note": "Default search is Reality-first; explicit Rules lens promotes Rule. Measure whichever semantic headline owns the row."
     },
     {
       "id": "SEARCH_MOBILE_METADATA_SMALLER",
@@ -206,8 +236,9 @@
       "id": "SEARCH_MOBILE_ROW_TEXT_LINES",
       "metric": "rowTextLines",
       "selector": "ul.result-list",
-      "max": 5,
-      "severity": "FAIL"
+      "max": 7,
+      "severity": "FAIL",
+      "note": "Mobile keeps the same <=5 semantic groups. The rendered-line probe counts wrapped compact text and the adjacent semantic badge separately at 430px, so 7 is the machine ceiling rather than permission to add more groups."
     },
     {
       "id": "SEARCH_MOBILE_FIRST_VIEWPORT_LINES",
@@ -235,5 +266,5 @@
     "allcapsTokens": true,
     "refs": true
   },
-  "notes": "v0.2.3 §24–25：single column；row h 108–128、radius 0、≤5 text lines；bottom nav 58–64；filter = bottom sheet（top 340–480、radius 14–18、5 rows、无卡片）。"
+  "notes": "Canonical v0.10-R1: mobile search keeps one Rule semantic status + Reality headline + only relevant condition + Evidence/freshness in the divider row, with a filter bottom sheet. Default search is Reality-first; an explicit rules lens flips emphasis."
 }

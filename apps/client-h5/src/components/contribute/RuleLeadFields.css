@@ -1,0 +1,113 @@
+.rule-intents,
+.condition-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-2);
+}
+
+.rule-intent,
+.condition-option {
+  display: flex;
+  align-items: center;
+  gap: var(--pa-space-3);
+  min-height: 56px;
+  padding: var(--pa-space-2) var(--pa-space-3);
+  border: var(--pa-border-width) solid var(--pa-color-border);
+  border-radius: var(--pa-radius-md);
+  background: var(--pa-color-surface);
+  color: var(--pa-color-text-primary);
+  text-align: left;
+  cursor: pointer;
+}
+
+.rule-intent--active,
+.condition-option--active {
+  border-color: var(--pa-color-accent);
+  background: var(--pa-color-accent-weak);
+}
+
+.rule-intent__mark,
+.condition-option__mark {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  border: 2px solid var(--pa-color-border-strong);
+}
+
+.rule-intent__mark {
+  border-radius: var(--pa-radius-pill);
+}
+
+.condition-option__mark {
+  border-radius: 5px;
+}
+
+.rule-intent--active .rule-intent__mark {
+  border-color: var(--pa-color-accent);
+  background: radial-gradient(circle, var(--pa-color-accent) 0 5px, transparent 6px);
+}
+
+.condition-option--active .condition-option__mark {
+  border-color: var(--pa-color-accent);
+  background: var(--pa-color-accent);
+}
+
+.condition-option--active .condition-option__mark::after {
+  content: "✓";
+  display: block;
+  margin-top: -2px;
+  color: var(--pa-color-surface);
+  font-size: 13px;
+  line-height: 1;
+  text-align: center;
+}
+
+.rule-intent__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rule-intent__label,
+.condition-option__label {
+  font-weight: var(--pa-font-weight-600);
+}
+
+.rule-intent__hint {
+  font-size: var(--pa-font-size-sm);
+}
+
+.rule-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-2);
+  margin-top: var(--pa-space-4);
+  padding-top: var(--pa-space-4);
+  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.rule-fields h3 {
+  margin: 0 0 var(--pa-space-1);
+  font-size: var(--pa-font-size-base);
+  font-weight: var(--pa-font-weight-650);
+}
+
+.rule-fields label {
+  font-size: var(--pa-font-size-sm);
+  color: var(--pa-color-text-secondary);
+}
+
+.rule-fields__source-note {
+  margin: calc(-1 * var(--pa-space-1)) 0 var(--pa-space-1);
+  font-size: var(--pa-font-size-sm);
+  line-height: var(--pa-line-height-20);
+}
+
+.rule-intent:hover,
+.rule-intent:focus-visible,
+.condition-option:hover,
+.condition-option:focus-visible {
+  border-color: var(--pa-color-accent);
+  outline: 2px solid var(--pa-color-border-focus);
+  outline-offset: -1px;
+}

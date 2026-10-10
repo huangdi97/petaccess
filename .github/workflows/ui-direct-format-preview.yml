@@ -1,0 +1,53 @@
+name: UI Direct Format Preview
+
+on:
+  push:
+    branches:
+      - feat/ui-direct-craft-v8
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.4.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Format targets
+        run: |
+          pnpm exec prettier --write \
+            apps/client-h5/src/views/HomeView.vue \
+            apps/client-h5/src/components/domain/DecisionInspector.vue \
+            apps/client-h5/src/components/domain/PlaceResultRow.vue \
+            apps/client-h5/src/components/map/MapSelectedSheet.vue \
+            apps/client-h5/src/components/place/PlaceRulesPane.vue \
+            apps/client-h5/src/components/place/PlaceOverviewPane.vue \
+            apps/client-h5/src/composables/useHomeLauncher.ts \
+            apps/client-h5/src/composables/useMapWorkspace.ts \
+            apps/client-h5/src/consumer/homeDigest.ts \
+            apps/client-h5/src/views/PlaceView.vue \
+            apps/client-h5/src/views/RealityTraceView.vue \
+            tests/e2e/place-route-race.spec.ts \
+            tests/e2e/public-private-session-boundary.spec.ts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ui-direct-formatted-targets
+          path: |
+            apps/client-h5/src/views/HomeView.vue
+            apps/client-h5/src/components/domain/DecisionInspector.vue
+            apps/client-h5/src/components/domain/PlaceResultRow.vue
+            apps/client-h5/src/components/map/MapSelectedSheet.vue
+            apps/client-h5/src/components/place/PlaceRulesPane.vue
+            apps/client-h5/src/components/place/PlaceOverviewPane.vue
+            apps/client-h5/src/composables/useHomeLauncher.ts
+            apps/client-h5/src/composables/useMapWorkspace.ts
+            apps/client-h5/src/consumer/homeDigest.ts
+            apps/client-h5/src/views/PlaceView.vue
+            apps/client-h5/src/views/RealityTraceView.vue
+            tests/e2e/place-route-race.spec.ts
+            tests/e2e/public-private-session-boundary.spec.ts

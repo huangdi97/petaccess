@@ -1,0 +1,45 @@
+name: UI Direct Validation
+
+on:
+  push:
+    branches:
+      - feat/ui-direct-craft-v8
+  pull_request:
+    branches:
+      - feat/ui-product-craft-v7-human-review-final
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    name: UI lint, typecheck and build
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'push' && github.ref_name || github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.4.1
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+      - name: Install frontend deps
+        run: pnpm install --frozen-lockfile
+      - name: ESLint
+        run: pnpm lint:fe
+      - name: Prettier check
+        run: pnpm format:check:fe
+      - name: client-h5 typecheck + build
+        run: pnpm --filter @petaccess/client-h5 build
+      - name: admin typecheck + build
+        run: pnpm --filter @petaccess/admin build

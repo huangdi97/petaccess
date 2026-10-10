@@ -8,13 +8,12 @@ final runtime-perf report. Nothing here can lie: each entry records the exact
 from __future__ import annotations
 
 import json
-import random
 import time
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
 
-from .adb import DEFAULT_SERIAL, check_serial, shell
+from .adb import check_serial, shell
 from .appops import PACKAGE, force_stop, launch, wait_home_ready
 
 PERF_DIR = Path(r"E:\AI\宠物管理\artifacts\android_acceptance\performance")
@@ -80,7 +79,16 @@ def capture_meminfo(
 def cpu_sample(serial: str, seconds: int = 20, label: str = "idle_home") -> dict:
     """Sample ``top`` over ``seconds`` and persist the transcript."""
     out = shell(
-        serial, "top", "-b", "-n", str(max(2, seconds)), "-d", "1", "-o", "PID,CPU,RES,NAME", timeout=seconds + 20
+        serial,
+        "top",
+        "-b",
+        "-n",
+        str(max(2, seconds)),
+        "-d",
+        "1",
+        "-o",
+        "PID,CPU,RES,NAME",
+        timeout=seconds + 20,
     )
     log = PERF_DIR / f"cpu_{label}.txt"
     log.write_text(out, encoding="utf-8")
@@ -145,7 +153,9 @@ def route_stress(
     return rows
 
 
-def bottom_nav_loop(serial: str, cycles: int = 100, coords: tuple[tuple[int, int], ...] = ()) -> int:
+def bottom_nav_loop(
+    serial: str, cycles: int = 100, coords: tuple[tuple[int, int], ...] = ()
+) -> int:
     """Tap bottom navigation across mobile tabs (coordinates captured at 360dp)."""
     check_serial(serial)
     taps = coords or ((180, 780), (540, 780), (900, 780), (1260, 780))  # 4 tabs at 1080p dpi440

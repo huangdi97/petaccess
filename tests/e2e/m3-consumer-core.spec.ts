@@ -15,6 +15,8 @@
  */
 import { expect, test } from "@playwright/test";
 
+const MALL_ID = "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e";
+
 test("search rows show reality summary + evidence metadata", async ({ page }) => {
   await page.goto("/#/search");
   await page.getByTestId("search-input").fill("咖啡");
@@ -126,4 +128,21 @@ test("runtime console gate: no unexpected console.error / pageerror on Home+Sear
   await page.getByTestId("search-btn").click();
   await expect(page.locator("[data-testid^='result-']").first()).toBeVisible();
   expect(errors, `unexpected console errors: ${errors.join(" | ")}`).toEqual([]);
+});
+
+test("evidence rail exposes governance state instead of a generic trust badge", async ({
+  page,
+}) => {
+  await page.goto(`/#/place/${MALL_ID}/evidence`);
+  await expect(page.getByTestId("evidence-workspace")).toBeVisible();
+  const governance = page.locator('[data-ui="evidence-governance"]');
+  await expect(governance).toBeVisible();
+  await expect(governance).toContainText("人工接受");
+  await expect(governance).toContainText("来源方式");
+  await expect(governance).toContainText("证据形态");
+  await expect(governance).toContainText("原始材料 / 许可");
+  await expect(governance).toContainText("独立确认");
+  await expect(governance).toContainText("一手规则来源");
+  await expect(governance).toContainText("争议 / 纠错");
+  await expect(governance).toContainText("一组材料不自动等于多份独立证据");
 });

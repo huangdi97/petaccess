@@ -8,7 +8,7 @@
   "pages": [
     {
       "id": "evidence-empty",
-      "route": "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e/evidence",
+      "route": "/#/place/8412b521-5e1c-505d-9dec-568acb860c76/evidence",
       "expect": {
         "page": "evidence",
         "state": "empty",
@@ -18,7 +18,7 @@
     },
     {
       "id": "evidence-records",
-      "route": "/#/place/8412b521-5e1c-505d-9dec-568acb860c76/evidence",
+      "route": "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e/evidence",
       "expect": {
         "page": "evidence",
         "state": "ready",
@@ -129,7 +129,7 @@
     {
       "id": "EVIDENCE_PROVENANCE_STEP_LABELS",
       "selector": "body",
-      "mustContainTexts": ["原始证据", "地点匹配", "时间确认", "来源确认", "人工核验"],
+      "mustContainTexts": ["原始材料", "地点匹配", "时间确认", "来源确认", "人工核验"],
       "severity": "FAIL"
     },
     {
@@ -153,11 +153,10 @@
     },
     {
       "id": "EVIDENCE_TIMES_SEPARATED",
-      "selector": "[data-ui='evidence-times']",
-      "surfaceRowCount": {
-        "min": 3
-      },
-      "severity": "FAIL"
+      "selector": "[data-ui='evidence-times'] .evidence-timefact",
+      "severity": "FAIL",
+      "min": 3,
+      "max": 3
     },
     {
       "id": "EVIDENCE_RECORD_IDENTITY_VISIBLE",
@@ -191,5 +190,5 @@
     "allcapsTokens": true,
     "refs": true
   },
-  "notes": "v0.2.3 §39: content max width 820, provenance marker col 24px + content remaining, marker x identical, continuous rail, step gap 28-36, exactly 5 steps (原始证据/地点匹配/时间确认/来源确认/人工核验), no UUIDs. ready = 星河咖啡 (seeded observations), empty = 云栖中心."
+  "notes": "v0.2.3 §39 + v0.10-R1: content max width 820, provenance marker col 24px + content remaining, marker x identical, continuous rail, step gap 28-36, exactly 5 steps (原始材料/地点匹配/时间确认/来源确认/人工核验), no UUIDs. ready = 云栖中心（published v0.9 Reality + Rule evidence）；empty = 星河咖啡（legacy observation 不再当作 Consumer evidence truth）。"
 }

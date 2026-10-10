@@ -65,6 +65,7 @@ function isActive(to: string): boolean {
 }
 
 .mobile-tabbar__item {
+  position: relative;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -79,11 +80,34 @@ function isActive(to: string): boolean {
 
 .mobile-tabbar__item--active {
   color: var(--pa-color-accent);
-  font-weight: var(--pa-font-weight-medium);
+  font-weight: var(--pa-font-weight-600);
+}
+
+.mobile-tabbar__item--active::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 28px;
+  height: 2px;
+  border-radius: var(--pa-radius-pill);
+  background: var(--pa-color-accent);
+  transform: translateX(-50%);
 }
 
 .mobile-tabbar__item:focus-visible {
   outline: 2px solid var(--pa-color-border-focus);
   outline-offset: -2px;
+}
+
+.mobile-tabbar__icon,
+.mobile-tabbar__label {
+  transition:
+    color var(--pa-motion-fast) var(--pa-motion-ease),
+    transform var(--pa-motion-fast) var(--pa-motion-ease);
+}
+
+.mobile-tabbar__item--active .mobile-tabbar__icon {
+  transform: translateY(-1px);
 }
 </style>

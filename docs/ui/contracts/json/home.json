@@ -92,6 +92,33 @@
       "selector": "[data-ui='home-lens'], .home-lens",
       "containsArrows": true,
       "severity": "WARN"
+    },
+    {
+      "id": "HOME_RECOMMEND_PRESENT",
+      "selector": "[data-ui='home-recommend']",
+      "min": 1,
+      "severity": "FAIL"
+    },
+    {
+      "id": "HOME_DIVERGENCE_NOT_CARD_WALL",
+      "selector": "[data-ui='home-divergence'] .home-divergence__row",
+      "forbiddenClass": ["card", "panel"],
+      "severity": "FAIL"
+    },
+    {
+      "id": "HOME_FOUR_TASK_LENSES",
+      "selector": "[data-ui='home-lens'] button",
+      "min": 4,
+      "max": 4,
+      "severity": "FAIL",
+      "mustContainTexts": ["现场是否有动物出现", "室内空间情况", "餐饮区域情况", "完整规则"]
+    },
+    {
+      "id": "HOME_NEARBY_SPATIAL_IDENTITY",
+      "selector": "[data-ui='home-nearby'] [data-ui='place-type-glyph']",
+      "min": 1,
+      "severity": "WARN",
+      "note": "Nearby rows use neutral place-type identity anchors rather than decorative/fake photos."
     }
   ],
   "density": [
@@ -110,5 +137,5 @@
     "allcapsTokens": true,
     "refs": true
   },
-  "notes": "Home is a task launcher, not a dashboard. Order: Location -> Query -> Search -> Recent -> Nearby -> Lens."
+  "notes": "Home canonical order: Location -> Query -> Search -> four task lenses -> attention-aware/neutral nearby digest -> Rule/Reality overview -> divergence -> recent. With a saved attention choice the heading is “按你的关注先看”; neutral mode is “附近近期有依据”. Preference only changes ordering/emphasis, never venue scoring."
 }

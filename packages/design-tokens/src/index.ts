@@ -72,9 +72,9 @@ export const STATUS_SEMANTICS: Readonly<Record<StatusKey, StatusSemantics>> = {
   },
   UNKNOWN: {
     key: "UNKNOWN",
-    label: "尚未核验",
-    icon: "?",
-    ariaLabel: "尚未核验：在已核验来源中暂未找到明确规则，不代表允许",
+    label: "信息不足",
+    icon: "○",
+    ariaLabel: "信息不足：暂未找到足够可靠依据，不代表允许或禁止",
     colorVar: "--pa-color-status-unknown",
     bgVar: "--pa-color-status-unknown-bg",
   },
@@ -256,8 +256,8 @@ export const PAGE_STATES: Readonly<Record<PageStateKey, PageStateSemantics>> = {
 
 /** Neutral wording the product must use (UI_UX_IMPLEMENTATION_SPEC §8). */
 export const REQUIRED_COPY = {
-  unknownLong: "截至今日，在已核验来源中暂未找到明确规则",
-  unknownShort: "尚未核验",
+  unknownLong: "目前没有足够可靠信息，无法确认是否允许进入",
+  unknownShort: "信息不足",
   observationDisclaimer: "现场记录 ≠ 场所正式政策",
   noRankingDisclaimer: "本产品不提供综合评分或场所排名",
 } as const;

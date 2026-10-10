@@ -597,11 +597,24 @@ export function countFirstViewportTextLines(root: Element): number {
     const el = node.parentElement;
     if (!el) continue;
     const r = el.getBoundingClientRect();
-    if (r.top < 0 || r.top > vp) continue;
+    const cs = getComputedStyle(el);
+    // Budget is visual, not DOM-source density. Text hidden by responsive CSS,
+    // clipping/visibility, or a zero-sized ancestor must not consume a rendered
+    // first-viewport line. Require an actual intersection with the viewport.
+    if (
+      cs.display === "none" ||
+      cs.visibility === "hidden" ||
+      Number(cs.opacity) === 0 ||
+      r.width <= 0 ||
+      r.height <= 0 ||
+      r.bottom <= 0 ||
+      r.top >= vp
+    ) {
+      continue;
+    }
     const key = t.slice(0, 24);
     if (seen.has(key)) continue;
     seen.add(key);
-    const cs = getComputedStyle(el);
     const lh = pxValue(cs);
     lines += 1;
     if (lh) lines += Math.max(0, Math.floor((r.height - 4) / lh) - 1);

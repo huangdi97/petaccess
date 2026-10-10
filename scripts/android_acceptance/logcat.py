@@ -48,7 +48,10 @@ PATTERNS: dict[str, str] = {
     "tauri": r"Tauri|wry|tao",
     "js": r"Uncaught|TypeError|ReferenceError|SyntaxError|unhandledrejection|Vue warn",
     "csp": r"Content Security Policy|Refused to (load|connect|execute)",
-    "network": r"cleartext|CLEARTEXT|NetworkSecurity|ECONNREFUSED|ERR_|net::ERR|TimeoutError|failed to connect",
+    "network": (
+        r"cleartext|CLEARTEXT|NetworkSecurity|ECONNREFUSED|ERR_|"
+        r"net::ERR|TimeoutError|failed to connect"
+    ),
 }
 
 

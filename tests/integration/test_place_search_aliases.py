@@ -23,6 +23,7 @@ import uuid
 
 import pytest
 from fastapi.testclient import TestClient
+from geoalchemy2 import WKTElement
 from sqlalchemy import delete, select
 
 from app.db.session import get_session_factory
@@ -48,6 +49,7 @@ def branches():
         place_type="cafe",
         canonical_address=f"{TAG}主街 1 号",
         alias_names=[f"{TAG}咖啡", f"{TAG}老街旧址"],
+        location=WKTElement("POINT(121.472 31.231)", srid=4326),
     )
     sibling = Place(
         id=str(uuid.uuid4()),
@@ -55,6 +57,7 @@ def branches():
         place_type="cafe",
         canonical_address=f"{TAG}副街 2 号",
         alias_names=[f"{TAG}咖啡"],
+        location=WKTElement("POINT(121.478 31.235)", srid=4326),
     )
     session.add_all([flagship, sibling])
     session.flush()
@@ -112,6 +115,61 @@ def test_same_brand_returns_both_branches_labeled(client, branches):
     assert items[sibling]["parent_place_name"] == f"{TAG}·旗舰店"
     # The flagship is the parent, so it must not claim to belong to itself.
     assert items[flagship]["parent_place_name"] is None
+
+
+def test_address_hit_matches_consumer_search_promise(client, branches):
+    """The Search field promises address lookup; the API must actually honor it."""
+    flagship, _ = branches
+    r = client.get("/api/v1/places", params={"q": f"{TAG}主街 1 号"})
+    assert r.status_code == 200, r.text
+    assert flagship in {item["id"] for item in r.json()["items"]}
+
+
+def test_parent_place_hit_returns_child_places(client, branches):
+    """Container/mall/district wording must find children, not only the parent row."""
+    flagship, sibling = branches
+    r = client.get("/api/v1/places", params={"q": f"{TAG}·旗舰店"})
+    assert r.status_code == 200, r.text
+    ids = {item["id"] for item in r.json()["items"]}
+    assert flagship in ids
+    assert sibling in ids, "parent-place search did not surface its child place"
+
+
+def test_results_expose_representative_coordinates(client, branches):
+    """Consumer map rows use the governed PostGIS point, never UUID-derived positions."""
+    flagship, sibling = branches
+    r = client.get("/api/v1/places", params={"q": f"{TAG}咖啡"})
+    assert r.status_code == 200, r.text
+    items = {i["id"]: i for i in r.json()["items"]}
+    assert items[flagship]["latitude"] == pytest.approx(31.231)
+    assert items[flagship]["longitude"] == pytest.approx(121.472)
+    assert items[sibling]["latitude"] == pytest.approx(31.235)
+    assert items[sibling]["longitude"] == pytest.approx(121.478)
+
+
+def test_exact_public_summary_resolves_sibling_without_name_search(client, branches):
+    """A Place-to-Map link must resolve its UUID regardless of fuzzy ordering."""
+    flagship, sibling = branches
+    for place_id, name, lng in [
+        (flagship, "旗舰店", 121.472),
+        (sibling, "分店", 121.478),
+    ]:
+        r = client.get(f"/api/v1/places/{place_id}/summary")
+        assert r.status_code == 200, r.text
+        place = r.json()
+        assert place["id"] == place_id
+        assert place["canonical_name"].endswith(name)
+        assert place["longitude"] == pytest.approx(lng)
+        assert place["latitude"] is not None
+        assert "rule_count" in place
+        assert "last_verified_at" in place
+
+
+def test_exact_public_summary_rejects_unknown_place(client):
+    missing = str(uuid.uuid4())
+    r = client.get(f"/api/v1/places/{missing}/summary")
+    assert r.status_code == 404
+    assert "latitude" not in r.text
 
 
 def test_results_carry_freshness_and_rule_material(client, branches):

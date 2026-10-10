@@ -13,16 +13,18 @@ import { computed } from "vue";
 import {
   placeTypeLabel,
   type AccessAnswer,
+  type CoexistenceSnapshot,
   type PlaceSummary,
   type RealityAnswer,
 } from "@petaccess/client-core";
+import { STATUS_SEMANTICS } from "@petaccess/design-tokens";
 import StatusBadge from "../StatusBadge.vue";
-import PaDivider from "../ui/PaDivider.vue";
-import { answerConditions, answerScopeLabel, answerStatusKey } from "../../answer";
+import PlaceTypeGlyph from "./PlaceTypeGlyph.vue";
+import { answerConditions, answerPrimarySummary, answerStatusKey } from "../../answer";
 import {
-  evidenceLineFor,
+  coexistenceEvidenceLine,
+  coexistenceRealityLine,
   lensProjection,
-  realityLineFor,
   type ConsumerLens,
 } from "../../consumer/rowView";
 
@@ -32,6 +34,7 @@ const props = withDefaults(
     answer?: AccessAnswer | null;
     answerError?: boolean;
     reality?: RealityAnswer | null;
+    snapshot?: CoexistenceSnapshot | null;
     realityError?: boolean;
     /** 非空时渲染为关键 divergence（仅相关时出现）。 */
     divergence?: string;
@@ -39,56 +42,75 @@ const props = withDefaults(
     conditionsLabel: Record<string, string>;
     /** Consumer lens — changes presentation only, never the facts (M3.1 §8.5). */
     lens?: ConsumerLens;
+    /** Home's featured row can provide a larger scene/type anchor externally. */
+    showIdentityGlyph?: boolean;
   }>(),
   {
     answer: null,
     answerError: false,
     reality: null,
+    snapshot: null,
     realityError: false,
     divergence: "",
     lens: "",
+    showIdentityGlyph: true,
   },
 );
 
 const status = computed(() => answerStatusKey(props.answer));
-const scope = computed(() => answerScopeLabel(props.answer, props.speciesLabel));
+const statusLabel = computed(() => STATUS_SEMANTICS[status.value].label);
 const conditions = computed(() => answerConditions(props.answer, props.conditionsLabel));
-const realityLine = computed(() => realityLineFor(props.reality));
-const evidenceLine = computed(() => evidenceLineFor(props.reality));
-const projection = computed(() => lensProjection(props.lens, props.answer, props.reality));
+/** Keep the badge compact while giving the row one readable Rule sentence.
+ * Do not duplicate the badge label; unknown/conflict get an explanatory line
+ * instead of invented permission. */
+const decisionLine = computed(() => {
+  const summary = props.answer ? answerPrimarySummary(props.answer) : "";
+  if (summary && summary !== statusLabel.value) return summary;
+  if (status.value === "UNKNOWN") return "尚缺足够规则依据";
+  if (status.value === "CONFLICT") return "规则来源尚未形成一致结论";
+  return "";
+});
+const realityLine = computed(() => coexistenceRealityLine(props.snapshot, props.reality));
+const evidenceLine = computed(() => coexistenceEvidenceLine(props.snapshot, props.reality));
+const projection = computed(() =>
+  lensProjection(props.lens, props.answer, props.reality, props.snapshot),
+);
 </script>
 
 <template>
   <div class="place-result-row">
     <div class="place-result-row__head">
-      <div class="place-result-row__identity">
-        <strong class="place-result-row__name">{{ place.canonical_name }}</strong>
-        <span v-if="place.parent_place_name" class="place-result-row__meta"
-          >所属 {{ place.parent_place_name }}</span
-        >
-        <span class="place-result-row__meta"
-          >{{ placeTypeLabel(place.place_type) }} ·
-          {{ place.canonical_address ?? "地址待补充" }}</span
-        >
-        <span v-if="place.matched_alias" class="place-result-row__meta"
-          >以「{{ place.matched_alias }}」匹配（曾用名／别称）</span
-        >
+      <div class="place-result-row__identity-wrap">
+        <PlaceTypeGlyph v-if="showIdentityGlyph" :place-type="place.place_type" />
+        <div class="place-result-row__identity">
+          <strong class="place-result-row__name">{{ place.canonical_name }}</strong>
+          <span v-if="place.parent_place_name" class="place-result-row__meta"
+            >所属 {{ place.parent_place_name }}</span
+          >
+          <span class="place-result-row__meta"
+            >{{ placeTypeLabel(place.place_type) }} ·
+            {{ place.canonical_address ?? "地址待补充" }}</span
+          >
+        </div>
       </div>
-      <StatusBadge :semantic="status" class="place-result-row__badge" />
+      <StatusBadge v-if="!answerError" :semantic="status" class="place-result-row__badge" />
+      <span v-else class="place-result-row__unavailable">规则暂不可用</span>
     </div>
 
     <!-- M3.1 lens projection：真实改变 Consumer 呈现（rule-first / reality-first），
          不改变任何 domain 事实；indoor/dining 仅上浮服务端返回的 observed_zones。 -->
     <div v-if="lens" class="place-result-row__lens" data-testid="row-lens">
       <p
-        v-if="projection.headline === 'rule' && answer"
+        v-if="projection.headline === 'rule'"
         class="place-result-row__rule"
         data-testid="row-lens-headline"
       >
-        {{ answer.normative_result.summary || "已核验：" + scope }}
+        {{
+          answerError ? "规则结论暂时无法取得" : answer ? answerPrimarySummary(answer) : "信息不足"
+        }}
       </p>
       <p v-else class="place-result-row__reality-line" data-testid="row-lens-headline">
-        {{ projection.realityLine }}
+        {{ realityError ? "现场信息暂时无法取得" : projection.realityLine }}
       </p>
       <p
         v-if="projection.zoneFacts.length"
@@ -104,15 +126,16 @@ const projection = computed(() => lensProjection(props.lens, props.answer, props
       规则结论暂时无法取得 —— 请检查网络后重试。
     </p>
 
-    <!-- Rule 主结论：scope + conditions -->
-    <template v-else-if="answer">
-      <p class="place-result-row__rule" data-testid="row-rule">已核验：{{ scope }}</p>
-      <p v-if="conditions.length" class="place-result-row__conditions">
-        进入前需满足：{{ conditions.join("、") }}
-      </p>
-    </template>
+    <!-- The badge answers "which state"; this line answers "what does it mean"
+         without repeating the same short label. -->
+    <p v-else-if="!lens && decisionLine" class="place-result-row__rule" data-testid="row-rule">
+      {{ decisionLine }}
+    </p>
 
-    <PaDivider class="place-result-row__divider" />
+    <!-- Only the most important non-redundant condition consumes another line. -->
+    <p v-if="!answerError && answer && conditions.length" class="place-result-row__conditions">
+      进入前需满足：{{ conditions[0] }}
+    </p>
 
     <!-- Reality 摘要：现场事实层，区别于 Rule -->
     <div class="place-result-row__reality">
@@ -121,7 +144,9 @@ const projection = computed(() => lensProjection(props.lens, props.answer, props
         现场信息暂时无法取得 —— 请检查网络后重试。
       </p>
       <template v-else>
-        <p class="place-result-row__reality-line">{{ realityLine }}</p>
+        <p v-if="!lens || projection.headline === 'rule'" class="place-result-row__reality-line">
+          {{ realityLine }}
+        </p>
         <p v-if="evidenceLine" class="place-result-row__meta">{{ evidenceLine }}</p>
       </template>
     </div>
@@ -148,6 +173,13 @@ const projection = computed(() => lensProjection(props.lens, props.answer, props
   gap: var(--pa-space-3);
 }
 
+.place-result-row__identity-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--pa-space-3);
+  min-width: 0;
+}
+
 .place-result-row__identity {
   display: flex;
   flex-direction: column;
@@ -169,8 +201,14 @@ const projection = computed(() => lensProjection(props.lens, props.answer, props
   overflow-wrap: break-word;
 }
 
-.place-result-row__badge {
+.place-result-row__badge,
+.place-result-row__unavailable {
   flex-shrink: 0;
+}
+
+.place-result-row__unavailable {
+  font-size: var(--pa-font-size-sm);
+  color: var(--pa-color-text-muted);
 }
 
 .place-result-row__rule {
@@ -195,14 +233,13 @@ const projection = computed(() => lensProjection(props.lens, props.answer, props
   line-height: var(--pa-line-height-base);
 }
 
-.place-result-row__divider {
-  margin: var(--pa-space-2) 0 var(--pa-space-1);
-}
-
 .place-result-row__reality {
   display: flex;
   flex-direction: column;
   gap: var(--pa-space-1);
+  margin-top: var(--pa-space-2);
+  padding-top: var(--pa-space-2);
+  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
 }
 
 .place-result-row__reality-label {

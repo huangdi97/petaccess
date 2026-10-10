@@ -29,6 +29,7 @@ from .enums import (
     RuleAction,
     RuleEffect,
     TemporaryAction,
+    WatchDomain,
     WatchStatus,
     WatchTargetType,
 )
@@ -206,17 +207,26 @@ class AuditLog(Base):
 
 
 class WatchSubscription(Base, PkMixin, TimestampMixin):
-    """User watches a place/zone/rule; notified when rules change (design #24)."""
+    """User follows reviewed Rule or Reality changes for one target."""
 
     __tablename__ = "watch_subscription"
     __table_args__ = (
-        UniqueConstraint("user_id", "target_type", "target_id", name="uq_watch_user_target"),
-        Index("ix_watch_target", "target_type", "target_id"),
+        UniqueConstraint(
+            "user_id",
+            "watch_domain",
+            "target_type",
+            "target_id",
+            name="uq_watch_user_domain_target",
+        ),
+        Index("ix_watch_target", "watch_domain", "target_type", "target_id"),
         CheckConstraint("target_id IS NOT NULL", name="needs_target"),
     )
 
     user_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("user.id", ondelete="CASCADE"), nullable=False
+    )
+    watch_domain: Mapped[WatchDomain] = mapped_column(
+        String(16), default=WatchDomain.RULE, nullable=False
     )
     target_type: Mapped[WatchTargetType] = mapped_column(String(16), nullable=False)
     target_id: Mapped[str] = mapped_column(String(36), nullable=False)

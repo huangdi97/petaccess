@@ -1,41 +1,62 @@
 <script setup lang="ts">
-// @ui-static NotFoundView — 404 状态视图，无数据加载（M3 E1 静态声明）。
-import { useRouter } from "vue-router";
+// @ui-static NotFoundView — static route fallback, no external data request.
 import AppShell from "../components/AppShell.vue";
-import DesktopContentContainer from "../components/layout/DesktopContentContainer.vue";
-import PaEmptyState from "../components/ui/PaEmptyState.vue";
-
-defineOptions({ name: "NotFoundView" });
-
-const router = useRouter();
 </script>
 
 <template>
   <AppShell>
-    <DesktopContentContainer mode="single-column">
-      <h1 class="visually-hidden">页面不存在</h1>
-      <PaEmptyState
-        data-testid="not-found"
-        icon="search"
-        title="页面不存在"
-        description="你访问的页面不存在或已被移动。返回首页继续查找场所。"
-        primary-label="返回首页"
-        @primary="router.push('/')"
-      />
-    </DesktopContentContainer>
+    <main class="not-found" data-testid="not-found">
+      <p class="not-found__code">404</p>
+      <h1>这个页面不存在</h1>
+      <p class="muted">
+        链接可能已经失效，也可能是地址输入有误。你可以回到查询入口，或直接继续搜索场所。
+      </p>
+      <div class="not-found__actions">
+        <RouterLink class="btn primary" to="/">返回首页</RouterLink>
+        <RouterLink class="btn-inline" to="/search">搜索场所 →</RouterLink>
+      </div>
+    </main>
   </AppShell>
 </template>
 
 <style scoped>
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  margin: -1px;
-  padding: 0;
-  border: 0;
-  white-space: nowrap;
+.not-found {
+  max-width: 560px;
+  padding-top: var(--pa-space-7);
+}
+
+.not-found__code {
+  margin: 0 0 var(--pa-space-2);
+  font-size: var(--pa-font-size-sm);
+  font-weight: var(--pa-font-weight-650);
+  letter-spacing: var(--pa-letter-spacing-wide);
+  color: var(--pa-color-text-muted);
+}
+
+.not-found h1 {
+  margin-bottom: var(--pa-space-2);
+}
+
+.not-found > p:last-of-type {
+  max-width: 520px;
+  line-height: var(--pa-line-height-23);
+}
+
+.not-found__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--pa-space-4);
+  margin-top: var(--pa-space-5);
+}
+
+@media (max-width: 767px) {
+  .not-found {
+    padding-top: var(--pa-space-5);
+  }
+
+  .not-found__actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
 }
 </style>

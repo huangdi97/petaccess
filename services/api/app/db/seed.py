@@ -98,6 +98,402 @@ def poly(lng0: float, lat0: float, lng1: float, lat1: float) -> str:
     return f"POLYGON({ring(lng0, lat0, lng1, lat1)})"
 
 
+def _seed_v09_reality_demo(
+    session,
+    *,
+    mall,
+    dining_zone,
+    public_zone,
+    source_alice,
+    source_bob,
+    reviewer,
+) -> None:
+    """Seed a rich, fictional v0.9 Reality layer for Consumer visual truth.
+
+    The old demo seed populated legacy ObservationClaim rows only. The current
+    Consumer reads human-reviewed v0.9 published claims, so Home/Search/Map/Place
+    otherwise looked empty even though the product model was implemented.
+
+    This helper stays dev/test-only because run_demo_seed itself is fail-closed.
+    It creates a complete Evidence -> Candidate -> Published Claim chain and
+    deliberately includes two independent sources so the Reality summary can
+    exercise the multi-evidence state without inventing production facts.
+    """
+    from app.models import (
+        AnimalFacility,
+        EvidenceBundle,
+        ObservedPresence,
+        RealityCandidate,
+        RealityReport,
+        SourceArtifact,
+        StaffResponseObservation,
+    )
+    from app.models.enums import (
+        AnimalFacilityType,
+        AnimalScope,
+        FacilityAccessMode,
+        FacilityOperationalState,
+        FacilityPurposeState,
+        FactEvidenceState,
+        ObservationOrigin,
+        ObservedAction,
+        PlaceMatchEvidenceType,
+        PlaceMatchState,
+        RealityDecision,
+        RealityFreshnessState,
+        RealityReportModerationState,
+        RealityReportPrivacyState,
+        RealityVerificationStatus,
+        StaffActorRole,
+        StaffAwarenessState,
+        StaffResponseAction,
+        TimeCertainty,
+        TimeEvidenceState,
+    )
+    from app.models.evidence import (
+        CollectorType,
+        EvidenceClass,
+        ExtractionMethod,
+        PublisherType,
+        SourcePlatform,
+    )
+
+    reviewed_at = NOW - D(days=1)
+    verified = RealityVerificationStatus.HUMAN_VERIFIED
+    fresh = RealityFreshnessState.FRESH
+
+    evidence_specs = [
+        (
+            "alice",
+            source_alice,
+            NOW - D(days=3),
+            "演示现场照片：犬只位于 4F 餐饮层通道附近；仅作为现场事实证据。",
+            "1" * 64,
+        ),
+        (
+            "bob",
+            source_bob,
+            NOW - D(days=6),
+            "演示现场记录：犬只位于商场公共区域，工作人员随后进行了现场引导。",
+            "2" * 64,
+        ),
+    ]
+    bundles: dict[str, EvidenceBundle] = {}
+    for key, source, captured_at, excerpt, digest in evidence_specs:
+        artifact = SourceArtifact(
+            id=uid(f"reality_artifact_mall_{key}"),
+            source_id=source.id,
+            source_platform=SourcePlatform.ONSITE,
+            collector_type=CollectorType.ONSITE_EVIDENCE,
+            artifact_type="uploaded_image",
+            content_hash=digest,
+            collected_at=captured_at,
+            publisher_type=PublisherType.ORDINARY_USER,
+            captured_excerpt=excerpt,
+            evidence_strength="user_submitted",
+            storage_allowed=True,
+            display_allowed=False,
+            redistribution_allowed=False,
+        )
+        bundle = EvidenceBundle(
+            id=uid(f"reality_bundle_mall_{key}"),
+            artifact_id=artifact.id,
+            source_id=source.id,
+            source_platform=SourcePlatform.ONSITE,
+            publisher_type=PublisherType.ORDINARY_USER,
+            published_at=captured_at,
+            captured_at=captured_at,
+            quoted_fragment=excerpt,
+            extracted_fragment=excerpt,
+            evidence_class=EvidenceClass.ORIGINAL,
+            content_hash=digest,
+            extraction_method=ExtractionMethod.ONSITE_VISIT,
+            reviewer_id=reviewer.id,
+            review_log=[{"decision": "accepted_for_demo", "reviewer": reviewer.display_name}],
+            license_metadata={
+                "fixture_only": True,
+                "display_allowed": False,
+                "redistribution_allowed": False,
+            },
+            privacy_notes="虚构开发证据；不包含真实人物、门店或媒体。",
+        )
+        # Seed rows use scalar foreign-key ids rather than ORM relationships,
+        # so make parent ordering explicit for PostgreSQL.
+        session.add(artifact)
+        session.flush()
+        session.add(bundle)
+        session.flush()
+        bundles[key] = bundle
+
+    candidate_specs = [
+        {
+            "key": "presence_dining",
+            "candidate_type": "observed_presence",
+            "zone": dining_zone,
+            "source": source_alice,
+            "bundle": bundles["alice"],
+            "observed_at": NOW - D(days=3),
+            "animal_scope": AnimalScope.DOG,
+            "payload": {
+                "animal_count_estimate": 1,
+                "observed_action": ObservedAction.DINED_NEAR_TABLE.value,
+                "observed_context": "4F 餐饮层通道附近（虚构演示）",
+            },
+        },
+        {
+            "key": "presence_public",
+            "candidate_type": "observed_presence",
+            "zone": public_zone,
+            "source": source_bob,
+            "bundle": bundles["bob"],
+            "observed_at": NOW - D(days=6),
+            "animal_scope": AnimalScope.DOG,
+            "payload": {
+                "animal_count_estimate": 1,
+                "observed_action": ObservedAction.PRESENT.value,
+                "observed_context": "1F 公共区域（虚构演示）",
+            },
+        },
+        {
+            "key": "staff_relocation",
+            "candidate_type": "staff_response",
+            "zone": dining_zone,
+            "source": source_alice,
+            "bundle": bundles["alice"],
+            "observed_at": NOW - D(days=3),
+            "animal_scope": None,
+            "payload": {
+                "actor_role": StaffActorRole.SECURITY.value,
+                "trigger_context": "发现犬只位于餐饮层通道附近",
+                "response_action": StaffResponseAction.REQUEST_RELOCATION.value,
+                "staff_awareness_state": StaffAwarenessState.AWARENESS_CONFIRMED.value,
+                "response_outcome": "引导至非餐饮公共区域（虚构演示）",
+            },
+        },
+        {
+            "key": "staff_carrier",
+            "candidate_type": "staff_response",
+            "zone": public_zone,
+            "source": source_bob,
+            "bundle": bundles["bob"],
+            "observed_at": NOW - D(days=6),
+            "animal_scope": None,
+            "payload": {
+                "actor_role": StaffActorRole.FRONTLINE_STAFF.value,
+                "trigger_context": "犬只进入公共区域",
+                "response_action": StaffResponseAction.REQUIRE_CARRIER.value,
+                "staff_awareness_state": StaffAwarenessState.AWARENESS_CONFIRMED.value,
+                "response_outcome": "提醒使用宠物包或推车（虚构演示）",
+            },
+        },
+        {
+            "key": "facility_waiting",
+            "candidate_type": "animal_facility",
+            "zone": public_zone,
+            "source": source_alice,
+            "bundle": bundles["alice"],
+            "observed_at": NOW - D(days=2),
+            "animal_scope": None,
+            "payload": {
+                "facility_type": AnimalFacilityType.PET_WAITING_AREA.value,
+                "purpose_state": FacilityPurposeState.PURPOSE_SIGNAGE_SUPPORTED.value,
+                "operator_provided": True,
+                "access_mode": FacilityAccessMode.OPERATOR_PROVIDED.value,
+                "capacity": 2,
+                "operational_state": FacilityOperationalState.ACTIVE.value,
+            },
+        },
+        {
+            "key": "facility_elevator",
+            "candidate_type": "animal_facility",
+            "zone": public_zone,
+            "source": source_bob,
+            "bundle": bundles["bob"],
+            "observed_at": NOW - D(days=5),
+            "animal_scope": None,
+            "payload": {
+                "facility_type": AnimalFacilityType.PET_ELEVATOR.value,
+                "purpose_state": FacilityPurposeState.PURPOSE_CONFIRMED.value,
+                "operator_provided": True,
+                "access_mode": FacilityAccessMode.SELF_SERVICE.value,
+                "operational_state": FacilityOperationalState.ACTIVE.value,
+            },
+        },
+    ]
+
+    candidates: dict[str, RealityCandidate] = {}
+    for spec in candidate_specs:
+        key = str(spec["key"])
+        observed_at = spec["observed_at"]
+        report = RealityReport(
+            id=uid(f"reality_report_mall_{key}"),
+            anonymous_token=f"demo-{key}",
+            origin=ObservationOrigin.ON_SITE_PAST,
+            place_id=mall.id,
+            place_match_state=PlaceMatchState.EXACT_PLACE,
+            place_match_evidence_types=[
+                PlaceMatchEvidenceType.USER_CONFIRMATION.value,
+                PlaceMatchEvidenceType.POI_METADATA.value,
+            ],
+            time_evidence_state=TimeEvidenceState.EXACT_EVENT_TIME,
+            observed_at=observed_at,
+            claimed_event_at=observed_at,
+            time_certainty=TimeCertainty.EXACT,
+            fact_evidence_state=FactEvidenceState.DIRECT_MEDIA,
+            privacy_state=RealityReportPrivacyState.PRIVATE,
+            moderation_state=RealityReportModerationState.APPROVED,
+            submitted_at=observed_at + D(minutes=10),
+        )
+        session.add(report)
+        session.flush()
+
+        candidate = RealityCandidate(
+            id=uid(f"reality_candidate_mall_{key}"),
+            report_id=report.id,
+            candidate_type=str(spec["candidate_type"]),
+            place_id=mall.id,
+            zone_id=spec["zone"].id,
+            source_id=spec["source"].id,
+            evidence_bundle_id=spec["bundle"].id,
+            animal_scope=spec["animal_scope"],
+            observed_at=spec["observed_at"],
+            captured_at=spec["observed_at"],
+            review_status="REVIEWED",
+            reality_decision=RealityDecision.VERIFIED,
+            reviewer=reviewer.display_name,
+            decided_at=reviewed_at,
+            decision_note="开发/视觉验收虚构样例，经人工语义路径模拟核验。",
+            freshness_state=fresh,
+            verification_status=verified,
+            payload=spec["payload"],
+            published_claim_id=uid(f"reality_claim_mall_{key}"),
+            published_at=reviewed_at,
+        )
+        session.add(candidate)
+        candidates[key] = candidate
+
+    # candidate_id is a scalar FK and the seed does not attach ORM relationships.
+    # Flush the parent candidates explicitly so PostgreSQL never sees a child
+    # AnimalFacility/ObservedPresence before its RealityCandidate exists.
+    session.flush()
+
+    session.add_all(
+        [
+            ObservedPresence(
+                id=uid("reality_claim_mall_presence_dining"),
+                candidate_id=candidates["presence_dining"].id,
+                place_id=mall.id,
+                zone_id=dining_zone.id,
+                animal_scope=AnimalScope.DOG,
+                animal_count_estimate=1,
+                observed_action=ObservedAction.DINED_NEAR_TABLE,
+                observed_context="4F 餐饮层通道附近（虚构演示）",
+                observed_at=NOW - D(days=3),
+                captured_at=NOW - D(days=3),
+                source_id=source_alice.id,
+                evidence_bundle_id=bundles["alice"].id,
+                verification_status=verified,
+                freshness_state=fresh,
+                last_verified_at=reviewed_at,
+            ),
+            ObservedPresence(
+                id=uid("reality_claim_mall_presence_public"),
+                candidate_id=candidates["presence_public"].id,
+                place_id=mall.id,
+                zone_id=public_zone.id,
+                animal_scope=AnimalScope.DOG,
+                animal_count_estimate=1,
+                observed_action=ObservedAction.PRESENT,
+                observed_context="1F 公共区域（虚构演示）",
+                observed_at=NOW - D(days=6),
+                captured_at=NOW - D(days=6),
+                source_id=source_bob.id,
+                evidence_bundle_id=bundles["bob"].id,
+                verification_status=verified,
+                freshness_state=fresh,
+                last_verified_at=reviewed_at,
+            ),
+            StaffResponseObservation(
+                id=uid("reality_claim_mall_staff_relocation"),
+                candidate_id=candidates["staff_relocation"].id,
+                place_id=mall.id,
+                zone_id=dining_zone.id,
+                actor_role=StaffActorRole.SECURITY,
+                trigger_context="发现犬只位于餐饮层通道附近",
+                response_action=StaffResponseAction.REQUEST_RELOCATION,
+                staff_awareness_state=StaffAwarenessState.AWARENESS_CONFIRMED,
+                response_outcome="引导至非餐饮公共区域（虚构演示）",
+                observed_at=NOW - D(days=3),
+                captured_at=NOW - D(days=3),
+                source_id=source_alice.id,
+                evidence_bundle_id=bundles["alice"].id,
+                verification_status=verified,
+                freshness_state=fresh,
+                last_verified_at=reviewed_at,
+            ),
+            StaffResponseObservation(
+                id=uid("reality_claim_mall_staff_carrier"),
+                candidate_id=candidates["staff_carrier"].id,
+                place_id=mall.id,
+                zone_id=public_zone.id,
+                actor_role=StaffActorRole.FRONTLINE_STAFF,
+                trigger_context="犬只进入公共区域",
+                response_action=StaffResponseAction.REQUIRE_CARRIER,
+                staff_awareness_state=StaffAwarenessState.AWARENESS_CONFIRMED,
+                response_outcome="提醒使用宠物包或推车（虚构演示）",
+                observed_at=NOW - D(days=6),
+                captured_at=NOW - D(days=6),
+                source_id=source_bob.id,
+                evidence_bundle_id=bundles["bob"].id,
+                verification_status=verified,
+                freshness_state=fresh,
+                last_verified_at=reviewed_at,
+            ),
+            AnimalFacility(
+                id=uid("reality_claim_mall_facility_waiting"),
+                candidate_id=candidates["facility_waiting"].id,
+                place_id=mall.id,
+                zone_id=public_zone.id,
+                facility_type=AnimalFacilityType.PET_WAITING_AREA,
+                purpose_state=FacilityPurposeState.PURPOSE_SIGNAGE_SUPPORTED,
+                operator_provided=True,
+                access_mode=FacilityAccessMode.OPERATOR_PROVIDED,
+                capacity=2,
+                weather_protection=True,
+                shade=True,
+                ventilation=True,
+                water_available=True,
+                supervision_state="营业时段有工作人员巡视（虚构演示）",
+                security_or_lock_state="半开放等候区，无独立锁闭（虚构演示）",
+                operational_state=FacilityOperationalState.ACTIVE,
+                observed_at=NOW - D(days=2),
+                last_verified_at=reviewed_at,
+                source_id=source_alice.id,
+                evidence_bundle_id=bundles["alice"].id,
+                verification_status=verified,
+                freshness_state=fresh,
+            ),
+            AnimalFacility(
+                id=uid("reality_claim_mall_facility_elevator"),
+                candidate_id=candidates["facility_elevator"].id,
+                place_id=mall.id,
+                zone_id=public_zone.id,
+                facility_type=AnimalFacilityType.PET_ELEVATOR,
+                purpose_state=FacilityPurposeState.PURPOSE_CONFIRMED,
+                operator_provided=True,
+                access_mode=FacilityAccessMode.SELF_SERVICE,
+                operational_state=FacilityOperationalState.ACTIVE,
+                observed_at=NOW - D(days=5),
+                last_verified_at=reviewed_at,
+                source_id=source_bob.id,
+                evidence_bundle_id=bundles["bob"].id,
+                verification_status=verified,
+                freshness_state=fresh,
+            ),
+        ]
+    )
+
+
 def run_demo_seed() -> dict[str, int]:  # noqa: PLR0915 - linear demo data script
     from sqlalchemy import text
 
@@ -171,6 +567,14 @@ def run_demo_seed() -> dict[str, int]:  # noqa: PLR0915 - linear demo data scrip
         "watch_subscription",
         "dispute_case",
         "verification_event",
+        "reality_confirmation",
+        "observation_effort",
+        "animal_facility",
+        "staff_response_observation",
+        "observed_presence",
+        "external_content_reference",
+        "reality_candidate",
+        "reality_report",
         "observation_claim",
         "rule_condition",
         "access_rule",
@@ -360,6 +764,16 @@ def run_demo_seed() -> dict[str, int]:  # noqa: PLR0915 - linear demo data scrip
         directness=Directness.DIRECT,
         spatial_precision=SpatialPrecision.UNKNOWN,
     )
+    src_user_alice = Source(
+        id=uid("src_user_alice"),
+        source_type=SourceType.ORDINARY_USER,
+        issuer="演示用户 A",
+        issuer_verification=IssuerVerification.UNVERIFIED,
+        collected_at=NOW - D(days=3),
+        observed_at=NOW - D(days=3),
+        directness=Directness.DIRECT,
+        spatial_precision=SpatialPrecision.PRECISE,
+    )
     src_user_bob = Source(
         id=uid("src_user_bob"),
         source_type=SourceType.ORDINARY_USER,
@@ -379,6 +793,7 @@ def run_demo_seed() -> dict[str, int]:  # noqa: PLR0915 - linear demo data scrip
             src_mall_policy_old,
             src_community_property,
             src_city_regulation,
+            src_user_alice,
             src_user_bob,
         ]
     )
@@ -555,6 +970,20 @@ def run_demo_seed() -> dict[str, int]:  # noqa: PLR0915 - linear demo data scrip
         z_cm_pet,
     ]
     session.add_all(all_zones)
+    session.flush()
+
+    # --- v0.9 Reality demo: the current Consumer reads published Reality claims,
+    # not the legacy ObservationClaim table. Keep the visual/runtime fixture rich
+    # enough to exercise Rule + Reality + Staff + Facility + Divergence together.
+    _seed_v09_reality_demo(
+        session,
+        mall=places["place_yunqi_mall"],
+        dining_zone=z_mall_4f,
+        public_zone=z_mall_1f,
+        source_alice=src_user_alice,
+        source_bob=src_user_bob,
+        reviewer=users["admin"],
+    )
     session.flush()
 
     # --- geometries: place points already denormalized; zone polygons below ---
@@ -1465,7 +1894,13 @@ def run_demo_seed() -> dict[str, int]:  # noqa: PLR0915 - linear demo data scrip
             "places": len(places),
             "zones": len(all_zones),
             "geometries": len(geometries),
-            "sources": 8,
+            "sources": 9,
+            "reality_candidates": 6,
+            "observed_presence": 2,
+            "staff_responses": 2,
+            "animal_facilities": 2,
+            "evidence_artifacts": 2,
+            "evidence_bundles": 2,
             "jurisdiction_rules": len(regs),
             "operator_claims": 2,
             "observations": 3,

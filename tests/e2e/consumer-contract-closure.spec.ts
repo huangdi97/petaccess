@@ -16,6 +16,7 @@
  */
 import { expect, test } from "@playwright/test";
 import { currentQueryContext, snapshotKey } from "../../apps/client-h5/src/consumer/repository";
+import { lensOrderScore } from "../../apps/client-h5/src/consumer/rowView";
 import { session } from "../../packages/client-core/src/index";
 
 const PLACE = {
@@ -39,7 +40,12 @@ const SNAPSHOT_OK = {
       governing_layer: ["OPERATOR_POLICY"],
       mandatory_levels: ["mandatory"],
     },
-    condition_evaluation: { conditions: [], unmet: [], missing_inputs: [], pending_exceptions: [] },
+    condition_evaluation: {
+      conditions: [],
+      unmet: [],
+      missing_inputs: [],
+      pending_exceptions: [],
+    },
     scope_summary: {
       place: { id: PLACE.id, name: PLACE.canonical_name, place_type: "cafe" },
       zone: null,
@@ -81,6 +87,12 @@ const SNAPSHOT_OK = {
     evidence_count: 2,
     distinct_source_count: 2,
     observed_zones: ["一层公共区域", "餐饮堂食区"],
+    observed_zone_facts: [
+      { name: "一层公共区域", zone_type: "floor", indoor_outdoor: "indoor" },
+      { name: "餐饮堂食区", zone_type: "dining_area", indoor_outdoor: "indoor" },
+    ],
+    observed_zone_types: ["dining_area", "floor"],
+    observed_indoor_outdoor: ["indoor"],
     observed_actions: ["entered_with_leash"],
     staff_response_summary: [],
     facility_summary: [],
@@ -148,18 +160,14 @@ test("C2: transport error is never served as a cached fact — recovery re-reque
   await page.goto("/#/search");
   await page.getByTestId("search-input").fill("契约");
   await page.getByTestId("search-btn").click();
-  await expect(page.getByTestId("result-契约测试场所")).toBeVisible();
-  await expect(page.locator('[data-testid="result-契约测试场所"]')).toContainText(
-    "规则结论暂时无法取得",
-  );
+  await expect(page.getByTestId(`result-${PLACE.id}`)).toBeVisible();
+  await expect(page.getByTestId(`result-${PLACE.id}`)).toContainText("规则结论暂时无法取得");
 
-  // Network recovers. The same query again must RE-REQUEST (the failed value
-  // was never cached), and the row now shows the real ALLOWED answer.
   // Network recovers. The same query again must RE-REQUEST (the failed value
   // was never cached), and the row now shows the real ALLOWED badge.
   fail = false;
   await page.getByTestId("search-btn").click();
-  await expect(page.locator('[data-testid="result-契约测试场所"]')).toContainText("明确允许");
+  await expect(page.getByTestId(`result-${PLACE.id}`)).toContainText("明确允许");
 });
 
 // ------------------------------------------------------------------ C3 ---
@@ -197,27 +205,83 @@ test("C5: lens changes consumer projection without changing domain facts", async
   await page.goto("/#/search?lens=rules");
   await page.getByTestId("search-input").fill("契约");
   await page.getByTestId("search-btn").click();
-  await expect(page.getByTestId("result-契约测试场所")).toBeVisible();
+  await expect(page.getByTestId(`result-${PLACE.id}`)).toBeVisible();
   // rules lens = Rule-first: the rule conclusion is the row headline.
-  const rulesRow = page.getByTestId("result-契约测试场所");
-  await expect(rulesRow.locator("[data-testid=row-lens-headline]")).toContainText("允许进入");
+  const rulesRow = page.getByTestId(`result-${PLACE.id}`);
+  await expect(rulesRow.locator("[data-testid=row-lens-headline]")).toContainText("可以进入");
 
   await page.goto("/#/search?lens=presence");
   await page.getByTestId("search-input").fill("契约");
   await page.getByTestId("search-btn").click();
-  await expect(page.getByTestId("result-契约测试场所")).toBeVisible();
+  await expect(page.getByTestId(`result-${PLACE.id}`)).toBeVisible();
   // presence lens = Reality-first: the reality line is the row headline.
-  const presenceRow = page.getByTestId("result-契约测试场所");
+  const presenceRow = page.getByTestId(`result-${PLACE.id}`);
   await expect(presenceRow.locator("[data-testid=row-lens-headline]")).toContainText(
     "近期现场有动物出现",
   );
   await page.goto("/#/search?lens=indoor");
   await page.getByTestId("search-input").fill("契约");
   await page.getByTestId("search-btn").click();
-  await expect(page.getByTestId("result-契约测试场所")).toBeVisible();
-  // v0.2.4 §11：row 预算收紧为 4 条 semantic lines，indoor lens 的 zone facts
-  // 不再铺在行上（进详情）；lens 仍只改 presentation，不改 domain facts。
-  const indoorRow = page.getByTestId("result-契约测试场所");
-  await expect(indoorRow.locator("[data-testid=row-lens-zones]")).toHaveCount(0);
-  await expect(indoorRow.locator("[data-testid=row-lens-headline]")).toBeVisible();
+  await expect(page.getByTestId(`result-${PLACE.id}`)).toBeVisible();
+  const indoorRow = page.getByTestId(`result-${PLACE.id}`);
+  await expect(indoorRow.locator("[data-testid=row-lens-headline]")).toContainText(
+    "室内区域有经核验动物出现",
+  );
+  await expect(indoorRow.locator("[data-testid=row-lens-headline]")).toContainText("一层公共区域");
+
+  await page.goto("/#/search?lens=dining");
+  await page.getByTestId("search-input").fill("契约");
+  await page.getByTestId("search-btn").click();
+  const diningRow = page.getByTestId(`result-${PLACE.id}`);
+  await expect(diningRow.locator("[data-testid=row-lens-headline]")).toContainText(
+    "餐饮区域有经核验动物出现",
+  );
+  await expect(diningRow.locator("[data-testid=row-lens-headline]")).toContainText("餐饮堂食区");
+  await expect(diningRow.locator("[data-testid=row-lens-headline]")).not.toContainText(
+    "一层公共区域",
+  );
+});
+
+test("C5: Search inspector links open real Place dossier views", async ({ page }) => {
+  await mockList(page, [PLACE]);
+  await page.route("**/coexistence", (route) => route.fulfill({ json: SNAPSHOT_OK }));
+
+  await page.goto("/#/search");
+  await page.getByTestId("search-input").fill("契约");
+  await page.getByTestId("search-btn").click();
+  const result = page.getByTestId(`result-${PLACE.id}`);
+  await expect(result).toBeVisible();
+  await result.focus();
+
+  // A place without an approved public scene photo uses the small spatial
+  // identity anchor. It must not reserve an empty hero banner over Rule/Reality.
+  await expect(page.getByTestId("inspector-scene-fallback")).toBeVisible();
+  await expect(page.locator(".decision-inspector__scene")).toHaveCount(0);
+
+  const views = page.getByTestId("inspector-view-links");
+  await expect(views).toBeVisible();
+  for (const [label, view] of [
+    ["概览", "overview"],
+    ["规则", "rules"],
+    ["现场", "reality"],
+    ["空间", "space"],
+    ["证据", "evidence"],
+  ]) {
+    await expect(views.getByRole("link", { name: label })).toHaveAttribute(
+      "href",
+      `#/place/${PLACE.id}?view=${view}`,
+    );
+  }
+});
+
+test("C5: indoor/dining ranking requires the matching structured Zone facet", () => {
+  const corridorOnly = {
+    ...SNAPSHOT_OK.reality_answer,
+    observed_zones: ["一层公共区域"],
+    observed_zone_facts: [{ name: "一层公共区域", zone_type: "floor", indoor_outdoor: "indoor" }],
+    observed_zone_types: ["floor"],
+    observed_indoor_outdoor: ["indoor"],
+  };
+  expect(lensOrderScore("indoor", null, corridorOnly)).toBe(1);
+  expect(lensOrderScore("dining", null, corridorOnly)).toBe(0);
 });

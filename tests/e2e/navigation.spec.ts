@@ -1,8 +1,8 @@
 /**
  * M2 navigation contract (V020_APP_SHELL_SPEC §3):
  *   - < 768px: bottom tabs 首页 / 地图 / 贡献 / 我的, no rail.
- *   - ≥ 768px: navigation rail 首页 / 搜索 / 地图 / 贡献 + 我的 / 设置 / 关于,
- *     no bottom tabs.
+ *   - ≥ 768px: navigation rail 首页 / 搜索 / 地图 / 贡献 at top + 我的 / 设置 at bottom,
+ *     no bottom tabs and no persistent developer-version watermark.
  *   - every nav target ≥ 44px; mobile tabbar consumes safe-area bottom.
  */
 import { expect, test } from "@playwright/test";
@@ -39,9 +39,16 @@ test("desktop shows the rail with both groups and no bottom tabs", async ({ page
   }
   await expect(rail.getByRole("link", { name: "关于" })).toHaveCount(0);
   await expect(page.getByTestId("mobile-tabbar")).toHaveCount(0);
-  // v0.2.7-R1.1 P0-3: the 68px rail footer shows compact version only (vX.Y);
-  // the full "PetAccess v{version} · {env}" stays in title / data attributes.
-  await expect(rail.getByTestId("app-version")).toContainText(/^v\d+\.\d+$/);
+  // Current freeze: consumer navigation is not a build-status surface.
+  // Version metadata belongs to Settings/About, while account navigation is
+  // genuinely anchored at the bottom of the rail.
+  await expect(rail.getByTestId("app-version")).toHaveCount(0);
+  const railBox = await rail.boundingBox();
+  const settingsBox = await rail.getByRole("link", { name: "设置", exact: true }).boundingBox();
+  expect(railBox).not.toBeNull();
+  expect(settingsBox).not.toBeNull();
+  const bottomGap = railBox!.y + railBox!.height - (settingsBox!.y + settingsBox!.height);
+  expect(bottomGap).toBeLessThanOrEqual(32);
 });
 
 test("tablet (768) switches to the rail", async ({ page }) => {

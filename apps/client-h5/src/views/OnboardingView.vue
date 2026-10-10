@@ -1,10 +1,14 @@
 <script setup lang="ts">
-// @ui-static OnboardingView — 登录/注册流程页，自有表单状态（M3 E1 静态声明）。
+// @ui-static OnboardingView — login/register task workspace.
 import { ref } from "vue";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { session } from "@petaccess/client-core";
+import AuthModeTabs from "../components/auth/AuthModeTabs.vue";
+import DesktopContentContainer from "../components/layout/DesktopContentContainer.vue";
+import { presentDescription } from "../errors";
 
 const router = useRouter();
+const route = useRoute();
 const mode = ref<"login" | "register">("login");
 const displayName = ref("");
 const email = ref("");
@@ -21,9 +25,14 @@ async function submit() {
     } else {
       await session.register(displayName.value, email.value, password.value);
     }
-    router.push({ name: "home" });
+    const rawNext = typeof route.query.next === "string" ? route.query.next : "";
+    const safeNext =
+      rawNext.startsWith("/") && !rawNext.startsWith("//") && !rawNext.startsWith("/onboarding")
+        ? rawNext
+        : "";
+    await router.replace(safeNext || { name: "home" });
   } catch (e) {
-    error.value = e instanceof Error ? e.message : String(e);
+    error.value = presentDescription(e);
   } finally {
     busy.value = false;
   }
@@ -31,43 +40,81 @@ async function submit() {
 </script>
 
 <template>
-  <div class="page">
-    <h1>开始使用</h1>
-    <p class="muted">
-      查询任何场所对动物的准入规则：带宠出行 · 普通宠物限制 · 服务犬通行 · 规则地图。
-      规则来自官方/管理方/现场核验，一切可追溯。
-    </p>
-    <div class="panel">
-      <div class="row">
-        <button class="pill" :class="{ active: mode === 'login' }" @click="mode = 'login'">
-          登录
+  <DesktopContentContainer mode="wide">
+    <main class="auth-page">
+      <section class="auth-intro" aria-labelledby="auth-title">
+        <p class="auth-brand">PetAccess</p>
+        <h1 id="auth-title">开始使用</h1>
+        <p class="auth-intro__lead">
+          公开的场所规则、现场事实和证据无需登录即可查询。账号只用于保存与你有关的对象、关注与贡献。
+        </p>
+
+        <dl class="auth-facts">
+          <div>
+            <dt>公开查询</dt>
+            <dd>不登录也能搜索场所、查看规则与经核验现场事实。</dd>
+          </div>
+          <div>
+            <dt>保存上下文</dt>
+            <dd>登录后可保存宠物档案、当前查询对象和变化关注。</dd>
+          </div>
+          <div>
+            <dt>贡献待核验</dt>
+            <dd>你提交的规则线索与现场事实先进入审核，不会直接改写正式结论。</dd>
+          </div>
+        </dl>
+
+        <button class="auth-skip" type="button" @click="router.push({ name: 'home' })">
+          先浏览公开内容 →
         </button>
-        <button class="pill" :class="{ active: mode === 'register' }" @click="mode = 'register'">
-          注册
-        </button>
-      </div>
-      <div v-if="error" class="notice" style="color: var(--restricted)">{{ error }}</div>
-      <form @submit.prevent="submit">
-        <label v-if="mode === 'register'">昵称</label>
-        <input v-if="mode === 'register'" v-model="displayName" required />
-        <label>邮箱</label>
-        <input v-model="email" type="email" required autocomplete="username" />
-        <label>密码（≥8 位）</label>
-        <input
-          v-model="password"
-          type="password"
-          required
-          minlength="8"
-          autocomplete="current-password"
-        />
-        <button class="primary block" style="margin-top: 14px" :disabled="busy">
-          {{ mode === "login" ? "登录" : "注册并开始" }}
-        </button>
-      </form>
-      <div class="notice">
-        位置仅用于附近查询与现场核验，不建立连续轨迹；小区只展示公共空间规则。
-      </div>
-    </div>
-    <button class="block" @click="router.push({ name: 'home' })">先随便看看（免登录）</button>
-  </div>
+      </section>
+
+      <section class="auth-workspace" aria-label="登录或注册">
+        <AuthModeTabs :mode="mode" @change="mode = $event" />
+
+        <div
+          id="auth-panel"
+          class="auth-panel"
+          role="tabpanel"
+          :aria-labelledby="`auth-tab-${mode}`"
+        >
+          <form class="auth-form" @submit.prevent="submit">
+            <label v-if="mode === 'register'" class="auth-field">
+              <span>昵称</span>
+              <input v-model="displayName" required autocomplete="name" />
+            </label>
+
+            <label class="auth-field">
+              <span>邮箱</span>
+              <input v-model="email" type="email" required autocomplete="username" />
+            </label>
+
+            <label class="auth-field">
+              <span>密码</span>
+              <input
+                v-model="password"
+                type="password"
+                required
+                minlength="8"
+                :autocomplete="mode === 'login' ? 'current-password' : 'new-password'"
+              />
+              <small v-if="mode === 'register'">至少 8 位。</small>
+            </label>
+
+            <p v-if="error" class="auth-error" role="alert">{{ error }}</p>
+
+            <button class="primary auth-submit" type="submit" :disabled="busy">
+              {{ busy ? "处理中…" : mode === "login" ? "登录" : "注册并开始" }}
+            </button>
+          </form>
+
+          <p class="auth-privacy">
+            位置只用于当前附近查询与现场核验，不建立连续轨迹；服务犬身份只由用户自行声明。
+          </p>
+        </div>
+      </section>
+    </main>
+  </DesktopContentContainer>
 </template>
+
+<style scoped src="./OnboardingView.css"></style>

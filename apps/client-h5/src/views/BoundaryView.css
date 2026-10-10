@@ -1,0 +1,39 @@
+.boundary-head {
+  padding-bottom: var(--pa-space-5);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.boundary-head p {
+  max-width: 680px;
+  margin: var(--pa-space-2) 0 0;
+  line-height: var(--pa-line-height-23);
+}
+
+.boundary-feedback {
+  margin: var(--pa-space-3) 0 0;
+  color: var(--pa-color-text-secondary);
+}
+
+.boundary-name {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-1);
+  max-width: 420px;
+  padding: var(--pa-space-5) 0;
+  font-size: var(--pa-font-size-md);
+}
+
+.boundary-name input {
+  margin: 0;
+}
+
+.boundary-actions {
+  padding-top: var(--pa-space-5);
+}
+
+.boundary-note {
+  margin: var(--pa-space-5) 0 0;
+  padding-top: var(--pa-space-4);
+  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  line-height: var(--pa-line-height-20);
+}

@@ -53,6 +53,34 @@ SOURCE_TYPE_SEMANTICS: dict[str, str] = {
     "government_service": "政府平台转述园方口径",
 }
 
+SOURCE_TYPE_PUBLIC_LABELS: dict[str, str] = {
+    "statute_or_regulation": "法规",
+    "government_service": "政府服务",
+    "official_operator_policy": "管理方发布",
+    "onsite_signage": "现场标识",
+    "certified_verifier": "认证核验方",
+    "ordinary_user": "普通用户贡献",
+    "external_web_reference": "外部网页",
+    "imported_dataset": "导入数据",
+}
+
+DIRECTNESS_PUBLIC_LABELS: dict[str, str] = {
+    "direct": "直接依据",
+    "secondary": "间接依据",
+}
+
+
+def _public_issuer(source_type: str | None, issuer: str | None) -> str | None:
+    """Issuer projected for unauthenticated Consumer surfaces.
+
+    An ordinary user's display identity is never part of public rule
+    provenance. Review may publish the fact; it does not publish the person.
+    """
+    if source_type == "ordinary_user":
+        return "普通用户贡献（身份不公开）"
+    return issuer
+
+
 #: Sentences that assert a first-party/confirmed status. The model has no field
 #: capable of carrying them when no first-party operator source exists, and
 #: :func:`assert_no_unbacked_first_party_claim` keeps it that way.
@@ -141,24 +169,24 @@ def _evidence_entry(rule_id: str, facts: RuleFacts | None) -> dict[str, Any]:
         source_type=facts.source_type, directness=facts.directness
     )
     semantics = SOURCE_TYPE_SEMANTICS.get(facts.source_type or "")
+    public_issuer = _public_issuer(facts.source_type, facts.issuer)
+    source_label = SOURCE_TYPE_PUBLIC_LABELS.get(facts.source_type or "", "来源类型未记录")
     parts = []
-    if facts.issuer:
-        parts.append(f"来源：{facts.issuer}")
-    parts.append(f"source_type={facts.source_type or '未记录'}")
+    if public_issuer:
+        parts.append(f"来源：{public_issuer}")
+    parts.append(f"来源类型：{source_label}")
     if semantics:
-        parts.append(f"（{semantics}）")
-    if facts.directness:
-        parts.append(f"directness={facts.directness}")
-    if facts.evidence_strength:
-        parts.append(f"evidence_strength={facts.evidence_strength}")
+        parts.append(semantics)
+    if facts.directness in DIRECTNESS_PUBLIC_LABELS:
+        parts.append(DIRECTNESS_PUBLIC_LABELS[facts.directness])
     if pending:
-        parts.append("未取得运营方一手来源（first-party operator source pending）")
+        parts.append("尚未取得运营方一手来源")
     return {
         "rule_id": rule_id,
         "source_id": facts.source_id,
         "source_type": facts.source_type,
         "source_type_semantics": semantics,
-        "issuer": facts.issuer,
+        "issuer": public_issuer,
         "directness": facts.directness,
         "issuer_verification": facts.issuer_verification,
         "evidence_strength": facts.evidence_strength,

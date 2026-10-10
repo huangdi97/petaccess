@@ -146,6 +146,96 @@ def test_anonymous_on_site_now_report_with_candidate_never_verifies(client, plac
     assert body["report"]["anonymous_token"]
 
 
+def test_report_candidate_has_private_traceable_evidence_bundle(client, place_id, signed_user):
+    """Every report-backed candidate gets Artifact -> EvidenceBundle provenance."""
+    observed = (datetime.now(UTC) - timedelta(hours=1)).isoformat()
+    r = client.post(
+        f"/api/v1/places/{place_id}/reality/reports",
+        headers=signed_user,
+        json={
+            "report": _report("on_site_past", observed_at=observed),
+            "candidates": [
+                {
+                    "candidate_type": "observed_presence",
+                    "animal_scope": "dog",
+                    "observed_at": observed,
+                    "payload": {"observed_action": "present"},
+                }
+            ],
+        },
+    )
+    assert r.status_code == 201, r.text
+    report_id = r.json()["report"]["id"]
+    cand_id = r.json()["candidates"][0]["id"]
+
+    from app.db.session import get_session_factory
+    from app.models import RealityCandidate
+    from app.models.evidence import EvidenceBundle, SourceArtifact
+
+    session = get_session_factory()()
+    try:
+        candidate = session.get(RealityCandidate, cand_id)
+        assert candidate is not None
+        assert candidate.evidence_bundle_id is not None
+        bundle = session.get(EvidenceBundle, candidate.evidence_bundle_id)
+        assert bundle is not None
+        artifact = session.get(SourceArtifact, bundle.artifact_id)
+        assert artifact is not None
+        assert artifact.source_content_id == report_id
+        assert artifact.display_allowed is False
+        assert artifact.redistribution_allowed is False
+        assert bundle.place_match_evidence["state"] == "exact_place"
+        assert bundle.temporal_evidence["observed_at"] is not None
+        assert bundle.license_metadata["structured_fact_publication_only"] is True
+    finally:
+        session.close()
+
+
+def test_effort_only_report_keeps_parent_evidence_provenance(client, place_id, signed_user):
+    """A no-animal observation stays an effort row linked to its private report evidence."""
+    observed = (datetime.now(UTC) - timedelta(minutes=20)).isoformat()
+    r = client.post(
+        f"/api/v1/places/{place_id}/reality/reports",
+        headers=signed_user,
+        json={
+            "report": _report("on_site_past", observed_at=observed),
+            "candidates": [],
+            "effort": {
+                "place_id": place_id,
+                "duration_bucket": "min_10_30",
+                "covered_zone_ids": [],
+                "animal_observed": False,
+                "observed_at": observed,
+            },
+        },
+    )
+    assert r.status_code == 201, r.text
+    body = r.json()
+    assert body["candidates"] == []
+    assert body["effort_id"]
+
+    from app.db.session import get_session_factory
+    from app.models import ObservationEffort
+    from app.models.evidence import EvidenceBundle
+
+    session = get_session_factory()()
+    try:
+        effort = session.get(ObservationEffort, body["effort_id"])
+        assert effort is not None
+        assert effort.animal_observed is False
+        assert effort.report_id == body["report"]["id"]
+        assert effort.evidence_bundle_id is not None
+        assert session.get(EvidenceBundle, effort.evidence_bundle_id) is not None
+    finally:
+        session.close()
+
+
+def test_raw_reality_report_parents_are_not_public(client, place_id):
+    """Report parents keep private provenance/tokens; published claims are the public layer."""
+    r = client.get(f"/api/v1/places/{place_id}/reality/reports")
+    assert r.status_code in (401, 403), r.text
+
+
 def test_on_site_past_without_observed_at_is_rejected(client, place_id):
     """§19: ON_SITE_PAST must state when it happened; never default to submit time."""
     r = client.post(
@@ -179,8 +269,10 @@ def test_external_content_requires_time_evidence(client, place_id):
 
 def test_external_content_keeps_published_and_event_time_separate(client, place_id, signed_user):
     """§20: content_published_at stays distinct from observed_at in the record."""
-    published = (datetime.now(UTC) - timedelta(days=3)).isoformat()
-    observed = (datetime.now(UTC) - timedelta(days=1)).isoformat()
+    # A retrospective public post is published *after* the described event.
+    # The original fixture reversed this order while testing field separation.
+    published = (datetime.now(UTC) - timedelta(days=1)).isoformat()
+    observed = (datetime.now(UTC) - timedelta(days=3)).isoformat()
     r = client.post(
         f"/api/v1/places/{place_id}/reality/reports",
         headers=signed_user,
@@ -192,7 +284,7 @@ def test_external_content_keeps_published_and_event_time_separate(client, place_
                 observed_at=observed,
                 time_certainty="approximate",
             ),
-            "candidates": [_presence_candidate()],
+            "candidates": [{**_presence_candidate(), "observed_at": observed}],
             "external_content": {
                 "source_url": "https://example.com/pet-post-1",
                 "platform": "xiaohongshu",
@@ -209,14 +301,26 @@ def test_external_content_keeps_published_and_event_time_separate(client, place_
 
 
 def test_parent_place_only_cannot_pin_candidate_to_tenant(client, place_id):
-    """§21: mall-level matches must not surface tenant-level reality."""
+    """§21: an actual parent-child match cannot escalate a fact to a tenant."""
+    from sqlalchemy import select
+
+    from app.db.session import get_session_factory
+    from app.models import Place
+
+    with get_session_factory()() as db:
+        tenant = db.scalars(select(Place).where(Place.parent_place_id.isnot(None)).limit(1)).first()
+        if tenant is None:
+            pytest.skip("seed needs an actual parent-child place pair")
+        tenant_id = tenant.id
+        container_id = tenant.parent_place_id
+
     r = client.post(
-        f"/api/v1/places/{place_id}/reality/reports",
+        f"/api/v1/places/{tenant_id}/reality/reports",
         json={
             "report": _report(
                 "on_site_now",
                 place_match_state="parent_place_only",
-                container_place_id=place_id,
+                container_place_id=container_id,
                 subject_place_id=None,
             ),
             # a candidate pinned to a *different* tenant than the container
@@ -231,6 +335,131 @@ def test_parent_place_only_cannot_pin_candidate_to_tenant(client, place_id):
     )
     assert r.status_code == 422, r.text
     assert r.json()["error"]["code"] == "parent_place_escalation"
+
+
+def test_imprecise_place_match_stays_report_only_until_resolved(client, place_id):
+    """§25.5/§25.7: an area-level lead is Report/Evidence, not a Place Candidate."""
+    published = (datetime.now(UTC) - timedelta(days=1)).isoformat()
+    report = _report(
+        "external_online_content",
+        place_match_state="area_only",
+        content_published_at=published,
+        observed_at=None,
+        claimed_event_at=None,
+        time_evidence_state="publication_time_only",
+    )
+
+    escalated = client.post(
+        f"/api/v1/places/{place_id}/reality/reports",
+        json={
+            "report": report,
+            "candidates": [
+                {
+                    "candidate_type": "observed_presence",
+                    "animal_scope": "dog",
+                    "payload": {"observed_action": "present"},
+                }
+            ],
+        },
+    )
+    assert escalated.status_code == 422, escalated.text
+    assert escalated.json()["error"]["code"] == "reality_candidate_exact_place_required"
+
+    lead_only = client.post(
+        f"/api/v1/places/{place_id}/reality/reports",
+        json={"report": report, "candidates": []},
+    )
+    assert lead_only.status_code == 201, lead_only.text
+    body = lead_only.json()
+    assert body["candidates"] == []
+    assert body["report"]["place_match_state"] == "area_only"
+    assert body["report"]["place_id"] is None
+    assert body["report"]["subject_place_id"] is None
+
+
+def test_publication_only_facts_stay_out_of_recent_and_current_summaries(
+    client, place_id, signed_user
+):
+    """A recent post date is not a recent event date or proof a facility is current."""
+    before = client.get(f"/api/v1/places/{place_id}/reality").json()
+    published = (datetime.now(UTC) - timedelta(hours=1)).isoformat()
+    created = client.post(
+        f"/api/v1/places/{place_id}/reality/reports",
+        headers=signed_user,
+        json={
+            "report": _report(
+                "external_online_content",
+                observed_at=None,
+                claimed_event_at=None,
+                content_published_at=published,
+                time_evidence_state="publication_time_only",
+                time_certainty="unknown",
+                fact_evidence_state="text_only_external",
+            ),
+            "candidates": [
+                {
+                    "candidate_type": "staff_response",
+                    "observed_at": None,
+                    "payload": {
+                        "actor_role": "unknown_staff",
+                        "response_action": "request_wait_outside",
+                        "staff_awareness_state": "awareness_confirmed",
+                    },
+                },
+                {
+                    "candidate_type": "animal_facility",
+                    "observed_at": None,
+                    "payload": {
+                        "facility_type": "water_bowl",
+                        "purpose_state": "purpose_signage_supported",
+                        "operational_state": "active",
+                    },
+                },
+            ],
+            "external_content": {
+                "source_url": f"https://example.com/publication-only-{uuid.uuid4().hex}",
+                "platform": "web",
+                "published_at": published,
+            },
+        },
+    )
+    assert created.status_code == 201, created.text
+
+    me = client.get("/api/v1/auth/me", headers=signed_user)
+    assert me.status_code == 200, me.text
+    from app.db.session import get_session_factory
+    from app.models import User
+
+    session = get_session_factory()()
+    try:
+        user = session.get(User, me.json()["id"])
+        assert user is not None
+        user.role = "admin"
+        session.commit()
+    finally:
+        session.close()
+
+    for candidate in created.json()["candidates"]:
+        decision = client.post(
+            f"/api/v1/reality/candidates/{candidate['id']}/decision",
+            headers=signed_user,
+            json={"reality_decision": "verified", "decision_note": None},
+        )
+        assert decision.status_code == 200, decision.text
+
+    after = client.get(f"/api/v1/places/{place_id}/reality").json()
+    assert after["recent_count_30d"] == before["recent_count_30d"]
+    assert after["staff_response_summary"] == before["staff_response_summary"]
+    assert after["facility_summary"] == before["facility_summary"]
+
+    events = client.get(f"/api/v1/places/{place_id}/reality/events").json()
+    published_events = [
+        event
+        for event in events
+        if event["time_evidence_state"] == "publication_time_only"
+        and event["content_published_at"] is not None
+    ]
+    assert len(published_events) >= 2
 
 
 def test_effort_never_becomes_no_animal_presence_claim(client, place_id, signed_user):
@@ -279,6 +508,14 @@ def test_confirmation_is_append_never_delete(client, place_id, signed_user):
     # the older published claim still exists in the full reality answer
     reality = client.get(f"/api/v1/places/{place_id}/reality").json()
     assert reality["state"] != "no_data"
+
+    # Candidate-linked confirmations must be visible as independent support on
+    # the corresponding published fact; otherwise the Evidence Rail would
+    # incorrectly present a multi-evidence fact as a single-record fact.
+    events = client.get(f"/api/v1/places/{place_id}/reality/events")
+    assert events.status_code == 200, events.text
+    published = next(event for event in events.json() if event["event_type"] == "observed_presence")
+    assert published["confirmation_count"] >= 1
 
 
 def test_statff_awareness_unknown_is_stored(client, place_id, signed_user):
@@ -351,6 +588,118 @@ def test_reality_trace_distinguishes_fact_from_review(client, place_id):
     }
 
 
+def test_staff_response_summary_preserves_awareness_axis(client):
+    """§25.11: aggregate staff copy must retain whether awareness was established."""
+    places = client.get("/api/v1/places", params={"q": "云栖", "limit": 10})
+    assert places.status_code == 200, places.text
+    mall = next(
+        item for item in places.json()["items"] if item["canonical_name"] == "云栖中心·测试商场"
+    )
+
+    response = client.get(f"/api/v1/places/{mall['id']}/reality")
+    assert response.status_code == 200, response.text
+    rows = response.json()["staff_response_summary"]
+    assert rows, "demo fixture must exercise staff-response summaries"
+    assert all(row.get("staff_awareness_state") for row in rows)
+
+
+def test_facility_summary_preserves_verified_location(client):
+    """§61: first-screen facility summaries must retain where the facility is."""
+    places = client.get("/api/v1/places", params={"q": "云栖", "limit": 10})
+    assert places.status_code == 200, places.text
+    mall = next(
+        item for item in places.json()["items"] if item["canonical_name"] == "云栖中心·测试商场"
+    )
+
+    response = client.get(f"/api/v1/places/{mall['id']}/reality")
+    assert response.status_code == 200, response.text
+    rows = response.json()["facility_summary"]
+    assert rows, "demo fixture must exercise facility summaries"
+    assert all("zone_id" in row and "zone_name" in row for row in rows)
+    assert any(row["zone_name"] for row in rows)
+
+
+def test_reality_trace_uses_consumer_language_for_verified_demo_facts(client):
+    """Trace sections must not leak raw enum vocabulary from staff/facility/freshness axes."""
+    r = client.get("/api/v1/places", params={"q": "云栖"})
+    assert r.status_code == 200, r.text
+    mall_id = r.json()["items"][0]["id"]
+    trace = client.get(f"/api/v1/places/{mall_id}/reality/trace")
+    assert trace.status_code == 200, trace.text
+    visible = " ".join(
+        str(section.get("value") or "")
+        for section in [*trace.json()["fact_sections"], *trace.json()["review_sections"]]
+    )
+    for raw in ("request_relocation", "require_carrier", "pet_waiting_area", "FRESH"):
+        assert raw not in visible
+
+
+def test_demo_reality_events_preserve_observed_submitted_reviewed_axes(client):
+    """Visual/demo fixture must exercise all three provenance times without conflation."""
+    places = client.get("/api/v1/places", params={"q": "云栖", "limit": 10})
+    assert places.status_code == 200, places.text
+    mall = next(
+        item for item in places.json()["items"] if item["canonical_name"] == "云栖中心·测试商场"
+    )
+
+    response = client.get(f"/api/v1/places/{mall['id']}/reality/events")
+    assert response.status_code == 200, response.text
+    events = response.json()
+    assert events
+    # Other integration cases may add a verified publication-time-only lead to
+    # the same seeded place. The canonical demo events must still exercise
+    # observed/submitted/reviewed as three distinct axes; a later lead must not
+    # make this test claim every public event has exact event time.
+    exact_events = [event for event in events if event["time_evidence_state"] == "exact_event_time"]
+    assert len(exact_events) >= 6
+    assert all(event["submitted_at"] is not None for event in exact_events)
+    assert all(event["last_verified_at"] is not None for event in exact_events)
+    assert all(event["submitted_at"] != event["last_verified_at"] for event in exact_events)
+    # Consumer gets material provenance/permission posture, never private raw
+    # object references or captured excerpts.
+    assert all("evidence_material_type" in event for event in events)
+    assert all("evidence_source_platform" in event for event in events)
+    assert all("evidence_display_allowed" in event for event in events)
+    assert all("captured_excerpt" not in event for event in events)
+    assert all("snapshot_ref" not in event for event in events)
+    assert all("media_id" not in event for event in events)
+
+
+def test_reality_events_expose_only_published_verified_facts(client, place_id, signed_user):
+    """Consumer timeline must not leak review-pending candidates or staff identity."""
+    pending = client.post(
+        f"/api/v1/places/{place_id}/reality/contributions",
+        headers=signed_user,
+        json={
+            "candidate_type": "observed_presence",
+            "place_id": place_id,
+            "animal_scope": "dog",
+            "observed_at": (datetime.now(UTC) - timedelta(minutes=30)).isoformat(),
+            "payload": {"observed_action": "present", "observed_context": "待审核事件"},
+        },
+    )
+    assert pending.status_code == 201, pending.text
+    pending_id = pending.json()["id"]
+
+    r = client.get(f"/api/v1/places/{place_id}/reality/events")
+    assert r.status_code == 200, r.text
+    events = r.json()
+    assert all(
+        event["verification_status"] in {"human_verified", "human_verified_with_note"}
+        for event in events
+    )
+    assert all(event["id"] != pending_id for event in events)
+    assert all("reviewer" not in event for event in events)
+    staff_events = [event for event in events if event["event_type"] == "staff_response"]
+    assert all(event.get("observed_context") is None for event in staff_events)
+    assert all(event.get("staff_outcome") is None for event in staff_events)
+    assert all(event.get("staff_policy_statement_verbatim") is None for event in staff_events)
+    assert all("anonymous_token" not in event for event in events)
+    assert all("reporter_id" not in event for event in events)
+    assert all("media_refs" not in event for event in events)
+    assert all("source_url" not in event for event in events)
+
+
 def _make_verified_presence(client, place_id, auth) -> str:
     """Create + human-verify one observed-presence candidate (v0.9 §7.4)."""
     r = client.post(
@@ -395,6 +744,109 @@ def _make_verified_presence(client, place_id, auth) -> str:
     return cand_id
 
 
+def test_published_reality_fact_can_be_disputed_without_becoming_a_rule_mutation(
+    client, signed_user, place_id
+):
+    """Public Reality correction opens a case and marks the event, preserving the fact row."""
+    cand_id = _make_verified_presence(client, place_id, signed_user)
+
+    from sqlalchemy import select
+
+    from app.db.session import get_session_factory
+    from app.models import DisputeCase, ObservedPresence
+
+    factory = get_session_factory()
+    with factory() as db:
+        claim = db.scalar(select(ObservedPresence).where(ObservedPresence.candidate_id == cand_id))
+        assert claim is not None
+        claim_id = claim.id
+
+    opened = client.post(
+        "/api/v1/disputes",
+        headers=signed_user,
+        json={
+            "target_type": "observed_presence",
+            "target_id": claim_id,
+            "reason_code": "wrong_place",
+            "notice_text": "该记录对应的是另一处入口，需要重新核验地点。",
+        },
+    )
+    assert opened.status_code == 201, opened.text
+    case_id = opened.json()["id"]
+
+    try:
+        events = client.get(f"/api/v1/places/{place_id}/reality/events")
+        assert events.status_code == 200, events.text
+        event = next(item for item in events.json() if item["id"] == claim_id)
+        assert event["dispute_open"] is True
+
+        summary = client.get(f"/api/v1/places/{place_id}/reality")
+        assert summary.status_code == 200, summary.text
+        assert summary.json()["state"] == "DISPUTED"
+        assert "争议" in (summary.json().get("note") or "")
+
+        with factory() as db:
+            preserved = db.get(ObservedPresence, claim_id)
+            assert preserved is not None
+            assert str(preserved.verification_status) == "human_verified"
+    finally:
+        with factory() as db:
+            case = db.get(DisputeCase, case_id)
+            if case is not None:
+                db.delete(case)
+                db.commit()
+
+
+def test_staff_and_facility_disputes_remain_visible_in_place_summaries(client, signed_user):
+    """Overview/map summaries must not silently present disputed factual rows as clean."""
+    places = client.get("/api/v1/places", params={"q": "云栖", "limit": 10})
+    assert places.status_code == 200, places.text
+    mall = next(
+        item for item in places.json()["items"] if item["canonical_name"] == "云栖中心·测试商场"
+    )
+    events = client.get(f"/api/v1/places/{mall['id']}/reality/events")
+    assert events.status_code == 200, events.text
+    rows = events.json()
+    staff = next(item for item in rows if item["event_type"] == "staff_response")
+    facility = next(item for item in rows if item["event_type"] == "animal_facility")
+
+    opened_ids: list[str] = []
+    for target_type, target_id in (
+        ("staff_response_observation", staff["id"]),
+        ("animal_facility", facility["id"]),
+    ):
+        opened = client.post(
+            "/api/v1/disputes",
+            headers=signed_user,
+            json={
+                "target_type": target_type,
+                "target_id": target_id,
+                "reason_code": "incorrect_fact",
+                "notice_text": "这条已发布现场事实需要重新核验。",
+            },
+        )
+        assert opened.status_code == 201, opened.text
+        opened_ids.append(opened.json()["id"])
+
+    from app.db.session import get_session_factory
+    from app.models import DisputeCase
+
+    try:
+        summary = client.get(f"/api/v1/places/{mall['id']}/reality")
+        assert summary.status_code == 200, summary.text
+        body = summary.json()
+        assert any(item["disputed_count"] > 0 for item in body["staff_response_summary"])
+        assert any(item["disputed_count"] > 0 for item in body["facility_summary"])
+    finally:
+        factory = get_session_factory()
+        with factory() as db:
+            for case_id in opened_ids:
+                case = db.get(DisputeCase, case_id)
+                if case is not None:
+                    db.delete(case)
+            db.commit()
+
+
 def test_my_reality_contributions_lists_only_own_reports(client, signed_user, place_id):
     """M7 B1 — GET /me/reality-contributions returns only the caller's own reports."""
     r = client.post(
@@ -419,3 +871,38 @@ def test_my_reality_contributions_lists_only_own_reports(client, signed_user, pl
 
     anon = client.get("/api/v1/me/reality-contributions")
     assert anon.status_code == 401, anon.text
+
+
+def test_future_observation_is_rejected_before_creating_a_fact(client, place_id, signed_user):
+    future = (datetime.now(UTC) + timedelta(days=2)).isoformat()
+    response = client.post(
+        f"/api/v1/places/{place_id}/reality/reports",
+        headers=signed_user,
+        json={
+            "report": _report("on_site_past", observed_at=future),
+            "candidates": [],
+        },
+    )
+    assert response.status_code == 422, response.text
+    assert response.json()["error"]["code"] == "reality_future_time_not_allowed"
+
+
+def test_external_claim_cannot_postdate_its_publication(client, place_id, signed_user):
+    published = (datetime.now(UTC) - timedelta(days=2)).isoformat()
+    impossible_event = (datetime.now(UTC) - timedelta(days=1)).isoformat()
+    response = client.post(
+        f"/api/v1/places/{place_id}/reality/reports",
+        headers=signed_user,
+        json={
+            "report": _report(
+                "external_online_content",
+                observed_at=None,
+                content_published_at=published,
+                claimed_event_at=impossible_event,
+                time_evidence_state="exact_event_date",
+            ),
+            "candidates": [],
+        },
+    )
+    assert response.status_code == 422, response.text
+    assert response.json()["error"]["code"] == "reality_event_after_publication"

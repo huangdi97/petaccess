@@ -6,6 +6,7 @@ Evidence never gets public URLs — presigned GET only (PROVIDER_HARDENING_SPEC)
 """
 
 from datetime import datetime
+from enum import StrEnum
 
 from sqlalchemy import JSON, DateTime, ForeignKey, Index, Numeric, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
@@ -15,11 +16,12 @@ from app.db.base import Base, PkMixin, TimestampMixin
 
 class MediaPurpose:
     SIGNAGE_EVIDENCE = "signage_evidence"
+    REALITY_EVIDENCE = "reality_evidence"
     SCENE_PHOTO = "scene_photo"
     AVATAR = "avatar"
     IMPORT_DOCUMENT = "import_document"
 
-    ALL = [SIGNAGE_EVIDENCE, SCENE_PHOTO, AVATAR, IMPORT_DOCUMENT]
+    ALL = [SIGNAGE_EVIDENCE, REALITY_EVIDENCE, SCENE_PHOTO, AVATAR, IMPORT_DOCUMENT]
 
 
 class MediaPrivacyClass:
@@ -29,6 +31,19 @@ class MediaPrivacyClass:
     SCENE = "scene"
 
     ALL = [EVIDENCE, SCENE]
+
+
+class MediaUploadStatus(StrEnum):
+    STORED = "stored"
+    DELETED = "deleted"
+    PURGE_FAILED = "purge_failed"
+
+
+class MediaModerationStatus(StrEnum):
+    PENDING = "pending"
+    OCR_DONE = "ocr_done"
+    APPROVED = "approved"
+    REJECTED = "rejected"
 
 
 class MediaObject(Base, PkMixin, TimestampMixin):
@@ -41,6 +56,9 @@ class MediaObject(Base, PkMixin, TimestampMixin):
 
     owner_type: Mapped[str | None] = mapped_column(String(40), nullable=True)
     owner_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    created_by_user_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("user.id", ondelete="SET NULL"), nullable=True, index=True
+    )
     purpose: Mapped[str] = mapped_column(String(40), nullable=False)
     privacy_class: Mapped[str] = mapped_column(String(20), nullable=False)
 
@@ -53,10 +71,10 @@ class MediaObject(Base, PkMixin, TimestampMixin):
     original_filename: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     upload_status: Mapped[str] = mapped_column(
-        String(20), default="stored", nullable=False
+        String(20), default=MediaUploadStatus.STORED.value, nullable=False
     )  # stored | deleted | purge_failed
     moderation_status: Mapped[str] = mapped_column(
-        String(20), default="pending", nullable=False
+        String(20), default=MediaModerationStatus.PENDING.value, nullable=False
     )  # pending | ocr_done | approved | rejected
 
     source_id: Mapped[str | None] = mapped_column(

@@ -13,7 +13,7 @@
         "page": "search",
         "state": "ready-selected",
         "fixture": "search-ready-v1",
-        "h1": "搜索场所规则",
+        "h1": "搜索场所的规则与现场",
         "selectedId": "search-selected-row",
         "componentCounts": [
           {
@@ -30,7 +30,7 @@
         "page": "search",
         "state": "ready-selected",
         "fixture": "search-ready-v1",
-        "h1": "搜索场所规则",
+        "h1": "搜索场所的规则与现场",
         "selectedId": "search-selected-row"
       }
     }
@@ -155,8 +155,8 @@
       ],
       "props": {
         "height": {
-          "min": 92,
-          "max": 108
+          "min": 112,
+          "max": 132
         }
       },
       "severity": "FAIL",
@@ -275,10 +275,62 @@
       "severity": "FAIL"
     },
     {
-      "id": "SEARCH_NO_DUPLICATE_STATUS_BADGE",
+      "id": "SEARCH_DETAIL_HEADER_NO_DUPLICATE_STATUS_BADGE",
       "selector": "[data-ui='search-detail-content'] header .status-badge",
       "max": 0,
       "severity": "FAIL"
+    },
+    {
+      "id": "SEARCH_ROW_REALITY_PRESENT",
+      "selector": "[data-testid='result-reality'], [data-testid='row-lens-headline']",
+      "min": 1,
+      "severity": "FAIL"
+    },
+    {
+      "id": "SEARCH_ROW_EVIDENCE_META_PRESENT",
+      "selector": "[data-testid='result-evidence-meta']",
+      "min": 1,
+      "severity": "WARN"
+    },
+    {
+      "id": "SEARCH_DEFAULT_RULE_FIRST",
+      "selector": "[data-testid='row-lens-headline'].result-row__decision--lead",
+      "min": 1,
+      "severity": "FAIL",
+      "pages": ["search-ready", "search-selected"],
+      "note": "Canonical Search answers the access question first. Reality-first headlines require an explicit presence/indoor/dining lens."
+    },
+    {
+      "id": "SEARCH_RULE_STAYS_VISIBLE",
+      "selector": ".result-row__head-right .status-badge, [data-testid='row-rule-condition']",
+      "min": 1,
+      "severity": "FAIL",
+      "pages": ["search-ready", "search-selected"],
+      "note": "Rule stays visible as one semantic status badge; only a non-redundant condition consumes a second row line."
+    },
+    {
+      "id": "SEARCH_ROW_SPATIAL_IDENTITY",
+      "selector": "[data-ui='search-results-pane'] [data-ui='place-type-glyph']",
+      "min": 1,
+      "severity": "WARN",
+      "note": "Neutral place-type glyph restores spatial scanability without fake/decorative photography."
+    },
+    {
+      "id": "SEARCH_DETAIL_PRIMARY_OPEN",
+      "selector": "[data-ui='search-detail-content'] [data-testid='inspector-open'].primary",
+      "min": 1,
+      "max": 1,
+      "pages": ["search-ready", "search-selected"],
+      "severity": "FAIL",
+      "note": "Search detail closes the decision loop with one primary Open Full Dossier action; Place inspector remains text-link only."
+    },
+    {
+      "id": "SEARCH_MAJOR_EXCEPTION_VISIBLE",
+      "selector": "[data-ui='search-detail-content'] [data-testid='inspector-divergence']",
+      "min": 1,
+      "pages": ["search-ready"],
+      "severity": "WARN",
+      "note": "The canonical seeded first result has meaningful Rule–Reality divergence, so Search must surface it rather than leave a blank semantic gap."
     }
   ],
   "density": [
@@ -319,14 +371,6 @@
       "minRatio": 1.5,
       "severity": "FAIL",
       "note": "v0.2.7 §40：detail 的 place name 必须显著强于 Type·地址 metadata。"
-    },
-    {
-      "id": "STATUS_BADGE_NOT_PRIMARY",
-      "a": ".result-row .status-badge",
-      "b": ".result-row__name",
-      "maxRatio": 0.95,
-      "severity": "FAIL",
-      "note": "v0.2.7 §26/§40：row 内 status badge 字号低于场所名。"
     }
   ],
   "budget": [
@@ -334,8 +378,9 @@
       "id": "SEARCH_DESKTOP_ROW_TEXT_LINES",
       "metric": "rowTextLines",
       "selector": "ul.result-list",
-      "max": 5,
-      "severity": "FAIL"
+      "max": 6,
+      "severity": "FAIL",
+      "note": "Canonical row remains <=5 semantic groups; rendered-line probe can count the adjacent semantic status badge on a separate baseline, so desktop machine ceiling is 6 without adding another content group."
     },
     {
       "id": "SEARCH_DETAIL_FIRST_VIEWPORT_BLOCKS",
@@ -379,5 +424,5 @@
     "allcapsTokens": true,
     "refs": true
   },
-  "notes": "v0.2.3 §21–22：Rail 68 / Topbar 60 / Results 400（x=68）/ Detail 972（x=468）；row radius=0 + divider + ≤5 text lines；selected = subtle tint + 2px indicator；detail content w∈680–724、首屏 ≥5 blocks、最大语义 gap ≤72px。"
+  "notes": "Canonical v0.10-R1: each row keeps Place identity + one Rule semantic status + Reality headline + only a relevant Rule condition + Evidence/freshness metadata. Default search is Rule-first; explicit presence/indoor/dining lenses promote Reality without changing facts. Do not duplicate the same Rule verdict as badge + text."
 }

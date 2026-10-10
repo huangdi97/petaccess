@@ -1,83 +1,121 @@
 <script setup lang="ts">
 /**
- * RealityEventLog — shared timeline of onsite observation events (§24/§34/§35).
+ * RealityEventLog — shared timeline of published Reality facts.
  *
- * Used by the Reality page (timeline-first) AND the Place Dossier Reality view
- * (embedded with optional `limit`). Events are rows on a timeline
- * (TIME → LOCATION → EVENT → STATUS → EVIDENCE), never cards. Zone names are
- * resolved through the zones prop so records read 一层公共区域 instead of a raw
- * enum. Empty state is inline, not a card.
+ * Consumer truth comes from v0.9 human-verified Reality claims, not the legacy
+ * ObservationClaim lane. Presence / staff response / facility remain distinct
+ * event types on one temporal rail. Time basis is explicit so a facility's
+ * verification date is never presented as an observation time.
  */
 import { computed } from "vue";
-import type { ObservationView, Zone } from "@petaccess/client-core";
-import {
-  animalScopeLabel,
-  ruleActionLabel,
-  staffActionLabel,
-  zoneConsumerLine,
-} from "../../consumer/labels";
+import type { PublicEvidenceMediaView, RealityEventView, Zone } from "@petaccess/client-core";
+import { type IconName } from "@petaccess/design-tokens";
 import PaIcon from "../ui/PaIcon.vue";
+import ReviewedPublicMedia from "./ReviewedPublicMedia.vue";
+import { zoneConsumerLine } from "../../consumer/labels";
+import {
+  realityEventDetail,
+  realityEventDisplayDate,
+  realityEventDisplayTime,
+  realityEventHeadline,
+  realityEventTimeBasis,
+  realityEventVerification,
+} from "../../consumer/realityEvent";
 
 const props = withDefaults(
   defineProps<{
-    observations: ObservationView[];
+    events: RealityEventView[];
     zones: Zone[];
+    publicMediaByBundle?: Map<string, PublicEvidenceMediaView>;
     placeId: string;
-    /** 内嵌时限制条数；默认全部。 */
     limit?: number;
+    signedIn?: boolean;
+    busyEventId?: string | null;
+    emptyTitle?: string;
+    emptyDescription?: string;
   }>(),
-  { limit: 0 },
+  {
+    limit: 0,
+    publicMediaByBundle: () => new Map(),
+    signedIn: false,
+    busyEventId: null,
+    emptyTitle: "暂无近期现场记录",
+    emptyDescription: "这并不代表现场没有动物。",
+  },
 );
 
-function evidenceStateFor(o: ObservationView): "verified" | "pending" | "disputed" | "historical" {
-  if (o.dispute_status === "DISPUTED") return "disputed";
-  if (o.dispute_status && o.dispute_status !== "NONE") return "pending";
-  return "verified";
+const emit = defineEmits<{
+  confirm: [
+    event: RealityEventView,
+    type: "still_present" | "facility_still_present" | "facility_removed",
+  ];
+}>();
+
+function zoneNameFor(event: RealityEventView): string {
+  if (!event.zone_id) return "场所范围";
+  const zone = props.zones.find((item) => item.id === event.zone_id);
+  return zone ? zoneConsumerLine(zone) : "分区待确认";
 }
 
-/** §35 status：小号 muted 文本；待核验用 clock icon 标注，不用强 badge。 */
-function eventStatusLine(o: ObservationView): string {
-  const confirmed =
-    o.place_confidence === "confirmed_on_site" || o.place_confidence === "high"
-      ? "地点已确认"
-      : "地点待核验";
-  const timeState = evidenceStateFor(o) === "verified" ? "时间已核验" : "时间待核验";
-  return `${confirmed} · ${timeState}`;
+function effortRoute(event: RealityEventView) {
+  return {
+    path: `/contribute/${props.placeId}`,
+    query: {
+      mode: "effort",
+      target: event.id,
+      ...(event.zone_id ? { zone: event.zone_id } : {}),
+    },
+  };
 }
 
-/** §35：pending 事件单独标记（小号 muted + clock icon）。 */
-function isPending(o: ObservationView): boolean {
-  return evidenceStateFor(o) !== "verified";
+function publicMediaFor(event: RealityEventView): PublicEvidenceMediaView | null {
+  const bundleId = event.evidence_bundle_id;
+  if (!bundleId) return null;
+  // One released bundle represents one piece of media even when reviewers
+  // derive several facts from it. Keep the first visible event as its anchor.
+  const first = props.events.find((item) => item.evidence_bundle_id === bundleId);
+  if (first?.id !== event.id) return null;
+  return props.publicMediaByBundle.get(bundleId) ?? null;
 }
 
-function zoneNameFor(o: ObservationView): string | null {
-  if (!o.zone_id) return null;
-  const z = props.zones.find((z) => z.id === o.zone_id);
-  return z ? zoneConsumerLine(z) : null;
+function eventIcon(event: RealityEventView): IconName {
+  if (event.event_type === "staff_response") return "info";
+  if (event.event_type === "animal_facility") return "building";
+  return "eye";
 }
 
-/** Time column shows clock time; the date lives in the date-group header. */
-function timeOnly(iso: string): string {
-  return iso.length >= 16 ? iso.slice(11, 16) : iso.slice(0, 10);
-}
-
-/** Date groups, newest first. */
-interface ObservationGroup {
+interface EventGroup {
   date: string;
-  items: ObservationView[];
+  items: RealityEventView[];
 }
 
-const groups = computed<ObservationGroup[]>(() => {
-  const byDate = new Map<string, ObservationView[]>();
-  for (const o of props.observations) {
-    const date = o.occurred_at.slice(0, 10);
+const groups = computed<EventGroup[]>(() => {
+  const byDate = new Map<string, RealityEventView[]>();
+  for (const event of props.events) {
+    const date = realityEventDisplayDate(event);
     const list = byDate.get(date);
-    if (list) list.push(o);
-    else byDate.set(date, [o]);
+    if (list) list.push(event);
+    else byDate.set(date, [event]);
   }
   return [...byDate.entries()]
     .sort((a, b) => b[0].localeCompare(a[0]))
-    .map(([date, items]) => ({ date, items }));
+    .map(([date, items]) => ({
+      date,
+      items: [...items].sort((a, b) => b.event_at.localeCompare(a.event_at)),
+    }));
+});
+
+const visibleGroups = computed<EventGroup[]>(() => {
+  if (!props.limit) return groups.value;
+  let left = props.limit;
+  const out: EventGroup[] = [];
+  for (const group of groups.value) {
+    if (left <= 0) break;
+    const items = group.items.slice(0, left);
+    if (items.length) out.push({ date: group.date, items });
+    left -= items.length;
+  }
+  return out;
 });
 </script>
 
@@ -85,34 +123,45 @@ const groups = computed<ObservationGroup[]>(() => {
   <div class="reality-event-log" data-ui="reality-event-log">
     <div class="timeline" role="list" data-ui="reality-timeline-list">
       <span class="timeline-rail" data-ui="reality-rail" aria-hidden="true"></span>
-      <template v-for="g in groups" :key="g.date">
-        <div class="timeline-date" data-ui="timeline-date">{{ g.date }}</div>
-        <!-- Timeline is a flat list; events are NOT cards. `limit` truncates
-             embed views to the latest rows (v0.2.4 §24). -->
-        <template v-for="(o, i) in g.items" :key="o.id">
-          <div v-if="limit === 0 || i < limit" class="trace-row" data-ui="reality-event">
-            <time class="trace-row__time" data-ui="reality-event-time">{{
-              timeOnly(o.occurred_at)
-            }}</time>
-            <span class="trace-row__dot" aria-hidden="true" data-ui="reality-event-marker"></span>
-            <div class="trace-row__content">
-              <!-- v0.2.7 §24：Observed Fact = primary；Location = secondary；
-                   Staff Response 从属于事实；Review metadata = tertiary。 -->
+      <template v-for="group in visibleGroups" :key="group.date">
+        <div class="timeline-date" data-ui="timeline-date">{{ group.date }}</div>
+        <div
+          v-for="event in group.items"
+          :key="event.id"
+          class="trace-row"
+          :class="{ 'trace-row--disputed': event.dispute_open }"
+          role="listitem"
+          data-ui="reality-event"
+          :data-event-type="event.event_type"
+        >
+          <time class="trace-row__time" data-ui="reality-event-time">
+            {{ realityEventDisplayTime(event) }}
+          </time>
+          <span
+            class="trace-row__dot"
+            :class="`trace-row__dot--${event.event_type}`"
+            aria-hidden="true"
+            data-ui="reality-event-marker"
+          >
+            <PaIcon :name="eventIcon(event)" size="xs" />
+          </span>
+          <div class="trace-row__content">
+            <div class="trace-row__text">
               <p class="trace-row__event" data-testid="event-fact">
-                {{ animalScopeLabel(o.animal_scope) }} · {{ ruleActionLabel(o.observed_action) }}
-                <span v-if="o.staff_action" class="trace-row__staff"
-                  >（工作人员：{{ staffActionLabel(o.staff_action) }}）</span
-                >
+                {{ realityEventHeadline(event) }}
               </p>
               <p class="trace-row__location" data-testid="event-location">
-                {{ zoneNameFor(o) ?? "地点待确认" }}
+                {{ zoneNameFor(event) }}
+              </p>
+              <p v-if="realityEventDetail(event)" class="trace-row__detail">
+                {{ realityEventDetail(event) }}
               </p>
               <div class="trace-row__meta">
                 <span class="trace-row__status" data-testid="event-status">
-                  <PaIcon v-if="isPending(o)" name="clock" size="sm" label="待核验" />
-                  {{ eventStatusLine(o) }}
+                  {{ realityEventVerification(event) }} · {{ realityEventTimeBasis(event) }}
                 </span>
                 <RouterLink
+                  v-if="event.evidence_bundle_id"
                   class="btn-inline trace-row__evidence"
                   :to="`/place/${placeId}/evidence`"
                   data-testid="event-evidence-link"
@@ -120,21 +169,66 @@ const groups = computed<ObservationGroup[]>(() => {
                   查看证据 →
                 </RouterLink>
               </div>
+              <div
+                v-if="
+                  signedIn && ['observed_presence', 'animal_facility'].includes(event.event_type)
+                "
+                class="trace-row__confirm"
+                aria-label="补充当前现场确认"
+              >
+                <template v-if="event.event_type === 'observed_presence'">
+                  <button
+                    type="button"
+                    :disabled="busyEventId === event.id"
+                    @click="emit('confirm', event, 'still_present')"
+                  >
+                    我现在也看到了
+                  </button>
+                  <RouterLink class="trace-row__effort-link" :to="effortRoute(event)">
+                    这次没看到
+                  </RouterLink>
+                </template>
+                <template v-else>
+                  <button
+                    type="button"
+                    :disabled="busyEventId === event.id"
+                    @click="emit('confirm', event, 'facility_still_present')"
+                  >
+                    设施还在
+                  </button>
+                  <button
+                    type="button"
+                    :disabled="busyEventId === event.id"
+                    @click="emit('confirm', event, 'facility_removed')"
+                  >
+                    设施已撤除
+                  </button>
+                </template>
+              </div>
             </div>
+            <figure
+              v-if="publicMediaFor(event)"
+              class="trace-row__media"
+              data-testid="reality-public-media"
+            >
+              <ReviewedPublicMedia
+                :src="publicMediaFor(event)!.url"
+                alt="经审核允许公开展示的现场证据图片"
+              />
+            </figure>
           </div>
-        </template>
+        </div>
       </template>
     </div>
 
-    <!-- §36 empty：inline，无大卡。 -->
     <div
-      v-if="!observations.length"
+      v-if="!events.length"
       class="reality-empty"
       data-testid="trace-empty"
       data-ui="reality-empty"
     >
-      <p class="reality-empty__title">暂无近期现场记录</p>
-      <p class="muted">这并不代表现场没有动物。</p>
+      <p class="reality-empty__title">{{ emptyTitle }}</p>
+      <p class="muted">{{ emptyDescription }}</p>
       <slot name="empty-action" />
     </div>
   </div>
@@ -145,10 +239,9 @@ const groups = computed<ObservationGroup[]>(() => {
   position: relative;
   margin: var(--pa-space-1) 0 0;
   padding: 0;
-  list-style: none;
 }
+
 .timeline-rail {
-  content: "";
   position: absolute;
   left: calc(72px + 11px);
   top: 8px;
@@ -157,85 +250,182 @@ const groups = computed<ObservationGroup[]>(() => {
   background: var(--pa-color-border-subtle);
   pointer-events: none;
 }
+
 .timeline-date {
-  margin: 28px 0 20px 0;
+  /* Dates belong to the same continuous event rail. A 112px inter-date gap
+     hid most real events below the fold and read like empty canvas. */
+  margin: var(--pa-space-6) 0 var(--pa-space-3);
   padding-left: calc(72px + 24px);
   font-size: var(--pa-font-size-sm);
-  font-weight: var(--pa-font-weight-semibold);
+  font-weight: var(--pa-font-weight-600);
   color: var(--pa-color-text-secondary);
-  letter-spacing: 0.04em;
+  letter-spacing: var(--pa-letter-spacing-wide);
 }
+
 .timeline > .timeline-date:first-child {
   margin-top: 0;
 }
+
 .trace-row {
   display: grid;
   grid-template-columns: 72px 24px 1fr;
   gap: 0 var(--pa-space-3);
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
-  padding: 0 0 24px 0;
-  margin-bottom: 24px;
-  background: transparent;
-  border-radius: 0;
-  box-shadow: none;
+  padding: var(--pa-space-3);
+  margin-bottom: var(--pa-space-3);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: var(--pa-radius-md);
+  background: var(--pa-color-surface-raised);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--pa-color-text-primary) 4%, transparent);
 }
+
 .trace-row:last-child {
-  border-bottom: none;
+  margin-bottom: 0;
 }
+
+.trace-row--disputed {
+  border-left: 3px solid var(--pa-color-evidence-disputed);
+  padding-left: var(--pa-space-3);
+}
+
 .trace-row__time {
   padding-top: 2px;
   font-size: var(--pa-font-size-md);
   font-weight: var(--pa-font-weight-650);
   font-variant-numeric: tabular-nums;
   color: var(--pa-color-text-primary);
-  text-align: left;
   white-space: nowrap;
 }
+
 .trace-row__dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--pa-color-surface);
+  width: 20px;
+  height: 20px;
+  margin: 1px auto 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: var(--pa-border-width) solid var(--pa-color-accent);
-  margin: 6px auto 0;
+  border-radius: var(--pa-radius-pill);
+  background: var(--pa-color-reality-observed-bg);
+  color: var(--pa-color-accent);
 }
+
+.trace-row__dot--staff_response {
+  border-color: var(--pa-color-status-conditional);
+  background: var(--pa-color-status-conditional-bg);
+  color: var(--pa-color-status-conditional);
+}
+
+.trace-row__dot--animal_facility {
+  border-color: var(--pa-color-facility-confirmed);
+  background: var(--pa-color-facility-confirmed-bg);
+  color: var(--pa-color-facility-confirmed);
+}
+
 .trace-row__content {
   min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--pa-space-4);
+  align-items: start;
 }
-/* v0.2.7 §24：Observed Fact = 主行（事实优先）；Location = 次要上下文；
-   Staff Response = 从属于事实；Review metadata = 第三层。 */
+
+.trace-row__text {
+  min-width: 0;
+}
+
+.trace-row__media {
+  width: 132px;
+  aspect-ratio: 4 / 3;
+  margin: 0;
+  overflow: hidden;
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: var(--pa-radius-control);
+  background: var(--pa-color-surface-muted);
+}
+
+.trace-row__media img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
 .trace-row__event {
   margin: 0;
-  font-size: var(--pa-font-size-base);
+  font-size: var(--pa-font-size-lg);
   font-weight: var(--pa-font-weight-600);
   line-height: var(--pa-line-height-23);
+  color: var(--pa-color-text-primary);
   overflow-wrap: anywhere;
 }
-.trace-row__staff {
-  font-size: var(--pa-font-size-sm);
-  color: var(--pa-color-text-secondary);
-}
-.trace-row__location {
+
+.trace-row__location,
+.trace-row__detail {
   margin: var(--pa-space-1) 0 0;
   font-size: var(--pa-font-size-md);
+  line-height: var(--pa-line-height-20);
   color: var(--pa-color-text-secondary);
 }
+
+.trace-row__detail {
+  color: var(--pa-color-text-primary);
+}
+
 .trace-row__meta {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: var(--pa-space-3);
-  margin-top: var(--pa-space-1);
+  margin-top: var(--pa-space-2);
 }
-.trace-row__status {
-  font-size: var(--pa-font-size-sm);
-  color: var(--pa-color-text-secondary);
-}
+
+.trace-row__status,
 .trace-row__evidence {
   font-size: var(--pa-font-size-sm);
 }
 
-/* inline empty — no card, single action. */
+.trace-row__status {
+  color: var(--pa-color-text-muted);
+}
+
+.trace-row__confirm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pa-space-2);
+  margin-top: var(--pa-space-2);
+}
+
+.trace-row__confirm button,
+.trace-row__effort-link {
+  min-height: var(--pa-size-control-sm);
+  padding: 0 var(--pa-space-2);
+  border: none;
+  background: transparent;
+  color: var(--pa-color-accent);
+  font-size: var(--pa-font-size-sm);
+  cursor: pointer;
+}
+
+.trace-row__effort-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.trace-row__confirm button:hover,
+.trace-row__confirm button:focus-visible,
+.trace-row__effort-link:hover,
+.trace-row__effort-link:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.trace-row__confirm button:disabled {
+  color: var(--pa-color-text-muted);
+  cursor: progress;
+  text-decoration: none;
+}
+
 .reality-empty {
   display: flex;
   flex-direction: column;
@@ -243,8 +433,48 @@ const groups = computed<ObservationGroup[]>(() => {
   gap: var(--pa-space-2);
   margin-top: var(--pa-space-4);
 }
+
 .reality-empty__title {
   margin: 0;
   font-weight: var(--pa-font-weight-600);
+}
+
+@media (max-width: 767px) {
+  .timeline-rail {
+    left: calc(52px + 9px);
+  }
+
+  .timeline-date {
+    padding-left: calc(52px + 20px);
+    margin: var(--pa-space-5) 0 var(--pa-space-3);
+  }
+
+  .trace-row {
+    grid-template-columns: 52px 20px 1fr;
+    column-gap: var(--pa-space-2);
+    padding-bottom: var(--pa-space-4);
+    margin-bottom: var(--pa-space-4);
+  }
+
+  .trace-row__time {
+    font-size: var(--pa-font-size-sm);
+  }
+
+  .trace-row__event {
+    font-size: var(--pa-font-size-base);
+  }
+
+  .trace-row__content {
+    grid-template-columns: minmax(0, 1fr) 84px;
+    gap: var(--pa-space-2);
+  }
+
+  .trace-row__media {
+    width: 84px;
+  }
+
+  .trace-row__meta {
+    gap: var(--pa-space-2);
+  }
 }
 </style>

@@ -295,6 +295,7 @@ def _candidate(**over):
         normalization_type=None,
         normative_effect=None,
         holder_scope=None,
+        supersedes_rule_id=None,
     )
     base.update(over)
     return _Stub(**base)

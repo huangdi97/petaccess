@@ -9,12 +9,14 @@
 import { computed } from "vue";
 import { type PlaceSummary } from "@petaccess/client-core";
 import PlaceResultRow from "./PlaceResultRow.vue";
+import PlaceSceneFrame from "./PlaceSceneFrame.vue";
 import SkeletonList from "../SkeletonList.vue";
 import StateMessage from "../StateMessage.vue";
-import StatusBadge from "../StatusBadge.vue";
-import { placeTypeLabel } from "@petaccess/client-core";
-import { freshnessLineFor } from "../../consumer/rowView";
+import { freshnessLineFor, type ConsumerLens } from "../../consumer/rowView";
 import type { HomeCard } from "../../composables/useHomeLauncher";
+import HomeDigestHighlights from "./HomeDigestHighlights.vue";
+import HomePendingSection from "./HomePendingSection.vue";
+import HomeUnavailableSection from "./HomeUnavailableSection.vue";
 
 const props = defineProps<{
   loading: boolean;
@@ -22,11 +24,14 @@ const props = defineProps<{
   places: PlaceSummary[];
   verified: HomeCard[];
   pending: HomeCard[];
+  unavailable: HomeCard[];
   listStale: boolean;
   nearbyFetchedAtMs: number | null;
   online: boolean;
   speciesLabel: string;
   conditionsLabel: Record<string, string>;
+  interest: ConsumerLens;
+  featuredSceneMediaUrl?: string | null;
 }>();
 
 const emit = defineEmits<{
@@ -55,27 +60,30 @@ const freshness = computed(() =>
         kind="EMPTY"
         data-testid="home-empty"
         title="当前还没有已发布的场所数据"
-        description="你仍然可以了解 PetAccess 如何区分规则与现场，或者提交第一条线索。"
+        description="你仍然可以通过地图或搜索确认是否有已收录场所。贡献规则、现场与纠错线索需要先绑定到一个已收录场所。"
       >
         <template #action>
           <RouterLink class="primary" to="/map" data-testid="home-empty-map">探索地图</RouterLink>
-          <RouterLink class="secondary" to="/contribute" data-testid="home-empty-contribute"
-            >贡献线索</RouterLink
-          >
+          <RouterLink class="secondary" to="/search" data-testid="home-empty-search">
+            搜索场所
+          </RouterLink>
         </template>
       </StateMessage>
 
       <template v-else>
-        <p
-          v-if="freshness"
-          class="muted"
-          data-testid="home-freshness"
-          style="margin: 0 0 var(--pa-space-2)"
-        >
+        <p v-if="freshness" class="muted home-freshness" data-testid="home-freshness">
           {{ freshness }}
         </p>
 
-        <h2 class="home-section-title home-section-title--stacked">附近已有依据</h2>
+        <HomeDigestHighlights
+          section="recommend"
+          :interest="interest"
+          :verified="verified"
+          :pending="pending"
+          @open="emit('open', $event)"
+        />
+
+        <h2 class="home-section-title home-section-title--stacked">规则与现场速览</h2>
 
         <p v-if="!verified.length" class="muted" data-testid="verified-empty">
           这一区域暂无有依据的场所。可看地图，或改用搜索指定场所名。
@@ -83,80 +91,79 @@ const freshness = computed(() =>
 
         <!-- v0.2.4 §30：divider rows，非卡。 -->
         <div
-          v-for="c in verified"
+          v-for="(c, index) in verified.slice(0, 3)"
           :key="c.place.id"
           class="home-row"
           :data-testid="'verified-' + c.place.id"
-          @click="emit('open', c.place.id)"
         >
-          <PlaceResultRow
-            :place="c.place"
-            :answer="c.facts.answer"
-            :answer-error="c.facts.answerError"
-            :reality="c.facts.reality"
-            :reality-error="c.facts.realityError"
-            :species-label="speciesLabel"
-            :conditions-label="conditionsLabel"
-          />
-          <div class="row home-row__head">
-            <StatusBadge :semantic="c.status" />
-          </div>
-          <p v-if="c.conditions.length" class="notice" :data-testid="'conditions-' + c.place.id">
-            进入前需满足：{{ c.conditions.join("、") }}
+          <button
+            type="button"
+            class="home-row__open"
+            :aria-label="`查看场所 ${c.place.canonical_name}`"
+            @click="emit('open', c.place.id)"
+          >
+            <div class="home-row__content home-row__content--with-scene">
+              <PlaceSceneFrame
+                class="home-row__scene"
+                :src="index === 0 ? (featuredSceneMediaUrl ?? null) : null"
+                :alt="`场所场景：${c.place.canonical_name}`"
+                :place-type="c.place.place_type"
+                variant="compact"
+                :data-testid="
+                  index === 0 && featuredSceneMediaUrl ? 'home-scene-media' : 'home-scene-fallback'
+                "
+              />
+              <PlaceResultRow
+                :place="c.place"
+                :show-identity-glyph="false"
+                :answer="c.facts.answer"
+                :answer-error="c.facts.answerError"
+                :reality="c.facts.reality"
+                :snapshot="c.facts.snapshot"
+                :reality-error="c.facts.realityError"
+                :species-label="speciesLabel"
+                :conditions-label="conditionsLabel"
+              />
+            </div>
+          </button>
+          <div v-if="c.facts.answer" class="home-row__evidence-link">
             <RouterLink
               class="btn-inline"
               :to="`/place/${c.place.id}/why`"
               :data-testid="'why-' + c.place.id"
-              >为什么这个结论？ →</RouterLink
+              @click.stop
             >
-          </p>
-        </div>
-        <h2 class="home-section-title home-section-title--stacked">附近待补充</h2>
-        <p class="muted">这些场所我们目前没有足够依据下结论，信息不足不等于允许或禁止。</p>
-        <div
-          v-for="c in pending"
-          :key="c.place.id"
-          class="home-row"
-          :data-testid="'pending-' + c.place.id"
-          @click="emit('open', c.place.id)"
-        >
-          <div class="row home-row__head">
-            <strong>{{ c.place.canonical_name }}</strong>
-            <StatusBadge :semantic="c.status" />
+              查看依据 →
+            </RouterLink>
           </div>
-          <span class="muted">{{ placeTypeLabel(c.place.place_type) }}</span>
         </div>
+        <HomeUnavailableSection
+          :unavailable="unavailable"
+          :species-label="speciesLabel"
+          :conditions-label="conditionsLabel"
+          :interest="interest"
+          @open="emit('open', $event)"
+        />
+        <HomePendingSection :pending="pending" @open="emit('open', $event)" />
+
+        <RouterLink
+          v-if="verified.length > 3 || pending.length > 2"
+          class="home-more btn-inline"
+          to="/map"
+        >
+          在地图查看全部附近场所 →
+        </RouterLink>
+
+        <HomeDigestHighlights
+          section="divergence"
+          :interest="interest"
+          :verified="verified"
+          :pending="pending"
+          @open="emit('open', $event)"
+        />
       </template>
     </template>
   </div>
 </template>
 
-<style scoped>
-/* v0.2.4 §30：附近/待核实 = divider rows，非卡（无圆角/无阴影/无 surface 填充）。 */
-.home-row {
-  cursor: pointer;
-  padding: var(--pa-space-3) 0;
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
-  margin-bottom: 0;
-}
-
-.home-row:last-child {
-  border-bottom: none;
-}
-
-.home-row__head {
-  justify-content: space-between;
-}
-
-.home-section-title--stacked {
-  margin: var(--pa-space-5) 0 var(--pa-space-2);
-}
-
-.home-section-title {
-  margin: 0;
-  font-size: var(--pa-font-size-2xl);
-  font-weight: var(--pa-font-weight-medium);
-  line-height: var(--pa-line-height-tight);
-  color: var(--pa-color-text-primary);
-}
-</style>
+<style scoped src="./HomeNearbySection.css"></style>

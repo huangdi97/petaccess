@@ -13,14 +13,15 @@
  */
 
 import type { RealityAnswer, RuleRealityDivergence } from "@petaccess/client-core";
+import { animalFacilityLabel, facilityStateLabel, staffActionLabel } from "./consumer/labels";
 
 /** One-line reader copy for each of the six RealitySummary states. */
 export const REALITY_STATE_LABELS: Record<string, string> = {
   OBSERVED_RECENTLY: "近期现场有动物出现",
   OBSERVED_HISTORICALLY: "仅有历史记录，未呈现为近期",
   MULTI_EVIDENCE_OBSERVED: "多来源证实近期现场有动物",
-  NO_RECENT_RECORD: "暂无近期现场记录（≠ 没有动物）",
-  INSUFFICIENT_OBSERVATION: "现场记录不足或未完成人工核验",
+  NO_RECENT_RECORD: "暂无近期现场记录",
+  INSUFFICIENT_OBSERVATION: "暂无足够现场记录",
   DISPUTED: "现场记录存在争议",
 };
 
@@ -29,7 +30,7 @@ export const DIVERGENCE_LABELS: Record<string, string> = {
   RULE_REALITY_ALIGNED: "规则与现实一致",
   RULE_PROHIBITS_BUT_OBSERVED: "规则禁止，但现场近期有动物出现",
   RULE_ALLOWS_BUT_NO_RECENT_RECORD: "规则允许，但暂无近期现场记录",
-  RULE_UNKNOWN_BUT_OBSERVED: "规则未知，但现场近期有动物出现",
+  RULE_UNKNOWN_BUT_OBSERVED: "规则信息不足，但现场近期有动物出现",
   RULE_CONDITIONAL_AND_OBSERVED: "规则附条件，现场近期有动物出现",
   INSUFFICIENT_DATA: "信息不足，无法对比",
 };
@@ -59,18 +60,18 @@ export function realityTone(state: string | undefined): string {
 }
 
 export function realityStateLabel(answer: RealityAnswer | null | undefined): string {
-  if (!answer) return "暂无近期现场记录（≠ 没有动物）";
-  return REALITY_STATE_LABELS[answer.state] ?? answer.state;
+  if (!answer) return "暂无近期现场记录";
+  return REALITY_STATE_LABELS[answer.state] ?? "现场状态待确认";
 }
 
 export function divergenceLabel(d: RuleRealityDivergence | null | undefined): string {
   if (!d) return "信息不足，无法对比";
-  return DIVERGENCE_LABELS[d.state] ?? d.state;
+  return DIVERGENCE_LABELS[d.state] ?? "信息不足，无法对比";
 }
 
 /** Human-readable staff response action counts (facts only, no score). */
 export function staffResponseLines(staff: { response_action: string; count: number }[]): string[] {
-  return staff.map((s) => `${s.response_action}：${s.count} 次`);
+  return staff.map((s) => `${staffActionLabel(s.response_action)}：${s.count} 次`);
 }
 
 /** Facility facts with verified freshness. */
@@ -83,9 +84,9 @@ export function facilityLines(
   }[],
 ): string[] {
   return facilities.map((f) => {
-    const op = f.operational_state === "active" ? "" : `（${f.operational_state}）`;
+    const state = facilityStateLabel(f.operational_state);
     const fresh = f.last_verified_at ? `，最近核验 ${f.last_verified_at.slice(0, 10)}` : "";
-    return `${f.facility_type}${op}：${f.count} 处${fresh}`;
+    return `${animalFacilityLabel(f.facility_type)}（${state}）：${f.count} 处${fresh}`;
   });
 }
 
@@ -110,5 +111,5 @@ export function contributionStatusLabel(candidate: {
   reality_decision: string | null;
 }): string {
   const key = candidate.reality_decision ?? candidate.review_status;
-  return CONTRIBUTION_STATUS_LABELS[key] ?? key;
+  return CONTRIBUTION_STATUS_LABELS[key] ?? "核验状态待确认";
 }

@@ -12,26 +12,35 @@
  * (CoexistenceSnapshot SSOT, bounded concurrency, cache). Markers = shape +
  * semantic status, never a ranking; map failure surfaces via StateMessage.
  */
+import { computed, onMounted, ref } from "vue";
+import { client, MAP_MAX_ZOOM, MAP_MIN_ZOOM, type MapRenderConfig } from "@petaccess/client-core";
 import MapResultPane from "../components/domain/MapResultPane.vue";
 import MockMap from "../components/MockMap.vue";
+import TencentMap from "../components/TencentMap.vue";
 import MapSelectedSheet from "../components/map/MapSelectedSheet.vue";
 import PlacePreview from "../components/domain/PlacePreview.vue";
 import QueryContextBar from "../components/domain/QueryContextBar.vue";
 import StateMessage from "../components/StateMessage.vue";
 import { useMapWorkspace } from "../composables/useMapWorkspace";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 
 const {
   camera,
   places,
+  lens,
+  lensLabels,
   statuses,
+  unavailablePlaces,
   loading,
   error,
   locationState,
+  mapSearchLoading,
+  mapSearchError,
   view,
   selected,
   isDesktop,
   preview,
+  selectedSceneMedia,
   activeFilters,
   clusters,
   coverage,
@@ -39,15 +48,141 @@ const {
   locate,
   load,
   open,
+  selectResult,
   onSelectCluster,
-  goSearch,
+  searchMap,
   syncRoutePlace,
 } = useMapWorkspace();
 const router = useRouter();
+const route = useRoute();
+
+const renderConfig = ref<MapRenderConfig | null>(null);
+const realMapError = ref("");
+const mobileMapQuery = ref("");
+
+function submitMobileMapSearch() {
+  const value = mobileMapQuery.value.trim();
+  if (!value || mapSearchLoading.value) return;
+  void searchMap(value);
+}
+const useRealMap = computed(
+  () =>
+    renderConfig.value?.provider === "tencent" &&
+    renderConfig.value.real_enabled &&
+    Boolean(renderConfig.value.client_key) &&
+    !realMapError.value,
+);
+
+const simplifiedBasemapCopy = computed(() => {
+  const compact = "简化空间底图（示意） · 点位来自已收录坐标；这不等于已核验坐标。";
+  if (realMapError.value) {
+    return isDesktop.value
+      ? "真实底图暂不可用，显示简化空间底图（示意街道）；点位依据已收录坐标，这不等于已核验坐标，可拖动查询周边。"
+      : `真实底图不可用 · ${compact}`;
+  }
+  if (renderConfig.value && !renderConfig.value.real_enabled) {
+    return isDesktop.value
+      ? "当前环境未配置真实地图底图，显示简化空间底图（示意街道）；点位依据已收录坐标，这不等于已核验坐标，可拖动查询周边。"
+      : compact;
+  }
+  if (
+    renderConfig.value &&
+    (renderConfig.value.provider !== "tencent" || !renderConfig.value.client_key)
+  ) {
+    return isDesktop.value
+      ? "真实地图配置不完整，当前显示简化空间底图（示意街道）；点位仍依据已收录坐标。"
+      : `地图配置不完整 · ${compact}`;
+  }
+  return "";
+});
+
+onMounted(async () => {
+  try {
+    renderConfig.value = await client.mapConfig();
+  } catch {
+    // Map data/list remains usable, but the user must know the visible canvas
+    // is the simplified renderer rather than silently mistaking it for a real map.
+    renderConfig.value = null;
+    realMapError.value = "未能取得真实地图能力配置";
+  }
+});
+
+const uiState = computed(() => {
+  if (loading.value) return "loading";
+  if (error.value) return "error";
+  if (!places.value.length) return "empty";
+  return "ready";
+});
+const uiFixture = computed(() => `map-${uiState.value}-v1`);
+
+const MAP_LENSES = [
+  { key: "rule", label: "规则" },
+  { key: "reality", label: "现场" },
+  { key: "facility", label: "设施" },
+  { key: "divergence", label: "差异" },
+] as const;
 
 /** The pane's empty-state action leads back to the task launcher. */
 function goHome() {
   void router.push({ name: "home" });
+}
+
+async function zoomMap(delta: number) {
+  const zoom = Math.max(MAP_MIN_ZOOM, Math.min(MAP_MAX_ZOOM, camera.value.zoom + delta));
+  if (zoom === camera.value.zoom) return;
+  camera.value = { ...camera.value, zoom };
+  // The nearby radius is derived from zoom. Refresh the geographic query so
+  // "current viewport" never describes a wider area than the fetched data.
+  await load();
+}
+
+async function clearSelectedPlaceForSpatialMove() {
+  selected.value = null;
+  if (typeof route.query.place !== "string") return;
+  const query = { ...route.query };
+  delete query.place;
+  await router.replace({ query });
+}
+
+async function panMap(lat: number, lng: number) {
+  // A spatial move starts a new geographic task. Clear the old deep-linked
+  // place before loading, otherwise resolveSelection() can pull the camera
+  // straight back to the previous selection.
+  await clearSelectedPlaceForSpatialMove();
+  camera.value = { ...camera.value, lat, lng };
+  await load();
+}
+
+async function locateMap() {
+  await clearSelectedPlaceForSpatialMove();
+  locate();
+}
+
+async function setAbsoluteZoom(zoom: number) {
+  const next = Math.max(MAP_MIN_ZOOM, Math.min(MAP_MAX_ZOOM, zoom));
+  if (Math.abs(next - camera.value.zoom) < 0.01) return;
+  camera.value = { ...camera.value, zoom: next };
+  await load();
+}
+
+function handleRealMapError(message: string) {
+  realMapError.value = message || "真实地图暂不可用";
+}
+
+function chooseMapResult(id: string) {
+  if (!isDesktop.value) {
+    open(id);
+    return;
+  }
+  const place = places.value.find((item) => item.id === id);
+  if (place?.latitude != null && place.longitude != null) {
+    camera.value = {
+      ...camera.value,
+      lat: place.latitude,
+      lng: place.longitude,
+    };
+  }
+  selectResult(id);
 }
 </script>
 
@@ -57,11 +192,34 @@ function goHome() {
     data-testid="map-workspace"
     data-ui="map-shell"
     data-ui-page="map"
-    data-ui-state="ready"
-    data-ui-fixture="map-ready-v1"
+    :data-ui-state="uiState"
+    :data-ui-fixture="uiFixture"
   >
-    <h1 class="visually-hidden">规则地图</h1>
+    <h1 class="visually-hidden">规则与现场地图</h1>
     <QueryContextBar />
+
+    <!-- Canonical v0.10-R1 Map: Rule / Reality / Facility / Divergence are
+         first-class lenses over the same CoexistenceSnapshot facts. -->
+    <nav class="map-lensbar" data-ui="map-lensbar" aria-label="地图信息镜头">
+      <span class="map-lensbar__label">地图显示</span>
+      <div class="map-lensbar__options">
+        <button
+          v-for="item in MAP_LENSES"
+          :key="item.key"
+          type="button"
+          class="map-lensbar__button"
+          :class="{ 'map-lensbar__button--active': lens === item.key }"
+          :aria-pressed="lens === item.key"
+          :data-testid="'map-lens-' + item.key"
+          @click="lens = item.key"
+        >
+          {{ item.label }}
+        </button>
+      </div>
+      <span class="map-lensbar__hint" data-testid="map-lens-semantics">
+        “差异”用于查看规则与现场的不一致，不代表当前一定存在冲突。
+      </span>
+    </nav>
 
     <!-- v0.2.4 §32：desktop 没有「地图/列表」模式切换 —— desktop 恒为 List+Map。
          Mobile 保留 compact mode toggle（仅确有必要时）。 -->
@@ -94,17 +252,23 @@ function goHome() {
       <MapResultPane
         v-if="isDesktop || view === 'list'"
         :places="places"
+        :lens="lens"
+        :lens-labels="lensLabels"
         :statuses="statuses"
+        :unavailable-places="unavailablePlaces"
+        :selected-id="selected?.id ?? null"
         :visible-places="visiblePlaces"
         :loading="loading"
         :error="error"
         :coverage-text="coverage.text"
         :location-state="locationState"
         :filters="activeFilters"
+        :search-loading="mapSearchLoading"
+        :search-error="mapSearchError"
         @update:filters="activeFilters = $event"
-        @locate="locate"
-        @search="goSearch"
-        @open="open"
+        @locate="locateMap"
+        @search="searchMap"
+        @open="chooseMapResult"
         @retry="load"
         @clear-filters="activeFilters = []"
         @go-home="goHome"
@@ -116,8 +280,52 @@ function goHome() {
         class="map-canvas"
         data-testid="map"
         data-ui="map-canvas"
-        aria-label="规则地图"
+        aria-label="规则与现场地图"
       >
+        <!-- On mobile, searching the map must not require leaving the canvas.
+             Use the same governed search as the desktop result pane. -->
+        <div v-if="!isDesktop" class="map-mobile-tools">
+          <form
+            class="map-mobile-tools__search"
+            role="search"
+            @submit.prevent="submitMobileMapSearch"
+          >
+            <input
+              v-model="mobileMapQuery"
+              data-testid="map-mobile-search-input"
+              aria-label="在地图中搜索场所、商圈或地址"
+              placeholder="搜索场所、商圈或地址"
+              autocomplete="off"
+            />
+            <button
+              type="submit"
+              data-testid="map-mobile-search-submit"
+              :disabled="!mobileMapQuery.trim() || mapSearchLoading"
+            >
+              {{ mapSearchLoading ? "查询中…" : "搜索" }}
+            </button>
+            <button
+              type="button"
+              class="map-mobile-tools__locate"
+              data-testid="map-mobile-locate"
+              aria-label="使用当前定位搜索附近场所"
+              :disabled="locationState === 'REQUESTING'"
+              @click="locateMap"
+            >
+              定位
+            </button>
+          </form>
+          <p v-if="mapSearchError" class="map-mobile-tools__feedback" role="status">
+            {{ mapSearchError }}
+          </p>
+          <p
+            v-else-if="locationState === 'DENIED'"
+            class="map-mobile-tools__feedback"
+            role="status"
+          >
+            未获得定位权限，可直接搜索场所。
+          </p>
+        </div>
         <StateMessage
           v-if="error && !isDesktop"
           kind="ERROR"
@@ -129,13 +337,37 @@ function goHome() {
             <button type="button" class="primary" @click="load">重试</button>
           </template>
         </StateMessage>
+        <TencentMap
+          v-else-if="useRealMap && renderConfig?.client_key"
+          :client-key="renderConfig.client_key"
+          :camera="camera"
+          :clusters="clusters"
+          :lens="lens"
+          :selected-id="selected?.id ?? null"
+          @select="onSelectCluster"
+          @zoom="zoomMap"
+          @zoom-absolute="setAbsoluteZoom"
+          @pan="panMap"
+          @error="handleRealMapError"
+        />
         <MockMap
           v-else
           :camera="camera"
           :clusters="clusters"
+          :lens="lens"
+          :lens-labels="lensLabels"
           :selected-id="selected?.id ?? null"
           @select="onSelectCluster"
+          @zoom="zoomMap"
+          @pan="panMap"
         />
+        <p
+          v-if="simplifiedBasemapCopy"
+          class="map-provider-fallback"
+          data-testid="map-real-provider-fallback"
+        >
+          {{ simplifiedBasemapCopy }}
+        </p>
       </section>
     </div>
 
@@ -147,6 +379,17 @@ function goHome() {
         :snapshot="preview.snapshot"
         :loading="preview.loading"
         :error="preview.error"
+        :scene-media-url="selectedSceneMedia?.url ?? null"
+        :map-lens-name="
+          lens === 'reality'
+            ? '现场'
+            : lens === 'facility'
+              ? '设施'
+              : lens === 'divergence'
+                ? '差异'
+                : ''
+        "
+        :map-lens-label="selected && lens !== 'rule' ? lensLabels[selected.id] : ''"
       />
     </div>
     <!-- 移动端：选中场所 = 真实 overlay bottom sheet（v0.2.5 §22–24）。 -->
@@ -157,6 +400,17 @@ function goHome() {
       :snapshot="preview.snapshot"
       :loading="preview.loading"
       :error="preview.error"
+      :scene-media-url="selectedSceneMedia?.url ?? null"
+      :map-lens-name="
+        lens === 'reality'
+          ? '现场'
+          : lens === 'facility'
+            ? '设施'
+            : lens === 'divergence'
+              ? '差异'
+              : ''
+      "
+      :map-lens-label="selected && lens !== 'rule' ? lensLabels[selected.id] : ''"
       @close="
         selected = null;
         syncRoutePlace(null);
@@ -170,6 +424,68 @@ function goHome() {
   min-height: 100%;
   display: flex;
   flex-direction: column;
+  background: var(--pa-color-surface-muted);
+}
+
+.map-lensbar {
+  display: flex;
+  align-items: center;
+  gap: var(--pa-space-3);
+  min-height: 60px;
+  padding: var(--pa-space-2) var(--pa-space-4);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  background: color-mix(in srgb, var(--pa-color-surface) 94%, transparent);
+}
+
+.map-lensbar__label {
+  flex: 0 0 auto;
+  font-size: var(--pa-font-size-sm);
+  color: var(--pa-color-text-muted);
+}
+
+.map-lensbar__options {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  overflow-x: auto;
+  padding: 3px;
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: var(--pa-radius-control);
+  background: var(--pa-color-surface-muted);
+}
+
+.map-lensbar__button {
+  flex: 0 0 auto;
+  min-height: var(--pa-size-control-md);
+  padding: 0 var(--pa-space-3);
+  border: none;
+  border-radius: calc(var(--pa-radius-control) - 2px);
+  background: transparent;
+  color: var(--pa-color-text-secondary);
+  font-size: var(--pa-font-size-md);
+  cursor: pointer;
+}
+
+.map-lensbar__button--active {
+  background: var(--pa-color-surface-raised);
+  color: var(--pa-color-accent);
+  font-weight: var(--pa-font-weight-650);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--pa-color-text-primary) 10%, transparent);
+}
+
+.map-lensbar__button:hover,
+.map-lensbar__button:focus-visible {
+  background: var(--pa-color-accent-weak);
+  outline: none;
+}
+
+.map-lensbar__hint {
+  margin-left: auto;
+  color: var(--pa-color-text-muted);
+  font-size: var(--pa-font-size-xs);
+  line-height: var(--pa-line-height-20);
+  white-space: nowrap;
 }
 
 /* v0.2.5 §25：compact segmented control（非两个独立 pill）。 */
@@ -210,11 +526,12 @@ function goHome() {
   flex-direction: column;
   flex: 1 1 auto;
   min-height: 0;
-  gap: var(--pa-space-4);
+  gap: var(--pa-space-3);
   padding: var(--pa-space-3);
 }
 
-/* Desktop map mode: 400px result pane + the map canvas taking the rest. */
+/* Desktop map mode: the workspace owns the viewport below the 60px query bar,
+   so the spatial canvas remains dominant instead of ending halfway down page. */
 .map-workspace__body--split {
   flex-direction: row;
   align-items: stretch;
@@ -233,11 +550,178 @@ function goHome() {
   flex: 1 1 auto;
   min-width: 0;
   min-height: 320px;
-  border: var(--pa-border-width) solid var(--pa-color-border);
-  border-radius: var(--pa-radius-md);
-  /* v0.2.7 §8/§9：画布基底退回极浅冷中性纯色 —— MockMap 的抽象城市
-     SVG 在其上分层；不再叠加「灰网格+数字」式的 repeating grid。 */
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: calc(var(--pa-radius-md) + 4px);
   background: var(--pa-color-map-grid-a);
+  box-shadow: var(--pa-elevation-1);
+}
+
+/* Map is a viewport workspace on phones, not a fixed-height illustration.
+ * The global shell reserves the fixed bottom nav; fill precisely the area
+ * above it so the map never leaves a blank 150–200px strip on tall screens. */
+@media (max-width: 767px) {
+  .map-lensbar {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .map-lensbar__hint {
+    width: 100%;
+    margin-left: 0;
+    white-space: normal;
+  }
+
+  .map-workspace {
+    height: calc(100vh - var(--pa-safe-total-bottom));
+    height: calc(100dvh - var(--pa-safe-total-bottom));
+    min-height: 540px;
+  }
+
+  .map-workspace__body {
+    min-height: 0;
+  }
+
+  .map-canvas {
+    min-height: 0;
+  }
+}
+
+@media (min-width: 768px) {
+  .map-workspace__body {
+    height: calc(100vh - 112px);
+    min-height: 560px;
+    padding: var(--pa-space-3);
+  }
+
+  .map-workspace__body--split {
+    padding: var(--pa-space-3);
+  }
+
+  .map-canvas {
+    min-height: 0;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .map-workspace__body,
+  .map-workspace__body--split {
+    padding: var(--pa-space-2);
+  }
+
+  .map-workspace__body--split .map-pane {
+    flex-basis: 320px;
+    padding-right: var(--pa-space-3);
+  }
+
+  .map-lensbar {
+    gap: var(--pa-space-2);
+    padding-inline: var(--pa-space-3);
+  }
+}
+
+/* Search remains inside the spatial surface on mobile; the desktop
+   workspace continues using its dedicated list/search pane. */
+.map-mobile-tools {
+  position: absolute;
+  top: var(--pa-space-3);
+  left: var(--pa-space-3);
+  right: 64px;
+  z-index: 9;
+  pointer-events: none;
+}
+
+.map-mobile-tools__search {
+  display: flex;
+  gap: var(--pa-space-1);
+  align-items: stretch;
+  pointer-events: auto;
+  background: var(--pa-color-surface);
+  border: var(--pa-border-width) solid var(--pa-color-border);
+  border-radius: calc(var(--pa-radius-md) + 2px);
+  padding: var(--pa-space-1);
+  box-shadow: var(--pa-elevation-2);
+}
+
+.map-mobile-tools__search input {
+  min-width: 0;
+  width: 100%;
+  flex: 1 1 0;
+  border: 0;
+  background: transparent;
+  padding: 0 var(--pa-space-2);
+  font-size: var(--pa-font-size-md);
+}
+
+.map-mobile-tools__search input:focus-visible {
+  outline: 2px solid var(--pa-color-border-focus);
+  outline-offset: -2px;
+}
+
+.map-mobile-tools__search button {
+  border: 0;
+  background: var(--pa-color-accent);
+  color: var(--pa-color-text-inverse);
+  padding: 0 var(--pa-space-2);
+  min-height: var(--pa-size-control-md);
+  border-radius: var(--pa-radius-control);
+  flex: 0 0 auto;
+  cursor: pointer;
+  font-size: var(--pa-font-size-sm);
+}
+
+.map-mobile-tools__search button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.map-mobile-tools__search .map-mobile-tools__locate {
+  background: var(--pa-color-accent-weak);
+  color: var(--pa-color-accent);
+}
+
+.map-mobile-tools__feedback {
+  max-width: 100%;
+  pointer-events: auto;
+  margin: var(--pa-space-1) 0 0;
+  padding: var(--pa-space-2);
+  border-radius: var(--pa-radius-control);
+  background: var(--pa-color-surface);
+  color: var(--pa-color-text-secondary);
+  font-size: var(--pa-font-size-sm);
+}
+
+@media (max-width: 379px) {
+  .map-mobile-tools {
+    right: var(--pa-space-3);
+    top: 60px;
+  }
+}
+
+.map-provider-fallback {
+  position: absolute;
+  left: var(--pa-space-3);
+  bottom: var(--pa-space-3);
+  z-index: 6;
+  max-width: min(420px, calc(100% - var(--pa-space-6)));
+  margin: 0;
+  padding: var(--pa-space-2) var(--pa-space-3);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: var(--pa-radius-control);
+  background: color-mix(in srgb, var(--pa-color-surface) 94%, transparent);
+  color: var(--pa-color-text-secondary);
+  font-size: var(--pa-font-size-sm);
+  line-height: var(--pa-line-height-20);
+}
+
+@media (max-width: 767px) {
+  .map-provider-fallback {
+    right: var(--pa-space-3);
+    max-width: none;
+    padding: var(--pa-space-1) var(--pa-space-2);
+    border-radius: var(--pa-radius-sm);
+    font-size: var(--pa-font-size-xs);
+    line-height: var(--pa-line-height-20);
+  }
 }
 
 /* 桌面浮动预览：唯一允许的浮动卡片（freeze §5：map preview 10–12px + light shadow）。 */
@@ -246,7 +730,7 @@ function goHome() {
   right: var(--pa-space-5);
   bottom: var(--pa-space-5);
   /* v0.2.3 §37：selected preview 只一个，w 280–320。 */
-  width: min(300px, calc(100% - var(--pa-space-6)));
+  width: min(340px, calc(100% - var(--pa-space-6)));
   max-height: calc(100vh - var(--pa-space-7));
   overflow-y: auto;
   border-radius: var(--pa-radius-md);

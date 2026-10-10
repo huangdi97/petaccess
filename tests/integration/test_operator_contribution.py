@@ -59,7 +59,9 @@ def test_operator_claim_full_loop(client):
         "/api/v1/auth/login", json={"email": operator["email"], "password": "passw0rd123"}
     ).json()["access_token"]
 
-    # 1. moderator creates a place + a source-backed initial rule
+    # 1. moderator creates a place + an older operator-policy rule.
+    #    Also seed a LEGAL rule in the same cell: an operator questionnaire
+    #    must never supersede it.
     place = client.post(
         "/api/v1/places",
         json={
@@ -74,9 +76,9 @@ def test_operator_claim_full_loop(client):
     src = client.post(
         "/api/v1/sources",
         json={
-            "source_type": "ordinary_user",
-            "issuer": "社区初版",
-            "directness": "secondary",
+            "source_type": "official_operator_policy",
+            "issuer": "历史运营方政策",
+            "directness": "direct",
         },
         headers=_auth(mod_tok),
     )
@@ -89,11 +91,41 @@ def test_operator_claim_full_loop(client):
             "action": "enter",
             "effect": "allowed",
             "source_id": src.json()["id"],
-            "rule_origin": "community_contribution",
+            "rule_origin": "operator_declared",
+            "rule_layer": "OPERATOR_POLICY",
+            "mandatory_level": "operator_discretion",
         },
         headers=_auth(mod_tok),
     )
     assert r1.status_code == 201
+    old_operator_rule_id = r1.json()["id"]
+
+    legal_src = client.post(
+        "/api/v1/sources",
+        json={
+            "source_type": "statute_or_regulation",
+            "issuer": "测试法定规则",
+            "directness": "direct",
+        },
+        headers=_auth(mod_tok),
+    )
+    assert legal_src.status_code == 201
+    legal_rule = client.post(
+        "/api/v1/rules",
+        json={
+            "place_id": place_id,
+            "animal_scope": "ordinary_pet",
+            "action": "enter",
+            "effect": "allowed",
+            "source_id": legal_src.json()["id"],
+            "rule_origin": "official_regulation",
+            "rule_layer": "LEGAL",
+            "mandatory_level": "mandatory",
+        },
+        headers=_auth(mod_tok),
+    )
+    assert legal_rule.status_code == 201, legal_rule.text
+    legal_rule_id = legal_rule.json()["id"]
 
     # 2. operator registers an Operator entity via claim flow needs operator_id;
     #    create through admin places/operator path — operator entity seeded? create via API:
@@ -123,6 +155,21 @@ def test_operator_claim_full_loop(client):
     assert claim.status_code == 201, claim.text
     claim_id = claim.json()["id"]
 
+    mine = client.get(
+        f"/api/v1/operator-claims/mine?place_id={place_id}",
+        headers=_auth(op_tok),
+    )
+    assert mine.status_code == 200, mine.text
+    assert mine.json()[0]["id"] == claim_id
+    assert mine.json()[0]["status"] == "submitted"
+
+    other_user_claims = client.get(
+        f"/api/v1/operator-claims/mine?place_id={place_id}",
+        headers=_auth(member["token"]),
+    )
+    assert other_user_claims.status_code == 200, other_user_claims.text
+    assert other_user_claims.json() == []
+
     # 4. moderator approves → operator becomes place operator
     review = client.post(
         f"/api/v1/operator-claims/{claim_id}/review", json={"approve": True}, headers=_auth(mod_tok)
@@ -132,7 +179,75 @@ def test_operator_claim_full_loop(client):
     place_after = client.get(f"/api/v1/places/{place_id}").json()
     assert place_after["operator_id"] == operator_id
 
-    # 5. questionnaire → new operator rules supersede community rule
+    # 5. questionnaire → only matching prior OPERATOR_POLICY is versioned
+    # A conditional policy without an explicit structured condition is not a
+    # valid consumer transaction; reject it before any Rule write.
+    invalid_conditional = client.post(
+        f"/api/v1/operator-claims/{claim_id}/questionnaire",
+        json={
+            "answers": [
+                {
+                    "zone_id": None,
+                    "animal_scope": "ordinary_pet",
+                    "action": "enter",
+                    "effect": "conditional",
+                    "conditions": [],
+                }
+            ]
+        },
+        headers=_auth(op_tok),
+    )
+    assert invalid_conditional.status_code == 422
+    assert invalid_conditional.json()["error"]["code"] == "validation_error"
+    assert "ValueError" not in invalid_conditional.text
+
+    duplicate_cells = client.post(
+        f"/api/v1/operator-claims/{claim_id}/questionnaire",
+        json={
+            "answers": [
+                {
+                    "zone_id": None,
+                    "animal_scope": "dog",
+                    "action": "enter",
+                    "effect": "allowed",
+                    "conditions": [],
+                },
+                {
+                    "zone_id": None,
+                    "animal_scope": "dog",
+                    "action": "enter",
+                    "effect": "prohibited",
+                    "conditions": [],
+                },
+            ]
+        },
+        headers=_auth(op_tok),
+    )
+    assert duplicate_cells.status_code == 422
+
+    from app.models import Zone
+
+    db = get_session_factory()()
+    foreign_zone = db.query(Zone).filter(Zone.place_id != place_id).first()
+    foreign_zone_id = foreign_zone.id
+    db.close()
+    foreign_zone_policy = client.post(
+        f"/api/v1/operator-claims/{claim_id}/questionnaire",
+        json={
+            "answers": [
+                {
+                    "zone_id": foreign_zone_id,
+                    "animal_scope": "dog",
+                    "action": "enter",
+                    "effect": "allowed",
+                    "conditions": [],
+                }
+            ]
+        },
+        headers=_auth(op_tok),
+    )
+    assert foreign_zone_policy.status_code == 404
+
     q = client.post(
         f"/api/v1/operator-claims/{claim_id}/questionnaire",
         json={
@@ -159,11 +274,27 @@ def test_operator_claim_full_loop(client):
     assert len(q.json()["created_rules"]) == 2
 
     rules = client.get(f"/api/v1/places/{place_id}/rules").json()["items"]
-    current = [r for r in rules if r["status"] == "current"]
-    superseded = [r for r in rules if r["status"] == "superseded"]
-    assert len(current) == 2 and len(superseded) == 1
-    assert superseded[0]["rule_origin"] == "community_contribution"
-    assert all(r["rule_origin"] == "operator_declared" for r in current)
+    by_id = {rule["id"]: rule for rule in rules}
+    current = [rule for rule in rules if rule["status"] == "current"]
+    superseded = [rule for rule in rules if rule["status"] == "superseded"]
+
+    assert by_id[old_operator_rule_id]["status"] == "superseded"
+    assert by_id[legal_rule_id]["status"] == "current"
+    assert by_id[legal_rule_id]["rule_layer"] == "LEGAL"
+
+    created_ids = set(q.json()["created_rules"])
+    created = [rule for rule in current if rule["id"] in created_ids]
+    assert len(created) == 2
+    assert all(rule["rule_origin"] == "operator_declared" for rule in created)
+    assert all(rule["rule_layer"] == "OPERATOR_POLICY" for rule in created)
+    assert all(rule["mandatory_level"] == "operator_discretion" for rule in created)
+    assert old_operator_rule_id in {rule["id"] for rule in superseded}
+    ordinary_policy = next(
+        rule
+        for rule in created
+        if rule["animal_scope"] == "ordinary_pet" and rule["action"] == "enter"
+    )
+    assert ordinary_policy["supersedes_rule_id"] == old_operator_rule_id
 
     # 6. evaluator reflects the new operator rules
     ev = client.post(

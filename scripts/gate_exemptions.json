@@ -1398,6 +1398,20 @@
       "path": "views/RealityTraceView.vue",
       "reason": "frozen v5 consumer component; RC round forbids UI refactor; planned split after release — see V010_TECH_DEBT_REGISTER #TD-030",
       "reference": "TD-030"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/reality.py",
+      "symbol": "consumer_reality_events",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
+    },
+    {
+      "rule": "dead-code",
+      "path": "api/v1/v05.py",
+      "symbol": "contribute_rule_lead",
+      "reason": "decorator-registered entry point (dynamic dispatch; FastAPI/Celery/middleware)",
+      "reference": "TD-028"
     }
   ]
 }

@@ -12,84 +12,258 @@
  */
 import { computed } from "vue";
 import type { AccessAnswer, CoexistenceSnapshot, Zone } from "@petaccess/client-core";
-import { zoneConsumerLine } from "../../consumer/labels";
+import {
+  animalFacilityLabel,
+  facilityPurposeIsConfirmed,
+  staffResponseSummaryLabel,
+  zoneConsumerLine,
+} from "../../consumer/labels";
 import { answerConditions, answerStatusKey, answerVerdictLabel } from "../../answer";
-import { realityStateLabel } from "../../reality";
+import { coexistenceRealityLine } from "../../consumer/rowView";
+import { querySubjectLabel } from "../../consumer/queryContext";
+import { divergenceLabel } from "../../reality";
+import { publicSourceIssuer } from "../../consumer/sourcePrivacy";
 import StatusBadge from "../StatusBadge.vue";
-import { session } from "@petaccess/client-core";
+import type { ZoneDecisionState } from "../../composables/useZoneDecisions";
 
 const props = withDefaults(
   defineProps<{
     answer: AccessAnswer | null;
     coexistence: CoexistenceSnapshot | null;
     zoneSummary: Zone[];
+    zoneDecisions: Record<string, ZoneDecisionState>;
     primarySourceLabel: string | null;
     latestVerifiedAt: string | null;
     observationCount: number;
+    /** Public Place identity facts only; no inferred hours/coordinates. */
+    placeKindLabel?: string;
+    canonicalAddress?: string | null;
+    /** Snapshot transport failure is distinct from a legitimate UNKNOWN answer. */
+    snapshotError?: boolean;
     /** §11：mobile 也要 Space/Evidence summary row（非展开），desktop 五块齐全。 */
     desktop?: boolean;
   }>(),
-  { desktop: true },
+  { desktop: true, snapshotError: false },
 );
 
 const conditions = computed(() => answerConditions(props.answer));
 const keyCondition = computed(() => conditions.value[0] ?? "");
-const verdict = computed(() => answerVerdictLabel(props.answer));
+const verdict = computed(() =>
+  props.snapshotError ? "暂时无法取得" : answerVerdictLabel(props.answer),
+);
 const statusKey = computed(() => answerStatusKey(props.answer));
-const speciesLabel = computed(() => {
-  const s = session.activePet?.species ?? "dog";
-  if (session.activePet?.service_role === "working") return "服务犬";
-  return s === "dog" ? "普通犬" : s === "cat" ? "猫" : "其他宠物";
-});
-const petContext = computed(() =>
-  session.activePet ? `我的宠物：${session.activePet.display_name}` : "我的宠物：未设置",
-);
+const querySubject = computed(() => `查询对象：${querySubjectLabel()}`);
 const realityLine = computed(() =>
-  props.coexistence?.reality_answer
-    ? realityStateLabel(props.coexistence.reality_answer)
-    : "暂无足够现场记录",
+  props.snapshotError
+    ? "现场概览暂时无法取得"
+    : coexistenceRealityLine(props.coexistence, props.coexistence?.reality_answer),
 );
-const primaryEvidence = computed(
-  () => props.primarySourceLabel ?? props.answer?.evidence_state.rules[0]?.issuer ?? "来源待补充",
-);
+const realityMetaLine = computed(() => {
+  const reality = props.coexistence?.reality_answer;
+  const evidence = props.coexistence?.evidence_summary;
+  if (!reality && !evidence) return "";
+  const parts: string[] = [];
+  const factCount = evidence?.reality_evidence_count ?? 0;
+  const sourceCount = evidence?.reality_distinct_source_count ?? 0;
+  if (factCount > 0) parts.push(`${factCount} 条经核验现场事实`);
+  if (sourceCount > 0) parts.push(`${sourceCount} 个来源`);
+  if (reality?.days_since_last_seen != null)
+    parts.push(`最近动物记录 ${reality.days_since_last_seen} 天前`);
+  return parts.join(" · ");
+});
+const primaryEvidence = computed(() => {
+  if (props.primarySourceLabel) return props.primarySourceLabel;
+  const evidence = props.answer?.evidence_state.rules[0];
+  return evidence ? publicSourceIssuer(evidence.source_type, evidence.issuer) : "来源待补充";
+});
 /** §11 mobile：space summary row 的 value。 */
 const spaceSummaryLine = computed(() =>
   props.zoneSummary.length ? `${props.zoneSummary.length} 个已收录区域` : "暂无已收录区域",
 );
-/** §11 mobile：evidence summary row 的 value。 */
-const evidenceSummaryLine = computed(
-  () =>
-    `${primaryEvidence.value} · 最近核验${props.latestVerifiedAt ? ` ${props.latestVerifiedAt}` : "暂无"}`,
-);
+/** §11 mobile：Rule 与 Reality 来源同时保留，不用一层来源冒充另一层。 */
+const evidenceSummaryLine = computed(() => {
+  const evidence = props.coexistence?.evidence_summary;
+  const parts: string[] = [];
+  const ruleCount = evidence?.rule_evidence.length ?? 0;
+  const realitySources = evidence?.reality_distinct_source_count ?? 0;
+  parts.push(ruleCount ? `规则：${primaryEvidence.value}` : "规则来源待补充");
+  parts.push(
+    props.snapshotError
+      ? "现场来源暂时无法取得"
+      : realitySources
+        ? `现场：${realitySources} 个来源`
+        : "现场来源待补充",
+  );
+  if (props.latestVerifiedAt) parts.push(`规则核验 ${props.latestVerifiedAt}`);
+  return parts.join(" · ");
+});
+
+/** Canonical first-screen coexistence summary: Rule + Reality stay separate,
+ * while staff handling / facilities remain factual Reality details. */
+const staffSummaryLine = computed(() => {
+  if (props.snapshotError) return "工作人员处理暂时无法取得";
+  const rows = props.coexistence?.staff_response_summary ?? [];
+  if (!rows.length) return "暂无经核验的工作人员处理记录";
+  return rows
+    .slice(0, 2)
+    .map((item) => {
+      const disputed = item.disputed_count ? ` · ${item.disputed_count} 条异议处理中` : "";
+      return `${staffResponseSummaryLabel(item.response_action, item.staff_awareness_state)} × ${item.count}${disputed}`;
+    })
+    .join(" · ");
+});
+
+const facilitySummaryLine = computed(() => {
+  if (props.snapshotError) return "动物设施暂时无法取得";
+  const rows = props.coexistence?.facility_summary ?? [];
+  if (!rows.length) return "暂无经核验的动物设施记录";
+  const confirmed = rows.find((item) => facilityPurposeIsConfirmed(item.purpose_state));
+  const item = confirmed ?? rows[0];
+  if (!item) return "暂无经核验的动物设施记录";
+  const location = item.zone_name ? `${item.zone_name} · ` : "";
+  const verified = item.last_verified_at ? ` · 核验 ${item.last_verified_at.slice(0, 10)}` : "";
+  const disputed = item.disputed_count ? ` · ${item.disputed_count} 条异议处理中` : "";
+  const label = facilityPurposeIsConfirmed(item.purpose_state)
+    ? animalFacilityLabel(item.facility_type)
+    : "疑似动物相关设施 · 用途待核验";
+  return `${location}${label} × ${item.count}${verified}${disputed}`;
+});
+
+const divergenceLine = computed(() => {
+  const d = props.coexistence?.divergence;
+  if (!d) return "";
+  if (["RULE_REALITY_ALIGNED", "INSUFFICIENT_DATA"].includes(d.state)) return "";
+  return divergenceLabel(d);
+});
 </script>
 
 <template>
-  <!-- Current Decision（§17：完整 status surface 仅此一处；§9 自然语言补充） -->
-  <section class="place-section" data-testid="section-answer" data-ui="place-decision">
-    <h2 class="place-section__title">当前结论</h2>
-    <div class="sub-answer sub-answer--mine" data-testid="answer">
-      <p v-if="desktop" class="muted sub-answer__context" data-testid="answer-context">
-        {{ petContext }} · {{ speciesLabel }} · 进入 · 公共区域
-      </p>
-      <StatusBadge :semantic="statusKey" />
-      <p class="status" data-testid="answer-status">{{ verdict }}</p>
-      <p v-if="keyCondition" class="muted" data-testid="answer-conditions">
-        需满足：{{ keyCondition }}
-      </p>
-      <p v-if="answer" class="muted sub-answer__note">当前结论仅适用于这次查询。</p>
-    </div>
-  </section>
+  <!-- Canonical first screen: Rule + Reality are read together but never merged. -->
+  <div class="place-overview-lead" data-ui="place-coexistence-lead">
+    <!-- Current Decision（§17：完整 status surface 仅此一处；§9 自然语言补充） -->
+    <section class="place-section" data-testid="section-answer" data-ui="place-decision">
+      <h2 class="place-section__title" :class="{ 'visually-hidden': !desktop }">规则</h2>
+      <div class="sub-answer sub-answer--mine" data-testid="answer">
+        <p v-if="desktop" class="muted sub-answer__context" data-testid="answer-context">
+          {{ querySubject }} · 进入 · 公共区域
+        </p>
+        <!-- Desktop has a persistent Decision Inspector, so the dossier keeps
+             Rule as a compact fact dimension instead of repeating a second
+             giant verdict. Mobile has no side inspector and therefore keeps
+             the full natural-language decision in the main reading flow. -->
+        <template v-if="desktop">
+          <StatusBadge v-if="!snapshotError" :semantic="statusKey" />
+          <span v-if="!snapshotError" class="visually-hidden" data-testid="answer-status">
+            {{ verdict }}
+          </span>
+          <p v-else class="status status--error" data-testid="answer-status">{{ verdict }}</p>
+        </template>
+        <p
+          v-else
+          class="status"
+          :class="{ 'status--error': snapshotError }"
+          data-testid="answer-status"
+        >
+          {{ verdict }}
+        </p>
+        <p v-if="keyCondition && !snapshotError" class="muted" data-testid="answer-conditions">
+          需满足：{{ keyCondition }}
+        </p>
+        <p v-if="answer && !snapshotError" class="muted sub-answer__note">
+          当前结论仅适用于这次查询。
+        </p>
+        <RouterLink
+          class="btn-inline sub-answer__details-link"
+          :to="'?view=rules'"
+          data-testid="overview-rule-link"
+        >
+          查看规则、适用范围与例外 →
+        </RouterLink>
+      </div>
+    </section>
 
-  <!-- Recent Reality：mobile 保留一行 teaser + CTA（§11）。 -->
-  <section class="place-section" data-ui="place-reality-overview" data-testid="overview-reality">
-    <h2 class="place-section__title">最近现场</h2>
-    <p class="muted" data-testid="overview-reality-line">{{ realityLine }}</p>
-    <p v-if="observationCount > 0 && desktop" class="muted overview-note">
-      {{ observationCount }} 条现场记录
-    </p>
-    <RouterLink class="btn-inline" :to="`?view=reality`" data-testid="overview-reality-link">
-      查看现场记录 →
-    </RouterLink>
+    <!-- Recent Reality：mobile 保留一行 teaser + CTA（§11）。 -->
+    <section class="place-section" data-ui="place-reality-overview" data-testid="overview-reality">
+      <h2 class="place-section__title" :class="{ 'visually-hidden': !desktop }">现场概览</h2>
+      <p class="place-reality-headline" data-testid="overview-reality-line">{{ realityLine }}</p>
+      <p v-if="realityMetaLine" class="muted overview-note">{{ realityMetaLine }}</p>
+      <p v-else-if="observationCount > 0 && desktop" class="muted overview-note">
+        {{ observationCount }} 条现场记录
+      </p>
+      <div class="coexistence-facts" data-ui="coexistence-facts">
+        <p class="coexistence-fact" data-testid="overview-staff-response">
+          <span v-if="desktop" class="coexistence-fact__label">工作人员处理</span>
+          <span class="coexistence-fact__value">
+            {{ desktop ? staffSummaryLine : `工作人员处理 · ${staffSummaryLine}` }}
+          </span>
+          <RouterLink
+            v-if="desktop"
+            class="btn-inline coexistence-fact__link"
+            :to="`?view=reality`"
+          >
+            查看处理记录 →
+          </RouterLink>
+        </p>
+        <p class="coexistence-fact" data-testid="overview-animal-facility">
+          <span v-if="desktop" class="coexistence-fact__label">动物设施</span>
+          <span class="coexistence-fact__value">
+            {{ desktop ? facilitySummaryLine : `动物设施 · ${facilitySummaryLine}` }}
+          </span>
+          <RouterLink v-if="desktop" class="btn-inline coexistence-fact__link" :to="`?view=space`">
+            查看设施 →
+          </RouterLink>
+        </p>
+        <p v-if="divergenceLine" class="coexistence-fact coexistence-fact--divergence">
+          <span v-if="desktop" class="coexistence-fact__label">规则与现场</span>
+          <span class="coexistence-fact__value">
+            {{ desktop ? divergenceLine : `规则与现场 · ${divergenceLine}` }}
+          </span>
+          <RouterLink
+            v-if="desktop"
+            class="btn-inline coexistence-fact__link"
+            :to="`?view=evidence`"
+          >
+            查看依据 →
+          </RouterLink>
+        </p>
+      </div>
+      <RouterLink
+        class="btn-inline overview-reality-link"
+        :to="`?view=reality`"
+        data-testid="overview-reality-link"
+      >
+        查看现场记录 →
+      </RouterLink>
+    </section>
+  </div>
+
+  <!-- Basic identity facts use only canonical Place fields and recorded zone
+       count. Do not infer business hours, friendliness, or access from them. -->
+  <section
+    v-if="desktop"
+    class="place-section place-basics"
+    data-testid="overview-basics"
+    data-ui="place-basic-facts"
+  >
+    <h2 class="place-section__title">基本信息</h2>
+    <dl class="place-basics__grid">
+      <div>
+        <dt>类型</dt>
+        <dd>{{ placeKindLabel || "类型待补充" }}</dd>
+      </div>
+      <div>
+        <dt>地址</dt>
+        <dd>{{ canonicalAddress || "地址待补充" }}</dd>
+      </div>
+      <div>
+        <dt>空间记录</dt>
+        <dd>{{ spaceSummaryLine }}</dd>
+      </div>
+      <div>
+        <dt>规则核验</dt>
+        <dd>{{ latestVerifiedAt || "暂无核验日期" }}</dd>
+      </div>
+    </dl>
   </section>
 
   <!-- §11 mobile：Space summary row（56–64px，不展开）；desktop 显示多行区。 -->
@@ -100,10 +274,22 @@ const evidenceSummaryLine = computed(
     data-testid="overview-zones"
   >
     <h2 class="place-section__title">空间概览</h2>
-    <div v-for="z in zoneSummary.slice(0, 3)" :key="z.id" class="zone-row" data-ui="zone-row">
+    <RouterLink
+      v-for="z in zoneSummary.slice(0, 3)"
+      :key="z.id"
+      class="zone-row"
+      data-ui="zone-row"
+      :to="'?view=space'"
+      :aria-label="`查看场所空间与区域信息：${zoneConsumerLine(z)}`"
+    >
       <span class="zone-row__name">{{ zoneConsumerLine(z) }}</span>
-      <span class="muted zone-row__hint">查看分区结论</span>
-    </div>
+      <span class="zone-row__decision">
+        <span v-if="zoneDecisions[z.id]?.loading" class="muted">查询中…</span>
+        <span v-else-if="zoneDecisions[z.id]?.error" class="muted">暂无法取得</span>
+        <StatusBadge v-else :semantic="answerStatusKey(zoneDecisions[z.id]?.answer ?? null)" />
+      </span>
+      <span class="zone-row__hint">查看空间 →</span>
+    </RouterLink>
     <p v-if="!zoneSummary.length" class="muted">暂无已收录的分区域信息</p>
     <RouterLink class="btn-inline" :to="`?view=space`" data-testid="overview-space-link">
       查看全部空间 →
@@ -116,9 +302,7 @@ const evidenceSummaryLine = computed(
     data-testid="overview-zones"
     data-ui="place-zones-summary"
   >
-    <span class="overview-summary-row__label">空间</span>
-    <span class="overview-summary-row__value">{{ spaceSummaryLine }}</span>
-    <span class="overview-summary-row__cta">查看 →</span>
+    <span class="overview-summary-row__value">空间 · {{ spaceSummaryLine }}</span>
   </RouterLink>
 
   <!-- §11 mobile：Evidence summary row；desktop 显示详情区。 -->
@@ -139,9 +323,13 @@ const evidenceSummaryLine = computed(
         latestVerifiedAt ?? "暂无"
       }}</span>
       <span class="evidence-summary-grid__label">现场来源</span>
-      <span class="evidence-summary-grid__value" data-testid="overview-observation-count">{{
-        observationCount
-      }}</span>
+      <span class="evidence-summary-grid__value" data-testid="overview-observation-count">
+        {{
+          coexistence?.evidence_summary.reality_distinct_source_count
+            ? `${coexistence.evidence_summary.reality_distinct_source_count} 个来源`
+            : "暂无"
+        }}
+      </span>
     </div>
     <RouterLink class="btn-inline" :to="`?view=evidence`" data-testid="overview-evidence-link">
       查看证据与来源 →
@@ -154,15 +342,73 @@ const evidenceSummaryLine = computed(
     data-testid="overview-evidence"
     data-ui="place-evidence-summary"
   >
-    <span class="overview-summary-row__label">依据</span>
-    <span class="overview-summary-row__value">{{ evidenceSummaryLine }}</span>
-    <span class="overview-summary-row__cta">查看 →</span>
+    <span class="overview-summary-row__value">证据与来源 · {{ evidenceSummaryLine }}</span>
   </RouterLink>
 </template>
 
 <style scoped>
-.place-section {
+.place-overview-lead {
+  display: grid;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+  gap: var(--pa-space-3);
   margin-bottom: var(--pa-space-5);
+}
+
+.place-overview-lead > .place-section {
+  margin-bottom: 0;
+  padding: var(--pa-space-4);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: var(--pa-radius-md);
+  background: var(--pa-color-surface-raised);
+}
+
+.place-overview-lead > .place-section + .place-section {
+  padding-left: var(--pa-space-4);
+  border-left: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.place-section {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  margin-bottom: var(--pa-space-5);
+}
+
+.place-basics {
+  padding-bottom: var(--pa-space-4);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.place-basics__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--pa-space-3) var(--pa-space-6);
+  margin: 0;
+}
+
+.place-basics__grid > div {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  gap: var(--pa-space-2);
+  align-items: baseline;
+}
+
+.place-basics__grid dt {
+  color: var(--pa-color-text-muted);
+  font-size: var(--pa-font-size-sm);
+}
+
+.place-basics__grid dd {
+  min-width: 0;
+  margin: 0;
+  color: var(--pa-color-text-primary);
+  font-size: var(--pa-font-size-md);
+  overflow-wrap: anywhere;
 }
 .place-section__title {
   margin: 0 0 var(--pa-space-3);
@@ -172,9 +418,27 @@ const evidenceSummaryLine = computed(
   color: var(--pa-color-text-primary);
 }
 .sub-answer--mine {
-  border-left: var(--pa-border-width-strong) solid var(--pa-color-accent);
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: var(--pa-space-4);
+  border: var(--pa-border-width) solid
+    color-mix(in srgb, var(--pa-color-accent) 22%, var(--pa-color-border-subtle));
   border-radius: var(--pa-radius-md);
-  padding: var(--pa-space-3) var(--pa-space-4);
+  background: color-mix(in srgb, var(--pa-color-accent-weak) 44%, var(--pa-color-surface));
+}
+
+.sub-answer--mine::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: var(--pa-space-3);
+  bottom: var(--pa-space-3);
+  width: 3px;
+  border-radius: 999px;
+  background: var(--pa-color-accent);
 }
 .sub-answer__context {
   margin: 0 0 var(--pa-space-1);
@@ -183,30 +447,72 @@ const evidenceSummaryLine = computed(
   margin: var(--pa-space-2) 0 0;
   color: var(--pa-color-text-secondary);
 }
+.sub-answer__details-link {
+  display: inline-flex;
+  margin-top: var(--pa-space-3);
+  font-size: var(--pa-font-size-md);
+}
 .status {
-  margin: var(--pa-space-1) 0;
+  margin: var(--pa-space-2) 0 var(--pa-space-1);
   font-size: var(--pa-font-size-decision);
   font-weight: var(--pa-font-weight-650);
   line-height: var(--pa-line-height-decision);
   color: var(--pa-color-text-primary);
 }
+
+.status--error {
+  font-size: var(--pa-font-size-xl);
+  color: var(--pa-color-text-secondary);
+}
+.place-reality-headline {
+  margin: 0;
+  font-size: var(--pa-font-size-xl);
+  font-weight: var(--pa-font-weight-650);
+  line-height: var(--pa-line-height-26);
+  color: var(--pa-color-text-primary);
+}
+
 .overview-note {
   margin: var(--pa-space-1) 0 0;
 }
 .zone-row {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
   gap: var(--pa-space-3);
-  min-height: 48px;
-  padding: var(--pa-space-2) 0;
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  min-height: 52px;
+  margin-bottom: var(--pa-space-2);
+  padding: var(--pa-space-3);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: var(--pa-radius-control);
+  background: var(--pa-color-surface-raised);
 }
 .zone-row:last-child {
-  border-bottom: none;
+  margin-bottom: 0;
+}
+.zone-row {
+  text-decoration: none;
+  color: var(--pa-color-text-primary);
+}
+.zone-row:hover .zone-row__hint,
+.zone-row:focus-visible .zone-row__hint {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.zone-row:focus-visible {
+  outline: 2px solid var(--pa-color-border-focus);
+  outline-offset: 2px;
+}
+.zone-row__decision {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 5.5rem;
+  font-size: var(--pa-font-size-sm);
 }
 .zone-row__hint {
   font-size: var(--pa-font-size-sm);
+  color: var(--pa-color-accent);
 }
 .evidence-summary-grid {
   display: grid;
@@ -228,9 +534,9 @@ const evidenceSummaryLine = computed(
   display: flex;
   align-items: center;
   gap: var(--pa-space-3);
-  min-height: 56px;
-  max-height: 64px;
-  padding: var(--pa-space-2) 0;
+  min-height: 60px;
+  max-height: 68px;
+  padding: var(--pa-space-3) 0;
   border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
   text-decoration: none;
   color: var(--pa-color-text-primary);
@@ -257,5 +563,133 @@ const evidenceSummaryLine = computed(
   flex: 0 0 auto;
   font-size: var(--pa-font-size-md);
   color: var(--pa-color-accent);
+}
+
+.coexistence-facts {
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--pa-space-2);
+  margin: var(--pa-space-4) 0 var(--pa-space-2);
+  padding-top: var(--pa-space-3);
+  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.coexistence-fact {
+  display: grid;
+  min-width: 0;
+  max-width: 100%;
+  grid-template-columns: 6.5rem minmax(0, 1fr) auto;
+  gap: var(--pa-space-2);
+  margin: 0;
+  font-size: var(--pa-font-size-md);
+  line-height: var(--pa-line-height-20);
+  color: var(--pa-color-text-primary);
+}
+
+.coexistence-fact__label {
+  color: var(--pa-color-text-muted);
+}
+
+.coexistence-fact__link {
+  grid-column: 3;
+  justify-self: start;
+  white-space: nowrap;
+  align-self: start;
+}
+
+.coexistence-fact--divergence {
+  color: var(--pa-color-status-conflict);
+}
+
+/* At tablet width Place has no sticky desktop inspector, so the dossier
+   renders full rule verdicts and full Reality copy. Never squeeze those
+   mobile-semantic facts into desktop three-column rows. */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .place-overview-lead {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--pa-space-4);
+  }
+
+  .place-overview-lead > .place-section + .place-section {
+    padding: var(--pa-space-4);
+    border-left: var(--pa-border-width) solid var(--pa-color-border-subtle);
+    border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  }
+
+  .coexistence-fact {
+    display: block;
+  }
+
+  .coexistence-fact__value {
+    display: block;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 767px) {
+  /* Mobile keeps the same Rule + Reality semantics as desktop. The rows
+     collapse to compact facts; only their secondary links hide. */
+  .place-basics__grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--pa-space-2);
+  }
+
+  .place-basics__grid > div {
+    grid-template-columns: 5rem minmax(0, 1fr);
+    gap: var(--pa-space-2);
+    min-width: 0;
+  }
+
+  .place-basics__grid dt,
+  .place-basics__grid dd {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .sub-answer__note,
+  .sub-answer__details-link,
+  .overview-note,
+  .overview-reality-link {
+    display: none;
+  }
+
+  .place-overview-lead {
+    grid-template-columns: 1fr;
+    gap: var(--pa-space-5);
+    margin-bottom: var(--pa-space-5);
+    padding-bottom: var(--pa-space-4);
+  }
+
+  .place-overview-lead > .place-section + .place-section {
+    padding-left: 0;
+    padding-top: var(--pa-space-4);
+    border-left: none;
+    border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  }
+
+  .coexistence-facts {
+    gap: var(--pa-space-1);
+    margin-top: var(--pa-space-3);
+    padding-top: var(--pa-space-2);
+  }
+
+  .coexistence-fact {
+    display: block;
+  }
+
+  .coexistence-fact__value {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .coexistence-fact__link,
+  .overview-summary-row__cta {
+    display: none;
+  }
 }
 </style>

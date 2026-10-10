@@ -1,4 +1,81 @@
+## Current phase（2026-10-09 — direct-v8 Consumer Source Closure / Final Runtime Evidence Pending）
+
+- 分支仍为 `feat/ui-direct-craft-v8`；PR #1 保持 **draft**；master / tag / Release 不动。
+- `UI_HUMAN_VISUAL_ACCEPTANCE = REJECTED_REOPENED / PENDING_REVIEW`：最新机器 Validation/Visual 只证明契约与截图任务可运行，不代表真人已经认可最终视觉。
+- Search 已收口消费者结论词汇：列表主结论只允许“可以进入 / 不可进入 / 有条件进入 / 信息不足 / 来源不一致待复核”；技术 resolver summary 不再直接进入主标题。768–1099px 按响应式契约使用 compact list-detail，禁止横向溢出。
+- Map 坚持真实空间语义：无坐标不画点；Place→Map 按精确 UUID 读取公开 PlaceSummary；缩放与 nearby 查询半径使用同一覆盖模型；fallback / real renderer 共用 Lens glyph 语义。数据库代表点仅称“已收录位置坐标”，**不等于位置经过实地核验**。
+- Place / Why / Contribution / Operator Claim 都采用 route-scoped request generation，迟到的旧场所响应不得覆盖当前场所；Zone 决策按 zone_id 单独请求，不复制场所级答案。
+- Reality / Evidence / Facility 保持 published reviewed facts SSOT；publication-only 设施线索不冒充当前设施事实；工作人员处理不自动生成 Operator Policy。
+- 最终停止线不变：同一最终 HEAD 的 Web HUMAN_REVIEW + Windows WebView2 + Android AVD 真实运行证据由用户人工确认前，不得 baseline promotion、master 集成、PR ready、tag 或 Release。
+- 每次判断机器状态必须重新读取当前 HEAD 的 Actions；历史 PASS、cancelled/action_required run 或旧 screenshot pack 都不能代表当前版本。
+
+## Current phase（2026-10-07 — direct-v8 Source Closure / Final Runtime Evidence Pending）
+
+- 分支：`feat/ui-direct-craft-v8`；PR #1 继续 **draft**；base = `feat/ui-product-craft-v7-human-review-final`；master / tag / Release 不动。
+- `UI_HUMAN_VISUAL_ACCEPTANCE = REJECTED_REOPENED / PENDING_REVIEW`。用户对旧 runtime 的视觉否决继续有效，任何机器 Gate 都不能替代新的真人审图。
+- 本轮继续关闭“UI 文案正确、实际链路错误”的问题：Rule lead → RuleCandidate review；Place correction → moderator correction queue；Reality/Evidence → published v0.9 event stream；Map → PostGIS 真实点位 + 可选 Tencent GL；Search/Home 空态不再跳入无法新增 Place 的 Contribution 死循环。
+- Map provider 现在显式区分 `real` 与 `simplified`：无 Key / provider error 时必须展示“简化空间底图”说明，同时点位仍取已收录位置坐标（不等于位置经过实地核验）；Human Review manifest 记录实际 renderer，禁止把 fallback 截图冒充真实地图。
+- Consumer SSOT：Home / Search / Map / Place 使用同一 `CoexistenceSnapshot`；Rule、Presence、StaffResponse、Facility、Evidence、Dispute 的语义边界保持不变。
+- 当前 GitHub Actions 对此前 bot-authored PR runs 返回 `action_required` 且无 jobs；这不是 PASS。最新 source 需要本地 Agent 或获准的 Actions 对最终 HEAD 重跑 lint/typecheck/build/oracle/human-review。
+- authoritative Web 人审包仍应来自 `tests/ui-oracle/human-review-direct-v8.spec.ts` → `artifacts/ui-direct-v8/HUMAN_REVIEW/{desktop,mobile}/`；历史 `artifacts/ui-direct-craft-v8-local-acceptance/` 不得用于当前视觉签字。
+- 最终停止线：Web 新截图 + Windows WebView2 + Android AVD 都必须对应同一最终 HEAD。完成并由用户真人确认前：禁止 baseline promotion、禁止 master 集成、禁止把 PR 转 ready、禁止 tag / Release。
+## Current phase（2026-10-07 — direct-v8 Canonical Fidelity + Dispute Closure）
+
+- 分支：`feat/ui-direct-craft-v8`；PR #1 保持 **draft**；base = `feat/ui-product-craft-v7-human-review-final`；master / tag / Release 不动。
+- `UI_HUMAN_VISUAL_ACCEPTANCE = REJECTED_REOPENED / PENDING_REVIEW` 继续有效。机器 Gate、DOM contract、旧 screenshot 均不得替代用户对当前最终 runtime 的真人视觉验收。
+- 本轮继续按 Canonical Master §61 / §65–§72 与 `UI_RECONSTRUCTION_DESIGN_FREEZE.md` 反查 source，而不是为了旧 Oracle 数字删设计。
+- 已关闭的高价值语义缺口：Home 中性推荐标题恢复为“近期值得先看”；Published Reality dispute 在 Evidence / Event Log / Reality summary 中可见；StaffResponse / AnimalFacility 的 open dispute count 进入 Place Overview / Space / Map Facility Lens，异议不会删除事实、不会修改 Rule。
+- Consumer 仍严格保持：Rule != Reality；Observation != Rule；StaffResponse != OperatorPolicy；Facility != EntryPolicy；No Observation != No Animal Presence；Access != Friendly。
+- 当前唯一剩余 UI 停止线不是“再做一个版本”，而是：**对同一最终 HEAD 重新生成 authoritative Web HUMAN_REVIEW desktop+mobile，并由本地 Agent 对 Windows WebView2 / Android AVD 当前 HEAD 重新取证；配置真实地图 provider 时补 real-map 证据，否则明确 BLOCKED_EXTERNAL。**
+- 在上述真人视觉验收完成前：禁止 baseline promotion、禁止 master 集成、禁止 tag / Release、禁止把 PR 转 ready。
+
+## Current phase（2026-10-06 — direct-v8 Canonical Visual Recovery）
+
+- 分支：`feat/ui-direct-craft-v8`；PR #1 保持 **draft**；`master` / tag / Release 不动。
+- `UI_HUMAN_VISUAL_ACCEPTANCE = REJECTED_REOPENED` 继续有效：旧机器 Gate/旧 screenshot pack 不能替代真人视觉验收。
+- **旧包已降级为历史证据**：`artifacts/ui-direct-craft-v8-local-acceptance/HUMAN_REVIEW/` 对应的是此前 UI/Reality/Map/Contribution 状态，已不能作为当前 direct-v8 的视觉验收依据。
+- **新的唯一 Web 人审入口**：`tests/ui-oracle/human-review-direct-v8.spec.ts` → `artifacts/ui-direct-v8/HUMAN_REVIEW/{desktop,mobile}/`。每张 PNG 只有在对应 frozen archetype 的真实 DOM 状态/关键内容存在后才允许写出；manifest 明确标记 `humanVisualAcceptance=PENDING`。
+- 新人审包强制覆盖：Home 四任务入口与 Coexistence Digest；Search List–Detail；Place Rule/Reality/Staff/Facility/Evidence；Map 四 Lens；v0.9 Reality event log；Evidence provenance；登录后的 Contribution 五入口/Rule lead/Place correction/Reality flow；Mine/Settings/Privacy/Notifications/Pets/Boundary/Why/About/Onboarding/404。
+- 当前继续做的是 **canonical fidelity + semantic integrity**，不是新增 IA：Home/Search/Map/Place 的 Reality headline 已统一到完整 CoexistenceSnapshot（Presence + StaffResponse + Facility），Evidence 元数据也统一统计完整 Reality layer。
+- 停止线不变：新 Web 人审包 + Windows WebView2 + Android AVD 对当前最终 HEAD 重新取证并由用户真人审图前，禁止 baseline promotion、禁止 master 集成、禁止 tag、禁止 Release、禁止把 PR 转 ready。
+
+
 # PROJECT_STATE.md
+
+## Current phase（2026-10-05 — Canonical Visual Recovery implementation complete / CI pending）
+
+- 状态：`DIRECT_V8_CANONICAL_VISUAL_RECOVERY = CODE_COMPLETE` · `MACHINE_ACCEPTANCE = PENDING` ·
+  `UI_HUMAN_VISUAL_ACCEPTANCE = REJECTED_REOPENED` · `PR #1 = DRAFT` ·
+  `MASTER = UNCHANGED` · `PUBLIC_RELEASE = NOT_PERFORMED`。
+- 权威恢复冻结：`docs/ui/DIRECT_V8_CANONICAL_VISUAL_RECOVERY_2026-10-05.md`。
+  Canonical Master v0.10-R1 决定产品内容；Executable Blueprint 只负责可测几何，不再允许旧 Gate
+  删除 Home recommendations/divergence、Map 四 Lens 或 Place Coexistence Passport 首屏事实。
+- 本轮 GitHub 实施：Home 恢复四任务 Lens → 按关注推荐 → Rule/Reality 速览 → divergence → recent；
+  Search 每行恢复 Rule + Reality + Evidence/Freshness；Map 恢复 Rule / Reality / Facility /
+  Divergence 四 Lens 且全部投影同一 CoexistenceSnapshot；Place 首屏恢复 Rule + Reality +
+  Staff Response + Animal Facility + Divergence，以及 Evidence / Why / Correction actions。
+- 数据边界：`RowFacts` 仅保留服务端 `CoexistenceSnapshot` 作为 Consumer projection SSOT；
+  UI 不新增第二 Rule/Reality resolver，不把 Reality / Facility tone 解释为 access verdict。
+- 工程收口：已修复上一轮 CI 暴露的 RowFacts fallback type gap；Home digest 与 Map lens projection
+  已拆分，避免新增 `vue>200` / `ts>300` quality-gate FAIL；Oracle JSON 已同步 Canonical。
+- 停止线：等待本 HEAD 的 PR CI / UI Direct Validation / UI Direct Visual 真实结果。
+  即使机器全绿，也只进入 `HUMAN_REVIEW_READY`；在真实 Web / Windows / Android 截图人工确认前，
+  禁止 baseline promotion、禁止 master 集成、禁止 tag / Release。
+
+
+## Current phase（2026-10-05 — direct-v8 Human Visual Reopen）
+
+- 分支：`feat/ui-direct-craft-v8`；PR #1 保持 **draft**；`master` / tag / Release 不动。
+- 人工视觉结论：`UI_HUMAN_VISUAL_ACCEPTANCE = REJECTED_REOPENED`。用户在真实本地运行软件中确认：整体产品观感与冻结设计存在明显偏差。
+- 机器状态不等于视觉通过：`UI Direct Validation` / `UI Direct Visual` 与 Oracle 全绿仅证明已编码的结构、几何、语言和状态契约通过，**不得再据此写作 Human Visual PASS / UI COMPLETE**。
+- 当前唯一 UI 主线：`DIRECT_V8_VISUAL_FIDELITY_RECOVERY = IN_PROGRESS`。依据顺序：Canonical Master → `UI_RECONSTRUCTION_DESIGN_FREEZE.md` → `UI_HUMAN_CLOSURE_V5.md` / 已批准参考 → 当前真实 runtime screenshot → 当前 source。
+- 冻结不变量继续有效：Rule / Reality / Evidence-Governance 分离；Observation != Rule；StaffResponse != OperatorPolicy；Facility != EntryPolicy；No Observation != No Animal Presence；Access != Friendly。
+- 冻结 archetype 不重做：Home=Task Launcher；Search=List–Detail；Place=Dossier；Map=Spatial Workspace；Reality=Event Log；Evidence=Provenance Record；Contribution=Structured Transaction Flow。
+- 停止线：在新的真实 Web / Windows / Android 人工截图明确通过之前，**禁止 baseline promotion、禁止 master 集成、禁止 tag、禁止 Release、禁止把 PR 转 ready**。
+
+### 为什么重开
+
+direct-v8 在若干页面达到了机器契约，但出现了「结构正确、产品视觉不对」的问题：语义状态层级被削弱、Rule/Reality 共处信息没有在首屏形成足够强的产品识别、部分核心 surface 过度稀疏并呈现 prototype / functional-page 感。当前工作是恢复设计 fidelity，不是再发明 IA 或换 Design System。
 
 ## Current phase（2026-10-03 本轮实测 — v0.2.7-R1.1.1 Human Review Truth Closure）
 - 状态：`V0207_R1_1_1_HUMAN_REVIEW_TRUTH_CLOSURE = MACHINE_PASS` · `HUMAN_REVIEW_PACK = COMPLETE` ·

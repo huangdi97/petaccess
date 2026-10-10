@@ -1,0 +1,35 @@
+name: UI Direct Autofmt
+
+on:
+  push:
+    branches:
+      - feat/ui-direct-craft-v8
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.4.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Verify direct UI formatting
+        run: |
+          pnpm exec prettier --check \
+            "apps/client-h5/src/**/*.{vue,ts}" \
+            "packages/client-core/src/api/client.ts" \
+            "packages/client-core/src/platform/map.ts" \
+            "docs/ui/contracts/json/*.json" \
+            "tests/ui-oracle/*.ts" \
+            "tests/e2e/consumer-contract-closure.spec.ts" \
+            "tests/e2e/contribute-wizard.spec.ts"

@@ -323,6 +323,7 @@ def record_artifact(
         publisher_type=collected.publisher_type,
         published_at=collected.published_at,
         captured_excerpt=collected.captured_excerpt,
+        evidence_strength=evidence_strength,
         storage_allowed=collected.storage_allowed,
         display_allowed=collected.display_allowed,
         redistribution_allowed=collected.redistribution_allowed,
@@ -610,7 +611,7 @@ def record_monitor_change(
 # ------------------------------------------------------- evidence strength (S7)
 
 
-def strength_for_artifact(artifact, source) -> str:
+def strength_for_artifact(artifact, source) -> str | None:
     """Descriptive capture posture (EvidenceStrength). NOT a trust score.
 
     Deterministic mapping from how the artifact was captured and what kind of
@@ -641,8 +642,9 @@ def strength_for_artifact(artifact, source) -> str:
         if directness == Directness.DIRECT.value:
             return EvidenceStrength.PRIMARY_DIRECT.value
         return EvidenceStrength.SECONDARY_REPUTABLE.value
-    if collector in (CollectorType.ONSITE_EVIDENCE,):
+    if collector == CollectorType.ONSITE_EVIDENCE.lower():
         return EvidenceStrength.PRIMARY_CAPTURED.value
     if stype == SourceType.ORDINARY_USER.value:
         return EvidenceStrength.USER_SUBMITTED.value
-    return "unknown"
+    # No invented strength: NULL remains explicitly unclassified until review.
+    return None

@@ -623,6 +623,49 @@
         }
       }
     },
+    "/api/v1/places/{place_id}/summary": {
+      "get": {
+        "tags": [
+          "places"
+        ],
+        "summary": "Get Place Summary",
+        "operationId": "get_place_summary_api_v1_places__place_id__summary_get",
+        "parameters": [
+          {
+            "name": "place_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Place Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlaceSummary"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "Exact-ID public map/list projection, independent of fuzzy search limits.\n\nNever guess a coordinate or serve an unpublished place as a public\ndestination. This uses the very same projected Rule/Reality metadata and\nPostGIS representative point as /places and /places/nearby."
+      }
+    },
     "/api/v1/places/{place_id}": {
       "get": {
         "tags": [
@@ -1476,6 +1519,53 @@
         }
       }
     },
+    "/api/v1/sources/{source_id}": {
+      "get": {
+        "tags": [
+          "sources"
+        ],
+        "summary": "Get Source",
+        "operationId": "get_source_api_v1_sources__source_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "source_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Source Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/places/{place_id}/observations": {
       "get": {
         "tags": [
@@ -1669,6 +1759,70 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/RealityAnswer"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/places/{place_id}/reality/events": {
+      "get": {
+        "tags": [
+          "reality"
+        ],
+        "summary": "Consumer Reality Events",
+        "description": "Published human-verified Reality facts as one consumer timeline.",
+        "operationId": "consumer_reality_events_api_v1_places__place_id__reality_events_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "place_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Place Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RealityEventOut"
+                  },
+                  "type": "array",
+                  "title": "Response Consumer Reality Events Api V1 Places  Place Id  Reality Events Get"
                 }
               }
             }
@@ -3600,6 +3754,37 @@
         }
       }
     },
+    "/api/v1/media/mine": {
+      "get": {
+        "tags": [
+          "media"
+        ],
+        "summary": "My Media",
+        "description": "List the caller's active uploads without exposing object-storage URLs.",
+        "operationId": "my_media_api_v1_media_mine_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MediaMetaOut"
+                  },
+                  "type": "array",
+                  "title": "Response My Media Api V1 Media Mine Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/media/{media_id}": {
       "get": {
         "tags": [
@@ -3629,9 +3814,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": true,
-                  "title": "Response Media Meta Api V1 Media  Media Id  Get"
+                  "$ref": "#/components/schemas/MediaMetaOut"
                 }
               }
             }
@@ -8316,8 +8499,8 @@
             "anyOf": [
               {
                 "type": "number",
-                "maximum": 1.0,
-                "minimum": 0.0
+                "maximum": 1,
+                "minimum": 0
               },
               {
                 "type": "null"
@@ -9518,8 +9701,8 @@
           },
           "review_interval_days": {
             "type": "integer",
-            "maximum": 3650.0,
-            "minimum": 1.0,
+            "maximum": 3650,
+            "minimum": 1,
             "title": "Review Interval Days",
             "default": 90
           }
@@ -9762,7 +9945,7 @@
           },
           "schedule_minutes": {
             "type": "integer",
-            "minimum": 5.0,
+            "minimum": 5,
             "title": "Schedule Minutes",
             "default": 1440
           },
@@ -11287,8 +11470,8 @@
             "anyOf": [
               {
                 "type": "number",
-                "maximum": 300.0,
-                "exclusiveMinimum": 0.0
+                "maximum": 300,
+                "exclusiveMinimum": 0
               },
               {
                 "type": "null"
@@ -11300,8 +11483,8 @@
             "anyOf": [
               {
                 "type": "number",
-                "maximum": 250.0,
-                "exclusiveMinimum": 0.0
+                "maximum": 250,
+                "exclusiveMinimum": 0
               },
               {
                 "type": "null"
@@ -11709,6 +11892,28 @@
               }
             ],
             "title": "Canonical Address"
+          },
+          "latitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latitude"
+          },
+          "longitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longitude"
           },
           "distance_m": {
             "anyOf": [
@@ -12921,6 +13126,478 @@
         ],
         "title": "RealityReportIn",
         "description": "User contribution payload — one report, possibly several candidates.\n\n``origin`` is set from the UI branch, never exposed as a raw enum to the\nuser. Media defaults to private; a no-media first-hand report is\n``FIRST_HAND_NO_MEDIA`` and stays review-pending (never auto-rejected)."
+      },
+      "RealityEventOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "event_type": {
+            "type": "string",
+            "title": "Event Type"
+          },
+          "place_id": {
+            "type": "string",
+            "title": "Place Id"
+          },
+          "zone_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zone Id"
+          },
+          "event_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Event At"
+          },
+          "time_basis": {
+            "type": "string",
+            "title": "Time Basis"
+          },
+          "time_evidence_state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Evidence State"
+          },
+          "origin": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Origin"
+          },
+          "fact_evidence_state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fact Evidence State"
+          },
+          "place_match_state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Place Match State"
+          },
+          "content_published_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content Published At"
+          },
+          "claimed_event_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Claimed Event At"
+          },
+          "animal_scope": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Animal Scope"
+          },
+          "observed_action": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed Action"
+          },
+          "observed_context": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed Context"
+          },
+          "staff_actor_role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Staff Actor Role"
+          },
+          "staff_action": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Staff Action"
+          },
+          "staff_awareness_state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Staff Awareness State"
+          },
+          "staff_outcome": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Staff Outcome"
+          },
+          "facility_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Facility Type"
+          },
+          "facility_state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Facility State"
+          },
+          "facility_purpose_state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Facility Purpose State"
+          },
+          "facility_access_mode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Facility Access Mode"
+          },
+          "facility_capacity": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Facility Capacity"
+          },
+          "facility_size_limit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Facility Size Limit"
+          },
+          "facility_weather_protection": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Facility Weather Protection"
+          },
+          "facility_shade": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Facility Shade"
+          },
+          "facility_ventilation": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Facility Ventilation"
+          },
+          "facility_water_available": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Facility Water Available"
+          },
+          "facility_supervision_state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Facility Supervision State"
+          },
+          "facility_security_or_lock_state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Facility Security Or Lock State"
+          },
+          "facility_operator_provided": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Facility Operator Provided"
+          },
+          "source_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Id"
+          },
+          "evidence_bundle_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Bundle Id"
+          },
+          "submitted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submitted At"
+          },
+          "verification_status": {
+            "type": "string",
+            "title": "Verification Status"
+          },
+          "freshness_state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Freshness State"
+          },
+          "last_verified_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Verified At"
+          },
+          "staff_policy_statement_verbatim": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Staff Policy Statement Verbatim"
+          },
+          "dispute_open": {
+            "type": "boolean",
+            "title": "Dispute Open",
+            "default": false
+          },
+          "confirmation_count": {
+            "type": "integer",
+            "title": "Confirmation Count",
+            "default": 0
+          },
+          "evidence_material_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Material Type"
+          },
+          "evidence_source_platform": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Source Platform"
+          },
+          "evidence_publisher_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Publisher Type"
+          },
+          "evidence_class": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Class"
+          },
+          "evidence_display_allowed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Display Allowed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "event_type",
+          "place_id",
+          "event_at",
+          "time_basis",
+          "verification_status"
+        ],
+        "title": "RealityEventOut",
+        "description": "One public, human-verified Reality event for the consumer timeline.\n\nevent_at always carries time_basis so a verification timestamp is never\npresented as an observed event time. Staff identity is intentionally\nabsent: only role/action facts may be exposed. Facility facts remain\nseparate from entry policy."
       },
       "RealityReportModerationState": {
         "type": "string",
@@ -15265,8 +15942,20 @@
         ],
         "title": "VerificationResult"
       },
+      "WatchDomain": {
+        "type": "string",
+        "enum": [
+          "rule",
+          "reality"
+        ],
+        "title": "WatchDomain"
+      },
       "WatchIn": {
         "properties": {
+          "watch_domain": {
+            "$ref": "#/components/schemas/WatchDomain",
+            "default": "rule"
+          },
           "target_type": {
             "$ref": "#/components/schemas/WatchTargetType"
           },
@@ -15301,6 +15990,9 @@
           "user_id": {
             "type": "string",
             "title": "User Id"
+          },
+          "watch_domain": {
+            "$ref": "#/components/schemas/WatchDomain"
           },
           "target_type": {
             "$ref": "#/components/schemas/WatchTargetType"
@@ -15339,6 +16031,7 @@
         "required": [
           "id",
           "user_id",
+          "watch_domain",
           "target_type",
           "target_id",
           "channels",
@@ -15545,6 +16238,105 @@
         },
         "type": "object",
         "title": "ZoneUpdate"
+      },
+      "MediaMetaOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "purpose": {
+            "type": "string",
+            "title": "Purpose"
+          },
+          "privacy_class": {
+            "type": "string",
+            "title": "Privacy Class"
+          },
+          "mime_type": {
+            "type": "string",
+            "title": "Mime Type"
+          },
+          "byte_size": {
+            "type": "integer",
+            "title": "Byte Size"
+          },
+          "moderation_status": {
+            "type": "string",
+            "title": "Moderation Status"
+          },
+          "ocr_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ocr Text"
+          },
+          "ocr_rule_candidates": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ocr Rule Candidates"
+          },
+          "upload_status": {
+            "type": "string",
+            "title": "Upload Status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "deleted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deleted At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "purpose",
+          "privacy_class",
+          "mime_type",
+          "byte_size",
+          "moderation_status",
+          "upload_status",
+          "created_at"
+        ],
+        "title": "MediaMetaOut"
       }
     },
     "securitySchemes": {

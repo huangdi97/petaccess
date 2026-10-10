@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
  * MapResultPane — the map workspace's result pane (freeze §9): location row,
- * search shortcut, status filters (筛选 N toggle + panel, never a pill wall),
+ * in-workspace spatial search, status filters (筛选 N toggle + panel, never a pill wall),
  * loading/error/empty/coverage/list rows.
  *
  * Divider-led rows with radius 0 (no cards); the map canvas in the parent
@@ -20,22 +20,30 @@ import {
 import SkeletonList from "../SkeletonList.vue";
 import StateMessage from "../StateMessage.vue";
 import StatusBadge from "../StatusBadge.vue";
+import PlaceTypeGlyph from "./PlaceTypeGlyph.vue";
+import type { MapLensKey } from "../../consumer/mapLens";
 
 const props = defineProps<{
   places: PlaceSummary[];
+  lens: MapLensKey;
+  lensLabels: Record<string, string>;
   statuses: Record<string, MapMarker["status"]>;
+  unavailablePlaces: Record<string, boolean>;
+  selectedId?: string | null;
   visiblePlaces: PlaceSummary[];
   loading: boolean;
   error: string;
   coverageText: string;
   locationState: LocationState;
   filters: string[];
+  searchLoading?: boolean;
+  searchError?: string;
 }>();
 
 const emit = defineEmits<{
   "update:filters": [value: string[]];
   locate: [];
-  search: [];
+  search: [query: string];
   open: [id: string];
   retry: [];
   clearFilters: [];
@@ -43,7 +51,7 @@ const emit = defineEmits<{
 }>();
 /** Status filters, applied to the neutral marker statuses (never a ranking). */
 const STATUS_FILTERS = [
-  { key: "MATCH", label: "明确允许" },
+  { key: "ALLOWED", label: "明确允许" },
   { key: "CONDITIONAL", label: "有条件" },
   { key: "RESTRICTED", label: "明确限制" },
   { key: "UNKNOWN", label: "信息不足" },
@@ -51,6 +59,7 @@ const STATUS_FILTERS = [
 ];
 /** 筛选 N 面板开合（desktop popover / mobile inline panel）。 */
 const filterOpen = ref(false);
+const searchQuery = ref("");
 
 function toggleFilter(key: string) {
   const next = props.filters.includes(key)
@@ -68,7 +77,7 @@ function toggleFilter(key: string) {
         <strong data-testid="location-label">{{ LOCATION_LABELS[props.locationState] }}</strong>
         <button
           type="button"
-          class="pill"
+          class="map-pane__locate-button"
           data-testid="locate-btn"
           :disabled="props.locationState === 'REQUESTING'"
           @click="emit('locate')"
@@ -76,16 +85,43 @@ function toggleFilter(key: string) {
           {{ props.locationState === "REQUESTING" ? "定位中…" : "定位" }}
         </button>
       </div>
-      <button type="button" class="block map-pane__search" @click="emit('search')">
-        搜索场所 / 类别 / 附近
-      </button>
+      <form
+        class="map-pane__search"
+        data-testid="map-search-form"
+        @submit.prevent="emit('search', searchQuery)"
+      >
+        <label class="visually-hidden" for="map-search-input">搜索场所、商圈或地址</label>
+        <input
+          id="map-search-input"
+          v-model="searchQuery"
+          data-testid="map-search-input"
+          placeholder="搜索场所、商圈或地址"
+          autocomplete="off"
+        />
+        <button
+          type="submit"
+          class="primary"
+          data-testid="map-search-submit"
+          :disabled="props.searchLoading || !searchQuery.trim()"
+        >
+          {{ props.searchLoading ? "搜索中…" : "搜索" }}
+        </button>
+      </form>
+      <p
+        v-if="props.searchError"
+        class="notice map-pane__search-feedback"
+        data-testid="map-search-feedback"
+      >
+        {{ props.searchError }}
+      </p>
       <p v-if="props.locationState === 'DENIED'" class="notice" data-testid="location-denied">
-        未获得定位权限。你仍可手动选择区域，或直接搜索场所名。
+        未获得定位权限。地图会保留当前区域；你仍可直接搜索场所、商圈或地址。
       </p>
     </div>
 
-    <!-- 筛选：单个「筛选 N」入口 + 面板（contract MAP_NO_FILTER_PILL_WALL = 0）。 -->
-    <div class="map-filter" data-ui="map-filter">
+    <!-- Rule lens keeps status filtering; other lenses intentionally show the
+         full set because their facts are not access verdicts. -->
+    <div v-if="props.lens === 'rule'" class="map-filter" data-ui="map-filter">
       <button
         type="button"
         class="map-filter__toggle"
@@ -116,11 +152,20 @@ function toggleFilter(key: string) {
         >
           清除筛选
         </button>
-        <p class="muted map-filter__hint">
-          筛选是可选的：信息不足的场所默认仍然显示，信息不足不代表允许或禁止。
-        </p>
+        <p class="muted map-filter__hint">筛选只影响规则镜头；信息不足的场所默认仍然显示。</p>
       </div>
     </div>
+    <p v-else class="muted map-lens-note" data-testid="map-lens-note">
+      <template v-if="props.lens === 'reality'">
+        当前镜头展示经核验现场事实；没有记录不代表现场没有动物。
+      </template>
+      <template v-else-if="props.lens === 'facility'">
+        当前镜头展示动物设施事实；设施存在不等于允许进入。
+      </template>
+      <template v-else>
+        当前镜头对照规则与现场的差异；“不一致”只提示需要复核，不会自动改写正式规则。
+      </template>
+    </p>
 
     <SkeletonList v-if="props.loading" :rows="3" />
     <StateMessage
@@ -167,19 +212,43 @@ function toggleFilter(key: string) {
             v-for="p in props.visiblePlaces"
             :key="p.id"
             class="map-place-row"
-            :data-testid="'place-' + p.id"
-            @click="emit('open', p.id)"
+            :class="{ 'map-place-row--selected': props.selectedId === p.id }"
+            :data-selected="props.selectedId === p.id ? 'true' : undefined"
           >
-            <div class="map-place-row__head">
-              <div class="map-place-row__identity">
-                <strong>{{ p.canonical_name }}</strong>
-                <span class="muted">
-                  {{ placeTypeLabel(p.place_type) }}
-                  <span v-if="p.distance_m"> · {{ Math.round(p.distance_m) }}m</span>
+            <button
+              type="button"
+              class="map-place-row__button"
+              :aria-current="props.selectedId === p.id ? 'true' : undefined"
+              :data-selected="props.selectedId === p.id ? 'true' : undefined"
+              :data-testid="'place-' + p.id"
+              @click="emit('open', p.id)"
+            >
+              <div class="map-place-row__head">
+                <div class="map-place-row__identity-wrap">
+                  <PlaceTypeGlyph :place-type="p.place_type" size="sm" />
+                  <div class="map-place-row__identity">
+                    <strong>{{ p.canonical_name }}</strong>
+                    <span class="muted">
+                      {{ placeTypeLabel(p.place_type) }}
+                      <span v-if="p.distance_m != null"> · {{ Math.round(p.distance_m) }}m</span>
+                    </span>
+                  </div>
+                </div>
+                <span
+                  v-if="props.unavailablePlaces[p.id]"
+                  class="map-place-row__lens-fact map-place-row__lens-fact--unavailable"
+                >
+                  {{ props.lensLabels[p.id] ?? "信息暂时无法取得" }}
+                </span>
+                <StatusBadge
+                  v-else-if="props.lens === 'rule'"
+                  :semantic="props.statuses[p.id] ?? 'UNKNOWN'"
+                />
+                <span v-else class="map-place-row__lens-fact">
+                  {{ props.lensLabels[p.id] ?? "信息不足" }}
                 </span>
               </div>
-              <StatusBadge :semantic="props.statuses[p.id] ?? 'UNKNOWN'" />
-            </div>
+            </button>
           </li>
         </ul>
       </template>
@@ -190,31 +259,81 @@ function toggleFilter(key: string) {
 <style scoped>
 .map-pane {
   min-width: 0;
+  padding: var(--pa-space-4);
+  background: var(--pa-color-surface);
 }
 
 .map-pane__head {
   display: flex;
   flex-direction: column;
   gap: var(--pa-space-2);
-  margin-bottom: var(--pa-space-2);
+  margin-bottom: var(--pa-space-3);
+  padding: var(--pa-space-3);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: var(--pa-radius-md);
+  background: var(--pa-color-surface-raised);
 }
 
 .map-pane__locate {
   justify-content: space-between;
+  min-height: 40px;
+}
+
+.map-pane__locate-button {
+  border: none;
+  background: transparent;
+  color: var(--pa-color-accent);
+  min-height: var(--pa-size-control-md);
+  padding: var(--pa-space-1) var(--pa-space-2);
+}
+
+.map-pane__locate-button:hover,
+.map-pane__locate-button:focus-visible {
+  background: var(--pa-color-accent-weak);
 }
 
 .map-pane__search {
-  text-align: left;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--pa-space-1);
+  align-items: center;
+  padding: var(--pa-space-1);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: var(--pa-radius-control);
+  background: var(--pa-color-surface);
+}
+
+.map-pane__search input {
+  min-width: 0;
+  min-height: var(--pa-size-control-md);
+  border: 0;
+  background: transparent;
+}
+
+.map-pane__search button {
+  min-height: var(--pa-size-control-md);
+}
+
+.map-pane__search-feedback {
+  margin: 0;
+  font-size: var(--pa-font-size-sm);
 }
 
 .map-pane__coverage {
   margin-top: var(--pa-space-1);
 }
 
+.map-lens-note {
+  margin: var(--pa-space-2) 0;
+  padding-bottom: var(--pa-space-2);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  font-size: var(--pa-font-size-sm);
+}
+
 .map-pane__title {
   margin: 0 0 var(--pa-space-2);
-  font-size: var(--pa-font-size-lg);
-  font-weight: var(--pa-font-weight-medium);
+  font-size: var(--pa-font-size-xl);
+  font-weight: var(--pa-font-weight-650);
 }
 
 /* 筛选入口 + 面板：单入口，不铺 pill wall。 */
@@ -223,20 +342,27 @@ function toggleFilter(key: string) {
 }
 
 .map-filter__toggle {
-  border: var(--pa-border-width) solid var(--pa-color-border);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
   border-radius: var(--pa-radius-control);
-  background: var(--pa-color-surface);
-  color: var(--pa-color-text-primary);
-  padding: var(--pa-space-1) var(--pa-space-3);
+  background: var(--pa-color-surface-raised);
+  color: var(--pa-color-accent);
+  padding: var(--pa-space-1) var(--pa-space-2);
   font-size: var(--pa-font-size-md);
   cursor: pointer;
 }
 
+.map-filter__toggle:hover,
+.map-filter__toggle:focus-visible {
+  background: var(--pa-color-accent-weak);
+}
+
 .map-filter__panel {
   margin-top: var(--pa-space-2);
-  border-top: var(--pa-border-width) solid var(--pa-color-border);
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border);
-  padding: var(--pa-space-2) 0;
+  padding: var(--pa-space-3);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: var(--pa-radius-md);
+  background: var(--pa-color-surface-raised);
+  box-shadow: var(--pa-elevation-1);
 }
 
 .map-filter__row {
@@ -274,21 +400,59 @@ function toggleFilter(key: string) {
 }
 
 .map-place-row {
+  position: relative;
+  margin-bottom: var(--pa-space-2);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: var(--pa-radius-md);
+  background: var(--pa-color-surface-raised);
+  overflow: hidden;
+  transition:
+    transform var(--pa-motion-fast) var(--pa-motion-ease),
+    border-color var(--pa-motion-fast) var(--pa-motion-ease),
+    box-shadow var(--pa-motion-fast) var(--pa-motion-ease);
+}
+
+.map-place-row__button {
+  width: 100%;
+  min-height: var(--pa-size-control-lg);
+  display: block;
   cursor: pointer;
-  padding: var(--pa-space-3) 0;
-  border-radius: 0;
+  padding: var(--pa-space-4);
+  border: 0;
+  border-radius: inherit;
   background: transparent;
   box-shadow: none;
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
-  margin-bottom: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
 }
 
-.map-place-row:last-child {
-  border-bottom: none;
+.map-place-row__button:focus-visible {
+  outline: 2px solid var(--pa-color-border-focus);
+  outline-offset: -2px;
 }
 
-.map-place-row:hover {
-  background: var(--pa-color-surface-interactive);
+.map-place-row:hover,
+.map-place-row:focus-within {
+  transform: translateY(-1px);
+  border-color: var(--pa-color-border-strong);
+  box-shadow: var(--pa-elevation-1);
+}
+
+.map-place-row--selected {
+  border-color: color-mix(in srgb, var(--pa-color-accent) 32%, var(--pa-color-border-subtle));
+  background: color-mix(in srgb, var(--pa-color-accent-weak) 62%, var(--pa-color-surface-raised));
+}
+
+.map-place-row--selected::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: var(--pa-space-3);
+  bottom: var(--pa-space-3);
+  width: 3px;
+  border-radius: 999px;
+  background: var(--pa-color-accent);
 }
 
 .map-place-row__head {
@@ -298,10 +462,29 @@ function toggleFilter(key: string) {
   gap: var(--pa-space-3);
 }
 
+.map-place-row__identity-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--pa-space-3);
+  min-width: 0;
+}
+
 .map-place-row__identity {
   display: flex;
   flex-direction: column;
   gap: var(--pa-space-1);
   min-width: 0;
+}
+
+.map-place-row__lens-fact {
+  max-width: 160px;
+  text-align: right;
+  font-size: var(--pa-font-size-md);
+  line-height: var(--pa-line-height-20);
+  color: var(--pa-color-text-secondary);
+}
+
+.map-place-row__lens-fact--unavailable {
+  color: var(--pa-color-text-muted);
 }
 </style>

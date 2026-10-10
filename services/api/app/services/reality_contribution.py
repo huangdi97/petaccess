@@ -30,9 +30,13 @@ from sqlalchemy.orm import Session
 
 from app.core.audit import record_audit
 from app.core.audit_events import AuditEvent
+from app.core.errors import ApiError
 from app.models import (
+    AnimalFacility,
     ExternalContentReference,
+    MediaObject,
     ObservationEffort,
+    ObservedPresence,
     RealityCandidate,
     RealityConfirmation,
     RealityReport,
@@ -44,12 +48,21 @@ from app.models.enums import (
     RealityReportModerationState,
     RealityVerificationStatus,
 )
+from app.models.evidence import (
+    CollectorType,
+    EvidenceBundle,
+    EvidenceClass,
+    SourceArtifact,
+    SourcePlatform,
+)
+from app.models.media import MediaPurpose
 from app.schemas.reality import (
     ExternalContentReferenceIn,
     ObservationEffortIn,
     RealityConfirmationIn,
     RealityReportIn,
 )
+from app.services.reality_freshness import freshness_state
 
 #: A first-hand report without media stays REVIEW_PENDING; never auto-rejected.
 NO_MEDIA_REVIEW_PENDING = True
@@ -100,7 +113,7 @@ def find_duplicate_report(
     the new report still lands REVIEW_PENDING with the flag attached.
     """
     fp = content_fingerprint(source_url, content_hash)
-    if fp is None:
+    if fp is None and media_hash is None:
         return None
     since = datetime.now(UTC) - timedelta(hours=DEDUP_WINDOW_HOURS)
     stmt = select(RealityReport).where(
@@ -117,7 +130,7 @@ def find_duplicate_report(
         if media_hash and report.media_hash == media_hash:
             return report
         rfp = content_fingerprint(report.source_url, report.content_hash)
-        if rfp is not None and rfp == fp:
+        if fp is not None and rfp == fp:
             return report
     return None
 
@@ -142,6 +155,41 @@ def check_old_video(
         if claimed is not None and (now - claimed).days > OLD_VIDEO_MAX_AGE_DAYS:
             return ContributionAbuseFlag.OLD_VIDEO
     return None
+
+
+def _resolve_private_media_refs(
+    db: Session,
+    user: User | None,
+    refs: list[dict] | None,
+) -> tuple[list[dict] | None, str | None]:
+    """Validate report media against the authenticated uploader.
+
+    Client-supplied media ids/hashes are never trusted as provenance. Only
+    stored REALITY_EVIDENCE uploaded by this user can enter a report; the
+    canonical SHA-256 comes from MediaObject for anti-abuse/dedup.
+    """
+    if not refs:
+        return None, None
+    if user is None:
+        raise ApiError("登录后才能附加现场证据", code="auth_required", status_code=401)
+
+    resolved: list[dict] = []
+    hashes: list[str] = []
+    for raw in refs[:5]:
+        media_id = str(raw.get("media_id") or "")
+        media = db.get(MediaObject, media_id) if media_id else None
+        if (
+            media is None
+            or media.upload_status != "stored"
+            or media.created_by_user_id != user.id
+            or media.purpose != MediaPurpose.REALITY_EVIDENCE
+        ):
+            raise ApiError("现场证据不可用或不属于当前账号", code="invalid_media_ref")
+        resolved.append({"media_id": media.id, "purpose": media.purpose})
+        hashes.append(media.sha256)
+
+    aggregate_hash = sha256("|".join(sorted(hashes)).encode()).hexdigest() if hashes else None
+    return resolved, aggregate_hash
 
 
 def _collect_abuse_flags(
@@ -176,7 +224,9 @@ def create_report(
     handled by the caller (token persisted separately, never the raw value).
     Media defaults to private (``privacy_state`` default in schema).
     """
-    duplicate = find_duplicate_report(db, body.source_url, body.content_hash, body.media_hash)
+    media_refs, uploaded_media_hash = _resolve_private_media_refs(db, user, body.media_refs)
+    effective_media_hash = uploaded_media_hash or body.media_hash
+    duplicate = find_duplicate_report(db, body.source_url, body.content_hash, effective_media_hash)
     flags = _collect_abuse_flags(db, body, duplicate)
 
     report = RealityReport(
@@ -198,11 +248,11 @@ def create_report(
         time_certainty=body.time_certainty.value,
         fact_evidence_state=body.fact_evidence_state.value,
         privacy_state=body.privacy_state.value,
-        media_refs=body.media_refs,
+        media_refs=media_refs,
         source_url=body.source_url,
         source_platform=body.source_platform.value if body.source_platform else None,
         content_hash=body.content_hash,
-        media_hash=body.media_hash,
+        media_hash=effective_media_hash,
         external_keyframe_ref=body.external_keyframe_ref,
         ocr_text=body.ocr_text,
         moderation_state=(
@@ -235,6 +285,157 @@ def create_report(
     return report, flags
 
 
+def _private_provenance_artifact(
+    db: Session,
+    *,
+    platform: str,
+    collector: str,
+    artifact_type: str,
+    content_id: str,
+    collected_at: datetime,
+    publisher_type: str,
+    source_url: str | None = None,
+    content_hash: str | None = None,
+    published_at: datetime | None = None,
+) -> SourceArtifact:
+    artifact = SourceArtifact(
+        source_id=None,
+        source_platform=platform,
+        collector_type=collector,
+        artifact_type=artifact_type,
+        source_url=source_url,
+        source_content_id=content_id,
+        content_hash=content_hash,
+        collected_at=collected_at,
+        publisher_type=publisher_type,
+        published_at=published_at,
+        evidence_strength="user_submitted",
+        storage_allowed=True,
+        display_allowed=False,
+        redistribution_allowed=False,
+    )
+    db.add(artifact)
+    db.flush()
+    return artifact
+
+
+def _private_provenance_bundle(
+    db: Session,
+    artifact: SourceArtifact,
+    *,
+    place_match: dict[str, Any],
+    temporal: dict[str, Any],
+    privacy_note: str,
+) -> EvidenceBundle:
+    bundle = EvidenceBundle(
+        artifact_id=artifact.id,
+        source_id=None,
+        source_platform=artifact.source_platform,
+        source_url=artifact.source_url,
+        publisher_type=artifact.publisher_type,
+        published_at=artifact.published_at,
+        captured_at=artifact.collected_at,
+        evidence_class=EvidenceClass.ORIGINAL,
+        content_hash=artifact.content_hash,
+        place_match_evidence=place_match,
+        temporal_evidence=temporal,
+        extraction_method="manual",
+        license_metadata={
+            "storage_allowed": True,
+            "display_allowed": False,
+            "redistribution_allowed": False,
+            "structured_fact_publication_only": True,
+        },
+        privacy_notes=privacy_note,
+    )
+    db.add(bundle)
+    db.flush()
+    return bundle
+
+
+def materialize_report_evidence(db: Session, report: RealityReport) -> EvidenceBundle:
+    """Bridge a private RealityReport into publication-grade provenance."""
+    external = report.origin == "external_online_content"
+    onsite = report.origin in {"on_site_now", "on_site_past"}
+    artifact = _private_provenance_artifact(
+        db,
+        platform=SourcePlatform.USER_LINK if external else SourcePlatform.ONSITE,
+        collector=CollectorType.USER_LINK if external else CollectorType.ONSITE_EVIDENCE,
+        artifact_type=(
+            "external_content_reference"
+            if external
+            else "structured_firsthand_report"
+            if onsite
+            else "structured_reality_report"
+        ),
+        content_id=str(report.id),
+        collected_at=report.submitted_at or datetime.now(UTC),
+        publisher_type=(
+            "ordinary_user"
+            if report.origin in {"on_site_now", "on_site_past", "external_online_content"}
+            else "official_operator"
+            if report.origin == "operator_provided"
+            else "unknown"
+        ),
+        source_url=report.source_url,
+        content_hash=report.content_hash or report.media_hash,
+        published_at=report.content_published_at,
+    )
+    return _private_provenance_bundle(
+        db,
+        artifact,
+        place_match={
+            "state": report.place_match_state,
+            "types": report.place_match_evidence_types or [],
+            "place_id": report.place_id,
+            "container_place_id": report.container_place_id,
+            "subject_place_id": report.subject_place_id,
+        },
+        temporal={
+            "state": report.time_evidence_state,
+            "time_certainty": report.time_certainty,
+            "content_published_at": (
+                report.content_published_at.isoformat() if report.content_published_at else None
+            ),
+            "claimed_event_at": (
+                report.claimed_event_at.isoformat() if report.claimed_event_at else None
+            ),
+            "observed_at": report.observed_at.isoformat() if report.observed_at else None,
+        },
+        privacy_note="Private RealityReport provenance; publish only reviewed structured facts.",
+    )
+
+
+def materialize_legacy_candidate_evidence(
+    db: Session, candidate: RealityCandidate
+) -> EvidenceBundle:
+    """Keep the compatibility contribution route inside the evidence contract."""
+    now = datetime.now(UTC)
+    artifact = _private_provenance_artifact(
+        db,
+        platform=SourcePlatform.ONSITE,
+        collector=CollectorType.ONSITE_EVIDENCE,
+        artifact_type="structured_firsthand_report",
+        content_id=f"legacy-reality-candidate:{candidate.id}",
+        collected_at=now,
+        publisher_type="ordinary_user",
+    )
+    return _private_provenance_bundle(
+        db,
+        artifact,
+        place_match={
+            "state": "exact_place",
+            "types": ["user_confirmation"],
+            "place_id": candidate.place_id,
+        },
+        temporal={
+            "state": "exact_event_time" if candidate.observed_at else "unknown",
+            "observed_at": candidate.observed_at.isoformat() if candidate.observed_at else None,
+        },
+        privacy_note="Compatibility contribution provenance; private review material.",
+    )
+
+
 def attach_candidate(
     db: Session,
     report: RealityReport,
@@ -245,6 +446,7 @@ def attach_candidate(
     payload: dict[str, Any],
     zone_id: str | None = None,
     observed_at: datetime | None = None,
+    evidence_bundle_id: str | None = None,
     request=None,
 ) -> RealityCandidate:
     """Attach one REVIEW_PENDING candidate to a report.
@@ -259,6 +461,7 @@ def attach_candidate(
         place_id=place_id,
         zone_id=zone_id,
         animal_scope=payload.get("animal_scope"),
+        evidence_bundle_id=evidence_bundle_id,
         observed_at=observed_at or report.observed_at,
         captured_at=observed_at or report.observed_at,
         payload=payload,
@@ -266,9 +469,7 @@ def attach_candidate(
         verification_status=RealityVerificationStatus.UNVERIFIED,
     )
     if cand.observed_at is not None:
-        from app.api.v1.reality import _freshness_state
-
-        cand.freshness_state = _freshness_state(cand.observed_at)
+        cand.freshness_state = freshness_state(cand.observed_at)
     db.add(cand)
     db.flush()
     record_audit(
@@ -282,6 +483,7 @@ def attach_candidate(
         after_state={
             "report_id": str(report.id),
             "candidate_type": cand.candidate_type,
+            "evidence_bundle_id": cand.evidence_bundle_id,
             "review_status": cand.review_status,
             "verification_status": cand.verification_status.value,
         },
@@ -294,6 +496,8 @@ def create_observation_effort(
     user: User | None,
     body: ObservationEffortIn,
     *,
+    report_id: str | None = None,
+    evidence_bundle_id: str | None = None,
     request=None,
 ) -> ObservationEffort:
     """Record a no-animal-observed effort row.
@@ -302,6 +506,8 @@ def create_observation_effort(
     a RealityCandidate/claim and never implies NO_ANIMAL_PRESENCE.
     """
     effort = ObservationEffort(
+        report_id=report_id,
+        evidence_bundle_id=evidence_bundle_id,
         place_id=body.place_id,
         duration_bucket=body.duration_bucket.value,
         covered_zone_ids=body.covered_zone_ids,
@@ -322,6 +528,8 @@ def create_observation_effort(
         target_id=str(effort.id),
         after_state={
             "place_id": effort.place_id,
+            "report_id": effort.report_id,
+            "evidence_bundle_id": effort.evidence_bundle_id,
             "animal_observed": effort.animal_observed,
             "duration_bucket": effort.duration_bucket,
         },
@@ -334,14 +542,33 @@ def create_confirmation(
     user: User | None,
     body: RealityConfirmationIn,
     *,
+    report_id: str | None = None,
+    evidence_bundle_id: str | None = None,
     request=None,
 ) -> RealityConfirmation:
-    """Add a confirmation row.
+    """Add a scoped confirmation row; never rewrite the target fact."""
+    if not body.target_claim_id and not body.target_candidate_id:
+        raise ApiError("确认记录必须指向一条已有事实或候选", code="confirmation_target_required")
 
-    A confirmation is evidence, never a deletion: NOT_SEEN_NOW never touches
-    the older Observation (the row is simply appended; nothing is deleted).
-    """
+    confirmation_type = body.confirmation_type.value
+    if body.target_claim_id:
+        model = (
+            AnimalFacility
+            if confirmation_type in {"facility_still_present", "facility_removed"}
+            else ObservedPresence
+        )
+        target = db.get(model, body.target_claim_id)
+        if target is None or getattr(target, "place_id", None) != body.place_id:
+            raise ApiError("确认目标不存在或不属于当前场所", code="confirmation_target_mismatch")
+
+    if body.target_candidate_id:
+        target_candidate = db.get(RealityCandidate, body.target_candidate_id)
+        if target_candidate is None or target_candidate.place_id != body.place_id:
+            raise ApiError("确认候选不存在或不属于当前场所", code="confirmation_target_mismatch")
+
     conf = RealityConfirmation(
+        report_id=report_id,
+        evidence_bundle_id=evidence_bundle_id,
         confirmation_type=body.confirmation_type.value,
         place_id=body.place_id,
         target_claim_id=body.target_claim_id,
@@ -362,6 +589,8 @@ def create_confirmation(
         after_state={
             "confirmation_type": conf.confirmation_type,
             "place_id": conf.place_id,
+            "report_id": conf.report_id,
+            "evidence_bundle_id": conf.evidence_bundle_id,
             "target_claim_id": conf.target_claim_id,
         },
     )

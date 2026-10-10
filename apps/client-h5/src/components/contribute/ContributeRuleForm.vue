@@ -1,14 +1,17 @@
 <script setup lang="ts">
-/**
- * ContributeRuleForm — 我知道规则（结构化表单，legacy createObservation 规则路径）。
- * 提交为「用户陈述」，与场所正式规则并存展示，不覆盖已收录规则。
- * v0.2.5 §28–32：统一走 ContributeStepShell；条件选项组改为 checkbox option rows（非 pill）。
- */
 import { computed, ref } from "vue";
-import { client } from "@petaccess/client-core";
-import { isoAt, proximity } from "./contributeSupport";
-import { presentDescription } from "../../errors";
+import type { RuleView } from "@petaccess/client-core";
 import ContributionStepShell from "./ContributionStepShell.vue";
+import ContributionReview from "./ContributionReview.vue";
+import {
+  ruleLeadConditionLabel,
+  ruleLeadEffectLabel,
+  ruleLeadSourceBasisLabel,
+} from "./ruleLeadCopy";
+import RuleLeadFields from "./RuleLeadFields.vue";
+import RuleTargetPicker from "./RuleTargetPicker.vue";
+import RuleEvidenceUpload from "./RuleEvidenceUpload.vue";
+import { useRuleLeadContribution } from "../../composables/useRuleLeadContribution";
 
 defineOptions({ name: "ContributeRuleForm" });
 
@@ -19,176 +22,148 @@ const props = defineProps<{
   online: boolean;
   signedIn: boolean;
 }>();
-const emit = defineEmits<{ done: [msg: string]; back: [] }>();
+const emit = defineEmits<{ done: [msg: string]; back: []; reviewing: [value: boolean] }>();
 
-const knowRule = ref<"allowed" | "restricted" | "conditional" | "">("");
-const zone = ref("");
-const conditions = ref<string[]>([]);
-const busy = ref(false);
-const error = ref("");
+const {
+  intent,
+  effect,
+  animalScope,
+  zone,
+  conditions,
+  sourceBasis,
+  mediaId,
+  ocrText,
+  uploading,
+  busy,
+  error,
+  selectedRuleId,
+  canSubmit,
+  submit,
+} = useRuleLeadContribution(props, (message) => emit("done", message));
 
-const CONDITION_OPTIONS = [
-  { key: "leash_required", label: "需牵引" },
-  { key: "carrier_required", label: "需宠物包" },
-  { key: "stroller_required", label: "需推车" },
-  { key: "no_ground", label: "不可落地" },
-];
-
-const canSubmit = computed(() => props.online && props.signedIn && !busy.value);
-
-function toggleCondition(key: string) {
-  conditions.value = conditions.value.includes(key)
-    ? conditions.value.filter((k) => k !== key)
-    : [...conditions.value, key];
+function applyRuleScope(rule: RuleView | null) {
+  if (intent.value !== "still_valid" && intent.value !== "changed") return;
+  zone.value = rule?.zone_id ?? "";
 }
 
-async function submit() {
-  if (!canSubmit.value || !knowRule.value) return;
-  error.value = "";
-  busy.value = true;
-  try {
-    await client.createObservation({
-      place_id: props.placeId,
-      zone_id: zone.value || null,
-      occurred_at: isoAt(new Date().toISOString().slice(0, 10)),
-      occurred_precision: "same_day",
-      animal_scope: "dog",
-      observed_action: "enter",
-      staff_action: "no_interaction_observed",
-      place_confidence: "confirmed_on_site",
-      note: [`用户声明：${knowRule.value}`, conditions.value.join(",")].filter(Boolean).join(" | "),
-      evidence_refs: null,
-      ...proximity(),
-    });
-    emit(
-      "done",
-      "已提交你的说明。这是「用户陈述」，会与场所正式规则并存展示，不会覆盖已收录的规则。",
+const contributionScopeLabel = computed(() => {
+  if (!zone.value) return "场所整体（未限定分区）";
+  return props.zones.find((item) => item.id === zone.value)?.name ?? "分区记录待确认";
+});
+
+const reviewing = ref(false);
+function setReviewing(value: boolean) {
+  reviewing.value = value;
+  emit("reviewing", value);
+}
+const INTENT_LABELS: Record<string, string> = {
+  still_valid: "确认已收录规则仍然有效",
+  changed: "报告已收录规则发生变化",
+  signage: "提交规则牌 / 公告证据",
+  new_lead: "提交新规则线索",
+};
+const ANIMAL_LABELS: Record<string, string> = {
+  ordinary_pet: "普通宠物",
+  dog: "犬",
+  cat: "猫",
+  other: "其他动物",
+};
+const reviewItems = computed(() => {
+  const items = [
+    { label: "场所", value: props.placeName },
+    { label: "规则动作", value: INTENT_LABELS[intent.value] ?? "规则线索" },
+    { label: "适用范围", value: contributionScopeLabel.value },
+  ];
+  if (intent.value === "changed" || intent.value === "new_lead") {
+    items.push(
+      { label: "准入结论", value: ruleLeadEffectLabel(effect.value) || "待选择" },
+      { label: "适用动物", value: ANIMAL_LABELS[animalScope.value] ?? animalScope.value },
+      { label: "来源方式", value: ruleLeadSourceBasisLabel(sourceBasis.value) || "待选择" },
+      { label: "已知条件", value: ruleLeadConditionLabel(conditions.value) },
     );
-  } catch (e) {
-    error.value = presentDescription(e);
-  } finally {
-    busy.value = false;
+  } else if (intent.value === "still_valid") {
+    items.push({ label: "目标规则", value: selectedRuleId.value ? "已选择具体规则" : "尚未选择" });
+  } else if (intent.value === "signage") {
+    items.push({ label: "规则牌证据", value: mediaId.value ? "已附私有核验图片" : "尚未上传" });
   }
-}
+  return items;
+});
 </script>
 
 <template>
   <ContributionStepShell
     :place-name="placeName"
-    :step="1"
-    :total="3"
-    title="我知道规则"
-    description="你的说明会以「用户陈述」与场所正式规则并存展示，不会覆盖已收录规则。"
-    @back="emit('back')"
+    :place-zone="contributionScopeLabel"
+    :step="reviewing ? 3 : 2"
+    :total="4"
+    :title="reviewing ? '核对规则线索' : '补充规则信息'"
+    :description="
+      reviewing
+        ? '确认这些结构化信息就是你准备提交的规则线索或核验记录。'
+        : '可以确认现有规则、报告变化、只提交规则牌证据，或提供新规则线索；所有内容都先进入核验流程。'
+    "
+    @back="reviewing ? setReviewing(false) : emit('back')"
   >
     <div v-if="error" class="notice" data-testid="rule-error">{{ error }}</div>
 
-    <label for="rule-known">你了解到的规则是</label>
-    <select v-model="knowRule" id="rule-known" data-testid="rule-known">
-      <option value="">请选择</option>
-      <option value="allowed">明确允许</option>
-      <option value="restricted">明确限制</option>
-      <option value="conditional">有条件进入</option>
-    </select>
+    <template v-if="!reviewing">
+      <RuleLeadFields
+        v-model:intent="intent"
+        v-model:effect="effect"
+        v-model:animal-scope="animalScope"
+        v-model:zone="zone"
+        v-model:conditions="conditions"
+        v-model:source-basis="sourceBasis"
+        :zones="zones"
+      />
 
-    <label for="rule-zone">适用区域</label>
-    <select v-model="zone" id="rule-zone">
-      <option value="">全场 / 不确定</option>
-      <option v-for="z in zones" :key="z.id" :value="z.id">{{ z.name }}</option>
-    </select>
+      <RuleTargetPicker
+        v-if="intent === 'still_valid' || intent === 'changed'"
+        v-model="selectedRuleId"
+        :place-id="placeId"
+        :zones="zones"
+        @selected="applyRuleScope"
+      />
 
-    <label>条件（可多选 / 全不选）</label>
-    <!-- §31 checkbox option rows（多选，非 pill）。 -->
-    <div class="option-group" role="group" aria-label="规则条件">
-      <button
-        v-for="c in CONDITION_OPTIONS"
-        :key="c.key"
-        type="button"
-        class="option-row"
-        role="checkbox"
-        :aria-checked="conditions.includes(c.key)"
-        :class="{ 'option-row--active': conditions.includes(c.key) }"
-        @click="toggleCondition(c.key)"
-      >
-        <span class="option-row__checkbox" aria-hidden="true" />
-        <span class="option-row__text">
-          <span class="option-row__label">{{ c.label }}</span>
-        </span>
-      </button>
-    </div>
+      <RuleEvidenceUpload
+        v-model:media-id="mediaId"
+        v-model:ocr-text="ocrText"
+        v-model:uploading="uploading"
+        :place-id="placeId"
+        :required="intent === 'signage'"
+        @error="error = $event"
+      />
+    </template>
+
+    <ContributionReview
+      v-else
+      :items="reviewItems"
+      guard="确认提交后内容只进入规则线索 / 核验流程；工作人员说明、照片或 OCR 都不会自动升级为正式运营方政策。"
+    />
 
     <template #primary>
       <button
+        v-if="!reviewing"
         class="primary"
-        :disabled="!canSubmit || !knowRule"
-        data-testid="rule-submit"
-        @click="submit"
+        :disabled="!canSubmit"
+        data-testid="rule-review-next"
+        @click="setReviewing(true)"
       >
-        {{ busy ? "提交中…" : "提交" }}
+        下一步：核对
+      </button>
+      <button v-else class="primary" :disabled="busy" data-testid="rule-submit" @click="submit">
+        {{
+          busy
+            ? "提交中…"
+            : intent === "signage"
+              ? "确认提交规则牌证据"
+              : intent === "still_valid"
+                ? "确认提交核验"
+                : "确认提交规则线索"
+        }}
       </button>
     </template>
   </ContributionStepShell>
 </template>
 
-<style scoped>
-.option-group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--pa-space-2);
-}
-.option-row {
-  display: flex;
-  align-items: center;
-  gap: var(--pa-space-3);
-  min-height: 56px;
-  padding: var(--pa-space-2) var(--pa-space-3);
-  border: var(--pa-border-width) solid var(--pa-color-border);
-  border-radius: var(--pa-radius-md);
-  background: var(--pa-color-surface);
-  text-align: left;
-  cursor: pointer;
-}
-.option-row--active {
-  border-color: var(--pa-color-accent);
-  background: var(--pa-color-accent-weak);
-}
-.option-row__checkbox {
-  width: 18px;
-  height: 18px;
-  border-radius: 5px;
-  border: 2px solid var(--pa-color-border-strong);
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-.option-row--active .option-row__checkbox {
-  border-color: var(--pa-color-accent);
-  background: var(--pa-color-accent);
-}
-.option-row--active .option-row__checkbox::after {
-  content: "✓";
-  color: var(--pa-color-surface);
-  font-size: 13px;
-  line-height: 1;
-}
-.option-row__text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.option-row__label {
-  font-size: var(--pa-font-size-base);
-  font-weight: var(--pa-font-weight-600);
-  color: var(--pa-color-text-primary);
-}
-.option-row__hint {
-  font-size: var(--pa-font-size-sm);
-}
-.option-row:hover,
-.option-row:focus-visible {
-  border-color: var(--pa-color-accent);
-  outline: 2px solid var(--pa-color-border-focus);
-  outline-offset: -1px;
-}
-</style>
+<style scoped src="./ContributeRuleForm.css"></style>

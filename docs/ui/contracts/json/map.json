@@ -13,7 +13,37 @@
         "page": "map",
         "state": "ready",
         "fixture": "map-ready-v1",
-        "h1": "规则地图"
+        "h1": "规则与现场地图"
+      }
+    },
+    {
+      "id": "map-reality",
+      "route": "/#/map?lens=reality",
+      "expect": {
+        "page": "map",
+        "state": "ready",
+        "fixture": "map-ready-v1",
+        "h1": "规则与现场地图"
+      }
+    },
+    {
+      "id": "map-facility",
+      "route": "/#/map?lens=facility",
+      "expect": {
+        "page": "map",
+        "state": "ready",
+        "fixture": "map-ready-v1",
+        "h1": "规则与现场地图"
+      }
+    },
+    {
+      "id": "map-divergence",
+      "route": "/#/map?lens=divergence",
+      "expect": {
+        "page": "map",
+        "state": "ready",
+        "fixture": "map-ready-v1",
+        "h1": "规则与现场地图"
       }
     }
   ],
@@ -50,7 +80,9 @@
           "min": 1
         }
       },
-      "severity": "WARN"
+      "severity": "WARN",
+      "pages": ["map-ready"],
+      "note": "Status filtering is a Rule-lens control only; Reality/Facility/Divergence intentionally show all places."
     },
     {
       "id": "MAP_PREVIEW_FOCUSED",
@@ -90,6 +122,17 @@
       },
       "severity": "FAIL",
       "note": "v0.2.7 §40：selected marker 必须 scale ≥14px 且浮起（halo/elevation）。"
+    },
+    {
+      "id": "MAP_LENSBAR_PRESENT",
+      "ui": "map-lensbar",
+      "fallbacks": ["[data-ui='map-lensbar']"],
+      "props": {
+        "count": {
+          "min": 1
+        }
+      },
+      "severity": "FAIL"
     }
   ],
   "structure": [
@@ -134,6 +177,56 @@
       "selector": ".map-place-row",
       "forbiddenClass": ["card", "panel"],
       "severity": "FAIL"
+    },
+    {
+      "id": "MAP_FOUR_LENSES",
+      "selector": "[data-ui='map-lensbar'] button",
+      "min": 4,
+      "max": 4,
+      "severity": "FAIL",
+      "mustContainTexts": ["规则", "现场", "设施", "不一致"]
+    },
+    {
+      "id": "MAP_ONE_ACTIVE_LENS",
+      "selector": "[data-ui='map-lensbar'] button[aria-pressed='true']",
+      "min": 1,
+      "max": 1,
+      "severity": "FAIL"
+    },
+    {
+      "id": "MAP_ZOOM_CONTROLS_INTERACTIVE",
+      "selector": "[data-ui='map-zoom'] button:not(:disabled)",
+      "min": 1,
+      "severity": "FAIL"
+    },
+    {
+      "id": "MAP_NON_RULE_LENS_FACTS_VISIBLE",
+      "selector": ".map-place-row__lens-fact",
+      "min": 1,
+      "severity": "FAIL",
+      "pages": ["map-reality", "map-facility", "map-divergence"]
+    },
+    {
+      "id": "MAP_SELECTED_RESULT_ROW",
+      "selector": ".map-place-row[data-selected='true']",
+      "min": 1,
+      "max": 1,
+      "severity": "FAIL",
+      "pages": ["map-ready", "map-reality", "map-facility", "map-divergence"]
+    },
+    {
+      "id": "MAP_RESULT_SPATIAL_IDENTITY",
+      "selector": "[data-ui='map-result-pane'] [data-ui='place-type-glyph']",
+      "min": 1,
+      "severity": "WARN",
+      "note": "Result rows keep a neutral spatial identity anchor without decorative/fake photography."
+    },
+    {
+      "id": "MAP_FALLBACK_SPATIAL_AIDS",
+      "selector": "[data-ui='mock-map'] .map-spatial-aids",
+      "min": 1,
+      "severity": "WARN",
+      "note": "Fallback basemap must still read as a spatial workspace (orientation + scale), never a grey grid."
     }
   ],
   "density": [],
@@ -144,5 +237,5 @@
     "allcapsTokens": true,
     "refs": true
   },
-  "notes": "Map is canvas. Only one floating preview card allowed (map-preview-float). Mock map must show roads/blocks/green+rivers/markers/selected/zoom."
+  "notes": "Map is the canvas and exposes Rule / Reality / Facility / Divergence over one CoexistenceSnapshot. Non-rule lenses use lens-specific fact labels/palettes rather than access-green semantics; mock zoom controls remain genuinely interactive until a real provider replaces the renderer."
 }

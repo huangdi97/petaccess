@@ -1,0 +1,12 @@
+﻿{
+  "order": 10,
+  "name": "10_place_mobile",
+  "platform": "web",
+  "device": "mobile",
+  "viewport": "430x932",
+  "route": "/#/place/5a9084d0...",
+  "state": "overview",
+  "gitSha": "d2eeba2fe5ffbfba31f244881f6e1705a07f84c2",
+  "valid": true,
+  "screenshot": "10_place_mobile.png"
+}

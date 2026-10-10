@@ -66,8 +66,10 @@ def test_no_literal_audit_actions_in_routes() -> None:
     """Every writer imports the constant; a literal is a future drift."""
     offenders: list[str] = []
     pattern = re.compile(r'action\s*=\s*["\']([a-z_]+\.[a-z_]+)["\']')
-    for path in sorted(SERVICES.rglob("*.py")):
-        if "audit_events.py" in str(path):
+    for path in sorted((SERVICES / "app").rglob("*.py")):
+        # Guard current runtime writers. Immutable Alembic migrations are
+        # historical transformations and cannot import today's enum safely.
+        if path.name == "audit_events.py":
             continue
         for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
             for match in pattern.finditer(line):

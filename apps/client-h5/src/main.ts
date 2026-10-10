@@ -6,6 +6,7 @@ import { bindStorage, configureApi } from "@petaccess/client-core";
 import { bootStage } from "./config/bootTrace";
 import { detectRuntimeKind, resolveApiEndpoint } from "./config/endpoints";
 import "./styles.css";
+import "./styles/consumer-discovery-v9.css";
 
 bootStage("INDEX_LOADED");
 

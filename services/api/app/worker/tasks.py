@@ -9,7 +9,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session as OrmSession
 
 from app.models import AccessRule, MediaObject, Place, WatchSubscription
-from app.models.enums import WatchStatus, WatchTargetType
+from app.models.enums import WatchDomain, WatchStatus, WatchTargetType
 from app.providers.factory import get_notification_provider, get_ocr_provider
 
 from .celery_app import celery_app
@@ -45,7 +45,10 @@ def notify_rule_changes(self) -> dict:  # noqa: ANN001
     try:
         now = session.execute(select(func.now())).scalar_one()
         watches = session.scalars(
-            select(WatchSubscription).where(WatchSubscription.status == WatchStatus.ACTIVE)
+            select(WatchSubscription).where(
+                WatchSubscription.status == WatchStatus.ACTIVE,
+                WatchSubscription.watch_domain == WatchDomain.RULE,
+            )
         ).all()
         for w in watches:
             since = w.last_notified_at or datetime(2020, 1, 1, tzinfo=UTC)
@@ -65,7 +68,7 @@ def notify_rule_changes(self) -> dict:  # noqa: ANN001
                 ).all()
             else:  # rule-level watch
                 single = session.get(AccessRule, w.target_id)
-                rules = [] if single is None else [single]
+                rules = [] if single is None or _dt(single.updated_at) <= since else [single]
             recent = [r for r in rules if (now - _dt(r.updated_at)).total_seconds() < 26 * 3600]
             if not recent:
                 continue

@@ -1,0 +1,170 @@
+.entry-question {
+  margin: 0;
+  /* §44 mobile：24/32/650；desktop 保持页级标题。 */
+  font-size: var(--pa-font-size-2xl);
+  font-weight: var(--pa-font-weight-650);
+  line-height: var(--pa-line-height-32);
+  color: var(--pa-color-text-primary);
+}
+.entry-hint {
+  margin: var(--pa-space-1) 0 0;
+}
+.entry-options {
+  display: flex;
+  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--pa-space-3);
+  margin: var(--pa-space-5) 0 0;
+  padding: 0;
+  list-style: none;
+}
+/* Canonical transaction row: compact outlined choice, never a pill/card wall. */
+.entry-option {
+  border: 0;
+}
+.entry-option__button {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 116px;
+  padding: var(--pa-space-4);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: var(--pa-radius-md);
+  background: var(--pa-color-surface);
+  color: var(--pa-color-text-primary);
+  font-size: var(--pa-font-size-base);
+  text-align: left;
+  cursor: pointer;
+  gap: var(--pa-space-3);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--pa-color-text-primary) 4%, transparent);
+  transition:
+    transform var(--pa-motion-fast) var(--pa-motion-ease),
+    border-color var(--pa-motion-fast) var(--pa-motion-ease),
+    box-shadow var(--pa-motion-fast) var(--pa-motion-ease);
+}
+.entry-option__button:hover,
+.entry-option__button:focus-visible {
+  color: var(--pa-color-text-primary);
+  border-color: var(--pa-color-border-strong);
+  background: var(--pa-color-surface-interactive);
+  transform: translateY(-1px);
+  box-shadow: var(--pa-elevation-1);
+}
+
+.entry-option__button--selected {
+  border-color: var(--pa-color-accent);
+  background: var(--pa-color-accent-weak);
+  box-shadow: inset 3px 0 0 var(--pa-color-accent);
+}
+
+.entry-next {
+  width: 100%;
+  min-height: var(--pa-size-control-lg);
+  margin-top: var(--pa-space-4);
+  justify-content: center;
+}
+
+.entry-next:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.entry-option__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--pa-color-accent-weak);
+  color: var(--pa-color-accent);
+}
+
+/* These hues encode contribution *type*, never permission or quality. Reuse
+ * existing semantic palettes so the entry screen scans like the approved
+ * reference without inventing a second status system. */
+.entry-option__icon--rule {
+  background: var(--pa-color-accent-weak);
+  color: var(--pa-color-accent);
+}
+
+.entry-option__icon--reality {
+  background: var(--pa-color-reality-observed-bg);
+  color: var(--pa-color-reality-observed);
+}
+
+.entry-option__icon--staff {
+  background: var(--pa-color-status-conditional-bg);
+  color: var(--pa-color-status-conditional);
+}
+
+.entry-option__icon--facility {
+  background: var(--pa-color-facility-confirmed-bg);
+  color: var(--pa-color-facility-confirmed);
+}
+
+.entry-option__icon--correction {
+  background: var(--pa-color-status-conflict-bg);
+  color: var(--pa-color-status-conflict);
+}
+.entry-option__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.entry-option__label {
+  font-size: var(--pa-font-size-base);
+  font-weight: var(--pa-font-weight-medium);
+  color: var(--pa-color-text-primary);
+}
+.entry-option__description {
+  font-size: var(--pa-font-size-sm);
+  line-height: var(--pa-line-height-20);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.entry-option__chevron {
+  margin-left: auto;
+  flex-shrink: 0;
+  color: var(--pa-color-text-muted);
+  font-size: var(--pa-font-size-lg);
+}
+.entry-effort-link {
+  margin-top: var(--pa-space-3);
+  min-height: var(--pa-size-control-md);
+  border: 0;
+  background: transparent;
+  color: var(--pa-color-accent);
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.entry-effort-link:hover,
+.entry-effort-link:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.entry-note {
+  margin: var(--pa-space-3) 0 0;
+}
+
+.entry-option__button:hover .entry-option__chevron,
+.entry-option__button:focus-visible .entry-option__chevron {
+  color: var(--pa-color-accent);
+}
+
+@media (max-width: 620px) {
+  .entry-options {
+    grid-template-columns: 1fr;
+  }
+
+  .entry-option__button {
+    min-height: 88px;
+  }
+}

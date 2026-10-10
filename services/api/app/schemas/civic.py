@@ -3,7 +3,7 @@ operator claims, watches, sources (design #13-14, #18, #24, #26)."""
 
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from app.models.enums import (
     AnimalScope,
@@ -16,13 +16,16 @@ from app.models.enums import (
     ObservationDisputeStatus,
     ObservationStaffAction,
     OccurredPrecision,
+    OperatorOrgType,
     PlaceConfidence,
     RuleAction,
+    RuleConditionType,
     RuleEffect,
     SourceType,
     TemporaryAction,
     VerificationEventType,
     VerificationResult,
+    WatchDomain,
     WatchStatus,
     WatchTargetType,
     normalize_mandatory_level,
@@ -213,6 +216,18 @@ class OperatorClaimIn(BaseModel):
     evidence_refs: dict | None = None
 
 
+class OperatorClaimSelfServeIn(BaseModel):
+    """Consumer-safe claim request; approval still belongs to moderators."""
+
+    place_id: str
+    operator_name: str = Field(min_length=2, max_length=160)
+    org_type: OperatorOrgType = OperatorOrgType.COMPANY
+    work_email: str | None = Field(default=None, max_length=255)
+    website: str | None = Field(default=None, max_length=512)
+    verification_method: str = Field(min_length=1, max_length=64)
+    verification_note: str | None = Field(default=None, max_length=500)
+
+
 class OperatorClaimReview(BaseModel):
     approve: bool
     rejection_reason: str | None = None
@@ -234,13 +249,60 @@ class OperatorClaimOut(BaseModel):
     created_at: datetime
 
 
+class OperatorRuleConditionIn(BaseModel):
+    """One structured condition in an operator-declared policy cell."""
+
+    condition_type: RuleConditionType
+    value_flag: bool | None = None
+    value_numeric: float | None = None
+    value_text: str | None = Field(default=None, max_length=200)
+    value_json: dict | list | None = None
+
+
+class OperatorRuleAnswerIn(BaseModel):
+    """One versionable OPERATOR_POLICY cell from an approved venue representative."""
+
+    zone_id: str | None = None
+    animal_scope: AnimalScope
+    action: RuleAction
+    effect: RuleEffect
+    conditions: list[OperatorRuleConditionIn] = Field(default_factory=list)
+    review_due_at: datetime | None = None
+    note: str | None = Field(default=None, max_length=2000)
+
+    @field_validator("conditions")
+    @classmethod
+    def conditional_requires_condition(
+        cls,
+        conditions: list[OperatorRuleConditionIn],
+        info,
+    ) -> list[OperatorRuleConditionIn]:
+        effect = info.data.get("effect")
+        if effect == RuleEffect.CONDITIONAL and not conditions:
+            raise ValueError(
+                "conditional operator policy requires at least one structured condition"
+            )
+        if effect != RuleEffect.CONDITIONAL and conditions:
+            raise ValueError("only conditional operator policy may carry entry conditions")
+        return conditions
+
+
 class OperatorQuestionnaire(BaseModel):
-    """Spokin-style structured questionnaire answers → operator-declared rules
-    (design #16). Answers are converted into AccessRule rows versioned by
-    superseding the previous operator rules."""
+    """Structured operator policy submission after an approved place claim.
+
+    Each answer is one OPERATOR_POLICY cell. The service may version a matching
+    prior operator cell, but it must never mutate LEGAL / REGULATORY_GUIDANCE.
+    """
 
     effective_from: datetime | None = None
-    answers: list[dict] = Field(min_length=1)
+    answers: list[OperatorRuleAnswerIn] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def unique_policy_cells(self) -> "OperatorQuestionnaire":
+        keys = [(item.zone_id, item.animal_scope, item.action) for item in self.answers]
+        if len(keys) != len(set(keys)):
+            raise ValueError("operator questionnaire contains duplicate policy cells")
+        return self
 
 
 # --- disputes (design #26) ---
@@ -290,6 +352,7 @@ class DisputeOut(BaseModel):
 
 # --- watches (design #24) ---
 class WatchIn(BaseModel):
+    watch_domain: WatchDomain = WatchDomain.RULE
     target_type: WatchTargetType
     target_id: str
     channels: list[str] = ["in_app"]
@@ -300,6 +363,7 @@ class WatchOut(BaseModel):
 
     id: str
     user_id: str
+    watch_domain: WatchDomain
     target_type: WatchTargetType
     target_id: str
     channels: list

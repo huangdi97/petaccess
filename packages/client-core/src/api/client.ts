@@ -168,12 +168,18 @@ export interface BoundaryMatchResult {
  */
 export interface StaffResponseSummaryItem {
   response_action: string;
+  staff_awareness_state: string;
   count: number;
+  disputed_count: number;
 }
 
 export interface FacilitySummaryItem {
   facility_type: string;
+  purpose_state: string;
+  zone_id: string | null;
+  zone_name: string | null;
   count: number;
+  disputed_count: number;
   operational_state: string;
   last_verified_at: string | null;
 }
@@ -185,6 +191,9 @@ export interface RealityAnswer {
   evidence_count: number;
   distinct_source_count: number;
   observed_zones: string[];
+  observed_zone_facts?: { name: string; zone_type: string | null; indoor_outdoor: string | null }[];
+  observed_zone_types?: string[];
+  observed_indoor_outdoor?: string[];
   observed_actions: string[];
   staff_response_summary: StaffResponseSummaryItem[];
   facility_summary: FacilitySummaryItem[];
@@ -222,6 +231,9 @@ export interface CoexistenceSnapshot {
   divergence: RuleRealityDivergence;
   evidence_summary: EvidenceSummary;
 }
+
+/** Published Reality event, generated from FastAPI OpenAPI (SSOT). */
+export type RealityEventView = ApiSchemas["RealityEventOut"];
 
 export interface AnswerCell {
   question: string;
@@ -307,6 +319,7 @@ export interface AccessPathItem {
   to_node: string;
   steps: unknown[] | null;
   animal_scope: string | null;
+  conditions: unknown[] | null;
   time_window: Record<string, unknown> | null;
   source_id: string;
 }
@@ -395,7 +408,8 @@ export interface PetView {
 
 // ----------------------------------------------------------------- media
 
-export type MediaPurposeKey = "signage_evidence" | "scene_photo" | "avatar" | "import_document";
+export type MediaPurposeKey =
+  "signage_evidence" | "reality_evidence" | "scene_photo" | "avatar" | "import_document";
 
 export interface MediaView {
   id: string;
@@ -408,31 +422,55 @@ export interface MediaView {
   expires_at: string | null;
 }
 
-export interface MediaMetaView {
-  id: string;
-  purpose: string;
-  privacy_class: string;
+/** Uploader-owned media metadata, generated from the API contract. */
+export type MediaMetaView = ApiSchemas["MediaMetaOut"];
+
+export interface PublicEvidenceMediaView {
+  evidence_bundle_id: string;
+  media_id: string;
+  purpose: MediaPurposeKey;
+  url: string;
   mime_type: string;
-  byte_size: number;
-  moderation_status: string;
-  ocr_text: string | null;
-  ocr_rule_candidates: unknown[] | null;
-  upload_status: string;
-  created_at: string;
-  expires_at: string | null;
-  deleted_at: string | null;
+  expires_in: number;
 }
+
+export type PetVisionView = ApiSchemas["PetVisionOut"];
+
+export interface AccountDeletionRequestView {
+  status: "none" | "submitted" | string;
+  requested_at: string | null;
+}
+
+export type PrivacyExportView = Record<string, unknown>;
 
 // --------------------------------------------------------------- watches
 
-/** A subscription to changes on a place / zone / rule (notification centre). */
+/** A subscription to one reviewed change domain on a place / zone / rule. */
 export interface WatchView {
   id: string;
+  watch_domain: "rule" | "reality";
   target_type: string;
   target_id: string;
   channels?: string[];
   status?: string;
   created_at?: string | null;
+}
+
+export interface MapRenderConfig {
+  provider: "mock" | "tencent" | string;
+  center: { lat: number; lng: number };
+  zoom: number;
+  real_enabled: boolean;
+  client_key: string | null;
+  input_coordinate_system: string;
+  render_coordinate_system: string;
+  attribution: string | null;
+  reason: string | null;
+}
+
+export interface MapTranslatedCoordinate {
+  lat: number;
+  lng: number;
 }
 
 const asParams = (q: Record<string, unknown>) =>
@@ -458,6 +496,15 @@ export const client = {
       "/auth/me",
     );
   },
+  async exportMyData() {
+    return api.request<PrivacyExportView>("get", "/privacy/export");
+  },
+  async accountDeletionRequest() {
+    return api.request<AccountDeletionRequestView>("get", "/privacy/account-deletion-request");
+  },
+  async requestAccountDeletion() {
+    return api.request<AccountDeletionRequestView>("post", "/privacy/account-deletion-request");
+  },
 
   async myPets() {
     const res = await api.request<Page<PetView>>("get", "/pets");
@@ -477,6 +524,27 @@ export const client = {
   // Multipart upload cannot go through the JSON-only api-client, so this is
   // the one method that talks fetch directly. It still uses the shared base
   // URL and token provider, so auth/error semantics stay identical.
+
+  async classifyPetImage(file: File): Promise<PetVisionView> {
+    const form = new FormData();
+    form.append("image", file);
+    const token = tokenProvider();
+    const res = await fetch(`${base}/ai/pet-vision`, {
+      method: "POST",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: form,
+    });
+    const payload = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+    if (!res.ok) {
+      const err = payload.error as { code?: string; message?: string } | undefined;
+      throw new ApiError(
+        res.status,
+        err?.code ?? "pet_vision_failed",
+        err?.message ?? "图片建议暂不可用",
+      );
+    }
+    return payload as unknown as PetVisionView;
+  },
 
   async uploadMedia(
     file: File,
@@ -510,6 +578,15 @@ export const client = {
   async mediaMeta(mediaId: string) {
     return api.request<MediaMetaView>("get", `/media/${mediaId}`);
   },
+  async myMedia() {
+    return api.request<MediaMetaView[]>("get", "/media/mine");
+  },
+  async publicEvidenceMedia(bundleId: string) {
+    return api.request<PublicEvidenceMediaView>(
+      "get",
+      `/evidence-bundles/${bundleId}/public-media`,
+    );
+  },
   async deleteMedia(mediaId: string) {
     return api.request<void>("delete", `/media/${mediaId}`);
   },
@@ -525,6 +602,10 @@ export const client = {
       query: asParams({ lat, lng, radius_m: radiusM, limit: 30 }),
     });
     return res.items;
+  },
+  async placeSummary(id: string): Promise<PlaceSummary> {
+    // Exact ID, not an unbounded fuzzy-name lookup. May carry null coords.
+    return api.request<PlaceSummary>("get", `/places/${id}/summary`);
   },
   async place(id: string) {
     // Derived, not hand-written — same reason as `PlaceSummary` above. The
@@ -585,8 +666,9 @@ export const client = {
     place_id: string;
     zone_id?: string | null;
     rule_id?: string | null;
-    event_type?: string;
-    result: string;
+    event_type?:
+      "rule_confirmed" | "rule_changed" | "signage_uploaded" | "field_check" | "place_correction";
+    result: "still_valid" | "changed" | "uncertain";
     note?: string | null;
     evidence_refs?: { media_id: string; purpose?: string }[] | null;
     proximity_verified?: boolean;
@@ -594,6 +676,29 @@ export const client = {
     accuracy_bucket?: string | null;
   }) {
     return api.request<{ id: string }>("post", "/verifications", { body });
+  },
+  async contributeRuleLead(
+    placeId: string,
+    body: {
+      zone_id?: string | null;
+      animal_scope?: "dog" | "cat" | "ordinary_pet" | "other" | null;
+      effect?: "allowed" | "prohibited" | "conditional" | null;
+      proposed_conditions?: string[];
+      raw_text?: string | null;
+      source_basis?:
+        "onsite_signage" | "staff_statement" | "official_online" | "other" | "uncertain" | null;
+      media_id?: string | null;
+      current_rule_id?: string | null;
+      proximity_verified?: boolean;
+      distance_bucket?: string | null;
+      accuracy_bucket?: string | null;
+    },
+  ) {
+    return api.request<{ id: string; review_status: string }>(
+      "post",
+      `/places/${placeId}/rule-leads`,
+      { body },
+    );
   },
   async verifications(placeId: string) {
     const res = await api.request<
@@ -607,9 +712,14 @@ export const client = {
     >("get", `/places/${placeId}/verifications`);
     return res.items;
   },
-  async watch(targetType: string, targetId: string) {
-    return api.request<{ id: string }>("post", "/watches", {
-      body: { target_type: targetType, target_id: targetId, channels: ["in_app"] },
+  async watch(targetType: string, targetId: string, watchDomain: "rule" | "reality" = "rule") {
+    return api.request<WatchView>("post", "/watches", {
+      body: {
+        watch_domain: watchDomain,
+        target_type: targetType,
+        target_id: targetId,
+        channels: ["in_app"],
+      },
     });
   },
   async unwatch(watchId: string) {
@@ -630,6 +740,9 @@ export const client = {
       }>
     >("get", path);
     return res.items;
+  },
+  async source(sourceId: string): Promise<SourceView> {
+    return api.request<SourceView>("get", `/sources/${sourceId}`);
   },
   async allSources() {
     const res = await api.request<
@@ -659,18 +772,29 @@ export const client = {
   }) {
     return api.request<{ id: string }>("post", "/operator-claims", { body });
   },
-  async submitOperatorRules(claimId: string, answers: unknown[]) {
+  async submitOperatorRules(claimId: string, answers: unknown[], effectiveFrom?: string) {
     return api.request<{ created_rules: string[] }>(
       "post",
       `/operator-claims/${claimId}/questionnaire`,
-      { body: { answers } },
+      { body: { answers, effective_from: effectiveFrom } },
     );
   },
   async mapConfig() {
-    return api.request<{ provider: string; center: { lat: number; lng: number }; zoom: number }>(
-      "get",
-      "/ai/map/config",
-    );
+    return api.request<MapRenderConfig>("get", "/ai/map/config");
+  },
+  async translateMapCoordinates(coordinates: MapTranslatedCoordinate[]) {
+    return api.request<{
+      provider: string;
+      coordinate_system: string;
+      coordinates: MapTranslatedCoordinate[];
+    }>("post", "/ai/map/translate", { body: { coordinates } });
+  },
+  async normalizeMapCoordinates(coordinates: MapTranslatedCoordinate[]) {
+    return api.request<{
+      provider: string;
+      coordinate_system: string;
+      coordinates: MapTranslatedCoordinate[];
+    }>("post", "/ai/map/normalize", { body: { coordinates } });
   },
 
   // ------------------------------------------------------------- v0.5 domain
@@ -719,6 +843,44 @@ export const client = {
    * v0.9-R1: a signed-in visitor contributes an on-site reality fact (§25.2).
    * Lands as a REVIEW_PENDING candidate; AI never sets reality_decision.
    */
+  async submitOperatorClaim(body: {
+    place_id: string;
+    operator_name: string;
+    org_type: "company" | "government" | "property_mgmt" | "individual_owner" | "other";
+    work_email?: string | null;
+    website?: string | null;
+    verification_method: "work_email" | "official_domain" | "business_document" | "other";
+    verification_note?: string | null;
+  }) {
+    return api.request<{
+      id: string;
+      place_id: string;
+      operator_id: string;
+      claimant_user_id: string;
+      status: string;
+      verification_method: string | null;
+      created_at: string;
+    }>("post", "/operator-claims/self-serve", { body });
+  },
+
+  async myOperatorClaims(placeId?: string) {
+    return api.request<
+      {
+        id: string;
+        place_id: string;
+        operator_id: string;
+        claimant_user_id: string;
+        status: string;
+        verification_method: string | null;
+        created_at: string;
+        reviewed_at?: string | null;
+        rejection_reason?: string | null;
+      }[]
+    >("get", "/operator-claims/mine", {
+      query: asParams({ place_id: placeId }),
+    });
+  },
+
   async submitRealityContribution(
     placeId: string,
     body: {
@@ -760,6 +922,9 @@ export const client = {
   },
   async placeReality(placeId: string) {
     return api.request<RealityAnswer>("get", `/places/${placeId}/reality`);
+  },
+  async realityEvents(placeId: string) {
+    return api.request<RealityEventView[]>("get", `/places/${placeId}/reality/events`);
   },
   /**
    * CoexistenceSnapshot — the ONE aggregate every consumer surface reads
@@ -870,6 +1035,20 @@ export const client = {
       review_sections: { label: string; value: string | null; note?: string | null }[];
       evidence_count: number;
     }>("get", `/places/${placeId}/reality/trace`);
+  },
+
+  async myContributionActivity() {
+    return api.request<
+      {
+        id: string;
+        kind: "reality" | "verification" | "rule_lead";
+        place_id: string | null;
+        place_name: string | null;
+        created_at: string | null;
+        status: string;
+        summary: string;
+      }[]
+    >("get", "/me/contribution-activity");
   },
 
   /** M7 B2 — the signed-in user's own reality reports + candidate statuses. */

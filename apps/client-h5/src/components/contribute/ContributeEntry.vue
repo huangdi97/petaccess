@@ -1,30 +1,26 @@
 <script setup lang="ts">
-/**
- * ContributeEntry — the first question of the Contribution transaction flow
- * (v0.2.4 §41): 你刚刚知道了什么？ with focused choice rows.
- *
- * Each choice is a real transaction launcher: icon + title + one-line
- * description + chevron + divider, row height 64–72px — never bare text rows.
- * Options map onto the existing step machine keys; testids asserted by the
- * e2e wizard (entry-quick, entry-reality-observed_presence) are preserved.
- */
+/** Contribution entry: five focused transaction launchers, not a generic form. */
+import { ref } from "vue";
 import { type IconName } from "@petaccess/design-tokens";
 import PaIcon from "../ui/PaIcon.vue";
+import ContributionProgress from "./ContributionProgress.vue";
 defineOptions({ name: "ContributeEntry" });
 
 const emit = defineEmits<{
-  select: [step: "quick" | "signage" | "rule" | "experience"];
+  select: [step: "quick" | "rule"];
   reality: [kind: "observed_presence" | "staff_response" | "animal_facility"];
+  effort: [];
 }>();
 
 type EntryOption =
   | {
       kind: "select";
-      key: "quick" | "signage" | "rule" | "experience";
+      key: "quick" | "rule";
       testid: string;
       label: string;
       description: string;
       icon: IconName;
+      tone: "rule" | "reality" | "staff" | "facility" | "correction";
     }
   | {
       kind: "reality";
@@ -33,6 +29,7 @@ type EntryOption =
       label: string;
       description: string;
       icon: IconName;
+      tone: "rule" | "reality" | "staff" | "facility" | "correction";
     };
 
 const OPTIONS: EntryOption[] = [
@@ -40,9 +37,10 @@ const OPTIONS: EntryOption[] = [
     kind: "select",
     key: "rule",
     testid: "entry-rule",
-    label: "我看到了新的规则",
-    description: "规则牌、公告或正式说明",
+    label: "我看到或了解到一条规则",
+    description: "规则牌、公告、工作人员说明或其他线索",
     icon: "document",
+    tone: "rule",
   },
   {
     kind: "reality",
@@ -51,14 +49,16 @@ const OPTIONS: EntryOption[] = [
     label: "我在现场看到动物",
     description: "是什么动物，在哪里，什么时间",
     icon: "eye",
+    tone: "reality",
   },
   {
     kind: "reality",
     key: "staff_response",
     testid: "entry-reality-staff_response",
-    label: "工作人员进行了处理",
-    description: "如何引导、提示或允许进入",
+    label: "我看到工作人员怎么处理",
+    description: "如何引导、提示、要求，或本次没有观察到进一步处理",
     icon: "info",
+    tone: "staff",
   },
   {
     kind: "reality",
@@ -67,18 +67,28 @@ const OPTIONS: EntryOption[] = [
     label: "我发现了相关设施",
     description: "宠物区、饮水点、临时安置等",
     icon: "building",
+    tone: "facility",
   },
   {
     kind: "select",
     key: "quick",
     testid: "entry-quick",
     label: "场所信息有误",
-    description: "名称、地址或当前结论需要纠正",
+    description: "名称、地址或场所状态需要纠正",
     icon: "flag",
+    tone: "correction",
   },
 ];
 
+const selected = ref<EntryOption | null>(null);
+
 function choose(opt: EntryOption) {
+  selected.value = opt;
+}
+
+function continueFlow() {
+  const opt = selected.value;
+  if (!opt) return;
   if (opt.kind === "reality") emit("reality", opt.key);
   else emit("select", opt.key);
 }
@@ -86,6 +96,7 @@ function choose(opt: EntryOption) {
 
 <template>
   <div data-ui="contribution-flow">
+    <ContributionProgress :step="1" :total="4" />
     <h2 class="entry-question" data-testid="contribute-question">你刚刚知道了什么？</h2>
     <p class="muted entry-hint">选择最接近的一项。</p>
     <ul class="entry-options" role="list">
@@ -93,10 +104,16 @@ function choose(opt: EntryOption) {
         <button
           type="button"
           class="entry-option__button"
+          :class="{ 'entry-option__button--selected': selected?.testid === opt.testid }"
+          :aria-pressed="selected?.testid === opt.testid"
           :data-testid="opt.testid"
           @click="choose(opt)"
         >
-          <span class="entry-option__icon" aria-hidden="true">
+          <span
+            class="entry-option__icon"
+            :class="`entry-option__icon--${opt.tone}`"
+            aria-hidden="true"
+          >
             <PaIcon :name="opt.icon" size="lg" />
           </span>
           <span class="entry-option__text">
@@ -107,85 +124,28 @@ function choose(opt: EntryOption) {
         </button>
       </li>
     </ul>
-    <p class="muted entry-note">提交内容会进入人工核验，AI 不会自动裁定。</p>
+    <button
+      type="button"
+      class="entry-next primary"
+      data-testid="entry-next"
+      :disabled="!selected"
+      @click="continueFlow"
+    >
+      下一步 →
+    </button>
+    <button
+      type="button"
+      class="entry-effort-link"
+      data-testid="entry-effort"
+      @click="emit('effort')"
+    >
+      这次认真看了，但没有看到动物？记录观察覆盖 →
+    </button>
+    <p class="muted entry-note">
+      “没有看到”只记录本次观察范围与时长，不代表这里没有动物。提交内容会进入人工核验，AI
+      不会自动裁定。
+    </p>
   </div>
 </template>
 
-<style scoped>
-.entry-question {
-  margin: 0;
-  /* §44 mobile：24/32/650；desktop 保持页级标题。 */
-  font-size: var(--pa-font-size-2xl);
-  font-weight: var(--pa-font-weight-650);
-  line-height: var(--pa-line-height-32);
-  color: var(--pa-color-text-primary);
-}
-.entry-hint {
-  margin: var(--pa-space-1) 0 0;
-}
-.entry-options {
-  margin: var(--pa-space-5) 0 0;
-  padding: 0;
-  list-style: none;
-}
-/* §41：choice row 64–72px，icon + title + one-line desc + chevron + divider。 */
-.entry-option {
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
-}
-.entry-option:last-child {
-  border-bottom: none;
-}
-.entry-option__button {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  min-height: 64px;
-  max-height: 72px;
-  padding: var(--pa-space-2) var(--pa-space-1);
-  border: none;
-  border-radius: 0;
-  background: transparent;
-  color: var(--pa-color-text-primary);
-  font-size: var(--pa-font-size-base);
-  text-align: left;
-  cursor: pointer;
-  gap: var(--pa-space-3);
-}
-.entry-option__button:hover {
-  color: var(--pa-color-accent);
-}
-.entry-option__icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  color: var(--pa-color-accent);
-}
-.entry-option__text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-.entry-option__label {
-  font-size: var(--pa-font-size-base);
-  font-weight: var(--pa-font-weight-medium);
-  color: var(--pa-color-text-primary);
-}
-.entry-option__description {
-  font-size: var(--pa-font-size-sm);
-  line-height: var(--pa-line-height-20);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.entry-option__chevron {
-  margin-left: auto;
-  flex-shrink: 0;
-  color: var(--pa-color-accent);
-  font-size: var(--pa-font-size-lg);
-}
-.entry-note {
-  margin: var(--pa-space-4) 0 0;
-}
-</style>
+<style scoped src="./ContributeEntry.css"></style>

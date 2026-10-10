@@ -7,90 +7,91 @@ import {
   session,
   type AccessAnswer,
   type BoundaryMatchResult,
+  type CoexistenceSnapshot,
 } from "@petaccess/client-core";
 import AppShell from "../components/AppShell.vue";
-import { answerExplanation, answerVerdictLabel } from "../answer";
+import BoundaryMatchPanel from "../components/explain/BoundaryMatchPanel.vue";
+import ExplainResultPanel from "../components/explain/ExplainResultPanel.vue";
 import StateMessage from "../components/StateMessage.vue";
+import { consumerExplanation } from "../consumer/explanation";
+import { createEpoch, currentQueryContext, snapshotFor } from "../consumer/repository";
+import { divergenceLabel, FRESHNESS_LABELS, realityStateLabel } from "../reality";
 import { presentDescription } from "../errors";
-
-/**
- * 可解释解析：为什么是「允许 / 有条件 / 禁止 / 未知」。
- *
- * 展示统一答案模型的推导过程与来源，并叠加使用者自己的共处边界（逐项判定）。
- * 不给总分，不猜测：证据不足时明确显示「未知」，并说明还缺什么才能判定。
- */
 
 const route = useRoute();
 const placeId = computed(() => (route.params.id ? String(route.params.id) : ""));
-
 const resolved = ref<AccessAnswer | null>(null);
+const coexistence = ref<CoexistenceSnapshot | null>(null);
 const boundary = ref<BoundaryMatchResult | null>(null);
 const error = ref("");
 const note = ref("");
 const busy = ref(false);
+const resolveEpoch = createEpoch();
+const boundaryEpoch = createEpoch();
+const bootstrapEpoch = createEpoch();
+const sessionReady = ref(false);
 
-const COMPLIANCE_TEXT: Record<string, string> = {
-  CONSISTENT: "各层一致",
-  POTENTIAL_CONFLICT: "存在潜在冲突",
-  REVIEW_REQUIRED: "需人工复核",
-  UNKNOWN: "信息不足",
-};
+const steps = computed(() => (resolved.value ? consumerExplanation(resolved.value) : []));
 
-/** §19 — 「为什么」的真实内容来自 resolver 的解释步骤，不在这里重算。 */
-const steps = computed(() => answerExplanation(resolved.value));
-
-const VERDICT_TEXT: Record<string, string> = {
-  MATCH: "符合",
-  CONFLICT: "冲突",
-  UNKNOWN: "未知",
-};
-
-const STANCE_TEXT: Record<string, string> = {
-  accept: "可接受",
-  avoid: "希望没有",
-  require_prohibited: "必须禁止",
-  prefer: "希望提供",
-};
-
-const MISSING_INPUT_TEXT: Record<string, string> = {
-  holder_scope: "同行人身份（是否为残障人士）",
-  service_role: "动物角色（导盲犬 / 助听犬 / 其他服务犬）",
-};
+const realityExplanation = computed(() => {
+  const snapshot = coexistence.value;
+  if (!snapshot) return [];
+  const reality = snapshot.reality_answer;
+  const evidence = snapshot.evidence_summary;
+  const lines = [
+    realityStateLabel(reality),
+    evidence.reality_evidence_count
+      ? `现场层共有 ${evidence.reality_evidence_count} 条经核验依据、${evidence.reality_distinct_source_count} 个来源锚点；其中动物出现、工作人员处理和设施事实分开记录。`
+      : "当前没有足够的经核验现场依据；这不等于现场没有动物。",
+  ];
+  if (reality.last_seen_at) {
+    lines.push(`最近一条动物出现记录：${reality.last_seen_at.slice(0, 10)}。`);
+  }
+  if (reality.freshness_state) {
+    lines.push(`现场信息时效：${FRESHNESS_LABELS[reality.freshness_state] ?? "时效待核对"}。`);
+  }
+  lines.push(`规则与现场关系：${divergenceLabel(snapshot.divergence)}。`);
+  lines.push("现场事实、工作人员处理和设施记录只描述实际发生的事，不会改写正式规则。");
+  return lines;
+});
 
 async function resolveRules() {
+  const id = placeId.value;
+  if (!id) return;
+  const epoch = resolveEpoch.begin();
   error.value = "";
   busy.value = true;
   try {
-    const animal = session.activePet
-      ? {
-          animal: session.activePet.species,
-          service_role: session.activePet.service_role ?? "none",
-          declared_role: session.activePet.declared_role ?? null,
-        }
-      : { animal: "dog", service_role: session.mode === "service_dog" ? "service_dog" : "none" };
-    resolved.value = await client.accessAnswer(placeId.value, { ...animal, action: "enter" });
+    const result = await snapshotFor(id);
+    if (!resolveEpoch.isCurrent(epoch) || placeId.value !== id) return;
+    coexistence.value = result.snapshot;
+    resolved.value = result.snapshot.rule_answer;
   } catch (e) {
+    if (!resolveEpoch.isCurrent(epoch) || placeId.value !== id) return;
+    coexistence.value = null;
+    resolved.value = null;
     error.value = presentDescription(e);
   } finally {
-    busy.value = false;
+    if (resolveEpoch.isCurrent(epoch) && placeId.value === id) busy.value = false;
   }
 }
 
 async function loadBoundary() {
+  const id = placeId.value;
+  const epoch = boundaryEpoch.begin();
   note.value = "";
-  // Signed-out visitors have no boundary and cannot fetch one — that is a
-  // neutral state, not an error banner. The server answers 401 here, which the
-  // old `no_boundary_profile` branch below never matched, so it leaked an auth
-  // message into the page.
   if (!session.signedIn) {
+    if (!boundaryEpoch.isCurrent(epoch) || placeId.value !== id) return;
     boundary.value = null;
-    note.value = "尚未设置共处边界，设置后可在此逐项比对。";
+    note.value = "登录并加载你的共处边界后，才会在这里逐项比对；公开规则与现场解释不受影响。";
     return;
   }
   try {
-    boundary.value = await client.boundaryMatch(placeId.value);
+    const result = await client.boundaryMatch(id);
+    if (!boundaryEpoch.isCurrent(epoch) || placeId.value !== id) return;
+    boundary.value = result;
   } catch (e) {
-    // No profile is a normal state, not an error worth a red banner.
+    if (!boundaryEpoch.isCurrent(epoch) || placeId.value !== id) return;
     if (
       e instanceof ApiError &&
       (e as unknown as { code?: string }).code === "no_boundary_profile"
@@ -99,158 +100,152 @@ async function loadBoundary() {
       note.value = "尚未设置共处边界，设置后可在此逐项比对。";
       return;
     }
+    boundary.value = null;
     note.value = presentDescription(e);
   }
 }
 
-// Reactive param, and `immediate` in place of `onMounted`: Vue Router reuses
-// this component across `/place/:id/why` changes, so with a one-shot read of
-// `route.params.id` the page kept explaining the previous place — reachable via
-// the browser's back button between two places' "why" pages. Same defect as
-// PlaceView.
-watch(
-  placeId,
-  () => {
-    if (!placeId.value) return;
-    void Promise.all([resolveRules(), loadBoundary()]);
-  },
-  { immediate: true },
-);
+async function bootstrap() {
+  const id = placeId.value;
+  if (!id) return;
+  const epoch = bootstrapEpoch.begin();
+  // Invalidate every place-scoped request immediately. Otherwise an A
+  // response can land while B is still restoring private session context.
+  resolveEpoch.begin();
+  boundaryEpoch.begin();
+  resolved.value = null;
+  coexistence.value = null;
+  boundary.value = null;
+  error.value = "";
+  note.value = "";
+  busy.value = false;
+  sessionReady.value = false;
+  let privateContextAvailable = true;
+  try {
+    await session.restore();
+    if (session.restoreIssue === "unavailable") {
+      // session.restore reports transient failures as state instead of
+      // throwing. Public explanations remain available, but private boundary
+      // data must not be requested under an unconfirmed account context.
+      privateContextAvailable = false;
+      boundary.value = null;
+      note.value = "账号状态暂不可用；公开规则与现场解释仍可查看，共处边界暂未加载。";
+    }
+  } catch {
+    // Defensive fallback for future session adapters that may throw.
+    privateContextAvailable = false;
+    boundary.value = null;
+    note.value = "账号状态暂不可用；公开规则与现场解释仍可查看，共处边界暂未加载。";
+  }
+  if (!bootstrapEpoch.isCurrent(epoch) || placeId.value !== id) return;
+  sessionReady.value = true;
+  if (privateContextAvailable) {
+    await Promise.all([resolveRules(), loadBoundary()]);
+  } else {
+    await resolveRules();
+  }
+}
+
+watch(placeId, () => void bootstrap(), { immediate: true });
+
+watch(currentQueryContext, () => {
+  if (!placeId.value || !sessionReady.value) return;
+  void resolveRules();
+});
 </script>
 
 <template>
   <AppShell>
+    <header class="explain-head">
+      <div>
+        <h1>为什么是这个结果</h1>
+        <p class="muted">
+          这里展示当前查询所依据的规则层级、适用条件和来源；不会用一次现场观察替代正式规则。
+        </p>
+      </div>
+      <button
+        type="button"
+        class="explain-refresh"
+        :disabled="busy"
+        data-testid="re-resolve"
+        @click="resolveRules"
+      >
+        {{ busy ? "更新中…" : "重新获取" }}
+      </button>
+    </header>
+
     <StateMessage v-if="error" kind="ERROR" :description="error" data-testid="match-error">
       <template #action>
         <button type="button" class="primary" @click="resolveRules">重试</button>
       </template>
     </StateMessage>
 
-    <div class="panel">
-      <h1>为什么是这个结果</h1>
-      <p class="muted" style="margin-top: 4px">
-        按 法规 → 监管指引 → 经营方政策 → 场所/分区覆盖 → 临时政策 分层解析，
-        并说明每一步如何得出当前结论。
-      </p>
-      <button class="primary block" :disabled="busy" data-testid="re-resolve" @click="resolveRules">
-        {{ busy ? "解析中…" : "重新解析" }}
-      </button>
-    </div>
+    <ExplainResultPanel v-if="resolved" :answer="resolved" :steps="steps" />
 
-    <div v-if="resolved" class="panel" data-testid="effective-rules">
-      <div class="muted">生效结论</div>
-      <div style="font-size: 22px; font-weight: 700; margin: 4px 0" data-testid="effective-effect">
-        {{ answerVerdictLabel(resolved) }}
-      </div>
-      <div class="muted">
-        合规状态：{{
-          COMPLIANCE_TEXT[resolved.normative_result.compliance_state] ??
-          resolved.normative_result.compliance_state
-        }}
-        · 适用规则 {{ resolved.normative_result.governing_rule_ids.length }} 条 · 范围：{{
-          resolved.scope_summary.scope_level === "zone"
-            ? (resolved.scope_summary.zone?.name ?? "该区域")
-            : resolved.scope_summary.scope_level === "none"
-              ? "尚无规则覆盖"
-              : "场所整体"
-        }}
-      </div>
-
-      <template v-if="resolved.rights_information.operator_obligations.length">
-        <h2>附加条件</h2>
-        <div class="muted">
-          {{ resolved.rights_information.operator_obligations.join(" · ") }}
-        </div>
-      </template>
-
-      <template v-if="resolved.condition_evaluation.missing_inputs.length">
-        <h2>还缺什么</h2>
-        <div class="muted">
-          补充{{
-            resolved.condition_evaluation.missing_inputs
-              .map((m) => MISSING_INPUT_TEXT[m] ?? m)
-              .join("、")
-          }}后可得到更确定的结论 —— 现在不是「允许」。
-        </div>
-      </template>
-
-      <h2>推导过程</h2>
-      <ol style="padding-left: 18px; margin: 6px 0">
-        <li v-for="(s, i) in steps" :key="i" class="muted" style="margin-bottom: 4px">
-          {{ s }}
-        </li>
-        <li v-if="!steps.length" class="muted">无解释步骤</li>
+    <section v-if="coexistence" class="reality-explain" data-testid="reality-explanation">
+      <h2>为什么现场摘要这样显示</h2>
+      <ol>
+        <li v-for="(line, index) in realityExplanation" :key="index">{{ line }}</li>
       </ol>
+      <RouterLink class="btn-inline" :to="`/place/${placeId}/evidence`">
+        查看现场证据与来源 →
+      </RouterLink>
+    </section>
 
-      <template v-if="resolved.evidence_state.rules.length">
-        <h2>来源</h2>
-        <div
-          v-for="e in resolved.evidence_state.rules"
-          :key="e.rule_id"
-          class="muted"
-          data-testid="trace-provenance"
-        >
-          · {{ e.provenance_statement }}
-        </div>
-      </template>
-
-      <template v-if="resolved.conflict_state.suppressed.length">
-        <h2>被抑制的规则</h2>
-        <div v-for="s in resolved.conflict_state.suppressed" :key="s.rule" class="zone-row">
-          <span class="muted">{{ s.rule.slice(0, 8) }}…</span>
-          <span class="muted">{{ s.reason }}</span>
-        </div>
-      </template>
-
-      <template v-if="resolved.conflict_state.unresolved_conflicts.length">
-        <h2>未解冲突（需人工复核）</h2>
-        <div
-          v-for="(pair, i) in resolved.conflict_state.unresolved_conflicts"
-          :key="i"
-          class="zone-row"
-        >
-          <span class="muted">{{ pair[0]?.slice(0, 8) }}… ↔ {{ pair[1]?.slice(0, 8) }}…</span>
-          <span class="muted">不做自动裁决</span>
-        </div>
-      </template>
-    </div>
-
-    <div class="panel" data-testid="boundary-section">
-      <h2 style="margin-top: 0">与我的共处边界比对</h2>
-      <div v-if="note" class="muted" data-testid="boundary-note">{{ note }}</div>
-      <template v-if="boundary">
-        <div class="muted" style="margin-bottom: 8px">
-          共 {{ boundary.results.length }} 项 · 符合 {{ boundary.summary.match }} · 冲突
-          {{ boundary.summary.conflict }} · 未知 {{ boundary.summary.unknown }}（{{
-            boundary.summary.note
-          }}）
-        </div>
-        <div
-          v-for="r in boundary.results"
-          :key="r.attribute"
-          class="zone-row"
-          data-testid="boundary-item"
-        >
-          <span>
-            {{ r.attribute }}
-            <span class="tag" style="margin-left: 6px">{{
-              STANCE_TEXT[r.stance] ?? r.stance
-            }}</span>
-          </span>
-          <span>
-            <span
-              class="tag tag--on-solid"
-              :class="
-                r.verdict === 'MATCH' ? 's-MATCH' : r.verdict === 'CONFLICT' ? 's-RESTRICTED' : ''
-              "
-              >{{ VERDICT_TEXT[r.verdict] ?? r.verdict }}</span
-            >
-          </span>
-        </div>
-      </template>
-      <RouterLink to="/boundary" class="pill" style="display: inline-block; margin-top: 10px"
-        >设置共处边界</RouterLink
-      >
-    </div>
+    <BoundaryMatchPanel :boundary="boundary" :note="note" />
   </AppShell>
 </template>
+
+<style scoped>
+.explain-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--pa-space-5);
+  padding-bottom: var(--pa-space-5);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.explain-head p {
+  max-width: 680px;
+  margin: var(--pa-space-2) 0 0;
+  line-height: var(--pa-line-height-23);
+}
+
+.reality-explain {
+  padding: var(--pa-space-5) 0;
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.reality-explain h2 {
+  margin: 0 0 var(--pa-space-2);
+  font-size: var(--pa-font-size-lg);
+  font-weight: var(--pa-font-weight-650);
+}
+
+.reality-explain ol {
+  margin: var(--pa-space-3) 0;
+  padding-left: var(--pa-space-5);
+}
+
+.reality-explain li {
+  margin-bottom: var(--pa-space-2);
+  line-height: var(--pa-line-height-23);
+}
+
+.explain-refresh {
+  flex: 0 0 auto;
+  min-height: var(--pa-size-control-md);
+  border: none;
+  background: transparent;
+  color: var(--pa-color-accent);
+  cursor: pointer;
+}
+
+@media (max-width: 767px) {
+  .explain-head {
+    flex-direction: column;
+    gap: var(--pa-space-2);
+  }
+}
+</style>

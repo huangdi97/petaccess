@@ -8,22 +8,22 @@
   "pages": [
     {
       "id": "reality-ready",
-      "route": "/#/place/8412b521-5e1c-505d-9dec-568acb860c76/reality",
+      "route": "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e/reality",
       "expect": {
         "page": "reality",
         "state": "ready",
         "fixture": "reality-ready-v1",
-        "h1": "现场轨迹"
+        "h1": "现场记录"
       }
     },
     {
       "id": "reality-empty",
-      "route": "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e/reality",
+      "route": "/#/place/8412b521-5e1c-505d-9dec-568acb860c76/reality",
       "expect": {
         "page": "reality",
         "state": "empty",
         "fixture": "reality-empty-v1",
-        "h1": "现场轨迹"
+        "h1": "现场记录"
       }
     }
   ],
@@ -216,5 +216,5 @@
     "allcapsTokens": true,
     "refs": true
   },
-  "notes": "v0.2.3 §38: true event log, max width 820, time col 72px / rail 24px / content remainder, time+marker x aligned, rail continuous, event gap 20-28, date group sep >= 28, events are rows not cards. Empty copy = 暂无近期现场记录。这并不代表现场没有动物。 ready = 星河咖啡 (2 seeded observations), empty = 云栖中心."
+  "notes": "v0.2.3 §38 + v0.10-R1: true v0.9 event log, max width 820, time col 72px / rail 24px / content remainder, time+marker x aligned, rail continuous, event gap 20-28, date group sep >=28, events are rows not cards. ready = 云栖中心（seeded published presence/staff/facility facts）；empty = 星河咖啡（legacy observation 不再作为 Consumer Reality truth）。"
 }

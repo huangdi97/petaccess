@@ -6,6 +6,7 @@
  * closes; the overlay is tap-to-close like the legacy BottomSheet.
  */
 import { onBeforeUnmount, onMounted } from "vue";
+import { useDialogFocus } from "../../composables/useDialogFocus";
 
 const props = withDefaults(
   defineProps<{ open: boolean; title?: string | null; ui?: string | null }>(),
@@ -18,6 +19,8 @@ const props = withDefaults(
 const emit = defineEmits<{ close: [] }>();
 
 defineOptions({ name: "PaBottomSheet" });
+
+const { panel, keepFocusInside } = useDialogFocus(() => props.open);
 
 /** Close on Escape whether focus is inside the sheet or still in the page. */
 function onWindowKey(e: KeyboardEvent) {
@@ -34,6 +37,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onWindowKey));
       <!-- v-show so the panel keeps its transform transition while closed. -->
       <div v-show="open" class="pa-sheet__overlay" @click.self="emit('close')"></div>
       <section
+        ref="panel"
         class="pa-sheet__panel"
         :class="{ 'pa-sheet__panel--open': open }"
         :data-ui="props.ui ?? undefined"
@@ -41,7 +45,10 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onWindowKey));
         aria-modal="true"
         :aria-label="title ?? undefined"
         :aria-hidden="open ? undefined : 'true'"
+        :inert="!open"
+        :tabindex="open ? -1 : undefined"
         @keydown.esc.stop="emit('close')"
+        @keydown="keepFocusInside"
       >
         <div class="pa-sheet__handle" aria-hidden="true"></div>
         <header v-if="title" class="pa-sheet__header">

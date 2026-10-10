@@ -1,12 +1,10 @@
-"""Media upload/serving endpoints (NEXT_GOAL Track A1).
+"""Private-by-default media upload and controlled serving.
 
-Security (NEXT_GOAL §9 / design #20):
-- MIME allowlist + magic-byte verification (no trust in client headers)
-- size limit
-- randomized object keys (no path traversal)
-- sha256 + duplicate detection
-- presigned GET only; evidence never public
-- audit on upload/delete
+owner_type / owner_id describe the subject a file belongs to;
+created_by_user_id describes who may read/delete it. Reviewers may inspect
+private evidence for moderation. A consumer can receive only a short-lived
+URL for an approved artifact that is explicitly display-allowed *and* already
+backs a human-verified published Reality fact.
 """
 
 import hashlib
@@ -20,13 +18,24 @@ from sqlalchemy.orm import Session
 from app.core.audit import record_audit
 from app.core.audit_events import AuditEvent
 from app.core.config import get_settings
-from app.core.errors import ApiError, NotFound, PermissionDenied
+from app.core.errors import ApiError
 from app.core.media_sanitize import strip_image_metadata
 from app.core.security import get_current_user
 from app.db.session import get_db
 from app.models import MediaObject, User
-from app.models.media import MediaPrivacyClass, MediaPurpose
+from app.models.media import (
+    MediaModerationStatus,
+    MediaPrivacyClass,
+    MediaPurpose,
+    MediaUploadStatus,
+)
 from app.providers.factory import get_storage_provider
+from app.schemas.media import MediaMetaOut
+from app.services.media_access import media_meta_response, private_media
+from app.services.public_evidence_media import (
+    PUBLIC_MEDIA_URL_SECONDS,
+    resolve_public_evidence_media,
+)
 
 router = APIRouter(tags=["media"])
 
@@ -36,10 +45,16 @@ ALLOWED_MIME = {
     "image/webp": b"RIFF",
 }
 ALLOWED_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp"}
+MIME_EXTENSIONS = {
+    "image/png": {".png"},
+    "image/jpeg": {".jpg", ".jpeg"},
+    "image/webp": {".webp"},
+}
 MAX_BYTES = 10 * 1024 * 1024
 
 PRIVACY_BY_PURPOSE = {
     MediaPurpose.SIGNAGE_EVIDENCE: MediaPrivacyClass.EVIDENCE,
+    MediaPurpose.REALITY_EVIDENCE: MediaPrivacyClass.EVIDENCE,
     MediaPurpose.IMPORT_DOCUMENT: MediaPrivacyClass.EVIDENCE,
     MediaPurpose.SCENE_PHOTO: MediaPrivacyClass.SCENE,
     MediaPurpose.AVATAR: MediaPrivacyClass.SCENE,
@@ -48,16 +63,102 @@ PRIVACY_BY_PURPOSE = {
 
 def _verify_magic(data: bytes, declared_mime: str) -> bool:
     magic = ALLOWED_MIME.get(declared_mime)
-    if magic is None:
-        return False
-    return data.startswith(magic)
+    return bool(magic and data.startswith(magic))
 
 
 def _ttl_for(privacy_class: str) -> timedelta:
-    s = get_settings()
+    settings = get_settings()
     if privacy_class == MediaPrivacyClass.EVIDENCE:
-        return timedelta(days=s.signage_retention_days)
-    return timedelta(hours=s.scene_photo_ttl_hours)
+        return timedelta(days=settings.signage_retention_days)
+    return timedelta(hours=settings.scene_photo_ttl_hours)
+
+
+def _extension(filename: str) -> str:
+    if "." not in filename:
+        return ""
+    return "." + filename.rsplit(".", 1)[-1].lower()
+
+
+async def _validated_image(file: UploadFile) -> tuple[bytes, str, str, bool]:
+    declared = file.content_type or ""
+    if declared not in ALLOWED_MIME:
+        raise ApiError("仅允许 PNG/JPEG/WebP 图片", code="unsupported_media_type", status_code=415)
+
+    data = await file.read()
+    if not data:
+        raise ApiError("空文件", code="empty_file")
+    if len(data) > MAX_BYTES:
+        raise ApiError("文件超过 10MB 限制", code="payload_too_large", status_code=413)
+    if not _verify_magic(data, declared):
+        raise ApiError("文件内容与声明类型不符", code="magic_mismatch", status_code=415)
+
+    filename = file.filename or ""
+    ext = _extension(filename)
+    if ext and ext not in ALLOWED_EXTENSIONS:
+        raise ApiError("扩展名不在允许范围", code="invalid_extension", status_code=415)
+    if ext and ext not in MIME_EXTENSIONS[declared]:
+        raise ApiError("扩展名与 MIME 不一致", code="extension_mime_mismatch", status_code=415)
+
+    sanitized, metadata_stripped = strip_image_metadata(data)
+    return sanitized, declared, filename, metadata_stripped
+
+
+def _create_media(
+    db: Session,
+    *,
+    user: User,
+    data: bytes,
+    declared_mime: str,
+    filename: str,
+    purpose: str,
+    owner_type: str | None,
+    owner_id: str | None,
+) -> tuple[MediaObject, str | None]:
+    digest = hashlib.sha256(data).hexdigest()
+    duplicate = db.scalar(
+        select(MediaObject).where(
+            MediaObject.created_by_user_id == user.id,
+            MediaObject.sha256 == digest,
+            MediaObject.upload_status == MediaUploadStatus.STORED.value,
+            MediaObject.deleted_at.is_(None),
+        )
+    )
+    duplicate_of = duplicate.id if duplicate else None
+
+    object_key = f"media/{user.id[:8]}/{uuid.uuid4().hex}/{(filename or 'image')[-40:]}"
+    privacy_class = PRIVACY_BY_PURPOSE[purpose]
+    stored = get_storage_provider().put_object(object_key, data, declared_mime)
+    media = MediaObject(
+        owner_type=owner_type,
+        owner_id=owner_id,
+        created_by_user_id=user.id,
+        purpose=purpose,
+        privacy_class=privacy_class,
+        bucket=stored["bucket"],
+        object_key=object_key,
+        mime_type=declared_mime,
+        byte_size=len(data),
+        sha256=digest,
+        original_filename=filename[:255] or None,
+        moderation_status=MediaModerationStatus.PENDING.value,
+        expires_at=datetime.now(UTC) + _ttl_for(privacy_class),
+    )
+    db.add(media)
+    db.flush()
+    return media, duplicate_of
+
+
+def _upload_response(media: MediaObject, duplicate_of: str | None) -> dict:
+    return {
+        "id": media.id,
+        "purpose": media.purpose,
+        "privacy_class": media.privacy_class,
+        "byte_size": media.byte_size,
+        "sha256": media.sha256,
+        "duplicate_of": duplicate_of,
+        "moderation_status": media.moderation_status,
+        "expires_at": media.expires_at,
+    }
 
 
 @router.post("/media/upload", status_code=201)
@@ -72,68 +173,18 @@ async def upload_media(
 ) -> dict:
     if purpose not in MediaPurpose.ALL:
         raise ApiError("不支持的媒体用途", code="invalid_purpose")
-    declared = file.content_type or ""
-    if declared not in ALLOWED_MIME:
-        raise ApiError("仅允许 PNG/JPEG/WebP 图片", code="unsupported_media_type", status_code=415)
-    data = await file.read()
-    if len(data) > MAX_BYTES:
-        raise ApiError("文件超过 10MB 限制", code="payload_too_large", status_code=413)
-    if not data:
-        raise ApiError("空文件", code="empty_file")
-    # magic-byte check: client content-type headers are not trusted
-    if not _verify_magic(data, declared):
-        raise ApiError("文件内容与声明类型不符", code="magic_mismatch", status_code=415)
-    original_name = file.filename or ""
-    ext = ("." + original_name.rsplit(".", 1)[-1].lower()) if "." in original_name else ""
-    if ext and ext not in ALLOWED_EXTENSIONS:
-        raise ApiError("扩展名不在允许范围", code="invalid_extension", status_code=415)
-    if ext and declared == "image/png" and ext not in (".png",):
-        raise ApiError("扩展名与 MIME 不一致", code="extension_mime_mismatch", status_code=415)
-    if ext and declared in ("image/jpeg",) and ext not in (".jpg", ".jpeg"):
-        raise ApiError("扩展名与 MIME 不一致", code="extension_mime_mismatch", status_code=415)
-    if ext and declared == "image/webp" and ext != ".webp":
-        raise ApiError("扩展名与 MIME 不一致", code="extension_mime_mismatch", status_code=415)
 
-    # Privacy (SECURITY_FINAL_REPORT Phase 26): strip embedded EXIF/XMP/PNG-text
-    # metadata BEFORE the blob reaches storage, so GPS / camera / timestamp
-    # metadata never lands in the object store. The sanitizer is conservative:
-    # an unparsable image is stored unchanged (``stripped=False``), never
-    # corrupted; the sha256 below is computed on the stored bytes.
-    data, meta_stripped = strip_image_metadata(data)
-    sha256 = hashlib.sha256(data).hexdigest()
-
-    # duplicate basic check: identical hash from same user, still stored
-    dup = db.scalar(
-        select(MediaObject).where(
-            MediaObject.sha256 == sha256,
-            MediaObject.upload_status == "stored",
-            MediaObject.deleted_at.is_(None),
-        )
-    )
-    duplicate_of = dup.id if dup else None
-
-    # randomized key: no user-controlled path component
-    object_key = f"media/{user.id[:8]}/{uuid.uuid4().hex}/{(original_name or 'image')[-40:]}"
-    privacy_class = PRIVACY_BY_PURPOSE[purpose]
-    storage = get_storage_provider()
-    stored = storage.put_object(object_key, data, declared)
-
-    media = MediaObject(
+    data, declared, filename, metadata_stripped = await _validated_image(file)
+    media, duplicate_of = _create_media(
+        db,
+        user=user,
+        data=data,
+        declared_mime=declared,
+        filename=filename,
+        purpose=purpose,
         owner_type=owner_type,
         owner_id=owner_id,
-        purpose=purpose,
-        privacy_class=privacy_class,
-        bucket=stored["bucket"],
-        object_key=object_key,
-        mime_type=declared,
-        byte_size=len(data),
-        sha256=sha256,
-        original_filename=original_name[:255] or None,
-        moderation_status="pending",
-        expires_at=datetime.now(UTC) + _ttl_for(privacy_class),
     )
-    db.add(media)
-    db.flush()
     record_audit(
         db,
         request=request,
@@ -144,22 +195,53 @@ async def upload_media(
         target_id=media.id,
         after_state={
             "purpose": purpose,
-            "sha256": sha256[:16],
+            "sha256": media.sha256[:16],
             "duplicate_of": duplicate_of,
             "byte_size": len(data),
+            "metadata_stripped": metadata_stripped,
         },
     )
     db.commit()
+    return _upload_response(media, duplicate_of)
+
+
+@router.get("/evidence-bundles/{bundle_id}/public-media")
+def public_evidence_media(bundle_id: str, db: Session = Depends(get_db)) -> dict:
+    """Short-lived public image URL for explicitly display-approved evidence.
+
+    This endpoint is deliberately unauthenticated only because qualification
+    is stricter than the public Reality event itself. All other media routes
+    remain uploader/reviewer-only.
+    """
+
+    media, url = resolve_public_evidence_media(db, bundle_id)
     return {
-        "id": media.id,
-        "purpose": purpose,
-        "privacy_class": privacy_class,
-        "byte_size": len(data),
-        "sha256": sha256,
-        "duplicate_of": duplicate_of,
-        "moderation_status": media.moderation_status,
-        "expires_at": media.expires_at,
+        "evidence_bundle_id": bundle_id,
+        "media_id": media.id,
+        "purpose": media.purpose,
+        "url": url,
+        "mime_type": media.mime_type,
+        "expires_in": PUBLIC_MEDIA_URL_SECONDS,
     }
+
+
+@router.get("/media/mine", response_model=list[MediaMetaOut])
+def my_media(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> list[dict]:
+    """List the caller's active uploads without exposing object-storage URLs."""
+    rows = db.scalars(
+        select(MediaObject)
+        .where(
+            MediaObject.created_by_user_id == user.id,
+            MediaObject.upload_status != MediaUploadStatus.DELETED.value,
+            MediaObject.deleted_at.is_(None),
+        )
+        .order_by(MediaObject.created_at.desc())
+        .limit(100)
+    ).all()
+    return [media_meta_response(media) for media in rows]
 
 
 @router.get("/media/{media_id}/url")
@@ -168,35 +250,20 @@ def media_url(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> dict:
-    """Presigned GET (15 min). Evidence media is never publicly readable."""
-    media = db.get(MediaObject, media_id)
-    if media is None or media.upload_status == "deleted":
-        raise NotFound("媒体不存在")
+    """Return a short-lived URL only to the uploader or a reviewer."""
+    media = private_media(db, media_id, user)
     url = get_storage_provider().presigned_get_url(media.object_key, media.bucket)
     return {"id": media.id, "url": url, "expires_in": 900}
 
 
-@router.get("/media/{media_id}")
+@router.get("/media/{media_id}", response_model=MediaMetaOut)
 def media_meta(
-    media_id: str, user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    media_id: str,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ) -> dict:
-    media = db.get(MediaObject, media_id)
-    if media is None:
-        raise NotFound("媒体不存在")
-    return {
-        "id": media.id,
-        "purpose": media.purpose,
-        "privacy_class": media.privacy_class,
-        "mime_type": media.mime_type,
-        "byte_size": media.byte_size,
-        "moderation_status": media.moderation_status,
-        "ocr_text": media.ocr_text,
-        "ocr_rule_candidates": media.ocr_rule_candidates,
-        "upload_status": media.upload_status,
-        "created_at": media.created_at,
-        "expires_at": media.expires_at,
-        "deleted_at": media.deleted_at,
-    }
+    media = private_media(db, media_id, user)
+    return media_meta_response(media)
 
 
 @router.delete("/media/{media_id}", status_code=204)
@@ -206,13 +273,9 @@ def delete_media(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> None:
-    media = db.get(MediaObject, media_id)
-    if media is None or media.upload_status == "deleted":
-        raise NotFound("媒体不存在")
-    if media.owner_id and media.owner_id != user.id and user.role not in ("moderator", "admin"):
-        raise PermissionDenied("无权删除该媒体")
+    media = private_media(db, media_id, user)
     get_storage_provider().remove_object(media.object_key, media.bucket)
-    media.upload_status = "deleted"
+    media.upload_status = MediaUploadStatus.DELETED.value
     media.deleted_at = datetime.now(UTC)
     record_audit(
         db,
@@ -222,7 +285,7 @@ def delete_media(
         action=AuditEvent.MEDIA_DELETE.value,
         target_type="media_object",
         target_id=media.id,
-        before_state={"upload_status": "stored"},
-        after_state={"upload_status": "deleted"},
+        before_state={"upload_status": MediaUploadStatus.STORED.value},
+        after_state={"upload_status": MediaUploadStatus.DELETED.value},
     )
     db.commit()

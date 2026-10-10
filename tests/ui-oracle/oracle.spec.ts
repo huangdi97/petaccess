@@ -468,6 +468,10 @@ for (const contractRow of CONTRACTS) {
     request,
   }, testInfo) => {
     const project = testInfo.project.name;
+    test.skip(
+      project === "oracle-tablet",
+      "canonical contract rows own desktop/mobile viewports; tablet has dedicated responsive and Human Review evidence",
+    );
     const wantDesktop = contractRow.viewport.width >= 1000;
     const isDesktopProject = project === "oracle-desktop";
     test.skip(

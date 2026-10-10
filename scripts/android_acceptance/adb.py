@@ -22,9 +22,7 @@ import subprocess
 import time
 from pathlib import Path
 
-SDK_ADB = Path(
-    r"C:\Users\Kaiser\AppData\Local\Android\Sdk\platform-tools\adb.exe"
-)
+SDK_ADB = Path(r"C:\Users\Kaiser\AppData\Local\Android\Sdk\platform-tools\adb.exe")
 DEFAULT_SERIAL = "emulator-5562"
 FORBIDDEN_SERIALS = frozenset({"emulator-5554"})
 HARDCODED_ADB = r"C:\Android\adb.exe"
@@ -100,6 +98,8 @@ def adb(
     if check:
         raise AdbError(f"adb {' '.join(args)} rc={last_rc}: {last_out[-600:]}")
     return last_out
+
+
 def adb_global(*args: str, timeout: int = 120, check: bool = True) -> str:
     """An adb server-level command (no -s). Never kill-server / reconnect."""
     cmd = [adb_binary(), *args]

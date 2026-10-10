@@ -3,6 +3,7 @@
 执行：确保 App 运行 → CDP 探测 Home/Search/Nav（真实 DOM）→ 截图归档。
 uses own serial emulator-5556；adb 调用全部走 scripts/android_acceptance/adb.py。
 """
+
 from __future__ import annotations
 
 import json

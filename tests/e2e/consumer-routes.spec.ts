@@ -58,6 +58,15 @@ test("B2 — 页面内搜索后 back/forward 恢复对应 query 与结果", asyn
   await expect(page.locator('[data-testid^="result-"]').first()).toBeVisible();
 });
 
+test("B3 — Why explains Rule and Reality from the same consumer snapshot", async ({ page }) => {
+  const mallId = "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e";
+  await page.goto(`${BASE}/#/place/${mallId}/why`);
+  await expect(page.getByTestId("effective-rules")).toBeVisible({ timeout: 15000 });
+  await expect(page.getByTestId("reality-explanation")).toBeVisible();
+  await expect(page.getByTestId("reality-explanation")).toContainText("为什么现场摘要这样显示");
+  await expect(page.getByTestId("reality-explanation")).toContainText("不会改写正式规则");
+});
+
 test("E2 — service failure renders unified presentation, never backend internals", async ({
   page,
 }) => {
@@ -86,4 +95,16 @@ test("E2 — service failure renders unified presentation, never backend interna
   ]) {
     expect(text, `page must not leak ${needle}`).not.toContain(needle);
   }
+});
+
+test("B4 — sign-in returns to the interrupted private task", async ({ page }) => {
+  await page.goto(`${BASE}/#/onboarding?next=%2Fboundary`);
+  await page.getByRole("tab", { name: "注册" }).click();
+  const suffix = `${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+  await page.getByLabel("昵称").fill("回跳测试");
+  await page.getByLabel("邮箱").fill(`return-${suffix}@example.com`);
+  await page.getByLabel("密码").fill("passw0rd123");
+  await page.getByRole("button", { name: "注册并开始" }).click();
+  await expect(page).toHaveURL(/#\/boundary$/);
+  await expect(page.getByRole("heading", { name: "共处边界" })).toBeVisible();
 });

@@ -18,20 +18,29 @@
  * 进入「场所整体」；不伪造 zone/context。
  */
 import { computed, ref } from "vue";
-import type { AccessAnswer, RuleView, SourceView, Zone } from "@petaccess/client-core";
 import {
+  type AccessAnswer,
+  type EventPolicyItem,
+  type RuleView,
+  type SourceView,
+  type Zone,
+} from "@petaccess/client-core";
+import {
+  conditionLabel,
+  mandatoryLevelLabel,
   ruleLayerLabel,
   ruleStatusLabel,
   ruleSubjectLine,
-  sourceLabel,
   zoneTypeLabel,
 } from "../../consumer/labels";
+import { publicSourceIssuer } from "../../consumer/sourcePrivacy";
 import StatusBadge from "../StatusBadge.vue";
-import SourceBadge from "../SourceBadge.vue";
 
 const props = defineProps<{
+  placeId: string;
   currentRules: RuleView[];
   historyRules: RuleView[];
+  eventPolicies: EventPolicyItem[];
   sourceMap: Map<string, SourceView>;
   conditions: string[];
   answer: AccessAnswer | null;
@@ -42,10 +51,18 @@ const props = defineProps<{
 
 const historyOpen = ref(false);
 
-/** zone_id → consumer context label（§12：不许出现 7 个相同 title；用真实 zone 名）。 */
+/** zone_id → consumer context label.
+ * Use the real Zone name first ("一层" / "四层餐饮区"), not only the coarse
+ * zone type ("楼层"). Collapsing several named zones into one heading recreates
+ * the exact repeated-rule problem this view was designed to remove.
+ */
 const zoneNameById = computed(() => {
   const m = new Map<string, string>();
-  for (const z of props.zoneList) m.set(z.id, zoneTypeLabel(z.zone_type));
+  for (const zone of props.zoneList) {
+    const type = zoneTypeLabel(zone.zone_type);
+    const name = zone.name?.trim();
+    m.set(zone.id, name && name !== type ? `${name} · ${type}` : name || type || "分区");
+  }
   return m;
 });
 
@@ -69,27 +86,152 @@ const ruleGroups = computed<RuleGroup[]>(() => {
   return [...groups.entries()].map(([contextLabel, rules]) => ({ contextLabel, rules }));
 });
 
-const conflicts = computed(() => {
-  const bad = props.currentRules.filter((r) => !r.last_verified_at);
-  const hasConflict = (props.answer?.conflict_state?.has_conflict ?? false) || bad.length > 1;
-  const note = props.answer?.conflict_state?.has_conflict
-    ? "部分信息仍待人工复核"
-    : bad.length > 1
-      ? "部分规则缺少核验信息，需要人工复核"
-      : "";
-  return { hasConflict, note };
+const reviewNotice = computed(() => {
+  const unverified = props.currentRules.filter((r) => !r.last_verified_at);
+  const hasConflict = props.answer?.conflict_state?.has_conflict ?? false;
+  if (hasConflict) {
+    return {
+      visible: true,
+      title: "△ 来源不一致",
+      note: "当前规则来源之间存在未解决的不一致，部分信息仍待人工复核。",
+    };
+  }
+  if (unverified.length) {
+    return {
+      visible: true,
+      title: "○ 核验信息待补充",
+      note: `${unverified.length} 条当前规则缺少最近核验时间；这不等于来源冲突。`,
+    };
+  }
+  return { visible: false, title: "", note: "" };
 });
+
+interface EventPolicyPresentation {
+  id: string;
+  name: string;
+  scope: string;
+  subject: string;
+  effect: string;
+  validity: string;
+  lifecycle: "active" | "upcoming" | "ended" | "unknown";
+  conditions: string[];
+  source: string;
+}
+
+function eventPolicyConditions(raw: unknown[] | null): string[] {
+  if (!raw?.length) return [];
+  return raw.flatMap((item) => {
+    if (typeof item === "string") return [conditionLabel(item)];
+    if (!item || typeof item !== "object") return [];
+    const row = item as Record<string, unknown>;
+    const type =
+      typeof row.condition_type === "string"
+        ? row.condition_type
+        : typeof row.type === "string"
+          ? row.type
+          : "";
+    return type ? [conditionLabel(type)] : [];
+  });
+}
+
+function eventPolicyLifecycle(from: string, to: string): EventPolicyPresentation["lifecycle"] {
+  const start = Date.parse(from);
+  const end = Date.parse(to);
+  const now = Date.now();
+  if (!Number.isFinite(start) || !Number.isFinite(end)) return "unknown";
+  if (now < start) return "upcoming";
+  if (now > end) return "ended";
+  return "active";
+}
+
+const eventPolicyRows = computed<EventPolicyPresentation[]>(() =>
+  props.eventPolicies
+    .map((policy) => {
+      const lifecycle = eventPolicyLifecycle(policy.effective_from, policy.effective_to);
+      const start = policy.effective_from?.slice(0, 10) || "开始时间待确认";
+      const end = policy.effective_to?.slice(0, 10) || "结束时间待确认";
+      const lifecycleLabel =
+        lifecycle === "active"
+          ? "当前有效"
+          : lifecycle === "upcoming"
+            ? "尚未生效"
+            : lifecycle === "ended"
+              ? "已结束"
+              : "有效期待确认";
+      const source = props.sourceMap.get(policy.source_id);
+      return {
+        id: policy.id,
+        name: policy.name,
+        scope: policy.zone_id ? (zoneNameById.value.get(policy.zone_id) ?? "指定分区") : "场所整体",
+        subject: ruleSubjectLine(policy.animal_scope, policy.action),
+        effect: policy.effect,
+        validity: `${lifecycleLabel} · ${start} 至 ${end}`,
+        lifecycle,
+        conditions: eventPolicyConditions(policy.conditions),
+        source: publicSourceIssuer(source?.source_type, source?.issuer),
+      };
+    })
+    .sort((a, b) => {
+      const priority = { active: 0, upcoming: 1, unknown: 2, ended: 3 };
+      return priority[a.lifecycle] - priority[b.lifecycle];
+    }),
+);
 
 /** 每条 rule 的 conditions（优先 RuleView note / rule_conditions；无则本组 conditions）。 */
 function ruleConditionLines(r: RuleView): string[] {
-  const out = [...props.conditions];
-  if (r.note) out.unshift(r.note);
-  return [...new Set(out)].slice(0, 2);
+  // Only show condition copy that is attached to this rule. A page-wide
+  // condition list can span several contexts and must not be repeated under
+  // every rule as if it were rule-specific.
+  return r.note ? [r.note] : [];
 }
 </script>
 
 <template>
   <div data-ui="place-rules-view" data-testid="place-rules-view">
+    <section
+      v-if="conditions.length"
+      class="current-query-conditions"
+      data-testid="current-query-conditions"
+    >
+      <span class="current-query-conditions__label">当前查询需要</span>
+      <p class="current-query-conditions__value">{{ conditions.join("、") }}</p>
+    </section>
+
+    <section
+      v-if="eventPolicyRows.length"
+      class="event-policy-section"
+      data-testid="event-policies"
+      aria-labelledby="event-policy-title"
+    >
+      <div class="event-policy-section__head">
+        <div>
+          <h2 id="event-policy-title" class="rule-group__context">临时 / 活动规则</h2>
+          <p class="muted event-policy-section__intro">
+            这些规则有明确有效期；只有处于有效期内的规则才会参与当前准入结论。
+          </p>
+        </div>
+      </div>
+      <div
+        v-for="policy in eventPolicyRows"
+        :key="policy.id"
+        class="rule-card event-policy-row"
+        :class="`event-policy-row--${policy.lifecycle}`"
+        data-testid="event-policy-row"
+      >
+        <div class="rule-card__head">
+          <span class="rule-card__subject">
+            {{ policy.name }} · {{ policy.scope }} · {{ policy.subject }}
+          </span>
+          <StatusBadge :effect="policy.effect" />
+        </div>
+        <p class="event-policy-row__validity">{{ policy.validity }}</p>
+        <p v-for="condition in policy.conditions" :key="condition" class="rule-card__condition">
+          需满足：{{ condition }}
+        </p>
+        <p class="muted rule-card__meta">临时/活动政策 · {{ policy.source }}</p>
+      </div>
+    </section>
+
     <!-- §12 Rule Groups：Context → Rule；组间 divider + 20–24 gap，非 card wall。 -->
     <section
       v-for="group in ruleGroups"
@@ -115,23 +257,38 @@ function ruleConditionLines(r: RuleView): string[] {
           {{ c }}
         </p>
         <p class="muted rule-card__meta" data-testid="rule-source">
-          {{ sourceLabel(sourceMap.get(r.source_id)?.issuer ?? null, true) }}
-          <SourceBadge :source-type="sourceMap.get(r.source_id)?.source_type" />
+          <template v-if="r.rule_layer">
+            {{ ruleLayerLabel(r.rule_layer) }}
+            <template v-if="r.mandatory_level">
+              · {{ mandatoryLevelLabel(r.mandatory_level) }}</template
+            >
+            ·
+          </template>
+          {{
+            publicSourceIssuer(
+              sourceMap.get(r.source_id)?.source_type,
+              sourceMap.get(r.source_id)?.issuer,
+            )
+          }}
           <span v-if="r.last_verified_at"> · 最近核验 {{ r.last_verified_at.slice(0, 10) }}</span>
           <span v-else> · 来源仍待补充</span>
         </p>
       </div>
     </section>
-    <p v-if="!currentRules.length" class="muted">暂无可靠规则结论。未收录不代表没有规则。</p>
+    <p v-if="!currentRules.length && !eventPolicyRows.length" class="muted">
+      暂无可靠规则结论。未收录不代表没有规则。
+    </p>
 
     <!-- §14 Rule Conflict：inline，不渲染紫色 badge 为主角。 -->
-    <section v-if="conflicts.hasConflict" class="rule-conflict" data-testid="rule-conflict">
-      <p class="rule-conflict__title">△ 来源不一致</p>
-      <p class="muted rule-conflict__note">{{ conflicts.note }}</p>
-      <RouterLink
-        class="btn-inline"
-        :to="`/place/${currentRules[0]?.place_id ?? ''}?view=evidence`"
-      >
+    <section
+      v-if="reviewNotice.visible"
+      class="rule-conflict"
+      :data-state="answer?.conflict_state?.has_conflict ? 'conflict' : 'verification-missing'"
+      data-testid="rule-conflict"
+    >
+      <p class="rule-conflict__title">{{ reviewNotice.title }}</p>
+      <p class="muted rule-conflict__note">{{ reviewNotice.note }}</p>
+      <RouterLink class="btn-inline" :to="`/place/${placeId}?view=evidence`">
         查看差异 →
       </RouterLink>
     </section>
@@ -165,17 +322,60 @@ function ruleConditionLines(r: RuleView): string[] {
       <p class="muted history-note">
         管理方声明与用户观察并存：认领后管理方规则标注来源，用户仍可提交现场记录。
       </p>
-      <RouterLink class="btn-inline" :to="`/contribute/${currentRules[0]?.place_id ?? ''}`">
-        报告规则 / 贡献 →
-      </RouterLink>
+      <RouterLink class="btn-inline" :to="`/contribute/${placeId}`"> 报告规则 / 贡献 → </RouterLink>
     </section>
   </div>
 </template>
 
 <style scoped>
+/* Current-query conditions are shown once, then the actual zone/context rules follow. */
+.current-query-conditions {
+  display: flex;
+  align-items: baseline;
+  gap: var(--pa-space-3);
+  margin: 0 0 var(--pa-space-5);
+  padding-bottom: var(--pa-space-4);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.current-query-conditions__label {
+  flex: 0 0 auto;
+  font-size: var(--pa-font-size-sm);
+  color: var(--pa-color-text-muted);
+}
+
+.current-query-conditions__value {
+  margin: 0;
+  font-size: var(--pa-font-size-base);
+  font-weight: var(--pa-font-weight-600);
+  color: var(--pa-color-text-primary);
+}
+
+.event-policy-section {
+  margin: 0 0 var(--pa-space-6);
+  padding: 0 0 var(--pa-space-5);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border);
+}
+
+.event-policy-section__intro {
+  margin: calc(-1 * var(--pa-space-2)) 0 var(--pa-space-2);
+  font-size: var(--pa-font-size-md);
+  line-height: var(--pa-line-height-20);
+}
+
+.event-policy-row__validity {
+  margin: var(--pa-space-1) 0 0;
+  font-size: var(--pa-font-size-md);
+  color: var(--pa-color-text-secondary);
+}
+
+.event-policy-row--ended {
+  opacity: 0.72;
+}
+
 /* 组间 divider + 20–24 gap（§13）；组内非 card wall：divider rows。 */
 .rule-group {
-  margin: 0 0 var(--pa-space-5);
+  margin: 0 0 var(--pa-space-6);
   padding-bottom: var(--pa-space-5);
   border-bottom: var(--pa-border-width) solid var(--pa-color-border);
 }
@@ -190,7 +390,7 @@ function ruleConditionLines(r: RuleView): string[] {
   color: var(--pa-color-text-primary);
 }
 .rule-card {
-  padding: var(--pa-space-2) 0 var(--pa-space-3);
+  padding: var(--pa-space-3) 0 var(--pa-space-4);
   border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
 }
 .rule-card:last-child {
@@ -211,7 +411,7 @@ function ruleConditionLines(r: RuleView): string[] {
   flex-shrink: 0;
 }
 .rule-card__condition {
-  margin: var(--pa-space-1) 0 0;
+  margin: var(--pa-space-2) 0 0;
   font-size: var(--pa-font-size-md);
   color: var(--pa-color-text-secondary);
 }
@@ -294,5 +494,24 @@ function ruleConditionLines(r: RuleView): string[] {
 }
 .history-note {
   margin: var(--pa-space-2) 0 0;
+}
+
+@media (max-width: 767px) {
+  .rule-group {
+    margin-bottom: var(--pa-space-5);
+    padding-bottom: var(--pa-space-4);
+  }
+
+  .rule-group__context {
+    font-size: var(--pa-font-size-lg);
+  }
+
+  .rule-card {
+    padding: var(--pa-space-3) 0;
+  }
+
+  .rule-card__meta {
+    line-height: var(--pa-line-height-20);
+  }
 }
 </style>
