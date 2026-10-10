@@ -67,9 +67,7 @@ const homeFixture = computed(() => `home-${homeState.value}-v1`);
               <strong data-testid="coverage-area">
                 <span class="home-brand">PetAccess</span> · 上海 · 试点
               </strong>
-              <RouterLink class="btn-inline" to="/map" data-testid="go-map">
-                看地图 →
-              </RouterLink>
+              <RouterLink class="btn-inline" to="/map" data-testid="go-map"> 看地图 → </RouterLink>
             </div>
 
             <div class="home-intro">
