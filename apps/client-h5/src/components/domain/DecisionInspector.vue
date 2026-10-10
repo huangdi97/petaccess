@@ -107,7 +107,10 @@ const SOURCE_RATE: Record<string, string> = {
 const evidenceLine = computed(() => {
   const ev = props.answer?.evidence_state.rules[0];
   const parts: string[] = [];
-  if (ev) {
+
+  if (props.answerError) {
+    parts.push("规则依据暂时无法取得");
+  } else if (ev) {
     parts.push(
       publicSourceIssuer(ev.source_type, ev.issuer ?? SOURCE_RATE[ev.source_type ?? ""] ?? null),
     );
@@ -118,14 +121,18 @@ const evidenceLine = computed(() => {
     parts.push("规则依据待补充");
   }
 
-  const realityEvidence = props.snapshot?.evidence_summary.reality_evidence_count ?? 0;
-  const realitySources = props.snapshot?.evidence_summary.reality_distinct_source_count ?? 0;
-  if (realityEvidence > 0) {
-    parts.push(
-      realitySources > 0
-        ? `现场 ${realityEvidence} 条依据 / ${realitySources} 个来源`
-        : `现场 ${realityEvidence} 条依据`,
-    );
+  if (props.realityError) {
+    parts.push("现场依据暂时无法取得");
+  } else {
+    const realityEvidence = props.snapshot?.evidence_summary.reality_evidence_count ?? 0;
+    const realitySources = props.snapshot?.evidence_summary.reality_distinct_source_count ?? 0;
+    if (realityEvidence > 0) {
+      parts.push(
+        realitySources > 0
+          ? `现场 ${realityEvidence} 条依据 / ${realitySources} 个来源`
+          : `现场 ${realityEvidence} 条依据`,
+      );
+    }
   }
 
   // Transport/cache freshness is a separate axis. Only surface it when the
