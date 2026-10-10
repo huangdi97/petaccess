@@ -653,7 +653,7 @@ body {
 }
 
 @media (max-width: 767px) {
-  .home-workspace .page--home {
+  #app .home-workspace .page--home {
     padding: 12px 14px 28px;
   }
 
@@ -685,107 +685,111 @@ body {
     padding: 9px 12px;
   }
 
-  .home-workspace .home-topline {
+  #app .home-workspace .home-topline {
     margin-bottom: 17px;
   }
 
-  .home-workspace .home-intro h1 {
+  #app .home-workspace .home-intro h1 {
     font-size: 27px;
   }
 
-  .home-workspace .home-subtitle {
+  #app .home-workspace .home-subtitle {
     font-size: 13px;
   }
 
-  .home-workspace .home-search {
+  #app .home-workspace .home-search {
     flex-direction: row;
     margin: 0;
   }
 
-  .home-workspace .home-search input {
+  #app .home-workspace .home-search input {
+    flex: 1 1 0;
     width: auto;
+    min-width: 0;
     min-height: 43px;
     font-size: 12px;
     padding-left: 6px;
   }
 
-  .home-workspace .home-search__submit {
+  #app .home-workspace .home-search__submit {
+    flex: 0 0 auto;
+    width: auto;
     min-height: 43px;
     padding: 0 15px;
   }
 
-  .home-workspace .home-lenses {
+  #app .home-workspace .home-lenses {
     margin: 26px 0 23px;
   }
 
-  .home-workspace .home-entries {
+  #app .home-workspace .home-entries {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
   }
 
-  .home-workspace .home-entries .entry {
+  #app .home-workspace .home-entries .entry {
     min-height: 129px;
     padding: 13px 12px;
     gap: 6px;
   }
 
-  .home-workspace .home-entries .entry-icon-shell {
+  #app .home-workspace .home-entries .entry-icon-shell {
     width: 38px;
     height: 38px;
     border-radius: 10px;
   }
 
-  .home-workspace .home-entries .entry-label {
+  #app .home-workspace .home-entries .entry-label {
     font-size: 13px;
   }
 
-  .home-workspace .home-entries .entry-hint {
+  #app .home-workspace .home-entries .entry-hint {
     font-size: 11px;
   }
 
-  .home-workspace .home-recommend {
+  #app .home-workspace .home-recommend {
     padding: 17px;
   }
 
-  .home-workspace .home-recommend__row {
+  #app .home-workspace .home-recommend__row {
     grid-template-columns: 32px minmax(0, 1fr);
   }
 
-  .home-workspace .home-recommend__headline,
-  .home-workspace .home-recommend__meta {
+  #app .home-workspace .home-recommend__headline,
+  #app .home-workspace .home-recommend__meta {
     grid-column: 2;
   }
 
-  .home-workspace .home-row {
+  #app .home-workspace .home-row {
     padding: 13px;
   }
 
-  .home-workspace .home-row__content--with-scene {
+  #app .home-workspace .home-row__content--with-scene {
     grid-template-columns: 87px minmax(0, 1fr);
     gap: 10px;
   }
 
-  .home-workspace .home-row__scene {
+  #app .home-workspace .home-row__scene {
     --scene-frame-compact-mobile-width: 87px;
     --scene-frame-compact-mobile-height: 79px;
     --scene-frame-compact-empty-mobile-width: 87px;
     --scene-frame-compact-empty-mobile-height: 79px;
   }
 
-  .home-workspace .home-row__evidence-link {
+  #app .home-workspace .home-row__evidence-link {
     padding-left: 0;
   }
 
-  .search-workspace .result-row {
+  #app .search-workspace .result-row {
     min-height: 0;
   }
 
-  .search-workspace .result-row__link {
+  #app .search-workspace .result-row__link {
     min-height: 115px;
     padding: 12px;
   }
 
-  .search-workspace .result-row__visual {
+  #app .search-workspace .result-row__visual {
     --scene-frame-compact-mobile-width: 65px;
     --scene-frame-compact-mobile-height: 59px;
     --scene-frame-compact-empty-mobile-width: 65px;
@@ -793,27 +797,27 @@ body {
     flex-basis: 65px;
   }
 
-  .place-workspace .place-dossier__head {
+  #app .place-workspace .place-dossier__head {
     padding: 17px;
     border-radius: 14px;
   }
 
-  .place-workspace .place-section {
+  #app .place-workspace .place-section {
     padding: 15px 16px;
     border-radius: 13px;
   }
 
-  .map-workspace .map-lensbar {
+  #app .map-workspace .map-lensbar {
     padding: 8px 12px;
   }
 
-  .map-workspace .map-canvas {
+  #app .map-workspace .map-canvas {
     border-radius: 13px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .home-workspace .home-entries .entry {
+  #app .home-workspace .home-entries .entry {
     transition: none;
   }
 }
