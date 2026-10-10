@@ -115,7 +115,8 @@ function onKey(e: KeyboardEvent) {
 }
 
 function cyclePhase() {
-  phase.value = phase.value === "expanded" ? "half" : "expanded";
+  phase.value =
+    phase.value === "half" ? "expanded" : phase.value === "expanded" ? "closed" : "half";
 }
 
 // A new selection is a new decision task. Reopen it at the designed half
