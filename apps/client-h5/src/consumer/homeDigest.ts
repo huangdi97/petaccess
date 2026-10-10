@@ -18,7 +18,9 @@ export interface HomeDigestCard {
   status: string;
   facts: {
     answer: AccessAnswer | null;
+    answerError?: boolean;
     reality: RealityAnswer | null;
+    realityError?: boolean;
     snapshot: CoexistenceSnapshot | null;
   };
 }
@@ -49,22 +51,33 @@ export function compareHomeDigest(a: HomeDigestCard, b: HomeDigestCard, interest
 }
 
 export function homeDigestHeadline(card: HomeDigestCard, interest: ConsumerLens): string {
-  if (interest) {
-    const projection = lensProjection(
+  if (interest === "rules") {
+    if (card.facts.answerError) return "规则结论暂时无法取得";
+    return card.facts.answer ? answerVerdictLabel(card.facts.answer) : "信息不足";
+  }
+
+  if (interest === "presence" || interest === "indoor" || interest === "dining") {
+    if (card.facts.realityError) return "现场信息暂时无法取得";
+    return lensProjection(
       interest,
       card.facts.answer,
       card.facts.reality,
       card.facts.snapshot,
-    );
-    if (interest === "rules" && card.facts.answer) return answerVerdictLabel(card.facts.answer);
-    if (interest === "indoor" || interest === "dining") return projection.realityLine;
+    ).realityLine;
   }
+
   const reality = card.facts.reality;
-  if ((card.facts.snapshot?.evidence_summary.reality_evidence_count ?? 0) > 0 || reality) {
+  if (
+    !card.facts.realityError &&
+    ((card.facts.snapshot?.evidence_summary.reality_evidence_count ?? 0) > 0 || reality)
+  ) {
     const line = coexistenceRealityLine(card.facts.snapshot, reality);
     if (line !== "暂无足够现场记录") return line;
   }
-  if (card.facts.answer) return answerVerdictLabel(card.facts.answer);
+  if (!card.facts.answerError && card.facts.answer) return answerVerdictLabel(card.facts.answer);
+  if (card.facts.answerError && card.facts.realityError) return "规则与现场暂时无法取得";
+  if (card.facts.answerError) return "规则结论暂时无法取得";
+  if (card.facts.realityError) return "现场信息暂时无法取得";
   return "信息不足";
 }
 
