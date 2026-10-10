@@ -121,7 +121,8 @@ export function useHomeLauncher() {
   }
 
   function remember(id: string) {
-    const name = cards.value.find((c) => c.place.id === id)?.place.canonical_name ?? id;
+    const name =
+      cards.value.find((c) => c.place.id === id)?.place.canonical_name ?? "最近查看的场所";
     recent.value = [{ id, name }, ...recent.value.filter((r) => r.id !== id)].slice(0, MAX_RECENT);
     platformStorage.set(RECENT_KEY, JSON.stringify(recent.value));
   }
