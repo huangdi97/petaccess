@@ -514,6 +514,21 @@ test("A1.7 — one-shot locate clears the previous selected place", async ({ pag
   await expect(page).toHaveURL(/#\/map(?!\?place=)/);
 });
 
+test("A1.7 — a new mobile selection resets the bottom sheet to half height", async ({ page }) => {
+  await page.setViewportSize({ width: 430, height: 932 });
+  await page.goto(`${BASE}/#/map?place=${CAFE_ID}`);
+
+  const sheet = page.getByTestId("map-mobile-sheet");
+  await expect(sheet).toBeVisible({ timeout: 15000 });
+  await expect(sheet).toHaveAttribute("data-phase", "half");
+  await page.getByTestId("sheet-handle").click();
+  await expect(sheet).toHaveAttribute("data-phase", "expanded");
+
+  await page.goto(`${BASE}/#/map?place=${MALL_ID}`);
+  await expect(sheet).toContainText("云栖中心", { timeout: 15000 });
+  await expect(sheet).toHaveAttribute("data-phase", "half");
+});
+
 test("A2 — map 错误统一呈现，不泄漏内部字样", async ({ page }) => {
   await page.route("**/api/v1/places/nearby**", (route) =>
     route.fulfill({
