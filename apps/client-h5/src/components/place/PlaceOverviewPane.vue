@@ -571,7 +571,23 @@ const divergenceLine = computed(() => {
 
 @media (max-width: 767px) {
   /* Mobile keeps the same Rule + Reality semantics as desktop. The rows
-     collapse to compact two-column facts; only their secondary links hide. */
+     collapse to compact facts; only their secondary links hide. */
+  .place-basics__grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--pa-space-2);
+  }
+
+  .place-basics__grid > div {
+    grid-template-columns: 5rem minmax(0, 1fr);
+    gap: var(--pa-space-2);
+    min-width: 0;
+  }
+
+  .place-basics__grid dt,
+  .place-basics__grid dd {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
   .sub-answer__note,
   .sub-answer__details-link,
   .overview-note,
