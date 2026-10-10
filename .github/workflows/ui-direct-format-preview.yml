@@ -1,5 +1,8 @@
 name: UI Direct Format Preview
 
+permissions:
+  contents: write
+
 on:
   push:
     branches:
@@ -22,6 +25,7 @@ jobs:
         run: |
           pnpm exec prettier --write \
             apps/client-h5/src/views/HomeView.vue \
+            apps/client-h5/src/components/domain/DecisionInspector.vue \
             apps/client-h5/src/components/domain/PlaceResultRow.vue \
             apps/client-h5/src/components/map/MapSelectedSheet.vue \
             apps/client-h5/src/components/place/PlaceRulesPane.vue \
@@ -38,6 +42,7 @@ jobs:
           name: ui-direct-formatted-targets
           path: |
             apps/client-h5/src/views/HomeView.vue
+            apps/client-h5/src/components/domain/DecisionInspector.vue
             apps/client-h5/src/components/domain/PlaceResultRow.vue
             apps/client-h5/src/components/map/MapSelectedSheet.vue
             apps/client-h5/src/components/place/PlaceRulesPane.vue
@@ -49,3 +54,16 @@ jobs:
             apps/client-h5/src/views/RealityTraceView.vue
             tests/e2e/place-route-race.spec.ts
             tests/e2e/public-private-session-boundary.spec.ts
+
+      - name: Commit formatter output
+        if: github.event.head_commit.message != 'chore: apply direct UI formatting'
+        run: |
+          if git diff --quiet; then
+            echo "No formatter changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/client-h5/src
+          git commit -m "chore: apply direct UI formatting"
+          git push origin HEAD:feat/ui-direct-craft-v8
