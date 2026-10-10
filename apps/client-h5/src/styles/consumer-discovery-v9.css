@@ -623,11 +623,19 @@ body {
 
 .scene-frame--compact.scene-frame--empty {
   border-color: var(--pa-discovery-v9-tone-58);
-  background: linear-gradient(135deg, var(--pa-discovery-v9-tone-59), var(--pa-discovery-v9-tone-60));
+  background: linear-gradient(
+    135deg,
+    var(--pa-discovery-v9-tone-59),
+    var(--pa-discovery-v9-tone-60)
+  );
 }
 
 .scene-frame--compact.scene-frame--empty .scene-frame__empty {
-  background: linear-gradient(135deg, var(--pa-discovery-v9-tone-59), var(--pa-discovery-v9-tone-60));
+  background: linear-gradient(
+    135deg,
+    var(--pa-discovery-v9-tone-59),
+    var(--pa-discovery-v9-tone-60)
+  );
 }
 
 @media (max-width: 1099px) {
