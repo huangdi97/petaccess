@@ -22,10 +22,12 @@ jobs:
         run: |
           pnpm exec prettier --write \
             apps/client-h5/src/views/HomeView.vue \
-            apps/client-h5/src/components/place/PlaceRulesPane.vue
+            apps/client-h5/src/components/place/PlaceRulesPane.vue \
+            apps/client-h5/src/components/place/PlaceOverviewPane.vue
       - uses: actions/upload-artifact@v4
         with:
           name: ui-direct-formatted-targets
           path: |
             apps/client-h5/src/views/HomeView.vue
             apps/client-h5/src/components/place/PlaceRulesPane.vue
+            apps/client-h5/src/components/place/PlaceOverviewPane.vue
