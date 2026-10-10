@@ -264,6 +264,70 @@
   /* v0.2.4 §29/§41：Home desktop main max 960；Contribution desktop container max 680。 */
   --pa-layout-content-960: 960px;
   --pa-layout-content-680: 680px;
+
+  /* Consumer Discovery v9 reference palette. Named tokens keep all visual
+   * colours in the shared design-system package rather than component CSS;
+   * ordering is stable and allows future dark-theme replacement. */
+  --pa-discovery-v9-tone-01: #236e59;
+  --pa-discovery-v9-tone-02: #e3f2e8;
+  --pa-discovery-v9-tone-03: #f7f8f4;
+  --pa-discovery-v9-tone-04: #183d34;
+  --pa-discovery-v9-tone-05: #637a70;
+  --pa-discovery-v9-tone-06: #e0eae2;
+  --pa-discovery-v9-tone-07: #edf6ed;
+  --pa-discovery-v9-tone-08: #ffffff;
+  --pa-discovery-v9-tone-09: rgb(28 67 49 / 7%);
+  --pa-discovery-v9-tone-10: #f0f7ef;
+  --pa-discovery-v9-tone-11: #dce9dc;
+  --pa-discovery-v9-tone-12: #ffffffb8;
+  --pa-discovery-v9-tone-13: #d8e9dc;
+  --pa-discovery-v9-tone-14: #fff;
+  --pa-discovery-v9-tone-15: #2b7c60;
+  --pa-discovery-v9-tone-16: #577367;
+  --pa-discovery-v9-tone-17: #d7e3d8;
+  --pa-discovery-v9-tone-18: rgb(31 79 57 / 9%);
+  --pa-discovery-v9-tone-19: #ffffffea;
+  --pa-discovery-v9-tone-20: #e4eee5;
+  --pa-discovery-v9-tone-21: rgb(28 67 49 / 10%);
+  --pa-discovery-v9-tone-22: #637b71;
+  --pa-discovery-v9-tone-23: rgb(29 69 52 / 3%);
+  --pa-discovery-v9-tone-24: #b6d6c1;
+  --pa-discovery-v9-tone-25: #e8f4ed;
+  --pa-discovery-v9-tone-26: #e8f3eb;
+  --pa-discovery-v9-tone-27: #d5e8dc;
+  --pa-discovery-v9-tone-28: rgb(29 69 52 / 4%);
+  --pa-discovery-v9-tone-29: #bcd9c5;
+  --pa-discovery-v9-tone-30: #f7f9f6;
+  --pa-discovery-v9-tone-31: #dbe8df;
+  --pa-discovery-v9-tone-32: #e1e9e1;
+  --pa-discovery-v9-tone-33: rgb(27 63 51 / 4%);
+  --pa-discovery-v9-tone-34: #9bbfad;
+  --pa-discovery-v9-tone-35: #eaf5ed;
+  --pa-discovery-v9-tone-36: rgb(27 83 59 / 10%);
+  --pa-discovery-v9-tone-37: #f0f7f1;
+  --pa-discovery-v9-tone-38: #e7ece7;
+  --pa-discovery-v9-tone-39: #edf5ef;
+  --pa-discovery-v9-tone-40: #ecf6ef;
+  --pa-discovery-v9-tone-41: #d0e6d7;
+  --pa-discovery-v9-tone-42: #f8faf7;
+  --pa-discovery-v9-tone-43: #e6ede6;
+  --pa-discovery-v9-tone-44: #667d70;
+  --pa-discovery-v9-tone-45: #edf5ee;
+  --pa-discovery-v9-tone-46: #dfeae0;
+  --pa-discovery-v9-tone-47: #cfdfd1;
+  --pa-discovery-v9-tone-48: #286750;
+  --pa-discovery-v9-tone-49: #e4ebe4;
+  --pa-discovery-v9-tone-50: #edf6ef;
+  --pa-discovery-v9-tone-51: #e1e9e3;
+  --pa-discovery-v9-tone-52: #e0efe6;
+  --pa-discovery-v9-tone-53: #b9d9c5;
+  --pa-discovery-v9-tone-54: #e9f5ec;
+  --pa-discovery-v9-tone-55: #d6e3d8;
+  --pa-discovery-v9-tone-56: rgb(29 69 52 / 7%);
+  --pa-discovery-v9-tone-57: rgb(20 63 47 / 18%);
+  --pa-discovery-v9-tone-58: #d7e7da;
+  --pa-discovery-v9-tone-59: #e0f0e5;
+  --pa-discovery-v9-tone-60: #f8f8f0;
 }
 
 /* Breakpoints are consumed in JS (see src/index.ts) because CSS custom
