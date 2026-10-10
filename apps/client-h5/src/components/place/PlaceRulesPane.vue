@@ -162,9 +162,7 @@ const eventPolicyRows = computed<EventPolicyPresentation[]>(() =>
       return {
         id: policy.id,
         name: policy.name,
-        scope: policy.zone_id
-          ? (zoneNameById.value.get(policy.zone_id) ?? "指定分区")
-          : "场所整体",
+        scope: policy.zone_id ? (zoneNameById.value.get(policy.zone_id) ?? "指定分区") : "场所整体",
         subject: ruleSubjectLine(policy.animal_scope, policy.action),
         effect: policy.effect,
         validity: `${lifecycleLabel} · ${start} 至 ${end}`,
@@ -227,16 +225,10 @@ function ruleConditionLines(r: RuleView): string[] {
           <StatusBadge :effect="policy.effect" />
         </div>
         <p class="event-policy-row__validity">{{ policy.validity }}</p>
-        <p
-          v-for="condition in policy.conditions"
-          :key="condition"
-          class="rule-card__condition"
-        >
+        <p v-for="condition in policy.conditions" :key="condition" class="rule-card__condition">
           需满足：{{ condition }}
         </p>
-        <p class="muted rule-card__meta">
-          临时/活动政策 · {{ policy.source }}
-        </p>
+        <p class="muted rule-card__meta">临时/活动政策 · {{ policy.source }}</p>
       </div>
     </section>
 
