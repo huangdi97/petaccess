@@ -38,19 +38,25 @@ const props = withDefaults(
     /** Public Place identity facts only; no inferred hours/coordinates. */
     placeKindLabel?: string;
     canonicalAddress?: string | null;
+    /** Snapshot transport failure is distinct from a legitimate UNKNOWN answer. */
+    snapshotError?: boolean;
     /** §11：mobile 也要 Space/Evidence summary row（非展开），desktop 五块齐全。 */
     desktop?: boolean;
   }>(),
-  { desktop: true },
+  { desktop: true, snapshotError: false },
 );
 
 const conditions = computed(() => answerConditions(props.answer));
 const keyCondition = computed(() => conditions.value[0] ?? "");
-const verdict = computed(() => answerVerdictLabel(props.answer));
+const verdict = computed(() =>
+  props.snapshotError ? "暂时无法取得" : answerVerdictLabel(props.answer),
+);
 const statusKey = computed(() => answerStatusKey(props.answer));
 const querySubject = computed(() => `查询对象：${querySubjectLabel()}`);
 const realityLine = computed(() =>
-  coexistenceRealityLine(props.coexistence, props.coexistence?.reality_answer),
+  props.snapshotError
+    ? "现场概览暂时无法取得"
+    : coexistenceRealityLine(props.coexistence, props.coexistence?.reality_answer),
 );
 const realityMetaLine = computed(() => {
   const reality = props.coexistence?.reality_answer;
@@ -81,7 +87,13 @@ const evidenceSummaryLine = computed(() => {
   const ruleCount = evidence?.rule_evidence.length ?? 0;
   const realitySources = evidence?.reality_distinct_source_count ?? 0;
   parts.push(ruleCount ? `规则：${primaryEvidence.value}` : "规则来源待补充");
-  parts.push(realitySources ? `现场：${realitySources} 个来源` : "现场来源待补充");
+  parts.push(
+    props.snapshotError
+      ? "现场来源暂时无法取得"
+      : realitySources
+        ? `现场：${realitySources} 个来源`
+        : "现场来源待补充",
+  );
   if (props.latestVerifiedAt) parts.push(`规则核验 ${props.latestVerifiedAt}`);
   return parts.join(" · ");
 });
@@ -89,6 +101,7 @@ const evidenceSummaryLine = computed(() => {
 /** Canonical first-screen coexistence summary: Rule + Reality stay separate,
  * while staff handling / facilities remain factual Reality details. */
 const staffSummaryLine = computed(() => {
+  if (props.snapshotError) return "工作人员处理暂时无法取得";
   const rows = props.coexistence?.staff_response_summary ?? [];
   if (!rows.length) return "暂无经核验的工作人员处理记录";
   return rows
@@ -101,6 +114,7 @@ const staffSummaryLine = computed(() => {
 });
 
 const facilitySummaryLine = computed(() => {
+  if (props.snapshotError) return "动物设施暂时无法取得";
   const rows = props.coexistence?.facility_summary ?? [];
   if (!rows.length) return "暂无经核验的动物设施记录";
   const confirmed = rows.find((item) => facilityPurposeIsConfirmed(item.purpose_state));
@@ -138,14 +152,21 @@ const divergenceLine = computed(() => {
              giant verdict. Mobile has no side inspector and therefore keeps
              the full natural-language decision in the main reading flow. -->
         <template v-if="desktop">
-          <StatusBadge :semantic="statusKey" />
-          <span class="visually-hidden" data-testid="answer-status">{{ verdict }}</span>
+          <StatusBadge v-if="!snapshotError" :semantic="statusKey" />
+          <span v-if="!snapshotError" class="visually-hidden" data-testid="answer-status">
+            {{ verdict }}
+          </span>
+          <p v-else class="status status--error" data-testid="answer-status">{{ verdict }}</p>
         </template>
-        <p v-else class="status" data-testid="answer-status">{{ verdict }}</p>
-        <p v-if="keyCondition" class="muted" data-testid="answer-conditions">
+        <p v-else class="status" :class="{ 'status--error': snapshotError }" data-testid="answer-status">
+          {{ verdict }}
+        </p>
+        <p v-if="keyCondition && !snapshotError" class="muted" data-testid="answer-conditions">
           需满足：{{ keyCondition }}
         </p>
-        <p v-if="answer" class="muted sub-answer__note">当前结论仅适用于这次查询。</p>
+        <p v-if="answer && !snapshotError" class="muted sub-answer__note">
+          当前结论仅适用于这次查询。
+        </p>
         <RouterLink
           class="btn-inline sub-answer__details-link"
           :to="'?view=rules'"
@@ -399,6 +420,11 @@ const divergenceLine = computed(() => {
   font-weight: var(--pa-font-weight-650);
   line-height: var(--pa-line-height-decision);
   color: var(--pa-color-text-primary);
+}
+
+.status--error {
+  font-size: var(--pa-font-size-xl);
+  color: var(--pa-color-text-secondary);
 }
 .place-reality-headline {
   margin: 0;
