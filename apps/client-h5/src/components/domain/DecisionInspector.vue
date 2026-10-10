@@ -405,8 +405,7 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
   min-width: 0;
   min-height: calc(100vh - 60px);
   align-self: stretch;
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border);
-  padding-bottom: var(--pa-space-5);
+  padding-bottom: var(--pa-space-6);
 }
 
 .decision-inspector--place {
@@ -416,9 +415,12 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
 .decision-inspector__head {
   display: flex;
   flex-direction: column;
-  gap: var(--pa-space-1);
-  padding-bottom: var(--pa-space-4);
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  gap: var(--pa-space-2);
+  padding: var(--pa-space-4);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: calc(var(--pa-radius-md) + 2px);
+  background: var(--pa-color-surface);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--pa-color-text-primary) 4%, transparent);
 }
 
 .decision-inspector__identity {
@@ -470,17 +472,22 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
 .decision-inspector__views {
   display: flex;
   align-items: center;
-  gap: var(--pa-space-5);
+  gap: var(--pa-space-1);
   min-height: 44px;
   overflow-x: auto;
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  padding: var(--pa-space-1);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: var(--pa-radius-control);
+  background: var(--pa-color-surface);
 }
 
 .decision-inspector__views a {
   display: inline-flex;
   align-items: center;
   flex: 0 0 auto;
-  min-height: 44px;
+  min-height: 40px;
+  padding: 0 var(--pa-space-3);
+  border-radius: var(--pa-radius-control);
   color: var(--pa-color-text-secondary);
   font-size: var(--pa-font-size-md);
   text-decoration: none;
@@ -488,9 +495,9 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
 
 .decision-inspector__views a:hover,
 .decision-inspector__views a:focus-visible {
+  background: var(--pa-color-accent-weak);
   color: var(--pa-color-accent);
-  text-decoration: underline;
-  text-underline-offset: 5px;
+  text-decoration: none;
 }
 
 .decision-inspector__title-row {
@@ -551,10 +558,22 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
  * no surface fill, no radius, no shadow — the accent edge + size carry it.
  * （生活气息收口的暖 surface 在决策块上按蓝图取消） */
 .inspector-block--decision {
-  border-left: var(--pa-border-width-strong) solid var(--pa-color-accent);
-  padding-left: var(--pa-space-4);
-  padding-top: var(--pa-space-1);
-  padding-bottom: var(--pa-space-2);
+  position: relative;
+  padding: var(--pa-space-5);
+  border: var(--pa-border-width) solid color-mix(in srgb, var(--pa-color-accent) 20%, var(--pa-color-border-subtle));
+  border-radius: calc(var(--pa-radius-md) + 2px);
+  background: color-mix(in srgb, var(--pa-color-accent-weak) 42%, var(--pa-color-surface));
+}
+
+.inspector-block--decision::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: var(--pa-space-4);
+  bottom: var(--pa-space-4);
+  width: 3px;
+  border-radius: 999px;
+  background: var(--pa-color-accent);
 }
 
 .inspector-decision {
@@ -623,9 +642,11 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
 .inspector-secondary {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--pa-space-5);
-  padding-top: var(--pa-space-3);
-  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  gap: var(--pa-space-3);
+  padding: var(--pa-space-4);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: var(--pa-radius-md);
+  background: var(--pa-color-surface-muted);
 }
 .inspector-secondary .inspector-block--meta {
   border-top: none;
