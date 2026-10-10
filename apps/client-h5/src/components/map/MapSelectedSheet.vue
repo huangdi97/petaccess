@@ -280,11 +280,16 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 20px;
+  height: var(--pa-layout-touch-target);
   padding: 0;
   border: none;
   background: transparent;
   cursor: pointer;
+}
+
+.sheet__handle:focus-visible {
+  outline: 2px solid var(--pa-color-border-focus);
+  outline-offset: -2px;
 }
 .sheet__handle-bar {
   width: 36px;
@@ -421,8 +426,8 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--pa-size-control-md);
-  height: var(--pa-size-control-md);
+  width: var(--pa-layout-touch-target);
+  height: var(--pa-layout-touch-target);
   border: none;
   background: transparent;
   color: var(--pa-color-text-secondary);
