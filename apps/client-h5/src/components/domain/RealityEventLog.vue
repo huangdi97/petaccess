@@ -252,7 +252,9 @@ const visibleGroups = computed<EventGroup[]>(() => {
 }
 
 .timeline-date {
-  margin: var(--pa-space-28) 0 var(--pa-space-4);
+  /* Dates belong to the same continuous event rail. A 112px inter-date gap
+     hid most real events below the fold and read like empty canvas. */
+  margin: var(--pa-space-6) 0 var(--pa-space-3);
   padding-left: calc(72px + 24px);
   font-size: var(--pa-font-size-sm);
   font-weight: var(--pa-font-weight-600);
@@ -268,8 +270,8 @@ const visibleGroups = computed<EventGroup[]>(() => {
   display: grid;
   grid-template-columns: 72px 24px 1fr;
   gap: 0 var(--pa-space-3);
-  padding: 0 0 var(--pa-space-4);
-  margin-bottom: var(--pa-space-5);
+  padding: 0 0 var(--pa-space-3);
+  margin-bottom: var(--pa-space-3);
   border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
   background: transparent;
 }
