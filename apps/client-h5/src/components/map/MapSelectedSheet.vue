@@ -197,8 +197,11 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
           </div>
         </div>
 
+        <!-- Keep the half-height selection task-first: a photo must not push
+             the real Place CTA below the visible sheet. Full media belongs
+             in expanded detail and is never fabricated for missing records. -->
         <img
-          v-if="sceneMediaUrl && phase !== 'closed'"
+          v-if="sceneMediaUrl && phase === 'expanded'"
           class="sheet__scene"
           :src="sceneMediaUrl"
           :alt="`场所场景：${place.canonical_name}`"
