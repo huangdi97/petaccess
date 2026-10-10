@@ -354,18 +354,20 @@ const divergenceLine = computed(() => {
   min-width: 0;
   box-sizing: border-box;
   grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
-  gap: var(--pa-space-6);
-  margin-bottom: var(--pa-space-6);
-  padding-bottom: var(--pa-space-5);
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  gap: var(--pa-space-3);
+  margin-bottom: var(--pa-space-5);
 }
 
 .place-overview-lead > .place-section {
   margin-bottom: 0;
+  padding: var(--pa-space-4);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: var(--pa-radius-md);
+  background: var(--pa-color-surface-raised);
 }
 
 .place-overview-lead > .place-section + .place-section {
-  padding-left: var(--pa-space-6);
+  padding-left: var(--pa-space-4);
   border-left: var(--pa-border-width) solid var(--pa-color-border-subtle);
 }
 
@@ -416,14 +418,26 @@ const divergenceLine = computed(() => {
   color: var(--pa-color-text-primary);
 }
 .sub-answer--mine {
+  position: relative;
   width: 100%;
   max-width: 100%;
   min-width: 0;
   box-sizing: border-box;
-  border-left: var(--pa-border-width-strong) solid var(--pa-color-accent);
-  border-radius: 0;
-  padding: var(--pa-space-2) 0 var(--pa-space-2) var(--pa-space-4);
-  background: transparent;
+  padding: var(--pa-space-4);
+  border: var(--pa-border-width) solid color-mix(in srgb, var(--pa-color-accent) 22%, var(--pa-color-border-subtle));
+  border-radius: var(--pa-radius-md);
+  background: color-mix(in srgb, var(--pa-color-accent-weak) 44%, var(--pa-color-surface));
+}
+
+.sub-answer--mine::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: var(--pa-space-3);
+  bottom: var(--pa-space-3);
+  width: 3px;
+  border-radius: 999px;
+  background: var(--pa-color-accent);
 }
 .sub-answer__context {
   margin: 0 0 var(--pa-space-1);
@@ -465,12 +479,15 @@ const divergenceLine = computed(() => {
   grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
   gap: var(--pa-space-3);
-  min-height: 48px;
-  padding: var(--pa-space-2) 0;
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  min-height: 52px;
+  margin-bottom: var(--pa-space-2);
+  padding: var(--pa-space-3);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: var(--pa-radius-control);
+  background: var(--pa-color-surface-raised);
 }
 .zone-row:last-child {
-  border-bottom: none;
+  margin-bottom: 0;
 }
 .zone-row {
   text-decoration: none;
@@ -596,9 +613,8 @@ const divergenceLine = computed(() => {
   }
 
   .place-overview-lead > .place-section + .place-section {
-    padding-left: 0;
-    padding-top: var(--pa-space-4);
-    border-left: none;
+    padding: var(--pa-space-4);
+    border-left: var(--pa-border-width) solid var(--pa-color-border-subtle);
     border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
   }
 
