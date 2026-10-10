@@ -56,7 +56,6 @@ jobs:
             tests/e2e/public-private-session-boundary.spec.ts
 
       - name: Commit formatter output
-        if: github.event.head_commit.message != 'chore: apply direct UI formatting'
         run: |
           if git diff --quiet; then
             echo "No formatter changes to commit."
