@@ -71,7 +71,15 @@ body {
 }
 
 .home-workspace .home-topline .btn-inline {
-  display: none;
+  display: inline-flex;
+  min-height: 35px;
+  padding: 4px 10px;
+  background: #fff;
+  border: 1px solid #d8e9dc;
+  border-radius: 20px;
+  color: #236e59;
+  font-size: 12px;
+  white-space: nowrap;
 }
 
 .home-discovery-hero__eyebrow {
@@ -733,6 +741,11 @@ body {
 
   .home-workspace .home-recommend__row {
     grid-template-columns: 32px minmax(0, 1fr);
+  }
+
+  .home-workspace .home-recommend__headline,
+  .home-workspace .home-recommend__meta {
+    grid-column: 2;
   }
 
   .home-workspace .home-row {
