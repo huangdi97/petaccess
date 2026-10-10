@@ -1044,27 +1044,11 @@ watch(currentQueryContext, () => {
 }
 
 .result-row__visual {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 56px;
-  height: 44px;
-  flex: 0 0 56px;
-  overflow: hidden;
-  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
-  border-radius: var(--pa-radius-control);
-  background:
-    linear-gradient(135deg, var(--pa-color-surface-muted), var(--pa-color-surface)),
-    var(--pa-color-surface-muted);
-}
-
-.result-row__scene {
-  width: 56px;
-  height: 44px;
-  object-fit: cover;
-  border-radius: 0;
-  border: 0;
-  background: var(--pa-color-surface-muted);
+  --scene-frame-compact-width: 72px;
+  --scene-frame-compact-height: 54px;
+  --scene-frame-compact-empty-width: 72px;
+  --scene-frame-compact-empty-height: 54px;
+  flex: 0 0 72px;
 }
 
 .result-row__head-right {
