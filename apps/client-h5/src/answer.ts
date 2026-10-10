@@ -101,7 +101,7 @@ export function answerConditions(
     if (type) push(conditionLabel(type));
   }
   for (const obligation of answer.rights_information?.operator_obligations ?? []) {
-    push(obligationLabels[obligation] ?? obligation);
+    push(obligationLabels[obligation] ?? "其他需配合事项");
   }
   const missing = answer.condition_evaluation?.missing_inputs ?? [];
   if (missing.length) {
@@ -109,7 +109,7 @@ export function answerConditions(
       holder_scope: "需说明同行人身份（是否为残障人士）",
       service_role: "需说明动物角色（导盲犬 / 助听犬 / 其他服务犬）",
     };
-    for (const input of missing) push(zh[input] ?? `${input} 未知`);
+    for (const input of missing) push(zh[input] ?? "还需补充查询信息");
   }
   return out;
 }
