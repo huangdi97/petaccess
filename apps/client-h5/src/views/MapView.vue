@@ -30,6 +30,7 @@ const {
   lens,
   lensLabels,
   statuses,
+  unavailablePlaces,
   loading,
   error,
   locationState,
@@ -254,6 +255,7 @@ function chooseMapResult(id: string) {
         :lens="lens"
         :lens-labels="lensLabels"
         :statuses="statuses"
+        :unavailable-places="unavailablePlaces"
         :selected-id="selected?.id ?? null"
         :visible-places="visiblePlaces"
         :loading="loading"
