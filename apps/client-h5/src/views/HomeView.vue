@@ -1,8 +1,12 @@
 <script setup lang="ts">
 /**
- * Home — Consumer Discovery v9.
- * Editorial spatial hero → task lenses → factual nearby places → recent.
- * All verdicts, evidence, media and coverage remain repository-backed.
+ * Home — Task Launcher (v0.2.4 §29–31).
+ *
+ * Desktop main max 960px. Structure is a flat list, not a portal:
+ * Location + map link → Headline → Search → 最近/附近 divider rows →
+ * 待核实 divider rows → Quick lenses (4 text links). No big white card,
+ * no pending card rows, no 「为什么？」pill — anything explanatory is a
+ * text link（为什么这个结论？ →）.
  */
 import { computed } from "vue";
 import DesktopContentContainer from "../components/layout/DesktopContentContainer.vue";
@@ -55,52 +59,39 @@ const homeFixture = computed(() => `home-${homeState.value}-v1`);
         :data-ui-state="homeState"
         :data-ui-fixture="homeFixture"
       >
-        <!-- Consumer discovery: editorial hero + abstract city illustration.
-             The SVG is decorative, never a photographed venue or a real map. -->
-        <section class="home-discovery-hero" aria-label="探索场所">
-          <div class="home-discovery-hero__content">
-            <!-- location + map link -->
-            <div class="home-topline">
-              <strong data-testid="coverage-area"
-                ><span class="home-brand">PetAccess</span> · 上海 · 试点</strong
-              >
-              <RouterLink class="btn-inline" to="/map" data-testid="go-map">看地图 →</RouterLink>
-            </div>
+        <!-- location + map link -->
+        <div class="home-topline">
+          <strong data-testid="coverage-area"
+            ><span class="home-brand">PetAccess</span> · 上海 · 试点</strong
+          >
+          <RouterLink class="btn-inline" to="/map" data-testid="go-map">看地图 →</RouterLink>
+        </div>
 
-            <div class="home-intro">
-              <p class="home-discovery-hero__eyebrow">发现城市 · 理解规则 · 安心同行</p>
-              <h1 data-testid="home-title">去之前，先看看这里的规则和现场。</h1>
-              <p class="muted home-subtitle" data-testid="home-subtitle">
-                了解规则，也参考真实的现场情况。
-              </p>
-            </div>
+        <div class="home-intro">
+          <h1 data-testid="home-title">去之前，先看看这里的规则和现场。</h1>
+          <p class="muted home-subtitle" data-testid="home-subtitle">
+            了解规则，也参考真实的现场情况。
+          </p>
+        </div>
 
-            <!-- search-first -->
-            <form class="home-search" data-testid="home-search" @submit.prevent="submitSearch">
-              <label class="visually-hidden" for="home-q">搜索场所、商圈或地址</label>
-              <input
-                id="home-q"
-                v-model="query"
-                data-testid="home-search-input"
-                placeholder="搜索附近场所 / 场所名 / 商圈 / 地址"
-                autocomplete="off"
-              />
-              <button
-                class="primary home-search__submit"
-                type="submit"
-                data-testid="home-search-submit"
-              >
-                查询
-              </button>
-            </form>
-          </div>
-          <div class="home-discovery-hero__visual" aria-hidden="true">
-            <div class="home-discovery-hero__annotation">
-              <strong>带上好奇，也带上依据</strong>
-              <span>先看场所规则，再核对现场信息</span>
-            </div>
-          </div>
-        </section>
+        <!-- search-first -->
+        <form class="home-search" data-testid="home-search" @submit.prevent="submitSearch">
+          <label class="visually-hidden" for="home-q">搜索场所、商圈或地址</label>
+          <input
+            id="home-q"
+            v-model="query"
+            data-testid="home-search-input"
+            placeholder="搜索附近场所 / 场所名 / 商圈 / 地址"
+            autocomplete="off"
+          />
+          <button
+            class="primary home-search__submit"
+            type="submit"
+            data-testid="home-search-submit"
+          >
+            查询
+          </button>
+        </form>
 
         <section class="home-lenses" aria-label="你更想先看什么">
           <div class="home-section-header home-section-header--lenses">
@@ -175,7 +166,11 @@ const homeFixture = computed(() => `home-${homeState.value}-v1`);
 .home-workspace {
   min-height: 100%;
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--pa-color-accent-weak) 45%, transparent) 0, transparent 360px),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--pa-color-accent-weak) 45%, transparent) 0,
+      transparent 360px
+    ),
     var(--pa-color-surface);
 }
 
@@ -203,9 +198,22 @@ const homeFixture = computed(() => `home-${homeState.value}-v1`);
   width: 280px;
   height: 180px;
   background:
-    radial-gradient(circle at 30% 35%, color-mix(in srgb, var(--pa-color-accent) 15%, transparent) 0 6%, transparent 6.5%),
-    radial-gradient(circle at 70% 58%, color-mix(in srgb, var(--pa-color-accent) 9%, transparent) 0 9%, transparent 9.5%),
-    linear-gradient(145deg, transparent 0 38%, var(--pa-color-border-subtle) 38% 39%, transparent 39% 100%);
+    radial-gradient(
+      circle at 30% 35%,
+      color-mix(in srgb, var(--pa-color-accent) 15%, transparent) 0 6%,
+      transparent 6.5%
+    ),
+    radial-gradient(
+      circle at 70% 58%,
+      color-mix(in srgb, var(--pa-color-accent) 9%, transparent) 0 9%,
+      transparent 9.5%
+    ),
+    linear-gradient(
+      145deg,
+      transparent 0 38%,
+      var(--pa-color-border-subtle) 38% 39%,
+      transparent 39% 100%
+    );
   opacity: 0.9;
 }
 
