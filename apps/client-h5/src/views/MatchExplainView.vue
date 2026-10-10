@@ -123,9 +123,16 @@ async function bootstrap() {
   let privateContextAvailable = true;
   try {
     await session.restore();
+    if (session.restoreIssue === "unavailable") {
+      // session.restore reports transient failures as state instead of
+      // throwing. Public explanations remain available, but private boundary
+      // data must not be requested under an unconfirmed account context.
+      privateContextAvailable = false;
+      boundary.value = null;
+      note.value = "账号状态暂不可用；公开规则与现场解释仍可查看，共处边界暂未加载。";
+    }
   } catch {
-    // Rule/Reality explanations are public. A failed account restore may
-    // suppress the private boundary comparison, but must not blank the page.
+    // Defensive fallback for future session adapters that may throw.
     privateContextAvailable = false;
     boundary.value = null;
     note.value = "账号状态暂不可用；公开规则与现场解释仍可查看，共处边界暂未加载。";
