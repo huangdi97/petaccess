@@ -101,9 +101,7 @@ const freshness = computed(() =>
             :aria-label="`查看场所 ${c.place.canonical_name}`"
             @click="emit('open', c.place.id)"
           >
-            <div
-              class="home-row__content home-row__content--with-scene"
-            >
+            <div class="home-row__content home-row__content--with-scene">
               <PlaceSceneFrame
                 v-if="index === 0 && featuredSceneMediaUrl"
                 class="home-row__scene"
