@@ -57,7 +57,7 @@ const realityLine = computed(() =>
 );
 const metaLine = computed(() => {
   const parts: string[] = [placeTypeLabel(props.place?.place_type ?? "")];
-  if (props.place?.distance_m) parts.push(`${Math.round(props.place.distance_m)}m`);
+  if (props.place?.distance_m != null) parts.push(`${Math.round(props.place.distance_m)}m`);
   return parts.join(" · ");
 });
 </script>
@@ -102,11 +102,21 @@ const metaLine = computed(() => {
         data-testid="preview-verdict"
       >
         <span v-if="mapLensLabel" class="place-preview__label">规则</span>
-        <StatusBadge v-if="!mapLensLabel" :semantic="statusKey" />
+        <StatusBadge v-if="!mapLensLabel && !loading && !error" :semantic="statusKey" />
         <p class="place-preview__verdict-text" data-testid="preview-verdict-text">
-          {{ answerVerdictLabel(answer) }}
+          {{
+            loading
+              ? "正在加载规则结论…"
+              : error
+                ? "规则结论暂时无法取得"
+                : answerVerdictLabel(answer)
+          }}
         </p>
-        <p v-if="keyCondition" class="place-preview__muted" data-testid="preview-condition">
+        <p
+          v-if="keyCondition && !loading && !error"
+          class="place-preview__muted"
+          data-testid="preview-condition"
+        >
           需满足：{{ keyCondition }}
         </p>
       </div>
