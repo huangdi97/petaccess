@@ -82,6 +82,7 @@ const zoneDecisions = useZoneDecisions(placeId, zones);
 const answer = ref<AccessAnswer | null>(null);
 const error = ref("");
 const sessionRestoreError = ref("");
+const privateSessionReady = computed(() => session.signedIn && !sessionRestoreError.value);
 const loading = ref(true);
 const partial = ref<string[]>([]);
 const watchingRule = ref(false);
@@ -235,7 +236,7 @@ async function load() {
     degrade("地图位置");
   }
 
-  if (session.signedIn) {
+  if (privateSessionReady.value) {
     try {
       const mine = await client.myWatches();
       if (!isCurrent()) return;
@@ -535,7 +536,7 @@ const placeFixture = computed<string>(() => {
             data-ui="place-follow-strip"
           >
             <span class="place-follow-strip__label">关注变化</span>
-            <template v-if="session.signedIn">
+            <template v-if="privateSessionReady">
               <button
                 class="place-dossier__watch"
                 type="button"
