@@ -650,9 +650,17 @@ const placeFixture = computed<string>(() => {
   display: flex;
   flex-direction: column;
   gap: var(--pa-space-6);
-  padding: var(--pa-space-4);
+  width: 100%;
   max-width: var(--pa-layout-content-narrow);
+  padding: var(--pa-space-4);
   margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.place-dossier {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
 
 @media (min-width: 1024px) {
