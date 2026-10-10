@@ -92,15 +92,19 @@ const previewEpoch = createEpoch();
  * empty / filter), never what a test wanted to see.
  */
 const uiState = computed<string>(() => {
+  // Screenshot/capture state describes the visible surface, not the last
+  // successful search. Loading/error must never masquerade as ready.
+  if (loading.value) return "loading";
+  if (error.value) return "error";
   if (filterOpen.value) return "filter";
-  if (searched.value && !loading.value && !error.value && visible.value.length === 0)
-    return "empty";
-  if (searched.value && !loading.value && !error.value && selectedId.value) return "ready-selected";
+  if (searched.value && visible.value.length === 0) return "empty";
+  if (searched.value && selectedId.value) return "ready-selected";
   return "ready";
 });
 const uiFixture = computed<string>(() => {
   if (uiState.value === "filter") return "search-filter-v1";
   if (uiState.value === "empty") return "search-empty-v1";
+  if (uiState.value === "loading" || uiState.value === "error") return "search-state-v1";
   return "search-ready-v1";
 });
 const speciesLabel = computed(() => queryAnimalLabel());
