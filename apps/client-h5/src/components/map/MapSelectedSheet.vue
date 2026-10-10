@@ -18,7 +18,7 @@ import {
 } from "@petaccess/client-core";
 import { answerConditions, answerStatusKey, answerVerdictLabel } from "../../answer";
 import { coexistenceRealityLine } from "../../consumer/rowView";
-import { sourceLabel } from "../../consumer/labels";
+import { publicSourceIssuer } from "../../consumer/sourcePrivacy";
 import StatusBadge from "../StatusBadge.vue";
 import PaIcon from "../ui/PaIcon.vue";
 import PlaceTypeGlyph from "../domain/PlaceTypeGlyph.vue";
@@ -99,7 +99,7 @@ const evidenceLine = computed(() => {
   const ev = answer.value?.evidence_state.rules[0] ?? null;
   const parts: string[] = [];
   if (ev) {
-    parts.push(sourceLabel(ev.issuer ?? null, true));
+    parts.push(publicSourceIssuer(ev.source_type, ev.issuer));
     parts.push(
       props.place?.last_verified_at
         ? `规则核验 ${props.place.last_verified_at.slice(0, 10)}`
