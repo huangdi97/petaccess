@@ -19,6 +19,10 @@ export function usePrivacyRights() {
   function clearLocalData() {
     platformStorage.remove("pa_token");
     session.logout();
+    privateSessionReady.value = false;
+    deletionStatus.value = "none";
+    deletionRequestedAt.value = null;
+    confirmDeletion.value = false;
     cleared.value = true;
   }
 
