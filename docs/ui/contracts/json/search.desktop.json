@@ -424,5 +424,5 @@
     "allcapsTokens": true,
     "refs": true
   },
-  "notes": "Canonical v0.10-R1: each row keeps Place identity + one Rule semantic status + Reality headline + only a relevant Rule condition + Evidence/freshness metadata. Default search is Reality-first; an explicit rules lens flips emphasis. Do not duplicate the same Rule verdict as badge + text."
+  "notes": "Canonical v0.10-R1: each row keeps Place identity + one Rule semantic status + Reality headline + only a relevant Rule condition + Evidence/freshness metadata. Default search is Rule-first; explicit presence/indoor/dining lenses promote Reality without changing facts. Do not duplicate the same Rule verdict as badge + text."
 }
