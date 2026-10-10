@@ -2248,9 +2248,7 @@ def _load_rule_facts(db: Session, rule_ids: list[str]) -> dict:
 
     rules = {
         str(r.id): r
-        for r in db.scalars(
-            select(AccessRule).where(AccessRule.id.in_(access_rule_ids))
-        ).all()
+        for r in db.scalars(select(AccessRule).where(AccessRule.id.in_(access_rule_ids))).all()
     }
     event_policies = {
         f"ev-{event.id}": event
