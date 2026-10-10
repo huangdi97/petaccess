@@ -605,8 +605,8 @@ watch(currentQueryContext, () => {
                   </div>
                 </div>
 
-                <!-- Default and presence/indoor/dining are Reality-first; only the
-                     explicit rules lens promotes Rule. Both layers remain visible. -->
+                <!-- Canonical Search is Rule-first. Only explicit
+                     presence/indoor/dining lenses promote Reality; both layers remain visible. -->
                 <p
                   v-if="lensProjectionFor(p).headline === 'rule'"
                   class="result-row__decision result-row__decision--lead"
