@@ -112,7 +112,10 @@ test("A4.3 — Search inspector only promotes reviewed scene_photo media", async
   await expect(scene).toContainText("经审核允许公开展示的场所场景");
   const selectedRowScene = page.getByTestId("search-row-scene-media");
   await expect(selectedRowScene).toBeVisible();
-  await expect(selectedRowScene.locator("img")).toHaveAttribute("alt", /场所场景：云栖中心/);
+  // The compact row image is adjacent to the venue name, so it is decorative:
+  // repeating the full place name in alt text would create duplicate screen-reader speech.
+  await expect(selectedRowScene.locator("img")).toHaveAttribute("alt", "");
+  await expect(page.getByTestId(`result-${MALL_ID}`)).toContainText("云栖中心");
 });
 
 test("A4.3b — broken reviewed scene URL falls back to an honest placeholder", async ({ page }) => {
