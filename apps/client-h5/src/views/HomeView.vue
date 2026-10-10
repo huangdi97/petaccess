@@ -59,39 +59,52 @@ const homeFixture = computed(() => `home-${homeState.value}-v1`);
         :data-ui-state="homeState"
         :data-ui-fixture="homeFixture"
       >
-        <!-- location + map link -->
-        <div class="home-topline">
-          <strong data-testid="coverage-area"
-            ><span class="home-brand">PetAccess</span> · 上海 · 试点</strong
-          >
-          <RouterLink class="btn-inline" to="/map" data-testid="go-map">看地图 →</RouterLink>
-        </div>
+        <section class="home-discovery-hero" aria-label="PetAccess 城市空间发现">
+          <div class="home-discovery-hero__content">
+            <p class="home-discovery-hero__eyebrow">宠物同行 · 城市空间</p>
 
-        <div class="home-intro">
-          <h1 data-testid="home-title">去之前，先看看这里的规则和现场。</h1>
-          <p class="muted home-subtitle" data-testid="home-subtitle">
-            了解规则，也参考真实的现场情况。
-          </p>
-        </div>
+            <div class="home-topline">
+              <strong data-testid="coverage-area">
+                <span class="home-brand">PetAccess</span> · 上海 · 试点
+              </strong>
+              <RouterLink class="btn-inline" to="/map" data-testid="go-map">
+                看地图 →
+              </RouterLink>
+            </div>
 
-        <!-- search-first -->
-        <form class="home-search" data-testid="home-search" @submit.prevent="submitSearch">
-          <label class="visually-hidden" for="home-q">搜索场所、商圈或地址</label>
-          <input
-            id="home-q"
-            v-model="query"
-            data-testid="home-search-input"
-            placeholder="搜索附近场所 / 场所名 / 商圈 / 地址"
-            autocomplete="off"
-          />
-          <button
-            class="primary home-search__submit"
-            type="submit"
-            data-testid="home-search-submit"
-          >
-            查询
-          </button>
-        </form>
+            <div class="home-intro">
+              <h1 data-testid="home-title">去之前，先看看这里的规则和现场。</h1>
+              <p class="muted home-subtitle" data-testid="home-subtitle">
+                了解规则，也参考真实的现场情况。
+              </p>
+            </div>
+
+            <form class="home-search" data-testid="home-search" @submit.prevent="submitSearch">
+              <label class="visually-hidden" for="home-q">搜索场所、商圈或地址</label>
+              <input
+                id="home-q"
+                v-model="query"
+                data-testid="home-search-input"
+                placeholder="搜索附近场所 / 场所名 / 商圈 / 地址"
+                autocomplete="off"
+              />
+              <button
+                class="primary home-search__submit"
+                type="submit"
+                data-testid="home-search-submit"
+              >
+                查询
+              </button>
+            </form>
+          </div>
+
+          <div class="home-discovery-hero__visual" aria-hidden="true">
+            <div class="home-discovery-hero__annotation">
+              <strong>先看清，再出发</strong>
+              <span>规则、现场和依据分别呈现，不把观察当成正式规则。</span>
+            </div>
+          </div>
+        </section>
 
         <section class="home-lenses" aria-label="你更想先看什么">
           <div class="home-section-header home-section-header--lenses">
