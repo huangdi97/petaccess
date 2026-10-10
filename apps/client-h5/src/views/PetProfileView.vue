@@ -23,6 +23,13 @@ const { online } = useOnline();
 
 const isNew = computed(() => editing.value === "new");
 const activeId = computed(() => session.activePet?.id ?? null);
+const privateSessionReady = computed(
+  () =>
+    !loading.value &&
+    !loadError.value &&
+    session.signedIn &&
+    session.restoreIssue !== "unavailable",
+);
 async function load() {
   error.value = "";
   loadError.value = "";
@@ -65,6 +72,10 @@ function startEdit(pet: PetView) {
 
 async function save() {
   error.value = "";
+  if (!privateSessionReady.value) {
+    error.value = "账号状态尚未确认，暂不能保存宠物档案。";
+    return;
+  }
   notice.value = "";
   if (!online.value) {
     error.value = "当前无网络连接，保存已暂停。";
@@ -112,7 +123,7 @@ function requestRemove(pet: PetView) {
 
 async function confirmRemove() {
   const pet = pendingDelete.value;
-  if (!pet) return;
+  if (!pet || !privateSessionReady.value) return;
   error.value = "";
   busy.value = true;
   try {
@@ -145,7 +156,7 @@ onMounted(load);
   <AppShell>
     <PetProfileHeader
       :online="online"
-      :signed-in="session.signedIn"
+      :signed-in="privateSessionReady"
       :editing="Boolean(editing)"
       @create="startNew"
     />
@@ -160,7 +171,7 @@ onMounted(load);
       <template #action><button class="primary" @click="load">重试</button></template>
     </StateMessage>
     <StateMessage
-      v-else-if="!session.signedIn"
+      v-else-if="!privateSessionReady"
       kind="PERMISSION_DENIED"
       description="宠物档案与账号绑定。登录后可新建、修改或删除档案。"
     >
