@@ -533,6 +533,28 @@ test("A1.7 — a new mobile selection resets the bottom sheet to half height", a
   await expect(sheet).toHaveAttribute("data-phase", "half");
 });
 
+test("A1.6 — snapshot transport failure is not rendered as map Unknown", async ({ page }) => {
+  await page.route(`**/api/v1/places/${MALL_ID}/coexistence`, async (route) => {
+    if (route.request().method() === "POST") {
+      await route.fulfill({ status: 503, json: { detail: "snapshot unavailable" } });
+      return;
+    }
+    await route.continue();
+  });
+
+  await page.goto(`${BASE}/#/map?place=${MALL_ID}`);
+
+  const row = page.getByTestId(`place-${MALL_ID}`);
+  await expect(row).toBeVisible({ timeout: 15000 });
+  await expect(row).toContainText("规则结论暂时无法取得");
+  await expect(row).not.toContainText("信息不足");
+
+  await expect(page.getByTestId("coverage-hint")).toContainText("暂时无法取得规则结论");
+  await expect(page.getByTestId("preview-verdict-text")).toContainText("暂时无法取得", {
+    timeout: 15000,
+  });
+});
+
 test("A2 — map 错误统一呈现，不泄漏内部字样", async ({ page }) => {
   await page.route("**/api/v1/places/nearby**", (route) =>
     route.fulfill({
