@@ -270,14 +270,16 @@ const visibleGroups = computed<EventGroup[]>(() => {
   display: grid;
   grid-template-columns: 72px 24px 1fr;
   gap: 0 var(--pa-space-3);
-  padding: 0 0 var(--pa-space-3);
+  padding: var(--pa-space-3);
   margin-bottom: var(--pa-space-3);
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
-  background: transparent;
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: var(--pa-radius-md);
+  background: var(--pa-color-surface-raised);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--pa-color-text-primary) 4%, transparent);
 }
 
 .trace-row:last-child {
-  border-bottom: none;
+  margin-bottom: 0;
 }
 
 .trace-row--disputed {
@@ -332,7 +334,7 @@ const visibleGroups = computed<EventGroup[]>(() => {
 }
 
 .trace-row__media {
-  width: 112px;
+  width: 132px;
   aspect-ratio: 4 / 3;
   margin: 0;
   overflow: hidden;
