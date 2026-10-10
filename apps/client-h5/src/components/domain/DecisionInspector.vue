@@ -27,8 +27,7 @@ import {
   type CoexistenceSnapshot,
   type RealityAnswer,
 } from "@petaccess/client-core";
-import { answerConditions, answerStatusKey, answerVerdictLabel } from "../../answer";
-import StatusBadge from "../StatusBadge.vue";
+import { answerConditions, answerVerdictLabel } from "../../answer";
 import PlaceTypeGlyph from "./PlaceTypeGlyph.vue";
 import PlaceSceneFrame from "./PlaceSceneFrame.vue";
 import { coexistenceRealityLine, freshnessLineFor } from "../../consumer/rowView";
@@ -85,7 +84,6 @@ const props = withDefaults(
 );
 
 const verdict = computed(() => answerVerdictLabel(props.answer));
-const statusKey = computed(() => answerStatusKey(props.answer));
 const needsRuleEvidence = computed(() => !props.answerError && verdict.value === "信息不足");
 /** A recorded coordinate allows a direct spatial deep link. No coordinate means
  * no map marker: a name/address alone is never geocoded or guessed here. */
@@ -186,11 +184,6 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
               <h2 class="decision-inspector__name" data-ui="search-detail-name">
                 {{ place.canonical_name }}
               </h2>
-              <StatusBadge
-                v-if="!answerError"
-                class="decision-inspector__status"
-                :semantic="statusKey"
-              />
             </div>
             <p class="decision-inspector__meta">
               {{ placeTypeLabel(place.place_type) }} ·
