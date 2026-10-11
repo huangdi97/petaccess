@@ -1,6 +1,6 @@
 {
   "id": "search.desktop",
-  "title": "Search Desktop Contract v0.2.3 Executable Blueprint",
+  "title": "Search Desktop Contract — Consumer Discovery v9",
   "viewport": {
     "width": 1440,
     "height": 900
@@ -39,7 +39,9 @@
     {
       "id": "SEARCH_RAIL_WIDTH",
       "ui": "app-rail",
-      "fallbacks": [".desktop-rail"],
+      "fallbacks": [
+        ".desktop-rail"
+      ],
       "props": {
         "width": {
           "min": 64,
@@ -51,7 +53,9 @@
     {
       "id": "SEARCH_TOP_CONTEXT_HEIGHT",
       "ui": "query-context",
-      "fallbacks": ["[data-testid='query-context']"],
+      "fallbacks": [
+        "[data-testid='query-context']"
+      ],
       "props": {
         "height": {
           "min": 56,
@@ -63,7 +67,9 @@
     {
       "id": "SEARCH_RESULT_PANE_X",
       "ui": "search-results-pane",
-      "fallbacks": [".search-result-pane"],
+      "fallbacks": [
+        ".search-result-pane"
+      ],
       "props": {
         "left": {
           "min": 60,
@@ -75,7 +81,9 @@
     {
       "id": "SEARCH_RESULT_PANE_WIDTH",
       "ui": "search-results-pane",
-      "fallbacks": [".search-result-pane"],
+      "fallbacks": [
+        ".search-result-pane"
+      ],
       "props": {
         "width": {
           "min": 392,
@@ -87,7 +95,9 @@
     {
       "id": "SEARCH_DETAIL_PANE_X",
       "ui": "search-detail-pane",
-      "fallbacks": ["[data-testid='decision-inspector']"],
+      "fallbacks": [
+        "[data-testid='decision-inspector']"
+      ],
       "props": {
         "left": {
           "min": 460,
@@ -99,7 +109,9 @@
     {
       "id": "SEARCH_DETAIL_PANE_PRESENT",
       "ui": "search-detail-pane",
-      "fallbacks": ["[data-testid='decision-inspector']"],
+      "fallbacks": [
+        "[data-testid='decision-inspector']"
+      ],
       "props": {
         "count": {
           "min": 1
@@ -116,8 +128,8 @@
       ],
       "props": {
         "maxChildWidth": {
-          "min": 620,
-          "max": 680
+          "min": 760,
+          "max": 840
         }
       },
       "severity": "FAIL"
@@ -125,11 +137,13 @@
     {
       "id": "SEARCH_INPUT_HEIGHT",
       "ui": "search-input",
-      "fallbacks": ["[data-testid='search-input']"],
+      "fallbacks": [
+        "[data-testid='search-input']"
+      ],
       "props": {
         "height": {
-          "min": 44,
-          "max": 46
+          "min": 47,
+          "max": 49
         }
       },
       "severity": "FAIL"
@@ -137,11 +151,13 @@
     {
       "id": "SEARCH_BUTTON_HEIGHT",
       "ui": "search-submit",
-      "fallbacks": ["[data-testid='search-btn']"],
+      "fallbacks": [
+        "[data-testid='search-btn']"
+      ],
       "props": {
         "height": {
-          "min": 44,
-          "max": 46
+          "min": 47,
+          "max": 49
         }
       },
       "severity": "FAIL"
@@ -155,41 +171,50 @@
       ],
       "props": {
         "height": {
-          "min": 112,
-          "max": 132
+          "min": 145,
+          "max": 175
         }
       },
       "severity": "FAIL",
       "aggregate": "rows"
     },
     {
-      "id": "SEARCH_ROW_RADIUS_ZERO",
+      "id": "SEARCH_ROW_RADIUS_CRAFTED",
       "ui": "search-result-row",
-      "fallbacks": ["ul.result-list li"],
+      "fallbacks": [
+        "ul.result-list li"
+      ],
       "props": {
         "borderRadius": {
-          "equals": "0"
+          "min": 12,
+          "max": 18
         }
       },
       "severity": "FAIL",
-      "aggregate": "rows"
+      "aggregate": "rows",
+      "note": "v9 results are compact place cards rather than divider-only database rows."
     },
     {
-      "id": "SEARCH_ROW_SHADOW_NONE",
+      "id": "SEARCH_ROW_ELEVATED",
       "ui": "search-result-row",
-      "fallbacks": ["ul.result-list li"],
+      "fallbacks": [
+        "ul.result-list li"
+      ],
       "props": {
-        "boxShadow": {
-          "equals": "none"
+        "shadowed": {
+          "min": 1
         }
       },
       "severity": "FAIL",
-      "aggregate": "rows"
+      "aggregate": "rows",
+      "note": "Subtle elevation separates interactive place cards without turning the pane into a dashboard."
     },
     {
       "id": "SEARCH_ROW_DIVIDER",
       "ui": "search-result-row",
-      "fallbacks": ["ul.result-list li"],
+      "fallbacks": [
+        "ul.result-list li"
+      ],
       "props": {
         "borderBottomWidth": {
           "min": 1
@@ -201,7 +226,9 @@
     {
       "id": "SEARCH_DECISION_FONT_SIZE",
       "ui": "search-decision-text",
-      "fallbacks": [".inspector-decision"],
+      "fallbacks": [
+        ".inspector-decision"
+      ],
       "props": {
         "fontSize": {
           "min": 27,
@@ -213,7 +240,9 @@
     {
       "id": "SEARCH_DECISION_LABEL_SIZE",
       "ui": "search-decision-label",
-      "fallbacks": [".inspector-block--decision .inspector-block__label"],
+      "fallbacks": [
+        ".inspector-block--decision .inspector-block__label"
+      ],
       "props": {
         "fontSize": {
           "min": 12,
@@ -225,11 +254,13 @@
     {
       "id": "SEARCH_PAGE_TITLE_SIZE",
       "ui": "search-detail-name",
-      "fallbacks": [".decision-inspector__name"],
+      "fallbacks": [
+        ".decision-inspector__name"
+      ],
       "props": {
         "fontSize": {
-          "min": 27,
-          "max": 29
+          "min": 32,
+          "max": 38
         }
       },
       "severity": "FAIL"
@@ -237,7 +268,9 @@
     {
       "id": "SEARCH_COUNT_LINE",
       "ui": "search-count",
-      "fallbacks": ["[data-testid='search-count']"],
+      "fallbacks": [
+        "[data-testid='search-count']"
+      ],
       "props": {
         "count": {
           "min": 1
@@ -250,7 +283,10 @@
     {
       "id": "NO_RESULT_CARD_ROWS",
       "selector": "ul.result-list li",
-      "forbiddenClass": ["card", "panel"],
+      "forbiddenClass": [
+        "card",
+        "panel"
+      ],
       "severity": "FAIL"
     },
     {
@@ -297,7 +333,10 @@
       "selector": "[data-testid='row-lens-headline'].result-row__decision--lead",
       "min": 1,
       "severity": "FAIL",
-      "pages": ["search-ready", "search-selected"],
+      "pages": [
+        "search-ready",
+        "search-selected"
+      ],
       "note": "Canonical Search answers the access question first. Reality-first headlines require an explicit presence/indoor/dining lens."
     },
     {
@@ -305,7 +344,10 @@
       "selector": ".result-row__head-right .status-badge, [data-testid='row-rule-condition']",
       "min": 1,
       "severity": "FAIL",
-      "pages": ["search-ready", "search-selected"],
+      "pages": [
+        "search-ready",
+        "search-selected"
+      ],
       "note": "Rule stays visible as one semantic status badge; only a non-redundant condition consumes a second row line."
     },
     {
@@ -320,7 +362,10 @@
       "selector": "[data-ui='search-detail-content'] [data-testid='inspector-open'].primary",
       "min": 1,
       "max": 1,
-      "pages": ["search-ready", "search-selected"],
+      "pages": [
+        "search-ready",
+        "search-selected"
+      ],
       "severity": "FAIL",
       "note": "Search detail closes the decision loop with one primary Open Full Dossier action; Place inspector remains text-link only."
     },
@@ -328,7 +373,9 @@
       "id": "SEARCH_MAJOR_EXCEPTION_VISIBLE",
       "selector": "[data-ui='search-detail-content'] [data-testid='inspector-divergence']",
       "min": 1,
-      "pages": ["search-ready"],
+      "pages": [
+        "search-ready"
+      ],
       "severity": "WARN",
       "note": "The canonical seeded first result has meaningful Rule–Reality divergence, so Search must surface it rather than leave a blank semantic gap."
     }
@@ -378,9 +425,9 @@
       "id": "SEARCH_DESKTOP_ROW_TEXT_LINES",
       "metric": "rowTextLines",
       "selector": "ul.result-list",
-      "max": 6,
+      "max": 7,
       "severity": "FAIL",
-      "note": "Canonical row remains <=5 semantic groups; rendered-line probe can count the adjacent semantic status badge on a separate baseline, so desktop machine ceiling is 6 without adding another content group."
+      "note": "v9 permits one extra rendered line for spatial identity/evidence metadata, while semantic groups remain bounded and Rule/Reality are not duplicated."
     },
     {
       "id": "SEARCH_DETAIL_FIRST_VIEWPORT_BLOCKS",
@@ -404,8 +451,8 @@
       "metric": "contentOccupancy",
       "selector": "[data-ui='search-detail-content']",
       "container": "[data-ui='search-detail-pane']",
-      "min": 0.35,
-      "max": 0.78,
+      "min": 0.5,
+      "max": 0.9,
       "severity": "FAIL"
     },
     {
@@ -424,5 +471,5 @@
     "allcapsTokens": true,
     "refs": true
   },
-  "notes": "Canonical v0.10-R1: each row keeps Place identity + one Rule semantic status + Reality headline + only a relevant Rule condition + Evidence/freshness metadata. Default search is Rule-first; explicit presence/indoor/dining lenses promote Reality without changing facts. Do not duplicate the same Rule verdict as badge + text."
+  "notes": "Consumer Discovery v9: desktop Search is a place-exploration list-detail workspace. Results are elevated spatial place cards with one Rule semantic status, a Reality headline, relevant condition and evidence/freshness metadata. The detail pane may use a wider 820px reading column and larger place identity. Rule remains first by default; explicit task lenses change emphasis without changing facts."
 }
