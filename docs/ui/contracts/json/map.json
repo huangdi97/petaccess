@@ -54,8 +54,8 @@
       "fallbacks": ["[data-testid='map-result-pane'], .map-pane"],
       "props": {
         "width": {
-          "min": 360,
-          "max": 420
+          "min": 308,
+          "max": 332
         }
       },
       "severity": "FAIL"
