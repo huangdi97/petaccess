@@ -78,8 +78,8 @@
       "fallbacks": [".search-result-pane"],
       "props": {
         "width": {
-          "min": 392,
-          "max": 408
+          "min": 348,
+          "max": 372
         }
       },
       "severity": "FAIL"
