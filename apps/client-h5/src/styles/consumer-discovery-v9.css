@@ -826,7 +826,8 @@ body {
  * Consumer Discovery v9 must survive beyond discovery. Account, method,
  * privacy and onboarding surfaces use large grouped panels rather than
  * returning to divider-only documentation screens. */
-#app :is(
+#app
+  :is(
     .mine-head,
     .settings-head,
     .privacy-head,
@@ -847,7 +848,8 @@ body {
   box-shadow: 0 5px 22px var(--pa-discovery-v9-tone-56);
 }
 
-#app :is(
+#app
+  :is(
     .mine-head,
     .settings-head,
     .privacy-head,
@@ -867,7 +869,8 @@ body {
 }
 
 #app :is(.mine-head, .profile-head, .about-head) > p,
-#app :is(.settings-head, .privacy-head, .notifications-head, .boundary-head, .pet-new-head)
+#app
+  :is(.settings-head, .privacy-head, .notifications-head, .boundary-head, .pet-new-head)
   p:last-child {
   color: var(--pa-discovery-muted);
 }
@@ -1030,7 +1033,8 @@ body {
 }
 
 @media (max-width: 767px) {
-  #app :is(
+  #app
+    :is(
       .mine-head,
       .settings-head,
       .privacy-head,
@@ -1073,4 +1077,3 @@ body {
     padding: 22px;
   }
 }
-
