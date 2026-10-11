@@ -100,6 +100,7 @@ const emit = defineEmits<{ select: [key: string] }>();
   font-weight: var(--pa-font-weight-650);
   line-height: var(--pa-line-height-20);
   color: var(--pa-color-text-primary);
+  text-wrap: balance;
 }
 
 .entry-hint {
@@ -151,6 +152,11 @@ const emit = defineEmits<{ select: [key: string] }>();
 
   .entry {
     min-height: 78px;
+  }
+
+  .entry-label {
+    max-width: 10em;
+    line-height: 1.45;
   }
 }
 </style>
