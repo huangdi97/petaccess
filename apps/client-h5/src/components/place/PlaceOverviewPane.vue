@@ -657,14 +657,14 @@ const divergenceLine = computed(() => {
 
   .place-overview-lead {
     grid-template-columns: 1fr;
-    gap: var(--pa-space-5);
-    margin-bottom: var(--pa-space-5);
-    padding-bottom: var(--pa-space-4);
+    gap: var(--pa-space-3);
+    margin-bottom: var(--pa-space-3);
+    padding-bottom: var(--pa-space-2);
   }
 
   .place-overview-lead > .place-section + .place-section {
     padding-left: 0;
-    padding-top: var(--pa-space-4);
+    padding-top: var(--pa-space-3);
     border-left: none;
     border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
   }
