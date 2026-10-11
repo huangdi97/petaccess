@@ -1077,3 +1077,260 @@ body {
     padding: 22px;
   }
 }
+
+/* ---------------------------------------------------------- trust workflows
+ * Explanation, operator governance and pet-profile authoring are consumer
+ * workflows too. Group related fields/facts into readable surfaces while
+ * preserving every provenance and governance boundary. */
+#app .explain-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px 26px;
+  border: 1px solid var(--pa-discovery-v9-tone-46);
+  border-radius: 18px;
+  background: linear-gradient(
+    135deg,
+    var(--pa-discovery-v9-tone-45),
+    var(--pa-discovery-v9-tone-42)
+  );
+  box-shadow: 0 5px 22px var(--pa-discovery-v9-tone-56);
+}
+
+#app .explain-head h1 {
+  margin: 0;
+  color: var(--pa-discovery-ink);
+  font-size: clamp(28px, 2.4vw, 34px);
+  font-weight: 750;
+  line-height: 1.25;
+  letter-spacing: -0.035em;
+}
+
+#app .explain-refresh {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--pa-discovery-v9-tone-47);
+  border-radius: 20px;
+  background: var(--pa-discovery-paper);
+  font-weight: 650;
+}
+
+#app .explain-decision {
+  margin-top: 16px;
+  padding: 20px 22px;
+  border: 1px solid var(--pa-discovery-v9-tone-41);
+  border-left: 5px solid var(--pa-color-accent);
+  border-radius: 14px;
+  background: var(--pa-discovery-v9-tone-40);
+  box-shadow: 0 3px 14px var(--pa-discovery-v9-tone-33);
+}
+
+#app :is(.explain-section, .reality-explain, .boundary-panel) {
+  margin-top: 12px;
+  padding: 20px 22px;
+  border: 1px solid var(--pa-discovery-v9-tone-49);
+  border-radius: 14px;
+  background: var(--pa-discovery-paper);
+  box-shadow: 0 3px 14px var(--pa-discovery-v9-tone-33);
+}
+
+#app :is(.explain-section, .reality-explain, .boundary-panel) h2 {
+  color: var(--pa-discovery-ink);
+  font-weight: 750;
+}
+
+#app .explain-review {
+  border-left: 4px solid var(--pa-color-warning);
+}
+
+#app .boundary-panel__row,
+#app .explain-source {
+  border-bottom-color: var(--pa-discovery-v9-tone-43);
+}
+
+#app .operator-claim {
+  max-width: 960px;
+}
+
+#app .operator-claim__head {
+  padding: 24px 26px;
+  border: 1px solid var(--pa-discovery-v9-tone-46);
+  border-radius: 18px;
+  background: linear-gradient(
+    135deg,
+    var(--pa-discovery-v9-tone-45),
+    var(--pa-discovery-v9-tone-42)
+  );
+  box-shadow: 0 5px 22px var(--pa-discovery-v9-tone-56);
+}
+
+#app .operator-claim__head h1 {
+  font-size: clamp(28px, 2.4vw, 34px);
+  font-weight: 750;
+  line-height: 1.25;
+  letter-spacing: -0.035em;
+}
+
+#app .operator-claim__place {
+  margin-top: 14px;
+  padding: 18px 20px;
+  border: 1px solid var(--pa-discovery-v9-tone-49);
+  border-radius: 14px;
+  background: var(--pa-discovery-v9-tone-42);
+}
+
+#app .operator-claim__place p {
+  margin-bottom: 0;
+}
+
+#app .operator-claim-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 18px;
+  margin-top: 14px;
+  padding: 22px;
+  border: 1px solid var(--pa-discovery-v9-tone-49);
+  border-radius: 15px;
+  background: var(--pa-discovery-paper);
+  box-shadow: 0 3px 14px var(--pa-discovery-v9-tone-33);
+}
+
+#app .operator-claim-form__field:has(textarea),
+#app .operator-claim-form__previous,
+#app .operator-claim-form__boundary,
+#app .operator-claim-form__actions {
+  grid-column: 1 / -1;
+}
+
+#app .operator-claim-form__previous,
+#app .operator-claim-form__boundary {
+  padding: 13px 14px;
+  border: 1px solid var(--pa-discovery-v9-tone-43);
+  border-radius: 11px;
+  background: var(--pa-discovery-v9-tone-42);
+}
+
+#app .operator-claim__result,
+#app .operator-policy {
+  margin-top: 14px;
+  padding: 22px;
+  border: 1px solid var(--pa-discovery-v9-tone-49);
+  border-radius: 15px;
+  background: var(--pa-discovery-paper);
+  box-shadow: 0 3px 14px var(--pa-discovery-v9-tone-33);
+}
+
+#app .operator-policy__head {
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--pa-discovery-v9-tone-43);
+}
+
+#app .operator-policy__head h2 {
+  color: var(--pa-discovery-ink);
+  font-weight: 750;
+}
+
+#app .operator-policy__conditions,
+#app .operator-policy__boundary {
+  padding: 16px;
+  border: 1px solid var(--pa-discovery-v9-tone-43);
+  border-radius: 12px;
+  background: var(--pa-discovery-v9-tone-42);
+}
+
+#app .operator-policy__boundary {
+  margin: 0;
+}
+
+#app .pet-new-form {
+  max-width: 980px;
+}
+
+#app .pet-new-section {
+  margin-top: 14px;
+  padding: 22px;
+  border: 1px solid var(--pa-discovery-v9-tone-49);
+  border-radius: 15px;
+  background: var(--pa-discovery-paper);
+  box-shadow: 0 3px 14px var(--pa-discovery-v9-tone-33);
+}
+
+#app .pet-new-section h2 {
+  color: var(--pa-discovery-ink);
+  font-weight: 750;
+}
+
+#app .pet-new-section__lead {
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--pa-discovery-v9-tone-43);
+}
+
+#app .pet-new-grid {
+  gap: 16px 20px;
+}
+
+#app .pet-new-field {
+  margin-bottom: 0;
+}
+
+#app .pet-new-field small {
+  max-width: 360px;
+}
+
+#app .pet-new-actions {
+  padding: 18px 2px 0;
+}
+
+@media (max-width: 767px) {
+  #app .explain-head,
+  #app .operator-claim__head {
+    padding: 18px;
+    border-radius: 15px;
+  }
+
+  #app .explain-head {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  #app .explain-refresh {
+    align-self: flex-start;
+  }
+
+  #app :is(.explain-section, .reality-explain, .boundary-panel),
+  #app .explain-decision,
+  #app .operator-claim__place,
+  #app .operator-claim-form,
+  #app .operator-claim__result,
+  #app .operator-policy,
+  #app .pet-new-section {
+    padding: 16px;
+    border-radius: 13px;
+  }
+
+  #app .operator-claim {
+    padding: 12px;
+  }
+
+  #app .operator-claim-form,
+  #app .operator-policy__grid {
+    grid-template-columns: 1fr;
+  }
+
+  #app .operator-claim-form__field,
+  #app .operator-claim-form__field:has(textarea) {
+    grid-column: 1;
+  }
+
+  #app .operator-claim-form__previous,
+  #app .operator-claim-form__boundary,
+  #app .operator-claim-form__actions {
+    grid-column: 1;
+  }
+
+  #app .pet-new-grid {
+    gap: 14px;
+  }
+}
+
