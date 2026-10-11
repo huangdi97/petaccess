@@ -141,8 +141,8 @@
       "fallbacks": ["[data-testid='decision-inspector']"],
       "props": {
         "width": {
-          "min": 320,
-          "max": 350
+          "min": 292,
+          "max": 312
         }
       },
       "severity": "FAIL"
