@@ -821,3 +821,256 @@ body {
     transition: none;
   }
 }
+
+/* ------------------------------------------------------------------ utility
+ * Consumer Discovery v9 must survive beyond discovery. Account, method,
+ * privacy and onboarding surfaces use large grouped panels rather than
+ * returning to divider-only documentation screens. */
+#app :is(
+    .mine-head,
+    .settings-head,
+    .privacy-head,
+    .notifications-head,
+    .boundary-head,
+    .pet-new-head,
+    .profile-head,
+    .about-head
+  ) {
+  padding: 24px 26px;
+  border: 1px solid var(--pa-discovery-v9-tone-46);
+  border-radius: 18px;
+  background: linear-gradient(
+    135deg,
+    var(--pa-discovery-v9-tone-45),
+    var(--pa-discovery-v9-tone-42)
+  );
+  box-shadow: 0 5px 22px var(--pa-discovery-v9-tone-56);
+}
+
+#app :is(
+    .mine-head,
+    .settings-head,
+    .privacy-head,
+    .notifications-head,
+    .boundary-head,
+    .pet-new-head,
+    .profile-head,
+    .about-head
+  )
+  h1 {
+  margin: 0;
+  color: var(--pa-discovery-ink);
+  font-size: clamp(28px, 2.4vw, 34px);
+  font-weight: 750;
+  line-height: 1.25;
+  letter-spacing: -0.035em;
+}
+
+#app :is(.mine-head, .profile-head, .about-head) > p,
+#app :is(.settings-head, .privacy-head, .notifications-head, .boundary-head, .pet-new-head)
+  p:last-child {
+  color: var(--pa-discovery-muted);
+}
+
+#app .mine-section {
+  margin-top: 14px;
+  padding: 20px 22px;
+  border: 1px solid var(--pa-discovery-v9-tone-49);
+  border-radius: 15px;
+  background: var(--pa-discovery-paper);
+  box-shadow: 0 3px 14px var(--pa-discovery-v9-tone-33);
+}
+
+#app .mine-section h2 {
+  color: var(--pa-discovery-ink);
+  font-weight: 750;
+}
+
+#app .mine-row,
+#app .mine-contribution {
+  border-bottom-color: var(--pa-discovery-v9-tone-43);
+}
+
+#app :is(.settings-section, .privacy-section, .notifications-channel) {
+  margin-top: 14px;
+  padding: 20px 22px;
+  border: 1px solid var(--pa-discovery-v9-tone-49);
+  border-radius: 15px;
+  background: var(--pa-discovery-paper);
+  box-shadow: 0 3px 14px var(--pa-discovery-v9-tone-33);
+}
+
+#app :is(.settings-section__lead, .privacy-section__lead, .notifications-channel__lead) h2 {
+  color: var(--pa-discovery-ink);
+  font-weight: 750;
+}
+
+#app :is(.settings-row, .privacy-row, .channel-row, .notification-row) {
+  border-bottom-color: var(--pa-discovery-v9-tone-43);
+}
+
+#app .settings-link {
+  margin: 4px 0;
+  padding: 0 14px;
+  border: 1px solid var(--pa-discovery-v9-tone-43);
+  border-radius: 12px;
+  background: var(--pa-discovery-v9-tone-42);
+}
+
+#app .settings-link:first-child {
+  margin-top: 0;
+}
+
+#app .settings-link:hover,
+#app .settings-link:focus-visible {
+  border-color: var(--pa-discovery-v9-tone-24);
+  background: var(--pa-discovery-v9-tone-37);
+}
+
+#app .privacy-action,
+#app .notification-row__action,
+#app .profile-head__action {
+  font-weight: 650;
+}
+
+#app .about-principles,
+#app .about-meta {
+  margin-top: 16px;
+  padding: 20px 24px;
+  border: 1px solid var(--pa-discovery-v9-tone-49);
+  border-radius: 15px;
+  background: var(--pa-discovery-paper);
+  box-shadow: 0 3px 14px var(--pa-discovery-v9-tone-33);
+}
+
+#app .principle-row {
+  padding: 18px 0;
+  border-bottom-color: var(--pa-discovery-v9-tone-43);
+}
+
+#app .principle-row:last-child {
+  border-bottom: 0;
+}
+
+#app .auth-page {
+  width: min(100%, 1040px);
+  gap: 24px;
+  padding: 36px 0;
+  align-items: stretch;
+}
+
+#app .auth-intro,
+#app .auth-workspace {
+  padding: 30px;
+  border: 1px solid var(--pa-discovery-v9-tone-46);
+  border-radius: 18px;
+  box-shadow: 0 5px 22px var(--pa-discovery-v9-tone-56);
+}
+
+#app .auth-intro {
+  background: linear-gradient(
+    145deg,
+    var(--pa-discovery-v9-tone-45),
+    var(--pa-discovery-v9-tone-10)
+  );
+}
+
+#app .auth-workspace {
+  border-left: 1px solid var(--pa-discovery-v9-tone-46);
+  background: var(--pa-discovery-paper);
+}
+
+#app .auth-intro h1 {
+  font-size: clamp(30px, 2.8vw, 38px);
+  font-weight: 750;
+  letter-spacing: -0.04em;
+}
+
+#app .auth-facts > div {
+  border-bottom-color: var(--pa-discovery-v9-tone-43);
+}
+
+#app .state-message {
+  max-width: 760px;
+  padding: 20px 22px;
+  border: 1px solid var(--pa-discovery-v9-tone-43);
+  border-left: 4px solid var(--pa-color-accent);
+  border-radius: 14px;
+  background: var(--pa-discovery-paper);
+  box-shadow: 0 3px 14px var(--pa-discovery-v9-tone-33);
+}
+
+#app .not-found {
+  margin-top: 36px;
+  padding: 30px;
+  border: 1px solid var(--pa-discovery-v9-tone-46);
+  border-radius: 18px;
+  background: linear-gradient(
+    145deg,
+    var(--pa-discovery-v9-tone-45),
+    var(--pa-discovery-v9-tone-42)
+  );
+  box-shadow: 0 5px 22px var(--pa-discovery-v9-tone-56);
+}
+
+#app .boundary-name {
+  margin-top: 14px;
+  padding: 18px 20px;
+  border: 1px solid var(--pa-discovery-v9-tone-49);
+  border-radius: 14px;
+  background: var(--pa-discovery-paper);
+  box-shadow: 0 3px 14px var(--pa-discovery-v9-tone-33);
+}
+
+#app .profile-note {
+  padding: 18px 20px;
+  border: 1px solid var(--pa-discovery-v9-tone-49);
+  border-radius: 14px;
+  background: var(--pa-discovery-v9-tone-42);
+}
+
+@media (max-width: 767px) {
+  #app :is(
+      .mine-head,
+      .settings-head,
+      .privacy-head,
+      .notifications-head,
+      .boundary-head,
+      .pet-new-head,
+      .profile-head,
+      .about-head
+    ) {
+    padding: 18px;
+    border-radius: 15px;
+  }
+
+  #app .mine-section,
+  #app :is(.settings-section, .privacy-section, .notifications-channel),
+  #app .about-principles,
+  #app .about-meta {
+    margin-top: 12px;
+    padding: 16px;
+    border-radius: 13px;
+  }
+
+  #app .auth-page {
+    padding: 14px;
+    gap: 14px;
+  }
+
+  #app .auth-intro,
+  #app .auth-workspace {
+    padding: 20px;
+    border-radius: 15px;
+  }
+
+  #app .auth-workspace {
+    border-top: 1px solid var(--pa-discovery-v9-tone-46);
+  }
+
+  #app .not-found {
+    margin-top: 18px;
+    padding: 22px;
+  }
+}
+
