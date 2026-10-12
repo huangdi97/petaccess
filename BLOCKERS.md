@@ -2,49 +2,44 @@
 
 Template per GOAL §2: 缺什么 / 为什么 / 用户要做什么 / 拿到后执行什么 / 影响哪个 Gate。
 
-## B-01 uni-app x 全端构建需要 HBuilderX
-- Type: 工具链（GUI IDE，无法无人值守安装/驱动）
-- Affected gate: G18 微信 / G19 Android / G20 iOS / G21 HarmonyOS（uni-app x 编译产物）
-- Missing external input: HBuilderX（含 uni-app x 编译插件）；HarmonyOS 端另需 DevEco Studio
-- Why code cannot complete it: uni-app x 官方构建链路绑定 HBuilderX GUI（无 npm CLI，
-  `dcloudio/uni-preset-vue` 无 vite-uts 分支）；HBuilderX 下载入口对脚本访问受限
-  （dcloud.io 403/404），且安装属于系统级变更，需用户亲自执行。
-- Work already completed: 完整 uni-app x 源码工程（apps/client：manifest.json、pages.json、
-  App.uvue、7 个页面 .uvue、平台 adapter）；全部业务逻辑在平台无关的
-  @petaccess/client-core（与 H5 验证应用共享，已真跑）。
-- Exact user action:
-  1. 从 https://www.dcloud.io/hbuilderx.html 下载并安装 HBuilderX（4.8+）；
-  2. HBuilderX → 工具 → 插件安装 → 安装「uni-app x 编译插件」；
-  3. 文件 → 打开目录 → 选择 `apps/client`；
-  4. 运行 → 运行到浏览器 → Chrome（H5）；或 运行到微信开发者工具 / 真机。
-- Exact verification after resolution:
-  `cd apps/client && HBuilderX 运行 H5` → 页面与 apps/client-h5 行为一致；
-  微信端需 AppID（见 B-02）；Android/iOS/HarmonyOS 需对应签名/账号（B-03）。
-- 影响：G18/G19/G20/G21 在 HBuilderX 就绪前标记 BLOCKED_EXTERNAL；
-  H5 行为已由 apps/client-h5 + Playwright（G17）真实验证。
+## B-01 historical uni-app x path — RETIRED / SUPERSEDED
 
-## B-02 微信小程序 AppID / 类目 / 隐私接口审批
-- Type: 第三方账号凭证
-- Affected gate: G18
-- Missing external input: 微信小程序 AppID（manifest.json `mp-weixin.appid` 为空），
-  类目审核、`getLocation` 隐私接口审批
-- Why code cannot complete it: 需要注册微信小程序主体并过审，无法自动化。
-- Work already completed: manifest.json 已含 `requiredPrivateInfos` 与位置用途说明；
-  代码不依赖真实 AppID（urlCheck=false，mock provider）。
-- Exact user action: 注册小程序 → AppID 填入 apps/client/manifest.json → 微信开发者工具导入 apps/client。
-- Exact verification after resolution: 微信开发者工具编译预览通过。
-- 影响：G18 BLOCKED_EXTERNAL。
+- Status: **RETIRED（v0.10-R1 architecture convergence）**
+- Current release impact: **none**
+- Canonical Consumer: `apps/client-h5`
+- Canonical Windows / Android runtime: `apps/client-h5/src-tauri`（Tauri 2）
+- Canonical Android release: `.github/workflows/release-ci.yml`
+- Historical source retained at: `apps/client`（`LEGACY_REFERENCE_ONLY`）
 
-## B-03 移动端签名与开发者账号（Android 上架 / iOS 证书 / HarmonyOS 签名）
-- Type: 第三方账号与证书
-- Affected gate: G19 / G20 / G21
-- Missing external input: Android 签名 keystore 与应用市场账号；Apple Developer 账号与证书；
-  华为开发者账号与发布证书（DevEco Studio）
-- Why code cannot complete it: 证书/账号必须由主体持有者申请。
-- Work already completed: uni-app x 源码工程就绪；平台差异集中在 platform adapter。
-- Exact user action: 申请对应账号/证书后，在 HBuilderX 中按标准流程云打包/本地打包。
-- Exact verification after resolution: 对应平台安装包真机安装启动。
-- 影响：G19/G20/G21 BLOCKED_EXTERNAL。
+The previous blocker text treated HBuilderX / uni-app x as the required Android build path. That is no longer true. v0.10-R1 converged the product onto one Vue Consumer implementation with Tauri 2 shells for Windows and Android, specifically to avoid a second Consumer implementation drifting in UI and product truth.
+
+`apps/client` therefore must not be used for current Android screenshots, runtime acceptance, Human Visual Acceptance, or release builds. Its historical pages predate the current RealityReport / Rule + Reality + Evidence model and include legacy shortcuts that are intentionally excluded from the current release path.
+
+Current Android development / verification path:
+
+1. build `apps/client-h5`;
+2. use `apps/client-h5/src-tauri`;
+3. run `tauri android init` only for generated Android project material;
+4. build/sign through the Tauri Android toolchain and the release workflow;
+5. verify the resulting APK against the same Consumer UI and semantic contracts as H5.
+
+HBuilderX is not a current Android blocker.
+
+## B-02 WeChat mini-program path — DEFERRED, not a current release gate
+
+- Status: **DEFERRED / FUTURE CHANNEL**
+- Current Windows / Android release impact: **none**
+- The historical uni-app x `mp-weixin` configuration remains only as reference and must not be treated as the canonical Consumer.
+- If a WeChat mini-program is reactivated as a product target, its delivery architecture must first be re-decided against the v0.10 single-Consumer principle; do not resume by publishing `apps/client` unchanged.
+- External inputs would still include a WeChat AppID, category approval and privacy-interface approval.
+
+## B-03 mobile signing / developer accounts
+
+- Android engineering signing/build status: **RESOLVED for the current Tauri release chain**.
+- Android release workflow consumes the release keystore from GitHub Secrets, builds the Tauri Android APK, signs it, and verifies it with `apksigner`.
+- Android store listing remains external-account work and is not required for local APK acceptance.
+- iOS / HarmonyOS distribution credentials remain future external inputs if/when those release targets are activated.
+- Do **not** use HBuilderX or `apps/client` to resolve Android signing.
 
 ## B-04 腾讯地图 Key
 - Type: 第三方服务凭证
