@@ -67,6 +67,19 @@ Windows: certutil -hashfile PetAccess_0.1.0_x64-setup.exe SHA256
 Android: certutil -hashfile PetAccess_0.1.0-android-universal.apk SHA256
 ```
 
+### Android 当前分支预览
+
+UI / Consumer 变更可通过 GitHub Actions 的 **Android Preview APK** 生成独立调试包：
+
+- app：`PetAccess Preview`
+- package：`com.petaccess.map.preview`，可与正式 `com.petaccess.map` 并存
+- 自动分支包：Android Emulator → `10.0.2.2:8000/api/v1`
+- 真机 USB 包：手动选择 `usb-device` profile，并在电脑执行
+  `adb reverse tcp:8000 tcp:8000`
+- Preview 不使用正式 release keystore，也不得作为 Release / 商店包
+
+完整说明：`docs/engineering/ANDROID_PREVIEW_APK.md`。
+
 ## 4. 快速开始（开发环境）
 
 前置：Docker、Python 3.12+（含 uv）、Node 20+（含 pnpm）。
