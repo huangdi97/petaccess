@@ -13,9 +13,11 @@ PetAccess 的当前 Android 产品实现是 **`apps/client-h5 + Tauri 2`**。为
 
 Tauri CLI 的 `--config` 会把 `src-tauri/tauri.preview.conf.json` 合并到正式配置中，所以 Preview 身份不是“文件名约定”，而是实际 Android application id 隔离。
 
-## 自动包：emulator
+## 每次自动生成两份 Preview
 
-当前 UI 工作分支发生 Consumer/runtime 相关变更时，workflow 自动构建 Preview artifact。
+当前 UI 工作分支发生 Consumer/runtime 相关变更时，workflow 用 matrix 同时构建两份独立 artifact：
+
+### emulator · x86_64
 
 API：
 
@@ -25,19 +27,15 @@ http://10.0.2.2:8000/api/v1
 
 用于 Android Emulator；`10.0.2.2` 指向宿主机。
 
-## 真机 USB 包：usb-device
+### usb-device · aarch64
 
-在 GitHub Actions 手动运行 **Android Preview APK**，将 `api_profile` 选择为：
-
-```text
-usb-device
-```
-
-该包使用：
+API：
 
 ```text
 http://127.0.0.1:8000/api/v1
 ```
+
+用于主流 ARM64 Android 真机。无需再次手动触发 workflow。
 
 手机通过 USB 连接电脑后执行：
 
@@ -46,6 +44,8 @@ adb reverse tcp:8000 tcp:8000
 ```
 
 然后启动 **PetAccess Preview**。这样实体 Android 设备可以访问电脑本地运行的 PetAccess API，又不需要为了临时预览放宽 Tauri CSP。
+
+## 为什么不接受任意 API URL
 
 ### 用同一套 Android FAST 验证 Preview
 
@@ -65,7 +65,9 @@ adb -s <serial> reverse tcp:8000 tcp:8000
 
 `PETACCESS_ANDROID_PACKAGE` 和 `PETACCESS_ANDROID_SERIAL` 只改变验收目标，不改变产品代码；未设置时仍按正式包 / 既有 owned emulator 默认值执行。
 
-## 为什么不接受任意 API URL
+## 真机连接本地 API
+
+
 
 当前仓库没有冻结的 Public Beta API 域名，而且 Tauri CSP 是显式 allowlist。允许 workflow 临时注入任意 URL 会造成两种假象：
 
