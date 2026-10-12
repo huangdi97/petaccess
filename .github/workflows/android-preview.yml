@@ -31,7 +31,9 @@ permissions:
   contents: read
 
 concurrency:
-  group: android-preview-${{ github.ref }}
+  # Same commit can emit both push + pull_request events. Collapse both onto
+  # one Android build so a UI change does not compile the matrix twice.
+  group: android-preview-${{ github.event.pull_request.head.sha || github.sha }}
   cancel-in-progress: true
 
 jobs:
