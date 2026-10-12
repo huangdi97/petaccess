@@ -13,28 +13,15 @@ on:
       - "pnpm-workspace.yaml"
       - ".env.example"
       - ".github/workflows/android-preview.yml"
-  pull_request:
-    branches:
-      - feat/ui-product-craft-v7-human-review-final
-    paths:
-      - "apps/client-h5/**"
-      - "packages/client-core/**"
-      - "packages/design-tokens/**"
-      - "package.json"
-      - "pnpm-lock.yaml"
-      - "pnpm-workspace.yaml"
-      - ".env.example"
-      - ".github/workflows/android-preview.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  # Push and pull_request runs resolve to the same source branch. This both
-  # deduplicates the two events and cancels stale Android builds when a newer
-  # commit lands on the same active UI branch.
-  group: android-preview-${{ github.head_ref || github.ref_name }}
+  # One Preview run per active source branch. A newer UI commit cancels a stale
+  # Android compile; workflow_dispatch remains available for explicit rebuilds.
+  group: android-preview-${{ github.ref_name }}
   cancel-in-progress: true
 
 jobs:
