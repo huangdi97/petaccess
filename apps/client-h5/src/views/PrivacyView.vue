@@ -25,7 +25,10 @@ const {
 </script>
 
 <template>
-  <AppShell>
+  <AppShell
+    data-ui-page="privacy"
+    :data-ui-state="loading ? 'loading' : rightsError ? 'error' : signedIn ? 'signed-in' : 'public'"
+  >
     <header class="privacy-head">
       <p class="privacy-head__kicker">数据与权限</p>
       <h1>隐私与数据</h1>
