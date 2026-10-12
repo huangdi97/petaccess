@@ -94,6 +94,28 @@ def wait_for_page(pid: str, expected_page: str, timeout_s: float = 30.0) -> str:
     raise RuntimeError(f"timed out waiting for {expected_page}: {detail}")
 
 
+def wait_for_android_back_ready(pid: str, timeout_s: float = 20.0) -> str:
+    """Wait for the packaged Android Back listener to finish installing."""
+
+    deadline = time.monotonic() + timeout_s
+    last_state = ""
+    last_error = ""
+    while time.monotonic() < deadline:
+        try:
+            state = cdp_probe(pid, "snapshot")
+            last_state = state
+            compact = state.replace(" ", "")
+            if '"androidBack":"ready"' in compact:
+                return state
+            if '"androidBack":"failed"' in compact:
+                raise RuntimeError(f"Android Back handler reported failed: {state}")
+        except Exception as exc:  # noqa: BLE001 - handler installs after router readiness
+            last_error = str(exc)
+        time.sleep(0.5)
+    detail = last_state or last_error or "no Android Back state observed"
+    raise RuntimeError(f"timed out waiting for Android Back readiness: {detail}")
+
+
 def wait_for_pid(timeout_s: float = 20.0) -> str:
     deadline = time.monotonic() + timeout_s
     while time.monotonic() < deadline:
@@ -209,6 +231,8 @@ def main() -> int:
         root_pid = wait_for_pid(timeout_s=20)
         root_state = wait_for_page(root_pid, "home", timeout_s=30)
         results["fresh_home_before_back"] = root_state
+        back_ready_state = wait_for_android_back_ready(root_pid, timeout_s=20)
+        results["fresh_home_back_ready"] = back_ready_state
 
         shell(SERIAL, "input", "keyevent", "KEYCODE_BACK", timeout=30)
 
