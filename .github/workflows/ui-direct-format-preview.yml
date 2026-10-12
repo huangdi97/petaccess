@@ -34,7 +34,9 @@ jobs:
             apps/client-h5/src/views/RealityTraceView.vue \
             tests/e2e/place-route-race.spec.ts \
             tests/e2e/public-private-session-boundary.spec.ts \
-            tests/e2e/contribute-wizard.spec.ts
+            tests/e2e/contribute-wizard.spec.ts \
+            scripts/android_acceptance/cdp_probe.cjs \
+            scripts/android_acceptance/cdp_journey.cjs
       - uses: actions/upload-artifact@v4
         with:
           name: ui-direct-formatted-targets
@@ -53,3 +55,5 @@ jobs:
             tests/e2e/place-route-race.spec.ts
             tests/e2e/public-private-session-boundary.spec.ts
             tests/e2e/contribute-wizard.spec.ts
+            scripts/android_acceptance/cdp_probe.cjs
+            scripts/android_acceptance/cdp_journey.cjs
