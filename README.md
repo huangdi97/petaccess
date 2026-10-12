@@ -48,7 +48,7 @@ v0.1.0 的**真实数据可能为空**：
 - **搜索**：按场所名 / 品牌 / 别名检索场所。
 - **地图**：场所地图视图；v0.1.0 不请求设备定位（附近场所查询使用服务端合成坐标，仅演示）。
 - **场所详情**：规则层与现实层分开展示；含服务犬与普通宠物的准入差异、规则冲突与废止规则的可见性。
-- **贡献线索**：提交现场观察线索（含防滥用限制：限频 / 去重 / 旧视频拒绝 / 场所不匹配拒绝）；观察不等于规则。
+- **贡献线索**：一次贡献先形成 RealityReport 上下文，再进入规则线索、动物出现、工作人员响应、动物设施或场所纠错等结构化候选；所有候选进入人工核验，Reality 永远不会自动变成 Rule。
 - **宠物档案**：记录宠物信息，便于查看相关准入与共处信息。
 - **共处边界**：服务犬 ≠ 普通宠物；规则冲突、废止规则、管理方声明与用户观察并存展示。
 
@@ -73,9 +73,10 @@ UI / Consumer 变更可通过 GitHub Actions 的 **Android Preview APK** 生成�
 
 - app：`PetAccess Preview`
 - package：`com.petaccess.map.preview`，可与正式 `com.petaccess.map` 并存
-- 自动分支包：Android Emulator → `10.0.2.2:8000/api/v1`
-- 真机 USB 包：手动选择 `usb-device` profile，并在电脑执行
-  `adb reverse tcp:8000 tcp:8000`
+- 每次自动同时生成两份：
+  - `emulator`：x86_64，Android Emulator → `10.0.2.2:8000/api/v1`
+  - `usb-device`：aarch64，Android 真机 → `127.0.0.1:8000/api/v1`
+- 真机包安装后，在电脑执行 `adb reverse tcp:8000 tcp:8000` 即可访问本地 API
 - Preview 不使用正式 release keystore，也不得作为 Release / 商店包
 
 完整说明：`docs/engineering/ANDROID_PREVIEW_APK.md`。
