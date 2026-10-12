@@ -54,6 +54,7 @@ sleep 2
 
 node scripts/android_acceptance/cdp_journey.cjs
 python scripts/android_acceptance/coverage_matrix.py
+python scripts/android_acceptance/build_preview_review_board.py
 
 python - <<'PY'
 import json
