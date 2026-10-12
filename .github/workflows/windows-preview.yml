@@ -1,0 +1,148 @@
+name: Windows Preview Runtime
+
+on:
+  push:
+    branches:
+      - feat/ui-direct-craft-v8
+    paths:
+      - ".github/workflows/windows-preview.yml"
+      - "apps/client-h5/**"
+      - "packages/client-core/**"
+      - "packages/design-tokens/**"
+      - "scripts/windows_acceptance/**"
+      - "pnpm-lock.yaml"
+      - "package.json"
+      - "eslint.config.js"
+
+concurrency:
+  group: windows-preview-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  shell-runtime:
+    name: Windows Preview · WebView2 shell smoke
+    runs-on: windows-latest
+    timeout-minutes: 35
+    env:
+      # Runtime-shell evidence only. Deliberately point data calls at an
+      # unreachable local port so this job cannot accidentally masquerade as
+      # proof of the real PostGIS-backed data layer.
+      VITE_TAURI_API_BASE: http://127.0.0.1:65535/api/v1
+      WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: --remote-debugging-port=9222
+      PETACCESS_WINDOWS_CDP: http://127.0.0.1:9222
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.4.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            apps/client-h5/src-tauri/target
+          key: windows-preview-cargo-${{ hashFiles('apps/client-h5/src-tauri/Cargo.lock') }}
+
+      - name: Build debug Tauri executable without installer
+        shell: pwsh
+        run: |
+          pnpm --filter @petaccess/client-h5 exec tauri build --debug --no-bundle --ci
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+          $exe = Get-ChildItem "apps/client-h5/src-tauri/target/debug" -Filter "petaccess.exe" -File -Recurse |
+            Select-Object -First 1
+          if (-not $exe) {
+            Write-Error "petaccess.exe was not produced"
+            exit 1
+          }
+
+          New-Item -ItemType Directory -Force "artifacts/windows-preview-runtime/runtime" | Out-Null
+          $exe.FullName | Set-Content "artifacts/windows-preview-runtime/runtime/executable-path.txt"
+          (Get-FileHash -Algorithm SHA256 $exe.FullName).Hash |
+            Set-Content "artifacts/windows-preview-runtime/runtime/executable-sha256.txt"
+          "PETACCESS_WINDOWS_EXE=$($exe.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Launch packaged WebView2 runtime
+        shell: pwsh
+        run: |
+          $process = Start-Process -FilePath "$env:PETACCESS_WINDOWS_EXE" -PassThru
+          $process.Id | Set-Content "artifacts/windows-preview-runtime/runtime/process-id.txt"
+
+          $ready = $false
+          for ($i = 0; $i -lt 90; $i++) {
+            if ($process.HasExited) {
+              Write-Error "PetAccess exited before WebView2 CDP became ready (exit=$($process.ExitCode))"
+              exit 1
+            }
+
+            try {
+              $response = Invoke-WebRequest -Uri "http://127.0.0.1:9222/json" -UseBasicParsing -TimeoutSec 2
+              if ($response.StatusCode -eq 200 -and $response.Content -match "webSocketDebuggerUrl") {
+                $response.Content | Set-Content "artifacts/windows-preview-runtime/runtime/cdp-targets.json"
+                $ready = $true
+                break
+              }
+            } catch {
+              # Expected during WebView2 startup.
+            }
+            Start-Sleep -Seconds 1
+          }
+
+          if (-not $ready) {
+            Write-Error "WebView2 remote debugging endpoint did not become ready"
+            exit 1
+          }
+
+      - name: Run WebView2 shell/runtime evidence
+        shell: pwsh
+        run: |
+          node scripts/windows_acceptance/cdp_shell_smoke.cjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Runtime summary
+        if: always()
+        shell: pwsh
+        run: |
+          "## Windows Preview WebView2 smoke" >> $env:GITHUB_STEP_SUMMARY
+          "" >> $env:GITHUB_STEP_SUMMARY
+          "- Commit: ${{ github.sha }}" >> $env:GITHUB_STEP_SUMMARY
+          "- Scope: Tauri/WebView2 shell + route + geometry runtime only" >> $env:GITHUB_STEP_SUMMARY
+          "- Data layer: intentionally NOT proven by this workflow" >> $env:GITHUB_STEP_SUMMARY
+          "- Evidence: windows_shell_smoke.json + runtime screenshots" >> $env:GITHUB_STEP_SUMMARY
+
+      - name: Upload Windows runtime evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: petaccess-windows-preview-runtime-${{ github.sha }}
+          path: artifacts/windows-preview-runtime/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Stop PetAccess
+        if: always()
+        shell: pwsh
+        run: |
+          $pidFile = "artifacts/windows-preview-runtime/runtime/process-id.txt"
+          if (Test-Path $pidFile) {
+            $appPid = (Get-Content $pidFile | Select-Object -First 1).Trim()
+            if ($appPid) {
+              Stop-Process -Id ([int]$appPid) -Force -ErrorAction SilentlyContinue
+            }
+          }
