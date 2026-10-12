@@ -19,7 +19,12 @@ ROOT = Path(
     )
 )
 OUT = ROOT / "coverage_matrix.json"
-REQUIRED_CONSUMER_ROUTES = 13
+REQUIRED_ROUTE_CASES = 21
+REQUIRED_ROUTER_PAGES = {
+    "home", "map", "onboarding", "search", "place", "pet-new", "pets",
+    "contribution", "mine", "privacy", "notifications", "settings", "about",
+    "boundary", "match-explain", "reality", "evidence", "operator-claim", "not-found",
+}
 
 
 def _load(path: Path) -> dict | list | None:
@@ -39,10 +44,17 @@ def main() -> int:
 
     journey = _load(runtime / "cdp_journey_playwright.json")
     journey_routes = journey.get("routes", []) if isinstance(journey, dict) else []
+    observed_router_pages = {
+        row.get("snapshot", {}).get("uiPage")
+        for row in journey_routes
+        if isinstance(row, dict) and isinstance(row.get("snapshot"), dict)
+    }
+    observed_router_pages.discard(None)
     routes_covered = (
         isinstance(journey, dict)
         and journey.get("result") == "PASS"
-        and len(journey_routes) >= REQUIRED_CONSUMER_ROUTES
+        and len(journey_routes) >= REQUIRED_ROUTE_CASES
+        and REQUIRED_ROUTER_PAGES.issubset(observed_router_pages)
         and all(row.get("ok") is True for row in journey_routes)
     )
 
@@ -73,10 +85,10 @@ def main() -> int:
 
     notes = {
         "Routes": (
-            "Canonical packaged-WebView CDP journey requires 13/13 PASS: Home, Search, Map, "
-            "Place overview/rules/space, Reality, Evidence, Contribution entry, Mine, "
-            "Settings, Privacy and About. Each route asserts data-ui-page identity and "
-            "zero horizontal document overflow, with a screenshot captured at that route."
+            "Canonical packaged-WebView CDP journey requires 19/19 Router pages plus "
+            "Place rules/space views (21/21 cases). Each case asserts data-ui-page identity, "
+            "zero horizontal overflow and safe-area non-overlap, with a screenshot captured "
+            "at that state."
         ),
         "Domain States": (
             "Rule UNKNOWN!=ALLOWED verified; Reality "
@@ -118,7 +130,12 @@ def main() -> int:
         "notes": notes,
         "generated_from": "current evidence",
         "evidence_root": str(ROOT),
-        "required_consumer_routes": REQUIRED_CONSUMER_ROUTES,
+        "required_route_cases": REQUIRED_ROUTE_CASES,
+        "observed_route_cases": len(journey_routes),
+        "required_router_pages": len(REQUIRED_ROUTER_PAGES),
+        "observed_router_pages": len(observed_router_pages),
+        "observed_router_page_ids": sorted(observed_router_pages),
+        "required_consumer_routes": REQUIRED_ROUTE_CASES,
         "observed_consumer_routes": len(journey_routes),
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)

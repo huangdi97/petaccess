@@ -41,7 +41,11 @@ async function submit() {
 
 <template>
   <DesktopContentContainer mode="wide">
-    <main class="auth-page">
+    <main
+      class="auth-page"
+      data-ui-page="onboarding"
+      :data-ui-state="busy ? 'submitting' : error ? 'error' : mode"
+    >
       <section class="auth-intro" aria-labelledby="auth-title">
         <p class="auth-brand">PetAccess</p>
         <h1 id="auth-title">开始使用</h1>

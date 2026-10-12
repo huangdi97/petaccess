@@ -6,9 +6,9 @@
  * chromium.connectOverCDP() can therefore fail during browser bootstrap on
  * Browser.setDownloadBehavior even when the WebView itself is healthy.
  *
- * This journey talks directly to the WebView page target via CDP. It keeps
- * the same 13-route semantic gate and screenshot evidence without weakening
- * runtime coverage.
+ * This journey talks directly to the WebView page target via CDP. It covers
+ * every Router page in its public/default state, plus the governed Place
+ * rules/space views, with semantic identity and screenshot evidence.
  */
 const fs = require("node:fs");
 const http = require("node:http");
@@ -28,41 +28,24 @@ const routes = [
   { hash: "#/", tag: "R01", name: "home", expectedPage: "home" },
   { hash: "#/search", tag: "R02", name: "search", expectedPage: "search" },
   { hash: "#/map", tag: "R03", name: "map", expectedPage: "map" },
-  {
-    hash: `#/place/${PLACE_ID}`,
-    tag: "R04",
-    name: "place-overview",
-    expectedPage: "place",
-  },
-  {
-    hash: `#/place/${PLACE_ID}?view=rules`,
-    tag: "R05",
-    name: "place-rules",
-    expectedPage: "place",
-  },
-  {
-    hash: `#/place/${PLACE_ID}?view=space`,
-    tag: "R06",
-    name: "place-space",
-    expectedPage: "place",
-  },
-  {
-    hash: `#/place/${PLACE_ID}/reality`,
-    tag: "R07",
-    name: "reality",
-    expectedPage: "reality",
-  },
-  {
-    hash: `#/place/${PLACE_ID}/evidence`,
-    tag: "R08",
-    name: "evidence",
-    expectedPage: "evidence",
-  },
+  { hash: `#/place/${PLACE_ID}`, tag: "R04", name: "place-overview", expectedPage: "place" },
+  { hash: `#/place/${PLACE_ID}?view=rules`, tag: "R05", name: "place-rules", expectedPage: "place" },
+  { hash: `#/place/${PLACE_ID}?view=space`, tag: "R06", name: "place-space", expectedPage: "place" },
+  { hash: `#/place/${PLACE_ID}/reality`, tag: "R07", name: "reality", expectedPage: "reality" },
+  { hash: `#/place/${PLACE_ID}/evidence`, tag: "R08", name: "evidence", expectedPage: "evidence" },
   { hash: "#/contribute", tag: "R09", name: "contribute-entry", expectedPage: "contribution" },
   { hash: "#/mine", tag: "R10", name: "mine", expectedPage: "mine" },
   { hash: "#/settings", tag: "R11", name: "settings", expectedPage: "settings" },
   { hash: "#/privacy", tag: "R12", name: "privacy", expectedPage: "privacy" },
   { hash: "#/about", tag: "R13", name: "about", expectedPage: "about" },
+  { hash: "#/onboarding", tag: "R14", name: "onboarding", expectedPage: "onboarding" },
+  { hash: "#/pet/new", tag: "R15", name: "pet-new", expectedPage: "pet-new" },
+  { hash: "#/pets", tag: "R16", name: "pets", expectedPage: "pets" },
+  { hash: "#/notifications", tag: "R17", name: "notifications", expectedPage: "notifications" },
+  { hash: "#/boundary", tag: "R18", name: "boundary", expectedPage: "boundary" },
+  { hash: `#/place/${PLACE_ID}/why`, tag: "R19", name: "match-explain", expectedPage: "match-explain" },
+  { hash: `#/place/${PLACE_ID}/operator-claim`, tag: "R20", name: "operator-claim", expectedPage: "operator-claim" },
+  { hash: "#/__petaccess_runtime_missing__", tag: "R21", name: "not-found", expectedPage: "not-found" },
 ];
 
 function safeName(value) {

@@ -155,7 +155,10 @@ watch(currentQueryContext, () => {
 </script>
 
 <template>
-  <AppShell>
+  <AppShell
+    data-ui-page="match-explain"
+    :data-ui-state="busy ? 'loading' : error ? 'error' : resolved ? 'ready' : 'loading'"
+  >
     <header class="explain-head">
       <div>
         <h1>为什么是这个结果</h1>

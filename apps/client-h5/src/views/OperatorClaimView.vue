@@ -87,7 +87,22 @@ watch(placeId, () => void load(), { immediate: true });
 </script>
 
 <template>
-  <AppShell data-ui-page="operator-claim">
+  <AppShell
+    data-ui-page="operator-claim"
+    :data-ui-state="
+      loading
+        ? 'loading'
+        : error
+          ? 'error'
+          : !place
+            ? 'empty'
+            : session.signedIn
+              ? submitted
+                ? claimStatus || 'submitted'
+                : 'ready'
+              : 'permission-denied'
+    "
+  >
     <main class="operator-claim" data-testid="operator-claim-page">
       <header class="operator-claim__head">
         <p class="operator-claim__kicker">管理方身份核验</p>

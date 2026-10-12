@@ -130,7 +130,7 @@ workflow 还必须：
 Preview APK 只证明“候选安装包已生成并经过 package/signature 检查”。它**不替代**：
 
 - Android FAST semantic gate；
-- 13-route WebView page-level CDP journey；
+- 19/19 Router 页面 + Place rules/space 两个额外视图（21-case）的 WebView page-level CDP journey；
 - Evidence → 系统 Back → Reality；
 - packaged WebView 离线提示 → 恢复；
 - Activity Home/Resume 后 Consumer shell 与横向 overflow gate；

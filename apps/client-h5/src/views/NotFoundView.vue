@@ -4,7 +4,7 @@ import AppShell from "../components/AppShell.vue";
 </script>
 
 <template>
-  <AppShell>
+  <AppShell data-ui-page="not-found" data-ui-state="ready">
     <main class="not-found" data-testid="not-found">
       <p class="not-found__code">404</p>
       <h1>这个页面不存在</h1>

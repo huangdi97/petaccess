@@ -67,7 +67,9 @@ journey = json.loads(
 )
 assert coverage["matrix"]["Routes"] == "COVERED", coverage
 assert journey["result"] == "PASS", journey
-assert len(journey["routes"]) >= 13, len(journey["routes"])
+assert len(journey["routes"]) >= 21, len(journey["routes"])
+assert coverage["required_router_pages"] == 19, coverage
+assert coverage["observed_router_pages"] >= 19, coverage
 print(f"Android Preview semantic journey: {len(journey['routes'])}/{len(journey['routes'])} PASS")
 PY
 

@@ -70,7 +70,7 @@ Nav round-trip: Map -> Home
 5. 在**该页面仍处于当前状态时**立即截图；
 6. 任一动作写入 `ERROR` 时，FAST 命令必须非零退出。
 
-全量 `cdp_journey.cjs` 进一步要求 13 条 Consumer 路径全部 PASS 后，Routes coverage 才能标记为 `COVERED`。仅存在旧 `cdp_journey_ws.json` 不再足以证明当前路由覆盖。
+全量 `cdp_journey.cjs` 进一步要求 **19/19 个 Router 页面 + Place rules/space 两个额外视图（21/21 cases）** 全部 PASS 后，Routes coverage 才能标记为 `COVERED`。每个页面必须暴露统一 `data-ui-page` 身份；仅存在旧 `cdp_journey_ws.json` 或只覆盖核心导航不再足以证明当前路由覆盖。
 
 - Boot 可观测性：`VITE_BOOT_TRACE=1` 构建 → debug APK → `adb logcat -d -s Tauri/Console` 应见
   `PETACCESS_BOOT=INDEX_LOADED / VUE_CREATED / APP_SHELL_MOUNTED / ROUTER_READY / HOME_READY`。

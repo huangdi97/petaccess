@@ -90,7 +90,11 @@ async function unsubscribe(w: WatchView) {
 </script>
 
 <template>
-  <AppShell data-testid="notifications-page">
+  <AppShell
+    data-testid="notifications-page"
+    data-ui-page="notifications"
+    :data-ui-state="loading ? 'loading' : error ? 'error' : signedIn ? 'ready' : 'permission-denied'"
+  >
     <header class="notifications-head">
       <h1>通知中心</h1>
       <p class="muted">

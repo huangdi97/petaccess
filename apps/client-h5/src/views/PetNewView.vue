@@ -80,7 +80,20 @@ async function save() {
 </script>
 
 <template>
-  <AppShell>
+  <AppShell
+    data-ui-page="pet-new"
+    :data-ui-state="
+      loadingSession
+        ? 'loading'
+        : sessionError
+          ? 'error'
+          : signedIn
+            ? saving
+              ? 'saving'
+              : 'ready'
+            : 'permission-denied'
+    "
+  >
     <header class="pet-new-head">
       <h1>新建宠物档案</h1>
       <p class="muted">

@@ -153,7 +153,20 @@ onMounted(load);
 </script>
 
 <template>
-  <AppShell>
+  <AppShell
+    data-ui-page="pets"
+    :data-ui-state="
+      loading
+        ? 'loading'
+        : loadError
+          ? 'error'
+          : privateSessionReady
+            ? editing
+              ? 'editing'
+              : 'ready'
+            : 'permission-denied'
+    "
+  >
     <PetProfileHeader
       :online="online"
       :signed-in="privateSessionReady"
