@@ -39,6 +39,9 @@ jobs:
             scripts/android_acceptance/cdp_probe.cjs \
             scripts/android_acceptance/cdp_journey.cjs \
             .github/workflows/android-preview.yml
+      - name: Show Android Preview workflow format diff
+        shell: bash
+        run: git diff -- .github/workflows/android-preview.yml
       - uses: actions/upload-artifact@v4
         with:
           name: ui-direct-formatted-targets
