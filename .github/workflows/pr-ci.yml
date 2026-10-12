@@ -141,7 +141,7 @@ jobs:
         run: |
           node --check scripts/android_acceptance/cdp_probe.cjs
           node --check scripts/android_acceptance/cdp_journey.cjs
-          node --experimental-strip-types scripts/check_android_back_contract.ts
+          node --experimental-strip-types scripts/check_android_back_contract.mjs
 
       - name: ESLint
         run: pnpm lint:fe
