@@ -472,8 +472,7 @@ const { desktop: isDesktop } = useBreakpoint();
 .contribute-start__hero {
   padding: var(--pa-space-5);
   border-radius: calc(var(--pa-radius-md) + 2px);
-  background:
-    linear-gradient(
+  background: linear-gradient(
       145deg,
       color-mix(in srgb, var(--pa-color-accent-weak) 82%, var(--pa-color-surface)) 0%,
       var(--pa-color-surface-raised) 72%
