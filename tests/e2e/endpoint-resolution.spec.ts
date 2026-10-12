@@ -49,7 +49,6 @@ test("TAURI_ANDROID resolves 10.0.2.2 (emulator host) ONLY as the dev default", 
   expect(resolveApiEndpoint({}, "TAURI_DESKTOP")).not.toContain("10.0.2.2");
 });
 
-
 test("TAURI_ANDROID accepts the USB reverse-loopback preview endpoint explicitly", () => {
   expect(
     resolveApiEndpoint(
