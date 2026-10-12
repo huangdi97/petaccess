@@ -61,6 +61,58 @@ test("A1/A4 — 向导入口与现场记录表单渲染（已登录）", async (
   await expect(page.getByTestId("reality-date")).toBeVisible();
 });
 
+test("A1.mobile — authenticated contribution chooser never overflows phone viewports", async ({
+  page,
+  request,
+}) => {
+  const token = await signIn(request);
+  await page.addInitScript((t) => localStorage.setItem("pa_token", t), token);
+
+  for (const width of [320, 360, 390, 430]) {
+    await page.setViewportSize({ width, height: width === 320 ? 568 : 844 });
+    await page.goto(`${BASE}/#/contribute/${MALL_ID}`, { waitUntil: "load" });
+    await expect(page.getByTestId("entry-reality-observed_presence")).toBeVisible({
+      timeout: 15000,
+    });
+
+    const layout = await page.evaluate(() => {
+      const viewportWidth = window.innerWidth;
+      const buttons = Array.from(
+        document.querySelectorAll<HTMLElement>(".entry-option__button"),
+      ).map((button) => {
+        const rect = button.getBoundingClientRect();
+        return {
+          left: rect.left,
+          right: rect.right,
+          width: rect.width,
+          scrollWidth: button.scrollWidth,
+          clientWidth: button.clientWidth,
+        };
+      });
+      return {
+        viewportWidth,
+        pageScrollWidth: document.documentElement.scrollWidth,
+        buttons,
+      };
+    });
+
+    expect(
+      layout.pageScrollWidth,
+      `contribution chooser page overflow at ${width}px`,
+    ).toBeLessThanOrEqual(layout.viewportWidth + 1);
+    for (const button of layout.buttons) {
+      expect(button.left, `choice starts outside viewport at ${width}px`).toBeGreaterThanOrEqual(-1);
+      expect(button.right, `choice ends outside viewport at ${width}px`).toBeLessThanOrEqual(
+        layout.viewportWidth + 1,
+      );
+      expect(
+        button.scrollWidth,
+        `choice internal content overflows at ${width}px`,
+      ).toBeLessThanOrEqual(button.clientWidth + 1);
+    }
+  }
+});
+
 test("A1.-1 — negative observation is reachable without becoming a sixth primary fact type", async ({
   page,
   request,
