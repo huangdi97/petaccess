@@ -67,7 +67,9 @@ def check_consumer_runtime_boundary() -> list[dict]:
             }
         )
 
-    legacy_package = json.loads((ROOT / "apps" / "client" / "package.json").read_text(encoding="utf-8"))
+    legacy_package = json.loads(
+        (ROOT / "apps" / "client" / "package.json").read_text(encoding="utf-8")
+    )
     if legacy_package.get("petaccessStatus") != "legacy-reference-only":
         violations.append(
             {
