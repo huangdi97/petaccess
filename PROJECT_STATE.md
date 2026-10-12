@@ -1,3 +1,19 @@
+## Current phase（2026-10-12 — direct-v8 Android Preview + Runtime Evidence Closure）
+
+- 分支仍为 `feat/ui-direct-craft-v8`；PR #1 保持 **draft**；master / tag / Release 不动。判断状态时仍必须重新读取当前 HEAD / Actions，不能把本文 SHA 当未来事实。
+- Consumer runtime 已明确收口：`apps/client-h5` 是唯一当前 Consumer；Windows / Android 使用 `apps/client-h5/src-tauri`（Tauri 2）。`apps/client` uni-app x 已标为 `LEGACY_REFERENCE_ONLY`，禁止用于当前 Android 构建、人审或 Release。
+- Android Preview 工作流已落地为隔离 package `com.petaccess.map.preview`，不读取 release keystore，可与正式 `com.petaccess.map` 并存；工程 gate 同时禁止 Release CI 消费 Preview flavor。
+- Preview matrix run `38218661525`（commit `682ba4621ec1a0f707969f84df84fe5fe02d9bcf`）真实生成并验证两份 artifact：
+  - emulator / x86_64 → `10.0.2.2:8000/api/v1`；
+  - usb-device / aarch64 → `127.0.0.1:8000/api/v1` + `adb reverse tcp:8000 tcp:8000`。
+  两个 job 均 SUCCESS；workflow 使用 `apksigner verify` + `aapt dump badging` 检查 debug 签名和实际 package。
+- ARM64 真机 Preview：`PetAccess-preview-usb-device-aarch64-682ba46-debug.apk`，SHA256 `89dee9719dfcb80791dccd4fd4d582cfd797d2e72ca23427289e7bde4b174a01`；x86_64 模拟器 Preview SHA256 `4be2a81afd30fe570f83f6380430fd802c554bf03dc7ffdcd335e0d0dd660417`。
+- 从 `682ba462…` 到本段写入前 HEAD 的后续提交只涉及 docs / acceptance tooling / report，不修改 Consumer/Tauri runtime，因此上述 APK 与当前 Consumer 源在运行时内容上等价；但它们**不替代当前最终 HEAD 的真机/AVD runtime screenshot 证据**。
+- Android acceptance 已加强：FAST 对核心页面逐页做 `data-ui-page` 语义确认、横向 overflow gate、即时截图，并要求 Evidence → Android 系统 Back → Reality；任一 `ERROR` 必须让命令非零退出。13-route CDP journey 全 PASS 才允许 Routes = COVERED。
+- 真机 Preview 可用 `scripts/android_acceptance/preview_usb_smoke.py` 一键完成 APK package 预检、安装、`adb reverse` 与 FAST；默认正式包 acceptance 语义不变。
+- Web 最新 Human Review 中，Contribution mobile 的历史横向裁切已修复并重新目视核验；Home / Search / Map / Place / Reality / Evidence / Mine / Settings 未发现新的布局破坏。机器/助手复核仍**不等于用户 Human Visual Acceptance**。
+- `UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW` 继续成立。最终停止线不变：同一最终 HEAD 的 Web HUMAN_REVIEW + Windows WebView2 + Android AVD/真机运行证据由用户真人确认前，不得 baseline promotion、master 集成、PR ready、tag 或 Release。
+
 ## Current phase（2026-10-09 — direct-v8 Consumer Source Closure / Final Runtime Evidence Pending）
 
 - 分支仍为 `feat/ui-direct-craft-v8`；PR #1 保持 **draft**；master / tag / Release 不动。
