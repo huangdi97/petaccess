@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { client, ApiError, session, type BoundaryProfile } from "@petaccess/client-core";
 import AppShell from "../components/AppShell.vue";
 import BoundaryPreferenceList from "../components/boundary/BoundaryPreferenceList.vue";
@@ -17,6 +17,7 @@ const loaded = ref(false);
 const loading = ref(true);
 const signedIn = ref(false);
 const { online } = useOnline();
+const selectedCount = computed(() => Object.keys(chosen.value).length);
 
 function apply(profile: BoundaryProfile | null) {
   if (!profile) {
@@ -92,13 +93,17 @@ onMounted(load);
 </script>
 
 <template>
-  <AppShell>
+  <AppShell
+    data-ui-page="boundary"
+    :data-ui-state="loading ? 'loading' : loadError ? 'error' : signedIn ? 'ready' : 'permission-denied'"
+  >
     <div v-if="!online" class="offline-banner" data-testid="offline-banner">
       <span aria-hidden="true">⊘</span>
       <span>当前无网络连接：可查看已加载内容，保存操作已暂停。</span>
     </div>
 
     <header class="boundary-head">
+      <p class="boundary-head__kicker">个人出行偏好</p>
       <h1>共处边界</h1>
       <p class="muted">
         这是你自己的出行偏好，不是对场所的评分，也不改变场所的准入规则。
@@ -135,6 +140,18 @@ onMounted(load);
     <template v-else>
       <p v-if="error" class="boundary-feedback" data-testid="boundary-error">{{ error }}</p>
       <p v-if="msg" class="boundary-feedback" data-testid="boundary-msg">{{ msg }}</p>
+
+      <section class="boundary-overview" aria-label="边界设置概览">
+        <div>
+          <strong>按你的感受逐项选择</strong>
+          <p class="muted">
+            只设置真正影响你出行体验的项目；不确定的内容保持“不设置”，不会被系统猜测。
+          </p>
+        </div>
+        <span class="boundary-overview__count" data-testid="boundary-selected-count">
+          已设置 {{ selectedCount }} / 10
+        </span>
+      </section>
 
       <label class="boundary-name">
         <span>方案名称</span>
