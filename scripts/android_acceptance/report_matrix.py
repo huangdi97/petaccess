@@ -10,9 +10,18 @@ from __future__ import annotations
 
 import csv
 import json
+import os
 from pathlib import Path
 
-ROOT = Path(r"E:\AI\宠物管理\artifacts\android_acceptance")
+REPO_ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(
+    os.environ.get(
+        "PETACCESS_ANDROID_EVIDENCE_DIR",
+        str(REPO_ROOT / "artifacts" / "android_acceptance"),
+    )
+)
+TARGET_SERIAL = os.environ.get("PETACCESS_ANDROID_SERIAL", "emulator-5562")
+TARGET_PACKAGE = os.environ.get("PETACCESS_ANDROID_PACKAGE", "com.petaccess.map")
 RUNTIME = ROOT / "runtime"
 OUT_CSV = ROOT / "scenario_matrix.csv"
 OUT_COVERAGE = ROOT / "coverage_matrix.json"
