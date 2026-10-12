@@ -53,6 +53,10 @@ def cdp_probe(pid: str, step: str) -> str:
         text=True,
         timeout=120,
     )
+    if out.returncode != 0:
+        raise RuntimeError(
+            f"CDP {step} failed rc={out.returncode}: {(out.stderr or out.stdout)[-500:]}"
+        )
     return out.stdout.strip()
 
 
@@ -77,17 +81,12 @@ def main() -> int:
     pid = ensure_app()
     results["app_pid"] = pid
 
-    for step in ("home", "search", "nav"):
+    for step in ("home", "search", "map", "place", "reality", "evidence", "nav"):
         try:
             results[step] = cdp_probe(pid, step)
-        except Exception as e:  # noqa: BLE001 - report, keep going
+            results[f"shot_{step}"] = f"bytes={screenshot(f'{step}-m3-final')}"
+        except Exception as e:  # noqa: BLE001 - report every route and keep going
             results[step] = f"ERROR {e}"
-
-    for name in ("home-m3-final", "search-m3-final"):
-        try:
-            results[f"shot_{name}"] = f"bytes={screenshot(name)}"
-        except Exception as e:  # noqa: BLE001
-            results[f"shot_{name}"] = f"ERROR {e}"
 
     print(json.dumps(results, ensure_ascii=False, indent=1))
     return 0
