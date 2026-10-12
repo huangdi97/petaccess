@@ -49,7 +49,18 @@ router.afterEach((to) => {
 
 router
   .isReady()
-  .then(() => bootStage("ROUTER_READY"))
+  .then(async () => {
+    bootStage("ROUTER_READY");
+    if (kind === "TAURI_ANDROID") {
+      try {
+        const { installAndroidBackHandler } = await import("./runtime/androidBack");
+        await installAndroidBackHandler(router);
+        bootStage("ANDROID_BACK_READY");
+      } catch {
+        bootStage("ANDROID_BACK_FAILED");
+      }
+    }
+  })
   .catch(() => bootStage("ROUTER_FAILED"));
 
 createApp(App).use(router).mount("#app");
