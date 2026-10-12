@@ -38,7 +38,7 @@ def main() -> int:
     soak = _load("soak.json") or {}
     network = _load("network_matrix.json") or {}
     http = _load("http_status_matrix.json") or {}
-    journey = _load("cdp_journey_ws.json") or {}
+    journey = _load("cdp_journey_playwright.json") or _load("cdp_journey_ws.json") or {}
     semantic = _load("cdp_semantic.json") or {}
     ui = _load("ui_journey.json") or {}
 
@@ -126,26 +126,42 @@ def main() -> int:
         "PASS" if pd.get("passed", 0) == pd.get("total", 0) else "FAIL",
     )
 
-    # routes
-    routes = (
-        journey
-        if isinstance(journey, list)
-        else journey.get("rows", [])
-        if isinstance(journey, dict)
-        else []
-    )
-    if isinstance(journey, dict) and "rows" in journey:
+    # routes — prefer the canonical semantic CDP journey. Legacy ws rows are
+    # still readable so old evidence can be audited, but they no longer define
+    # current route coverage.
+    if isinstance(journey, dict) and "routes" in journey:
+        routes = journey["routes"]
+        journey_evidence = "runtime/cdp_journey_playwright.json"
+        semantic_journey = True
+    elif isinstance(journey, dict) and "rows" in journey:
         routes = journey["rows"]
-    for r in routes or []:
-        route = r.get("route", "?")
-        "blank" if not r.get("text") else "text"
+        journey_evidence = "runtime/cdp_journey_ws.json"
+        semantic_journey = False
+    elif isinstance(journey, list):
+        routes = journey
+        journey_evidence = "runtime/cdp_journey_ws.json"
+        semantic_journey = False
+    else:
+        routes = []
+        journey_evidence = "runtime/cdp_journey_playwright.json"
+        semantic_journey = True
+
+    for route_row in routes or []:
+        route = route_row.get("hash") or route_row.get("route", "?")
+        route_name = route_row.get("name") or route or "home"
+        if semantic_journey:
+            route_pass = route_row.get("ok") is True
+            expected = "canonical data-ui-page renders with zero horizontal overflow"
+        else:
+            route_pass = bool(route_row.get("text"))
+            expected = "legacy route renders text"
         add(
-            f"R_{route or 'home'}",
+            f"R_{str(route_name).replace('/', '_').replace('#', '')}",
             "route",
             f"hash-nav {route}",
-            "route renders text",
-            f"runtime/cdp_journey_ws.json [{route}]",
-            "PASS" if r.get("text") else "FAIL",
+            expected,
+            f"{journey_evidence} [{route_name}]",
+            "PASS" if route_pass else "FAIL",
         )
 
     # semantics
