@@ -239,7 +239,7 @@ jobs:
             tests/e2e/contribute-route-race.spec.ts \
             --workers=1
 
-      - name: Playwright contribution chronology contract
+      - name: Playwright contribution mobile + chronology contracts
         run: |
           pnpm exec playwright test tests/e2e/contribute-wizard.spec.ts \
-            --grep "A1.1" --workers=1
+            --grep "A1\\.mobile|A1\\.1" --workers=1
