@@ -13,6 +13,18 @@ on:
       - "pnpm-workspace.yaml"
       - ".env.example"
       - ".github/workflows/android-preview.yml"
+  pull_request:
+    branches:
+      - feat/ui-product-craft-v7-human-review-final
+    paths:
+      - "apps/client-h5/**"
+      - "packages/client-core/**"
+      - "packages/design-tokens/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - ".env.example"
+      - ".github/workflows/android-preview.yml"
   workflow_dispatch:
 
 permissions:
@@ -26,6 +38,7 @@ jobs:
   preview-apk:
     name: ${{ matrix.label }}
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
