@@ -40,6 +40,55 @@ PY_ROOTS = [ROOT / "services/api/app", ROOT / "services/worker"]
 TS_ROOTS = [ROOT / "apps/client-h5/src", ROOT / "apps/admin/src", ROOT / "packages/client-core/src"]
 
 
+def check_consumer_runtime_boundary() -> list[dict]:
+    """Keep release artifacts on the canonical Vue Consumer + Tauri path."""
+
+    violations: list[dict] = []
+    release_path = ROOT / ".github" / "workflows" / "release-ci.yml"
+    release_text = release_path.read_text(encoding="utf-8")
+    release_without_canonical = release_text.replace("apps/client-h5", "")
+
+    if "tauri android build" not in release_text or "apps/client-h5" not in release_text:
+        violations.append(
+            {
+                "rule": "runtime-boundary",
+                "path": ".github/workflows/release-ci.yml",
+                "severity": "FAIL",
+                "detail": "Android release must build apps/client-h5 through Tauri.",
+            }
+        )
+    if "apps/client/" in release_without_canonical or "HBuilderX" in release_text:
+        violations.append(
+            {
+                "rule": "runtime-boundary",
+                "path": ".github/workflows/release-ci.yml",
+                "severity": "FAIL",
+                "detail": "Legacy apps/client must never participate in current release CI.",
+            }
+        )
+
+    legacy_package = json.loads((ROOT / "apps" / "client" / "package.json").read_text(encoding="utf-8"))
+    if legacy_package.get("petaccessStatus") != "legacy-reference-only":
+        violations.append(
+            {
+                "rule": "runtime-boundary",
+                "path": "apps/client/package.json",
+                "severity": "FAIL",
+                "detail": "Historical uni-app x client must stay explicitly legacy-reference-only.",
+            }
+        )
+    if not (ROOT / "apps" / "client" / "README.md").exists():
+        violations.append(
+            {
+                "rule": "runtime-boundary",
+                "path": "apps/client/README.md",
+                "severity": "FAIL",
+                "detail": "Legacy client freeze notice is required.",
+            }
+        )
+    return violations
+
+
 def load_exemptions() -> list[dict]:
     if not EXEMPTIONS_FILE.exists():
         return []
@@ -63,6 +112,7 @@ def collect() -> list[dict]:
     out += check_magic_status(exemptions, PY_ROOTS)
     out += check_dead_code(exemptions, PY_ROOTS)
     out += check_duplicate_config(exemptions)
+    out += check_consumer_runtime_boundary()
     return out
 
 
