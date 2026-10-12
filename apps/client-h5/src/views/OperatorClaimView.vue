@@ -111,9 +111,21 @@ watch(placeId, () => void load(), { immediate: true });
         </section>
 
         <section v-if="session.signedIn && !submitted" class="operator-claim__guide">
-          <div><span>1</span><strong>确认主体</strong><small>填写能与执照、官网或公开主体对应的名称。</small></div>
-          <div><span>2</span><strong>提供核验线索</strong><small>优先使用工作邮箱或官方网站，保留可人工复核的路径。</small></div>
-          <div><span>3</span><strong>等待人工审核</strong><small>审核通过后才能提交管理方声明；现有规则与现场事实不被覆盖。</small></div>
+          <div>
+            <span>1</span>
+            <strong>确认主体</strong>
+            <small>填写能与执照、官网或公开主体对应的名称。</small>
+          </div>
+          <div>
+            <span>2</span>
+            <strong>提供核验线索</strong>
+            <small>优先使用工作邮箱或官方网站，保留可人工复核的路径。</small>
+          </div>
+          <div>
+            <span>3</span>
+            <strong>等待人工审核</strong>
+            <small>审核通过后才能提交管理方声明；现有规则与现场事实不被覆盖。</small>
+          </div>
         </section>
 
         <StateMessage
