@@ -116,6 +116,17 @@ jobs:
           --target ${{ matrix.tauri_target }}
           --config "$PREVIEW_CONFIG"
 
+      - name: Verify preview endpoint is baked into Consumer bundle
+        shell: bash
+        run: |
+          test -d apps/client-h5/dist
+          if ! grep -R --binary-files=text --fixed-strings "$VITE_TAURI_ANDROID_API_BASE" apps/client-h5/dist >/dev/null; then
+            echo "Expected Android API endpoint was not found in the built Consumer bundle:"
+            echo "  $VITE_TAURI_ANDROID_API_BASE"
+            exit 1
+          fi
+          echo "Verified bundled Android API endpoint: $VITE_TAURI_ANDROID_API_BASE"
+
       - name: Collect and verify preview APK
         id: apk
         shell: bash
@@ -136,11 +147,16 @@ jobs:
           APKSIGNER="${ANDROID_HOME}/build-tools/35.0.0/apksigner"
           AAPT="${ANDROID_HOME}/build-tools/35.0.0/aapt"
           "$APKSIGNER" verify --verbose "$OUT"
+          "$APKSIGNER" verify --print-certs "$OUT" | tee PREVIEW_SIGNER_CERTS.txt
 
-          BADGING="$("$AAPT" dump badging "$OUT" | head -1)"
-          echo "$BADGING"
+          BADGING="$("$AAPT" dump badging "$OUT")"
+          echo "$BADGING" | head -5
           echo "$BADGING" | grep -q "name='com.petaccess.map.preview'" || {
             echo "Preview package id mismatch"
+            exit 1
+          }
+          echo "$BADGING" | grep -Fq "application-label:'PetAccess Preview'" || {
+            echo "Preview application label mismatch"
             exit 1
           }
 
@@ -173,6 +189,7 @@ jobs:
           path: |
             ${{ steps.apk.outputs.apk }}
             SHA256SUMS.txt
+            PREVIEW_SIGNER_CERTS.txt
             PREVIEW_METADATA.txt
           if-no-files-found: error
           retention-days: 14
