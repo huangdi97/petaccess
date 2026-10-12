@@ -57,9 +57,10 @@ def check_serial(serial: str) -> str:
     """Validate a serial before it is used in any adb command."""
     if not serial:
         raise ValueError("serial must not be empty")
-    if serial in FORBIDDEN_SERIALS and os.environ.get(
-        "PETACCESS_ANDROID_ALLOW_FORBIDDEN_SERIAL"
-    ) != "1":
+    if (
+        serial in FORBIDDEN_SERIALS
+        and os.environ.get("PETACCESS_ANDROID_ALLOW_FORBIDDEN_SERIAL") != "1"
+    ):
         raise AdbError(f"serial {serial} is owned by another agent and is off-limits")
     return serial
 
