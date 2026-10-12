@@ -1,7 +1,7 @@
 """M3 Android FAST — 复用现有 acceptance 工具链的 self-healing adb。
 
-执行：确保 App 运行 → CDP 探测 Home/Search/Nav（真实 DOM）→ 截图归档。
-uses own serial emulator-5556；adb 调用全部走 scripts/android_acceptance/adb.py。
+执行：确保 App 运行 → CDP 探测核心 Consumer 页面（真实 DOM）→ 系统 Back → 逐页截图归档。
+设备 serial / package 可由环境变量覆盖；adb 调用全部走 scripts/android_acceptance/adb.py。
 """
 
 from __future__ import annotations
@@ -17,6 +17,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "scripts" / "android_acceptance"))
 
 from adb import (  # noqa: E402
+    DEFAULT_SERIAL,
     adb,
     adb_binary,
     shell,
@@ -24,7 +25,7 @@ from adb import (  # noqa: E402
     wait_for_device,
 )
 
-SERIAL = os.environ.get("PETACCESS_ANDROID_SERIAL", "emulator-5556")
+SERIAL = os.environ.get("PETACCESS_ANDROID_SERIAL", DEFAULT_SERIAL)
 PKG = os.environ.get("PETACCESS_ANDROID_PACKAGE", "com.petaccess.map")
 SHOT_DIR = ROOT / "artifacts" / "ui-audit" / "android"
 PROBE = ROOT / "scripts" / "android_acceptance" / "cdp_probe.cjs"
