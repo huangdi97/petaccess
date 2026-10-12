@@ -186,23 +186,61 @@ const { desktop: isDesktop } = useBreakpoint();
             >{{ choiceCount }}</span
           >
 
-          <StateMessage
+          <section
             v-if="!placeId"
-            kind="PARTIAL"
+            class="contribute-start"
             data-testid="contribute-needs-place"
-            description="现场贡献绑定到具体场所与区域。先在搜索或地图里选定一个场所，再从该场所发起。"
+            aria-labelledby="contribute-start-title"
           >
-            <template #action>
+            <div class="contribute-start__hero">
+              <p class="contribute-start__kicker">现场贡献</p>
+              <h2 id="contribute-start-title">先选一个场所，再补充你刚刚知道的事实。</h2>
+              <p class="muted contribute-start__intro">
+                规则线索、现场动物、工作人员处理、相关设施和场所纠错都从具体地点开始；提交内容会先进入人工核验。
+              </p>
               <div class="contribute-needs-place-actions">
                 <RouterLink class="btn primary" to="/search" data-testid="contribute-go-search">
-                  去搜索场所
+                  搜索场所
                 </RouterLink>
-                <RouterLink class="btn" to="/map" data-testid="contribute-go-map"
-                  >看地图</RouterLink
-                >
+                <RouterLink class="btn" to="/map" data-testid="contribute-go-map">
+                  从地图选择
+                </RouterLink>
               </div>
-            </template>
-          </StateMessage>
+            </div>
+
+            <div class="contribute-start__facts" aria-label="可以补充的事实">
+              <div class="contribute-start__section-head">
+                <h3>你可以补充什么</h3>
+                <span class="muted">一次只提交一类事实，更容易核验。</span>
+              </div>
+              <ul class="contribute-start__fact-list">
+                <li>
+                  <strong>规则线索</strong>
+                  <span>规则牌、公告或工作人员说明</span>
+                </li>
+                <li>
+                  <strong>现场动物</strong>
+                  <span>看到什么动物、在哪里、什么时间</span>
+                </li>
+                <li>
+                  <strong>工作人员处理</strong>
+                  <span>现场如何提示、引导或要求</span>
+                </li>
+                <li>
+                  <strong>动物相关设施</strong>
+                  <span>宠物区、饮水点、临时安置等</span>
+                </li>
+                <li>
+                  <strong>场所纠错</strong>
+                  <span>名称、地址或场所状态有误</span>
+                </li>
+              </ul>
+            </div>
+
+            <p class="contribute-start__boundary">
+              一次现场观察不会自动变成正式准入规则；工作人员处理也不等于运营方政策。
+            </p>
+          </section>
 
           <SkeletonList v-else-if="contextLoading" :rows="4" />
           <StateMessage
@@ -425,11 +463,113 @@ const { desktop: isDesktop } = useBreakpoint();
     background: var(--pa-color-surface-raised);
   }
 }
+.contribute-start {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-6);
+}
+
+.contribute-start__hero {
+  padding: var(--pa-space-5);
+  border-radius: calc(var(--pa-radius-md) + 2px);
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--pa-color-accent-weak) 82%, var(--pa-color-surface)) 0%,
+      var(--pa-color-surface-raised) 72%
+    );
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.contribute-start__kicker {
+  margin: 0 0 var(--pa-space-2);
+  font-size: var(--pa-font-size-sm);
+  font-weight: var(--pa-font-weight-650);
+  letter-spacing: var(--pa-letter-spacing-wide);
+  color: var(--pa-color-accent);
+}
+
+.contribute-start__hero h2 {
+  max-width: 560px;
+  margin: 0;
+  font-size: var(--pa-font-size-2xl);
+  line-height: var(--pa-line-height-32);
+  color: var(--pa-color-text-primary);
+  text-wrap: balance;
+}
+
+.contribute-start__intro {
+  max-width: 620px;
+  margin: var(--pa-space-2) 0 0;
+  line-height: var(--pa-line-height-23);
+}
+
 .contribute-needs-place-actions {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: var(--pa-space-2);
+  margin-top: var(--pa-space-4);
+}
+
+.contribute-start__facts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-3);
+}
+
+.contribute-start__section-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--pa-space-3);
+}
+
+.contribute-start__section-head h3 {
+  margin: 0;
+  font-size: var(--pa-font-size-lg);
+  color: var(--pa-color-text-primary);
+}
+
+.contribute-start__fact-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--pa-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.contribute-start__fact-list li {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--pa-space-1);
+  padding: var(--pa-space-3);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: var(--pa-radius-md);
+  background: var(--pa-color-surface);
+}
+
+.contribute-start__fact-list strong {
+  color: var(--pa-color-text-primary);
+  font-size: var(--pa-font-size-md);
+}
+
+.contribute-start__fact-list span {
+  color: var(--pa-color-text-secondary);
+  font-size: var(--pa-font-size-sm);
+  line-height: var(--pa-line-height-20);
+}
+
+.contribute-start__boundary {
+  margin: 0;
+  padding: var(--pa-space-3) var(--pa-space-4);
+  border-left: 3px solid var(--pa-color-accent);
+  background: var(--pa-color-surface-muted);
+  color: var(--pa-color-text-secondary);
+  font-size: var(--pa-font-size-sm);
+  line-height: var(--pa-line-height-20);
 }
 .contribute-workspace__notice {
   margin-top: var(--pa-space-5);
@@ -465,6 +605,24 @@ const { desktop: isDesktop } = useBreakpoint();
   .contribute-workspace__main {
     padding: var(--pa-space-4);
     border-radius: var(--pa-radius-md);
+  }
+
+  .contribute-start {
+    gap: var(--pa-space-4);
+  }
+
+  .contribute-start__hero {
+    padding: var(--pa-space-4);
+  }
+
+  .contribute-start__section-head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--pa-space-1);
+  }
+
+  .contribute-start__fact-list {
+    grid-template-columns: 1fr;
   }
 }
 </style>
