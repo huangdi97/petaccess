@@ -153,8 +153,7 @@ def check_consumer_runtime_boundary() -> list[dict]:
                     "path": ".github/workflows/android-preview.yml",
                     "severity": "FAIL",
                     "detail": (
-                        "Android Preview CI must explicitly install API 36 and "
-                        "Build Tools 36.0.0."
+                        "Android Preview CI must explicitly install API 36 and Build Tools 36.0.0."
                     ),
                 }
             )
