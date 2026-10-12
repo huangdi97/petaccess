@@ -221,10 +221,14 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
   preview-runtime-smoke:
-    name: Android Preview · API 35 runtime smoke
+    name: Android Preview · API ${{ matrix.api_level }} runtime smoke
     needs: preview-apk
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        api_level: [35, 36]
     services:
       postgres:
         image: postgis/postgis:17-3.5
@@ -253,7 +257,7 @@ jobs:
       JWT_SECRET: android_preview_dev_only_placeholder_0123456789
       PETACCESS_ANDROID_PACKAGE: com.petaccess.map.preview
       PETACCESS_ANDROID_ALLOW_FORBIDDEN_SERIAL: "1"
-      PETACCESS_ANDROID_EVIDENCE_DIR: ${{ github.workspace }}/artifacts/android-preview-runtime
+      PETACCESS_ANDROID_EVIDENCE_DIR: ${{ github.workspace }}/artifacts/android-preview-runtime-api${{ matrix.api_level }}
       PREVIEW_APK_DIR: ${{ github.workspace }}/preview-apk
 
     steps:
@@ -319,7 +323,7 @@ jobs:
       - name: Run Preview on API 35 x86_64 emulator
         uses: ReactiveCircus/android-emulator-runner@v2
         with:
-          api-level: 35
+          api-level: ${{ matrix.api_level }}
           target: google_apis
           arch: x86_64
           profile: pixel_5
@@ -339,9 +343,9 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: petaccess-android-preview-runtime-${{ github.sha }}
+          name: petaccess-android-preview-runtime-api${{ matrix.api_level }}-${{ github.sha }}
           path: |
-            artifacts/android-preview-runtime/
+            artifacts/android-preview-runtime-api${{ matrix.api_level }}/
           if-no-files-found: warn
           retention-days: 14
 
@@ -354,9 +358,9 @@ jobs:
             echo
             echo "- Commit: $GITHUB_SHA"
             echo "- Package: com.petaccess.map.preview"
-            echo "- Emulator: API 35 / x86_64 / Pixel 5 profile"
+            echo "- Emulator: API ${{ matrix.api_level }} / x86_64 / Pixel 5 profile"
             echo "- Backend: seeded petaccess_e2e on runner port 8000"
             echo "- Runtime gate: FAST + 21-case / 19-router-page CDP semantic journey"
             echo "- Human review board: ANDROID_RUNTIME_REVIEW_BOARD.html (inside runtime artifact)"
-            echo "- Evidence artifact: petaccess-android-preview-runtime-$GITHUB_SHA"
+            echo "- Evidence artifact: petaccess-android-preview-runtime-api${{ matrix.api_level }}-$GITHUB_SHA"
           } >> "$GITHUB_STEP_SUMMARY"
