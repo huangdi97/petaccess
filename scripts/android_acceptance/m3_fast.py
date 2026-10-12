@@ -33,6 +33,12 @@ SHOT_DIR = Path(
         str(ROOT / "artifacts" / "ui-audit" / "android"),
     )
 )
+EVIDENCE_ROOT = Path(
+    os.environ.get(
+        "PETACCESS_ANDROID_EVIDENCE_DIR",
+        str(ROOT / "artifacts" / "android_acceptance"),
+    )
+)
 PROBE = ROOT / "scripts" / "android_acceptance" / "cdp_probe.cjs"
 
 
@@ -116,6 +122,50 @@ def main() -> int:
     except Exception as e:  # noqa: BLE001
         results["nav"] = f"ERROR {e}"
 
+    # Packaged-runtime resilience: the app shell must show a real offline state
+    # and clear it after recovery. These events exercise the mounted Tauri
+    # WebView, not a desktop-H5 test double.
+    try:
+        offline_state = cdp_probe(pid, "offline")
+        results["offline"] = offline_state
+        if '"offlineBanner":true' not in offline_state.replace(" ", ""):
+            raise RuntimeError(f"offline banner did not appear: {offline_state}")
+        results["shot_offline"] = f"bytes={screenshot('offline-banner-m3-final')}"
+    except Exception as e:  # noqa: BLE001
+        results["offline"] = f"ERROR {e}"
+
+    try:
+        recovery_state = cdp_probe(pid, "recovery")
+        results["recovery"] = recovery_state
+        if '"offlineBanner":false' not in recovery_state.replace(" ", ""):
+            raise RuntimeError(f"offline banner did not clear: {recovery_state}")
+        results["shot_recovery"] = f"bytes={screenshot('online-recovery-m3-final')}"
+    except Exception as e:  # noqa: BLE001
+        results["recovery"] = f"ERROR {e}"
+
+    # Android lifecycle contract: leaving the activity for Home and reopening
+    # it must restore a valid Consumer surface instead of a blank WebView or
+    # horizontal-overflow layout. NAV above deliberately leaves us on Home.
+    try:
+        shell(SERIAL, "input", "keyevent", "KEYCODE_HOME", timeout=30)
+        time.sleep(1.5)
+        shell(SERIAL, "am", "start", "-n", f"{PKG}/.MainActivity", timeout=30)
+        time.sleep(2.5)
+        resumed_pid = shell_pidof(SERIAL, PKG)
+        if not resumed_pid:
+            raise RuntimeError("app process missing after activity resume")
+        pid = resumed_pid
+        resumed_state = cdp_probe(pid, "snapshot")
+        results["activity_resume"] = resumed_state
+        compact = resumed_state.replace(" ", "")
+        if '"shell":true' not in compact:
+            raise RuntimeError(f"Consumer shell missing after activity resume: {resumed_state}")
+        if '"horizontalOverflow":true' in compact:
+            raise RuntimeError(f"horizontal overflow after activity resume: {resumed_state}")
+        results["shot_activity_resume"] = f"bytes={screenshot('activity-resume-m3-final')}"
+    except Exception as e:  # noqa: BLE001
+        results["activity_resume"] = f"ERROR {e}"
+
     failures = {
         key: value
         for key, value in results.items()
@@ -123,7 +173,11 @@ def main() -> int:
     }
     results["result"] = "FAIL" if failures else "PASS"
     results["failure_count"] = len(failures)
-    print(json.dumps(results, ensure_ascii=False, indent=1))
+    payload = json.dumps(results, ensure_ascii=False, indent=1)
+    runtime_dir = EVIDENCE_ROOT / "runtime"
+    runtime_dir.mkdir(parents=True, exist_ok=True)
+    (runtime_dir / "m3_fast.json").write_text(payload + "\n", encoding="utf-8")
+    print(payload)
     return 1 if failures else 0
 
 
