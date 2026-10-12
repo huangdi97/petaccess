@@ -12,8 +12,7 @@ const path = require("node:path");
 const CDP = process.env.PETACCESS_ANDROID_CDP ?? "http://127.0.0.1:9223";
 const ROOT = path.resolve(__dirname, "..", "..");
 const EVIDENCE_ROOT =
-  process.env.PETACCESS_ANDROID_EVIDENCE_DIR ??
-  path.join(ROOT, "artifacts", "android_acceptance");
+  process.env.PETACCESS_ANDROID_EVIDENCE_DIR ?? path.join(ROOT, "artifacts", "android_acceptance");
 const RUNTIME_DIR = path.join(EVIDENCE_ROOT, "runtime");
 const SCREENSHOT_DIR = path.join(EVIDENCE_ROOT, "screenshots");
 const OUT = path.join(RUNTIME_DIR, "cdp_journey_playwright.json");
@@ -111,8 +110,7 @@ async function main() {
           scrollWidth: root?.scrollWidth ?? body?.scrollWidth ?? 0,
           scrollHeight: root?.scrollHeight ?? body?.scrollHeight ?? 0,
         },
-        horizontalOverflow:
-          (root?.scrollWidth ?? body?.scrollWidth ?? 0) > window.innerWidth + 1,
+        horizontalOverflow: (root?.scrollWidth ?? body?.scrollWidth ?? 0) > window.innerWidth + 1,
         text: body?.innerText.slice(0, 1600) ?? "",
       };
     });
@@ -125,10 +123,7 @@ async function main() {
       routeError ??= `horizontal overflow ${snapshot.document.scrollWidth} > ${snapshot.viewport.width}`;
     }
 
-    const shot = path.join(
-      SCREENSHOT_DIR,
-      `phoneM__${safeName(route.name)}__${route.tag}.png`,
-    );
+    const shot = path.join(SCREENSHOT_DIR, `phoneM__${safeName(route.name)}__${route.tag}.png`);
     await page.screenshot({ path: shot });
 
     const row = {
