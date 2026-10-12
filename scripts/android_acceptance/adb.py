@@ -18,6 +18,7 @@ commands therefore retry briefly instead of failing a whole scenario.
 from __future__ import annotations
 
 import os
+import shutil
 import subprocess
 import time
 from pathlib import Path
@@ -29,14 +30,22 @@ HARDCODED_ADB = r"C:\Android\adb.exe"
 
 
 def _sdk_adb_candidates() -> list[Path]:
-    """Resolve the SDK adb from the environment first, hardcoded path as
-    fallback — the fixed C: path predates machines where the SDK lives
-    elsewhere (e.g. ANDROID_HOME=D:\\Code\\Android\\SDK)."""
+    """Resolve platform-tools adb without falling back to unsafe Windows PATH entries."""
     home = os.environ.get("ANDROID_HOME") or os.environ.get("ANDROID_SDK_ROOT")
+    executable = "adb.exe" if os.name == "nt" else "adb"
     cands: list[Path] = []
     if home:
-        cands.append(Path(home) / "platform-tools" / "adb.exe")
-    cands.append(SDK_ADB)
+        cands.append(Path(home) / "platform-tools" / executable)
+
+    if os.name == "nt":
+        # Keep the known-good SDK fallback ahead of PATH on Windows. The host
+        # may also contain C:\\Android\\adb.exe 1.0.32, which the runbook
+        # explicitly forbids because it churns the shared adb server.
+        cands.append(SDK_ADB)
+    else:
+        path_adb = shutil.which("adb")
+        if path_adb:
+            cands.append(Path(path_adb))
     return cands
 
 
