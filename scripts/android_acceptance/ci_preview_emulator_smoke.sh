@@ -48,14 +48,34 @@ python scripts/android_acceptance/m3_fast.py
 adb -s "$SERIAL" shell am start -n "$PACKAGE/.MainActivity" >/dev/null
 
 CDP_READY=0
-for _ in $(seq 1 40); do
+STABLE_PID=""
+STABLE_COUNT=0
+READY_LOG="$EVIDENCE_ROOT/runtime/post-fast-cdp-ready.log"
+: > "$READY_LOG"
+
+# /json becoming reachable is not enough: after Activity recreation the old
+# WebView target can remain listed briefly while its websocket is already
+# closing. Require two consecutive real Runtime.evaluate snapshots from the
+# same process before launching the full journey.
+for _ in $(seq 1 60); do
   PID="$(adb -s "$SERIAL" shell pidof "$PACKAGE" | tr -d '\r\n')"
   if [[ -n "$PID" ]]; then
     adb -s "$SERIAL" forward --remove tcp:9223 >/dev/null 2>&1 || true
     if adb -s "$SERIAL" forward tcp:9223 "localabstract:webview_devtools_remote_$PID" >/dev/null 2>&1; then
-      if curl -fsS http://127.0.0.1:9223/json >/dev/null 2>&1; then
-        CDP_READY=1
-        break
+      if node scripts/android_acceptance/cdp_probe.cjs 9223 snapshot >>"$READY_LOG" 2>&1; then
+        if [[ "$PID" == "$STABLE_PID" ]]; then
+          STABLE_COUNT=$((STABLE_COUNT + 1))
+        else
+          STABLE_PID="$PID"
+          STABLE_COUNT=1
+        fi
+        if [[ "$STABLE_COUNT" -ge 2 ]]; then
+          CDP_READY=1
+          break
+        fi
+      else
+        STABLE_COUNT=0
+        STABLE_PID="$PID"
       fi
     fi
   fi
@@ -63,7 +83,8 @@ for _ in $(seq 1 40); do
 done
 
 if [[ "$CDP_READY" != "1" ]]; then
-  echo "Preview WebView did not become debuggable after FAST relaunch"
+  echo "Preview WebView did not reach two stable CDP snapshots after FAST relaunch"
+  tail -80 "$READY_LOG" || true
   adb -s "$SERIAL" shell dumpsys activity activities | tail -120 || true
   exit 1
 fi
