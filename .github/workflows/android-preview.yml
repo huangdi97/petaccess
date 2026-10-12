@@ -1,0 +1,141 @@
+name: Android Preview APK
+
+on:
+  push:
+    branches:
+      - feat/ui-direct-craft-v8
+    paths:
+      - "apps/client-h5/**"
+      - "packages/client-core/**"
+      - "packages/design-tokens/**"
+      - ".github/workflows/android-preview.yml"
+  workflow_dispatch:
+    inputs:
+      api_base:
+        description: "Android-accessible API base, including /api/v1. Use a LAN/public URL for a real phone."
+        required: false
+        default: "http://10.0.2.2:8000/api/v1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-preview-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  preview-apk:
+    name: ARM64 debug preview APK
+    runs-on: ubuntu-latest
+    env:
+      VITE_TAURI_ANDROID_API_BASE: ${{ github.event.inputs.api_base || vars.PETACCESS_PREVIEW_ANDROID_API_BASE || 'http://10.0.2.2:8000/api/v1' }}
+      VITE_APP_VERSION: "preview-${{ github.sha }}"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.4.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Install Rust Android target
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android
+
+      - name: Set up Android SDK
+        shell: bash
+        run: |
+          SDK="${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}"
+          if [ -x "$SDK/cmdline-tools/latest/bin/sdkmanager" ]; then
+            SDKMGMT="$SDK/cmdline-tools/latest/bin/sdkmanager"
+          elif [ -x "$SDK/cmdline-tools/16.0/bin/sdkmanager" ]; then
+            SDKMGMT="$SDK/cmdline-tools/16.0/bin/sdkmanager"
+          else
+            echo "sdkmanager not found in $SDK"
+            exit 1
+          fi
+          echo "ANDROID_HOME=$SDK" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK" >> "$GITHUB_ENV"
+          yes | "$SDKMGMT" --licenses >/dev/null 2>&1 || true
+          "$SDKMGMT" --install             "platform-tools"             "platforms;android-35"             "build-tools;35.0.0"             "ndk;27.1.12297006"
+          echo "NDK_HOME=$SDK/ndk/27.1.12297006" >> "$GITHUB_ENV"
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            apps/client-h5/src-tauri/target
+          key: cargo-android-preview-${{ hashFiles('apps/client-h5/src-tauri/Cargo.lock') }}
+
+      - name: Validate preview API endpoint
+        shell: bash
+        run: |
+          case "$VITE_TAURI_ANDROID_API_BASE" in
+            http://*/api/v1|https://*/api/v1) ;;
+            *)
+              echo "VITE_TAURI_ANDROID_API_BASE must be an http(s) URL ending in /api/v1"
+              exit 1
+              ;;
+          esac
+
+      - name: Initialize generated Android project
+        run: pnpm --filter @petaccess/client-h5 exec tauri android init
+
+      - name: Build ARM64 debug APK
+        run: pnpm --filter @petaccess/client-h5 exec tauri android build --debug --apk --target aarch64
+
+      - name: Collect and verify preview APK
+        shell: bash
+        run: |
+          APK="$(find apps/client-h5/src-tauri/gen/android -type f -name '*debug*.apk' | head -1)"
+          if [ -z "$APK" ] || [ ! -f "$APK" ]; then
+            echo "debug APK not found"
+            find apps/client-h5/src-tauri/gen/android -type f -name '*.apk' -print || true
+            exit 1
+          fi
+
+          OUT="PetAccess-preview-arm64-debug.apk"
+          cp "$APK" "$OUT"
+
+          APKSIGNER="${ANDROID_HOME}/build-tools/35.0.0/apksigner"
+          "$APKSIGNER" verify --verbose "$OUT"
+          sha256sum "$OUT" > SHA256SUMS.txt
+
+          {
+            echo "PetAccess Android Preview"
+            echo "commit=${GITHUB_SHA}"
+            echo "branch=${GITHUB_REF_NAME}"
+            echo "api_base=${VITE_TAURI_ANDROID_API_BASE}"
+            echo "abi=aarch64"
+            echo "build=debug"
+            echo "package=com.petaccess.map"
+            echo
+            echo "This is a debug preview artifact, not a production release."
+            echo "For a physical phone, api_base must be reachable from that phone."
+            echo "The default 10.0.2.2 endpoint is Android-emulator-only."
+          } > PREVIEW_METADATA.txt
+
+      - name: Upload installable preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: petaccess-android-preview-${{ github.sha }}
+          path: |
+            PetAccess-preview-arm64-debug.apk
+            SHA256SUMS.txt
+            PREVIEW_METADATA.txt
+          if-no-files-found: error
+          retention-days: 7
