@@ -42,7 +42,10 @@ def _host_port_ready(port: int) -> bool:
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Install PetAccess Preview over USB, reverse the API port, then run Android FAST."
+        description=(
+            "Install PetAccess Preview over USB, reverse the API port, "
+            "then run Android FAST."
+        )
     )
     parser.add_argument("--apk", type=Path, required=True, help="Preview debug APK path")
     parser.add_argument(
