@@ -356,6 +356,7 @@ const { desktop: isDesktop } = useBreakpoint();
 }
 .contribute-workspace__main {
   flex: 1 1 auto;
+  width: 100%;
   min-width: 0;
   max-width: 700px;
   padding: var(--pa-space-5);
@@ -363,6 +364,7 @@ const { desktop: isDesktop } = useBreakpoint();
   border-radius: calc(var(--pa-radius-md) + 2px);
   background: var(--pa-color-surface-raised);
   box-shadow: var(--pa-elevation-1);
+  box-sizing: border-box;
 }
 /* §15/§16 secondary context rail：240–300px，只放真实上下文。 */
 .contribute-workspace__context {
@@ -444,5 +446,25 @@ const { desktop: isDesktop } = useBreakpoint();
   margin: var(--pa-space-4) 0 0;
   font-size: var(--pa-font-size-sm);
   color: var(--pa-color-text-secondary);
+}
+
+@media (max-width: 620px) {
+  .contribute-workspace__body {
+    max-width: 100%;
+    padding: var(--pa-space-3);
+    box-sizing: border-box;
+  }
+
+  .contribute-workspace__layout,
+  .contribute-workspace__main {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .contribute-workspace__main {
+    padding: var(--pa-space-4);
+    border-radius: var(--pa-radius-md);
+  }
 }
 </style>
