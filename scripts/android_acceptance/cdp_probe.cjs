@@ -5,7 +5,7 @@
  *   node cdp_probe.cjs <adb-forward-port> <action>
  *
  * Actions:
- *   home / search / map / place / reality / evidence / offline / recovery / nav
+ *   home / search / map / place / reality / evidence / snapshot / offline / recovery / nav
  *
  * The probe reports the canonical Consumer page/state/fixture plus horizontal
  * overflow. It never treats a screenshot alone as proof that the expected
@@ -140,6 +140,12 @@ async function main() {
     await logRoute("REALITY", `#/place/${PLACE_ID}/reality`, "reality", 2600);
   } else if (action === "evidence") {
     await logRoute("EVIDENCE", `#/place/${PLACE_ID}/evidence`, "evidence", 2600);
+  } else if (action === "snapshot") {
+    const value = await snapshot();
+    if (!value.shell || value.horizontalOverflow) {
+      throw new Error(`SNAPSHOT invalid state: ${JSON.stringify(value)}`);
+    }
+    console.log(`SNAPSHOT ${JSON.stringify(value)}`);
   } else if (action === "offline") {
     await run(`window.dispatchEvent(new Event("offline"))`);
     await sleep(600);
