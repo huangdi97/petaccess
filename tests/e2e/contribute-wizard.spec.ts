@@ -101,7 +101,9 @@ test("A1.mobile — authenticated contribution chooser never overflows phone vie
       `contribution chooser page overflow at ${width}px`,
     ).toBeLessThanOrEqual(layout.viewportWidth + 1);
     for (const button of layout.buttons) {
-      expect(button.left, `choice starts outside viewport at ${width}px`).toBeGreaterThanOrEqual(-1);
+      expect(button.left, `choice starts outside viewport at ${width}px`).toBeGreaterThanOrEqual(
+        -1,
+      );
       expect(button.right, `choice ends outside viewport at ${width}px`).toBeLessThanOrEqual(
         layout.viewportWidth + 1,
       );
