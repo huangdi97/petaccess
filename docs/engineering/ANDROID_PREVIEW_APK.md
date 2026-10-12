@@ -130,8 +130,15 @@ workflow 还必须：
 Preview APK 只证明“候选安装包已生成并经过 package/signature 检查”。它**不替代**：
 
 - Android FAST semantic gate；
-- 13-route CDP journey；
+- 13-route WebView page-level CDP journey；
 - Evidence → 系统 Back → Reality；
-- 多尺寸 / 生命周期 / 网络矩阵；
+- packaged WebView 离线提示 → 恢复；
+- Activity Home/Resume 后 Consumer shell 与横向 overflow gate；
+- 多尺寸矩阵；
 - Human Visual Acceptance；
 - 正式 signed Release / 商店审核。
+
+当前 CI 的 Android CDP 旅程直接连接 Android System WebView 暴露的 page target，
+而不是把该 target 当成完整桌面 Chromium browser context。这样既保留真实 DOM / route /
+screenshot 证据，也避免 Playwright `connectOverCDP()` 在 WebView 上发送仅浏览器上下文支持的
+Browser-domain 命令导致假失败。
