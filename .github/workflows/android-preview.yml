@@ -346,6 +346,7 @@ jobs:
             echo "- Package: com.petaccess.map.preview"
             echo "- Emulator: API 35 / x86_64 / Pixel 5 profile"
             echo "- Backend: seeded petaccess_e2e on runner port 8000"
-            echo "- Runtime gate: FAST + 13-route CDP semantic journey"
+            echo "- Runtime gate: FAST + 21-case / 19-router-page CDP semantic journey"
+            echo "- Human review board: ANDROID_RUNTIME_REVIEW_BOARD.html (inside runtime artifact)"
             echo "- Evidence artifact: petaccess-android-preview-runtime-$GITHUB_SHA"
           } >> "$GITHUB_STEP_SUMMARY"
