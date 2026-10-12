@@ -5,6 +5,7 @@ owned serial; never uninstalls anything outside this AVD.
 """
 
 import json
+import os
 import re
 import sys
 import time
@@ -15,7 +16,7 @@ sys.path.insert(0, r"E:\AI\宠物管理")
 from scripts.android_acceptance import appops  # noqa: E402
 from scripts.android_acceptance.adb import wait_for_device  # noqa: E402
 
-SERIAL = "emulator-5562"
+SERIAL = os.environ.get("PETACCESS_ANDROID_SERIAL", "emulator-5562")
 V010 = r"E:\AI\宠物管理\artifacts\v0.1.0\PetAccess_0.1.0-android-universal.apk"
 CURRENT = (
     r"C:\Users\Kaiser\.pi-desktop"
@@ -25,6 +26,11 @@ EVIDENCE = Path(r"E:\AI\宠物管理\artifacts\android_acceptance\upgrade")
 
 
 def main() -> int:
+    if appops.PACKAGE != "com.petaccess.map":
+        raise RuntimeError(
+            "upgrade_test.py is release-only; Preview uses an isolated application id "
+            "and must not be treated as an upgrade of com.petaccess.map"
+        )
     wait_for_device(SERIAL, timeout=180)
     EVIDENCE.mkdir(parents=True, exist_ok=True)
     steps: list[dict] = []
