@@ -1,19 +1,28 @@
 /**
- * Android FAST 验证 - 通过 CDP 连接 Android WebView（debug APK）。
- * 用法: node android_cdp_probe.mjs <adb-port> <expr-or-action>
- * actions: home / search / map / offline / recovery / nav-home / nav-map / nav-contribute / nav-mine
+ * Android FAST semantic probe through the debug Tauri WebView CDP socket.
+ *
+ * Usage:
+ *   node cdp_probe.cjs <adb-forward-port> <action>
+ *
+ * Actions:
+ *   home / search / map / place / reality / evidence / offline / recovery / nav
+ *
+ * The probe reports the canonical Consumer page/state/fixture plus horizontal
+ * overflow. It never treats a screenshot alone as proof that the expected
+ * product surface actually rendered.
  */
 const http = require("node:http");
 
 const port = process.argv[2] ?? "9223";
 const action = process.argv[3] ?? "home";
+const PLACE_ID = "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e";
 
 function getJson(path) {
   return new Promise((resolve, reject) => {
     http
       .get({ host: "127.0.0.1", port, path, timeout: 5000 }, (res) => {
         let data = "";
-        res.on("data", (c) => (data += c));
+        res.on("data", (chunk) => (data += chunk));
         res.on("end", () => resolve(JSON.parse(data)));
       })
       .on("error", reject);
@@ -22,98 +31,134 @@ function getJson(path) {
 
 async function main() {
   const targets = await getJson("/json");
-  const page = targets.find((t) => t.type === "page") ?? targets[0];
+  const page = targets.find((target) => target.type === "page") ?? targets[0];
+  if (!page?.webSocketDebuggerUrl) throw new Error("no debuggable WebView page");
+
   const ws = new WebSocket(page.webSocketDebuggerUrl);
   let id = 0;
   const pending = new Map();
-  ws.onmessage = (ev) => {
-    const msg = JSON.parse(ev.data);
-    if (msg.id && pending.has(msg.id)) {
-      pending.get(msg.id)(msg);
-      pending.delete(msg.id);
+
+  ws.onmessage = (event) => {
+    const message = JSON.parse(event.data);
+    if (message.id && pending.has(message.id)) {
+      pending.get(message.id)(message);
+      pending.delete(message.id);
     }
   };
+
   const send = (method, params = {}) =>
     new Promise((resolve) => {
       id += 1;
       pending.set(id, resolve);
       ws.send(JSON.stringify({ id, method, params }));
     });
-  await new Promise((res) => (ws.onopen = res));
 
-  const expr = `JSON.stringify({
-    url: location.href,
-    title: document.title,
-    shell: !!document.querySelector('[data-testid=consumer-app-shell]'),
-    offlineBanner: !!document.querySelector('[data-testid=global-offline-banner]'),
-    homeTitle: !!document.querySelector('[data-testid=home-title]'),
-    searchInput: !!document.querySelector('[data-testid=search-input]'),
-    mapShell: !!document.querySelector('[data-testid=map]'),
-    errorState: !!document.querySelector('[data-state=ERROR]'),
-    results: document.querySelectorAll('[data-testid^=result-]').length,
-  })`;
+  await new Promise((resolve) => (ws.onopen = resolve));
 
   const run = async (expression) => {
-    const r = await send("Runtime.evaluate", {
+    const response = await send("Runtime.evaluate", {
       expression,
       returnByValue: true,
       awaitPromise: true,
     });
-    if (r.result?.exceptionDetails) {
-      return { error: r.result.exceptionDetails.text };
+    if (response.result?.exceptionDetails) {
+      throw new Error(response.result.exceptionDetails.text);
     }
-    return JSON.parse(r.result.result.value);
+    return response.result.result.value;
   };
 
-  const log = (label, v) => console.log(`${label} ${JSON.stringify(v)}`);
+  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  async function go(hash, delay = 1800) {
+    await run(`location.hash = ${JSON.stringify(hash)}`);
+    await sleep(delay);
+  }
+
+  async function snapshot() {
+    return JSON.parse(
+      await run(`JSON.stringify((() => {
+        const surface = document.querySelector("[data-ui-page]");
+        const root = document.documentElement;
+        const body = document.body;
+        return {
+          url: location.href,
+          title: document.title,
+          shell: !!document.querySelector("[data-testid=consumer-app-shell]"),
+          uiPage: surface?.getAttribute("data-ui-page") ?? null,
+          uiState: surface?.getAttribute("data-ui-state") ?? null,
+          uiFixture: surface?.getAttribute("data-ui-fixture") ?? null,
+          offlineBanner: !!document.querySelector("[data-testid=global-offline-banner]"),
+          errorState: !!document.querySelector("[data-state=ERROR]"),
+          results: document.querySelectorAll("[data-testid^=result-]").length,
+          viewportWidth: window.innerWidth,
+          scrollWidth: root?.scrollWidth ?? body?.scrollWidth ?? 0,
+          horizontalOverflow:
+            (root?.scrollWidth ?? body?.scrollWidth ?? 0) > window.innerWidth + 1,
+          textSample: body?.innerText.slice(0, 500) ?? "",
+        };
+      })())`),
+    );
+  }
+
+  async function logRoute(label, hash, expectedPage, delay = 1800) {
+    await go(hash, delay);
+    const value = await snapshot();
+    if (!value.shell) throw new Error(`${label}: Consumer shell missing`);
+    if (value.uiPage !== expectedPage) {
+      throw new Error(`${label}: expected data-ui-page=${expectedPage}, got ${value.uiPage}`);
+    }
+    if (value.horizontalOverflow) {
+      throw new Error(
+        `${label}: horizontal overflow ${value.scrollWidth} > ${value.viewportWidth}`,
+      );
+    }
+    console.log(`${label} ${JSON.stringify(value)}`);
+  }
 
   if (action === "home") {
-    await send("Runtime.evaluate", { expression: `location.hash = "#/"` });
-    await new Promise((r) => setTimeout(r, 1200));
-    log("HOME", await run(expr));
+    await logRoute("HOME", "#/", "home");
   } else if (action === "search") {
-    await send("Runtime.evaluate", { expression: `location.hash = "#/search"` });
-    await new Promise((r) => setTimeout(r, 1500));
-    await send("Runtime.evaluate", {
-      expression: `document.querySelector('[data-testid=search-input]').value = "咖啡"`,
-    });
-    await send("Runtime.evaluate", {
-      expression: `document.querySelector('[data-testid=search-btn]').click()`,
-    });
-    await new Promise((r) => setTimeout(r, 2500));
-    log("SEARCH", await run(expr));
-  } else if (action === "offline") {
-    await send("Runtime.evaluate", {
-      expression: `window.dispatchEvent(new Event("offline"))`,
-    });
-    await new Promise((r) => setTimeout(r, 600));
-    log("OFFLINE", await run(expr));
-  } else if (action === "recovery") {
-    await send("Runtime.evaluate", {
-      expression: `window.dispatchEvent(new Event("online"))`,
-    });
-    await new Promise((r) => setTimeout(r, 600));
-    log("RECOVERY", await run(expr));
+    await go("#/search");
+    await run(`(() => {
+      const input = document.querySelector("[data-testid=search-input]");
+      if (!input) throw new Error("search input missing");
+      input.value = "咖啡";
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      document.querySelector("[data-testid=search-btn]")?.click();
+    })()`);
+    await sleep(2500);
+    const value = await snapshot();
+    if (value.uiPage !== "search" || value.horizontalOverflow) {
+      throw new Error(`SEARCH invalid state: ${JSON.stringify(value)}`);
+    }
+    console.log(`SEARCH ${JSON.stringify(value)}`);
+  } else if (action === "map") {
+    await logRoute("MAP", "#/map", "map", 2200);
   } else if (action === "place") {
-    await send("Runtime.evaluate", {
-      expression: `location.hash = "#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e"`,
-    });
-    await new Promise((r) => setTimeout(r, 2500));
-    log("PLACE", await run(expr));
+    await logRoute("PLACE", `#/place/${PLACE_ID}`, "place", 2600);
+  } else if (action === "reality") {
+    await logRoute("REALITY", `#/place/${PLACE_ID}/reality`, "reality", 2600);
+  } else if (action === "evidence") {
+    await logRoute("EVIDENCE", `#/place/${PLACE_ID}/evidence`, "evidence", 2600);
+  } else if (action === "offline") {
+    await run(`window.dispatchEvent(new Event("offline"))`);
+    await sleep(600);
+    console.log(`OFFLINE ${JSON.stringify(await snapshot())}`);
+  } else if (action === "recovery") {
+    await run(`window.dispatchEvent(new Event("online"))`);
+    await sleep(600);
+    console.log(`RECOVERY ${JSON.stringify(await snapshot())}`);
   } else if (action === "nav") {
-    await send("Runtime.evaluate", { expression: `location.hash = "#/map"` });
-    await new Promise((r) => setTimeout(r, 1200));
-    const m = await run(expr);
-    await send("Runtime.evaluate", { expression: `location.hash = "#/"` });
-    await new Promise((r) => setTimeout(r, 1200));
-    const h = await run(expr);
-    log("NAV_MAP", m);
-    log("NAV_HOME", h);
+    await logRoute("NAV_MAP", "#/map", "map");
+    await logRoute("NAV_HOME", "#/", "home");
+  } else {
+    throw new Error(`unknown action: ${action}`);
   }
+
   ws.close();
 }
 
-main().catch((e) => {
-  console.error("FAIL", e.message);
+main().catch((error) => {
+  console.error("FAIL", error.message);
   process.exit(1);
 });
