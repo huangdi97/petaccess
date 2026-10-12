@@ -24,6 +24,11 @@
 - **主工作区路径含 CJK（`E:\AI\宠物管理`）→ AGP 拒绝构建**（`Failed to apply plugin 'com.android.internal.application' > Your project path contains non-ASCII characters...`，b.android.com/95744）。本地 Android 构建一律使用 ASCII worktree：
   `git worktree add D:\pa-<label> <commit>`
 - Windows host 构建 Rust/android 需要 MSVC：在 cmd 内 `call "D:\Code\Visual Studio\Visual Studio\VC\Auxiliary\Build\vcvars64.bat" >nul`。注意：vcvars 输出重定向到**文件**会导致其退出（异常中断），必须 `>nul 2>&1`。
+- Android SDK/签名工具链与 CI 同步固定为 **Platform API 36 + Build Tools 36.0.0 + NDK 27.1.12297006**。本机缺少时先执行：
+  ```
+  sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0" "ndk;27.1.12297006"
+  ```
+  不得依赖 Android Studio 或 CI runner “碰巧已经预装”的 SDK 组件。
 - 构建链（与 CI 等价）：
   ```
   pnpm install --frozen-lockfile
