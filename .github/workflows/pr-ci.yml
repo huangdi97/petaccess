@@ -240,6 +240,7 @@ jobs:
             tests/e2e/place-route-race.spec.ts \
             tests/e2e/public-session-degrade.spec.ts \
             tests/e2e/public-private-session-boundary.spec.ts \
+            tests/e2e/boundary-preferences.spec.ts \
             tests/e2e/reality-trace.spec.ts \
             tests/e2e/watch-domains.spec.ts \
             tests/e2e/contribute-route-race.spec.ts \
