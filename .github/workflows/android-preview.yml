@@ -320,7 +320,7 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: Run Preview on API 35 x86_64 emulator
+      - name: Run Preview on API ${{ matrix.api_level }} x86_64 emulator
         uses: ReactiveCircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api_level }}
