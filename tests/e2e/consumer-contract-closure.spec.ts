@@ -285,3 +285,36 @@ test("C5: indoor/dining ranking requires the matching structured Zone facet", ()
   expect(lensOrderScore("indoor", null, corridorOnly)).toBe(1);
   expect(lensOrderScore("dining", null, corridorOnly)).toBe(0);
 });
+
+// ------------------------------------------------------------------ C6 ---
+
+test("C6: Contribution starts with a place-first factual task, not a dead-end empty card", async ({
+  page,
+}) => {
+  await page.goto("/#/contribute");
+
+  const start = page.getByTestId("contribute-needs-place");
+  await expect(start).toBeVisible();
+  await expect(start).toContainText("先选一个场所，再补充你刚刚知道的事实");
+  await expect(start).toContainText("规则线索");
+  await expect(start).toContainText("现场动物");
+  await expect(start).toContainText("工作人员处理");
+  await expect(start).toContainText("动物相关设施");
+  await expect(start).toContainText("场所纠错");
+  await expect(page.getByTestId("contribute-go-search")).toBeVisible();
+  await expect(page.getByTestId("contribute-go-map")).toBeVisible();
+  await expect(start).toContainText("不会自动变成正式准入规则");
+});
+
+test("C6: signed-out Mine explains value without blocking public browsing", async ({ page }) => {
+  await page.goto("/#/mine");
+
+  const surface = page.getByTestId("mine-public");
+  await expect(surface).toBeVisible();
+  await expect(surface).toContainText("登录后管理你的出行设置");
+  await expect(surface).toContainText("登录后");
+  await expect(surface).toContainText("无需登录也可以");
+  await expect(surface).toContainText("查看规则、现场事实与证据来源");
+  await expect(surface.getByRole("link", { name: "登录 / 注册" })).toBeVisible();
+  await expect(surface.getByRole("link", { name: "继续浏览地图" })).toBeVisible();
+});
