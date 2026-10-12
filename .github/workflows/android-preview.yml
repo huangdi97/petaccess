@@ -105,9 +105,10 @@ jobs:
       - name: Collect and verify preview APK
         shell: bash
         run: |
-          APK="$(find apps/client-h5/src-tauri/gen/android -type f -name '*debug*.apk' | head -1)"
+          APK_ROOT="apps/client-h5/src-tauri/gen/android/app/build/outputs/apk"
+          APK="$(find "$APK_ROOT" -type f -name '*debug*.apk' ! -name '*androidTest*' | head -1)"
           if [ -z "$APK" ] || [ ! -f "$APK" ]; then
-            echo "debug APK not found"
+            echo "debug app APK not found under $APK_ROOT"
             find apps/client-h5/src-tauri/gen/android -type f -name '*.apk' -print || true
             exit 1
           fi
