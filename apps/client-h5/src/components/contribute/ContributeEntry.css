@@ -10,24 +10,31 @@
   margin: var(--pa-space-1) 0 0;
 }
 .entry-options {
-  display: flex;
-  flex-direction: column;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--pa-space-3);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   margin: var(--pa-space-5) 0 0;
   padding: 0;
   list-style: none;
+  box-sizing: border-box;
 }
 /* Canonical transaction row: compact outlined choice, never a pill/card wall. */
 .entry-option {
+  min-width: 0;
+  max-width: 100%;
   border: 0;
 }
 .entry-option__button {
   display: flex;
   align-items: center;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   min-height: 116px;
+  box-sizing: border-box;
   padding: var(--pa-space-4);
   border: var(--pa-border-width) solid var(--pa-color-border-subtle);
   border-radius: var(--pa-radius-md);
@@ -110,9 +117,11 @@
 }
 .entry-option__text {
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
   gap: 2px;
   min-width: 0;
+  overflow: hidden;
 }
 .entry-option__label {
   font-size: var(--pa-font-size-base);
@@ -161,10 +170,34 @@
 
 @media (max-width: 620px) {
   .entry-options {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--pa-space-2);
   }
 
   .entry-option__button {
-    min-height: 88px;
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr) 20px;
+    align-items: center;
+    min-height: 86px;
+    padding: var(--pa-space-3);
+    gap: var(--pa-space-3);
+  }
+
+  .entry-option__label {
+    line-height: 1.45;
+    text-wrap: balance;
+  }
+
+  .entry-option__description {
+    display: -webkit-box;
+    overflow: hidden;
+    white-space: normal;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .entry-option__chevron {
+    margin-left: 0;
+    justify-self: end;
   }
 }
