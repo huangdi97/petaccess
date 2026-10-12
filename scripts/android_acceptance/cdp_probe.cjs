@@ -80,6 +80,14 @@ async function main() {
         const surface = document.querySelector("[data-ui-page]");
         const root = document.documentElement;
         const body = document.body;
+        const insetProbe = document.createElement("div");
+        insetProbe.style.cssText =
+          "position:fixed;visibility:hidden;pointer-events:none;padding-top:env(safe-area-inset-top,0px)";
+        body?.appendChild(insetProbe);
+        const safeAreaTop = Number.parseFloat(getComputedStyle(insetProbe).paddingTop) || 0;
+        insetProbe.remove();
+        const shellMain = document.querySelector(".consumer-app-shell__main");
+        const contentTop = shellMain?.getBoundingClientRect().top ?? 0;
         return {
           url: location.href,
           title: document.title,
@@ -94,6 +102,9 @@ async function main() {
           scrollWidth: root?.scrollWidth ?? body?.scrollWidth ?? 0,
           horizontalOverflow:
             (root?.scrollWidth ?? body?.scrollWidth ?? 0) > window.innerWidth + 1,
+          safeAreaTop,
+          contentTop,
+          safeAreaOverlap: safeAreaTop > 0.5 && contentTop + 0.5 < safeAreaTop,
           textSample: body?.innerText.slice(0, 500) ?? "",
         };
       })())`),
@@ -112,6 +123,11 @@ async function main() {
         `${label}: horizontal overflow ${value.scrollWidth} > ${value.viewportWidth}`,
       );
     }
+    if (value.safeAreaOverlap) {
+      throw new Error(
+        `${label}: content starts at ${value.contentTop}px inside a ${value.safeAreaTop}px top safe area`,
+      );
+    }
     console.log(`${label} ${JSON.stringify(value)}`);
   }
 
@@ -128,7 +144,7 @@ async function main() {
     })()`);
     await sleep(2500);
     const value = await snapshot();
-    if (value.uiPage !== "search" || value.horizontalOverflow) {
+    if (value.uiPage !== "search" || value.horizontalOverflow || value.safeAreaOverlap) {
       throw new Error(`SEARCH invalid state: ${JSON.stringify(value)}`);
     }
     console.log(`SEARCH ${JSON.stringify(value)}`);
@@ -142,7 +158,7 @@ async function main() {
     await logRoute("EVIDENCE", `#/place/${PLACE_ID}/evidence`, "evidence", 2600);
   } else if (action === "snapshot") {
     const value = await snapshot();
-    if (!value.shell || value.horizontalOverflow) {
+    if (!value.shell || value.horizontalOverflow || value.safeAreaOverlap) {
       throw new Error(`SNAPSHOT invalid state: ${JSON.stringify(value)}`);
     }
     console.log(`SNAPSHOT ${JSON.stringify(value)}`);
