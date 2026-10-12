@@ -120,60 +120,110 @@ function getJson(endpointPath) {
 }
 
 async function connectPageTarget() {
-  const targets = await getJson("/json");
-  const target = targets.find((item) => item.type === "page") ?? targets[0];
-  if (!target?.webSocketDebuggerUrl) throw new Error("no debuggable WebView page target");
+  const maxAttempts = 20;
+  let lastError = null;
 
-  const ws = new WebSocket(target.webSocketDebuggerUrl);
-  const pending = new Map();
-  let nextId = 0;
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    let ws = null;
+    try {
+      const targets = await getJson("/json");
+      const target =
+        targets.find(
+          (item) =>
+            item.type === "page" &&
+            typeof item.webSocketDebuggerUrl === "string" &&
+            item.webSocketDebuggerUrl.length > 0,
+        ) ??
+        targets.find(
+          (item) =>
+            typeof item.webSocketDebuggerUrl === "string" &&
+            item.webSocketDebuggerUrl.length > 0,
+        );
 
-  await new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error("CDP websocket open timeout")), 10000);
-    ws.onopen = () => {
-      clearTimeout(timer);
-      resolve();
-    };
-    ws.onerror = () => {
-      clearTimeout(timer);
-      reject(new Error("CDP websocket failed to open"));
-    };
-  });
+      if (!target?.webSocketDebuggerUrl) {
+        throw new Error("no debuggable WebView page target");
+      }
 
-  ws.onmessage = (event) => {
-    const message = JSON.parse(event.data);
-    if (!message.id || !pending.has(message.id)) return;
-    const { resolve, reject, timer } = pending.get(message.id);
-    clearTimeout(timer);
-    pending.delete(message.id);
-    if (message.error) {
-      reject(new Error(`${message.error.message} (${message.error.code})`));
-      return;
+      ws = new WebSocket(target.webSocketDebuggerUrl);
+      await new Promise((resolve, reject) => {
+        const timer = setTimeout(
+          () => reject(new Error("CDP websocket open timeout")),
+          3000,
+        );
+        ws.onopen = () => {
+          clearTimeout(timer);
+          resolve();
+        };
+        ws.onerror = () => {
+          clearTimeout(timer);
+          reject(new Error("CDP websocket failed to open"));
+        };
+      });
+
+      const pending = new Map();
+      let nextId = 0;
+
+      ws.onmessage = (event) => {
+        const message = JSON.parse(event.data);
+        if (!message.id || !pending.has(message.id)) return;
+        const { resolve, reject, timer } = pending.get(message.id);
+        clearTimeout(timer);
+        pending.delete(message.id);
+        if (message.error) {
+          reject(new Error(`${message.error.message} (${message.error.code})`));
+          return;
+        }
+        resolve(message.result ?? {});
+      };
+
+      ws.onclose = () => {
+        for (const { reject, timer } of pending.values()) {
+          clearTimeout(timer);
+          reject(new Error("CDP websocket closed"));
+        }
+        pending.clear();
+      };
+
+      const send = (method, params = {}) =>
+        new Promise((resolve, reject) => {
+          nextId += 1;
+          const id = nextId;
+          const timer = setTimeout(() => {
+            pending.delete(id);
+            reject(new Error(`CDP command timeout: ${method}`));
+          }, 15000);
+          pending.set(id, { resolve, reject, timer });
+          ws.send(JSON.stringify({ id, method, params }));
+        });
+
+      // A socket can open while the freshly recreated WebView is still being
+      // replaced. Prove this target is alive before handing it to the journey.
+      await send("Runtime.enable");
+      await send("Runtime.evaluate", {
+        expression: "document.readyState",
+        returnByValue: true,
+      });
+
+      console.log(
+        `CDP target ready attempt=${attempt} id=${target.id ?? "-"} url=${target.url ?? "-"}`,
+      );
+      return { ws, send, target };
+    } catch (error) {
+      lastError = error;
+      try {
+        ws?.close();
+      } catch {
+        // best-effort cleanup between retries
+      }
+      if (attempt < maxAttempts) {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
     }
-    resolve(message.result ?? {});
-  };
+  }
 
-  ws.onclose = () => {
-    for (const { reject, timer } of pending.values()) {
-      clearTimeout(timer);
-      reject(new Error("CDP websocket closed"));
-    }
-    pending.clear();
-  };
-
-  const send = (method, params = {}) =>
-    new Promise((resolve, reject) => {
-      nextId += 1;
-      const id = nextId;
-      const timer = setTimeout(() => {
-        pending.delete(id);
-        reject(new Error(`CDP command timeout: ${method}`));
-      }, 15000);
-      pending.set(id, { resolve, reject, timer });
-      ws.send(JSON.stringify({ id, method, params }));
-    });
-
-  return { ws, send, target };
+  throw new Error(
+    `CDP page target did not stabilize after ${maxAttempts} attempts: ${lastError?.message ?? lastError}`,
+  );
 }
 
 async function main() {
