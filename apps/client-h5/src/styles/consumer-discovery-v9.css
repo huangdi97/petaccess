@@ -1483,3 +1483,108 @@ body {
     box-shadow: 0 12px 34px var(--pa-discovery-v9-tone-57);
   }
 }
+
+/* ------------------------------------------------------- v9.2 trust/account
+ * Secondary consumer surfaces should read like an editorial personal/trust
+ * workspace, not a vertical wall of independent dashboard cards. Keep the
+ * identity/method hero, then let content flow through calm ruled sections. */
+#app .mine-section,
+#app .settings-section,
+#app .privacy-section {
+  margin-top: 0;
+  padding: 26px 2px;
+  border: 0;
+  border-top: 1px solid var(--pa-discovery-v9-tone-43);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#app .mine-head + .mine-section,
+#app .settings-head + .settings-section,
+#app .privacy-head + .privacy-section {
+  margin-top: 18px;
+  border-top: 0;
+}
+
+#app .mine-section h2,
+#app .settings-section__lead h2,
+#app .privacy-section__lead h2 {
+  color: var(--pa-discovery-ink);
+  font-size: 19px;
+  font-weight: 750;
+  letter-spacing: -0.015em;
+}
+
+#app .mine-section__head p,
+#app .settings-section__lead p,
+#app .privacy-section__lead p {
+  color: var(--pa-color-text-secondary);
+}
+
+#app .settings-section__body,
+#app .privacy-section__body {
+  max-width: 720px;
+}
+
+#app .privacy-row__state {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: end;
+  width: max-content;
+  min-height: 26px;
+  padding: 3px 9px;
+  border: 1px solid var(--pa-discovery-v9-tone-43);
+  border-radius: 999px;
+  background: var(--pa-discovery-v9-tone-42);
+  color: var(--pa-discovery-ink-soft);
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1;
+}
+
+#app .about-meta {
+  margin-top: 16px;
+  padding: 20px 2px;
+  border: 0;
+  border-top: 1px solid var(--pa-discovery-v9-tone-43);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+@media (max-width: 767px) {
+  #app .mine-section,
+  #app .settings-section,
+  #app .privacy-section {
+    margin-top: 0;
+    padding: 20px 2px;
+    border-radius: 0;
+  }
+
+  #app .mine-head + .mine-section,
+  #app .settings-head + .settings-section,
+  #app .privacy-head + .privacy-section {
+    margin-top: 14px;
+  }
+
+  #app .settings-section,
+  #app .privacy-section {
+    gap: 13px;
+  }
+
+  #app .privacy-row {
+    padding: 12px 0;
+  }
+
+  #app .privacy-row__state {
+    justify-self: start;
+    text-align: left;
+  }
+
+  #app .about-meta {
+    margin-top: 14px;
+    padding: 18px 2px;
+  }
+}
