@@ -184,8 +184,7 @@ function setActivePet(pet: (typeof pets.value)[number]) {
   padding: var(--pa-space-5);
   border: var(--pa-border-width) solid var(--pa-color-border-subtle);
   border-radius: calc(var(--pa-radius-md) + 2px);
-  background:
-    linear-gradient(
+  background: linear-gradient(
       145deg,
       color-mix(in srgb, var(--pa-color-accent-weak) 76%, var(--pa-color-surface)) 0%,
       var(--pa-color-surface-raised) 74%
