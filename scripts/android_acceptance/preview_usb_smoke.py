@@ -10,7 +10,9 @@ Preconditions:
 - the device is authorized in adb;
 - the APK is the isolated debug Preview package (com.petaccess.map.preview).
 
-This helper never touches the signed release package and never uninstalls user data.
+This helper never touches the signed release package. It preserves Preview data when
+possible; only an incompatible debug signature may trigger uninstall/reinstall of the
+isolated Preview package.
 """
 
 from __future__ import annotations
