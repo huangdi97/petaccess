@@ -23,7 +23,7 @@ import time
 from pathlib import Path
 
 SDK_ADB = Path(r"C:\Users\Kaiser\AppData\Local\Android\Sdk\platform-tools\adb.exe")
-DEFAULT_SERIAL = "emulator-5562"
+DEFAULT_SERIAL = os.environ.get("PETACCESS_ANDROID_SERIAL", "emulator-5562")
 FORBIDDEN_SERIALS = frozenset({"emulator-5554"})
 HARDCODED_ADB = r"C:\Android\adb.exe"
 
