@@ -109,8 +109,15 @@ def main() -> int:
     except Exception as e:  # noqa: BLE001
         results["nav"] = f"ERROR {e}"
 
+    failures = {
+        key: value
+        for key, value in results.items()
+        if isinstance(value, str) and value.startswith("ERROR ")
+    }
+    results["result"] = "FAIL" if failures else "PASS"
+    results["failure_count"] = len(failures)
     print(json.dumps(results, ensure_ascii=False, indent=1))
-    return 0
+    return 1 if failures else 0
 
 
 if __name__ == "__main__":
