@@ -7,15 +7,10 @@ import AppShell from "../components/AppShell.vue";
 import StateMessage from "../components/StateMessage.vue";
 import { presentDescription } from "../errors";
 import { useOnline } from "../composables/useOnline";
+import { createEmptyPetDraft } from "../consumer/petDraft";
 
 const router = useRouter();
-const pet = ref({
-  display_name: "",
-  species: "dog",
-  breed_text: "",
-  weight_kg: "",
-  shoulder_height_cm: "",
-});
+const pet = ref(createEmptyPetDraft());
 const serviceRole = ref("none");
 const error = ref("");
 const saving = ref(false);
