@@ -57,21 +57,15 @@ def main() -> int:
         ),
         "Permission States": "NOT_RUN",
         "Lifecycle": (
-            "COVERED"
-            if has("cold_launch.json") and has("warm_launch.json")
-            else "PARTIAL"
+            "COVERED" if has("cold_launch.json") and has("warm_launch.json") else "PARTIAL"
         ),
         "Install/Upgrade": (
             "COVERED" if (ROOT / "upgrade" / "upgrade_drill.json").exists() else "PARTIAL"
         ),
-        "Visual": (
-            "COVERED" if list((ROOT / "screenshots").glob("*.png")) else "PARTIAL"
-        ),
+        "Visual": ("COVERED" if list((ROOT / "screenshots").glob("*.png")) else "PARTIAL"),
         "Accessibility": "PARTIAL",
         "Performance": (
-            "COVERED"
-            if (ROOT / "performance" / "memory_summary.json").exists()
-            else "PARTIAL"
+            "COVERED" if (ROOT / "performance" / "memory_summary.json").exists() else "PARTIAL"
         ),
         "Stress": "COVERED" if has("route_stress.json") else "PARTIAL",
         "Error Paths": "COVERED" if has("http_status_matrix.json") else "PARTIAL",
