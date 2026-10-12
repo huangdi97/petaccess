@@ -135,7 +135,9 @@ async function main() {
   async function waitForPage(expectedPage, timeoutMs = 15000) {
     const deadline = Date.now() + timeoutMs;
     while (Date.now() < deadline) {
-      const value = await run(`document.querySelector('[data-ui-page="${expectedPage}"]') !== null`);
+      const value = await run(
+        `document.querySelector('[data-ui-page="${expectedPage}"]') !== null`,
+      );
       if (value) return;
       await sleep(150);
     }
@@ -223,7 +225,10 @@ async function main() {
     result: failed ? "FAIL" : "PASS",
     routes: rows,
   };
-  fs.writeFileSync(path.join(RUNTIME_DIR, "windows_shell_smoke.json"), JSON.stringify(output, null, 2));
+  fs.writeFileSync(
+    path.join(RUNTIME_DIR, "windows_shell_smoke.json"),
+    JSON.stringify(output, null, 2),
+  );
 
   ws.close();
 
