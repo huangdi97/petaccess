@@ -87,9 +87,10 @@ watch(placeId, () => void load(), { immediate: true });
 </script>
 
 <template>
-  <AppShell>
+  <AppShell data-ui-page="operator-claim">
     <main class="operator-claim" data-testid="operator-claim-page">
       <header class="operator-claim__head">
+        <p class="operator-claim__kicker">管理方身份核验</p>
         <h1>场所方认领</h1>
         <p class="muted">
           认领用于确认谁有权代表场所维护管理方声明。提交认领不会自动改变任何准入规则，也不会删除用户现场记录。
@@ -107,6 +108,12 @@ watch(placeId, () => void load(), { immediate: true });
         <section class="operator-claim__place">
           <strong>{{ place.canonical_name }}</strong>
           <p class="muted">{{ place.canonical_address ?? "地址未收录" }}</p>
+        </section>
+
+        <section v-if="session.signedIn && !submitted" class="operator-claim__guide">
+          <div><span>1</span><strong>确认主体</strong><small>填写能与执照、官网或公开主体对应的名称。</small></div>
+          <div><span>2</span><strong>提供核验线索</strong><small>优先使用工作邮箱或官方网站，保留可人工复核的路径。</small></div>
+          <div><span>3</span><strong>等待人工审核</strong><small>审核通过后才能提交管理方声明；现有规则与现场事实不被覆盖。</small></div>
         </section>
 
         <StateMessage
