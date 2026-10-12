@@ -37,7 +37,8 @@ jobs:
             tests/e2e/contribute-wizard.spec.ts \
             tests/e2e/boundary-preferences.spec.ts \
             scripts/android_acceptance/cdp_probe.cjs \
-            scripts/android_acceptance/cdp_journey.cjs
+            scripts/android_acceptance/cdp_journey.cjs \
+            .github/workflows/android-preview.yml
       - uses: actions/upload-artifact@v4
         with:
           name: ui-direct-formatted-targets
@@ -59,3 +60,4 @@ jobs:
             tests/e2e/boundary-preferences.spec.ts
             scripts/android_acceptance/cdp_probe.cjs
             scripts/android_acceptance/cdp_journey.cjs
+            .github/workflows/android-preview.yml
