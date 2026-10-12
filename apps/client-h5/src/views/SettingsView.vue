@@ -50,7 +50,10 @@ const EVIDENCE = [
 </script>
 
 <template>
-  <AppShell>
+  <AppShell
+    data-ui-page="settings"
+    :data-ui-state="sessionStateError ? 'session-error' : signedIn ? 'signed-in' : 'public'"
+  >
     <header class="settings-head">
       <p class="settings-head__kicker">方法与偏好</p>
       <h1>设置与说明</h1>
