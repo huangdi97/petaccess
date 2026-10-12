@@ -197,6 +197,14 @@ async function main() {
         const root = document.documentElement;
         const body = document.body;
         const ui = document.querySelector("[data-ui-page]");
+        const insetProbe = document.createElement("div");
+        insetProbe.style.cssText =
+          "position:fixed;visibility:hidden;pointer-events:none;padding-top:env(safe-area-inset-top,0px)";
+        body?.appendChild(insetProbe);
+        const safeAreaTop = Number.parseFloat(getComputedStyle(insetProbe).paddingTop) || 0;
+        insetProbe.remove();
+        const shellMain = document.querySelector(".consumer-app-shell__main");
+        const contentTop = shellMain?.getBoundingClientRect().top ?? 0;
         return {
           url: location.href,
           title: document.title,
@@ -214,6 +222,9 @@ async function main() {
           },
           horizontalOverflow:
             (root?.scrollWidth ?? body?.scrollWidth ?? 0) > window.innerWidth + 1,
+          safeAreaTop,
+          contentTop,
+          safeAreaOverlap: safeAreaTop > 0.5 && contentTop + 0.5 < safeAreaTop,
           text: body?.innerText.slice(0, 1600) ?? "",
         };
       })())`),
@@ -258,6 +269,9 @@ async function main() {
     if (state.horizontalOverflow) {
       routeError ??= `horizontal overflow ${state.document.scrollWidth} > ${state.viewport.width}`;
     }
+    if (state.safeAreaOverlap) {
+      routeError ??= `top safe-area overlap: contentTop=${state.contentTop}, safeAreaTop=${state.safeAreaTop}`;
+    }
 
     const shot = path.join(SCREENSHOT_DIR, `phoneM__${safeName(route.name)}__${route.tag}.png`);
     try {
@@ -278,7 +292,7 @@ async function main() {
     if (!row.ok) failed = true;
 
     console.log(
-      `  ${route.tag} ${route.name}: ${row.ok ? "PASS" : "FAIL"} | ${state.uiPage}/${state.uiState ?? "-"} | overflow=${state.horizontalOverflow}`,
+      `  ${route.tag} ${route.name}: ${row.ok ? "PASS" : "FAIL"} | ${state.uiPage}/${state.uiState ?? "-"} | overflow=${state.horizontalOverflow} | safeTop=${state.safeAreaTop}/${state.contentTop}`,
     );
   }
 
