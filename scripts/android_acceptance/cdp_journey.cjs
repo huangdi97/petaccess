@@ -17,7 +17,8 @@ const path = require("node:path");
 const CDP = process.env.PETACCESS_ANDROID_CDP ?? "http://127.0.0.1:9223";
 const ROOT = path.resolve(__dirname, "..", "..");
 const EVIDENCE_ROOT =
-  process.env.PETACCESS_ANDROID_EVIDENCE_DIR ?? path.join(ROOT, "artifacts", "android_acceptance");
+  process.env.PETACCESS_ANDROID_EVIDENCE_DIR ??
+  path.join(ROOT, "artifacts", "android_acceptance");
 const RUNTIME_DIR = path.join(EVIDENCE_ROOT, "runtime");
 const SCREENSHOT_DIR = path.join(EVIDENCE_ROOT, "screenshots");
 // Keep the established filename because coverage/report tooling already consumes it.
@@ -29,11 +30,36 @@ const routes = [
   { hash: "#/search", tag: "R02", name: "search", expectedPage: "search" },
   { hash: "#/map", tag: "R03", name: "map", expectedPage: "map" },
   { hash: `#/place/${PLACE_ID}`, tag: "R04", name: "place-overview", expectedPage: "place" },
-  { hash: `#/place/${PLACE_ID}?view=rules`, tag: "R05", name: "place-rules", expectedPage: "place" },
-  { hash: `#/place/${PLACE_ID}?view=space`, tag: "R06", name: "place-space", expectedPage: "place" },
-  { hash: `#/place/${PLACE_ID}/reality`, tag: "R07", name: "reality", expectedPage: "reality" },
-  { hash: `#/place/${PLACE_ID}/evidence`, tag: "R08", name: "evidence", expectedPage: "evidence" },
-  { hash: "#/contribute", tag: "R09", name: "contribute-entry", expectedPage: "contribution" },
+  {
+    hash: `#/place/${PLACE_ID}?view=rules`,
+    tag: "R05",
+    name: "place-rules",
+    expectedPage: "place",
+  },
+  {
+    hash: `#/place/${PLACE_ID}?view=space`,
+    tag: "R06",
+    name: "place-space",
+    expectedPage: "place",
+  },
+  {
+    hash: `#/place/${PLACE_ID}/reality`,
+    tag: "R07",
+    name: "reality",
+    expectedPage: "reality",
+  },
+  {
+    hash: `#/place/${PLACE_ID}/evidence`,
+    tag: "R08",
+    name: "evidence",
+    expectedPage: "evidence",
+  },
+  {
+    hash: "#/contribute",
+    tag: "R09",
+    name: "contribute-entry",
+    expectedPage: "contribution",
+  },
   { hash: "#/mine", tag: "R10", name: "mine", expectedPage: "mine" },
   { hash: "#/settings", tag: "R11", name: "settings", expectedPage: "settings" },
   { hash: "#/privacy", tag: "R12", name: "privacy", expectedPage: "privacy" },
@@ -43,8 +69,18 @@ const routes = [
   { hash: "#/pets", tag: "R16", name: "pets", expectedPage: "pets" },
   { hash: "#/notifications", tag: "R17", name: "notifications", expectedPage: "notifications" },
   { hash: "#/boundary", tag: "R18", name: "boundary", expectedPage: "boundary" },
-  { hash: `#/place/${PLACE_ID}/why`, tag: "R19", name: "match-explain", expectedPage: "match-explain" },
-  { hash: `#/place/${PLACE_ID}/operator-claim`, tag: "R20", name: "operator-claim", expectedPage: "operator-claim" },
+  {
+    hash: `#/place/${PLACE_ID}/why`,
+    tag: "R19",
+    name: "match-explain",
+    expectedPage: "match-explain",
+  },
+  {
+    hash: `#/place/${PLACE_ID}/operator-claim`,
+    tag: "R20",
+    name: "operator-claim",
+    expectedPage: "operator-claim",
+  },
   { hash: "#/__petaccess_runtime_missing__", tag: "R21", name: "not-found", expectedPage: "not-found" },
 ];
 
@@ -74,7 +110,9 @@ function getJson(endpointPath) {
         });
       },
     );
-    request.on("timeout", () => request.destroy(new Error(`CDP HTTP timeout: ${endpointPath}`)));
+    request.on("timeout", () =>
+      request.destroy(new Error(`CDP HTTP timeout: ${endpointPath}`)),
+    );
     request.on("error", reject);
   });
 }
@@ -166,7 +204,12 @@ async function main() {
         if (!el) return false;
         const style = getComputedStyle(el);
         const rect = el.getBoundingClientRect();
-        return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0;
+        return (
+          style.visibility !== "hidden" &&
+          style.display !== "none" &&
+          rect.width > 0 &&
+          rect.height > 0
+        );
       })()`);
       if (ready) return;
       await sleep(150);
@@ -256,7 +299,10 @@ async function main() {
       routeError ??= `top safe-area overlap: contentTop=${state.contentTop}, safeAreaTop=${state.safeAreaTop}`;
     }
 
-    const shot = path.join(SCREENSHOT_DIR, `phoneM__${safeName(route.name)}__${route.tag}.png`);
+    const shot = path.join(
+      SCREENSHOT_DIR,
+      `phoneM__${safeName(route.name)}__${route.tag}.png`,
+    );
     try {
       await captureScreenshot(shot);
     } catch (error) {
