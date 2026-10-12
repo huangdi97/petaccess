@@ -77,6 +77,18 @@ def check_consumer_runtime_boundary() -> list[dict]:
             }
         )
 
+    canonical_tauri_path = ROOT / "apps" / "client-h5" / "src-tauri" / "tauri.conf.json"
+    canonical_tauri = json.loads(canonical_tauri_path.read_text(encoding="utf-8"))
+    if canonical_tauri.get("identifier") != "com.petaccess.map":
+        violations.append(
+            {
+                "rule": "runtime-boundary",
+                "path": "apps/client-h5/src-tauri/tauri.conf.json",
+                "severity": "FAIL",
+                "detail": "Canonical Tauri application id must remain com.petaccess.map.",
+            }
+        )
+
     preview_config_path = ROOT / "apps" / "client-h5" / "src-tauri" / "tauri.preview.conf.json"
     preview_workflow_path = ROOT / ".github" / "workflows" / "android-preview.yml"
     if preview_config_path.exists() and preview_workflow_path.exists():
@@ -89,6 +101,19 @@ def check_consumer_runtime_boundary() -> list[dict]:
                     "path": "apps/client-h5/src-tauri/tauri.preview.conf.json",
                     "severity": "FAIL",
                     "detail": "Android Preview must use the isolated preview application id.",
+                }
+            )
+        preview_android = preview_config.get("bundle", {}).get("android", {})
+        if preview_android.get("debugApplicationIdSuffix") is not None:
+            violations.append(
+                {
+                    "rule": "runtime-boundary",
+                    "path": "apps/client-h5/src-tauri/tauri.preview.conf.json",
+                    "severity": "FAIL",
+                    "detail": (
+                        "Preview must keep debugApplicationIdSuffix=null and use its explicit "
+                        "preview identifier instead."
+                    ),
                 }
             )
         if "tauri.preview.conf.json" not in preview_text:
