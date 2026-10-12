@@ -27,7 +27,12 @@ from adb import (  # noqa: E402
 
 SERIAL = os.environ.get("PETACCESS_ANDROID_SERIAL", DEFAULT_SERIAL)
 PKG = os.environ.get("PETACCESS_ANDROID_PACKAGE", "com.petaccess.map")
-SHOT_DIR = ROOT / "artifacts" / "ui-audit" / "android"
+SHOT_DIR = Path(
+    os.environ.get(
+        "PETACCESS_ANDROID_FAST_SCREENSHOT_DIR",
+        str(ROOT / "artifacts" / "ui-audit" / "android"),
+    )
+)
 PROBE = ROOT / "scripts" / "android_acceptance" / "cdp_probe.cjs"
 
 
