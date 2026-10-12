@@ -115,12 +115,13 @@ adb -s <serial> reverse tcp:8000 tcp:8000
 - Preview APK；
 - `SHA256SUMS.txt`；
 - `PREVIEW_SIGNER_CERTS.txt`：debug Preview 实际 signer certificate 指纹；
+- `PREVIEW_BADGING.txt`：AAPT 实际 package / version / minSdk / targetSdk / native ABI；
 - `PREVIEW_METADATA.txt`：commit、profile、API、ABI、package、签名/Release 边界。
 
 workflow 还必须：
 
 - 使用 `apksigner verify` 验证 APK 可安装签名，并保存 `--print-certs` 结果；
-- 使用 `aapt dump badging` 验证实际 package 是 `com.petaccess.map.preview`，且 app label 是 `PetAccess Preview`；
+- 使用 `aapt dump badging` 验证实际 package 是 `com.petaccess.map.preview`、app label 是 `PetAccess Preview`，并硬校验 matrix 期望的 native ABI；
 - 在 APK 打包后检查 Vite Consumer bundle 内确实烘焙了 matrix profile 对应的 `VITE_TAURI_ANDROID_API_BASE`；
 - 使用独立 Preview Tauri config；
 - 不读取正式 release keystore。
