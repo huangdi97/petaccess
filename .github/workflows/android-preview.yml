@@ -208,3 +208,143 @@ jobs:
             echo "- APK: \`${{ steps.apk.outputs.apk }}\`"
             echo "- Debug Preview only; not a signed Release."
           } >> "$GITHUB_STEP_SUMMARY"
+
+  preview-runtime-smoke:
+    name: Android Preview · API 35 runtime smoke
+    needs: preview-apk
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    services:
+      postgres:
+        image: postgis/postgis:17-3.5
+        env:
+          POSTGRES_USER: petaccess
+          POSTGRES_PASSWORD: petaccess_dev_only
+          POSTGRES_DB: petaccess
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U petaccess"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+    env:
+      DATABASE_URL: postgresql+psycopg://petaccess:petaccess_dev_only@127.0.0.1:5432/petaccess_e2e
+      TEST_DB_ADMIN_URL: postgresql://petaccess:petaccess_dev_only@127.0.0.1:5432/postgres
+      REDIS_URL: redis://127.0.0.1:6379/1
+      TEST_REDIS_URL: redis://127.0.0.1:6379/1
+      CELERY_TASK_QUEUE: petaccess_e2e
+      APP_ENV: test
+      JWT_SECRET: android_preview_ci_only_0123456789abcdef0123456789
+      PETACCESS_ANDROID_PACKAGE: com.petaccess.map.preview
+      PETACCESS_ANDROID_EVIDENCE_DIR: ${{ github.workspace }}/artifacts/android-preview-runtime
+      PREVIEW_APK_DIR: ${{ github.workspace }}/preview-apk
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download x86_64 Preview APK from this commit
+        uses: actions/download-artifact@v4
+        with:
+          name: petaccess-android-preview-emulator-${{ github.sha }}
+          path: preview-apk
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Sync Python dependencies
+        run: uv sync --dev --all-packages
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.4.1
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install frontend/test dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Provision seeded E2E database
+        run: uv run python scripts/isolated_db.py --role E2E --reset
+
+      - name: Start PetAccess API for Android emulator
+        shell: bash
+        run: |
+          mkdir -p artifacts/android-preview-runtime/logs
+          nohup uv run python scripts/dev_api_server.py             --db-name petaccess_e2e             --role E2E             --host 0.0.0.0             --port 8000             > artifacts/android-preview-runtime/logs/api.log 2>&1 &
+          echo $! > artifacts/android-preview-runtime/runtime-api.pid
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:8000/health >/dev/null; then
+              curl -fsS http://127.0.0.1:8000/api/v1/ping
+              exit 0
+            fi
+            sleep 2
+          done
+          cat artifacts/android-preview-runtime/logs/api.log || true
+          exit 1
+
+      - name: Enable KVM
+        shell: bash
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"'             | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run Preview on API 35 x86_64 emulator
+        uses: ReactiveCircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_5
+          disable-animations: true
+          emulator-options: >-
+            -no-snapshot-load
+            -no-snapshot-save
+            -no-window
+            -gpu swiftshader_indirect
+            -noaudio
+            -no-boot-anim
+            -camera-back none
+            -camera-front none
+          script: bash scripts/android_acceptance/ci_preview_emulator_smoke.sh
+
+      - name: Upload Android runtime evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: petaccess-android-preview-runtime-${{ github.sha }}
+          path: |
+            artifacts/android-preview-runtime/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Runtime summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## Android Preview runtime smoke"
+            echo
+            echo "- Commit: `$GITHUB_SHA`"
+            echo "- Package: `com.petaccess.map.preview`"
+            echo "- Emulator: API 35 / x86_64 / Pixel 5 profile"
+            echo "- Backend: seeded `petaccess_e2e` on runner port 8000"
+            echo "- Runtime gate: FAST + 13-route CDP semantic journey"
+            echo "- Evidence artifact: `petaccess-android-preview-runtime-$GITHUB_SHA`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
