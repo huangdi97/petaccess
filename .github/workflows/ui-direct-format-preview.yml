@@ -24,6 +24,7 @@ jobs:
             apps/client-h5/src/views/HomeView.vue \
             apps/client-h5/src/views/ContributeView.vue \
             apps/client-h5/src/views/MineView.vue \
+            apps/client-h5/src/components/mine/MinePublicState.vue \
             apps/client-h5/src/components/domain/DecisionInspector.vue \
             apps/client-h5/src/components/domain/PlaceResultRow.vue \
             apps/client-h5/src/components/map/MapSelectedSheet.vue \
@@ -38,6 +39,8 @@ jobs:
             tests/e2e/public-private-session-boundary.spec.ts \
             tests/e2e/contribute-wizard.spec.ts \
             tests/e2e/boundary-preferences.spec.ts \
+            tests/e2e/responsive.spec.ts \
+            tests/e2e/consumer-contract-closure.spec.ts \
             scripts/android_acceptance/cdp_probe.cjs \
             scripts/android_acceptance/cdp_journey.cjs \
             scripts/windows_acceptance/cdp_shell_smoke.cjs \
@@ -52,6 +55,7 @@ jobs:
             apps/client-h5/src/views/HomeView.vue
             apps/client-h5/src/views/ContributeView.vue
             apps/client-h5/src/views/MineView.vue
+            apps/client-h5/src/components/mine/MinePublicState.vue
             apps/client-h5/src/components/domain/DecisionInspector.vue
             apps/client-h5/src/components/domain/PlaceResultRow.vue
             apps/client-h5/src/components/map/MapSelectedSheet.vue
@@ -66,6 +70,8 @@ jobs:
             tests/e2e/public-private-session-boundary.spec.ts
             tests/e2e/contribute-wizard.spec.ts
             tests/e2e/boundary-preferences.spec.ts
+            tests/e2e/responsive.spec.ts
+            tests/e2e/consumer-contract-closure.spec.ts
             scripts/android_acceptance/cdp_probe.cjs
             scripts/android_acceptance/cdp_journey.cjs
             scripts/windows_acceptance/cdp_shell_smoke.cjs
