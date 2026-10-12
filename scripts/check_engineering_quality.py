@@ -67,6 +67,49 @@ def check_consumer_runtime_boundary() -> list[dict]:
             }
         )
 
+    if "tauri.preview.conf" in release_text or "com.petaccess.map.preview" in release_text:
+        violations.append(
+            {
+                "rule": "runtime-boundary",
+                "path": ".github/workflows/release-ci.yml",
+                "severity": "FAIL",
+                "detail": "Release CI must never consume the Android Preview flavor.",
+            }
+        )
+
+    preview_config_path = ROOT / "apps" / "client-h5" / "src-tauri" / "tauri.preview.conf.json"
+    preview_workflow_path = ROOT / ".github" / "workflows" / "android-preview.yml"
+    if preview_config_path.exists() and preview_workflow_path.exists():
+        preview_config = json.loads(preview_config_path.read_text(encoding="utf-8"))
+        preview_text = preview_workflow_path.read_text(encoding="utf-8")
+        if preview_config.get("identifier") != "com.petaccess.map.preview":
+            violations.append(
+                {
+                    "rule": "runtime-boundary",
+                    "path": "apps/client-h5/src-tauri/tauri.preview.conf.json",
+                    "severity": "FAIL",
+                    "detail": "Android Preview must use the isolated preview application id.",
+                }
+            )
+        if "tauri.preview.conf.json" not in preview_text:
+            violations.append(
+                {
+                    "rule": "runtime-boundary",
+                    "path": ".github/workflows/android-preview.yml",
+                    "severity": "FAIL",
+                    "detail": "Preview workflow must build through the isolated Tauri config.",
+                }
+            )
+        if "ANDROID_KEYSTORE_BASE64" in preview_text or "release.keystore" in preview_text:
+            violations.append(
+                {
+                    "rule": "runtime-boundary",
+                    "path": ".github/workflows/android-preview.yml",
+                    "severity": "FAIL",
+                    "detail": "Preview workflow must not consume the release signing identity.",
+                }
+            )
+
     legacy_package = json.loads(
         (ROOT / "apps" / "client" / "package.json").read_text(encoding="utf-8")
     )
