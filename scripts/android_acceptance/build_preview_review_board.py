@@ -61,6 +61,9 @@ def _card(route: dict) -> str:
     fixture = snapshot.get("uiFixture") or "-"
     viewport = snapshot.get("viewport") if isinstance(snapshot.get("viewport"), dict) else {}
     doc = snapshot.get("document") if isinstance(snapshot.get("document"), dict) else {}
+    viewport_size = f'{viewport.get("width", "-")}×{viewport.get("height", "-")}'
+    document_size = f'{doc.get("scrollWidth", "-")}×{doc.get("scrollHeight", "-")}'
+    overflow = html.escape(str(snapshot.get("horizontalOverflow", "-")))
 
     return f"""
     <article class="route-card">
@@ -77,9 +80,9 @@ def _card(route: dict) -> str:
         <div><dt>page</dt><dd>{html.escape(str(snapshot.get("uiPage") or "-"))}</dd></div>
         <div><dt>state</dt><dd>{html.escape(str(state))}</dd></div>
         <div><dt>fixture</dt><dd>{html.escape(str(fixture))}</dd></div>
-        <div><dt>viewport</dt><dd>{viewport.get("width", "-")}×{viewport.get("height", "-")}</dd></div>
-        <div><dt>document</dt><dd>{doc.get("scrollWidth", "-")}×{doc.get("scrollHeight", "-")}</dd></div>
-        <div><dt>overflow</dt><dd>{html.escape(str(snapshot.get("horizontalOverflow", "-")))}</dd></div>
+        <div><dt>viewport</dt><dd>{viewport_size}</dd></div>
+        <div><dt>document</dt><dd>{document_size}</dd></div>
+        <div><dt>overflow</dt><dd>{overflow}</dd></div>
         <div><dt>safe top</dt><dd>{html.escape(str(snapshot.get("safeAreaTop", "-")))}</dd></div>
         <div><dt>content top</dt><dd>{html.escape(str(snapshot.get("contentTop", "-")))}</dd></div>
       </dl>
@@ -116,7 +119,9 @@ def main() -> int:
 <style>
 :root {{
   color-scheme: light;
-  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+  font-family:
+    Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "Microsoft YaHei", sans-serif;
   background: #f3f5ef;
   color: #183127;
 }}
@@ -217,7 +222,10 @@ dd {{ margin: 2px 0 0; overflow-wrap: anywhere; font-size: 13px; }}
   <div>Route coverage<strong>{html.escape(str(coverage_routes))}</strong></div>
   <div>Human visual<strong>PENDING</strong></div>
 </section>
-<p class="notice"><strong>重要：</strong>Runtime PASS 只证明路由身份、WebView 几何、安全区、overflow 与截图取证成立。它不能替代你对视觉质量的人工判断；HUMAN_VISUAL_ACCEPTANCE 仍为 PENDING。</p>
+<p class="notice"><strong>重要：</strong>
+Runtime PASS 只证明路由身份、WebView 几何、安全区、overflow 与截图取证成立。
+它不能替代你对视觉质量的人工判断；HUMAN_VISUAL_ACCEPTANCE 仍为 PENDING。
+</p>
 <section class="grid">
 {cards if cards else '<p>没有找到当前 Android runtime route screenshot 证据。</p>'}
 </section>
