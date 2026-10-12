@@ -7,6 +7,8 @@
  * which does not exist until the fix is implemented — the run fails with a
  * module-resolution error, then passes after implementation.
  */
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { expect, test } from "@playwright/test";
 import { detectRuntimeKind, resolveApiEndpoint } from "../../apps/client-h5/src/config/endpoints";
 
@@ -45,4 +47,25 @@ test("TAURI_ANDROID resolves 10.0.2.2 (emulator host) ONLY as the dev default", 
   // 10.0.2.2 must never leak into WEB or desktop resolution.
   expect(resolveApiEndpoint({}, "WEB")).not.toContain("10.0.2.2");
   expect(resolveApiEndpoint({}, "TAURI_DESKTOP")).not.toContain("10.0.2.2");
+});
+
+
+test("TAURI_ANDROID accepts the USB reverse-loopback preview endpoint explicitly", () => {
+  expect(
+    resolveApiEndpoint(
+      { VITE_TAURI_ANDROID_API_BASE: "http://127.0.0.1:8000/api/v1" },
+      "TAURI_ANDROID",
+    ),
+  ).toBe("http://127.0.0.1:8000/api/v1");
+});
+
+test("Tauri CSP keeps both Android preview transport profiles allowlisted", () => {
+  const configPath = resolve(process.cwd(), "apps/client-h5/src-tauri/tauri.conf.json");
+  const config = JSON.parse(readFileSync(configPath, "utf-8")) as {
+    app?: { security?: { csp?: string } };
+  };
+  const csp = config.app?.security?.csp ?? "";
+
+  expect(csp).toContain("http://10.0.2.2:*");
+  expect(csp).toContain("http://127.0.0.1:*");
 });
