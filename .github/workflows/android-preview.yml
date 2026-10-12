@@ -214,7 +214,7 @@ jobs:
             echo "- Commit: \`$GITHUB_SHA\`"
             echo "- Package: \`com.petaccess.map.preview\`"
             echo "- Profile: \`${{ matrix.profile }}\`"
-            echo "- ABI: \`${{ matrix.tauri_target }}\`"
+            echo "- Tauri target: \`${{ matrix.tauri_target }}\`"\n            echo "- APK native ABI: \`${{ matrix.apk_abi }}\`"
             echo "- API: \`${{ matrix.api_base }}\`"
             echo "- APK: \`${{ steps.apk.outputs.apk }}\`"
             echo "- Debug Preview only; not a signed Release."
