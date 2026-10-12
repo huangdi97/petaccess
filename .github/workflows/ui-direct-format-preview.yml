@@ -22,6 +22,8 @@ jobs:
         run: |
           pnpm exec prettier --write \
             apps/client-h5/src/views/HomeView.vue \
+            apps/client-h5/src/views/ContributeView.vue \
+            apps/client-h5/src/views/MineView.vue \
             apps/client-h5/src/components/domain/DecisionInspector.vue \
             apps/client-h5/src/components/domain/PlaceResultRow.vue \
             apps/client-h5/src/components/map/MapSelectedSheet.vue \
@@ -48,6 +50,8 @@ jobs:
           name: ui-direct-formatted-targets
           path: |
             apps/client-h5/src/views/HomeView.vue
+            apps/client-h5/src/views/ContributeView.vue
+            apps/client-h5/src/views/MineView.vue
             apps/client-h5/src/components/domain/DecisionInspector.vue
             apps/client-h5/src/components/domain/PlaceResultRow.vue
             apps/client-h5/src/components/map/MapSelectedSheet.vue
