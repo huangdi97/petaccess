@@ -166,6 +166,43 @@ def main() -> int:
     except Exception as e:  # noqa: BLE001
         results["activity_resume"] = f"ERROR {e}"
 
+    # Root navigation contract: a fresh Home launch has no Consumer history.
+    # Because onBackButtonPress takes over Android's default Back behavior, one
+    # system Back here must finish the PetAccess activity rather than leaving a
+    # blank WebView or trapping the user on Home. Do not capture the launcher
+    # screen: this gate may also run on a user's physical device.
+    try:
+        shell(SERIAL, "am", "force-stop", PKG, timeout=30)
+        time.sleep(1)
+        shell(SERIAL, "am", "start", "-n", f"{PKG}/.MainActivity", timeout=30)
+        time.sleep(3)
+        root_pid = shell_pidof(SERIAL, PKG)
+        if not root_pid:
+            raise RuntimeError("app process missing after fresh Home launch")
+        root_state = cdp_probe(root_pid, "snapshot")
+        compact_root = root_state.replace(" ", "")
+        if '"uiPage":"home"' not in compact_root:
+            raise RuntimeError(f"fresh launch did not land on Home: {root_state}")
+
+        shell(SERIAL, "input", "keyevent", "KEYCODE_BACK", timeout=30)
+        time.sleep(2)
+        activities = shell(SERIAL, "dumpsys", "activity", "activities", timeout=30)
+        resumed_lines = [
+            line.strip()
+            for line in activities.splitlines()
+            if "ResumedActivity" in line or "topResumedActivity" in line
+        ]
+        if any(PKG in line for line in resumed_lines):
+            raise RuntimeError(
+                "Home Back left PetAccess resumed: " + " | ".join(resumed_lines[:4])
+            )
+        results["hardware_back_from_home"] = (
+            "PASS activity_finished; resumed="
+            + (" | ".join(resumed_lines[:4]) if resumed_lines else "(none reported)")
+        )
+    except Exception as e:  # noqa: BLE001
+        results["hardware_back_from_home"] = f"ERROR {e}"
+
     failures = {
         key: value
         for key, value in results.items()
