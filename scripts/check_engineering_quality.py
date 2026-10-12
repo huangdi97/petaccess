@@ -88,6 +88,24 @@ def check_consumer_runtime_boundary() -> list[dict]:
             }
         )
 
+    required_universal_apk_markers = (
+        "--apk",
+        "outputs/apk/universal/release",
+        "arm64-v8a",
+        "armeabi-v7a",
+        "x86_64",
+        "RELEASE_ANDROID_BADGING.txt",
+    )
+    if any(marker not in release_text for marker in required_universal_apk_markers):
+        violations.append(
+            {
+                "rule": "runtime-boundary",
+                "path": ".github/workflows/release-ci.yml",
+                "severity": "FAIL",
+                "detail": "Android release must prove the signed APK is a universal multi-ABI artifact.",
+            }
+        )
+
     canonical_tauri_path = ROOT / "apps" / "client-h5" / "src-tauri" / "tauri.conf.json"
     canonical_tauri = json.loads(canonical_tauri_path.read_text(encoding="utf-8"))
     if canonical_tauri.get("identifier") != "com.petaccess.map":
