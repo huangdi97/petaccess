@@ -125,7 +125,23 @@ workflow 还必须：
 - 使用独立 Preview Tauri config；
 - 不读取正式 release keystore。
 
-## 7. Preview APK 不能替代什么
+## 7. Android Runtime Review Board
+
+API 35 emulator runtime smoke 成功后，CI 会在 runtime evidence artifact 根目录生成：
+
+`ANDROID_RUNTIME_REVIEW_BOARD.html`
+
+下载并解压 `petaccess-android-preview-runtime-<sha>` 后，直接打开该 HTML 即可一次查看打包 Android WebView 的全部 route screenshot，并看到每页的：
+
+- `data-ui-page` / `data-ui-state` / fixture；
+- viewport 与 document 尺寸；
+- horizontal overflow；
+- safe-area top 与 content top；
+- 当前 runtime PASS / FAIL。
+
+Review Board 明确保持 `HUMAN_VISUAL_ACCEPTANCE = PENDING`。机器截图与几何通过不能自动变成人工视觉通过。
+
+## 8. Preview APK 不能替代什么
 
 Preview APK 只证明“候选安装包已生成并经过 package/signature 检查”。它**不替代**：
 
