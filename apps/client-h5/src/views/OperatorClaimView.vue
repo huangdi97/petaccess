@@ -9,6 +9,7 @@ import OperatorClaimForm from "../components/operator/OperatorClaimForm.vue";
 import OperatorPolicyForm from "../components/operator/OperatorPolicyForm.vue";
 import { presentDescription } from "../errors";
 import { createEpoch } from "../consumer/repository";
+import { operatorClaimStatusLabel } from "../consumer/operatorClaimStatus";
 
 const route = useRoute();
 const router = useRouter();
@@ -23,17 +24,11 @@ const submitted = ref(false);
 const claimStatus = ref("");
 const previousClaimStatus = ref("");
 
-const CLAIM_STATUS_LABELS: Record<string, string> = {
-  submitted: "等待人工核验",
-  verifying: "正在核验",
-  approved: "认领已通过",
-  rejected: "认领未通过",
-  revoked: "认领已撤销",
-};
-
-const claimStatusLabel = computed(() => CLAIM_STATUS_LABELS[claimStatus.value] ?? "等待人工核验");
-const previousClaimStatusLabel = computed(
-  () => CLAIM_STATUS_LABELS[previousClaimStatus.value] ?? "",
+const claimStatusLabel = computed(
+  () => operatorClaimStatusLabel(claimStatus.value) || "等待人工核验",
+);
+const previousClaimStatusLabel = computed(() =>
+  operatorClaimStatusLabel(previousClaimStatus.value),
 );
 
 const loadEpoch = createEpoch();
