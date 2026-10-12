@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import socket
 import subprocess
 import sys
@@ -38,6 +39,43 @@ def _host_port_ready(port: int) -> bool:
             return True
     except OSError:
         return False
+
+
+def _resolve_aapt() -> Path:
+    sdk = os.environ.get("ANDROID_HOME") or os.environ.get("ANDROID_SDK_ROOT")
+    candidates: list[Path] = []
+    if sdk:
+        build_tools = Path(sdk) / "build-tools"
+        if build_tools.is_dir():
+            executable = "aapt.exe" if os.name == "nt" else "aapt"
+            candidates.extend(
+                version / executable
+                for version in sorted(build_tools.iterdir(), reverse=True)
+                if version.is_dir()
+            )
+    candidates.append(
+        Path(r"C:\Users\Kaiser\AppData\Local\Android\Sdk\build-tools\36.0.0\aapt.exe")
+    )
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate
+    raise SystemExit("aapt not found; set ANDROID_HOME/ANDROID_SDK_ROOT to the Android SDK")
+
+
+def _apk_package(apk: Path) -> str:
+    proc = subprocess.run(
+        [str(_resolve_aapt()), "dump", "badging", str(apk)],
+        capture_output=True,
+        text=True,
+        timeout=60,
+        check=False,
+    )
+    if proc.returncode != 0:
+        raise SystemExit(f"aapt failed for {apk}: {(proc.stderr or proc.stdout)[-600:]}")
+    match = re.search(r"package: name='([^']+)'", proc.stdout)
+    if not match:
+        raise SystemExit(f"could not read package id from APK: {apk}")
+    return match.group(1)
 
 
 def _parse_args() -> argparse.Namespace:
@@ -76,6 +114,12 @@ def main() -> int:
         raise SystemExit("--serial is required (or set PETACCESS_ANDROID_SERIAL)")
     if not apk.is_file():
         raise SystemExit(f"APK not found: {apk}")
+    package_name = _apk_package(apk)
+    if package_name != PREVIEW_PACKAGE:
+        raise SystemExit(
+            f"refusing to install {package_name!r}; expected isolated Preview package "
+            f"{PREVIEW_PACKAGE!r}"
+        )
     if not _host_port_ready(args.api_port):
         raise SystemExit(
             f"PetAccess API is not listening on host 127.0.0.1:{args.api_port}; "
@@ -86,7 +130,20 @@ def main() -> int:
 
     if not args.skip_install:
         print(f"[preview] installing {apk.name} on {serial}")
-        install_out = adb("install", "-r", str(apk), serial=serial, timeout=300)
+        install_out = adb(
+            "install",
+            "-r",
+            str(apk),
+            serial=serial,
+            timeout=300,
+            check=False,
+        )
+        if "Success" not in install_out and "INSTALL_FAILED_UPDATE_INCOMPATIBLE" in install_out:
+            print("[preview] debug signature changed; reinstalling Preview package only")
+            uninstall_out = adb("uninstall", PREVIEW_PACKAGE, serial=serial, check=False)
+            if "Success" not in uninstall_out and "Unknown package" not in uninstall_out:
+                raise SystemExit(f"Preview uninstall failed: {uninstall_out[-600:]}")
+            install_out = adb("install", str(apk), serial=serial, timeout=300, check=False)
         if "Success" not in install_out:
             raise SystemExit(f"APK install did not report Success: {install_out[-600:]}")
 
