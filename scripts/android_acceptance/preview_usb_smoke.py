@@ -81,8 +81,7 @@ def _apk_package(apk: Path) -> str:
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Install PetAccess Preview over USB, reverse the API port, "
-            "then run Android FAST."
+            "Install PetAccess Preview over USB, reverse the API port, then run Android FAST."
         )
     )
     parser.add_argument("--apk", type=Path, required=True, help="Preview debug APK path")
@@ -165,8 +164,7 @@ def main() -> int:
 
     fast = ANDROID_TOOLS / "m3_fast.py"
     print(
-        f"[preview] running FAST for package={PREVIEW_PACKAGE} serial={serial} "
-        f"api=127.0.0.1:{port}"
+        f"[preview] running FAST for package={PREVIEW_PACKAGE} serial={serial} api=127.0.0.1:{port}"
     )
     result = subprocess.run(
         [sys.executable, str(fast)],
