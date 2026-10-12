@@ -14,15 +14,6 @@ on:
       - ".env.example"
       - ".github/workflows/android-preview.yml"
   workflow_dispatch:
-    inputs:
-      api_profile:
-        description: "Preview API profile"
-        required: true
-        default: "emulator"
-        type: choice
-        options:
-          - emulator
-          - usb-device
 
 permissions:
   contents: read
@@ -33,10 +24,29 @@ concurrency:
 
 jobs:
   preview-apk:
-    name: Isolated Android preview APK
+    name: ${{ matrix.label }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - profile: emulator
+            label: Android Preview · x86_64 emulator
+            tauri_target: x86_64
+            rust_target: x86_64-linux-android
+            api_base: http://10.0.2.2:8000/api/v1
+            runtime_note: Android Emulator -> host backend on port 8000
+          - profile: usb-device
+            label: Android Preview · ARM64 USB device
+            tauri_target: aarch64
+            rust_target: aarch64-linux-android
+            api_base: http://127.0.0.1:8000/api/v1
+            runtime_note: Physical Android device -> adb reverse tcp:8000 tcp:8000
     env:
       PREVIEW_CONFIG: src-tauri/tauri.preview.conf.json
+      VITE_TAURI_ANDROID_API_BASE: ${{ matrix.api_base }}
+      VITE_APP_VERSION: preview-${{ github.sha }}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -51,40 +61,10 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - name: Resolve preview API profile
-        id: profile
-        shell: bash
-        run: |
-          PROFILE="emulator"
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            PROFILE="${{ inputs.api_profile }}"
-          fi
-
-          case "$PROFILE" in
-            emulator)
-              API_BASE="http://10.0.2.2:8000/api/v1"
-              NOTE="Android Emulator -> host backend on port 8000"
-              ;;
-            usb-device)
-              API_BASE="http://127.0.0.1:8000/api/v1"
-              NOTE="Physical Android device -> run: adb reverse tcp:8000 tcp:8000"
-              ;;
-            *)
-              echo "Unsupported preview profile: $PROFILE"
-              exit 1
-              ;;
-          esac
-
-          echo "profile=$PROFILE" >> "$GITHUB_OUTPUT"
-          echo "api_base=$API_BASE" >> "$GITHUB_OUTPUT"
-          echo "note=$NOTE" >> "$GITHUB_OUTPUT"
-          echo "VITE_TAURI_ANDROID_API_BASE=$API_BASE" >> "$GITHUB_ENV"
-          echo "VITE_APP_VERSION=preview-${GITHUB_SHA::7}" >> "$GITHUB_ENV"
-
-      - name: Install Rust Android targets
+      - name: Install Rust Android target
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: aarch64-linux-android,x86_64-linux-android
+          targets: ${{ matrix.rust_target }}
 
       - name: Set up Android SDK
         shell: bash
@@ -117,7 +97,7 @@ jobs:
           path: |
             ~/.cargo/registry
             apps/client-h5/src-tauri/target
-          key: android-preview-${{ hashFiles('apps/client-h5/src-tauri/Cargo.lock') }}
+          key: android-preview-${{ matrix.tauri_target }}-${{ hashFiles('apps/client-h5/src-tauri/Cargo.lock') }}
 
       - name: Initialize isolated preview Android project
         run: >
@@ -125,32 +105,29 @@ jobs:
           --ci
           --config "$PREVIEW_CONFIG"
 
-      - name: Build aarch64 + x86_64 debug preview APK
+      - name: Build debug preview APK
         run: >
           pnpm --filter @petaccess/client-h5 exec tauri android build
           --debug
           --apk
-          --target aarch64
-          --target x86_64
+          --target ${{ matrix.tauri_target }}
           --config "$PREVIEW_CONFIG"
 
       - name: Collect and verify preview APK
         id: apk
         shell: bash
         run: |
-          APK="$(find apps/client-h5/src-tauri/gen/android             -type f -name '*universal*debug*.apk' | head -1)"
-          if [ -z "$APK" ]; then
-            APK="$(find apps/client-h5/src-tauri/gen/android               -type f -name '*debug*.apk' ! -path '*/androidTest/*' | head -1)"
-          fi
+          APK="$(find apps/client-h5/src-tauri/gen/android             -type f -name '*debug*.apk' ! -path '*/androidTest/*' | head -1)"
           if [ -z "$APK" ] || [ ! -f "$APK" ]; then
             echo "debug APK not found"
             find apps/client-h5/src-tauri/gen/android -type f -name '*.apk' -print || true
             exit 1
           fi
 
-          PROFILE="${{ steps.profile.outputs.profile }}"
+          PROFILE="${{ matrix.profile }}"
+          TARGET="${{ matrix.tauri_target }}"
           SHORT_SHA="${GITHUB_SHA::7}"
-          OUT="PetAccess-preview-${PROFILE}-${SHORT_SHA}-debug.apk"
+          OUT="PetAccess-preview-${PROFILE}-${TARGET}-${SHORT_SHA}-debug.apk"
           cp "$APK" "$OUT"
 
           APKSIGNER="${ANDROID_HOME}/build-tools/35.0.0/apksigner"
@@ -171,16 +148,16 @@ jobs:
           PetAccess Android Preview
           commit=$GITHUB_SHA
           branch=$GITHUB_REF_NAME
-          api_profile=${{ steps.profile.outputs.profile }}
-          api_base=${{ steps.profile.outputs.api_base }}
-          abi=aarch64+x86_64
+          api_profile=${{ matrix.profile }}
+          api_base=${{ matrix.api_base }}
+          abi=${{ matrix.tauri_target }}
           build=debug
           package=com.petaccess.map.preview
           app_label=PetAccess Preview
           release_signature=NO
           store_release_artifact=NO
 
-          ${{ steps.profile.outputs.note }}
+          ${{ matrix.runtime_note }}
 
           This preview installs beside the signed PetAccess release and must never
           be promoted as a Release APK.
@@ -189,7 +166,7 @@ jobs:
       - name: Upload installable preview
         uses: actions/upload-artifact@v4
         with:
-          name: petaccess-android-preview-${{ steps.profile.outputs.profile }}-${{ github.sha }}
+          name: petaccess-android-preview-${{ matrix.profile }}-${{ github.sha }}
           path: |
             ${{ steps.apk.outputs.apk }}
             SHA256SUMS.txt
@@ -205,8 +182,9 @@ jobs:
             echo
             echo "- Commit: \`$GITHUB_SHA\`"
             echo "- Package: \`com.petaccess.map.preview\`"
-            echo "- Profile: \`${{ steps.profile.outputs.profile }}\`"
-            echo "- API: \`${{ steps.profile.outputs.api_base }}\`"
+            echo "- Profile: \`${{ matrix.profile }}\`"
+            echo "- ABI: \`${{ matrix.tauri_target }}\`"
+            echo "- API: \`${{ matrix.api_base }}\`"
             echo "- APK: \`${{ steps.apk.outputs.apk }}\`"
             echo "- Debug Preview only; not a signed Release."
           } >> "$GITHUB_STEP_SUMMARY"
