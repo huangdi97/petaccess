@@ -58,6 +58,7 @@ Place
 Reality
 Evidence
 Android hardware Back: Evidence -> Reality
+Fresh Home hardware Back -> finish MainActivity
 Nav round-trip: Map -> Home
 ```
 
