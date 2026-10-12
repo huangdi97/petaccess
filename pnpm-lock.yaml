@@ -196,6 +196,9 @@ importers:
       '@petaccess/design-tokens':
         specifier: workspace:*
         version: link:../../packages/design-tokens
+      '@tauri-apps/api':
+        specifier: 2.11.1
+        version: 2.11.1
       vue:
         specifier: ^3.5.13
         version: 3.5.42(typescript@5.9.3)
@@ -766,6 +769,9 @@ packages:
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [win32]
+
+  '@tauri-apps/api@2.11.1':
+    resolution: {integrity: sha512-M2FPuYND2m+wh5hfW9ZpSdxMPdEJovPBWwoHJmwUpysTYNHaOkVFN419m/K0LIgjb/7KU2vBgsUepJWugQCvAA==}
 
   '@tauri-apps/cli@2.11.5':
     resolution: {integrity: sha512-YbeJ6tctNoo40purO4u3Eeo3RVqmsjJr0NoKQRu+4pvO4gMLzkjta7x0k96SxSLmx+rQ+8um1ThOlw+HLpgFug==}
@@ -1819,6 +1825,8 @@ snapshots:
 
   '@tauri-apps/cli-win32-x64-msvc@2.11.5':
     optional: true
+
+  '@tauri-apps/api@2.11.1': {}
 
   '@tauri-apps/cli@2.11.5':
     optionalDependencies:
