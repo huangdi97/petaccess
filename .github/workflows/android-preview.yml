@@ -88,7 +88,11 @@ jobs:
           echo "ANDROID_HOME=$SDK" >> "$GITHUB_ENV"
           echo "ANDROID_SDK_ROOT=$SDK" >> "$GITHUB_ENV"
           yes | "$SDKMGMT" --licenses >/dev/null 2>&1 || true
-          "$SDKMGMT" --install             "platform-tools"             "platforms;android-35"             "build-tools;35.0.0"             "ndk;27.1.12297006"
+          "$SDKMGMT" --install \
+            "platform-tools" \
+            "platforms;android-36" \
+            "build-tools;36.0.0" \
+            "ndk;27.1.12297006"
           echo "NDK_HOME=$SDK/ndk/27.1.12297006" >> "$GITHUB_ENV"
 
       - name: Set up Java 17
@@ -147,8 +151,8 @@ jobs:
           OUT="PetAccess-preview-${PROFILE}-${TARGET}-${SHORT_SHA}-debug.apk"
           cp "$APK" "$OUT"
 
-          APKSIGNER="${ANDROID_HOME}/build-tools/35.0.0/apksigner"
-          AAPT="${ANDROID_HOME}/build-tools/35.0.0/aapt"
+          APKSIGNER="${ANDROID_HOME}/build-tools/36.0.0/apksigner"
+          AAPT="${ANDROID_HOME}/build-tools/36.0.0/aapt"
           "$APKSIGNER" verify --verbose "$OUT"
           "$APKSIGNER" verify --print-certs "$OUT" | tee PREVIEW_SIGNER_CERTS.txt
 
@@ -214,7 +218,8 @@ jobs:
             echo "- Commit: \`$GITHUB_SHA\`"
             echo "- Package: \`com.petaccess.map.preview\`"
             echo "- Profile: \`${{ matrix.profile }}\`"
-            echo "- Tauri target: \`${{ matrix.tauri_target }}\`"\n            echo "- APK native ABI: \`${{ matrix.apk_abi }}\`"
+            echo "- Tauri target: \`${{ matrix.tauri_target }}\`"
+            echo "- APK native ABI: \`${{ matrix.apk_abi }}\`"
             echo "- API: \`${{ matrix.api_base }}\`"
             echo "- APK: \`${{ steps.apk.outputs.apk }}\`"
             echo "- Debug Preview only; not a signed Release."
