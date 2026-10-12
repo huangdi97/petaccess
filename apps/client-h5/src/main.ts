@@ -52,11 +52,14 @@ router
   .then(async () => {
     bootStage("ROUTER_READY");
     if (kind === "TAURI_ANDROID") {
+      document.documentElement.dataset.androidBack = "installing";
       try {
         const { installAndroidBackHandler } = await import("./runtime/androidBack");
         await installAndroidBackHandler(router);
+        document.documentElement.dataset.androidBack = "ready";
         bootStage("ANDROID_BACK_READY");
       } catch {
+        document.documentElement.dataset.androidBack = "failed";
         bootStage("ANDROID_BACK_FAILED");
       }
     }
