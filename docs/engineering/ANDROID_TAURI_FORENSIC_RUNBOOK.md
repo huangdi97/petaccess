@@ -39,6 +39,39 @@
 
 ## 4. 运行验证（F03/F06 流程）
 
+### 4.0 当前客户端边界（v0.10-R1）
+
+- **唯一当前 Consumer**：`apps/client-h5`。
+- **唯一当前 Android 壳层**：`apps/client-h5/src-tauri`。
+- `apps/client` 是 `LEGACY_REFERENCE_ONLY`，不得用 HBuilderX 构建当前 Android 包，不得用其页面做 Human Visual Acceptance，也不得把其历史 Observation / synthetic marker 逻辑迁回当前 Consumer。
+- `.github/workflows/release-ci.yml` 是 Android release 构建事实源；工程门禁会拒绝 release workflow 重新依赖 `apps/client`。
+
+### 4.1 FAST semantic gate
+
+`python scripts/android_acceptance/m3_fast.py` 不再只验证“进程存在 + 有截图”。当前 FAST 必须逐页完成：
+
+```text
+Home
+Search
+Map
+Place
+Reality
+Evidence
+Android hardware Back: Evidence -> Reality
+Nav round-trip: Map -> Home
+```
+
+每个页面动作都要求：
+
+1. CDP 可连接当前 debug WebView；
+2. Consumer shell 存在；
+3. `data-ui-page` 与目标页面一致；
+4. document 无横向 overflow；
+5. 在**该页面仍处于当前状态时**立即截图；
+6. 任一动作写入 `ERROR` 时，FAST 命令必须非零退出。
+
+全量 `cdp_journey.cjs` 进一步要求 13 条 Consumer 路径全部 PASS 后，Routes coverage 才能标记为 `COVERED`。仅存在旧 `cdp_journey_ws.json` 不再足以证明当前路由覆盖。
+
 - Boot 可观测性：`VITE_BOOT_TRACE=1` 构建 → debug APK → `adb logcat -d -s Tauri/Console` 应见
   `PETACCESS_BOOT=INDEX_LOADED / VUE_CREATED / APP_SHELL_MOUNTED / ROUTER_READY / HOME_READY`。
 - 终态门禁清单：install → launch → `pidof` → `dumpsys activity` ResumedActivity → `uiautomator dump` 见 WebView → 截图像素非灰（色数≥100、非纯色）→ HOME 键 → relaunch → pid 不变 → uninstall → `pm list packages` 无残留。
