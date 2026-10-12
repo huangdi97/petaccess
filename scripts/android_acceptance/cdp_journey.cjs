@@ -17,8 +17,7 @@ const path = require("node:path");
 const CDP = process.env.PETACCESS_ANDROID_CDP ?? "http://127.0.0.1:9223";
 const ROOT = path.resolve(__dirname, "..", "..");
 const EVIDENCE_ROOT =
-  process.env.PETACCESS_ANDROID_EVIDENCE_DIR ??
-  path.join(ROOT, "artifacts", "android_acceptance");
+  process.env.PETACCESS_ANDROID_EVIDENCE_DIR ?? path.join(ROOT, "artifacts", "android_acceptance");
 const RUNTIME_DIR = path.join(EVIDENCE_ROOT, "runtime");
 const SCREENSHOT_DIR = path.join(EVIDENCE_ROOT, "screenshots");
 // Keep the established filename because coverage/report tooling already consumes it.
@@ -81,7 +80,12 @@ const routes = [
     name: "operator-claim",
     expectedPage: "operator-claim",
   },
-  { hash: "#/__petaccess_runtime_missing__", tag: "R21", name: "not-found", expectedPage: "not-found" },
+  {
+    hash: "#/__petaccess_runtime_missing__",
+    tag: "R21",
+    name: "not-found",
+    expectedPage: "not-found",
+  },
 ];
 
 function safeName(value) {
@@ -110,9 +114,7 @@ function getJson(endpointPath) {
         });
       },
     );
-    request.on("timeout", () =>
-      request.destroy(new Error(`CDP HTTP timeout: ${endpointPath}`)),
-    );
+    request.on("timeout", () => request.destroy(new Error(`CDP HTTP timeout: ${endpointPath}`)));
     request.on("error", reject);
   });
 }
@@ -299,10 +301,7 @@ async function main() {
       routeError ??= `top safe-area overlap: contentTop=${state.contentTop}, safeAreaTop=${state.safeAreaTop}`;
     }
 
-    const shot = path.join(
-      SCREENSHOT_DIR,
-      `phoneM__${safeName(route.name)}__${route.tag}.png`,
-    );
+    const shot = path.join(SCREENSHOT_DIR, `phoneM__${safeName(route.name)}__${route.tag}.png`);
     try {
       await captureScreenshot(shot);
     } catch (error) {
