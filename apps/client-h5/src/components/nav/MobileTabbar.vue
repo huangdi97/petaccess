@@ -61,7 +61,9 @@ function isActive(to: string): boolean {
   display: flex;
   background: var(--pa-color-surface-raised);
   border-top: var(--pa-border-width) solid var(--pa-color-border);
+  padding-right: var(--pa-safe-right);
   padding-bottom: var(--pa-safe-bottom);
+  padding-left: var(--pa-safe-left);
 }
 
 .mobile-tabbar__item {
