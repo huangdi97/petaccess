@@ -58,13 +58,15 @@ python scripts/android_acceptance/preview_usb_smoke.py \
 
 脚本会依次：
 
-1. 检查电脑 `127.0.0.1:8000` 已有 PetAccess API 监听；
-2. 等待指定 adb 设备；
-3. `adb install -r` 安装 **`com.petaccess.map.preview`**；
-4. 确认 Preview package 确实存在；
-5. 建立并验证 `adb reverse tcp:8000 tcp:8000`；
-6. 设置 `PETACCESS_ANDROID_PACKAGE=com.petaccess.map.preview` 与目标 serial；
-7. 调用 `scripts/android_acceptance/m3_fast.py`。
+1. 用 `aapt dump badging` 在安装前确认 APK 的 application id **必须**是 `com.petaccess.map.preview`；
+2. 检查电脑 `127.0.0.1:8000` 已有 PetAccess API 监听；
+3. 等待指定 adb 设备；
+4. 优先用 `adb install -r` 保留 Preview 数据覆盖安装；
+5. 只有遇到 `INSTALL_FAILED_UPDATE_INCOMPATIBLE`（不同 CI runner 的 debug 签名变化）时，才卸载 **Preview package 本身**并重装；正式 `com.petaccess.map` 永远不碰；
+6. 确认 Preview package 确实存在；
+7. 建立并验证 `adb reverse tcp:8000 tcp:8000`；
+8. 设置 `PETACCESS_ANDROID_PACKAGE=com.petaccess.map.preview` 与目标 serial；
+9. 调用 `scripts/android_acceptance/m3_fast.py`。
 
 如果 Preview 已安装，可加：
 
