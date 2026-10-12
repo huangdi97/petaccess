@@ -61,8 +61,8 @@ def _card(route: dict) -> str:
     fixture = snapshot.get("uiFixture") or "-"
     viewport = snapshot.get("viewport") if isinstance(snapshot.get("viewport"), dict) else {}
     doc = snapshot.get("document") if isinstance(snapshot.get("document"), dict) else {}
-    viewport_size = f'{viewport.get("width", "-")}×{viewport.get("height", "-")}'
-    document_size = f'{doc.get("scrollWidth", "-")}×{doc.get("scrollHeight", "-")}'
+    viewport_size = f"{viewport.get('width', '-')}×{viewport.get('height', '-')}"
+    document_size = f"{doc.get('scrollWidth', '-')}×{doc.get('scrollHeight', '-')}"
     overflow = html.escape(str(snapshot.get("horizontalOverflow", "-")))
 
     return f"""
@@ -86,11 +86,7 @@ def _card(route: dict) -> str:
         <div><dt>safe top</dt><dd>{html.escape(str(snapshot.get("safeAreaTop", "-")))}</dd></div>
         <div><dt>content top</dt><dd>{html.escape(str(snapshot.get("contentTop", "-")))}</dd></div>
       </dl>
-      {
-        f'<p class="error">{html.escape(str(route.get("error")))}</p>'
-        if route.get("error")
-        else ""
-      }
+      {f'<p class="error">{html.escape(str(route.get("error")))}</p>' if route.get("error") else ""}
     </article>
     """
 
@@ -227,7 +223,7 @@ Runtime PASS 只证明路由身份、WebView 几何、安全区、overflow 与�
 它不能替代你对视觉质量的人工判断；HUMAN_VISUAL_ACCEPTANCE 仍为 PENDING。
 </p>
 <section class="grid">
-{cards if cards else '<p>没有找到当前 Android runtime route screenshot 证据。</p>'}
+{cards if cards else "<p>没有找到当前 Android runtime route screenshot 证据。</p>"}
 </section>
 </body>
 </html>
