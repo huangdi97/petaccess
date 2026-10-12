@@ -69,4 +69,10 @@ export default defineConfigWithVueTs(
       "@typescript-eslint/no-unsafe-assignment": "off",
     },
   },
+  {
+    files: ["scripts/windows_acceptance/**/*.cjs"],
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
+    },
+  },
 );
