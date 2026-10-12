@@ -15,10 +15,14 @@ on:
       - ".github/workflows/android-preview.yml"
   workflow_dispatch:
     inputs:
-      api_base:
-        description: "Android-accessible API base, including /api/v1. Use a LAN/public URL for a real phone."
-        required: false
-        default: "http://10.0.2.2:8000/api/v1"
+      api_profile:
+        description: "Preview API profile"
+        required: true
+        default: "emulator"
+        type: choice
+        options:
+          - emulator
+          - usb-device
 
 permissions:
   contents: read
@@ -29,11 +33,10 @@ concurrency:
 
 jobs:
   preview-apk:
-    name: ARM64 debug preview APK
+    name: Isolated Android preview APK
     runs-on: ubuntu-latest
     env:
-      VITE_TAURI_ANDROID_API_BASE: ${{ github.event.inputs.api_base || vars.PETACCESS_PREVIEW_ANDROID_API_BASE || 'http://10.0.2.2:8000/api/v1' }}
-      VITE_APP_VERSION: "preview-${{ github.sha }}"
+      PREVIEW_CONFIG: src-tauri/tauri.preview.conf.json
     steps:
       - uses: actions/checkout@v4
 
@@ -48,10 +51,40 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - name: Install Rust Android target
+      - name: Resolve preview API profile
+        id: profile
+        shell: bash
+        run: |
+          PROFILE="emulator"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            PROFILE="${{ inputs.api_profile }}"
+          fi
+
+          case "$PROFILE" in
+            emulator)
+              API_BASE="http://10.0.2.2:8000/api/v1"
+              NOTE="Android Emulator -> host backend on port 8000"
+              ;;
+            usb-device)
+              API_BASE="http://127.0.0.1:8000/api/v1"
+              NOTE="Physical Android device -> run: adb reverse tcp:8000 tcp:8000"
+              ;;
+            *)
+              echo "Unsupported preview profile: $PROFILE"
+              exit 1
+              ;;
+          esac
+
+          echo "profile=$PROFILE" >> "$GITHUB_OUTPUT"
+          echo "api_base=$API_BASE" >> "$GITHUB_OUTPUT"
+          echo "note=$NOTE" >> "$GITHUB_OUTPUT"
+          echo "VITE_TAURI_ANDROID_API_BASE=$API_BASE" >> "$GITHUB_ENV"
+          echo "VITE_APP_VERSION=preview-${GITHUB_SHA::7}" >> "$GITHUB_ENV"
+
+      - name: Install Rust Android targets
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: aarch64-linux-android
+          targets: aarch64-linux-android,x86_64-linux-android
 
       - name: Set up Android SDK
         shell: bash
@@ -65,6 +98,7 @@ jobs:
             echo "sdkmanager not found in $SDK"
             exit 1
           fi
+
           echo "ANDROID_HOME=$SDK" >> "$GITHUB_ENV"
           echo "ANDROID_SDK_ROOT=$SDK" >> "$GITHUB_ENV"
           yes | "$SDKMGMT" --licenses >/dev/null 2>&1 || true
@@ -83,64 +117,96 @@ jobs:
           path: |
             ~/.cargo/registry
             apps/client-h5/src-tauri/target
-          key: cargo-android-preview-${{ hashFiles('apps/client-h5/src-tauri/Cargo.lock') }}
+          key: android-preview-${{ hashFiles('apps/client-h5/src-tauri/Cargo.lock') }}
 
-      - name: Validate preview API endpoint
-        shell: bash
-        run: |
-          case "$VITE_TAURI_ANDROID_API_BASE" in
-            http://*/api/v1|https://*/api/v1) ;;
-            *)
-              echo "VITE_TAURI_ANDROID_API_BASE must be an http(s) URL ending in /api/v1"
-              exit 1
-              ;;
-          esac
+      - name: Initialize isolated preview Android project
+        run: >
+          pnpm --filter @petaccess/client-h5 exec tauri android init
+          --ci
+          --config "$PREVIEW_CONFIG"
 
-      - name: Initialize generated Android project
-        run: pnpm --filter @petaccess/client-h5 exec tauri android init
-
-      - name: Build ARM64 debug APK
-        run: pnpm --filter @petaccess/client-h5 exec tauri android build --debug --apk --target aarch64
+      - name: Build aarch64 + x86_64 debug preview APK
+        run: >
+          pnpm --filter @petaccess/client-h5 exec tauri android build
+          --debug
+          --apk
+          --target aarch64
+          --target x86_64
+          --config "$PREVIEW_CONFIG"
 
       - name: Collect and verify preview APK
+        id: apk
         shell: bash
         run: |
-          APK_ROOT="apps/client-h5/src-tauri/gen/android/app/build/outputs/apk"
-          APK="$(find "$APK_ROOT" -type f -name '*debug*.apk' ! -name '*androidTest*' | head -1)"
+          APK="$(find apps/client-h5/src-tauri/gen/android             -type f -name '*universal*debug*.apk' | head -1)"
+          if [ -z "$APK" ]; then
+            APK="$(find apps/client-h5/src-tauri/gen/android               -type f -name '*debug*.apk' ! -path '*/androidTest/*' | head -1)"
+          fi
           if [ -z "$APK" ] || [ ! -f "$APK" ]; then
-            echo "debug app APK not found under $APK_ROOT"
+            echo "debug APK not found"
             find apps/client-h5/src-tauri/gen/android -type f -name '*.apk' -print || true
             exit 1
           fi
 
-          OUT="PetAccess-preview-arm64-debug.apk"
+          PROFILE="${{ steps.profile.outputs.profile }}"
+          SHORT_SHA="${GITHUB_SHA::7}"
+          OUT="PetAccess-preview-${PROFILE}-${SHORT_SHA}-debug.apk"
           cp "$APK" "$OUT"
 
           APKSIGNER="${ANDROID_HOME}/build-tools/35.0.0/apksigner"
+          AAPT="${ANDROID_HOME}/build-tools/35.0.0/aapt"
           "$APKSIGNER" verify --verbose "$OUT"
-          sha256sum "$OUT" > SHA256SUMS.txt
 
-          {
-            echo "PetAccess Android Preview"
-            echo "commit=${GITHUB_SHA}"
-            echo "branch=${GITHUB_REF_NAME}"
-            echo "api_base=${VITE_TAURI_ANDROID_API_BASE}"
-            echo "abi=aarch64"
-            echo "build=debug"
-            echo "package=com.petaccess.map"
-            echo
-            echo "This is a debug preview artifact, not a production release."
-            echo "For a physical phone, api_base must be reachable from that phone."
-            echo "The default 10.0.2.2 endpoint is Android-emulator-only."
-          } > PREVIEW_METADATA.txt
+          BADGING="$("$AAPT" dump badging "$OUT" | head -1)"
+          echo "$BADGING"
+          echo "$BADGING" | grep -q "name='com.petaccess.map.preview'" || {
+            echo "Preview package id mismatch"
+            exit 1
+          }
+
+          sha256sum "$OUT" > SHA256SUMS.txt
+          echo "apk=$OUT" >> "$GITHUB_OUTPUT"
+
+          cat > PREVIEW_METADATA.txt <<EOF
+          PetAccess Android Preview
+          commit=$GITHUB_SHA
+          branch=$GITHUB_REF_NAME
+          api_profile=${{ steps.profile.outputs.profile }}
+          api_base=${{ steps.profile.outputs.api_base }}
+          abi=aarch64+x86_64
+          build=debug
+          package=com.petaccess.map.preview
+          app_label=PetAccess Preview
+          release_signature=NO
+          store_release_artifact=NO
+
+          ${{ steps.profile.outputs.note }}
+
+          This preview installs beside the signed PetAccess release and must never
+          be promoted as a Release APK.
+          EOF
 
       - name: Upload installable preview
         uses: actions/upload-artifact@v4
         with:
-          name: petaccess-android-preview-${{ github.sha }}
+          name: petaccess-android-preview-${{ steps.profile.outputs.profile }}-${{ github.sha }}
           path: |
-            PetAccess-preview-arm64-debug.apk
+            ${{ steps.apk.outputs.apk }}
             SHA256SUMS.txt
             PREVIEW_METADATA.txt
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 14
+
+      - name: Preview summary
+        shell: bash
+        run: |
+          {
+            echo "## PetAccess Android Preview"
+            echo
+            echo "- Commit: \`$GITHUB_SHA\`"
+            echo "- Package: \`com.petaccess.map.preview\`"
+            echo "- Profile: \`${{ steps.profile.outputs.profile }}\`"
+            echo "- API: \`${{ steps.profile.outputs.api_base }}\`"
+            echo "- APK: \`${{ steps.apk.outputs.apk }}\`"
+            echo "- Debug Preview only; not a signed Release."
+          } >> "$GITHUB_STEP_SUMMARY"
