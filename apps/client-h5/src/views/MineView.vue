@@ -169,13 +169,11 @@ function setActivePet(pet: (typeof pets.value)[number]) {
   max-width: 560px;
   margin: var(--pa-space-1) 0 0;
 }
-
 .mine-links {
   display: flex;
   flex-wrap: wrap;
   gap: var(--pa-space-4);
 }
-
 .mine-logout {
   margin-top: var(--pa-space-6);
   min-height: var(--pa-size-control-md);
@@ -185,7 +183,6 @@ function setActivePet(pet: (typeof pets.value)[number]) {
   padding: 0;
   cursor: pointer;
 }
-
 .mine-logout:hover,
 .mine-logout:focus-visible {
   color: var(--pa-color-text-primary);
