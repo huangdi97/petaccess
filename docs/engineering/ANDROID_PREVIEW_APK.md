@@ -59,7 +59,7 @@ python scripts/android_acceptance/preview_usb_smoke.py \
 脚本会依次：
 
 1. 用 `aapt dump badging` 在安装前确认 APK 的 application id **必须**是 `com.petaccess.map.preview`；
-2. 检查电脑 `127.0.0.1:8000` 已有 PetAccess API 监听；
+2. 对电脑 `127.0.0.1:8000` 做真实 PetAccess API 身份检查：`/health` 必须返回 `status=ok`，`/api/v1/ping` 必须返回 `pong=true`；
 3. 等待指定 adb 设备；
 4. 优先用 `adb install -r` 保留 Preview 数据覆盖安装；
 5. 只有遇到 `INSTALL_FAILED_UPDATE_INCOMPATIBLE`（不同 CI runner 的 debug 签名变化）时，才卸载 **Preview package 本身**并重装；正式 `com.petaccess.map` 永远不碰；
@@ -114,12 +114,14 @@ adb -s <serial> reverse tcp:8000 tcp:8000
 
 - Preview APK；
 - `SHA256SUMS.txt`；
+- `PREVIEW_SIGNER_CERTS.txt`：debug Preview 实际 signer certificate 指纹；
 - `PREVIEW_METADATA.txt`：commit、profile、API、ABI、package、签名/Release 边界。
 
 workflow 还必须：
 
-- 使用 `apksigner verify` 验证 APK 可安装签名；
-- 使用 `aapt dump badging` 验证实际 package 是 `com.petaccess.map.preview`；
+- 使用 `apksigner verify` 验证 APK 可安装签名，并保存 `--print-certs` 结果；
+- 使用 `aapt dump badging` 验证实际 package 是 `com.petaccess.map.preview`，且 app label 是 `PetAccess Preview`；
+- 在 APK 打包后检查 Vite Consumer bundle 内确实烘焙了 matrix profile 对应的 `VITE_TAURI_ANDROID_API_BASE`；
 - 使用独立 Preview Tauri config；
 - 不读取正式 release keystore。
 
