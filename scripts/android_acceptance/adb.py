@@ -168,8 +168,14 @@ def shell(serial: str, *args: str, timeout: int = 60) -> str:
 
 
 def shell_pidof(serial: str, package: str) -> str:
-    """PID of a package's process (empty string when not running)."""
-    out = shell(serial, "pidof", package)
+    """PID of a package process; empty string when not running.
+
+    Android pidof exits with status 1 when no process matches. That is a
+    normal state before first launch or after force-stop and must not be
+    promoted to AdbError. Device transport failures remain handled by the
+    shared adb retry logic.
+    """
+    out = adb("shell", "pidof", package, serial=serial, timeout=30, check=False)
     return out.strip()
 
 
