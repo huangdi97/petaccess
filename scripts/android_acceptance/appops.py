@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import time
 from dataclasses import asdict, dataclass
@@ -21,8 +22,8 @@ from .adb import (
     shell,
 )
 
-PACKAGE = "com.petaccess.map"
-MAIN_ACTIVITY = "com.petaccess.map.MainActivity"
+PACKAGE = os.environ.get("PETACCESS_ANDROID_PACKAGE", "com.petaccess.map")
+MAIN_ACTIVITY = f"{PACKAGE}.MainActivity"
 BOOT_STAGES = (
     "INDEX_LOADED",
     "VUE_CREATED",
