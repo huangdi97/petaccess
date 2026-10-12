@@ -31,7 +31,7 @@ jobs:
       # unreachable local port so this job cannot accidentally masquerade as
       # proof of the real PostGIS-backed data layer.
       VITE_TAURI_API_BASE: http://127.0.0.1:65535/api/v1
-      WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: --remote-debugging-port=9222
+      WEBVIEW2_USER_DATA_FOLDER: ${{ runner.temp }}\\petaccess-webview2-preview
       PETACCESS_WINDOWS_CDP: http://127.0.0.1:9222
 
     steps:
@@ -62,7 +62,7 @@ jobs:
       - name: Build debug Tauri executable without installer
         shell: pwsh
         run: |
-          pnpm --filter @petaccess/client-h5 exec tauri build --debug --no-bundle --ci
+          pnpm --filter @petaccess/client-h5 exec tauri build --debug --no-bundle --ci --config src-tauri/tauri.windows-preview.conf.json
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
           $exe = Get-ChildItem "apps/client-h5/src-tauri/target/debug" -Filter "petaccess.exe" -File -Recurse |
@@ -81,6 +81,15 @@ jobs:
       - name: Launch packaged WebView2 runtime
         shell: pwsh
         run: |
+          New-Item -ItemType Directory -Force "$env:WEBVIEW2_USER_DATA_FOLDER" | Out-Null
+
+          # Preview config is the primary source for remote-debugging args.
+          # The registry policy is an official WebView2 fallback scoped to this
+          # executable name only and is removed during cleanup.
+          $regPath = "HKCU:\\Software\\Policies\\Microsoft\\Edge\\WebView2\\AdditionalBrowserArguments"
+          New-Item -Path $regPath -Force | Out-Null
+          New-ItemProperty -Path $regPath -Name "petaccess.exe" -Value "--remote-debugging-port=9222" -PropertyType String -Force | Out-Null
+
           $process = Start-Process -FilePath "$env:PETACCESS_WINDOWS_EXE" -PassThru
           $process.Id | Set-Content "artifacts/windows-preview-runtime/runtime/process-id.txt"
 
@@ -105,6 +114,11 @@ jobs:
           }
 
           if (-not $ready) {
+            Get-CimInstance Win32_Process |
+              Where-Object { $_.Name -match "petaccess|msedgewebview2" } |
+              Select-Object ProcessId, ParentProcessId, Name, CommandLine |
+              ConvertTo-Json -Depth 4 |
+              Set-Content "artifacts/windows-preview-runtime/runtime/processes-on-cdp-timeout.json"
             Write-Error "WebView2 remote debugging endpoint did not become ready"
             exit 1
           }
@@ -139,6 +153,11 @@ jobs:
         if: always()
         shell: pwsh
         run: |
+          $regPath = "HKCU:\\Software\\Policies\\Microsoft\\Edge\\WebView2\\AdditionalBrowserArguments"
+          if (Test-Path $regPath) {
+            Remove-ItemProperty -Path $regPath -Name "petaccess.exe" -ErrorAction SilentlyContinue
+          }
+
           $pidFile = "artifacts/windows-preview-runtime/runtime/process-id.txt"
           if (Test-Path $pidFile) {
             $appPid = (Get-Content $pidFile | Select-Object -First 1).Trim()
