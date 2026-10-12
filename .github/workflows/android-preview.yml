@@ -8,6 +8,10 @@ on:
       - "apps/client-h5/**"
       - "packages/client-core/**"
       - "packages/design-tokens/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - ".env.example"
       - ".github/workflows/android-preview.yml"
   workflow_dispatch:
     inputs:
