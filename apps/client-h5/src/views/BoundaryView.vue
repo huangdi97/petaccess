@@ -95,7 +95,9 @@ onMounted(load);
 <template>
   <AppShell
     data-ui-page="boundary"
-    :data-ui-state="loading ? 'loading' : loadError ? 'error' : signedIn ? 'ready' : 'permission-denied'"
+    :data-ui-state="
+      loading ? 'loading' : loadError ? 'error' : signedIn ? 'ready' : 'permission-denied'
+    "
   >
     <div v-if="!online" class="offline-banner" data-testid="offline-banner">
       <span aria-hidden="true">⊘</span>
