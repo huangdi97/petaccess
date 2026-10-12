@@ -18,11 +18,13 @@ isolated Preview package.
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import re
-import socket
 import subprocess
 import sys
+import urllib.error
+import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -35,12 +37,24 @@ PREVIEW_PACKAGE = "com.petaccess.map.preview"
 DEFAULT_API_PORT = 8000
 
 
-def _host_port_ready(port: int) -> bool:
-    try:
-        with socket.create_connection(("127.0.0.1", port), timeout=2):
-            return True
-    except OSError:
-        return False
+def _assert_host_api_ready(port: int) -> None:
+    checks: tuple[tuple[str, str, object], ...] = (
+        ("/health", "status", "ok"),
+        ("/api/v1/ping", "pong", True),
+    )
+    for route, key, expected in checks:
+        url = f"http://127.0.0.1:{port}{route}"
+        try:
+            with urllib.request.urlopen(url, timeout=3) as response:  # noqa: S310
+                if response.status != 200:
+                    raise SystemExit(f"PetAccess API check failed: {url} -> HTTP {response.status}")
+                payload = json.loads(response.read().decode("utf-8"))
+        except (OSError, urllib.error.URLError, json.JSONDecodeError) as exc:
+            raise SystemExit(f"PetAccess API check failed: {url}: {exc}") from exc
+        if payload.get(key) != expected:
+            raise SystemExit(
+                f"PetAccess API check failed: {url} expected {key}={expected!r}, got {payload!r}"
+            )
 
 
 def _resolve_aapt() -> Path:
@@ -121,11 +135,7 @@ def main() -> int:
             f"refusing to install {package_name!r}; expected isolated Preview package "
             f"{PREVIEW_PACKAGE!r}"
         )
-    if not _host_port_ready(args.api_port):
-        raise SystemExit(
-            f"PetAccess API is not listening on host 127.0.0.1:{args.api_port}; "
-            "start the API before USB Preview validation."
-        )
+    _assert_host_api_ready(args.api_port)
     if not wait_for_device(serial, timeout=120):
         raise SystemExit(f"adb device not ready: {serial}")
 
