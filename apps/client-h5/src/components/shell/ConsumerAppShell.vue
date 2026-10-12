@@ -76,6 +76,10 @@ onMounted(() => {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
+  padding-top: var(--pa-safe-top);
+  padding-left: var(--pa-safe-left);
+  padding-right: var(--pa-safe-right);
 }
 
 .consumer-app-shell__main {
