@@ -136,8 +136,7 @@ async function connectPageTarget() {
         ) ??
         targets.find(
           (item) =>
-            typeof item.webSocketDebuggerUrl === "string" &&
-            item.webSocketDebuggerUrl.length > 0,
+            typeof item.webSocketDebuggerUrl === "string" && item.webSocketDebuggerUrl.length > 0,
         );
 
       if (!target?.webSocketDebuggerUrl) {
@@ -146,10 +145,7 @@ async function connectPageTarget() {
 
       ws = new WebSocket(target.webSocketDebuggerUrl);
       await new Promise((resolve, reject) => {
-        const timer = setTimeout(
-          () => reject(new Error("CDP websocket open timeout")),
-          3000,
-        );
+        const timer = setTimeout(() => reject(new Error("CDP websocket open timeout")), 3000);
         ws.onopen = () => {
           clearTimeout(timer);
           resolve();
