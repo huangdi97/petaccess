@@ -65,7 +65,9 @@ def main() -> int:
                 "data_profile": data_profile,
                 "network_state": network_state,
                 "permission_state": permission_state,
-                "precondition": "app installed on owned AVD emulator-5562",
+                "precondition": (
+                    f"app {TARGET_PACKAGE} installed on owned Android device {TARGET_SERIAL}"
+                ),
                 "steps": steps,
                 "expected": expected,
                 "result": state,
