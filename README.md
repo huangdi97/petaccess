@@ -156,11 +156,11 @@ MIT — 见 `apps/client-h5/src-tauri/Cargo.toml`（`license = "MIT"`）。
 
 ## 10. 当前版本状态
 
-- **v0.1.0 — Early Preview（技术预览）**，不是 Public Beta，不承诺数据覆盖。
+- **v0.1.0 — Early Preview（技术预览）已发布 GitHub Release**，不是 Public Beta，不承诺数据覆盖。
 - **未上架应用商店**（Android 需侧载，Windows 走安装包）。
-- **GitHub Release 待授权**：`RELEASE_V0_1_0_AUTHORIZATION`（huangdi97）未授予，
-  `V0_1_0_RELEASED = NO`。
-- **CI 目前 BLOCKED**：仓库尚无 git remote，远程 CI 未实跑；PR/Release CI 工作流已就绪。
+- 当前 UI/Consumer 候选工作位于 draft PR #1 的 `feat/ui-direct-craft-v8`，不得把分支 Preview 当成正式 Release。
+- GitHub Actions 已实际运行：PR CI、UI Direct Validation / Visual、Android Preview APK 等均以当前提交事实为准。
+- 当前候选仍为 `UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`；在同一最终 HEAD 的 Web / Windows / Android 运行证据与用户真人视觉确认前，不提升 baseline、不合并 master、不新建 tag / Release。
 
 ## 相关文档
 
