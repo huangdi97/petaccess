@@ -37,7 +37,9 @@ test("boundary preferences stay honest and overflow-free on phone widths", async
 
     // A new profile must remain explicitly unset. UI polish must never turn an
     // unanswered preference into an inferred preference.
-    const unsetChoices = page.locator('[data-testid^="stance-"][data-testid$="-unset"]');
+    const unsetChoices = page.locator(
+      '[data-testid^="stance-"][data-testid$="-unset"]',
+    );
     await expect(unsetChoices).toHaveCount(10);
     for (const choice of await unsetChoices.all()) {
       await expect(choice).toBeChecked();
@@ -64,12 +66,14 @@ test("boundary preferences stay honest and overflow-free on phone widths", async
       layout.viewportWidth + 1,
     );
     for (const choice of layout.choices) {
-      expect(choice.left, `segmented control starts outside viewport at ${width}px`).toBeGreaterThanOrEqual(
-        -1,
-      );
-      expect(choice.right, `segmented control ends outside viewport at ${width}px`).toBeLessThanOrEqual(
-        layout.viewportWidth + 1,
-      );
+      expect(
+        choice.left,
+        `segmented control starts outside viewport at ${width}px`,
+      ).toBeGreaterThanOrEqual(-1);
+      expect(
+        choice.right,
+        `segmented control ends outside viewport at ${width}px`,
+      ).toBeLessThanOrEqual(layout.viewportWidth + 1);
     }
   }
 });
