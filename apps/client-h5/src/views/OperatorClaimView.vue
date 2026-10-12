@@ -30,7 +30,6 @@ const claimStatusLabel = computed(
 const previousClaimStatusLabel = computed(() =>
   operatorClaimStatusLabel(previousClaimStatus.value),
 );
-
 const loadEpoch = createEpoch();
 
 async function load() {
@@ -41,9 +40,6 @@ async function load() {
   try {
     await session.restore();
     if (!loadEpoch.isCurrent(generation)) return;
-    // Zones and the owner's claim are part of one place-scoped transaction:
-    // silently treating a failed zone request as "no zones" could publish
-    // policy about the wrong scope. Never present partial authoring data.
     const [nextPlace, nextZones] = await Promise.all([client.place(id), client.zones(id)]);
     if (!loadEpoch.isCurrent(generation)) return;
 
