@@ -193,12 +193,9 @@ def main() -> int:
             if "ResumedActivity" in line or "topResumedActivity" in line
         ]
         if any(PKG in line for line in resumed_lines):
-            raise RuntimeError(
-                "Home Back left PetAccess resumed: " + " | ".join(resumed_lines[:4])
-            )
-        results["hardware_back_from_home"] = (
-            "PASS activity_finished; resumed="
-            + (" | ".join(resumed_lines[:4]) if resumed_lines else "(none reported)")
+            raise RuntimeError("Home Back left PetAccess resumed: " + " | ".join(resumed_lines[:4]))
+        results["hardware_back_from_home"] = "PASS activity_finished; resumed=" + (
+            " | ".join(resumed_lines[:4]) if resumed_lines else "(none reported)"
         )
     except Exception as e:  # noqa: BLE001
         results["hardware_back_from_home"] = f"ERROR {e}"
