@@ -77,6 +77,17 @@ def check_consumer_runtime_boundary() -> list[dict]:
             }
         )
 
+    required_android_sdk = ("platforms;android-36", "build-tools;36.0.0")
+    if any(package not in release_text for package in required_android_sdk):
+        violations.append(
+            {
+                "rule": "runtime-boundary",
+                "path": ".github/workflows/release-ci.yml",
+                "severity": "FAIL",
+                "detail": "Android release CI must explicitly install API 36 and Build Tools 36.0.0.",
+            }
+        )
+
     canonical_tauri_path = ROOT / "apps" / "client-h5" / "src-tauri" / "tauri.conf.json"
     canonical_tauri = json.loads(canonical_tauri_path.read_text(encoding="utf-8"))
     if canonical_tauri.get("identifier") != "com.petaccess.map":
@@ -132,6 +143,19 @@ def check_consumer_runtime_boundary() -> list[dict]:
                     "path": ".github/workflows/android-preview.yml",
                     "severity": "FAIL",
                     "detail": "Preview workflow must not consume the release signing identity.",
+                }
+            )
+
+        if any(package not in preview_text for package in required_android_sdk):
+            violations.append(
+                {
+                    "rule": "runtime-boundary",
+                    "path": ".github/workflows/android-preview.yml",
+                    "severity": "FAIL",
+                    "detail": (
+                        "Android Preview CI must explicitly install API 36 and "
+                        "Build Tools 36.0.0."
+                    ),
                 }
             )
 
