@@ -16,11 +16,23 @@ PetAccess 当前 Android 产品实现是 **`apps/client-h5 + Tauri 2`**。为了
 
 Preview 身份通过 `apps/client-h5/src-tauri/tauri.preview.conf.json` 合并到正式 Tauri 配置，是真实 Android application id 隔离，不只是 APK 文件名约定。
 
-## 2. 每次自动生成两份 Preview
+## 2. 构建工具链
+
+Preview 与正式 Release 使用同一 Android SDK 主版本，不依赖 GitHub runner 的隐式预装：
+
+- Android SDK Platform：`android-36`
+- Android SDK Build Tools：`36.0.0`
+- NDK：`27.1.12297006`
+- Java：17
+- Tauri Android：当前 `@tauri-apps/cli` 2.x
+
+APK artifact 内的 `PREVIEW_BADGING.txt` 继续记录实际 compileSdk / minSdk / targetSdk / native ABI，防止“workflow 参数写 36，但最终 APK 不是 36”的假一致。
+
+## 3. 每次自动生成两份 Preview
 
 当前 UI 工作分支发生 Consumer/runtime 相关变更时，workflow 用 matrix 同时构建两个 artifact。
 
-### 2.1 emulator · x86_64
+### 3.1 emulator · x86_64
 
 API：
 
@@ -30,7 +42,7 @@ http://10.0.2.2:8000/api/v1
 
 用于 Android Emulator；`10.0.2.2` 指向宿主机。
 
-### 2.2 usb-device · aarch64
+### 3.2 usb-device · aarch64
 
 API：
 
@@ -46,7 +58,7 @@ adb -s <serial> reverse tcp:8000 tcp:8000
 
 这样不需要为了临时预览放宽 Tauri CSP，也不需要把本地 API 暴露到公网。
 
-## 3. 真机一键安装 + FAST
+## 4. 真机一键安装 + FAST
 
 推荐直接使用仓库辅助脚本，而不是手工拼安装、reverse、包名和 FAST 环境变量：
 
@@ -76,7 +88,7 @@ python scripts/android_acceptance/preview_usb_smoke.py \
 
 该脚本不卸载正式 PetAccess，也不把 Preview 当成正式升级对象。
 
-## 4. 手动运行 Android FAST
+## 5. 手动运行 Android FAST
 
 Android acceptance 工具默认仍验证正式包。需要直接验 Preview 时：
 
@@ -94,7 +106,7 @@ adb -s <serial> reverse tcp:8000 tcp:8000
 
 这两个环境变量只改变验收目标，不改变产品代码。未设置时继续使用正式 package / owned emulator 默认值。
 
-## 5. 为什么不接受任意 API URL
+## 6. 为什么不接受任意 API URL
 
 当前仓库没有冻结的 Public Beta API 域名，而且 Tauri CSP 是显式 allowlist。允许 workflow 临时注入任意 URL 会制造两类假象：
 
@@ -108,7 +120,7 @@ adb -s <serial> reverse tcp:8000 tcp:8000
 
 未来 Public Beta API 域名冻结后，应新增明确的 `public-beta` profile，并同时更新 CSP、endpoint tests 与 runtime acceptance；不要恢复自由字符串 URL。
 
-## 6. Artifact 必须包含
+## 7. Artifact 必须包含
 
 每个 Preview artifact 必须包含：
 
@@ -126,7 +138,7 @@ workflow 还必须：
 - 使用独立 Preview Tauri config；
 - 不读取正式 release keystore。
 
-## 7. Android Runtime Review Board
+## 8. Android Runtime Review Board
 
 API 35 / API 36 emulator runtime smoke 成功后，CI 会在各自 runtime evidence artifact 根目录生成：
 
@@ -142,7 +154,7 @@ API 35 / API 36 emulator runtime smoke 成功后，CI 会在各自 runtime evide
 
 Review Board 明确保持 `HUMAN_VISUAL_ACCEPTANCE = PENDING`。机器截图与几何通过不能自动变成人工视觉通过。
 
-## 8. Preview APK 不能替代什么
+## 9. Preview APK 不能替代什么
 
 Preview APK 只证明“候选安装包已生成并经过 package/signature 检查”。它**不替代**：
 
