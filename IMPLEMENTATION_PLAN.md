@@ -1,5 +1,16 @@
 # IMPLEMENTATION_PLAN.md
 
+> **Historical scaffold / not a live completion ledger.**
+>
+> 这份 Phase 清单来自早期工程启动阶段，未随实际完成状态逐项回填，因此所有 `[ ]`
+> 不能解释为“当前未实现”。执行 Agent 必须以 `PROJECT_STATE.md`、PR/CI、当前代码和
+> v0.10-R1 母版作为事实源。
+>
+> Runtime convergence：当前 Consumer 为 `apps/client-h5`；Windows / Android 使用
+> Tauri 2。早期 `apps/client` uni-app x 仅保留为 legacy reference。Phase 12 中
+> WeChat / iOS / HarmonyOS 属未来渠道重新决策项，不得据此恢复旧客户端作为当前实现。
+
+
 ## Phase 0 Foundation
 - [ ] repo/toolchains
 - [ ] Docker
