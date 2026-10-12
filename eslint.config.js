@@ -47,6 +47,7 @@ export default defineConfigWithVueTs(
             "playwright.ui-reconstruction.config.ts",
             "playwright.ui-oracle.config.ts",
             "scripts/*.mjs",
+            "scripts/windows_acceptance/*.cjs",
             "eslint.config.js",
           ],
           maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 24,
