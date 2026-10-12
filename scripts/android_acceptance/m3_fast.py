@@ -81,12 +81,33 @@ def main() -> int:
     pid = ensure_app()
     results["app_pid"] = pid
 
-    for step in ("home", "search", "map", "place", "reality", "evidence", "nav"):
+    for step in ("home", "search", "map", "place", "reality", "evidence"):
         try:
             results[step] = cdp_probe(pid, step)
             results[f"shot_{step}"] = f"bytes={screenshot(f'{step}-m3-final')}"
         except Exception as e:  # noqa: BLE001 - report every route and keep going
             results[step] = f"ERROR {e}"
+
+    # Android product navigation contract: after the FAST journey has visited
+    # Reality then Evidence, one system Back must return to Reality. A process
+    # exit, blank WebView or wrong route is a product failure, not a platform
+    # limitation.
+    try:
+        shell(SERIAL, "input", "keyevent", "KEYCODE_BACK", timeout=30)
+        time.sleep(2)
+        back_state = cdp_probe(pid, "snapshot")
+        results["hardware_back_from_evidence"] = back_state
+        if '"uiPage":"reality"' not in back_state.replace(" ", ""):
+            raise RuntimeError(f"expected Reality after Back, got: {back_state}")
+        results["shot_hardware_back"] = f"bytes={screenshot('hardware-back-reality-m3-final')}"
+    except Exception as e:  # noqa: BLE001
+        results["hardware_back_from_evidence"] = f"ERROR {e}"
+
+    try:
+        results["nav"] = cdp_probe(pid, "nav")
+        results["shot_nav"] = f"bytes={screenshot('nav-home-m3-final')}"
+    except Exception as e:  # noqa: BLE001
+        results["nav"] = f"ERROR {e}"
 
     print(json.dumps(results, ensure_ascii=False, indent=1))
     return 0
