@@ -66,7 +66,10 @@ function setActivePet(pet: (typeof pets.value)[number]) {
 </script>
 
 <template>
-  <AppShell>
+  <AppShell
+    data-ui-page="mine"
+    :data-ui-state="loading ? 'loading' : error ? 'error' : signedIn ? 'signed-in' : 'public'"
+  >
     <header class="mine-head">
       <h1>我的</h1>
       <template v-if="signedIn">
