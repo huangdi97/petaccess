@@ -79,6 +79,18 @@ def check_consumer_runtime_boundary() -> list[dict]:
                 "detail": "Historical uni-app x client must stay explicitly legacy-reference-only.",
             }
         )
+    canonical_package = json.loads(
+        (ROOT / "apps" / "client-h5" / "package.json").read_text(encoding="utf-8")
+    )
+    if canonical_package.get("petaccessRole") != "canonical-consumer":
+        violations.append(
+            {
+                "rule": "runtime-boundary",
+                "path": "apps/client-h5/package.json",
+                "severity": "FAIL",
+                "detail": "apps/client-h5 must remain the canonical Consumer implementation.",
+            }
+        )
     if not (ROOT / "apps" / "client" / "README.md").exists():
         violations.append(
             {
