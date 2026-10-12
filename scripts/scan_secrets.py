@@ -54,6 +54,10 @@ DEV_MARKERS = (
     "user:pw",
     "u:p@",
     "petaccess:x@",
+    # Historical Android Preview CI used this exact deterministic marker as a
+    # non-secret test JWT value. Keep the exception narrow; high-signal secret
+    # patterns are never suppressed by DEV_MARKERS.
+    "android_preview_ci_only",
     "{user}",
     "{password}",
     "***",
