@@ -1,10 +1,34 @@
-"""Coverage matrix generator (goal section 106). Emits coverage_matrix.json."""
+"""Android acceptance coverage matrix.
+
+Coverage is derived from evidence content, not from the mere existence of a
+file. In particular, Routes is only COVERED when the canonical CDP journey
+reports PASS across the full Consumer route set.
+"""
+
+from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
-ROOT = Path(r"E:\AI\宠物管理\artifacts\android_acceptance")
+REPO_ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(
+    os.environ.get(
+        "PETACCESS_ANDROID_EVIDENCE_DIR",
+        str(REPO_ROOT / "artifacts" / "android_acceptance"),
+    )
+)
 OUT = ROOT / "coverage_matrix.json"
+REQUIRED_CONSUMER_ROUTES = 13
+
+
+def _load(path: Path) -> dict | list | None:
+    if not path.exists():
+        return None
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
 
 
 def main() -> int:
@@ -13,98 +37,101 @@ def main() -> int:
     def has(name: str) -> bool:
         return (runtime / name).exists()
 
+    journey = _load(runtime / "cdp_journey_playwright.json")
+    journey_routes = journey.get("routes", []) if isinstance(journey, dict) else []
+    routes_covered = (
+        isinstance(journey, dict)
+        and journey.get("result") == "PASS"
+        and len(journey_routes) >= REQUIRED_CONSUMER_ROUTES
+        and all(row.get("ok") is True for row in journey_routes)
+    )
+
     matrix = {
-        "Routes": "COVERED" if has("cdp_journey_ws.json") else "PARTIAL",
+        "Routes": "COVERED" if routes_covered else "PARTIAL",
         "Domain States": "COVERED" if has("cdp_semantic.json") else "PARTIAL",
-        "Device Sizes": "COVERED" if (runtime / "width_matrix.json").exists() else "PARTIAL",
-        "Network States": "COVERED"
-        if has("network_matrix.json") and has("http_status_matrix.json")
-        else "PARTIAL",
-        "Permission States": "NOT_RUN",  # app declares no runtime permissions
-        "Lifecycle": "COVERED"
-        if has("cold_launch.json") and has("warm_launch.json")
-        else "PARTIAL",
-        "Install/Upgrade": "COVERED"
-        if (ROOT / "upgrade" / "upgrade_drill.json").exists()
-        else "PARTIAL",
-        "Visual": "COVERED" if list((ROOT / "screenshots").glob("*.png")) else "PARTIAL",
-        "Accessibility": "PARTIAL",  # WebView a11y tree limited; uiautomator checks done
-        "Performance": "COVERED"
-        if (ROOT / "performance" / "memory_summary.json").exists()
-        else "PARTIAL",
+        "Device Sizes": "COVERED" if has("width_matrix.json") else "PARTIAL",
+        "Network States": (
+            "COVERED"
+            if has("network_matrix.json") and has("http_status_matrix.json")
+            else "PARTIAL"
+        ),
+        "Permission States": "NOT_RUN",
+        "Lifecycle": (
+            "COVERED"
+            if has("cold_launch.json") and has("warm_launch.json")
+            else "PARTIAL"
+        ),
+        "Install/Upgrade": (
+            "COVERED" if (ROOT / "upgrade" / "upgrade_drill.json").exists() else "PARTIAL"
+        ),
+        "Visual": (
+            "COVERED" if list((ROOT / "screenshots").glob("*.png")) else "PARTIAL"
+        ),
+        "Accessibility": "PARTIAL",
+        "Performance": (
+            "COVERED"
+            if (ROOT / "performance" / "memory_summary.json").exists()
+            else "PARTIAL"
+        ),
         "Stress": "COVERED" if has("route_stress.json") else "PARTIAL",
         "Error Paths": "COVERED" if has("http_status_matrix.json") else "PARTIAL",
     }
 
     notes = {
         "Routes": (
-            "8 routes (/, /search, /map, /contribute, /mine, /settings, /privacy, "
-            "/about) navigated via CDP with DOM text verified; +Place/Reality trace "
-            "via semantic probe"
+            "Canonical packaged-WebView CDP journey requires 13/13 PASS: Home, Search, Map, "
+            "Place overview/rules/space, Reality, Evidence, Contribution entry, Mine, "
+            "Settings, Privacy and About. Each route asserts data-ui-page identity and "
+            "zero horizontal document overflow, with a screenshot captured at that route."
         ),
         "Domain States": (
             "Rule UNKNOWN!=ALLOWED verified; Reality "
-            "OBSERVED_RECENTLY/INSUFFICIENT/OBSERVED_HISTORICALLY seeded and "
-            "rendered; staff responses + facilities render; NO_RECENT_RECORD copy "
-            "verified"
+            "OBSERVED_RECENTLY/INSUFFICIENT/OBSERVED_HISTORICALLY seeded and rendered; "
+            "staff responses + facilities render; NO_RECENT_RECORD copy verified"
         ),
         "Device Sizes": (
-            "PHONE-M (1080x2340@440) + PHONE-S 360dp (990x2200@440) + PHONE-L 430dp "
-            "(1183x2563@440) + TABLET 800dp (2200x3520@440) executed; each relaunches "
-            "the app, screenshots key surfaces, asserts no horizontal doc overflow "
-            "(width_matrix.json, 9 screenshots); fixed VIS-002 grid overflow at "
-            "tablet"
+            "PHONE-M + PHONE-S 360dp + PHONE-L 430dp + TABLET 800dp are exercised by "
+            "the width matrix; each relaunches the app and asserts no horizontal overflow."
         ),
         "Network States": (
-            "offline/online (backend stop/start) verified via in-page fetch + Home "
-            "retry; slow backend 1/3/8s verified; HTTP "
-            "400/401/403/404/409/422/429/500/503 injected and observed with CORS"
+            "offline/online, slow backend and injected HTTP status behavior are captured "
+            "in network_matrix.json and http_status_matrix.json"
         ),
         "Permission States": (
-            "App declares only INTERNET; no runtime permissions to exercise; NOT_RUN "
-            "per contract 'if no permission'"
+            "App declares only INTERNET; no runtime permission flow is required by the "
+            "current Tauri Android package."
         ),
         "Lifecycle": (
-            "cold 10/10, warm 20/20, relaunch 20/20, bg/fg 20/20 (1s/5s/30s/2min), "
-            "process-death 3/3"
+            "cold/warm/relaunch/background-foreground/process-death evidence is read from "
+            "the dedicated lifecycle JSON artifacts"
         ),
         "Install/Upgrade": (
-            "install debug; install -r upgrade from official v0.1.0 APK; reinstall "
-            "debug; uninstall; fresh install; video D records the live upgrade"
+            "upgrade evidence requires upgrade/upgrade_drill.json; file existence is not "
+            "substituted by a release note"
         ),
-        "Visual": (
-            "80+ screenshots (routes/states/widths); PNG magic + non-blank "
-            "validation; VIS-001 fixed+retested 0"
-        ),
+        "Visual": "Route/state screenshots must exist and are paired with semantic CDP evidence.",
         "Accessibility": (
-            "uiautomator tree checked (WebView node present); WebView internals not "
-            "exposed to uiautomator — a11y tree assertions limited; a11y regression "
-            "specs exist"
+            "Web semantics remain required; native uiautomator visibility inside WebView "
+            "is a platform observability limitation, not a semantic waiver."
         ),
-        "Performance": (
-            "memory baselines cold 70MB / after-nav 74MB / after-route-stress 110MB / "
-            "soak 109.9->109.6MB (no unbounded growth); CPU samples saved"
-        ),
-        "Stress": (
-            "route stress 100/100; bottom-nav 100/100; scroll 50; monkey 1000 events "
-            "seed 42; soak 30min 87 cycles 0 crash/ANR"
-        ),
-        "Error Paths": (
-            "HTTP error matrix injected+observed; Home offline error state with "
-            "Retry; app converts to product error (no raw JSON)"
-        ),
+        "Performance": "Memory/CPU evidence is sourced from the performance artifact directory.",
+        "Stress": "Route/interaction stress requires runtime/route_stress.json.",
+        "Error Paths": "HTTP injected-error evidence is sourced from http_status_matrix.json.",
     }
 
     payload = {
         "matrix": matrix,
         "notes": notes,
-        "generated": "2026-09-26",
-        "device": "emulator-5562 (API 35)",
+        "generated_from": "current evidence",
+        "evidence_root": str(ROOT),
+        "required_consumer_routes": REQUIRED_CONSUMER_ROUTES,
+        "observed_consumer_routes": len(journey_routes),
     }
+    OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
     print("coverage_matrix.json written")
-    for k, v in matrix.items():
-        print(f"  {k}: {v}")
+    for key, value in matrix.items():
+        print(f"  {key}: {value}")
     return 0
 
 
