@@ -32,6 +32,7 @@ const PAGES: { name: string; path: string }[] = [
   { name: "reality", path: `/#/place/${PLACE_ID}/reality` },
   { name: "evidence", path: `/#/place/${PLACE_ID}/evidence` },
   { name: "contribute", path: "/#/contribute" },
+  { name: "mine", path: "/#/mine" },
   { name: "settings", path: "/#/settings" },
 ];
 
