@@ -21,9 +21,25 @@ ROOT = Path(
 OUT = ROOT / "coverage_matrix.json"
 REQUIRED_ROUTE_CASES = 21
 REQUIRED_ROUTER_PAGES = {
-    "home", "map", "onboarding", "search", "place", "pet-new", "pets",
-    "contribution", "mine", "privacy", "notifications", "settings", "about",
-    "boundary", "match-explain", "reality", "evidence", "operator-claim", "not-found",
+    "home",
+    "map",
+    "onboarding",
+    "search",
+    "place",
+    "pet-new",
+    "pets",
+    "contribution",
+    "mine",
+    "privacy",
+    "notifications",
+    "settings",
+    "about",
+    "boundary",
+    "match-explain",
+    "reality",
+    "evidence",
+    "operator-claim",
+    "not-found",
 }
 
 
