@@ -6,15 +6,17 @@ import type { Router } from "vue-router";
  * Product behavior:
  * - browser/router history exists -> go to the previous Consumer surface;
  * - a deep-linked non-home route has no prior history -> return Home;
- * - Home with no prior history -> close the Android activity.
+ * - Home with no prior history -> finish the Android Activity.
  *
- * The Tauri modules are loaded only by the Android packaged runtime. Web/H5
- * never imports the native bridge at startup.
+ * Tauri 2.11 exposes Android Back events in JS but does not yet expose the
+ * 2.12 app.exit() helper. The final Home exit therefore goes through the small
+ * Rust command backed by AppHandle::exit(0), whose Android behavior is to
+ * finish the Activity rather than kill the process.
  */
 export async function installAndroidBackHandler(router: Router): Promise<void> {
-  const [{ onBackButtonPress }, { getCurrentWindow }] = await Promise.all([
+  const [{ onBackButtonPress }, { invoke }] = await Promise.all([
     import("@tauri-apps/api/app"),
-    import("@tauri-apps/api/window"),
+    import("@tauri-apps/api/core"),
   ]);
 
   await onBackButtonPress(({ canGoBack }) => {
@@ -31,6 +33,6 @@ export async function installAndroidBackHandler(router: Router): Promise<void> {
       return;
     }
 
-    void getCurrentWindow().close();
+    void invoke("exit_app");
   });
 }
