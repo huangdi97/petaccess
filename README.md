@@ -77,6 +77,7 @@ UI / Consumer 变更可通过 GitHub Actions 的 **Android Preview APK** 生成�
   - `emulator`：x86_64，Android Emulator → `10.0.2.2:8000/api/v1`
   - `usb-device`：aarch64，Android 真机 → `127.0.0.1:8000/api/v1`
 - 真机包安装后，在电脑执行 `adb reverse tcp:8000 tcp:8000` 即可访问本地 API
+- 一键安装 + reverse + FAST：`python scripts/android_acceptance/preview_usb_smoke.py --apk <apk> --serial <serial>`
 - Preview 不使用正式 release keystore，也不得作为 Release / 商店包
 
 完整说明：`docs/engineering/ANDROID_PREVIEW_APK.md`。
