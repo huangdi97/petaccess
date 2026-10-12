@@ -7,6 +7,7 @@ uses own serial emulator-5556；adb 调用全部走 scripts/android_acceptance/a
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 import time
@@ -23,8 +24,8 @@ from adb import (  # noqa: E402
     wait_for_device,
 )
 
-SERIAL = "emulator-5556"
-PKG = "com.petaccess.map"
+SERIAL = os.environ.get("PETACCESS_ANDROID_SERIAL", "emulator-5556")
+PKG = os.environ.get("PETACCESS_ANDROID_PACKAGE", "com.petaccess.map")
 SHOT_DIR = ROOT / "artifacts" / "ui-audit" / "android"
 PROBE = ROOT / "scripts" / "android_acceptance" / "cdp_probe.cjs"
 
