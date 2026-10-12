@@ -47,6 +47,24 @@ adb reverse tcp:8000 tcp:8000
 
 然后启动 **PetAccess Preview**。这样实体 Android 设备可以访问电脑本地运行的 PetAccess API，又不需要为了临时预览放宽 Tauri CSP。
 
+### 用同一套 Android FAST 验证 Preview
+
+Android acceptance 工具默认仍验证正式包；Preview 只需要覆盖包名与设备 serial：
+
+```powershell
+$env:PETACCESS_ANDROID_PACKAGE = "com.petaccess.map.preview"
+$env:PETACCESS_ANDROID_SERIAL = "<adb devices 中的目标 serial>"
+python scripts/android_acceptance/m3_fast.py
+```
+
+真机 USB 模式同时保持：
+
+```bash
+adb -s <serial> reverse tcp:8000 tcp:8000
+```
+
+`PETACCESS_ANDROID_PACKAGE` 和 `PETACCESS_ANDROID_SERIAL` 只改变验收目标，不改变产品代码；未设置时仍按正式包 / 既有 owned emulator 默认值执行。
+
 ## 为什么不接受任意 API URL
 
 当前仓库没有冻结的 Public Beta API 域名，而且 Tauri CSP 是显式 allowlist。允许 workflow 临时注入任意 URL 会造成两种假象：
