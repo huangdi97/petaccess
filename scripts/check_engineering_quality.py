@@ -84,7 +84,10 @@ def check_consumer_runtime_boundary() -> list[dict]:
                 "rule": "runtime-boundary",
                 "path": ".github/workflows/release-ci.yml",
                 "severity": "FAIL",
-                "detail": "Android release CI must explicitly install API 36 and Build Tools 36.0.0.",
+                "detail": (
+                    "Android release CI must explicitly install API 36 and "
+                    "Build Tools 36.0.0."
+                ),
             }
         )
 
@@ -102,7 +105,10 @@ def check_consumer_runtime_boundary() -> list[dict]:
                 "rule": "runtime-boundary",
                 "path": ".github/workflows/release-ci.yml",
                 "severity": "FAIL",
-                "detail": "Android release must prove the signed APK is a universal multi-ABI artifact.",
+                "detail": (
+                    "Android release must prove the signed APK is a universal "
+                    "multi-ABI artifact."
+                ),
             }
         )
 
