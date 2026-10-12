@@ -1,0 +1,45 @@
+name: Tauri 2.12 Lockgen
+
+on:
+  push:
+    branches:
+      - chore/tauri-212-lockgen
+
+permissions:
+  contents: read
+
+jobs:
+  lockgen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Resolve Tauri 2.12 lock
+        run: |
+          cargo update \
+            --manifest-path apps/client-h5/src-tauri/Cargo.toml \
+            -p tauri \
+            --precise 2.12.0
+          cargo metadata \
+            --manifest-path apps/client-h5/src-tauri/Cargo.toml \
+            --locked \
+            --format-version 1 \
+            --no-deps >/dev/null
+
+      - name: Show resolved Tauri versions
+        run: |
+          awk '
+            /^name = "tauri"$|^name = "tauri-runtime"$|^name = "tauri-runtime-wry"$|^name = "tauri-utils"$/ { p=1; print; next }
+            p && /^version = / { print; p=0 }
+          ' apps/client-h5/src-tauri/Cargo.lock
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tauri-212-cargo-lock
+          path: apps/client-h5/src-tauri/Cargo.lock
+          if-no-files-found: error
+          retention-days: 1
