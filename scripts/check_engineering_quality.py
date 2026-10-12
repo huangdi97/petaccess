@@ -176,6 +176,27 @@ def check_consumer_runtime_boundary() -> list[dict]:
                 }
             )
 
+        required_preview_contract_triggers = (
+            "packages/api-client/**",
+            "services/api/**",
+            "scripts/isolated_db.py",
+            "scripts/dev_api_server.py",
+            "pyproject.toml",
+            "uv.lock",
+        )
+        if any(trigger not in preview_text for trigger in required_preview_contract_triggers):
+            violations.append(
+                {
+                    "rule": "runtime-boundary",
+                    "path": ".github/workflows/android-preview.yml",
+                    "severity": "FAIL",
+                    "detail": (
+                        "Android Preview must rerun when its API contract, seeded DB bootstrap, "
+                        "API server bootstrap or Python dependency lock changes."
+                    ),
+                }
+            )
+
     legacy_package = json.loads(
         (ROOT / "apps" / "client" / "package.json").read_text(encoding="utf-8")
     )

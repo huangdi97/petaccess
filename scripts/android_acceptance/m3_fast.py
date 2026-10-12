@@ -73,6 +73,37 @@ def cdp_probe(pid: str, step: str) -> str:
     return out.stdout.strip()
 
 
+def wait_for_page(pid: str, expected_page: str, timeout_s: float = 30.0) -> str:
+    """Wait for the packaged Consumer surface instead of sleeping a fixed boot delay."""
+
+    deadline = time.monotonic() + timeout_s
+    last_state = ""
+    last_error = ""
+    needle = f'"uiPage":"{expected_page}"'
+    while time.monotonic() < deadline:
+        try:
+            state = cdp_probe(pid, "snapshot")
+            last_state = state
+            compact = state.replace(" ", "")
+            if needle in compact and '"shell":true' in compact:
+                return state
+        except Exception as exc:  # noqa: BLE001 - startup may not expose CDP immediately
+            last_error = str(exc)
+        time.sleep(0.75)
+    detail = last_state or last_error or "no CDP state observed"
+    raise RuntimeError(f"timed out waiting for {expected_page}: {detail}")
+
+
+def wait_for_pid(timeout_s: float = 20.0) -> str:
+    deadline = time.monotonic() + timeout_s
+    while time.monotonic() < deadline:
+        pid = shell_pidof(SERIAL, PKG)
+        if pid:
+            return pid
+        time.sleep(0.5)
+    raise RuntimeError(f"{PKG} process missing after launch")
+
+
 def screenshot(name: str) -> int:
     # Python 捕获字节再写文件：不经 cmd 重定向（REG-002 的 UTF-16 风险只影响
     # PowerShell 管道；subprocess capture_output 是纯字节，安全）。
@@ -175,23 +206,25 @@ def main() -> int:
         shell(SERIAL, "am", "force-stop", PKG, timeout=30)
         time.sleep(1)
         shell(SERIAL, "am", "start", "-n", f"{PKG}/.MainActivity", timeout=30)
-        time.sleep(3)
-        root_pid = shell_pidof(SERIAL, PKG)
-        if not root_pid:
-            raise RuntimeError("app process missing after fresh Home launch")
-        root_state = cdp_probe(root_pid, "snapshot")
-        compact_root = root_state.replace(" ", "")
-        if '"uiPage":"home"' not in compact_root:
-            raise RuntimeError(f"fresh launch did not land on Home: {root_state}")
+        root_pid = wait_for_pid(timeout_s=20)
+        root_state = wait_for_page(root_pid, "home", timeout_s=30)
+        results["fresh_home_before_back"] = root_state
 
         shell(SERIAL, "input", "keyevent", "KEYCODE_BACK", timeout=30)
-        time.sleep(2)
-        activities = shell(SERIAL, "dumpsys", "activity", "activities", timeout=30)
-        resumed_lines = [
-            line.strip()
-            for line in activities.splitlines()
-            if "ResumedActivity" in line or "topResumedActivity" in line
-        ]
+
+        deadline = time.monotonic() + 10
+        resumed_lines: list[str] = []
+        while time.monotonic() < deadline:
+            activities = shell(SERIAL, "dumpsys", "activity", "activities", timeout=30)
+            resumed_lines = [
+                line.strip()
+                for line in activities.splitlines()
+                if "ResumedActivity" in line or "topResumedActivity" in line
+            ]
+            if not any(PKG in line for line in resumed_lines):
+                break
+            time.sleep(0.5)
+
         if any(PKG in line for line in resumed_lines):
             raise RuntimeError("Home Back left PetAccess resumed: " + " | ".join(resumed_lines[:4]))
         results["hardware_back_from_home"] = "PASS activity_finished; resumed=" + (

@@ -42,15 +42,31 @@ grep -q '^package:' "$EVIDENCE_ROOT/runtime/package-path.txt"
 
 python scripts/android_acceptance/m3_fast.py
 
-PID="$(adb -s "$SERIAL" shell pidof "$PACKAGE" | tr -d '\r\n')"
-if [[ -z "$PID" ]]; then
-  echo "Preview process is not running after FAST"
+# FAST intentionally finishes MainActivity when it verifies Home -> system Back.
+# Relaunch explicitly before the full 21-case journey and wait for the debug
+# WebView socket instead of assuming the previous Activity/WebView survived.
+adb -s "$SERIAL" shell am start -n "$PACKAGE/.MainActivity" >/dev/null
+
+CDP_READY=0
+for _ in $(seq 1 40); do
+  PID="$(adb -s "$SERIAL" shell pidof "$PACKAGE" | tr -d '\r\n')"
+  if [[ -n "$PID" ]]; then
+    adb -s "$SERIAL" forward --remove tcp:9223 >/dev/null 2>&1 || true
+    if adb -s "$SERIAL" forward tcp:9223 "localabstract:webview_devtools_remote_$PID" >/dev/null 2>&1; then
+      if curl -fsS http://127.0.0.1:9223/json >/dev/null 2>&1; then
+        CDP_READY=1
+        break
+      fi
+    fi
+  fi
+  sleep 0.75
+done
+
+if [[ "$CDP_READY" != "1" ]]; then
+  echo "Preview WebView did not become debuggable after FAST relaunch"
+  adb -s "$SERIAL" shell dumpsys activity activities | tail -120 || true
   exit 1
 fi
-
-adb -s "$SERIAL" forward --remove tcp:9223 >/dev/null 2>&1 || true
-adb -s "$SERIAL" forward tcp:9223 "localabstract:webview_devtools_remote_$PID"
-sleep 2
 
 node scripts/android_acceptance/cdp_journey.cjs
 python scripts/android_acceptance/coverage_matrix.py

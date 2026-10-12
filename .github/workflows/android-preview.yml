@@ -7,13 +7,19 @@ on:
     paths:
       - "apps/client-h5/**"
       - "packages/client-core/**"
+      - "packages/api-client/**"
       - "packages/design-tokens/**"
+      - "services/api/**"
       - "package.json"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
+      - "pyproject.toml"
+      - "uv.lock"
       - ".env.example"
       - ".github/workflows/android-preview.yml"
       - "scripts/android_acceptance/**"
+      - "scripts/isolated_db.py"
+      - "scripts/dev_api_server.py"
   workflow_dispatch:
 
 permissions:

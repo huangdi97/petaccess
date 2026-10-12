@@ -28,6 +28,18 @@ Preview 与正式 Release 使用同一 Android SDK 主版本，不依赖 GitHub 
 
 APK artifact 内的 `PREVIEW_BADGING.txt` 继续记录实际 compileSdk / minSdk / targetSdk / native ABI，防止“workflow 参数写 36，但最终 APK 不是 36”的假一致。
 
+### 2.1 哪些变化必须重跑 Preview
+
+Preview 不是“前端截图工作流”。只要会改变打包 Consumer 或其真实 API 契约，当前工作分支都必须重新跑 Android Preview：
+
+- `apps/client-h5/**`、`packages/client-core/**`、`packages/api-client/**`、`packages/design-tokens/**`；
+- `services/api/**`；
+- `scripts/isolated_db.py` 与 `scripts/dev_api_server.py`；
+- `pyproject.toml`、`uv.lock` 以及前端 workspace/lock 文件；
+- Android acceptance 脚本和 Preview workflow 自身。
+
+这组 path trigger 由工程质量门禁锁定，避免以后出现“Web/Backend 已变，但 packaged Android runtime 没有重跑”的假新鲜证据。当前 runtime smoke 没有启动 Celery，因此 `services/worker/**` 不被写成已验证边界；涉及 worker 的贡献异步链仍需独立验收。
+
 ## 3. 每次自动生成两份 Preview
 
 当前 UI 工作分支发生 Consumer/runtime 相关变更时，workflow 用 matrix 同时构建两个 artifact。
