@@ -96,6 +96,7 @@ async function main() {
           uiState: surface?.getAttribute("data-ui-state") ?? null,
           uiFixture: surface?.getAttribute("data-ui-fixture") ?? null,
           offlineBanner: !!document.querySelector("[data-testid=global-offline-banner]"),
+          androidBack: document.documentElement.dataset.androidBack ?? null,
           errorState: !!document.querySelector("[data-state=ERROR]"),
           results: document.querySelectorAll("[data-testid^=result-]").length,
           viewportWidth: window.innerWidth,
