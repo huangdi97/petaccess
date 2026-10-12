@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// @ui-form PetNewView — form state is handled inline.
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { client, session } from "@petaccess/client-core";
