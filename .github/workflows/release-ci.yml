@@ -200,17 +200,45 @@ jobs:
       - run: pnpm --filter @petaccess/client-h5 build
       - name: Tauri android init (generated project not committed)
         run: pnpm --filter @petaccess/client-h5 exec tauri android init
-      - name: Build Android release APK
-        run: pnpm --filter @petaccess/client-h5 exec tauri android build --target aarch64 --target armv7 --target i686 --target x86_64
-      - name: Sign APK with release keystore (Secrets)
+      - name: Build Android universal release APK
+        run: >-
+          pnpm --filter @petaccess/client-h5 exec tauri android build
+          --apk
+          --target aarch64
+          --target armv7
+          --target i686
+          --target x86_64
+      - name: Verify and sign universal APK with release keystore
         shell: bash
         run: |
-          APK=$(find apps/client-h5/src-tauri/gen/android -name "*-unsigned.apk" | head -1)
-          echo "unsigned: $APK"
+          mapfile -t APKS < <(
+            find apps/client-h5/src-tauri/gen/android \
+              -type f \
+              -path "*/outputs/apk/universal/release/*-unsigned.apk" \
+              -print
+          )
+          if [ "${#APKS[@]}" -ne 1 ]; then
+            echo "Expected exactly one universal release unsigned APK, found ${#APKS[@]}"
+            find apps/client-h5/src-tauri/gen/android -type f -name "*.apk" -print || true
+            exit 1
+          fi
+          APK="${APKS[0]}"
+          echo "unsigned universal APK: $APK"
+
+          APKSIGNER="${ANDROID_HOME}/build-tools/36.0.0/apksigner"
+          AAPT="${ANDROID_HOME}/build-tools/36.0.0/aapt"
+          BADGING="$("$AAPT" dump badging "$APK")"
+          printf '%s\n' "$BADGING" > RELEASE_ANDROID_BADGING.txt
+          for ABI in arm64-v8a armeabi-v7a x86 x86_64; do
+            echo "$BADGING" | grep -Fq "'$ABI'" || {
+              echo "Universal release APK is missing native ABI: $ABI"
+              grep "native-code:" RELEASE_ANDROID_BADGING.txt || true
+              exit 1
+            }
+          done
+
           printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.keystore"
           OUT="PetAccess_0.1.0-android-universal.apk"
-          APKSIGNER="${ANDROID_HOME}/build-tools/36.0.0/apksigner"
-          if [ ! -x "$APKSIGNER" ]; then APKSIGNER="${ANDROID_HOME}/build-tools/36.0.0/apksigner.bat"; fi
           "$APKSIGNER" sign \
             --ks "$RUNNER_TEMP/release.keystore" \
             --ks-key-alias "$ANDROID_KEY_ALIAS" \
@@ -218,11 +246,15 @@ jobs:
             --key-pass "pass:$ANDROID_KEY_PASSWORD" \
             --out "$OUT" "$APK"
           "$APKSIGNER" verify --verbose "$OUT"
+          "$APKSIGNER" verify --print-certs "$OUT" > RELEASE_ANDROID_SIGNER_CERTS.txt
       - name: Upload signed APK
         uses: actions/upload-artifact@v4
         with:
           name: petaccess-0.1.0-android-universal.apk
-          path: PetAccess_0.1.0-android-universal.apk
+          path: |
+            PetAccess_0.1.0-android-universal.apk
+            RELEASE_ANDROID_BADGING.txt
+            RELEASE_ANDROID_SIGNER_CERTS.txt
 
   artifacts:
     name: Checksums + SBOM
