@@ -128,7 +128,7 @@ workflow 还必须：
 
 ## 7. Android Runtime Review Board
 
-API 35 emulator runtime smoke 成功后，CI 会在 runtime evidence artifact 根目录生成：
+API 35 / API 36 emulator runtime smoke 成功后，CI 会在各自 runtime evidence artifact 根目录生成：
 
 `ANDROID_RUNTIME_REVIEW_BOARD.html`
 
