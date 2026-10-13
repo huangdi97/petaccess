@@ -319,6 +319,7 @@ test("A2.2 — 规则线索进入 RuleCandidate review，而不是 Observation/R
   await page.goto(`${BASE}/#/contribute/${MALL_ID}`, { waitUntil: "load" });
   await expect(page.getByTestId("entry-rule")).toBeVisible({ timeout: 15000 });
   await chooseEntry(page, "entry-rule");
+  await page.getByTestId("rule-intent-new_lead").click();
   await page.getByTestId("rule-known").selectOption("conditional");
   await page.getByTestId("rule-source-basis").selectOption("staff_statement");
   await page.getByTestId("rule-animal-scope").selectOption("ordinary_pet");
@@ -402,6 +403,7 @@ test("A2.2c — switching rule intent clears a hidden spatial scope", async ({ p
   await page.addInitScript((t) => localStorage.setItem("pa_token", t), token);
   await page.goto(`${BASE}/#/contribute/${MALL_ID}`, { waitUntil: "load" });
   await chooseEntry(page, "entry-rule");
+  await page.getByTestId("rule-intent-new_lead").click();
   await page.locator("#rule-zone").selectOption(zoneId!);
   await expect(page.locator("#rule-zone")).toHaveValue(zoneId!);
 
@@ -488,6 +490,7 @@ test("A3 — 规则线索直接进入 RuleCandidate review，不走 Observation"
   await page.goto(`${BASE}/#/contribute/${MALL_ID}`, { waitUntil: "load" });
   await expect(page.getByTestId("entry-rule")).toBeVisible({ timeout: 15000 });
   await chooseEntry(page, "entry-rule");
+  await page.getByTestId("rule-intent-new_lead").click();
   await page.getByTestId("rule-known").selectOption("conditional");
   await page.getByTestId("rule-source-basis").selectOption("official_online");
 
@@ -533,6 +536,7 @@ test("A2.2 — Rule lead 与场所纠错都进入人工核验并出现在统一�
   await page.goto(`${BASE}/#/contribute/${MALL_ID}`, { waitUntil: "load" });
   await expect(page.getByTestId("entry-rule")).toBeVisible({ timeout: 15000 });
   await chooseEntry(page, "entry-rule");
+  await page.getByTestId("rule-intent-new_lead").click();
   await page.getByTestId("rule-known").selectOption("conditional");
   await page.getByTestId("rule-source-basis").selectOption("uncertain");
   await page.getByTestId("rule-review-next").click();
