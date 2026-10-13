@@ -112,12 +112,23 @@ async function main() {
     );
   }
 
-  async function logRoute(label, hash, expectedPage, delay = 1800) {
+  async function logRoute(
+    label,
+    hash,
+    expectedPage,
+    delay = 1800,
+    expectedStates = ["ready"],
+  ) {
     await go(hash, delay);
     const value = await snapshot();
     if (!value.shell) throw new Error(`${label}: Consumer shell missing`);
     if (value.uiPage !== expectedPage) {
       throw new Error(`${label}: expected data-ui-page=${expectedPage}, got ${value.uiPage}`);
+    }
+    if (expectedStates.length && !expectedStates.includes(value.uiState)) {
+      throw new Error(
+        `${label}: expected state ${expectedStates.join("|")}, got ${value.uiState}`,
+      );
     }
     if (value.horizontalOverflow) {
       throw new Error(
@@ -145,7 +156,13 @@ async function main() {
     })()`);
     await sleep(2500);
     const value = await snapshot();
-    if (value.uiPage !== "search" || value.horizontalOverflow || value.safeAreaOverlap) {
+    const searchStateReady = ["ready", "ready-selected"].includes(value.uiState);
+    if (
+      value.uiPage !== "search" ||
+      !searchStateReady ||
+      value.horizontalOverflow ||
+      value.safeAreaOverlap
+    ) {
       throw new Error(`SEARCH invalid state: ${JSON.stringify(value)}`);
     }
     console.log(`SEARCH ${JSON.stringify(value)}`);
