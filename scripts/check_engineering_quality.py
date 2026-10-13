@@ -197,6 +197,54 @@ def check_consumer_runtime_boundary() -> list[dict]:
                 }
             )
 
+    phone_preview_workflow_path = (
+        ROOT / ".github" / "workflows" / "android-phone-preview.yml"
+    )
+    if phone_preview_workflow_path.exists():
+        phone_preview_text = phone_preview_workflow_path.read_text(encoding="utf-8")
+        required_phone_preview_markers = (
+            'url.protocol !== "https:"',
+            "com.petaccess.map.preview",
+            "release_signature=NO",
+            "store_release_artifact=NO",
+        )
+        if any(
+            marker not in phone_preview_text for marker in required_phone_preview_markers
+        ):
+            violations.append(
+                {
+                    "rule": "runtime-boundary",
+                    "path": ".github/workflows/android-phone-preview.yml",
+                    "severity": "FAIL",
+                    "detail": (
+                        "Phone Preview must remain HTTPS-only, use the isolated Preview "
+                        "package, and declare that it is not a signed/store Release."
+                    ),
+                }
+            )
+
+        forbidden_phone_preview_markers = (
+            "allow_insecure_http",
+            "http://localhost:*",
+            "http://127.0.0.1:*",
+            "http://10.0.2.2:*",
+            "ws://10.0.2.2:*",
+            "ANDROID_KEYSTORE_BASE64",
+            "release.keystore",
+        )
+        if any(marker in phone_preview_text for marker in forbidden_phone_preview_markers):
+            violations.append(
+                {
+                    "rule": "runtime-boundary",
+                    "path": ".github/workflows/android-phone-preview.yml",
+                    "severity": "FAIL",
+                    "detail": (
+                        "Standalone Phone Preview must not regain insecure HTTP/local "
+                        "development origins or consume the release signing identity."
+                    ),
+                }
+            )
+
     legacy_package = json.loads(
         (ROOT / "apps" / "client" / "package.json").read_text(encoding="utf-8")
     )
