@@ -436,6 +436,7 @@ def create_reality_report(
             candidate_type=RealityCandidateType(candidate.candidate_type),
             place_id=cand_place,
             payload=candidate.payload or {},
+            animal_scope=candidate.animal_scope.value if candidate.animal_scope else None,
             zone_id=candidate.zone_id,
             observed_at=candidate.observed_at or body.report.observed_at,
             evidence_bundle_id=evidence_bundle.id,
