@@ -33,5 +33,8 @@ assert.equal(stack.consumeBack("/place/demo/reality"), "/place/demo");
 const deepLink = new ConsumerRouteStack("/place/demo");
 assert.equal(deepLink.previous("/place/demo"), null);
 assert.equal(decideAndroidBackAction("/place/demo", deepLink.previous("/place/demo")), "home");
+deepLink.reset("/");
+assert.equal(deepLink.previous("/"), null);
+assert.equal(decideAndroidBackAction("/", deepLink.previous("/")), "exit");
 
-console.log("ANDROID_BACK_CONTRACT=PASS decisions=3 stack=5 deepLink=1");
+console.log("ANDROID_BACK_CONTRACT=PASS decisions=3 stack=5 deepLink=2");
