@@ -40,6 +40,7 @@
    - 必须是绝对 `https://...` URL，路径以 `/api/v1` 结尾；
    - 不允许用户名/密码、query 或 fragment；
    - Release CI 会用该值同时构建 Windows `VITE_TAURI_API_BASE` 与 Android `VITE_TAURI_ANDROID_API_BASE`；
+   - `scripts/release/verify_public_api.cjs` 会验证真实部署的 `/health`、`/api/v1/ping`，并从部署链路实际检查 `Origin: http://tauri.localhost` 的 CORS 响应；
    - `scripts/release/generate_tauri_release_config.cjs` 会为 signed build 生成严格 CSP，**不包含**开发用 `127.0.0.1` / `10.0.2.2` origin；
    - 变量缺失或为 HTTP 时 Release 必须失败，不能回退到 packaged dev defaults。
 
