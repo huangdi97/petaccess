@@ -109,7 +109,11 @@ def main() -> int:
         if not shot_path.exists() or shot_path.stat().st_size <= 0:
             screenshots_complete = False
 
-    visual_covered = routes_covered and screenshots_complete and len(screenshot_paths) == len(journey_routes)
+    visual_covered = (
+        routes_covered
+        and screenshots_complete
+        and len(screenshot_paths) == len(journey_routes)
+    )
 
     matrix = {
         "Routes": "COVERED" if routes_covered else "PARTIAL",
