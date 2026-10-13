@@ -77,6 +77,37 @@ def check_consumer_runtime_boundary() -> list[dict]:
             }
         )
 
+    required_release_runtime_markers = (
+        "PETACCESS_PUBLIC_API_BASE",
+        "VITE_TAURI_API_BASE",
+        "VITE_TAURI_ANDROID_API_BASE",
+        "generate_tauri_release_config.cjs",
+        "tauri.release.generated.json",
+        "--config src-tauri/tauri.release.generated.json",
+    )
+    if any(marker not in release_text for marker in required_release_runtime_markers):
+        violations.append(
+            {
+                "rule": "runtime-boundary",
+                "path": ".github/workflows/release-ci.yml",
+                "severity": "FAIL",
+                "detail": (
+                    "Signed Windows/Android release builds must fail closed on an explicit "
+                    "HTTPS PetAccess API base and strict generated Tauri CSP."
+                ),
+            }
+        )
+    release_config_generator = ROOT / "scripts" / "release" / "generate_tauri_release_config.cjs"
+    if not release_config_generator.exists():
+        violations.append(
+            {
+                "rule": "runtime-boundary",
+                "path": "scripts/release/generate_tauri_release_config.cjs",
+                "severity": "FAIL",
+                "detail": "Signed-release runtime config generator is required.",
+            }
+        )
+
     required_android_sdk = ("platforms;android-36", "build-tools;36.0.0")
     if any(package not in release_text for package in required_android_sdk):
         violations.append(
