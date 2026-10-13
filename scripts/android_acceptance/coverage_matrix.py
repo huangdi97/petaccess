@@ -67,6 +67,7 @@ def main() -> int:
     def has(name: str) -> bool:
         return (runtime / name).exists()
 
+    ime_gate = _load(runtime / "ime_gate.json")
     journey = _load(runtime / "cdp_journey_playwright.json")
     journey_routes = journey.get("routes", []) if isinstance(journey, dict) else []
     observed_router_pages = {
@@ -159,6 +160,17 @@ def main() -> int:
         "Authenticated States": ("COVERED" if authenticated_states_covered else "PARTIAL"),
         "Domain States": "COVERED" if has("cdp_semantic.json") else "PARTIAL",
         "Device Sizes": "COVERED" if width_sizes_covered else "PARTIAL",
+        "IME / Input": (
+            "COVERED"
+            if isinstance(ime_gate, dict)
+            and ime_gate.get("result") == "PASS"
+            and len(ime_gate.get("cases", [])) >= 2
+            and all(
+                isinstance(case, dict) and case.get("ok") is True
+                for case in ime_gate.get("cases", [])
+            )
+            else "PARTIAL"
+        ),
         "Network States": (
             "COVERED"
             if has("network_matrix.json") and has("http_status_matrix.json")
@@ -203,6 +215,11 @@ def main() -> int:
             "PHONE-M default + PHONE-S ~360dp + PHONE-L ~430dp + TABLET 800dp must all "
             "PASS Home/Search/Map/Place in the packaged WebView. Every case asserts zero "
             "horizontal overflow and zero top safe-area overlap, with route screenshots."
+        ),
+        "IME / Input": (
+            "The packaged Android WebView must accept real adb tap/text input on Search and "
+            "authenticated Pet New, keep the focused input inside the visual viewport, and "
+            "consume the first Android Back as keyboard dismissal without changing route."
         ),
         "Network States": (
             "offline/online, slow backend and injected HTTP status behavior are captured "
@@ -254,6 +271,21 @@ def main() -> int:
         "observed_router_page_ids": sorted(observed_router_pages),
         "required_consumer_routes": REQUIRED_ROUTE_CASES,
         "observed_consumer_routes": len(journey_routes),
+        "ime_input": {
+            "result": ime_gate.get("result") if isinstance(ime_gate, dict) else None,
+            "observed_cases": len(ime_gate.get("cases", []))
+            if isinstance(ime_gate, dict)
+            else 0,
+            "case_ids": (
+                [
+                    case.get("id")
+                    for case in ime_gate.get("cases", [])
+                    if isinstance(case, dict) and isinstance(case.get("id"), str)
+                ]
+                if isinstance(ime_gate, dict)
+                else []
+            ),
+        },
         "governed_media": {
             "required": bool(journey.get("requireSceneMedia"))
             if isinstance(journey, dict)
