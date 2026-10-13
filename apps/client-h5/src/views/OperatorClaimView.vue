@@ -162,7 +162,9 @@ watch(placeId, () => void load(), { immediate: true });
               claimStatus === "approved" ? "场所方身份已核验" : "认领申请已提交"
             }}</strong>
             <p v-if="claimStatus === 'approved'">
-              当前状态：{{ claimStatusLabel }}。你现在可以提交管理方正式政策；法律、监管规则与现场事实仍保持独立。
+              当前状态：{{
+                claimStatusLabel
+              }}。你现在可以提交管理方正式政策；法律、监管规则与现场事实仍保持独立。
             </p>
             <p v-else>
               当前状态：{{ claimStatusLabel }}。审核通过前，你不会获得管理方权限，
