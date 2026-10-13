@@ -13,6 +13,7 @@ from . import (
     pets,
     places,
     privacy,
+    public_media,
     reality,
     reality_reports,
     regulations,
@@ -46,6 +47,7 @@ api_router.include_router(disputes.router)
 api_router.include_router(disputes.admin)
 api_router.include_router(watches.router)
 api_router.include_router(media.router)
+api_router.include_router(public_media.router)
 api_router.include_router(ai.router)
 api_router.include_router(v05.router)
 api_router.include_router(v05.admin)
