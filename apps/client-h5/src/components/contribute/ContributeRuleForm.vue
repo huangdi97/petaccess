@@ -126,6 +126,7 @@ const reviewItems = computed(() => {
       />
 
       <RuleEvidenceUpload
+        v-if="intent"
         v-model:media-id="mediaId"
         v-model:ocr-text="ocrText"
         v-model:uploading="uploading"
