@@ -564,8 +564,7 @@ async function main() {
         authenticatedCases: rows.filter((row) => row.authenticated).length,
         requireRealMap: REQUIRE_REAL_MAP,
         requireSceneMedia: REQUIRE_SCENE_MEDIA,
-        sceneMedia:
-          rows.find((row) => row.name === "place-overview")?.snapshot?.sceneMedia ?? null,
+        sceneMedia: rows.find((row) => row.name === "place-overview")?.snapshot?.sceneMedia ?? null,
         mapProviderSurface:
           rows.find((row) => row.name === "map")?.snapshot?.mapProviderSurface ?? null,
         routes: rows,

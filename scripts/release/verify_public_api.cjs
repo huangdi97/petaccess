@@ -113,18 +113,14 @@ async function main() {
       !Array.isArray(translated?.coordinates) ||
       translated.coordinates.length !== 1
     ) {
-      throw new Error(
-        "real-map coordinate probe did not return one Tencent GCJ-02 coordinate",
-      );
+      throw new Error("real-map coordinate probe did not return one Tencent GCJ-02 coordinate");
     }
     mapMode = "tencent-verified";
   }
 
   console.log(`public-api-preflight: origin=${url.origin}`);
   console.log(`public-api-preflight: base_path=${normalizedPath}`);
-  console.log(
-    `public-api-preflight: health=ok ping=ok tauri_cors=ok real_map=${mapMode}`,
-  );
+  console.log(`public-api-preflight: health=ok ping=ok tauri_cors=ok real_map=${mapMode}`);
 }
 
 main().catch((error) => {
