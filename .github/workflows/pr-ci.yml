@@ -144,6 +144,28 @@ jobs:
           node --experimental-strip-types scripts/check_android_back_contract.mjs
           bash -n scripts/android_acceptance/ci_preview_emulator_smoke.sh
 
+      - name: Signed-release runtime config contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          SCRIPT="scripts/release/generate_tauri_release_config.cjs"
+          OUT="$RUNNER_TEMP/tauri.release.generated.json"
+          node --check "$SCRIPT"
+          PETACCESS_PUBLIC_API_BASE="https://api.example.invalid/api/v1" node "$SCRIPT" "$OUT"
+          node - "$OUT" <<'NODE'
+          const fs = require("node:fs");
+          const cfg = JSON.parse(fs.readFileSync(process.argv[2], "utf8"));
+          const csp = cfg?.app?.security?.csp ?? "";
+          if (!csp.includes("https://api.example.invalid")) throw new Error("release API origin missing");
+          for (const forbidden of ["127.0.0.1", "10.0.2.2", "localhost:*"]) {
+            if (csp.includes(forbidden)) throw new Error(`release CSP contains dev origin: ${forbidden}`);
+          }
+          NODE
+          if PETACCESS_PUBLIC_API_BASE="http://api.example.invalid/api/v1" node "$SCRIPT" "$OUT"; then
+            echo "release config generator accepted insecure HTTP"
+            exit 1
+          fi
+
       - name: ESLint
         run: pnpm lint:fe
 
