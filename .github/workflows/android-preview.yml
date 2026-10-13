@@ -256,6 +256,7 @@ jobs:
           EOF
 
       - name: Upload installable preview
+        id: upload_preview
         uses: actions/upload-artifact@v4
         with:
           name: petaccess-android-preview-${{ matrix.profile }}-${{ github.sha }}
@@ -283,6 +284,8 @@ jobs:
             echo "- APK native ABI: \`${{ matrix.apk_abi }}\`"
             echo "- API: \`${{ matrix.api_base }}\`"
             echo "- APK: \`${{ steps.apk.outputs.apk }}\`"
+            echo "- Artifact: [Download Preview artifact](${{ steps.upload_preview.outputs.artifact-url }})"
+            echo "- Artifact digest: \`${{ steps.upload_preview.outputs.artifact-digest }}\`"
             echo "- Debug Preview only; not a signed Release."
           } >> "$GITHUB_STEP_SUMMARY"
 
