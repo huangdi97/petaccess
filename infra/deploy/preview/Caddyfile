@@ -1,0 +1,16 @@
+\${PETACCESS_PREVIEW_DOMAIN} {
+  encode zstd gzip
+
+  reverse_proxy api:8000
+
+  header {
+    X-Content-Type-Options "nosniff"
+    Referrer-Policy "strict-origin-when-cross-origin"
+    -Server
+  }
+
+  log {
+    output stdout
+    format console
+  }
+}
