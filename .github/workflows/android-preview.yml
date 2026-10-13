@@ -270,6 +270,7 @@ jobs:
       PETACCESS_ANDROID_ALLOW_FORBIDDEN_SERIAL: "1"
       PETACCESS_ANDROID_EVIDENCE_DIR: ${{ github.workspace }}/artifacts/android-preview-runtime-api${{ matrix.api_level }}
       PREVIEW_APK_DIR: ${{ github.workspace }}/preview-apk
+      PETACCESS_REQUIRE_SCENE_MEDIA: "1"
 
     steps:
       - uses: actions/checkout@v4
@@ -290,6 +291,20 @@ jobs:
 
       - name: Sync Python dependencies
         run: uv sync --dev --all-packages
+
+      - name: Start S3-compatible runtime media store
+        shell: bash
+        run: |
+          docker run -d --name petaccess-preview-s3 -p 9000:9000 -p 9001:9001 \
+            -e MINIO_ROOT_USER=minio \
+            -e MINIO_ROOT_PASSWORD=minio_dev_only \
+            docker.io/pgsty/silo:RELEASE.2026-09-16T00-00-00Z server /data
+          for i in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:9000/minio/health/live >/dev/null && exit 0
+            sleep 2
+          done
+          docker logs petaccess-preview-s3 || true
+          exit 1
 
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
@@ -323,6 +338,14 @@ jobs:
           done
           cat artifacts/android-preview-runtime/logs/api.log || true
           exit 1
+
+      - name: Seed governed public scene media
+        shell: bash
+        run: |
+          mkdir -p "$PETACCESS_ANDROID_EVIDENCE_DIR/runtime"
+          PETACCESS_PREVIEW_API_BASE=http://127.0.0.1:8000/api/v1 \
+            uv run python scripts/android_acceptance/seed_public_scene_media.py \
+            | tee "$PETACCESS_ANDROID_EVIDENCE_DIR/runtime/scene-media-seed.json"
 
       - name: Enable KVM
         shell: bash
