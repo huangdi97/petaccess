@@ -25,7 +25,10 @@ permissions:
   contents: read
 
 concurrency:
-  group: public-preview-stack-${{ github.ref }}
+  # A push to the PR head and the corresponding pull_request event represent
+  # the same candidate. Key both to the head branch so only one heavy Docker
+  # stack validation runs for that candidate.
+  group: public-preview-stack-${{ github.event.pull_request.head.ref || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
@@ -154,7 +157,7 @@ jobs:
           PY
 
           docker compose -f infra/deploy/preview/compose.yaml exec -T api \
-            sh -lc 'cd /app/services/api && alembic current'
+            sh -c 'cd /app/services/api && /app/.venv/bin/alembic current'
 
           WORKER_STATE="$(docker inspect --format '{{.State.Status}}' petaccess-public-preview-worker-1 2>/dev/null || true)"
           if [ "$WORKER_STATE" != "running" ]; then
