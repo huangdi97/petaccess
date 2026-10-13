@@ -30,6 +30,18 @@ const claimStatusLabel = computed(
 const previousClaimStatusLabel = computed(() =>
   operatorClaimStatusLabel(previousClaimStatus.value),
 );
+const uiState = computed(() => {
+  if (loading.value) return "loading";
+  if (error.value) return "error";
+  if (!place.value) return "empty";
+  if (!session.signedIn) return "permission-denied";
+  return submitted.value ? claimStatus.value || "submitted" : "ready";
+});
+const previousStatusForForm = computed(() =>
+  ["rejected", "revoked"].includes(previousClaimStatus.value)
+    ? previousClaimStatusLabel.value
+    : undefined,
+);
 const loadEpoch = createEpoch();
 
 async function load() {
@@ -80,19 +92,7 @@ watch(placeId, () => void load(), { immediate: true });
 <template>
   <AppShell
     data-ui-page="operator-claim"
-    :data-ui-state="
-      loading
-        ? 'loading'
-        : error
-          ? 'error'
-          : !place
-            ? 'empty'
-            : session.signedIn
-              ? submitted
-                ? claimStatus || 'submitted'
-                : 'ready'
-              : 'permission-denied'
-    "
+:data-ui-state="uiState"
   >
     <main class="operator-claim" data-testid="operator-claim-page">
       <header class="operator-claim__head">
@@ -189,11 +189,7 @@ watch(placeId, () => void load(), { immediate: true });
         <OperatorClaimForm
           v-else
           :place-id="placeId"
-          :previous-status-label="
-            ['rejected', 'revoked'].includes(previousClaimStatus)
-              ? previousClaimStatusLabel
-              : undefined
-          "
+:previous-status-label="previousStatusForForm"
           @submitted="handleSubmitted"
           @error="error = $event"
         />
