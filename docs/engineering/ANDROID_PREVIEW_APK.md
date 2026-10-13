@@ -162,7 +162,7 @@ workflow 还必须：
 
 ## 8. Android Runtime Review Board
 
-API 35 / API 36 emulator runtime smoke 成功后，CI 会在各自 runtime evidence artifact 根目录生成：
+API 35 / API 36 emulator runtime smoke 成功后，CI 会在各自 runtime evidence artifact 根目录生成；当前门禁同时要求公开态与登录态 packaged-WebView 证据：
 
 `ANDROID_RUNTIME_REVIEW_BOARD.html`
 
@@ -181,7 +181,8 @@ Review Board 明确保持 `HUMAN_VISUAL_ACCEPTANCE = PENDING`。机器截图与�
 Preview APK 只证明“候选安装包已生成并经过 package/signature 检查”。它**不替代**：
 
 - Android FAST semantic gate；
-- 19/19 Router 页面 + Place rules/space 两个额外视图（21-case）的 WebView page-level CDP journey；
+- 19/19 Router 页面 + Place rules/space 两个额外公开视图（21 public/default cases）的 WebView page-level CDP journey；
+- CI 真实注册账号后的 7-case authenticated packaged-WebView sweep：具体场所贡献入口 / 我的 / 隐私 / 宠物档案 / 通知 / 共处边界 / 新建宠物；
 - Evidence → 系统 Back → Reality；
 - fresh Home → 系统 Back → MainActivity 退出前台；
 - packaged WebView 离线提示 → 恢复；
