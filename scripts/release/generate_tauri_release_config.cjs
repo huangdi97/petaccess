@@ -57,7 +57,7 @@ const apiOrigin = url.origin;
 const csp = [
   "default-src 'self'",
   `connect-src 'self' ipc: http://ipc.localhost ${apiOrigin} https://apis.map.qq.com https://map.qq.com https://mapapi.qq.com https://*.map.qq.com https://*.map.gtimg.com`,
-  "img-src 'self' asset: http://asset.localhost data: blob: https://map.qq.com https://mapapi.qq.com https://*.map.qq.com https://*.map.gtimg.com",
+  `img-src 'self' asset: http://asset.localhost data: blob: ${apiOrigin} https://map.qq.com https://mapapi.qq.com https://*.map.qq.com https://*.map.gtimg.com`,
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self' data:",
   "script-src 'self' https://map.qq.com https://mapapi.qq.com",
