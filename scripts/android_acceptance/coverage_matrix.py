@@ -86,9 +86,7 @@ def main() -> int:
         row for row in journey_routes if isinstance(row, dict) and row.get("authenticated") is True
     ]
     observed_auth_cases = {
-        row.get("name")
-        for row in auth_routes
-        if isinstance(row.get("name"), str)
+        row.get("name") for row in auth_routes if isinstance(row.get("name"), str)
     }
     authenticated_states_covered = (
         isinstance(journey, dict)
@@ -110,9 +108,7 @@ def main() -> int:
             screenshots_complete = False
 
     visual_covered = (
-        routes_covered
-        and screenshots_complete
-        and len(screenshot_paths) == len(journey_routes)
+        routes_covered and screenshots_complete and len(screenshot_paths) == len(journey_routes)
     )
 
     scene_media = journey.get("sceneMedia", {}) if isinstance(journey, dict) else {}
