@@ -118,19 +118,29 @@ adb -s <serial> reverse tcp:8000 tcp:8000
 
 这两个环境变量只改变验收目标，不改变产品代码。未设置时继续使用正式 package / owned emulator 默认值。
 
-## 6. 为什么不接受任意 API URL
+## 6. API URL 边界：开发 Preview 与独立手机 Preview 分开
 
-当前仓库没有冻结的 Public Beta API 域名，而且 Tauri CSP 是显式 allowlist。允许 workflow 临时注入任意 URL 会制造两类假象：
+Tauri CSP 使用显式 allowlist，因此不能为了“让某个临时地址能连”而把
+`connect-src` 全局放宽。当前仓库允许三条明确链路：
 
-1. APK 看起来支持任意公网后端，但 WebView 可能被 CSP 拦截；
-2. 为了“让预览能连”而放宽 `connect-src`，反而削弱正式运行时边界。
+- emulator：固定 `10.0.2.2:8000`，用于 CI / 本机 Android Emulator；
+- USB device：固定 `127.0.0.1:8000 + adb reverse`，用于本机真机调试；
+- Phone Preview：仅在手动 workflow 中接受一个**绝对 HTTPS API URL**，并只把该 URL 的
+  origin 加入本次 Preview 的 CSP。
 
-因此目前只允许两条明确开发链：
+Phone Preview 会拒绝：
 
-- emulator：`10.0.2.2`
-- USB device：`127.0.0.1 + adb reverse`
+- 非 `http(s)` scheme；
+- 明文 `http://`；
+- URL 中嵌入用户名/密码；
+- query string；
+- fragment。
 
-未来 Public Beta API 域名冻结后，应新增明确的 `public-beta` profile，并同时更新 CSP、endpoint tests 与 runtime acceptance；不要恢复自由字符串 URL。
+这样“任意 HTTPS 地址”只作用于一次隔离的 Debug Preview 构建，不会改变正式 Tauri 配置，
+也不会把 localhost / emulator 特权一并带到独立手机包中。
+
+未来 Public Beta API 域名冻结后，应新增明确的 `public-beta` profile，并同时更新 CSP、
+endpoint tests 与 runtime acceptance；不要把手动 Phone Preview 当成正式发行通道。
 
 ## 7. Artifact 必须包含
 
