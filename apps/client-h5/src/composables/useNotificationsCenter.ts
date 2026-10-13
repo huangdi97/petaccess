@@ -37,11 +37,17 @@ export function useNotificationsCenter() {
   }
 
   function targetLabel(watch: WatchView): string {
-    return targetNames.value[watch.target_id] ?? TARGET_LABELS[watch.target_type] ?? "关注对象";
+    return (
+      targetNames.value[watch.target_id] ??
+      TARGET_LABELS[watch.target_type] ??
+      "关注对象"
+    );
   }
 
   function eventPlaceLabel(event: WatchEventView): string {
-    return event.place_id ? (targetNames.value[event.place_id] ?? "场所变化") : "规则变化";
+    return event.place_id
+      ? (targetNames.value[event.place_id] ?? "场所变化")
+      : "规则变化";
   }
 
   function eventTypeLabel(event: WatchEventView): string {
