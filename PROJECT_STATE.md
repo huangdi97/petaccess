@@ -101,6 +101,38 @@
 
 # PROJECT_STATE.md
 
+
+> ## CANONICAL CURRENT TRUTH — 2026-10-14
+>
+> **这一节是当前状态唯一入口。下方所有旧 `Current phase` 段落均为按时间追加的历史日志，
+> 不得覆盖本节，也不得把其中固定 SHA / PASS / NOT_PERFORMED 直接当成当前事实。**
+>
+> - 工作线：`feat/ui-direct-craft-v8`，PR #1 = **OPEN / DRAFT**。
+> - 判断当前代码必须重新读取远端 branch tip；不要从本文复制固定 HEAD。
+> - Canonical Consumer：`apps/client-h5`；Windows / Android = `apps/client-h5/src-tauri`。
+> - `apps/client` uni-app x = **LEGACY_REFERENCE_ONLY**，禁止用于当前 build / Human Review / Release。
+> - Consumer Discovery v9 核心页面已完成大轮重构；机器视觉门禁不等于真人审美签字。
+> - `UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
+> - Android Preview：隔离 debug package `com.petaccess.map.preview`；x86_64 emulator + ARM64 USB
+>   build；packaged runtime 以 API35/API36 Actions artifact 为证。
+> - standalone Android Phone Preview 需要手机可达 HTTPS `PETACCESS_PHONE_PREVIEW_API_BASE`；
+>   未配置时状态为 `BLOCKED_BY_API_BASE`，不影响 emulator / USB Preview。
+> - GOV-01 仍需具名人类做规则候选最终裁决；Agent 不代签。
+> - 腾讯真实地图仍需真实 client/server Key；无 Key 时只允许声明 provider-neutral fallback。
+> - signed 下一版 Release 仍需真实 `PETACCESS_PUBLIC_API_BASE=https://.../api/v1` 及相应
+>   legal/platform/governance gate。
+> - **v0.1.0 已于 2026-09-24 发布**；当前 draft PR 是其后的候选，不得把
+>   `PUBLIC_RELEASE = NOT_PERFORMED` 理解成 v0.1.0 从未发布，只能理解为对应历史阶段
+>   “当时没有创建新的 Release”。
+> - Android/runtime 证据优先同 HEAD；如果 artifact commit 早于当前 tip，只能在 commit compare
+>   明确证明 workflow runtime input 范围内 **0 relevant delta** 时复用。
+> - promotion 停止线不变：Human Visual Acceptance 未由用户明确确认前，不把 PR 转 ready，
+>   不 promotion baseline，不 merge master，不创建下一版本 tag / Release。
+>
+> 更结构化的当前事实：见 `PRODUCTION_STATE.md`。
+> 发布事实与下一次发布门禁：见 `RELEASE.md`。
+> 外部依赖：见 `BLOCKERS.md`。
+
 ## Current phase（2026-10-05 — Canonical Visual Recovery implementation complete / CI pending）
 
 - 状态：`DIRECT_V8_CANONICAL_VISUAL_RECOVERY = CODE_COMPLETE` · `MACHINE_ACCEPTANCE = PENDING` ·
