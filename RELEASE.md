@@ -18,6 +18,7 @@
 | 3 | RC 产物存在 | `artifacts/v0.1.0/`：Windows 安装包、签名 APK、`SHA256SUMS.txt`（另存 `docs/release/`） |
 | 4 | 工作树干净 | 无未提交改动（含 release 文档本身提交后） |
 | 5 | 发布授权 | `RELEASE_V0_1_0_AUTHORIZATION` 已由 huangdi97 授予 |
+| 6 | Signed runtime API | Repository Variable `PETACCESS_PUBLIC_API_BASE` 已配置为真实、可访问的 HTTPS `/api/v1`；不得使用 localhost / `10.0.2.2` / Preview 地址 |
 
 ## 2. RC 冻结
 
@@ -34,6 +35,14 @@
 
 ## 4. 发布步骤
 
+0. **配置正式运行时 API（硬门）**：
+   - 在 GitHub Repository Variables 中设置 `PETACCESS_PUBLIC_API_BASE`；
+   - 必须是绝对 `https://...` URL，路径以 `/api/v1` 结尾；
+   - 不允许用户名/密码、query 或 fragment；
+   - Release CI 会用该值同时构建 Windows `VITE_TAURI_API_BASE` 与 Android `VITE_TAURI_ANDROID_API_BASE`；
+   - `scripts/release/generate_tauri_release_config.cjs` 会为 signed build 生成严格 CSP，**不包含**开发用 `127.0.0.1` / `10.0.2.2` origin；
+   - 变量缺失或为 HTTP 时 Release 必须失败，不能回退到 packaged dev defaults。
+
 1. **提交并干净工作树**：提交全部 release 文档与产物清单，确认 `git status` 干净。
 2. **配置 remote**（当前仓库无 remote，CI 因此 BLOCKED）：
    `git remote add origin <repo-url>`。
@@ -43,7 +52,8 @@
    git push origin master --tags
    ```
 4. **Release CI**（`.github/workflows/release-ci.yml`，tag `v*` 触发）自动执行：
-   版本校验（tag == 0.1.0、VERSION_DRIFT=0）→ 工程门 + 后端 → 前端构建 → Windows NSIS →
+   版本校验（tag == 0.1.0、VERSION_DRIFT=0）→ 工程门 + 后端 → 前端构建 →
+   Signed runtime API/CSP fail-closed gate → Windows NSIS →
    Android 签名 APK（Secrets 注入 keystore）→ SHA256SUMS。
    > 该 workflow **只产产物、不创建 GitHub Release**——发布本身仍是人工授权步骤。
 5. **创建 GitHub Release**（人工，需已获授权）：
@@ -74,4 +84,6 @@
 - 未经授权创建 tag / Release / 推送。
 - 伪造签名（Windows 未签名是政策，不是疏漏）。
 - 在 release 中包含 demo seed / 虚构数据。
+- 使用 `http://127.0.0.1`、`http://10.0.2.2`、USB Preview 或 emulator Preview endpoint 生成 signed Release。
+- `PETACCESS_PUBLIC_API_BASE` 未配置时仍继续签名出包。
 - 声称 Public Beta、完整数据覆盖或「真实地图已接入」等不实表述。
