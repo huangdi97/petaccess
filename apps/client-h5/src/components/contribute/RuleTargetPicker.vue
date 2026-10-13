@@ -85,9 +85,11 @@ onMounted(load);
   display: flex;
   flex-direction: column;
   gap: var(--pa-space-2);
-  margin-top: var(--pa-space-4);
-  padding-top: var(--pa-space-4);
-  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  margin-top: var(--pa-space-3);
+  padding: var(--pa-space-4);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: var(--pa-radius-md);
+  background: var(--pa-color-surface);
 }
 
 .rule-target label {
@@ -102,3 +104,9 @@ onMounted(load);
   line-height: var(--pa-line-height-20);
 }
 </style>
+
+@media (max-width: 520px) {
+  .rule-target {
+    padding: var(--pa-space-3);
+  }
+}
