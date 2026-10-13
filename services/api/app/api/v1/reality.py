@@ -525,8 +525,10 @@ def consumer_reality_events(
         *facilities,
     ]
     candidate_ids = {row.candidate_id for row in rows if getattr(row, "candidate_id", None)}
-    bundle_ids = {
-        row.evidence_bundle_id for row in rows if getattr(row, "evidence_bundle_id", None)
+    bundle_ids: set[str] = {
+        bundle_id
+        for row in rows
+        if (bundle_id := row.evidence_bundle_id) is not None
     }
     targets = _event_targets(presence, staff, facilities)
     events = _project_reality_events(
