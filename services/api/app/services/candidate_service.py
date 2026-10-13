@@ -186,6 +186,10 @@ def publish(
     db.add(rule)
     db.flush()
 
+    # Track which prior rule identities changed so a user watching one exact
+    # Rule receives the reviewed replacement event as well.
+    superseded_rule_ids: list[str] = []
+
     # Explicit reviewed replacement wins over source-identity heuristics. The
     # publish gate has already verified owner/action/layer/current-state.
     if candidate.supersedes_rule_id:
@@ -193,6 +197,7 @@ def publish(
         if explicit_target is None:
             raise ApiError("待替换规则不存在", code="supersession_target_missing")
         explicit_target.status = RuleStatus.SUPERSEDED
+        superseded_rule_ids.append(explicit_target.id)
 
     # Same-issuer policy change: the source updated its own rule, so current
     # rules from THAT source with the same owner+scope+action are superseded
@@ -212,6 +217,7 @@ def publish(
     ).all()
     for old_rule in superseded_same_source:
         old_rule.status = RuleStatus.SUPERSEDED
+        superseded_rule_ids.append(old_rule.id)
         if rule.supersedes_rule_id is None:
             rule.supersedes_rule_id = old_rule.id
 
@@ -264,6 +270,14 @@ def publish(
     candidate.reviewer_id = reviewer_id
     if note:
         candidate.review_note = note[:500]
+
+    from app.services.watch_events import emit_rule_published
+
+    emit_rule_published(
+        db,
+        rule,
+        superseded_rule_ids=tuple(dict.fromkeys(superseded_rule_ids)),
+    )
     return rule
 
 
@@ -369,4 +383,8 @@ def publish_exception(
     candidate.reviewer_id = reviewer_id
     if note:
         candidate.review_note = note[:500]
+
+    from app.services.watch_events import emit_rule_exception_published
+
+    emit_rule_exception_published(db, base, exception)
     return exception
