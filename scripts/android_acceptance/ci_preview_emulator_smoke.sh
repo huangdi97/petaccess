@@ -134,6 +134,7 @@ fi
 export PETACCESS_ANDROID_AUTH_TOKEN="$AUTH_TOKEN"
 
 node scripts/android_acceptance/cdp_journey.cjs
+python scripts/android_acceptance/width_matrix.py
 python scripts/android_acceptance/coverage_matrix.py
 python scripts/android_acceptance/build_preview_review_board.py
 
