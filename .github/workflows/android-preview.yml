@@ -232,27 +232,25 @@ jobs:
           cat > INSTALL_PREVIEW.md <<EOF
           # PetAccess Preview · ${{ matrix.profile }}
 
-          Commit: `$GITHUB_SHA`
+          Commit: $GITHUB_SHA
 
-          APK: `$OUT`
+          APK: $OUT
 
-          Package: `com.petaccess.map.preview`
+          Package: com.petaccess.map.preview
 
-          ABI: `${{ matrix.apk_abi }}`
+          ABI: ${{ matrix.apk_abi }}
 
-          API: `${{ matrix.api_base }}`
+          API: ${{ matrix.api_base }}
 
           ${{ matrix.runtime_note }}
 
           ## Install
 
-          ```bash
-          adb install -r "$OUT"
-          ```
+              adb install -r "$OUT"
 
-          ${{ matrix.requires_adb_reverse && 'For a physical USB device, run `adb reverse tcp:8000 tcp:8000` before launching the app.' || 'No adb reverse step is required for this emulator profile.' }}
+          ${{ matrix.requires_adb_reverse && 'For a physical USB device, run adb reverse tcp:8000 tcp:8000 before launching the app.' || 'No adb reverse step is required for this emulator profile.' }}
 
-          This is a debug Preview only. It installs beside `com.petaccess.map` and must not be promoted as a signed/store Release.
+          This is a debug Preview only. It installs beside com.petaccess.map and must not be promoted as a signed/store Release.
           EOF
 
       - name: Upload installable preview
@@ -277,15 +275,15 @@ jobs:
           {
             echo "## PetAccess Android Preview"
             echo
-            echo "- Commit: \`$GITHUB_SHA\`"
-            echo "- Package: \`com.petaccess.map.preview\`"
-            echo "- Profile: \`${{ matrix.profile }}\`"
-            echo "- Tauri target: \`${{ matrix.tauri_target }}\`"
-            echo "- APK native ABI: \`${{ matrix.apk_abi }}\`"
-            echo "- API: \`${{ matrix.api_base }}\`"
-            echo "- APK: \`${{ steps.apk.outputs.apk }}\`"
+            echo "- Commit: $GITHUB_SHA"
+            echo "- Package: com.petaccess.map.preview"
+            echo "- Profile: ${{ matrix.profile }}"
+            echo "- Tauri target: ${{ matrix.tauri_target }}"
+            echo "- APK native ABI: ${{ matrix.apk_abi }}"
+            echo "- API: ${{ matrix.api_base }}"
+            echo "- APK: ${{ steps.apk.outputs.apk }}"
             echo "- Artifact: [Download Preview artifact](${{ steps.upload_preview.outputs.artifact-url }})"
-            echo "- Artifact digest: \`${{ steps.upload_preview.outputs.artifact-digest }}\`"
+            echo "- Artifact digest: ${{ steps.upload_preview.outputs.artifact-digest }}"
             echo "- Debug Preview only; not a signed Release."
           } >> "$GITHUB_STEP_SUMMARY"
 
