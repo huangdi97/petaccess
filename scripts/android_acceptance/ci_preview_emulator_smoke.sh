@@ -156,6 +156,8 @@ assert journey["authenticatedCases"] >= 7, journey
 assert coverage["required_router_pages"] == 19, coverage
 assert coverage["observed_router_pages"] >= 19, coverage
 assert coverage["matrix"]["Authenticated States"] == "COVERED", coverage
+assert coverage["matrix"]["Device Sizes"] == "COVERED", coverage
+assert coverage["device_sizes"]["covered"] is True, coverage
 assert coverage["matrix"]["Visual"] == "COVERED", coverage
 assert coverage["matrix"]["Governed Media"] == "COVERED", coverage
 assert coverage["governed_media"]["decoded"] is True, coverage
