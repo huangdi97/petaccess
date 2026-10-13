@@ -31,9 +31,54 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  phone-preview-readiness:
+    name: Android Phone Preview · readiness
+    runs-on: ubuntu-latest
+    outputs:
+      ready: ${{ steps.readiness.outputs.ready }}
+      status: ${{ steps.readiness.outputs.status }}
+      source: ${{ steps.readiness.outputs.source }}
+    env:
+      CONFIGURED_API_BASE: ${{ inputs.api_base || vars.PETACCESS_PHONE_PREVIEW_API_BASE }}
+      DISPATCH_API_BASE: ${{ inputs.api_base }}
+    steps:
+      - name: Resolve standalone phone backend readiness
+        id: readiness
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -n "${CONFIGURED_API_BASE:-}" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+            echo "status=READY" >> "$GITHUB_OUTPUT"
+            if [ -n "${DISPATCH_API_BASE:-}" ]; then
+              echo "source=workflow_dispatch" >> "$GITHUB_OUTPUT"
+            else
+              echo "source=repository_variable" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "status=BLOCKED_BY_API_BASE" >> "$GITHUB_OUTPUT"
+            echo "source=none" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Android Phone Preview blocked::Configure PETACCESS_PHONE_PREVIEW_API_BASE or dispatch this workflow with api_base. USB Preview remains available without a public backend."
+          fi
+
+      - name: Phone Preview readiness summary
+        shell: bash
+        run: |
+          {
+            echo "## PetAccess Android Phone Preview readiness"
+            echo
+            echo "- Status: **${{ steps.readiness.outputs.status }}**"
+            echo "- Backend source: `${{ steps.readiness.outputs.source }}`"
+            echo "- Standalone ARM64 build starts only when a phone-reachable HTTPS `/api/v1` base is configured."
+            echo "- If blocked, use **Android Preview APK · ARM64 USB device** with `adb reverse tcp:8000 tcp:8000`."
+            echo "- No localhost/emulator endpoint is ever promoted as a standalone phone build."
+          } >> "$GITHUB_STEP_SUMMARY"
+
   phone-preview:
     name: Android Preview · ARM64 standalone API
-    if: ${{ github.event_name == 'workflow_dispatch' || vars.PETACCESS_PHONE_PREVIEW_API_BASE != '' }}
+    needs: phone-preview-readiness
+    if: ${{ needs.phone-preview-readiness.outputs.ready == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
