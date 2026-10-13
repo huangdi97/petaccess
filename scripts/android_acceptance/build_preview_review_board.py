@@ -209,7 +209,8 @@ def main() -> int:
             '<p class="notice fixture-notice"><strong>媒体夹具：</strong>'
             f"{label} · {html.escape(size)}。"
             "它只存在于隔离的 Android runtime 验收数据库，用来证明 governed public-media "
-            "链路可以在 packaged WebView 中真实解码；它不是场所真实照片，也不得用于评价正式产品素材质量。"
+            "链路可以在 packaged WebView 中真实解码；它不是场所真实照片，"
+            "也不得用于评价正式产品素材质量。"
             "</p>"
         )
 
