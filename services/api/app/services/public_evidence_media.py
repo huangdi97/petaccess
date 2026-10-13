@@ -52,7 +52,7 @@ def _bundle_backs_published_reality(db: Session, bundle_id: str) -> bool:
     return False
 
 
-def resolve_public_evidence_media(db: Session, bundle_id: str) -> tuple[MediaObject, str]:
+def resolve_public_evidence_media_object(db: Session, bundle_id: str) -> MediaObject:
     """Resolve one display-safe object without revealing private-media existence."""
 
     unavailable = NotFound("公开证据媒体不可用")
@@ -81,7 +81,18 @@ def resolve_public_evidence_media(db: Session, bundle_id: str) -> tuple[MediaObj
     storage = get_storage_provider()
     if storage.stat_object(media.object_key, media.bucket) is None:
         raise unavailable
-    url = storage.presigned_get_url(
+    return media
+
+
+def resolve_public_evidence_media(db: Session, bundle_id: str) -> tuple[MediaObject, str]:
+    """Legacy metadata resolver returning a short-lived storage URL.
+
+    New Consumer delivery should use the governed API content endpoint so
+    packaged runtimes do not need to trust a dynamic object-storage origin.
+    """
+
+    media = resolve_public_evidence_media_object(db, bundle_id)
+    url = get_storage_provider().presigned_get_url(
         media.object_key,
         media.bucket,
         expires_seconds=PUBLIC_MEDIA_URL_SECONDS,
