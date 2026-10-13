@@ -147,6 +147,7 @@ def main() -> int:
     fast = _load_json(RUNTIME_DIR / "m3_fast.json")
     coverage = _load_json(EVIDENCE_ROOT / "coverage_matrix.json")
     width_matrix = _load_json(RUNTIME_DIR / "width_matrix.json")
+    scene_seed = _load_json(RUNTIME_DIR / "scene-media-seed.json")
 
     routes = journey.get("routes") if isinstance(journey.get("routes"), list) else []
     cards = "\n".join(_card(route) for route in routes)
@@ -195,6 +196,22 @@ def main() -> int:
     auth_routes = [route for route in routes if route.get("authenticated") is True]
     auth_pass = sum(1 for route in auth_routes if route.get("ok") is True)
     map_provider = journey.get("mapProviderSurface") or "unknown"
+    scene_fixture_notice = ""
+    if scene_seed.get("fixture") is True:
+        label = html.escape(str(scene_seed.get("fixture_label") or "CI media fixture"))
+        dimensions = scene_seed.get("fixture_dimensions")
+        size = (
+            f"{dimensions[0]}×{dimensions[1]}"
+            if isinstance(dimensions, list) and len(dimensions) == 2
+            else "unknown size"
+        )
+        scene_fixture_notice = (
+            '<p class="notice fixture-notice"><strong>媒体夹具：</strong>'
+            f"{label} · {html.escape(size)}。"
+            "它只存在于隔离的 Android runtime 验收数据库，用来证明 governed public-media "
+            "链路可以在 packaged WebView 中真实解码；它不是场所真实照片，也不得用于评价正式产品素材质量。"
+            "</p>"
+        )
 
     html_doc = f"""<!doctype html>
 <html lang="zh-CN">
@@ -317,6 +334,7 @@ dd {{ margin: 2px 0 0; overflow-wrap: anywhere; font-size: 13px; }}
 Runtime PASS 只证明路由身份、WebView 几何、安全区、overflow 与截图取证成立。
 它不能替代你对视觉质量的人工判断；HUMAN_VISUAL_ACCEPTANCE 仍为 PENDING。
 </p>
+{scene_fixture_notice}
 <section class="grid">
 {cards if cards else "<p>没有找到当前 Android runtime route screenshot 证据。</p>"}
 </section>
