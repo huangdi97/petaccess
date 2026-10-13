@@ -403,9 +403,7 @@ def test_public_evidence_media_requires_display_review_and_published_fact(client
     assert body["purpose"] == "reality_evidence"
     assert body["mime_type"] == "image/png"
     assert body["expires_in"] == 300
-    assert body["url"].endswith(
-        f"/api/v1/evidence-bundles/{bundle_id}/public-media/content"
-    )
+    assert body["url"].endswith(f"/api/v1/evidence-bundles/{bundle_id}/public-media/content")
     assert "9000" not in body["url"]
     assert "nullstorage://" not in body["url"]
 
