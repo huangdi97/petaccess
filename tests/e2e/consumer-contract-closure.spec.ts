@@ -333,9 +333,9 @@ test("C6: signed-in Mine is a personal travel center with truthful empty-state a
     timeout: 15000,
   });
   await expect(page.getByText("个人出行中心")).toBeVisible();
-  await expect(page.getByLabel("个人记录摘要")).toContainText("0宠物档案");
-  await expect(page.getByLabel("个人记录摘要")).toContainText("0关注变化");
-  await expect(page.getByLabel("个人记录摘要")).toContainText("0贡献记录");
+  await expect(page.getByLabel("个人记录摘要")).toContainText(/0\s*宠物档案/);
+  await expect(page.getByLabel("个人记录摘要")).toContainText(/0\s*关注变化/);
+  await expect(page.getByLabel("个人记录摘要")).toContainText(/0\s*贡献记录/);
 
   await expect(page.getByRole("link", { name: "建立档案 →" })).toHaveAttribute(
     "href",
