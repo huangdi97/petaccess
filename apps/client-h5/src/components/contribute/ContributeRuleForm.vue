@@ -96,11 +96,13 @@ const reviewItems = computed(() => {
     :place-zone="contributionScopeLabel"
     :step="reviewing ? 3 : 2"
     :total="4"
-    :title="reviewing ? '核对规则线索' : '补充规则信息'"
+    :title="reviewing ? '核对规则线索' : intent ? '补充规则信息' : '你想补充哪一种规则信息？'"
     :description="
       reviewing
         ? '确认这些结构化信息就是你准备提交的规则线索或核验记录。'
-        : '可以确认现有规则、报告变化、只提交规则牌证据，或提供新规则线索；所有内容都先进入核验流程。'
+        : intent
+          ? '只填写你能确认的事实；不确定的内容可以保持未确认。'
+          : '先选择你实际知道的事情，再展开对应问题。规则牌、规则变化和新线索会走不同的核验路径。'
     "
     @back="reviewing ? setReviewing(false) : emit('back')"
   >
