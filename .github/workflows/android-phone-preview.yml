@@ -62,6 +62,31 @@ jobs:
             echo "::notice title=Android Phone Preview blocked::Configure PETACCESS_PHONE_PREVIEW_API_BASE or dispatch this workflow with api_base. USB Preview remains available without a public backend."
           fi
 
+      - name: Write machine-readable readiness record
+        shell: bash
+        run: |
+          cat > PHONE_PREVIEW_READINESS.json <<EOF
+          {
+            "schemaVersion": 1,
+            "product": "PetAccess",
+            "artifactKind": "android-phone-preview-readiness",
+            "commit": "$GITHUB_SHA",
+            "branch": "$GITHUB_REF_NAME",
+            "status": "${{ steps.readiness.outputs.status }}",
+            "source": "${{ steps.readiness.outputs.source }}",
+            "standaloneBuildEligible": ${{ steps.readiness.outputs.ready }},
+            "requiresPhoneReachableHttpsApi": true
+          }
+          EOF
+
+      - name: Upload Phone Preview readiness
+        uses: actions/upload-artifact@v4
+        with:
+          name: petaccess-phone-preview-readiness-${{ github.sha }}
+          path: PHONE_PREVIEW_READINESS.json
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Phone Preview readiness summary
         shell: bash
         run: |
@@ -70,9 +95,28 @@ jobs:
             echo
             echo "- Status: **${{ steps.readiness.outputs.status }}**"
             echo "- Backend source: `${{ steps.readiness.outputs.source }}`"
+            echo "- Readiness artifact: `petaccess-phone-preview-readiness-${{ github.sha }}`"
             echo "- Standalone ARM64 build starts only when a phone-reachable HTTPS `/api/v1` base is configured."
             echo "- If blocked, use **Android Preview APK · ARM64 USB device** with `adb reverse tcp:8000 tcp:8000`."
             echo "- No localhost/emulator endpoint is ever promoted as a standalone phone build."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  phone-preview-blocked:
+    name: Android Phone Preview · BLOCKED_BY_API_BASE
+    needs: phone-preview-readiness
+    if: ${{ needs.phone-preview-readiness.outputs.ready != 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Preserve explicit external blocker
+        shell: bash
+        run: |
+          echo "::notice title=Standalone Phone Preview blocked::No phone-reachable HTTPS PetAccess API is configured. This is an external deployment prerequisite, not an APK build failure."
+          {
+            echo "## BLOCKED_BY_API_BASE"
+            echo
+            echo "Standalone Phone Preview was intentionally not built."
+            echo
+            echo "Configure `PETACCESS_PHONE_PREVIEW_API_BASE` only after the public Preview backend passes its HTTPS/API preflight."
           } >> "$GITHUB_STEP_SUMMARY"
 
   phone-preview:
