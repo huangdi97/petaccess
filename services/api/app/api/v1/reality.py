@@ -259,6 +259,254 @@ def _facility_event(
     )
 
 
+def _load_published_reality_rows(
+    db: Session,
+    place_id: str,
+    limit: int,
+) -> tuple[
+    list[ObservedPresence],
+    list[StaffResponseObservation],
+    list[AnimalFacility],
+]:
+    presence = list(
+        db.scalars(
+            select(ObservedPresence)
+            .where(
+                ObservedPresence.place_id == place_id,
+                ObservedPresence.verification_status.in_(VERIFIED_STATUS_VALUES),
+            )
+            .order_by(ObservedPresence.observed_at.desc())
+            .limit(limit)
+        ).all()
+    )
+    staff = list(
+        db.scalars(
+            select(StaffResponseObservation)
+            .where(
+                StaffResponseObservation.place_id == place_id,
+                StaffResponseObservation.verification_status.in_(VERIFIED_STATUS_VALUES),
+            )
+            .order_by(StaffResponseObservation.observed_at.desc())
+            .limit(limit)
+        ).all()
+    )
+    facilities = list(
+        db.scalars(
+            select(AnimalFacility)
+            .where(
+                AnimalFacility.place_id == place_id,
+                AnimalFacility.verification_status.in_(VERIFIED_STATUS_VALUES),
+            )
+            .order_by(AnimalFacility.created_at.desc())
+            .limit(limit)
+        ).all()
+    )
+    return presence, staff, facilities
+
+
+def _load_event_evidence_meta(
+    db: Session,
+    bundle_ids: set[str],
+) -> dict[str, _EventEvidenceMeta]:
+    if not bundle_ids:
+        return {}
+    rows = db.execute(
+        select(
+            EvidenceBundle.id,
+            SourceArtifact.artifact_type,
+            EvidenceBundle.source_platform,
+            EvidenceBundle.publisher_type,
+            EvidenceBundle.evidence_class,
+            SourceArtifact.display_allowed,
+        )
+        .join(SourceArtifact, SourceArtifact.id == EvidenceBundle.artifact_id)
+        .where(EvidenceBundle.id.in_(bundle_ids))
+    ).all()
+    return {
+        bundle_id: {
+            "material_type": material_type,
+            "source_platform": source_platform,
+            "publisher_type": publisher_type,
+            "evidence_class": evidence_class,
+            "display_allowed": bool(display_allowed),
+        }
+        for (
+            bundle_id,
+            material_type,
+            source_platform,
+            publisher_type,
+            evidence_class,
+            display_allowed,
+        ) in rows
+    }
+
+
+def _load_event_report_meta(
+    db: Session,
+    candidate_ids: set[str],
+) -> dict[str, _EventReportMeta]:
+    if not candidate_ids:
+        return {}
+    rows = db.execute(
+        select(
+            RealityCandidate.id,
+            RealityReport.submitted_at,
+            RealityReport.time_evidence_state,
+            RealityReport.origin,
+            RealityReport.fact_evidence_state,
+            RealityReport.place_match_state,
+            RealityReport.content_published_at,
+            RealityReport.claimed_event_at,
+        )
+        .outerjoin(RealityReport, RealityReport.id == RealityCandidate.report_id)
+        .where(RealityCandidate.id.in_(candidate_ids))
+    ).all()
+    return {
+        candidate_id: {
+            "submitted_at": submitted_at,
+            "time_evidence_state": time_evidence_state,
+            "origin": origin,
+            "fact_evidence_state": fact_evidence_state,
+            "place_match_state": place_match_state,
+            "content_published_at": content_published_at,
+            "claimed_event_at": claimed_event_at,
+        }
+        for (
+            candidate_id,
+            submitted_at,
+            time_evidence_state,
+            origin,
+            fact_evidence_state,
+            place_match_state,
+            content_published_at,
+            claimed_event_at,
+        ) in rows
+    }
+
+
+def _event_targets(
+    presence: list[ObservedPresence],
+    staff: list[StaffResponseObservation],
+    facilities: list[AnimalFacility],
+) -> set[tuple[str, str]]:
+    return {
+        *(("observed_presence", row.id) for row in presence),
+        *(("staff_response_observation", row.id) for row in staff),
+        *(("animal_facility", row.id) for row in facilities),
+    }
+
+
+def _load_confirmation_counts(
+    db: Session,
+    place_id: str,
+    rows: list[ObservedPresence | StaffResponseObservation | AnimalFacility],
+    candidate_ids: set[str],
+) -> dict[str, int]:
+    target_ids = {row.id for row in rows}
+    if not target_ids:
+        return {}
+
+    counts = {
+        target_id: int(count)
+        for target_id, count in db.execute(
+            select(RealityConfirmation.target_claim_id, func.count())
+            .where(
+                RealityConfirmation.place_id == place_id,
+                RealityConfirmation.target_claim_id.in_(target_ids),
+            )
+            .group_by(RealityConfirmation.target_claim_id)
+        ).all()
+        if target_id
+    }
+    if not candidate_ids:
+        return counts
+
+    claim_id_by_candidate = {
+        row.candidate_id: row.id for row in rows if getattr(row, "candidate_id", None)
+    }
+    candidate_counts = db.execute(
+        select(RealityConfirmation.target_candidate_id, func.count())
+        .where(
+            RealityConfirmation.place_id == place_id,
+            RealityConfirmation.target_candidate_id.in_(candidate_ids),
+        )
+        .group_by(RealityConfirmation.target_candidate_id)
+    ).all()
+    for candidate_id, count in candidate_counts:
+        claim_id = claim_id_by_candidate.get(candidate_id)
+        if claim_id:
+            counts[claim_id] = counts.get(claim_id, 0) + int(count)
+    return counts
+
+
+def _load_open_reality_disputes(
+    db: Session,
+    target_ids: set[str],
+) -> set[tuple[str, str]]:
+    if not target_ids:
+        return set()
+    rows = db.execute(
+        select(DisputeCase.target_type, DisputeCase.target_id).where(
+            DisputeCase.target_id.in_(target_ids),
+            DisputeCase.target_type.in_(
+                [
+                    DisputeTargetType.OBSERVED_PRESENCE.value,
+                    DisputeTargetType.STAFF_RESPONSE_OBSERVATION.value,
+                    DisputeTargetType.ANIMAL_FACILITY.value,
+                ]
+            ),
+            DisputeCase.status.notin_(
+                [DisputeCaseStatus.RESOLVED.value, DisputeCaseStatus.WITHDRAWN.value]
+            ),
+        )
+    ).all()
+    return {(str(target_type), target_id) for target_type, target_id in rows}
+
+
+def _project_reality_events(
+    presence: list[ObservedPresence],
+    staff: list[StaffResponseObservation],
+    facilities: list[AnimalFacility],
+    report_meta: dict[str, _EventReportMeta],
+    evidence_meta: dict[str, _EventEvidenceMeta],
+    confirmation_counts: dict[str, int],
+    open_disputes: set[tuple[str, str]],
+) -> list[RealityEventOut]:
+    def common(row: ObservedPresence | StaffResponseObservation | AnimalFacility) -> dict:
+        return {
+            "report_meta": report_meta.get(row.candidate_id),
+            "evidence_meta": evidence_meta.get(row.evidence_bundle_id or ""),
+            "confirmation_count": confirmation_counts.get(row.id, 0),
+        }
+
+    return [
+        *[
+            _presence_event(
+                row,
+                **common(row),
+                dispute_open=("observed_presence", row.id) in open_disputes,
+            )
+            for row in presence
+        ],
+        *[
+            _staff_event(
+                row,
+                **common(row),
+                dispute_open=("staff_response_observation", row.id) in open_disputes,
+            )
+            for row in staff
+        ],
+        *[
+            _facility_event(
+                row,
+                **common(row),
+                dispute_open=("animal_facility", row.id) in open_disputes,
+            )
+            for row in facilities
+        ],
+    ]
+
+
 @router.get("/places/{place_id}/reality/events", response_model=list[RealityEventOut])
 def consumer_reality_events(
     place_id: str,
@@ -269,288 +517,28 @@ def consumer_reality_events(
     """Published human-verified Reality facts as one consumer timeline."""
     if db.get(Place, place_id) is None:
         raise NotFound("场所不存在")
-    presence = db.scalars(
-        select(ObservedPresence)
-        .where(
-            ObservedPresence.place_id == place_id,
-            ObservedPresence.verification_status.in_(VERIFIED_STATUS_VALUES),
-        )
-        .order_by(ObservedPresence.observed_at.desc())
-        .limit(limit)
-    ).all()
-    staff = db.scalars(
-        select(StaffResponseObservation)
-        .where(
-            StaffResponseObservation.place_id == place_id,
-            StaffResponseObservation.verification_status.in_(VERIFIED_STATUS_VALUES),
-        )
-        .order_by(StaffResponseObservation.observed_at.desc())
-        .limit(limit)
-    ).all()
-    facilities = db.scalars(
-        select(AnimalFacility)
-        .where(
-            AnimalFacility.place_id == place_id,
-            AnimalFacility.verification_status.in_(VERIFIED_STATUS_VALUES),
-        )
-        .order_by(AnimalFacility.created_at.desc())
-        .limit(limit)
-    ).all()
-    candidate_ids = {
-        getattr(row, "candidate_id", None)
-        for row in [*presence, *staff, *facilities]
-        if getattr(row, "candidate_id", None)
-    }
 
-    evidence_bundle_ids = {
-        getattr(row, "evidence_bundle_id", None)
-        for row in [*presence, *staff, *facilities]
-        if getattr(row, "evidence_bundle_id", None)
-    }
-    evidence_meta_by_bundle: dict[str, _EventEvidenceMeta] = {}
-    if evidence_bundle_ids:
-        evidence_rows = db.execute(
-            select(
-                EvidenceBundle.id,
-                SourceArtifact.artifact_type,
-                EvidenceBundle.source_platform,
-                EvidenceBundle.publisher_type,
-                EvidenceBundle.evidence_class,
-                SourceArtifact.display_allowed,
-            )
-            .join(SourceArtifact, SourceArtifact.id == EvidenceBundle.artifact_id)
-            .where(EvidenceBundle.id.in_(evidence_bundle_ids))
-        ).all()
-        evidence_meta_by_bundle = {
-            bundle_id: {
-                "material_type": material_type,
-                "source_platform": source_platform,
-                "publisher_type": publisher_type,
-                "evidence_class": evidence_class,
-                "display_allowed": bool(display_allowed),
-            }
-            for (
-                bundle_id,
-                material_type,
-                source_platform,
-                publisher_type,
-                evidence_class,
-                display_allowed,
-            ) in evidence_rows
-        }
-    report_meta_by_candidate: dict[str, _EventReportMeta] = {}
-    if candidate_ids:
-        report_rows = db.execute(
-            select(
-                RealityCandidate.id,
-                RealityReport.submitted_at,
-                RealityReport.time_evidence_state,
-                RealityReport.origin,
-                RealityReport.fact_evidence_state,
-                RealityReport.place_match_state,
-                RealityReport.content_published_at,
-                RealityReport.claimed_event_at,
-            )
-            .outerjoin(RealityReport, RealityReport.id == RealityCandidate.report_id)
-            .where(RealityCandidate.id.in_(candidate_ids))
-        ).all()
-        report_meta_by_candidate = {
-            candidate_id: {
-                "submitted_at": submitted_at,
-                "time_evidence_state": time_evidence_state,
-                "origin": origin,
-                "fact_evidence_state": fact_evidence_state,
-                "place_match_state": place_match_state,
-                "content_published_at": content_published_at,
-                "claimed_event_at": claimed_event_at,
-            }
-            for (
-                candidate_id,
-                submitted_at,
-                time_evidence_state,
-                origin,
-                fact_evidence_state,
-                place_match_state,
-                content_published_at,
-                claimed_event_at,
-            ) in report_rows
-        }
-
-    reality_targets = {
-        *(("observed_presence", row.id) for row in presence),
-        *(("staff_response_observation", row.id) for row in staff),
-        *(("animal_facility", row.id) for row in facilities),
-    }
-
-    confirmation_counts: dict[str, int] = {}
-    if reality_targets:
-        target_ids = {target_id for _, target_id in reality_targets}
-        direct_rows = db.execute(
-            select(RealityConfirmation.target_claim_id, func.count())
-            .where(
-                RealityConfirmation.place_id == place_id,
-                RealityConfirmation.target_claim_id.in_(target_ids),
-            )
-            .group_by(RealityConfirmation.target_claim_id)
-        ).all()
-        for target_id, count in direct_rows:
-            if target_id:
-                confirmation_counts[target_id] = confirmation_counts.get(target_id, 0) + int(count)
-
-        # Confirmations may be submitted before/without the caller knowing the
-        # published claim id and therefore target the reviewed candidate. Map
-        # those confirmations back to the published claim so the consumer
-        # evidence rail counts both valid linkage forms.
-        published_claim_rows: list[ObservedPresence | StaffResponseObservation | AnimalFacility] = [
-            *presence,
-            *staff,
-            *facilities,
-        ]
-        claim_id_by_candidate = {
-            row.candidate_id: row.id
-            for row in published_claim_rows
-            if getattr(row, "candidate_id", None)
-        }
-        candidate_confirmation_rows = db.execute(
-            select(RealityConfirmation.target_candidate_id, func.count())
-            .where(
-                RealityConfirmation.place_id == place_id,
-                RealityConfirmation.target_candidate_id.in_(candidate_ids),
-            )
-            .group_by(RealityConfirmation.target_candidate_id)
-        ).all()
-        for candidate_id, count in candidate_confirmation_rows:
-            claim_id = claim_id_by_candidate.get(candidate_id)
-            if claim_id:
-                confirmation_counts[claim_id] = confirmation_counts.get(claim_id, 0) + int(count)
-    open_disputes: set[tuple[str, str]] = set()
-    if reality_targets:
-        target_ids = {target_id for _, target_id in reality_targets}
-        dispute_rows = db.execute(
-            select(DisputeCase.target_type, DisputeCase.target_id).where(
-                DisputeCase.target_id.in_(target_ids),
-                DisputeCase.target_type.in_(
-                    [
-                        DisputeTargetType.OBSERVED_PRESENCE.value,
-                        DisputeTargetType.STAFF_RESPONSE_OBSERVATION.value,
-                        DisputeTargetType.ANIMAL_FACILITY.value,
-                    ]
-                ),
-                DisputeCase.status.notin_(
-                    [DisputeCaseStatus.RESOLVED.value, DisputeCaseStatus.WITHDRAWN.value]
-                ),
-            )
-        ).all()
-        open_disputes = {(str(target_type), target_id) for target_type, target_id in dispute_rows}
-
-    events = [
-        *[
-            _presence_event(
-                row,
-                report_meta_by_candidate.get(row.candidate_id),
-                evidence_meta_by_bundle.get(row.evidence_bundle_id or ""),
-                confirmation_count=confirmation_counts.get(row.id, 0),
-                dispute_open=("observed_presence", row.id) in open_disputes,
-            )
-            for row in presence
-        ],
-        *[
-            _staff_event(
-                row,
-                report_meta_by_candidate.get(row.candidate_id),
-                evidence_meta_by_bundle.get(row.evidence_bundle_id or ""),
-                confirmation_count=confirmation_counts.get(row.id, 0),
-                dispute_open=("staff_response_observation", row.id) in open_disputes,
-            )
-            for row in staff
-        ],
-        *[
-            _facility_event(
-                row,
-                report_meta_by_candidate.get(row.candidate_id),
-                evidence_meta_by_bundle.get(row.evidence_bundle_id or ""),
-                confirmation_count=confirmation_counts.get(row.id, 0),
-                dispute_open=("animal_facility", row.id) in open_disputes,
-            )
-            for row in facilities
-        ],
+    presence, staff, facilities = _load_published_reality_rows(db, place_id, limit)
+    rows: list[ObservedPresence | StaffResponseObservation | AnimalFacility] = [
+        *presence,
+        *staff,
+        *facilities,
     ]
+    candidate_ids = {row.candidate_id for row in rows if getattr(row, "candidate_id", None)}
+    bundle_ids = {
+        row.evidence_bundle_id for row in rows if getattr(row, "evidence_bundle_id", None)
+    }
+    targets = _event_targets(presence, staff, facilities)
+    events = _project_reality_events(
+        presence,
+        staff,
+        facilities,
+        _load_event_report_meta(db, candidate_ids),
+        _load_event_evidence_meta(db, bundle_ids),
+        _load_confirmation_counts(db, place_id, rows, candidate_ids),
+        _load_open_reality_disputes(db, {target_id for _, target_id in targets}),
+    )
     return sorted(events, key=lambda item: item.event_at, reverse=True)[:limit]
-
-
-# ---------------------------------------------------------------------------
-# Consumer — Reality contribution (v0.9 §25.2, AC10)
-# ---------------------------------------------------------------------------
-
-
-@router.post(
-    "/places/{place_id}/reality/contributions",
-    response_model=RealityCandidateOut,
-    status_code=201,
-)
-def contribute_reality(
-    place_id: str,
-    body: RealityCandidateIn,
-    db: Session = Depends(get_db),
-    user: User | None = Depends(get_optional_user),
-) -> RealityCandidate:
-    """A signed-in visitor contributes an on-site reality fact (v0.9 §25.2).
-
-    Three structured branches map onto the three candidate types:
-
-    - ``observed_presence`` — 「我刚刚看到动物」 (animal, where, count, action)
-    - ``staff_response``    — 「我看到工作人员怎么处理」
-    - ``animal_facility``   — 「我发现这里有动物相关设施」
-
-    The entry lands as a REVIEW_PENDING candidate with ``reality_decision``
-    untouched — AI never sets it. Reviewer role lives on the admin endpoint.
-    Unknown never becomes allowed; a contribution never becomes a rule.
-    """
-    if user is None:
-        raise ApiError("请先登录再贡献现场情况", code="auth_required", status_code=401)
-    if db.get(Place, place_id) is None:
-        raise NotFound("场所不存在")
-
-    cand = RealityCandidate(
-        candidate_type=body.candidate_type,
-        place_id=place_id,
-        zone_id=body.zone_id,
-        source_id=body.source_id,
-        evidence_bundle_id=body.evidence_bundle_id,
-        animal_scope=body.animal_scope.value if body.animal_scope else None,
-        observed_at=body.observed_at,
-        captured_at=body.captured_at,
-        payload=body.payload,
-        review_status="REVIEW_PENDING",
-        verification_status=RealityVerificationStatus.UNVERIFIED,
-    )
-    if cand.observed_at is not None:
-        cand.freshness_state = freshness_state(cand.observed_at)
-    db.add(cand)
-    db.flush()
-    from app.services.reality_contribution import materialize_legacy_candidate_evidence
-
-    evidence_bundle = materialize_legacy_candidate_evidence(db, cand)
-    cand.evidence_bundle_id = evidence_bundle.id
-    record_audit(
-        db,
-        request=None,
-        actor_user_id=user.id,
-        actor_role=str(user.role),
-        action=AuditEvent.REALITY_CANDIDATE_CREATE.value,
-        target_type="reality_candidate",
-        target_id=str(cand.id),
-        after_state={
-            "candidate_type": cand.candidate_type,
-            "place_id": cand.place_id,
-            "review_status": cand.review_status,
-            "verification_status": cand.verification_status.value,
-            "submitted_by_contributor": True,
-        },
-    )
-    db.commit()
-    db.refresh(cand)
-    return cand
 
 
 # ---------------------------------------------------------------------------
