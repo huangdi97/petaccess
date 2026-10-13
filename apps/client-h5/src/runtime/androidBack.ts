@@ -39,6 +39,10 @@ export class ConsumerRouteStack {
     this.entries.pop();
     return target;
   }
+
+  reset(path = "/"): void {
+    this.entries = [path];
+  }
 }
 
 /**
@@ -75,7 +79,7 @@ export async function installAndroidBackHandler(router: Router): Promise<void> {
     }
 
     if (action === "home") {
-      stack.record("/");
+      stack.reset("/");
       void router.replace("/");
       return;
     }
