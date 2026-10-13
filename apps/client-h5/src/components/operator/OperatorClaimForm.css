@@ -5,6 +5,53 @@
   margin-top: var(--pa-space-5);
 }
 
+.operator-claim-form__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-3);
+  padding: var(--pa-space-4);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: calc(var(--pa-radius-md) + 2px);
+  background: var(--pa-color-surface-raised);
+}
+
+.operator-claim-form__group-head {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: var(--pa-space-3);
+  align-items: start;
+  padding-bottom: var(--pa-space-3);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.operator-claim-form__group-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--pa-color-accent-weak);
+  color: var(--pa-color-accent);
+  font-size: var(--pa-font-size-sm);
+  font-weight: var(--pa-font-weight-650);
+}
+
+.operator-claim-form__group-head h2 {
+  margin: 0;
+  font-size: var(--pa-font-size-lg);
+  line-height: var(--pa-line-height-26);
+  font-weight: var(--pa-font-weight-650);
+  color: var(--pa-color-text-primary);
+}
+
+.operator-claim-form__group-head p {
+  margin: var(--pa-space-1) 0 0;
+  color: var(--pa-color-text-muted);
+  font-size: var(--pa-font-size-sm);
+  line-height: var(--pa-line-height-20);
+}
+
 .operator-claim-form__previous {
   margin: 0;
   padding: var(--pa-space-3) 0;
@@ -44,9 +91,9 @@
 
 .operator-claim-form__boundary {
   margin: 0;
-  padding: var(--pa-space-3) 0;
-  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  padding: var(--pa-space-3) var(--pa-space-4);
+  border-left: 3px solid var(--pa-color-accent);
+  background: var(--pa-color-surface-muted);
   font-size: var(--pa-font-size-sm);
   line-height: var(--pa-line-height-20);
   color: var(--pa-color-text-secondary);
@@ -59,6 +106,10 @@
 }
 
 @media (max-width: 767px) {
+  .operator-claim-form__group {
+    padding: var(--pa-space-3);
+  }
+
   .operator-claim-form__actions {
     align-items: stretch;
     flex-direction: column;
