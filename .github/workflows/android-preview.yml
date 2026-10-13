@@ -265,6 +265,7 @@ jobs:
       TEST_REDIS_URL: redis://127.0.0.1:6379/1
       CELERY_TASK_QUEUE: petaccess_e2e
       APP_ENV: test
+      API_BASE_URL: http://10.0.2.2:8000
       JWT_SECRET: android_preview_dev_only_placeholder_0123456789
       PETACCESS_ANDROID_PACKAGE: com.petaccess.map.preview
       PETACCESS_ANDROID_ALLOW_FORBIDDEN_SERIAL: "1"
