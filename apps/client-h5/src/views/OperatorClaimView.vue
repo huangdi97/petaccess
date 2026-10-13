@@ -27,9 +27,6 @@ const previousClaimStatus = ref("");
 const claimStatusLabel = computed(
   () => operatorClaimStatusLabel(claimStatus.value) || "等待人工核验",
 );
-const previousClaimStatusLabel = computed(() =>
-  operatorClaimStatusLabel(previousClaimStatus.value),
-);
 const uiState = computed(() => {
   if (loading.value) return "loading";
   if (error.value) return "error";
@@ -39,7 +36,7 @@ const uiState = computed(() => {
 });
 const previousStatusForForm = computed(() =>
   ["rejected", "revoked"].includes(previousClaimStatus.value)
-    ? previousClaimStatusLabel.value
+    ? operatorClaimStatusLabel(previousClaimStatus.value)
     : undefined,
 );
 const loadEpoch = createEpoch();
