@@ -26,6 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
+      PETACCESS_PUBLIC_API_BASE: ${{ inputs.api_base }}
       VITE_TAURI_ANDROID_API_BASE: ${{ inputs.api_base }}
       PETACCESS_REQUIRE_REAL_MAP: ${{ inputs.require_real_map && '1' || '0' }}
       VITE_APP_VERSION: phone-preview-${{ github.sha }}
@@ -142,84 +143,7 @@ jobs:
 
       - name: Verify remote PetAccess API identity
         shell: bash
-        run: |
-          set -euo pipefail
-          node <<'NODE'
-          const base = process.env.VITE_TAURI_ANDROID_API_BASE.replace(/\/+$/, "");
-
-          async function readJson(url) {
-            const controller = new AbortController();
-            const timer = setTimeout(() => controller.abort(), 10000);
-            try {
-              const response = await fetch(url, {
-                method: "GET",
-                headers: { Accept: "application/json" },
-                signal: controller.signal,
-              });
-              if (!response.ok) {
-                throw new Error(`${url} -> HTTP ${response.status}`);
-              }
-              return await response.json();
-            } finally {
-              clearTimeout(timer);
-            }
-          }
-
-          const ping = await readJson(base + "/ping");
-          if (ping?.pong !== true) {
-            throw new Error("remote api_base is reachable but is not the expected PetAccess ping endpoint");
-          }
-
-          const origin = new URL(base).origin;
-          const health = await readJson(origin + "/health");
-          if (health?.status !== "ok") {
-            throw new Error("remote PetAccess /health did not report status=ok");
-          }
-
-          if (process.env.PETACCESS_REQUIRE_REAL_MAP === "1") {
-            const mapConfig = await readJson(base + "/ai/map/config");
-            if (
-              mapConfig?.real_enabled !== true ||
-              mapConfig?.provider !== "tencent" ||
-              typeof mapConfig?.client_key !== "string" ||
-              !mapConfig.client_key
-            ) {
-              throw new Error(
-                "require_real_map=true but remote /ai/map/config is not a ready Tencent provider",
-              );
-            }
-
-            const translateResponse = await fetch(base + "/ai/map/translate", {
-              method: "POST",
-              headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                coordinates: [{ lat: 31.23, lng: 121.47 }],
-              }),
-            });
-            if (!translateResponse.ok) {
-              throw new Error(
-                `real-map coordinate probe failed: HTTP ${translateResponse.status}`,
-              );
-            }
-            const translated = await translateResponse.json();
-            if (
-              translated?.provider !== "tencent" ||
-              translated?.coordinate_system !== "GCJ-02" ||
-              !Array.isArray(translated?.coordinates) ||
-              translated.coordinates.length !== 1
-            ) {
-              throw new Error(
-                "real-map coordinate probe did not return one Tencent GCJ-02 coordinate",
-              );
-            }
-            console.log("Tencent real-map provider verified through config + coordinate probe");
-          }
-
-          console.log("Remote PetAccess API identity verified:", origin);
-          NODE
+        run: node scripts/release/verify_public_api.cjs
 
       - name: Install Rust Android target
         uses: dtolnay/rust-toolchain@stable
