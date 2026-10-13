@@ -21,8 +21,7 @@ export default defineConfigWithVueTs(
       // Android acceptance tooling (CDP driver) — machine-run automation, not
       // app source; belongs to no app tsconfig and predates the project-service
       // allowlist (baseline lint already refused it).
-      "scripts/android_acceptance/cdp_journey.cjs",
-      "scripts/android_acceptance/cdp_probe.cjs",
+      "scripts/android_acceptance/*.cjs",
     ],
   },
   pluginVue.configs["flat/essential"],
