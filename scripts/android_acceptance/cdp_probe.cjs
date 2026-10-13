@@ -112,13 +112,7 @@ async function main() {
     );
   }
 
-  async function logRoute(
-    label,
-    hash,
-    expectedPage,
-    delay = 1800,
-    expectedStates = ["ready"],
-  ) {
+  async function logRoute(label, hash, expectedPage, delay = 1800, expectedStates = ["ready"]) {
     await go(hash, delay);
     const value = await snapshot();
     if (!value.shell) throw new Error(`${label}: Consumer shell missing`);
@@ -126,9 +120,7 @@ async function main() {
       throw new Error(`${label}: expected data-ui-page=${expectedPage}, got ${value.uiPage}`);
     }
     if (expectedStates.length && !expectedStates.includes(value.uiState)) {
-      throw new Error(
-        `${label}: expected state ${expectedStates.join("|")}, got ${value.uiState}`,
-      );
+      throw new Error(`${label}: expected state ${expectedStates.join("|")}, got ${value.uiState}`);
     }
     if (value.horizontalOverflow) {
       throw new Error(
