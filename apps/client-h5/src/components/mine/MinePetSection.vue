@@ -44,9 +44,13 @@ function petMeta(pet: Pet): string {
       </button>
     </div>
 
-    <p v-if="!pets.length" class="mine-empty">
-      还没有宠物档案。没有必要为了浏览公开规则先建立档案。
-    </p>
+    <div v-if="!pets.length" class="mine-empty-state">
+      <div>
+        <strong>还没有宠物档案</strong>
+        <p>浏览公开规则不要求建档；需要按物种、体重或角色条件查询时再建立即可。</p>
+      </div>
+      <RouterLink class="btn-inline" to="/pet/new">建立档案 →</RouterLink>
+    </div>
   </section>
 </template>
 
@@ -99,15 +103,33 @@ function petMeta(pet: Pet): string {
   cursor: pointer;
 }
 
-.mine-empty {
-  margin: 0;
+.mine-empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pa-space-4);
+  padding: var(--pa-space-4);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: var(--pa-radius-md);
+  background: var(--pa-color-surface-muted);
+}
+
+.mine-empty-state strong {
+  color: var(--pa-color-text-primary);
+}
+
+.mine-empty-state p {
+  max-width: 560px;
+  margin: var(--pa-space-1) 0 0;
   color: var(--pa-color-text-secondary);
 }
 
 @media (max-width: 767px) {
   .mine-section__head,
-  .mine-row {
+  .mine-row,
+  .mine-empty-state {
     flex-direction: column;
+    align-items: flex-start;
     gap: var(--pa-space-2);
   }
 }
