@@ -150,12 +150,11 @@ function setActivePet(pet: (typeof pets.value)[number]) {
   padding: var(--pa-space-5);
   border: var(--pa-border-width) solid var(--pa-color-border-subtle);
   border-radius: calc(var(--pa-radius-md) + 4px);
-  background:
-    linear-gradient(
-      145deg,
-      color-mix(in srgb, var(--pa-color-accent-weak) 72%, var(--pa-color-surface)) 0%,
-      var(--pa-color-surface-raised) 76%
-    );
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--pa-color-accent-weak) 72%, var(--pa-color-surface)) 0%,
+    var(--pa-color-surface-raised) 76%
+  );
   box-shadow: var(--pa-elevation-1);
 }
 
