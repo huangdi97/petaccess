@@ -137,11 +137,12 @@ jobs:
       - name: Install frontend deps
         run: pnpm install --frozen-lockfile
 
-      - name: Android acceptance JS syntax
+      - name: Android acceptance script syntax
         run: |
           node --check scripts/android_acceptance/cdp_probe.cjs
           node --check scripts/android_acceptance/cdp_journey.cjs
           node --experimental-strip-types scripts/check_android_back_contract.mjs
+          bash -n scripts/android_acceptance/ci_preview_emulator_smoke.sh
 
       - name: ESLint
         run: pnpm lint:fe
