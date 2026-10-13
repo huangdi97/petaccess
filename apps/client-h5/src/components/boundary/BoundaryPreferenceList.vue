@@ -51,28 +51,35 @@ const emit = defineEmits<{ pick: [attribute: string, stance: string] }>();
 
 <style scoped>
 .boundary-list {
-  margin-top: var(--pa-space-2);
-  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--pa-space-3);
+  margin-top: var(--pa-space-4);
 }
 
 .boundary-row {
-  display: grid;
-  grid-template-columns: minmax(180px, 0.8fr) minmax(320px, 1.35fr);
-  align-items: center;
-  gap: var(--pa-space-5);
+  display: flex;
   min-inline-size: 0;
-  min-height: 86px;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--pa-space-3);
+  min-height: 154px;
   margin: 0;
-  padding: var(--pa-space-4) 0;
-  border: 0;
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  padding: var(--pa-space-4);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: calc(var(--pa-radius-md) + 2px);
+  background: var(--pa-color-surface-raised);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--pa-color-text-primary) 4%, transparent);
 }
 
 .boundary-row__body {
   display: flex;
+  width: 100%;
   min-width: 0;
-  flex-direction: column;
-  gap: 5px;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--pa-space-3);
   padding: 0;
 }
 
@@ -84,16 +91,24 @@ const emit = defineEmits<{ pick: [attribute: string, stance: string] }>();
 }
 
 .boundary-row__current {
+  flex: 0 0 auto;
+  max-width: 52%;
+  padding: 3px 8px;
+  border-radius: var(--pa-radius-pill);
+  background: var(--pa-color-surface-muted);
   color: var(--pa-color-text-muted);
   font-size: var(--pa-font-size-sm);
   line-height: var(--pa-line-height-20);
+  text-align: right;
 }
 
 .boundary-choices {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
-  gap: 5px;
+  grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
+  gap: 4px;
+  width: 100%;
   min-width: 0;
+  margin-top: auto;
   padding: 4px;
   border: var(--pa-border-width) solid var(--pa-color-border-subtle);
   border-radius: calc(var(--pa-radius-control) + 2px);
@@ -156,16 +171,26 @@ const emit = defineEmits<{ pick: [attribute: string, stance: string] }>();
 }
 
 @media (max-width: 767px) {
-  .boundary-row {
+  .boundary-list {
     grid-template-columns: 1fr;
-    gap: var(--pa-space-3);
-    align-items: flex-start;
+    gap: var(--pa-space-2);
+    margin-top: var(--pa-space-3);
+  }
+
+  .boundary-row {
     min-height: 0;
-    padding: var(--pa-space-4) 0;
+    padding: var(--pa-space-3);
+  }
+
+  .boundary-row__body {
+    align-items: center;
+  }
+
+  .boundary-row__current {
+    max-width: 58%;
   }
 
   .boundary-choices {
-    width: 100%;
     grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
   }
 
