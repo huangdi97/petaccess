@@ -238,10 +238,28 @@ HBuilderX is not a current Android blocker.
 | T-03 | `reality_audit` 忽略注入 `now`（测试随真实日期漂移） | FIXED — threading `now` + 样本去 time-bomb |
 | T-05 | `policy_template_rule` 缺 scope 列（模板 service_dog 条目静默失效） | FIXED — 迁移 `d4a8b2f6c903` |
 
-### 仍然成立的外部阻塞（未变）
+### 当前仍成立的外部阻塞（按现状重核）
 
-`BLK-LEGAL-01`（法律文本未经执业律师审阅）、`BLK-PLAT-01`（平台审核未提交）、
-`B-01…B-07`（工具链 / 凭证 / 资质）——**均只阻塞各自对应的 Gate**，不阻塞 A / C。
+以下项目只阻塞各自对应的 Gate，不应被扩大解释为“整个 PetAccess 都不能继续”：
+
+- `GOV-01`：R2 规则候选缺具名人类评审员最终签署；
+- `BLK-LEGAL-01`：法律文本仍需执业律师审阅；
+- `BLK-PLAT-01`：应用商店 / 小程序等平台审核尚未提交；
+- `B-04`：腾讯地图 client/server Key 未提供，因此只能声明 provider-neutral fallback；
+- `B-05`：真实 Vision/OCR Provider Key 未提供，真实 AI 识别保持 BLOCKED_EXTERNAL；
+- `B-07`：生产域名、备案与正式法务主体信息未冻结；
+- `B-08`：signed Release 需要真实 HTTPS `PETACCESS_PUBLIC_API_BASE`；
+- standalone **Android Phone Preview** 需要 `PETACCESS_PHONE_PREVIEW_API_BASE`，当前 workflow 会显式显示
+  `BLOCKED_BY_API_BASE`；这不阻塞 USB Preview / emulator Preview。
+
+以下旧项**不再属于当前 Android / Consumer 阻塞**：
+
+- `B-01` 已 RETIRED：uni-app x / HBuilderX 不是当前发行路径；
+- `B-02` 是未来 WeChat channel 的 DEFERRED 项，不是当前 Windows/Android gate；
+- `B-03` Android 工程签名链已 RESOLVED；只剩商店账号/提交属于外部发行工作；
+- `B-06` OAuth / 短信属于可选登录方式扩展，当前账密登录闭环不依赖它。
+
+因此不要再使用旧的“`B-01…B-07` 全部仍成立”概括。
 
 ---
 
