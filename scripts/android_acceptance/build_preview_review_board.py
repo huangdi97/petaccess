@@ -180,7 +180,6 @@ def main() -> int:
     )
     ime_cases = ime_gate.get("cases") if isinstance(ime_gate.get("cases"), list) else []
     ime_pass = sum(1 for case in ime_cases if isinstance(case, dict) and case.get("ok") is True)
-    ime_result = ime_gate.get("result", "UNKNOWN")
     ime_cards = []
     for case in ime_cases:
         if not isinstance(case, dict):
@@ -200,6 +199,16 @@ def main() -> int:
         with_ime = case.get("withIme") if isinstance(case.get("withIme"), dict) else {}
         after_back = case.get("afterBack") if isinstance(case.get("afterBack"), dict) else {}
         ok = case.get("ok") is True
+        focused = html.escape(str(with_ime.get("active", "-")))
+        visible = html.escape(str(with_ime.get("visibleInVisualViewport", "-")))
+        viewport = with_ime.get("viewport") if isinstance(with_ime.get("viewport"), dict) else {}
+        visual_height = html.escape(str(viewport.get("visualHeight", "-")))
+        route_after_back = html.escape(str(after_back.get("hash") or "-"))
+        error_html = (
+            f'<p class="error">{html.escape(str(case.get("error")))}</p>'
+            if case.get("error")
+            else ""
+        )
         ime_cards.append(
             f"""
             <article class="route-card">
@@ -215,12 +224,12 @@ def main() -> int:
               </header>
               <div class="shot">{image}</div>
               <dl>
-                <div><dt>focused</dt><dd>{html.escape(str(with_ime.get("active", "-")))}</dd></div>
-                <div><dt>visible</dt><dd>{html.escape(str(with_ime.get("visibleInVisualViewport", "-")))}</dd></div>
-                <div><dt>visual height</dt><dd>{html.escape(str((with_ime.get("viewport") or {}).get("visualHeight", "-")))}</dd></div>
-                <div><dt>route after back</dt><dd>{html.escape(str(after_back.get("hash") or "-"))}</dd></div>
+                <div><dt>focused</dt><dd>{focused}</dd></div>
+                <div><dt>visible</dt><dd>{visible}</dd></div>
+                <div><dt>visual height</dt><dd>{visual_height}</dd></div>
+                <div><dt>route after back</dt><dd>{route_after_back}</dd></div>
               </dl>
-              {f'<p class="error">{html.escape(str(case.get("error")))}</p>' if case.get("error") else ""}
+              {error_html}
             </article>
             """
         )
