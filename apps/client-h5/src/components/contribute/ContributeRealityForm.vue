@@ -860,23 +860,25 @@ async function submit() {
 
 <style scoped>
 .cluster {
-  margin: 0 0 var(--pa-space-5);
-  padding: 0;
-  border: none;
   display: flex;
   flex-direction: column;
   gap: var(--pa-space-2);
+  margin: 0;
+  padding: var(--pa-space-4);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: var(--pa-radius-md);
+  background: var(--pa-color-surface-muted);
 }
 
 .cluster + .cluster {
-  padding-top: var(--pa-space-5);
-  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  margin-top: var(--pa-space-1);
 }
 .cluster__title {
-  font-size: var(--pa-font-size-base);
-  font-weight: var(--pa-font-weight-600);
-  color: var(--pa-color-text-primary);
   margin-bottom: var(--pa-space-2);
+  font-size: var(--pa-font-size-lg);
+  font-weight: var(--pa-font-weight-650);
+  line-height: var(--pa-line-height-26);
+  color: var(--pa-color-text-primary);
 }
 .cluster label,
 .cluster__field-label {
@@ -968,3 +970,13 @@ async function submit() {
   padding: var(--pa-space-2) 0;
 }
 </style>
+
+@media (max-width: 520px) {
+  .cluster {
+    padding: var(--pa-space-3);
+  }
+
+  .cluster__title {
+    text-wrap: balance;
+  }
+}
