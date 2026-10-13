@@ -43,10 +43,10 @@ grep -q '^package:' "$EVIDENCE_ROOT/runtime/package-path.txt"
 python scripts/android_acceptance/m3_fast.py
 
 # FAST intentionally finishes MainActivity when it verifies Home -> system Back.
-# Relaunch explicitly before the full 21-case journey and wait for the debug
-# WebView socket instead of assuming the previous Activity/WebView survived.
-adb -s "$SERIAL" shell am start -n "$PACKAGE/.MainActivity" >/dev/null
-
+# Raw adb can transiently fail while the emulator/5037 daemon is settling, so
+# the post-FAST relaunch must be self-healing too. Do not let one am-start or
+# pidof exit code terminate this set -e script before the semantic readiness
+# gate has a chance to decide the result.
 CDP_READY=0
 STABLE_PID=""
 STABLE_COUNT=0
@@ -56,27 +56,32 @@ READY_LOG="$EVIDENCE_ROOT/runtime/post-fast-cdp-ready.log"
 # /json becoming reachable is not enough: after Activity recreation the old
 # WebView target can remain listed briefly while its websocket is already
 # closing. Require two consecutive real Runtime.evaluate snapshots from the
-# same process before launching the full journey.
+# same process before launching the full journey. When the process is absent,
+# actively retry MainActivity launch rather than trusting one adb command.
 for _ in $(seq 1 60); do
-  PID="$(adb -s "$SERIAL" shell pidof "$PACKAGE" | tr -d '\r\n')"
-  if [[ -n "$PID" ]]; then
-    adb -s "$SERIAL" forward --remove tcp:9223 >/dev/null 2>&1 || true
-    if adb -s "$SERIAL" forward tcp:9223 "localabstract:webview_devtools_remote_$PID" >/dev/null 2>&1; then
-      if node scripts/android_acceptance/cdp_probe.cjs 9223 snapshot >>"$READY_LOG" 2>&1; then
-        if [[ "$PID" == "$STABLE_PID" ]]; then
-          STABLE_COUNT=$((STABLE_COUNT + 1))
-        else
-          STABLE_PID="$PID"
-          STABLE_COUNT=1
-        fi
-        if [[ "$STABLE_COUNT" -ge 2 ]]; then
-          CDP_READY=1
-          break
-        fi
+  PID="$(adb -s "$SERIAL" shell pidof "$PACKAGE" 2>/dev/null | tr -d '\r\n' || true)"
+  if [[ -z "$PID" ]]; then
+    adb -s "$SERIAL" shell am start -n "$PACKAGE/.MainActivity" >>"$READY_LOG" 2>&1 || true
+    sleep 0.75
+    continue
+  fi
+
+  adb -s "$SERIAL" forward --remove tcp:9223 >/dev/null 2>&1 || true
+  if adb -s "$SERIAL" forward tcp:9223 "localabstract:webview_devtools_remote_$PID" >/dev/null 2>&1; then
+    if node scripts/android_acceptance/cdp_probe.cjs 9223 snapshot >>"$READY_LOG" 2>&1; then
+      if [[ "$PID" == "$STABLE_PID" ]]; then
+        STABLE_COUNT=$((STABLE_COUNT + 1))
       else
-        STABLE_COUNT=0
         STABLE_PID="$PID"
+        STABLE_COUNT=1
       fi
+      if [[ "$STABLE_COUNT" -ge 2 ]]; then
+        CDP_READY=1
+        break
+      fi
+    else
+      STABLE_COUNT=0
+      STABLE_PID="$PID"
     fi
   fi
   sleep 0.75
