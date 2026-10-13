@@ -25,6 +25,7 @@ const OUT = path.join(RUNTIME_DIR, "cdp_journey_playwright.json");
 const PLACE_ID = "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e";
 const AUTH_TOKEN = (process.env.PETACCESS_ANDROID_AUTH_TOKEN ?? "").trim();
 const REQUIRE_REAL_MAP = process.env.PETACCESS_REQUIRE_REAL_MAP === "1";
+const REQUIRE_SCENE_MEDIA = process.env.PETACCESS_REQUIRE_SCENE_MEDIA === "1";
 
 const routes = [
   { hash: "#/", tag: "R01", name: "home", expectedPage: "home" },
@@ -326,6 +327,28 @@ async function main() {
     throw new Error(`surface timeout: data-ui-page=${expectedPage}`);
   };
 
+  const waitForSceneMedia = async (timeoutMs = 15000) => {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      const ready = await run(`(() => {
+        const frame = document.querySelector('[data-testid="place-scene-media"]');
+        const image = frame?.querySelector("img");
+        if (!image) return false;
+        return (
+          image.complete &&
+          image.naturalWidth > 0 &&
+          image.naturalHeight > 0 &&
+          image.currentSrc.includes("/public-media/content") &&
+          !image.currentSrc.includes(":9000") &&
+          !image.currentSrc.startsWith("nullstorage://")
+        );
+      })()`);
+      if (ready) return;
+      await sleep(150);
+    }
+    throw new Error("scene media did not load through governed API content endpoint");
+  };
+
   const snapshot = async () =>
     JSON.parse(
       await run(`JSON.stringify((() => {
@@ -370,6 +393,17 @@ async function main() {
           mapFallbackCopy:
             document.querySelector("[data-testid=map-real-provider-fallback]")?.textContent?.trim() ??
             null,
+          sceneMedia: (() => {
+            const frame = document.querySelector('[data-testid="place-scene-media"]');
+            const image = frame?.querySelector("img");
+            return {
+              present: Boolean(frame && image),
+              src: image?.currentSrc ?? image?.src ?? null,
+              complete: image?.complete ?? false,
+              naturalWidth: image?.naturalWidth ?? 0,
+              naturalHeight: image?.naturalHeight ?? 0,
+            };
+          })(),
           text: body?.innerText.slice(0, 1600) ?? "",
         };
       })())`),
@@ -435,6 +469,9 @@ async function main() {
     let routeError = null;
     try {
       await waitForSurface(route.expectedPage);
+      if (route.name === "place-overview" && REQUIRE_SCENE_MEDIA) {
+        await waitForSceneMedia();
+      }
       await sleep(800);
     } catch (error) {
       routeError = error.message;
@@ -457,6 +494,20 @@ async function main() {
     }
     if (route.name === "map" && REQUIRE_REAL_MAP && state.mapProviderSurface !== "tencent") {
       routeError ??= `real map required but packaged surface is ${state.mapProviderSurface ?? "unknown"}`;
+    }
+    if (route.name === "place-overview" && REQUIRE_SCENE_MEDIA) {
+      const scene = state.sceneMedia ?? {};
+      if (
+        scene.present !== true ||
+        scene.complete !== true ||
+        !(scene.naturalWidth > 0) ||
+        !(scene.naturalHeight > 0) ||
+        !String(scene.src ?? "").includes("/public-media/content") ||
+        String(scene.src ?? "").includes(":9000") ||
+        String(scene.src ?? "").startsWith("nullstorage://")
+      ) {
+        routeError ??= `governed scene media failed packaged render: ${JSON.stringify(scene)}`;
+      }
     }
 
     let contributionGeometry = null;
@@ -512,6 +563,9 @@ async function main() {
         authenticatedSweepRequested: Boolean(AUTH_TOKEN),
         authenticatedCases: rows.filter((row) => row.authenticated).length,
         requireRealMap: REQUIRE_REAL_MAP,
+        requireSceneMedia: REQUIRE_SCENE_MEDIA,
+        sceneMedia:
+          rows.find((row) => row.name === "place-overview")?.snapshot?.sceneMedia ?? null,
         mapProviderSurface:
           rows.find((row) => row.name === "map")?.snapshot?.mapProviderSurface ?? null,
         routes: rows,
