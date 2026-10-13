@@ -969,8 +969,6 @@ async function submit() {
   gap: var(--pa-space-2);
   padding: var(--pa-space-2) 0;
 }
-</style>
-
 @media (max-width: 520px) {
   .cluster {
     padding: var(--pa-space-3);
@@ -980,3 +978,4 @@ async function submit() {
     text-wrap: balance;
   }
 }
+</style>
