@@ -44,7 +44,13 @@ function watchHint(watch: Watch): string {
         <span class="muted">{{ watchHint(watch) }}</span>
       </div>
     </div>
-    <p v-if="!watches.length" class="mine-empty">暂无关注。</p>
+    <div v-if="!watches.length" class="mine-empty-state">
+      <div>
+        <strong>还没有关注变化</strong>
+        <p>先从地图或场所详情找到真正关心的地点，再选择关注规则变化或现场更新。</p>
+      </div>
+      <RouterLink class="btn-inline" to="/map">去地图看看 →</RouterLink>
+    </div>
   </section>
 
   <section class="mine-section">
@@ -71,10 +77,13 @@ function watchHint(watch: Watch): string {
       </div>
     </div>
 
-    <p v-if="!contributions.length" class="mine-empty" data-testid="contributions-empty">
-      {{ EMPTY_STATE_COPY.CONTRIBUTION_HISTORY.title }} —
-      {{ EMPTY_STATE_COPY.CONTRIBUTION_HISTORY.description }}
-    </p>
+    <div v-if="!contributions.length" class="mine-empty-state" data-testid="contributions-empty">
+      <div>
+        <strong>{{ EMPTY_STATE_COPY.CONTRIBUTION_HISTORY.title }}</strong>
+        <p>{{ EMPTY_STATE_COPY.CONTRIBUTION_HISTORY.description }}</p>
+      </div>
+      <RouterLink class="btn-inline" to="/contribute">去补充事实 →</RouterLink>
+    </div>
   </section>
 </template>
 
