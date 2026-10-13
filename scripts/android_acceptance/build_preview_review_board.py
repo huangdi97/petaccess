@@ -147,6 +147,7 @@ def main() -> int:
     fast = _load_json(RUNTIME_DIR / "m3_fast.json")
     coverage = _load_json(EVIDENCE_ROOT / "coverage_matrix.json")
     width_matrix = _load_json(RUNTIME_DIR / "width_matrix.json")
+    ime_gate = _load_json(RUNTIME_DIR / "ime_gate.json")
     scene_seed = _load_json(RUNTIME_DIR / "scene-media-seed.json")
 
     routes = journey.get("routes") if isinstance(journey.get("routes"), list) else []
@@ -177,6 +178,53 @@ def main() -> int:
         for page in profile.get("pages", [])
         if isinstance(page, dict)
     )
+    ime_cases = ime_gate.get("cases") if isinstance(ime_gate.get("cases"), list) else []
+    ime_pass = sum(1 for case in ime_cases if isinstance(case, dict) and case.get("ok") is True)
+    ime_result = ime_gate.get("result", "UNKNOWN")
+    ime_cards = []
+    for case in ime_cases:
+        if not isinstance(case, dict):
+            continue
+        screenshot_raw = case.get("screenshot")
+        screenshot = Path(screenshot_raw) if isinstance(screenshot_raw, str) else None
+        if screenshot is not None and not screenshot.is_absolute():
+            screenshot = EVIDENCE_ROOT / screenshot
+        if screenshot is None or not screenshot.exists():
+            image = '<div class="missing">IME 全屏截图缺失</div>'
+        else:
+            src = html.escape(_relative(screenshot))
+            image = (
+                f'<a href="{src}"><img loading="lazy" src="{src}" '
+                f'alt="{html.escape(str(case.get("id") or "ime"))} IME screenshot" /></a>'
+            )
+        with_ime = case.get("withIme") if isinstance(case.get("withIme"), dict) else {}
+        after_back = case.get("afterBack") if isinstance(case.get("afterBack"), dict) else {}
+        ok = case.get("ok") is True
+        ime_cards.append(
+            f"""
+            <article class="route-card">
+              <header>
+                <div>
+                  <span class="tag">IME</span>
+                  <h2>{html.escape(str(case.get("id") or "unknown"))}</h2>
+                  <code>{html.escape(str(with_ime.get("hash") or ""))}</code>
+                </div>
+                <span class="status {'pass' if ok else 'fail'}">
+                  {'IME PASS' if ok else 'IME FAIL'}
+                </span>
+              </header>
+              <div class="shot">{image}</div>
+              <dl>
+                <div><dt>focused</dt><dd>{html.escape(str(with_ime.get("active", "-")))}</dd></div>
+                <div><dt>visible</dt><dd>{html.escape(str(with_ime.get("visibleInVisualViewport", "-")))}</dd></div>
+                <div><dt>visual height</dt><dd>{html.escape(str((with_ime.get("viewport") or {}).get("visualHeight", "-")))}</dd></div>
+                <div><dt>route after back</dt><dd>{html.escape(str(after_back.get("hash") or "-"))}</dd></div>
+              </dl>
+              {f'<p class="error">{html.escape(str(case.get("error")))}</p>' if case.get("error") else ""}
+            </article>
+            """
+        )
+    ime_cards_html = "\n".join(ime_cards)
     fast_result = fast.get("result", "UNKNOWN")
     coverage_routes = (
         coverage.get("matrix", {}).get("Routes", "UNKNOWN")
@@ -190,6 +238,11 @@ def main() -> int:
     )
     coverage_sizes = (
         coverage.get("matrix", {}).get("Device Sizes", "UNKNOWN")
+        if isinstance(coverage.get("matrix"), dict)
+        else "UNKNOWN"
+    )
+    coverage_ime = (
+        coverage.get("matrix", {}).get("IME / Input", "UNKNOWN")
         if isinstance(coverage.get("matrix"), dict)
         else "UNKNOWN"
     )
@@ -328,6 +381,8 @@ dd {{ margin: 2px 0 0; overflow-wrap: anywhere; font-size: 13px; }}
 {html.escape(str(coverage_auth))}</strong></div>
   <div>Device sizes<strong>{width_pass}/{width_total} · \
 {html.escape(str(coverage_sizes))}</strong></div>
+  <div>IME input<strong>{ime_pass}/{len(ime_cases)} · \
+{html.escape(str(coverage_ime))}</strong></div>
   <div>Map provider<strong>{html.escape(str(map_provider))}</strong></div>
   <div>Human visual<strong>PENDING</strong></div>
 </section>
@@ -346,6 +401,14 @@ Runtime PASS 只证明路由身份、WebView 几何、安全区、overflow 与�
 </p>
 <section class="grid">
 {width_cards if width_cards else "<p>没有找到当前 Android width-matrix screenshot 证据。</p>"}
+</section>
+<h1 style="margin-top:32px">IME / input behavior</h1>
+<p>
+这些是 Android 系统输入法实际弹起时的全屏设备截图。Search 与登录后的宠物建档都必须
+接受 adb 实际输入，焦点控件不得被键盘遮住；第一次系统 Back 只能收起键盘，不能改变当前路由。
+</p>
+<section class="grid">
+{ime_cards_html if ime_cards_html else "<p>没有找到当前 Android IME runtime 证据。</p>"}
 </section>
 </body>
 </html>
