@@ -268,6 +268,9 @@ def check_consumer_runtime_boundary() -> list[dict]:
             '"standalonePhone": true',
             '"requiresAdbReverse": false',
             "PETACCESS_PHONE_PREVIEW_API_BASE",
+            "phone-preview-readiness",
+            "BLOCKED_BY_API_BASE",
+            "needs.phone-preview-readiness.outputs.ready",
             "feat/ui-direct-craft-v8",
         )
         if any(marker not in phone_preview_text for marker in required_phone_preview_markers):
