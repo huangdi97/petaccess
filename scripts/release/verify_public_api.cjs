@@ -57,26 +57,38 @@ async function requestJson(endpoint, init = {}) {
     if (!response.ok) {
       throw new Error(`${endpoint} -> HTTP ${response.status}`);
     }
-    return await response.json();
+    return {
+      payload: await response.json(),
+      headers: response.headers,
+    };
   } finally {
     clearTimeout(timer);
   }
 }
 
 async function main() {
-  const ping = await requestJson(base + "/ping");
-  if (ping?.pong !== true) {
+  const tauriOrigin = "http://tauri.localhost";
+  const pingResponse = await requestJson(base + "/ping", {
+    headers: { Origin: tauriOrigin },
+  });
+  if (pingResponse.payload?.pong !== true) {
     throw new Error("/api/v1/ping did not return { pong: true }");
   }
+  const allowOrigin = pingResponse.headers.get("access-control-allow-origin");
+  if (allowOrigin !== tauriOrigin) {
+    throw new Error(
+      `PetAccess API CORS does not allow packaged Tauri origin: expected ${tauriOrigin}, got ${allowOrigin ?? "(missing)"}`,
+    );
+  }
 
-  const health = await requestJson(url.origin + "/health");
-  if (health?.status !== "ok") {
+  const healthResponse = await requestJson(url.origin + "/health");
+  if (healthResponse.payload?.status !== "ok") {
     throw new Error("/health did not return status=ok");
   }
 
   let mapMode = "not-required";
   if (process.env.PETACCESS_REQUIRE_REAL_MAP === "1") {
-    const mapConfig = await requestJson(base + "/ai/map/config");
+    const { payload: mapConfig } = await requestJson(base + "/ai/map/config");
     if (
       mapConfig?.real_enabled !== true ||
       mapConfig?.provider !== "tencent" ||
@@ -88,7 +100,7 @@ async function main() {
       );
     }
 
-    const translated = await requestJson(base + "/ai/map/translate", {
+    const { payload: translated } = await requestJson(base + "/ai/map/translate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -110,7 +122,9 @@ async function main() {
 
   console.log(`public-api-preflight: origin=${url.origin}`);
   console.log(`public-api-preflight: base_path=${normalizedPath}`);
-  console.log(`public-api-preflight: health=ok ping=ok real_map=${mapMode}`);
+  console.log(
+    `public-api-preflight: health=ok ping=ok tauri_cors=ok real_map=${mapMode}`,
+  );
 }
 
 main().catch((error) => {
