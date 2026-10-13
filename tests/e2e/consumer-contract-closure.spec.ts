@@ -337,14 +337,8 @@ test("C6: signed-in Mine is a personal travel center with truthful empty-state a
   await expect(page.getByLabel("个人记录摘要")).toContainText(/0\s*关注变化/);
   await expect(page.getByLabel("个人记录摘要")).toContainText(/0\s*贡献记录/);
 
-  await expect(page.getByRole("link", { name: "建立档案 →" })).toHaveAttribute(
-    "href",
-    "#/pet/new",
-  );
-  await expect(page.getByRole("link", { name: "去地图看看 →" })).toHaveAttribute(
-    "href",
-    "#/map",
-  );
+  await expect(page.getByRole("link", { name: "建立档案 →" })).toHaveAttribute("href", "#/pet/new");
+  await expect(page.getByRole("link", { name: "去地图看看 →" })).toHaveAttribute("href", "#/map");
   await expect(page.getByRole("link", { name: "去补充事实 →" })).toHaveAttribute(
     "href",
     "#/contribute",
