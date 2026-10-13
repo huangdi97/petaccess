@@ -667,19 +667,27 @@ def test_demo_reality_events_preserve_observed_submitted_reviewed_axes(client):
 
 def test_reality_events_expose_only_published_verified_facts(client, place_id, signed_user):
     """Consumer timeline must not leak review-pending candidates or staff identity."""
+    observed = (datetime.now(UTC) - timedelta(minutes=30)).isoformat()
     pending = client.post(
-        f"/api/v1/places/{place_id}/reality/contributions",
+        f"/api/v1/places/{place_id}/reality/reports",
         headers=signed_user,
         json={
-            "candidate_type": "observed_presence",
-            "place_id": place_id,
-            "animal_scope": "dog",
-            "observed_at": (datetime.now(UTC) - timedelta(minutes=30)).isoformat(),
-            "payload": {"observed_action": "present", "observed_context": "待审核事件"},
+            "report": _report("on_site_past", observed_at=observed),
+            "candidates": [
+                {
+                    "candidate_type": "observed_presence",
+                    "animal_scope": "dog",
+                    "observed_at": observed,
+                    "payload": {
+                        "observed_action": "present",
+                        "observed_context": "待审核事件",
+                    },
+                }
+            ],
         },
     )
     assert pending.status_code == 201, pending.text
-    pending_id = pending.json()["id"]
+    pending_id = pending.json()["candidates"][0]["id"]
 
     r = client.get(f"/api/v1/places/{place_id}/reality/events")
     assert r.status_code == 200, r.text
@@ -701,20 +709,25 @@ def test_reality_events_expose_only_published_verified_facts(client, place_id, s
 
 
 def _make_verified_presence(client, place_id, auth) -> str:
-    """Create + human-verify one observed-presence candidate (v0.9 §7.4)."""
+    """Create + human-verify one observed-presence candidate through v0.10 RealityReport."""
+    observed = (datetime.now(UTC) - timedelta(days=1)).isoformat()
     r = client.post(
-        f"/api/v1/places/{place_id}/reality/contributions",
+        f"/api/v1/places/{place_id}/reality/reports",
         headers=auth,
         json={
-            "candidate_type": "observed_presence",
-            "place_id": place_id,
-            "animal_scope": "dog",
-            "observed_at": (datetime.now(UTC) - timedelta(days=1)).isoformat(),
-            "payload": {"observed_action": "enter", "observed_context": "室内"},
+            "report": _report("on_site_past", observed_at=observed),
+            "candidates": [
+                {
+                    "candidate_type": "observed_presence",
+                    "animal_scope": "dog",
+                    "observed_at": observed,
+                    "payload": {"observed_action": "enter", "observed_context": "室内"},
+                }
+            ],
         },
     )
     assert r.status_code == 201, r.text
-    cand_id = r.json()["id"]
+    cand_id = r.json()["candidates"][0]["id"]
 
     # Promote the signed-in contributor to admin, then human-verify (v0.9 §7.4:
     # reality_decision is human-only; AI may never write it).
