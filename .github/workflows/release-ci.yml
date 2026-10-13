@@ -118,6 +118,9 @@ jobs:
     name: Windows NSIS installer
     runs-on: windows-latest
     needs: frontend
+    env:
+      PETACCESS_PUBLIC_API_BASE: ${{ vars.PETACCESS_PUBLIC_API_BASE }}
+      VITE_TAURI_API_BASE: ${{ vars.PETACCESS_PUBLIC_API_BASE }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -125,6 +128,11 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: "22", cache: pnpm }
       - run: pnpm install --frozen-lockfile
+      - name: Generate strict signed-release runtime config
+        shell: bash
+        run: |
+          node scripts/release/generate_tauri_release_config.cjs \
+            apps/client-h5/src-tauri/tauri.release.generated.json
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
       - name: Cache cargo
@@ -135,8 +143,15 @@ jobs:
             apps/client-h5/src-tauri/target
           key: cargo-windows-${{ hashFiles('apps/client-h5/src-tauri/Cargo.lock') }}
       - run: pnpm --filter @petaccess/client-h5 build
+      - name: Verify Windows release API endpoint is baked into Consumer
+        shell: bash
+        run: |
+          grep -R --binary-files=text --fixed-strings "$PETACCESS_PUBLIC_API_BASE" \
+            apps/client-h5/dist >/dev/null
       - name: Build Windows bundle
-        run: pnpm --filter @petaccess/client-h5 exec tauri build
+        run: >-
+          pnpm --filter @petaccess/client-h5 exec tauri build
+          --config src-tauri/tauri.release.generated.json
       - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
@@ -148,6 +163,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: frontend
     env:
+      PETACCESS_PUBLIC_API_BASE: ${{ vars.PETACCESS_PUBLIC_API_BASE }}
+      VITE_TAURI_API_BASE: ${{ vars.PETACCESS_PUBLIC_API_BASE }}
+      VITE_TAURI_ANDROID_API_BASE: ${{ vars.PETACCESS_PUBLIC_API_BASE }}
       ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
       ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
       ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
@@ -159,6 +177,11 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: "22", cache: pnpm }
       - run: pnpm install --frozen-lockfile
+      - name: Generate strict signed-release runtime config
+        shell: bash
+        run: |
+          node scripts/release/generate_tauri_release_config.cjs \
+            apps/client-h5/src-tauri/tauri.release.generated.json
       - name: Install Rust + Android targets
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -198,11 +221,19 @@ jobs:
             apps/client-h5/src-tauri/target
           key: cargo-android-${{ hashFiles('apps/client-h5/src-tauri/Cargo.lock') }}
       - run: pnpm --filter @petaccess/client-h5 build
+      - name: Verify Android release API endpoint is baked into Consumer
+        shell: bash
+        run: |
+          grep -R --binary-files=text --fixed-strings "$PETACCESS_PUBLIC_API_BASE" \
+            apps/client-h5/dist >/dev/null
       - name: Tauri android init (generated project not committed)
-        run: pnpm --filter @petaccess/client-h5 exec tauri android init
+        run: >-
+          pnpm --filter @petaccess/client-h5 exec tauri android init
+          --config src-tauri/tauri.release.generated.json
       - name: Build Android universal release APK
         run: >-
           pnpm --filter @petaccess/client-h5 exec tauri android build
+          --config src-tauri/tauri.release.generated.json
           --apk
           --target aarch64
           --target armv7
