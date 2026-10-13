@@ -74,9 +74,7 @@ def main() -> int:
         and all(row.get("ok") is True for row in journey_routes)
     )
     auth_routes = [
-        row
-        for row in journey_routes
-        if isinstance(row, dict) and row.get("authenticated") is True
+        row for row in journey_routes if isinstance(row, dict) and row.get("authenticated") is True
     ]
     authenticated_states_covered = (
         isinstance(journey, dict)
@@ -87,9 +85,7 @@ def main() -> int:
 
     matrix = {
         "Routes": "COVERED" if routes_covered else "PARTIAL",
-        "Authenticated States": (
-            "COVERED" if authenticated_states_covered else "PARTIAL"
-        ),
+        "Authenticated States": ("COVERED" if authenticated_states_covered else "PARTIAL"),
         "Domain States": "COVERED" if has("cdp_semantic.json") else "PARTIAL",
         "Device Sizes": "COVERED" if has("width_matrix.json") else "PARTIAL",
         "Network States": (
