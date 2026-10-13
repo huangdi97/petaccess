@@ -45,8 +45,10 @@
    - 变量缺失或为 HTTP 时 Release 必须失败，不能回退到 packaged dev defaults。
 
 1. **提交并干净工作树**：提交全部 release 文档与产物清单，确认 `git status` 干净。
-2. **配置 remote**（当前仓库无 remote，CI 因此 BLOCKED）：
-   `git remote add origin <repo-url>`。
+2. **确认远端与发布分支**：
+   - 当前 GitHub 仓库与 `origin` 已存在，远程 CI 正常运行；
+   - 发布前只需确认 `origin` 指向预期仓库、目标发布分支与 tag 均基于获授权的最终提交；
+   - 不允许因为历史文档曾写“无 remote”而重复添加或改写远端。
 3. **打 tag**：
    ```bash
    git tag -a v0.1.0 -m "v0.1.0 Early Preview (Phase AB)"
