@@ -113,7 +113,12 @@ async function submit() {
 
       <label v-if="method === 'official_domain'" class="operator-claim-form__field">
         <span>官方网站</span>
-        <input v-model="website" type="url" placeholder="https://…" data-testid="operator-website" />
+        <input
+          v-model="website"
+          type="url"
+          placeholder="https://…"
+          data-testid="operator-website"
+        />
         <small>填写能确认主体与当前场所关系的官网页面。</small>
       </label>
 
