@@ -43,6 +43,17 @@ grep -q '^package:' "$EVIDENCE_ROOT/runtime/package-path.txt"
 python scripts/android_acceptance/m3_fast.py
 
 # FAST intentionally finishes MainActivity when it verifies Home -> system Back.
+# Tauri app.exit()/Activity finish can leave the old process alive briefly after
+# the launcher is already resumed. Never accept that dying process as the
+# post-FAST runtime: force-stop it and launch a fresh Activity/process boundary
+# before CDP readiness is evaluated.
+adb -s "$SERIAL" shell am force-stop "$PACKAGE" >/dev/null 2>&1 || true
+sleep 1
+adb -s "$SERIAL" forward --remove tcp:9223 >/dev/null 2>&1 || true
+adb -s "$SERIAL" shell am start -n "$PACKAGE/.MainActivity"   >"$EVIDENCE_ROOT/runtime/post-fast-launch.log" 2>&1 || true
+sleep 1
+
+# FAST intentionally finishes MainActivity when it verifies Home -> system Back.
 # Raw adb can transiently fail while the emulator/5037 daemon is settling, so
 # the post-FAST relaunch must be self-healing too. Do not let one am-start or
 # pidof exit code terminate this set -e script before the semantic readiness
@@ -75,9 +86,15 @@ for _ in $(seq 1 60); do
         STABLE_PID="$PID"
         STABLE_COUNT=1
       fi
-      if [[ "$STABLE_COUNT" -ge 2 ]]; then
-        CDP_READY=1
-        break
+      if [[ "$STABLE_COUNT" -ge 3 ]]; then
+        sleep 1
+        CONFIRM_PID="$(adb -s "$SERIAL" shell pidof "$PACKAGE" 2>/dev/null | tr -d '\r\n' || true)"
+        if [[ "$CONFIRM_PID" == "$PID" ]]; then
+          CDP_READY=1
+          break
+        fi
+        STABLE_COUNT=0
+        STABLE_PID=""
       fi
     else
       STABLE_COUNT=0
@@ -88,7 +105,7 @@ for _ in $(seq 1 60); do
 done
 
 if [[ "$CDP_READY" != "1" ]]; then
-  echo "Preview WebView did not reach two stable CDP snapshots after FAST relaunch"
+  echo "Preview WebView did not reach three stable CDP snapshots after FAST relaunch"
   tail -80 "$READY_LOG" || true
   adb -s "$SERIAL" shell dumpsys activity activities | tail -120 || true
   exit 1
