@@ -384,7 +384,17 @@ jobs:
         shell: bash
         run: |
           mkdir -p artifacts/android-preview-runtime/logs
-          nohup uv run python scripts/dev_api_server.py             --db-name petaccess_e2e             --role E2E             --host 0.0.0.0             --port 8000             > artifacts/android-preview-runtime/logs/api.log 2>&1 &
+          # uv is a setup/build tool here, not the long-lived process supervisor.
+          # Leaving `uv run` alive until job teardown holds the uv cache and makes
+          # setup-uv's post-job cache prune fail even after the Android runtime
+          # smoke itself has passed. Run the already-synced venv interpreter
+          # directly so the background server has no uv parent/cache lease.
+          nohup .venv/bin/python scripts/dev_api_server.py \
+            --db-name petaccess_e2e \
+            --role E2E \
+            --host 0.0.0.0 \
+            --port 8000 \
+            > artifacts/android-preview-runtime/logs/api.log 2>&1 &
           echo $! > artifacts/android-preview-runtime/runtime-api.pid
           for i in $(seq 1 60); do
             if curl -fsS http://127.0.0.1:8000/health >/dev/null; then
@@ -455,3 +465,24 @@ jobs:
             echo "- Human review board: ANDROID_RUNTIME_REVIEW_BOARD.html (inside runtime artifact)"
             echo "- Evidence artifact: petaccess-android-preview-runtime-api${{ matrix.api_level }}-$GITHUB_SHA"
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Stop preview background processes
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          PID_FILE="artifacts/android-preview-runtime/runtime-api.pid"
+          if [ -f "$PID_FILE" ]; then
+            API_PID="$(cat "$PID_FILE" 2>/dev/null || true)"
+            if [ -n "$API_PID" ]; then
+              kill "$API_PID" >/dev/null 2>&1 || true
+              for _ in $(seq 1 20); do
+                kill -0 "$API_PID" >/dev/null 2>&1 || break
+                sleep 0.25
+              done
+              kill -9 "$API_PID" >/dev/null 2>&1 || true
+            fi
+          fi
+          pkill -f "scripts/dev_api_server.py" >/dev/null 2>&1 || true
+          docker rm -f petaccess-preview-s3 >/dev/null 2>&1 || true
+          echo "Preview background cleanup complete"
