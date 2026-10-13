@@ -99,8 +99,6 @@ defineProps<{
     gap: var(--pa-space-1);
   }
 }
-</style>
-
 @media (max-width: 520px) {
   .contribution-review {
     padding: var(--pa-space-3);
@@ -110,3 +108,4 @@ defineProps<{
     padding: 0 var(--pa-space-2);
   }
 }
+</style>
