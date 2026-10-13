@@ -209,6 +209,27 @@ def check_consumer_runtime_boundary() -> list[dict]:
                 }
             )
 
+        required_preview_artifact_markers = (
+            "PREVIEW_MANIFEST.json",
+            "INSTALL_PREVIEW.md",
+            "\"artifactKind\": \"android-preview\"",
+            "\"releaseArtifact\": false",
+            "\"requiresAdbReverse\":",
+            "\"standalonePhone\":",
+        )
+        if any(marker not in preview_text for marker in required_preview_artifact_markers):
+            violations.append(
+                {
+                    "rule": "runtime-boundary",
+                    "path": ".github/workflows/android-preview.yml",
+                    "severity": "FAIL",
+                    "detail": (
+                        "Android Preview artifacts must stay self-describing with a machine "
+                        "manifest and install instructions that preserve release/runtime boundaries."
+                    ),
+                }
+            )
+
         required_preview_contract_triggers = (
             "packages/api-client/**",
             "services/api/**",
@@ -240,6 +261,11 @@ def check_consumer_runtime_boundary() -> list[dict]:
             "store_release_artifact=NO",
             "require_real_map",
             "verify_public_api.cjs",
+            "PHONE_PREVIEW_MANIFEST.json",
+            "PHONE_PREVIEW_INSTALL.md",
+            '"artifactKind": "android-phone-preview"',
+            '"standalonePhone": true',
+            '"requiresAdbReverse": false',
         )
         if any(marker not in phone_preview_text for marker in required_phone_preview_markers):
             violations.append(
