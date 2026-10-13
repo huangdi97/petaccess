@@ -224,7 +224,8 @@ dd {{ margin: 2px 0 0; overflow-wrap: anywhere; font-size: 13px; }}
   <div>Route cases<strong>{route_pass}/{len(routes)}</strong></div>
   <div>FAST<strong>{html.escape(str(fast_result))}</strong></div>
   <div>Route coverage<strong>{html.escape(str(coverage_routes))}</strong></div>
-  <div>Authenticated<strong>{auth_pass}/{len(auth_routes)} · {html.escape(str(coverage_auth))}</strong></div>
+  <div>Authenticated<strong>{auth_pass}/{len(auth_routes)} · \
+{html.escape(str(coverage_auth))}</strong></div>
   <div>Map provider<strong>{html.escape(str(map_provider))}</strong></div>
   <div>Human visual<strong>PENDING</strong></div>
 </section>
