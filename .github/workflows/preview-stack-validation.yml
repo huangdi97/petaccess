@@ -9,16 +9,6 @@ on:
       - "pyproject.toml"
       - "uv.lock"
       - ".github/workflows/preview-stack-validation.yml"
-  push:
-    branches:
-      - feat/ui-direct-craft-v8
-    paths:
-      - "infra/deploy/preview/**"
-      - "services/api/**"
-      - "services/worker/**"
-      - "pyproject.toml"
-      - "uv.lock"
-      - ".github/workflows/preview-stack-validation.yml"
   workflow_dispatch:
 
 permissions:
@@ -149,10 +139,24 @@ jobs:
           if ping_status != 200 or ping.get("pong") is not True:
               raise SystemExit(f"bad /api/v1/ping: {ping_status} {ping}")
 
+          components = None
+          components_status = None
+          for _ in range(12):
+              components_status, components = fetch("/health/components")
+              if components_status == 200 and components.get("all_ok") is True:
+                  break
+              import time
+              time.sleep(1)
+          if components_status != 200 or not components or components.get("all_ok") is not True:
+              raise SystemExit(
+                  f"bad /health/components: {components_status} {components}"
+              )
+
           print(json.dumps({
               "health": health,
               "ready": ready,
               "ping": ping,
+              "components": components,
           }, ensure_ascii=False, indent=2))
           PY
 
@@ -179,6 +183,7 @@ jobs:
             echo "- /health: PASS"
             echo "- /health/ready: PASS"
             echo "- /api/v1/ping: PASS"
+            echo "- /health/components: PASS (Postgres / Redis / MinIO / Celery all_ok)"
             echo "- Celery worker: running"
             echo "- Public DNS/TLS: not claimed by this CI; still requires a real host/domain"
           } >> "$GITHUB_STEP_SUMMARY"
