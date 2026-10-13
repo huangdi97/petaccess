@@ -158,7 +158,22 @@ jobs:
           const fs = require("node:fs");
           const cfg = JSON.parse(fs.readFileSync(process.argv[2], "utf8"));
           const csp = cfg?.app?.security?.csp ?? "";
-          if (!csp.includes("https://api.example.invalid")) throw new Error("release API origin missing");
+          const directives = new Map(
+            csp
+              .split(";")
+              .map((part) => part.trim())
+              .filter(Boolean)
+              .map((part) => {
+                const [name, ...values] = part.split(/\s+/);
+                return [name, values];
+              }),
+          );
+          const origin = "https://api.example.invalid";
+          for (const directive of ["connect-src", "img-src"]) {
+            if (!directives.get(directive)?.includes(origin)) {
+              throw new Error(`release ${directive} missing API origin`);
+            }
+          }
           for (const forbidden of ["127.0.0.1", "10.0.2.2", "localhost:*"]) {
             if (csp.includes(forbidden)) throw new Error(`release CSP contains dev origin: ${forbidden}`);
           }
