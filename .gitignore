@@ -70,3 +70,6 @@ coverage.json
 !artifacts/ui-product-craft-v7/
 !artifacts/ui-product-craft-v7-runtime-closure/
 !artifacts/ui-product-craft-v7-runtime-final/
+
+# Generated only for one-off HTTPS Android Phone Preview builds.
+apps/client-h5/src-tauri/tauri.phone-preview.generated.json
