@@ -10,6 +10,7 @@ The original display configuration is always restored in the final cleanup.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import subprocess
@@ -184,10 +185,8 @@ def main() -> int:
         shell(SERIAL, "wm", "size", "reset", timeout=30)
         shell(SERIAL, "wm", "density", "reset", timeout=30)
         time.sleep(2)
-        try:
+        with contextlib.suppress(Exception):
             _restart_app()
-        except Exception:
-            pass
 
     payload = {
         "result": "FAIL" if failures else "PASS",
