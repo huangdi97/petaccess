@@ -28,33 +28,37 @@ const REQUIRE_REAL_MAP = process.env.PETACCESS_REQUIRE_REAL_MAP === "1";
 const REQUIRE_SCENE_MEDIA = process.env.PETACCESS_REQUIRE_SCENE_MEDIA === "1";
 
 const routes = [
-  { hash: "#/", tag: "R01", name: "home", expectedPage: "home" },
-  { hash: "#/search", tag: "R02", name: "search", expectedPage: "search" },
-  { hash: "#/map", tag: "R03", name: "map", expectedPage: "map" },
-  { hash: `#/place/${PLACE_ID}`, tag: "R04", name: "place-overview", expectedPage: "place" },
+  { hash: "#/", tag: "R01", name: "home", expectedPage: "home", expectedState: "ready" },
+  { hash: "#/search", tag: "R02", name: "search", expectedPage: "search", expectedState: "ready" },
+  { hash: "#/map", tag: "R03", name: "map", expectedPage: "map", expectedState: "ready" },
+  { hash: `#/place/${PLACE_ID}`, tag: "R04", name: "place-overview", expectedPage: "place", expectedState: "ready" },
   {
     hash: `#/place/${PLACE_ID}?view=rules`,
     tag: "R05",
     name: "place-rules",
     expectedPage: "place",
+    expectedState: "ready",
   },
   {
     hash: `#/place/${PLACE_ID}?view=space`,
     tag: "R06",
     name: "place-space",
     expectedPage: "place",
+    expectedState: "ready",
   },
   {
     hash: `#/place/${PLACE_ID}/reality`,
     tag: "R07",
     name: "reality",
     expectedPage: "reality",
+    expectedState: "ready",
   },
   {
     hash: `#/place/${PLACE_ID}/evidence`,
     tag: "R08",
     name: "evidence",
     expectedPage: "evidence",
+    expectedState: "ready",
   },
   {
     hash: "#/contribute",
