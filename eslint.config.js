@@ -48,6 +48,7 @@ export default defineConfigWithVueTs(
             "playwright.ui-oracle.config.ts",
             "scripts/*.mjs",
             "scripts/windows_acceptance/*.cjs",
+            "scripts/release/*.cjs",
             "eslint.config.js",
           ],
           maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 24,
@@ -70,7 +71,7 @@ export default defineConfigWithVueTs(
     },
   },
   {
-    files: ["scripts/windows_acceptance/**/*.cjs"],
+    files: ["scripts/windows_acceptance/**/*.cjs", "scripts/release/**/*.cjs"],
     rules: {
       "@typescript-eslint/no-require-imports": "off",
     },
