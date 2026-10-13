@@ -1,4 +1,4 @@
-\${PETACCESS_PREVIEW_DOMAIN} {
+{$PETACCESS_PREVIEW_DOMAIN} {
   encode zstd gzip
 
   reverse_proxy api:8000
