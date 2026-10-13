@@ -37,7 +37,10 @@ defineProps<{
   display: flex;
   flex-direction: column;
   gap: var(--pa-space-3);
-  padding: var(--pa-space-4) 0;
+  padding: var(--pa-space-4);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: calc(var(--pa-radius-md) + 2px);
+  background: color-mix(in srgb, var(--pa-color-accent-weak) 24%, var(--pa-color-surface));
 }
 
 .contribution-review h3,
@@ -47,14 +50,17 @@ defineProps<{
 }
 
 .contribution-review h3 {
-  font-size: var(--pa-font-size-18);
+  font-size: var(--pa-font-size-xl);
   font-weight: var(--pa-font-weight-650);
   line-height: var(--pa-line-height-26);
 }
 
 .contribution-review__facts {
-  margin: 0;
-  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  margin: var(--pa-space-1) 0 0;
+  padding: 0 var(--pa-space-3);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: var(--pa-radius-md);
+  background: var(--pa-color-surface-raised);
 }
 
 .contribution-review__row {
@@ -79,8 +85,9 @@ defineProps<{
 }
 
 .contribution-review__guard {
-  padding-left: var(--pa-space-3);
-  border-left: var(--pa-border-width-strong) solid var(--pa-color-evidence-pending);
+  padding: var(--pa-space-3);
+  border-left: 3px solid var(--pa-color-evidence-pending);
+  background: var(--pa-color-surface-raised);
   color: var(--pa-color-text-secondary);
   font-size: var(--pa-font-size-sm);
   line-height: var(--pa-line-height-20);
@@ -93,3 +100,13 @@ defineProps<{
   }
 }
 </style>
+
+@media (max-width: 520px) {
+  .contribution-review {
+    padding: var(--pa-space-3);
+  }
+
+  .contribution-review__facts {
+    padding: 0 var(--pa-space-2);
+  }
+}
