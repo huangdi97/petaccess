@@ -8,9 +8,10 @@ The Consumer receives only a PetAccess API URL. Object-storage topology and
 presigned URLs remain private implementation details.
 """
 
-from fastapi import APIRouter, Depends, Request, Response
+from fastapi import APIRouter, Depends, Response
 from sqlalchemy.orm import Session
 
+from app.core.config import get_settings
 from app.core.errors import NotFound
 from app.db.session import get_db
 from app.providers.factory import get_storage_provider
@@ -25,18 +26,20 @@ router = APIRouter(tags=["media"])
 @router.get("/evidence-bundles/{bundle_id}/public-media")
 def public_evidence_media(
     bundle_id: str,
-    request: Request,
     db: Session = Depends(get_db),
 ) -> dict:
     """Return the governed API URL for explicitly display-approved evidence."""
 
     media = resolve_public_evidence_media_object(db, bundle_id)
-    url = request.url_for("public_evidence_media_content", bundle_id=bundle_id)
+    api_root = get_settings().api_base_url.rstrip("/")
+    if api_root.endswith("/api/v1"):
+        api_root = api_root[: -len("/api/v1")]
+    url = f"{api_root}/api/v1/evidence-bundles/{bundle_id}/public-media/content"
     return {
         "evidence_bundle_id": bundle_id,
         "media_id": media.id,
         "purpose": media.purpose,
-        "url": str(url),
+        "url": url,
         "mime_type": media.mime_type,
         # Compatibility field retained from the former presigned-URL contract.
         # Qualification is still re-evaluated on every content request.
