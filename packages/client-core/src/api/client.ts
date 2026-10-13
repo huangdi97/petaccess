@@ -453,7 +453,32 @@ export interface WatchView {
   target_id: string;
   channels?: string[];
   status?: string;
+  last_notified_at?: string | null;
   created_at?: string | null;
+}
+
+export type WatchEventType =
+  | "rule_version_published"
+  | "rule_exception_published"
+  | "reality_observed_presence_published"
+  | "reality_staff_response_published"
+  | "reality_animal_facility_published";
+
+export interface WatchEventView {
+  id: string;
+  subscription_id: string;
+  user_id: string;
+  watch_domain: "rule" | "reality";
+  target_type: string;
+  target_id: string;
+  event_type: WatchEventType;
+  subject_type: string;
+  subject_id: string;
+  place_id: string | null;
+  occurred_at: string;
+  read_at: string | null;
+  payload: Record<string, unknown>;
+  created_at: string;
 }
 
 export interface MapRenderConfig {
@@ -727,6 +752,14 @@ export const client = {
   },
   async myWatches() {
     return api.request<WatchView[]>("get", "/watches");
+  },
+  async myWatchEvents(limit = 50) {
+    return api.request<WatchEventView[]>("get", "/watch-events", {
+      params: { limit },
+    });
+  },
+  async markWatchEventRead(eventId: string) {
+    return api.request<WatchEventView>("post", `/watch-events/${eventId}/read`);
   },
   async regulations(placeId?: string) {
     const path = placeId ? `/places/${placeId}/regulations` : "/regulations";
