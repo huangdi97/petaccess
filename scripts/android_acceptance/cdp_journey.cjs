@@ -23,6 +23,7 @@ const SCREENSHOT_DIR = path.join(EVIDENCE_ROOT, "screenshots");
 // Keep the established filename because coverage/report tooling already consumes it.
 const OUT = path.join(RUNTIME_DIR, "cdp_journey_playwright.json");
 const PLACE_ID = "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e";
+const AUTH_TOKEN = (process.env.PETACCESS_ANDROID_AUTH_TOKEN ?? "").trim();
 
 const routes = [
   { hash: "#/", tag: "R01", name: "home", expectedPage: "home" },
@@ -85,6 +86,65 @@ const routes = [
     tag: "R21",
     name: "not-found",
     expectedPage: "not-found",
+  },
+];
+
+const authenticatedRoutes = [
+  {
+    hash: `#/contribute/${PLACE_ID}`,
+    tag: "A01",
+    name: "auth-contribute",
+    expectedPage: "contribution",
+    expectedState: "choose-type",
+    authenticated: true,
+  },
+  {
+    hash: "#/mine",
+    tag: "A02",
+    name: "auth-mine",
+    expectedPage: "mine",
+    expectedState: "signed-in",
+    authenticated: true,
+  },
+  {
+    hash: "#/privacy",
+    tag: "A03",
+    name: "auth-privacy",
+    expectedPage: "privacy",
+    expectedState: "signed-in",
+    authenticated: true,
+  },
+  {
+    hash: "#/pets",
+    tag: "A04",
+    name: "auth-pets",
+    expectedPage: "pets",
+    expectedState: "ready",
+    authenticated: true,
+  },
+  {
+    hash: "#/notifications",
+    tag: "A05",
+    name: "auth-notifications",
+    expectedPage: "notifications",
+    expectedState: "ready",
+    authenticated: true,
+  },
+  {
+    hash: "#/boundary",
+    tag: "A06",
+    name: "auth-boundary",
+    expectedPage: "boundary",
+    expectedState: "ready",
+    authenticated: true,
+  },
+  {
+    hash: "#/pet/new",
+    tag: "A07",
+    name: "auth-pet-new",
+    expectedPage: "pet-new",
+    expectedState: "ready",
+    authenticated: true,
   },
 ];
 
@@ -321,8 +381,14 @@ async function main() {
 
   const rows = [];
   let failed = false;
+  let authInjected = false;
+  const routeCases = AUTH_TOKEN ? [...routes, ...authenticatedRoutes] : routes;
 
-  for (const route of routes) {
+  for (const route of routeCases) {
+    if (route.authenticated && !authInjected) {
+      await run(`localStorage.setItem("pa_token", ${JSON.stringify(AUTH_TOKEN)}); true`);
+      authInjected = true;
+    }
     const startedAt = Date.now();
     await run(`location.hash = ${JSON.stringify(route.hash)}`);
 
@@ -339,6 +405,9 @@ async function main() {
     if (!state.shell) routeError ??= "Consumer shell missing";
     if (state.uiPage !== route.expectedPage) {
       routeError ??= `expected ${route.expectedPage}, got ${state.uiPage}`;
+    }
+    if (route.expectedState && state.uiState !== route.expectedState) {
+      routeError ??= `expected state ${route.expectedState}, got ${state.uiState}`;
     }
     if (state.horizontalOverflow) {
       routeError ??= `horizontal overflow ${state.document.scrollWidth} > ${state.viewport.width}`;
@@ -383,6 +452,8 @@ async function main() {
         },
         engine: "webview-page-cdp",
         result: failed ? "FAIL" : "PASS",
+        authenticatedSweepRequested: Boolean(AUTH_TOKEN),
+        authenticatedCases: rows.filter((row) => row.authenticated).length,
         routes: rows,
       },
       null,
@@ -396,7 +467,9 @@ async function main() {
     console.error(`CDP JOURNEY FAIL — see ${OUT}`);
     process.exit(1);
   }
-  console.log(`CDP JOURNEY PASS — ${rows.length}/${rows.length} routes`);
+  console.log(
+    `CDP JOURNEY PASS — ${rows.length}/${rows.length} cases (public=${routes.length}, authenticated=${rows.filter((row) => row.authenticated).length})`,
+  );
 }
 
 main().catch((error) => {
