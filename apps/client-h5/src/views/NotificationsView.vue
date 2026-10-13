@@ -2,6 +2,7 @@
 import AppShell from "../components/AppShell.vue";
 import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
+import NotificationsSummary from "../components/notifications/NotificationsSummary.vue";
 import { useNotificationsCenter } from "../composables/useNotificationsCenter";
 
 const {
@@ -43,24 +44,12 @@ const {
         只显示你主动关注的变化。规则版本变化与经核验现场更新始终分开，不会互相替代。
       </p>
 
-      <div
+      <NotificationsSummary
         v-if="signedIn && !loading && !error"
-        class="notifications-summary"
-        aria-label="关注摘要"
-      >
-        <div>
-          <span>规则变化</span>
-          <strong>{{ activeRuleCount }}</strong>
-        </div>
-        <div>
-          <span>现场更新</span>
-          <strong>{{ activeRealityCount }}</strong>
-        </div>
-        <div>
-          <span>总关注</span>
-          <strong>{{ watches.length }}</strong>
-        </div>
-      </div>
+        :rule-count="activeRuleCount"
+        :reality-count="activeRealityCount"
+        :total-count="watches.length"
+      />
     </header>
 
     <SkeletonList v-if="loading" :rows="3" />
