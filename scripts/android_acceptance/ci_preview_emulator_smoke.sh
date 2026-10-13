@@ -94,6 +94,45 @@ if [[ "$CDP_READY" != "1" ]]; then
   exit 1
 fi
 
+AUTH_TOKEN="$(python - <<'PY'
+import json
+import time
+import urllib.request
+
+base = "http://127.0.0.1:8000/api/v1"
+email = f"android-runtime-{int(time.time() * 1000)}@example.com"
+password = "passw0rd123"
+
+
+def post(path: str, payload: dict) -> dict:
+    request = urllib.request.Request(
+        base + path,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    with urllib.request.urlopen(request, timeout=10) as response:
+        if response.status < 200 or response.status >= 300:
+            raise RuntimeError(f"{path} -> HTTP {response.status}")
+        return json.loads(response.read().decode("utf-8"))
+
+
+post(
+    "/auth/register",
+    {"display_name": "Android Runtime", "email": email, "password": password},
+)
+token = post("/auth/login", {"email": email, "password": password}).get("access_token")
+if not token:
+    raise RuntimeError("Android runtime login returned no access_token")
+print(token)
+PY
+)"
+if [[ -z "$AUTH_TOKEN" ]]; then
+  echo "Failed to create Android runtime auth token"
+  exit 1
+fi
+export PETACCESS_ANDROID_AUTH_TOKEN="$AUTH_TOKEN"
+
 node scripts/android_acceptance/cdp_journey.cjs
 python scripts/android_acceptance/coverage_matrix.py
 python scripts/android_acceptance/build_preview_review_board.py
@@ -110,10 +149,17 @@ journey = json.loads(
 )
 assert coverage["matrix"]["Routes"] == "COVERED", coverage
 assert journey["result"] == "PASS", journey
-assert len(journey["routes"]) >= 21, len(journey["routes"])
+assert len(journey["routes"]) >= 28, len(journey["routes"])
+assert journey["authenticatedSweepRequested"] is True, journey
+assert journey["authenticatedCases"] >= 7, journey
 assert coverage["required_router_pages"] == 19, coverage
 assert coverage["observed_router_pages"] >= 19, coverage
-print(f"Android Preview semantic journey: {len(journey['routes'])}/{len(journey['routes'])} PASS")
+assert coverage["matrix"]["Authenticated States"] == "COVERED", coverage
+print(
+    "Android Preview semantic journey: "
+    f"{len(journey['routes'])}/{len(journey['routes'])} PASS "
+    f"(authenticated={journey['authenticatedCases']})"
+)
 PY
 
 adb -s "$SERIAL" shell dumpsys package "$PACKAGE" > "$EVIDENCE_ROOT/runtime/package-dump.txt"
