@@ -406,36 +406,6 @@ def materialize_report_evidence(db: Session, report: RealityReport) -> EvidenceB
     )
 
 
-def materialize_legacy_candidate_evidence(
-    db: Session, candidate: RealityCandidate
-) -> EvidenceBundle:
-    """Keep the compatibility contribution route inside the evidence contract."""
-    now = datetime.now(UTC)
-    artifact = _private_provenance_artifact(
-        db,
-        platform=SourcePlatform.ONSITE,
-        collector=CollectorType.ONSITE_EVIDENCE,
-        artifact_type="structured_firsthand_report",
-        content_id=f"legacy-reality-candidate:{candidate.id}",
-        collected_at=now,
-        publisher_type="ordinary_user",
-    )
-    return _private_provenance_bundle(
-        db,
-        artifact,
-        place_match={
-            "state": "exact_place",
-            "types": ["user_confirmation"],
-            "place_id": candidate.place_id,
-        },
-        temporal={
-            "state": "exact_event_time" if candidate.observed_at else "unknown",
-            "observed_at": candidate.observed_at.isoformat() if candidate.observed_at else None,
-        },
-        privacy_note="Compatibility contribution provenance; private review material.",
-    )
-
-
 def attach_candidate(
     db: Session,
     report: RealityReport,
