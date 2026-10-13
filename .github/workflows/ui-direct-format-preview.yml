@@ -50,8 +50,7 @@ jobs:
             scripts/android_acceptance/cdp_journey.cjs \
             scripts/windows_acceptance/cdp_shell_smoke.cjs \
             scripts/release/verify_public_api.cjs \
-            .github/workflows/android-preview.yml
-            .github/workflows/android-phone-preview.yml \
+            .github/workflows/android-preview.yml \
             .github/workflows/android-phone-preview.yml
       - name: Show Android Preview workflow format diff
         shell: bash
@@ -90,3 +89,4 @@ jobs:
             scripts/windows_acceptance/cdp_shell_smoke.cjs
             scripts/release/verify_public_api.cjs
             .github/workflows/android-preview.yml
+            .github/workflows/android-phone-preview.yml
