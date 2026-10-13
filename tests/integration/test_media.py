@@ -386,6 +386,8 @@ def test_public_evidence_media_requires_display_review_and_published_fact(client
     # The fact may be public, but a pending media review never is.
     denied = client.get(f"/api/v1/evidence-bundles/{bundle_id}/public-media")
     assert denied.status_code == 404
+    denied_content = client.get(f"/api/v1/evidence-bundles/{bundle_id}/public-media/content")
+    assert denied_content.status_code == 404
 
     with factory() as db:
         media = db.get(MediaObject, media_id)
@@ -401,10 +403,21 @@ def test_public_evidence_media_requires_display_review_and_published_fact(client
     assert body["purpose"] == "reality_evidence"
     assert body["mime_type"] == "image/png"
     assert body["expires_in"] == 300
-    assert body["url"].startswith(("http", "nullstorage://"))
+    assert body["url"].endswith(
+        f"/api/v1/evidence-bundles/{bundle_id}/public-media/content"
+    )
+    assert "9000" not in body["url"]
+    assert "nullstorage://" not in body["url"]
+
+    content = client.get(f"/api/v1/evidence-bundles/{bundle_id}/public-media/content")
+    assert content.status_code == 200, content.text
+    assert content.headers["content-type"].startswith("image/png")
+    assert content.headers["x-content-type-options"] == "nosniff"
+    assert "max-age=60" in content.headers["cache-control"]
+    assert content.content.startswith(b"\x89PNG\r\n\x1a\n")
 
     # If governance later removes the public verification posture, the same
-    # bundle must immediately stop producing a public media URL.
+    # bundle must immediately stop producing public metadata or image bytes.
     with factory() as db:
         fact = db.get(ObservedPresence, fact_id)
         assert fact is not None
@@ -413,6 +426,8 @@ def test_public_evidence_media_requires_display_review_and_published_fact(client
 
     revoked = client.get(f"/api/v1/evidence-bundles/{bundle_id}/public-media")
     assert revoked.status_code == 404
+    revoked_content = client.get(f"/api/v1/evidence-bundles/{bundle_id}/public-media/content")
+    assert revoked_content.status_code == 404
 
 
 def test_public_evidence_media_rejects_non_displayable_artifact(client, user_token):
