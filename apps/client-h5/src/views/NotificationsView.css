@@ -1,6 +1,22 @@
 .notifications-head {
-  padding-bottom: var(--pa-space-6);
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  padding: var(--pa-space-5);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: calc(var(--pa-radius-md) + 4px);
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--pa-color-accent-weak) 74%, var(--pa-color-surface)) 0%,
+    var(--pa-color-surface-raised) 76%
+  );
+  box-shadow: var(--pa-elevation-1);
+}
+
+.notifications-head__kicker,
+.notifications-list__kicker {
+  margin: 0 0 var(--pa-space-1);
+  color: var(--pa-color-accent);
+  font-size: var(--pa-font-size-sm);
+  font-weight: var(--pa-font-weight-650);
+  letter-spacing: var(--pa-letter-spacing-wide);
 }
 
 .notifications-head p {
@@ -9,12 +25,132 @@
   line-height: var(--pa-line-height-23);
 }
 
+.notifications-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--pa-space-2);
+  margin-top: var(--pa-space-5);
+  padding-top: var(--pa-space-4);
+  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.notifications-summary > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.notifications-summary span {
+  color: var(--pa-color-text-secondary);
+  font-size: var(--pa-font-size-sm);
+}
+
+.notifications-summary strong {
+  color: var(--pa-color-text-primary);
+  font-size: var(--pa-font-size-xl);
+  line-height: var(--pa-line-height-26);
+  font-variant-numeric: tabular-nums;
+}
+
+.notifications-list {
+  margin-top: var(--pa-space-5);
+}
+
+.notifications-list__head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--pa-space-3);
+  margin-bottom: var(--pa-space-3);
+}
+
+.notifications-list__head h2 {
+  margin: 0;
+  color: var(--pa-color-text-primary);
+  font-size: var(--pa-font-size-lg);
+  line-height: var(--pa-line-height-26);
+}
+
+.notifications-list__head > span {
+  flex: 0 0 auto;
+  color: var(--pa-color-text-muted);
+  font-size: var(--pa-font-size-sm);
+}
+
+.notifications-action-error {
+  margin: 0 0 var(--pa-space-3);
+  padding: var(--pa-space-3);
+  border-radius: var(--pa-radius-control);
+  background: color-mix(in srgb, var(--pa-color-status-restricted) 8%, var(--pa-color-surface));
+  color: var(--pa-color-status-restricted);
+  font-size: var(--pa-font-size-sm);
+}
+
+.notification-row {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--pa-space-3);
+  min-height: 84px;
+  margin-bottom: var(--pa-space-2);
+  padding: var(--pa-space-3) var(--pa-space-4);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: var(--pa-radius-md);
+  background: var(--pa-color-surface-raised);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--pa-color-text-primary) 4%, transparent);
+}
+
+.notification-row__marker {
+  width: 8px;
+  height: 34px;
+  border-radius: 999px;
+  background: var(--pa-color-accent);
+}
+
+.notification-row__marker[data-domain="reality"] {
+  background: color-mix(in srgb, var(--pa-color-status-info) 78%, var(--pa-color-accent));
+}
+
+.notification-row__body {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.notification-row__body > strong {
+  color: var(--pa-color-text-primary);
+}
+
+.notification-row__body > span:not(.muted) {
+  color: var(--pa-color-accent);
+  font-size: var(--pa-font-size-sm);
+  font-weight: var(--pa-font-weight-600);
+}
+
+.notification-row__action {
+  flex: 0 0 auto;
+  min-height: var(--pa-size-control-md);
+  border: none;
+  background: transparent;
+  color: var(--pa-color-accent);
+  cursor: pointer;
+}
+
+.notification-row__action:hover,
+.notification-row__action:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .notifications-channel {
   display: grid;
   grid-template-columns: 220px minmax(0, 1fr);
   gap: var(--pa-space-7);
-  padding: var(--pa-space-6) 0;
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  margin-top: var(--pa-space-7);
+  padding: var(--pa-space-5) 0 0;
+  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
 }
 
 .notifications-channel__lead h2 {
@@ -53,11 +189,14 @@
   line-height: var(--pa-line-height-20);
 }
 
-.channel-row__count {
+.channel-row__badge {
   flex: 0 0 auto;
-  color: var(--pa-color-text-secondary);
-  font-size: var(--pa-font-size-md);
-  font-variant-numeric: tabular-nums;
+  padding: 4px 8px;
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: var(--pa-radius-pill);
+  color: var(--pa-color-text-muted);
+  font-size: var(--pa-font-size-xs);
+  letter-spacing: var(--pa-letter-spacing-wide);
 }
 
 .notifications-channel__delivery {
@@ -66,49 +205,34 @@
   line-height: var(--pa-line-height-20);
 }
 
-.notifications-list {
-  margin-top: var(--pa-space-4);
-}
-
-.notification-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--pa-space-4);
-  min-height: 64px;
-  padding: var(--pa-space-3) 0;
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
-}
-
-.notification-row__body {
-  display: flex;
-  flex-direction: column;
-  gap: var(--pa-space-1);
-}
-
-.notification-row__action {
-  flex: 0 0 auto;
-  min-height: var(--pa-size-control-md);
-  border: none;
-  background: transparent;
-  color: var(--pa-color-accent);
-  cursor: pointer;
-}
-
-.notification-row__action:hover,
-.notification-row__action:focus-visible {
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
 @media (max-width: 767px) {
-  .notifications-channel {
-    grid-template-columns: 1fr;
-    gap: var(--pa-space-4);
-    padding: var(--pa-space-5) 0;
+  .notifications-head {
+    padding: var(--pa-space-4);
+  }
+
+  .notifications-summary {
+    margin-top: var(--pa-space-4);
+  }
+
+  .notifications-list {
+    margin-top: var(--pa-space-4);
   }
 
   .notification-row {
-    align-items: flex-start;
+    grid-template-columns: 8px minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .notification-row__action {
+    grid-column: 2;
+    justify-self: start;
+    min-height: auto;
+    padding: var(--pa-space-1) 0;
+  }
+
+  .notifications-channel {
+    grid-template-columns: 1fr;
+    gap: var(--pa-space-4);
+    margin-top: var(--pa-space-6);
   }
 }
