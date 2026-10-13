@@ -143,9 +143,7 @@ const {
               <span>{{ domainLabel(w) }}</span>
               <span class="muted">
                 {{
-                  w.watch_domain === "reality"
-                    ? "等待新的经核验现场事实"
-                    : "等待新的正式规则版本"
+                  w.watch_domain === "reality" ? "等待新的经核验现场事实" : "等待新的正式规则版本"
                 }}
               </span>
             </div>
