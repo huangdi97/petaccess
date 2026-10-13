@@ -60,53 +60,73 @@ async function submit() {
       上一次申请：{{ previousStatusLabel }}。你可以修正核验信息后重新提交。
     </p>
 
-    <label class="operator-claim-form__field">
-      <span>管理方名称</span>
-      <input v-model="operatorName" required maxlength="160" data-testid="operator-name" />
-      <small>填写营业执照、官网或工作邮箱能够对应的主体名称。</small>
-    </label>
+    <section class="operator-claim-form__group" aria-labelledby="operator-identity-title">
+      <div class="operator-claim-form__group-head">
+        <span class="operator-claim-form__group-index">1</span>
+        <div>
+          <h2 id="operator-identity-title">谁在代表这个场所？</h2>
+          <p>填写能够和公开主体、执照或官网相互对应的信息。</p>
+        </div>
+      </div>
 
-    <label class="operator-claim-form__field">
-      <span>主体类型</span>
-      <select v-model="orgType" data-testid="operator-org-type">
-        <option value="company">企业 / 品牌</option>
-        <option value="property_mgmt">物业 / 商场管理方</option>
-        <option value="individual_owner">个体经营者</option>
-        <option value="government">政府 / 公共机构</option>
-        <option value="other">其他</option>
-      </select>
-    </label>
+      <label class="operator-claim-form__field">
+        <span>管理方名称</span>
+        <input v-model="operatorName" required maxlength="160" data-testid="operator-name" />
+        <small>填写营业执照、官网或工作邮箱能够对应的主体名称。</small>
+      </label>
 
-    <label class="operator-claim-form__field">
-      <span>优先核验方式</span>
-      <select v-model="method" data-testid="operator-verification-method">
-        <option value="work_email">工作邮箱</option>
-        <option value="official_domain">官方网站</option>
-        <option value="other">其他可核验方式</option>
-      </select>
-    </label>
+      <label class="operator-claim-form__field">
+        <span>主体类型</span>
+        <select v-model="orgType" data-testid="operator-org-type">
+          <option value="company">企业 / 品牌</option>
+          <option value="property_mgmt">物业 / 商场管理方</option>
+          <option value="individual_owner">个体经营者</option>
+          <option value="government">政府 / 公共机构</option>
+          <option value="other">其他</option>
+        </select>
+      </label>
+    </section>
 
-    <label v-if="method === 'work_email'" class="operator-claim-form__field">
-      <span>工作邮箱</span>
-      <input v-model="workEmail" type="email" autocomplete="email" data-testid="operator-email" />
-      <small>建议使用与管理方域名一致的工作邮箱。</small>
-    </label>
+    <section class="operator-claim-form__group" aria-labelledby="operator-proof-title">
+      <div class="operator-claim-form__group-head">
+        <span class="operator-claim-form__group-index">2</span>
+        <div>
+          <h2 id="operator-proof-title">如何核验你和场所的关系？</h2>
+          <p>优先提供能由人工独立复核的工作邮箱或官方网站。</p>
+        </div>
+      </div>
 
-    <label v-if="method === 'official_domain'" class="operator-claim-form__field">
-      <span>官方网站</span>
-      <input v-model="website" type="url" placeholder="https://…" data-testid="operator-website" />
-      <small>填写能确认主体与当前场所关系的官网页面。</small>
-    </label>
+      <label class="operator-claim-form__field">
+        <span>优先核验方式</span>
+        <select v-model="method" data-testid="operator-verification-method">
+          <option value="work_email">工作邮箱</option>
+          <option value="official_domain">官方网站</option>
+          <option value="other">其他可核验方式</option>
+        </select>
+      </label>
 
-    <label class="operator-claim-form__field">
-      <span>{{ method === "other" ? "核验说明" : "补充说明（可选）" }}</span>
-      <textarea
-        v-model="note"
-        maxlength="500"
-        data-testid="operator-verification-note"
-        placeholder="例如：我的职位、场所与管理方关系、可由谁核验。"
-      />
-    </label>
+      <label v-if="method === 'work_email'" class="operator-claim-form__field">
+        <span>工作邮箱</span>
+        <input v-model="workEmail" type="email" autocomplete="email" data-testid="operator-email" />
+        <small>建议使用与管理方域名一致的工作邮箱。</small>
+      </label>
+
+      <label v-if="method === 'official_domain'" class="operator-claim-form__field">
+        <span>官方网站</span>
+        <input v-model="website" type="url" placeholder="https://…" data-testid="operator-website" />
+        <small>填写能确认主体与当前场所关系的官网页面。</small>
+      </label>
+
+      <label class="operator-claim-form__field">
+        <span>{{ method === "other" ? "核验说明" : "补充说明（可选）" }}</span>
+        <textarea
+          v-model="note"
+          maxlength="500"
+          data-testid="operator-verification-note"
+          placeholder="例如：我的职位、场所与管理方关系、可由谁核验。"
+        />
+      </label>
+    </section>
 
     <p class="operator-claim-form__boundary">
       认领申请会先进入人工核验。它只建立“谁可以代表场所提交管理方声明”的身份关系；
