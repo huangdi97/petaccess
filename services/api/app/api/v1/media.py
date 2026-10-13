@@ -2,23 +2,22 @@
 
 owner_type / owner_id describe the subject a file belongs to;
 created_by_user_id describes who may read/delete it. Reviewers may inspect
-private evidence for moderation. A consumer can receive only a short-lived
-URL for an approved artifact that is explicitly display-allowed *and* already
-backs a human-verified published Reality fact.
+private evidence for moderation. Governed Consumer delivery lives in
+`api.v1.public_media`; this module owns uploader/reviewer media operations.
 """
 
 import hashlib
 import uuid
 from datetime import UTC, datetime, timedelta
 
-from fastapi import APIRouter, Depends, File, Request, Response, UploadFile
+from fastapi import APIRouter, Depends, File, Request, UploadFile
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.audit import record_audit
 from app.core.audit_events import AuditEvent
 from app.core.config import get_settings
-from app.core.errors import ApiError, NotFound
+from app.core.errors import ApiError
 from app.core.media_sanitize import strip_image_metadata
 from app.core.security import get_current_user
 from app.db.session import get_db
@@ -32,11 +31,6 @@ from app.models.media import (
 from app.providers.factory import get_storage_provider
 from app.schemas.media import MediaMetaOut
 from app.services.media_access import media_meta_response, private_media
-from app.services.public_evidence_media import (
-    PUBLIC_MEDIA_URL_SECONDS,
-    resolve_public_evidence_media_object,
-)
-
 router = APIRouter(tags=["media"])
 
 ALLOWED_MIME = {
@@ -203,61 +197,6 @@ async def upload_media(
     )
     db.commit()
     return _upload_response(media, duplicate_of)
-
-
-@router.get("/evidence-bundles/{bundle_id}/public-media")
-def public_evidence_media(
-    bundle_id: str,
-    request: Request,
-    db: Session = Depends(get_db),
-) -> dict:
-    """Return the governed API URL for explicitly display-approved evidence.
-
-    The Consumer never receives the underlying S3/MinIO origin. This keeps
-    packaged-runtime CSP stable and prevents object-storage topology from
-    becoming part of the public client contract.
-    """
-
-    media = resolve_public_evidence_media_object(db, bundle_id)
-    url = request.url_for("public_evidence_media_content", bundle_id=bundle_id)
-    return {
-        "evidence_bundle_id": bundle_id,
-        "media_id": media.id,
-        "purpose": media.purpose,
-        "url": str(url),
-        "mime_type": media.mime_type,
-        "expires_in": PUBLIC_MEDIA_URL_SECONDS,
-    }
-
-
-@router.get(
-    "/evidence-bundles/{bundle_id}/public-media/content",
-    name="public_evidence_media_content",
-)
-def public_evidence_media_content(
-    bundle_id: str,
-    db: Session = Depends(get_db),
-) -> Response:
-    """Serve one display-approved public image through the PetAccess API.
-
-    Qualification is evaluated on every request. A revoked, expired, deleted,
-    unapproved or no-longer-human-verified artifact therefore stops rendering
-    without waiting for an object-storage presigned URL to expire.
-    """
-
-    media = resolve_public_evidence_media_object(db, bundle_id)
-    try:
-        data = get_storage_provider().read_object(media.object_key, media.bucket)
-    except Exception as exc:
-        raise NotFound("公开证据媒体不可用") from exc
-    return Response(
-        content=data,
-        media_type=media.mime_type,
-        headers={
-            "Cache-Control": "private, max-age=60, no-transform",
-            "X-Content-Type-Options": "nosniff",
-        },
-    )
 
 
 @router.get("/media/mine", response_model=list[MediaMetaOut])
