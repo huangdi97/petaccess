@@ -69,7 +69,7 @@ export async function installAndroidBackHandler(router: Router): Promise<void> {
     const action = decideAndroidBackAction(routePath, target);
 
     console.info(
-      `PETACCESS_ANDROID_BACK action=${action} route=${routePath} target=${target ?? "-"} webviewCanGoBack=${canGoBack}`,
+      `PETACCESS_ANDROID_BACK source=consumer-stack action=${action} route=${routePath} target=${target ?? "-"} webviewCanGoBack=${canGoBack}`,
     );
 
     if (action === "back") {
