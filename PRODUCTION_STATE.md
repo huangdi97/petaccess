@@ -121,6 +121,32 @@ Android runtime evidence 已升级为**真实打包 WebView**门禁，而不是�
 最终 Android acceptance 以最新 `Android Preview APK` Actions run 的 artifact / coverage JSON 为准，
 不能引用历史截图替代。
 
+
+### 4.4 Latest verified Android Preview snapshot
+
+截至 2026-10-14（GMT+8），已对候选 commit
+`9719576d37c0ac6ec80deaba68e57f21ee30e7f7` 完成同一 runtime-input scope 的验证：
+
+- Android Preview workflow run：`38484246593` → **SUCCESS**；
+- ARM64 USB Preview APK → **SUCCESS**；
+- x86_64 Emulator Preview APK → **SUCCESS**；
+- API 35 packaged runtime smoke → **SUCCESS**；
+- API 36 packaged runtime smoke → **SUCCESS**；
+- Android workflow 的后台 API / `uv` 生命周期误红已修复，workflow overall 现在真实为 SUCCESS。
+
+同 run 产物：
+
+- `petaccess-android-preview-usb-device-9719576d37c0ac6ec80deaba68e57f21ee30e7f7`；
+- `petaccess-android-preview-emulator-9719576d37c0ac6ec80deaba68e57f21ee30e7f7`；
+- `petaccess-android-preview-runtime-api35-9719576d37c0ac6ec80deaba68e57f21ee30e7f7`；
+- `petaccess-android-preview-runtime-api36-9719576d37c0ac6ec80deaba68e57f21ee30e7f7`。
+
+同一候选的 PR CI、UI Direct Validation、UI Direct Visual、Public Preview Stack Validation
+与 Windows Preview Runtime 也均为 **SUCCESS**。
+
+这只授权写成“当前候选的机器与 packaged-runtime gate 已通过”；**不等于**
+`UI_HUMAN_VISUAL_ACCEPTANCE = PASS`、signed Release 已授权或 Public Beta 已授权。
+
 ## 5. Product truth invariants
 
 以下边界仍为产品不变量，不得为了视觉或 demo 改写：
@@ -176,8 +202,8 @@ GitHub CI 的 container PASS 也不能反推用户当前 Windows Docker Desktop 
 
 ```text
 CANONICAL_CONSUMER_ARCHITECTURE = CLOSED
-ANDROID_PREVIEW_BUILD_CHAIN = IMPLEMENTED
-ANDROID_RUNTIME_ACCEPTANCE = VERIFY_FROM_LATEST_ACTIONS
+ANDROID_PREVIEW_BUILD_CHAIN = VERIFIED
+ANDROID_RUNTIME_ACCEPTANCE = PASS_AT_LATEST_VERIFIED_SNAPSHOT
 SIGNED_RELEASE_RUNTIME = BLOCKED_BY_PUBLIC_API
 RULE_DATA_PUBLISH = BLOCKED_HUMAN
 UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW
@@ -188,12 +214,12 @@ PUBLIC_BETA = NOT_AUTHORIZED
 
 按优先级：
 
-1. 等待最终 runtime input set 的 PR CI / UI Validation / UI Visual / Android Preview 全部完成；
-   若 branch tip 只多文档提交，记录 compare 证明 runtime-relevant delta = 0；
-2. 下载 Android Runtime Review Board，对真实 packaged Android 截图做 Human Visual Review；
-3. 若要脱离电脑直接在安卓手机体验，提供可达 HTTPS API 并解除
-   `BLOCKED_BY_API_BASE`，生成 standalone Phone Preview；
-4. 获取腾讯地图 Key 后执行 `require_real_map=true` packaged validation；
+1. 对最新 Android Runtime Review Board 与 UI HUMAN_REVIEW 包做**具名人工视觉验收**；
+   机器 PASS 不能替代该步骤；
+2. 若要脱离电脑直接在安卓手机体验，部署可达 HTTPS Preview API、配置
+   `PETACCESS_PHONE_PREVIEW_API_BASE`，解除 `BLOCKED_BY_API_BASE` 后生成 standalone Phone Preview；
+3. 获取腾讯地图 client/server Key 后执行 `require_real_map=true` packaged validation；
+4. 导入/签署允许发布的真实 pilot 数据与场景媒体；不得用 E2E fixture 丰富公网 Preview；
 5. 由具名人类完成 GOV-01 规则数据签署；
 6. 完成生产域名、法务与平台外部 gate 后，才评估 signed Release / Public Beta。
 
