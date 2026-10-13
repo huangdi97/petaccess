@@ -125,8 +125,11 @@ Tauri CSP 使用显式 allowlist，因此不能为了“让某个临时地址能
 
 - emulator：固定 `10.0.2.2:8000`，用于 CI / 本机 Android Emulator；
 - USB device：固定 `127.0.0.1:8000 + adb reverse`，用于本机真机调试；
-- Phone Preview：仅在手动 workflow 中接受一个**绝对 HTTPS API URL**，并只把该 URL 的
-  origin 加入本次 Preview 的 CSP。
+- Phone Preview：接受一个**绝对 HTTPS API URL**，并只把该 URL 的 origin 加入本次
+  Preview 的 CSP。手动 `workflow_dispatch` 可以通过 `api_base` 显式覆盖；如果仓库变量
+  `PETACCESS_PHONE_PREVIEW_API_BASE` 已配置，则 `feat/ui-direct-craft-v8` 上的 Consumer /
+  Tauri 相关改动会自动生成 ARM64 standalone Phone Preview。未配置该变量时，自动 job 直接
+  skip，不把 localhost / emulator API 冒充成可独立使用的手机 Preview。
 
 Phone Preview 会拒绝：
 
@@ -138,7 +141,9 @@ Phone Preview 会拒绝：
 - 不是以 `/api/v1` 结尾的 API base；
 - 能访问但 `/health` / `/api/v1/ping` 不是 PetAccess 响应的地址。
 
-手动运行 workflow 时还可以启用 `require_real_map=true`。该模式用于**真实地图验收包**，打包前额外要求：
+手动运行 workflow 时还可以启用 `require_real_map=true`。自动分支构建固定为
+`require_real_map=false`，避免把腾讯地图外部网络/配额变成每次 UI 提交的强制依赖。
+真实地图验收包在打包前额外要求：
 
 1. `/api/v1/ai/map/config` 返回 `real_enabled=true`、`provider=tencent` 且存在浏览器 client key；
 2. `/api/v1/ai/map/translate` 能把一组 WGS84 坐标真实转换为 Tencent `GCJ-02`；
@@ -150,7 +155,8 @@ Phone Preview 会拒绝：
 也不会把 localhost / emulator 特权一并带到独立手机包中。
 
 未来 Public Beta API 域名冻结后，应新增明确的 `public-beta` profile，并同时更新 CSP、
-endpoint tests 与 runtime acceptance；不要把手动 Phone Preview 当成正式发行通道。
+endpoint tests 与 runtime acceptance；不要把 Phone Preview（无论手动还是自动）当成正式
+发行通道。Phone Preview 始终保持 debug / Preview package / 非正式签名。
 
 ## 7. Artifact 必须包含
 
