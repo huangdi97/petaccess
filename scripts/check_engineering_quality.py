@@ -225,7 +225,8 @@ def check_consumer_runtime_boundary() -> list[dict]:
                     "severity": "FAIL",
                     "detail": (
                         "Android Preview artifacts must stay self-describing with a machine "
-                        "manifest and install instructions that preserve release/runtime boundaries."
+                        "manifest and install instructions that preserve "
+                        "release/runtime boundaries."
                     ),
                 }
             )
