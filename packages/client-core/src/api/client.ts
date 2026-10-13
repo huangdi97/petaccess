@@ -755,7 +755,7 @@ export const client = {
   },
   async myWatchEvents(limit = 50) {
     return api.request<WatchEventView[]>("get", "/watch-events", {
-      params: { limit },
+      query: { limit },
     });
   },
   async markWatchEventRead(eventId: string) {
