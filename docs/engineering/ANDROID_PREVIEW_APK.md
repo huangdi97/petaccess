@@ -134,7 +134,17 @@ Phone Preview 会拒绝：
 - 明文 `http://`；
 - URL 中嵌入用户名/密码；
 - query string；
-- fragment。
+- fragment；
+- 不是以 `/api/v1` 结尾的 API base；
+- 能访问但 `/health` / `/api/v1/ping` 不是 PetAccess 响应的地址。
+
+手动运行 workflow 时还可以启用 `require_real_map=true`。该模式用于**真实地图验收包**，打包前额外要求：
+
+1. `/api/v1/ai/map/config` 返回 `real_enabled=true`、`provider=tencent` 且存在浏览器 client key；
+2. `/api/v1/ai/map/translate` 能把一组 WGS84 坐标真实转换为 Tencent `GCJ-02`；
+3. 任一条件不满足，workflow 直接失败，不生成“看起来像真实地图、其实仍是 fallback”的 Phone Preview。
+
+常规 API35/API36 deterministic runtime smoke **不依赖腾讯外部网络或配额**，因此允许并明确记录 `fallback`；真实地图验收使用上述显式模式，而不是把第三方网络波动变成每个 PR 的必过依赖。
 
 这样“任意 HTTPS 地址”只作用于一次隔离的 Debug Preview 构建，不会改变正式 Tauri 配置，
 也不会把 localhost / emulator 特权一并带到独立手机包中。
