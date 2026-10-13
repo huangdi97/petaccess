@@ -1,6 +1,15 @@
 .boundary-head {
-  padding-bottom: var(--pa-space-5);
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  padding: var(--pa-space-5);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: calc(var(--pa-radius-md) + 3px);
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--pa-color-accent-weak) 54%, transparent),
+      transparent 72%
+    ),
+    var(--pa-color-surface-raised);
+  box-shadow: var(--pa-elevation-1);
 }
 
 .boundary-head__kicker {
@@ -28,8 +37,10 @@
   justify-content: space-between;
   gap: var(--pa-space-4);
   margin-top: var(--pa-space-5);
-  padding: var(--pa-space-4) 0;
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  padding: var(--pa-space-4);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: var(--pa-radius-md);
+  background: var(--pa-color-surface-muted);
 }
 
 .boundary-overview strong {
@@ -64,8 +75,10 @@
   align-items: center;
   gap: var(--pa-space-4);
   max-width: 620px;
-  padding: var(--pa-space-4) 0;
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  margin-top: var(--pa-space-3);
+  padding: var(--pa-space-3) var(--pa-space-4);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: var(--pa-radius-control);
   color: var(--pa-color-text-secondary);
   font-size: var(--pa-font-size-md);
 }
@@ -97,10 +110,15 @@
 }
 
 @media (max-width: 767px) {
+  .boundary-head {
+    padding: var(--pa-space-4);
+  }
+
   .boundary-overview {
     flex-direction: column;
     gap: var(--pa-space-3);
-    margin-top: var(--pa-space-4);
+    margin-top: var(--pa-space-3);
+    padding: var(--pa-space-3);
   }
 
   .boundary-name {
