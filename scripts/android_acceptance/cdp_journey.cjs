@@ -375,6 +375,35 @@ async function main() {
       })())`),
     );
 
+  const contributionChooserGeometry = async () =>
+    JSON.parse(
+      await run(`JSON.stringify((() => {
+        const viewportWidth = window.innerWidth;
+        const buttons = Array.from(document.querySelectorAll(".entry-option__button")).map(
+          (button) => {
+            const rect = button.getBoundingClientRect();
+            return {
+              left: rect.left,
+              right: rect.right,
+              clientWidth: button.clientWidth,
+              scrollWidth: button.scrollWidth,
+            };
+          },
+        );
+        return {
+          viewportWidth,
+          count: buttons.length,
+          buttons,
+          clipped: buttons.some(
+            (button) =>
+              button.left < -1 ||
+              button.right > viewportWidth + 1 ||
+              button.scrollWidth > button.clientWidth + 1,
+          ),
+        };
+      })())`),
+    );
+
   const captureScreenshot = async (shotPath) => {
     let result;
     try {
@@ -430,6 +459,19 @@ async function main() {
       routeError ??= `real map required but packaged surface is ${state.mapProviderSurface ?? "unknown"}`;
     }
 
+    let contributionGeometry = null;
+    if (route.name === "auth-contribute") {
+      contributionGeometry = await contributionChooserGeometry();
+      if (contributionGeometry.count !== 5) {
+        routeError ??= `authenticated contribution chooser expected 5 choices, got ${contributionGeometry.count}`;
+      }
+      if (contributionGeometry.clipped) {
+        routeError ??= `authenticated contribution chooser clips internally: ${JSON.stringify(
+          contributionGeometry,
+        )}`;
+      }
+    }
+
     const shot = path.join(SCREENSHOT_DIR, `phoneM__${safeName(route.name)}__${route.tag}.png`);
     try {
       await captureScreenshot(shot);
@@ -443,6 +485,7 @@ async function main() {
       ok: routeError === null,
       error: routeError,
       snapshot: state,
+      contributionGeometry,
       screenshot: shot,
     };
     rows.push(row);
