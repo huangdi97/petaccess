@@ -645,6 +645,10 @@ def decide_reality_candidate(
             cand.published_claim_id = claim.id
             cand.published_at = datetime.now(UTC)
 
+            from app.services.watch_events import emit_reality_published
+
+            emit_reality_published(db, cand, claim)
+
     record_audit(
         db,
         request=None,
