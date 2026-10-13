@@ -163,10 +163,9 @@ async function upload(event: Event) {
   padding: var(--pa-space-2) 0;
   border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
 }
-</style>
-
 @media (max-width: 520px) {
   .rule-evidence {
     padding: var(--pa-space-3);
   }
 }
+</style>
