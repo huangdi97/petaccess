@@ -289,7 +289,9 @@ async function main() {
   fs.mkdirSync(SCREENSHOT_DIR, { recursive: true });
 
   const { ws, send, target } = await connectPageTarget();
-  await send("Runtime.enable");
+  // connectPageTarget() already proved Runtime.evaluate on this exact target.
+  // Avoid a redundant Runtime.enable round-trip while Android WebView is
+  // settling after Activity recreation / hardware Back.
   await send("Page.enable");
 
   const run = async (expression) => {
