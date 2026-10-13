@@ -1,6 +1,8 @@
 """Watch subscription endpoints (design #24, GOAL #16)."""
 
-from fastapi import APIRouter, Depends
+from datetime import UTC, datetime
+
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -8,11 +10,47 @@ from app.core.config import get_settings
 from app.core.errors import ApiError, NotFound
 from app.core.security import get_current_user
 from app.db.session import get_db
-from app.models import User, WatchSubscription
+from app.models import User, WatchEvent, WatchSubscription
 from app.models.enums import WatchDomain, WatchStatus, WatchTargetType
-from app.schemas.civic import WatchIn, WatchOut
+from app.schemas.civic import WatchEventOut, WatchIn, WatchOut
 
 router = APIRouter(tags=["watches"])
+
+
+@router.get("/watch-events", response_model=list[WatchEventOut])
+def my_watch_events(
+    limit: int = Query(default=50, ge=1, le=100),
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> list[WatchEvent]:
+    """Return the caller's reviewed in-app change history, newest first."""
+
+    return list(
+        db.scalars(
+            select(WatchEvent)
+            .where(WatchEvent.user_id == user.id)
+            .order_by(WatchEvent.occurred_at.desc(), WatchEvent.created_at.desc())
+            .limit(limit)
+        ).all()
+    )
+
+
+@router.post("/watch-events/{event_id}/read", response_model=WatchEventOut)
+def mark_watch_event_read(
+    event_id: str,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> WatchEvent:
+    """Mark only the caller's event as read; event history itself is immutable."""
+
+    event = db.get(WatchEvent, event_id)
+    if event is None or event.user_id != user.id:
+        raise NotFound("关注事件不存在")
+    if event.read_at is None:
+        event.read_at = datetime.now(UTC)
+        db.commit()
+        db.refresh(event)
+    return event
 
 
 @router.get("/watches", response_model=list[WatchOut])
