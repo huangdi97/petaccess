@@ -25,6 +25,11 @@ jobs:
             apps/client-h5/src/views/ContributeView.vue \
             apps/client-h5/src/views/MineView.vue \
             apps/client-h5/src/components/mine/MinePublicState.vue \
+            apps/client-h5/src/components/contribute/ContributeRealityForm.vue \
+            apps/client-h5/src/components/contribute/ContributionReview.vue \
+            apps/client-h5/src/components/contribute/RuleEvidenceUpload.vue \
+            apps/client-h5/src/components/contribute/RuleTargetPicker.vue \
+            apps/client-h5/src/components/operator/OperatorClaimForm.vue \
             apps/client-h5/src/components/domain/DecisionInspector.vue \
             apps/client-h5/src/components/domain/PlaceResultRow.vue \
             apps/client-h5/src/components/map/MapSelectedSheet.vue \
@@ -46,9 +51,11 @@ jobs:
             scripts/windows_acceptance/cdp_shell_smoke.cjs \
             scripts/release/verify_public_api.cjs \
             .github/workflows/android-preview.yml
+            .github/workflows/android-phone-preview.yml \
+            .github/workflows/android-phone-preview.yml
       - name: Show Android Preview workflow format diff
         shell: bash
-        run: git diff -- .github/workflows/android-preview.yml
+        run: git diff -- .github/workflows/android-preview.yml .github/workflows/android-phone-preview.yml
       - uses: actions/upload-artifact@v4
         with:
           name: ui-direct-formatted-targets
@@ -57,6 +64,11 @@ jobs:
             apps/client-h5/src/views/ContributeView.vue
             apps/client-h5/src/views/MineView.vue
             apps/client-h5/src/components/mine/MinePublicState.vue
+            apps/client-h5/src/components/contribute/ContributeRealityForm.vue
+            apps/client-h5/src/components/contribute/ContributionReview.vue
+            apps/client-h5/src/components/contribute/RuleEvidenceUpload.vue
+            apps/client-h5/src/components/contribute/RuleTargetPicker.vue
+            apps/client-h5/src/components/operator/OperatorClaimForm.vue
             apps/client-h5/src/components/domain/DecisionInspector.vue
             apps/client-h5/src/components/domain/PlaceResultRow.vue
             apps/client-h5/src/components/map/MapSelectedSheet.vue
