@@ -162,6 +162,7 @@ def main() -> int:
                         "ui_state": state.get("uiState"),
                         "viewport_width": state.get("viewportWidth"),
                         "scroll_width": state.get("scrollWidth"),
+                        "horizontal_overflow": state.get("horizontalOverflow"),
                         "safe_area_top": state.get("safeAreaTop"),
                         "content_top": state.get("contentTop"),
                         "safe_area_overlap": state.get("safeAreaOverlap"),
