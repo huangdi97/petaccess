@@ -205,7 +205,7 @@ HBuilderX is not a current Android blocker.
 
 ## 2026-09-15 接管复核（AGENT_MASTER_CONTINUE）
 
-### GOV-01 — 缺具名人类评审员（**仍成立，唯一剩余发布阻塞**）
+### GOV-01 — 缺具名人类评审员（**仍成立；唯一剩余规则数据发布裁决阻塞**）
 
 - Type: 治理 / 人工裁决
 - Affected gate: `PILOT_REVIEW_PUBLISH_GATE`、`B Publish`、30–50 Place 扩量
@@ -265,9 +265,13 @@ HBuilderX is not a current Android blocker.
 
 ## 2026-09-22 会话追加（v0.9-R1 Reality Layer 六阶段推进）
 
-### LOCAL_DOCKER_DESKTOP_ENGINE_UNSTABLE —— Docker daemon 不可达（当前）
+### LOCAL_DOCKER_DESKTOP_ENGINE_UNSTABLE —— 2026-09-22 历史本地观察
 
-> 状态：BLOCKED_EXTERNAL（本轮只探测与记录，不做启动循环；契约边界 #2）
+> 状态：**HISTORICAL_LOCAL_OBSERVATION / REPROBE_REQUIRED**。该结论只证明
+> 2026-09-22 当次本机 Docker daemon 不可达，不能自动外推到当前工作区或 GitHub CI。
+> 当前 GitHub PR/Android Preview CI 已能启动 PostgreSQL / Redis / S3-compatible
+> containers；本地 Agent 若需要数据库集成验证，必须先重新执行一次 Docker 健康探测，
+> 再决定本地 gate 是 READY 还是 BLOCKED。
 
 - Type: 执行环境
 - Affected gate: AC2–AC5（Reality DB Migration Verification / 真实持久化 /
