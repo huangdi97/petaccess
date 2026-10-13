@@ -197,9 +197,7 @@ def check_consumer_runtime_boundary() -> list[dict]:
                 }
             )
 
-    phone_preview_workflow_path = (
-        ROOT / ".github" / "workflows" / "android-phone-preview.yml"
-    )
+    phone_preview_workflow_path = ROOT / ".github" / "workflows" / "android-phone-preview.yml"
     if phone_preview_workflow_path.exists():
         phone_preview_text = phone_preview_workflow_path.read_text(encoding="utf-8")
         required_phone_preview_markers = (
@@ -208,9 +206,7 @@ def check_consumer_runtime_boundary() -> list[dict]:
             "release_signature=NO",
             "store_release_artifact=NO",
         )
-        if any(
-            marker not in phone_preview_text for marker in required_phone_preview_markers
-        ):
+        if any(marker not in phone_preview_text for marker in required_phone_preview_markers):
             violations.append(
                 {
                     "rule": "runtime-boundary",
