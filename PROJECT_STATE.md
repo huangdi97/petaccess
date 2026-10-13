@@ -1,3 +1,32 @@
+## Current phase（2026-10-13 — direct-v8 Packaged Runtime VERIFIED）
+
+- 分支：`feat/ui-direct-craft-v8`；PR #1 继续保持 **draft**；master / tag / GitHub Release 均未推进。
+- 本轮 runtime-verified source HEAD：`be4c14c30bc71740da6cdc99490e6af153e2c287`。
+- 同一 source HEAD 的机器链全部通过：
+  - UI Direct Validation run `38396421603` = **SUCCESS**；
+  - UI Direct Visual run `38396421881` = **SUCCESS**；
+  - PR CI run `38396421467` = **SUCCESS**（M1 / frontend / backend / Playwright subset 全绿）；
+  - Windows Preview Runtime run `38396412652` = **SUCCESS**；
+  - Android Preview APK run `38396412684` = **SUCCESS**。
+- Android Preview run `38396412684` 四个 job 全部 **SUCCESS**：
+  - x86_64 emulator Preview APK；
+  - ARM64 USB-device Preview APK；
+  - API 35 packaged-runtime smoke；
+  - API 36 packaged-runtime smoke。
+- Android runtime evidence artifacts：
+  - API35：artifact `11812886680`，约 15.3 MB；
+  - API36：artifact `11814505241`，约 14.6 MB；
+  - x86_64 Preview APK bundle：artifact `11813260230`；
+  - ARM64 USB Preview APK bundle：artifact `11812237961`。
+- Android hardware Back 缺陷已由真实 API35 packaged-WebView 证据关闭：在 Evidence 页面触发系统 Back 后，实际 URL 回到 `#/place/<id>/reality`，`uiPage=reality`、`uiState=ready`、`horizontalOverflow=false`；FAST = `PASS`、`failure_count=0`。实现改为 PetAccess 自己的 Consumer route stack，不再把 Android WebView `canGoBack` 当产品导航 SSOT。
+- Tauri 官方 `onBackButtonPress` 仍是 Android Back 接管入口；Consumer route stack 决定产品级 back/home/exit。深链无 Consumer 历史时回 Home，并清空深链历史；Home 无 Consumer 历史时退出 Activity。
+- Android Preview / Release runtime 边界不变：
+  - canonical Consumer = `apps/client-h5`；
+  - Android / Windows shell = `apps/client-h5/src-tauri`；
+  - `apps/client` uni-app x = `LEGACY_REFERENCE_ONLY`，禁止用于当前构建、人审或 Release。
+- 独立 Phone Preview workflow 已存在，但它必须绑定一个真实可公网访问的 HTTPS PetAccess API；workflow 会验证 PetAccess health/ping、`http://tauri.localhost` CORS，并可选强制真实 Tencent map。仓库当前没有 staging/public-beta 部署事实，因此不得伪造“手机下载即独立联网可用”。
+- `UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW` 保持不变。机器 Validation / Visual / Windows / Android PASS 都不能替代用户对当前最终运行画面的真人确认；在明确签字前，不得把 PR 标为 ready，不得 promotion 到 master/tag/Release。
+
 ## Current phase（2026-10-13 — Packaged Android Runtime Closure + Mine Personal Center）
 
 - 分支仍为 `feat/ui-direct-craft-v8`，PR #1 保持 **draft**；master / tag / GitHub Release 均未推进。任何机器 PASS 都不等于用户 Human Visual Acceptance。
