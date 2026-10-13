@@ -126,11 +126,39 @@ def main() -> int:
         and not scene_src.startswith("nullstorage://")
     )
 
+    width_matrix = _load(runtime / "width_matrix.json")
+    required_width_profiles = {"phone-m", "phone-s", "phone-l", "tablet"}
+    required_width_actions = {"home", "search", "map", "place"}
+    width_profiles = width_matrix.get("profiles", []) if isinstance(width_matrix, dict) else []
+    observed_width_profiles = {
+        row.get("profile")
+        for row in width_profiles
+        if isinstance(row, dict) and isinstance(row.get("profile"), str)
+    }
+    width_sizes_covered = (
+        isinstance(width_matrix, dict)
+        and width_matrix.get("result") == "PASS"
+        and required_width_profiles.issubset(observed_width_profiles)
+        and all(
+            isinstance(row, dict)
+            and row.get("ok") is True
+            and required_width_actions.issubset(
+                {
+                    page.get("action")
+                    for page in row.get("pages", [])
+                    if isinstance(page, dict) and page.get("ok") is True
+                }
+            )
+            for row in width_profiles
+            if row.get("profile") in required_width_profiles
+        )
+    )
+
     matrix = {
         "Routes": "COVERED" if routes_covered else "PARTIAL",
         "Authenticated States": ("COVERED" if authenticated_states_covered else "PARTIAL"),
         "Domain States": "COVERED" if has("cdp_semantic.json") else "PARTIAL",
-        "Device Sizes": "COVERED" if has("width_matrix.json") else "PARTIAL",
+        "Device Sizes": "COVERED" if width_sizes_covered else "PARTIAL",
         "Network States": (
             "COVERED"
             if has("network_matrix.json") and has("http_status_matrix.json")
@@ -172,8 +200,9 @@ def main() -> int:
             "staff responses + facilities render; NO_RECENT_RECORD copy verified"
         ),
         "Device Sizes": (
-            "PHONE-M + PHONE-S 360dp + PHONE-L 430dp + TABLET 800dp are exercised by "
-            "the width matrix; each relaunches the app and asserts no horizontal overflow."
+            "PHONE-M default + PHONE-S ~360dp + PHONE-L ~430dp + TABLET 800dp must all "
+            "PASS Home/Search/Map/Place in the packaged WebView. Every case asserts zero "
+            "horizontal overflow and zero top safe-area overlap, with route screenshots."
         ),
         "Network States": (
             "offline/online, slow backend and injected HTTP status behavior are captured "
@@ -231,6 +260,12 @@ def main() -> int:
             else False,
             "src": scene_src or None,
             "decoded": governed_media_covered,
+        },
+        "device_sizes": {
+            "required_profiles": sorted(required_width_profiles),
+            "observed_profiles": sorted(observed_width_profiles),
+            "required_actions": sorted(required_width_actions),
+            "covered": width_sizes_covered,
         },
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)
