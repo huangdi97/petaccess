@@ -154,7 +154,14 @@ endpoint tests 与 runtime acceptance；不要把手动 Phone Preview 当成正�
 
 ## 7. Artifact 必须包含
 
-每个 Preview artifact 必须包含：
+每个 Preview artifact 必须包含一份**机器可读 manifest**和一份**人可读安装说明**，让下载者不依赖文件名猜测运行边界：
+
+- 普通 emulator / USB Preview：`PREVIEW_MANIFEST.json` + `INSTALL_PREVIEW.md`；
+- standalone Phone Preview：`PHONE_PREVIEW_MANIFEST.json` + `PHONE_PREVIEW_INSTALL.md`。
+
+manifest 至少固定：commit、branch、package、app label、build type、ABI、API base、是否需要 adb reverse、是否 standalone phone、是否要求真实地图，以及 `releaseArtifact=false` / `storeArtifact=false`。这些字段同时由工程质量门禁锁定。
+
+每个 Preview artifact 还必须包含：
 
 - Preview APK；
 - `SHA256SUMS.txt`；
