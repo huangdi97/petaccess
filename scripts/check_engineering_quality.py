@@ -205,6 +205,11 @@ def check_consumer_runtime_boundary() -> list[dict]:
             "com.petaccess.map.preview",
             "release_signature=NO",
             "store_release_artifact=NO",
+            "require_real_map",
+            "/ai/map/config",
+            "/ai/map/translate",
+            'translated?.provider !== "tencent"',
+            'translated?.coordinate_system !== "GCJ-02"',
         )
         if any(marker not in phone_preview_text for marker in required_phone_preview_markers):
             violations.append(
