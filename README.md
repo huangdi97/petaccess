@@ -83,7 +83,7 @@ UI / Consumer 变更可通过 GitHub Actions 的 **Android Preview APK** 生成�
 - Phone Preview 强制 HTTPS；本地明文 HTTP 只走 USB Preview + `adb reverse`
 - Preview 不使用正式 release keystore，也不得作为 Release / 商店包
 
-完整说明：`docs/engineering/ANDROID_PREVIEW_APK.md`。
+完整说明：`docs/engineering/ANDROID_PREVIEW_APK.md`。快速选包 / 下载 / 证据入口：`docs/engineering/ANDROID_PREVIEW_INDEX.md`。
 
 ## 4. 快速开始（开发环境）
 
