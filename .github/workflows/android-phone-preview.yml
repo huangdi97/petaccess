@@ -96,7 +96,7 @@ jobs:
               security: {
                 csp: [
                   "default-src 'self'",
-                  "connect-src 'self' ipc: http://ipc.localhost http://localhost:* http://127.0.0.1:* http://10.0.2.2:* ws://10.0.2.2:* https://apis.map.qq.com https://map.qq.com https://mapapi.qq.com https://*.map.qq.com https://*.map.gtimg.com " + origin,
+                  "connect-src 'self' ipc: http://ipc.localhost https://apis.map.qq.com https://map.qq.com https://mapapi.qq.com https://*.map.qq.com https://*.map.gtimg.com " + origin,
                   "img-src 'self' asset: http://asset.localhost data: blob: https://map.qq.com https://mapapi.qq.com https://*.map.qq.com https://*.map.gtimg.com " + origin,
                   "style-src 'self' 'unsafe-inline'",
                   "font-src 'self' data:",
