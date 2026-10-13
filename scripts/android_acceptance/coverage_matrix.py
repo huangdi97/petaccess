@@ -115,6 +115,21 @@ def main() -> int:
         and len(screenshot_paths) == len(journey_routes)
     )
 
+    scene_media = journey.get("sceneMedia", {}) if isinstance(journey, dict) else {}
+    scene_src = str(scene_media.get("src") or "") if isinstance(scene_media, dict) else ""
+    governed_media_covered = (
+        isinstance(journey, dict)
+        and journey.get("requireSceneMedia") is True
+        and isinstance(scene_media, dict)
+        and scene_media.get("present") is True
+        and scene_media.get("complete") is True
+        and int(scene_media.get("naturalWidth") or 0) > 0
+        and int(scene_media.get("naturalHeight") or 0) > 0
+        and "/public-media/content" in scene_src
+        and ":9000" not in scene_src
+        and not scene_src.startswith("nullstorage://")
+    )
+
     matrix = {
         "Routes": "COVERED" if routes_covered else "PARTIAL",
         "Authenticated States": ("COVERED" if authenticated_states_covered else "PARTIAL"),
@@ -133,6 +148,7 @@ def main() -> int:
             "COVERED" if (ROOT / "upgrade" / "upgrade_drill.json").exists() else "PARTIAL"
         ),
         "Visual": "COVERED" if visual_covered else "PARTIAL",
+        "Governed Media": "COVERED" if governed_media_covered else "PARTIAL",
         "Accessibility": "PARTIAL",
         "Performance": (
             "COVERED" if (ROOT / "performance" / "memory_summary.json").exists() else "PARTIAL"
@@ -183,6 +199,11 @@ def main() -> int:
             "Every current semantic journey row must point to a non-empty screenshot produced "
             "during the same runtime sweep; unrelated or stale PNGs do not count."
         ),
+        "Governed Media": (
+            "The runtime fixture must reach Place through a display-approved, human-verified "
+            "scene_photo; the packaged WebView must decode it from the PetAccess "
+            "/public-media/content endpoint with non-zero natural dimensions."
+        ),
         "Accessibility": (
             "Web semantics remain required; native uiautomator visibility inside WebView "
             "is a platform observability limitation, not a semantic waiver."
@@ -208,6 +229,13 @@ def main() -> int:
         "observed_router_page_ids": sorted(observed_router_pages),
         "required_consumer_routes": REQUIRED_ROUTE_CASES,
         "observed_consumer_routes": len(journey_routes),
+        "governed_media": {
+            "required": bool(journey.get("requireSceneMedia"))
+            if isinstance(journey, dict)
+            else False,
+            "src": scene_src or None,
+            "decoded": governed_media_covered,
+        },
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
