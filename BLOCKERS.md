@@ -43,14 +43,24 @@ HBuilderX is not a current Android blocker.
 
 ## B-04 腾讯地图 Key
 - Type: 第三方服务凭证
-- Affected gate: G08（地图真实数据）
-- Missing external input: TENCENT_MAP_KEY_CLIENT / TENCENT_MAP_KEY_SERVER（.env）
-- Why code cannot complete it: Key 需腾讯位置服务账号申请。
-- Work already completed: MapProvider 抽象 + Mock 实现（synthetic 场所/图钉/多边形渲染），
-  拿到 Key 后只需在 provider factory 切换（factory.py / map adapter），业务逻辑零改动。
-- Exact user action: 申请 Key → 填 .env → FEATURE_REAL_MAP=true → 重启 API。
-- Exact verification after resolution: /ai/map/config 返回 tencent provider；前端地图渲染真实底图。
-- 影响：G08 以 Mock 实现 PASS（viewport/search/zone 渲染与业务逻辑真跑），真实底图留待 Key。
+- Affected gate: G08（真实地图底图）
+- Missing external input: `TENCENT_MAP_KEY_CLIENT` / `TENCENT_MAP_KEY_SERVER`
+- Why code cannot complete it: Key 需腾讯位置服务账号申请并配置对应 JavaScript GL / WebService 能力与授权边界。
+- Work already completed:
+  - Provider-neutral fallback 只使用 **PetAccess 已收录的真实代表坐标**做聚合与点位投影，不伪造场所坐标、道路、多边形或现场证据；
+  - fallback 明确标注为简化空间底图，不冒充 surveyed geography；
+  - Tencent JS GL renderer、WGS84 → GCJ-02 服务端转换、GCJ-02 → WGS84 交互中心归一化均已实现；
+  - Android Runtime Review Board 会记录当前 packaged surface 是 `fallback` 还是 `tencent`；
+  - Phone Preview 支持 `require_real_map=true`，会在打包前同时验证 `/ai/map/config` 与 `/ai/map/translate`。
+- Exact user action: 申请并配置 client/server Key → API 设置 `MAP_PROVIDER=tencent`、
+  `FEATURE_REAL_MAP=true` → 配置 Key 授权边界 → 运行真实地图 Phone Preview。
+- Exact verification after resolution:
+  1. `/api/v1/ai/map/config` → `provider=tencent`, `real_enabled=true`；
+  2. `/api/v1/ai/map/translate` → `provider=tencent`, `coordinate_system=GCJ-02`；
+  3. Android packaged runtime Review Board → `Map provider = tencent`；
+  4. `PETACCESS_REQUIRE_REAL_MAP=1` journey PASS。
+- 影响：没有 Key 时地图功能与真实地点坐标仍可用，但只允许声明 **provider-neutral fallback**；
+  不得宣称“真实腾讯底图已接入”。
 
 ## B-05 真实 AI Provider Key（vision/OCR）
 - Type: 第三方服务凭证
@@ -75,8 +85,27 @@ HBuilderX is not a current Android blocker.
 - Type: 主体资质与法律确认
 - Affected gate: G22/G23 的上线部分（不影响本地 RC）
 - Missing external input: 域名、ICP 备案、隐私政策主体、地图业务边界合规确认（design #43）
-- Work already completed: 合规等待项均以 feature flag / Mock 隔离（design #43 第 10 条）。
+- Work already completed: 合规等待项均以 feature flag / provider boundary 隔离；未配置真实 Provider 时产品显式展示 fallback，不伪造完成状态。
 - 影响：上线部署时补充。
+
+## B-08 Signed Release Public API — FAIL-CLOSED EXTERNAL GATE
+
+- Type: 部署基础设施 / GitHub Repository Variable
+- Affected gate: Windows signed/installer artifact、Android signed APK、对外可安装 Release
+- Required external input: `PETACCESS_PUBLIC_API_BASE=https://<真实域名>/api/v1`
+- Why code cannot invent it: 生产 API 域名与部署环境必须由真实基础设施提供，不能为了让构建变绿伪造域名。
+- Work already completed:
+  - `scripts/release/verify_public_api.cjs`：要求 HTTPS、`/api/v1/ping` 与 `/health` 都证明是在线 PetAccess API；
+  - `scripts/release/generate_tauri_release_config.cjs`：生成 signed-build 专用严格 CSP，移除开发用 localhost / `10.0.2.2` origin；
+  - `release-ci.yml`：Windows / Android 都必须显式注入生产 API base，并在打包前验证 endpoint 已编入 Consumer；
+  - engineering gate + PR CI 防止回退到 packaged dev defaults。
+- Exact user action:
+  1. 部署真实 HTTPS PetAccess API；
+  2. 在 GitHub Repository Variables 配置 `PETACCESS_PUBLIC_API_BASE`；
+  3. 确认 `/health` 与 `/api/v1/ping` 可从 GitHub runner 访问；
+  4. 再授权 tag/release 流程。
+- Exact verification after resolution: Release CI 的 `Verify packaged runtime API` PASS，随后 Windows/Android signed jobs 才允许执行。
+- 影响：变量缺失、HTTP、错误服务或后端不可达时 **Release 必须失败**；Preview APK 不受此门限制。
 
 ---
 
