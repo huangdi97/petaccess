@@ -8,7 +8,7 @@ import {
 } from "../components/contribute/ruleLeadCopy";
 import { presentDescription } from "../errors";
 
-export type RuleIntent = "still_valid" | "changed" | "signage" | "new_lead";
+export type RuleIntent = "" | "still_valid" | "changed" | "signage" | "new_lead";
 export type RuleEffect = "allowed" | "restricted" | "conditional" | "";
 export type RuleAnimalScope = "ordinary_pet" | "dog" | "cat" | "other";
 
@@ -40,7 +40,7 @@ export function useRuleLeadContribution(
   props: RuleLeadProps,
   onDone: (message: string) => void,
 ): RuleLeadController {
-  const intent = ref<RuleIntent>("new_lead");
+  const intent = ref<RuleIntent>("");
   const effect = ref<RuleEffect>("");
   const animalScope = ref<RuleAnimalScope>("ordinary_pet");
   const zone = ref("");
@@ -72,6 +72,7 @@ export function useRuleLeadContribution(
       props.signedIn &&
       !busy.value &&
       !uploading.value &&
+      Boolean(intent.value) &&
       (!needsExistingRule.value || Boolean(selectedRuleId.value)) &&
       (!needsRuleDescription.value || (Boolean(effect.value) && Boolean(sourceBasis.value))) &&
       (intent.value !== "signage" || Boolean(mediaId.value)),
