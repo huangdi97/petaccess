@@ -112,26 +112,47 @@ async function main() {
     );
   }
 
-  async function logRoute(label, hash, expectedPage, delay = 1800, expectedStates = ["ready"]) {
+  async function waitForRouteState(
+    label,
+    expectedPage,
+    expectedStates,
+    timeoutMs = 12000,
+  ) {
+    const deadline = Date.now() + timeoutMs;
+    let last = null;
+    while (Date.now() < deadline) {
+      last = await snapshot();
+      const pageReady = last.uiPage === expectedPage;
+      const stateReady = !expectedStates.length || expectedStates.includes(last.uiState);
+      const geometryReady = !last.horizontalOverflow && !last.safeAreaOverlap;
+      if (last.shell && pageReady && stateReady && geometryReady) {
+        // Require a second stable sample. Android WebView can briefly expose the
+        // new route before async page data/layout has settled after wm size/density
+        // changes; one frame must never define responsive acceptance.
+        await sleep(250);
+        const stable = await snapshot();
+        if (
+          stable.shell &&
+          stable.uiPage === expectedPage &&
+          (!expectedStates.length || expectedStates.includes(stable.uiState)) &&
+          !stable.horizontalOverflow &&
+          !stable.safeAreaOverlap
+        ) {
+          return stable;
+        }
+        last = stable;
+      }
+      await sleep(250);
+    }
+
+    throw new Error(
+      `${label}: route did not reach stable ${expectedPage}/${expectedStates.join("|") || "*"} within ${timeoutMs}ms; last=${JSON.stringify(last)}`,
+    );
+  }
+
+  async function logRoute(label, hash, expectedPage, delay = 600, expectedStates = ["ready"]) {
     await go(hash, delay);
-    const value = await snapshot();
-    if (!value.shell) throw new Error(`${label}: Consumer shell missing`);
-    if (value.uiPage !== expectedPage) {
-      throw new Error(`${label}: expected data-ui-page=${expectedPage}, got ${value.uiPage}`);
-    }
-    if (expectedStates.length && !expectedStates.includes(value.uiState)) {
-      throw new Error(`${label}: expected state ${expectedStates.join("|")}, got ${value.uiState}`);
-    }
-    if (value.horizontalOverflow) {
-      throw new Error(
-        `${label}: horizontal overflow ${value.scrollWidth} > ${value.viewportWidth}`,
-      );
-    }
-    if (value.safeAreaOverlap) {
-      throw new Error(
-        `${label}: content starts at ${value.contentTop}px inside a ${value.safeAreaTop}px top safe area`,
-      );
-    }
+    const value = await waitForRouteState(label, expectedPage, expectedStates);
     console.log(`${label} ${JSON.stringify(value)}`);
   }
 
@@ -146,17 +167,7 @@ async function main() {
       input.dispatchEvent(new Event("input", { bubbles: true }));
       document.querySelector("[data-testid=search-btn]")?.click();
     })()`);
-    await sleep(2500);
-    const value = await snapshot();
-    const searchStateReady = ["ready", "ready-selected"].includes(value.uiState);
-    if (
-      value.uiPage !== "search" ||
-      !searchStateReady ||
-      value.horizontalOverflow ||
-      value.safeAreaOverlap
-    ) {
-      throw new Error(`SEARCH invalid state: ${JSON.stringify(value)}`);
-    }
+    const value = await waitForRouteState("SEARCH", "search", ["ready", "ready-selected"]);
     console.log(`SEARCH ${JSON.stringify(value)}`);
   } else if (action === "map") {
     await logRoute("MAP", "#/map", "map", 2200);
