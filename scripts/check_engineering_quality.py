@@ -269,6 +269,8 @@ def check_consumer_runtime_boundary() -> list[dict]:
             required_verifier_markers = (
                 "/ping",
                 "/health",
+                "http://tauri.localhost",
+                "access-control-allow-origin",
                 "/ai/map/config",
                 "/ai/map/translate",
                 'translated?.provider !== "tencent"',
