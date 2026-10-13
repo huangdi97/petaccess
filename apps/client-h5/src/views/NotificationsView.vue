@@ -98,41 +98,31 @@ async function unsubscribe(w: WatchView) {
     "
   >
     <header class="notifications-head">
+      <p class="notifications-head__kicker">我的关注</p>
       <h1>通知中心</h1>
       <p class="muted">
-        这里管理你主动关注的变化。规则版本变化与经核验现场更新是两条独立订阅，不会相互替代。
+        只显示你主动关注的变化。规则版本变化与经核验现场更新始终分开，不会互相替代。
       </p>
-    </header>
 
-    <section class="notifications-channel" aria-label="关注类型">
-      <div class="notifications-channel__lead">
-        <h2>关注类型</h2>
-        <p class="muted">规则变化与现场更新是两条独立订阅；一个变化不会替代另一个。</p>
-      </div>
-      <div class="notifications-channel__body">
-        <div class="channel-row">
-          <div>
-            <strong>规则变化</strong>
-            <p class="muted">只跟踪经过人工核验并发布的正式规则版本。</p>
-          </div>
-          <span v-if="signedIn && !loading && !error" class="channel-row__count">
-            {{ activeRuleCount }} 项
-          </span>
+      <div
+        v-if="signedIn && !loading && !error"
+        class="notifications-summary"
+        aria-label="关注摘要"
+      >
+        <div>
+          <span>规则变化</span>
+          <strong>{{ activeRuleCount }}</strong>
         </div>
-        <div class="channel-row">
-          <div>
-            <strong>现场更新</strong>
-            <p class="muted">跟踪新发布且经核验的动物出现、工作人员处理与设施事实。</p>
-          </div>
-          <span v-if="signedIn && !loading && !error" class="channel-row__count">
-            {{ activeRealityCount }} 项
-          </span>
+        <div>
+          <span>现场更新</span>
+          <strong>{{ activeRealityCount }}</strong>
         </div>
-        <p class="notifications-channel__delivery muted">
-          当前版本尚未接入系统推送；这里是应用内关注列表，不代表外部提醒已经发送。
-        </p>
+        <div>
+          <span>总关注</span>
+          <strong>{{ watches.length }}</strong>
+        </div>
       </div>
-    </section>
+    </header>
 
     <SkeletonList v-if="loading" :rows="3" />
     <StateMessage v-else-if="error" kind="ERROR" :description="error">
@@ -165,10 +155,19 @@ async function unsubscribe(w: WatchView) {
     </StateMessage>
 
     <section v-else class="notifications-list" aria-label="已关注的变化">
+      <div class="notifications-list__head">
+        <div>
+          <p class="notifications-list__kicker">正在关注</p>
+          <h2>你的变化订阅</h2>
+        </div>
+        <span>{{ watches.length }} 项</span>
+      </div>
+
       <p v-if="actionError" class="notifications-action-error" role="alert">
         取消关注失败，原有订阅仍保留：{{ actionError }}
       </p>
       <div v-for="w in watches" :key="w.id" class="notification-row">
+        <div class="notification-row__marker" :data-domain="w.watch_domain" aria-hidden="true" />
         <div class="notification-row__body">
           <strong>{{ targetLabel(w) }}</strong>
           <span>{{ domainLabel(w) }}</span>
@@ -185,6 +184,33 @@ async function unsubscribe(w: WatchView) {
         >
           {{ unsubscribing === w.id ? "取消中…" : "取消关注" }}
         </button>
+      </div>
+    </section>
+
+    <section class="notifications-channel" aria-label="关注如何工作">
+      <div class="notifications-channel__lead">
+        <p class="notifications-list__kicker">工作方式</p>
+        <h2>关注如何工作</h2>
+        <p class="muted">只对已经发布且可追溯的变化产生应用内记录。</p>
+      </div>
+      <div class="notifications-channel__body">
+        <div class="channel-row">
+          <div>
+            <strong>规则变化</strong>
+            <p class="muted">只跟踪经过人工核验并发布的正式规则版本。</p>
+          </div>
+          <span class="channel-row__badge">Rule</span>
+        </div>
+        <div class="channel-row">
+          <div>
+            <strong>现场更新</strong>
+            <p class="muted">跟踪新发布且经核验的动物出现、工作人员处理与设施事实。</p>
+          </div>
+          <span class="channel-row__badge">Reality</span>
+        </div>
+        <p class="notifications-channel__delivery muted">
+          当前版本尚未接入系统推送；这里是应用内关注列表，不代表外部提醒已经发送。
+        </p>
       </div>
     </section>
   </AppShell>
