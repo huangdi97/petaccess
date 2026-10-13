@@ -228,7 +228,7 @@ def emit_reality_published(
         "staff_response": WatchEventType.REALITY_STAFF_RESPONSE_PUBLISHED,
         "animal_facility": WatchEventType.REALITY_ANIMAL_FACILITY_PUBLISHED,
     }
-    candidate_type = _value(candidate.candidate_type)
+    candidate_type = candidate.candidate_type.value
     event_type = event_type_by_candidate.get(candidate_type)
     if event_type is None:
         return []
