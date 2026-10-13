@@ -267,9 +267,15 @@ const SHOTS: Shot[] = [
     page: "contribution",
     state: "step-1",
     h1: "现场贡献",
-    requiredTestids: ["rule-review-next"],
-    requiredText: ["补充规则信息", "不会自动生成或发布规则"],
-    note: "Rule lead is governed evidence/review, never Observation and never auto-published Rule.",
+    requiredTestids: [
+      "rule-intent-still_valid",
+      "rule-intent-changed",
+      "rule-intent-signage",
+      "rule-intent-new_lead",
+      "rule-review-next",
+    ],
+    requiredText: ["补充规则信息", "页面规则仍然如此", "我知道或了解到一条规则"],
+    note: "Rule contribution begins with an explicit intent choice; structured fields are progressively revealed and remain review-governed.",
   },
   {
     name: "15_contribution_correction",
