@@ -250,9 +250,7 @@ def _verify_delivery(media_id: str, bundle_id: str) -> dict[str, str]:
             raise RuntimeError("public scene content is not a PNG")
         width, height = struct.unpack(">II", image.content[16:24])
         if (width, height) != (FIXTURE_WIDTH, FIXTURE_HEIGHT):
-            raise RuntimeError(
-                f"runtime scene fixture dimensions drifted: {(width, height)!r}"
-            )
+            raise RuntimeError(f"runtime scene fixture dimensions drifted: {(width, height)!r}")
 
         return {"media_id": media_id, "bundle_id": bundle_id, "url": url}
 
