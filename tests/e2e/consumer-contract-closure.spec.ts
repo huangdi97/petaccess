@@ -14,10 +14,25 @@
  *     changes the Consumer projection (Reality-first vs Rule-first headline,
  *     zone facts surfaced), never the domain facts themselves.
  */
-import { expect, test } from "@playwright/test";
+import { expect, test, type APIRequestContext } from "@playwright/test";
 import { currentQueryContext, snapshotKey } from "../../apps/client-h5/src/consumer/repository";
 import { lensOrderScore } from "../../apps/client-h5/src/consumer/rowView";
 import { session } from "../../packages/client-core/src/index";
+
+const BASE = "http://127.0.0.1:5175";
+const API = "http://127.0.0.1:8010/api/v1";
+
+async function signInMineContract(request: APIRequestContext): Promise<string> {
+  const email = `mine-${Date.now()}-${Math.floor(Math.random() * 1e5)}@example.com`;
+  const password = "passw0rd123";
+  const reg = await request.post(`${API}/auth/register`, {
+    data: { display_name: "Mine 合同用户", email, password },
+  });
+  expect(reg.ok(), `register failed: ${await reg.text()}`).toBeTruthy();
+  const login = await request.post(`${API}/auth/login`, { data: { email, password } });
+  expect(login.ok(), `login failed: ${await login.text()}`).toBeTruthy();
+  return (await login.json()).access_token as string;
+}
 
 const PLACE = {
   id: "00000000-0000-0000-0000-000000000002",
@@ -304,6 +319,36 @@ test("C6: Contribution starts with a place-first factual task, not a dead-end em
   await expect(page.getByTestId("contribute-go-search")).toBeVisible();
   await expect(page.getByTestId("contribute-go-map")).toBeVisible();
   await expect(start).toContainText("不会自动变成正式准入规则");
+});
+
+test("C6: signed-in Mine is a personal travel center with truthful empty-state actions", async ({
+  page,
+  request,
+}) => {
+  const token = await signInMineContract(request);
+  await page.addInitScript((t) => localStorage.setItem("pa_token", t), token);
+  await page.goto(`${BASE}/#/mine`, { waitUntil: "load" });
+
+  await expect(page.locator('[data-ui-page="mine"][data-ui-state="signed-in"]')).toBeVisible({
+    timeout: 15000,
+  });
+  await expect(page.getByText("个人出行中心")).toBeVisible();
+  await expect(page.getByLabel("个人记录摘要")).toContainText("0宠物档案");
+  await expect(page.getByLabel("个人记录摘要")).toContainText("0关注变化");
+  await expect(page.getByLabel("个人记录摘要")).toContainText("0贡献记录");
+
+  await expect(page.getByRole("link", { name: "建立档案 →" })).toHaveAttribute(
+    "href",
+    "#/pet/new",
+  );
+  await expect(page.getByRole("link", { name: "去地图看看 →" })).toHaveAttribute(
+    "href",
+    "#/map",
+  );
+  await expect(page.getByRole("link", { name: "去补充事实 →" })).toHaveAttribute(
+    "href",
+    "#/contribute",
+  );
 });
 
 test("C6: signed-out Mine explains value without blocking public browsing", async ({ page }) => {
