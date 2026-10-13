@@ -65,11 +65,26 @@ function setActivePet(pet: (typeof pets.value)[number]) {
     data-ui-page="mine"
     :data-ui-state="loading ? 'loading' : error ? 'error' : signedIn ? 'signed-in' : 'public'"
   >
-    <header class="mine-head">
+    <header class="mine-head" :class="{ 'mine-head--signed-in': signedIn }">
+      <p class="mine-head__kicker">个人出行中心</p>
       <h1>我的</h1>
       <template v-if="signedIn">
         <strong class="mine-head__name">{{ session.user?.display_name }}</strong>
-        <span class="muted">{{ session.user?.email }}</span>
+        <span class="muted mine-head__email">{{ session.user?.email }}</span>
+        <div class="mine-head__summary" aria-label="个人记录摘要">
+          <div>
+            <strong>{{ pets.length }}</strong>
+            <span>宠物档案</span>
+          </div>
+          <div>
+            <strong>{{ watches.length }}</strong>
+            <span>关注变化</span>
+          </div>
+          <div>
+            <strong>{{ contributions.length }}</strong>
+            <span>贡献记录</span>
+          </div>
+        </div>
       </template>
     </header>
 
@@ -131,9 +146,61 @@ function setActivePet(pet: (typeof pets.value)[number]) {
   border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
 }
 
+.mine-head--signed-in {
+  padding: var(--pa-space-5);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: calc(var(--pa-radius-md) + 4px);
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--pa-color-accent-weak) 72%, var(--pa-color-surface)) 0%,
+      var(--pa-color-surface-raised) 76%
+    );
+  box-shadow: var(--pa-elevation-1);
+}
+
+.mine-head__kicker {
+  margin: 0 0 var(--pa-space-1);
+  color: var(--pa-color-accent);
+  font-size: var(--pa-font-size-sm);
+  font-weight: var(--pa-font-weight-650);
+  letter-spacing: var(--pa-letter-spacing-wide);
+}
+
 .mine-head__name {
-  margin-top: var(--pa-space-2);
+  margin-top: var(--pa-space-3);
   font-size: var(--pa-font-size-lg);
+}
+
+.mine-head__email {
+  overflow-wrap: anywhere;
+}
+
+.mine-head__summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--pa-space-2);
+  margin-top: var(--pa-space-4);
+  padding-top: var(--pa-space-4);
+  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.mine-head__summary div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mine-head__summary strong {
+  color: var(--pa-color-text-primary);
+  font-size: var(--pa-font-size-xl);
+  line-height: var(--pa-line-height-26);
+}
+
+.mine-head__summary span {
+  color: var(--pa-color-text-secondary);
+  font-size: var(--pa-font-size-sm);
 }
 
 .mine-section {
@@ -183,6 +250,14 @@ function setActivePet(pet: (typeof pets.value)[number]) {
 }
 
 @media (max-width: 767px) {
+  .mine-head--signed-in {
+    padding: var(--pa-space-4);
+  }
+
+  .mine-head__summary {
+    gap: var(--pa-space-1);
+  }
+
   .mine-section__head {
     flex-direction: column;
     gap: var(--pa-space-2);
