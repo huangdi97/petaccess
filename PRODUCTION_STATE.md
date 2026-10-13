@@ -64,7 +64,9 @@ UI_MACHINE_GATES = use latest same-HEAD Actions result
 UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW
 ```
 
-禁止把历史 screenshot、旧 oracle PASS 或不同 HEAD 的 CI 结果拼成当前视觉验收。
+禁止把历史 screenshot、旧 oracle PASS 或**运行时输入已经变化**的旧 CI 结果拼成当前视觉验收。
+如果 branch tip 只比 Android artifact commit 多文档/治理说明改动，可以复用该 runtime evidence，
+但必须用 commit compare 明确证明 Android Preview 的触发范围内没有任何文件变化。
 
 ## 4. Android current state
 
@@ -186,7 +188,8 @@ PUBLIC_BETA = NOT_AUTHORIZED
 
 按优先级：
 
-1. 等待同一最终代码 HEAD 的 PR CI / UI Validation / UI Visual / Android Preview 全部完成；
+1. 等待最终 runtime input set 的 PR CI / UI Validation / UI Visual / Android Preview 全部完成；
+   若 branch tip 只多文档提交，记录 compare 证明 runtime-relevant delta = 0；
 2. 下载 Android Runtime Review Board，对真实 packaged Android 截图做 Human Visual Review；
 3. 若要脱离电脑直接在安卓手机体验，提供可达 HTTPS API 并解除
    `BLOCKED_BY_API_BASE`，生成 standalone Phone Preview；
@@ -196,7 +199,12 @@ PUBLIC_BETA = NOT_AUTHORIZED
 
 ## Truth Rule
 
-**Never mark PASS without same-scope, same-HEAD evidence.**
+**Never mark PASS without same-scope, runtime-equivalent evidence.**
+
+证据优先使用同 HEAD。若证据 commit 早于当前 tip，只有在 commit compare 明确证明
+Android/Consumer/API/design-token/acceptance 等对应 workflow 输入范围内 **0 runtime-relevant
+delta** 时，才允许复用；一旦运行时输入发生变化必须重跑。正式 tag / signed Release 则始终以
+最终发布 HEAD 重新验证。
 
 机器门禁、真实 Android runtime、Human Visual Acceptance、规则治理签署、Production Release
 是不同层级；任何一层 PASS 都不能自动替代另一层。
