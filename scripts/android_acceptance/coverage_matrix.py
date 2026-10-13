@@ -73,9 +73,23 @@ def main() -> int:
         and REQUIRED_ROUTER_PAGES.issubset(observed_router_pages)
         and all(row.get("ok") is True for row in journey_routes)
     )
+    auth_routes = [
+        row
+        for row in journey_routes
+        if isinstance(row, dict) and row.get("authenticated") is True
+    ]
+    authenticated_states_covered = (
+        isinstance(journey, dict)
+        and journey.get("authenticatedSweepRequested") is True
+        and len(auth_routes) >= 7
+        and all(row.get("ok") is True for row in auth_routes)
+    )
 
     matrix = {
         "Routes": "COVERED" if routes_covered else "PARTIAL",
+        "Authenticated States": (
+            "COVERED" if authenticated_states_covered else "PARTIAL"
+        ),
         "Domain States": "COVERED" if has("cdp_semantic.json") else "PARTIAL",
         "Device Sizes": "COVERED" if has("width_matrix.json") else "PARTIAL",
         "Network States": (
@@ -101,10 +115,16 @@ def main() -> int:
 
     notes = {
         "Routes": (
-            "Canonical packaged-WebView CDP journey requires 19/19 Router pages plus "
-            "Place rules/space views (21/21 cases). Each case asserts data-ui-page identity, "
-            "zero horizontal overflow and safe-area non-overlap, with a screenshot captured "
-            "at that state."
+            "Canonical packaged-WebView CDP journey requires all 19 Router pages plus "
+            "Place rules/space public views. Each case asserts data-ui-page identity, zero "
+            "horizontal overflow and safe-area non-overlap, with a screenshot captured at "
+            "that state."
+        ),
+        "Authenticated States": (
+            "A real CI account is registered against the seeded API and its access token is "
+            "injected into the packaged WebView. Contribution choose-type, Mine, Privacy, "
+            "Pets, Notifications, Boundary and Pet New must all render their authenticated "
+            "state without horizontal overflow."
         ),
         "Domain States": (
             "Rule UNKNOWN!=ALLOWED verified; Reality "
@@ -148,6 +168,8 @@ def main() -> int:
         "evidence_root": str(ROOT),
         "required_route_cases": REQUIRED_ROUTE_CASES,
         "observed_route_cases": len(journey_routes),
+        "required_authenticated_cases": 7,
+        "observed_authenticated_cases": len(auth_routes),
         "required_router_pages": len(REQUIRED_ROUTER_PAGES),
         "observed_router_pages": len(observed_router_pages),
         "observed_router_page_ids": sorted(observed_router_pages),
