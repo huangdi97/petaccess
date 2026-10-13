@@ -55,22 +55,60 @@ def ensure_app() -> str:
     return pid
 
 
-def cdp_probe(pid: str, step: str) -> str:
+def cdp_probe(step: str, retries: int = 4) -> str:
+    """Probe the current packaged WebView, healing API-level CDP socket churn.
+
+    Android 36 can recreate/invalidate the WebView devtools target around
+    hardware-Back/activity transitions while the PetAccess Activity itself
+    remains healthy. Never pin the whole FAST run to the launch-time PID/socket:
+    resolve the current process and rebuild the adb forward before every probe.
+
+    This retries transport failures only. A missing app process or a semantic
+    page mismatch still fails the caller's product assertion.
+    """
+
     port = 9260
-    adb("forward", "--remove", f"tcp:{port}", serial=SERIAL, check=False)
-    adb("forward", f"tcp:{port}", f"localabstract:webview_devtools_remote_{pid}", serial=SERIAL)
-    time.sleep(1)
-    out = subprocess.run(
-        ["node", str(PROBE), str(port), step],
-        capture_output=True,
-        text=True,
-        timeout=120,
-    )
-    if out.returncode != 0:
-        raise RuntimeError(
-            f"CDP {step} failed rc={out.returncode}: {(out.stderr or out.stdout)[-500:]}"
+    last_error = "no attempt"
+    for attempt in range(retries):
+        current_pid = shell_pidof(SERIAL, PKG)
+        if not current_pid:
+            raise RuntimeError(f"{PKG} process missing before CDP {step}")
+
+        adb("forward", "--remove", f"tcp:{port}", serial=SERIAL, check=False)
+        adb(
+            "forward",
+            f"tcp:{port}",
+            f"localabstract:webview_devtools_remote_{current_pid}",
+            serial=SERIAL,
         )
-    return out.stdout.strip()
+        time.sleep(0.75 + attempt * 0.5)
+
+        out = subprocess.run(
+            ["node", str(PROBE), str(port), step],
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        if out.returncode == 0:
+            return out.stdout.strip()
+
+        last_error = (out.stderr or out.stdout or "").strip()
+        retryable = any(
+            marker in last_error.lower()
+            for marker in (
+                "socket hang up",
+                "no debuggable webview page",
+                "connection reset",
+                "econnreset",
+                "econnrefused",
+                "uncaught",
+            )
+        )
+        if not retryable or attempt == retries - 1:
+            break
+        time.sleep(0.75 + attempt)
+
+    raise RuntimeError(f"CDP {step} failed after {retries} attempts: {last_error[-500:]}")
 
 
 def wait_for_page(pid: str, expected_page: str, timeout_s: float = 30.0) -> str:
@@ -82,7 +120,7 @@ def wait_for_page(pid: str, expected_page: str, timeout_s: float = 30.0) -> str:
     needle = f'"uiPage":"{expected_page}"'
     while time.monotonic() < deadline:
         try:
-            state = cdp_probe(pid, "snapshot")
+            state = cdp_probe("snapshot")
             last_state = state
             compact = state.replace(" ", "")
             if needle in compact and '"shell":true' in compact:
@@ -102,7 +140,7 @@ def wait_for_android_back_ready(pid: str, timeout_s: float = 20.0) -> str:
     last_error = ""
     while time.monotonic() < deadline:
         try:
-            state = cdp_probe(pid, "snapshot")
+            state = cdp_probe("snapshot")
             last_state = state
             compact = state.replace(" ", "")
             if '"androidBack":"ready"' in compact:
@@ -149,7 +187,7 @@ def main() -> int:
 
     for step in ("home", "search", "map", "place", "reality", "evidence"):
         try:
-            results[step] = cdp_probe(pid, step)
+            results[step] = cdp_probe(step)
             results[f"shot_{step}"] = f"bytes={screenshot(f'{step}-m3-final')}"
         except Exception as e:  # noqa: BLE001 - report every route and keep going
             results[step] = f"ERROR {e}"
@@ -161,7 +199,7 @@ def main() -> int:
     try:
         shell(SERIAL, "input", "keyevent", "KEYCODE_BACK", timeout=30)
         time.sleep(2)
-        back_state = cdp_probe(pid, "snapshot")
+        back_state = cdp_probe("snapshot")
         results["hardware_back_from_evidence"] = back_state
         if '"uiPage":"reality"' not in back_state.replace(" ", ""):
             raise RuntimeError(f"expected Reality after Back, got: {back_state}")
@@ -170,7 +208,7 @@ def main() -> int:
         results["hardware_back_from_evidence"] = f"ERROR {e}"
 
     try:
-        results["nav"] = cdp_probe(pid, "nav")
+        results["nav"] = cdp_probe("nav")
         results["shot_nav"] = f"bytes={screenshot('nav-home-m3-final')}"
     except Exception as e:  # noqa: BLE001
         results["nav"] = f"ERROR {e}"
@@ -179,7 +217,7 @@ def main() -> int:
     # and clear it after recovery. These events exercise the mounted Tauri
     # WebView, not a desktop-H5 test double.
     try:
-        offline_state = cdp_probe(pid, "offline")
+        offline_state = cdp_probe("offline")
         results["offline"] = offline_state
         if '"offlineBanner":true' not in offline_state.replace(" ", ""):
             raise RuntimeError(f"offline banner did not appear: {offline_state}")
@@ -188,7 +226,7 @@ def main() -> int:
         results["offline"] = f"ERROR {e}"
 
     try:
-        recovery_state = cdp_probe(pid, "recovery")
+        recovery_state = cdp_probe("recovery")
         results["recovery"] = recovery_state
         if '"offlineBanner":false' not in recovery_state.replace(" ", ""):
             raise RuntimeError(f"offline banner did not clear: {recovery_state}")
@@ -208,7 +246,7 @@ def main() -> int:
         if not resumed_pid:
             raise RuntimeError("app process missing after activity resume")
         pid = resumed_pid
-        resumed_state = cdp_probe(pid, "snapshot")
+        resumed_state = cdp_probe("snapshot")
         results["activity_resume"] = resumed_state
         compact = resumed_state.replace(" ", "")
         if '"shell":true' not in compact:
