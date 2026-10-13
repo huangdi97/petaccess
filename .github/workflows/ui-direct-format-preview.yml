@@ -1,8 +1,5 @@
 name: UI Direct Format Preview
 
-permissions:
-  contents: write
-
 on:
   push:
     branches:
@@ -82,19 +79,3 @@ jobs:
             scripts/release/verify_public_api.cjs
             .github/workflows/android-preview.yml
 
-      - name: Commit repository formatter output
-        shell: bash
-        run: |
-          if git diff --quiet; then
-            echo "No formatter changes to commit."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add             scripts/android_acceptance/cdp_journey.cjs             scripts/release/verify_public_api.cjs
-          if git diff --cached --quiet; then
-            echo "Only non-target formatter changes exist; not committing."
-            exit 0
-          fi
-          git commit -m "chore: apply repository formatting"
-          git push origin HEAD:feat/ui-direct-craft-v8
