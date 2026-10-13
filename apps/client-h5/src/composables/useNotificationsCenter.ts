@@ -1,11 +1,6 @@
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import {
-  client,
-  session,
-  type WatchEventView,
-  type WatchView,
-} from "@petaccess/client-core";
+import { client, session, type WatchEventView, type WatchView } from "@petaccess/client-core";
 import { presentDescription } from "../errors";
 
 const TARGET_LABELS: Record<string, string> = {
@@ -37,17 +32,11 @@ export function useNotificationsCenter() {
   }
 
   function targetLabel(watch: WatchView): string {
-    return (
-      targetNames.value[watch.target_id] ??
-      TARGET_LABELS[watch.target_type] ??
-      "关注对象"
-    );
+    return targetNames.value[watch.target_id] ?? TARGET_LABELS[watch.target_type] ?? "关注对象";
   }
 
   function eventPlaceLabel(event: WatchEventView): string {
-    return event.place_id
-      ? (targetNames.value[event.place_id] ?? "场所变化")
-      : "规则变化";
+    return event.place_id ? (targetNames.value[event.place_id] ?? "场所变化") : "规则变化";
   }
 
   function eventTypeLabel(event: WatchEventView): string {
@@ -127,9 +116,7 @@ export function useNotificationsCenter() {
           ...watches.value
             .filter((watch) => watch.target_type === "place")
             .map((watch) => watch.target_id),
-          ...events.value
-            .map((event) => event.place_id)
-            .filter((id): id is string => Boolean(id)),
+          ...events.value.map((event) => event.place_id).filter((id): id is string => Boolean(id)),
         ]),
       ];
       const names = await Promise.all(
