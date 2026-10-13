@@ -91,14 +91,91 @@ def _card(route: dict) -> str:
     """
 
 
+def _width_card(profile: dict, page: dict) -> str:
+    profile_id = str(profile.get("profile") or "unknown")
+    action = str(page.get("action") or "unknown")
+    screenshot_raw = page.get("screenshot")
+    screenshot = Path(screenshot_raw) if isinstance(screenshot_raw, str) else None
+    if screenshot is not None and not screenshot.is_absolute():
+        screenshot = EVIDENCE_ROOT / screenshot
+
+    if screenshot is None or not screenshot.exists():
+        image = '<div class="missing">截图缺失 · 该尺寸不得视为通过</div>'
+    else:
+        src = html.escape(_relative(screenshot))
+        image = (
+            f'<a href="{src}"><img loading="lazy" src="{src}" '
+            f'alt="{html.escape(profile_id)} {html.escape(action)} screenshot" /></a>'
+        )
+
+    ok = page.get("ok") is True
+    status_class = "pass" if ok else "fail"
+    status_text = "SIZE PASS" if ok else "SIZE FAIL"
+    viewport = page.get("viewport_width", "-")
+    scroll = page.get("scroll_width", "-")
+    safe_top = page.get("safe_area_top", "-")
+    content_top = page.get("content_top", "-")
+
+    return f"""
+    <article class="route-card">
+      <header>
+        <div>
+          <span class="tag">{html.escape(profile_id)}</span>
+          <h2>{html.escape(action)}</h2>
+          <code>{html.escape(str(profile.get("wm_size") or ""))}</code>
+        </div>
+        <span class="status {status_class}">{status_text}</span>
+      </header>
+      <div class="shot">{image}</div>
+      <dl>
+        <div><dt>viewport width</dt><dd>{html.escape(str(viewport))}</dd></div>
+        <div><dt>scroll width</dt><dd>{html.escape(str(scroll))}</dd></div>
+        <div><dt>safe top</dt><dd>{html.escape(str(safe_top))}</dd></div>
+        <div><dt>content top</dt><dd>{html.escape(str(content_top))}</dd></div>
+        <div><dt>wm density</dt><dd>{html.escape(str(profile.get("wm_density") or "-"))}</dd></div>
+        <div><dt>overflow</dt><dd>{html.escape(str(not ok if page.get("error") else False))}</dd></div>
+      </dl>
+      {f'<p class="error">{html.escape(str(page.get("error")))}</p>' if page.get("error") else ""}
+    </article>
+    """
+
+
 def main() -> int:
     journey = _load_json(RUNTIME_DIR / "cdp_journey_playwright.json")
     fast = _load_json(RUNTIME_DIR / "m3_fast.json")
     coverage = _load_json(EVIDENCE_ROOT / "coverage_matrix.json")
+    width_matrix = _load_json(RUNTIME_DIR / "width_matrix.json")
 
     routes = journey.get("routes") if isinstance(journey.get("routes"), list) else []
     cards = "\n".join(_card(route) for route in routes)
     route_pass = sum(1 for route in routes if route.get("ok") is True)
+
+    width_profiles = (
+        width_matrix.get("profiles")
+        if isinstance(width_matrix.get("profiles"), list)
+        else []
+    )
+    width_cards = "\n".join(
+        _width_card(profile, page)
+        for profile in width_profiles
+        if isinstance(profile, dict)
+        for page in profile.get("pages", [])
+        if isinstance(page, dict)
+    )
+    width_pass = sum(
+        1
+        for profile in width_profiles
+        if isinstance(profile, dict)
+        for page in profile.get("pages", [])
+        if isinstance(page, dict) and page.get("ok") is True
+    )
+    width_total = sum(
+        1
+        for profile in width_profiles
+        if isinstance(profile, dict)
+        for page in profile.get("pages", [])
+        if isinstance(page, dict)
+    )
     fast_result = fast.get("result", "UNKNOWN")
     coverage_routes = (
         coverage.get("matrix", {}).get("Routes", "UNKNOWN")
@@ -107,6 +184,11 @@ def main() -> int:
     )
     coverage_auth = (
         coverage.get("matrix", {}).get("Authenticated States", "UNKNOWN")
+        if isinstance(coverage.get("matrix"), dict)
+        else "UNKNOWN"
+    )
+    coverage_sizes = (
+        coverage.get("matrix", {}).get("Device Sizes", "UNKNOWN")
         if isinstance(coverage.get("matrix"), dict)
         else "UNKNOWN"
     )
@@ -226,6 +308,8 @@ dd {{ margin: 2px 0 0; overflow-wrap: anywhere; font-size: 13px; }}
   <div>Route coverage<strong>{html.escape(str(coverage_routes))}</strong></div>
   <div>Authenticated<strong>{auth_pass}/{len(auth_routes)} · \
 {html.escape(str(coverage_auth))}</strong></div>
+  <div>Device sizes<strong>{width_pass}/{width_total} · \
+{html.escape(str(coverage_sizes))}</strong></div>
   <div>Map provider<strong>{html.escape(str(map_provider))}</strong></div>
   <div>Human visual<strong>PENDING</strong></div>
 </section>
@@ -235,6 +319,11 @@ Runtime PASS 只证明路由身份、WebView 几何、安全区、overflow 与�
 </p>
 <section class="grid">
 {cards if cards else "<p>没有找到当前 Android runtime route screenshot 证据。</p>"}
+</section>
+<h1 style="margin-top:32px">Responsive width matrix</h1>
+<p>同一个 packaged Android Preview 在 phone-m、约 360dp、约 430dp 与 800dp 下重启并重新验证核心页面。</p>
+<section class="grid">
+{width_cards if width_cards else "<p>没有找到当前 Android width-matrix screenshot 证据。</p>"}
 </section>
 </body>
 </html>
