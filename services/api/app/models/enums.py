@@ -472,6 +472,16 @@ class WatchStatus(StrEnum):
     UNSUBSCRIBED = "unsubscribed"
 
 
+class WatchEventType(StrEnum):
+    """Reviewed publication events delivered to in-app Watch subscriptions."""
+
+    RULE_VERSION_PUBLISHED = "rule_version_published"
+    RULE_EXCEPTION_PUBLISHED = "rule_exception_published"
+    REALITY_OBSERVED_PRESENCE_PUBLISHED = "reality_observed_presence_published"
+    REALITY_STAFF_RESPONSE_PUBLISHED = "reality_staff_response_published"
+    REALITY_ANIMAL_FACILITY_PUBLISHED = "reality_animal_facility_published"
+
+
 class PetSpecies(StrEnum):
     DOG = "dog"
     CAT = "cat"
