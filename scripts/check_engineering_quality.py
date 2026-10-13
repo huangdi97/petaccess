@@ -267,6 +267,8 @@ def check_consumer_runtime_boundary() -> list[dict]:
             '"artifactKind": "android-phone-preview"',
             '"standalonePhone": true',
             '"requiresAdbReverse": false',
+            "PETACCESS_PHONE_PREVIEW_API_BASE",
+            "feat/ui-direct-craft-v8",
         )
         if any(marker not in phone_preview_text for marker in required_phone_preview_markers):
             violations.append(
