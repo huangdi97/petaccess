@@ -24,6 +24,9 @@ jobs:
             apps/client-h5/src/views/HomeView.vue \
             apps/client-h5/src/views/ContributeView.vue \
             apps/client-h5/src/views/MineView.vue \
+            apps/client-h5/src/views/NotificationsView.vue \
+            apps/client-h5/src/views/OperatorClaimView.vue \
+            apps/client-h5/src/composables/useNotificationsCenter.ts \
             apps/client-h5/src/components/mine/MinePublicState.vue \
             apps/client-h5/src/components/contribute/ContributeRealityForm.vue \
             apps/client-h5/src/components/contribute/ContributeRuleForm.vue \
@@ -66,6 +69,9 @@ jobs:
             apps/client-h5/src/views/HomeView.vue
             apps/client-h5/src/views/ContributeView.vue
             apps/client-h5/src/views/MineView.vue
+            apps/client-h5/src/views/NotificationsView.vue
+            apps/client-h5/src/views/OperatorClaimView.vue
+            apps/client-h5/src/composables/useNotificationsCenter.ts
             apps/client-h5/src/components/mine/MinePublicState.vue
             apps/client-h5/src/components/contribute/ContributeRealityForm.vue
             apps/client-h5/src/components/contribute/ContributeRuleForm.vue
