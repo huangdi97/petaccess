@@ -261,7 +261,9 @@ def check_consumer_runtime_boundary() -> list[dict]:
                     "rule": "runtime-boundary",
                     "path": "scripts/release/verify_public_api.cjs",
                     "severity": "FAIL",
-                    "detail": "Phone Preview and signed Release require the shared live API preflight.",
+                    "detail": (
+                        "Phone Preview and signed Release require the shared live API preflight."
+                    ),
                 }
             )
         else:
