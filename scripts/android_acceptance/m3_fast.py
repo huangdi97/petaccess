@@ -164,6 +164,72 @@ def wait_for_pid(timeout_s: float = 20.0) -> str:
     raise RuntimeError(f"{PKG} process missing after launch")
 
 
+def android_sdk_level() -> int:
+    raw = shell(SERIAL, "getprop", "ro.build.version.sdk", timeout=30).strip()
+    try:
+        return int(raw)
+    except ValueError:
+        return 0
+
+
+def android_navigation_mode() -> str:
+    """Return Android's secure navigation_mode when available.
+
+    AOSP convention: 2 = gestural navigation, 1 = two-button, 0 = three-button.
+    OEMs may vary, so unknown values intentionally fall back to system keyevent.
+    """
+
+    return shell(SERIAL, "settings", "get", "secure", "navigation_mode", timeout=30).strip()
+
+
+def display_size() -> tuple[int, int]:
+    raw = shell(SERIAL, "wm", "size", timeout=30)
+    for line in reversed(raw.splitlines()):
+        if "size:" not in line:
+            continue
+        value = line.split("size:", 1)[1].strip()
+        if "x" not in value:
+            continue
+        width, height = value.split("x", 1)
+        try:
+            return int(width), int(height)
+        except ValueError:
+            continue
+    return 1080, 2400
+
+
+def trigger_system_back() -> str:
+    """Exercise Android's real Back path for the active navigation mode.
+
+    Android 16 / targetSdk 36 no longer treats KEYCODE_BACK interception as the
+    supported app Back contract. In gesture navigation, drive an actual left-edge
+    gesture so Tauri's OnBackInvoked callback is exercised. Three/two-button
+    navigation continues to use the system Back keyevent.
+    """
+
+    sdk = android_sdk_level()
+    mode = android_navigation_mode()
+    if sdk >= 36 and mode == "2":
+        width, height = display_size()
+        y = max(200, int(height * 0.55))
+        end_x = max(240, int(width * 0.42))
+        shell(
+            SERIAL,
+            "input",
+            "swipe",
+            "1",
+            str(y),
+            str(end_x),
+            str(y),
+            "320",
+            timeout=30,
+        )
+        return f"predictive-edge-gesture sdk={sdk} mode={mode} size={width}x{height}"
+
+    shell(SERIAL, "input", "keyevent", "KEYCODE_BACK", timeout=30)
+    return f"system-back-keyevent sdk={sdk} mode={mode or 'unknown'}"
+
+
 def screenshot(name: str) -> int:
     # Python 捕获字节再写文件：不经 cmd 重定向（REG-002 的 UTF-16 风险只影响
     # PowerShell 管道；subprocess capture_output 是纯字节，安全）。
@@ -197,7 +263,8 @@ def main() -> int:
     # exit, blank WebView or wrong route is a product failure, not a platform
     # limitation.
     try:
-        shell(SERIAL, "input", "keyevent", "KEYCODE_BACK", timeout=30)
+        back_method = trigger_system_back()
+        results["hardware_back_from_evidence_method"] = back_method
         time.sleep(2)
         back_state = cdp_probe("snapshot")
         results["hardware_back_from_evidence"] = back_state
@@ -272,7 +339,8 @@ def main() -> int:
         back_ready_state = wait_for_android_back_ready(root_pid, timeout_s=20)
         results["fresh_home_back_ready"] = back_ready_state
 
-        shell(SERIAL, "input", "keyevent", "KEYCODE_BACK", timeout=30)
+        back_method = trigger_system_back()
+        results["hardware_back_from_home_method"] = back_method
 
         deadline = time.monotonic() + 10
         resumed_lines: list[str] = []
