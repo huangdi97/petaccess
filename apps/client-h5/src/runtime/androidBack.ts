@@ -2,35 +2,52 @@ import type { Router } from "vue-router";
 
 export type AndroidBackAction = "back" | "home" | "exit";
 
-/**
- * Decide Android Back from Consumer navigation state, not WebView history.
- *
- * Android WebView can report canGoBack=true even on a fresh hash-router Home
- * because the WebView itself may retain an internal navigation entry. That is
- * not a meaningful PetAccess destination. Vue Router's history.state.back is
- * the product-level source of truth.
- */
 export function decideAndroidBackAction(
   routePath: string,
-  routerBackTarget: unknown,
+  consumerBackTarget: string | null,
 ): AndroidBackAction {
-  if (typeof routerBackTarget === "string" && routerBackTarget.length > 0) {
-    return "back";
-  }
+  if (consumerBackTarget) return "back";
   return routePath === "/" ? "exit" : "home";
 }
 
+export class ConsumerRouteStack {
+  private entries: string[];
+
+  constructor(initialPath: string) {
+    this.entries = initialPath ? [initialPath] : ["/"];
+  }
+
+  record(path: string): void {
+    if (!path) return;
+    const current = this.entries[this.entries.length - 1];
+    if (current === path) return;
+    this.entries.push(path);
+    if (this.entries.length > 64) this.entries.splice(0, this.entries.length - 64);
+  }
+
+  previous(currentPath: string): string | null {
+    while (this.entries.length && this.entries[this.entries.length - 1] !== currentPath) {
+      this.entries.pop();
+    }
+    if (this.entries.length <= 1) return null;
+    return this.entries[this.entries.length - 2] ?? null;
+  }
+
+  consumeBack(currentPath: string): string | null {
+    const target = this.previous(currentPath);
+    if (!target) return null;
+    this.entries.pop();
+    return target;
+  }
+}
+
 /**
- * Install the native Android Back contract for the packaged Tauri runtime.
+ * Install PetAccess' Android hardware-back contract.
  *
- * Product behavior:
- * - a real Vue Router back target exists -> return to it;
- * - a deep-linked non-home route has no Consumer history -> return Home;
- * - Home with no Consumer history -> finish the Android Activity.
- *
- * Tauri's canGoBack payload is retained for diagnostics, but deliberately does
- * not decide product navigation because WebView history and Consumer history
- * are not equivalent for a hash-routed app.
+ * Product navigation is governed by the Consumer route stack, not WebView's
+ * internal history. Hash-router/WebView history can diverge from meaningful
+ * PetAccess destinations, especially after packaged navigation or a fresh
+ * deep link.
  */
 export async function installAndroidBackHandler(router: Router): Promise<void> {
   const [{ onBackButtonPress }, { invoke }] = await Promise.all([
@@ -38,21 +55,27 @@ export async function installAndroidBackHandler(router: Router): Promise<void> {
     import("@tauri-apps/api/core"),
   ]);
 
+  const stack = new ConsumerRouteStack(router.currentRoute.value.fullPath);
+  router.afterEach((to) => stack.record(to.fullPath));
+
   await onBackButtonPress(({ canGoBack }) => {
-    const state = window.history.state as { back?: unknown } | null;
+    const current = router.currentRoute.value.fullPath;
     const routePath = router.currentRoute.value.path;
-    const action = decideAndroidBackAction(routePath, state?.back);
+    const target = stack.previous(current);
+    const action = decideAndroidBackAction(routePath, target);
 
     console.info(
-      `PETACCESS_ANDROID_BACK action=${action} route=${routePath} webviewCanGoBack=${canGoBack}`,
+      `PETACCESS_ANDROID_BACK action=${action} route=${routePath} target=${target ?? "-"} webviewCanGoBack=${canGoBack}`,
     );
 
     if (action === "back") {
-      router.back();
+      const consumed = stack.consumeBack(current);
+      if (consumed) void router.replace(consumed);
       return;
     }
 
     if (action === "home") {
+      stack.record("/");
       void router.replace("/");
       return;
     }
