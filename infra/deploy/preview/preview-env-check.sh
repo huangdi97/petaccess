@@ -23,7 +23,7 @@ require_value S3_ACCESS_KEY
 require_value S3_SECRET_KEY
 require_value JWT_SECRET
 
-case "\${APP_ENV:-}" in
+case "${APP_ENV:-}" in
   staging) ;;
   *)
     echo "PetAccess public Preview must run with APP_ENV=staging" >&2
@@ -31,15 +31,15 @@ case "\${APP_ENV:-}" in
     ;;
 esac
 
-case "\${API_BASE_URL:-}" in
-  "https://\${PETACCESS_PREVIEW_DOMAIN}/api/v1") ;;
+case "${API_BASE_URL:-}" in
+  "https://${PETACCESS_PREVIEW_DOMAIN}/api/v1") ;;
   *)
-    echo "API_BASE_URL must equal https://\${PETACCESS_PREVIEW_DOMAIN}/api/v1" >&2
+    echo "API_BASE_URL must equal https://${PETACCESS_PREVIEW_DOMAIN}/api/v1" >&2
     exit 64
     ;;
 esac
 
-if [ "\${FEATURE_REAL_MAP:-false}" = "true" ]; then
+if [ "${FEATURE_REAL_MAP:-false}" = "true" ]; then
   require_value TENCENT_MAP_KEY_CLIENT
   require_value TENCENT_MAP_KEY_SERVER
 fi
