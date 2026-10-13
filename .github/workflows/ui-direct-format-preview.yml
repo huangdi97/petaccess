@@ -55,6 +55,7 @@ jobs:
             tests/ui-oracle/human-review-direct-v8.spec.ts \
             scripts/android_acceptance/cdp_probe.cjs \
             scripts/android_acceptance/cdp_journey.cjs \
+            scripts/android_acceptance/ime_gate.cjs \
             scripts/windows_acceptance/cdp_shell_smoke.cjs \
             scripts/release/verify_public_api.cjs \
             .github/workflows/android-preview.yml \
@@ -100,6 +101,7 @@ jobs:
             tests/ui-oracle/human-review-direct-v8.spec.ts
             scripts/android_acceptance/cdp_probe.cjs
             scripts/android_acceptance/cdp_journey.cjs
+            scripts/android_acceptance/ime_gate.cjs
             scripts/windows_acceptance/cdp_shell_smoke.cjs
             scripts/release/verify_public_api.cjs
             .github/workflows/android-preview.yml
