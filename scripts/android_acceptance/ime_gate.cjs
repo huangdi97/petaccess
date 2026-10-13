@@ -32,7 +32,11 @@ function adbBinary() {
   if (process.env.ADB_PATH) return process.env.ADB_PATH;
   const sdk = process.env.ANDROID_SDK_ROOT || process.env.ANDROID_HOME;
   if (sdk) {
-    const candidate = path.join(sdk, "platform-tools", process.platform === "win32" ? "adb.exe" : "adb");
+    const candidate = path.join(
+      sdk,
+      "platform-tools",
+      process.platform === "win32" ? "adb.exe" : "adb",
+    );
     if (fs.existsSync(candidate)) return candidate;
   }
   return process.platform === "win32" ? "adb.exe" : "adb";
