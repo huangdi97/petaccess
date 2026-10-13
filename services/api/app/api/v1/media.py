@@ -31,6 +31,7 @@ from app.models.media import (
 from app.providers.factory import get_storage_provider
 from app.schemas.media import MediaMetaOut
 from app.services.media_access import media_meta_response, private_media
+
 router = APIRouter(tags=["media"])
 
 ALLOWED_MIME = {
