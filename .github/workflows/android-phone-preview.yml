@@ -74,6 +74,11 @@ jobs:
             console.error("api_base must not contain query parameters or fragments");
             process.exit(1);
           }
+          const normalizedPath = url.pathname.replace(/\/+$/, "");
+          if (!normalizedPath.endsWith("/api/v1")) {
+            console.error("api_base must point to the PetAccess /api/v1 base path");
+            process.exit(1);
+          }
 
           const origin = url.origin;
           const baseConfig = {
@@ -126,6 +131,45 @@ jobs:
               "This artifact is a manually configured Preview build, not a production Release.",
             ].join("\n"),
           );
+          NODE
+
+      - name: Verify remote PetAccess API identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const base = process.env.VITE_TAURI_ANDROID_API_BASE.replace(/\/+$/, "");
+
+          async function readJson(url) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 10000);
+            try {
+              const response = await fetch(url, {
+                method: "GET",
+                headers: { Accept: "application/json" },
+                signal: controller.signal,
+              });
+              if (!response.ok) {
+                throw new Error(`${url} -> HTTP ${response.status}`);
+              }
+              return await response.json();
+            } finally {
+              clearTimeout(timer);
+            }
+          }
+
+          const ping = await readJson(base + "/ping");
+          if (ping?.pong !== true) {
+            throw new Error("remote api_base is reachable but is not the expected PetAccess ping endpoint");
+          }
+
+          const origin = new URL(base).origin;
+          const health = await readJson(origin + "/health");
+          if (health?.status !== "ok") {
+            throw new Error("remote PetAccess /health did not report status=ok");
+          }
+
+          console.log("Remote PetAccess API identity verified:", origin);
           NODE
 
       - name: Install Rust Android target
