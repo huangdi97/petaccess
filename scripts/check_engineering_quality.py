@@ -82,6 +82,8 @@ def check_consumer_runtime_boundary() -> list[dict]:
         "VITE_TAURI_API_BASE",
         "VITE_TAURI_ANDROID_API_BASE",
         "generate_tauri_release_config.cjs",
+        "verify_public_api.cjs",
+        "name: Verify packaged runtime API",
         "tauri.release.generated.json",
         "--config src-tauri/tauri.release.generated.json",
     )
@@ -237,10 +239,7 @@ def check_consumer_runtime_boundary() -> list[dict]:
             "release_signature=NO",
             "store_release_artifact=NO",
             "require_real_map",
-            "/ai/map/config",
-            "/ai/map/translate",
-            'translated?.provider !== "tencent"',
-            'translated?.coordinate_system !== "GCJ-02"',
+            "verify_public_api.cjs",
         )
         if any(marker not in phone_preview_text for marker in required_phone_preview_markers):
             violations.append(
@@ -254,6 +253,39 @@ def check_consumer_runtime_boundary() -> list[dict]:
                     ),
                 }
             )
+
+        public_api_verifier_path = ROOT / "scripts" / "release" / "verify_public_api.cjs"
+        if not public_api_verifier_path.exists():
+            violations.append(
+                {
+                    "rule": "runtime-boundary",
+                    "path": "scripts/release/verify_public_api.cjs",
+                    "severity": "FAIL",
+                    "detail": "Phone Preview and signed Release require the shared live API preflight.",
+                }
+            )
+        else:
+            verifier_text = public_api_verifier_path.read_text(encoding="utf-8")
+            required_verifier_markers = (
+                "/ping",
+                "/health",
+                "/ai/map/config",
+                "/ai/map/translate",
+                'translated?.provider !== "tencent"',
+                'translated?.coordinate_system !== "GCJ-02"',
+            )
+            if any(marker not in verifier_text for marker in required_verifier_markers):
+                violations.append(
+                    {
+                        "rule": "runtime-boundary",
+                        "path": "scripts/release/verify_public_api.cjs",
+                        "severity": "FAIL",
+                        "detail": (
+                            "Shared runtime API preflight must prove PetAccess identity and "
+                            "retain the optional Tencent real-map provider probe."
+                        ),
+                    }
+                )
 
         forbidden_phone_preview_markers = (
             "allow_insecure_http",
