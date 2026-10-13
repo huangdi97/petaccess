@@ -64,12 +64,7 @@ const {
       description="登录后可查看和管理你的规则变化与现场更新关注。"
     >
       <template #action>
-        <button
-          class="primary"
-          @click="goLogin"
-        >
-          去登录
-        </button>
+        <button class="primary" @click="goLogin">去登录</button>
       </template>
     </StateMessage>
     <template v-else>
