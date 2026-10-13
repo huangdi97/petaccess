@@ -274,7 +274,11 @@ const SHOTS: Shot[] = [
       "rule-intent-new_lead",
       "rule-review-next",
     ],
-    requiredText: ["补充规则信息", "页面规则仍然如此", "我知道或了解到一条规则"],
+    requiredText: [
+      "你想补充哪一种规则信息？",
+      "页面规则仍然如此",
+      "我知道或了解到一条规则",
+    ],
     note: "Rule contribution begins with an explicit intent choice; structured fields are progressively revealed and remain review-governed.",
   },
   {
