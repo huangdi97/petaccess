@@ -153,9 +153,7 @@ def main() -> int:
     route_pass = sum(1 for route in routes if route.get("ok") is True)
 
     width_profiles = (
-        width_matrix.get("profiles")
-        if isinstance(width_matrix.get("profiles"), list)
-        else []
+        width_matrix.get("profiles") if isinstance(width_matrix.get("profiles"), list) else []
     )
     width_cards = "\n".join(
         _width_card(profile, page)
