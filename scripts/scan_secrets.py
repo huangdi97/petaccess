@@ -58,6 +58,12 @@ DEV_MARKERS = (
     # non-secret test JWT value. Keep the exception narrow; high-signal secret
     # patterns are never suppressed by DEV_MARKERS.
     "android_preview_ci_only",
+    # Deterministic Public Preview Stack CI fixture prefixes. These are
+    # committed test-only values, never deployment credentials. Keep them
+    # narrow so arbitrary preview_* assignments still fail the scanner.
+    "ci_preview_postgres_",
+    "ci_preview_storage_",
+    "ci_preview_jwt_",
     "{user}",
     "{password}",
     "***",
