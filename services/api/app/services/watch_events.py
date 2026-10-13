@@ -40,6 +40,12 @@ def _value(value: object) -> object:
     return value.value if isinstance(value, Enum) else value
 
 
+def _string_value(value: str | Enum) -> str:
+    """Normalize SQLAlchemy String-backed enums without assuming runtime coercion."""
+
+    return str(value.value) if isinstance(value, Enum) else value
+
+
 def _rule_place_id(db: Session, rule: AccessRule) -> str | None:
     if rule.place_id:
         return rule.place_id
@@ -228,7 +234,7 @@ def emit_reality_published(
         "staff_response": WatchEventType.REALITY_STAFF_RESPONSE_PUBLISHED,
         "animal_facility": WatchEventType.REALITY_ANIMAL_FACILITY_PUBLISHED,
     }
-    candidate_type = candidate.candidate_type.value
+    candidate_type = _string_value(candidate.candidate_type)
     event_type = event_type_by_candidate.get(candidate_type)
     if event_type is None:
         return []
