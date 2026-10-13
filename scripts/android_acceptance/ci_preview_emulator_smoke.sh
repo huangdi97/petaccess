@@ -94,6 +94,18 @@ if [[ "$CDP_READY" != "1" ]]; then
   exit 1
 fi
 
+# Start the long CDP journey from a fresh forward. The short readiness probe
+# opens and closes its own page-target websocket; Android System WebView can
+# invalidate that forwarded transport while the Activity remains healthy.
+JOURNEY_PID="$(adb -s "$SERIAL" shell pidof "$PACKAGE" 2>/dev/null | tr -d '\r\n' || true)"
+if [[ -z "$JOURNEY_PID" ]]; then
+  echo "Preview process disappeared before full CDP journey"
+  exit 1
+fi
+adb -s "$SERIAL" forward --remove tcp:9223 >/dev/null 2>&1 || true
+adb -s "$SERIAL" forward tcp:9223 "localabstract:webview_devtools_remote_$JOURNEY_PID"
+sleep 1.5
+
 AUTH_TOKEN="$(python - <<'PY'
 import json
 import time
