@@ -103,10 +103,9 @@ onMounted(load);
   color: var(--pa-color-text-muted);
   line-height: var(--pa-line-height-20);
 }
-</style>
-
 @media (max-width: 520px) {
   .rule-target {
     padding: var(--pa-space-3);
   }
 }
+</style>
