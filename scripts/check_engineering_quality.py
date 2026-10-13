@@ -212,10 +212,10 @@ def check_consumer_runtime_boundary() -> list[dict]:
         required_preview_artifact_markers = (
             "PREVIEW_MANIFEST.json",
             "INSTALL_PREVIEW.md",
-            "\"artifactKind\": \"android-preview\"",
-            "\"releaseArtifact\": false",
-            "\"requiresAdbReverse\":",
-            "\"standalonePhone\":",
+            '"artifactKind": "android-preview"',
+            '"releaseArtifact": false',
+            '"requiresAdbReverse":',
+            '"standalonePhone":',
         )
         if any(marker not in preview_text for marker in required_preview_artifact_markers):
             violations.append(
