@@ -26,6 +26,7 @@ from app.models.enums import (
     VerificationEventType,
     VerificationResult,
     WatchDomain,
+    WatchEventType,
     WatchStatus,
     WatchTargetType,
     normalize_mandatory_level,
@@ -369,6 +370,25 @@ class WatchOut(BaseModel):
     channels: list
     status: WatchStatus
     last_notified_at: datetime | None
+    created_at: datetime
+
+
+class WatchEventOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    subscription_id: str
+    user_id: str
+    watch_domain: WatchDomain
+    target_type: WatchTargetType
+    target_id: str
+    event_type: WatchEventType
+    subject_type: str
+    subject_id: str
+    place_id: str | None
+    occurred_at: datetime
+    read_at: datetime | None
+    payload: dict
     created_at: datetime
 
 
