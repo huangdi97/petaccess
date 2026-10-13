@@ -165,6 +165,7 @@ def test_report_candidate_has_private_traceable_evidence_bundle(client, place_id
         },
     )
     assert r.status_code == 201, r.text
+    assert r.json()["candidates"][0]["animal_scope"] == "dog"
     report_id = r.json()["report"]["id"]
     cand_id = r.json()["candidates"][0]["id"]
 
@@ -176,6 +177,7 @@ def test_report_candidate_has_private_traceable_evidence_bundle(client, place_id
     try:
         candidate = session.get(RealityCandidate, cand_id)
         assert candidate is not None
+        assert candidate.animal_scope == "dog"
         assert candidate.evidence_bundle_id is not None
         bundle = session.get(EvidenceBundle, candidate.evidence_bundle_id)
         assert bundle is not None
