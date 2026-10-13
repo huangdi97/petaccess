@@ -31,7 +31,13 @@ const routes = [
   { hash: "#/", tag: "R01", name: "home", expectedPage: "home", expectedState: "ready" },
   { hash: "#/search", tag: "R02", name: "search", expectedPage: "search", expectedState: "ready" },
   { hash: "#/map", tag: "R03", name: "map", expectedPage: "map", expectedState: "ready" },
-  { hash: `#/place/${PLACE_ID}`, tag: "R04", name: "place-overview", expectedPage: "place", expectedState: "ready" },
+  {
+    hash: `#/place/${PLACE_ID}`,
+    tag: "R04",
+    name: "place-overview",
+    expectedPage: "place",
+    expectedState: "ready",
+  },
   {
     hash: `#/place/${PLACE_ID}?view=rules`,
     tag: "R05",
