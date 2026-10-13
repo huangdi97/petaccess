@@ -155,6 +155,10 @@ assert journey["authenticatedCases"] >= 7, journey
 assert coverage["required_router_pages"] == 19, coverage
 assert coverage["observed_router_pages"] >= 19, coverage
 assert coverage["matrix"]["Authenticated States"] == "COVERED", coverage
+assert coverage["matrix"]["Visual"] == "COVERED", coverage
+assert set(coverage["observed_authenticated_case_ids"]) >= set(
+    coverage["required_authenticated_case_ids"]
+), coverage
 print(
     "Android Preview semantic journey: "
     f"{len(journey['routes'])}/{len(journey['routes'])} PASS "
