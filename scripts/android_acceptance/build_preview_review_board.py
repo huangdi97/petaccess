@@ -105,6 +105,13 @@ def main() -> int:
         if isinstance(coverage.get("matrix"), dict)
         else "UNKNOWN"
     )
+    coverage_auth = (
+        coverage.get("matrix", {}).get("Authenticated States", "UNKNOWN")
+        if isinstance(coverage.get("matrix"), dict)
+        else "UNKNOWN"
+    )
+    auth_routes = [route for route in routes if route.get("authenticated") is True]
+    auth_pass = sum(1 for route in auth_routes if route.get("ok") is True)
 
     html_doc = f"""<!doctype html>
 <html lang="zh-CN">
@@ -216,6 +223,7 @@ dd {{ margin: 2px 0 0; overflow-wrap: anywhere; font-size: 13px; }}
   <div>Route cases<strong>{route_pass}/{len(routes)}</strong></div>
   <div>FAST<strong>{html.escape(str(fast_result))}</strong></div>
   <div>Route coverage<strong>{html.escape(str(coverage_routes))}</strong></div>
+  <div>Authenticated<strong>{auth_pass}/{len(auth_routes)} · {html.escape(str(coverage_auth))}</strong></div>
   <div>Human visual<strong>PENDING</strong></div>
 </section>
 <p class="notice"><strong>重要：</strong>
