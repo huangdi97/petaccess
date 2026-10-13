@@ -29,6 +29,15 @@ REQUIRED_AUTH_CASES = {
     "auth-boundary",
     "auth-pet-new",
 }
+REQUIRED_FAST_EVIDENCE = {
+    "hardware_back_from_evidence",
+    "hardware_back_from_home",
+    "offline",
+    "recovery",
+    "activity_resume",
+    "fresh_home_before_back",
+    "fresh_home_back_ready",
+}
 REQUIRED_ROUTER_PAGES = {
     "home",
     "map",
@@ -67,6 +76,7 @@ def main() -> int:
     def has(name: str) -> bool:
         return (runtime / name).exists()
 
+    fast = _load(runtime / "m3_fast.json")
     ime_gate = _load(runtime / "ime_gate.json")
     journey = _load(runtime / "cdp_journey_playwright.json")
     journey_routes = journey.get("routes", []) if isinstance(journey, dict) else []
@@ -94,6 +104,18 @@ def main() -> int:
         and journey.get("authenticatedSweepRequested") is True
         and REQUIRED_AUTH_CASES.issubset(observed_auth_cases)
         and all(row.get("ok") is True for row in auth_routes)
+    )
+
+    observed_fast_evidence = set(fast) if isinstance(fast, dict) else set()
+    runtime_resilience_covered = (
+        isinstance(fast, dict)
+        and fast.get("result") == "PASS"
+        and int(fast.get("failure_count") or 0) == 0
+        and REQUIRED_FAST_EVIDENCE.issubset(observed_fast_evidence)
+        and all(
+            not str(fast.get(key, "")).startswith("ERROR ")
+            for key in REQUIRED_FAST_EVIDENCE
+        )
     )
 
     screenshot_paths = []
@@ -158,6 +180,7 @@ def main() -> int:
     matrix = {
         "Routes": "COVERED" if routes_covered else "PARTIAL",
         "Authenticated States": ("COVERED" if authenticated_states_covered else "PARTIAL"),
+        "Runtime Resilience": ("COVERED" if runtime_resilience_covered else "PARTIAL"),
         "Domain States": "COVERED" if has("cdp_semantic.json") else "PARTIAL",
         "Device Sizes": "COVERED" if width_sizes_covered else "PARTIAL",
         "IME / Input": (
@@ -205,6 +228,11 @@ def main() -> int:
             "injected into the packaged WebView. Contribution choose-type, Mine, Privacy, "
             "Pets, Notifications, Boundary and Pet New must all render their authenticated "
             "state without horizontal overflow."
+        ),
+        "Runtime Resilience": (
+            "The packaged Android FAST gate must pass Evidence -> system Back -> Reality, "
+            "fresh Home -> system Back -> Activity leaves foreground, offline banner -> "
+            "online recovery, and Home/Resume without blank shell or horizontal overflow."
         ),
         "Domain States": (
             "Rule UNKNOWN!=ALLOWED verified; Reality "
@@ -264,6 +292,13 @@ def main() -> int:
         "observed_route_cases": len(journey_routes),
         "required_authenticated_cases": len(REQUIRED_AUTH_CASES),
         "observed_authenticated_cases": len(observed_auth_cases),
+        "runtime_resilience": {
+            "covered": runtime_resilience_covered,
+            "required_evidence": sorted(REQUIRED_FAST_EVIDENCE),
+            "observed_evidence": sorted(REQUIRED_FAST_EVIDENCE & observed_fast_evidence),
+            "fast_result": fast.get("result") if isinstance(fast, dict) else None,
+            "failure_count": fast.get("failure_count") if isinstance(fast, dict) else None,
+        },
         "required_authenticated_case_ids": sorted(REQUIRED_AUTH_CASES),
         "observed_authenticated_case_ids": sorted(observed_auth_cases),
         "required_router_pages": len(REQUIRED_ROUTER_PAGES),
