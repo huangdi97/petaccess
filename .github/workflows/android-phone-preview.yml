@@ -1,11 +1,21 @@
 name: Android Phone Preview APK
 
 on:
+  push:
+    branches:
+      - feat/ui-direct-craft-v8
+    paths:
+      - "apps/client-h5/**"
+      - "packages/client-core/**"
+      - "packages/design-tokens/**"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/android-phone-preview.yml"
+      - "scripts/release/verify_public_api.cjs"
   workflow_dispatch:
     inputs:
       api_base:
-        description: "Phone-reachable PetAccess API base, e.g. https://staging.example.com/api/v1"
-        required: true
+        description: "Phone-reachable PetAccess API base. Overrides repository variable PETACCESS_PHONE_PREVIEW_API_BASE."
+        required: false
         type: string
       require_real_map:
         description: "Require the remote API to expose a working Tencent real-map provider"
@@ -23,12 +33,13 @@ concurrency:
 jobs:
   phone-preview:
     name: Android Preview · ARM64 standalone API
+    if: ${{ github.event_name == 'workflow_dispatch' || vars.PETACCESS_PHONE_PREVIEW_API_BASE != '' }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
-      PETACCESS_PUBLIC_API_BASE: ${{ inputs.api_base }}
-      VITE_TAURI_ANDROID_API_BASE: ${{ inputs.api_base }}
-      PETACCESS_REQUIRE_REAL_MAP: ${{ inputs.require_real_map && '1' || '0' }}
+      PETACCESS_PUBLIC_API_BASE: ${{ inputs.api_base || vars.PETACCESS_PHONE_PREVIEW_API_BASE }}
+      VITE_TAURI_ANDROID_API_BASE: ${{ inputs.api_base || vars.PETACCESS_PHONE_PREVIEW_API_BASE }}
+      PETACCESS_REQUIRE_REAL_MAP: ${{ github.event_name == 'workflow_dispatch' && inputs.require_real_map && '1' || '0' }}
       VITE_APP_VERSION: phone-preview-${{ github.sha }}
 
     steps:
@@ -258,7 +269,7 @@ jobs:
             "apiBase": "$VITE_TAURI_ANDROID_API_BASE",
             "requiresAdbReverse": false,
             "standalonePhone": true,
-            "realMapRequired": ${{ inputs.require_real_map }},
+            "realMapRequired": $([[ "$PETACCESS_REQUIRE_REAL_MAP" == "1" ]] && echo true || echo false),
             "apkFile": "$OUT"
           }
           EOF
@@ -278,7 +289,7 @@ jobs:
 
           Requires adb reverse: **no**
 
-          Requires real Tencent map: **${{ inputs.require_real_map }}**
+          Requires real Tencent map: **$PETACCESS_REQUIRE_REAL_MAP**
 
           ## Install on an ARM64 Android phone
 
