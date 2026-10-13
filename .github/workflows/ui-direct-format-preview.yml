@@ -26,6 +26,8 @@ jobs:
             apps/client-h5/src/views/MineView.vue \
             apps/client-h5/src/components/mine/MinePublicState.vue \
             apps/client-h5/src/components/contribute/ContributeRealityForm.vue \
+            apps/client-h5/src/components/contribute/ContributeRuleForm.vue \
+            apps/client-h5/src/components/contribute/RuleLeadFields.vue \
             apps/client-h5/src/components/contribute/ContributionReview.vue \
             apps/client-h5/src/components/contribute/RuleEvidenceUpload.vue \
             apps/client-h5/src/components/contribute/RuleTargetPicker.vue \
@@ -36,6 +38,7 @@ jobs:
             apps/client-h5/src/components/place/PlaceRulesPane.vue \
             apps/client-h5/src/components/place/PlaceOverviewPane.vue \
             apps/client-h5/src/composables/useHomeLauncher.ts \
+            apps/client-h5/src/composables/useRuleLeadContribution.ts \
             apps/client-h5/src/composables/useMapWorkspace.ts \
             apps/client-h5/src/consumer/homeDigest.ts \
             apps/client-h5/src/views/PlaceView.vue \
@@ -46,6 +49,7 @@ jobs:
             tests/e2e/boundary-preferences.spec.ts \
             tests/e2e/responsive.spec.ts \
             tests/e2e/consumer-contract-closure.spec.ts \
+            tests/ui-oracle/human-review-direct-v8.spec.ts \
             scripts/android_acceptance/cdp_probe.cjs \
             scripts/android_acceptance/cdp_journey.cjs \
             scripts/windows_acceptance/cdp_shell_smoke.cjs \
@@ -64,6 +68,8 @@ jobs:
             apps/client-h5/src/views/MineView.vue
             apps/client-h5/src/components/mine/MinePublicState.vue
             apps/client-h5/src/components/contribute/ContributeRealityForm.vue
+            apps/client-h5/src/components/contribute/ContributeRuleForm.vue
+            apps/client-h5/src/components/contribute/RuleLeadFields.vue
             apps/client-h5/src/components/contribute/ContributionReview.vue
             apps/client-h5/src/components/contribute/RuleEvidenceUpload.vue
             apps/client-h5/src/components/contribute/RuleTargetPicker.vue
@@ -74,6 +80,7 @@ jobs:
             apps/client-h5/src/components/place/PlaceRulesPane.vue
             apps/client-h5/src/components/place/PlaceOverviewPane.vue
             apps/client-h5/src/composables/useHomeLauncher.ts
+            apps/client-h5/src/composables/useRuleLeadContribution.ts
             apps/client-h5/src/composables/useMapWorkspace.ts
             apps/client-h5/src/consumer/homeDigest.ts
             apps/client-h5/src/views/PlaceView.vue
@@ -84,6 +91,7 @@ jobs:
             tests/e2e/boundary-preferences.spec.ts
             tests/e2e/responsive.spec.ts
             tests/e2e/consumer-contract-closure.spec.ts
+            tests/ui-oracle/human-review-direct-v8.spec.ts
             scripts/android_acceptance/cdp_probe.cjs
             scripts/android_acceptance/cdp_journey.cjs
             scripts/windows_acceptance/cdp_shell_smoke.cjs
