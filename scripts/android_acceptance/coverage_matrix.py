@@ -273,9 +273,7 @@ def main() -> int:
         "observed_consumer_routes": len(journey_routes),
         "ime_input": {
             "result": ime_gate.get("result") if isinstance(ime_gate, dict) else None,
-            "observed_cases": len(ime_gate.get("cases", []))
-            if isinstance(ime_gate, dict)
-            else 0,
+            "observed_cases": len(ime_gate.get("cases", [])) if isinstance(ime_gate, dict) else 0,
             "case_ids": (
                 [
                     case.get("id")
