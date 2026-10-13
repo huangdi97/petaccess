@@ -20,6 +20,15 @@ ROOT = Path(
 )
 OUT = ROOT / "coverage_matrix.json"
 REQUIRED_ROUTE_CASES = 21
+REQUIRED_AUTH_CASES = {
+    "auth-contribute",
+    "auth-mine",
+    "auth-privacy",
+    "auth-pets",
+    "auth-notifications",
+    "auth-boundary",
+    "auth-pet-new",
+}
 REQUIRED_ROUTER_PAGES = {
     "home",
     "map",
@@ -76,12 +85,31 @@ def main() -> int:
     auth_routes = [
         row for row in journey_routes if isinstance(row, dict) and row.get("authenticated") is True
     ]
+    observed_auth_cases = {
+        row.get("name")
+        for row in auth_routes
+        if isinstance(row.get("name"), str)
+    }
     authenticated_states_covered = (
         isinstance(journey, dict)
         and journey.get("authenticatedSweepRequested") is True
-        and len(auth_routes) >= 7
+        and REQUIRED_AUTH_CASES.issubset(observed_auth_cases)
         and all(row.get("ok") is True for row in auth_routes)
     )
+
+    screenshot_paths = []
+    screenshots_complete = bool(journey_routes)
+    for row in journey_routes:
+        screenshot = row.get("screenshot") if isinstance(row, dict) else None
+        if not isinstance(screenshot, str) or not screenshot:
+            screenshots_complete = False
+            continue
+        shot_path = Path(screenshot)
+        screenshot_paths.append(shot_path)
+        if not shot_path.exists() or shot_path.stat().st_size <= 0:
+            screenshots_complete = False
+
+    visual_covered = routes_covered and screenshots_complete and len(screenshot_paths) == len(journey_routes)
 
     matrix = {
         "Routes": "COVERED" if routes_covered else "PARTIAL",
@@ -100,7 +128,7 @@ def main() -> int:
         "Install/Upgrade": (
             "COVERED" if (ROOT / "upgrade" / "upgrade_drill.json").exists() else "PARTIAL"
         ),
-        "Visual": ("COVERED" if list((ROOT / "screenshots").glob("*.png")) else "PARTIAL"),
+        "Visual": "COVERED" if visual_covered else "PARTIAL",
         "Accessibility": "PARTIAL",
         "Performance": (
             "COVERED" if (ROOT / "performance" / "memory_summary.json").exists() else "PARTIAL"
@@ -147,7 +175,10 @@ def main() -> int:
             "upgrade evidence requires upgrade/upgrade_drill.json; file existence is not "
             "substituted by a release note"
         ),
-        "Visual": "Route/state screenshots must exist and are paired with semantic CDP evidence.",
+        "Visual": (
+            "Every current semantic journey row must point to a non-empty screenshot produced "
+            "during the same runtime sweep; unrelated or stale PNGs do not count."
+        ),
         "Accessibility": (
             "Web semantics remain required; native uiautomator visibility inside WebView "
             "is a platform observability limitation, not a semantic waiver."
@@ -164,8 +195,10 @@ def main() -> int:
         "evidence_root": str(ROOT),
         "required_route_cases": REQUIRED_ROUTE_CASES,
         "observed_route_cases": len(journey_routes),
-        "required_authenticated_cases": 7,
-        "observed_authenticated_cases": len(auth_routes),
+        "required_authenticated_cases": len(REQUIRED_AUTH_CASES),
+        "observed_authenticated_cases": len(observed_auth_cases),
+        "required_authenticated_case_ids": sorted(REQUIRED_AUTH_CASES),
+        "observed_authenticated_case_ids": sorted(observed_auth_cases),
         "required_router_pages": len(REQUIRED_ROUTER_PAGES),
         "observed_router_pages": len(observed_router_pages),
         "observed_router_page_ids": sorted(observed_router_pages),
