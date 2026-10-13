@@ -112,12 +112,7 @@ async function main() {
     );
   }
 
-  async function waitForRouteState(
-    label,
-    expectedPage,
-    expectedStates,
-    timeoutMs = 12000,
-  ) {
+  async function waitForRouteState(label, expectedPage, expectedStates, timeoutMs = 12000) {
     const deadline = Date.now() + timeoutMs;
     let last = null;
     while (Date.now() < deadline) {
