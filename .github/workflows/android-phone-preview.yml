@@ -7,11 +7,6 @@ on:
         description: "Phone-reachable PetAccess API base, e.g. https://staging.example.com/api/v1"
         required: true
         type: string
-      allow_insecure_http:
-        description: "Allow plain HTTP for an explicitly controlled LAN/dev endpoint"
-        required: false
-        default: false
-        type: boolean
 
 permissions:
   contents: read
@@ -45,8 +40,6 @@ jobs:
 
       - name: Validate API URL and generate isolated Preview CSP
         shell: bash
-        env:
-          ALLOW_INSECURE_HTTP: ${{ inputs.allow_insecure_http }}
         run: |
           set -euo pipefail
           node <<'NODE'
@@ -67,8 +60,10 @@ jobs:
             process.exit(1);
           }
 
-          if (!["https:", "http:"].includes(url.protocol)) {
-            console.error("api_base must use https:// or http://");
+          if (url.protocol !== "https:") {
+            console.error(
+              "Phone Preview requires an HTTPS API. Use the USB Preview + adb reverse path for local HTTP development.",
+            );
             process.exit(1);
           }
           if (url.username || url.password) {
@@ -77,14 +72,6 @@ jobs:
           }
           if (url.search || url.hash) {
             console.error("api_base must not contain query parameters or fragments");
-            process.exit(1);
-          }
-
-          const allowInsecure = (process.env.ALLOW_INSECURE_HTTP ?? "false") === "true";
-          if (url.protocol === "http:" && !allowInsecure) {
-            console.error(
-              "Plain HTTP is disabled by default. Use HTTPS, or explicitly enable allow_insecure_http for a controlled LAN/dev endpoint.",
-            );
             process.exit(1);
           }
 
