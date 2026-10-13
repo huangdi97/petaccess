@@ -12,15 +12,18 @@ truthful in-app ledger consumed by the Consumer notification centre.
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Any
+from enum import Enum
 
 from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
 from app.models import (
     AccessRule,
+    AnimalFacility,
+    ObservedPresence,
     RealityCandidate,
     RuleException,
+    StaffResponseObservation,
     WatchEvent,
     WatchSubscription,
     Zone,
@@ -33,8 +36,8 @@ from app.models.enums import (
 )
 
 
-def _value(value: Any) -> Any:
-    return getattr(value, "value", value)
+def _value(value: object) -> object:
+    return value.value if isinstance(value, Enum) else value
 
 
 def _rule_place_id(db: Session, rule: AccessRule) -> str | None:
@@ -54,7 +57,7 @@ def _deliver(
     subject_type: str,
     subject_id: str,
     place_id: str | None,
-    payload: dict[str, Any],
+    payload: dict[str, object],
 ) -> list[WatchEvent]:
     """Create one idempotent in-app event per matching active subscription."""
 
@@ -216,7 +219,7 @@ def emit_rule_exception_published(
 def emit_reality_published(
     db: Session,
     candidate: RealityCandidate,
-    claim: Any,
+    claim: ObservedPresence | StaffResponseObservation | AnimalFacility,
 ) -> list[WatchEvent]:
     """Deliver one human-verified published Reality fact to Reality watches."""
 
@@ -256,7 +259,7 @@ def emit_reality_published(
     payload = {
         "candidate_type": candidate_type,
         "zone_id": candidate.zone_id,
-        "verification_status": _value(getattr(claim, "verification_status", None)),
+        "verification_status": _value(claim.verification_status),
     }
     return _deliver(
         db,
