@@ -11,12 +11,13 @@ The script refuses production and unknown databases.
 
 from __future__ import annotations
 
-import base64
 import hashlib
 import json
 import os
+import struct
 import sys
 import uuid
+import zlib
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -38,9 +39,93 @@ from app.providers.factory import get_storage_provider  # noqa: E402
 
 PLACE_ID = "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e"
 API_BASE = os.environ.get("PETACCESS_PREVIEW_API_BASE", "http://127.0.0.1:8000/api/v1").rstrip("/")
-PNG = base64.b64decode(
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl8WQAAAABJRU5ErkJggg=="
-)
+FIXTURE_WIDTH = 640
+FIXTURE_HEIGHT = 480
+
+
+def _png_chunk(kind: bytes, payload: bytes) -> bytes:
+    return (
+        struct.pack(">I", len(payload))
+        + kind
+        + payload
+        + struct.pack(">I", zlib.crc32(kind + payload) & 0xFFFFFFFF)
+    )
+
+
+def _runtime_scene_fixture_png() -> bytes:
+    """Return a visible, deterministic CI fixture — never a fake venue photo.
+
+    The old acceptance seed used a 1x1 image. It proved byte delivery but
+    produced a giant blank 4:3 panel in packaged-runtime review boards, which
+    looked like a product rendering defect. This raster is deliberately
+    non-photographic: a green test-card composition with oversized "CI" marks.
+    It exists only in isolated TEST/E2E/VISUAL databases.
+    """
+
+    width = FIXTURE_WIDTH
+    height = FIXTURE_HEIGHT
+    bg = (239, 245, 240)
+    panel = (249, 251, 248)
+    line = (72, 111, 91)
+    accent = (190, 218, 202)
+    muted = (221, 233, 226)
+
+    def pixel(x: int, y: int) -> tuple[int, int, int]:
+        # framed card
+        if x < 28 or x >= width - 28 or y < 28 or y >= height - 28:
+            return bg
+        if x < 34 or x >= width - 34 or y < 34 or y >= height - 34:
+            return line
+
+        # abstract blocks: intentionally diagrammatic, never photo-like
+        if 72 <= x < 236 and 168 <= y < 340:
+            return accent
+        if 278 <= x < 560 and 118 <= y < 340:
+            return muted
+
+        # giant block-letter C
+        if 88 <= x < 166 and 70 <= y < 82:
+            return line
+        if 88 <= x < 100 and 70 <= y < 132:
+            return line
+        if 88 <= x < 166 and 120 <= y < 132:
+            return line
+
+        # giant block-letter I
+        if 184 <= x < 248 and 70 <= y < 82:
+            return line
+        if 210 <= x < 222 and 70 <= y < 132:
+            return line
+        if 184 <= x < 248 and 120 <= y < 132:
+            return line
+
+        # lower baseline + corner markers make fixture identity obvious
+        if 60 <= x < 580 and 382 <= y < 386:
+            return line
+        if (60 <= x < 74 and 398 <= y < 412) or (566 <= x < 580 and 398 <= y < 412):
+            return line
+
+        return panel
+
+    raw = bytearray()
+    for y in range(height):
+        raw.append(0)  # PNG filter: None
+        for x in range(width):
+            raw.extend(pixel(x, y))
+
+    signature = b"\x89PNG\r\n\x1a\n"
+    ihdr = struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0)
+    text = b"Description\x00CI FIXTURE - NOT A REAL PLACE PHOTO"
+    return (
+        signature
+        + _png_chunk(b"IHDR", ihdr)
+        + _png_chunk(b"tEXt", text)
+        + _png_chunk(b"IDAT", zlib.compress(bytes(raw), 9))
+        + _png_chunk(b"IEND", b"")
+    )
+
+
+PNG = _runtime_scene_fixture_png()
 ALLOWED_ROLES = {DatabaseRole.TEST, DatabaseRole.E2E, DatabaseRole.VISUAL}
 
 
@@ -73,7 +158,7 @@ def _seed_scene() -> tuple[str, str]:
             mime_type="image/png",
             byte_size=len(PNG),
             sha256=digest,
-            original_filename="android-runtime-scene.png",
+            original_filename="android-runtime-ci-scene-fixture.png",
             upload_status="stored",
             moderation_status="approved",
             expires_at=now + timedelta(days=1),
@@ -163,6 +248,11 @@ def _verify_delivery(media_id: str, bundle_id: str) -> dict[str, str]:
             )
         if image.content[:8] != b"\x89PNG\r\n\x1a\n":
             raise RuntimeError("public scene content is not a PNG")
+        width, height = struct.unpack(">II", image.content[16:24])
+        if (width, height) != (FIXTURE_WIDTH, FIXTURE_HEIGHT):
+            raise RuntimeError(
+                f"runtime scene fixture dimensions drifted: {(width, height)!r}"
+            )
 
         return {"media_id": media_id, "bundle_id": bundle_id, "url": url}
 
