@@ -133,7 +133,9 @@ def _width_card(profile: dict, page: dict) -> str:
         <div><dt>safe top</dt><dd>{html.escape(str(safe_top))}</dd></div>
         <div><dt>content top</dt><dd>{html.escape(str(content_top))}</dd></div>
         <div><dt>wm density</dt><dd>{html.escape(str(profile.get("wm_density") or "-"))}</dd></div>
-        <div><dt>overflow</dt><dd>{html.escape(str(not ok if page.get("error") else False))}</dd></div>
+        <div><dt>overflow</dt><dd>
+          {html.escape(str(page.get("horizontal_overflow", "-")))}
+        </dd></div>
       </dl>
       {f'<p class="error">{html.escape(str(page.get("error")))}</p>' if page.get("error") else ""}
     </article>
@@ -321,7 +323,10 @@ Runtime PASS 只证明路由身份、WebView 几何、安全区、overflow 与�
 {cards if cards else "<p>没有找到当前 Android runtime route screenshot 证据。</p>"}
 </section>
 <h1 style="margin-top:32px">Responsive width matrix</h1>
-<p>同一个 packaged Android Preview 在 phone-m、约 360dp、约 430dp 与 800dp 下重启并重新验证核心页面。</p>
+<p>
+同一个 packaged Android Preview 在 phone-m、约 360dp、约 430dp 与 800dp
+下重启并重新验证核心页面。
+</p>
 <section class="grid">
 {width_cards if width_cards else "<p>没有找到当前 Android width-matrix screenshot 证据。</p>"}
 </section>
