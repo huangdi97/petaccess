@@ -37,9 +37,7 @@ from app.models import (  # noqa: E402
 from app.providers.factory import get_storage_provider  # noqa: E402
 
 PLACE_ID = "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e"
-API_BASE = os.environ.get(
-    "PETACCESS_PREVIEW_API_BASE", "http://127.0.0.1:8000/api/v1"
-).rstrip("/")
+API_BASE = os.environ.get("PETACCESS_PREVIEW_API_BASE", "http://127.0.0.1:8000/api/v1").rstrip("/")
 PNG = base64.b64decode(
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl8WQAAAABJRU5ErkJggg=="
 )
