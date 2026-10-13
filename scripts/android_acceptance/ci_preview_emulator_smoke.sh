@@ -156,6 +156,8 @@ assert coverage["required_router_pages"] == 19, coverage
 assert coverage["observed_router_pages"] >= 19, coverage
 assert coverage["matrix"]["Authenticated States"] == "COVERED", coverage
 assert coverage["matrix"]["Visual"] == "COVERED", coverage
+assert coverage["matrix"]["Governed Media"] == "COVERED", coverage
+assert coverage["governed_media"]["decoded"] is True, coverage
 assert set(coverage["observed_authenticated_case_ids"]) >= set(
     coverage["required_authenticated_case_ids"]
 ), coverage
