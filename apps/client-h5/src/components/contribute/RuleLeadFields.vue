@@ -1,5 +1,5 @@
 <script setup lang="ts">
-type RuleIntent = "still_valid" | "changed" | "signage" | "new_lead";
+type RuleIntent = "" | "still_valid" | "changed" | "signage" | "new_lead";
 
 defineProps<{ zones: { id: string; name: string }[] }>();
 
