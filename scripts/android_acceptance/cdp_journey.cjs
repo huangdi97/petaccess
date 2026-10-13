@@ -24,6 +24,7 @@ const SCREENSHOT_DIR = path.join(EVIDENCE_ROOT, "screenshots");
 const OUT = path.join(RUNTIME_DIR, "cdp_journey_playwright.json");
 const PLACE_ID = "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e";
 const AUTH_TOKEN = (process.env.PETACCESS_ANDROID_AUTH_TOKEN ?? "").trim();
+const REQUIRE_REAL_MAP = process.env.PETACCESS_REQUIRE_REAL_MAP === "1";
 
 const routes = [
   { hash: "#/", tag: "R01", name: "home", expectedPage: "home" },
@@ -359,6 +360,16 @@ async function main() {
           safeAreaTop,
           contentTop,
           safeAreaOverlap: safeAreaTop > 0.5 && contentTop + 0.5 < safeAreaTop,
+          mapProviderSurface: document.querySelector(".tencent-map")
+            ? "tencent"
+            : document.querySelector(
+                  "[data-testid=map-provider-fallback], [data-testid=map-real-provider-fallback]",
+                )
+              ? "fallback"
+              : null,
+          mapFallbackCopy:
+            document.querySelector("[data-testid=map-real-provider-fallback]")?.textContent?.trim() ??
+            null,
           text: body?.innerText.slice(0, 1600) ?? "",
         };
       })())`),
@@ -415,6 +426,9 @@ async function main() {
     if (state.safeAreaOverlap) {
       routeError ??= `top safe-area overlap: contentTop=${state.contentTop}, safeAreaTop=${state.safeAreaTop}`;
     }
+    if (route.name === "map" && REQUIRE_REAL_MAP && state.mapProviderSurface !== "tencent") {
+      routeError ??= `real map required but packaged surface is ${state.mapProviderSurface ?? "unknown"}`;
+    }
 
     const shot = path.join(SCREENSHOT_DIR, `phoneM__${safeName(route.name)}__${route.tag}.png`);
     try {
@@ -454,6 +468,9 @@ async function main() {
         result: failed ? "FAIL" : "PASS",
         authenticatedSweepRequested: Boolean(AUTH_TOKEN),
         authenticatedCases: rows.filter((row) => row.authenticated).length,
+        requireRealMap: REQUIRE_REAL_MAP,
+        mapProviderSurface:
+          rows.find((row) => row.name === "map")?.snapshot?.mapProviderSurface ?? null,
         routes: rows,
       },
       null,
