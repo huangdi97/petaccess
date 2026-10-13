@@ -218,8 +218,8 @@ def main() -> int:
                   <h2>{html.escape(str(case.get("id") or "unknown"))}</h2>
                   <code>{html.escape(str(with_ime.get("hash") or ""))}</code>
                 </div>
-                <span class="status {'pass' if ok else 'fail'}">
-                  {'IME PASS' if ok else 'IME FAIL'}
+                <span class="status {"pass" if ok else "fail"}">
+                  {"IME PASS" if ok else "IME FAIL"}
                 </span>
               </header>
               <div class="shot">{image}</div>
