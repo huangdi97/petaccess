@@ -39,11 +39,11 @@ def test_scan_text_skips_dev_generic_secret() -> None:
 
 def test_scan_text_skips_public_preview_ci_fixture_credentials() -> None:
     hits = scan_text(
-        '\n'.join(
+        "\n".join(
             [
-                'DATABASE_URL=postgresql+psycopg://petaccess:ci_preview_postgres_0123456789abcdef@db:5432/petaccess_preview_ci',
-                'S3_SECRET_KEY=ci_preview_storage_0123456789abcdef',
-                'JWT_SECRET=ci_preview_jwt_0123456789abcdef0123456789abcdef',
+                "DATABASE_URL=postgresql+psycopg://petaccess:ci_preview_postgres_0123456789abcdef@db:5432/petaccess_preview_ci",
+                "S3_SECRET_KEY=ci_preview_storage_0123456789abcdef",
+                "JWT_SECRET=ci_preview_jwt_0123456789abcdef0123456789abcdef",
             ]
         )
     )
@@ -52,7 +52,7 @@ def test_scan_text_skips_public_preview_ci_fixture_credentials() -> None:
 
 def test_public_preview_ci_marker_never_hides_high_signal_secret() -> None:
     hits = scan_text(
-        'AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE JWT_SECRET=ci_preview_jwt_0123456789abcdef'
+        "AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE JWT_SECRET=ci_preview_jwt_0123456789abcdef"
     )
     assert any(name == "AWS access key" for name, _ in hits)
 
