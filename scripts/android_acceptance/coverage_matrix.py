@@ -112,10 +112,7 @@ def main() -> int:
         and fast.get("result") == "PASS"
         and int(fast.get("failure_count") or 0) == 0
         and REQUIRED_FAST_EVIDENCE.issubset(observed_fast_evidence)
-        and all(
-            not str(fast.get(key, "")).startswith("ERROR ")
-            for key in REQUIRED_FAST_EVIDENCE
-        )
+        and all(not str(fast.get(key, "")).startswith("ERROR ") for key in REQUIRED_FAST_EVIDENCE)
     )
 
     screenshot_paths = []
