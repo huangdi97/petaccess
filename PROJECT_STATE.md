@@ -1,3 +1,17 @@
+## Current phase（2026-10-13 — Packaged Android Runtime Closure + Mine Personal Center）
+
+- 分支仍为 `feat/ui-direct-craft-v8`，PR #1 保持 **draft**；master / tag / GitHub Release 均未推进。任何机器 PASS 都不等于用户 Human Visual Acceptance。
+- 已确认的 Android Preview 基线：Actions run `38345355876`（commit `1a2a8dc6…`）四个矩阵 job 全部 **SUCCESS**：
+  - x86_64 emulator Preview APK；
+  - ARM64 USB-device Preview APK；
+  - API 35 x86_64 packaged-runtime smoke；
+  - API 36 x86_64 packaged-runtime smoke。
+- API 35 runtime artifact 已人工拆包核验：`Routes=COVERED`、`Authenticated States=COVERED`、`Visual=COVERED`、`Governed Media=COVERED`；19 个 Router 页面 + Place rules/space 共 21 个 public/default case，以及 7 个 authenticated case 都有 packaged-WebView 语义证据与截图。FAST = `PASS`、`failure_count=0`，Evidence → Android System Back → Reality 实证通过。
+- Android Preview 是隔离 debug package `com.petaccess.map.preview`，不读取 release keystore；正式 Android release 仍只走 `apps/client-h5 + src-tauri` 的 release workflow。旧 `apps/client` uni-app x 继续保持 `LEGACY_REFERENCE_ONLY`。
+- 当前 Consumer UI 继续从“页面能跑”向“真实产品体验”收口：Contribution 手机横向溢出已被真实登录 E2E gate 覆盖；Mine 正在升级为个人出行中心，使用真实宠物/关注/贡献计数并为 0-data 状态提供建档、地图、贡献三个真实动作，不制造虚假个人历史。
+- 本段写入时，Mine personal-center 源实现已提交，最新 H5/PR CI/Visual 与新的 Android Preview 正在按最终源码重新执行；在对应 Actions 完成前不得把旧 run 冒充当前最终 HEAD 的 PASS。
+- `UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW` 保持不变。只有用户对当前最终 Web / Windows / Android 实际运行画面明确认可后，才允许 baseline promotion、PR ready、master 集成、tag 或 Release。
+
 ## Current phase（2026-10-12 — direct-v8 Android Preview + Runtime Evidence Closure）
 
 - 分支仍为 `feat/ui-direct-craft-v8`；PR #1 保持 **draft**；master / tag / Release 不动。判断状态时仍必须重新读取当前 HEAD / Actions，不能把本文 SHA 当未来事实。
