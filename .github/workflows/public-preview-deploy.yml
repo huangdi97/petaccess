@@ -36,6 +36,7 @@ jobs:
       SSH_HOST: ${{ secrets.PETACCESS_PREVIEW_SSH_HOST }}
       SSH_USER: ${{ secrets.PETACCESS_PREVIEW_SSH_USER }}
       SSH_KEY: ${{ secrets.PETACCESS_PREVIEW_SSH_KEY }}
+      SSH_KNOWN_HOSTS: ${{ secrets.PETACCESS_PREVIEW_SSH_KNOWN_HOSTS }}
       POSTGRES_PASSWORD: ${{ secrets.PETACCESS_PREVIEW_POSTGRES_PASSWORD }}
       S3_ACCESS_KEY: ${{ secrets.PETACCESS_PREVIEW_S3_ACCESS_KEY }}
       S3_SECRET_KEY: ${{ secrets.PETACCESS_PREVIEW_S3_SECRET_KEY }}
@@ -64,6 +65,9 @@ jobs:
 
           if [ -z "$SSH_HOST" ] || [ -z "$SSH_USER" ] || [ -z "$SSH_KEY" ]; then
             STATUS="BLOCKED_BY_SSH"
+            READY="false"
+          elif [ -z "$SSH_KNOWN_HOSTS" ]; then
+            STATUS="BLOCKED_BY_SSH_TRUST"
             READY="false"
           fi
 
@@ -181,16 +185,24 @@ jobs:
       - name: Install frontend tooling for public API preflight
         run: pnpm install --frozen-lockfile
 
-      - name: Prepare SSH
+      - name: Prepare pinned SSH trust
         shell: bash
         env:
           SSH_KEY: ${{ secrets.PETACCESS_PREVIEW_SSH_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.PETACCESS_PREVIEW_SSH_KNOWN_HOSTS }}
         run: |
           set -euo pipefail
           install -m 700 -d ~/.ssh
           printf '%s\n' "$SSH_KEY" > ~/.ssh/petaccess_preview
-          chmod 600 ~/.ssh/petaccess_preview
-          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/petaccess_preview ~/.ssh/known_hosts
+
+          ssh -i ~/.ssh/petaccess_preview \
+            -p "$SSH_PORT" \
+            -o StrictHostKeyChecking=yes \
+            -o BatchMode=yes \
+            "$SSH_USER@$SSH_HOST" \
+            'printf "PETACCESS_PREVIEW_SSH_TRUST=PASS\\n"'
 
       - name: Validate deployment inputs
         shell: bash
@@ -213,6 +225,13 @@ jobs:
             test -n "$TENCENT_MAP_KEY_SERVER"
           fi
 
+          case "$REMOTE_ROOT" in
+            *[!A-Za-z0-9_./~-]*|*".."*)
+              echo "PETACCESS_PREVIEW_REMOTE_ROOT contains unsafe path characters" >&2
+              exit 64
+              ;;
+          esac
+
           APP_ENV=staging \
           API_BASE_URL="$API_BASE" \
           PETACCESS_PREVIEW_DOMAIN="$DOMAIN" \
@@ -226,6 +245,19 @@ jobs:
           TENCENT_MAP_KEY_SERVER="$TENCENT_MAP_KEY_SERVER" \
             sh infra/deploy/preview/preview-env-check.sh
 
+      - name: Resolve absolute remote deployment root
+        shell: bash
+        run: |
+          set -euo pipefail
+          ABS_ROOT="$(
+            ssh -i ~/.ssh/petaccess_preview \
+              -p "$SSH_PORT" \
+              -o StrictHostKeyChecking=yes \
+              "$SSH_USER@$SSH_HOST" \
+              "mkdir -p '$REMOTE_ROOT/releases' '$REMOTE_ROOT/shared' && cd '$REMOTE_ROOT' && pwd"
+          )"
+          test -n "$ABS_ROOT"
+          echo "REMOTE_ROOT_ABS=$ABS_ROOT" >> "$GITHUB_ENV"
       - name: Build deployment environment file
         shell: bash
         run: |
@@ -261,11 +293,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          RELEASE_DIR="$REMOTE_ROOT/releases/$GITHUB_SHA"
-          SSH=(ssh -i ~/.ssh/petaccess_preview -p "$SSH_PORT" "$SSH_USER@$SSH_HOST")
-          SCP=(scp -i ~/.ssh/petaccess_preview -P "$SSH_PORT")
+          RELEASE_DIR="$REMOTE_ROOT_ABS/releases/$GITHUB_SHA"
+          SHARED_ENV="$REMOTE_ROOT_ABS/shared/.env.preview"
+          SSH=(ssh -i ~/.ssh/petaccess_preview -p "$SSH_PORT" -o StrictHostKeyChecking=yes "$SSH_USER@$SSH_HOST")
+          SCP=(scp -i ~/.ssh/petaccess_preview -P "$SSH_PORT" -o StrictHostKeyChecking=yes)
 
-          "${SSH[@]}" "mkdir -p '$RELEASE_DIR'"
+          "${SSH[@]}" "mkdir -p '$RELEASE_DIR' '$REMOTE_ROOT_ABS/shared'"
           tar \
             --exclude=.git \
             --exclude=node_modules \
@@ -275,25 +308,28 @@ jobs:
             -czf - . \
             | "${SSH[@]}" "tar -xzf - -C '$RELEASE_DIR'"
 
-          "${SCP[@]}" "$RUNNER_TEMP/.env.preview" \
-            "$SSH_USER@$SSH_HOST:$RELEASE_DIR/infra/deploy/preview/.env.preview"
+          "${SCP[@]}" "$RUNNER_TEMP/.env.preview" "$SSH_USER@$SSH_HOST:$SHARED_ENV"
+          "${SSH[@]}" "chmod 600 '$SHARED_ENV'"
 
       - name: Deploy Preview stack
         shell: bash
         run: |
           set -euo pipefail
-          RELEASE_DIR="$REMOTE_ROOT/releases/$GITHUB_SHA"
+          RELEASE_DIR="$REMOTE_ROOT_ABS/releases/$GITHUB_SHA"
+          SHARED_ENV="$REMOTE_ROOT_ABS/shared/.env.preview"
 
-          ssh -i ~/.ssh/petaccess_preview -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
+          ssh -i ~/.ssh/petaccess_preview \
+            -p "$SSH_PORT" \
+            -o StrictHostKeyChecking=yes \
+            "$SSH_USER@$SSH_HOST" \
             "set -euo pipefail
              cd '$RELEASE_DIR'
              docker compose \
-               --env-file infra/deploy/preview/.env.preview \
+               --env-file '$SHARED_ENV' \
                -f infra/deploy/preview/compose.yaml \
                up -d --build --remove-orphans
-             ln -sfn '$RELEASE_DIR' '$REMOTE_ROOT/current'
              docker compose \
-               --env-file infra/deploy/preview/.env.preview \
+               --env-file '$SHARED_ENV' \
                -f infra/deploy/preview/compose.yaml \
                ps"
 
@@ -318,6 +354,17 @@ jobs:
           PETACCESS_PUBLIC_API_BASE="$API_BASE" \
           PETACCESS_REQUIRE_REAL_MAP="$REQUIRE_REAL_MAP" \
             node scripts/release/verify_public_api.cjs
+
+      - name: Mark verified release current
+        shell: bash
+        run: |
+          set -euo pipefail
+          RELEASE_DIR="$REMOTE_ROOT_ABS/releases/$GITHUB_SHA"
+          ssh -i ~/.ssh/petaccess_preview \
+            -p "$SSH_PORT" \
+            -o StrictHostKeyChecking=yes \
+            "$SSH_USER@$SSH_HOST" \
+            "ln -sfn '$RELEASE_DIR' '$REMOTE_ROOT_ABS/current'"
 
       - name: Write deployment record
         shell: bash
