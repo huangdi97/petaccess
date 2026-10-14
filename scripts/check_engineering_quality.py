@@ -345,6 +345,71 @@ def check_consumer_runtime_boundary() -> list[dict]:
                 }
             )
 
+    public_preview_deploy_path = ROOT / ".github" / "workflows" / "public-preview-deploy.yml"
+    if public_preview_deploy_path.exists():
+        public_preview_deploy_text = public_preview_deploy_path.read_text(encoding="utf-8")
+        required_public_preview_deploy_markers = (
+            "workflow_dispatch:",
+            "actions: write",
+            "environment: petaccess-public-preview",
+            "PETACCESS_PREVIEW_SSH_HOST",
+            "PETACCESS_PREVIEW_SSH_KEY",
+            "PETACCESS_PREVIEW_POSTGRES_PASSWORD",
+            "PETACCESS_PREVIEW_S3_SECRET_KEY",
+            "PETACCESS_PREVIEW_JWT_SECRET",
+            "verify_public_api.cjs",
+            "gh workflow run android-phone-preview.yml",
+            "BLOCKED_BY_DOMAIN",
+            "BLOCKED_BY_SSH",
+            "BLOCKED_BY_SECRETS",
+        )
+        if any(
+            marker not in public_preview_deploy_text
+            for marker in required_public_preview_deploy_markers
+        ):
+            violations.append(
+                {
+                    "rule": "runtime-boundary",
+                    "path": ".github/workflows/public-preview-deploy.yml",
+                    "severity": "FAIL",
+                    "detail": (
+                        "Public Preview deploy must remain manually gated, secret-backed, "
+                        "preflighted, and hand off to the standalone Phone Preview workflow."
+                    ),
+                }
+            )
+
+        if "\n  push:" in public_preview_deploy_text:
+            violations.append(
+                {
+                    "rule": "runtime-boundary",
+                    "path": ".github/workflows/public-preview-deploy.yml",
+                    "severity": "FAIL",
+                    "detail": "Public Preview infrastructure deploy must never auto-run on push.",
+                }
+            )
+
+        forbidden_public_preview_deploy_markers = (
+            "ANDROID_KEYSTORE_BASE64",
+            "release.keystore",
+            "com.petaccess.map\n",
+        )
+        if any(
+            marker in public_preview_deploy_text
+            for marker in forbidden_public_preview_deploy_markers
+        ):
+            violations.append(
+                {
+                    "rule": "runtime-boundary",
+                    "path": ".github/workflows/public-preview-deploy.yml",
+                    "severity": "FAIL",
+                    "detail": (
+                        "Public Preview deploy must not consume release signing identity or "
+                        "promote the production Android application id."
+                    ),
+                }
+            )
+
     legacy_package = json.loads(
         (ROOT / "apps" / "client" / "package.json").read_text(encoding="utf-8")
     )
