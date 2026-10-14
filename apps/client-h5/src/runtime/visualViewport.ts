@@ -1,12 +1,30 @@
 /**
- * VisualViewport runtime bridge.
+ * VisualViewport + native Android IME runtime bridge.
  *
- * Android WebView resizes the visual viewport while the IME is visible. Keep
- * that platform fact explicit in DOM state so app chrome can react without
- * route-specific hacks. The heuristic also works in mobile browsers and
- * deliberately requires a text-entry focus to avoid treating browser chrome
- * changes as an IME.
+ * Android WebView M139+ resizes the visual viewport while the IME is visible.
+ * Older system WebViews can show the keyboard without changing
+ * `window.visualViewport`, so the Tauri Android shell also publishes
+ * authoritative WindowInsets.Type.ime() state through `petaccess:native-ime`.
+ *
+ * Browsers keep using the VisualViewport heuristic. Packaged Android prefers
+ * native state when the bridge is present; both sources drive the same DOM
+ * contract so app chrome never needs route-specific keyboard hacks.
  */
+
+interface NativeImeState {
+  visible: boolean;
+  height: number;
+}
+
+declare global {
+  interface Window {
+    __PETACCESS_NATIVE_IME__?: NativeImeState;
+  }
+
+  interface WindowEventMap {
+    "petaccess:native-ime": CustomEvent<NativeImeState>;
+  }
+}
 
 export function isTextEntryElement(element: Element | null): boolean {
   if (!element) return false;
@@ -47,43 +65,69 @@ export function isImeOcclusionLikely(
   return occluded >= threshold;
 }
 
+export function normaliseNativeImeState(value: unknown): NativeImeState | null {
+  if (!value || typeof value !== "object") return null;
+
+  const candidate = value as Partial<NativeImeState>;
+  if (typeof candidate.visible !== "boolean") return null;
+  if (typeof candidate.height !== "number" || !Number.isFinite(candidate.height)) return null;
+
+  return {
+    visible: candidate.visible,
+    height: Math.max(0, candidate.height),
+  };
+}
+
 export function installVisualViewportState(): () => void {
   const viewport = window.visualViewport;
   const root = document.documentElement;
 
-  if (!viewport) {
-    root.dataset.ime = "unsupported";
-    return () => undefined;
-  }
-
-  let baselineHeight = Math.max(window.innerHeight, viewport.height + viewport.offsetTop);
+  let nativeImeState = normaliseNativeImeState(window.__PETACCESS_NATIVE_IME__);
+  let baselineHeight = Math.max(
+    window.innerHeight,
+    viewport ? viewport.height + viewport.offsetTop : window.innerHeight,
+  );
   let frame = 0;
 
   const apply = (): void => {
     frame = 0;
     const hasTextEntryFocus = isTextEntryElement(document.activeElement);
+    const visualHeight = viewport?.height ?? window.innerHeight;
+    const visualOffsetTop = viewport?.offsetTop ?? 0;
 
-    if (!hasTextEntryFocus) {
-      baselineHeight = Math.max(window.innerHeight, viewport.height + viewport.offsetTop);
+    if (!hasTextEntryFocus && !nativeImeState?.visible) {
+      baselineHeight = Math.max(window.innerHeight, visualHeight + visualOffsetTop);
     }
 
-    const imeVisible = isImeOcclusionLikely(
-      Math.max(baselineHeight, window.innerHeight),
-      viewport.height,
-      viewport.offsetTop,
-      hasTextEntryFocus,
-    );
+    const browserImeVisible = viewport
+      ? isImeOcclusionLikely(
+          Math.max(baselineHeight, window.innerHeight),
+          visualHeight,
+          visualOffsetTop,
+          hasTextEntryFocus,
+        )
+      : false;
 
-    const visibleBottom = viewport.offsetTop + viewport.height;
-    const occludedBottom = Math.max(
+    const visibleBottom = visualOffsetTop + visualHeight;
+    const browserOccludedBottom = Math.max(
       0,
       Math.max(baselineHeight, window.innerHeight) - visibleBottom,
     );
 
+    const imeVisible = nativeImeState?.visible ?? browserImeVisible;
+    const occludedBottom = nativeImeState
+      ? nativeImeState.visible
+        ? nativeImeState.height
+        : 0
+      : browserImeVisible
+        ? browserOccludedBottom
+        : 0;
+
     root.dataset.ime = imeVisible ? "visible" : "hidden";
-    root.style.setProperty("--pa-visual-viewport-height", `${viewport.height}px`);
-    root.style.setProperty("--pa-visual-viewport-top", `${viewport.offsetTop}px`);
-    root.style.setProperty("--pa-ime-occluded-bottom", `${imeVisible ? occludedBottom : 0}px`);
+    root.dataset.imeSource = nativeImeState ? "native" : viewport ? "visual-viewport" : "none";
+    root.style.setProperty("--pa-visual-viewport-height", `${visualHeight}px`);
+    root.style.setProperty("--pa-visual-viewport-top", `${visualOffsetTop}px`);
+    root.style.setProperty("--pa-ime-occluded-bottom", `${occludedBottom}px`);
   };
 
   const schedule = (): void => {
@@ -91,10 +135,19 @@ export function installVisualViewportState(): () => void {
     frame = requestAnimationFrame(apply);
   };
 
-  viewport.addEventListener("resize", schedule);
-  viewport.addEventListener("scroll", schedule);
+  const onNativeIme = (event: WindowEventMap["petaccess:native-ime"]): void => {
+    const next = normaliseNativeImeState(event.detail);
+    if (!next) return;
+    nativeImeState = next;
+    window.__PETACCESS_NATIVE_IME__ = next;
+    schedule();
+  };
+
+  viewport?.addEventListener("resize", schedule);
+  viewport?.addEventListener("scroll", schedule);
   window.addEventListener("resize", schedule);
   window.addEventListener("orientationchange", schedule);
+  window.addEventListener("petaccess:native-ime", onNativeIme);
   document.addEventListener("focusin", schedule);
   document.addEventListener("focusout", schedule);
 
@@ -102,10 +155,11 @@ export function installVisualViewportState(): () => void {
 
   return () => {
     if (frame) cancelAnimationFrame(frame);
-    viewport.removeEventListener("resize", schedule);
-    viewport.removeEventListener("scroll", schedule);
+    viewport?.removeEventListener("resize", schedule);
+    viewport?.removeEventListener("scroll", schedule);
     window.removeEventListener("resize", schedule);
     window.removeEventListener("orientationchange", schedule);
+    window.removeEventListener("petaccess:native-ime", onNativeIme);
     document.removeEventListener("focusin", schedule);
     document.removeEventListener("focusout", schedule);
   };
