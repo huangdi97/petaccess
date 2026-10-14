@@ -67,11 +67,7 @@ export function installVisualViewportState(): () => void {
     const hasTextEntryFocus = isTextEntryElement(document.activeElement);
 
     if (!hasTextEntryFocus) {
-      baselineHeight = Math.max(
-        baselineHeight,
-        window.innerHeight,
-        viewport.height + viewport.offsetTop,
-      );
+      baselineHeight = Math.max(window.innerHeight, viewport.height + viewport.offsetTop);
     }
 
     const imeVisible = isImeOcclusionLikely(
