@@ -25,6 +25,7 @@ jobs:
   readiness:
     name: Public Preview · deployment readiness
     runs-on: ubuntu-latest
+    environment: petaccess-public-preview
     outputs:
       ready: ${{ steps.readiness.outputs.ready }}
       status: ${{ steps.readiness.outputs.status }}
@@ -322,7 +323,7 @@ jobs:
             -p "$SSH_PORT" \
             -o StrictHostKeyChecking=yes \
             "$SSH_USER@$SSH_HOST" \
-            "set -euo pipefail
+            "set -eu
              cd '$RELEASE_DIR'
              docker compose \
                --env-file '$SHARED_ENV' \
