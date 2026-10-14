@@ -75,7 +75,8 @@ async function save() {
 </script>
 
 <template>
-  <AppShell :show-query-context="false"
+  <AppShell
+    :show-query-context="false"
     data-ui-page="pet-new"
     :data-ui-state="
       loadingSession

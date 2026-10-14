@@ -153,7 +153,8 @@ onMounted(load);
 </script>
 
 <template>
-  <AppShell :show-query-context="false"
+  <AppShell
+    :show-query-context="false"
     data-ui-page="pets"
     :data-ui-state="
       loading

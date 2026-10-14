@@ -50,7 +50,8 @@ const EVIDENCE = [
 </script>
 
 <template>
-  <AppShell :show-query-context="false"
+  <AppShell
+    :show-query-context="false"
     data-ui-page="settings"
     :data-ui-state="sessionStateError ? 'session-error' : signedIn ? 'signed-in' : 'public'"
   >

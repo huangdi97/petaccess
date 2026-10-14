@@ -321,7 +321,9 @@ test("C6: Contribution starts with a place-first factual task, not a dead-end em
   await expect(start).toContainText("不会自动变成正式准入规则");
 });
 
-test("C6: account and methodology surfaces do not inherit current-query chrome", async ({ page }) => {
+test("C6: account and methodology surfaces do not inherit current-query chrome", async ({
+  page,
+}) => {
   for (const href of ["/#/mine", "/#/settings", "/#/about", "/#/does-not-exist"]) {
     await page.goto(href);
     await expect(page.getByTestId("query-context")).toHaveCount(0);

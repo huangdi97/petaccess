@@ -25,7 +25,8 @@ const {
 </script>
 
 <template>
-  <AppShell :show-query-context="false"
+  <AppShell
+    :show-query-context="false"
     data-ui-page="privacy"
     :data-ui-state="loading ? 'loading' : rightsError ? 'error' : signedIn ? 'signed-in' : 'public'"
   >
