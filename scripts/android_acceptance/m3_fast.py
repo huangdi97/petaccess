@@ -225,10 +225,7 @@ def trigger_system_back() -> str:
     sdk = android_sdk_level()
     mode = android_navigation_mode()
     shell(SERIAL, "input", "keyevent", "KEYCODE_BACK", timeout=30)
-    return (
-        f"system-back-action sdk={sdk} mode={mode or 'unknown'} "
-        "dispatcher=androidx"
-    )
+    return f"system-back-action sdk={sdk} mode={mode or 'unknown'} dispatcher=androidx"
 
 def screenshot(name: str) -> int:
     # Python 捕获字节再写文件：不经 cmd 重定向（REG-002 的 UTF-16 风险只影响
