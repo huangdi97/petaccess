@@ -29,10 +29,7 @@ def render_database_url(
     if missing:
         raise ValueError(f"missing Preview database URL fields: {', '.join(missing)}")
 
-    netloc = (
-        f"{quote(user, safe='')}:{quote(password, safe='')}@"
-        f"{host}:{int(port)}"
-    )
+    netloc = f"{quote(user, safe='')}:{quote(password, safe='')}@{host}:{int(port)}"
     return urlunsplit(
         (
             "postgresql+psycopg",
