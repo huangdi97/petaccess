@@ -56,10 +56,7 @@ export function installVisualViewportState(): () => void {
     return () => undefined;
   }
 
-  let baselineHeight = Math.max(
-    window.innerHeight,
-    viewport.height + viewport.offsetTop,
-  );
+  let baselineHeight = Math.max(window.innerHeight, viewport.height + viewport.offsetTop);
   let frame = 0;
 
   const apply = (): void => {
@@ -86,10 +83,7 @@ export function installVisualViewportState(): () => void {
     root.dataset.ime = imeVisible ? "visible" : "hidden";
     root.style.setProperty("--pa-visual-viewport-height", `${viewport.height}px`);
     root.style.setProperty("--pa-visual-viewport-top", `${viewport.offsetTop}px`);
-    root.style.setProperty(
-      "--pa-ime-occluded-bottom",
-      `${imeVisible ? occludedBottom : 0}px`,
-    );
+    root.style.setProperty("--pa-ime-occluded-bottom", `${imeVisible ? occludedBottom : 0}px`);
   };
 
   const schedule = (): void => {
