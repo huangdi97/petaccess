@@ -52,6 +52,7 @@ jobs:
             tests/e2e/boundary-preferences.spec.ts \
             tests/e2e/responsive.spec.ts \
             tests/e2e/consumer-contract-closure.spec.ts \
+            tests/e2e/accessibility-contract.spec.ts \
             tests/ui-oracle/human-review-direct-v8.spec.ts \
             scripts/android_acceptance/cdp_probe.cjs \
             scripts/android_acceptance/cdp_journey.cjs \
@@ -98,6 +99,7 @@ jobs:
             tests/e2e/boundary-preferences.spec.ts
             tests/e2e/responsive.spec.ts
             tests/e2e/consumer-contract-closure.spec.ts
+            tests/e2e/accessibility-contract.spec.ts
             tests/ui-oracle/human-review-direct-v8.spec.ts
             scripts/android_acceptance/cdp_probe.cjs
             scripts/android_acceptance/cdp_journey.cjs
