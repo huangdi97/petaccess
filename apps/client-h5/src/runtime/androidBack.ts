@@ -145,13 +145,11 @@ export async function installAndroidBackHandler(router: Router): Promise<void> {
   };
 
   const scheduleSync = (): Promise<void> => {
-    syncChain = syncChain
-      .then(syncRegistration)
-      .catch((error) => {
-        setState("failed");
-        console.error("PETACCESS_ANDROID_BACK registration sync failed", error);
-        throw error;
-      });
+    syncChain = syncChain.then(syncRegistration).catch((error) => {
+      setState("failed");
+      console.error("PETACCESS_ANDROID_BACK registration sync failed", error);
+      throw error;
+    });
     return syncChain;
   };
 

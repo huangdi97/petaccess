@@ -68,8 +68,11 @@ def test_scan_text_finds_db_url_credentials() -> None:
     )
     assert any(name == "DB URL with credentials" for name, _ in hits)
 
+
 def test_history_exemption_is_narrow_to_removed_dynamic_preview_db_template() -> None:
-    template = 'DATABASE_URL="postgresql+psycopg://$POSTGRES_USER:$POSTGRES_PASSWORD@db:5432/$POSTGRES_DB"'
+    template = (
+        'DATABASE_URL="postgresql+psycopg://$POSTGRES_USER:$POSTGRES_PASSWORD@db:5432/$POSTGRES_DB"'
+    )
     assert is_known_history_template(
         ".github/workflows/public-preview-deploy.yml",
         "DB URL with credentials",
@@ -85,7 +88,6 @@ def test_history_exemption_is_narrow_to_removed_dynamic_preview_db_template() ->
         "DB URL with credentials",
         template,
     )
-
 
 
 def test_history_exemption_covers_only_retired_safe_preview_fixtures() -> None:
