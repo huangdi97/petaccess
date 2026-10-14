@@ -571,7 +571,7 @@ async function signInAdmin(request: APIRequestContext): Promise<string> {
 async function prepareApprovedOperatorPolicy(
   request: APIRequestContext,
   userToken: string,
-  projectName: string,
+  _projectName: string,
 ): Promise<string> {
   const adminToken = await signInAdmin(request);
   const place = await request.post(`${API}/places`, {
