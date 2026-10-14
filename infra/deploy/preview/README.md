@@ -243,6 +243,7 @@ Secrets：
 PETACCESS_PREVIEW_SSH_HOST
 PETACCESS_PREVIEW_SSH_USER
 PETACCESS_PREVIEW_SSH_KEY
+PETACCESS_PREVIEW_SSH_KNOWN_HOSTS
 PETACCESS_PREVIEW_POSTGRES_PASSWORD
 PETACCESS_PREVIEW_S3_ACCESS_KEY
 PETACCESS_PREVIEW_S3_SECRET_KEY
@@ -270,10 +271,13 @@ https://<domain>/api/v1
 ```text
 BLOCKED_BY_DOMAIN
 BLOCKED_BY_SSH
+BLOCKED_BY_SSH_TRUST
 BLOCKED_BY_SECRETS
 ```
 
 并明确不部署。它不会用临时 tunnel、localhost、假 URL 或静态 fixture 绕过外部依赖。
+
+`PETACCESS_PREVIEW_SSH_KNOWN_HOSTS` 必须保存预先核验过的 SSH host key 行（例如在可信网络/控制台核验后得到的 known_hosts 内容）；workflow 不会在部署时用 `ssh-keyscan` 临时接受未知主机。远端部署 secret 只写入 `<REMOTE_ROOT>/shared/.env.preview`，权限固定为 600，不复制进历史 release 目录。
 
 > GitHub 的手动 `workflow_dispatch` 入口要求 workflow 已存在于默认分支。当前功能分支可以接受 CI 验证；正式通过 GitHub UI 执行前，需要先让这条 workflow 进入默认分支。
 
