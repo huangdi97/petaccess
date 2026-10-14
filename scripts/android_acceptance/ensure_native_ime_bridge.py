@@ -6,7 +6,9 @@ the web heuristic for browsers/new WebViews but also publishes Android's
 authoritative IME WindowInsets state into the packaged WebView.
 
 The generated Android project is intentionally not committed, so this patch is
-applied after every tauri android init and verified before APK build.
+applied after every tauri android init and verified before APK build. Existing
+Tauri activity code such as edge-to-edge setup is preserved; the patch only
+adds imports and bridge members.
 """
 
 from __future__ import annotations
@@ -21,18 +23,16 @@ DEFAULT_ACTIVITY_ROOT = Path(
 BRIDGE_MARKER = "PETACCESS_NATIVE_IME_BRIDGE"
 
 _PACKAGE_RE = re.compile(r"(?m)^package\s+(?P<package>[A-Za-z0-9_.]+)\s*$")
-_BARE_ACTIVITY_RE = re.compile(
-    r"(?m)^class\s+MainActivity\s*:\s*TauriActivity\(\)\s*$"
+_ACTIVITY_CLASS_RE = re.compile(
+    r"class\s+MainActivity\s*:\s*TauriActivity\(\)\s*\{"
 )
 
-BRIDGE_BODY = r'''
-import android.graphics.Rect
+_NATIVE_IMPORTS = """import android.graphics.Rect
 import android.os.Build
 import android.view.WindowInsets
-import android.webkit.WebView
+import android.webkit.WebView"""
 
-class MainActivity : TauriActivity() {
-  // PETACCESS_NATIVE_IME_BRIDGE
+BRIDGE_MEMBERS = r'''  // PETACCESS_NATIVE_IME_BRIDGE
   private var lastImeVisible: Boolean? = null
   private var lastImeHeight: Int = -1
 
@@ -85,9 +85,7 @@ class MainActivity : TauriActivity() {
     webView.post {
       webView.evaluateJavascript(script, null)
     }
-  }
-}
-'''.strip()
+  }'''
 
 
 class ActivityContractError(RuntimeError):
@@ -107,6 +105,19 @@ def activity_has_bridge(source: str) -> bool:
     return BRIDGE_MARKER in source and "petaccess:native-ime" in source
 
 
+def _insert_imports(source: str, package: re.Match[str]) -> str:
+    missing = [
+        line
+        for line in _NATIVE_IMPORTS.splitlines()
+        if line not in source
+    ]
+    if not missing:
+        return source
+
+    insertion = "\n" + "\n".join(missing)
+    return source[: package.end()] + insertion + source[package.end() :]
+
+
 def patch_activity_text(source: str) -> str:
     package = _PACKAGE_RE.search(source)
     if package is None:
@@ -115,13 +126,35 @@ def patch_activity_text(source: str) -> str:
     if activity_has_bridge(source):
         return source
 
-    if _BARE_ACTIVITY_RE.search(source) is None:
+    if "onWebViewCreate(" in source:
         raise ActivityContractError(
-            "MainActivity.kt is no longer the expected bare TauriActivity scaffold; "
-            "refusing to overwrite unknown native code"
+            "MainActivity.kt already overrides onWebViewCreate; refusing to merge "
+            "the IME bridge into unknown WebView lifecycle code"
         )
 
-    return f"package {package.group('package')}\n\n{BRIDGE_BODY}\n"
+    class_match = _ACTIVITY_CLASS_RE.search(source)
+    if class_match is None:
+        raise ActivityContractError(
+            "MainActivity TauriActivity class declaration not found; refusing to "
+            "modify unknown native code"
+        )
+
+    patched = _insert_imports(source, package)
+    class_match = _ACTIVITY_CLASS_RE.search(patched)
+    if class_match is None:
+        raise ActivityContractError("MainActivity declaration disappeared after import patch")
+
+    closing = patched.rfind("}")
+    if closing <= class_match.end():
+        raise ActivityContractError("MainActivity closing brace not found")
+
+    before_closing = patched[:closing].rstrip()
+    after_closing = patched[closing:]
+    patched = f"{before_closing}\n\n{BRIDGE_MEMBERS}\n{after_closing}"
+
+    if not activity_has_bridge(patched):
+        raise ActivityContractError("failed to inject native IME bridge")
+    return patched
 
 
 def enforce(root: Path, *, check_only: bool) -> Path:
