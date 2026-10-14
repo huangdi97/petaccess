@@ -161,6 +161,27 @@ Phone Preview 会拒绝：
 endpoint tests 与 runtime acceptance；不要把 Phone Preview（无论手动还是自动）当成正式
 发行通道。Phone Preview 始终保持 debug / Preview package / 非正式签名。
 
+### 6.1 从公网 Preview 到 Phone Preview 的自动 handoff
+
+当有真实 VPS / 域名后，不需要手工把 API URL 在多条 workflow 之间搬运。默认分支可执行：
+
+```text
+Public Preview Deploy
+.github/workflows/public-preview-deploy.yml
+```
+
+它会：
+
+1. 检查 domain / SSH / Preview secrets；
+2. 把当前 commit 部署到远端不可变 release 目录；
+3. 启动并迁移 Preview compose；
+4. 对公网 HTTPS 运行 `verify_public_api.cjs`；
+5. preflight PASS 后，用 GitHub `workflow_dispatch` 自动触发
+   `Android Phone Preview APK`，并把本次 `https://<domain>/api/v1`
+   作为明确输入。
+
+这条链依旧不写 Production、不读取 Android release keystore，也不会自动在 push 上部署公网服务器。
+
 ## 7. Artifact 必须包含
 
 每个 Preview artifact 必须包含一份**机器可读 manifest**和一份**人可读安装说明**，让下载者不依赖文件名猜测运行边界：
