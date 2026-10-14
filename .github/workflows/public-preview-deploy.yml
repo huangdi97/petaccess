@@ -407,6 +407,52 @@ jobs:
             -f api_base="$API_BASE" \
             -f require_real_map="${{ inputs.require_real_map }}"
 
+      - name: Capture remote deployment diagnostics
+        if: failure()
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          mkdir -p public-preview-diagnostics
+
+          if [ -n "${REMOTE_ROOT_ABS:-}" ]; then
+            RELEASE_DIR="$REMOTE_ROOT_ABS/releases/$GITHUB_SHA"
+            SHARED_ENV="$REMOTE_ROOT_ABS/shared/.env.preview"
+            ssh -i ~/.ssh/petaccess_preview \
+              -p "$SSH_PORT" \
+              -o StrictHostKeyChecking=yes \
+              "$SSH_USER@$SSH_HOST" \
+              "cd '$RELEASE_DIR' 2>/dev/null || exit 0
+               docker compose --env-file '$SHARED_ENV' -f infra/deploy/preview/compose.yaml ps
+               echo '--- API LOGS ---'
+               docker compose --env-file '$SHARED_ENV' -f infra/deploy/preview/compose.yaml logs --no-color --tail=160 api
+               echo '--- WORKER LOGS ---'
+               docker compose --env-file '$SHARED_ENV' -f infra/deploy/preview/compose.yaml logs --no-color --tail=120 worker
+               echo '--- EDGE LOGS ---'
+               docker compose --env-file '$SHARED_ENV' -f infra/deploy/preview/compose.yaml logs --no-color --tail=120 edge" \
+              > public-preview-diagnostics/remote-stack.txt 2>&1
+          else
+            echo "REMOTE_ROOT_ABS was never resolved; SSH/bootstrap failed before deployment." \
+              > public-preview-diagnostics/remote-stack.txt
+          fi
+
+          {
+            echo "commit=$GITHUB_SHA"
+            echo "domain=$DOMAIN"
+            echo "api_base=$API_BASE"
+            echo "remote_root_resolved=${REMOTE_ROOT_ABS:+yes}"
+          } > public-preview-diagnostics/context.txt
+
+      - name: Upload deployment diagnostics
+        if: failure()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: petaccess-public-preview-deploy-failure-${{ github.sha }}
+          path: public-preview-diagnostics/
+          if-no-files-found: warn
+          retention-days: 14
+
       - name: Deployment summary
         shell: bash
         run: |
