@@ -936,33 +936,29 @@ const placeFixture = computed<string>(() => {
 @media (max-width: 767px) {
   .place-dossier__head--with-scene {
     display: grid;
-    grid-template-columns: 88px minmax(0, 1fr);
-    grid-template-rows: auto auto;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
     gap: var(--pa-space-3);
   }
 
   .place-dossier__head--with-scene .place-dossier__scene--hero {
     grid-column: 1;
     grid-row: 1;
-    width: 88px;
-    height: 78px;
+    width: 100%;
+    height: clamp(142px, 39vw, 168px);
     min-height: 0;
     margin: 0;
   }
 
   .place-dossier__head--with-scene .place-dossier__identity-row {
-    grid-column: 2;
-    grid-row: 1;
+    grid-column: 1;
+    grid-row: 2;
   }
 
   .place-dossier__head--with-scene .place-dossier__actions {
-    grid-column: 1 / -1;
-    grid-row: 2;
+    grid-column: 1;
+    grid-row: 3;
     margin-top: 0;
-  }
-
-  .place-dossier__head--with-scene :deep(.scene-frame__caption) {
-    display: none;
   }
 }
 
@@ -996,6 +992,54 @@ const placeFixture = computed<string>(() => {
   .place-dossier__head:not(.place-dossier__head--with-scene) .place-dossier__scene--fallback {
     --scene-frame-compact-width: 116px;
     --scene-frame-compact-height: 76px;
+  }
+}
+
+/* Consumer Discovery: when a governed public scene photo actually exists,
+ * let the place feel like a real destination. Missing media still uses the
+ * compact abstract fallback above; only approved media earns this larger frame. */
+.place-dossier__scene--hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: calc(var(--pa-radius-md) + 2px);
+}
+
+.place-dossier__head--with-scene :deep(.scene-frame__caption) {
+  display: block;
+  position: absolute;
+  left: var(--pa-space-2);
+  bottom: var(--pa-space-2);
+  z-index: 2;
+  max-width: calc(100% - var(--pa-space-4));
+  padding: 3px var(--pa-space-2);
+  border: 0;
+  border-radius: var(--pa-radius-pill);
+  background: color-mix(in srgb, var(--pa-color-surface-raised) 88%, transparent);
+  color: var(--pa-color-text-secondary);
+  line-height: 1.35;
+  backdrop-filter: blur(8px);
+}
+
+@media (min-width: 768px) {
+  .place-dossier__head--with-scene {
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: var(--pa-space-3) var(--pa-space-5);
+  }
+
+  .place-dossier__head--with-scene .place-dossier__scene--hero {
+    width: 220px;
+    height: 148px;
+  }
+}
+
+@media (min-width: 1180px) {
+  .place-dossier__head--with-scene {
+    grid-template-columns: 252px minmax(0, 1fr);
+  }
+
+  .place-dossier__head--with-scene .place-dossier__scene--hero {
+    width: 252px;
+    height: 164px;
   }
 }
 
