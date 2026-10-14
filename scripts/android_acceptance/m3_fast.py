@@ -227,6 +227,7 @@ def trigger_system_back() -> str:
     shell(SERIAL, "input", "keyevent", "KEYCODE_BACK", timeout=30)
     return f"system-back-action sdk={sdk} mode={mode or 'unknown'} dispatcher=androidx"
 
+
 def screenshot(name: str) -> int:
     # Python 捕获字节再写文件：不经 cmd 重定向（REG-002 的 UTF-16 风险只影响
     # PowerShell 管道；subprocess capture_output 是纯字节，安全）。
