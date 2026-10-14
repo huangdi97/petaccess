@@ -17,7 +17,10 @@ const props = withDefaults(defineProps<{ showQueryContext?: boolean }>(), {
 </script>
 
 <template>
-  <div class="secondary-workspace">
+  <div
+    class="secondary-workspace"
+    :data-query-context="props.showQueryContext ? 'visible' : 'hidden'"
+  >
     <QueryContextBar v-if="props.showQueryContext" />
     <DesktopContentContainer mode="wide">
       <main class="secondary-page">

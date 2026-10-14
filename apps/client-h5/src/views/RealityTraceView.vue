@@ -18,7 +18,6 @@ import {
 } from "@petaccess/client-core";
 import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
-import QueryContextBar from "../components/domain/QueryContextBar.vue";
 import RealityEventLog from "../components/domain/RealityEventLog.vue";
 import { presentDescription } from "../errors";
 import { useRealityConfirmation } from "../composables/useRealityConfirmation";
@@ -193,7 +192,6 @@ const uiFixture = computed<string>(() =>
     :data-ui-state="uiState"
     :data-ui-fixture="uiFixture"
   >
-    <QueryContextBar />
     <div class="reality-workspace__body">
       <h1 class="visually-hidden">现场记录</h1>
       <SkeletonList v-if="loading" :rows="4" />

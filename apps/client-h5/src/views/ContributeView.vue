@@ -10,7 +10,6 @@
 import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { client, session } from "@petaccess/client-core";
-import QueryContextBar from "../components/domain/QueryContextBar.vue";
 import StateMessage from "../components/StateMessage.vue";
 import SkeletonList from "../components/SkeletonList.vue";
 import ContributeEntry from "../components/contribute/ContributeEntry.vue";
@@ -172,7 +171,6 @@ const { desktop: isDesktop } = useBreakpoint();
     :data-ui-state="uiState"
     :data-ui-fixture="uiFixture"
   >
-    <QueryContextBar v-if="placeId" />
     <div class="contribute-workspace__body" data-ui="contribution-workspace">
       <div class="contribute-workspace__layout">
         <main class="contribute-workspace__main" data-ui="contribution-main">
