@@ -138,7 +138,8 @@ def is_known_history_template(file: str, pattern: str, line: str) -> bool:
     if file == "tests/unit/test_preview_database_url.py":
         retired_encoded_fixture = "".join(
             [
-                '"postgresql+psycopg://',
+                '"postgresql+psycopg:',
+                "//",
                 "pet%20access",
                 ":",
                 "p%40ss%3A%2F%3F%23%5B%5D",
