@@ -147,7 +147,13 @@ def main() -> int:
     )
 
     width_matrix = _load(runtime / "width_matrix.json")
-    required_width_profiles = {"phone-m", "phone-s", "phone-l", "tablet"}
+    required_width_profiles = {
+        "phone-m",
+        "phone-s",
+        "phone-l",
+        "phone-landscape-compact-height",
+        "tablet",
+    }
     required_width_actions = {"home", "search", "map", "place"}
     width_profiles = width_matrix.get("profiles", []) if isinstance(width_matrix, dict) else []
     observed_width_profiles = {
