@@ -546,11 +546,11 @@ const SHOTS: Shot[] = [
   },
 ];
 
-async function signIn(request: APIRequestContext): Promise<string> {
-  const suffix = `${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
-  const email = `direct-v8-human-${suffix}@example.com`;
+async function signIn(request: APIRequestContext, projectName: string): Promise<string> {
+  const audience = projectName.replace(/^oracle-/, "").replace(/[^a-z0-9-]/gi, "-");
+  const email = `linxia+${audience}@example.com`;
   const reg = await request.post(`${API}/auth/register`, {
-    data: { display_name: "Direct V8 人审探针", email, password: "passw0rd123" },
+    data: { display_name: "林夏", email, password: "passw0rd123" },
   });
   expect(reg.ok(), await reg.text()).toBeTruthy();
   const login = await request.post(`${API}/auth/login`, {
@@ -574,14 +574,12 @@ async function prepareApprovedOperatorPolicy(
   projectName: string,
 ): Promise<string> {
   const adminToken = await signInAdmin(request);
-  const suffix = `${projectName}-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
-
   const place = await request.post(`${API}/places`, {
     headers: { Authorization: `Bearer ${adminToken}` },
     data: {
-      canonical_name: `人审管理方场所·${suffix}`,
+      canonical_name: "青禾生活中心·演示",
       place_type: "mall",
-      canonical_address: "人审专用测试地址",
+      canonical_address: "演示市青禾路 18 号（虚构地址）",
       lifecycle_status: "active",
     },
   });
@@ -595,12 +593,12 @@ async function prepareApprovedOperatorPolicy(
     headers: { Authorization: `Bearer ${userToken}` },
     data: {
       place_id: placeId,
-      operator_name: `人审测试管理方·${suffix}`,
+      operator_name: "青禾生活中心运营方·演示",
       org_type: "company",
-      work_email: "ops-human-review@example.com",
+      work_email: "ops-demo@example.com",
       website: null,
       verification_method: "work_email",
-      verification_note: "仅用于 direct-v8 人工视觉验收 fixture",
+      verification_note: "虚构演示数据，仅用于视觉验收",
     },
   });
   expect(claim.ok(), `create operator claim failed: ${await claim.text()}`).toBeTruthy();
@@ -703,7 +701,7 @@ test("direct-v8 canonical human-review packet", async ({ page, request }, testIn
     await page.clock.install({ time: new Date("2026-10-06T04:00:00Z") }).catch(() => {});
 
     if (shot.auth) {
-      token ??= await signIn(request);
+      token ??= await signIn(request, projectName);
       await page.addInitScript((value) => localStorage.setItem("pa_token", value), token);
     }
 
