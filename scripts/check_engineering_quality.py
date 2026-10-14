@@ -303,6 +303,9 @@ def check_consumer_runtime_boundary() -> list[dict]:
             required_verifier_markers = (
                 "/ping",
                 "/health",
+                "/health/ready",
+                "/health/components",
+                "all_ok",
                 "http://tauri.localhost",
                 "access-control-allow-origin",
                 "/ai/map/config",
