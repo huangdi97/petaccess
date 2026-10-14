@@ -39,6 +39,12 @@ PROFILES = [
     {"id": "phone-m", "mode": "reset"},
     {"id": "phone-s", "width_px": 990, "height_px": 2200, "density": 440},
     {"id": "phone-l", "width_px": 1183, "height_px": 2563, "density": 440},
+    {
+        "id": "phone-landscape-compact-height",
+        "width_px": 2200,
+        "height_px": 990,
+        "density": 440,
+    },
     {"id": "tablet", "width_px": 2200, "height_px": 3520, "density": 440},
 ]
 ACTIONS = ("home", "search", "map", "place")
