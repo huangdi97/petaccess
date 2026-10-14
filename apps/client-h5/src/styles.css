@@ -34,8 +34,25 @@ body {
 }
 #app {
   min-height: 100vh;
+  min-height: 100dvh;
   background: var(--bg);
   position: relative;
+}
+
+/* Android WebView / mobile browser IME contract.
+ * visualViewport.ts only marks IME visible when a text-entry control owns
+ * focus and the visual viewport is materially occluded. Hide persistent
+ * bottom navigation while typing so it never floats above the keyboard or
+ * steals vertical space from the focused form. */
+html[data-ime="visible"] .mobile-tabbar {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(100%);
+}
+
+html[data-ime="visible"] .consumer-app-shell__main {
+  padding-bottom: 0;
 }
 a {
   color: inherit;
