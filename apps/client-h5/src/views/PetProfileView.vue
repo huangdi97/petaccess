@@ -145,7 +145,7 @@ function setActive(pet: PetView) {
   session.mode = pet.service_role === "working" ? "service_dog" : "with_pet";
   notice.value =
     pet.service_role === "working"
-      ? `本次查询对象已设为「${pet.display_name}」；请在当前查询中选择具体服务犬角色。`
+      ? `本次查询对象已设为「${pet.display_name}」；查询服务犬准入时，请在首页、搜索、地图或场所页面的“当前查询”中选择具体服务犬角色。`
       : `本次查询对象已设为「${pet.display_name}」`;
 }
 
@@ -254,7 +254,7 @@ onMounted(load);
           />
         </template>
         <p class="profile-note muted">
-          服务犬使用独立通行规则。需要查询时，直接在“当前查询”中切换到服务犬视角。
+          服务犬使用独立通行规则。需要查询时，请在首页、搜索、地图或场所页面的“当前查询”中切换到服务犬视角。
         </p>
       </template>
     </template>
