@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from scan_secrets import is_dev_line, scan_text
+from scan_secrets import is_dev_line, is_known_history_template, scan_text
 
 
 def test_is_dev_line_marks_demo_values() -> None:
@@ -67,3 +67,25 @@ def test_scan_text_finds_db_url_credentials() -> None:
         'url = "postgresql://petaccess:REALPASSWORD-1234567890@127.0.0.1:5432/petaccess"'
     )
     assert any(name == "DB URL with credentials" for name, _ in hits)
+
+def test_history_exemption_is_narrow_to_removed_dynamic_preview_db_template() -> None:
+    template = (
+        'DATABASE_URL="postgresql+psycopg://'
+        '$POSTGRES_USER:$POSTGRES_PASSWORD@db:5432/$POSTGRES_DB"'
+    )
+    assert is_known_history_template(
+        ".github/workflows/public-preview-deploy.yml",
+        "DB URL with credentials",
+        template,
+    )
+    assert not is_known_history_template(
+        ".github/workflows/public-preview-deploy.yml",
+        "DB URL with credentials",
+        "DATABASE_URL=postgresql://petaccess:REALPASSWORD-1234567890@db:5432/petaccess",
+    )
+    assert not is_known_history_template(
+        "other.yml",
+        "DB URL with credentials",
+        template,
+    )
+
