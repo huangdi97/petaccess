@@ -43,6 +43,7 @@ jobs:
             apps/client-h5/src/composables/useHomeLauncher.ts \
             apps/client-h5/src/composables/useRuleLeadContribution.ts \
             apps/client-h5/src/composables/useMapWorkspace.ts \
+            apps/client-h5/src/runtime/visualViewport.ts \
             apps/client-h5/src/consumer/homeDigest.ts \
             apps/client-h5/src/views/PlaceView.vue \
             apps/client-h5/src/views/RealityTraceView.vue \
@@ -91,6 +92,7 @@ jobs:
             apps/client-h5/src/composables/useHomeLauncher.ts
             apps/client-h5/src/composables/useRuleLeadContribution.ts
             apps/client-h5/src/composables/useMapWorkspace.ts
+            apps/client-h5/src/runtime/visualViewport.ts
             apps/client-h5/src/consumer/homeDigest.ts
             apps/client-h5/src/views/PlaceView.vue
             apps/client-h5/src/views/RealityTraceView.vue
