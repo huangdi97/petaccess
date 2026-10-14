@@ -125,6 +125,12 @@ jobs:
           --ci
           --config "$PREVIEW_CONFIG"
 
+      - name: Enforce Android IME resize contract
+        shell: bash
+        run: |
+          python3 scripts/android_acceptance/ensure_adjust_resize.py
+          python3 scripts/android_acceptance/ensure_adjust_resize.py --check
+
       - name: Build debug preview APK
         run: >
           pnpm --filter @petaccess/client-h5 exec tauri android build
@@ -168,6 +174,12 @@ jobs:
 
           BADGING="$("$AAPT" dump badging "$OUT")"
           printf '%s\n' "$BADGING" > PREVIEW_BADGING.txt
+          "$AAPT" dump xmltree "$OUT" AndroidManifest.xml > PREVIEW_MANIFEST.txt
+          grep -Eq 'android:windowSoftInputMode.*0x10' PREVIEW_MANIFEST.txt || {
+            echo "Preview APK MainActivity is missing SOFT_INPUT_ADJUST_RESIZE (0x10)"
+            grep -n 'windowSoftInputMode' PREVIEW_MANIFEST.txt || true
+            exit 1
+          }
           echo "$BADGING" | head -8
           echo "$BADGING" | grep -q "name='com.petaccess.map.preview'" || {
             echo "Preview package id mismatch"
