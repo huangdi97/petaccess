@@ -2,12 +2,23 @@ import type { Router } from "vue-router";
 
 export type AndroidBackAction = "back" | "home" | "exit";
 
+interface AndroidBackListener {
+  unregister(): Promise<void>;
+}
+
 export function decideAndroidBackAction(
   routePath: string,
   consumerBackTarget: string | null,
 ): AndroidBackAction {
   if (consumerBackTarget) return "back";
   return routePath === "/" ? "exit" : "home";
+}
+
+export function shouldInterceptAndroidBack(
+  routePath: string,
+  consumerBackTarget: string | null,
+): boolean {
+  return decideAndroidBackAction(routePath, consumerBackTarget) !== "exit";
 }
 
 export class ConsumerRouteStack {
@@ -46,12 +57,16 @@ export class ConsumerRouteStack {
 }
 
 /**
- * Install PetAccess' Android hardware-back contract.
+ * Install PetAccess Android hardware-back contract.
  *
- * Product navigation is governed by the Consumer route stack, not WebView's
- * internal history. Hash-router/WebView history can diverge from meaningful
- * PetAccess destinations, especially after packaged navigation or a fresh
- * deep link.
+ * Android 16 predictive-back must remain system-owned at the task root.
+ * Tauri onBackButtonPress takes over the default system behavior while a
+ * listener is registered, so PetAccess registers it only when the Consumer
+ * has an in-app Back action to perform. At a fresh Home root the listener is
+ * removed and Android itself owns back-to-home.
+ *
+ * Non-root navigation is governed by the Consumer route stack, not WebView
+ * incidental hash/history implementation.
  */
 export async function installAndroidBackHandler(router: Router): Promise<void> {
   const [{ onBackButtonPress }, { invoke }] = await Promise.all([
@@ -60,9 +75,14 @@ export async function installAndroidBackHandler(router: Router): Promise<void> {
   ]);
 
   const stack = new ConsumerRouteStack(router.currentRoute.value.fullPath);
-  router.afterEach((to) => stack.record(to.fullPath));
+  let listener: AndroidBackListener | null = null;
+  let syncChain: Promise<void> = Promise.resolve();
 
-  await onBackButtonPress(({ canGoBack }) => {
+  const setState = (state: "system-root" | "intercepting" | "failed"): void => {
+    document.documentElement.dataset.androidBack = state;
+  };
+
+  const handleBack = ({ canGoBack }: { canGoBack: boolean }): void => {
     const current = router.currentRoute.value.fullPath;
     const routePath = router.currentRoute.value.path;
     const target = stack.previous(current);
@@ -84,8 +104,63 @@ export async function installAndroidBackHandler(router: Router): Promise<void> {
       return;
     }
 
-    void invoke("exit_app").catch((error) => {
-      console.error("PETACCESS_ANDROID_BACK exit_app failed", error);
+    // Race fallback only. Normal root state has no registered listener.
+    const staleListener = listener;
+    listener = null;
+    setState("system-root");
+    void staleListener
+      ?.unregister()
+      .catch((error) => {
+        console.error("PETACCESS_ANDROID_BACK root listener unregister failed", error);
+      })
+      .finally(() => {
+        window.setTimeout(() => {
+          void invoke("exit_app").catch((error) => {
+            console.error("PETACCESS_ANDROID_BACK exit_app fallback failed", error);
+          });
+        }, 0);
+      });
+  };
+
+  const syncRegistration = async (): Promise<void> => {
+    const current = router.currentRoute.value.fullPath;
+    const routePath = router.currentRoute.value.path;
+    const target = stack.previous(current);
+    const intercept = shouldInterceptAndroidBack(routePath, target);
+
+    if (intercept) {
+      if (!listener) {
+        listener = (await onBackButtonPress(handleBack)) as AndroidBackListener;
+      }
+      setState("intercepting");
+      return;
+    }
+
+    if (listener) {
+      const staleListener = listener;
+      listener = null;
+      await staleListener.unregister();
+    }
+    setState("system-root");
+  };
+
+  const scheduleSync = (): Promise<void> => {
+    syncChain = syncChain
+      .then(syncRegistration)
+      .catch((error) => {
+        setState("failed");
+        console.error("PETACCESS_ANDROID_BACK registration sync failed", error);
+        throw error;
+      });
+    return syncChain;
+  };
+
+  router.afterEach((to) => {
+    stack.record(to.fullPath);
+    void scheduleSync().catch(() => {
+      // The visible failed state is consumed by Android runtime acceptance.
     });
   });
+
+  await scheduleSync();
 }
