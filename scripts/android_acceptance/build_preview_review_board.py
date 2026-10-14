@@ -131,7 +131,9 @@ def _width_card(profile: dict, page: dict) -> str:
       </header>
       <div class="shot">{image}</div>
       <dl>
-        <div><dt>viewport</dt><dd>{html.escape(str(viewport))} × {html.escape(str(viewport_height))}</dd></div>
+        <div><dt>viewport</dt><dd>
+          {html.escape(str(viewport))} × {html.escape(str(viewport_height))}
+        </dd></div>
         <div><dt>scroll width</dt><dd>{html.escape(str(scroll))}</dd></div>
         <div><dt>safe top</dt><dd>{html.escape(str(safe_top))}</dd></div>
         <div><dt>safe bottom</dt><dd>{html.escape(str(safe_bottom))}</dd></div>
