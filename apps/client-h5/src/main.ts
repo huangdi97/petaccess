@@ -7,6 +7,7 @@ import { bootStage } from "./config/bootTrace";
 import { detectRuntimeKind, resolveApiEndpoint } from "./config/endpoints";
 import "./styles.css";
 import "./styles/consumer-discovery-v9.css";
+import { installVisualViewportState } from "./runtime/visualViewport";
 
 bootStage("INDEX_LOADED");
 
@@ -67,5 +68,7 @@ router
     }
   })
   .catch(() => bootStage("ROUTER_FAILED"));
+
+installVisualViewportState();
 
 createApp(App).use(router).mount("#app");
