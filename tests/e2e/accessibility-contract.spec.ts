@@ -34,7 +34,8 @@ async function auditCurrentSurface(page: Page, label: string): Promise<void> {
     };
 
     const labelledByText = (element: Element): string => {
-      const ids = element.getAttribute("aria-labelledby")?.trim().split(/\s+/).filter(Boolean) ?? [];
+      const ids =
+        element.getAttribute("aria-labelledby")?.trim().split(/\s+/).filter(Boolean) ?? [];
       return ids
         .map((id) => document.getElementById(id)?.textContent?.trim() ?? "")
         .filter(Boolean)
