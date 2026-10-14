@@ -12,6 +12,7 @@ on:
       - ".github/workflows/android-phone-preview.yml"
       - "scripts/release/verify_public_api.cjs"
       - "scripts/android_acceptance/ensure_adjust_resize.py"
+      - "scripts/android_acceptance/ensure_native_ime_bridge.py"
   workflow_dispatch:
     inputs:
       api_base:
@@ -294,11 +295,13 @@ jobs:
           --ci
           --config src-tauri/tauri.phone-preview.generated.json
 
-      - name: Enforce Android IME resize contract
+      - name: Enforce Android keyboard runtime contract
         shell: bash
         run: |
           python3 scripts/android_acceptance/ensure_adjust_resize.py
           python3 scripts/android_acceptance/ensure_adjust_resize.py --check
+          python3 scripts/android_acceptance/ensure_native_ime_bridge.py
+          python3 scripts/android_acceptance/ensure_native_ime_bridge.py --check
 
       - name: Build ARM64 Phone Preview APK
         run: >-
