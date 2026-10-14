@@ -12,7 +12,7 @@ import QueryContextBar from "./domain/QueryContextBar.vue";
 import DesktopContentContainer from "./layout/DesktopContentContainer.vue";
 
 const props = withDefaults(defineProps<{ showQueryContext?: boolean }>(), {
-  showQueryContext: true,
+  showQueryContext: false,
 });
 </script>
 
