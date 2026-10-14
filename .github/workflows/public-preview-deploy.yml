@@ -226,7 +226,7 @@ jobs:
           fi
 
           case "$REMOTE_ROOT" in
-            *[!A-Za-z0-9_./~-]*|*".."*)
+            *[!A-Za-z0-9_./-]*|*".."*)
               echo "PETACCESS_PREVIEW_REMOTE_ROOT contains unsafe path characters" >&2
               exit 64
               ;;
