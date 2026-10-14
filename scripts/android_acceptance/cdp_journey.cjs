@@ -408,12 +408,17 @@ async function main() {
           sceneMedia: (() => {
             const frame = document.querySelector('[data-testid="place-scene-media"]');
             const image = frame?.querySelector("img");
+            const rect = frame?.getBoundingClientRect();
             return {
               present: Boolean(frame && image),
               src: image?.currentSrc ?? image?.src ?? null,
               complete: image?.complete ?? false,
               naturalWidth: image?.naturalWidth ?? 0,
               naturalHeight: image?.naturalHeight ?? 0,
+              width: rect?.width ?? 0,
+              height: rect?.height ?? 0,
+              left: rect?.left ?? null,
+              right: rect?.right ?? null,
             };
           })(),
           text: body?.innerText.slice(0, 1600) ?? "",
@@ -519,6 +524,14 @@ async function main() {
         String(scene.src ?? "").startsWith("nullstorage://")
       ) {
         routeError ??= `governed scene media failed packaged render: ${JSON.stringify(scene)}`;
+      }
+      if (
+        state.viewport.width <= 767 &&
+        (scene.width < state.viewport.width * 0.82 || scene.height < 140)
+      ) {
+        routeError ??= `approved mobile scene media was demoted below destination-hero geometry: ${JSON.stringify(
+          scene,
+        )}`;
       }
     }
 
