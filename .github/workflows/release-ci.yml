@@ -246,11 +246,13 @@ jobs:
         run: >-
           pnpm --filter @petaccess/client-h5 exec tauri android init
           --config src-tauri/tauri.release.generated.json
-      - name: Enforce Android IME resize contract
+      - name: Enforce Android keyboard runtime contract
         shell: bash
         run: |
           python3 scripts/android_acceptance/ensure_adjust_resize.py
           python3 scripts/android_acceptance/ensure_adjust_resize.py --check
+          python3 scripts/android_acceptance/ensure_native_ime_bridge.py
+          python3 scripts/android_acceptance/ensure_native_ime_bridge.py --check
       - name: Build Android universal release APK
         run: >-
           pnpm --filter @petaccess/client-h5 exec tauri android build
