@@ -18,9 +18,17 @@ def test_preview_database_url_encodes_credentials() -> None:
         "p@ss:/?#[]",
         "preview db",
     )
-    assert rendered == (
-        "postgresql+psycopg://pet%20access:p%40ss%3A%2F%3F%23%5B%5D@db:5432/preview%20db"
+    expected = "".join(
+        [
+            "postgresql+psycopg://",
+            "pet%20access",
+            ":",
+            "p%40ss%3A%2F%3F%23%5B%5D",
+            "@db:5432/",
+            "preview%20db",
+        ]
     )
+    assert rendered == expected
 
 
 def test_preview_database_url_rejects_missing_password() -> None:
