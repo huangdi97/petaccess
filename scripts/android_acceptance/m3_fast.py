@@ -156,9 +156,7 @@ def wait_for_android_back_state(
             last_error = str(exc)
         time.sleep(0.5)
     detail = last_state or last_error or "no Android Back state observed"
-    raise RuntimeError(
-        f"timed out waiting for Android Back state={expected} pid={pid}: {detail}"
-    )
+    raise RuntimeError(f"timed out waiting for Android Back state={expected} pid={pid}: {detail}")
 
 
 def wait_for_pid(timeout_s: float = 20.0) -> str:
