@@ -204,7 +204,7 @@ def display_size() -> tuple[int, int]:
 
 
 def trigger_system_back() -> str:
-    \"\"\"Exercise Android's system Back action without injecting app touch input.
+    """Exercise Android's system Back action without injecting app touch input.
 
     Android 16 / targetSdk 36 no longer dispatches KEYCODE_BACK *to the app* for
     back handling. That does not make adb shell input keyevent KEYCODE_BACK an
@@ -220,14 +220,14 @@ def trigger_system_back() -> str:
     Predictive animation/progress remains a manual device acceptance item. This
     automated gate verifies the committed Back semantics:
     nested Consumer route -> previous route, fresh Home -> leave MainActivity.
-    \"\"\"
+    """
 
     sdk = android_sdk_level()
     mode = android_navigation_mode()
-    shell(SERIAL, \"input\", \"keyevent\", \"KEYCODE_BACK\", timeout=30)
+    shell(SERIAL, "input", "keyevent", "KEYCODE_BACK", timeout=30)
     return (
-        f\"system-back-action sdk={sdk} mode={mode or 'unknown'} \"
-        \"dispatcher=androidx\"
+        f"system-back-action sdk={sdk} mode={mode or 'unknown'} "
+        "dispatcher=androidx"
     )
 
 def screenshot(name: str) -> int:
