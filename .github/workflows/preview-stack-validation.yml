@@ -9,6 +9,7 @@ on:
       - "pyproject.toml"
       - "uv.lock"
       - ".github/workflows/preview-stack-validation.yml"
+      - ".github/workflows/public-preview-deploy.yml"
   workflow_dispatch:
 
 permissions:
