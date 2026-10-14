@@ -86,6 +86,20 @@ async function main() {
     throw new Error("/health did not return status=ok");
   }
 
+  const readyResponse = await requestJson(url.origin + "/health/ready");
+  if (readyResponse.payload?.status !== "ready" || !readyResponse.payload?.db?.postgis) {
+    throw new Error("/health/ready did not prove DB/PostGIS readiness");
+  }
+
+  const componentsResponse = await requestJson(url.origin + "/health/components");
+  if (componentsResponse.payload?.all_ok !== true) {
+    throw new Error(
+      `/health/components did not report all_ok=true: ${JSON.stringify(
+        componentsResponse.payload?.components ?? {},
+      )}`,
+    );
+  }
+
   let mapMode = "not-required";
   if (process.env.PETACCESS_REQUIRE_REAL_MAP === "1") {
     const { payload: mapConfig } = await requestJson(base + "/ai/map/config");
@@ -120,7 +134,9 @@ async function main() {
 
   console.log(`public-api-preflight: origin=${url.origin}`);
   console.log(`public-api-preflight: base_path=${normalizedPath}`);
-  console.log(`public-api-preflight: health=ok ping=ok tauri_cors=ok real_map=${mapMode}`);
+  console.log(
+    `public-api-preflight: health=ok ready=ok components=ok ping=ok tauri_cors=ok real_map=${mapMode}`,
+  );
 }
 
 main().catch((error) => {
