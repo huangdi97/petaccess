@@ -56,7 +56,9 @@ router
       try {
         const { installAndroidBackHandler } = await import("./runtime/androidBack");
         await installAndroidBackHandler(router);
-        document.documentElement.dataset.androidBack = "ready";
+        if (document.documentElement.dataset.androidBack === "installing") {
+          document.documentElement.dataset.androidBack = "system-root";
+        }
         bootStage("ANDROID_BACK_READY");
       } catch {
         document.documentElement.dataset.androidBack = "failed";
