@@ -82,12 +82,23 @@ async function main() {
         const body = document.body;
         const insetProbe = document.createElement("div");
         insetProbe.style.cssText =
-          "position:fixed;visibility:hidden;pointer-events:none;padding-top:env(safe-area-inset-top,0px)";
+          "position:fixed;visibility:hidden;pointer-events:none;" +
+          "padding-top:env(safe-area-inset-top,0px);" +
+          "padding-bottom:env(safe-area-inset-bottom,0px)";
         body?.appendChild(insetProbe);
-        const safeAreaTop = Number.parseFloat(getComputedStyle(insetProbe).paddingTop) || 0;
+        const insetStyle = getComputedStyle(insetProbe);
+        const safeAreaTop = Number.parseFloat(insetStyle.paddingTop) || 0;
+        const safeAreaBottom = Number.parseFloat(insetStyle.paddingBottom) || 0;
         insetProbe.remove();
         const shellMain = document.querySelector(".consumer-app-shell__main");
         const contentTop = shellMain?.getBoundingClientRect().top ?? 0;
+        const tabbarItem = document.querySelector(".mobile-tabbar__item");
+        const tabbarItemRect = tabbarItem?.getBoundingClientRect() ?? null;
+        const bottomSafeLimit = window.innerHeight - safeAreaBottom;
+        const safeAreaBottomOverlap =
+          safeAreaBottom > 0.5 &&
+          tabbarItemRect != null &&
+          tabbarItemRect.bottom > bottomSafeLimit + 0.5;
         return {
           url: location.href,
           title: document.title,
@@ -100,12 +111,19 @@ async function main() {
           errorState: !!document.querySelector("[data-state=ERROR]"),
           results: document.querySelectorAll("[data-testid^=result-]").length,
           viewportWidth: window.innerWidth,
+          viewportHeight: window.innerHeight,
+          visualViewportHeight: window.visualViewport?.height ?? null,
+          imeState: root?.dataset.ime ?? null,
           scrollWidth: root?.scrollWidth ?? body?.scrollWidth ?? 0,
           horizontalOverflow:
             (root?.scrollWidth ?? body?.scrollWidth ?? 0) > window.innerWidth + 1,
           safeAreaTop,
+          safeAreaBottom,
           contentTop,
           safeAreaOverlap: safeAreaTop > 0.5 && contentTop + 0.5 < safeAreaTop,
+          tabbarItemBottom: tabbarItemRect?.bottom ?? null,
+          bottomSafeLimit,
+          safeAreaBottomOverlap,
           textSample: body?.innerText.slice(0, 500) ?? "",
         };
       })())`),
@@ -119,7 +137,8 @@ async function main() {
       last = await snapshot();
       const pageReady = last.uiPage === expectedPage;
       const stateReady = !expectedStates.length || expectedStates.includes(last.uiState);
-      const geometryReady = !last.horizontalOverflow && !last.safeAreaOverlap;
+      const geometryReady =
+        !last.horizontalOverflow && !last.safeAreaOverlap && !last.safeAreaBottomOverlap;
       if (last.shell && pageReady && stateReady && geometryReady) {
         // Require a second stable sample. Android WebView can briefly expose the
         // new route before async page data/layout has settled after wm size/density
@@ -131,7 +150,8 @@ async function main() {
           stable.uiPage === expectedPage &&
           (!expectedStates.length || expectedStates.includes(stable.uiState)) &&
           !stable.horizontalOverflow &&
-          !stable.safeAreaOverlap
+          !stable.safeAreaOverlap &&
+          !stable.safeAreaBottomOverlap
         ) {
           return stable;
         }
@@ -174,7 +194,12 @@ async function main() {
     await logRoute("EVIDENCE", `#/place/${PLACE_ID}/evidence`, "evidence", 2600);
   } else if (action === "snapshot") {
     const value = await snapshot();
-    if (!value.shell || value.horizontalOverflow || value.safeAreaOverlap) {
+    if (
+      !value.shell ||
+      value.horizontalOverflow ||
+      value.safeAreaOverlap ||
+      value.safeAreaBottomOverlap
+    ) {
       throw new Error(`SNAPSHOT invalid state: ${JSON.stringify(value)}`);
     }
     console.log(`SNAPSHOT ${JSON.stringify(value)}`);
