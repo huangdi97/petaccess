@@ -211,7 +211,74 @@ docker compose \
   down -v
 ```
 
-## 10. 不是 Production
+## 10. GitHub 一键部署 + 自动生成 Phone Preview
+
+仓库提供：
+
+```text
+.github/workflows/public-preview-deploy.yml
+Public Preview Deploy
+```
+
+它只允许 `workflow_dispatch`，不会在普通 push / PR 上自动修改公网环境。
+
+首次使用前，在 GitHub Environment **`petaccess-public-preview`** / Repository 中准备：
+
+Repository variable（可用 workflow 输入临时覆盖 domain）：
+
+```text
+PETACCESS_PREVIEW_DOMAIN
+PETACCESS_PREVIEW_SSH_PORT        # 可选，默认 22
+PETACCESS_PREVIEW_REMOTE_ROOT     # 可选，默认 petaccess-public-preview
+PETACCESS_PREVIEW_POSTGRES_DB     # 可选
+PETACCESS_PREVIEW_POSTGRES_USER   # 可选
+PETACCESS_PREVIEW_S3_BUCKET       # 可选
+PETACCESS_PREVIEW_MAP_PROVIDER    # 可选，默认 mock
+PETACCESS_PREVIEW_FEATURE_REAL_MAP # 可选，默认 false
+```
+
+Secrets：
+
+```text
+PETACCESS_PREVIEW_SSH_HOST
+PETACCESS_PREVIEW_SSH_USER
+PETACCESS_PREVIEW_SSH_KEY
+PETACCESS_PREVIEW_POSTGRES_PASSWORD
+PETACCESS_PREVIEW_S3_ACCESS_KEY
+PETACCESS_PREVIEW_S3_SECRET_KEY
+PETACCESS_PREVIEW_JWT_SECRET
+PETACCESS_PREVIEW_TENCENT_MAP_KEY_CLIENT   # 仅真实地图需要
+PETACCESS_PREVIEW_TENCENT_MAP_KEY_SERVER   # 仅真实地图需要
+```
+
+workflow 会按当前 commit 建立不可变远端目录：
+
+```text
+<REMOTE_ROOT>/releases/<GITHUB_SHA>
+```
+
+再执行 compose build/up、验证公网 HTTPS PetAccess identity，并把：
+
+```text
+https://<domain>/api/v1
+```
+
+作为显式 `workflow_dispatch` 输入触发 **Android Phone Preview APK**。因此部署成功后不需要人工再复制 API URL 到第二条 workflow。
+
+缺少 domain / SSH / secrets 时，workflow 只产生：
+
+```text
+BLOCKED_BY_DOMAIN
+BLOCKED_BY_SSH
+BLOCKED_BY_SECRETS
+```
+
+并明确不部署。它不会用临时 tunnel、localhost、假 URL 或静态 fixture 绕过外部依赖。
+
+> GitHub 的手动 `workflow_dispatch` 入口要求 workflow 已存在于默认分支。当前功能分支可以接受 CI 验证；正式通过 GitHub UI 执行前，需要先让这条 workflow 进入默认分支。
+
+## 11. 不是 Production
+
 
 这个栈的目标是解除 **standalone Phone Preview / staging** 的基础设施缺口。
 
