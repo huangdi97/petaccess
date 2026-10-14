@@ -38,12 +38,35 @@ def test_patch_is_idempotent() -> None:
     assert twice == once
 
 
-def test_unknown_activity_body_is_rejected() -> None:
+def test_existing_tauri_activity_members_are_preserved() -> None:
     custom = """package com.petaccess.map
 
+import android.os.Bundle
+import androidx.activity.enableEdgeToEdge
+
 class MainActivity : TauriActivity() {
-  override fun onStart() {
-    super.onStart()
+  override fun onCreate(savedInstanceState: Bundle?) {
+    enableEdgeToEdge()
+    super.onCreate(savedInstanceState)
+  }
+}
+"""
+
+    patched = patch_activity_text(custom)
+
+    assert "enableEdgeToEdge()" in patched
+    assert "super.onCreate(savedInstanceState)" in patched
+    assert activity_has_bridge(patched)
+
+
+def test_existing_webview_lifecycle_override_is_rejected() -> None:
+    custom = """package com.petaccess.map
+
+import android.webkit.WebView
+
+class MainActivity : TauriActivity() {
+  override fun onWebViewCreate(webView: WebView) {
+    println(webView)
   }
 }
 """
