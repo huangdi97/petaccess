@@ -8,11 +8,15 @@
  */
 import QueryContextBar from "./domain/QueryContextBar.vue";
 import DesktopContentContainer from "./layout/DesktopContentContainer.vue";
+
+const props = withDefaults(defineProps<{ showQueryContext?: boolean }>(), {
+  showQueryContext: true,
+});
 </script>
 
 <template>
   <div class="secondary-workspace">
-    <QueryContextBar />
+    <QueryContextBar v-if="props.showQueryContext" />
     <DesktopContentContainer mode="wide">
       <main class="secondary-page">
         <slot />

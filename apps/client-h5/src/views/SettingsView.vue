@@ -50,7 +50,7 @@ const EVIDENCE = [
 </script>
 
 <template>
-  <AppShell
+  <AppShell :show-query-context="false"
     data-ui-page="settings"
     :data-ui-state="sessionStateError ? 'session-error' : signedIn ? 'signed-in' : 'public'"
   >
@@ -149,7 +149,7 @@ const EVIDENCE = [
               : "未登录 · 可浏览公开内容"
         }}
       </span>
-      <span>查询对象与动作请使用页面顶部的“当前查询”统一调整。</span>
+      <span>查询对象与动作可在首页、搜索、地图或场所页面的“当前查询”中统一调整。</span>
     </footer>
   </AppShell>
 </template>

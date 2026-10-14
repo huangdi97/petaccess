@@ -87,7 +87,7 @@ watch(placeId, () => void load(), { immediate: true });
 </script>
 
 <template>
-  <AppShell data-ui-page="operator-claim" :data-ui-state="uiState">
+  <AppShell :show-query-context="false" data-ui-page="operator-claim" :data-ui-state="uiState">
     <main class="operator-claim" data-testid="operator-claim-page">
       <header class="operator-claim__head">
         <p class="operator-claim__kicker">管理方身份核验</p>

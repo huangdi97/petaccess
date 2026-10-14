@@ -93,7 +93,7 @@ onMounted(load);
 </script>
 
 <template>
-  <AppShell
+  <AppShell :show-query-context="false"
     data-ui-page="boundary"
     :data-ui-state="
       loading ? 'loading' : loadError ? 'error' : signedIn ? 'ready' : 'permission-denied'

@@ -61,7 +61,7 @@ function setActivePet(pet: (typeof pets.value)[number]) {
 </script>
 
 <template>
-  <AppShell
+  <AppShell :show-query-context="false"
     data-ui-page="mine"
     :data-ui-state="loading ? 'loading' : error ? 'error' : signedIn ? 'signed-in' : 'public'"
   >

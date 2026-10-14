@@ -30,7 +30,7 @@ const {
 </script>
 
 <template>
-  <AppShell
+  <AppShell :show-query-context="false"
     data-testid="notifications-page"
     data-ui-page="notifications"
     :data-ui-state="

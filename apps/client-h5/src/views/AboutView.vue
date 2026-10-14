@@ -14,7 +14,7 @@ const PRINCIPLES = [
 </script>
 
 <template>
-  <AppShell data-ui-page="about" data-ui-state="ready">
+  <AppShell :show-query-context="false" data-ui-page="about" data-ui-state="ready">
     <header class="about-head">
       <h1 data-testid="about-title">关于 PetAccess</h1>
       <p class="muted">
