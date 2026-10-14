@@ -89,8 +89,7 @@ def enforce(path: Path, *, check_only: bool) -> None:
     if check_only:
         if not manifest_has_adjust_resize(original):
             raise ManifestContractError(
-                f"{path}: MainActivity must declare "
-                'android:windowSoftInputMode="adjustResize"'
+                f'{path}: MainActivity must declare android:windowSoftInputMode="adjustResize"'
             )
         print(f"PASS adjustResize: {path}")
         return
