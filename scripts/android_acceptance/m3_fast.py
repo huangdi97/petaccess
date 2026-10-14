@@ -204,36 +204,31 @@ def display_size() -> tuple[int, int]:
 
 
 def trigger_system_back() -> str:
-    """Exercise Android's real Back path for the active navigation mode.
+    \"\"\"Exercise Android's system Back action without injecting app touch input.
 
-    Android 16 / targetSdk 36 no longer treats KEYCODE_BACK interception as the
-    supported app Back contract. In gesture navigation, drive an actual left-edge
-    gesture so Tauri's OnBackInvoked callback is exercised. Three/two-button
-    navigation continues to use the system Back keyevent.
-    """
+    Android 16 / targetSdk 36 no longer dispatches KEYCODE_BACK *to the app* for
+    back handling. That does not make adb shell input keyevent KEYCODE_BACK an
+    app-level key interception: the shell command asks Android to perform the
+    system Back action, which AndroidX OnBackPressedDispatcher bridges to the
+    platform predictive-back callback used by Tauri.
+
+    A synthetic input swipe is deliberately not used here. In a headless
+    emulator it is merely injected touch input and is not a documented automation
+    API for SystemUI's edge-gesture recognizer; treating it as one produced false
+    API-36 failures where neither the in-app callback nor back-to-home fired.
+
+    Predictive animation/progress remains a manual device acceptance item. This
+    automated gate verifies the committed Back semantics:
+    nested Consumer route -> previous route, fresh Home -> leave MainActivity.
+    \"\"\"
 
     sdk = android_sdk_level()
     mode = android_navigation_mode()
-    if sdk >= 36 and mode == "2":
-        width, height = display_size()
-        y = max(200, int(height * 0.55))
-        end_x = max(240, int(width * 0.42))
-        shell(
-            SERIAL,
-            "input",
-            "swipe",
-            "1",
-            str(y),
-            str(end_x),
-            str(y),
-            "320",
-            timeout=30,
-        )
-        return f"predictive-edge-gesture sdk={sdk} mode={mode} size={width}x{height}"
-
-    shell(SERIAL, "input", "keyevent", "KEYCODE_BACK", timeout=30)
-    return f"system-back-keyevent sdk={sdk} mode={mode or 'unknown'}"
-
+    shell(SERIAL, \"input\", \"keyevent\", \"KEYCODE_BACK\", timeout=30)
+    return (
+        f\"system-back-action sdk={sdk} mode={mode or 'unknown'} \"
+        \"dispatcher=androidx\"
+    )
 
 def screenshot(name: str) -> int:
     # Python 捕获字节再写文件：不经 cmd 重定向（REG-002 的 UTF-16 风险只影响
