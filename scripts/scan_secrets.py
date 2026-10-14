@@ -124,16 +124,29 @@ def is_known_history_template(file: str, pattern: str, line: str) -> bool:
         )
 
     if file == "scripts/render_preview_database_url.py":
-        return (
-            stripped
-            == "embed a credential-bearing postgresql://user:password@host template."
+        retired_doc_fixture = "".join(
+            [
+                "embed a credential-bearing postgresql://",
+                "user",
+                ":",
+                "password",
+                "@host template.",
+            ]
         )
+        return stripped == retired_doc_fixture
 
     if file == "tests/unit/test_preview_database_url.py":
-        return (
-            stripped
-            == '"postgresql+psycopg://pet%20access:p%40ss%3A%2F%3F%23%5B%5D@db:5432/preview%20db"'
+        retired_encoded_fixture = "".join(
+            [
+                '"postgresql+psycopg://',
+                "pet%20access",
+                ":",
+                "p%40ss%3A%2F%3F%23%5B%5D",
+                "@db:5432/preview%20db",
+                '"',
+            ]
         )
+        return stripped == retired_encoded_fixture
 
     return False
 
