@@ -1,0 +1,40 @@
+name: Fix Human Review Fixture Lint (One Shot)
+
+on:
+  push:
+    branches:
+      - feat/ui-direct-craft-v8
+    paths:
+      - .github/workflows/fix-human-review-fixture-lint.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/ui-direct-craft-v8
+          persist-credentials: true
+      - name: Rename intentionally unused fixture parameter
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path("tests/ui-oracle/human-review-direct-v8.spec.ts")
+          text = path.read_text(encoding="utf-8")
+          old = "  projectName: string,\n): Promise<string> {"
+          new = "  _projectName: string,\n): Promise<string> {"
+          if old not in text:
+              raise SystemExit("expected fixture parameter not found")
+          path.write_text(text.replace(old, new, 1), encoding="utf-8")
+          PY
+      - name: Commit fix and remove one-shot workflow
+        run: |
+          git rm .github/workflows/fix-human-review-fixture-lint.yml
+          git add tests/ui-oracle/human-review-direct-v8.spec.ts
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "test(ui): mark fixture project parameter intentionally unused"
+          git push origin HEAD:feat/ui-direct-craft-v8
