@@ -104,20 +104,38 @@ def is_dev_line(line: str) -> bool:
 
 
 def is_known_history_template(file: str, pattern: str, line: str) -> bool:
-    """Allow only the removed Preview workflow's variable-only DB URL template.
+    """Allow only removed, known-safe Preview DB URL fixtures in git history.
 
-    This is history-only and intentionally exact. A literal credential in the
-    same path still fails; the current worktree receives no exemption.
+    These exemptions are history-only and intentionally exact. The current
+    worktree receives no exemption, and any nearby literal credential remains
+    a finding.
     """
 
-    return (
-        file == ".github/workflows/public-preview-deploy.yml"
-        and pattern == "DB URL with credentials"
-        and "$POSTGRES_USER" in line
-        and "$POSTGRES_PASSWORD" in line
-        and "$POSTGRES_DB" in line
-        and "@db:5432/" in line
-    )
+    if pattern != "DB URL with credentials":
+        return False
+
+    stripped = line.strip()
+    if file == ".github/workflows/public-preview-deploy.yml":
+        return (
+            "$POSTGRES_USER" in line
+            and "$POSTGRES_PASSWORD" in line
+            and "$POSTGRES_DB" in line
+            and "@db:5432/" in line
+        )
+
+    if file == "scripts/render_preview_database_url.py":
+        return (
+            stripped
+            == "embed a credential-bearing postgresql://user:password@host template."
+        )
+
+    if file == "tests/unit/test_preview_database_url.py":
+        return (
+            stripped
+            == '"postgresql+psycopg://pet%20access:p%40ss%3A%2F%3F%23%5B%5D@db:5432/preview%20db"'
+        )
+
+    return False
 
 
 def scan_text(text: str) -> list[tuple[str, int]]:
