@@ -132,26 +132,33 @@ def wait_for_page(pid: str, expected_page: str, timeout_s: float = 30.0) -> str:
     raise RuntimeError(f"timed out waiting for {expected_page}: {detail}")
 
 
-def wait_for_android_back_ready(pid: str, timeout_s: float = 20.0) -> str:
-    """Wait for the packaged Android Back listener to finish installing."""
+def wait_for_android_back_state(
+    pid: str,
+    expected: str,
+    timeout_s: float = 20.0,
+) -> str:
+    """Wait for explicit Android Back ownership on the packaged WebView."""
 
     deadline = time.monotonic() + timeout_s
     last_state = ""
     last_error = ""
+    expected_marker = f'"androidBack":"{expected}"'
     while time.monotonic() < deadline:
         try:
             state = cdp_probe("snapshot")
             last_state = state
             compact = state.replace(" ", "")
-            if '"androidBack":"ready"' in compact:
+            if expected_marker in compact:
                 return state
             if '"androidBack":"failed"' in compact:
                 raise RuntimeError(f"Android Back handler reported failed: {state}")
-        except Exception as exc:  # noqa: BLE001 - handler installs after router readiness
+        except Exception as exc:  # noqa: BLE001 - ownership sync follows router readiness
             last_error = str(exc)
         time.sleep(0.5)
     detail = last_state or last_error or "no Android Back state observed"
-    raise RuntimeError(f"timed out waiting for Android Back readiness: {detail}")
+    raise RuntimeError(
+        f"timed out waiting for Android Back state={expected} pid={pid}: {detail}"
+    )
 
 
 def wait_for_pid(timeout_s: float = 20.0) -> str:
@@ -254,6 +261,13 @@ def main() -> int:
     for step in ("home", "search", "map", "place", "reality", "evidence"):
         try:
             results[step] = cdp_probe(step)
+            compact = results[step].replace(" ", "")
+            expected_back = "system-root" if step == "home" else "intercepting"
+            if f'"androidBack":"{expected_back}"' not in compact:
+                raise RuntimeError(
+                    f"{step} Android Back ownership mismatch; "
+                    f"expected {expected_back}: {results[step]}"
+                )
             results[f"shot_{step}"] = f"bytes={screenshot(f'{step}-m3-final')}"
         except Exception as e:  # noqa: BLE001 - report every route and keep going
             results[step] = f"ERROR {e}"
@@ -325,10 +339,11 @@ def main() -> int:
         results["activity_resume"] = f"ERROR {e}"
 
     # Root navigation contract: a fresh Home launch has no Consumer history.
-    # Because onBackButtonPress takes over Android's default Back behavior, one
-    # system Back here must finish the PetAccess activity rather than leaving a
-    # blank WebView or trapping the user on Home. Do not capture the launcher
-    # screen: this gate may also run on a user's physical device.
+    # At a fresh Home root PetAccess must expose system-root ownership, meaning
+    # there is no app Back listener consuming predictive back. One system Back
+    # must therefore leave the PetAccess activity through Android's native
+    # back-to-home path. Do not capture the launcher screen: this gate may also
+    # run on a user's physical device.
     try:
         shell(SERIAL, "am", "force-stop", PKG, timeout=30)
         time.sleep(1)
@@ -336,7 +351,11 @@ def main() -> int:
         root_pid = wait_for_pid(timeout_s=20)
         root_state = wait_for_page(root_pid, "home", timeout_s=30)
         results["fresh_home_before_back"] = root_state
-        back_ready_state = wait_for_android_back_ready(root_pid, timeout_s=20)
+        back_ready_state = wait_for_android_back_state(
+            root_pid,
+            "system-root",
+            timeout_s=20,
+        )
         results["fresh_home_back_ready"] = back_ready_state
 
         back_method = trigger_system_back()
