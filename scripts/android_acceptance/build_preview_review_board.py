@@ -112,9 +112,12 @@ def _width_card(profile: dict, page: dict) -> str:
     status_class = "pass" if ok else "fail"
     status_text = "SIZE PASS" if ok else "SIZE FAIL"
     viewport = page.get("viewport_width", "-")
+    viewport_height = page.get("viewport_height", "-")
     scroll = page.get("scroll_width", "-")
     safe_top = page.get("safe_area_top", "-")
+    safe_bottom = page.get("safe_area_bottom", "-")
     content_top = page.get("content_top", "-")
+    bottom_overlap = page.get("safe_area_bottom_overlap", "-")
 
     return f"""
     <article class="route-card">
@@ -128,10 +131,12 @@ def _width_card(profile: dict, page: dict) -> str:
       </header>
       <div class="shot">{image}</div>
       <dl>
-        <div><dt>viewport width</dt><dd>{html.escape(str(viewport))}</dd></div>
+        <div><dt>viewport</dt><dd>{html.escape(str(viewport))} × {html.escape(str(viewport_height))}</dd></div>
         <div><dt>scroll width</dt><dd>{html.escape(str(scroll))}</dd></div>
         <div><dt>safe top</dt><dd>{html.escape(str(safe_top))}</dd></div>
+        <div><dt>safe bottom</dt><dd>{html.escape(str(safe_bottom))}</dd></div>
         <div><dt>content top</dt><dd>{html.escape(str(content_top))}</dd></div>
+        <div><dt>bottom overlap</dt><dd>{html.escape(str(bottom_overlap))}</dd></div>
         <div><dt>wm density</dt><dd>{html.escape(str(profile.get("wm_density") or "-"))}</dd></div>
         <div><dt>overflow</dt><dd>
           {html.escape(str(page.get("horizontal_overflow", "-")))}
@@ -405,8 +410,9 @@ Runtime PASS 只证明路由身份、WebView 几何、安全区、overflow 与�
 </section>
 <h1 style="margin-top:32px">Responsive width matrix</h1>
 <p>
-同一个 packaged Android Preview 在 phone-m、约 360dp、约 430dp 与 800dp
-下重启并重新验证核心页面。
+同一个 packaged Android Preview 在 phone-m、约 360dp、约 430dp、约 800×360dp
+横屏紧凑高度与 800dp tablet 下重启并重新验证核心页面。横屏用例专门防止只按宽度
+切双栏而忽略 compact-height 的布局退化。
 </p>
 <section class="grid">
 {width_cards if width_cards else "<p>没有找到当前 Android width-matrix screenshot 证据。</p>"}
