@@ -86,3 +86,26 @@ def test_history_exemption_is_narrow_to_removed_dynamic_preview_db_template() ->
         template,
     )
 
+
+
+def test_history_exemption_covers_only_retired_safe_preview_fixtures() -> None:
+    assert is_known_history_template(
+        "scripts/render_preview_database_url.py",
+        "DB URL with credentials",
+        "embed a credential-bearing postgresql://user:password@host template.",
+    )
+    assert is_known_history_template(
+        "tests/unit/test_preview_database_url.py",
+        "DB URL with credentials",
+        '"postgresql+psycopg://pet%20access:p%40ss%3A%2F%3F%23%5B%5D@db:5432/preview%20db"',
+    )
+    assert not is_known_history_template(
+        "scripts/render_preview_database_url.py",
+        "DB URL with credentials",
+        "postgresql://admin:REALPASSWORD-1234567890@prod-db:5432/petaccess",
+    )
+    assert not is_known_history_template(
+        "tests/unit/test_preview_database_url.py",
+        "DB URL with credentials",
+        '"postgresql+psycopg://pet%20access:DIFFERENT@db:5432/preview%20db"',
+    )
