@@ -103,6 +103,23 @@ def is_dev_line(line: str) -> bool:
     return any(marker in lowered for marker in DEV_MARKERS)
 
 
+def is_known_history_template(file: str, pattern: str, line: str) -> bool:
+    """Allow only the removed Preview workflow's variable-only DB URL template.
+
+    This is history-only and intentionally exact. A literal credential in the
+    same path still fails; the current worktree receives no exemption.
+    """
+
+    return (
+        file == ".github/workflows/public-preview-deploy.yml"
+        and pattern == "DB URL with credentials"
+        and "$POSTGRES_USER" in line
+        and "$POSTGRES_PASSWORD" in line
+        and "$POSTGRES_DB" in line
+        and "@db:5432/" in line
+    )
+
+
 def scan_text(text: str) -> list[tuple[str, int]]:
     """Return [(pattern_name, line_number)] hits for one text blob.
 
@@ -195,6 +212,9 @@ def scan_history() -> list[dict]:
     current_file = ""
     line_no = 0
     for raw in out.stdout.splitlines():
+        if re.fullmatch(r"[0-9a-f]{40}", raw):
+            current_sha = raw
+            continue
         if raw.startswith("commit "):
             current_sha = raw.split()[1]
             continue
@@ -211,17 +231,20 @@ def scan_history() -> list[dict]:
             if is_dev_line(line):
                 continue
             for name, rx in PATTERNS:
-                if rx.search(line):
-                    results.append(
-                        {
-                            "kind": "history",
-                            "file": current_file,
-                            "line": line_no,
-                            "pattern": name,
-                            "commit": current_sha[:10],
-                            "sample": line.strip()[:110],
-                        }
-                    )
+                if not rx.search(line):
+                    continue
+                if is_known_history_template(current_file, name, line):
+                    continue
+                results.append(
+                    {
+                        "kind": "history",
+                        "file": current_file,
+                        "line": line_no,
+                        "pattern": name,
+                        "commit": current_sha[:10],
+                        "sample": line.strip()[:110],
+                    }
+                )
     return results
 
 
