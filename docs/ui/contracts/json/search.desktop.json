@@ -90,8 +90,8 @@
       "fallbacks": ["[data-testid='decision-inspector']"],
       "props": {
         "left": {
-          "min": 460,
-          "max": 476
+          "min": 420,
+          "max": 436
         }
       },
       "severity": "WARN"
