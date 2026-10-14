@@ -246,6 +246,11 @@ jobs:
         run: >-
           pnpm --filter @petaccess/client-h5 exec tauri android init
           --config src-tauri/tauri.release.generated.json
+      - name: Enforce Android IME resize contract
+        shell: bash
+        run: |
+          python3 scripts/android_acceptance/ensure_adjust_resize.py
+          python3 scripts/android_acceptance/ensure_adjust_resize.py --check
       - name: Build Android universal release APK
         run: >-
           pnpm --filter @petaccess/client-h5 exec tauri android build
@@ -276,6 +281,12 @@ jobs:
           AAPT="${ANDROID_HOME}/build-tools/36.0.0/aapt"
           BADGING="$("$AAPT" dump badging "$APK")"
           printf '%s\n' "$BADGING" > RELEASE_ANDROID_BADGING.txt
+          "$AAPT" dump xmltree "$APK" AndroidManifest.xml > RELEASE_ANDROID_MANIFEST.txt
+          grep -Eq 'android:windowSoftInputMode.*0x10' RELEASE_ANDROID_MANIFEST.txt || {
+            echo "Release APK MainActivity is missing SOFT_INPUT_ADJUST_RESIZE (0x10)"
+            grep -n 'windowSoftInputMode' RELEASE_ANDROID_MANIFEST.txt || true
+            exit 1
+          }
           for ABI in arm64-v8a armeabi-v7a x86 x86_64; do
             echo "$BADGING" | grep -Fq "'$ABI'" || {
               echo "Universal release APK is missing native ABI: $ABI"
@@ -301,6 +312,7 @@ jobs:
           path: |
             PetAccess_0.1.0-android-universal.apk
             RELEASE_ANDROID_BADGING.txt
+            RELEASE_ANDROID_MANIFEST.txt
             RELEASE_ANDROID_SIGNER_CERTS.txt
 
   artifacts:
