@@ -871,7 +871,7 @@ async function submit() {
 }
 
 .cluster + .cluster {
-  margin-top: var(--pa-space-1);
+  margin-top: var(--pa-space-5);
 }
 .cluster__title {
   margin-bottom: var(--pa-space-2);
