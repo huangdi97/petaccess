@@ -326,6 +326,9 @@ test("C6: account and methodology surfaces do not inherit current-query chrome",
     await page.goto(href);
     await expect(page.getByTestId("query-context")).toHaveCount(0);
   }
+
+  await page.goto("/#/place/00000000-0000-0000-0000-000000000002/why");
+  await expect(page.getByTestId("query-context")).toBeVisible();
 });
 
 test("C6: signed-in Mine is a personal travel center with truthful empty-state actions", async ({
