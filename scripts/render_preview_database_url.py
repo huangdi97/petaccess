@@ -2,7 +2,7 @@
 """Render the Preview PostgreSQL SQLAlchemy URL from environment variables.
 
 The password is URL-encoded at runtime so deployment workflows never need to
-embed a credential-bearing postgresql://user:password@host template.
+embed a credential-bearing database URL template.
 """
 
 from __future__ import annotations
