@@ -3,8 +3,10 @@
  * Secondary consumer page shell.
  *
  * The global ConsumerAppShell already owns desktop/mobile navigation. Secondary
- * pages only need the same Current Query primitive and a bounded reading/task
- * column; they must not re-introduce the legacy mode bar or a pet-summary card.
+ * pages share a bounded reading/task column. Current Query is optional:
+ * decision/explanation surfaces keep it, while account, preferences and
+ * governance tasks suppress it so query state is never mistaken for page
+ * scope. The shell must not re-introduce the legacy mode bar or pet summary.
  */
 import QueryContextBar from "./domain/QueryContextBar.vue";
 import DesktopContentContainer from "./layout/DesktopContentContainer.vue";
