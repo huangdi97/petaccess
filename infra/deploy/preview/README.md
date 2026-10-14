@@ -222,7 +222,7 @@ Public Preview Deploy
 
 它只允许 `workflow_dispatch`，不会在普通 push / PR 上自动修改公网环境。
 
-首次使用前，在 GitHub Environment **`petaccess-public-preview`** / Repository 中准备：
+首次使用前，建议把部署 secrets 放进 GitHub Environment **`petaccess-public-preview`**（workflow 的 readiness 与 deploy job 都绑定该 Environment）；非敏感默认值可放 Repository Variables：
 
 Repository variable（可用 workflow 输入临时覆盖 domain）：
 
