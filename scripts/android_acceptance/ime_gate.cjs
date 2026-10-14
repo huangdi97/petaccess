@@ -173,6 +173,17 @@ async function main() {
         const vv = window.visualViewport;
         const top = vv?.offsetTop ?? 0;
         const height = vv?.height ?? window.innerHeight;
+        const tabbar = document.querySelector("[data-testid=mobile-tabbar]");
+        const tabbarStyle = tabbar ? getComputedStyle(tabbar) : null;
+        const tabbarRect = tabbar?.getBoundingClientRect() ?? null;
+        const tabbarVisible = Boolean(
+          tabbar &&
+            tabbarStyle &&
+            tabbarStyle.display !== "none" &&
+            tabbarStyle.visibility !== "hidden" &&
+            Number.parseFloat(tabbarStyle.opacity || "1") > 0.05 &&
+            (tabbarRect?.height ?? 0) > 1
+        );
         return {
           present: true,
           testId: el.getAttribute("data-testid"),
@@ -198,6 +209,15 @@ async function main() {
           horizontalOverflow: root.scrollWidth > window.innerWidth + 1,
           visibleInVisualViewport:
             rect.top >= top - 1 && rect.bottom <= top + height - 8,
+          imeState: root.dataset.ime ?? null,
+          tabbarVisible,
+          tabbarRect: tabbarRect
+            ? {
+                top: tabbarRect.top,
+                bottom: tabbarRect.bottom,
+                height: tabbarRect.height,
+              }
+            : null,
           hash: location.hash,
         };
       })())`),
@@ -254,6 +274,10 @@ async function main() {
     const before = await geometry(testCase.selector);
     if (!before.present) error ??= "input missing";
     if (before.horizontalOverflow) error ??= "horizontal overflow before IME";
+    if (before.imeState !== "hidden") {
+      error ??= `unexpected pre-IME state: ${JSON.stringify(before.imeState)}`;
+    }
+    if (!before.tabbarVisible) error ??= "mobile tabbar missing before IME";
 
     if (!error) {
       const x = Math.round((before.rect.left + before.rect.width / 2) * before.devicePixelRatio);
@@ -273,6 +297,12 @@ async function main() {
     if (!withIme.visibleInVisualViewport) {
       error ??= `focused input covered by visual viewport: ${JSON.stringify(withIme)}`;
     }
+    if (withIme.imeState !== "visible") {
+      error ??= `IME runtime state did not become visible: ${JSON.stringify(withIme)}`;
+    }
+    if (withIme.tabbarVisible) {
+      error ??= `mobile tabbar remained visible above IME: ${JSON.stringify(withIme.tabbarRect)}`;
+    }
 
     let screenshot = null;
     try {
@@ -285,10 +315,17 @@ async function main() {
     // It must not navigate the Consumer route or exit the Activity.
     const hashBeforeBack = withIme.hash;
     adb(["shell", "input", "keyevent", "KEYCODE_BACK"]);
-    await sleep(900);
+    await waitFor(`document.documentElement.dataset.ime !== "visible"`, 5000).catch(() => {});
+    await sleep(250);
     const afterBack = await geometry(testCase.selector);
     if (afterBack.hash !== hashBeforeBack) {
       error ??= `Back changed route while IME was active: ${hashBeforeBack} -> ${afterBack.hash}`;
+    }
+    if (afterBack.imeState !== "hidden") {
+      error ??= `IME runtime state did not return hidden: ${JSON.stringify(afterBack)}`;
+    }
+    if (!afterBack.tabbarVisible) {
+      error ??= "mobile tabbar did not return after IME dismissal";
     }
 
     const row = {
