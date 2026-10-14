@@ -354,6 +354,8 @@ def check_consumer_runtime_boundary() -> list[dict]:
             "environment: petaccess-public-preview",
             "PETACCESS_PREVIEW_SSH_HOST",
             "PETACCESS_PREVIEW_SSH_KEY",
+            "PETACCESS_PREVIEW_SSH_KNOWN_HOSTS",
+            "StrictHostKeyChecking=yes",
             "PETACCESS_PREVIEW_POSTGRES_PASSWORD",
             "PETACCESS_PREVIEW_S3_SECRET_KEY",
             "PETACCESS_PREVIEW_JWT_SECRET",
@@ -361,6 +363,7 @@ def check_consumer_runtime_boundary() -> list[dict]:
             "gh workflow run android-phone-preview.yml",
             "BLOCKED_BY_DOMAIN",
             "BLOCKED_BY_SSH",
+            "BLOCKED_BY_SSH_TRUST",
             "BLOCKED_BY_SECRETS",
         )
         if any(
