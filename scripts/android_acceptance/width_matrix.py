@@ -145,6 +145,7 @@ def main() -> int:
                         state.get("shell") is True
                         and state.get("horizontalOverflow") is False
                         and state.get("safeAreaOverlap") is False
+                        and state.get("safeAreaBottomOverlap") is False
                     )
                     error = None if ok else f"invalid runtime geometry: {state}"
                 except Exception as exc:  # noqa: BLE001 - aggregate matrix failures
@@ -164,8 +165,13 @@ def main() -> int:
                         "scroll_width": state.get("scrollWidth"),
                         "horizontal_overflow": state.get("horizontalOverflow"),
                         "safe_area_top": state.get("safeAreaTop"),
+                        "safe_area_bottom": state.get("safeAreaBottom"),
                         "content_top": state.get("contentTop"),
                         "safe_area_overlap": state.get("safeAreaOverlap"),
+                        "tabbar_item_bottom": state.get("tabbarItemBottom"),
+                        "bottom_safe_limit": state.get("bottomSafeLimit"),
+                        "safe_area_bottom_overlap": state.get("safeAreaBottomOverlap"),
+                        "ime_state": state.get("imeState"),
                         "screenshot": str(shot) if shot else None,
                     }
                 )
