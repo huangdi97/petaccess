@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import {
   ConsumerRouteStack,
   decideAndroidBackAction,
+  shouldInterceptAndroidBack,
 } from "../apps/client-h5/src/runtime/androidBack.ts";
 
 const decisions = [
@@ -13,6 +14,10 @@ const decisions = [
 for (const [route, target, expected] of decisions) {
   assert.equal(decideAndroidBackAction(route, target), expected);
 }
+
+assert.equal(shouldInterceptAndroidBack("/", null), false);
+assert.equal(shouldInterceptAndroidBack("/place/demo", null), true);
+assert.equal(shouldInterceptAndroidBack("/place/demo/evidence", "/place/demo/reality"), true);
 
 const stack = new ConsumerRouteStack("/");
 for (const path of [
@@ -71,5 +76,5 @@ assert.equal(deepLink.previous("/"), null);
 assert.equal(decideAndroidBackAction("/", deepLink.previous("/")), "exit");
 
 console.log(
-  "ANDROID_BACK_CONTRACT=PASS decisions=3 stack=5 duplicate=3 replace=2 bounded=63 deepLink=2",
+  "ANDROID_BACK_CONTRACT=PASS decisions=3 ownership=3 stack=5 duplicate=3 replace=2 bounded=63 deepLink=2",
 );
