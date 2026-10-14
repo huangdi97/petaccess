@@ -155,7 +155,7 @@ watch(currentQueryContext, () => {
 </script>
 
 <template>
-  <AppShell
+  <AppShell :show-query-context="true"
     data-ui-page="match-explain"
     :data-ui-state="busy ? 'loading' : error ? 'error' : resolved ? 'ready' : 'loading'"
   >
