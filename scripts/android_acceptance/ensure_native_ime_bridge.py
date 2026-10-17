@@ -17,15 +17,11 @@ import argparse
 import re
 from pathlib import Path
 
-DEFAULT_ACTIVITY_ROOT = Path(
-    "apps/client-h5/src-tauri/gen/android/app/src/main/java"
-)
+DEFAULT_ACTIVITY_ROOT = Path("apps/client-h5/src-tauri/gen/android/app/src/main/java")
 BRIDGE_MARKER = "PETACCESS_NATIVE_IME_BRIDGE"
 
 _PACKAGE_RE = re.compile(r"(?m)^package\s+(?P<package>[A-Za-z0-9_.]+)\s*$")
-_ACTIVITY_CLASS_RE = re.compile(
-    r"class\s+MainActivity\s*:\s*TauriActivity\(\)\s*\{"
-)
+_ACTIVITY_CLASS_RE = re.compile(r"class\s+MainActivity\s*:\s*TauriActivity\(\)\s*\{")
 
 _NATIVE_IMPORTS = """import android.graphics.Rect
 import android.os.Build
@@ -106,11 +102,7 @@ def activity_has_bridge(source: str) -> bool:
 
 
 def _insert_imports(source: str, package: re.Match[str]) -> str:
-    missing = [
-        line
-        for line in _NATIVE_IMPORTS.splitlines()
-        if line not in source
-    ]
+    missing = [line for line in _NATIVE_IMPORTS.splitlines() if line not in source]
     if not missing:
         return source
 
