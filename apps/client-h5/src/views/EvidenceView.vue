@@ -494,9 +494,14 @@ const uiFixture = computed<string>(() =>
 
 .evidence-head {
   padding: var(--pa-space-5);
-  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border: var(--pa-border-width) solid
+    color-mix(in srgb, var(--pa-color-evidence-verified) 18%, var(--pa-color-border-subtle));
   border-radius: calc(var(--pa-radius-md) + 2px);
-  background: var(--pa-color-surface-raised);
+  background: color-mix(
+    in srgb,
+    var(--pa-color-evidence-verified-bg) 48%,
+    var(--pa-color-surface-raised)
+  );
   box-shadow: var(--pa-elevation-1);
 }
 
@@ -558,11 +563,14 @@ const uiFixture = computed<string>(() =>
 
 .evidence-leading--without-media {
   grid-template-columns: minmax(0, 1fr) minmax(300px, 0.78fr);
-  padding-bottom: var(--pa-space-4);
-  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
-  border-radius: var(--pa-radius-md);
-  background: var(--pa-color-surface-raised);
-  padding: var(--pa-space-4);
+  padding: var(--pa-space-2) 0 var(--pa-space-5);
+  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.evidence-leading--without-media :deep(.evidence-section) {
+  padding-left: var(--pa-space-6);
+  border-left: var(--pa-border-width) solid var(--pa-color-border-subtle);
 }
 
 .evidence-hero-media {
@@ -748,6 +756,12 @@ const uiFixture = computed<string>(() =>
   .evidence-leading {
     grid-template-columns: 1fr;
     gap: var(--pa-space-4);
+  }
+
+  .evidence-leading--without-media :deep(.evidence-section) {
+    padding: var(--pa-space-4) 0 0;
+    border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+    border-left: 0;
   }
 
   .evidence-workspace__body {
