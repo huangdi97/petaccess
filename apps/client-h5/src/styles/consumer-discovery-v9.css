@@ -563,6 +563,9 @@ body {
   padding: 7px 15px;
   font-size: 13px;
   font-weight: 650;
+  /* Keep label + arrow on one line. At 393dp the three pills either fit or
+     wrap as whole buttons; the arrow must never fall onto its own line. */
+  white-space: nowrap;
 }
 
 #app .place-workspace .place-section {
