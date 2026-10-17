@@ -9,7 +9,6 @@ from scripts.android_acceptance.ensure_native_ime_bridge import (
     patch_activity_text,
 )
 
-
 BARE = """package com.petaccess.map.preview
 
 class MainActivity : TauriActivity() {
