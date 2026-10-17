@@ -81,6 +81,7 @@ def main() -> int:
     lifecycle_preview = _load(runtime / "lifecycle_preview.json")
     stress_preview = _load(runtime / "route_stress.json")
     performance_preview = _load(ROOT / "performance" / "memory_summary_preview.json")
+    domain_semantics = _load(runtime / "domain_semantics.json")
     journey = _load(runtime / "cdp_journey_playwright.json")
     journey_routes = journey.get("routes", []) if isinstance(journey, dict) else []
     observed_router_pages = {
@@ -187,7 +188,13 @@ def main() -> int:
         "Routes": "COVERED" if routes_covered else "PARTIAL",
         "Authenticated States": ("COVERED" if authenticated_states_covered else "PARTIAL"),
         "Runtime Resilience": ("COVERED" if runtime_resilience_covered else "PARTIAL"),
-        "Domain States": "COVERED" if has("cdp_semantic.json") else "PARTIAL",
+        "Domain States": (
+            "COVERED"
+            if isinstance(domain_semantics, dict)
+            and domain_semantics.get("result") == "PASS"
+            and int(domain_semantics.get("failed") or 0) == 0
+            else "PARTIAL"
+        ),
         "Device Sizes": "COVERED" if width_sizes_covered else "PARTIAL",
         "IME / Input": (
             "COVERED"
@@ -261,9 +268,10 @@ def main() -> int:
             "online recovery, and Home/Resume without blank shell or horizontal overflow."
         ),
         "Domain States": (
-            "Rule UNKNOWN!=ALLOWED verified; Reality "
-            "OBSERVED_RECENTLY/INSUFFICIENT/OBSERVED_HISTORICALLY seeded and rendered; "
-            "staff responses + facilities render; NO_RECENT_RECORD copy verified"
+            "Packaged-WebView text must preserve UNKNOWN != ALLOWED, Observation != Rule, "
+            "StaffResponse != OperatorPolicy and Facility != EntryPolicy across Search, "
+            "Place, Reality, Evidence and Settings. Evidence is written to "
+            "runtime/domain_semantics.json."
         ),
         "Device Sizes": (
             "PHONE-M default + PHONE-S ~360dp + PHONE-L ~430dp + TABLET 800dp must all "
@@ -364,6 +372,23 @@ def main() -> int:
             "observed_profiles": sorted(observed_width_profiles),
             "required_actions": sorted(required_width_actions),
             "covered": width_sizes_covered,
+        },
+        "domain_semantics": {
+            "result": (
+                domain_semantics.get("result")
+                if isinstance(domain_semantics, dict)
+                else None
+            ),
+            "passed": (
+                domain_semantics.get("passed")
+                if isinstance(domain_semantics, dict)
+                else 0
+            ),
+            "failed": (
+                domain_semantics.get("failed")
+                if isinstance(domain_semantics, dict)
+                else 0
+            ),
         },
         "extended_runtime": {
             "lifecycle_result": (
