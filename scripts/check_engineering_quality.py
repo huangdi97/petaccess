@@ -40,6 +40,418 @@ PY_ROOTS = [ROOT / "services/api/app", ROOT / "services/worker"]
 TS_ROOTS = [ROOT / "apps/client-h5/src", ROOT / "apps/admin/src", ROOT / "packages/client-core/src"]
 
 
+def check_consumer_runtime_boundary() -> list[dict]:
+    """Keep release artifacts on the canonical Vue Consumer + Tauri path."""
+
+    violations: list[dict] = []
+    release_path = ROOT / ".github" / "workflows" / "release-ci.yml"
+    release_text = release_path.read_text(encoding="utf-8")
+    release_without_canonical = release_text.replace("apps/client-h5", "")
+
+    if "tauri android build" not in release_text or "apps/client-h5" not in release_text:
+        violations.append(
+            {
+                "rule": "runtime-boundary",
+                "path": ".github/workflows/release-ci.yml",
+                "severity": "FAIL",
+                "detail": "Android release must build apps/client-h5 through Tauri.",
+            }
+        )
+    if "apps/client/" in release_without_canonical or "HBuilderX" in release_text:
+        violations.append(
+            {
+                "rule": "runtime-boundary",
+                "path": ".github/workflows/release-ci.yml",
+                "severity": "FAIL",
+                "detail": "Legacy apps/client must never participate in current release CI.",
+            }
+        )
+
+    if "tauri.preview.conf" in release_text or "com.petaccess.map.preview" in release_text:
+        violations.append(
+            {
+                "rule": "runtime-boundary",
+                "path": ".github/workflows/release-ci.yml",
+                "severity": "FAIL",
+                "detail": "Release CI must never consume the Android Preview flavor.",
+            }
+        )
+
+    required_release_runtime_markers = (
+        "PETACCESS_PUBLIC_API_BASE",
+        "VITE_TAURI_API_BASE",
+        "VITE_TAURI_ANDROID_API_BASE",
+        "generate_tauri_release_config.cjs",
+        "verify_public_api.cjs",
+        "name: Verify packaged runtime API",
+        "tauri.release.generated.json",
+        "--config src-tauri/tauri.release.generated.json",
+    )
+    if any(marker not in release_text for marker in required_release_runtime_markers):
+        violations.append(
+            {
+                "rule": "runtime-boundary",
+                "path": ".github/workflows/release-ci.yml",
+                "severity": "FAIL",
+                "detail": (
+                    "Signed Windows/Android release builds must fail closed on an explicit "
+                    "HTTPS PetAccess API base and strict generated Tauri CSP."
+                ),
+            }
+        )
+    release_config_generator = ROOT / "scripts" / "release" / "generate_tauri_release_config.cjs"
+    if not release_config_generator.exists():
+        violations.append(
+            {
+                "rule": "runtime-boundary",
+                "path": "scripts/release/generate_tauri_release_config.cjs",
+                "severity": "FAIL",
+                "detail": "Signed-release runtime config generator is required.",
+            }
+        )
+
+    required_android_sdk = ("platforms;android-36", "build-tools;36.0.0")
+    if any(package not in release_text for package in required_android_sdk):
+        violations.append(
+            {
+                "rule": "runtime-boundary",
+                "path": ".github/workflows/release-ci.yml",
+                "severity": "FAIL",
+                "detail": "Android release CI must install API 36 and Build Tools 36.0.0.",
+            }
+        )
+
+    required_universal_apk_markers = (
+        "--apk",
+        "outputs/apk/universal/release",
+        "arm64-v8a",
+        "armeabi-v7a",
+        "x86_64",
+        "RELEASE_ANDROID_BADGING.txt",
+    )
+    if any(marker not in release_text for marker in required_universal_apk_markers):
+        violations.append(
+            {
+                "rule": "runtime-boundary",
+                "path": ".github/workflows/release-ci.yml",
+                "severity": "FAIL",
+                "detail": "Android release APK must be verified universal and multi-ABI.",
+            }
+        )
+
+    canonical_tauri_path = ROOT / "apps" / "client-h5" / "src-tauri" / "tauri.conf.json"
+    canonical_tauri = json.loads(canonical_tauri_path.read_text(encoding="utf-8"))
+    if canonical_tauri.get("identifier") != "com.petaccess.map":
+        violations.append(
+            {
+                "rule": "runtime-boundary",
+                "path": "apps/client-h5/src-tauri/tauri.conf.json",
+                "severity": "FAIL",
+                "detail": "Canonical Tauri application id must remain com.petaccess.map.",
+            }
+        )
+
+    preview_config_path = ROOT / "apps" / "client-h5" / "src-tauri" / "tauri.preview.conf.json"
+    preview_workflow_path = ROOT / ".github" / "workflows" / "android-preview.yml"
+    if preview_config_path.exists() and preview_workflow_path.exists():
+        preview_config = json.loads(preview_config_path.read_text(encoding="utf-8"))
+        preview_text = preview_workflow_path.read_text(encoding="utf-8")
+        if preview_config.get("identifier") != "com.petaccess.map.preview":
+            violations.append(
+                {
+                    "rule": "runtime-boundary",
+                    "path": "apps/client-h5/src-tauri/tauri.preview.conf.json",
+                    "severity": "FAIL",
+                    "detail": "Android Preview must use the isolated preview application id.",
+                }
+            )
+        preview_android = preview_config.get("bundle", {}).get("android", {})
+        if preview_android.get("debugApplicationIdSuffix") is not None:
+            violations.append(
+                {
+                    "rule": "runtime-boundary",
+                    "path": "apps/client-h5/src-tauri/tauri.preview.conf.json",
+                    "severity": "FAIL",
+                    "detail": (
+                        "Preview must keep debugApplicationIdSuffix=null and use its explicit "
+                        "preview identifier instead."
+                    ),
+                }
+            )
+        if "tauri.preview.conf.json" not in preview_text:
+            violations.append(
+                {
+                    "rule": "runtime-boundary",
+                    "path": ".github/workflows/android-preview.yml",
+                    "severity": "FAIL",
+                    "detail": "Preview workflow must build through the isolated Tauri config.",
+                }
+            )
+        if "ANDROID_KEYSTORE_BASE64" in preview_text or "release.keystore" in preview_text:
+            violations.append(
+                {
+                    "rule": "runtime-boundary",
+                    "path": ".github/workflows/android-preview.yml",
+                    "severity": "FAIL",
+                    "detail": "Preview workflow must not consume the release signing identity.",
+                }
+            )
+
+        if any(package not in preview_text for package in required_android_sdk):
+            violations.append(
+                {
+                    "rule": "runtime-boundary",
+                    "path": ".github/workflows/android-preview.yml",
+                    "severity": "FAIL",
+                    "detail": (
+                        "Android Preview CI must explicitly install API 36 and Build Tools 36.0.0."
+                    ),
+                }
+            )
+
+        required_preview_artifact_markers = (
+            "PREVIEW_MANIFEST.json",
+            "INSTALL_PREVIEW.md",
+            '"artifactKind": "android-preview"',
+            '"releaseArtifact": false',
+            '"requiresAdbReverse":',
+            '"standalonePhone":',
+        )
+        if any(marker not in preview_text for marker in required_preview_artifact_markers):
+            violations.append(
+                {
+                    "rule": "runtime-boundary",
+                    "path": ".github/workflows/android-preview.yml",
+                    "severity": "FAIL",
+                    "detail": (
+                        "Android Preview artifacts must stay self-describing with a machine "
+                        "manifest and install instructions that preserve "
+                        "release/runtime boundaries."
+                    ),
+                }
+            )
+
+        required_preview_contract_triggers = (
+            "packages/api-client/**",
+            "services/api/**",
+            "scripts/isolated_db.py",
+            "scripts/dev_api_server.py",
+            "pyproject.toml",
+            "uv.lock",
+        )
+        if any(trigger not in preview_text for trigger in required_preview_contract_triggers):
+            violations.append(
+                {
+                    "rule": "runtime-boundary",
+                    "path": ".github/workflows/android-preview.yml",
+                    "severity": "FAIL",
+                    "detail": (
+                        "Android Preview must rerun when its API contract, seeded DB bootstrap, "
+                        "API server bootstrap or Python dependency lock changes."
+                    ),
+                }
+            )
+
+    phone_preview_workflow_path = ROOT / ".github" / "workflows" / "android-phone-preview.yml"
+    if phone_preview_workflow_path.exists():
+        phone_preview_text = phone_preview_workflow_path.read_text(encoding="utf-8")
+        required_phone_preview_markers = (
+            'url.protocol !== "https:"',
+            "com.petaccess.map.preview",
+            "release_signature=NO",
+            "store_release_artifact=NO",
+            "require_real_map",
+            "verify_public_api.cjs",
+            "PHONE_PREVIEW_MANIFEST.json",
+            "PHONE_PREVIEW_INSTALL.md",
+            '"artifactKind": "android-phone-preview"',
+            '"standalonePhone": true',
+            '"requiresAdbReverse": false',
+            "PETACCESS_PHONE_PREVIEW_API_BASE",
+            "phone-preview-readiness",
+            "BLOCKED_BY_API_BASE",
+            "needs.phone-preview-readiness.outputs.ready",
+            "feat/ui-direct-craft-v8",
+        )
+        if any(marker not in phone_preview_text for marker in required_phone_preview_markers):
+            violations.append(
+                {
+                    "rule": "runtime-boundary",
+                    "path": ".github/workflows/android-phone-preview.yml",
+                    "severity": "FAIL",
+                    "detail": (
+                        "Phone Preview must remain HTTPS-only, use the isolated Preview "
+                        "package, and declare that it is not a signed/store Release."
+                    ),
+                }
+            )
+
+        public_api_verifier_path = ROOT / "scripts" / "release" / "verify_public_api.cjs"
+        if not public_api_verifier_path.exists():
+            violations.append(
+                {
+                    "rule": "runtime-boundary",
+                    "path": "scripts/release/verify_public_api.cjs",
+                    "severity": "FAIL",
+                    "detail": (
+                        "Phone Preview and signed Release require the shared live API preflight."
+                    ),
+                }
+            )
+        else:
+            verifier_text = public_api_verifier_path.read_text(encoding="utf-8")
+            required_verifier_markers = (
+                "/ping",
+                "/health",
+                "/health/ready",
+                "/health/components",
+                "all_ok",
+                "http://tauri.localhost",
+                "access-control-allow-origin",
+                "/ai/map/config",
+                "/ai/map/translate",
+                'translated?.provider !== "tencent"',
+                'translated?.coordinate_system !== "GCJ-02"',
+            )
+            if any(marker not in verifier_text for marker in required_verifier_markers):
+                violations.append(
+                    {
+                        "rule": "runtime-boundary",
+                        "path": "scripts/release/verify_public_api.cjs",
+                        "severity": "FAIL",
+                        "detail": (
+                            "Shared runtime API preflight must prove PetAccess identity and "
+                            "retain the optional Tencent real-map provider probe."
+                        ),
+                    }
+                )
+
+        forbidden_phone_preview_markers = (
+            "allow_insecure_http",
+            "http://localhost:*",
+            "http://127.0.0.1:*",
+            "http://10.0.2.2:*",
+            "ws://10.0.2.2:*",
+            "ANDROID_KEYSTORE_BASE64",
+            "release.keystore",
+        )
+        if any(marker in phone_preview_text for marker in forbidden_phone_preview_markers):
+            violations.append(
+                {
+                    "rule": "runtime-boundary",
+                    "path": ".github/workflows/android-phone-preview.yml",
+                    "severity": "FAIL",
+                    "detail": (
+                        "Standalone Phone Preview must not regain insecure HTTP/local "
+                        "development origins or consume the release signing identity."
+                    ),
+                }
+            )
+
+    public_preview_deploy_path = ROOT / ".github" / "workflows" / "public-preview-deploy.yml"
+    if public_preview_deploy_path.exists():
+        public_preview_deploy_text = public_preview_deploy_path.read_text(encoding="utf-8")
+        required_public_preview_deploy_markers = (
+            "workflow_dispatch:",
+            "actions: write",
+            "environment: petaccess-public-preview",
+            "PETACCESS_PREVIEW_SSH_HOST",
+            "PETACCESS_PREVIEW_SSH_KEY",
+            "PETACCESS_PREVIEW_SSH_KNOWN_HOSTS",
+            "StrictHostKeyChecking=yes",
+            "PETACCESS_PREVIEW_POSTGRES_PASSWORD",
+            "PETACCESS_PREVIEW_S3_SECRET_KEY",
+            "PETACCESS_PREVIEW_JWT_SECRET",
+            "verify_public_api.cjs",
+            "gh workflow run android-phone-preview.yml",
+            "BLOCKED_BY_DOMAIN",
+            "BLOCKED_BY_SSH",
+            "BLOCKED_BY_SSH_TRUST",
+            "BLOCKED_BY_SECRETS",
+        )
+        if any(
+            marker not in public_preview_deploy_text
+            for marker in required_public_preview_deploy_markers
+        ):
+            violations.append(
+                {
+                    "rule": "runtime-boundary",
+                    "path": ".github/workflows/public-preview-deploy.yml",
+                    "severity": "FAIL",
+                    "detail": (
+                        "Public Preview deploy must remain manually gated, secret-backed, "
+                        "preflighted, and hand off to the standalone Phone Preview workflow."
+                    ),
+                }
+            )
+
+        if "\n  push:" in public_preview_deploy_text:
+            violations.append(
+                {
+                    "rule": "runtime-boundary",
+                    "path": ".github/workflows/public-preview-deploy.yml",
+                    "severity": "FAIL",
+                    "detail": "Public Preview infrastructure deploy must never auto-run on push.",
+                }
+            )
+
+        forbidden_public_preview_deploy_markers = (
+            "ANDROID_KEYSTORE_BASE64",
+            "release.keystore",
+            "com.petaccess.map\n",
+        )
+        if any(
+            marker in public_preview_deploy_text
+            for marker in forbidden_public_preview_deploy_markers
+        ):
+            violations.append(
+                {
+                    "rule": "runtime-boundary",
+                    "path": ".github/workflows/public-preview-deploy.yml",
+                    "severity": "FAIL",
+                    "detail": (
+                        "Public Preview deploy must not consume release signing identity or "
+                        "promote the production Android application id."
+                    ),
+                }
+            )
+
+    legacy_package = json.loads(
+        (ROOT / "apps" / "client" / "package.json").read_text(encoding="utf-8")
+    )
+    if legacy_package.get("petaccessStatus") != "legacy-reference-only":
+        violations.append(
+            {
+                "rule": "runtime-boundary",
+                "path": "apps/client/package.json",
+                "severity": "FAIL",
+                "detail": "Historical uni-app x client must stay explicitly legacy-reference-only.",
+            }
+        )
+    canonical_package = json.loads(
+        (ROOT / "apps" / "client-h5" / "package.json").read_text(encoding="utf-8")
+    )
+    if canonical_package.get("petaccessRole") != "canonical-consumer":
+        violations.append(
+            {
+                "rule": "runtime-boundary",
+                "path": "apps/client-h5/package.json",
+                "severity": "FAIL",
+                "detail": "apps/client-h5 must remain the canonical Consumer implementation.",
+            }
+        )
+    if not (ROOT / "apps" / "client" / "README.md").exists():
+        violations.append(
+            {
+                "rule": "runtime-boundary",
+                "path": "apps/client/README.md",
+                "severity": "FAIL",
+                "detail": "Legacy client freeze notice is required.",
+            }
+        )
+    return violations
+
+
 def load_exemptions() -> list[dict]:
     if not EXEMPTIONS_FILE.exists():
         return []
@@ -63,6 +475,7 @@ def collect() -> list[dict]:
     out += check_magic_status(exemptions, PY_ROOTS)
     out += check_dead_code(exemptions, PY_ROOTS)
     out += check_duplicate_config(exemptions)
+    out += check_consumer_runtime_boundary()
     return out
 
 

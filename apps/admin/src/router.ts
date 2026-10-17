@@ -28,6 +28,11 @@ export const routes: RouteRecordRaw[] = [
   { path: "/conflicts", name: "conflicts", component: () => import("./views/ConflictsView.vue") },
   { path: "/audit", name: "audit", component: () => import("./views/AuditView.vue") },
   { path: "/users", name: "users", component: () => import("./views/UsersView.vue") },
+  {
+    path: "/contribution-leads",
+    name: "contribution-leads",
+    component: () => import("./views/ContributionLeadsView.vue"),
+  },
 
   // ---- v0.5: real-API domain surfaces ----
   {

@@ -1,0 +1,15 @@
+{
+  "gitSha": "d2eeba2fe5ffbfba31f244881f6e1705a07f84c2",
+  "route": "/#/map?place=8412b521-5e1c-505d-9dec-568acb860c76",
+  "page": "map",
+  "state": "expanded",
+  "viewportWidth": 390,
+  "viewportHeight": 844,
+  "devicePixelRatio": 1,
+  "documentClientWidth": 390,
+  "documentScrollWidth": 390,
+  "horizontalOverflow": false,
+  "consoleErrors": [],
+  "networkErrors": [],
+  "screenshot": "11_web_map_expanded_390x844.png"
+}

@@ -1,7 +1,10 @@
 # Blind UI Executable Blueprint（v0.2.3）
 
-> 把 v0.2.3 规范第 21–46 节的蓝图数值直接变成机器契约。蓝图是唯一视觉权威；
-> warm pass 只保留在 git 历史。本文件记录「蓝图 → 契约 JSON → 测量 → 判定」的链路。
+> 把 v0.2.3 几何蓝图变成机器契约。**数值蓝图不是产品内容的唯一权威**：
+> v0.10-R1 Canonical Master 与
+> `DIRECT_V8_CANONICAL_VISUAL_RECOVERY_2026-10-05.md` 决定“页面必须表达什么”，
+> 本文件决定“可测量几何如何落地”。若旧 JSON 与本文数值或 Canonical 内容冲突，
+> 必须修 JSON，禁止为了 Gate 让产品退化。
 
 ## 1. 契约文件与页面
 
@@ -37,8 +40,8 @@ selectedId/componentCounts），全部从真实 DOM 读取后比较。
 | Zone rows 48–56 仅 consumer names | element rows height 48–56 + language enums/uuid=0 |
 | Inspector 固定结构 Query/Status/Conditions/Exception/Source/Freshness，禁 history/raw ids/raw enums/repeated CTA | structure surfaceRow 顺序 + forbiddenText/UUID + composition primaryStatusRepeatCount≤2 |
 | Place Mobile 首屏 ≤22 行且含 name/Query/Decision/1 condition/Reality teaser | density firstViewportVisibleTextLines≤26（warnAt 22，实测 38→WARN 容忍项）+ structure mustContain |
-| Home: max width 920、五结构、禁 hero/card/pills/chips、Recent/Nearby 用 divider rows | element max-width、structure forbiddenClass、density largestVerticalGap≤180 |
-| Map: Rail 68 + Results 380–420 + 地图剩余；单一「筛选 N」；MockMap line network/area polygons/markers/selected/zoom/floating preview(w=280–320 仅一个) | element 规则 + structure min 计数（path≥3、polygon≥2、marker≥4、selected≥1、preview 320±40 且 count≤1） |
+| Home: max width 920、canonical digest（search / 4 lenses / recommendations / Rule-Reality overview / divergence / recent）、禁 hero/card/pills/chips | element max-width、canonical section presence、structure forbiddenClass、density largestVerticalGap≤180 |
+| Map: Rail 68 + Results 380–420 + 地图剩余；Rule / Reality / Facility / Divergence 四 Lens；Rule Lens 单一「筛选 N」；MockMap spatial network/markers/selected/zoom/floating preview | element + structure 要求四 Lens、path/polygon/marker/selected/preview；非 Rule Lens 不伪装成准入筛选 |
 | Reality: max width 820、time col 72 / rail col 24、time/marker x 一致、rail 连续、event gap 20–28、date group sep ≥28、事件非 card | element width/gridTemplateColumns/startsWith、structure xConsistent、rail element height、density largestVerticalGap 20–28 |
 | Evidence: max width 820、marker col 24、5 步固定标签、gap 28–36、rail 连续、禁 UUID | element gridTemplateColumns startsWith "24px"、structure min/max 5 + mustContainTexts + xConsistent、density largestVerticalGap 28–36、uuidForbidden |
 | Contribution: 首屏 你刚刚知道了什么？、固定 5 选项、consumer copy 禁 ADR/RFC/AC/TD/UUID/enum、choose-type/step-1/step-2/done | expect page=contribution state=choose-type h1=你刚刚知道了什么？ choice-count=5；structure 5 options + mustContainTexts + forbiddenText；language refs=true |

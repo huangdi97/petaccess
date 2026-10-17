@@ -21,14 +21,19 @@
  */
 import { computed } from "vue";
 import {
+  conditionLabel,
   placeTypeLabel,
   type AccessAnswer,
   type CoexistenceSnapshot,
   type RealityAnswer,
 } from "@petaccess/client-core";
 import { answerConditions, answerVerdictLabel } from "../../answer";
-import { freshnessLineFor } from "../../consumer/rowView";
-import { realityStateLabel } from "../../reality";
+import PlaceTypeGlyph from "./PlaceTypeGlyph.vue";
+import PlaceSceneFrame from "./PlaceSceneFrame.vue";
+import { coexistenceRealityLine, freshnessLineFor } from "../../consumer/rowView";
+import { querySummaryLabel } from "../../consumer/queryContext";
+import { publicSourceIssuer } from "../../consumer/sourcePrivacy";
+import { divergenceLabel } from "../../reality";
 const props = withDefaults(
   defineProps<{
     place: {
@@ -36,6 +41,9 @@ const props = withDefaults(
       canonical_name: string;
       place_type: string;
       canonical_address?: string | null;
+      distance_m?: number | null;
+      latitude?: number | null;
+      longitude?: number | null;
     } | null;
     answer?: AccessAnswer | null;
     answerError?: boolean;
@@ -47,6 +55,10 @@ const props = withDefaults(
     offline?: boolean;
     speciesLabel?: string;
     conditionsLabel?: Record<string, string>;
+    /** Real rule verification date supplied by the Place dossier. */
+    latestVerifiedAt?: string | null;
+    /** Reviewed public venue scene photo. Evidence/signage media never enters here. */
+    sceneMediaUrl?: string | null;
     /**
      * v0.2.3 §22/§33：search detail = large identity (28/650) + primary
      * decision 30/650, flat accent, content column ≤704px；place inspector =
@@ -65,13 +77,22 @@ const props = withDefaults(
     offline: false,
     speciesLabel: "普通犬",
     conditionsLabel: () => ({}),
+    latestVerifiedAt: null,
+    sceneMediaUrl: null,
     variant: "search",
   },
 );
 
 const verdict = computed(() => answerVerdictLabel(props.answer));
+const needsRuleEvidence = computed(() => !props.answerError && verdict.value === "信息不足");
+/** A recorded coordinate allows a direct spatial deep link. No coordinate means
+ * no map marker: a name/address alone is never geocoded or guessed here. */
+const mapLocationAvailable = computed(
+  () => props.place?.latitude != null && props.place?.longitude != null,
+);
 const conditions = computed(() => answerConditions(props.answer, props.conditionsLabel));
 const freshness = computed(() => freshnessLineFor(props.stale, props.fetchedAtMs, props.offline));
+const queryLabel = computed(() => querySummaryLabel());
 /** §12 Evidence one-line：来源 issuer + 时效。 */
 const SOURCE_RATE: Record<string, string> = {
   official_operator_policy: "运营方规则",
@@ -85,34 +106,65 @@ const SOURCE_RATE: Record<string, string> = {
 };
 const evidenceLine = computed(() => {
   const ev = props.answer?.evidence_state.rules[0];
-  const issuer = ev?.issuer ?? SOURCE_RATE[ev?.source_type ?? ""] ?? "来源待补充";
-  return freshness.value ? `${issuer} · ${freshness.value}` : issuer;
+  const parts: string[] = [];
+
+  if (props.answerError) {
+    parts.push("规则依据暂时无法取得");
+  } else if (ev) {
+    parts.push(
+      publicSourceIssuer(ev.source_type, ev.issuer ?? SOURCE_RATE[ev.source_type ?? ""] ?? null),
+    );
+    parts.push(
+      props.latestVerifiedAt ? `规则核验 ${props.latestVerifiedAt}` : "规则核验时间待补充",
+    );
+  } else {
+    parts.push("规则依据待补充");
+  }
+
+  if (props.realityError) {
+    parts.push("现场依据暂时无法取得");
+  } else {
+    const realityEvidence = props.snapshot?.evidence_summary.reality_evidence_count ?? 0;
+    const realitySources = props.snapshot?.evidence_summary.reality_distinct_source_count ?? 0;
+    if (realityEvidence > 0) {
+      parts.push(
+        realitySources > 0
+          ? `现场 ${realityEvidence} 条依据 / ${realitySources} 个来源`
+          : `现场 ${realityEvidence} 条依据`,
+      );
+    }
+  }
+
+  // Transport/cache freshness is a separate axis. Only surface it when the
+  // current view is actually stale/offline; never present fetch time as
+  // evidence verification time.
+  if (freshness.value) parts.push(freshness.value);
+  return parts.join(" · ");
 });
 /** §12/§26：Primary Decision 的 key condition（第一条；无则不猜测）。 */
 const keyCondition = computed(() => conditions.value[0] ?? "");
 /** §26：限制区域（例外区域列表；无则整块不渲染）。 */
 const exceptions = computed(() =>
-  (props.answer?.condition_evaluation.pending_exceptions ?? []).map(
-    (e) => props.conditionsLabel[e] ?? e,
-  ),
+  props.answer?.conflict_state?.has_conflict
+    ? []
+    : (props.answer?.condition_evaluation.pending_exceptions ?? []).map(
+        (e) => props.conditionsLabel[e] ?? conditionLabel(e),
+      ),
 );
-/** §26：最近核验（来自 rules 的 last_verified_at 最近值；无则原文提示）。 */
-const latestVerifiedLabel = computed(() => {
-  const cut = props.answer?.evidence_state.rules[0]?.source_id
-    ? (props.snapshot?.generated_at ?? null)
-    : null;
-  return cut ? cut.slice(0, 10) : "暂无";
-});
+/** §26：最近核验来自真实规则 last_verified_at，不拿快照生成时间冒充。 */
+const latestVerifiedLabel = computed(() => props.latestVerifiedAt ?? "暂无");
 /** §12（search）one-line reality summary：撇去括号补充，保持单行。 */
-const realityLineForSearch = computed(() => {
-  if (!props.reality) return "暂无足够现场记录";
-  const label = realityStateLabel(props.reality);
-  return label.replace(/\s*（.*?）\s*$/, "");
-});
-/** §26（place）：现场 —— 暂无足够记录，不再输出长解释。 */
-const realityLineForPlace = computed(() =>
-  props.reality ? realityStateLabel(props.reality) : "暂无足够记录",
+const realityLineForSearch = computed(() =>
+  coexistenceRealityLine(props.snapshot, props.reality).replace(/\s*（.*?）\s*$/, ""),
 );
+const majorException = computed(() => {
+  const divergence = props.snapshot?.divergence;
+  if (!divergence) return "";
+  if (["RULE_REALITY_ALIGNED", "INSUFFICIENT_DATA"].includes(divergence.state)) return "";
+  return divergenceLabel(divergence);
+});
+/** §26（place）：same CoexistenceSnapshot semantics as Search/Home/Map. */
+const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot, props.reality));
 </script>
 
 <template>
@@ -125,21 +177,71 @@ const realityLineForPlace = computed(() =>
       <!-- v0.2.4 §12：Search detail 保留 identity；v0.2.5 §16：place inspector
            不再重复 Place Name/地址（identity 只在 main column）。 -->
       <header v-if="variant === 'search'" class="decision-inspector__head">
-        <h2 class="decision-inspector__name" data-ui="search-detail-name">
-          {{ place.canonical_name }}
-        </h2>
-        <p class="decision-inspector__meta">
-          {{ placeTypeLabel(place.place_type) }} ·
-          {{ place.canonical_address ?? "地址待补充" }}
-        </p>
+        <div class="decision-inspector__identity">
+          <PlaceSceneFrame
+            v-if="!sceneMediaUrl"
+            class="decision-inspector__identity-scene"
+            :src="null"
+            :place-type="place.place_type"
+            variant="compact"
+            alt=""
+            data-testid="inspector-scene-fallback"
+          />
+          <PlaceTypeGlyph v-else :place-type="place.place_type" size="lg" />
+          <div class="decision-inspector__identity-copy">
+            <div class="decision-inspector__title-row">
+              <h2 class="decision-inspector__name" data-ui="search-detail-name">
+                {{ place.canonical_name }}
+              </h2>
+            </div>
+            <p class="decision-inspector__meta">
+              {{ placeTypeLabel(place.place_type) }} ·
+              {{ place.canonical_address ?? "地址待补充" }}
+              <template v-if="place.distance_m != null">
+                ·
+                {{
+                  place.distance_m >= 1000
+                    ? (place.distance_m / 1000).toFixed(1) + "km"
+                    : Math.round(place.distance_m) + "m"
+                }}
+              </template>
+            </p>
+          </div>
+        </div>
       </header>
+
+      <PlaceSceneFrame
+        v-if="variant === 'search' && sceneMediaUrl"
+        class="decision-inspector__scene"
+        :src="sceneMediaUrl"
+        :alt="`场所场景：${place.canonical_name}`"
+        :place-type="place.place_type"
+        variant="hero"
+        :data-testid="sceneMediaUrl ? 'inspector-scene-media' : 'inspector-scene-fallback'"
+      />
+
+      <!-- Each destination is a real Place view; this compact navigation
+           reflects the approved list-detail reference without duplicating
+           the complete dossier inside Search. -->
+      <nav
+        v-if="variant === 'search'"
+        class="decision-inspector__views"
+        aria-label="场所详情视图"
+        data-testid="inspector-view-links"
+      >
+        <RouterLink :to="`/place/${place.id}?view=overview`">概览</RouterLink>
+        <RouterLink :to="`/place/${place.id}?view=rules`">规则</RouterLink>
+        <RouterLink :to="`/place/${place.id}?view=reality`">现场</RouterLink>
+        <RouterLink :to="`/place/${place.id}?view=space`">空间</RouterLink>
+        <RouterLink :to="`/place/${place.id}?view=evidence`">证据</RouterLink>
+      </nav>
 
       <!-- Search detail（§12 严格顺序）：Identity → Query → Decision → Reality →
            Evidence/Source → CTA；place inspector（§26）走下方紧凑结构。 -->
       <template v-if="variant === 'search'">
         <div class="inspector-block inspector-block--context">
           <span class="inspector-block__label">当前查询</span>
-          <p class="inspector-block__value">{{ speciesLabel }} · 进入 · 公共区域</p>
+          <p class="inspector-block__value">{{ queryLabel }}</p>
         </div>
 
         <div class="inspector-block inspector-block--decision" data-ui="search-decision">
@@ -151,7 +253,7 @@ const realityLineForPlace = computed(() =>
           >
             <template v-if="answerError">暂时无法取得（请检查网络后重试）</template>
             <template v-else-if="answer">{{ verdict }}</template>
-            <template v-else>尚未核验</template>
+            <template v-else>信息不足</template>
           </p>
           <p
             v-if="keyCondition"
@@ -160,6 +262,16 @@ const realityLineForPlace = computed(() =>
           >
             需满足：{{ keyCondition }}
           </p>
+        </div>
+
+        <div
+          v-if="majorException"
+          class="inspector-block inspector-block--exception"
+          data-ui="search-divergence"
+          data-testid="inspector-divergence"
+        >
+          <span class="inspector-block__label">规则与现场</span>
+          <p class="inspector-block__value">{{ majorException }}</p>
         </div>
 
         <div class="inspector-secondary">
@@ -178,10 +290,32 @@ const realityLineForPlace = computed(() =>
             </p>
           </div>
         </div>
-        <footer class="decision-inspector__foot">
-          <RouterLink class="btn-inline" :to="`/place/${place.id}`" data-testid="inspector-open">
-            查看完整场所 →
+        <div
+          v-if="needsRuleEvidence"
+          class="inspector-block inspector-block--missing"
+          data-testid="inspector-missing-evidence"
+        >
+          <span class="inspector-block__label">还需要什么</span>
+          <p class="inspector-block__value">
+            当前查询缺少足以确定准入结论的规则依据。信息不足不等于允许或禁止。
+          </p>
+          <RouterLink class="btn-inline" :to="`/contribute/${place.id}`">
+            补充规则线索或现场情况 →
           </RouterLink>
+        </div>
+        <footer class="decision-inspector__foot decision-inspector__foot--primary">
+          <RouterLink class="btn primary" :to="`/place/${place.id}`" data-testid="inspector-open">
+            查看完整场所
+          </RouterLink>
+          <RouterLink
+            v-if="mapLocationAvailable"
+            class="btn-inline inspector-map-link"
+            :to="{ name: 'map', query: { place: place.id } }"
+            data-testid="inspector-map-location"
+          >
+            在地图中定位 →
+          </RouterLink>
+          <span v-else class="muted inspector-map-unavailable">位置坐标待补充</span>
         </footer>
       </template>
 
@@ -189,7 +323,7 @@ const realityLineForPlace = computed(() =>
       <template v-else>
         <div class="inspector-block inspector-block--context">
           <span class="inspector-block__label">当前查询</span>
-          <p class="inspector-block__value">{{ speciesLabel }} · 进入 · 公共区域</p>
+          <p class="inspector-block__value">{{ queryLabel }}</p>
         </div>
 
         <div class="inspector-block inspector-block--decision" data-ui="search-decision">
@@ -201,7 +335,7 @@ const realityLineForPlace = computed(() =>
           >
             <template v-if="answerError">暂时无法取得（请检查网络后重试）</template>
             <template v-else-if="answer">{{ verdict }}</template>
-            <template v-else>尚未核验</template>
+            <template v-else>信息不足</template>
           </p>
         </div>
 
@@ -217,9 +351,11 @@ const realityLineForPlace = computed(() =>
           <p class="inspector-block__value">{{ exceptions.join("、") }}</p>
         </div>
 
-        <div class="inspector-block">
-          <span class="inspector-block__label">依据</span>
-          <p class="inspector-block__value">{{ evidenceLine }}</p>
+        <div class="inspector-block inspector-block--meta" data-ui="place-evidence">
+          <span class="inspector-block__label">证据与来源</span>
+          <p class="inspector-block__value" data-testid="inspector-evidence">
+            {{ evidenceLine }}
+          </p>
         </div>
 
         <div class="inspector-block">
@@ -265,22 +401,53 @@ const realityLineForPlace = computed(() =>
 .decision-inspector {
   display: flex;
   flex-direction: column;
-  gap: var(--pa-space-28);
+  gap: var(--pa-space-5);
   min-width: 0;
-  min-height: calc(100vh - 112px);
+  min-height: calc(100vh - 60px);
   align-self: stretch;
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border);
-  padding-bottom: var(--pa-space-5);
+  padding-bottom: var(--pa-space-6);
 }
 
 .decision-inspector--place {
-  gap: var(--pa-space-5);
+  gap: var(--pa-space-4);
 }
 
 .decision-inspector__head {
   display: flex;
   flex-direction: column;
-  gap: var(--pa-space-1);
+  gap: var(--pa-space-2);
+  padding: var(--pa-space-4);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: calc(var(--pa-radius-md) + 2px);
+  background: var(--pa-color-surface);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--pa-color-text-primary) 4%, transparent);
+}
+
+.decision-inspector__identity {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--pa-space-4);
+  min-width: 0;
+}
+
+.decision-inspector__identity-copy {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+/* The reference uses imagery as an identity anchor, not an empty banner.
+   Without approved media, keep a small abstract type glyph next to the name
+   and move the real Rule/Reality content into the first viewport. */
+.decision-inspector__identity-scene {
+  --scene-frame-compact-width: 76px;
+  --scene-frame-compact-height: 64px;
+  --scene-frame-compact-empty-width: 76px;
+  --scene-frame-compact-empty-height: 64px;
+  --scene-frame-compact-mobile-width: 64px;
+  --scene-frame-compact-mobile-height: 56px;
+  --scene-frame-compact-empty-mobile-width: 64px;
+  --scene-frame-compact-empty-mobile-height: 56px;
+  flex-shrink: 0;
 }
 
 /* §22：detail 内容列最大 704px，不铺满整个 DetailPane（972）。 */
@@ -288,11 +455,60 @@ const realityLineForPlace = computed(() =>
   max-width: var(--pa-layout-detail-content);
 }
 
+.decision-inspector__scene {
+  margin: 0;
+  width: min(100%, 620px);
+  max-width: 620px;
+}
+
+/* Search is a spatial list-detail workspace. The identity media frame is
+   allowed to own horizontal space even when no reviewed public photo exists;
+   its fallback explicitly says it is abstract and never impersonates a venue. */
+.decision-inspector--search .decision-inspector__scene {
+  max-height: 220px;
+  overflow: hidden;
+}
+
+.decision-inspector__views {
+  display: flex;
+  align-items: center;
+  gap: var(--pa-space-1);
+  min-height: 44px;
+  overflow-x: auto;
+  padding: var(--pa-space-1);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: var(--pa-radius-control);
+  background: var(--pa-color-surface);
+}
+
+.decision-inspector__views a {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  min-height: 40px;
+  padding: 0 var(--pa-space-3);
+  border-radius: var(--pa-radius-control);
+  color: var(--pa-color-text-secondary);
+  font-size: var(--pa-font-size-md);
+  text-decoration: none;
+}
+
+.decision-inspector__views a:hover,
+.decision-inspector__views a:focus-visible {
+  background: var(--pa-color-accent-weak);
+  color: var(--pa-color-accent);
+  text-decoration: none;
+}
+
 .decision-inspector__title-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--pa-space-3);
+}
+
+.decision-inspector__status {
+  flex: 0 0 auto;
 }
 
 /* §22 identity: place name = page identity 28/36/650（Blueprint §18 字体蓝图）。 */
@@ -342,10 +558,23 @@ const realityLineForPlace = computed(() =>
  * no surface fill, no radius, no shadow — the accent edge + size carry it.
  * （生活气息收口的暖 surface 在决策块上按蓝图取消） */
 .inspector-block--decision {
-  border-left: var(--pa-border-width-strong) solid var(--pa-color-accent);
-  padding-left: var(--pa-space-4);
-  padding-top: var(--pa-space-1);
-  padding-bottom: var(--pa-space-2);
+  position: relative;
+  padding: var(--pa-space-5);
+  border: var(--pa-border-width) solid
+    color-mix(in srgb, var(--pa-color-accent) 20%, var(--pa-color-border-subtle));
+  border-radius: calc(var(--pa-radius-md) + 2px);
+  background: color-mix(in srgb, var(--pa-color-accent-weak) 42%, var(--pa-color-surface));
+}
+
+.inspector-block--decision::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: var(--pa-space-4);
+  bottom: var(--pa-space-4);
+  width: 3px;
+  border-radius: 999px;
+  background: var(--pa-color-accent);
 }
 
 .inspector-decision {
@@ -358,9 +587,11 @@ const realityLineForPlace = computed(() =>
 }
 
 .decision-inspector--place .inspector-decision {
-  font-size: var(--pa-font-size-26);
-  font-weight: var(--pa-font-weight-medium);
-  line-height: var(--pa-line-height-32);
+  /* Place uses the same 28px primary-decision hierarchy as Search on desktop.
+     The sticky inspector is the single full verdict focal point. */
+  font-size: var(--pa-font-size-28);
+  font-weight: var(--pa-font-weight-650);
+  line-height: var(--pa-line-height-decision);
 }
 
 .inspector-scope {
@@ -398,14 +629,25 @@ const realityLineForPlace = computed(() =>
   border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
 }
 
+.inspector-block--exception {
+  padding: var(--pa-space-3) 0 var(--pa-space-3) var(--pa-space-4);
+  border-left: var(--pa-border-width) solid var(--pa-color-status-conflict);
+}
+
+.inspector-block--exception .inspector-block__value {
+  font-weight: var(--pa-font-weight-medium);
+}
+
 /* v0.2.7 §22：secondary evidence grouping —— reality + evidence 归组为
    次要信息区（顶部细分隔线），primary decision 保持唯一强焦点。 */
 .inspector-secondary {
-  display: flex;
-  flex-direction: column;
-  gap: var(--pa-space-5);
-  padding-top: var(--pa-space-3);
-  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--pa-space-3);
+  padding: var(--pa-space-4);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: var(--pa-radius-md);
+  background: var(--pa-color-surface-muted);
 }
 .inspector-secondary .inspector-block--meta {
   border-top: none;
@@ -414,6 +656,29 @@ const realityLineForPlace = computed(() =>
 
 .decision-inspector__foot {
   margin-top: var(--pa-space-2);
+}
+
+.decision-inspector__foot--primary {
+  margin-top: var(--pa-space-1);
+  padding-top: var(--pa-space-4);
+  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.decision-inspector__foot--primary .btn {
+  min-width: 148px;
+  justify-content: center;
+}
+
+.decision-inspector__foot--primary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--pa-space-4);
+}
+
+.inspector-map-link,
+.inspector-map-unavailable {
+  font-size: var(--pa-font-size-md);
 }
 
 /* §26：place inspector 底部用 text link（查看完整证据 →），不放 CTA 大按钮。 */
@@ -435,9 +700,8 @@ const realityLineForPlace = computed(() =>
 }
 
 .decision-inspector__onboarding {
-  /* §23：右侧 onboarding copy，max-width 520，top 108–140，禁止右侧空白。 */
   max-width: 520px;
-  padding-top: 108px;
+  padding-top: var(--pa-space-7);
   display: flex;
   flex-direction: column;
   gap: var(--pa-space-3);
@@ -458,6 +722,29 @@ const realityLineForPlace = computed(() =>
   color: var(--pa-color-text-secondary);
 }
 
+@media (min-width: 768px) and (max-width: 1099px) {
+  .decision-inspector--search {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .decision-inspector__title-row {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .inspector-secondary {
+    grid-template-columns: 1fr;
+    gap: var(--pa-space-3);
+  }
+
+  .decision-inspector__foot--primary {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--pa-space-3);
+  }
+}
+
 /* Narrow screens: keep the decision legible without shrinking the body type. */
 @media (max-width: 767px) {
   .decision-inspector,
@@ -468,6 +755,11 @@ const realityLineForPlace = computed(() =>
 
   .decision-inspector__onboarding {
     padding-top: var(--pa-space-6);
+  }
+
+  .inspector-secondary {
+    grid-template-columns: 1fr;
+    gap: var(--pa-space-4);
   }
 
   .inspector-decision {

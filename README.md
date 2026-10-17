@@ -48,7 +48,7 @@ v0.1.0 的**真实数据可能为空**：
 - **搜索**：按场所名 / 品牌 / 别名检索场所。
 - **地图**：场所地图视图；v0.1.0 不请求设备定位（附近场所查询使用服务端合成坐标，仅演示）。
 - **场所详情**：规则层与现实层分开展示；含服务犬与普通宠物的准入差异、规则冲突与废止规则的可见性。
-- **贡献线索**：提交现场观察线索（含防滥用限制：限频 / 去重 / 旧视频拒绝 / 场所不匹配拒绝）；观察不等于规则。
+- **贡献线索**：一次贡献先形成 RealityReport 上下文，再进入规则线索、动物出现、工作人员响应、动物设施或场所纠错等结构化候选；所有候选进入人工核验，Reality 永远不会自动变成 Rule。
 - **宠物档案**：记录宠物信息，便于查看相关准入与共处信息。
 - **共处边界**：服务犬 ≠ 普通宠物；规则冲突、废止规则、管理方声明与用户观察并存展示。
 
@@ -66,6 +66,24 @@ SHA256SUMS.txt 位于 artifacts/v0.1.0/ 与 docs/release/
 Windows: certutil -hashfile PetAccess_0.1.0_x64-setup.exe SHA256
 Android: certutil -hashfile PetAccess_0.1.0-android-universal.apk SHA256
 ```
+
+### Android 当前分支预览
+
+UI / Consumer 变更可通过 GitHub Actions 的 **Android Preview APK** 生成独立调试包：
+
+- app：`PetAccess Preview`
+- package：`com.petaccess.map.preview`，可与正式 `com.petaccess.map` 并存
+- 每次自动同时生成两份：
+  - `emulator`：x86_64，Android Emulator → `10.0.2.2:8000/api/v1`
+  - `usb-device`：aarch64，Android 真机 → `127.0.0.1:8000/api/v1`
+- 真机包安装后，在电脑执行 `adb reverse tcp:8000 tcp:8000` 即可访问本地 API
+- 一键安装 + reverse + FAST：`python scripts/android_acceptance/preview_usb_smoke.py --apk <apk> --serial <serial>`
+- 如果需要**脱离电脑直接在手机安装体验**，使用 **Android Phone Preview APK**，提供一个手机可访问的 `https://.../api/v1`；该包仍是 ARM64 Debug Preview，但不需要 `adb reverse`
+- Phone Preview 每次先运行 readiness：有可达 HTTPS API 时为 `READY` 并继续构建；未配置时明确显示 `BLOCKED_BY_API_BASE`，不会把 localhost / emulator API 冒充成独立手机包
+- Phone Preview 强制 HTTPS；本地明文 HTTP 只走 USB Preview + `adb reverse`
+- Preview 不使用正式 release keystore，也不得作为 Release / 商店包
+
+完整说明：`docs/engineering/ANDROID_PREVIEW_APK.md`。快速选包 / 下载 / 证据入口：`docs/engineering/ANDROID_PREVIEW_INDEX.md`。
 
 ## 4. 快速开始（开发环境）
 
@@ -141,11 +159,11 @@ MIT — 见 `apps/client-h5/src-tauri/Cargo.toml`（`license = "MIT"`）。
 
 ## 10. 当前版本状态
 
-- **v0.1.0 — Early Preview（技术预览）**，不是 Public Beta，不承诺数据覆盖。
+- **v0.1.0 — Early Preview（技术预览）已发布 GitHub Release**，不是 Public Beta，不承诺数据覆盖。
 - **未上架应用商店**（Android 需侧载，Windows 走安装包）。
-- **GitHub Release 待授权**：`RELEASE_V0_1_0_AUTHORIZATION`（huangdi97）未授予，
-  `V0_1_0_RELEASED = NO`。
-- **CI 目前 BLOCKED**：仓库尚无 git remote，远程 CI 未实跑；PR/Release CI 工作流已就绪。
+- 当前 UI/Consumer 候选工作位于 draft PR #1 的 `feat/ui-direct-craft-v8`，不得把分支 Preview 当成正式 Release。
+- GitHub Actions 已实际运行：PR CI、UI Direct Validation / Visual、Android Preview APK 等均以当前提交事实为准。
+- 当前候选仍为 `UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`；在同一最终 HEAD 的 Web / Windows / Android 运行证据与用户真人视觉确认前，不提升 baseline、不合并 master、不新建 tag / Release。
 
 ## 相关文档
 

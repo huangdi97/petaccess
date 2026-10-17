@@ -1,0 +1,506 @@
+name: Android Preview APK
+
+on:
+  push:
+    branches:
+      - feat/ui-direct-craft-v8
+    paths:
+      - "apps/client-h5/**"
+      - "packages/client-core/**"
+      - "packages/api-client/**"
+      - "packages/design-tokens/**"
+      - "services/api/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".env.example"
+      - ".github/workflows/android-preview.yml"
+      - "scripts/android_acceptance/**"
+      - "scripts/isolated_db.py"
+      - "scripts/dev_api_server.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  # One Preview run per active source branch. A newer UI commit cancels a stale
+  # Android compile; workflow_dispatch remains available for explicit rebuilds.
+  group: android-preview-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  preview-apk:
+    name: ${{ matrix.label }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - profile: emulator
+            label: Android Preview · x86_64 emulator
+            tauri_target: x86_64
+            rust_target: x86_64-linux-android
+            apk_abi: x86_64
+            api_base: http://10.0.2.2:8000/api/v1
+            runtime_note: Android Emulator -> host backend on port 8000
+            requires_adb_reverse: false
+            standalone: false
+          - profile: usb-device
+            label: Android Preview · ARM64 USB device
+            tauri_target: aarch64
+            rust_target: aarch64-linux-android
+            apk_abi: arm64-v8a
+            api_base: http://127.0.0.1:8000/api/v1
+            runtime_note: Physical Android device -> adb reverse tcp:8000 tcp:8000
+            requires_adb_reverse: true
+            standalone: false
+    env:
+      PREVIEW_CONFIG: src-tauri/tauri.preview.conf.json
+      VITE_TAURI_ANDROID_API_BASE: ${{ matrix.api_base }}
+      VITE_APP_VERSION: preview-${{ github.sha }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.4.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Install Rust Android target
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust_target }}
+
+      - name: Set up Android SDK
+        shell: bash
+        run: |
+          SDK="${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}"
+          if [ -x "$SDK/cmdline-tools/latest/bin/sdkmanager" ]; then
+            SDKMGMT="$SDK/cmdline-tools/latest/bin/sdkmanager"
+          elif [ -x "$SDK/cmdline-tools/16.0/bin/sdkmanager" ]; then
+            SDKMGMT="$SDK/cmdline-tools/16.0/bin/sdkmanager"
+          else
+            echo "sdkmanager not found in $SDK"
+            exit 1
+          fi
+
+          echo "ANDROID_HOME=$SDK" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK" >> "$GITHUB_ENV"
+          yes | "$SDKMGMT" --licenses >/dev/null 2>&1 || true
+          "$SDKMGMT" --install \
+            "platform-tools" \
+            "platforms;android-36" \
+            "build-tools;36.0.0" \
+            "ndk;27.1.12297006"
+          echo "NDK_HOME=$SDK/ndk/27.1.12297006" >> "$GITHUB_ENV"
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            apps/client-h5/src-tauri/target
+          key: android-preview-${{ matrix.tauri_target }}-${{ hashFiles('apps/client-h5/src-tauri/Cargo.lock') }}
+
+      - name: Initialize isolated preview Android project
+        run: >
+          pnpm --filter @petaccess/client-h5 exec tauri android init
+          --ci
+          --config "$PREVIEW_CONFIG"
+
+      - name: Enforce Android keyboard runtime contract
+        shell: bash
+        run: |
+          python3 scripts/android_acceptance/ensure_adjust_resize.py
+          python3 scripts/android_acceptance/ensure_adjust_resize.py --check
+          python3 scripts/android_acceptance/ensure_native_ime_bridge.py
+          python3 scripts/android_acceptance/ensure_native_ime_bridge.py --check
+
+      - name: Build debug preview APK
+        run: >
+          pnpm --filter @petaccess/client-h5 exec tauri android build
+          --debug
+          --apk
+          --target ${{ matrix.tauri_target }}
+          --config "$PREVIEW_CONFIG"
+
+      - name: Verify preview endpoint is baked into Consumer bundle
+        shell: bash
+        run: |
+          test -d apps/client-h5/dist
+          if ! grep -R --binary-files=text --fixed-strings "$VITE_TAURI_ANDROID_API_BASE" apps/client-h5/dist >/dev/null; then
+            echo "Expected Android API endpoint was not found in the built Consumer bundle:"
+            echo "  $VITE_TAURI_ANDROID_API_BASE"
+            exit 1
+          fi
+          echo "Verified bundled Android API endpoint: $VITE_TAURI_ANDROID_API_BASE"
+
+      - name: Collect and verify preview APK
+        id: apk
+        shell: bash
+        run: |
+          APK="$(find apps/client-h5/src-tauri/gen/android             -type f -name '*debug*.apk' ! -path '*/androidTest/*' | head -1)"
+          if [ -z "$APK" ] || [ ! -f "$APK" ]; then
+            echo "debug APK not found"
+            find apps/client-h5/src-tauri/gen/android -type f -name '*.apk' -print || true
+            exit 1
+          fi
+
+          PROFILE="${{ matrix.profile }}"
+          TARGET="${{ matrix.tauri_target }}"
+          SHORT_SHA="${GITHUB_SHA::7}"
+          OUT="PetAccess-preview-${PROFILE}-${TARGET}-${SHORT_SHA}-debug.apk"
+          cp "$APK" "$OUT"
+
+          APKSIGNER="${ANDROID_HOME}/build-tools/36.0.0/apksigner"
+          AAPT="${ANDROID_HOME}/build-tools/36.0.0/aapt"
+          "$APKSIGNER" verify --verbose "$OUT"
+          "$APKSIGNER" verify --print-certs "$OUT" | tee PREVIEW_SIGNER_CERTS.txt
+
+          BADGING="$("$AAPT" dump badging "$OUT")"
+          printf '%s\n' "$BADGING" > PREVIEW_BADGING.txt
+          "$AAPT" dump xmltree "$OUT" AndroidManifest.xml > PREVIEW_MANIFEST.txt
+          grep -Eq 'android:windowSoftInputMode.*0x10' PREVIEW_MANIFEST.txt || {
+            echo "Preview APK MainActivity is missing SOFT_INPUT_ADJUST_RESIZE (0x10)"
+            grep -n 'windowSoftInputMode' PREVIEW_MANIFEST.txt || true
+            exit 1
+          }
+          echo "$BADGING" | head -8
+          echo "$BADGING" | grep -q "name='com.petaccess.map.preview'" || {
+            echo "Preview package id mismatch"
+            exit 1
+          }
+          echo "$BADGING" | grep -Fq "application-label:'PetAccess Preview'" || {
+            echo "Preview application label mismatch"
+            exit 1
+          }
+          echo "$BADGING" | grep -Fq "native-code: '${{ matrix.apk_abi }}'" || {
+            echo "Preview native ABI mismatch; expected ${{ matrix.apk_abi }}"
+            grep "native-code:" PREVIEW_BADGING.txt || true
+            exit 1
+          }
+
+          sha256sum "$OUT" > SHA256SUMS.txt
+          echo "apk=$OUT" >> "$GITHUB_OUTPUT"
+
+          cat > PREVIEW_METADATA.txt <<EOF
+          PetAccess Android Preview
+          commit=$GITHUB_SHA
+          branch=$GITHUB_REF_NAME
+          api_profile=${{ matrix.profile }}
+          api_base=${{ matrix.api_base }}
+          tauri_target=${{ matrix.tauri_target }}
+          apk_abi=${{ matrix.apk_abi }}
+          build=debug
+          package=com.petaccess.map.preview
+          app_label=PetAccess Preview
+          release_signature=NO
+          store_release_artifact=NO
+
+          ${{ matrix.runtime_note }}
+
+          This preview installs beside the signed PetAccess release and must never
+          be promoted as a Release APK.
+          EOF
+
+          cat > PREVIEW_MANIFEST.json <<EOF
+          {
+            "schemaVersion": 1,
+            "product": "PetAccess",
+            "artifactKind": "android-preview",
+            "commit": "$GITHUB_SHA",
+            "branch": "$GITHUB_REF_NAME",
+            "packageId": "com.petaccess.map.preview",
+            "appLabel": "PetAccess Preview",
+            "buildType": "debug",
+            "releaseArtifact": false,
+            "storeArtifact": false,
+            "profile": "${{ matrix.profile }}",
+            "tauriTarget": "${{ matrix.tauri_target }}",
+            "androidAbi": "${{ matrix.apk_abi }}",
+            "apiBase": "${{ matrix.api_base }}",
+            "requiresAdbReverse": ${{ matrix.requires_adb_reverse }},
+            "standalonePhone": ${{ matrix.standalone }},
+            "realMapRequired": false,
+            "apkFile": "$OUT"
+          }
+          EOF
+
+          cat > INSTALL_PREVIEW.md <<EOF
+          # PetAccess Preview · ${{ matrix.profile }}
+
+          Commit: $GITHUB_SHA
+
+          APK: $OUT
+
+          Package: com.petaccess.map.preview
+
+          ABI: ${{ matrix.apk_abi }}
+
+          API: ${{ matrix.api_base }}
+
+          ${{ matrix.runtime_note }}
+
+          ## Install
+
+              adb install -r "$OUT"
+
+          ${{ matrix.requires_adb_reverse && 'For a physical USB device, run adb reverse tcp:8000 tcp:8000 before launching the app.' || 'No adb reverse step is required for this emulator profile.' }}
+
+          This is a debug Preview only. It installs beside com.petaccess.map and must not be promoted as a signed/store Release.
+          EOF
+
+      - name: Upload installable preview
+        id: upload_preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: petaccess-android-preview-${{ matrix.profile }}-${{ github.sha }}
+          path: |
+            ${{ steps.apk.outputs.apk }}
+            SHA256SUMS.txt
+            PREVIEW_SIGNER_CERTS.txt
+            PREVIEW_BADGING.txt
+            PREVIEW_METADATA.txt
+            PREVIEW_MANIFEST.json
+            INSTALL_PREVIEW.md
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Preview summary
+        shell: bash
+        run: |
+          {
+            echo "## PetAccess Android Preview"
+            echo
+            echo "- Commit: $GITHUB_SHA"
+            echo "- Package: com.petaccess.map.preview"
+            echo "- Profile: ${{ matrix.profile }}"
+            echo "- Tauri target: ${{ matrix.tauri_target }}"
+            echo "- APK native ABI: ${{ matrix.apk_abi }}"
+            echo "- API: ${{ matrix.api_base }}"
+            echo "- APK: ${{ steps.apk.outputs.apk }}"
+            echo "- Artifact: [Download Preview artifact](${{ steps.upload_preview.outputs.artifact-url }})"
+            echo "- Artifact digest: ${{ steps.upload_preview.outputs.artifact-digest }}"
+            echo "- Debug Preview only; not a signed Release."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  preview-runtime-smoke:
+    name: Android Preview · API ${{ matrix.api_level }} runtime smoke
+    needs: preview-apk
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        api_level: [35, 36]
+    services:
+      postgres:
+        image: postgis/postgis:17-3.5
+        env:
+          POSTGRES_USER: petaccess
+          POSTGRES_PASSWORD: petaccess_dev_only
+          POSTGRES_DB: petaccess
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U petaccess"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+    env:
+      DATABASE_URL: postgresql+psycopg://petaccess:petaccess_dev_only@127.0.0.1:5432/petaccess_e2e
+      TEST_DB_ADMIN_URL: postgresql://petaccess:petaccess_dev_only@127.0.0.1:5432/postgres
+      REDIS_URL: redis://127.0.0.1:6379/1
+      TEST_REDIS_URL: redis://127.0.0.1:6379/1
+      CELERY_TASK_QUEUE: petaccess_e2e
+      APP_ENV: test
+      API_BASE_URL: http://10.0.2.2:8000
+      JWT_SECRET: android_preview_dev_only_placeholder_0123456789
+      PETACCESS_ANDROID_PACKAGE: com.petaccess.map.preview
+      PETACCESS_ANDROID_ALLOW_FORBIDDEN_SERIAL: "1"
+      PETACCESS_ANDROID_EVIDENCE_DIR: ${{ github.workspace }}/artifacts/android-preview-runtime-api${{ matrix.api_level }}
+      PREVIEW_APK_DIR: ${{ github.workspace }}/preview-apk
+      PETACCESS_REQUIRE_SCENE_MEDIA: "1"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download x86_64 Preview APK from this commit
+        uses: actions/download-artifact@v4
+        with:
+          name: petaccess-android-preview-emulator-${{ github.sha }}
+          path: preview-apk
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Sync Python dependencies
+        run: uv sync --dev --all-packages
+
+      - name: Start S3-compatible runtime media store
+        shell: bash
+        run: |
+          docker run -d --name petaccess-preview-s3 -p 9000:9000 -p 9001:9001 \
+            -e MINIO_ROOT_USER=minio \
+            -e MINIO_ROOT_PASSWORD=minio_dev_only \
+            docker.io/pgsty/silo:RELEASE.2026-09-16T00-00-00Z server /data
+          for i in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:9000/minio/health/live >/dev/null && exit 0
+            sleep 2
+          done
+          docker logs petaccess-preview-s3 || true
+          exit 1
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.4.1
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install frontend/test dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Provision seeded E2E database
+        run: uv run python scripts/isolated_db.py --role E2E --reset
+
+      - name: Start PetAccess API for Android emulator
+        shell: bash
+        run: |
+          mkdir -p artifacts/android-preview-runtime/logs
+          # uv is a setup/build tool here, not the long-lived process supervisor.
+          # Leaving `uv run` alive until job teardown holds the uv cache and makes
+          # setup-uv's post-job cache prune fail even after the Android runtime
+          # smoke itself has passed. Run the already-synced venv interpreter
+          # directly so the background server has no uv parent/cache lease.
+          nohup .venv/bin/python scripts/dev_api_server.py \
+            --db-name petaccess_e2e \
+            --role E2E \
+            --host 0.0.0.0 \
+            --port 8000 \
+            > artifacts/android-preview-runtime/logs/api.log 2>&1 &
+          echo $! > artifacts/android-preview-runtime/runtime-api.pid
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:8000/health >/dev/null; then
+              curl -fsS http://127.0.0.1:8000/api/v1/ping
+              # Touch the DB-backed endpoints the packaged Home page calls
+              # first, so the first WebView request never races a cold pool.
+              curl -fsS 'http://127.0.0.1:8000/api/v1/places' >/dev/null
+              curl -fsS 'http://127.0.0.1:8000/api/v1/places/nearby?lat=31.2304&lng=121.4737&radius_m=2000' >/dev/null
+              exit 0
+            fi
+            sleep 2
+          done
+          cat artifacts/android-preview-runtime/logs/api.log || true
+          exit 1
+
+      - name: Seed governed public scene media
+        shell: bash
+        run: |
+          mkdir -p "$PETACCESS_ANDROID_EVIDENCE_DIR/runtime"
+          PETACCESS_PREVIEW_API_BASE=http://127.0.0.1:8000/api/v1 \
+            uv run python scripts/android_acceptance/seed_public_scene_media.py \
+            | tee "$PETACCESS_ANDROID_EVIDENCE_DIR/runtime/scene-media-seed.json"
+
+      - name: Enable KVM
+        shell: bash
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"'             | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run Preview on API ${{ matrix.api_level }} x86_64 emulator
+        uses: ReactiveCircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api_level }}
+          target: google_apis
+          arch: x86_64
+          profile: pixel_5
+          disable-animations: true
+          emulator-options: >-
+            -no-snapshot-load
+            -no-snapshot-save
+            -no-window
+            -gpu swiftshader_indirect
+            -noaudio
+            -no-boot-anim
+            -camera-back none
+            -camera-front none
+          script: bash scripts/android_acceptance/ci_preview_emulator_smoke.sh
+
+      - name: Upload Android runtime evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: petaccess-android-preview-runtime-api${{ matrix.api_level }}-${{ github.sha }}
+          path: |
+            artifacts/android-preview-runtime-api${{ matrix.api_level }}/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Runtime summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## Android Preview runtime smoke"
+            echo
+            echo "- Commit: $GITHUB_SHA"
+            echo "- Package: com.petaccess.map.preview"
+            echo "- Emulator: API ${{ matrix.api_level }} / x86_64 / Pixel 5 profile"
+            echo "- Backend: seeded petaccess_e2e on runner port 8000"
+            echo "- Runtime gate: FAST + 21 public/default cases + 7 authenticated packaged-WebView cases"
+            echo "- Human review board: ANDROID_RUNTIME_REVIEW_BOARD.html (inside runtime artifact)"
+            echo "- Evidence artifact: petaccess-android-preview-runtime-api${{ matrix.api_level }}-$GITHUB_SHA"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Stop preview background processes
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          PID_FILE="artifacts/android-preview-runtime/runtime-api.pid"
+          if [ -f "$PID_FILE" ]; then
+            API_PID="$(cat "$PID_FILE" 2>/dev/null || true)"
+            if [ -n "$API_PID" ]; then
+              kill "$API_PID" >/dev/null 2>&1 || true
+              for _ in $(seq 1 20); do
+                kill -0 "$API_PID" >/dev/null 2>&1 || break
+                sleep 0.25
+              done
+              kill -9 "$API_PID" >/dev/null 2>&1 || true
+            fi
+          fi
+          pkill -f "scripts/dev_api_server.py" >/dev/null 2>&1 || true
+          docker rm -f petaccess-preview-s3 >/dev/null 2>&1 || true
+          echo "Preview background cleanup complete"

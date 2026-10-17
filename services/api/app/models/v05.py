@@ -132,6 +132,7 @@ class RuleCandidate(Base, PkMixin, TimestampMixin):
     __table_args__ = (
         Index("ix_candidate_status", "review_status"),
         Index("ix_candidate_place", "place_id"),
+        Index("ix_rule_candidate_supersedes_rule", "supersedes_rule_id"),
     )
 
     source_id: Mapped[str] = mapped_column(
@@ -181,6 +182,14 @@ class RuleCandidate(Base, PkMixin, TimestampMixin):
     reviewer_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     review_note: Mapped[str | None] = mapped_column(String(500), nullable=True)
     published_rule_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    # Explicit replacement intent from a reviewed change lead. This is only a
+    # pointer to the current rule being challenged/replaced; publish gates still
+    # validate owner/layer/current-state before it can supersede anything.
+    supersedes_rule_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("access_rule.id", ondelete="SET NULL", name="fk_rule_candidate_supersedes_rule"),
+        nullable=True,
+    )
     media_id: Mapped[str | None] = mapped_column(
         String(36), nullable=True
     )  # media_object ref (no FK to avoid cycle with track A)

@@ -48,6 +48,7 @@ from .enums import (
     ExternalContentPlatform,
     FacilityAccessMode,
     FacilityOperationalState,
+    FacilityPurposeState,
     FactEvidenceState,
     ObservationEffortDurationBucket,
     ObservationOrigin,
@@ -61,6 +62,7 @@ from .enums import (
     RealityReportPrivacyState,
     RealityVerificationStatus,
     StaffActorRole,
+    StaffAwarenessState,
     StaffResponseAction,
     TimeCertainty,
     TimeEvidenceState,
@@ -188,6 +190,9 @@ class StaffResponseObservation(Base, PkMixin, TimestampMixin):
     actor_role: Mapped[StaffActorRole] = mapped_column(String(24), nullable=False)
     trigger_context: Mapped[str | None] = mapped_column(Text, nullable=True)
     response_action: Mapped[StaffResponseAction] = mapped_column(String(48), nullable=False)
+    staff_awareness_state: Mapped[StaffAwarenessState] = mapped_column(
+        String(24), nullable=False, default=StaffAwarenessState.AWARENESS_UNKNOWN
+    )
     response_outcome: Mapped[str | None] = mapped_column(Text, nullable=True)
     policy_statement_verbatim: Mapped[str | None] = mapped_column(Text, nullable=True)
     observed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
@@ -237,6 +242,9 @@ class AnimalFacility(Base, PkMixin, TimestampMixin):
         String(36), ForeignKey("zone.id", ondelete="SET NULL"), nullable=True
     )
     facility_type: Mapped[AnimalFacilityType] = mapped_column(String(40), nullable=False)
+    purpose_state: Mapped[FacilityPurposeState] = mapped_column(
+        String(32), nullable=False, default=FacilityPurposeState.PURPOSE_UNKNOWN
+    )
     operator_provided: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     access_mode: Mapped[FacilityAccessMode] = mapped_column(
         String(24), nullable=False, default=FacilityAccessMode.UNKNOWN
@@ -370,8 +378,15 @@ class ObservationEffort(Base, PkMixin, TimestampMixin):
     __table_args__ = (
         Index("ix_observation_effort_place_time", "place_id", "observed_at"),
         Index("ix_observation_effort_animal", "animal_observed"),
+        Index("ix_observation_effort_report", "report_id"),
     )
 
+    report_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("reality_report.id", ondelete="SET NULL"), nullable=True
+    )
+    evidence_bundle_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("evidence_bundle.id", ondelete="SET NULL"), nullable=True
+    )
     place_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("place.id", ondelete="CASCADE"), nullable=False
     )
@@ -400,8 +415,15 @@ class RealityConfirmation(Base, PkMixin, TimestampMixin):
     __table_args__ = (
         Index("ix_reality_confirmation_place_type", "place_id", "confirmation_type"),
         Index("ix_reality_confirmation_target", "target_claim_id"),
+        Index("ix_reality_confirmation_report", "report_id"),
     )
 
+    report_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("reality_report.id", ondelete="SET NULL"), nullable=True
+    )
+    evidence_bundle_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("evidence_bundle.id", ondelete="SET NULL"), nullable=True
+    )
     confirmation_type: Mapped[RealityConfirmationType] = mapped_column(String(24), nullable=False)
     place_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("place.id", ondelete="CASCADE"), nullable=False

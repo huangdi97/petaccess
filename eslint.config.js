@@ -21,8 +21,7 @@ export default defineConfigWithVueTs(
       // Android acceptance tooling (CDP driver) — machine-run automation, not
       // app source; belongs to no app tsconfig and predates the project-service
       // allowlist (baseline lint already refused it).
-      "scripts/android_acceptance/cdp_journey.cjs",
-      "scripts/android_acceptance/cdp_probe.cjs",
+      "scripts/android_acceptance/*.cjs",
     ],
   },
   pluginVue.configs["flat/essential"],
@@ -43,18 +42,15 @@ export default defineConfigWithVueTs(
             // project has a hard cap of 8 files before typescript-eslint starts
             // refusing outright — 10 files here is not a performance problem,
             // and pretending otherwise by dropping one from linting is worse.
-            "tests/e2e/*.ts",
-            "tests/visual/*.ts",
-            "tests/ui-audit/*.ts",
-            "tests/ui-reconstruction/*.ts",
-            "tests/ui-oracle/*.ts",
-            "tools/ui-oracle/*.ts",
+            "tools/ui-oracle/*.mjs",
             "playwright.ui-reconstruction.config.ts",
             "playwright.ui-oracle.config.ts",
             "scripts/*.mjs",
+            "scripts/windows_acceptance/*.cjs",
+            "scripts/release/*.cjs",
             "eslint.config.js",
           ],
-          maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 60,
+          maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 24,
         },
       },
     },
@@ -71,6 +67,12 @@ export default defineConfigWithVueTs(
     files: ["tests/e2e/**/*.ts"],
     rules: {
       "@typescript-eslint/no-unsafe-assignment": "off",
+    },
+  },
+  {
+    files: ["scripts/windows_acceptance/**/*.cjs", "scripts/release/**/*.cjs"],
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
     },
   },
 );

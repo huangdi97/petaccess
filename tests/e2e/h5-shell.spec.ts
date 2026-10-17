@@ -87,8 +87,10 @@ test("privacy controls render the data inventory", async ({ page }) => {
 test("notification centre states the channel limitation honestly", async ({ page }) => {
   await page.goto("/#/notifications");
   await expect(page.getByRole("heading", { name: "通知中心" })).toBeVisible();
-  // never claims a message was delivered
-  await expect(page.getByText(/Mock/)).toBeVisible();
+  // Provider internals stay private; the consumer page states the real
+  // capability boundary and never claims a message was delivered.
+  await expect(page.getByText(/尚未接入系统推送/)).toBeVisible();
+  await expect(page.getByText(/Mock/)).toHaveCount(0);
 });
 
 test("settings page publishes the methodology and its limits", async ({ page }) => {

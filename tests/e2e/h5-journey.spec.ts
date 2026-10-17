@@ -5,6 +5,7 @@
 import { expect, test } from "@playwright/test";
 
 const CAFE_ID = "8412b521-5e1c-505d-9dec-568acb860c76"; // deterministic seed UUID
+const MALL_ID = "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e"; // ready mall fixture
 const BRANCH_ID = "3b5a341a-e550-5f0c-b35a-319ed43bd840"; // 星河咖啡·栖霞分店, 0 rules → UNKNOWN
 
 test("health and decision home render nearby places", async ({ page }) => {
@@ -13,7 +14,7 @@ test("health and decision home render nearby places", async ({ page }) => {
   // (search-first). The map moved to its own tab.
   await expect(page.getByTestId("home-title")).toBeVisible();
   await expect(page.getByTestId("home-search-input")).toBeVisible();
-  await expect(page.getByText("附近已有依据")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "近期值得先看" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "附近待补充" })).toBeVisible();
 
   // the map tab still renders the full shell; desktop is List+Map split so the
@@ -28,7 +29,6 @@ test("health and decision home render nearby places", async ({ page }) => {
 test("place detail shows one-sentence answer with zones and provenance", async ({ page }) => {
   // v0.2.5 §15: unknown places render the minimal Unknown Overview, so the
   // full dossier (answer/zones/evidence) is asserted on the ready mall fixture.
-  const MALL_ID = "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e";
   await page.goto(`/#/place/${MALL_ID}`);
   const answer = page.getByTestId("answer");
   await expect(answer).toBeVisible();
@@ -36,6 +36,10 @@ test("place detail shows one-sentence answer with zones and provenance", async (
   // references the query context line, never a flattened zone verdict.
   await expect(page.getByTestId("answer-status")).toContainText("有条件");
   await expect(page.getByTestId("overview-reality")).toBeVisible();
+  const basics = page.getByTestId("overview-basics");
+  await expect(basics).toBeVisible();
+  await expect(basics).toContainText("商场");
+  await expect(basics).toContainText("空间记录");
   // space summary shows the mall's first zones by consumer name
   const zones = page.getByTestId("overview-zones");
   await expect(zones).toContainText("一层");
@@ -50,19 +54,26 @@ test("place detail shows one-sentence answer with zones and provenance", async (
 
 test("mode switch re-evaluates: service dog → allowed", async ({ page }) => {
   await page.goto(`/#/place/${CAFE_ID}`);
-  // plain dog at place level: no place-scoped ordinary-pet rule → UNKNOWN
-  // (v0.2.5 §15 renders the minimal Unknown Overview, not a dossier).
-  await expect(page.getByTestId("place-unknown")).toBeVisible();
-  await expect(page.getByTestId("place-unknown")).toContainText("信息不足");
+  // Rule UNKNOWN remains one dimension of the full Coexistence Passport;
+  // Reality / staff / facility / evidence must not disappear with it.
+  await expect(page.getByTestId("place-workspace")).toHaveAttribute("data-ui-state", "unknown");
+  await expect(page.getByTestId("answer-status")).toContainText("信息不足");
+  await expect(page.getByTestId("overview-reality")).toBeVisible();
   // Query Context primitive: open the editor and switch to service-dog mode.
-  await page.getByTestId("query-context-edit").click();
+  const queryEdit = page.getByTestId("query-context-edit");
+  await queryEdit.click();
+  const ordinaryMode = page.getByRole("button", { name: "普通携带" });
+  await expect(ordinaryMode).toBeFocused();
   await page.getByRole("button", { name: "服务犬通行" }).click();
+  await expect(page.getByTestId("query-service-role")).toBeVisible();
+  await page.getByTestId("query-context-done").click();
+  await expect(queryEdit).toBeFocused();
   // service-dog mode asks as a working (assistance) dog → place-level allowed
-  await expect(page.getByTestId("answer-status")).toHaveText("可以进入");
+  await expect(page.getByTestId("inspector-verdict")).toHaveText("可以进入");
   await page.getByTestId("query-context-edit").click();
   await page.getByRole("button", { name: "普通携带" }).click();
-  await expect(page.getByTestId("place-unknown")).toBeVisible();
-  await expect(page.getByTestId("place-unknown")).toContainText("信息不足");
+  await expect(page.getByTestId("place-workspace")).toHaveAttribute("data-ui-state", "unknown");
+  await expect(page.getByTestId("answer-status")).toContainText("信息不足");
 });
 
 /**
@@ -83,9 +94,9 @@ test("switching between two places re-renders the second one", async ({ page }) 
 
   await page.goto(`/#/place/${BRANCH_ID}`);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("星河咖啡·栖霞分店");
-  // the unknown overview has to belong to the new place too, not just the title
-  await expect(page.getByTestId("place-unknown")).toBeVisible();
-  await expect(page.getByTestId("place-unknown")).toContainText("信息不足");
+  // UNKNOWN is the rule state of the new place, not a replacement empty page.
+  await expect(page.getByTestId("place-workspace")).toHaveAttribute("data-ui-state", "unknown");
+  await expect(page.getByTestId("answer-status")).toContainText("信息不足");
 
   // Same mechanism from the user's side: history back and forward.
   await page.goBack();
@@ -97,7 +108,7 @@ test("search finds place by fuzzy name", async ({ page }) => {
   await page.goto("/#/search");
   await page.getByTestId("search-input").fill("星河");
   await page.getByTestId("search-btn").click();
-  await expect(page.getByTestId("result-星河咖啡·测试店")).toBeVisible();
+  await expect(page.getByTestId(`result-${CAFE_ID}`)).toBeVisible();
 });
 
 test("same-brand branches come back as two labelled rows, answer first", async ({ page }) => {
@@ -105,8 +116,8 @@ test("same-brand branches come back as two labelled rows, answer first", async (
   await page.getByTestId("search-input").fill("星河咖啡");
   await page.getByTestId("search-btn").click();
 
-  const flagship = page.getByTestId("result-星河咖啡·测试店");
-  const branch = page.getByTestId("result-星河咖啡·栖霞分店");
+  const flagship = page.getByTestId(`result-${CAFE_ID}`);
+  const branch = page.getByTestId(`result-${BRANCH_ID}`);
   await expect(flagship).toBeVisible();
   await expect(branch).toBeVisible();
 
@@ -114,26 +125,62 @@ test("same-brand branches come back as two labelled rows, answer first", async (
   // is its own place with its own name (the parent-name line was removed).
   await expect(branch.getByTestId("result-branch")).toHaveCount(0);
 
-  // v0.2.3 §21.5: rows carry the decision line, never rule-count tallies
-  // (规则数量/来源计数 forbidden on rows) — both rows show a decision, and
-  // the old result-rules tally must not exist.
-  await expect(flagship.getByTestId("row-rule")).toHaveCount(1);
-  await expect(branch.getByTestId("row-rule")).toHaveCount(1);
+  // Canonical search answers the access question first; Reality remains a
+  // separate visible fact. A Reality-first headline only appears after the
+  // user explicitly chooses a Reality lens.
+  // Primary decision copy stays in the controlled consumer vocabulary;
+  // the safety guard remains a quieter evidence line, never an internal
+  // resolver field or a verbose server summary.
+  await expect(flagship.getByTestId("row-lens-headline")).toContainText("信息不足");
+  await expect(branch.getByTestId("row-lens-headline")).toContainText("信息不足");
+  // The compact Search row carries one controlled decision expression;
+  // the longer safety explanation lives at page/context level, not repeated
+  // in every row. UNKNOWN must still never become affirmative copy.
+  await expect(flagship).not.toContainText("可以进入");
+  await expect(branch).not.toContainText("可以进入");
+  await expect(flagship).not.toContainText("condition_evaluation");
+  await expect(branch).not.toContainText("condition_evaluation");
   await expect(page.getByTestId("result-rules")).toHaveCount(0);
-  // The row that can actually answer comes first — a rule-less branch used to
-  // lead on alphabetical order, so the top hit read 「尚未收录规则」 while the
-  // answer sat one row down.
-  await expect(page.locator("[data-testid^='result-星河']").first()).toContainText(
-    "星河咖啡·测试店",
-  );
+  await expect(page.locator("ul.result-list > li").first()).toContainText("星河咖啡·测试店");
+
+  await page.goto("/#/search?q=星河咖啡&lens=presence");
+  const presenceFlagship = page.getByTestId(`result-${CAFE_ID}`);
+  await expect(presenceFlagship.getByTestId("row-lens-headline")).toContainText("现场");
 });
 
-test("register → create pet → answer carries pet context → quick confirm", async ({ page }) => {
+test("ordinary-user rule provenance stays de-identified in consumer Search", async ({ page }) => {
+  const privateIssuer = "PRIVATE_CONTRIBUTOR_DISPLAY_NAME";
+  await page.route(`**/api/v1/places/${MALL_ID}/coexistence`, async (route) => {
+    const response = await route.fetch();
+    const payload = await response.json();
+    const evidence = payload?.rule_answer?.evidence_state?.rules;
+    if (Array.isArray(evidence) && evidence.length) {
+      evidence[0] = {
+        ...evidence[0],
+        source_type: "ordinary_user",
+        issuer: privateIssuer,
+      };
+    }
+    await route.fulfill({
+      status: response.status(),
+      contentType: "application/json",
+      body: JSON.stringify(payload),
+    });
+  });
+
+  await page.goto("/#/search?q=云栖");
+  const inspector = page.getByTestId("decision-inspector");
+  await expect(inspector).toBeVisible({ timeout: 15000 });
+  await expect(inspector).toContainText("普通用户贡献（身份不公开）");
+  await expect(page.locator("body")).not.toContainText(privateIssuer);
+});
+
+test("register → create pet → shared query context carries pet identity", async ({ page }) => {
   const email = `e2e-${Date.now()}@example.com`;
 
   // register
   await page.goto("/#/onboarding");
-  await page.getByRole("button", { name: "注册", exact: true }).click();
+  await page.getByRole("tab", { name: "注册", exact: true }).click();
   await page.locator("input").nth(0).fill("E2E 用户");
   await page.locator('input[type="email"]').fill(email);
   await page.locator('input[type="password"]').fill("passw0rd123");
@@ -147,14 +194,52 @@ test("register → create pet → answer carries pet context → quick confirm",
   await page.getByTestId("pet-save").click();
   await expect(page).toHaveURL(/#\/$/);
 
-  // place answer references the pet (ready fixture: the cafe is UNKNOWN and
-  // v0.2.5 §15 shows its minimal Unknown Overview without an answer block).
+  // The pet is a query-context input, not text baked into one answer block.
+  // Every consumer surface reads the same shared context primitive.
   await page.goto(`/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e`);
-  await expect(page.getByTestId("answer")).toContainText("我的宠物：豆豆");
+  await expect(page.getByTestId("query-context-summary")).toContainText("豆豆");
+  await expect(page.getByTestId("answer")).toBeVisible();
+});
 
-  // quick confirm requires auth → succeeds and records
-  await page.getByRole("button", { name: "仍然如此" }).first().click();
-  await expect(page.getByTestId("quick-msg")).toContainText("已记录");
+test("privacy media management reflects real uploader-owned files", async ({ page, request }) => {
+  const email = `e2e-media-${Date.now()}@example.com`;
+
+  await page.goto("/#/onboarding");
+  await page.getByRole("tab", { name: "注册", exact: true }).click();
+  await page.locator("input").nth(0).fill("媒体 E2E");
+  await page.locator('input[type="email"]').fill(email);
+  await page.locator('input[type="password"]').fill("passw0rd123");
+  await page.getByRole("button", { name: "注册并开始" }).click();
+  await expect(page).toHaveURL(/#\/$/);
+
+  const token = await page.evaluate(() => localStorage.getItem("pa_token"));
+  expect(token).toBeTruthy();
+
+  const uploaded = await request.post("http://127.0.0.1:8010/api/v1/media/upload", {
+    headers: { Authorization: `Bearer ${token}` },
+    params: { purpose: "reality_evidence" },
+    multipart: {
+      file: {
+        name: "privacy-e2e.png",
+        mimeType: "image/png",
+        buffer: Buffer.concat([
+          Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+          Buffer.alloc(64),
+        ]),
+      },
+    },
+  });
+  expect(uploaded.ok(), await uploaded.text()).toBeTruthy();
+
+  await page.goto("/#/privacy");
+  const media = page.getByTestId("privacy-media-section");
+  await expect(media).toBeVisible();
+  await expect(media).toContainText("现场事实证据");
+  await expect(media).toContainText("默认私有");
+
+  await media.getByRole("button", { name: "删除文件" }).click();
+  await media.getByRole("button", { name: "确认删除" }).click();
+  await expect(media).toContainText("当前没有仍在保存的上传媒体");
 });
 
 /**
@@ -169,7 +254,7 @@ test("v0.5: set coexistence boundary and boundary-match explains per item", asyn
 
   // register (a boundary profile is user-scoped)
   await page.goto("/#/onboarding");
-  await page.getByRole("button", { name: "注册", exact: true }).click();
+  await page.getByRole("tab", { name: "注册", exact: true }).click();
   await page.locator("input").nth(0).fill("边界 E2E");
   await page.locator('input[type="email"]').fill(email);
   await page.locator('input[type="password"]').fill("passw0rd123");
@@ -185,7 +270,7 @@ test("v0.5: set coexistence boundary and boundary-match explains per item", asyn
 
   // reload: the saved stance is restored (server-persisted, not local state)
   await page.goto("/#/boundary");
-  await expect(page.getByTestId("stance-indoor_access-require_prohibited")).toHaveClass(/active/);
+  await expect(page.getByTestId("stance-indoor_access-require_prohibited")).toBeChecked();
 
   // the explainable-match page shows the per-item comparison
   await page.goto(`/#/place/${CAFE_ID}/why`);
@@ -197,10 +282,12 @@ test("v0.5: set coexistence boundary and boundary-match explains per item", asyn
 });
 
 test("v0.5: explainable match shows derivation steps", async ({ page }) => {
-  await page.goto(`/#/place/${CAFE_ID}/why`);
+  await page.goto(`/#/place/${MALL_ID}/why`);
   const rules = page.getByTestId("effective-rules");
   await expect(rules).toBeVisible();
-  await expect(rules).toContainText("推导过程");
+  // The compact decision block owns the current verdict; derivation is a
+  // separate progressive-disclosure section immediately below it.
+  await expect(page.getByRole("heading", { name: "推导过程" })).toBeVisible();
   // compliance state is one of the closed vocabulary
   await expect(rules).toContainText(/各层一致|存在潜在冲突|需人工复核|信息不足/);
 });

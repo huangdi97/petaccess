@@ -1,0 +1,84 @@
+.query-context {
+  display: flex;
+  align-items: center;
+  gap: var(--pa-space-2);
+  /* §38：全产品统一 h 60。 */
+  min-height: 60px;
+  padding: var(--pa-space-2) var(--pa-space-4);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  background: var(--pa-color-surface-raised);
+  font-size: var(--pa-font-size-md);
+}
+
+.query-context__label {
+  color: var(--pa-color-text-muted);
+  flex: 0 0 auto;
+  font-size: var(--pa-font-size-sm);
+  letter-spacing: var(--pa-letter-spacing-wide);
+}
+
+.query-context__value {
+  color: var(--pa-color-text-primary);
+  font-weight: var(--pa-font-weight-600);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.query-context__edit {
+  margin-left: auto;
+  padding: var(--pa-space-1) var(--pa-space-3);
+  border: var(--pa-border-width) solid var(--pa-color-border);
+  border-radius: var(--pa-radius-control);
+  background: transparent;
+  color: var(--pa-color-accent);
+  font: inherit;
+  font-size: var(--pa-font-size-md);
+  cursor: pointer;
+}
+
+.query-context__edit:hover {
+  border-color: var(--pa-color-accent);
+  background: var(--pa-color-accent-weak);
+}
+
+.query-context__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-4);
+}
+
+.query-context__hint,
+.query-context__note {
+  margin: 0;
+}
+
+.query-context__modes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-2);
+}
+
+.query-context__mode {
+  min-height: var(--pa-layout-touch-target);
+  padding: 0 var(--pa-space-4);
+  border: var(--pa-border-width) solid var(--pa-color-border);
+  border-radius: var(--pa-radius-control);
+  background: var(--pa-color-surface);
+  color: var(--pa-color-text-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.query-context__mode:hover {
+  border-color: var(--pa-color-accent);
+}
+
+.query-context__mode--active {
+  border-color: var(--pa-color-accent);
+  background: var(--pa-color-accent-weak);
+  color: var(--pa-color-accent);
+  font-weight: var(--pa-font-weight-medium);
+}

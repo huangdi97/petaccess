@@ -39,8 +39,8 @@
       "auth": true,
       "interactions": [
         {
-          "clickSelectors": ["[data-testid='entry-quick']"],
-          "waitForSelector": "[data-testid='quick-submit']"
+          "clickSelectors": ["[data-testid='entry-quick']", "[data-testid='entry-next']"],
+          "waitForSelector": "[data-testid='quick-review-next']"
         }
       ],
       "expect": {
@@ -56,14 +56,38 @@
       "auth": true,
       "interactions": [
         {
-          "clickSelectors": ["[data-testid='entry-reality-observed_presence']"],
-          "waitForSelector": "[data-testid='reality-submit']"
+          "clickSelectors": [
+            "[data-testid='entry-reality-observed_presence']",
+            "[data-testid='entry-next']"
+          ],
+          "waitForSelector": "[data-testid='reality-review-next']"
         }
       ],
       "expect": {
         "page": "contribution",
         "state": "step-2",
         "fixture": "contribution-step-2-v1",
+        "h1": "现场贡献"
+      }
+    },
+    {
+      "id": "contribute-review",
+      "route": "/#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+      "auth": true,
+      "interactions": [
+        {
+          "clickSelectors": [
+            "[data-testid='entry-reality-observed_presence']",
+            "[data-testid='entry-next']",
+            "[data-testid='reality-review-next']"
+          ],
+          "waitForSelector": "[data-testid='contribution-review']"
+        }
+      ],
+      "expect": {
+        "page": "contribution",
+        "state": "review",
+        "fixture": "contribution-review-v1",
         "h1": "现场贡献"
       }
     }
@@ -92,7 +116,7 @@
         }
       },
       "severity": "FAIL",
-      "pages": ["contribute-entry", "contribute-step-1", "contribute-step-2"],
+      "pages": ["contribute-entry", "contribute-step-1", "contribute-step-2", "contribute-review"],
       "note": "v0.2.7 §16/§40：main task column 620–720px（容差到 760）。"
     },
     {
@@ -109,34 +133,46 @@
         }
       },
       "severity": "FAIL",
-      "pages": ["contribute-entry", "contribute-step-1", "contribute-step-2"],
+      "pages": ["contribute-entry", "contribute-step-1", "contribute-step-2", "contribute-review"],
       "note": "v0.2.7 §15/§40：desktop secondary context rail 240–300px 真实可见。"
     },
     {
       "id": "CONTRIBUTION_WORKSPACE_NO_HORIZONTAL_OVERFLOW",
       "ui": "contribution-workspace",
       "fallbacks": [".contribute-workspace"],
-      "props": { "hOverflow": { "equals": 0 } },
+      "props": {
+        "hOverflow": {
+          "equals": 0
+        }
+      },
       "severity": "FAIL",
-      "pages": ["contribute-entry", "contribute-step-1", "contribute-step-2"],
+      "pages": ["contribute-entry", "contribute-step-1", "contribute-step-2", "contribute-review"],
       "note": "v0.2.7-R1 P0-1 nested: workspace scrollWidth <= clientWidth + 1."
     },
     {
       "id": "CONTRIBUTION_MAIN_NO_HORIZONTAL_OVERFLOW",
       "ui": "contribution-main",
       "fallbacks": [".contribute-workspace__main"],
-      "props": { "hOverflow": { "equals": 0 } },
+      "props": {
+        "hOverflow": {
+          "equals": 0
+        }
+      },
       "severity": "FAIL",
-      "pages": ["contribute-entry", "contribute-step-1", "contribute-step-2"],
+      "pages": ["contribute-entry", "contribute-step-1", "contribute-step-2", "contribute-review"],
       "note": "v0.2.7-R1 P0-1 nested: main column scrollWidth <= clientWidth + 1."
     },
     {
       "id": "CONTRIBUTION_CONTEXT_NO_HORIZONTAL_OVERFLOW",
       "ui": "contribution-context",
       "fallbacks": [".contribute-workspace__context"],
-      "props": { "hOverflow": { "equals": 0 } },
+      "props": {
+        "hOverflow": {
+          "equals": 0
+        }
+      },
       "severity": "FAIL",
-      "pages": ["contribute-entry", "contribute-step-1", "contribute-step-2"],
+      "pages": ["contribute-entry", "contribute-step-1", "contribute-step-2", "contribute-review"],
       "note": "v0.2.7-R1 P0-1 nested: context rail scrollWidth <= clientWidth + 1."
     }
   ],
@@ -159,9 +195,9 @@
       "id": "CONTRIBUTE_OPTION_LABELS",
       "selector": "body",
       "mustContainTexts": [
-        "我看到了新的规则",
+        "我看到或了解到一条规则",
         "我在现场看到动物",
-        "工作人员进行了处理",
+        "我看到工作人员怎么处理",
         "我发现了相关设施",
         "场所信息有误"
       ],
@@ -188,7 +224,7 @@
       "mustContainTexts": ["提交内容会进入人工核验"],
       "forbiddenText": ["ADR-", "GPS 轨迹（", "位置信息仅用于核验场所，不保存连续位置轨迹"],
       "severity": "FAIL",
-      "pages": ["contribute-entry", "contribute-step-1", "contribute-step-2"]
+      "pages": ["contribute-entry", "contribute-step-1", "contribute-step-2", "contribute-review"]
     },
     {
       "id": "CONTRIBUTE_4_CHOICES_FIRST_VIEWPORT",
@@ -199,7 +235,7 @@
     },
     {
       "id": "CONTRIBUTION_STEP_CONTEXT_PRESENT",
-      "selector": "[data-testid='step-place-context'], [data-testid='contribute-step'], [data-testid='quick-submit'], [data-testid='step-back']",
+      "selector": "[data-testid='step-place-context'], [data-testid='contribute-step'], [data-testid='quick-review-next'], [data-testid='step-back']",
       "min": 4,
       "severity": "FAIL",
       "pages": ["contribute-step-1"]
@@ -211,6 +247,21 @@
       "forbiddenClass": ["pill"],
       "severity": "FAIL",
       "pages": ["contribute-step-1"]
+    },
+    {
+      "id": "CONTRIBUTION_REVIEW_PRESENT",
+      "selector": "[data-testid='contribution-review']",
+      "min": 1,
+      "severity": "FAIL",
+      "pages": ["contribute-review"]
+    },
+    {
+      "id": "CONTRIBUTION_REVIEW_NOT_SUBMITTED_YET",
+      "selector": "[data-testid='contribution-review']",
+      "mustContainTexts": ["提交前核对", "确认提交后内容进入人工审核"],
+      "forbiddenText": ["审核通过", "规则已更新", "正式规则已变更"],
+      "severity": "FAIL",
+      "pages": ["contribute-review"]
     }
   ],
   "density": [
@@ -256,5 +307,5 @@
     "allcapsTokens": true,
     "refs": true
   },
-  "notes": "v0.2.3 §40/§41: first screen 你刚刚知道了什么？ with exactly 5 fixed options; consumer copy has no ADR/RFC/TD/UUID/enum (location copy uses the spec-correct wording 位置信息仅用于核验场所，不保存连续位置轨迹). Wizard O6 states: choose-type (entry) -> step-1 (legacy confirm) -> step-2 (reality parent-flow) -> done. Entry probed authenticated (pa_token via API, same as contribute-wizard e2e)."
+  "notes": "Canonical four-stage transaction: 1/4 choose one of five fact types -> 2/4 fill structured facts -> 3/4 read-only review -> 4/4 submitted pending human verification. No stage may imply that submission equals verification or that Reality becomes Rule."
 }

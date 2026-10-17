@@ -9,6 +9,7 @@
 import { expect, test } from "@playwright/test";
 
 const BASE = "http://127.0.0.1:5175";
+const API = "http://127.0.0.1:8010/api/v1";
 /** Deterministic seed UUID with published rules (h5-journey.spec.ts). */
 const CAFE_ID = "8412b521-5e1c-505d-9dec-568acb860c76";
 /** Ready fixture (place-ready-v1) — unknown places render the §15 Unknown Overview. */
@@ -31,12 +32,529 @@ test("A4 — /#/map?place= 深链预选；页面选择后 back/forward 同步", 
   await expect(page.getByTestId("preview-empty")).toBeVisible();
 });
 
-test("A1 — desktop 地图 split-view 渲染地图 + 详情面板", async ({ page }) => {
+test("A4.1 — a Place-to-Map link resolves an exact place outside nearby results", async ({
+  page,
+}) => {
+  // Simulate a user opening a place outside the default camera's nearby
+  // result set. The exact place may still be resolved through search by ID.
+  await page.route("**/api/v1/places/nearby?*", async (route) => {
+    await route.fulfill({
+      json: { items: [], total: 0, limit: 30, offset: 0 },
+    });
+  });
+
+  await page.goto(`${BASE}/#/map?place=${MALL_ID}`);
+  await expect(page.getByTestId("map")).toBeVisible();
+  await expect(page.getByTestId("place-preview")).toContainText("云栖中心", {
+    timeout: 15000,
+  });
+  await expect(page.getByTestId(`place-${MALL_ID}`)).toBeVisible();
+  await expect(page.getByTestId("preview-open")).toHaveAttribute("href", `#/place/${MALL_ID}`);
+});
+
+test("A4.2 — Search inspector opens the exact selected place on Map", async ({ page }) => {
+  await page.goto(`${BASE}/#/search?q=云栖`);
+  const mapLink = page.getByTestId("inspector-map-location");
+  await expect(mapLink).toBeVisible({ timeout: 15000 });
+  await expect(mapLink).toHaveAttribute("href", `#/map?place=${MALL_ID}`);
+  await mapLink.click();
+  await expect(page).toHaveURL(/#\/map\?place=/);
+  await expect(page.getByTestId("place-preview")).toContainText("云栖中心", {
+    timeout: 15000,
+  });
+});
+
+test("A4.3 — Search inspector only promotes reviewed scene_photo media", async ({ page }) => {
+  const bundleId = "scene-photo-search-fixture";
+  await page.route(`**/api/v1/places/${MALL_ID}/reality/events**`, async (route) => {
+    const response = await route.fetch();
+    const payload = await response.json();
+    const items = Array.isArray(payload) ? payload : [];
+    await route.fulfill({
+      status: response.status(),
+      contentType: "application/json",
+      body: JSON.stringify(
+        items.length
+          ? items.map((item: Record<string, unknown>, index: number) =>
+              index === 0 ? { ...item, evidence_bundle_id: bundleId } : item,
+            )
+          : [
+              {
+                id: "scene-event",
+                event_type: "observed_presence",
+                place_id: MALL_ID,
+                event_at: "2026-10-08T10:00:00Z",
+                time_basis: "event_time",
+                verification_status: "verified",
+                evidence_bundle_id: bundleId,
+              },
+            ],
+      ),
+    });
+  });
+  await page.route(`**/api/v1/evidence-bundles/${bundleId}/public-media`, (route) =>
+    route.fulfill({
+      json: {
+        evidence_bundle_id: bundleId,
+        media_id: "scene-photo-media",
+        purpose: "scene_photo",
+        url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='300'%3E%3Crect width='100%25' height='100%25' fill='%23eef3f6'/%3E%3C/svg%3E",
+        mime_type: "image/svg+xml",
+        expires_in: 300,
+      },
+    }),
+  );
+
+  await page.goto(`${BASE}/#/search?q=云栖`);
+  const scene = page.getByTestId("inspector-scene-media");
+  await expect(scene).toBeVisible({ timeout: 15000 });
+  await expect(scene.locator("img")).toHaveAttribute("alt", /场所场景：云栖中心/);
+  await expect(scene).toContainText("经审核允许公开展示的场所场景");
+  const selectedRowScene = page.getByTestId("search-row-scene-media");
+  await expect(selectedRowScene).toBeVisible();
+  // The compact row image is adjacent to the venue name, so it is decorative:
+  // repeating the full place name in alt text would create duplicate screen-reader speech.
+  await expect(selectedRowScene.locator("img")).toHaveAttribute("alt", "");
+  await expect(page.getByTestId(`result-${MALL_ID}`)).toContainText("云栖中心");
+});
+
+test("A4.3b — broken reviewed scene URL falls back to an honest placeholder", async ({ page }) => {
+  const bundleId = "scene-photo-broken-fixture";
+  await page.route(`**/api/v1/places/${MALL_ID}/reality/events**`, async (route) => {
+    const response = await route.fetch();
+    const payload = await response.json();
+    const items = Array.isArray(payload) ? payload : [];
+    await route.fulfill({
+      status: response.status(),
+      contentType: "application/json",
+      body: JSON.stringify(
+        items.length
+          ? items.map((item: Record<string, unknown>, index: number) =>
+              index === 0 ? { ...item, evidence_bundle_id: bundleId } : item,
+            )
+          : [
+              {
+                id: "scene-broken-event",
+                event_type: "observed_presence",
+                place_id: MALL_ID,
+                event_at: "2026-10-08T10:00:00Z",
+                time_basis: "event_time",
+                verification_status: "verified",
+                evidence_bundle_id: bundleId,
+              },
+            ],
+      ),
+    });
+  });
+  await page.route(`**/api/v1/evidence-bundles/${bundleId}/public-media`, (route) =>
+    route.fulfill({
+      json: {
+        evidence_bundle_id: bundleId,
+        media_id: "scene-broken-media",
+        purpose: "scene_photo",
+        url: "http://127.0.0.1:9/reviewed-scene.jpg",
+        mime_type: "image/jpeg",
+        expires_in: 300,
+      },
+    }),
+  );
+
+  await page.goto(`${BASE}/#/search?q=云栖`);
+  const frame = page.getByTestId("inspector-scene-media");
+  await expect(frame).toBeVisible({ timeout: 15000 });
+  await expect(frame).toContainText("暂无可展示的场所照片", { timeout: 15000 });
+  await expect(frame).toContainText("有经审核允许公开的场景照片后，会显示在这里。");
+  await expect(frame.locator('[data-ui="place-type-glyph"]')).toBeVisible();
+  await expect(frame.locator("img")).toHaveCount(0);
+});
+
+test("A4.4 — Map preview promotes only reviewed scene_photo media", async ({ page }) => {
+  const bundleId = "scene-photo-map-fixture";
+  await page.route(`**/api/v1/places/${MALL_ID}/reality/events**`, async (route) => {
+    const response = await route.fetch();
+    const payload = await response.json();
+    const items = Array.isArray(payload) ? payload : [];
+    await route.fulfill({
+      status: response.status(),
+      contentType: "application/json",
+      body: JSON.stringify(
+        items.length
+          ? items.map((item: Record<string, unknown>, index: number) =>
+              index === 0 ? { ...item, evidence_bundle_id: bundleId } : item,
+            )
+          : [
+              {
+                id: "scene-map-event",
+                event_type: "observed_presence",
+                place_id: MALL_ID,
+                event_at: "2026-10-08T10:00:00Z",
+                time_basis: "event_time",
+                verification_status: "verified",
+                evidence_bundle_id: bundleId,
+              },
+            ],
+      ),
+    });
+  });
+  await page.route(`**/api/v1/evidence-bundles/${bundleId}/public-media`, (route) =>
+    route.fulfill({
+      json: {
+        evidence_bundle_id: bundleId,
+        media_id: "scene-map-media",
+        purpose: "scene_photo",
+        url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='350'%3E%3Crect width='100%25' height='100%25' fill='%23eef3f6'/%3E%3C/svg%3E",
+        mime_type: "image/svg+xml",
+        expires_in: 300,
+      },
+    }),
+  );
+
+  await page.goto(`${BASE}/#/map?place=${MALL_ID}`);
+  const preview = page.getByTestId("place-preview");
+  await expect(preview).toBeVisible({ timeout: 15000 });
+  await expect(preview.locator(".place-preview__scene")).toHaveAttribute(
+    "alt",
+    /场所场景：云栖中心/,
+  );
+});
+
+test("A4.5 — evidence media never becomes venue identity imagery", async ({ page }) => {
+  const bundleId = "signage-evidence-not-scene";
+  await page.route(`**/api/v1/places/${MALL_ID}/reality/events**`, (route) =>
+    route.fulfill({
+      json: [
+        {
+          id: "signage-event",
+          event_type: "observed_presence",
+          place_id: MALL_ID,
+          event_at: "2026-10-08T10:00:00Z",
+          time_basis: "event_time",
+          verification_status: "verified",
+          evidence_bundle_id: bundleId,
+        },
+      ],
+    }),
+  );
+  await page.route(`**/api/v1/evidence-bundles/${bundleId}/public-media`, (route) =>
+    route.fulfill({
+      json: {
+        evidence_bundle_id: bundleId,
+        media_id: "signage-media",
+        purpose: "signage_evidence",
+        url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='350'%3E%3C/svg%3E",
+        mime_type: "image/svg+xml",
+        expires_in: 300,
+      },
+    }),
+  );
+
+  await page.goto(`${BASE}/#/search?q=云栖`);
+  await expect(page.getByTestId("decision-inspector")).toBeVisible({ timeout: 15000 });
+  await expect(page.getByTestId("inspector-scene-media")).toHaveCount(0);
+  // No fake empty-image frame: Search falls back to the neutral place-type
+  // glyph when no reviewed venue scene photo is publishable.
+  await expect(
+    page.getByTestId("decision-inspector").locator('[data-ui="place-type-glyph"]').first(),
+  ).toBeVisible();
+  await expect(page.locator(".result-row--selected .result-row__scene")).toHaveCount(0);
+});
+
+test("A1 — desktop 地图 split-view + 四 Lens + 详情面板", async ({ page }) => {
   await page.goto(`${BASE}/#/map`);
   await expect(page.getByTestId("map")).toBeVisible();
-  // Desktop auto-selects the first hit so the pane is populated, not empty.
+  for (const lens of ["rule", "reality", "facility", "divergence"]) {
+    await expect(page.getByTestId(`map-lens-${lens}`)).toBeVisible();
+  }
+  await expect(page.getByTestId("map-lens-semantics")).toContainText("不代表当前一定存在冲突");
+  // Desktop auto-selects the first hit so the pane is populated, and the
+  // same identity is visibly selected in the adjacent result list.
   await expect(page.getByTestId("place-preview")).toBeVisible();
   await expect(page.getByTestId("preview-open")).toBeVisible();
+  await expect(page.locator(".map-place-row[data-selected='true']")).toHaveCount(1);
+  await expect(page.getByTestId("map-lens-divergence")).toHaveText("差异");
+});
+
+test("A1.0.1 — fallback marker 不靠颜色单独表达语义", async ({ page }) => {
+  await page.goto(`${BASE}/#/map`);
+  const marker = page.locator(".dot[data-ui='map-marker']").first();
+  await expect(marker).toBeVisible({ timeout: 15000 });
+  await expect(marker.locator(".dot__glyph")).not.toHaveText("");
+  const pin = marker.locator("xpath=..");
+  // Labels are intentionally pointer-transparent so neighboring markers
+  // remain clickable. Test the actual glyph's hit target, and keyboard
+  // focus as a separate non-color-only path.
+  await marker.hover();
+  await expect(pin.locator(".lbl")).toBeVisible();
+  await pin.focus();
+  await expect(pin.locator(".lbl")).not.toHaveText("");
+});
+
+test("A1.0.2 — nearby venue cluster is neutral and requires per-place inspection", async ({
+  page,
+}) => {
+  await page.goto(`${BASE}/#/map`);
+  const group = page
+    .locator(".map-pin")
+    .filter({ has: page.locator(".map-cluster") })
+    .first();
+  await expect(group).toBeVisible({ timeout: 15000 });
+  await expect(group).toHaveAttribute("aria-label", /准入结论需分别查看/);
+  await expect(group.locator(".map-cluster")).toHaveClass("map-cluster");
+});
+
+test("A1.0.2 — non-Rule lenses never reuse permission checkmark semantics", async ({ page }) => {
+  await page.goto(`${BASE}/#/map`);
+  for (const lens of ["reality", "facility", "divergence"] as const) {
+    await page.getByTestId(`map-lens-${lens}`).click();
+    const glyph = page.locator(".dot__glyph").first();
+    await expect(glyph).toBeVisible({ timeout: 15000 });
+    await expect(glyph).not.toHaveText("✓");
+  }
+
+  // Aggregate markers represent multiple potentially different places, so
+  // they remain neutral instead of inheriting an access/reality status class.
+  await page.getByRole("button", { name: "缩小" }).click();
+  await page.getByRole("button", { name: "缩小" }).click();
+  const cluster = page.locator(".map-cluster").first();
+  if (await cluster.count()) {
+    await expect(cluster).not.toHaveClass(/s-(ALLOWED|CONDITIONAL|RESTRICTED|CONFLICT|STALE)/);
+  }
+});
+
+test("A1.1 — Map 内搜索保持 Spatial Workspace 并选择真实场所", async ({ page }) => {
+  await page.goto(`${BASE}/#/map`);
+  await expect(page.getByTestId("map-search-input")).toBeVisible();
+  await page.getByTestId("map-search-input").fill("云栖中心");
+  await page.getByTestId("map-search-submit").click();
+
+  await expect(page).toHaveURL(/#\/map/);
+  const selectedRow = page.getByTestId(`place-${MALL_ID}`);
+  await expect(selectedRow).toBeVisible({ timeout: 15000 });
+  await expect(selectedRow).toHaveAttribute("data-selected", "true");
+  await expect(selectedRow).toHaveJSProperty("tagName", "BUTTON");
+  await expect(page.getByTestId("place-preview")).toContainText("云栖中心");
+});
+
+test("A1.2 — mobile map searches without leaving the spatial canvas", async ({ page }) => {
+  await page.setViewportSize({ width: 430, height: 932 });
+  await page.goto(`${BASE}/#/map`);
+
+  const input = page.getByTestId("map-mobile-search-input");
+  await expect(input).toBeVisible();
+  await expect(page.getByTestId("map-mobile-locate")).toBeVisible();
+
+  await input.fill("云栖中心");
+  await page.getByTestId("map-mobile-search-submit").click();
+
+  await expect(page.getByTestId("map")).toBeVisible();
+  await expect(page.getByTestId("map-mobile-sheet")).toContainText("云栖中心", {
+    timeout: 15000,
+  });
+  const detailAction = page.getByTestId("sheet-open-detail");
+  await expect(detailAction).toBeVisible();
+  await expect(detailAction).toHaveAttribute("href", `#/place/${MALL_ID}`);
+  const fallbackDisclosure = page.getByTestId("map-real-provider-fallback");
+  await expect(fallbackDisclosure).toContainText("点位来自已收录坐标");
+  await expect(fallbackDisclosure).not.toContainText("当前环境未配置真实地图底图");
+});
+
+test("A1.2a — map-config outage never masquerades the simplified canvas as a real map", async ({
+  page,
+}) => {
+  await page.route("**/api/v1/ai/map/config", (route) =>
+    route.fulfill({ status: 503, json: { detail: "map config unavailable" } }),
+  );
+  await page.goto(`${BASE}/#/map`);
+
+  await expect(page.getByTestId("map-surface")).toBeVisible();
+  const disclosure = page.getByTestId("map-real-provider-fallback");
+  await expect(disclosure).toBeVisible();
+  await expect(disclosure).toContainText("真实底图暂不可用");
+  await expect(disclosure).toContainText("已收录坐标");
+});
+
+test("A1.3 — missing coordinates never create fictional map pins, even in dev", async ({
+  page,
+}) => {
+  await page.route("**/api/v1/places/nearby**", async (route) => {
+    const response = await route.fetch();
+    const payload = await response.json();
+    await route.fulfill({
+      status: response.status(),
+      contentType: "application/json",
+      body: JSON.stringify({
+        ...payload,
+        items: payload.items.map((place: Record<string, unknown>) => ({
+          ...place,
+          latitude: null,
+          longitude: null,
+        })),
+      }),
+    });
+  });
+  await page.goto(`${BASE}/#/map`);
+
+  await expect(page.getByTestId("map-surface")).toBeVisible();
+  await expect(page.locator(".map-pin")).toHaveCount(0);
+  await expect(page.getByTestId("coverage-hint")).toContainText("缺少可用位置坐标");
+  await expect(page.getByTestId("coverage-hint")).toContainText("当前查询没有可显示的位置点");
+});
+
+test("A1.4 — missing-coordinate named search preserves desktop List + Map", async ({ page }) => {
+  await page.route("**/api/v1/places?*", async (route) => {
+    const response = await route.fetch();
+    const payload = await response.json();
+    await route.fulfill({
+      status: response.status(),
+      contentType: "application/json",
+      body: JSON.stringify({
+        ...payload,
+        items: payload.items.map((place: Record<string, unknown>) => ({
+          ...place,
+          latitude: null,
+          longitude: null,
+        })),
+      }),
+    });
+  });
+  await page.goto(`${BASE}/#/map`);
+  await page.getByTestId("map-search-input").fill("云栖中心");
+  await page.getByTestId("map-search-submit").click();
+
+  await expect(page.getByTestId("map")).toBeVisible();
+  await expect(page.getByTestId(`place-${MALL_ID}`)).toBeVisible();
+  await expect(page.getByTestId("map-search-feedback")).toContainText("缺少可用位置坐标");
+  await expect(page.getByTestId("place-preview")).toContainText("云栖中心");
+});
+
+test("A1.5 — dragging the fallback map requests places at the new center", async ({ page }) => {
+  await page.goto(`${BASE}/#/map`);
+  const surface = page.getByTestId("map-surface");
+  await expect(surface).toBeVisible();
+  const box = await surface.boundingBox();
+  expect(box).not.toBeNull();
+  if (!box) return;
+
+  const lngChanged = page.waitForRequest((request) => {
+    if (!request.url().includes("/api/v1/places/nearby?")) return false;
+    const lng = Number(new URL(request.url()).searchParams.get("lng"));
+    return Number.isFinite(lng) && Math.abs(lng - 121.47) > 0.001;
+  });
+
+  const x = box.x + box.width * 0.4;
+  const y = box.y + box.height * 0.24;
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x + 140, y + 35, { steps: 5 });
+  await page.mouse.up();
+  await lngChanged;
+
+  await expect(page.getByTestId("map")).toBeVisible();
+  await expect(page.getByTestId("map-provider-fallback")).toContainText("示意底图");
+});
+
+test("A1.5.1 — zoom-out expands nearby radius and stops before coverage becomes false", async ({
+  page,
+}) => {
+  await page.goto(`${BASE}/#/map`);
+  const zoom = page.getByTestId("map-zoom");
+  await expect(zoom).toBeVisible();
+
+  const expandedQuery = page.waitForRequest((request) => {
+    if (!request.url().includes("/api/v1/places/nearby?")) return false;
+    return new URL(request.url()).searchParams.get("radius_m") === "10000";
+  });
+  await zoom.getByRole("button", { name: "缩小" }).click();
+  await expandedQuery;
+
+  // Default zoom is 14. Two more zoom-outs reach the truthful lower bound 11
+  // (40 km query radius); the UI must not expose a wider canvas backed by the
+  // API's capped 50 km data query.
+  await zoom.getByRole("button", { name: "缩小" }).click();
+  await zoom.getByRole("button", { name: "缩小" }).click();
+  await expect(zoom.getByRole("button", { name: "缩小" })).toBeDisabled();
+});
+
+test("A1.6 — panning away clears the previous deep-linked place before re-query", async ({
+  page,
+}) => {
+  await page.goto(`${BASE}/#/map?place=${MALL_ID}`);
+  await expect(page.getByTestId("place-preview")).toContainText("云栖中心", {
+    timeout: 15000,
+  });
+
+  const surface = page.getByTestId("map-surface");
+  await expect(surface).toBeVisible();
+  const box = await surface.boundingBox();
+  expect(box).not.toBeNull();
+  if (!box) return;
+
+  const x = box.x + box.width * 0.45;
+  const y = box.y + box.height * 0.3;
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x + 120, y + 25, { steps: 5 });
+  await page.mouse.up();
+
+  await expect(page).toHaveURL(/#\/map(?!\?place=)/);
+  await expect(page.getByTestId("preview-empty")).toBeVisible();
+});
+
+test("A1.7 — one-shot locate clears the previous selected place", async ({ page, context }) => {
+  await context.grantPermissions(["geolocation"], { origin: BASE });
+  await context.setGeolocation({ latitude: 31.225, longitude: 121.475 });
+
+  await page.goto(`${BASE}/#/map?place=${MALL_ID}`);
+  await expect(page.getByTestId("place-preview")).toContainText("云栖中心", {
+    timeout: 15000,
+  });
+
+  await page.getByTestId("locate-btn").click();
+  await expect(page.getByTestId("location-label")).toContainText("已定位到当前位置", {
+    timeout: 15000,
+  });
+  await expect(page).toHaveURL(/#\/map(?!\?place=)/);
+});
+
+test("A1.7 — a new mobile selection resets the bottom sheet to half height", async ({ page }) => {
+  await page.setViewportSize({ width: 430, height: 932 });
+  await page.goto(`${BASE}/#/map?place=${CAFE_ID}`);
+
+  const sheet = page.getByTestId("map-mobile-sheet");
+  await expect(sheet).toBeVisible({ timeout: 15000 });
+  await expect(sheet).toHaveAttribute("data-phase", "half");
+  await page.getByTestId("sheet-handle").click();
+  await expect(sheet).toHaveAttribute("data-phase", "expanded");
+  await page.getByTestId("sheet-handle").click();
+  await expect(sheet).toHaveAttribute("data-phase", "closed");
+  await page.getByTestId("sheet-handle").click();
+  await expect(sheet).toHaveAttribute("data-phase", "half");
+
+  await page.goto(`${BASE}/#/map?place=${MALL_ID}`);
+  await expect(sheet).toContainText("云栖中心", { timeout: 15000 });
+  await expect(sheet).toHaveAttribute("data-phase", "half");
+});
+
+test("A1.6 — snapshot transport failure is not rendered as map Unknown", async ({ page }) => {
+  await page.route(`**/api/v1/places/${MALL_ID}/coexistence`, async (route) => {
+    if (route.request().method() === "POST") {
+      await route.fulfill({ status: 503, json: { detail: "snapshot unavailable" } });
+      return;
+    }
+    await route.continue();
+  });
+
+  await page.goto(`${BASE}/#/map?place=${MALL_ID}`);
+
+  const row = page.getByTestId(`place-${MALL_ID}`);
+  await expect(row).toBeVisible({ timeout: 15000 });
+  await expect(row).toContainText("规则结论暂时无法取得");
+  await expect(row).not.toContainText("信息不足");
+
+  await expect(page.getByTestId("coverage-hint")).toContainText("暂时无法取得规则结论");
+  await expect(page.getByTestId("preview-verdict-text")).toContainText("暂时无法取得", {
+    timeout: 15000,
+  });
 });
 
 test("A2 — map 错误统一呈现，不泄漏内部字样", async ({ page }) => {
@@ -81,15 +599,277 @@ test("B1/B2 — Place Dossier 概览 + 规则/现场 view 关键段齐备", asyn
   await page.goto(`${BASE}/#/place/${MALL_ID}?view=rules`);
   await expect(page.getByTestId("place-rules-view")).toBeVisible();
   await expect(page.getByTestId("rule-source").first()).toBeVisible();
-  // Reality view hosts the shared event log (cafe has observations).
-  await page.goto(`${BASE}/#/place/${CAFE_ID}?view=reality`);
+  // Reality view hosts the shared published v0.9 event log.
+  await page.goto(`${BASE}/#/place/${MALL_ID}?view=reality`);
   await expect(page.getByTestId("place-reality-view")).toBeVisible();
   await expect(
     page.getByTestId("place-reality-view").locator("[data-ui='reality-event-log']"),
   ).toBeVisible();
 });
 
+test("B1.1 — temporary policies that participate in access decisions are visible with validity", async ({
+  page,
+}) => {
+  await page.route(`**/api/v1/places/${MALL_ID}/extras`, async (route) => {
+    const response = await route.fetch();
+    const payload = await response.json();
+    const now = Date.now();
+    await route.fulfill({
+      status: response.status(),
+      contentType: "application/json",
+      body: JSON.stringify({
+        ...payload,
+        event_policies: [
+          ...(payload.event_policies ?? []),
+          {
+            id: "temporary-policy-e2e",
+            zone_id: null,
+            name: "限时活动携宠安排",
+            animal_scope: "dog",
+            action: "enter",
+            effect: "conditional",
+            conditions: [{ condition_type: "leash_required", value_flag: true }],
+            effective_from: new Date(now - 86_400_000).toISOString(),
+            effective_to: new Date(now + 86_400_000).toISOString(),
+            source_id: "temporary-policy-source",
+          },
+        ],
+      }),
+    });
+  });
+
+  await page.goto(`${BASE}/#/place/${MALL_ID}?view=rules`);
+  const section = page.getByTestId("event-policies");
+  await expect(section).toBeVisible();
+  await expect(section).toContainText("限时活动携宠安排");
+  await expect(section).toContainText("当前有效");
+  await expect(section).toContainText("需牵引");
+  await expect(section).not.toContainText("leash_required");
+});
+
+test("B2.0 — Space view uses independent zone-scoped access decisions", async ({
+  page,
+  request,
+}) => {
+  const response = await request.get(`${API}/places/${MALL_ID}/zones`);
+  expect(response.ok(), await response.text()).toBeTruthy();
+  const zones = (await response.json()) as { id: string }[];
+  expect(zones.length).toBeGreaterThan(0);
+
+  await page.goto(`${BASE}/#/place/${MALL_ID}?view=space`);
+  for (const zone of zones.slice(0, 3)) {
+    const decision = page.getByTestId(`zone-decision-${zone.id}`);
+    await expect(decision).toBeVisible({ timeout: 15000 });
+    await expect(decision.getByRole("status")).toBeVisible();
+    await expect(decision).not.toContainText("暂无法取得");
+  }
+});
+
+test("B2.1 — Space view 展示已核验设施属性且不暗示准入或安全保证", async ({ page }) => {
+  await page.goto(`${BASE}/#/place/${MALL_ID}?view=space`);
+  await expect(page.getByTestId("animal-facilities")).toBeVisible();
+  await expect(page.getByTestId("animal-facility-record").first()).toBeVisible();
+  await expect(page.getByTestId("animal-facilities")).toContainText("使用方式");
+  await expect(page.getByTestId("animal-facilities")).toContainText("最近核验");
+  await expect(page.getByTestId("animal-facilities")).toContainText("不等于允许动物进入");
+  await expect(page.getByTestId("animal-facilities")).toContainText("不构成安全");
+});
+
+test("B2.2 — 仅有发布时间的设施线索不冒充当前空间设施事实", async ({ page }) => {
+  await page.route("**/api/v1/places/*/reality/events**", (route) =>
+    route.fulfill({
+      json: [
+        {
+          id: "publication-only-facility",
+          event_type: "animal_facility",
+          time_evidence_state: "publication_time_only",
+          facility_type: "water_bowl",
+          facility_purpose_state: "purpose_signage_supported",
+          facility_state: "active",
+          source_id: null,
+        },
+      ],
+    }),
+  );
+  await page.goto(`${BASE}/#/place/${MALL_ID}?view=space`);
+  await expect(page.getByTestId("animal-facilities")).toBeVisible();
+  await expect(page.getByTestId("animal-facility-record")).toHaveCount(0);
+  const lead = page.getByTestId("animal-facility-summary-row").first();
+  await expect(lead).toBeVisible();
+  await expect(lead).toContainText("当前状态待现场核验");
+  await expect(lead).not.toContainText("正常使用中");
+  await expect(lead).not.toContainText("暂时不可用");
+});
+
+test("B2.2a — imported facility state tokens never leak into Consumer copy", async ({ page }) => {
+  await page.route("**/api/v1/places/*/reality/events**", (route) =>
+    route.fulfill({
+      json: [
+        {
+          id: "facility-consumer-labels",
+          place_id: MALL_ID,
+          zone_id: null,
+          event_type: "animal_facility",
+          event_at: "2026-10-01T10:00:00Z",
+          time_basis: "observed",
+          time_evidence_state: "exact_event_time",
+          verification_status: "verified",
+          facility_type: "water_bowl",
+          facility_purpose_state: "purpose_signage_supported",
+          facility_state: "active",
+          facility_access_mode: "self_service",
+          facility_supervision_state: "staff_present",
+          facility_security_or_lock_state: "lockable",
+        },
+      ],
+    }),
+  );
+  await page.goto(`${BASE}/#/place/${MALL_ID}?view=space`);
+
+  const facilities = page.getByTestId("animal-facilities");
+  await expect(facilities).toContainText("有工作人员看护");
+  await expect(facilities).toContainText("可锁闭 / 有安全门");
+  await expect(facilities).not.toContainText("staff_present");
+  await expect(facilities).not.toContainText("lockable");
+});
+
+test("B2.3 — Reality keeps the selected zone isolated from other areas", async ({
+  page,
+  request,
+}) => {
+  const response = await request.get(`http://127.0.0.1:8010/api/v1/places/${MALL_ID}/zones`);
+  expect(response.ok(), await response.text()).toBeTruthy();
+  const zones = (await response.json()) as { id: string }[];
+  expect(zones.length).toBeGreaterThanOrEqual(2);
+  const [first, second] = zones;
+  expect(first).toBeDefined();
+  expect(second).toBeDefined();
+
+  const makeEvent = (id: string, zoneId: string) => ({
+    id,
+    place_id: MALL_ID,
+    zone_id: zoneId,
+    event_type: "observed_presence",
+    event_at: "2026-09-24T18:42:00Z",
+    time_basis: "observed",
+    time_evidence_state: "observed_time_verified",
+    verification_status: "verified",
+    animal_scope: "dog",
+    observed_action: "present",
+  });
+  await page.route(`**/api/v1/places/${MALL_ID}/reality/events**`, (route) =>
+    route.fulfill({
+      json: [
+        makeEvent("11111111-1111-4111-8111-111111111111", first!.id),
+        makeEvent("22222222-2222-4222-8222-222222222222", second!.id),
+      ],
+    }),
+  );
+  await page.goto(`${BASE}/#/place/${MALL_ID}/reality?zone=${first!.id}`);
+
+  await expect(page.getByTestId("reality-zone-scope")).toBeVisible();
+  await expect(page.locator('[data-ui="reality-event"]')).toHaveCount(1);
+  await page.getByRole("link", { name: "查看全部区域" }).click();
+  await expect(page.locator('[data-ui="reality-event"]')).toHaveCount(2);
+});
+
+test("B2.5 — adding Reality from an empty scoped timeline retains the verified zone", async ({
+  page,
+  request,
+}) => {
+  const response = await request.get(`http://127.0.0.1:8010/api/v1/places/${MALL_ID}/zones`);
+  expect(response.ok(), await response.text()).toBeTruthy();
+  const zones = (await response.json()) as { id: string }[];
+  const zoneId = zones[0]?.id;
+  expect(zoneId).toBeDefined();
+
+  await page.route(`**/api/v1/places/${MALL_ID}/reality/events**`, (route) =>
+    route.fulfill({ json: [] }),
+  );
+  await page.goto(`${BASE}/#/place/${MALL_ID}/reality?zone=${zoneId}`);
+  const contribute = page.getByTestId("reality-go-enter");
+  await expect(contribute).toBeVisible();
+  await expect(contribute).toHaveAttribute("href", `#/contribute/${MALL_ID}?zone=${zoneId}`);
+});
+
+test("B2.3 — Place identity uses only public-gated scene photos", async ({ page }) => {
+  let released = false;
+  await page.route("**/api/v1/evidence-bundles/*/public-media", async (route) => {
+    const bundleId = route.request().url().split("/evidence-bundles/")[1]?.split("/")[0] ?? "";
+    if (released) {
+      await route.fulfill({ status: 404, json: { detail: "not displayable" } });
+      return;
+    }
+    released = true;
+    await route.fulfill({
+      status: 200,
+      json: {
+        evidence_bundle_id: bundleId,
+        media_id: "scene-photo-test",
+        purpose: "scene_photo",
+        url: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl2iGQAAAAASUVORK5CYII=",
+        mime_type: "image/png",
+        expires_in: 300,
+      },
+    });
+  });
+
+  await page.goto(`${BASE}/#/place/${MALL_ID}`);
+  const scene = page.getByTestId("place-scene-media");
+  await expect(scene).toBeVisible({ timeout: 15000 });
+  await expect(scene.locator("img")).toHaveAttribute("alt", "场所场景：云栖中心·测试商场");
+  await expect(scene).toHaveClass(/scene-frame--hero/);
+});
+
+test("B2.4 — approved non-scene evidence never becomes a Place cover", async ({ page }) => {
+  let checked = 0;
+  await page.route("**/api/v1/evidence-bundles/*/public-media", async (route) => {
+    checked += 1;
+    const bundleId = route.request().url().split("/evidence-bundles/")[1]?.split("/")[0] ?? "";
+    await route.fulfill({
+      status: 200,
+      json: {
+        evidence_bundle_id: bundleId,
+        media_id: `signage-${checked}`,
+        purpose: "signage_evidence",
+        url: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl2iGQAAAAASUVORK5CYII=",
+        mime_type: "image/png",
+        expires_in: 300,
+      },
+    });
+  });
+
+  await page.goto(`${BASE}/#/place/${MALL_ID}`);
+  await expect(page.getByTestId("section-answer")).toBeVisible({ timeout: 15000 });
+  await expect.poll(() => checked).toBeGreaterThan(0);
+  await expect(page.getByTestId("place-scene-media")).toHaveCount(0);
+  await expect(page.getByTestId("place-scene-fallback")).toBeVisible();
+});
+
+test("B2.4 — partial Place data exposes a fail-closed retry path", async ({ page }) => {
+  let failZonesOnce = true;
+  await page.route(`**/api/v1/places/${MALL_ID}/zones`, async (route) => {
+    if (failZonesOnce) {
+      failZonesOnce = false;
+      await route.fulfill({ status: 503, json: { detail: "temporary zone outage" } });
+      return;
+    }
+    await route.continue();
+  });
+
+  await page.goto(`${BASE}/#/place/${MALL_ID}`);
+  const partial = page.getByTestId("place-partial");
+  await expect(partial).toContainText("分区域", { timeout: 15000 });
+  await page.getByTestId("place-partial-retry").click();
+
+  await expect(partial).toHaveCount(0, { timeout: 15000 });
+  await expect(page.getByTestId("overview-zones")).toBeVisible();
+});
+
 test("B3 — Place Evidence view 证据来源链渲染，无原始枚举", async ({ page }) => {
+  // Evidence is place-scoped. The consumer must not enumerate the global
+  // source registry and accidentally treat its first page as complete.
+  await page.route("**/api/v1/sources**", (route) => route.abort());
   await page.goto(`${BASE}/#/place/${CAFE_ID}?view=evidence`);
   await expect(page.getByTestId("place-evidence-view")).toBeVisible();
   await expect(page.getByTestId("evidence-provenance")).toBeVisible();
@@ -99,6 +879,96 @@ test("B3 — Place Evidence view 证据来源链渲染，无原始枚举", async
   }
 });
 
+test("B4.3 — Place identity renders and map CTA reflects coordinate availability", async ({
+  page,
+}) => {
+  await page.goto(`${BASE}/#/place/${MALL_ID}`);
+  // Identity uses reviewed scene media when available; otherwise it uses the
+  // neutral type glyph. Neither branch invents a venue photograph.
+  await expect(
+    page.getByTestId("place-scene-media").or(page.getByTestId("place-scene-fallback")),
+  ).toBeVisible({ timeout: 15000 });
+  await expect(page.getByTestId("place-map-link")).toContainText("地图定位");
+
+  await page.route(`**/api/v1/places/${MALL_ID}/summary`, async (route) => {
+    const response = await route.fetch();
+    const payload = await response.json();
+    await route.fulfill({
+      status: response.status(),
+      contentType: "application/json",
+      body: JSON.stringify({ ...payload, latitude: null, longitude: null }),
+    });
+  });
+  await page.reload();
+  await expect(page.getByTestId("place-map-link")).toContainText("地图列表查看", {
+    timeout: 15000,
+  });
+});
+
+test("B3.1 — Evidence renders only media explicitly released by the public-media gate", async ({
+  page,
+}) => {
+  let released = false;
+  await page.route("**/api/v1/evidence-bundles/*/public-media", async (route) => {
+    const bundleId = route.request().url().split("/evidence-bundles/")[1]?.split("/")[0] ?? "";
+    if (released) {
+      await route.fulfill({ status: 404, json: { detail: "not displayable" } });
+      return;
+    }
+    released = true;
+    await route.fulfill({
+      status: 200,
+      json: {
+        evidence_bundle_id: bundleId,
+        media_id: "public-evidence-test",
+        url: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl2iGQAAAAASUVORK5CYII=",
+        mime_type: "image/png",
+        expires_in: 300,
+      },
+    });
+  });
+
+  await page.goto(`${BASE}/#/place/${MALL_ID}/evidence`);
+  const hero = page.getByTestId("evidence-hero-media");
+  await expect(hero).toHaveCount(1, { timeout: 15000 });
+  await expect(hero.locator("img")).toHaveAttribute("alt", "经审核允许公开展示的证据媒体");
+  // One released bundle is rendered once: the hero media is paired with the
+  // provenance rail and must not be duplicated beside every derived fact.
+  await expect(page.getByTestId("public-evidence-media")).toHaveCount(0);
+});
+
+test("B3.2 — expired reviewed Evidence media fails closed without a broken image", async ({
+  page,
+}) => {
+  let released = false;
+  await page.route("**/api/v1/evidence-bundles/*/public-media", async (route) => {
+    const bundleId = route.request().url().split("/evidence-bundles/")[1]?.split("/")[0] ?? "";
+    if (released) {
+      await route.fulfill({ status: 404, json: { detail: "not displayable" } });
+      return;
+    }
+    released = true;
+    await route.fulfill({
+      status: 200,
+      json: {
+        evidence_bundle_id: bundleId,
+        media_id: "expired-public-evidence",
+        purpose: "evidence_photo",
+        url: "http://127.0.0.1:9/expired-reviewed-evidence.jpg",
+        mime_type: "image/jpeg",
+        expires_in: 1,
+      },
+    });
+  });
+
+  await page.goto(`${BASE}/#/place/${MALL_ID}/evidence`);
+  const hero = page.getByTestId("evidence-hero-media");
+  await expect(hero).toBeVisible({ timeout: 15000 });
+  await expect(hero.getByText("公开图片暂不可用")).toBeVisible({ timeout: 15000 });
+  await expect(hero.locator("img")).toHaveCount(0);
+  await expect(page.getByTestId("evidence-provenance")).toBeVisible();
+});
+
 test("B5 — Search DecisionInspector 查看完整场所 → Place Passport", async ({ page }) => {
   // Search the ready mall fixture: the cafe deep-link lands on the §15 Unknown
   // Overview, which has no dossier answer block.
@@ -106,4 +976,18 @@ test("B5 — Search DecisionInspector 查看完整场所 → Place Passport", as
   await expect(page.getByTestId("decision-inspector")).toBeVisible();
   await page.getByTestId("inspector-open").click();
   await expect(page.getByTestId("section-answer")).toBeVisible();
+});
+
+test("B2.4 — unknown zone links cannot claim another area's Reality or contribution scope", async ({
+  page,
+}) => {
+  const missingZone = "00000000-0000-0000-0000-000000000000";
+  await page.goto(`${BASE}/#/place/${MALL_ID}/reality?zone=${missingZone}`);
+
+  await expect(page.getByTestId("reality-zone-scope")).toContainText("所选区域未收录");
+  await expect(page.getByText("所选区域无法确认")).toBeVisible();
+  await expect(page.getByTestId("reality-go-enter")).toHaveCount(0);
+  await expect(page.getByTestId("reality-workspace")).toHaveAttribute("data-ui-state", "empty");
+  await page.getByRole("link", { name: "查看全部区域 →" }).click();
+  await expect(page).toHaveURL(new RegExp(`#/place/${MALL_ID}/reality$`));
 });

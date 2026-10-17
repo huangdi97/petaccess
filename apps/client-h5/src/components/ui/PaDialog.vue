@@ -6,6 +6,7 @@
  * dismissal-by-overlay-tap is wanted.
  */
 import { onBeforeUnmount, onMounted } from "vue";
+import { useDialogFocus } from "../../composables/useDialogFocus";
 
 const props = withDefaults(
   defineProps<{
@@ -22,6 +23,8 @@ const emit = defineEmits<{ close: [] }>();
 
 defineOptions({ name: "PaDialog" });
 
+const { panel, keepFocusInside } = useDialogFocus(() => props.open);
+
 /** Close on Escape whether focus is inside the dialog or still in the page. */
 function onWindowKey(e: KeyboardEvent) {
   if (props.open && e.key === "Escape") emit("close");
@@ -36,12 +39,15 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onWindowKey));
     <div v-if="open" class="pa-dialog" data-state="dialog">
       <div class="pa-dialog__overlay" aria-hidden="true"></div>
       <div
+        ref="panel"
         class="pa-dialog__panel"
         :class="`pa-dialog__panel--${width}`"
         role="dialog"
         aria-modal="true"
+        tabindex="-1"
         :aria-label="title ?? undefined"
         @keydown.esc.stop="emit('close')"
+        @keydown="keepFocusInside"
       >
         <header v-if="title || description" class="pa-dialog__header">
           <h2 v-if="title" class="pa-dialog__title">{{ title }}</h2>

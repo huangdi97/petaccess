@@ -1,0 +1,15 @@
+{
+  "gitSha": "d2eeba2fe5ffbfba31f244881f6e1705a07f84c2",
+  "route": "/#/onboarding",
+  "page": "onboarding",
+  "state": "ready",
+  "viewportWidth": 390,
+  "viewportHeight": 844,
+  "devicePixelRatio": 1,
+  "documentClientWidth": 390,
+  "documentScrollWidth": 390,
+  "horizontalOverflow": false,
+  "consoleErrors": [],
+  "networkErrors": [],
+  "screenshot": "26_web_onboarding_ready_390x844.png"
+}

@@ -1,8 +1,9 @@
 /**
  * MapProvider adapter interface (ADR-008). Implementations per platform:
- * - H5: canvas/svg mock renderer (apps/client-h5)
- * - uni-app x: <map> component adapter (apps/client platform adapters)
- * A real Tencent key only swaps the provider config — business logic unchanged.
+ * - H5/Tauri current renderer: provider-neutral spatial surface (apps/client-h5)
+ *   driven by the REAL representative coordinates returned by PlaceSummary.
+ * - A Tencent GL renderer remains an external-key integration boundary; swapping
+ *   the visual basemap must not change clustering, lenses, selection or facts.
  *
  * Everything below the `MapAdapter` interface is provider-neutral *behaviour*
  * (clustering, coverage hint, location state) shared by every renderer, so the
@@ -43,6 +44,23 @@ export interface MapCamera {
   zoom: number;
 }
 
+/** Spatial query/renderer bounds.
+ *
+ * The nearby API caps radius at 50 km. Zooming farther out than level 11
+ * would make the visible canvas materially larger than the data query and
+ * falsely imply viewport coverage. Keep both renderers and the query model
+ * on the same truthful range.
+ */
+export const MAP_MIN_ZOOM = 11;
+export const MAP_MAX_ZOOM = 18;
+
+/** Approximate radius needed to cover the provider-neutral 0.08° span used
+ * at zoom 14. Every zoom-out doubles the visible span; clamp to the API cap. */
+export function mapQueryRadiusForZoom(zoom: number): number {
+  const bounded = Math.max(MAP_MIN_ZOOM, Math.min(MAP_MAX_ZOOM, zoom));
+  return Math.min(50_000, Math.round(5_000 * Math.pow(2, 14 - bounded)));
+}
+
 export interface MapAdapter {
   readonly provider: string;
   render(el: unknown, camera: MapCamera): void;
@@ -77,24 +95,79 @@ export interface MapCluster {
   memberIds: string[];
 }
 
-/** Priority used to pick a cluster's representative status (most actionable first). */
-const STATUS_PRIORITY: MapMarker["status"][] = [
-  "CONFLICT",
-  "RESTRICTED",
-  "CONDITIONAL",
-  "ALLOWED",
-  "UNKNOWN",
-  "STALE",
-];
-
 /**
  * Deterministic grid clustering.
  *
- * Above `unclusterAt` zoom every marker stands alone (the user is close enough
- * to read them). Below it, markers are bucketed into a grid whose cell size
- * shrinks with zoom, and each non-empty cell becomes one cluster. Deterministic
- * and provider-independent so the same data always clusters the same way.
+ * Above `unclusterAt` the renderer keeps one anchor per place except
+ * for collision groups. Below it, larger spatial grid buckets form clusters.
+ * Both routes merge near-overlapping anchors without fabricating geometry.
+ * The grouping is deterministic and provider-independent.
  */
+/**
+ * Merge only anchors that would visually collide at the current zoom.
+ *
+ * This is presentation aggregation, not a geographic inference: every output
+ * center is a count-weighted average of real member coordinates and every
+ * member ID is preserved. Mixed semantic states collapse to UNKNOWN so a
+ * cluster never implies one shared access outcome.
+ */
+function mergeCrowdedClusters(clusters: MapCluster[], zoom: number): MapCluster[] {
+  if (clusters.length < 2) return clusters;
+
+  // The fallback canvas spans roughly 0.08° at z14. These thresholds represent
+  // a ~24 px collision envelope on a typical desktop map and halve each zoom.
+  const scale = Math.pow(2, 14 - zoom);
+  const lngThreshold = 0.0024 * scale;
+  const latThreshold = 0.0015 * scale;
+
+  const pending = [...clusters].sort((a, b) => a.id.localeCompare(b.id));
+  const merged: MapCluster[] = [];
+
+  while (pending.length) {
+    const seed = pending.shift()!;
+    const group = [seed];
+
+    // Connected-component grouping: if A collides with B and B collides with C,
+    // all three must share one visual anchor even when A and C are just beyond
+    // the direct threshold. Otherwise B's aggregate can still cover C.
+    let expanded = true;
+    while (expanded) {
+      expanded = false;
+      for (let i = pending.length - 1; i >= 0; i -= 1) {
+        const candidate = pending[i]!;
+        const collides = group.some(
+          (member) =>
+            Math.abs(candidate.lng - member.lng) <= lngThreshold &&
+            Math.abs(candidate.lat - member.lat) <= latThreshold,
+        );
+        if (!collides) continue;
+        group.push(candidate);
+        pending.splice(i, 1);
+        expanded = true;
+      }
+    }
+
+    if (group.length === 1) {
+      merged.push(seed);
+      continue;
+    }
+
+    const totalCount = group.reduce((sum, item) => sum + item.count, 0);
+    const memberIds = group.flatMap((item) => item.memberIds).sort();
+    const statuses = new Set(group.map((item) => item.status));
+    merged.push({
+      id: `x:${memberIds.join("+")}`,
+      count: totalCount,
+      lat: group.reduce((sum, item) => sum + item.lat * item.count, 0) / totalCount,
+      lng: group.reduce((sum, item) => sum + item.lng * item.count, 0) / totalCount,
+      status: statuses.size === 1 ? group[0]!.status : "UNKNOWN",
+      memberIds,
+    });
+  }
+
+  return merged.sort((a, b) => a.id.localeCompare(b.id));
+}
+
 export function clusterMarkers(
   markers: MapMarker[],
   zoom: number,
@@ -104,14 +177,17 @@ export function clusterMarkers(
   const baseCellDeg = opts.baseCellDeg ?? 0.02;
 
   if (zoom >= unclusterAt) {
-    return markers.map((m) => ({
-      id: `m:${m.id}`,
-      count: 1,
-      lat: m.lat,
-      lng: m.lng,
-      status: m.status,
-      memberIds: [m.id],
-    }));
+    return mergeCrowdedClusters(
+      markers.map((m) => ({
+        id: `m:${m.id}`,
+        count: 1,
+        lat: m.lat,
+        lng: m.lng,
+        status: m.status,
+        memberIds: [m.id],
+      })),
+      zoom,
+    );
   }
 
   const cell = baseCellDeg * Math.pow(2, unclusterAt - zoom);
@@ -127,13 +203,12 @@ export function clusterMarkers(
   for (const [key, members] of buckets) {
     const lat = members.reduce((s, m) => s + m.lat, 0) / members.length;
     const lng = members.reduce((s, m) => s + m.lng, 0) / members.length;
-    let status: MapMarker["status"] = "UNKNOWN";
-    for (const candidate of STATUS_PRIORITY) {
-      if (members.some((m) => m.status === candidate)) {
-        status = candidate;
-        break;
-      }
-    }
+    // A cluster is navigation aggregation, not a venue-level access answer.
+    // Only preserve a semantic status when every member agrees. Mixed venue
+    // states stay neutral so a green/amber aggregate can never imply that all
+    // places inside the cluster share one access result.
+    const memberStatuses = new Set(members.map((member) => member.status));
+    const status: MapMarker["status"] = memberStatuses.size === 1 ? members[0]!.status : "UNKNOWN";
     clusters.push({
       id: `c:${key}`,
       count: members.length,
@@ -145,7 +220,7 @@ export function clusterMarkers(
   }
   // stable order so screenshots and tests do not flake
   clusters.sort((a, b) => a.id.localeCompare(b.id));
-  return clusters;
+  return mergeCrowdedClusters(clusters, zoom);
 }
 
 /* ------------------------------------------------------------------ coverage */
@@ -169,30 +244,10 @@ export function coverageHint(markers: MapMarker[]): CoverageHint {
   const covered = markers.length - unknown;
   const text =
     markers.length === 0
-      ? "当前视野内暂无已收录场所。未收录不代表该场所没有规则。"
-      : `当前视野 ${markers.length} 个场所：${covered} 个已有结论，` +
+      ? "当前查询没有可显示的位置点。无地图点位不代表场所没有规则或现场事实。"
+      : `当前查询中 ${markers.length} 个可定位场所：${covered} 个已有结论，` +
         `${unknown} 个信息不足或存在不一致。信息不足不等于允许。`;
   return { covered, unknown, text };
-}
-
-/* ------------------------------------------------------------- mock geometry */
-
-/**
- * Deterministic synthetic position for the Mock provider.
- *
- * The pilot's `nearby` response carries a distance but no coordinate (the real
- * provider resolves coordinates client-side). The Mock provider derives a stable
- * offset from the place id so a place always lands in the same spot — which
- * keeps clustering, screenshots and tests reproducible. Swapping in Tencent
- * replaces this with the provider's own coordinates.
- */
-export function synthMarkerPosition(id: string, camera: MapCamera): { lat: number; lng: number } {
-  let h = 0;
-  for (const c of id) h = (h * 31 + c.charCodeAt(0)) % 100000;
-  const dx = ((h % 41) - 20) / 20; // -1..1
-  const dy = ((Math.floor(h / 41) % 37) - 18) / 18; // -1..1
-  const span = 0.02 / Math.max(1, camera.zoom / 14);
-  return { lat: camera.lat + dy * span * 0.3, lng: camera.lng + dx * span * 0.45 };
 }
 
 /* ------------------------------------------------------------------ location */

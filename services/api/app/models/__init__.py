@@ -5,6 +5,7 @@ from .civic import (
     DisputeCase,
     JurisdictionException,
     JurisdictionRule,
+    WatchEvent,
     WatchSubscription,
 )
 from .evidence import (
@@ -104,6 +105,7 @@ __all__ = [
     "StaffResponseObservation",
     "User",
     "VerificationEvent",
+    "WatchEvent",
     "WatchSubscription",
     "Zone",
 ]

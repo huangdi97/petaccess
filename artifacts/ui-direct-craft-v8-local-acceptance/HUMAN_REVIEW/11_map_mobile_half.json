@@ -1,0 +1,12 @@
+﻿{
+  "order": 11,
+  "name": "11_map_mobile_half",
+  "platform": "web",
+  "device": "mobile",
+  "viewport": "430x932",
+  "route": "/#/map?place=8412b521...",
+  "state": "half",
+  "gitSha": "d2eeba2fe5ffbfba31f244881f6e1705a07f84c2",
+  "valid": true,
+  "screenshot": "11_map_mobile_half.png"
+}

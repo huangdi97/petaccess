@@ -57,6 +57,7 @@ def create_from_extraction(
     raw_text: str | None = None,
     media_id: str | None = None,
     evidence_bundle_id: str | None = None,
+    supersedes_rule_id: str | None = None,
     # --- ADR-025 / ADR-028: source-faithful scope ---------------------------
     source_scope_exact: str | None = None,
     subject_scope_normalized: str | None = None,
@@ -95,6 +96,7 @@ def create_from_extraction(
         raw_text=raw_text[:4000] if raw_text else None,
         media_id=media_id,
         evidence_bundle_id=evidence_bundle_id,
+        supersedes_rule_id=supersedes_rule_id,
         review_status=status,
         # ADR-025 / ADR-028: what the source literally said, and how it was
         # turned into the stored subject. Publishing copies these verbatim, so a
@@ -178,10 +180,24 @@ def publish(
         normative_effect=candidate.normative_effect,
         holder_scope=candidate.holder_scope,
         operator_obligations=candidate.operator_obligations,
+        supersedes_rule_id=candidate.supersedes_rule_id,
         note=f"published from candidate {candidate.id} ({candidate.extraction_method})",
     )
     db.add(rule)
     db.flush()
+
+    # Track which prior rule identities changed so a user watching one exact
+    # Rule receives the reviewed replacement event as well.
+    superseded_rule_ids: list[str] = []
+
+    # Explicit reviewed replacement wins over source-identity heuristics. The
+    # publish gate has already verified owner/action/layer/current-state.
+    if candidate.supersedes_rule_id:
+        explicit_target = db.get(AccessRule, candidate.supersedes_rule_id)
+        if explicit_target is None:
+            raise ApiError("待替换规则不存在", code="supersession_target_missing")
+        explicit_target.status = RuleStatus.SUPERSEDED
+        superseded_rule_ids.append(explicit_target.id)
 
     # Same-issuer policy change: the source updated its own rule, so current
     # rules from THAT source with the same owner+scope+action are superseded
@@ -201,7 +217,9 @@ def publish(
     ).all()
     for old_rule in superseded_same_source:
         old_rule.status = RuleStatus.SUPERSEDED
-        rule.supersedes_rule_id = old_rule.id
+        superseded_rule_ids.append(old_rule.id)
+        if rule.supersedes_rule_id is None:
+            rule.supersedes_rule_id = old_rule.id
 
     # Atomic compare-and-set on the candidate status: two reviewers publishing
     # the same APPROVED candidate must yield exactly one AccessRule. The loser's
@@ -252,6 +270,14 @@ def publish(
     candidate.reviewer_id = reviewer_id
     if note:
         candidate.review_note = note[:500]
+
+    from app.services.watch_events import emit_rule_published
+
+    emit_rule_published(
+        db,
+        rule,
+        superseded_rule_ids=tuple(dict.fromkeys(superseded_rule_ids)),
+    )
     return rule
 
 
@@ -357,4 +383,8 @@ def publish_exception(
     candidate.reviewer_id = reviewer_id
     if note:
         candidate.review_note = note[:500]
+
+    from app.services.watch_events import emit_rule_exception_published
+
+    emit_rule_exception_published(db, base, exception)
     return exception

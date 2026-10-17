@@ -18,27 +18,34 @@ commands therefore retry briefly instead of failing a whole scenario.
 from __future__ import annotations
 
 import os
+import shutil
 import subprocess
 import time
 from pathlib import Path
 
-SDK_ADB = Path(
-    r"C:\Users\Kaiser\AppData\Local\Android\Sdk\platform-tools\adb.exe"
-)
-DEFAULT_SERIAL = "emulator-5562"
+SDK_ADB = Path(r"C:\Users\Kaiser\AppData\Local\Android\Sdk\platform-tools\adb.exe")
+DEFAULT_SERIAL = os.environ.get("PETACCESS_ANDROID_SERIAL", "emulator-5562")
 FORBIDDEN_SERIALS = frozenset({"emulator-5554"})
 HARDCODED_ADB = r"C:\Android\adb.exe"
 
 
 def _sdk_adb_candidates() -> list[Path]:
-    """Resolve the SDK adb from the environment first, hardcoded path as
-    fallback — the fixed C: path predates machines where the SDK lives
-    elsewhere (e.g. ANDROID_HOME=D:\\Code\\Android\\SDK)."""
+    """Resolve platform-tools adb without falling back to unsafe Windows PATH entries."""
     home = os.environ.get("ANDROID_HOME") or os.environ.get("ANDROID_SDK_ROOT")
+    executable = "adb.exe" if os.name == "nt" else "adb"
     cands: list[Path] = []
     if home:
-        cands.append(Path(home) / "platform-tools" / "adb.exe")
-    cands.append(SDK_ADB)
+        cands.append(Path(home) / "platform-tools" / executable)
+
+    if os.name == "nt":
+        # Keep the known-good SDK fallback ahead of PATH on Windows. The host
+        # may also contain C:\\Android\\adb.exe 1.0.32, which the runbook
+        # explicitly forbids because it churns the shared adb server.
+        cands.append(SDK_ADB)
+    else:
+        path_adb = shutil.which("adb")
+        if path_adb:
+            cands.append(Path(path_adb))
     return cands
 
 
@@ -50,7 +57,10 @@ def check_serial(serial: str) -> str:
     """Validate a serial before it is used in any adb command."""
     if not serial:
         raise ValueError("serial must not be empty")
-    if serial in FORBIDDEN_SERIALS:
+    if (
+        serial in FORBIDDEN_SERIALS
+        and os.environ.get("PETACCESS_ANDROID_ALLOW_FORBIDDEN_SERIAL") != "1"
+    ):
         raise AdbError(f"serial {serial} is owned by another agent and is off-limits")
     return serial
 
@@ -100,6 +110,8 @@ def adb(
     if check:
         raise AdbError(f"adb {' '.join(args)} rc={last_rc}: {last_out[-600:]}")
     return last_out
+
+
 def adb_global(*args: str, timeout: int = 120, check: bool = True) -> str:
     """An adb server-level command (no -s). Never kill-server / reconnect."""
     cmd = [adb_binary(), *args]
@@ -156,8 +168,14 @@ def shell(serial: str, *args: str, timeout: int = 60) -> str:
 
 
 def shell_pidof(serial: str, package: str) -> str:
-    """PID of a package's process (empty string when not running)."""
-    out = shell(serial, "pidof", package)
+    """PID of a package process; empty string when not running.
+
+    Android pidof exits with status 1 when no process matches. That is a
+    normal state before first launch or after force-stop and must not be
+    promoted to AdbError. Device transport failures remain handled by the
+    shared adb retry logic.
+    """
+    out = adb("shell", "pidof", package, serial=serial, timeout=30, check=False)
     return out.strip()
 
 

@@ -27,9 +27,11 @@
  */
 import {
   client,
+  mapQueryRadiusForZoom,
   session,
   synthDemoCamera,
   type AccessAnswer,
+  type MapCamera,
   type CoexistenceSnapshot,
   type PlaceSummary,
   type RealityAnswer,
@@ -38,6 +40,8 @@ import { isOnline } from "../composables/useOnline";
 import { ConsumerCache } from "./cache";
 
 export interface RowFacts {
+  /** The authoritative aggregate behind every projected consumer fact. */
+  snapshot: CoexistenceSnapshot | null;
   answer: AccessAnswer | null;
   /** true when the snapshot fetch failed at transport level (NOT domain UNKNOWN). */
   answerError: boolean;
@@ -78,12 +82,16 @@ export interface QueryContext {
 export function currentQueryContext(): QueryContext {
   // service-dog mode asks as a working (assistance) dog even without a pet
   // profile (mirrors PlaceView.queryServiceRole, ADR-025).
-  const serviceRole =
-    session.mode === "service_dog" ? "working" : (session.activePet?.service_role ?? "none");
+  const serviceDogQuery = session.mode === "service_dog";
+  const serviceRole = serviceDogQuery ? "working" : (session.activePet?.service_role ?? "none");
   return {
-    animal: session.activePet?.species ?? "dog",
+    // Service-dog mode is always a dog query. Reusing an active cat/other pet
+    // here would create an impossible animal=cat + service_role=working request.
+    animal: serviceDogQuery ? "dog" : (session.activePet?.species ?? "dog"),
     service_role: serviceRole,
-    declared_role: session.activePet?.declared_role ?? null,
+    declared_role: serviceDogQuery
+      ? (session.declaredRole ?? session.activePet?.declared_role ?? null)
+      : null,
     action: "enter",
     zone_id: null,
   };
@@ -137,6 +145,7 @@ export async function rowFacts(place: PlaceSummary): Promise<RowFacts> {
   try {
     const { snapshot, stale, fetchedAtMs } = await snapshotFor(place.id);
     return {
+      snapshot,
       answer: snapshot.rule_answer,
       answerError: false,
       reality: snapshot.reality_answer,
@@ -146,6 +155,7 @@ export async function rowFacts(place: PlaceSummary): Promise<RowFacts> {
     };
   } catch {
     return {
+      snapshot: null,
       answer: null,
       answerError: true,
       reality: null,
@@ -172,6 +182,7 @@ export async function enrichRows(list: PlaceSummary[], limit = 4): Promise<Map<s
         out.set(p.id, await rowFacts(p));
       } catch {
         out.set(p.id, {
+          snapshot: null,
           answer: null,
           answerError: true,
           reality: null,
@@ -195,8 +206,10 @@ export async function enrichRows(list: PlaceSummary[], limit = 4): Promise<Map<s
  * presents the explicit Offline state. Success is stored; transport errors
  * never are.
  */
-export async function snapshotFor(placeId: string): Promise<SnapshotResult> {
-  const ctx = currentQueryContext();
+export async function snapshotFor(
+  placeId: string,
+  ctx: QueryContext = currentQueryContext(),
+): Promise<SnapshotResult> {
   const key = snapshotKey(placeId, ctx);
   const cached = cache.get<CoexistenceSnapshot>(key);
 
@@ -233,11 +246,16 @@ export async function searchPlaces(q: string): Promise<ListResult<PlaceSummary>>
   return { items: res.value, stale: res.stale, fetchedAtMs: cache.fetchedAtMs(key) };
 }
 
-/** Cached nearby list (demo camera, fixed radius), same freshness semantics. */
-export async function nearbyPlaces(): Promise<ListResult<PlaceSummary>> {
-  const key = ConsumerCache.key(["nearby"]);
-  const cam = synthDemoCamera();
-  const fetchFn = () => client.nearby(cam.lat, cam.lng, 5000);
+/** Cached nearby list for the actual map camera, with the same freshness semantics.
+ * Home may omit the camera and use the Shanghai pilot default; Map must always
+ * pass its live one-shot-location/default camera so moving the camera changes
+ * the spatial query instead of only moving the drawing surface. */
+export async function nearbyPlaces(
+  camera: MapCamera = synthDemoCamera(),
+  radiusM = mapQueryRadiusForZoom(camera.zoom),
+): Promise<ListResult<PlaceSummary>> {
+  const key = ConsumerCache.key(["nearby", camera.lat.toFixed(5), camera.lng.toFixed(5), radiusM]);
+  const fetchFn = () => client.nearby(camera.lat, camera.lng, radiusM);
   const cached = cache.get<PlaceSummary[]>(key);
   if (cached && cache.isFresh(key)) {
     return { items: cached, stale: false, fetchedAtMs: cache.fetchedAtMs(key) };

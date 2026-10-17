@@ -1,0 +1,15 @@
+{
+  "gitSha": "d2eeba2fe5ffbfba31f244881f6e1705a07f84c2",
+  "route": "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+  "page": "place",
+  "state": "overview",
+  "viewportWidth": 430,
+  "viewportHeight": 932,
+  "devicePixelRatio": 1,
+  "documentClientWidth": 430,
+  "documentScrollWidth": 430,
+  "horizontalOverflow": false,
+  "consoleErrors": [],
+  "networkErrors": [],
+  "screenshot": "04_web_place_overview_430x932.png"
+}

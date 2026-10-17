@@ -1,0 +1,12 @@
+﻿{
+  "order": 14,
+  "name": "14_evidence_mobile",
+  "platform": "web",
+  "device": "mobile",
+  "viewport": "430x932",
+  "route": "/#/place/8412b521.../evidence",
+  "state": "ready",
+  "gitSha": "d2eeba2fe5ffbfba31f244881f6e1705a07f84c2",
+  "valid": true,
+  "screenshot": "14_evidence_mobile.png"
+}

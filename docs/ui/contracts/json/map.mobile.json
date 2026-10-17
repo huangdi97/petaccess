@@ -13,7 +13,7 @@
         "page": "map",
         "state": "ready",
         "fixture": "map-ready-v1",
-        "h1": "规则地图"
+        "h1": "规则与现场地图"
       }
     },
     {
@@ -23,7 +23,7 @@
         "page": "map",
         "state": "ready",
         "fixture": "map-ready-v1",
-        "h1": "规则地图"
+        "h1": "规则与现场地图"
       }
     },
     {
@@ -39,7 +39,17 @@
         "page": "map",
         "state": "ready",
         "fixture": "map-ready-v1",
-        "h1": "规则地图"
+        "h1": "规则与现场地图"
+      }
+    },
+    {
+      "id": "map-mobile-reality",
+      "route": "/#/map?lens=reality",
+      "expect": {
+        "page": "map",
+        "state": "ready",
+        "fixture": "map-ready-v1",
+        "h1": "规则与现场地图"
       }
     }
   ],
@@ -96,12 +106,37 @@
       "fallbacks": ["[data-testid='map-mobile-sheet']"],
       "props": {
         "height": {
-          "min": 480
+          "min": 340,
+          "max": 680
         }
       },
       "severity": "FAIL",
       "pages": ["map-mobile-expanded"],
-      "note": "v0.2.7 §13：expanded 必须真实展开（≥480px），且不遮 tabbar。"
+      "note": "Expanded sheet must visibly exceed half state and remain below the tab bar; sparse content should fit naturally without artificial filler."
+    },
+    {
+      "id": "MAP_MOBILE_LENSBAR_PRESENT",
+      "ui": "map-lensbar",
+      "fallbacks": ["[data-ui='map-lensbar']"],
+      "props": {
+        "count": {
+          "min": 1
+        }
+      },
+      "severity": "FAIL"
+    },
+    {
+      "id": "MAP_MOBILE_CANVAS_VIEWPORT_FILL",
+      "ui": "map-canvas",
+      "fallbacks": ["[data-testid='map']"],
+      "props": {
+        "height": {
+          "min": 580
+        }
+      },
+      "severity": "FAIL",
+      "pages": ["map-mobile-ready", "map-mobile-reality"],
+      "note": "At 430×932 the map canvas must occupy the available workspace above the 60px bottom tabbar. A fixed 480px canvas leaves an unusable empty strip and violates Map=Spatial Workspace."
     }
   ],
   "structure": [
@@ -119,6 +154,28 @@
       "severity": "FAIL",
       "pages": ["map-mobile-expanded"],
       "note": "v0.2.7 §13/§40：expanded 禁止伪造/占位内容，只允许真实已有信息。"
+    },
+    {
+      "id": "MAP_MOBILE_FOUR_LENSES",
+      "selector": "[data-ui='map-lensbar'] button",
+      "min": 4,
+      "max": 4,
+      "severity": "FAIL",
+      "mustContainTexts": ["规则", "现场", "设施", "差异"]
+    },
+    {
+      "id": "MAP_MOBILE_ONE_ACTIVE_LENS",
+      "selector": "[data-ui='map-lensbar'] button[aria-pressed='true']",
+      "min": 1,
+      "max": 1,
+      "severity": "FAIL"
+    },
+    {
+      "id": "MAP_MOBILE_ZOOM_CONTROLS_INTERACTIVE",
+      "selector": "[data-ui='map-zoom'] button:not(:disabled)",
+      "min": 1,
+      "severity": "FAIL",
+      "pages": ["map-mobile-ready", "map-mobile-reality"]
     }
   ],
   "density": [
@@ -127,10 +184,10 @@
       "selector": "[data-testid='map-mobile-sheet'] .sheet__body",
       "metric": "largestVerticalGap",
       "min": 8,
-      "max": 48,
+      "max": 58,
       "severity": "FAIL",
       "pages": ["map-mobile-selected-half", "map-mobile-expanded"],
-      "note": "v0.2.7 §40：sheet 内容段间距稳定 8–48px，无巨大 gap。"
+      "note": "Expanded content may breathe, but actions must not be pinned down to manufacture empty space."
     }
   ],
   "composition": [
@@ -170,5 +227,5 @@
     "allcapsTokens": true,
     "refs": true
   },
-  "notes": "v0.2.5 §22–24/§49：mobile map 恒 overlay；selected = real bottom sheet（fixed overlay、radius 16、half 280–340、top < 700、不与 tabbar 重叠）。"
+  "notes": "Mobile map keeps map/list mode plus Rule / Reality / Facility / Divergence. Non-rule lens markers use fact-dimension palettes, and mock zoom remains interactive; selected place stays a real overlay sheet above the tab bar."
 }

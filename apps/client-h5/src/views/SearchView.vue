@@ -23,6 +23,7 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import {
   client,
+  platformStorage,
   session,
   type BoundaryProfile,
   type CoexistenceSnapshot,
@@ -35,20 +36,25 @@ import PaBottomSheet from "../components/ui/PaBottomSheet.vue";
 import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
 import StatusBadge from "../components/StatusBadge.vue";
-import { answerConditions, answerStatusKey, answerVerdictLabel } from "../answer";
+import PlaceSceneFrame from "../components/domain/PlaceSceneFrame.vue";
+import { answerConditions, answerPrimarySummary, answerStatusKey } from "../answer";
 import {
+  coexistenceEvidenceLine,
   freshnessLineFor,
   lensOrderScore,
   lensProjection,
-  realityLineFor,
   type ConsumerLens,
 } from "../consumer/rowView";
 import { placeTypeLabel } from "../consumer/labels";
+import { queryAnimalLabel } from "../consumer/queryContext";
 import { useBreakpoint } from "../composables/useBreakpoint";
 import { useOnline } from "../composables/useOnline";
+import { usePlaceSceneMedia } from "../composables/usePlaceSceneMedia";
+import { publicSourceIssuer } from "../consumer/sourcePrivacy";
 import { presentDescription } from "../errors";
 import {
   createEpoch,
+  currentQueryContext,
   enrichRows,
   searchPlaces,
   snapshotFor,
@@ -77,6 +83,7 @@ const searched = ref(false);
 const loading = ref(false);
 const error = ref("");
 const epoch = createEpoch();
+const previewEpoch = createEpoch();
 
 /**
  * O6 capture-state integrity: page/state/fixture narrated by this component.
@@ -85,25 +92,27 @@ const epoch = createEpoch();
  * empty / filter), never what a test wanted to see.
  */
 const uiState = computed<string>(() => {
+  // Screenshot/capture state describes the visible surface, not the last
+  // successful search. Loading/error must never masquerade as ready.
+  if (loading.value) return "loading";
+  if (error.value) return "error";
   if (filterOpen.value) return "filter";
-  if (searched.value && !loading.value && !error.value && visible.value.length === 0)
-    return "empty";
-  if (searched.value && !loading.value && !error.value && selectedId.value) return "ready-selected";
+  if (searched.value && visible.value.length === 0) return "empty";
+  if (searched.value && selectedId.value) return "ready-selected";
   return "ready";
 });
 const uiFixture = computed<string>(() => {
   if (uiState.value === "filter") return "search-filter-v1";
   if (uiState.value === "empty") return "search-empty-v1";
+  if (uiState.value === "loading" || uiState.value === "error") return "search-state-v1";
   return "search-ready-v1";
 });
-const speciesLabel = computed(() => {
-  const s = session.activePet?.species ?? "dog";
-  if (session.activePet?.service_role === "working") return "服务犬";
-  return s === "dog" ? "普通犬" : s === "cat" ? "猫" : "其他宠物";
-});
+const speciesLabel = computed(() => queryAnimalLabel());
 function lensProjectionFor(p: PlaceSummary) {
   const f = facts.value.get(p.id);
-  return lensProjection(lensKey.value, f?.answer, f?.reality);
+  // The un-lensed Search page answers the access question first. Explicit
+  // presence/indoor/dining lenses may promote Reality without changing facts.
+  return lensProjection(lensKey.value, f?.answer, f?.reality, f?.snapshot);
 }
 const preview = ref<{ snapshot: CoexistenceSnapshot | null; loading: boolean; error: string }>({
   snapshot: null,
@@ -111,19 +120,13 @@ const preview = ref<{ snapshot: CoexistenceSnapshot | null; loading: boolean; er
   error: "",
 });
 const selectedPlace = computed(() => results.value.find((p) => p.id === selectedId.value) ?? null);
-const selectedStatus = computed(() =>
-  selectedId.value && statuses.value[selectedId.value] !== undefined
-    ? statuses.value[selectedId.value]
-    : null,
-);
-
 const FILTERS = [
-  { key: "MATCH", label: "明确允许" },
+  { key: "ALLOWED", label: "明确允许" },
   { key: "CONDITIONAL", label: "有条件" },
   { key: "RESTRICTED", label: "明确限制" },
   { key: "UNKNOWN", label: "信息不足" },
   { key: "CONFLICT", label: "来源不一致" },
-  { key: "verified", label: "已核验" },
+  { key: "verified", label: "场所有规则核验记录" },
 ];
 const active = ref<string[]>([]);
 const filterOpen = ref(false);
@@ -140,7 +143,7 @@ const visible = computed(() => {
     if (statusFilters.length) {
       checks.push(statusFilters.includes(statuses.value[p.id] ?? "UNKNOWN"));
     }
-    if (active.value.includes("verified")) checks.push(Boolean(p.rule_count > 0));
+    if (active.value.includes("verified")) checks.push(Boolean(p.last_verified_at));
     return checks.every(Boolean);
   });
   // M3.1 lens ordering — presentation-only sort on server facts.
@@ -163,11 +166,23 @@ function rowCondition(p: PlaceSummary): string {
   return conditions[0] ?? "";
 }
 
+function rowEvidenceMeta(p: PlaceSummary): string {
+  const row = facts.value.get(p.id);
+  const safety = statuses.value[p.id] === "UNKNOWN" ? "信息不足不等于允许或禁止" : "";
+  const realityMeta = coexistenceEvidenceLine(row?.snapshot, row?.reality);
+  if (realityMeta) return [safety, realityMeta].filter(Boolean).join(" · ");
+
+  const rules = row?.snapshot?.evidence_summary.rule_evidence ?? [];
+  if (!rules.length) return [safety, "依据待补充"].filter(Boolean).join(" · ");
+  const primary = rules[0];
+  const issuer = primary ? publicSourceIssuer(primary.source_type, primary.issuer) : "";
+  const evidence = issuer ? `${rules.length} 条规则依据 · ${issuer}` : `${rules.length} 条规则依据`;
+  return [safety, evidence].filter(Boolean).join(" · ");
+}
+
 async function search() {
-  if (!online.value) {
-    error.value = "当前无网络连接，搜索需要联网。";
-    return;
-  }
+  // The repository can serve an explicitly stale cached result offline.
+  // Blocking all searches before consulting it discards useful last-known facts.
   const query = q.value.trim();
   const n = epoch.begin();
   error.value = "";
@@ -176,12 +191,14 @@ async function search() {
   try {
     const list = query ? await searchPlaces(query) : await searchPlaces("");
     if (!epoch.isCurrent(n)) return; // a newer search superseded this one
-    results.value = list.items;
-    listStale.value = list.stale;
-    listFetchedAtMs.value = list.fetchedAtMs;
     const f = await enrichRows(list.items);
     if (!epoch.isCurrent(n)) return; // a newer search superseded this one
+    // Publish rows and their Rule/Reality facts together, never a new list
+    // alongside the previous query context's stale decision statuses.
+    results.value = list.items;
     facts.value = f;
+    listStale.value = list.stale;
+    listFetchedAtMs.value = list.fetchedAtMs;
     const st: Record<string, StatusKey> = {};
     for (const [id, row] of f) st[id] = answerStatusKey(row.answer);
     statuses.value = st;
@@ -191,14 +208,24 @@ async function search() {
     } else {
       syncRouteQuery("");
     }
-    if (isDesktop.value && list.items.length) {
-      const first = list.items[0];
-      if (!selectedId.value || !list.items.some((p) => p.id === selectedId.value)) {
-        void selectPlace(first);
+    if (isDesktop.value) {
+      const firstVisible = visible.value[0] ?? null;
+      const selectedStillVisible = visible.value.some((place) => place.id === selectedId.value);
+      if (!selectedStillVisible) {
+        if (firstVisible) void selectPlace(firstVisible);
+        else {
+          previewEpoch.begin();
+          selectedId.value = null;
+          preview.value = { snapshot: null, loading: false, error: "" };
+        }
       }
     }
   } catch (e) {
-    if (epoch.isCurrent(n)) error.value = presentDescription(e);
+    if (epoch.isCurrent(n)) {
+      error.value = online.value
+        ? presentDescription(e)
+        : "当前离线且没有可用的已缓存搜索结果，请恢复网络后重试。";
+    }
   } finally {
     if (epoch.isCurrent(n)) loading.value = false;
   }
@@ -215,16 +242,25 @@ function syncRouteQuery(query: string) {
 async function selectPlace(p: PlaceSummary) {
   selectedId.value = p.id;
   if (!isDesktop.value) return;
+
+  const n = previewEpoch.begin();
   preview.value = { snapshot: null, loading: true, error: "" };
   try {
-    preview.value = {
-      snapshot: (await snapshotFor(p.id)).snapshot,
-      loading: false,
-      error: "",
-    };
+    const { snapshot } = await snapshotFor(p.id);
+    if (!previewEpoch.isCurrent(n) || selectedId.value !== p.id) return;
+    preview.value = { snapshot, loading: false, error: "" };
   } catch (e) {
+    if (!previewEpoch.isCurrent(n) || selectedId.value !== p.id) return;
     preview.value = { snapshot: null, loading: false, error: presentDescription(e) };
   }
+}
+
+/** Desktop is a true List–Detail workspace: clicking a result selects it.
+ * Mobile keeps normal navigation into the Place dossier. */
+function handleResultClick(event: MouseEvent, place: PlaceSummary) {
+  if (!isDesktop.value) return;
+  event.preventDefault();
+  void selectPlace(place);
 }
 
 /** Back/forward or an external deep link changes route.query.q → re-run. */
@@ -233,6 +269,10 @@ watch(
   (v) => {
     const next = typeof v === "string" ? v : "";
     if (next === q.value) return;
+    // Filter is transient presentation state. A new/deep-linked query starts
+    // from its own result state instead of inheriting an open panel from the
+    // previous search.
+    filterOpen.value = false;
     q.value = next;
     void search();
   },
@@ -244,11 +284,7 @@ const MAX_SEARCH_RECENT = 5;
 const recent = ref<string[]>([]);
 
 function saveRecent() {
-  try {
-    localStorage.setItem(SEARCH_RECENT_KEY, JSON.stringify(recent.value));
-  } catch {
-    /* storage unavailable (private mode): history simply does not persist */
-  }
+  platformStorage.set(SEARCH_RECENT_KEY, JSON.stringify(recent.value));
 }
 
 function rememberRecent(text: string) {
@@ -258,19 +294,16 @@ function rememberRecent(text: string) {
 
 function clearRecent() {
   recent.value = [];
-  try {
-    localStorage.removeItem(SEARCH_RECENT_KEY);
-  } catch {
-    /* ignore */
-  }
+  platformStorage.remove(SEARCH_RECENT_KEY);
 }
 
 function loadRecent() {
+  const raw = platformStorage.get(SEARCH_RECENT_KEY);
   try {
-    const raw = localStorage.getItem(SEARCH_RECENT_KEY);
     recent.value = raw ? (JSON.parse(raw) as string[]).slice(0, MAX_SEARCH_RECENT) : [];
   } catch {
     recent.value = [];
+    platformStorage.remove(SEARCH_RECENT_KEY);
   }
 }
 
@@ -284,8 +317,15 @@ function clearSearch() {
   if (searched.value) void search();
 }
 
+let queryContextReady = false;
+
 onMounted(async () => {
-  await session.restore();
+  try {
+    await session.restore();
+  } catch {
+    // Search is public; a broken/stale local session may remove private
+    // boundary context but cannot block Rule/Reality lookup.
+  }
   loadRecent();
   if (session.signedIn) {
     try {
@@ -295,10 +335,38 @@ onMounted(async () => {
     }
   }
   await search();
+  queryContextReady = true;
 });
 
 const { desktop: isDesktop, mobile: isMobile } = useBreakpoint();
 const selectedId = ref<string | null>(null);
+const selectedSceneMedia = usePlaceSceneMedia(computed(() => selectedId.value));
+
+// Desktop List–Detail must never show detail for a row hidden by the active
+// filter/lens. Keep selection inside the visible result set.
+watch(visible, (list) => {
+  if (!isDesktop.value) return;
+  if (selectedId.value && list.some((place) => place.id === selectedId.value)) return;
+
+  const next = list[0] ?? null;
+  if (next) {
+    void selectPlace(next);
+    return;
+  }
+
+  previewEpoch.begin();
+  selectedId.value = null;
+  preview.value = { snapshot: null, loading: false, error: "" };
+});
+
+watch(currentQueryContext, () => {
+  if (!queryContextReady) return;
+  void (async () => {
+    await search();
+    const place = selectedPlace.value;
+    if (place && isDesktop.value) await selectPlace(place);
+  })();
+});
 </script>
 
 <template>
@@ -316,7 +384,7 @@ const selectedId = ref<string | null>(null);
       <!-- result pane（v0.2.3 §21：ResultsPane x=68 w=400 全出血；§22 内容列不铺满） -->
       <section class="search-result-pane" aria-label="搜索结果" data-ui="search-results-pane">
         <header class="search-result-pane__head">
-          <h1 class="visually-hidden">搜索场所规则</h1>
+          <h1 class="visually-hidden">搜索场所的规则与现场</h1>
           <form class="search-field" @submit.prevent="search">
             <input
               v-model="q"
@@ -324,7 +392,6 @@ const selectedId = ref<string | null>(null);
               placeholder="搜索场所、商圈或地址"
               data-testid="search-input"
               data-ui="search-input"
-              @keydown.enter="search"
             />
             <button
               v-if="q"
@@ -472,9 +539,11 @@ const selectedId = ref<string | null>(null);
           </template>
           <template v-else>
             <p class="search-empty__title">没有找到已收录场所</p>
-            <p class="muted search-empty__body">试试其他关键词，或者提交一个新的场所线索。</p>
-            <RouterLink class="btn primary" to="/contribute" data-testid="search-empty-contribute">
-              提交场所线索
+            <p class="muted search-empty__body">
+              试试其他关键词，或者到地图查看附近已收录场所。当前贡献流程只接受已收录场所的规则、现场与纠错线索。
+            </p>
+            <RouterLink class="btn primary" to="/map" data-testid="search-empty-map">
+              在地图查找
             </RouterLink>
           </template>
         </div>
@@ -498,89 +567,117 @@ const selectedId = ref<string | null>(null);
               <RouterLink
                 :to="{ name: 'place', params: { id: p.id } }"
                 class="result-row__link"
-                :data-testid="'result-' + p.canonical_name"
-                @mouseenter="selectPlace(p)"
+                :data-testid="'result-' + p.id"
                 @focus="selectPlace(p)"
+                @click="handleResultClick($event, p)"
               >
-                <!-- v0.2.4 §11 row budget：4 semantic lines max
-                     line1 Place name + Status（右上）
-                     line2 Type · distance/area
-                     line3 Primary decision（verdict + key condition 同行）
-                     line4 Reality freshness（列表缩写「暂无足够现场记录」） -->
+                <!-- Canonical v0.10-R1 search row:
+                     identity + rule status / type·distance / primary Reality fact /
+                     Rule conclusion + key condition / Evidence·freshness metadata.
+                     Keep it divider-led, never a card wall. -->
                 <div class="result-row__head">
-                  <div class="result-row__identity">
-                    <strong class="result-row__name">{{ p.canonical_name }}</strong>
-                    <span class="muted result-row__meta">
-                      {{ placeTypeLabel(p.place_type) }}
-                      <template v-if="p.distance_m"> · {{ Math.round(p.distance_m) }}m</template>
-                    </span>
+                  <div class="result-row__identity-wrap">
+                    <PlaceSceneFrame
+                      class="result-row__visual"
+                      :src="selectedId === p.id ? (selectedSceneMedia?.url ?? null) : null"
+                      alt=""
+                      :place-type="p.place_type"
+                      variant="compact"
+                      :data-testid="
+                        selectedId === p.id && selectedSceneMedia
+                          ? 'search-row-scene-media'
+                          : 'search-row-scene-fallback'
+                      "
+                    />
+                    <div class="result-row__identity">
+                      <strong class="result-row__name">{{ p.canonical_name }}</strong>
+                      <span class="muted result-row__meta">
+                        {{ placeTypeLabel(p.place_type) }}
+                        <template v-if="p.distance_m != null">
+                          · {{ Math.round(p.distance_m) }}m
+                        </template>
+                      </span>
+                    </div>
                   </div>
                   <div class="result-row__head-right">
                     <StatusBadge :semantic="statuses[p.id] ?? 'UNKNOWN'" />
+                    <span class="result-row__chevron" aria-hidden="true">›</span>
                   </div>
                 </div>
 
-                <!-- lens projection（presentation-only）：只改突出那一行，不加行。
-                     rules → decision 为标题行；presence → reality 为标题行。 -->
-                <template v-if="lensKey">
-                  <p
-                    v-if="lensProjectionFor(p).headline === 'rule' && facts.get(p.id)?.answer"
-                    class="result-row__decision result-row__decision--lead"
-                    data-testid="row-lens-headline"
-                  >
-                    {{
-                      facts.get(p.id)?.answer?.normative_result.summary ||
-                      answerVerdictLabel(facts.get(p.id)?.answer)
-                    }}
+                <!-- Canonical Search is Rule-first. Only explicit
+                     presence/indoor/dining lenses promote Reality; both layers remain visible. -->
+                <p
+                  v-if="lensProjectionFor(p).headline === 'rule'"
+                  class="result-row__decision result-row__decision--lead"
+                  data-testid="row-lens-headline"
+                >
+                  <template v-if="facts.get(p.id)?.answerError">规则结论暂时无法取得</template>
+                  <template v-else-if="facts.get(p.id)?.answer">
+                    {{ answerPrimarySummary(facts.get(p.id)?.answer) }}
                     <span v-if="rowCondition(p)" class="result-row__condition">
                       · {{ rowCondition(p) }}
                     </span>
-                  </p>
-                  <p
-                    v-else
-                    class="result-row__reality-line result-row__reality-line--lead"
-                    data-testid="row-lens-headline"
-                  >
-                    {{ lensProjectionFor(p).realityLine }}
-                  </p>
-                </template>
-
-                <!-- transport error ≠ domain fact -->
+                  </template>
+                  <template v-else>信息不足</template>
+                </p>
                 <p
-                  v-if="facts.get(p.id)?.answerError"
+                  v-else
+                  class="result-row__reality-line result-row__reality-line--lead"
+                  data-testid="row-lens-headline"
+                >
+                  {{
+                    facts.get(p.id)?.realityError
+                      ? "现场信息暂时无法取得"
+                      : lensProjectionFor(p).realityLine
+                  }}
+                </p>
+
+                <!-- Rule stays visible beneath a Reality-first headline. -->
+                <p
+                  v-if="facts.get(p.id)?.answerError && lensProjectionFor(p).headline !== 'rule'"
                   class="result-row__error"
                   data-testid="row-answer-error"
                 >
                   规则结论暂时无法取得 —— 请检查网络后重试。
                 </p>
-                <!-- primary decision: verdict + 1 key condition on one line -->
                 <p
-                  v-else-if="facts.get(p.id)?.answer"
-                  class="result-row__decision"
-                  :class="{ 'result-row__decision--lead': !lensKey }"
-                  data-testid="row-rule"
+                  v-else-if="
+                    facts.get(p.id)?.answer &&
+                    lensProjectionFor(p).headline !== 'rule' &&
+                    rowCondition(p)
+                  "
+                  class="result-row__condition-line"
+                  data-testid="row-rule-condition"
                 >
-                  {{ answerVerdictLabel(facts.get(p.id)?.answer) }}
-                  <span v-if="rowCondition(p)" class="result-row__condition">
-                    · {{ rowCondition(p) }}
-                  </span>
+                  进入前需满足：{{ rowCondition(p) }}
                 </p>
 
-                <!-- reality freshness: 一行（v0.2.4 §11 列表缩写；完整措辞进详情） -->
+                <!-- Rules lens still keeps Reality visible as the secondary fact. -->
                 <p
-                  v-if="facts.get(p.id)?.realityError"
-                  class="result-row__error result-row__reality-line"
-                >
-                  现场信息暂时无法取得 —— 请检查网络后重试。
-                </p>
-                <!-- 非 reality-headline lens（rules / 无 lens）才再渲染独立 reality 行；
-                     presence/indoor/dining 时 reality 已是 row-lens-headline，不重复。 -->
-                <p
-                  v-else-if="!lensKey || lensProjectionFor(p).headline !== 'reality'"
+                  v-if="lensProjectionFor(p).headline === 'rule' && !facts.get(p.id)?.realityError"
                   class="result-row__reality-line"
                   data-testid="result-reality"
                 >
-                  {{ realityLineFor(facts.get(p.id)?.reality) }}
+                  <span>{{ lensProjectionFor(p).realityLine }}</span>
+                  <span
+                    v-if="rowEvidenceMeta(p) && (!isDesktop || selectedId !== p.id)"
+                    class="result-row__evidence-meta result-row__evidence-meta--inline"
+                    data-testid="result-evidence-meta"
+                  >
+                    · {{ rowEvidenceMeta(p) }}
+                  </span>
+                </p>
+                <p
+                  v-else-if="
+                    rowEvidenceMeta(p) &&
+                    lensProjectionFor(p).headline !== 'rule' &&
+                    (!isDesktop || selectedId !== p.id)
+                  "
+                  class="result-row__evidence-meta"
+                  data-testid="result-evidence-meta"
+                >
+                  {{ rowEvidenceMeta(p) }}
                 </p>
               </RouterLink>
             </li>
@@ -599,7 +696,6 @@ const selectedId = ref<string | null>(null);
           data-ui="search-detail-content"
           variant="search"
           :place="selectedPlace"
-          :status="selectedStatus"
           :answer="selectedPlace ? (facts.get(selectedPlace.id)?.answer ?? null) : null"
           :answer-error="selectedPlace ? Boolean(facts.get(selectedPlace.id)?.answerError) : false"
           :reality="selectedPlace ? (facts.get(selectedPlace.id)?.reality ?? null) : null"
@@ -611,6 +707,8 @@ const selectedId = ref<string | null>(null);
           :fetched-at-ms="selectedPlace ? (facts.get(selectedPlace.id)?.fetchedAtMs ?? null) : null"
           :offline="!online"
           :species-label="speciesLabel"
+          :latest-verified-at="null"
+          :scene-media-url="selectedSceneMedia?.url ?? null"
         />
       </aside>
     </div>
@@ -620,6 +718,9 @@ const selectedId = ref<string | null>(null);
 <style scoped>
 .search-workspace {
   min-height: 100%;
+  min-width: 0;
+  max-width: 100%;
+  background: var(--pa-color-surface-muted);
 }
 
 .search-workspace__body {
@@ -638,6 +739,8 @@ const selectedId = ref<string | null>(null);
   .search-workspace__body--split {
     flex-direction: row;
     align-items: stretch;
+    width: 100%;
+    min-width: 0;
     max-width: none;
     margin: 0;
     padding: 0;
@@ -646,9 +749,10 @@ const selectedId = ref<string | null>(null);
 
   .search-result-pane {
     flex: 0 0 var(--pa-layout-result-pane);
+    min-width: 0;
     border-right: var(--pa-border-width) solid var(--pa-color-border);
-    /* §21.2：results content x = 68 + 20 = 88；content width = 400 - 40 = 360。 */
-    padding: var(--pa-space-5) var(--pa-space-20) 0;
+    background: var(--pa-color-surface);
+    padding: var(--pa-space-5) var(--pa-space-4) var(--pa-space-7);
   }
 
   .search-inspector {
@@ -656,10 +760,33 @@ const selectedId = ref<string | null>(null);
     min-width: 0;
     /* §22：detail content x = 468 + 40 = 508；宽度由 DecisionInspector
      * 自身 max-width（--pa-layout-detail-content = 704）约束。 */
-    padding-left: var(--pa-space-40);
+    padding: var(--pa-space-5) var(--pa-space-6) var(--pa-space-8);
     position: sticky;
     top: 0;
     align-self: stretch;
+    background: var(--pa-color-surface-raised);
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1099px) {
+  /* Responsive contract: tablet is compact list-detail, not a squeezed
+     desktop canvas. Grid minmax(0, 1fr) removes intrinsic-width overflow. */
+  .search-workspace__body--split {
+    display: grid;
+    grid-template-columns: minmax(280px, 42%) minmax(0, 1fr);
+  }
+
+  .search-result-pane {
+    width: auto;
+    padding-left: var(--pa-space-4);
+    padding-right: var(--pa-space-4);
+  }
+
+  .search-inspector {
+    width: auto;
+    min-width: 0;
+    max-width: 100%;
+    padding: var(--pa-space-5) var(--pa-space-4) 0 var(--pa-space-4);
   }
 }
 
@@ -667,15 +794,27 @@ const selectedId = ref<string | null>(null);
   display: flex;
   gap: var(--pa-space-2);
   align-items: center;
+  padding: var(--pa-space-1);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: calc(var(--pa-radius-md) + 2px);
+  background: var(--pa-color-surface-raised);
+  box-shadow: var(--pa-elevation-1);
 }
 
 .search-field input {
   flex: 1;
   min-width: 0;
+  min-height: 46px;
+  margin: 0;
+  border: 0;
+  background: transparent;
 }
 
 .search-submit {
   flex-shrink: 0;
+  min-height: 46px;
+  padding-inline: var(--pa-space-4);
+  font-weight: var(--pa-font-weight-600);
 }
 
 .search-clear {
@@ -799,13 +938,18 @@ const selectedId = ref<string | null>(null);
 }
 
 .filter-toggle {
-  border: var(--pa-border-width) solid var(--pa-color-border);
+  border: none;
   border-radius: var(--pa-radius-control);
-  background: var(--pa-color-surface);
-  color: var(--pa-color-text-primary);
-  padding: var(--pa-space-1) var(--pa-space-3);
+  background: transparent;
+  color: var(--pa-color-accent);
+  padding: var(--pa-space-1) var(--pa-space-2);
   font-size: var(--pa-font-size-md);
   cursor: pointer;
+}
+
+.filter-toggle:hover,
+.filter-toggle:focus-visible {
+  background: var(--pa-color-accent-weak);
 }
 
 .filter-panel {
@@ -849,44 +993,54 @@ const selectedId = ref<string | null>(null);
  * bottom divider, height 92–108（§11 target），paddings ≤14px。 */
 .result-row {
   position: relative;
-  border-radius: var(--pa-radius-row-zero);
-  background: transparent;
-  box-shadow: none;
-  min-height: 92px;
-  max-height: 108px;
-  /* §11 divider=yes：每行自带底部 divider，保证任意第一行也满足
-   * borderBottomWidth ≥1（oracle 对第一行测量，不能只有第二行有线）。 */
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border);
+  min-height: 126px;
+  margin: var(--pa-space-3) 0;
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: calc(var(--pa-radius-md) + 2px);
+  background: var(--pa-color-surface-raised);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--pa-color-text-primary) 4%, transparent);
+  overflow: hidden;
+  transition:
+    transform var(--pa-motion-fast) var(--pa-motion-ease),
+    border-color var(--pa-motion-fast) var(--pa-motion-ease),
+    box-shadow var(--pa-motion-fast) var(--pa-motion-ease);
 }
 
 .result-row--selected {
-  /* v0.2.5 §17：selected tint 更轻、不发米黄；用 subtle blue。 */
-  background: var(--pa-color-accent-weak);
+  border-color: color-mix(in srgb, var(--pa-color-accent) 34%, var(--pa-color-border-subtle));
+  background: color-mix(in srgb, var(--pa-color-accent-weak) 58%, var(--pa-color-surface-raised));
+  box-shadow: var(--pa-elevation-1);
 }
 
 .result-row--selected::before {
   content: "";
   position: absolute;
   left: 0;
-  top: var(--pa-space-3);
-  bottom: var(--pa-space-3);
-  width: var(--pa-border-width-strong);
+  top: var(--pa-space-4);
+  bottom: var(--pa-space-4);
+  width: 3px;
+  border-radius: 999px;
   background: var(--pa-color-accent);
   border-radius: 0;
 }
 
 .result-row__link {
   display: block;
-  /* v0.2.4 §11 row internal = 12px。 */
-  padding: var(--pa-space-3) var(--pa-space-1);
+  padding: var(--pa-space-4);
   text-decoration: none;
   color: inherit;
-  min-height: 92px;
+  min-height: 126px;
   box-sizing: border-box;
 }
 
+.result-row:hover {
+  transform: translateY(-1px);
+  border-color: var(--pa-color-border-strong);
+  box-shadow: var(--pa-elevation-1);
+}
+
 .result-row__link:hover {
-  background: var(--pa-color-surface-interactive);
+  background: transparent;
 }
 
 .result-row__head {
@@ -896,8 +1050,23 @@ const selectedId = ref<string | null>(null);
   gap: var(--pa-space-3);
 }
 
+.result-row__identity-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--pa-space-3);
+  min-width: 0;
+}
+
 .result-row__identity {
   min-width: 0;
+}
+
+.result-row__visual {
+  --scene-frame-compact-width: 92px;
+  --scene-frame-compact-height: 72px;
+  --scene-frame-compact-empty-width: 92px;
+  --scene-frame-compact-empty-height: 72px;
+  flex: 0 0 92px;
 }
 
 .result-row__head-right {
@@ -907,7 +1076,23 @@ const selectedId = ref<string | null>(null);
   flex-shrink: 0;
 }
 
+.result-row__chevron {
+  flex: 0 0 auto;
+  color: var(--pa-color-text-muted);
+  font-size: var(--pa-font-size-xl);
+  line-height: 1;
+  transform: translateY(-1px);
+}
+
+.result-row--selected .result-row__chevron {
+  color: var(--pa-color-accent);
+}
+
 .result-row__name {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   font-size: var(--pa-font-size-lg);
   font-weight: var(--pa-font-weight-medium);
   line-height: var(--pa-line-height-tight);
@@ -916,7 +1101,7 @@ const selectedId = ref<string | null>(null);
 
 .result-row__meta {
   display: block;
-  margin-top: var(--pa-space-1);
+  margin-top: 0;
   font-size: var(--pa-font-size-md);
   line-height: var(--pa-line-height-tight);
   overflow-wrap: anywhere;
@@ -925,16 +1110,19 @@ const selectedId = ref<string | null>(null);
 /* Primary decision: the scannable line of the row; condition sits inline.
  * --lead = lens 标题行（v0.2.4 §11：只改强调，不新增行）。 */
 .result-row__decision {
-  margin: var(--pa-space-1) 0 0;
-  font-size: var(--pa-font-size-lg);
+  margin: 0;
+  font-size: var(--pa-font-size-base);
   font-weight: var(--pa-font-weight-medium);
   line-height: var(--pa-line-height-tight);
   color: var(--pa-color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .result-row__decision--lead {
-  font-weight: var(--pa-font-weight-650);
-  color: var(--pa-color-accent);
+  font-weight: var(--pa-font-weight-medium);
+  color: var(--pa-color-text-primary);
 }
 
 .result-row__condition {
@@ -943,20 +1131,52 @@ const selectedId = ref<string | null>(null);
   color: var(--pa-color-text-secondary);
 }
 
+.result-row__condition-line {
+  margin: 0;
+  font-size: var(--pa-font-size-md);
+  line-height: var(--pa-line-height-20);
+  color: var(--pa-color-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .result-row__reality-line {
-  margin: var(--pa-space-1) 0 0;
+  margin: 0;
   font-size: var(--pa-font-size-14);
   line-height: var(--pa-line-height-20);
   color: var(--pa-color-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .result-row__reality-line--lead {
-  font-weight: var(--pa-font-weight-650);
-  color: var(--pa-color-accent);
+  font-size: var(--pa-font-size-lg);
+  line-height: var(--pa-line-height-tight);
+  font-weight: var(--pa-font-weight-medium);
+  color: var(--pa-color-text-primary);
+}
+
+.result-row__evidence-meta {
+  margin: 0;
+  font-size: var(--pa-font-size-sm);
+  line-height: var(--pa-line-height-20);
+  color: var(--pa-color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.result-row__evidence-meta--inline {
+  display: inline;
+  margin-left: var(--pa-space-1);
+  font-size: var(--pa-font-size-sm);
+  color: var(--pa-color-text-muted);
 }
 
 .result-row__error {
-  margin: var(--pa-space-1) 0 0;
+  margin: 0;
   color: var(--pa-color-text-secondary);
 }
 
@@ -964,23 +1184,27 @@ const selectedId = ref<string | null>(null);
 @media (max-width: 767px) {
   .result-row,
   .result-row__link {
-    min-height: 88px;
-    max-height: 104px;
+    min-height: 118px;
+  }
+
+  .result-row {
+    margin: var(--pa-space-2) 0;
   }
 
   .result-row__link {
-    padding: var(--pa-space-3) 0;
+    padding: var(--pa-space-3);
   }
 
   .result-row__name {
-    font-size: var(--pa-font-size-xl);
+    font-size: var(--pa-font-size-lg);
   }
 
   .result-row__meta {
     font-size: var(--pa-font-size-md);
   }
 
-  .result-row__decision {
+  .result-row__decision,
+  .result-row__reality-line--lead {
     font-size: var(--pa-font-size-xl);
   }
 }

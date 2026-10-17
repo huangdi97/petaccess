@@ -18,15 +18,17 @@ from app.core.config import get_settings
 from app.core.errors import ApiError, NotFound, PermissionDenied
 from app.core.security import get_current_user, require_role
 from app.db.session import get_db
-from app.models import AccessRule, Operator, OperatorClaim, Place, RuleCondition, Source, User
-from app.models.enums import OperatorClaimStatus, RuleOrigin, RuleStatus, UserRole
+from app.models import Operator, OperatorClaim, Place, User
+from app.models.enums import OperatorClaimStatus, UserRole
 from app.schemas.civic import (
     OperatorClaimIn,
     OperatorClaimOut,
     OperatorClaimReview,
+    OperatorClaimSelfServeIn,
     OperatorQuestionnaire,
 )
 from app.schemas.common import Page
+from app.services.operator_policy import apply_operator_questionnaire
 
 router = APIRouter(tags=["operators"])
 admin = APIRouter(tags=["admin:operators"])
@@ -60,6 +62,102 @@ def submit_claim(
         evidence_refs=body.evidence_refs,
     )
     db.add(claim)
+    db.commit()
+    db.refresh(claim)
+    return claim
+
+
+@router.get("/operator-claims/mine", response_model=list[OperatorClaimOut])
+def my_operator_claims(
+    place_id: str | None = None,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> list[OperatorClaim]:
+    """Return only the caller's own claim transactions, newest first."""
+    stmt = (
+        select(OperatorClaim)
+        .where(OperatorClaim.claimant_user_id == user.id)
+        .order_by(OperatorClaim.created_at.desc())
+    )
+    if place_id:
+        stmt = stmt.where(OperatorClaim.place_id == place_id)
+    return list(db.scalars(stmt.limit(50)).all())
+
+
+@router.post("/operator-claims/self-serve", response_model=OperatorClaimOut, status_code=201)
+def submit_self_serve_claim(
+    body: OperatorClaimSelfServeIn,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> OperatorClaim:
+    """Start a venue/operator claim without exposing internal operator IDs.
+
+    Submission grants no authority. It creates or reuses an unverified
+    Operator identity and leaves the claim in the normal moderator review
+    workflow; rules remain untouched until a later approved questionnaire.
+    """
+    if not get_settings().feature_operator_claim:
+        raise ApiError("管理方认领未开放", code="feature_disabled", status_code=403)
+
+    place = db.get(Place, body.place_id)
+    if place is None:
+        raise NotFound("场所不存在")
+
+    existing = db.scalar(
+        select(OperatorClaim).where(
+            OperatorClaim.place_id == body.place_id,
+            OperatorClaim.status.in_(["submitted", "verifying", "approved"]),
+        )
+    )
+    if existing:
+        raise ApiError("该场所已有进行中的认领", code="claim_conflict", status_code=409)
+
+    operator = db.get(Operator, place.operator_id) if place.operator_id else None
+    if operator is None:
+        normalized_name = body.operator_name.strip()
+        operator = db.scalar(
+            select(Operator).where(func.lower(Operator.name) == normalized_name.lower())
+        )
+        if operator is None:
+            operator = Operator(
+                name=normalized_name,
+                org_type=body.org_type,
+                contact_email=body.work_email,
+                website=body.website,
+                verified=False,
+            )
+            db.add(operator)
+            db.flush()
+
+    claim = OperatorClaim(
+        place_id=body.place_id,
+        operator_id=operator.id,
+        claimant_user_id=user.id,
+        verification_method=body.verification_method,
+        evidence_refs={
+            "work_email": body.work_email,
+            "website": body.website,
+            "verification_note": body.verification_note,
+            "self_serve": True,
+        },
+    )
+    db.add(claim)
+    db.flush()
+    record_audit(
+        db,
+        request=None,
+        actor_user_id=user.id,
+        actor_role=str(user.role),
+        action=AuditEvent.OPERATOR_CLAIM_CREATE.value,
+        target_type="operator_claim",
+        target_id=claim.id,
+        after_state={
+            "place_id": body.place_id,
+            "operator_id": operator.id,
+            "status": str(claim.status),
+            "self_serve": True,
+        },
+    )
     db.commit()
     db.refresh(claim)
     return claim
@@ -145,67 +243,10 @@ def submit_questionnaire(
     if operator is None:
         raise NotFound("管理方不存在")
 
-    source = db.scalar(
-        select(Source).where(
-            Source.source_type == "official_operator_policy",
-            Source.issuer == operator.name,
-        )
-    )
-    if source is None:
-        source = Source(
-            source_type="official_operator_policy",
-            issuer=operator.name,
-            issuer_verification="verified",
-            directness="direct",
-            collected_at=datetime.now(UTC),
-        )
-        db.add(source)
-        db.flush()
-
-    created_rules: list[str] = []
-    # operator declaration is authoritative: supersede ALL current rules on
-    # the place regardless of origin (community/signage rules are archived as history)
-    prior_rules = db.scalars(
-        select(AccessRule).where(
-            AccessRule.place_id == claim.place_id,
-            AccessRule.status == "current",
-        )
-    ).all()
-    for prior in prior_rules:
-        prior.status = RuleStatus.SUPERSEDED
-        prior.effective_to = datetime.now(UTC)
-
-    for ans in body.answers:
-        rule = AccessRule(
-            place_id=claim.place_id,
-            zone_id=ans.get("zone_id"),
-            animal_scope=ans["animal_scope"],
-            action=ans["action"],
-            effect=ans["effect"],
-            source_id=source.id,
-            rule_origin=RuleOrigin.OPERATOR_DECLARED,
-            recorded_at=datetime.now(UTC),
-            effective_from=body.effective_from or datetime.now(UTC),
-            review_due_at=ans.get("review_due_at"),
-            status="current",
-            note=ans.get("note"),
-        )
-        db.add(rule)
-        db.flush()
-        for c in ans.get("conditions", []):
-            db.add(RuleCondition(rule_id=rule.id, **c))
-        created_rules.append(rule.id)
-
-    db.flush()
-    record_audit(
+    return apply_operator_questionnaire(
         db,
-        request=None,
-        actor_user_id=user.id,
-        actor_role=str(user.role),
-        action=AuditEvent.OPERATOR_QUESTIONNAIRE_SUBMIT.value,
-        target_type="place",
-        target_id=claim.place_id,
-        after_state={"created_rules": created_rules, "superseded": [r.id for r in prior_rules]},
+        claim=claim,
+        operator=operator,
+        body=body,
+        actor=user,
     )
-    db.commit()
-    return {"created_rules": created_rules, "source_id": source.id}

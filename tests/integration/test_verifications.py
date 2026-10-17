@@ -8,8 +8,11 @@ import uuid
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import select
 
+from app.db.session import get_session_factory
 from app.main import app
+from app.models import AccessRule, Place, Zone
 
 
 @pytest.fixture(scope="module")
@@ -18,7 +21,9 @@ def client():
         yield c
 
 
-@pytest.fixture(scope="module")
+# Keep each test's rate-limit bucket independent; the explicit 429 case
+# still exercises its own user's entire configured quota.
+@pytest.fixture
 def user(client):
     email = f"verif-{uuid.uuid4().hex[:8]}@example.com"
     r = client.post(
@@ -58,6 +63,88 @@ def test_create_and_list_verification(client, user):
     page = r2.json()
     assert page["total"] >= 1
     assert any(item["id"] == ev["id"] for item in page["items"])
+
+
+def test_user_confirmation_does_not_refresh_governed_rule_freshness(client, user):
+    factory = get_session_factory()
+    with factory() as db:
+        rule = db.scalars(
+            select(AccessRule)
+            .where(AccessRule.status == "current", AccessRule.place_id.isnot(None))
+            .limit(1)
+        ).first()
+        assert rule is not None
+        rule_id = rule.id
+        place_id = rule.place_id
+        before = rule.last_verified_at
+        assert place_id
+
+    response = client.post(
+        "/api/v1/verifications",
+        json={
+            "place_id": place_id,
+            "rule_id": rule_id,
+            "event_type": "rule_confirmed",
+            "result": "still_valid",
+            "note": "用户现场确认，仅作为待治理证据。",
+        },
+        headers=_auth(user["token"]),
+    )
+    assert response.status_code == 201, response.text
+
+    with factory() as db:
+        refreshed = db.get(AccessRule, rule_id)
+        assert refreshed is not None
+        assert refreshed.last_verified_at == before
+
+
+def test_verification_rejects_rule_owned_by_another_place(client, user):
+    factory = get_session_factory()
+    with factory() as db:
+        rule = db.scalars(select(AccessRule).where(AccessRule.status == "current").limit(1)).first()
+        assert rule is not None
+        owner_place_id = rule.place_id
+        if rule.zone_id:
+            zone = db.get(Zone, rule.zone_id)
+            assert zone is not None
+            owner_place_id = zone.place_id
+        assert owner_place_id is not None
+        other = db.scalars(select(Place).where(Place.id != owner_place_id).limit(1)).first()
+        assert other is not None
+
+    response = client.post(
+        "/api/v1/verifications",
+        json={
+            "place_id": other.id,
+            "rule_id": rule.id,
+            "event_type": "rule_confirmed",
+            "result": "still_valid",
+        },
+        headers=_auth(user["token"]),
+    )
+    assert response.status_code == 404
+    assert "规则不属于该场所" in response.text
+
+
+def test_verification_rejects_zone_from_another_place(client, user):
+    factory = get_session_factory()
+    with factory() as db:
+        zone = db.scalars(select(Zone).limit(1)).first()
+        assert zone is not None
+        other = db.scalars(select(Place).where(Place.id != zone.place_id).limit(1)).first()
+        assert other is not None
+
+    response = client.post(
+        "/api/v1/verifications",
+        json={
+            "place_id": other.id,
+            "zone_id": zone.id,
+            "result": "still_valid",
+        },
+        headers=_auth(user["token"]),
+    )
+    assert response.status_code == 404
+    assert "区域不属于该场所" in response.text
 
 
 def test_verification_unknown_place_is_404(client, user):
@@ -113,3 +200,51 @@ def test_verification_rate_limited(client, user):
         if r.status_code == 429:
             break
     assert 429 in codes, f"expected 429 within {max_calls + 1} calls, got {codes[-5:]}"
+
+
+def test_place_correction_is_not_exposed_in_public_verification_feed(client, user):
+    place_id = _some_place_id(client)
+    created = client.post(
+        "/api/v1/verifications",
+        json={
+            "place_id": place_id,
+            "event_type": "place_correction",
+            "result": "uncertain",
+            "note": "地址楼层需要人工复核",
+        },
+        headers=_auth(user["token"]),
+    )
+    assert created.status_code == 201, created.text
+    correction_id = created.json()["id"]
+
+    public = client.get(f"/api/v1/places/{place_id}/verifications")
+    assert public.status_code == 200, public.text
+    assert all(item["id"] != correction_id for item in public.json()["items"])
+
+
+def test_place_correction_queue_requires_moderator(client, user):
+    response = client.get(
+        "/api/v1/admin/place-corrections",
+        headers=_auth(user["token"]),
+    )
+    assert response.status_code == 403
+
+
+def test_signage_evidence_is_not_exposed_before_rule_review(client, user):
+    place_id = _some_place_id(client)
+    created = client.post(
+        "/api/v1/verifications",
+        json={
+            "place_id": place_id,
+            "event_type": "signage_uploaded",
+            "result": "uncertain",
+            "note": "规则牌证据待人工审核",
+        },
+        headers=_auth(user["token"]),
+    )
+    assert created.status_code == 201, created.text
+    event_id = created.json()["id"]
+
+    public = client.get(f"/api/v1/places/{place_id}/verifications")
+    assert public.status_code == 200, public.text
+    assert all(item["id"] != event_id for item in public.json()["items"])

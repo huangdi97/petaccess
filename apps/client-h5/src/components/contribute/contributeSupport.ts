@@ -1,12 +1,18 @@
 /**
  * Shared support for the contribution step forms (M7).
  *
- * Proximity buckets (ADR-012: raw GPS never sent — only distance/accuracy
- * buckets) and evidence refs are identical across every form, so they live
- * here instead of drifting per-form.
+ * Contribution evidence helpers shared across forms. Proximity is fail-closed:
+ * this module does not read geolocation, so it must never manufacture a
+ * distance/accuracy bucket or mark a place match as GPS-verified.
  */
 export function proximity() {
-  return { proximity_verified: true, distance_bucket: "<100m", accuracy_bucket: "10-50m" };
+  // No geolocation measurement happens in this helper. Never fabricate a
+  // proximity proof just because the user opened a contribution form.
+  return {
+    proximity_verified: false,
+    distance_bucket: null,
+    accuracy_bucket: null,
+  };
 }
 
 export function evidenceRefs(mediaId: string | null) {
@@ -39,23 +45,52 @@ export function presencePayload(o: {
 }
 
 export function staffPayload(o: {
+  role: string;
   action: string;
+  awareness: string;
   context: string;
   outcome: string;
+  policyStatement: string;
 }): Record<string, unknown> {
   return {
-    actor_role: "staff",
+    // Role is useful context; personal identity is deliberately never asked.
+    actor_role: o.role || "unknown_staff",
     trigger_context: o.context.trim() || null,
-    response_action: o.action || "provided_guidance",
+    response_action: o.action || "unknown",
+    staff_awareness_state: o.awareness || "awareness_unknown",
     response_outcome: o.outcome.trim() || null,
+    policy_statement_verbatim: o.policyStatement.trim() || null,
   };
 }
 
-export function facilityPayload(o: { type: string; operational: string }): Record<string, unknown> {
+export function facilityPayload(o: {
+  type: string;
+  operational: string;
+  purpose: string;
+  accessMode: string;
+  capacity: string;
+  sizeLimit: string;
+  weatherProtection: boolean | null;
+  shade: boolean | null;
+  ventilation: boolean | null;
+  waterAvailable: boolean | null;
+  supervisionState: string;
+  securityState: string;
+}): Record<string, unknown> {
   return {
-    facility_type: o.type || "waiting_area",
-    operator_provided: false,
+    facility_type: o.type || "other",
     operational_state: o.operational,
+    purpose_state: o.purpose || "purpose_unknown",
+    access_mode: o.accessMode || "unknown",
+    operator_provided: o.accessMode === "operator_provided",
+    capacity: o.capacity ? Number(o.capacity) : null,
+    size_limit: o.sizeLimit.trim() || null,
+    weather_protection: o.weatherProtection,
+    shade: o.shade,
+    ventilation: o.ventilation,
+    water_available: o.waterAvailable,
+    supervision_state: o.supervisionState || null,
+    security_or_lock_state: o.securityState || null,
   };
 }
 
@@ -67,10 +102,23 @@ export function realityPayload(
     count: string;
     action: string;
     context: string;
+    staffRole: string;
     staffAction: string;
+    staffAwareness: string;
     staffOutcome: string;
+    staffPolicyStatement: string;
     facilityType: string;
     facilityOperational: string;
+    facilityPurpose: string;
+    facilityAccessMode: string;
+    facilityCapacity: string;
+    facilitySizeLimit: string;
+    facilityWeatherProtection: boolean | null;
+    facilityShade: boolean | null;
+    facilityVentilation: boolean | null;
+    facilityWaterAvailable: boolean | null;
+    facilitySupervisionState: string;
+    facilitySecurityState: string;
   },
 ): { payload: Record<string, unknown>; animalScope: string | null } {
   if (kind === "observed_presence") {
@@ -86,12 +134,32 @@ export function realityPayload(
   }
   if (kind === "staff_response") {
     return {
-      payload: staffPayload({ action: f.staffAction, context: f.context, outcome: f.staffOutcome }),
+      payload: staffPayload({
+        role: f.staffRole,
+        action: f.staffAction,
+        awareness: f.staffAwareness,
+        context: f.context,
+        outcome: f.staffOutcome,
+        policyStatement: f.staffPolicyStatement,
+      }),
       animalScope: null,
     };
   }
   return {
-    payload: facilityPayload({ type: f.facilityType, operational: f.facilityOperational }),
+    payload: facilityPayload({
+      type: f.facilityType,
+      operational: f.facilityOperational,
+      purpose: f.facilityPurpose,
+      accessMode: f.facilityAccessMode,
+      capacity: f.facilityCapacity,
+      sizeLimit: f.facilitySizeLimit,
+      weatherProtection: f.facilityWeatherProtection,
+      shade: f.facilityShade,
+      ventilation: f.facilityVentilation,
+      waterAvailable: f.facilityWaterAvailable,
+      supervisionState: f.facilitySupervisionState,
+      securityState: f.facilitySecurityState,
+    }),
     animalScope: null,
   };
 }

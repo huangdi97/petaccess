@@ -1,42 +1,26 @@
 <script setup lang="ts">
-/**
- * QueryContextBar — the unified Consumer query primitive (Design Freeze §8).
- *
- * Shown on Home / Search / Map / Place as a toolbar line (desktop) or a light
- * sticky strip (mobile). Displays the CURRENT query derived from the API
- * contract (animal · action · scope). Editing opens a popover/panel (desktop)
- * or bottom sheet (mobile) and changes the session query mode — which changes
- * the consumer cache key (currentQueryContext in repository.ts) so snapshots
- * are refetched for the new question. It never invents query fields the API
- * does not accept.
- */
-import { computed, ref } from "vue";
-import { session, type QueryMode } from "@petaccess/client-core";
+import { session } from "@petaccess/client-core";
 import PaDialog from "../ui/PaDialog.vue";
+import QueryContextScopeFacts from "./QueryContextScopeFacts.vue";
+import {
+  QUERY_MODES,
+  SERVICE_ROLES,
+  useQueryContextEditor,
+} from "../../composables/useQueryContextEditor";
 
 defineOptions({ name: "QueryContextBar" });
 
-const open = ref(false);
-
-const MODES: { key: QueryMode; label: string }[] = [
-  { key: "with_pet", label: "普通携带" },
-  { key: "service_dog", label: "服务犬通行" },
-  { key: "rules_only", label: "规则视角" },
-];
-
-const speciesLabel = computed(() => {
-  const s = session.activePet?.species ?? "dog";
-  if (session.mode === "service_dog") return "服务犬";
-  return s === "dog" ? "普通犬" : s === "cat" ? "猫" : "其他宠物";
-});
-
-/** 当前查询：动物 / 动作 / 范围 —— 全部来自 currentQueryContext 同源字段。 */
-const summary = computed(() => `${speciesLabel.value} · 进入 · 公共区域`);
-
-function selectMode(m: QueryMode) {
-  session.mode = m;
-  open.value = false;
-}
+const {
+  open,
+  pets,
+  loadingPets,
+  petError,
+  summary,
+  selectMode,
+  selectPet,
+  selectServiceRole,
+  openEditor,
+} = useQueryContextEditor();
 </script>
 
 <template>
@@ -48,117 +32,108 @@ function selectMode(m: QueryMode) {
       class="query-context__edit"
       data-testid="query-context-edit"
       aria-label="修改当前查询"
-      @click="open = true"
+      @click="openEditor"
     >
       修改
     </button>
 
-    <PaDialog :open="open" :title="'当前查询：' + summary" @close="open = false">
+    <PaDialog
+      :open="open"
+      :title="'当前查询：' + summary"
+      description="这里只修改真正参与规则判断的查询条件。改变后，当前页面会按新的上下文重新取得 Rule + Reality 快照。"
+      width="sm"
+      @close="open = false"
+    >
       <div class="query-context__form">
-        <p class="query-context__hint">
-          查询对象与视角决定「进入 / 限制」结论的求值上下文；切换后结果会按新上下文重新获取。
-        </p>
-        <div class="query-context__modes" role="group" aria-label="查询视角">
-          <button
-            v-for="m in MODES"
-            :key="m.key"
-            type="button"
-            class="query-context__mode"
-            :class="{ 'query-context__mode--active': session.mode === m.key }"
-            :aria-pressed="session.mode === m.key"
-            @click="selectMode(m.key)"
+        <section class="query-context__section">
+          <h3>携带情境</h3>
+          <div class="query-context__modes" role="group" aria-label="查询视角">
+            <button
+              v-for="mode in QUERY_MODES"
+              :key="mode.key"
+              type="button"
+              class="query-context__mode"
+              :class="{ 'query-context__mode--active': session.mode === mode.key }"
+              :aria-pressed="session.mode === mode.key"
+              @click="selectMode(mode.key)"
+            >
+              <strong>{{ mode.label }}</strong>
+              <span>{{ mode.hint }}</span>
+            </button>
+          </div>
+        </section>
+
+        <section v-if="session.mode === 'with_pet'" class="query-context__section">
+          <div class="query-context__section-head">
+            <h3>本次查询对象</h3>
+            <RouterLink v-if="session.signedIn" class="btn-inline" to="/pets" @click="open = false">
+              管理档案 →
+            </RouterLink>
+          </div>
+          <p v-if="loadingPets" class="muted query-context__hint">正在读取宠物档案…</p>
+          <p v-else-if="petError" class="query-context__error">{{ petError }}</p>
+          <div
+            v-else-if="pets.length"
+            class="query-context__pets"
+            role="group"
+            aria-label="宠物档案"
           >
-            {{ m.label }}
-          </button>
-        </div>
-        <p class="query-context__note muted">
-          动作：进入（当前仅支持进入查询）；范围：公共区域。服务犬模式按「工作犬」求值。
-        </p>
+            <button
+              v-for="pet in pets"
+              :key="pet.id"
+              type="button"
+              class="query-context__pet"
+              :class="{ 'query-context__pet--active': session.activePet?.id === pet.id }"
+              :aria-pressed="session.activePet?.id === pet.id"
+              @click="selectPet(pet)"
+            >
+              <strong>{{ pet.display_name }}</strong>
+              <span class="muted">
+                {{ pet.species === "dog" ? "犬" : pet.species === "cat" ? "猫" : "其他宠物" }}
+                <template v-if="pet.breed_text"> · {{ pet.breed_text }}</template>
+                <template v-if="pet.weight_kg != null"> · {{ pet.weight_kg }} kg</template>
+              </span>
+            </button>
+          </div>
+          <p v-else class="muted query-context__hint">
+            没有宠物档案时按普通犬查询；只有规则真正需要体重等条件时才需要补充档案。
+          </p>
+        </section>
+
+        <section v-if="session.mode === 'service_dog'" class="query-context__section">
+          <label class="query-context__field" for="query-service-role">
+            <span>服务犬角色（用户声明）</span>
+            <select
+              id="query-service-role"
+              :value="session.declaredRole ?? ''"
+              data-testid="query-service-role"
+              @change="selectServiceRole"
+            >
+              <option v-for="role in SERVICE_ROLES" :key="role.key" :value="role.key">
+                {{ role.label }}
+              </option>
+            </select>
+          </label>
+          <p class="muted query-context__hint">
+            导盲犬、助听犬和其他服务犬的适用规则可能不同；平台不会从照片推断或认证身份。
+          </p>
+        </section>
+
+        <QueryContextScopeFacts />
       </div>
+
+      <template #actions>
+        <button
+          type="button"
+          class="primary"
+          data-testid="query-context-done"
+          @click="open = false"
+        >
+          完成
+        </button>
+      </template>
     </PaDialog>
   </div>
 </template>
 
-<style scoped>
-.query-context {
-  display: flex;
-  align-items: center;
-  gap: var(--pa-space-2);
-  /* §38：全产品统一 h 60。 */
-  min-height: 60px;
-  padding: var(--pa-space-2) var(--pa-space-4);
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border);
-  background: var(--pa-color-surface);
-  font-size: var(--pa-font-size-md);
-}
-
-.query-context__label {
-  color: var(--pa-color-text-muted);
-  flex: 0 0 auto;
-}
-
-.query-context__value {
-  color: var(--pa-color-text-primary);
-  font-weight: var(--pa-font-weight-medium);
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.query-context__edit {
-  margin-left: auto;
-  padding: var(--pa-space-1) var(--pa-space-3);
-  border: var(--pa-border-width) solid var(--pa-color-border);
-  border-radius: var(--pa-radius-control);
-  background: var(--pa-color-surface);
-  color: var(--pa-color-accent);
-  font: inherit;
-  font-size: var(--pa-font-size-md);
-  cursor: pointer;
-}
-
-.query-context__edit:hover {
-  border-color: var(--pa-color-accent);
-}
-
-.query-context__form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--pa-space-4);
-}
-
-.query-context__hint,
-.query-context__note {
-  margin: 0;
-}
-
-.query-context__modes {
-  display: flex;
-  flex-direction: column;
-  gap: var(--pa-space-2);
-}
-
-.query-context__mode {
-  min-height: var(--pa-layout-touch-target);
-  padding: 0 var(--pa-space-4);
-  border: var(--pa-border-width) solid var(--pa-color-border);
-  border-radius: var(--pa-radius-control);
-  background: var(--pa-color-surface);
-  color: var(--pa-color-text-primary);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.query-context__mode:hover {
-  border-color: var(--pa-color-accent);
-}
-
-.query-context__mode--active {
-  border-color: var(--pa-color-accent);
-  background: var(--pa-color-accent-weak);
-  color: var(--pa-color-accent);
-  font-weight: var(--pa-font-weight-medium);
-}
-</style>
+<style scoped src="./QueryContextBar.css"></style>

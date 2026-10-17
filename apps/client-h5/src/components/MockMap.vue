@@ -18,25 +18,56 @@
  * amber ring, ALLOWED = subtle positive fill, RESTRICTED = subtle restriction
  * fill, SELECTED = scale + halo + elevation. No big coloured pins, no emoji.
  */
-import { computed } from "vue";
-import type { MapCamera, MapCluster, MapMarker } from "@petaccess/client-core";
-import { STATUS_GLYPHS } from "@petaccess/client-core";
+import { computed, ref } from "vue";
+import {
+  MAP_MAX_ZOOM,
+  MAP_MIN_ZOOM,
+  type MapCamera,
+  type MapCluster,
+  type MapMarker,
+} from "@petaccess/client-core";
+import { mapLensGlyph } from "../consumer/mapLens";
 
 const props = withDefaults(
   defineProps<{
     camera: MapCamera;
     clusters: MapCluster[];
     selectedId?: string | null;
+    lens?: string;
+    lensLabels?: Record<string, string>;
   }>(),
-  { selectedId: null },
+  { selectedId: null, lens: "rule", lensLabels: () => ({}) },
 );
 
-const emit = defineEmits<{ select: [cluster: MapCluster] }>();
+const emit = defineEmits<{
+  select: [cluster: MapCluster];
+  zoom: [delta: number];
+  pan: [lat: number, lng: number];
+}>();
 
-/** Degrees of longitude visible at this zoom (deterministic, provider-free). */
-const spanDeg = computed(() => 0.02 / Math.max(1, props.camera.zoom / 14));
+/** Approximate longitude span of a ~desktop map viewport.
+ * Web maps scale by 2× per zoom level; keeping the fallback on the same
+ * exponential model prevents nearby results from collapsing onto the edge and
+ * makes +/- a real spatial zoom rather than a decorative control. */
+const spanDeg = computed(() => 0.08 * Math.pow(2, 14 - props.camera.zoom));
 
-/** Projection, clamped so the whole pin box stays inside the surface. */
+// The fallback background is illustrative, not a surveyed basemap.
+// Showing a metric scale bar on synthetic streets would imply unsupported
+// positional/measurement accuracy.
+const scaleLabel = computed(() => `缩放 ${Math.round(props.camera.zoom)} 级 · 示意比例`);
+
+/** Only on-viewport clusters receive marker DOM; no out-of-range point can
+ * be clamped into a false edge location. The list still contains all nearby
+ * locations even when they are beyond this zoom's current view. */
+const visibleClusters = computed(() =>
+  props.clusters.filter(
+    (cluster) =>
+      Math.abs(cluster.lng - props.camera.lng) <= spanDeg.value / 2 &&
+      Math.abs(cluster.lat - props.camera.lat) <= (spanDeg.value * 0.62) / 2,
+  ),
+);
+
+/** Projection, clamped only for an actually visible edge point. */
 const PIN_HEIGHT_PX = 44;
 const PIN_HALF_WIDTH_PX = 32;
 /** Keeps pins off the bottom edge, where the surface border sits. */
@@ -51,7 +82,59 @@ function project(lat: number, lng: number): { left: string; top: string } {
   };
 }
 
-const glyph = (status: MapMarker["status"]) => STATUS_GLYPHS[status] ?? STATUS_GLYPHS.UNKNOWN;
+const dragStart = ref<{ x: number; y: number; pointerId: number } | null>(null);
+const dragging = ref(false);
+
+function startPan(event: PointerEvent) {
+  if (event.button !== 0) return;
+  if ((event.target as HTMLElement).closest(".map-pin, .map-zoom, button, input")) return;
+  dragStart.value = { x: event.clientX, y: event.clientY, pointerId: event.pointerId };
+  (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+}
+
+function updatePan(event: PointerEvent) {
+  if (dragStart.value?.pointerId !== event.pointerId) return;
+  dragging.value =
+    Math.hypot(event.clientX - dragStart.value.x, event.clientY - dragStart.value.y) > 8;
+}
+
+function endPan(event: PointerEvent) {
+  const start = dragStart.value;
+  if (!start || start.pointerId !== event.pointerId) return;
+  const el = event.currentTarget as HTMLElement;
+  if (el.hasPointerCapture(event.pointerId)) el.releasePointerCapture(event.pointerId);
+  dragStart.value = null;
+  dragging.value = false;
+  const dx = event.clientX - start.x;
+  const dy = event.clientY - start.y;
+  if (Math.hypot(dx, dy) <= 8) return;
+  const bounds = el.getBoundingClientRect();
+  if (!bounds.width || !bounds.height) return;
+
+  const lat = Math.max(
+    -90,
+    Math.min(90, props.camera.lat + (dy / bounds.height) * spanDeg.value * 0.62),
+  );
+  const lng = props.camera.lng - (dx / bounds.width) * spanDeg.value;
+  emit("pan", lat, ((((lng + 180) % 360) + 360) % 360) - 180);
+}
+
+function cancelPan() {
+  dragStart.value = null;
+  dragging.value = false;
+}
+
+const glyph = (status: MapMarker["status"]) => mapLensGlyph(props.lens, status);
+
+function markerLabel(cluster: MapCluster): string {
+  if (cluster.count > 1) return `${cluster.count} 个场所`;
+  const id = cluster.memberIds[0];
+  return id ? (props.lensLabels[id] ?? "信息不足") : "信息不足";
+}
+
+function isSelectedCluster(cluster: MapCluster): boolean {
+  return props.selectedId ? cluster.memberIds.includes(props.selectedId) : false;
+}
 
 /* ---- Abstract urban spatial canvas (v0.2.7 §8) -------------------------
  * Everything is pure decoration; no data semantics live here. The palette
@@ -80,25 +163,36 @@ const ROADS_SECONDARY = [
   "M 196 84 L 196 96",
   "M 96 96 L 96 60",
 ];
-/** Building mass hints: faint rectangles clustered inside blocks. */
+/** Building mass hints: faint rectangles clustered inside blocks. Each entry is
+ * "x,y,width,height" (rect geometry, not polygon points — the <rect> below
+ * binds these fields directly). */
 const MASS = [
-  "104,104 120,104 120,116 104,116",
-  "128,104 144,104 144,116 128,116",
-  "152,104 168,104 168,116 152,116",
-  "104,124 120,124 120,136 104,136",
-  "128,124 144,124 144,136 128,136",
-  "152,124 168,124 168,136 152,136",
-  "104,168 124,168 124,184 104,184",
-  "132,168 152,168 152,184 132,184",
-  "28,158 44,158 44,170 28,170",
-  "52,158 68,158 68,170 52,170",
-  "204,104 224,104 224,120 204,120",
-  "232,104 248,104 248,120 232,120",
+  "104,104,16,12",
+  "128,104,16,12",
+  "152,104,16,12",
+  "104,124,16,12",
+  "128,124,16,12",
+  "152,124,16,12",
+  "104,168,20,16",
+  "132,168,20,16",
+  "28,158,16,12",
+  "52,158,16,12",
+  "204,104,20,16",
+  "232,104,16,12",
 ];
 </script>
-
 <template>
-  <div class="map-surface" data-testid="map-surface" data-ui="mock-map">
+  <div
+    class="map-surface"
+    :class="[`map-surface--${lens}`, { 'map-surface--dragging': dragging }]"
+    data-testid="map-surface"
+    data-ui="mock-map"
+    aria-label="简化空间底图，可拖动调整附近查询区域"
+    @pointerdown="startPan"
+    @pointermove="updatePan"
+    @pointerup="endPan"
+    @pointercancel="cancelPan"
+  >
     <!-- 空间基底：道路层级/街区/开放空间/建筑体块/水系（SVG，纯表现，不承载数据语义） -->
     <svg
       class="map-basemap"
@@ -116,64 +210,115 @@ const MASS = [
         class="basemap-mass"
         :x="m.split(',')[0]"
         :y="m.split(',')[1]"
-        :width="Number(m.split(',')[2]) - Number(m.split(',')[0])"
-        :height="Number(m.split(',')[3]) - Number(m.split(',')[1])"
+        :width="m.split(',')[2]"
+        :height="m.split(',')[3]"
       />
       <polygon v-for="b in BLOCKS" :key="b" class="basemap-block" :points="b" />
-      <path v-for="r in ROADS_PRIMARY" :key="r" class="basemap-road basemap-road--primary" :d="r" />
+      <path
+        v-for="r in ROADS_PRIMARY"
+        :key="'primary-casing-' + r"
+        class="basemap-road basemap-road--primary-casing"
+        :d="r"
+      />
+      <path
+        v-for="r in ROADS_PRIMARY"
+        :key="'primary-fill-' + r"
+        class="basemap-road basemap-road--primary"
+        :d="r"
+      />
       <path
         v-for="r in ROADS_SECONDARY"
-        :key="r"
+        :key="'secondary-casing-' + r"
+        class="basemap-road basemap-road--secondary-casing"
+        :d="r"
+      />
+      <path
+        v-for="r in ROADS_SECONDARY"
+        :key="'secondary-fill-' + r"
         class="basemap-road basemap-road--secondary"
         :d="r"
       />
     </svg>
 
+    <span class="map-provider muted" data-testid="map-provider-fallback">
+      示意底图（非真实街道） · 拖动查看周边
+    </span>
+
+    <div class="map-spatial-aids" aria-hidden="true">
+      <span class="map-compass">N</span>
+      <span class="map-scale">{{ scaleLabel }}</span>
+    </div>
+
     <div class="map-zoom" data-testid="map-zoom" data-ui="map-zoom" role="group" aria-label="缩放">
-      <button type="button" aria-label="放大" disabled>＋</button>
-      <button type="button" aria-label="缩小" disabled>－</button>
+      <button
+        type="button"
+        aria-label="放大"
+        :disabled="camera.zoom >= MAP_MAX_ZOOM"
+        @click="emit('zoom', 1)"
+      >
+        ＋
+      </button>
+      <button
+        type="button"
+        aria-label="缩小"
+        :disabled="camera.zoom <= MAP_MIN_ZOOM"
+        @click="emit('zoom', -1)"
+      >
+        －
+      </button>
     </div>
 
     <div
-      v-for="c in clusters"
+      v-for="c in visibleClusters"
       :key="c.id"
       class="map-pin"
-      :class="{ 'map-pin--selected': selectedId === c.memberIds[0] }"
-      :data-selected="selectedId === c.memberIds[0] ? 'true' : undefined"
-      :data-ui="
-        c.count > 1
-          ? selectedId === c.memberIds[0]
-            ? 'map-marker-selected'
-            : 'map-marker'
-          : undefined
-      "
+      :class="{ 'map-pin--selected': isSelectedCluster(c) }"
+      :data-selected="isSelectedCluster(c) ? 'true' : undefined"
+      :data-ui="c.count > 1 ? 'map-marker' : undefined"
       :style="project(c.lat, c.lng)"
       :data-testid="c.count > 1 ? 'cluster-' + c.id : 'pin-' + c.memberIds[0]"
-      :aria-label="`${c.count} 个场所，${glyph(c.status)}`"
+      :aria-label="
+        c.count > 1
+          ? `${c.count} 个场所；准入结论需分别查看，放大可展开`
+          : `1 个场所，${markerLabel(c)}`
+      "
       role="button"
       tabindex="0"
       @click="emit('select', c)"
       @keydown.enter="emit('select', c)"
+      @keydown.space.prevent="emit('select', c)"
     >
       <template v-if="c.count > 1">
-        <div class="map-cluster" :class="'s-' + c.status">{{ c.count }}</div>
+        <!-- Aggregate counts have no single policy state. Always neutral;
+             a priority status must not be attributed to all member places. -->
+        <div
+          class="map-cluster"
+          :class="{ 'map-cluster--selected': isSelectedCluster(c) }"
+          :data-ui="isSelectedCluster(c) ? 'map-marker-selected' : 'map-marker'"
+          :data-selected="isSelectedCluster(c) ? 'true' : undefined"
+        >
+          {{ c.count }}
+        </div>
       </template>
       <template v-else>
-        <!-- v0.2.5 §26：未选中 marker 只显示小 symbol，不永久铺满状态字；
-             只有选中的（或 hover）才上 label。 -->
-        <div v-if="selectedId === c.memberIds[0]" class="lbl" :class="'s-' + c.status">
-          {{ glyph(c.status) }}
+        <!-- Status is never color-only: the compact marker carries a single
+             shape glyph; full semantic copy stays horizontal in the label,
+             results pane and selected preview. Never put words inside the dot. -->
+        <div class="lbl" :class="'s-' + c.status">
+          {{ markerLabel(c) }}
         </div>
-        <!-- v0.2.7 §10：dot 是 marker 本体（含语义形状），data-ui 供几何 gate 测量：
-             map-marker / map-marker-selected（scale + halo + elevation）。 -->
         <div
           class="dot"
-          :class="['s-' + c.status, { 'dot--selected': selectedId === c.memberIds[0] }]"
-          :data-ui="selectedId === c.memberIds[0] ? 'map-marker-selected' : 'map-marker'"
-        ></div>
+          :class="['s-' + c.status, { 'dot--selected': isSelectedCluster(c) }]"
+          :data-ui="isSelectedCluster(c) ? 'map-marker-selected' : 'map-marker'"
+        >
+          <span class="dot__glyph" aria-hidden="true">{{ glyph(c.status) }}</span>
+        </div>
       </template>
     </div>
-    <div v-if="!clusters.length" class="map-empty muted">当前视野内暂无已收录场所</div>
+    <div v-if="!visibleClusters.length" class="map-empty muted">
+      当前画面暂无点位；附近结果仍可在列表查看
+    </div>
   </div>
 </template>
 
@@ -184,6 +329,12 @@ const MASS = [
   height: 100%;
   min-height: 480px;
   overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+}
+
+.map-surface--dragging {
+  cursor: grabbing;
 }
 
 /* 空间基底：轻量抽象城市画布 —— 不是灰网格+数字（v0.2.7 §8）。 */
@@ -229,18 +380,34 @@ const MASS = [
 /* 道路层级：primary 更宽更明确，secondary 更细更弱。 */
 .basemap-road {
   fill: none;
-  stroke: var(--pa-color-map-grid-b);
-}
-.basemap-road--primary {
-  stroke-width: 5;
-  opacity: 0.9;
-}
-.basemap-road--secondary {
-  stroke-width: 2;
-  opacity: 0.65;
+  vector-effect: non-scaling-stroke;
 }
 
-/* 缩放控件：空间感 affordance（mock 阶段为展示性控件）。 */
+.basemap-road--primary-casing {
+  stroke: var(--pa-color-border);
+  stroke-width: 8;
+  opacity: 0.7;
+}
+
+.basemap-road--primary {
+  stroke: var(--pa-color-surface);
+  stroke-width: 5;
+  opacity: 0.95;
+}
+
+.basemap-road--secondary-casing {
+  stroke: var(--pa-color-border-subtle);
+  stroke-width: 4;
+  opacity: 0.75;
+}
+
+.basemap-road--secondary {
+  stroke: var(--pa-color-surface);
+  stroke-width: 2;
+  opacity: 0.9;
+}
+
+/* 缩放控件：mock fallback 也保持真实交互，不展示道具按钮。 */
 .map-zoom {
   position: absolute;
   right: var(--pa-space-3);
@@ -259,7 +426,62 @@ const MASS = [
   background: var(--pa-color-surface);
   color: var(--pa-color-text-primary);
   font-size: var(--pa-font-size-lg);
+  cursor: pointer;
+}
+
+.map-zoom button:disabled {
   cursor: default;
+  opacity: 0.45;
+}
+
+.map-provider {
+  position: absolute;
+  left: var(--pa-space-3);
+  bottom: var(--pa-space-2);
+  z-index: 2;
+  padding: 2px var(--pa-space-1);
+  border-radius: var(--pa-radius-sm);
+  background: color-mix(in srgb, var(--pa-color-surface) 88%, transparent);
+  font-size: var(--pa-font-size-xs);
+  pointer-events: none;
+}
+
+.map-spatial-aids {
+  position: absolute;
+  right: var(--pa-space-3);
+  bottom: var(--pa-space-3);
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  gap: var(--pa-space-3);
+  color: var(--pa-color-text-secondary);
+  pointer-events: none;
+}
+
+.map-compass {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: var(--pa-border-width) solid var(--pa-color-border);
+  border-radius: var(--pa-radius-pill);
+  background: color-mix(in srgb, var(--pa-color-surface) 92%, transparent);
+  font-family: var(--pa-font-family-numeric);
+  font-size: var(--pa-font-size-xs);
+  font-weight: var(--pa-font-weight-650);
+}
+
+.map-scale {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  padding: 2px var(--pa-space-1);
+  border-radius: var(--pa-radius-sm);
+  background: color-mix(in srgb, var(--pa-color-surface) 88%, transparent);
+  font-family: var(--pa-font-family-numeric);
+  font-size: var(--pa-font-size-xs);
 }
 
 /* ---- pins ---- */
@@ -275,6 +497,20 @@ const MASS = [
   min-width: 32px;
   cursor: pointer;
   z-index: 1;
+  /* The visible label must not cover another nearby dot's hit target.
+     Only the actual marker glyph receives the pointer; keyboard users
+     can still focus the parent as a single labelled control. */
+  pointer-events: none;
+}
+
+.map-pin .dot,
+.map-pin .map-cluster {
+  pointer-events: auto;
+}
+
+.map-pin:focus-visible,
+.map-pin:hover {
+  z-index: 4;
 }
 
 .map-pin--selected {
@@ -282,6 +518,7 @@ const MASS = [
 }
 
 .map-cluster {
+  background: var(--pa-color-text-secondary);
   min-width: 24px;
   height: 24px;
   border-radius: var(--pa-radius-pill);
@@ -294,14 +531,39 @@ const MASS = [
   padding: 0 var(--pa-space-1);
 }
 
+.map-cluster--selected {
+  min-width: 30px;
+  height: 30px;
+  box-shadow:
+    0 0 0 4px var(--pa-color-accent-weak),
+    var(--pa-elevation-2);
+}
+
 .lbl {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-size: var(--pa-font-size-sm);
   font-weight: var(--pa-font-weight-medium);
   white-space: nowrap;
   background: var(--pa-color-map-label-bg);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
   border-radius: var(--pa-radius-sm);
-  padding: 0 var(--pa-space-1);
+  padding: 1px var(--pa-space-1);
   color: var(--pa-color-text-primary);
+  opacity: 0;
+  transform: translateY(2px);
+  pointer-events: none;
+  transition:
+    opacity var(--pa-motion-fast) var(--pa-motion-ease),
+    transform var(--pa-motion-fast) var(--pa-motion-ease);
+}
+
+.map-pin:hover .lbl,
+.map-pin:focus-visible .lbl,
+.map-pin--selected .lbl {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 /* v0.2.7 §10 marker 系统：
@@ -312,22 +574,61 @@ const MASS = [
  * - SELECTED     = scale 1.33x + halo + elevation（dot--selected）
  */
 .dot {
-  width: 12px;
-  height: 12px;
+  width: 18px;
+  height: 18px;
   border-radius: var(--pa-radius-pill);
   border: 2px solid var(--pa-color-map-pin-border);
-  transition: box-shadow var(--pa-motion-fast) var(--pa-motion-ease);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--pa-color-text-inverse);
+  font-family: var(--pa-font-family-numeric);
+  font-size: 10px;
+  font-weight: var(--pa-font-weight-bold);
+  line-height: 1;
+  transition:
+    box-shadow var(--pa-motion-fast) var(--pa-motion-ease),
+    transform var(--pa-motion-fast) var(--pa-motion-ease);
+}
+
+.dot__glyph {
+  transform: translateY(-0.5px);
 }
 
 .dot.s-CONDITIONAL {
-  background: transparent;
+  background: var(--pa-color-surface);
   border-width: 3px;
   border-color: var(--pa-color-status-conditional);
+  color: var(--pa-color-status-conditional);
+}
+
+.dot.s-UNKNOWN {
+  background: var(--pa-color-surface);
+  color: var(--pa-color-status-unknown);
+}
+
+.dot.s-RESTRICTED {
+  border-radius: 5px;
+}
+
+.dot.s-CONFLICT {
+  border-radius: 4px;
+  transform: rotate(45deg);
+}
+
+.dot.s-CONFLICT .dot__glyph {
+  transform: rotate(-45deg) translateY(-0.5px);
+}
+
+.dot.s-STALE {
+  background: var(--pa-color-surface);
+  border-style: dashed;
+  color: var(--pa-color-status-stale);
 }
 
 .dot--selected {
-  width: 16px;
-  height: 16px;
+  width: 22px;
+  height: 22px;
   box-shadow:
     0 0 0 4px var(--pa-color-accent-weak),
     var(--pa-elevation-2);
@@ -351,6 +652,54 @@ const MASS = [
   background: var(--pa-color-status-allowed);
 }
 
+.s-STALE {
+  background: var(--pa-color-status-stale);
+}
+
+/* Non-rule lenses reuse marker state keys only as an internal carrier for
+ * clustering/selection. Their visible palette must express the active fact
+ * dimension, never access morality ("green = allowed"). */
+.map-surface--reality .s-ALLOWED,
+.map-surface--reality .s-MATCH {
+  background: var(--pa-color-reality-observed);
+}
+
+.map-surface--reality .s-STALE {
+  background: var(--pa-color-reality-historical);
+}
+
+.map-surface--reality .s-UNKNOWN {
+  background: var(--pa-color-reality-insufficient);
+}
+
+.map-surface--reality .s-CONFLICT {
+  background: var(--pa-color-reality-disputed);
+}
+
+.map-surface--facility .s-ALLOWED,
+.map-surface--facility .s-MATCH {
+  background: var(--pa-color-facility-confirmed);
+}
+
+.map-surface--facility .s-UNKNOWN,
+.map-surface--facility .s-STALE {
+  background: var(--pa-color-facility-unverified);
+}
+
+.map-surface--facility .dot.s-CONDITIONAL {
+  background: transparent;
+  border-color: var(--pa-color-facility-unverified);
+}
+
+.map-surface--facility .map-cluster.s-CONDITIONAL {
+  background: var(--pa-color-facility-unverified);
+}
+
+.map-surface--divergence .s-ALLOWED,
+.map-surface--divergence .s-MATCH {
+  background: var(--pa-color-reality-observed);
+}
+
 /* Cluster（数字聚合）保留实心语义填充；dot 的 CONDITIONAL 是环（见上）。 */
 .map-cluster.s-CONDITIONAL {
   background: var(--pa-color-status-conditional);
@@ -366,6 +715,23 @@ const MASS = [
 
 .s-CONFLICT {
   background: var(--pa-color-status-conflict);
+}
+
+/* Text labels stay neutral. Semantic tone belongs to the marker shape; this
+ * avoids turning hover labels into a traffic-light UI. */
+.lbl.s-ALLOWED,
+.lbl.s-MATCH,
+.lbl.s-CONDITIONAL,
+.lbl.s-RESTRICTED,
+.lbl.s-UNKNOWN,
+.lbl.s-CONFLICT,
+.lbl.s-STALE,
+.map-surface--reality .lbl,
+.map-surface--facility .lbl,
+.map-surface--divergence .lbl {
+  background: var(--pa-color-map-label-bg);
+  color: var(--pa-color-text-primary);
+  border-color: var(--pa-color-border-subtle);
 }
 
 .map-empty {
