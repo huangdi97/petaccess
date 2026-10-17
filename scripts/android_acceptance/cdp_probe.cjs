@@ -108,6 +108,16 @@ async function main() {
           uiFixture: surface?.getAttribute("data-ui-fixture") ?? null,
           offlineBanner: !!document.querySelector("[data-testid=global-offline-banner]"),
           androidBack: document.documentElement.dataset.androidBack ?? null,
+          androidBackCallbackCount:
+            Number(document.documentElement.dataset.androidBackCallbackCount ?? "0") || 0,
+          androidBackLastAction:
+            document.documentElement.dataset.androidBackLastAction ?? null,
+          androidBackLastTarget:
+            document.documentElement.dataset.androidBackLastTarget ?? null,
+          androidBackLastRoute:
+            document.documentElement.dataset.androidBackLastRoute ?? null,
+          androidBackLastResult:
+            document.documentElement.dataset.androidBackLastResult ?? null,
           errorState: !!document.querySelector("[data-state=ERROR]"),
           results: document.querySelectorAll("[data-testid^=result-]").length,
           viewportWidth: window.innerWidth,
