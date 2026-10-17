@@ -14,10 +14,15 @@ import json
 import os
 import re
 import subprocess
+import sys
 import time
 from pathlib import Path
 
 from adb import adb, shell, shell_pidof, wait_for_device
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 ROOT = Path(__file__).resolve().parents[2]
 SERIAL = os.environ.get("PETACCESS_ANDROID_SERIAL", "emulator-5556")

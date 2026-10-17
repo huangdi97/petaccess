@@ -27,6 +27,13 @@ from adb import (  # noqa: E402
     wait_for_device,
 )
 
+# The summary below carries Chinese product copy and status glyphs; a Windows
+# console defaults to the legacy code page and would crash the gate *after* a
+# successful run. Emit UTF-8 explicitly on every platform.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 SERIAL = os.environ.get("PETACCESS_ANDROID_SERIAL", DEFAULT_SERIAL)
 PKG = os.environ.get("PETACCESS_ANDROID_PACKAGE", "com.petaccess.map")
 SHOT_DIR = Path(

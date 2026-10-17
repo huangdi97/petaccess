@@ -23,6 +23,10 @@ sys.path.insert(0, str(ROOT / "scripts" / "android_acceptance"))
 
 from adb import DEFAULT_SERIAL, adb, adb_binary, shell, shell_pidof, wait_for_device  # noqa: E402
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 SERIAL = os.environ.get("PETACCESS_ANDROID_SERIAL", DEFAULT_SERIAL)
 PACKAGE = os.environ.get("PETACCESS_ANDROID_PACKAGE", "com.petaccess.map.preview")
 EVIDENCE_ROOT = Path(
