@@ -15,18 +15,14 @@ import argparse
 import re
 from pathlib import Path
 
-DEFAULT_MANIFEST = Path(
-    "apps/client-h5/src-tauri/gen/android/app/src/main/AndroidManifest.xml"
-)
+DEFAULT_MANIFEST = Path("apps/client-h5/src-tauri/gen/android/app/src/main/AndroidManifest.xml")
 TARGET_VALUE = "adjustResize"
 
 _ACTIVITY_RE = re.compile(
     r'(?P<open><activity\b[^>]*\bandroid:name\s*=\s*"[^"]*MainActivity"[^>]*)(?P<close>>)',
     re.DOTALL,
 )
-_SOFT_INPUT_RE = re.compile(
-    r'android:windowSoftInputMode\s*=\s*"(?P<value>[^"]*)"'
-)
+_SOFT_INPUT_RE = re.compile(r'android:windowSoftInputMode\s*=\s*"(?P<value>[^"]*)"')
 
 
 class ManifestContractError(RuntimeError):
@@ -70,11 +66,7 @@ def patch_manifest_text(manifest: str) -> str:
             f'android:windowSoftInputMode="{TARGET_VALUE}"'
         )
 
-    patched = (
-        manifest[: match.start("open")]
-        + patched_opening
-        + manifest[match.end("open") :]
-    )
+    patched = manifest[: match.start("open")] + patched_opening + manifest[match.end("open") :]
 
     if not manifest_has_adjust_resize(patched):
         raise ManifestContractError("failed to apply adjustResize to MainActivity")
