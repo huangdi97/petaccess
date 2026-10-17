@@ -375,19 +375,13 @@ def main() -> int:
         },
         "domain_semantics": {
             "result": (
-                domain_semantics.get("result")
-                if isinstance(domain_semantics, dict)
-                else None
+                domain_semantics.get("result") if isinstance(domain_semantics, dict) else None
             ),
             "passed": (
-                domain_semantics.get("passed")
-                if isinstance(domain_semantics, dict)
-                else 0
+                domain_semantics.get("passed") if isinstance(domain_semantics, dict) else 0
             ),
             "failed": (
-                domain_semantics.get("failed")
-                if isinstance(domain_semantics, dict)
-                else 0
+                domain_semantics.get("failed") if isinstance(domain_semantics, dict) else 0
             ),
         },
         "extended_runtime": {
