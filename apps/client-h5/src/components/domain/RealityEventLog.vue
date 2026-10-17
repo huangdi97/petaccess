@@ -270,36 +270,32 @@ const visibleGroups = computed<EventGroup[]>(() => {
   display: grid;
   grid-template-columns: 72px 24px 1fr;
   gap: 0 var(--pa-space-3);
-  padding: var(--pa-space-3);
-  margin-bottom: var(--pa-space-3);
-  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
-  border-radius: var(--pa-radius-md);
-  background: var(--pa-color-surface-raised);
-  box-shadow: 0 1px 0 color-mix(in srgb, var(--pa-color-text-primary) 4%, transparent);
+  padding: 0;
+  margin-bottom: var(--pa-space-4);
 }
 
 .trace-row:last-child {
   margin-bottom: 0;
 }
 
-.trace-row--disputed {
-  border-left: 3px solid var(--pa-color-evidence-disputed);
+.trace-row--disputed .trace-row__content {
   padding-left: var(--pa-space-3);
+  border-left: 3px solid var(--pa-color-evidence-disputed);
 }
 
 .trace-row__time {
-  padding-top: 2px;
-  font-size: var(--pa-font-size-md);
-  font-weight: var(--pa-font-weight-650);
+  padding-top: 3px;
+  font-size: var(--pa-font-size-sm);
+  font-weight: var(--pa-font-weight-600);
   font-variant-numeric: tabular-nums;
-  color: var(--pa-color-text-primary);
+  color: var(--pa-color-text-secondary);
   white-space: nowrap;
 }
 
 .trace-row__dot {
-  width: 20px;
-  height: 20px;
-  margin: 1px auto 0;
+  width: 22px;
+  height: 22px;
+  margin: 0 auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -327,6 +323,8 @@ const visibleGroups = computed<EventGroup[]>(() => {
   grid-template-columns: minmax(0, 1fr) auto;
   gap: var(--pa-space-4);
   align-items: start;
+  padding: 0 0 var(--pa-space-4);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
 }
 
 .trace-row__text {
@@ -450,9 +448,8 @@ const visibleGroups = computed<EventGroup[]>(() => {
   }
 
   .trace-row {
-    grid-template-columns: 52px 20px 1fr;
+    grid-template-columns: 48px 22px 1fr;
     column-gap: var(--pa-space-2);
-    padding-bottom: var(--pa-space-4);
     margin-bottom: var(--pa-space-4);
   }
 
