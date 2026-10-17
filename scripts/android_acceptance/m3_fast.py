@@ -293,10 +293,11 @@ def main() -> int:
         if '"androidBackLastAction":"back"' not in compact:
             raise RuntimeError(f"Android Back callback fired with wrong action: {back_state}")
         if '"uiPage":"reality"' not in compact:
-            raise RuntimeError(
+            route_error = (
                 "Android Back callback fired but route did not reach Reality: "
-                f"{back_state}"
+                + back_state
             )
+            raise RuntimeError(route_error)
 
         results["shot_hardware_back"] = f"bytes={screenshot('hardware-back-reality-m3-final')}"
     except Exception as e:  # noqa: BLE001
