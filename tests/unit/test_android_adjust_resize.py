@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import pytest
+
 from scripts.android_acceptance.ensure_adjust_resize import (
     ManifestContractError,
     enforce,
