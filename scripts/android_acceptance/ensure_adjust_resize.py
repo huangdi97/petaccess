@@ -62,8 +62,7 @@ def patch_manifest_text(manifest: str) -> str:
         activity_indent = manifest[line_start : match.start("open")]
         attribute_indent = f"{activity_indent}    "
         patched_opening = (
-            f'{opening}\n{attribute_indent}'
-            f'android:windowSoftInputMode="{TARGET_VALUE}"'
+            f'{opening}\n{attribute_indent}android:windowSoftInputMode="{TARGET_VALUE}"'
         )
 
     patched = manifest[: match.start("open")] + patched_opening + manifest[match.end("open") :]
