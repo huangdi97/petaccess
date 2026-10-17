@@ -95,9 +95,7 @@ def _system_error_dialog(xml_text: str) -> dict[str, str] | None:
         None,
     )
     texts = [
-        node.attrib.get("text", "").strip()
-        for node in nodes
-        if node.attrib.get("text", "").strip()
+        node.attrib.get("text", "").strip() for node in nodes if node.attrib.get("text", "").strip()
     ]
     combined = " | ".join(texts)
     lowered = combined.lower()
@@ -412,8 +410,7 @@ def main() -> int:
 
         if after_count <= before_count:
             raise RuntimeError(
-                "Android Back callback did not fire; "
-                f"before={before_count} after={after_count}"
+                f"Android Back callback did not fire; before={before_count} after={after_count}"
             )
         if after_payload.get("androidBackLastAction") != "back":
             action = after_payload.get("androidBackLastAction")
