@@ -163,6 +163,7 @@ fi
 export PETACCESS_ANDROID_AUTH_TOKEN="$AUTH_TOKEN"
 
 node scripts/android_acceptance/cdp_journey.cjs
+python scripts/android_acceptance/derive_domain_semantics.py
 node scripts/android_acceptance/ime_gate.cjs
 python scripts/android_acceptance/ci_extended_runtime.py
 python scripts/android_acceptance/width_matrix.py
@@ -188,6 +189,7 @@ assert coverage["required_router_pages"] == 19, coverage
 assert coverage["observed_router_pages"] >= 19, coverage
 assert coverage["matrix"]["Authenticated States"] == "COVERED", coverage
 assert coverage["matrix"]["Runtime Resilience"] == "COVERED", coverage
+assert coverage["matrix"]["Domain States"] == "COVERED", coverage
 assert coverage["runtime_resilience"]["covered"] is True, coverage
 assert coverage["matrix"]["Device Sizes"] == "COVERED", coverage
 assert coverage["matrix"]["IME / Input"] == "COVERED", coverage
