@@ -96,7 +96,8 @@ export async function installAndroidBackHandler(router: Router): Promise<void> {
 
   const handleBack = ({ canGoBack }: { canGoBack: boolean }): void => {
     const current = router.currentRoute.value.fullPath;
-    const callbackCount = Number(document.documentElement.dataset.androidBackCallbackCount ?? "0") + 1;
+    const callbackCount =
+      Number(document.documentElement.dataset.androidBackCallbackCount ?? "0") + 1;
     document.documentElement.dataset.androidBackCallbackCount = String(callbackCount);
     document.documentElement.dataset.androidBackLastRoute = current;
     document.documentElement.dataset.androidBackLastAt = String(Date.now());
@@ -116,7 +117,8 @@ export async function installAndroidBackHandler(router: Router): Promise<void> {
         void router
           .replace(consumed)
           .then(() => {
-            document.documentElement.dataset.androidBackLastResult = router.currentRoute.value.fullPath;
+            document.documentElement.dataset.androidBackLastResult =
+              router.currentRoute.value.fullPath;
           })
           .catch((error) => {
             document.documentElement.dataset.androidBackLastResult = "router-error";
@@ -133,7 +135,8 @@ export async function installAndroidBackHandler(router: Router): Promise<void> {
       void router
         .replace("/")
         .then(() => {
-          document.documentElement.dataset.androidBackLastResult = router.currentRoute.value.fullPath;
+          document.documentElement.dataset.androidBackLastResult =
+            router.currentRoute.value.fullPath;
         })
         .catch((error) => {
           document.documentElement.dataset.androidBackLastResult = "router-error";
