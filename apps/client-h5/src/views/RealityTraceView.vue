@@ -229,19 +229,31 @@ const uiFixture = computed<string>(() =>
             >
               {{ summaryLine }}
             </span>
-            <label class="visually-hidden" for="reality-filter">筛选现场记录</label>
-            <select
-              id="reality-filter"
-              v-model="filter"
-              class="reality-filter"
+            <div
+              class="reality-filters"
+              role="group"
+              aria-label="筛选现场记录"
               data-testid="reality-filter"
               data-ui="reality-filter"
             >
-              <option value="all">全部事实</option>
-              <option value="presence">动物现场</option>
-              <option value="staff">工作人员处理</option>
-              <option value="facility">动物设施</option>
-            </select>
+              <button
+                v-for="option in [
+                  { value: 'all', label: '全部' },
+                  { value: 'presence', label: '动物现场' },
+                  { value: 'staff', label: '工作人员' },
+                  { value: 'facility', label: '设施' },
+                ] as const"
+                :key="option.value"
+                type="button"
+                class="reality-filter-chip"
+                :class="{ 'reality-filter-chip--active': filter === option.value }"
+                :aria-pressed="filter === option.value"
+                :data-filter-value="option.value"
+                @click="filter = option.value"
+              >
+                {{ option.label }}
+              </button>
+            </div>
           </div>
         </header>
 
@@ -342,11 +354,39 @@ const uiFixture = computed<string>(() =>
   margin-top: var(--pa-space-4);
 }
 
-.reality-filter {
-  width: auto;
-  min-height: var(--pa-size-control-md);
-  margin: 0 0 0 auto;
+.reality-filters {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pa-space-1);
+  margin-left: auto;
+  padding: 3px;
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: var(--pa-radius-pill);
   background: var(--pa-color-surface);
+}
+
+.reality-filter-chip {
+  min-height: 34px;
+  padding: 0 var(--pa-space-3);
+  border: 0;
+  border-radius: var(--pa-radius-pill);
+  background: transparent;
+  color: var(--pa-color-text-secondary);
+  font: inherit;
+  font-size: var(--pa-font-size-sm);
+  cursor: pointer;
+}
+
+.reality-filter-chip:hover,
+.reality-filter-chip:focus-visible {
+  color: var(--pa-color-text-primary);
+  background: var(--pa-color-surface-interactive);
+}
+
+.reality-filter-chip--active {
+  background: var(--pa-color-accent-weak);
+  color: var(--pa-color-accent);
+  font-weight: var(--pa-font-weight-600);
 }
 
 .reality-head__summary {
@@ -368,8 +408,14 @@ const uiFixture = computed<string>(() =>
     align-items: flex-start;
   }
 
-  .reality-filter {
+  .reality-filters {
+    max-width: 100%;
     margin-left: 0;
+    overflow-x: auto;
+  }
+
+  .reality-filter-chip {
+    flex: 0 0 auto;
   }
 }
 </style>
