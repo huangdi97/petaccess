@@ -38,6 +38,12 @@ const error = ref("");
 const privateSessionReady = ref(false);
 const privateSessionNote = ref("");
 const filter = ref<"all" | "presence" | "staff" | "facility">("all");
+const FILTER_OPTIONS = [
+  { value: "all", label: "全部" },
+  { value: "presence", label: "动物现场" },
+  { value: "staff", label: "工作人员" },
+  { value: "facility", label: "设施" },
+] as const;
 const zoneId = computed(() => (typeof route.query.zone === "string" ? route.query.zone : ""));
 const activeZone = computed(() => zones.value.find((zone) => zone.id === zoneId.value));
 const scopedEvents = computed(() =>
@@ -237,12 +243,7 @@ const uiFixture = computed<string>(() =>
               data-ui="reality-filter"
             >
               <button
-                v-for="option in [
-                  { value: 'all', label: '全部' },
-                  { value: 'presence', label: '动物现场' },
-                  { value: 'staff', label: '工作人员' },
-                  { value: 'facility', label: '设施' },
-                ] as const"
+                v-for="option in FILTER_OPTIONS"
                 :key="option.value"
                 type="button"
                 class="reality-filter-chip"
