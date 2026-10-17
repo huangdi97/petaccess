@@ -361,6 +361,44 @@ async function main() {
     throw new Error("scene media did not load through governed API content endpoint");
   };
 
+  // A route is only evidence once its own data contract reaches a terminal
+  // state. A painted surface is not enough: the packaged WebView can render the
+  // route shell while the Rule/Reality request is still in flight, and
+  // `data-ui-state="loading"` must never be captured as a passing screen.
+  //
+  // Search is the one view whose pre-request paint is already "ready", so its
+  // terminal contract additionally requires an actual result set (rows, the
+  // explicit empty block, or a real error). We wait for the route's expected
+  // state instead of a fixed sleep; a timeout still fails the route.
+  const waitForTerminalState = async (expectedPage, expectedState, timeoutMs = 20000) => {
+    const deadline = Date.now() + timeoutMs;
+    let last = null;
+    while (Date.now() < deadline) {
+      const probe = JSON.parse(
+        await run(`JSON.stringify((() => {
+          const el = document.querySelector('[data-ui-page="${expectedPage}"]');
+          if (!el) return { state: null, settled: false };
+          const state = el.getAttribute("data-ui-state");
+          if (!state || state === "loading") return { state, settled: false };
+          if ("${expectedPage}" === "search" && state !== "error") {
+            const rows = el.querySelectorAll(".result-row").length;
+            const empty = Boolean(el.querySelector('[data-testid="search-empty"]'));
+            return { state, settled: rows > 0 || empty };
+          }
+          return { state, settled: true };
+        })())`),
+      );
+      last = probe;
+      if (probe.settled && (!expectedState || probe.state === expectedState)) {
+        return probe.state;
+      }
+      await sleep(150);
+    }
+    throw new Error(
+      `terminal state timeout: data-ui-page=${expectedPage} expected=${expectedState ?? "-"} last=${JSON.stringify(last)}`,
+    );
+  };
+
   const snapshot = async () =>
     JSON.parse(
       await run(`JSON.stringify((() => {
@@ -486,10 +524,13 @@ async function main() {
     let routeError = null;
     try {
       await waitForSurface(route.expectedPage);
+      await waitForTerminalState(route.expectedPage, route.expectedState);
       if (route.name === "place-overview" && REQUIRE_SCENE_MEDIA) {
         await waitForSceneMedia();
       }
-      await sleep(800);
+      // Paint settle for the captured frame only. Every data dependency above
+      // is a state-based wait, so this never stands in for a missing terminal.
+      await sleep(200);
     } catch (error) {
       routeError = error.message;
     }
