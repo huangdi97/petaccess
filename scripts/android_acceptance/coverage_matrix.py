@@ -78,6 +78,9 @@ def main() -> int:
 
     fast = _load(runtime / "m3_fast.json")
     ime_gate = _load(runtime / "ime_gate.json")
+    lifecycle_preview = _load(runtime / "lifecycle_preview.json")
+    stress_preview = _load(runtime / "route_stress.json")
+    performance_preview = _load(ROOT / "performance" / "memory_summary_preview.json")
     journey = _load(runtime / "cdp_journey_playwright.json")
     journey_routes = journey.get("routes", []) if isinstance(journey, dict) else []
     observed_router_pages = {
@@ -204,7 +207,16 @@ def main() -> int:
         ),
         "Permission States": "NOT_RUN",
         "Lifecycle": (
-            "COVERED" if has("cold_launch.json") and has("warm_launch.json") else "PARTIAL"
+            "COVERED"
+            if isinstance(lifecycle_preview, dict)
+            and lifecycle_preview.get("result") == "PASS"
+            and all(
+                isinstance(value, dict)
+                and value.get("failed") == 0
+                and value.get("passed") == value.get("total")
+                for value in lifecycle_preview.get("scenarios", {}).values()
+            )
+            else "PARTIAL"
         ),
         "Install/Upgrade": (
             "COVERED" if (ROOT / "upgrade" / "upgrade_drill.json").exists() else "PARTIAL"
@@ -213,9 +225,20 @@ def main() -> int:
         "Governed Media": "COVERED" if governed_media_covered else "PARTIAL",
         "Accessibility": "PARTIAL",
         "Performance": (
-            "COVERED" if (ROOT / "performance" / "memory_summary.json").exists() else "PARTIAL"
+            "COVERED"
+            if isinstance(performance_preview, dict)
+            and performance_preview.get("result") == "PASS"
+            and int(performance_preview.get("beforeTotalPssKb") or 0) > 0
+            and int(performance_preview.get("afterTotalPssKb") or 0) > 0
+            else "PARTIAL"
         ),
-        "Stress": "COVERED" if has("route_stress.json") else "PARTIAL",
+        "Stress": (
+            "COVERED"
+            if isinstance(stress_preview, dict)
+            and stress_preview.get("result") == "PASS"
+            and int(stress_preview.get("transitions") or 0) >= 120
+            else "PARTIAL"
+        ),
         "Error Paths": "COVERED" if has("http_status_matrix.json") else "PARTIAL",
     }
 
@@ -261,8 +284,9 @@ def main() -> int:
             "current Tauri Android package."
         ),
         "Lifecycle": (
-            "cold/warm/relaunch/background-foreground/process-death evidence is read from "
-            "the dedicated lifecycle JSON artifacts"
+            "Preview CI records cold, warm, background/foreground and process-death "
+            "packaged-WebView recovery in runtime/lifecycle_preview.json. COVERED requires "
+            "every configured iteration to pass semantic shell and overflow checks."
         ),
         "Install/Upgrade": (
             "upgrade evidence requires upgrade/upgrade_drill.json; file existence is not "
@@ -281,8 +305,14 @@ def main() -> int:
             "Web semantics remain required; native uiautomator visibility inside WebView "
             "is a platform observability limitation, not a semantic waiver."
         ),
-        "Performance": "Memory/CPU evidence is sourced from the performance artifact directory.",
-        "Stress": "Route/interaction stress requires runtime/route_stress.json.",
+        "Performance": (
+            "Preview CI records dumpsys meminfo before/after route stress and applies a "
+            "generous regression ceiling; COVERED requires a parsed non-zero PSS pair and PASS."
+        ),
+        "Stress": (
+            "Preview CI requires at least 120 successful packaged-WebView route transitions "
+            "across Home/Search/Map/Place/Reality/Evidence."
+        ),
         "Error Paths": "HTTP injected-error evidence is sourced from http_status_matrix.json.",
     }
 
@@ -334,6 +364,28 @@ def main() -> int:
             "observed_profiles": sorted(observed_width_profiles),
             "required_actions": sorted(required_width_actions),
             "covered": width_sizes_covered,
+        },
+        "extended_runtime": {
+            "lifecycle_result": (
+                lifecycle_preview.get("result")
+                if isinstance(lifecycle_preview, dict)
+                else None
+            ),
+            "performance_result": (
+                performance_preview.get("result")
+                if isinstance(performance_preview, dict)
+                else None
+            ),
+            "stress_result": (
+                stress_preview.get("result")
+                if isinstance(stress_preview, dict)
+                else None
+            ),
+            "stress_transitions": (
+                stress_preview.get("transitions")
+                if isinstance(stress_preview, dict)
+                else 0
+            ),
         },
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)
