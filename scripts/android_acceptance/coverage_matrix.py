@@ -392,24 +392,16 @@ def main() -> int:
         },
         "extended_runtime": {
             "lifecycle_result": (
-                lifecycle_preview.get("result")
-                if isinstance(lifecycle_preview, dict)
-                else None
+                lifecycle_preview.get("result") if isinstance(lifecycle_preview, dict) else None
             ),
             "performance_result": (
-                performance_preview.get("result")
-                if isinstance(performance_preview, dict)
-                else None
+                performance_preview.get("result") if isinstance(performance_preview, dict) else None
             ),
             "stress_result": (
-                stress_preview.get("result")
-                if isinstance(stress_preview, dict)
-                else None
+                stress_preview.get("result") if isinstance(stress_preview, dict) else None
             ),
             "stress_transitions": (
-                stress_preview.get("transitions")
-                if isinstance(stress_preview, dict)
-                else 0
+                stress_preview.get("transitions") if isinstance(stress_preview, dict) else 0
             ),
         },
     }
