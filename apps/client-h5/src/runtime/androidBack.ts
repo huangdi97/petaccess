@@ -32,6 +32,18 @@ export class ConsumerRouteStack {
     if (!path) return;
     const current = this.entries[this.entries.length - 1];
     if (current === path) return;
+
+    // Query/hash changes are local state of the same Consumer surface (for
+    // example Place ?view=rules -> ?view=evidence). Browser history may keep
+    // those entries, but Android hardware Back should not make the user unwind
+    // every local tab/filter change before leaving the page.
+    const currentRoutePath = current?.split(/[?#]/, 1)[0] ?? "";
+    const nextRoutePath = path.split(/[?#]/, 1)[0] ?? "";
+    if (currentRoutePath && currentRoutePath === nextRoutePath) {
+      this.entries[this.entries.length - 1] = path;
+      return;
+    }
+
     this.entries.push(path);
     if (this.entries.length > 64) this.entries.splice(0, this.entries.length - 64);
   }
