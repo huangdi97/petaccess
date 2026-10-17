@@ -103,11 +103,7 @@ def _snapshot(expect_page: str | None = None, timeout_s: float = 30.0) -> dict:
             if line:
                 last = json.loads(line.removeprefix("SNAPSHOT "))
                 page_ok = expect_page is None or last.get("uiPage") == expect_page
-                if (
-                    last.get("shell")
-                    and not last.get("horizontalOverflow")
-                    and page_ok
-                ):
+                if last.get("shell") and not last.get("horizontalOverflow") and page_ok:
                     return last
         else:
             last_error = (proc.stderr or proc.stdout)[-500:]
@@ -163,9 +159,7 @@ def _launch_cycle(kind: str, total: int, *, background: bool = False, kill: bool
             "uiState": snapshot.get("uiState"),
             "horizontalOverflow": snapshot.get("horizontalOverflow"),
             "ok": (
-                bool(pid_after)
-                and snapshot.get("shell") is True
-                and (not kill or process_changed)
+                bool(pid_after) and snapshot.get("shell") is True and (not kill or process_changed)
             ),
         }
         if kill:
