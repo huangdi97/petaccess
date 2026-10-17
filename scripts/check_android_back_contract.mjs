@@ -43,6 +43,15 @@ assert.equal(duplicate.previous("/search"), "/");
 assert.equal(duplicate.consumeBack("/search"), "/");
 assert.equal(duplicate.previous("/"), null);
 
+// Local query-only state (Place dossier tabs, Search lenses) must stay in
+// browser history without becoming extra Android hardware-Back stops.
+const localState = new ConsumerRouteStack("/search");
+localState.record("/place/demo?view=overview");
+localState.record("/place/demo?view=rules");
+localState.record("/place/demo?view=evidence");
+assert.equal(localState.previous("/place/demo?view=evidence"), "/search");
+assert.equal(localState.consumeBack("/place/demo?view=evidence"), "/search");
+
 // If router state is replaced outside the stack, previous() trims stale
 // destinations until it reaches the actual current route.
 const replaced = new ConsumerRouteStack("/");
@@ -76,5 +85,5 @@ assert.equal(deepLink.previous("/"), null);
 assert.equal(decideAndroidBackAction("/", deepLink.previous("/")), "exit");
 
 console.log(
-  "ANDROID_BACK_CONTRACT=PASS decisions=3 ownership=3 stack=5 duplicate=3 replace=2 bounded=63 deepLink=2",
+  "ANDROID_BACK_CONTRACT=PASS decisions=3 ownership=3 stack=5 duplicate=3 localState=2 replace=2 bounded=63 deepLink=2",
 );
