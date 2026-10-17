@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import pytest
+
 from scripts.android_acceptance.ensure_native_ime_bridge import (
     ActivityContractError,
     activity_has_bridge,
