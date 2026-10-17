@@ -131,14 +131,37 @@ def _launch_cycle(kind: str, total: int, *, background: bool = False, kill: bool
     for index in range(1, total + 1):
         started = time.monotonic()
         pid_before = shell_pidof(SERIAL, PACKAGE).strip()
+        kill_method = ""
+        pid_after_kill = ""
 
         if kill:
             shell(SERIAL, "input", "keyevent", "KEYCODE_HOME", timeout=30)
             time.sleep(0.6)
+            # `am kill` only reaps processes the platform already considers safe
+            # to kill; a just-backgrounded WebView routinely survives it (API 35
+            # run: same pid before/after, so recovery was never exercised). This
+            # scenario requires an observed process death, so fall back to
+            # force-stop, which also preserves app data (`pm clear` would not).
             adb("shell", "am", "kill", PACKAGE, serial=SERIAL, timeout=30, check=False)
+            kill_method = "am-kill"
+            deadline = time.monotonic() + 5
+            while time.monotonic() < deadline and shell_pidof(SERIAL, PACKAGE).strip():
+                time.sleep(0.25)
+            if shell_pidof(SERIAL, PACKAGE).strip():
+                kill_method = "am-force-stop"
+                adb(
+                    "shell",
+                    "am",
+                    "force-stop",
+                    PACKAGE,
+                    serial=SERIAL,
+                    timeout=30,
+                    check=False,
+                )
             deadline = time.monotonic() + 10
             while time.monotonic() < deadline and shell_pidof(SERIAL, PACKAGE).strip():
                 time.sleep(0.25)
+            pid_after_kill = shell_pidof(SERIAL, PACKAGE).strip()
         elif background:
             shell(SERIAL, "input", "keyevent", "KEYCODE_HOME", timeout=30)
             time.sleep(0.8)
@@ -164,6 +187,8 @@ def _launch_cycle(kind: str, total: int, *, background: bool = False, kill: bool
         }
         if kill:
             row["processChanged"] = process_changed
+            row["killMethod"] = kill_method
+            row["pidAfterKill"] = pid_after_kill or None
         rows.append(row)
 
     return {
