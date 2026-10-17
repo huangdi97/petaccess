@@ -100,6 +100,7 @@ body {
   line-height: 1.29;
   font-weight: 750;
   letter-spacing: -0.045em;
+  text-wrap: balance;
   color: var(--pa-discovery-ink);
 }
 
@@ -258,6 +259,14 @@ body {
   background: var(--pa-discovery-v9-tone-25);
   border-radius: 13px;
   color: var(--pa-discovery-v9-tone-01);
+}
+
+#app .home-workspace .home-entries .entry-copy {
+  /* The icon owns row 1 at every width; copy must span the full card so a
+     Chinese label never gets squeezed into the 45px icon column. */
+  grid-column: 1 / -1;
+  grid-row: 2;
+  min-width: 0;
 }
 
 #app .home-workspace .home-entries .entry-label {
