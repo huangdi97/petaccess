@@ -91,10 +91,7 @@ test("A3.1 — 轻量现场确认只新增 Confirmation，不创建新事实候�
   await page.addInitScript((value) => localStorage.setItem("pa_token", value), token);
   await page.goto(`${BASE}/#/place/${MALL_ID}/reality`);
 
-  await page
-    .getByTestId("reality-filter")
-    .locator('[data-filter-value="presence"]')
-    .click();
+  await page.getByTestId("reality-filter").locator('[data-filter-value="presence"]').click();
   const confirm = page.getByRole("button", { name: "我现在也看到了" }).first();
   await expect(confirm).toBeVisible({ timeout: 15000 });
 
