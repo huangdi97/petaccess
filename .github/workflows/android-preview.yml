@@ -413,6 +413,10 @@ jobs:
           for i in $(seq 1 60); do
             if curl -fsS http://127.0.0.1:8000/health >/dev/null; then
               curl -fsS http://127.0.0.1:8000/api/v1/ping
+              # Touch the DB-backed endpoints the packaged Home page calls
+              # first, so the first WebView request never races a cold pool.
+              curl -fsS 'http://127.0.0.1:8000/api/v1/places' >/dev/null
+              curl -fsS 'http://127.0.0.1:8000/api/v1/places/nearby?lat=31.2304&lng=121.4737&radius_m=2000' >/dev/null
               exit 0
             fi
             sleep 2
