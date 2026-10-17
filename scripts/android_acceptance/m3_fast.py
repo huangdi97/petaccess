@@ -12,6 +12,7 @@ import re
 import subprocess
 import sys
 import time
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -41,6 +42,129 @@ EVIDENCE_ROOT = Path(
     )
 )
 PROBE = ROOT / "scripts" / "android_acceptance" / "cdp_probe.cjs"
+
+
+SYSTEM_UI_RECOVERIES: list[dict[str, str]] = []
+_SYSTEM_UI_DUMP = "/sdcard/petaccess-window.xml"
+_BOUNDS_RE = re.compile(r"\\[(?P<x1>\\d+),(?P<y1>\\d+)\\]\\[(?P<x2>\\d+),(?P<y2>\\d+)\\]")
+
+
+def parse_cdp_output(output: str) -> dict[str, object]:
+    """Parse one labelled CDP probe line without scraping JSON with regex."""
+
+    label, separator, payload = output.partition(" ")
+    if not separator or not payload.strip():
+        raise RuntimeError(f"CDP output has no JSON payload: {output[-300:]}")
+    try:
+        parsed = json.loads(payload)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError(
+            f"CDP {label or 'UNKNOWN'} returned invalid JSON: {payload[-300:]}"
+        ) from exc
+    if not isinstance(parsed, dict):
+        raise RuntimeError(f"CDP {label or 'UNKNOWN'} payload is not an object")
+    return parsed
+
+
+def _dump_system_ui() -> str:
+    """Return the current Android accessibility hierarchy XML."""
+
+    shell(SERIAL, "uiautomator", "dump", _SYSTEM_UI_DUMP, timeout=30)
+    raw = shell(SERIAL, "cat", _SYSTEM_UI_DUMP, timeout=30)
+    start = raw.find("<?xml")
+    if start < 0:
+        raise RuntimeError(f"uiautomator dump did not return XML: {raw[-300:]}")
+    return raw[start:]
+
+
+def _system_error_dialog(xml_text: str) -> dict[str, str] | None:
+    """Detect Android ANR/crash dialogs from the native UI tree."""
+
+    try:
+        root = ET.fromstring(xml_text)
+    except ET.ParseError as exc:
+        raise RuntimeError("failed to parse Android UI hierarchy") from exc
+
+    nodes = list(root.iter("node"))
+    wait_node = next(
+        (node for node in nodes if node.attrib.get("resource-id") == "android:id/aerr_wait"),
+        None,
+    )
+    close_node = next(
+        (node for node in nodes if node.attrib.get("resource-id") == "android:id/aerr_close"),
+        None,
+    )
+    texts = [
+        node.attrib.get("text", "").strip()
+        for node in nodes
+        if node.attrib.get("text", "").strip()
+    ]
+    combined = " | ".join(texts)
+    lowered = combined.lower()
+    looks_like_error = (
+        wait_node is not None
+        or close_node is not None
+        or "isn't responding" in lowered
+        or "is not responding" in lowered
+        or "keeps stopping" in lowered
+    )
+    if not looks_like_error:
+        return None
+
+    title = next(
+        (
+            node.attrib.get("text", "").strip()
+            for node in nodes
+            if node.attrib.get("resource-id") == "android:id/alertTitle"
+            and node.attrib.get("text", "").strip()
+        ),
+        combined[:240],
+    )
+    return {
+        "title": title,
+        "text": combined[:800],
+        "wait_bounds": wait_node.attrib.get("bounds", "") if wait_node is not None else "",
+        "close_bounds": close_node.attrib.get("bounds", "") if close_node is not None else "",
+    }
+
+
+def _tap_bounds(bounds: str) -> None:
+    match = _BOUNDS_RE.fullmatch(bounds)
+    if match is None:
+        raise RuntimeError(f"invalid Android UI bounds: {bounds!r}")
+    x = (int(match.group("x1")) + int(match.group("x2"))) // 2
+    y = (int(match.group("y1")) + int(match.group("y2"))) // 2
+    shell(SERIAL, "input", "tap", str(x), str(y), timeout=30)
+
+
+def ensure_clean_system_ui() -> None:
+    """Reject PetAccess ANRs and heal one external emulator-system ANR."""
+
+    dialog = _system_error_dialog(_dump_system_ui())
+    if dialog is None:
+        return
+
+    dialog_identity = (dialog.get("title", "") + " " + dialog.get("text", "")).lower()
+    if "petaccess" in dialog_identity:
+        raise RuntimeError(f"PetAccess system error dialog detected: {dialog}")
+
+    wait_bounds = dialog.get("wait_bounds", "")
+    if not wait_bounds:
+        raise RuntimeError(f"external system error dialog cannot be healed safely: {dialog}")
+
+    _tap_bounds(wait_bounds)
+    time.sleep(1.5)
+    remaining = _system_error_dialog(_dump_system_ui())
+    if remaining is not None:
+        raise RuntimeError(f"external system error dialog persisted after Wait: {remaining}")
+
+    SYSTEM_UI_RECOVERIES.append(
+        {
+            "title": dialog.get("title", ""),
+            "action": "wait",
+            "status": "cleared-before-evidence",
+        }
+    )
 
 
 def ensure_app() -> str:
@@ -230,6 +354,8 @@ def trigger_system_back() -> str:
 
 
 def screenshot(name: str) -> int:
+    ensure_clean_system_ui()
+
     # Python 捕获字节再写文件：不经 cmd 重定向（REG-002 的 UTF-16 风险只影响
     # PowerShell 管道；subprocess capture_output 是纯字节，安全）。
     proc = subprocess.run(
@@ -246,7 +372,7 @@ def screenshot(name: str) -> int:
 
 
 def main() -> int:
-    results: dict[str, str] = {}
+    results: dict[str, object] = {}
     pid = ensure_app()
     results["app_pid"] = pid
 
@@ -271,8 +397,8 @@ def main() -> int:
     try:
         before_back = cdp_probe("snapshot")
         results["hardware_back_before_evidence"] = before_back
-        before_match = re.search(r'"androidBackCallbackCount":(\\d+)', before_back)
-        before_count = int(before_match.group(1)) if before_match else 0
+        before_payload = parse_cdp_output(before_back)
+        before_count = int(before_payload.get("androidBackCallbackCount") or 0)
 
         back_method = trigger_system_back()
         results["hardware_back_from_evidence_method"] = back_method
@@ -280,24 +406,21 @@ def main() -> int:
 
         back_state = cdp_probe("snapshot")
         results["hardware_back_from_evidence"] = back_state
-        after_match = re.search(r'"androidBackCallbackCount":(\\d+)', back_state)
-        after_count = int(after_match.group(1)) if after_match else 0
+        after_payload = parse_cdp_output(back_state)
+        after_count = int(after_payload.get("androidBackCallbackCount") or 0)
         results["hardware_back_callback_delta"] = str(after_count - before_count)
 
-        compact = back_state.replace(" ", "")
         if after_count <= before_count:
             raise RuntimeError(
-                "Android Back callback did not fire for injected system Back; "
-                f"before={before_count} after={after_count}; state={back_state}"
+                "Android Back callback did not fire; "
+                f"before={before_count} after={after_count}"
             )
-        if '"androidBackLastAction":"back"' not in compact:
-            raise RuntimeError(f"Android Back callback fired with wrong action: {back_state}")
-        if '"uiPage":"reality"' not in compact:
-            route_error = (
-                "Android Back callback fired but route did not reach Reality: "
-                + back_state
-            )
-            raise RuntimeError(route_error)
+        if after_payload.get("androidBackLastAction") != "back":
+            action = after_payload.get("androidBackLastAction")
+            raise RuntimeError(f"Android Back action mismatch: {action}")
+        if after_payload.get("uiPage") != "reality":
+            page = after_payload.get("uiPage")
+            raise RuntimeError(f"Android Back route mismatch: {page}")
 
         results["shot_hardware_back"] = f"bytes={screenshot('hardware-back-reality-m3-final')}"
     except Exception as e:  # noqa: BLE001
@@ -402,6 +525,8 @@ def main() -> int:
         for key, value in results.items()
         if isinstance(value, str) and value.startswith("ERROR ")
     }
+    results["system_ui_recoveries"] = SYSTEM_UI_RECOVERIES
+    results["system_ui_recovery_count"] = len(SYSTEM_UI_RECOVERIES)
     results["result"] = "FAIL" if failures else "PASS"
     results["failure_count"] = len(failures)
     payload = json.dumps(results, ensure_ascii=False, indent=1)
