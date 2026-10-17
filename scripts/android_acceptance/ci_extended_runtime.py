@@ -137,8 +137,12 @@ def _launch_cycle(kind: str, total: int, *, background: bool = False, kill: bool
         pid_before = shell_pidof(SERIAL, PACKAGE).strip()
 
         if kill:
+            shell(SERIAL, "input", "keyevent", "KEYCODE_HOME", timeout=30)
+            time.sleep(0.6)
             adb("shell", "am", "kill", PACKAGE, serial=SERIAL, timeout=30, check=False)
-            time.sleep(0.8)
+            deadline = time.monotonic() + 10
+            while time.monotonic() < deadline and shell_pidof(SERIAL, PACKAGE).strip():
+                time.sleep(0.25)
         elif background:
             shell(SERIAL, "input", "keyevent", "KEYCODE_HOME", timeout=30)
             time.sleep(0.8)
@@ -149,6 +153,7 @@ def _launch_cycle(kind: str, total: int, *, background: bool = False, kill: bool
         _start_activity()
         snapshot = _snapshot(timeout_s=35)
         pid_after = shell_pidof(SERIAL, PACKAGE).strip()
+        process_changed = bool(pid_before and pid_after and pid_before != pid_after)
         row = {
             "iteration": index,
             "elapsedMs": round((time.monotonic() - started) * 1000),
@@ -157,10 +162,14 @@ def _launch_cycle(kind: str, total: int, *, background: bool = False, kill: bool
             "uiPage": snapshot.get("uiPage"),
             "uiState": snapshot.get("uiState"),
             "horizontalOverflow": snapshot.get("horizontalOverflow"),
-            "ok": bool(pid_after) and snapshot.get("shell") is True,
+            "ok": (
+                bool(pid_after)
+                and snapshot.get("shell") is True
+                and (not kill or process_changed)
+            ),
         }
         if kill:
-            row["processChanged"] = bool(pid_before and pid_after and pid_before != pid_after)
+            row["processChanged"] = process_changed
         rows.append(row)
 
     return {
