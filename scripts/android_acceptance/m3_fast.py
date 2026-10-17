@@ -376,7 +376,19 @@ def main() -> int:
 
     for step in ("home", "search", "map", "place", "reality", "evidence"):
         try:
-            results[step] = cdp_probe(step)
+            try:
+                results[step] = cdp_probe(step)
+            except Exception as first_error:  # noqa: BLE001 - recovery is scoped to Home
+                if step != "home":
+                    raise
+                # A fresh install can paint Home before the emulator/host
+                # network path is ready, leaving the app's recoverable
+                # "nearby unavailable" state. Reload the packaged app once and
+                # still require the real home/ready terminal state; a genuine
+                # backend/product failure keeps failing here.
+                results["home_first_attempt"] = f"ERROR {first_error}"[-500:]
+                results[step] = cdp_probe("reload")
+                results["home_recovery"] = "reload-once"
             compact = results[step].replace(" ", "")
             expected_back = "system-root" if step == "home" else "intercepting"
             if f'"androidBack":"{expected_back}"' not in compact:

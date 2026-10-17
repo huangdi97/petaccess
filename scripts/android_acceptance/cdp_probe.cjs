@@ -202,6 +202,40 @@ async function main() {
     await logRoute("REALITY", `#/place/${PLACE_ID}/reality`, "reality", 2600);
   } else if (action === "evidence") {
     await logRoute("EVIDENCE", `#/place/${PLACE_ID}/evidence`, "evidence", 2600);
+  } else if (action === "reload") {
+    // One bounded self-heal for the first screen after a fresh install: the
+    // WebView can paint Home before the emulator/host network path is ready,
+    // leaving Home in its recoverable "nearby unavailable" state. Reload the
+    // packaged app and still require the real home/ready terminal state.
+    await run("location.reload(); true");
+    await sleep(3500);
+    const deadline = Date.now() + 25000;
+    let last = null;
+    let lastError = "";
+    while (Date.now() < deadline) {
+      try {
+        last = await snapshot();
+        if (
+          last.shell &&
+          last.uiPage === "home" &&
+          last.uiState === "ready" &&
+          !last.horizontalOverflow &&
+          !last.safeAreaOverlap &&
+          !last.safeAreaBottomOverlap
+        ) {
+          console.log(`RELOAD ${JSON.stringify(last)}`);
+          ws.close();
+          return;
+        }
+      } catch (error) {
+        // A reload tears down the JS context for a moment.
+        lastError = error.message;
+      }
+      await sleep(300);
+    }
+    throw new Error(
+      `RELOAD: home did not reach ready within 25s; last=${JSON.stringify(last)} error=${lastError}`,
+    );
   } else if (action === "snapshot") {
     const value = await snapshot();
     if (
