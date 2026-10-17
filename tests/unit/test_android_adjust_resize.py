@@ -9,7 +9,6 @@ from scripts.android_acceptance.ensure_adjust_resize import (
     patch_manifest_text,
 )
 
-
 BASE = """<manifest xmlns:android="http://schemas.android.com/apk/res/android">
   <application>
     <activity
