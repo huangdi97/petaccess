@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import json
+import re
 import os
 import subprocess
 import sys
@@ -268,13 +269,32 @@ def main() -> int:
     # exit, blank WebView or wrong route is a product failure, not a platform
     # limitation.
     try:
+        before_back = cdp_probe("snapshot")
+        results["hardware_back_before_evidence"] = before_back
+        before_match = re.search(r'"androidBackCallbackCount":(\\d+)', before_back)
+        before_count = int(before_match.group(1)) if before_match else 0
+
         back_method = trigger_system_back()
         results["hardware_back_from_evidence_method"] = back_method
         time.sleep(2)
+
         back_state = cdp_probe("snapshot")
         results["hardware_back_from_evidence"] = back_state
-        if '"uiPage":"reality"' not in back_state.replace(" ", ""):
-            raise RuntimeError(f"expected Reality after Back, got: {back_state}")
+        after_match = re.search(r'"androidBackCallbackCount":(\\d+)', back_state)
+        after_count = int(after_match.group(1)) if after_match else 0
+        results["hardware_back_callback_delta"] = str(after_count - before_count)
+
+        compact = back_state.replace(" ", "")
+        if after_count <= before_count:
+            raise RuntimeError(
+                "Android Back callback did not fire for injected system Back; "
+                f"before={before_count} after={after_count}; state={back_state}"
+            )
+        if '"androidBackLastAction":"back"' not in compact:
+            raise RuntimeError(f"Android Back callback fired with wrong action: {back_state}")
+        if '"uiPage":"reality"' not in compact:
+            raise RuntimeError(f"Android Back callback fired but route did not reach Reality: {back_state}")
+
         results["shot_hardware_back"] = f"bytes={screenshot('hardware-back-reality-m3-final')}"
     except Exception as e:  # noqa: BLE001
         results["hardware_back_from_evidence"] = f"ERROR {e}"
