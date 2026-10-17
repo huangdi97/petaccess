@@ -94,6 +94,8 @@ def _snapshot(expect_page: str | None = None, timeout_s: float = 30.0) -> dict:
             text=True,
             timeout=30,
             check=False,
+            encoding="utf-8",
+            errors="replace",
         )
         if proc.returncode == 0:
             line = next(
@@ -213,6 +215,8 @@ def _run_stress() -> dict:
         timeout=180,
         check=False,
         env=env,
+        encoding="utf-8",
+        errors="replace",
     )
     if proc.returncode != 0:
         raise RuntimeError(f"route stress failed: {(proc.stderr or proc.stdout)[-1000:]}")

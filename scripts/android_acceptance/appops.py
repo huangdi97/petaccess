@@ -66,6 +66,8 @@ def aapt_badging(path: Path) -> str:
         text=True,
         timeout=60,
         check=False,
+        encoding="utf-8",
+        errors="replace",
     )
     return (proc.stdout or "") + (proc.stderr or "")
 

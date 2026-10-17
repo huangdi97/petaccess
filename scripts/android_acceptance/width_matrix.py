@@ -101,6 +101,8 @@ def _probe(pid: str, action: str) -> dict:
         text=True,
         timeout=120,
         check=False,
+        encoding="utf-8",
+        errors="replace",
     )
     if proc.returncode != 0:
         raise RuntimeError(

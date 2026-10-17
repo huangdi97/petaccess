@@ -211,6 +211,8 @@ def cdp_probe(step: str, retries: int = 4) -> str:
             capture_output=True,
             text=True,
             timeout=120,
+            encoding="utf-8",
+            errors="replace",
         )
         if out.returncode == 0:
             return out.stdout.strip()

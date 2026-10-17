@@ -85,6 +85,8 @@ def _apk_package(apk: Path) -> str:
         text=True,
         timeout=60,
         check=False,
+        encoding="utf-8",
+        errors="replace",
     )
     if proc.returncode != 0:
         raise SystemExit(f"aapt failed for {apk}: {(proc.stderr or proc.stdout)[-600:]}")
