@@ -96,6 +96,10 @@ export async function installAndroidBackHandler(router: Router): Promise<void> {
 
   const handleBack = ({ canGoBack }: { canGoBack: boolean }): void => {
     const current = router.currentRoute.value.fullPath;
+    const callbackCount = Number(document.documentElement.dataset.androidBackCallbackCount ?? "0") + 1;
+    document.documentElement.dataset.androidBackCallbackCount = String(callbackCount);
+    document.documentElement.dataset.androidBackLastRoute = current;
+    document.documentElement.dataset.androidBackLastAt = String(Date.now());
     const routePath = router.currentRoute.value.path;
     const target = stack.previous(current);
     const action = decideAndroidBackAction(routePath, target);
@@ -106,13 +110,35 @@ export async function installAndroidBackHandler(router: Router): Promise<void> {
 
     if (action === "back") {
       const consumed = stack.consumeBack(current);
-      if (consumed) void router.replace(consumed);
+      document.documentElement.dataset.androidBackLastAction = "back";
+      document.documentElement.dataset.androidBackLastTarget = consumed ?? "";
+      if (consumed) {
+        void router
+          .replace(consumed)
+          .then(() => {
+            document.documentElement.dataset.androidBackLastResult = router.currentRoute.value.fullPath;
+          })
+          .catch((error) => {
+            document.documentElement.dataset.androidBackLastResult = "router-error";
+            console.error("PETACCESS_ANDROID_BACK router.replace failed", error);
+          });
+      }
       return;
     }
 
     if (action === "home") {
+      document.documentElement.dataset.androidBackLastAction = "home";
+      document.documentElement.dataset.androidBackLastTarget = "/";
       stack.reset("/");
-      void router.replace("/");
+      void router
+        .replace("/")
+        .then(() => {
+          document.documentElement.dataset.androidBackLastResult = router.currentRoute.value.fullPath;
+        })
+        .catch((error) => {
+          document.documentElement.dataset.androidBackLastResult = "router-error";
+          console.error("PETACCESS_ANDROID_BACK router.replace home failed", error);
+        });
       return;
     }
 
