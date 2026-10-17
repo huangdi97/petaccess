@@ -164,6 +164,7 @@ export PETACCESS_ANDROID_AUTH_TOKEN="$AUTH_TOKEN"
 
 node scripts/android_acceptance/cdp_journey.cjs
 node scripts/android_acceptance/ime_gate.cjs
+python scripts/android_acceptance/ci_extended_runtime.py
 python scripts/android_acceptance/width_matrix.py
 python scripts/android_acceptance/coverage_matrix.py
 python scripts/android_acceptance/build_preview_review_board.py
@@ -193,6 +194,9 @@ assert coverage["matrix"]["IME / Input"] == "COVERED", coverage
 assert coverage["device_sizes"]["covered"] is True, coverage
 assert coverage["matrix"]["Visual"] == "COVERED", coverage
 assert coverage["matrix"]["Governed Media"] == "COVERED", coverage
+assert coverage["matrix"]["Lifecycle"] == "COVERED", coverage
+assert coverage["matrix"]["Performance"] == "COVERED", coverage
+assert coverage["matrix"]["Stress"] == "COVERED", coverage
 assert coverage["governed_media"]["decoded"] is True, coverage
 assert set(coverage["observed_authenticated_case_ids"]) >= set(
     coverage["required_authenticated_case_ids"]
