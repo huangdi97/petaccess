@@ -1,3 +1,23 @@
+## Current phase（2026-10-17 — Local×Remote reconciliation + Android Preview runtime closure）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 保持 **draft**；master / tag / GitHub Release 均未推进。`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`；机器 PASS 不等于真人视觉验收。
+- 本轮先做双向事实核对再开发：工作区 `E:\AI\宠物管理` 当时在 `feat/ui-product-craft-v7-human-review-final`（干净）；ASCII worktree `D:\pa-fix` 在 `feat/ui-direct-craft-v8` 的 `6dc296c`（落后远端 2576 commits，干净）；`git fetch` 后远端为 `d193be30`。本地没有未提交成果或独立提交需要保护，`D:\pa-fix` 直接 fast-forward 到 `d193be30`，未覆盖任何本地工作。
+- 本轮提交（在 `d193be30` 之后）：`139e023e` Ruff 格式化；`17dc47f9` CDP journey 终态等待；`57214e90` 生命周期真实进程死亡；`81d4010d` 首页入口卡中文换行；`cd309a1e` 冷启动 Home 有界恢复；`4f6dc690` API 数据接口预热；`59fbd3b7` / `fa9604ec` Windows UTF-8；`30bed586` 场所操作按钮不拆行。
+- 源码 HEAD `30bed586` 的远端机器结果（同一 SHA）：
+  - Android Preview APK run `39042022036` 四个 job 全 **SUCCESS**：x86_64 emulator APK、ARM64 USB-device APK、API35 runtime smoke、API36 runtime smoke；
+  - PR CI `39042025090` SUCCESS（M1 / frontend / backend / Playwright，含 `A1.mobile` 移动端贡献选择器门禁）；
+  - UI Direct Validation `39042024956`、UI Direct Visual `39042025029`、Public Preview Stack Validation `39042024984`、Windows Preview Runtime `39042021986`、Android Phone Preview APK `39042022009`、Branch Autofmt `39042022043` 均 SUCCESS。
+- 运行时修复有真实证据：
+  - API35 lifecycle `process_death` 2/2 PASS：`killMethod=am-force-stop`、`pidAfterKill=null`、`processChanged=true`（此前 `am kill` 并未杀死进程，恢复从未被真正执行）；
+  - API36 full journey 28/28 PASS（21 public + 7 authenticated），Search 终态 `search/ready`；此前固定 1.5s 取样会在冷请求时拍到 `loading`；
+  - 两条 runtime 均 `horizontalOverflow=false`；Evidence → 系统 Back → Reality，以及 Home → 系统 Back → launcher，由结构化 `androidBackCallback*` 遥测确认。
+- 本地真机态复验（Pixel 5 AVD API36 `emulator-5562`，APK 由 `4f6dc69` 构建，`com.petaccess.map.preview`）：
+  - FAST = PASS、`failure_count=0`；full CDP journey = **28/28 PASS**；截图与 JSON 证据保留在本轮工作区（不提交二进制）；
+  - 本机宿主 8000 被另一 WSL 服务占用，本地 API 临时使用 8010，并在模拟器内用 iptables DNAT 把 `10.0.2.2:8000` 指向 8010；CI 仍走标准 8000 链路，未改变产品 endpoint 契约；
+  - 本地运行暴露并修复了 Windows GBK 解码/编码缺陷（`59fbd3b7` / `fa9604ec`），否则成功结果会在汇总阶段被误判为失败。
+- 视觉修复（机器复核，不代替真人验收）：移动端首页入口卡文字不再被 45px 图标列挤压逐字换行；393dp 下 Place 三个操作按钮等高、箭头不再单独换行，document 无横向溢出。
+- 本段之后的 docs 提交只改文档，不改变 Consumer / runtime；最终停止线不变：PR 保持 draft，未 merge、未 tag、未 Release。
+
 ## Current phase（2026-10-13 — direct-v8 Packaged Runtime VERIFIED）
 
 - 分支：`feat/ui-direct-craft-v8`；PR #1 继续保持 **draft**；master / tag / GitHub Release 均未推进。

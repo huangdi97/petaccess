@@ -242,3 +242,19 @@ Preview APK 只证明“候选安装包已生成并经过 package/signature 检�
 而不是把该 target 当成完整桌面 Chromium browser context。这样既保留真实 DOM / route /
 screenshot 证据，也避免 Playwright `connectOverCDP()` 在 WebView 上发送仅浏览器上下文支持的
 Browser-domain 命令导致假失败。
+
+### 9.1 终态等待与进程死亡契约（2026-10-17）
+
+- 每条 route 的截图与判定必须在该 route 的 `data-ui-state` 进入终态后进行；`loading`
+  永远不是 PASS。Search 额外要求出现真实结果集（结果行 / 显式空态 / 错误）后才算终态，
+  因为它在请求发出前的首帧也会是 `ready`。
+- 进程死亡场景先 `am kill`；若 pid 仍存活则回退 `am force-stop`。只有观察到 pid 真正改变，
+  才允许把“进程死亡后恢复”记为 PASS。`force-stop` 保留应用数据（不是 `pm clear`），
+  证据同时记录 `killMethod` 与 `pidAfterKill`。
+- 新装或冷启动后首次 Home 若因宿主网络瞬断进入可恢复的“附近不可用”状态，允许一次有界
+  reload；最终仍必须是 `home/ready`，且第一次失败原文写入证据，不能静默吞掉。
+- CI 在 API 启动后先预热 `/api/v1/places` 与 `/api/v1/places/nearby`，避免打包 WebView
+  的首个数据请求撞上冷连接池。
+- 验收脚本在 Windows 本地运行时显式以 UTF-8 解码 CDP/Node 输出并显式 UTF-8 打印汇总；
+  否则默认 GBK 会让含中文的成功结果在最后一步被误判为失败。
+
