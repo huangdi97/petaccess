@@ -377,12 +377,8 @@ def main() -> int:
             "result": (
                 domain_semantics.get("result") if isinstance(domain_semantics, dict) else None
             ),
-            "passed": (
-                domain_semantics.get("passed") if isinstance(domain_semantics, dict) else 0
-            ),
-            "failed": (
-                domain_semantics.get("failed") if isinstance(domain_semantics, dict) else 0
-            ),
+            "passed": (domain_semantics.get("passed") if isinstance(domain_semantics, dict) else 0),
+            "failed": (domain_semantics.get("failed") if isinstance(domain_semantics, dict) else 0),
         },
         "extended_runtime": {
             "lifecycle_result": (
