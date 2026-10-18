@@ -843,7 +843,10 @@ test("B2.4 — approved non-scene evidence never becomes a Place cover", async (
   await expect(page.getByTestId("section-answer")).toBeVisible({ timeout: 15000 });
   await expect.poll(() => checked).toBeGreaterThan(0);
   await expect(page.getByTestId("place-scene-media")).toHaveCount(0);
-  await expect(page.getByTestId("place-scene-fallback")).toBeVisible();
+  // No reviewed photo: the identity header shows the labelled category-scene
+  // illustration instead of the compact neutral glyph tile.
+  await expect(page.getByTestId("place-scene-fallback")).toBeHidden();
+  await expect(page.getByTestId("place-scene-note")).toBeVisible();
 });
 
 test("B2.4 — partial Place data exposes a fail-closed retry path", async ({ page }) => {
@@ -883,10 +886,12 @@ test("B4.3 — Place identity renders and map CTA reflects coordinate availabili
   page,
 }) => {
   await page.goto(`${BASE}/#/place/${MALL_ID}`);
-  // Identity uses reviewed scene media when available; otherwise it uses the
-  // neutral type glyph. Neither branch invents a venue photograph.
+  // Identity uses reviewed scene media when available; otherwise it shows the
+  // labelled category-scene illustration. The hidden fallback frame remains in
+  // the DOM for provenance, so the visible assertion targets the two branches
+  // that can actually fill the hero.
   await expect(
-    page.getByTestId("place-scene-media").or(page.getByTestId("place-scene-fallback")),
+    page.getByTestId("place-scene-media").or(page.getByTestId("place-scene-note")),
   ).toBeVisible({ timeout: 15000 });
   await expect(page.getByTestId("place-map-link")).toContainText("地图定位");
 

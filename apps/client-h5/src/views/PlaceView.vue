@@ -463,7 +463,11 @@ const placeFixture = computed<string>(() => {
             }"
             data-ui="place-identity"
           >
-            <span v-if="!placeSceneMedia" class="place-dossier__scene-note">
+            <span
+              v-if="!placeSceneMedia"
+              class="place-dossier__scene-note"
+              data-testid="place-scene-note"
+            >
               暂无审核照片 · 分类场景示意
             </span>
             <PlaceSceneFrame
