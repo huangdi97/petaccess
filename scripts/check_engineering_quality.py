@@ -153,7 +153,19 @@ def check_consumer_runtime_boundary() -> list[dict]:
 
     preview_config_path = ROOT / "apps" / "client-h5" / "src-tauri" / "tauri.preview.conf.json"
     preview_workflow_path = ROOT / ".github" / "workflows" / "android-preview.yml"
-    if preview_config_path.exists() and preview_workflow_path.exists():
+    if not preview_config_path.exists() or not preview_workflow_path.exists():
+        violations.append(
+            {
+                "rule": "runtime-boundary",
+                "path": ".github/workflows/android-preview.yml",
+                "severity": "FAIL",
+                "detail": (
+                    "Canonical Android Preview must keep both the isolated Tauri preview "
+                    "config and the GitHub Actions APK workflow."
+                ),
+            }
+        )
+    else:
         preview_config = json.loads(preview_config_path.read_text(encoding="utf-8"))
         preview_text = preview_workflow_path.read_text(encoding="utf-8")
         if preview_config.get("identifier") != "com.petaccess.map.preview":
@@ -254,7 +266,19 @@ def check_consumer_runtime_boundary() -> list[dict]:
             )
 
     phone_preview_workflow_path = ROOT / ".github" / "workflows" / "android-phone-preview.yml"
-    if phone_preview_workflow_path.exists():
+    if not phone_preview_workflow_path.exists():
+        violations.append(
+            {
+                "rule": "runtime-boundary",
+                "path": ".github/workflows/android-phone-preview.yml",
+                "severity": "FAIL",
+                "detail": (
+                    "Standalone Android Phone Preview workflow is required so an ARM64 phone "
+                    "artifact cannot silently regress to the USB-only development path."
+                ),
+            }
+        )
+    else:
         phone_preview_text = phone_preview_workflow_path.read_text(encoding="utf-8")
         required_phone_preview_markers = (
             'url.protocol !== "https:"',
