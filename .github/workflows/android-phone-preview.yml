@@ -7,8 +7,11 @@ on:
     paths:
       - "apps/client-h5/**"
       - "packages/client-core/**"
+      - "packages/api-client/**"
       - "packages/design-tokens/**"
+      - "package.json"
       - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
       - ".github/workflows/android-phone-preview.yml"
       - "scripts/release/verify_public_api.cjs"
       - "scripts/android_acceptance/ensure_adjust_resize.py"
