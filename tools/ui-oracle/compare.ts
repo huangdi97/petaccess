@@ -769,6 +769,10 @@ export function runCompare(): void {
     { PASS: 0, WARN: 0, FAIL: 0 },
   );
   console.log(`[${STAGE}] TOTAL PASS=${total.PASS} WARN=${total.WARN} FAIL=${total.FAIL}`);
+  // Contract FAIL must be a real CI failure. Reports are still written before
+  // setting exitCode so the workflow's always() review-board/artifact steps can
+  // publish the exact failing evidence for diagnosis.
+  if (total.FAIL > 0) process.exitCode = 1;
 }
 
 if (
