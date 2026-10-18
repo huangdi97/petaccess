@@ -643,8 +643,8 @@ function compareState(expect: StateExpectation, probe: PageProbe, out: CompareRo
       row(
         `${probe.pageId}-${id}`,
         "state",
-        field,
-        expected,
+        `${field}=${String(expected)}`,
+        actual,
         String(actual) === String(expected),
         "FAIL",
         `expected=${String(expected)} actual=${String(actual)} route=${s.route}`,
