@@ -457,9 +457,15 @@ const placeFixture = computed<string>(() => {
           <!-- 1. Identity（§16 Overview 第一块） -->
           <header
             class="place-dossier__head"
-            :class="{ 'place-dossier__head--with-scene': Boolean(placeSceneMedia) }"
+            :class="{
+              'place-dossier__head--with-scene': Boolean(placeSceneMedia),
+              'place-dossier__head--illustrated': !placeSceneMedia,
+            }"
             data-ui="place-identity"
           >
+            <span v-if="!placeSceneMedia" class="place-dossier__scene-note">
+              暂无审核照片 · 分类场景示意
+            </span>
             <PlaceSceneFrame
               v-if="placeSceneMedia"
               class="place-dossier__scene place-dossier__scene--hero"

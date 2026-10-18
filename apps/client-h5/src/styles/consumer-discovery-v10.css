@@ -522,6 +522,7 @@ html,
   position: relative;
   display: flex;
   flex-direction: column;
+  align-items: stretch;
   justify-content: flex-end;
   min-height: 340px;
   padding: 0;
@@ -607,6 +608,7 @@ html,
 #app .place-workspace .place-dossier__head--with-scene .place-dossier__actions {
   position: relative;
   z-index: 2;
+  width: 100%;
   margin: 0;
   padding: 8px 30px 26px;
 }
@@ -957,5 +959,124 @@ html,
   #app .mine-head--signed-in {
     padding: 20px 20px;
     border-radius: 18px;
+  }
+}
+
+/* -- Illustrated identity header when no reviewed photo exists. The category
+ * scene is explicitly labelled; it never pretends to be a venue photo. */
+#app .place-workspace .place-dossier__head--illustrated {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-end;
+  min-height: 340px;
+  padding: 0;
+  overflow: hidden;
+  background: var(--pa-discovery-v10-hero) url("/discovery-hero.svg") center / cover no-repeat;
+  border: 0;
+  border-radius: 22px;
+}
+
+#app .place-workspace .place-dossier__head--illustrated::after {
+  position: absolute;
+  z-index: 1;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 300px;
+  content: "";
+  background: linear-gradient(
+    0deg,
+    var(--pa-discovery-v10-hero-shade-left) 0%,
+    var(--pa-discovery-v10-hero-shade-mid) 52%,
+    transparent 100%
+  );
+}
+
+#app .place-workspace .place-dossier__head--illustrated .place-dossier__scene--fallback {
+  display: none;
+}
+
+#app .place-workspace .place-dossier__head--illustrated .place-dossier__identity-row {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  padding: 26px 30px 8px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+#app .place-workspace .place-dossier__head--illustrated .place-dossier__name {
+  color: var(--pa-discovery-v10-white);
+}
+
+#app .place-workspace .place-dossier__head--illustrated .place-dossier__meta {
+  color: var(--pa-discovery-v10-hero-body);
+}
+
+#app .place-workspace .place-dossier__head--illustrated .place-dossier__map-link {
+  color: var(--pa-discovery-v10-white);
+}
+
+#app .place-workspace .place-dossier__head--illustrated .place-dossier__status {
+  margin-top: 10px;
+}
+
+#app .place-workspace .place-dossier__head--illustrated .place-dossier__actions {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  margin: 0;
+  padding: 8px 30px 26px;
+}
+
+#app .place-workspace .place-dossier__head--illustrated .place-dossier__actions .btn-inline {
+  border-color: var(--pa-discovery-v10-hero-glass-border);
+  background: var(--pa-discovery-v10-hero-glass);
+  color: var(--pa-discovery-v10-white);
+}
+
+#app
+  .place-workspace
+  .place-dossier__head--illustrated
+  .place-dossier__actions
+  .btn-inline:first-child {
+  border-color: var(--pa-discovery-v10-white);
+  background: var(--pa-discovery-v10-white);
+  color: var(--pa-discovery-v9-tone-01);
+}
+
+#app .place-workspace .place-dossier__scene-note {
+  position: absolute;
+  z-index: 3;
+  top: 16px;
+  left: 16px;
+  padding: 6px 11px;
+  border: 1px solid var(--pa-discovery-v10-hero-glass-border);
+  border-radius: 999px;
+  background: var(--pa-discovery-v10-hero-shade-mid);
+  color: var(--pa-discovery-v10-white);
+  font-size: 11px;
+}
+
+@media (max-width: 767px) {
+  #app .place-workspace .place-dossier__head--illustrated {
+    min-height: 360px;
+    border-radius: 18px;
+  }
+
+  #app .place-workspace .place-dossier__head--illustrated .place-dossier__identity-row {
+    padding: 18px 16px 6px;
+  }
+
+  #app .place-workspace .place-dossier__head--illustrated .place-dossier__actions {
+    padding: 6px 16px 18px;
+  }
+
+  #app .place-workspace .place-dossier__scene-note {
+    top: 12px;
+    left: 12px;
   }
 }

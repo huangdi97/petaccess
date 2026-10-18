@@ -21,6 +21,7 @@ import SkeletonList from "../SkeletonList.vue";
 import StateMessage from "../StateMessage.vue";
 import StatusBadge from "../StatusBadge.vue";
 import PlaceTypeGlyph from "./PlaceTypeGlyph.vue";
+import PlaceSceneFrame from "./PlaceSceneFrame.vue";
 import type { MapLensKey } from "../../consumer/mapLens";
 
 const props = defineProps<{
@@ -38,6 +39,7 @@ const props = defineProps<{
   filters: string[];
   searchLoading?: boolean;
   searchError?: string;
+  sceneMediaUrls?: Record<string, string>;
 }>();
 
 const emit = defineEmits<{
@@ -225,7 +227,16 @@ function toggleFilter(key: string) {
             >
               <div class="map-place-row__head">
                 <div class="map-place-row__identity-wrap">
-                  <PlaceTypeGlyph :place-type="p.place_type" size="sm" />
+                  <PlaceSceneFrame
+                    v-if="props.sceneMediaUrls?.[p.id]"
+                    class="map-place-row__scene"
+                    :src="props.sceneMediaUrls[p.id]"
+                    :alt="`场所场景：${p.canonical_name}`"
+                    :place-type="p.place_type"
+                    variant="compact"
+                    data-testid="map-row-scene-media"
+                  />
+                  <PlaceTypeGlyph v-else :place-type="p.place_type" size="sm" />
                   <div class="map-place-row__identity">
                     <strong>{{ p.canonical_name }}</strong>
                     <span class="muted">
@@ -464,9 +475,18 @@ function toggleFilter(key: string) {
 
 .map-place-row__identity-wrap {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--pa-space-3);
   min-width: 0;
+}
+
+.map-place-row__scene {
+  --scene-frame-compact-width: 46px;
+  --scene-frame-compact-height: 46px;
+  --scene-frame-compact-empty-width: 46px;
+  --scene-frame-compact-empty-height: 46px;
+  flex: 0 0 46px;
+  border-radius: var(--pa-radius-control);
 }
 
 .map-place-row__identity {

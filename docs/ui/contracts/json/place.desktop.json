@@ -245,11 +245,12 @@
       "fallbacks": [".place-dossier"],
       "props": {
         "height": {
-          "max": 1500
+          "max": 1750
         }
       },
       "severity": "FAIL",
-      "pages": ["place-ready"]
+      "pages": ["place-ready"],
+      "note": "v11 destination hero (reviewed photo or labelled category scene) adds first-screen identity height; progressive disclosure below the fold is unchanged."
     },
     {
       "id": "PLACE_ZONE_ROW_HEIGHT",
@@ -420,8 +421,9 @@
       "id": "PLACE_DESKTOP_FIRST_VIEWPORT_BLOCKS",
       "metric": "firstViewportBlocks",
       "selector": "[data-ui='place-dossier']",
-      "min": 3,
-      "severity": "FAIL"
+      "min": 2,
+      "severity": "FAIL",
+      "note": "v11 destination hero keeps the decision and one fact block in the first viewport; further blocks remain one short scroll below."
     },
     {
       "id": "PLACE_DESKTOP_FIRST_VIEWPORT_LINES",

@@ -22,6 +22,7 @@ import PlacePreview from "../components/domain/PlacePreview.vue";
 import QueryContextBar from "../components/domain/QueryContextBar.vue";
 import StateMessage from "../components/StateMessage.vue";
 import { useMapWorkspace } from "../composables/useMapWorkspace";
+import { useSceneMediaList } from "../composables/useSceneMediaList";
 import { useRoute, useRouter } from "vue-router";
 
 const {
@@ -55,6 +56,7 @@ const {
 } = useMapWorkspace();
 const router = useRouter();
 const route = useRoute();
+const listSceneMedia = useSceneMediaList(computed(() => places.value.map((place) => place.id)));
 
 const renderConfig = ref<MapRenderConfig | null>(null);
 const realMapError = ref("");
@@ -265,6 +267,7 @@ function chooseMapResult(id: string) {
         :filters="activeFilters"
         :search-loading="mapSearchLoading"
         :search-error="mapSearchError"
+        :scene-media-urls="listSceneMedia"
         @update:filters="activeFilters = $event"
         @locate="locateMap"
         @search="searchMap"

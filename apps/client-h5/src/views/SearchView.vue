@@ -50,6 +50,7 @@ import { queryAnimalLabel } from "../consumer/queryContext";
 import { useBreakpoint } from "../composables/useBreakpoint";
 import { useOnline } from "../composables/useOnline";
 import { usePlaceSceneMedia } from "../composables/usePlaceSceneMedia";
+import { useSceneMediaList } from "../composables/useSceneMediaList";
 import { publicSourceIssuer } from "../consumer/sourcePrivacy";
 import { presentDescription } from "../errors";
 import {
@@ -341,6 +342,7 @@ onMounted(async () => {
 const { desktop: isDesktop, mobile: isMobile } = useBreakpoint();
 const selectedId = ref<string | null>(null);
 const selectedSceneMedia = usePlaceSceneMedia(computed(() => selectedId.value));
+const listSceneMedia = useSceneMediaList(computed(() => results.value.map((place) => place.id)));
 
 // Desktop List–Detail must never show detail for a row hidden by the active
 // filter/lens. Keep selection inside the visible result set.
@@ -579,12 +581,15 @@ watch(currentQueryContext, () => {
                   <div class="result-row__identity-wrap">
                     <PlaceSceneFrame
                       class="result-row__visual"
-                      :src="selectedId === p.id ? (selectedSceneMedia?.url ?? null) : null"
+                      :src="
+                        listSceneMedia[p.id] ??
+                        (selectedId === p.id ? (selectedSceneMedia?.url ?? null) : null)
+                      "
                       alt=""
                       :place-type="p.place_type"
                       variant="compact"
                       :data-testid="
-                        selectedId === p.id && selectedSceneMedia
+                        listSceneMedia[p.id] || (selectedId === p.id && selectedSceneMedia)
                           ? 'search-row-scene-media'
                           : 'search-row-scene-fallback'
                       "
