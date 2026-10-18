@@ -128,7 +128,11 @@ Tauri CSP 使用显式 allowlist，因此不能为了“让某个临时地址能
 - Phone Preview：接受一个**绝对 HTTPS API URL**，并只把该 URL 的 origin 加入本次
   Preview 的 CSP。手动 `workflow_dispatch` 可以通过 `api_base` 显式覆盖；如果仓库变量
   `PETACCESS_PHONE_PREVIEW_API_BASE` 已配置，则 `feat/ui-direct-craft-v8` 上的 Consumer /
-  Tauri 相关改动会自动生成 ARM64 standalone Phone Preview。未配置该变量时，workflow 仍会
+  Tauri 相关改动会自动生成 ARM64 standalone Phone Preview。自动 freshness trigger 不只覆盖
+  `apps/client-h5/**`，还必须覆盖 `packages/client-core/**`、`packages/api-client/**`、
+  `packages/design-tokens/**`、根 `package.json`、`pnpm-lock.yaml` 与
+  `pnpm-workspace.yaml`；否则 API client 或 workspace 构建边界变化后，GitHub 上仍可能留下
+  一个 SHA 更新但运行契约已陈旧的手机 Preview。未配置该变量时，workflow 仍会
   运行 `Android Phone Preview · readiness`，并明确输出
   `BLOCKED_BY_API_BASE`；standalone ARM64 build 只在 readiness=READY 后启动。
   这样“没有独立手机包”是可观测的外部依赖状态，不会表现成整个 workflow 静默 skipped，
