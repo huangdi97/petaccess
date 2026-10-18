@@ -332,6 +332,43 @@
   --pa-discovery-v9-tone-58: #d8e4d5;
   --pa-discovery-v9-tone-59: #e4f0e4;
   --pa-discovery-v9-tone-60: #f9f6ee;
+
+  /* Consumer Discovery v10 surface + ink refinements.
+   *
+   * Component/page CSS must never hard-code a colour (design-token guard).
+   * These named values carry the warmer "city field guide" surfaces, inverse
+   * text on the deep-green panels, and the translucent shadows used by the
+   * v10 override layer. */
+  --pa-discovery-v10-paper: #fffdf8;
+  --pa-discovery-v10-rail: #fbf7ef;
+  --pa-discovery-v10-rail-hover: #f1ece1;
+  --pa-discovery-v10-hero: #efe6d3;
+  --pa-discovery-v10-white: #ffffff;
+  --pa-discovery-v10-eyebrow: #5a6b57;
+  --pa-discovery-v10-muted-strong: #5d675f;
+  --pa-discovery-v10-annotation-muted: #6a716a;
+  --pa-discovery-v10-entry-hint: #6a736c;
+  --pa-discovery-v10-input-border: #d9ccb4;
+  --pa-discovery-v10-row-border: #e6ddcc;
+  --pa-discovery-v10-row-selected-border: #cfdcbf;
+  --pa-discovery-v10-row-selected-bg: #f0f3e6;
+  --pa-discovery-v10-row-hover: #faf6ec;
+  --pa-discovery-v10-decision-bg: #eef2e6;
+  --pa-discovery-v10-decision-border: #dde5d2;
+  --pa-discovery-v10-secondary-bg: #faf7f0;
+  --pa-discovery-v10-action-border: #d5cbb8;
+  --pa-discovery-v10-inverse-soft: #f2ede0;
+  --pa-discovery-v10-inverse-kicker: #bfd6c7;
+  --pa-discovery-v10-inverse-muted: #c8d9cd;
+  --pa-discovery-v10-line-inverse: rgb(255 253 248 / 18%);
+  --pa-discovery-v10-border-inverse: rgb(255 253 248 / 38%);
+  --pa-discovery-v10-shadow-weak: rgb(21 32 27 / 4%);
+  --pa-discovery-v10-shadow-row: rgb(21 32 27 / 8%);
+  --pa-discovery-v10-shadow-header: rgb(21 32 27 / 6%);
+  --pa-discovery-v10-shadow-hero: rgb(21 32 27 / 7%);
+  --pa-discovery-v10-shadow-card: rgb(21 32 27 / 10%);
+  --pa-discovery-v10-shadow-strong: rgb(21 32 27 / 13%);
+  --pa-discovery-v10-nav-glass: rgb(245 240 230 / 94%);
 }
 
 /* Breakpoints are consumed in JS (see src/index.ts) because CSS custom
