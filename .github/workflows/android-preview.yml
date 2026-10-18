@@ -156,12 +156,19 @@ jobs:
         id: apk
         shell: bash
         run: |
-          APK="$(find apps/client-h5/src-tauri/gen/android             -type f -name '*debug*.apk' ! -path '*/androidTest/*' | head -1)"
-          if [ -z "$APK" ] || [ ! -f "$APK" ]; then
-            echo "debug APK not found"
+          mapfile -t APKS < <(
+            find apps/client-h5/src-tauri/gen/android \
+              -type f \
+              -name '*debug*.apk' \
+              ! -path '*/androidTest/*' \
+              -print
+          )
+          if [ "${#APKS[@]}" -ne 1 ]; then
+            echo "Expected exactly one debug APK, found ${#APKS[@]}"
             find apps/client-h5/src-tauri/gen/android -type f -name '*.apk' -print || true
             exit 1
           fi
+          APK="${APKS[0]}"
 
           PROFILE="${{ matrix.profile }}"
           TARGET="${{ matrix.tauri_target }}"
