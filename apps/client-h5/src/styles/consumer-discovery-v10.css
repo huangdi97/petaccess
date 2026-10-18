@@ -810,15 +810,22 @@ html,
   }
 
   #app .home-workspace .home-discovery-hero {
-    min-height: 540px;
+    min-height: 470px;
     border-radius: 20px;
     background-position: 64% center;
   }
 
   #app .home-workspace .home-discovery-hero__content {
     max-width: none;
-    min-height: 540px;
-    padding: 26px 22px 28px;
+    min-height: 470px;
+    justify-content: flex-start;
+    padding: 24px 20px 26px;
+  }
+
+  #app .home-workspace .home-topline .btn-inline {
+    background: var(--pa-discovery-v10-hero-shade-mid);
+    border-color: var(--pa-discovery-v10-hero-glass-border);
+    color: var(--pa-discovery-v10-white);
   }
 
   #app .home-workspace .home-discovery-hero__visual {
