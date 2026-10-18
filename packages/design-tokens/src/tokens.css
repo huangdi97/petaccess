@@ -265,69 +265,73 @@
   --pa-layout-content-960: 960px;
   --pa-layout-content-680: 680px;
 
-  /* Consumer Discovery v9 reference palette. Named tokens keep all visual
-   * colours in the shared design-system package rather than component CSS;
-   * ordering is stable and allows future dark-theme replacement. */
-  --pa-discovery-v9-tone-01: #236e59;
-  --pa-discovery-v9-tone-02: #e3f2e8;
-  --pa-discovery-v9-tone-03: #f7f8f4;
-  --pa-discovery-v9-tone-04: #183d34;
-  --pa-discovery-v9-tone-05: #637a70;
-  --pa-discovery-v9-tone-06: #e0eae2;
-  --pa-discovery-v9-tone-07: #edf6ed;
+  /* Consumer Discovery v10 reference palette — warm city field-guide.
+   *
+   * Direction: paper-like neutrals instead of mint-tinted surfaces, one deep
+   * forest accent instead of several mid-greens, and near-black ink. Green is
+   * reserved for action/active/brand; warm sand carries large areas; status
+   * semantics keep their own tokens. Named tokens stay the single visual SSOT.
+   */
+  --pa-discovery-v9-tone-01: #0f4a38;
+  --pa-discovery-v9-tone-02: #e4efe7;
+  --pa-discovery-v9-tone-03: #f5f0e6;
+  --pa-discovery-v9-tone-04: #15201b;
+  --pa-discovery-v9-tone-05: #5f6a63;
+  --pa-discovery-v9-tone-06: #e3dac9;
+  --pa-discovery-v9-tone-07: #edf2ea;
   --pa-discovery-v9-tone-08: #ffffff;
-  --pa-discovery-v9-tone-09: rgb(28 67 49 / 7%);
-  --pa-discovery-v9-tone-10: #f0f7ef;
-  --pa-discovery-v9-tone-11: #dce9dc;
-  --pa-discovery-v9-tone-12: #ffffffb8;
-  --pa-discovery-v9-tone-13: #d8e9dc;
-  --pa-discovery-v9-tone-14: #fff;
-  --pa-discovery-v9-tone-15: #2b7c60;
-  --pa-discovery-v9-tone-16: #577367;
-  --pa-discovery-v9-tone-17: #d7e3d8;
-  --pa-discovery-v9-tone-18: rgb(31 79 57 / 9%);
-  --pa-discovery-v9-tone-19: #ffffffea;
-  --pa-discovery-v9-tone-20: #e4eee5;
-  --pa-discovery-v9-tone-21: rgb(28 67 49 / 10%);
-  --pa-discovery-v9-tone-22: #637b71;
-  --pa-discovery-v9-tone-23: rgb(29 69 52 / 3%);
-  --pa-discovery-v9-tone-24: #b6d6c1;
-  --pa-discovery-v9-tone-25: #e8f4ed;
-  --pa-discovery-v9-tone-26: #e8f3eb;
-  --pa-discovery-v9-tone-27: #d5e8dc;
-  --pa-discovery-v9-tone-28: rgb(29 69 52 / 4%);
-  --pa-discovery-v9-tone-29: #bcd9c5;
-  --pa-discovery-v9-tone-30: #f7f9f6;
-  --pa-discovery-v9-tone-31: #dbe8df;
-  --pa-discovery-v9-tone-32: #e1e9e1;
-  --pa-discovery-v9-tone-33: rgb(27 63 51 / 4%);
-  --pa-discovery-v9-tone-34: #9bbfad;
-  --pa-discovery-v9-tone-35: #eaf5ed;
-  --pa-discovery-v9-tone-36: rgb(27 83 59 / 10%);
-  --pa-discovery-v9-tone-37: #f0f7f1;
-  --pa-discovery-v9-tone-38: #e7ece7;
-  --pa-discovery-v9-tone-39: #edf5ef;
-  --pa-discovery-v9-tone-40: #ecf6ef;
-  --pa-discovery-v9-tone-41: #d0e6d7;
-  --pa-discovery-v9-tone-42: #f8faf7;
-  --pa-discovery-v9-tone-43: #e6ede6;
-  --pa-discovery-v9-tone-44: #667d70;
-  --pa-discovery-v9-tone-45: #edf5ee;
-  --pa-discovery-v9-tone-46: #dfeae0;
-  --pa-discovery-v9-tone-47: #cfdfd1;
-  --pa-discovery-v9-tone-48: #286750;
-  --pa-discovery-v9-tone-49: #e4ebe4;
-  --pa-discovery-v9-tone-50: #edf6ef;
-  --pa-discovery-v9-tone-51: #e1e9e3;
-  --pa-discovery-v9-tone-52: #e0efe6;
-  --pa-discovery-v9-tone-53: #b9d9c5;
-  --pa-discovery-v9-tone-54: #e9f5ec;
-  --pa-discovery-v9-tone-55: #d6e3d8;
-  --pa-discovery-v9-tone-56: rgb(29 69 52 / 7%);
-  --pa-discovery-v9-tone-57: rgb(20 63 47 / 18%);
-  --pa-discovery-v9-tone-58: #d7e7da;
-  --pa-discovery-v9-tone-59: #e0f0e5;
-  --pa-discovery-v9-tone-60: #f8f8f0;
+  --pa-discovery-v9-tone-09: rgb(21 32 27 / 8%);
+  --pa-discovery-v9-tone-10: #efe6d3;
+  --pa-discovery-v9-tone-11: #e1d5be;
+  --pa-discovery-v9-tone-12: #ffffffd9;
+  --pa-discovery-v9-tone-13: #dccfb6;
+  --pa-discovery-v9-tone-14: #ffffff;
+  --pa-discovery-v9-tone-15: #3f6b57;
+  --pa-discovery-v9-tone-16: #55705f;
+  --pa-discovery-v9-tone-17: #d8e0d2;
+  --pa-discovery-v9-tone-18: rgb(21 32 27 / 10%);
+  --pa-discovery-v9-tone-19: #fffffff2;
+  --pa-discovery-v9-tone-20: #e7decc;
+  --pa-discovery-v9-tone-21: rgb(21 32 27 / 12%);
+  --pa-discovery-v9-tone-22: #6b716a;
+  --pa-discovery-v9-tone-23: rgb(21 32 27 / 4%);
+  --pa-discovery-v9-tone-24: #a9bfaf;
+  --pa-discovery-v9-tone-25: #e8efe6;
+  --pa-discovery-v9-tone-26: #ede5d5;
+  --pa-discovery-v9-tone-27: #dfd3bf;
+  --pa-discovery-v9-tone-28: rgb(21 32 27 / 5%);
+  --pa-discovery-v9-tone-29: #b7cbb8;
+  --pa-discovery-v9-tone-30: #f8f4eb;
+  --pa-discovery-v9-tone-31: #dce4d6;
+  --pa-discovery-v9-tone-32: #e5e3d8;
+  --pa-discovery-v9-tone-33: rgb(21 32 27 / 5%);
+  --pa-discovery-v9-tone-34: #9db3a1;
+  --pa-discovery-v9-tone-35: #ebf1e7;
+  --pa-discovery-v9-tone-36: rgb(15 74 56 / 12%);
+  --pa-discovery-v9-tone-37: #f1f5ec;
+  --pa-discovery-v9-tone-38: #eae7dc;
+  --pa-discovery-v9-tone-39: #edf2e8;
+  --pa-discovery-v9-tone-40: #edf3e7;
+  --pa-discovery-v9-tone-41: #d2e1cf;
+  --pa-discovery-v9-tone-42: #faf7f0;
+  --pa-discovery-v9-tone-43: #e8e5d9;
+  --pa-discovery-v9-tone-44: #68766c;
+  --pa-discovery-v9-tone-45: #eef3ea;
+  --pa-discovery-v9-tone-46: #e0e6da;
+  --pa-discovery-v9-tone-47: #cfd9c9;
+  --pa-discovery-v9-tone-48: #0f4a38;
+  --pa-discovery-v9-tone-49: #e6e1d4;
+  --pa-discovery-v9-tone-50: #eff4eb;
+  --pa-discovery-v9-tone-51: #e3e8dd;
+  --pa-discovery-v9-tone-52: #e2efe5;
+  --pa-discovery-v9-tone-53: #b9d1bc;
+  --pa-discovery-v9-tone-54: #ebf4ec;
+  --pa-discovery-v9-tone-55: #d8e1d3;
+  --pa-discovery-v9-tone-56: rgb(21 32 27 / 8%);
+  --pa-discovery-v9-tone-57: rgb(15 74 56 / 20%);
+  --pa-discovery-v9-tone-58: #d8e4d5;
+  --pa-discovery-v9-tone-59: #e4f0e4;
+  --pa-discovery-v9-tone-60: #f9f6ee;
 }
 
 /* Breakpoints are consumed in JS (see src/index.ts) because CSS custom

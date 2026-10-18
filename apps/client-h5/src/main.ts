@@ -7,6 +7,7 @@ import { bootStage } from "./config/bootTrace";
 import { detectRuntimeKind, resolveApiEndpoint } from "./config/endpoints";
 import "./styles.css";
 import "./styles/consumer-discovery-v9.css";
+import "./styles/consumer-discovery-v10.css";
 import { installVisualViewportState } from "./runtime/visualViewport";
 
 bootStage("INDEX_LOADED");
