@@ -168,7 +168,6 @@ html,
   border-color: var(--pa-discovery-v10-hero-glass-border);
   color: var(--pa-discovery-v10-white);
   font-weight: 650;
-  backdrop-filter: blur(8px);
 }
 
 #app .home-workspace .home-topline .btn-inline {
@@ -577,7 +576,6 @@ html,
   background: var(--pa-discovery-v10-hero-shade-mid);
   color: var(--pa-discovery-v10-white);
   font-size: 11px;
-  backdrop-filter: blur(8px);
 }
 
 #app .place-workspace .place-dossier__head--with-scene .place-dossier__identity-row {
@@ -617,7 +615,6 @@ html,
   border-color: var(--pa-discovery-v10-hero-glass-border);
   background: var(--pa-discovery-v10-hero-glass);
   color: var(--pa-discovery-v10-white);
-  backdrop-filter: blur(8px);
 }
 
 #app
@@ -654,7 +651,6 @@ html,
   padding: 0 4px;
   background: var(--pa-discovery-v10-nav-glass);
   border-bottom: 1px solid var(--pa-discovery-line);
-  backdrop-filter: blur(10px);
 }
 
 #app .place-workspace .place-nav__tab {
