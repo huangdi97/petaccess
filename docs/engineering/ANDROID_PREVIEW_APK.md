@@ -207,6 +207,7 @@ workflow 还必须：
 
 - 使用 `apksigner verify` 验证 APK 可安装签名，并保存 `--print-certs` 结果；
 - 使用 `aapt dump badging` 验证实际 package 是 `com.petaccess.map.preview`、app label 是 `PetAccess Preview`，并硬校验 matrix 期望的 native ABI；
+- 每个 matrix profile 必须只产生 **1 个**非 `androidTest` debug APK；若出现 0 个或多个候选，workflow fail-closed 并列出全部 APK，禁止用 `head -1` 任取一个文件冒充确定产物；
 - 在 APK 打包后检查 Vite Consumer bundle 内确实烘焙了 matrix profile 对应的 `VITE_TAURI_ANDROID_API_BASE`；
 - 使用独立 Preview Tauri config；
 - 不读取正式 release keystore。
