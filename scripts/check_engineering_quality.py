@@ -216,6 +216,7 @@ def check_consumer_runtime_boundary() -> list[dict]:
             '"releaseArtifact": false',
             '"requiresAdbReverse":',
             '"standalonePhone":',
+            "Expected exactly one debug APK",
         )
         if any(marker not in preview_text for marker in required_preview_artifact_markers):
             violations.append(
