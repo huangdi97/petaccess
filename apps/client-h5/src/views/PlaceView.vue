@@ -33,6 +33,7 @@ import {
 import DecisionInspector from "../components/domain/DecisionInspector.vue";
 import QueryContextBar from "../components/domain/QueryContextBar.vue";
 import PlaceSceneFrame from "../components/domain/PlaceSceneFrame.vue";
+import StatusBadge from "../components/StatusBadge.vue";
 import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
 import PlaceSectionNav, { type PlaceViewKey } from "../components/place/PlaceSectionNav.vue";
@@ -496,6 +497,13 @@ const placeFixture = computed<string>(() => {
                         : "地图列表查看 →"
                     }}
                   </RouterLink>
+                </div>
+                <div
+                  v-if="answer"
+                  class="place-dossier__status"
+                  data-testid="place-identity-status"
+                >
+                  <StatusBadge :semantic="answerStatusKey(answer)" />
                 </div>
               </div>
             </div>

@@ -66,14 +66,14 @@
   /* --- colour: status (semantic; never the ONLY signal) ------------------ */
   /* Rule status palette. ALLOWED is a calm green, never a wall of bright green;
    * PROHIBITED is a muted brick, never a danger screen; UNKNOWN stays neutral. */
-  --pa-color-status-allowed: #277348;
-  --pa-color-status-allowed-bg: #e8f3ec;
-  --pa-color-status-conditional: #8a5f18;
-  --pa-color-status-conditional-bg: #faf1df;
-  --pa-color-status-restricted: #8f4a3a;
-  --pa-color-status-restricted-bg: #f7e9e5;
-  --pa-color-status-unknown: #5c6873;
-  --pa-color-status-unknown-bg: #eeeae1;
+  --pa-color-status-allowed: #2f5d46;
+  --pa-color-status-allowed-bg: #e7efe4;
+  --pa-color-status-conditional: #a5622a;
+  --pa-color-status-conditional-bg: #f7e9d8;
+  --pa-color-status-restricted: #a34d40;
+  --pa-color-status-restricted-bg: #f6e3df;
+  --pa-color-status-unknown: #5e685f;
+  --pa-color-status-unknown-bg: #ece8dd;
   --pa-color-status-conflict: #6f5a9e;
   --pa-color-status-conflict-bg: #eeeafa;
   --pa-color-status-stale: #8a5f18;
@@ -272,66 +272,66 @@
    * reserved for action/active/brand; warm sand carries large areas; status
    * semantics keep their own tokens. Named tokens stay the single visual SSOT.
    */
-  --pa-discovery-v9-tone-01: #0f4a38;
-  --pa-discovery-v9-tone-02: #e4efe7;
-  --pa-discovery-v9-tone-03: #f5f0e6;
-  --pa-discovery-v9-tone-04: #15201b;
-  --pa-discovery-v9-tone-05: #5f6a63;
-  --pa-discovery-v9-tone-06: #e3dac9;
+  --pa-discovery-v9-tone-01: #315c46;
+  --pa-discovery-v9-tone-02: #e7efe4;
+  --pa-discovery-v9-tone-03: #e5e1d5;
+  --pa-discovery-v9-tone-04: #1a1a1a;
+  --pa-discovery-v9-tone-05: #5e685f;
+  --pa-discovery-v9-tone-06: #d6d0c2;
   --pa-discovery-v9-tone-07: #edf2ea;
   --pa-discovery-v9-tone-08: #ffffff;
   --pa-discovery-v9-tone-09: rgb(21 32 27 / 8%);
-  --pa-discovery-v9-tone-10: #efe6d3;
-  --pa-discovery-v9-tone-11: #e1d5be;
+  --pa-discovery-v9-tone-10: #e5e1d5;
+  --pa-discovery-v9-tone-11: #d6d0c2;
   --pa-discovery-v9-tone-12: #ffffffd9;
   --pa-discovery-v9-tone-13: #dccfb6;
   --pa-discovery-v9-tone-14: #ffffff;
-  --pa-discovery-v9-tone-15: #3f6b57;
-  --pa-discovery-v9-tone-16: #55705f;
+  --pa-discovery-v9-tone-15: #315c46;
+  --pa-discovery-v9-tone-16: #556b5c;
   --pa-discovery-v9-tone-17: #d8e0d2;
   --pa-discovery-v9-tone-18: rgb(21 32 27 / 10%);
   --pa-discovery-v9-tone-19: #fffffff2;
   --pa-discovery-v9-tone-20: #e7decc;
   --pa-discovery-v9-tone-21: rgb(21 32 27 / 12%);
-  --pa-discovery-v9-tone-22: #6b716a;
+  --pa-discovery-v9-tone-22: #5e685f;
   --pa-discovery-v9-tone-23: rgb(21 32 27 / 4%);
   --pa-discovery-v9-tone-24: #a9bfaf;
-  --pa-discovery-v9-tone-25: #e8efe6;
-  --pa-discovery-v9-tone-26: #ede5d5;
-  --pa-discovery-v9-tone-27: #dfd3bf;
+  --pa-discovery-v9-tone-25: #e7efe4;
+  --pa-discovery-v9-tone-26: #efe9db;
+  --pa-discovery-v9-tone-27: #ded6c6;
   --pa-discovery-v9-tone-28: rgb(21 32 27 / 5%);
   --pa-discovery-v9-tone-29: #b7cbb8;
-  --pa-discovery-v9-tone-30: #f8f4eb;
+  --pa-discovery-v9-tone-30: #f2efe7;
   --pa-discovery-v9-tone-31: #dce4d6;
   --pa-discovery-v9-tone-32: #e5e3d8;
   --pa-discovery-v9-tone-33: rgb(21 32 27 / 5%);
   --pa-discovery-v9-tone-34: #9db3a1;
-  --pa-discovery-v9-tone-35: #ebf1e7;
+  --pa-discovery-v9-tone-35: #eef2e8;
   --pa-discovery-v9-tone-36: rgb(15 74 56 / 12%);
-  --pa-discovery-v9-tone-37: #f1f5ec;
-  --pa-discovery-v9-tone-38: #eae7dc;
+  --pa-discovery-v9-tone-37: #f2f5ee;
+  --pa-discovery-v9-tone-38: #e2dcce;
   --pa-discovery-v9-tone-39: #edf2e8;
-  --pa-discovery-v9-tone-40: #edf3e7;
-  --pa-discovery-v9-tone-41: #d2e1cf;
-  --pa-discovery-v9-tone-42: #faf7f0;
-  --pa-discovery-v9-tone-43: #e8e5d9;
-  --pa-discovery-v9-tone-44: #68766c;
-  --pa-discovery-v9-tone-45: #eef3ea;
-  --pa-discovery-v9-tone-46: #e0e6da;
-  --pa-discovery-v9-tone-47: #cfd9c9;
-  --pa-discovery-v9-tone-48: #0f4a38;
-  --pa-discovery-v9-tone-49: #e6e1d4;
+  --pa-discovery-v9-tone-40: #eef2e8;
+  --pa-discovery-v9-tone-41: #d8e2d0;
+  --pa-discovery-v9-tone-42: #faf8f3;
+  --pa-discovery-v9-tone-43: #e2dcce;
+  --pa-discovery-v9-tone-44: #5e685f;
+  --pa-discovery-v9-tone-45: #f4f1e8;
+  --pa-discovery-v9-tone-46: #e2dcce;
+  --pa-discovery-v9-tone-47: #d6d0c2;
+  --pa-discovery-v9-tone-48: #315c46;
+  --pa-discovery-v9-tone-49: #e2dcce;
   --pa-discovery-v9-tone-50: #eff4eb;
   --pa-discovery-v9-tone-51: #e3e8dd;
-  --pa-discovery-v9-tone-52: #e2efe5;
-  --pa-discovery-v9-tone-53: #b9d1bc;
+  --pa-discovery-v9-tone-52: #e7efe4;
+  --pa-discovery-v9-tone-53: #b9cdbd;
   --pa-discovery-v9-tone-54: #ebf4ec;
-  --pa-discovery-v9-tone-55: #d8e1d3;
+  --pa-discovery-v9-tone-55: #dce3d3;
   --pa-discovery-v9-tone-56: rgb(21 32 27 / 8%);
   --pa-discovery-v9-tone-57: rgb(15 74 56 / 20%);
   --pa-discovery-v9-tone-58: #d8e4d5;
   --pa-discovery-v9-tone-59: #e4f0e4;
-  --pa-discovery-v9-tone-60: #f9f6ee;
+  --pa-discovery-v9-tone-60: #f7f4ec;
 
   /* Consumer Discovery v10 surface + ink refinements.
    *
@@ -339,24 +339,24 @@
    * These named values carry the warmer "city field guide" surfaces, inverse
    * text on the deep-green panels, and the translucent shadows used by the
    * v10 override layer. */
-  --pa-discovery-v10-paper: #fffdf8;
-  --pa-discovery-v10-rail: #fbf7ef;
-  --pa-discovery-v10-rail-hover: #f1ece1;
-  --pa-discovery-v10-hero: #efe6d3;
+  --pa-discovery-v10-paper: #ffffff;
+  --pa-discovery-v10-rail: #fbfaf6;
+  --pa-discovery-v10-rail-hover: #f1eee5;
+  --pa-discovery-v10-hero: #315c46;
   --pa-discovery-v10-white: #ffffff;
-  --pa-discovery-v10-eyebrow: #5a6b57;
-  --pa-discovery-v10-muted-strong: #5d675f;
-  --pa-discovery-v10-annotation-muted: #6a716a;
-  --pa-discovery-v10-entry-hint: #6a736c;
-  --pa-discovery-v10-input-border: #d9ccb4;
-  --pa-discovery-v10-row-border: #e6ddcc;
+  --pa-discovery-v10-eyebrow: #cfe0d2;
+  --pa-discovery-v10-muted-strong: #5e685f;
+  --pa-discovery-v10-annotation-muted: #5e685f;
+  --pa-discovery-v10-entry-hint: #6e786f;
+  --pa-discovery-v10-input-border: #d6d0c2;
+  --pa-discovery-v10-row-border: #e2dcce;
   --pa-discovery-v10-row-selected-border: #cfdcbf;
-  --pa-discovery-v10-row-selected-bg: #f0f3e6;
+  --pa-discovery-v10-row-selected-bg: #eef2e8;
   --pa-discovery-v10-row-hover: #faf6ec;
-  --pa-discovery-v10-decision-bg: #eef2e6;
-  --pa-discovery-v10-decision-border: #dde5d2;
-  --pa-discovery-v10-secondary-bg: #faf7f0;
-  --pa-discovery-v10-action-border: #d5cbb8;
+  --pa-discovery-v10-decision-bg: #f3f0e8;
+  --pa-discovery-v10-decision-border: #ded6c6;
+  --pa-discovery-v10-secondary-bg: #faf8f3;
+  --pa-discovery-v10-action-border: #d6d0c2;
   --pa-discovery-v10-inverse-soft: #f2ede0;
   --pa-discovery-v10-inverse-kicker: #bfd6c7;
   --pa-discovery-v10-inverse-muted: #c8d9cd;
@@ -368,7 +368,14 @@
   --pa-discovery-v10-shadow-hero: rgb(21 32 27 / 7%);
   --pa-discovery-v10-shadow-card: rgb(21 32 27 / 10%);
   --pa-discovery-v10-shadow-strong: rgb(21 32 27 / 13%);
-  --pa-discovery-v10-nav-glass: rgb(245 240 230 / 94%);
+  --pa-discovery-v10-nav-glass: rgb(229 225 213 / 94%);
+  --pa-discovery-v10-hero-shade-left: rgb(17 33 26 / 78%);
+  --pa-discovery-v10-hero-shade-mid: rgb(17 33 26 / 46%);
+  --pa-discovery-v10-hero-shade-edge: rgb(17 33 26 / 2%);
+  --pa-discovery-v10-hero-shade-bottom: rgb(17 33 26 / 35%);
+  --pa-discovery-v10-hero-glass: rgb(255 255 255 / 14%);
+  --pa-discovery-v10-hero-glass-border: rgb(255 255 255 / 28%);
+  --pa-discovery-v10-hero-body: #d7e2d8;
 }
 
 /* Breakpoints are consumed in JS (see src/index.ts) because CSS custom

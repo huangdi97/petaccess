@@ -90,51 +90,55 @@ const freshness = computed(() =>
         </p>
 
         <!-- v0.2.4 §30：divider rows，非卡。 -->
-        <div
-          v-for="(c, index) in verified.slice(0, 3)"
-          :key="c.place.id"
-          class="home-row"
-          :data-testid="'verified-' + c.place.id"
-        >
-          <button
-            type="button"
-            class="home-row__open"
-            :aria-label="`查看场所 ${c.place.canonical_name}`"
-            @click="emit('open', c.place.id)"
+        <div class="home-nearby-grid">
+          <div
+            v-for="(c, index) in verified.slice(0, 3)"
+            :key="c.place.id"
+            class="home-row"
+            :data-testid="'verified-' + c.place.id"
           >
-            <div class="home-row__content home-row__content--with-scene">
-              <PlaceSceneFrame
-                class="home-row__scene"
-                :src="index === 0 ? (featuredSceneMediaUrl ?? null) : null"
-                :alt="`场所场景：${c.place.canonical_name}`"
-                :place-type="c.place.place_type"
-                variant="compact"
-                :data-testid="
-                  index === 0 && featuredSceneMediaUrl ? 'home-scene-media' : 'home-scene-fallback'
-                "
-              />
-              <PlaceResultRow
-                :place="c.place"
-                :show-identity-glyph="false"
-                :answer="c.facts.answer"
-                :answer-error="c.facts.answerError"
-                :reality="c.facts.reality"
-                :snapshot="c.facts.snapshot"
-                :reality-error="c.facts.realityError"
-                :species-label="speciesLabel"
-                :conditions-label="conditionsLabel"
-              />
-            </div>
-          </button>
-          <div v-if="c.facts.answer" class="home-row__evidence-link">
-            <RouterLink
-              class="btn-inline"
-              :to="`/place/${c.place.id}/why`"
-              :data-testid="'why-' + c.place.id"
-              @click.stop
+            <button
+              type="button"
+              class="home-row__open"
+              :aria-label="`查看场所 ${c.place.canonical_name}`"
+              @click="emit('open', c.place.id)"
             >
-              查看依据 →
-            </RouterLink>
+              <div class="home-row__content home-row__content--with-scene">
+                <PlaceSceneFrame
+                  class="home-row__scene"
+                  :src="index === 0 ? (featuredSceneMediaUrl ?? null) : null"
+                  :alt="`场所场景：${c.place.canonical_name}`"
+                  :place-type="c.place.place_type"
+                  variant="compact"
+                  :data-testid="
+                    index === 0 && featuredSceneMediaUrl
+                      ? 'home-scene-media'
+                      : 'home-scene-fallback'
+                  "
+                />
+                <PlaceResultRow
+                  :place="c.place"
+                  :show-identity-glyph="false"
+                  :answer="c.facts.answer"
+                  :answer-error="c.facts.answerError"
+                  :reality="c.facts.reality"
+                  :snapshot="c.facts.snapshot"
+                  :reality-error="c.facts.realityError"
+                  :species-label="speciesLabel"
+                  :conditions-label="conditionsLabel"
+                />
+              </div>
+            </button>
+            <div v-if="c.facts.answer" class="home-row__evidence-link">
+              <RouterLink
+                class="btn-inline"
+                :to="`/place/${c.place.id}/why`"
+                :data-testid="'why-' + c.place.id"
+                @click.stop
+              >
+                查看依据 →
+              </RouterLink>
+            </div>
           </div>
         </div>
         <HomeUnavailableSection

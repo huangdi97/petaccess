@@ -231,11 +231,11 @@
       "id": "PLACE_MOBILE_FIRST_VIEWPORT_LINES",
       "metric": "firstViewportTextLines",
       "selector": "[data-ui='place-dossier']",
-      "max": 38,
-      "warnAt": 35,
+      "max": 40,
+      "warnAt": 36,
       "pages": ["place-mobile-ready"],
       "severity": "FAIL",
-      "note": "Canonical Coexistence Passport now keeps identity actions + Rule + Reality + Space/Evidence summaries in the first mobile viewport. 38 rendered lines is the measured ceiling; progressive detail remains below the fold."
+      "note": "Canonical Coexistence Passport now keeps identity actions + Rule + Reality + Space/Evidence summaries in the first mobile viewport. v11 adds the destination identity status chip and the reviewed-scene marker; 40 rendered lines is the measured ceiling, with progressive detail below the fold."
     }
   ],
   "composition": [
