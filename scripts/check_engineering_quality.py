@@ -272,6 +272,9 @@ def check_consumer_runtime_boundary() -> list[dict]:
             "BLOCKED_BY_API_BASE",
             "needs.phone-preview-readiness.outputs.ready",
             "feat/ui-direct-craft-v8",
+            "packages/api-client/**",
+            "package.json",
+            "pnpm-workspace.yaml",
         )
         if any(marker not in phone_preview_text for marker in required_phone_preview_markers):
             violations.append(
