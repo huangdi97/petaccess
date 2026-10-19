@@ -248,6 +248,17 @@
 }
 
 @media (min-width: 768px) {
+  #app .home-workspace .home-nearby-grid--1 {
+    grid-template-columns: minmax(0, 620px);
+  }
+
+  #app .home-workspace .home-nearby-grid--2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: 880px;
+  }
+}
+
+@media (min-width: 768px) {
   #app .map-workspace .map-workspace__body,
   #app .map-workspace .map-workspace__body--split {
     gap: 0;
