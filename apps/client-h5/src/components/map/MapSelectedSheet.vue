@@ -5,7 +5,7 @@
  * 真实 overlay bottom sheet：
  * - `position: fixed`，bottom = tabbar + safe area（不与 tabbar 重叠）；
  * - 白色 surface、top radius 16、small drag handle、elevation、touch scroll；
- * - 三态：closed（56–64px peek）/ half（~280–340px）/ expanded（max 70–78vh）；
+ * - 三态：closed（56–64px peek）/ half（~328–352px）/ expanded（max 70–78vh）；
  * - 内容 = drag handle + Place name + Type·distance + active lens +
  *   separately-labelled Rule + 最近现场 + 查看地点 →；close 右上 icon。
  * - `role="dialog"` + Escape 关闭（键盘可达）；reduced-motion 降级。
@@ -52,7 +52,7 @@ type SheetPhase = "closed" | "half" | "expanded";
 const phase = ref<SheetPhase>("half");
 
 const TABBAR = "var(--pa-safe-total-bottom)";
-const HALF_H = "clamp(288px, 34vh, 320px)";
+const HALF_H = "clamp(328px, 37vh, 352px)";
 const EXPANDED_MAX_H = "min(78vh, 680px)";
 const EXPANDED_MIN_H = "min(360px, 48vh)";
 const CLOSED_H = "60px";
