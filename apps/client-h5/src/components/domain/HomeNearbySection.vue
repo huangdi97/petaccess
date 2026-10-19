@@ -91,10 +91,7 @@ const nearbyGridCount = computed(() => Math.min(props.verified.length, 3));
         </p>
 
         <!-- v0.2.4 §30：divider rows，非卡。 -->
-        <div
-          class="home-nearby-grid"
-          :class="`home-nearby-grid--${nearbyGridCount}`"
-        >
+        <div class="home-nearby-grid" :class="`home-nearby-grid--${nearbyGridCount}`">
           <div
             v-for="(c, index) in verified.slice(0, 3)"
             :key="c.place.id"
