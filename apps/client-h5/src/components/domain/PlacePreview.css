@@ -8,6 +8,7 @@
   flex-direction: column;
   gap: var(--pa-space-3);
   min-width: 0;
+  overflow: hidden;
 }
 .place-preview__head {
   display: flex;
@@ -24,10 +25,11 @@
 
 .place-preview__scene {
   display: block;
-  width: 100%;
+  width: calc(100% + var(--pa-space-5) * 2);
+  margin: calc(var(--pa-space-5) * -1) calc(var(--pa-space-5) * -1) var(--pa-space-1);
   aspect-ratio: 16 / 7;
   object-fit: cover;
-  border-radius: var(--pa-radius-control);
+  border-radius: 0;
   background: var(--pa-color-surface-muted);
 }
 .place-preview__name {
@@ -75,7 +77,7 @@
   align-items: baseline;
 }
 .place-preview__label {
-  font-size: var(--pa-font-size-md);
+  font-size: var(--pa-font-size-sm);
   color: var(--pa-color-text-secondary);
   flex-shrink: 0;
 }
