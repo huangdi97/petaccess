@@ -79,7 +79,7 @@ const simplifiedBasemapCopy = computed(() => {
   const compact = "简化空间底图 · 点位来自已收录坐标，尚未核验。";
   if (realMapError.value) {
     return isDesktop.value
-      ? "真实底图暂不可用 · 当前为简化空间底图 · 点位尚未核验。"
+      ? "真实底图暂不可用 · 当前为简化空间底图 · 点位来自已收录坐标，尚未核验。"
       : `真实底图暂不可用 · ${compact}`;
   }
   if (renderConfig.value && !renderConfig.value.real_enabled) {
@@ -90,7 +90,7 @@ const simplifiedBasemapCopy = computed(() => {
     (renderConfig.value.provider !== "tencent" || !renderConfig.value.client_key)
   ) {
     return isDesktop.value
-      ? "地图底图配置未就绪 · 当前为简化空间底图 · 点位尚未核验。"
+      ? "地图底图配置未就绪 · 当前为简化空间底图 · 点位来自已收录坐标，尚未核验。"
       : `地图底图未就绪 · ${compact}`;
   }
   return "";
