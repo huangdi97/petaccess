@@ -274,6 +274,30 @@
     border-radius: 13px;
     box-shadow: 0 8px 24px var(--pa-discovery-v10-shadow-row);
   }
+
+  #app .map-workspace--mobile-list > .query-context,
+  #app .map-workspace--mobile-list .map-lensbar,
+  #app .map-workspace--mobile-list .map-viewbar {
+    position: static;
+  }
+
+  #app .map-workspace--mobile-list > .query-context {
+    margin: 10px 12px 0;
+  }
+
+  #app .map-workspace--mobile-list .map-lensbar {
+    padding: 8px 12px 4px;
+  }
+
+  #app .map-workspace--mobile-list .map-viewbar {
+    justify-content: flex-end;
+    padding: 4px 12px 8px;
+  }
+
+  #app .map-workspace--mobile-list .map-workspace__body {
+    min-height: 0;
+    background: var(--pa-discovery-v10-paper);
+  }
 }
 
 /* --------------------------------------------------------------- Place */
@@ -321,6 +345,16 @@
   border-color: var(--pa-discovery-v10-action-border);
   background: transparent;
   color: var(--pa-discovery-v9-tone-01);
+}
+
+#app
+  .place-workspace
+  .place-dossier__head--illustrated
+  .place-dossier__actions
+  .btn-inline:first-child {
+  border-color: var(--pa-discovery-v9-tone-01);
+  background: var(--pa-discovery-v9-tone-01);
+  color: var(--pa-discovery-v10-paper);
 }
 
 #app .place-workspace .place-dossier__scene-note {
@@ -380,6 +414,7 @@
 }
 
 #app .contribute-workspace .entry-options {
+  grid-template-columns: minmax(0, 1fr);
   gap: 0;
   border-top: 1px solid var(--pa-discovery-line);
 }
