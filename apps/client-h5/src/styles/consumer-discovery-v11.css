@@ -88,6 +88,36 @@
   -webkit-line-clamp: 1;
 }
 
+#app .home-workspace .home-recommend {
+  margin: 22px 0 0;
+  padding: 0 0 18px;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+}
+
+#app .home-workspace .home-recommend__row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 4px 12px;
+  padding: 14px 0 0;
+  border-top: 0;
+}
+
+#app .home-workspace .home-recommend__name {
+  font-size: 17px;
+}
+
+#app .home-workspace .home-recommend__headline,
+#app .home-workspace .home-recommend__meta {
+  grid-column: 2;
+}
+
+#app .home-workspace .home-section-title--stacked {
+  margin-top: 24px;
+}
+
 /* -------------------------------------------------------------- Search */
 #app .search-workspace .result-list {
   gap: 0;
@@ -158,6 +188,59 @@
 #app .map-workspace .map-preview-float {
   border-radius: 16px;
   box-shadow: 0 18px 44px var(--pa-discovery-v10-shadow-strong);
+}
+
+#app .map-workspace .map-pane {
+  padding: 18px 16px;
+}
+
+#app .map-workspace .map-pane__head {
+  margin-bottom: 10px;
+  padding: 0 0 12px;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+}
+
+#app .map-workspace .map-place-list {
+  border-top: 1px solid var(--pa-discovery-line);
+}
+
+#app .map-workspace .map-place-row,
+#app .map-workspace .map-place-row--selected {
+  margin: 0;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+  overflow: visible;
+  box-shadow: none;
+  transform: none;
+}
+
+#app .map-workspace .map-place-row:hover,
+#app .map-workspace .map-place-row:focus-within {
+  border-color: var(--pa-discovery-line);
+  background: var(--pa-discovery-v10-row-hover);
+  box-shadow: none;
+  transform: none;
+}
+
+#app .map-workspace .map-place-row--selected {
+  background: var(--pa-discovery-v10-row-selected-bg);
+}
+
+#app .map-workspace .map-place-row__button {
+  padding: 14px 10px;
+}
+
+#app .map-workspace .map-place-row__scene {
+  --scene-frame-compact-width: 52px;
+  --scene-frame-compact-height: 52px;
+  --scene-frame-compact-empty-width: 52px;
+  --scene-frame-compact-empty-height: 52px;
+  flex-basis: 52px;
 }
 
 @media (min-width: 768px) {
