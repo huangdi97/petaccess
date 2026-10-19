@@ -19,19 +19,23 @@
 }
 
 #app .home-workspace .home-discovery-hero {
-  min-height: 340px;
-  border-radius: 22px;
-  box-shadow: 0 18px 44px var(--pa-discovery-v10-shadow-card);
+  min-height: 276px;
+  border-radius: 18px;
+  box-shadow: 0 14px 34px var(--pa-discovery-v10-shadow-row);
 }
 
 #app .home-workspace .home-discovery-hero__content {
-  min-height: 340px;
-  max-width: 620px;
-  padding: 44px 48px 42px;
+  min-height: 276px;
+  max-width: 650px;
+  padding: 32px 40px 30px;
 }
 
+/* Home is a spatial starting point, not a marketing landing page. The
+ * secondary explainer bubble duplicated the product proposition and pushed
+ * nearby places below the fold, so v11 keeps the city scene but removes the
+ * promo-style callout. */
 #app .home-workspace .home-discovery-hero__annotation {
-  max-width: 290px;
+  display: none;
 }
 
 #app .home-workspace .home-lenses {
@@ -391,9 +395,11 @@
 #app .place-workspace .place-dossier__head--illustrated {
   min-height: 0;
   overflow: visible;
-  background: var(--pa-discovery-v10-paper);
-  border: 1px solid var(--pa-discovery-line);
-  border-radius: 18px;
+  padding: 0 0 18px;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
 }
 
 #app .place-workspace .place-dossier__head--illustrated::after {
@@ -401,11 +407,11 @@
 }
 
 #app .place-workspace .place-dossier__head--illustrated .place-dossier__scene--fallback {
-  display: block;
+  display: none;
 }
 
 #app .place-workspace .place-dossier__head--illustrated .place-dossier__identity-row {
-  padding: 22px 24px 8px;
+  padding: 6px 0 8px;
 }
 
 #app .place-workspace .place-dossier__head--illustrated .place-dossier__name {
@@ -421,11 +427,15 @@
 }
 
 #app .place-workspace .place-dossier__head--illustrated .place-dossier__actions {
-  padding: 8px 24px 20px;
+  gap: 18px;
+  padding: 8px 0 0;
 }
 
 #app .place-workspace .place-dossier__head--illustrated .place-dossier__actions .btn-inline {
-  border-color: var(--pa-discovery-v10-action-border);
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
   background: transparent;
   color: var(--pa-discovery-v9-tone-01);
 }
@@ -435,19 +445,20 @@
   .place-dossier__head--illustrated
   .place-dossier__actions
   .btn-inline:first-child {
-  border-color: var(--pa-discovery-v9-tone-01);
-  background: var(--pa-discovery-v9-tone-01);
-  color: var(--pa-discovery-v10-paper);
+  border: 0;
+  background: transparent;
+  color: var(--pa-discovery-v9-tone-01);
 }
 
 #app .place-workspace .place-dossier__scene-note {
   position: static;
   align-self: flex-start;
-  margin: 18px 24px 0;
+  margin: 0 0 6px;
   padding: 0;
   border: 0;
   background: transparent;
   color: var(--pa-discovery-muted);
+  font-size: 12px;
 }
 
 #app .place-workspace .place-overview-lead {
@@ -578,20 +589,24 @@
 }
 
 #app .reality-workspace .reality-filters {
-  border-color: var(--pa-discovery-line);
-  background: var(--pa-discovery-v10-paper);
+  padding-inline: 0;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 @media (max-width: 767px) {
   #app .home-workspace .home-discovery-hero {
-    min-height: 300px;
-    border-radius: 18px;
-    background-position: 68% center;
+    min-height: 232px;
+    border-radius: 16px;
+    background-position: 72% center;
   }
 
   #app .home-workspace .home-discovery-hero__content {
-    min-height: 300px;
-    padding: 20px 18px;
+    min-height: 232px;
+    padding: 16px;
   }
 
   #app .home-workspace .home-discovery-hero__eyebrow,
@@ -600,12 +615,12 @@
   }
 
   #app .home-workspace .home-intro {
-    margin-bottom: 18px;
+    margin-bottom: 12px;
   }
 
   #app .home-workspace .home-intro h1 {
-    max-width: 15ch;
-    font-size: 28px;
+    max-width: 14ch;
+    font-size: 26px;
   }
 
   #app .home-workspace .home-subtitle {
