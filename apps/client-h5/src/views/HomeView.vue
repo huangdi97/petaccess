@@ -71,9 +71,9 @@ const homeFixture = computed(() => `home-${homeState.value}-v1`);
             </div>
 
             <div class="home-intro">
-              <h1 data-testid="home-title">去之前，先看看<br />这里的规则和现场。</h1>
+              <h1 data-testid="home-title">去哪儿？<br />先看规则与现场。</h1>
               <p class="muted home-subtitle" data-testid="home-subtitle">
-                了解规则，也参考真实的现场情况。
+                把场所规则、最近现场和依据分开看清。
               </p>
             </div>
 
