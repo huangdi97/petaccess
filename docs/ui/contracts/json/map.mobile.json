@@ -1,6 +1,6 @@
 {
   "id": "map.mobile",
-  "title": "Map Mobile Contract v0.2.5 (overlay bottom sheet §22–24/§49)",
+  "title": "Map Mobile Contract — Consumer v11 Spatial Overlay",
   "viewport": {
     "width": 430,
     "height": 932
@@ -32,7 +32,7 @@
       "interactions": [
         {
           "clickSelectors": ["[data-testid='sheet-handle']"],
-          "waitForSelector": "[data-testid='sheet-verdict']"
+          "waitForSelector": "[data-testid='sheet-evidence']"
         }
       ],
       "expect": {
@@ -148,6 +148,14 @@
       "pages": ["map-mobile-selected-half"]
     },
     {
+      "id": "MAP_MOBILE_NO_DUPLICATE_STATUS_BADGE",
+      "selector": "[data-testid='map-mobile-sheet'] .status-badge",
+      "max": 0,
+      "severity": "FAIL",
+      "pages": ["map-mobile-selected-half", "map-mobile-expanded"],
+      "note": "v11 uses one natural-language fact hierarchy; the same verdict must not be repeated as a decorative badge."
+    },
+    {
       "id": "MAP_EXPANDED_NO_FAKE_FILLER",
       "selector": "[data-testid='map-mobile-sheet'] [class*='placeholder'], [data-testid='map-mobile-sheet'] [data-ui*='filler'], [data-testid='map-mobile-sheet'] [class*='lorem']",
       "max": 0,
@@ -211,14 +219,6 @@
       "severity": "FAIL",
       "pages": ["map-mobile-selected-half", "map-mobile-expanded"]
     },
-    {
-      "id": "STATUS_BADGE_NOT_PRIMARY",
-      "a": "[data-testid='map-mobile-sheet'] .status-badge",
-      "b": "[data-testid='map-mobile-sheet'] .sheet__name",
-      "maxRatio": 0.9,
-      "severity": "FAIL",
-      "pages": ["map-mobile-selected-half", "map-mobile-expanded"]
-    }
   ],
   "language": {
     "uuid": true,
@@ -227,5 +227,5 @@
     "allcapsTokens": true,
     "refs": true
   },
-  "notes": "Mobile map keeps map/list mode plus Rule / Reality / Facility / Divergence. Non-rule lens markers use fact-dimension palettes, and mock zoom remains interactive; selected place stays a real overlay sheet above the tab bar."
+  "notes": "Consumer v11 keeps the map as the dominant mobile surface. The selected-place overlay separates the active lens, Rule and recent Reality, carries no duplicate verdict badge, and expands only for real additional evidence/media."
 }
