@@ -188,8 +188,8 @@ const SHOTS: Shot[] = [
     page: "map",
     h1: "规则与现场地图",
     requiredTestids: ["map-mobile-sheet", "sheet-open-detail"],
-    requiredText: ["现场概览", "查看场所"],
-    note: "Real overlay bottom sheet stays above the bottom nav and uses the same CoexistenceSnapshot.",
+    requiredText: ["最近现场", "查看地点"],
+    note: "Map selection keeps the active lens, Rule and recent Reality visually distinct before opening the Place page.",
   },
   {
     name: "11_reality",
