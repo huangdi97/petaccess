@@ -18,9 +18,8 @@ import {
   type CoexistenceSnapshot,
   type PlaceSummary,
 } from "@petaccess/client-core";
-import { answerConditions, answerStatusKey, answerVerdictLabel } from "../../answer";
+import { answerConditions, answerVerdictLabel } from "../../answer";
 import { coexistenceRealityLine } from "../../consumer/rowView";
-import StatusBadge from "../StatusBadge.vue";
 import PlaceTypeGlyph from "./PlaceTypeGlyph.vue";
 
 const props = withDefaults(
@@ -46,7 +45,6 @@ const props = withDefaults(
 );
 
 const answer = computed(() => props.snapshot?.rule_answer ?? null);
-const statusKey = computed(() => answerStatusKey(answer.value));
 const keyCondition = computed(() => answerConditions(answer.value)[0] ?? "");
 const realityLine = computed(() =>
   props.loading
@@ -65,15 +63,6 @@ const metaLine = computed(() => {
 <template>
   <section class="place-preview" data-testid="place-preview" :aria-busy="loading">
     <template v-if="place">
-      <!-- §32：Place + Type·distance -->
-      <header class="place-preview__head">
-        <PlaceTypeGlyph :place-type="place.place_type" />
-        <div class="place-preview__identity">
-          <h2 class="place-preview__name">{{ place.canonical_name }}</h2>
-          <p class="place-preview__muted">{{ metaLine }}</p>
-        </div>
-      </header>
-
       <img
         v-if="sceneMediaUrl"
         class="place-preview__scene"
@@ -83,6 +72,15 @@ const metaLine = computed(() => {
         decoding="async"
         referrerpolicy="no-referrer"
       />
+
+      <!-- §32：Place + Type·distance -->
+      <header class="place-preview__head">
+        <PlaceTypeGlyph :place-type="place.place_type" />
+        <div class="place-preview__identity">
+          <h2 class="place-preview__name">{{ place.canonical_name }}</h2>
+          <p class="place-preview__muted">{{ metaLine }}</p>
+        </div>
+      </header>
 
       <div
         v-if="mapLensLabel"
@@ -101,8 +99,7 @@ const metaLine = computed(() => {
         :class="{ 'place-preview__decision--secondary': Boolean(mapLensLabel) }"
         data-testid="preview-verdict"
       >
-        <span v-if="mapLensLabel" class="place-preview__label">规则</span>
-        <StatusBadge v-if="!mapLensLabel && !loading && !error" :semantic="statusKey" />
+        <span class="place-preview__label">规则</span>
         <p class="place-preview__verdict-text" data-testid="preview-verdict-text">
           {{
             loading
