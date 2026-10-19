@@ -145,6 +145,24 @@ place identity
 
 Ordinary sections are editorial/divider-led. Large rounded containers are reserved for true floating surfaces or governed scene media.
 
+When a governed scene photo exists, it can create a destination-led header, but the photo header must not repeat the Rule verdict as a decorative badge. The Rule decision begins immediately below as its own semantic layer.
+
+When no governed scene photo exists, the identity stays text-led. A generic category scene must not be inserted merely to fill the visual gap.
+
+### Selected place on Map
+
+The selected-place sheet/card is the bridge between spatial browsing and a Place page, so it must preserve semantic separation even in a compact surface:
+
+```text
+place identity
+→ active map lens fact
+→ Rule as a separately labelled secondary fact when the active lens is not Rule
+→ recent Reality
+→ open place
+```
+
+A Rule condition must never appear directly beneath a Reality/Facility/Divergence headline without an explicit Rule label. Repeating the same verdict as both a status badge and a large text headline is forbidden.
+
 ### Reality
 
 The timeline is the page. The header provides title, scope and filters but must not read as a dashboard card.
