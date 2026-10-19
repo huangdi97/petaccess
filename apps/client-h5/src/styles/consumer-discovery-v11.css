@@ -19,13 +19,13 @@
 }
 
 #app .home-workspace .home-discovery-hero {
-  min-height: 400px;
+  min-height: 340px;
   border-radius: 22px;
   box-shadow: 0 18px 44px var(--pa-discovery-v10-shadow-card);
 }
 
 #app .home-workspace .home-discovery-hero__content {
-  min-height: 400px;
+  min-height: 340px;
   max-width: 620px;
   padding: 44px 48px 42px;
 }
@@ -402,13 +402,13 @@
 
 @media (max-width: 767px) {
   #app .home-workspace .home-discovery-hero {
-    min-height: 330px;
+    min-height: 300px;
     border-radius: 18px;
     background-position: 68% center;
   }
 
   #app .home-workspace .home-discovery-hero__content {
-    min-height: 330px;
+    min-height: 300px;
     padding: 20px 18px;
   }
 
