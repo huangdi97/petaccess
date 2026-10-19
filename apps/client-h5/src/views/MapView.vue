@@ -219,10 +219,7 @@ function chooseMapResult(id: string) {
           {{ item.label }}
         </button>
       </div>
-      <span
-        class="map-lensbar__hint visually-hidden"
-        data-testid="map-lens-semantics"
-      >
+      <span class="map-lensbar__hint visually-hidden" data-testid="map-lens-semantics">
         “差异”用于查看规则与现场的不一致，不代表当前一定存在冲突。
       </span>
     </nav>
