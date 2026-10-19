@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="600" viewBox="0 0 1200 600" role="img" aria-label="CI layout fixture, not a real venue photo">
+  <rect width="1200" height="600" fill="#dfe9e1"/>
+  <rect x="48" y="48" width="1104" height="504" rx="28" fill="#f8faf7" stroke="#315c46" stroke-width="8"/>
+  <path d="M96 430L310 276L472 364L690 190L856 318L1096 162" fill="none" stroke="#a9bfaf" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="242" cy="192" r="74" fill="#efe0b7"/>
+  <text x="96" y="140" fill="#315c46" font-family="Arial, sans-serif" font-size="58" font-weight="700">CI VISUAL LAYOUT FIXTURE</text>
+  <text x="96" y="510" fill="#5e685f" font-family="Arial, sans-serif" font-size="34">NOT A REAL VENUE PHOTO</text>
+</svg>
