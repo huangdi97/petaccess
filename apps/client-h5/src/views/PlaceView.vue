@@ -468,7 +468,7 @@ const placeFixture = computed<string>(() => {
               class="place-dossier__scene-note"
               data-testid="place-scene-note"
             >
-              暂无审核照片 · 分类场景示意
+              暂无审核场景照片
             </span>
             <PlaceSceneFrame
               v-if="placeSceneMedia"
@@ -480,15 +480,6 @@ const placeFixture = computed<string>(() => {
               data-testid="place-scene-media"
             />
             <div class="place-dossier__identity-row">
-              <PlaceSceneFrame
-                v-if="!placeSceneMedia"
-                class="place-dossier__scene place-dossier__scene--fallback"
-                :src="null"
-                :alt="`场所场景：${place.canonical_name}`"
-                :place-type="place.place_type"
-                variant="compact"
-                data-testid="place-scene-fallback"
-              />
               <div class="place-dossier__identity-copy">
                 <h1 class="place-dossier__name" data-ui="place-name">{{ place.canonical_name }}</h1>
                 <div class="place-dossier__meta-row">
