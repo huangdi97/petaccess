@@ -1,6 +1,6 @@
 {
   "id": "search.mobile",
-  "title": "Search Mobile Contract — Consumer Discovery v9",
+  "title": "Search Mobile Contract — Consumer v11 Urban Spatial Guide",
   "viewport": {
     "width": 430,
     "height": 932
@@ -82,13 +82,12 @@
       "fallbacks": ["ul.result-list li"],
       "props": {
         "borderRadius": {
-          "min": 12,
-          "max": 18
+          "equals": 0
         }
       },
       "severity": "FAIL",
       "aggregate": "rows",
-      "note": "v9 mobile results are touch-friendly place cards."
+      "note": "v11 mobile results are touch-friendly divider rows, not floating cards."
     },
     {
       "id": "SEARCH_MOBILE_ROW_ELEVATED",
@@ -96,12 +95,12 @@
       "fallbacks": ["ul.result-list li"],
       "props": {
         "shadowed": {
-          "min": 1
+          "max": 0
         }
       },
       "severity": "FAIL",
       "aggregate": "rows",
-      "note": "Subtle elevation improves scanability without hiding semantic status."
+      "note": "v11 keeps the result list visually continuous and reserves elevation for true floating surfaces."
     },
     {
       "id": "SEARCH_MOBILE_BOTTOM_NAV_HEIGHT",
@@ -269,5 +268,5 @@
     "allcapsTokens": true,
     "refs": true
   },
-  "notes": "Consumer Discovery v9: mobile Search keeps one Rule semantic status + Reality headline + relevant condition + evidence/freshness inside touch-friendly place cards, with the filter bottom sheet and no desktop detail pane. Rule is first by default; explicit task lenses can change emphasis without changing facts."
+  "notes": "Consumer v11: mobile Search is a continuous place list with Rule, Reality and relevant context inside each touch row. Filter remains a bottom sheet; result rows use dividers rather than card-wall elevation or rounded containers."
 }
