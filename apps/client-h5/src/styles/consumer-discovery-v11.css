@@ -371,6 +371,71 @@
   background: transparent;
 }
 
+
+/* --------------------------------------------------------- Contribution */
+#app .contribute-workspace .contribute-workspace__main {
+  border-color: var(--pa-discovery-line);
+  border-radius: 16px;
+  box-shadow: none;
+}
+
+#app .contribute-workspace .entry-options {
+  gap: 0;
+  border-top: 1px solid var(--pa-discovery-line);
+}
+
+#app .contribute-workspace .entry-option__button {
+  min-height: 82px;
+  padding: 14px 8px;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+#app .contribute-workspace .entry-option__button:hover,
+#app .contribute-workspace .entry-option__button:focus-visible {
+  background: var(--pa-discovery-v10-row-hover);
+  box-shadow: none;
+  transform: none;
+}
+
+#app .contribute-workspace .entry-option__button--selected {
+  background: var(--pa-discovery-v10-row-selected-bg);
+  box-shadow: inset 3px 0 0 var(--pa-discovery-v9-tone-01);
+}
+
+#app .contribute-workspace .entry-option__icon {
+  width: 36px;
+  height: 36px;
+  flex-basis: 36px;
+  border-radius: 10px;
+}
+
+/* ------------------------------------------------------------- Evidence */
+#app .evidence-workspace {
+  background: var(--pa-discovery-v9-tone-03);
+}
+
+#app .evidence-workspace .evidence-workspace__body {
+  max-width: 900px;
+}
+
+#app .evidence-workspace .evidence-head {
+  padding: 0 0 20px;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#app .evidence-workspace .evidence-section {
+  border-radius: 0;
+}
+
 /* ------------------------------------------------------------- Reality */
 #app .reality-workspace {
   background: var(--pa-discovery-v9-tone-03);
