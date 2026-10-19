@@ -6,7 +6,7 @@
  *   Place / Type·distance /
  *   Primary status + key condition /
  *   最近现场 /
- *   查看场所 →
+ *   查看地点 →
  * rule count / reality count / evidence count / conflict-analysis paragraph
  * 一律不上浮（进 Place dossier 详情）。
  *
