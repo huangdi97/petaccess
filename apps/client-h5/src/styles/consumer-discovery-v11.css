@@ -501,6 +501,47 @@
   gap: 32px;
 }
 
+/* Desktop Place keeps a sticky factual rail, but it must not read as a second
+ * dashboard card beside the destination. Identity and the full Rule decision
+ * live in the dossier; the rail is secondary reference context. */
+@media (min-width: 1024px) {
+  #app .place-workspace .place-inspector {
+    padding: 8px 0 0 24px;
+    border: 0;
+    border-left: 1px solid var(--pa-discovery-line);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  #app .place-workspace .decision-inspector--place {
+    min-height: 0;
+    gap: 18px;
+    padding-bottom: 24px;
+  }
+
+  #app .place-workspace .decision-inspector--place .inspector-block--context {
+    display: none;
+  }
+
+  #app .place-workspace .decision-inspector--place .inspector-block--decision {
+    padding: 0 0 0 16px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  #app .place-workspace .decision-inspector--place .inspector-block--decision::before {
+    top: 0;
+    bottom: 0;
+  }
+
+  #app .place-workspace .decision-inspector--place .inspector-decision {
+    font-size: 22px;
+    line-height: 30px;
+  }
+}
+
 #app .place-workspace .place-overview-lead > .place-section,
 #app .place-workspace .place-section {
   padding: 24px 0;
