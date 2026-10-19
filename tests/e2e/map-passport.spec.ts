@@ -347,15 +347,33 @@ test("A1.2 — mobile map searches without leaving the spatial canvas", async ({
   await page.getByTestId("map-mobile-search-submit").click();
 
   await expect(page.getByTestId("map")).toBeVisible();
-  await expect(page.getByTestId("map-mobile-sheet")).toContainText("云栖中心", {
+  const sheet = page.getByTestId("map-mobile-sheet");
+  await expect(sheet).toContainText("云栖中心", {
     timeout: 15000,
   });
+  await expect(page.getByTestId("sheet-map-lens")).toContainText("规则");
+  await expect(page.getByTestId("sheet-condition")).toContainText("需满足：");
+  await expect(sheet.locator(".status-badge")).toHaveCount(0);
   const detailAction = page.getByTestId("sheet-open-detail");
   await expect(detailAction).toBeVisible();
   await expect(detailAction).toHaveAttribute("href", `#/place/${MALL_ID}`);
   const fallbackDisclosure = page.getByTestId("map-real-provider-fallback");
   await expect(fallbackDisclosure).toContainText("点位来自已收录坐标");
   await expect(fallbackDisclosure).not.toContainText("当前环境未配置真实地图底图");
+});
+
+test("A1.2b — mobile selected sheet keeps active Reality lens separate from Rule", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 430, height: 932 });
+  await page.goto(`${BASE}/#/map?lens=reality&place=${MALL_ID}`);
+
+  const sheet = page.getByTestId("map-mobile-sheet");
+  await expect(sheet).toBeVisible({ timeout: 15000 });
+  await expect(page.getByTestId("sheet-map-lens")).toContainText("现场");
+  await expect(page.getByTestId("sheet-verdict")).toContainText("规则");
+  await expect(page.getByTestId("sheet-verdict")).toContainText("需满足：");
+  await expect(sheet.locator(".status-badge")).toHaveCount(0);
 });
 
 test("A1.2a — map-config outage never masquerades the simplified canvas as a real map", async ({
