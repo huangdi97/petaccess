@@ -83,7 +83,7 @@ const freshness = computed(() =>
           @open="emit('open', $event)"
         />
 
-        <h2 class="home-section-title home-section-title--stacked">规则与现场速览</h2>
+        <h2 class="home-section-title home-section-title--stacked">附近场所</h2>
 
         <p v-if="!verified.length" class="muted" data-testid="verified-empty">
           这一区域暂无有依据的场所。可看地图，或改用搜索指定场所名。
@@ -105,20 +105,17 @@ const freshness = computed(() =>
             >
               <div class="home-row__content home-row__content--with-scene">
                 <PlaceSceneFrame
+                  v-if="index === 0 && featuredSceneMediaUrl"
                   class="home-row__scene"
-                  :src="index === 0 ? (featuredSceneMediaUrl ?? null) : null"
+                  :src="featuredSceneMediaUrl"
                   :alt="`场所场景：${c.place.canonical_name}`"
                   :place-type="c.place.place_type"
                   variant="compact"
-                  :data-testid="
-                    index === 0 && featuredSceneMediaUrl
-                      ? 'home-scene-media'
-                      : 'home-scene-fallback'
-                  "
+                  data-testid="home-scene-media"
                 />
                 <PlaceResultRow
                   :place="c.place"
-                  :show-identity-glyph="false"
+                  :show-identity-glyph="!(index === 0 && featuredSceneMediaUrl)"
                   :answer="c.facts.answer"
                   :answer-error="c.facts.answerError"
                   :reality="c.facts.reality"
