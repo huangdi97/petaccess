@@ -1,6 +1,6 @@
 {
   "id": "evidence",
-  "title": "Evidence Contract — Consumer Discovery v9 Trust Record",
+  "title": "Evidence Contract — Consumer v11 Provenance Record",
   "viewport": {
     "width": 1440,
     "height": 900
@@ -34,8 +34,8 @@
       "fallbacks": [".evidence-workspace__body"],
       "props": {
         "width": {
-          "min": 940,
-          "max": 1000
+          "min": 880,
+          "max": 920
         }
       },
       "severity": "FAIL"
@@ -190,5 +190,5 @@
     "allcapsTokens": true,
     "refs": true
   },
-  "notes": "Consumer Discovery v9: Evidence uses a wider ~980px trust-record canvas so evidence status and the five-step provenance rail can be read side by side. The five provenance stages, timestamp/source separation, UUID privacy and the invariant that现场事实不代表正式准入规则 remain mandatory."
+  "notes": "Consumer v11: Evidence is a provenance record on a restrained ~900px reading measure. The five provenance stages, timestamp/source separation, UUID privacy and the invariant that现场事实不代表正式准入规则 remain mandatory."
 }
