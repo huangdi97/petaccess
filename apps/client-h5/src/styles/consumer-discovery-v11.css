@@ -1,0 +1,474 @@
+/**
+ * PetAccess Consumer Discovery v11 — Urban Spatial Guide.
+ *
+ * The product is a city-space rule guide, not a landing page and not a rule
+ * database. This layer keeps all Rule / Reality / Evidence semantics intact
+ * while changing composition:
+ *   1. nearby places lead Home before secondary lenses;
+ *   2. Map is the dominant mobile surface and chrome floats above it;
+ *   3. Search results read as a place list, not a wall of cards;
+ *   4. Place uses one destination identity, then editorial fact sections;
+ *   5. Reality starts with the timeline instead of a dashboard-like header.
+ *
+ * Imported after v10 so this remains a reversible presentation-only layer.
+ */
+
+/* ---------------------------------------------------------------- Home */
+#app .home-workspace .page--home {
+  max-width: var(--pa-layout-content-max);
+}
+
+#app .home-workspace .home-discovery-hero {
+  min-height: 400px;
+  border-radius: 22px;
+  box-shadow: 0 18px 44px var(--pa-discovery-v10-shadow-card);
+}
+
+#app .home-workspace .home-discovery-hero__content {
+  min-height: 400px;
+  max-width: 620px;
+  padding: 44px 48px 42px;
+}
+
+#app .home-workspace .home-discovery-hero__annotation {
+  max-width: 290px;
+}
+
+#app .home-workspace .home-lenses {
+  margin-top: 34px;
+  padding-top: 24px;
+  border-top: 1px solid var(--pa-discovery-line);
+}
+
+#app .home-workspace .home-section-header--lenses {
+  margin-bottom: 8px;
+}
+
+#app .home-workspace .home-lenses .home-section-title {
+  font-size: 19px;
+}
+
+#app .home-workspace .home-lenses .home-section-hint {
+  max-width: 560px;
+}
+
+#app .home-workspace .home-entries {
+  gap: 0;
+  margin-top: 10px;
+  border-top: 1px solid var(--pa-discovery-line);
+}
+
+#app .home-workspace .home-entries .entry {
+  min-height: 72px;
+  padding: 14px 12px;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+#app .home-workspace .home-entries .entry:hover {
+  background: var(--pa-discovery-v10-row-hover);
+  box-shadow: none;
+  transform: none;
+}
+
+#app .home-workspace .home-entries .entry-icon-shell {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+}
+
+#app .home-workspace .home-entries .entry-hint {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+/* -------------------------------------------------------------- Search */
+#app .search-workspace .result-list {
+  gap: 0;
+  padding-top: 0;
+}
+
+#app .search-workspace .result-row,
+#app .search-workspace .result-row--selected {
+  min-height: 118px;
+  margin: 0;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: var(--pa-discovery-v10-paper);
+  box-shadow: none;
+}
+
+#app .search-workspace .result-row--selected {
+  border-left: 3px solid var(--pa-discovery-v9-tone-01);
+  background: var(--pa-discovery-v10-row-selected-bg);
+}
+
+#app .search-workspace .result-row__link {
+  padding: 14px 16px;
+}
+
+#app .search-workspace .result-row__link:hover {
+  background: var(--pa-discovery-v10-row-hover);
+}
+
+#app .search-workspace .result-row__visual {
+  --scene-frame-compact-width: 64px;
+  --scene-frame-compact-height: 64px;
+  --scene-frame-compact-empty-width: 64px;
+  --scene-frame-compact-empty-height: 64px;
+  flex-basis: 64px;
+}
+
+#app .search-workspace .search-inspector {
+  padding: 34px 46px 54px;
+}
+
+#app .search-workspace .inspector-block--decision,
+#app .search-workspace .inspector-secondary {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+#app .search-workspace .inspector-block--decision {
+  padding-left: 20px;
+  border-width: 0 0 0 3px;
+  background: transparent;
+}
+
+#app .search-workspace .inspector-secondary {
+  border: 0;
+  border-top: 1px solid var(--pa-discovery-line);
+  background: transparent;
+}
+
+/* ---------------------------------------------------------------- Map */
+#app .map-workspace .map-canvas {
+  border-color: var(--pa-discovery-line);
+  background: var(--pa-color-map-grid-a);
+  box-shadow: none;
+}
+
+#app .map-workspace .map-preview-float {
+  border-radius: 16px;
+  box-shadow: 0 18px 44px var(--pa-discovery-v10-shadow-strong);
+}
+
+@media (min-width: 768px) {
+  #app .map-workspace .map-workspace__body,
+  #app .map-workspace .map-workspace__body--split {
+    gap: 0;
+    padding: 0;
+  }
+
+  #app .map-workspace .map-canvas {
+    border-top: 0;
+    border-right: 0;
+    border-bottom: 0;
+    border-radius: 0;
+  }
+
+  #app .map-workspace .map-lensbar {
+    min-height: 52px;
+    padding-block: 4px;
+  }
+}
+
+@media (max-width: 767px) {
+  #app .map-workspace {
+    position: relative;
+    background: var(--pa-color-map-grid-a);
+  }
+
+  #app .map-workspace > .query-context {
+    position: absolute;
+    z-index: 24;
+    top: 12px;
+    right: 12px;
+    left: 12px;
+    min-height: 44px;
+    padding: 8px 12px;
+    border: 1px solid var(--pa-discovery-line);
+    border-radius: 13px;
+    background: var(--pa-discovery-v10-paper);
+    box-shadow: 0 8px 24px var(--pa-discovery-v10-shadow-row);
+  }
+
+  #app .map-workspace .map-lensbar {
+    position: absolute;
+    z-index: 23;
+    top: 68px;
+    left: 12px;
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+
+  #app .map-workspace .map-lensbar__label,
+  #app .map-workspace .map-lensbar__hint {
+    display: none;
+  }
+
+  #app .map-workspace .map-lensbar__options {
+    gap: 0;
+    padding: 3px;
+    border-color: var(--pa-discovery-line);
+    border-radius: 12px;
+    background: var(--pa-discovery-v10-paper);
+    box-shadow: 0 6px 18px var(--pa-discovery-v10-shadow-row);
+  }
+
+  #app .map-workspace .map-lensbar__button {
+    min-height: 36px;
+    padding-inline: 10px;
+    font-size: 12px;
+  }
+
+  #app .map-workspace .map-viewbar {
+    position: absolute;
+    z-index: 23;
+    top: 68px;
+    right: 12px;
+    padding: 0;
+    border: 0;
+  }
+
+  #app .map-workspace .map-viewbar__segment {
+    border-color: var(--pa-discovery-line);
+    border-radius: 12px;
+    background: var(--pa-discovery-v10-paper);
+    box-shadow: 0 6px 18px var(--pa-discovery-v10-shadow-row);
+  }
+
+  #app .map-workspace .map-viewbar__segment button {
+    min-height: 42px;
+    padding-inline: 10px;
+    font-size: 12px;
+  }
+
+  #app .map-workspace .map-workspace__body {
+    gap: 0;
+    padding: 0;
+  }
+
+  #app .map-workspace .map-canvas {
+    border: 0;
+    border-radius: 0;
+  }
+
+  #app .map-workspace .map-mobile-tools {
+    top: 120px;
+    right: 12px;
+    left: 12px;
+  }
+
+  #app .map-workspace .map-mobile-tools__search {
+    border-color: var(--pa-discovery-line);
+    border-radius: 13px;
+    box-shadow: 0 8px 24px var(--pa-discovery-v10-shadow-row);
+  }
+}
+
+/* --------------------------------------------------------------- Place */
+#app .place-workspace .place-dossier__head--with-scene {
+  min-height: 300px;
+}
+
+#app .place-workspace .place-dossier__head--illustrated {
+  min-height: 0;
+  overflow: visible;
+  background: var(--pa-discovery-v10-paper);
+  border: 1px solid var(--pa-discovery-line);
+  border-radius: 18px;
+}
+
+#app .place-workspace .place-dossier__head--illustrated::after {
+  display: none;
+}
+
+#app .place-workspace .place-dossier__head--illustrated .place-dossier__scene--fallback {
+  display: block;
+}
+
+#app .place-workspace .place-dossier__head--illustrated .place-dossier__identity-row {
+  padding: 22px 24px 8px;
+}
+
+#app .place-workspace .place-dossier__head--illustrated .place-dossier__name {
+  color: var(--pa-discovery-ink);
+}
+
+#app .place-workspace .place-dossier__head--illustrated .place-dossier__meta {
+  color: var(--pa-discovery-muted);
+}
+
+#app .place-workspace .place-dossier__head--illustrated .place-dossier__map-link {
+  color: var(--pa-discovery-v9-tone-01);
+}
+
+#app .place-workspace .place-dossier__head--illustrated .place-dossier__actions {
+  padding: 8px 24px 20px;
+}
+
+#app .place-workspace .place-dossier__head--illustrated .place-dossier__actions .btn-inline {
+  border-color: var(--pa-discovery-v10-action-border);
+  background: transparent;
+  color: var(--pa-discovery-v9-tone-01);
+}
+
+#app .place-workspace .place-dossier__scene-note {
+  position: static;
+  align-self: flex-start;
+  margin: 18px 24px 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--pa-discovery-muted);
+}
+
+#app .place-workspace .place-overview-lead {
+  gap: 32px;
+}
+
+#app .place-workspace .place-overview-lead > .place-section,
+#app .place-workspace .place-section {
+  padding: 24px 0;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#app .place-workspace .place-overview-lead > .place-section + .place-section {
+  padding-left: 0;
+  border-left: 0;
+}
+
+#app .place-workspace .sub-answer--mine {
+  padding: 0 0 0 18px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+#app .place-workspace .sub-answer--mine::before {
+  top: 0;
+  bottom: 0;
+  width: 3px;
+}
+
+#app .place-workspace .zone-row {
+  border-width: 0 0 1px;
+  border-radius: 0;
+  background: transparent;
+}
+
+/* ------------------------------------------------------------- Reality */
+#app .reality-workspace {
+  background: var(--pa-discovery-v9-tone-03);
+}
+
+#app .reality-workspace .reality-workspace__body {
+  gap: 20px;
+  max-width: 860px;
+}
+
+#app .reality-workspace .reality-head {
+  padding: 0 0 18px;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#app .reality-workspace .reality-head__title {
+  font-size: 28px;
+  letter-spacing: -0.03em;
+}
+
+#app .reality-workspace .reality-filters {
+  border-color: var(--pa-discovery-line);
+  background: var(--pa-discovery-v10-paper);
+}
+
+@media (max-width: 767px) {
+  #app .home-workspace .home-discovery-hero {
+    min-height: 330px;
+    border-radius: 18px;
+    background-position: 68% center;
+  }
+
+  #app .home-workspace .home-discovery-hero__content {
+    min-height: 330px;
+    padding: 20px 18px;
+  }
+
+  #app .home-workspace .home-discovery-hero__eyebrow,
+  #app .home-workspace .home-discovery-hero__annotation {
+    display: none;
+  }
+
+  #app .home-workspace .home-intro {
+    margin-bottom: 18px;
+  }
+
+  #app .home-workspace .home-intro h1 {
+    max-width: 15ch;
+    font-size: 28px;
+  }
+
+  #app .home-workspace .home-subtitle {
+    max-width: 24ch;
+  }
+
+  #app .home-workspace .home-lenses {
+    margin-top: 28px;
+  }
+
+  #app .place-workspace .place-dossier__head--with-scene {
+    min-height: 260px;
+  }
+
+  #app .place-workspace .place-dossier__head--illustrated {
+    min-height: 0;
+  }
+
+  #app .place-workspace .place-dossier__head--illustrated .place-dossier__identity-row {
+    padding: 18px 16px 6px;
+  }
+
+  #app .place-workspace .place-dossier__scene-note {
+    margin: 14px 16px 0;
+  }
+
+  #app .place-workspace .place-overview-lead {
+    gap: 0;
+  }
+
+  #app .place-workspace .place-overview-lead > .place-section,
+  #app .place-workspace .place-section {
+    padding: 18px 0;
+  }
+
+  #app .search-workspace .result-row,
+  #app .search-workspace .result-row--selected {
+    margin: 0;
+  }
+
+  #app .reality-workspace .reality-workspace__body {
+    padding: 20px 18px 32px;
+  }
+
+  #app .reality-workspace .reality-head__title {
+    font-size: 26px;
+  }
+}
