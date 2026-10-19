@@ -191,6 +191,7 @@ function chooseMapResult(id: string) {
 <template>
   <div
     class="map-workspace"
+    :class="{ 'map-workspace--mobile-list': !isDesktop && view === 'list' }"
     data-testid="map-workspace"
     data-ui="map-shell"
     data-ui-page="map"
