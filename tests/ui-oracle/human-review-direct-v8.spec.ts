@@ -178,7 +178,7 @@ const SHOTS: Shot[] = [
     page: "map",
     h1: "规则与现场地图",
     requiredTestids: ["map", "map-lens-divergence"],
-    requiredText: ["不一致"],
+    requiredText: ["差异"],
     note: "Divergence is descriptive only and never rewrites Rule or Reality.",
   },
   {
