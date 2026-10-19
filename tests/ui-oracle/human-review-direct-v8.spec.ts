@@ -56,7 +56,7 @@ const SHOTS: Shot[] = [
     route: "/#/",
     page: "home",
     state: "ready",
-    h1: "去之前，先看看这里的规则和现场。",
+    h1: "去哪儿？先看规则与现场。",
     requiredTestids: ["entry-presence", "entry-indoor", "entry-dining", "entry-rules"],
     requiredText: ["近期值得先看", "规则与现场速览"],
     note: "Home = Query Launcher + four task lenses + recommendation + coexistence digest.",
