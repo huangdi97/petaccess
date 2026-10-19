@@ -447,6 +447,31 @@ jobs:
           sudo udevadm trigger --name-match=kvm
 
       - name: Run Preview on API ${{ matrix.api_level }} x86_64 emulator
+        id: runtime
+        # A wedged emulator or a dropped ADB connection is an infrastructure
+        # failure, not a product verdict. Keep the failure visible, then retry
+        # once on a fresh AVD; the runtime gate still requires a real PASS.
+        continue-on-error: true
+        uses: ReactiveCircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api_level }}
+          target: google_apis
+          arch: x86_64
+          profile: pixel_5
+          disable-animations: true
+          emulator-options: >-
+            -no-snapshot-load
+            -no-snapshot-save
+            -no-window
+            -gpu swiftshader_indirect
+            -noaudio
+            -no-boot-anim
+            -camera-back none
+            -camera-front none
+          script: bash scripts/android_acceptance/ci_preview_emulator_smoke.sh
+
+      - name: Retry Preview runtime after an emulator or ADB failure
+        if: steps.runtime.outcome == 'failure'
         uses: ReactiveCircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api_level }}
