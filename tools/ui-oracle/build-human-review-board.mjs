@@ -1,9 +1,10 @@
 /**
  * Static, source-linked Human Visual Acceptance board for direct-v8.
  *
- * Machine geometry cannot approve a visual design. This report puts the
- * approved composite beside each screenshot from the current checked-out
- * commit. It deliberately reports PENDING, never PASS.
+ * Machine geometry cannot approve a visual design. v11 has reopened the
+ * Consumer visual direction, so the previous composite is retained only as a
+ * historical IA/semantic reference beside current screenshots. It deliberately
+ * reports PENDING, never PASS.
  *
  * No image manipulation and no third-party assets or dependencies.
  */
@@ -67,8 +68,8 @@ const cards = screens
     <header><strong>${escapeHtml(scope)} · ${escapeHtml(name)}</strong><span>人工判断：待确认</span></header>
     <div class="pair">
       <figure>
-        <a href="approved-reference.png"><img loading="lazy" src="approved-reference.png" alt="批准参考设计完整拼图" /></a>
-        <figcaption>批准参考（完整拼图，非逐像素基准）</figcaption>
+        <a href="approved-reference.png"><img loading="lazy" src="approved-reference.png" alt="历史参考设计完整拼图" /></a>
+        <figcaption>历史参考 · 仅继承 IA/语义，不是 v11 视觉目标</figcaption>
       </figure>
       <figure>
         <a href="${url}"><img loading="lazy" src="${url}" alt="${escapeHtml(name)} 的最新运行截图" /></a>
@@ -96,8 +97,8 @@ figcaption{color:#60798d;font-size:13px;margin:7px 0} a{color:inherit}
 </style></head><body>
 <h1>PetAccess · Human Visual Acceptance 对照板</h1>
 <p class="meta">运行 HEAD：<code>${escapeHtml(head)}</code> · 截图 ${screens.length} 张 · HUMAN_VISUAL_ACCEPTANCE = PENDING</p>
-<p>左侧是已批准的完整参考拼图，右侧是本次 CI 实际运行画面。请逐页比较首屏任务、Rule/Reality/Evidence 层级、空间感、导航、移动端与异常态。此页不计算或声称人工 PASS；图片缺失也不能补造。</p>
-${!hasReference ? "<p>批准参考图片缺失，无法完成对照。</p>" : ""}
+<p>右侧是本次 CI 实际运行画面。左侧旧拼图只保留作历史 IA / Rule-Reality-Evidence 语义参考；Consumer v11 已按 <code>docs/ui/PETACCESS_CONSUMER_V11_URBAN_SPATIAL_GUIDE.md</code> 重新打开视觉方向，不能再拿旧拼图冒充批准外观。请重点检查地图是否成为主表面、地点是否像真实目的地、Rule / Reality / Evidence 是否使用不同视觉语法，以及移动端是否仍有 card-wall / dashboard 感。此页不计算或声称人工 PASS。</p>
+${!hasReference ? "<p>历史参考图片缺失；这不阻塞 v11 当前画面的人审。</p>" : ""}
 ${screens.length ? cards : "<p>本次未生成截图；截图捕获失败不能视为视觉验收完成。</p>"}
 </body></html>`;
 
