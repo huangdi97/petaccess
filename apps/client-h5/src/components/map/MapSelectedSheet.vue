@@ -6,8 +6,8 @@
  * - `position: fixed`，bottom = tabbar + safe area（不与 tabbar 重叠）；
  * - 白色 surface、top radius 16、small drag handle、elevation、touch scroll；
  * - 三态：closed（56–64px peek）/ half（~280–340px）/ expanded（max 70–78vh）；
- * - 内容 = drag handle + Place name + Status（紧凑，非全宽 outline 条）+
- *   Type·distance + Key condition + 最近现场 + 查看场所 →；close 右上 icon。
+ * - 内容 = drag handle + Place name + Type·distance + active lens +
+ *   separately-labelled Rule + 最近现场 + 查看地点 →；close 右上 icon。
  * - `role="dialog"` + Escape 关闭（键盘可达）；reduced-motion 降级。
  */
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
@@ -87,7 +87,9 @@ const verdictText = computed(() =>
       : answerVerdictLabel(answer.value),
 );
 
-const primaryLabel = computed(() => (props.mapLensLabel ? props.mapLensName || "当前地图" : "规则"));
+const primaryLabel = computed(() =>
+  props.mapLensLabel ? props.mapLensName || "当前地图" : "规则",
+);
 const primaryText = computed(() => props.mapLensLabel || verdictText.value);
 const secondaryRuleLine = computed(() => {
   if (!props.mapLensLabel) return "";
