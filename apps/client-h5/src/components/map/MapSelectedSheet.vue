@@ -16,10 +16,9 @@ import {
   type CoexistenceSnapshot,
   type PlaceSummary,
 } from "@petaccess/client-core";
-import { answerConditions, answerStatusKey, answerVerdictLabel } from "../../answer";
+import { answerConditions, answerVerdictLabel } from "../../answer";
 import { coexistenceRealityLine } from "../../consumer/rowView";
 import { publicSourceIssuer } from "../../consumer/sourcePrivacy";
-import StatusBadge from "../StatusBadge.vue";
 import PaIcon from "../ui/PaIcon.vue";
 import PlaceTypeGlyph from "../domain/PlaceTypeGlyph.vue";
 
@@ -53,7 +52,7 @@ type SheetPhase = "closed" | "half" | "expanded";
 const phase = ref<SheetPhase>("half");
 
 const TABBAR = "var(--pa-safe-total-bottom)";
-const HALF_H = "min(288px, 32vh)";
+const HALF_H = "clamp(288px, 34vh, 320px)";
 const EXPANDED_MAX_H = "min(78vh, 680px)";
 const EXPANDED_MIN_H = "min(360px, 48vh)";
 const CLOSED_H = "60px";
@@ -75,11 +74,6 @@ const sheetStyle = computed(() => {
 });
 
 const answer = computed(() => props.snapshot?.rule_answer ?? null);
-const statusKey = computed<import("@petaccess/design-tokens").StatusKey>(() =>
-  answer.value
-    ? answerStatusKey(answer.value)
-    : ((props.status ?? "UNKNOWN") as import("@petaccess/design-tokens").StatusKey),
-);
 const keyCondition = computed(() => answerConditions(answer.value)[0] ?? "");
 const realityLine = computed(() =>
   coexistenceRealityLine(props.snapshot, props.snapshot?.reality_answer),
@@ -92,6 +86,16 @@ const verdictText = computed(() =>
       ? "规则结论暂时无法取得"
       : answerVerdictLabel(answer.value),
 );
+
+const primaryLabel = computed(() => (props.mapLensLabel ? props.mapLensName || "当前地图" : "规则"));
+const primaryText = computed(() => props.mapLensLabel || verdictText.value);
+const secondaryRuleLine = computed(() => {
+  if (!props.mapLensLabel) return "";
+  if (props.loading || props.error) return verdictText.value;
+  return keyCondition.value
+    ? `${verdictText.value} · 需满足：${keyCondition.value}`
+    : verdictText.value;
+});
 /** Evidence/Freshness must describe evidence, not the time this snapshot was assembled. */
 const evidenceLine = computed(() => {
   if (props.loading) return "正在加载证据与来源…";
@@ -175,7 +179,6 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
           <div class="sheet__title-row">
             <PlaceTypeGlyph :place-type="place.place_type" size="sm" />
             <h2 class="sheet__name">{{ place.canonical_name }}</h2>
-            <StatusBadge v-if="!mapLensLabel && !loading && !error" :semantic="statusKey" />
             <button
               class="sheet__close"
               data-testid="sheet-close"
@@ -191,15 +194,10 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
               · {{ Math.round(place.distance_m) }}m
             </template>
           </p>
-          <div v-if="mapLensLabel" class="sheet__lens" data-testid="sheet-map-lens">
-            <span class="muted">当前地图 · {{ mapLensName }}</span>
-            <strong>{{ mapLensLabel }}</strong>
-          </div>
         </div>
 
-        <!-- Keep the half-height selection task-first: a photo must not push
-             the real Place CTA below the visible sheet. Full media belongs
-             in expanded detail and is never fabricated for missing records. -->
+        <!-- Full media belongs to expanded detail and is never fabricated for
+             missing records. The half sheet stays decision-first. -->
         <img
           v-if="sceneMediaUrl && phase === 'expanded'"
           class="sheet__scene"
@@ -210,33 +208,25 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
           referrerpolicy="no-referrer"
         />
 
-        <!-- §13 expanded：Current Decision（真实 verdict，无数据则保持留白不伪造）。 -->
-        <div
-          v-if="phase === 'expanded'"
-          class="sheet__block"
-          data-testid="sheet-verdict"
-          data-ui="sheet-verdict"
-        >
-          <span class="sheet__block-label">{{ mapLensLabel ? "规则" : "结论" }}</span>
+        <div class="sheet__primary" data-testid="sheet-map-lens">
+          <span class="sheet__primary-label">{{ primaryLabel }}</span>
+          <strong>{{ primaryText }}</strong>
           <p
-            class="sheet__verdict"
-            :class="{ 'sheet__verdict--secondary': Boolean(mapLensLabel) }"
-            data-testid="sheet-verdict-text"
+            v-if="!mapLensLabel && keyCondition && !loading && !error"
+            class="sheet__condition"
+            data-testid="sheet-condition"
           >
-            {{ verdictText }}
+            需满足：{{ keyCondition }}
           </p>
         </div>
 
-        <p
-          v-if="keyCondition && !loading && !error"
-          class="sheet__condition"
-          data-testid="sheet-condition"
-        >
-          {{ keyCondition }}
+        <p v-if="mapLensLabel" class="sheet__secondary-fact" data-testid="sheet-verdict">
+          <span>规则</span>
+          <strong data-testid="sheet-verdict-text">{{ secondaryRuleLine }}</strong>
         </p>
 
         <div class="sheet__reality">
-          <span class="muted sheet__reality-label">现场概览</span>
+          <span class="muted sheet__reality-label">最近现场</span>
           <span class="sheet__reality-line">
             {{ loading ? "加载中…" : error ? "暂时无法取得" : realityLine }}
           </span>
@@ -259,7 +249,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
             :to="`/place/${place.id}`"
             data-testid="sheet-open-detail"
           >
-            查看场所详情 →
+            查看地点 →
           </RouterLink>
         </div>
       </div>
@@ -345,14 +335,38 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   margin: 0;
   font-size: var(--pa-font-size-md);
 }
-.sheet__lens {
+.sheet__primary {
   display: flex;
   flex-direction: column;
   gap: var(--pa-space-1);
-  margin: var(--pa-space-2) 0 0;
-  padding-bottom: var(--pa-space-3);
+  padding: var(--pa-space-2) 0 var(--pa-space-3);
   border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+.sheet__primary-label {
+  color: var(--pa-color-text-muted);
+  font-size: var(--pa-font-size-sm);
+}
+.sheet__primary strong {
+  color: var(--pa-color-text-primary);
+  font-size: var(--pa-font-size-xl);
+  font-weight: var(--pa-font-weight-650);
+  line-height: var(--pa-line-height-26);
+}
+.sheet__secondary-fact {
+  display: flex;
+  gap: var(--pa-space-2);
+  align-items: baseline;
+  margin: 0;
+  color: var(--pa-color-text-primary);
   font-size: var(--pa-font-size-md);
+  line-height: var(--pa-line-height-20);
+}
+.sheet__secondary-fact span {
+  flex: 0 0 auto;
+  color: var(--pa-color-text-muted);
+}
+.sheet__secondary-fact strong {
+  font-weight: var(--pa-font-weight-600);
 }
 .sheet__scene {
   display: block;
@@ -364,12 +378,6 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   background: var(--pa-color-surface-muted);
 }
 
-.sheet__lens strong {
-  color: var(--pa-color-text-primary);
-  font-size: var(--pa-font-size-lg);
-  font-weight: var(--pa-font-weight-650);
-  line-height: var(--pa-line-height-26);
-}
 .sheet__condition {
   margin: 0;
   font-size: var(--pa-font-size-base);
