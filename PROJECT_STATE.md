@@ -1,3 +1,24 @@
+## Current phase（2026-10-19 — Consumer v11 Urban Spatial Guide presentation closure in progress）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 保持 **OPEN + DRAFT**；未 merge、未 tag、未 Release。当前 `UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
+- 本轮不是新增 domain 功能，而是继续执行 `docs/ui/PETACCESS_CONSUMER_V11_URBAN_SPATIAL_GUIDE.md`：PetAccess 的 Consumer 第一视觉原型从“规则数据库 / landing page / card wall”收口为 **city-space rule and reality guide**。
+- 已直接落地的 v11 视觉原则：
+  - Home Hero 从营销式大横幅继续压缩，保留城市空间感但让 Nearby / current task 更早进入首屏；桌面 promo annotation 移除。
+  - Map 的“差异”语义解释继续保留在 DOM / accessibility contract，但不再永久占据空间画布；地图本身保持主表面。
+  - 无审核场景照片的 Place 不再渲染 generic category scene illustration；只显示明确的“暂无审核场景照片”并回到 text-led place identity，避免把示意图误读成地点事实。
+  - 无照片 Place header 改为 editorial / divider-led 结构；操作项降级为文本型动作，不再组成大圆角按钮组。
+  - Reality filter chrome 从独立白卡继续降级为内容工具条，timeline 保持主视觉。
+  - Search / Map list / Contribution 继续沿用 v11 divider-led / one-question-at-a-time 方向。
+- 新真实性回归合同：`tests/e2e/map-passport.spec.ts` 明确要求无审核 scene photo 时 `place-scene-fallback` **必须不存在**，而不是仅隐藏；避免未来 Agent 为视觉填充重新引入 generic venue imagery。
+- 本轮提交链截至当前：
+  - `a87bf305` — evidence-honest no-photo Place identity；
+  - `e3df8d5e` — Map semantic clarification 退出主画布；
+  - `af5f1d89` — v11 Urban Spatial hierarchy 收口；
+  - `4e2585a5` — 锁定 no-photo evidence-honest E2E contract；
+  - `b1f11846` — mobile no-photo Place editorial closure。
+- 当前最新 HEAD：`b1f118469fc5a5b22ded85b60da1969b0155f645`。本段写入时该 HEAD 的 GitHub Actions / 新 HUMAN_REVIEW artifact **尚未取得完成结果**，不得沿用旧 HEAD 的 SUCCESS 冒充当前 PASS。
+- 下一视觉门：重新生成同一 HEAD 的 desktop/mobile Human Review，重点人工检查 Home 首屏占比、Map 主表面、Selected Place sheet、photo/no-photo Place、Reality timeline；机器 gate 只证明结构/语义/overflow，不替代真人视觉签字。
+
 ## Current phase（2026-10-19 — Reference-board visual language + local runtime PASS / CI emulator blocked）
 
 - 分支 `feat/ui-direct-craft-v8`；PR #1 保持 **OPEN + DRAFT**；未 merge、未 tag、未 Release。`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`；机器 PASS 不等于真人视觉验收。
