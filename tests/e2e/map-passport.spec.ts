@@ -548,6 +548,15 @@ test("A1.7 — a new mobile selection resets the bottom sheet to half height", a
   await page.getByTestId("sheet-handle").click();
   await expect(sheet).toHaveAttribute("data-phase", "half");
 
+  const handle = page.getByTestId("sheet-handle");
+  await handle.dispatchEvent("pointerdown", { clientY: 520, pointerId: 1 });
+  await handle.dispatchEvent("pointerup", { clientY: 450, pointerId: 1 });
+  await expect(sheet).toHaveAttribute("data-phase", "expanded");
+
+  await handle.dispatchEvent("pointerdown", { clientY: 450, pointerId: 2 });
+  await handle.dispatchEvent("pointerup", { clientY: 520, pointerId: 2 });
+  await expect(sheet).toHaveAttribute("data-phase", "half");
+
   await page.goto(`${BASE}/#/map?place=${MALL_ID}`);
   await expect(sheet).toContainText("云栖中心", { timeout: 15000 });
   await expect(sheet).toHaveAttribute("data-phase", "half");
