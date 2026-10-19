@@ -1,6 +1,6 @@
 {
   "id": "reality",
-  "title": "Reality Contract — Consumer Discovery v9 Field Notes",
+  "title": "Reality Contract — Consumer v11 Field Timeline",
   "viewport": {
     "width": 1440,
     "height": 900
@@ -34,8 +34,8 @@
       "fallbacks": [".reality-workspace__body"],
       "props": {
         "width": {
-          "min": 900,
-          "max": 940
+          "min": 840,
+          "max": 880
         }
       },
       "severity": "FAIL"
@@ -216,5 +216,5 @@
     "allcapsTokens": true,
     "refs": true
   },
-  "notes": "Consumer Discovery v9: Reality is a readable field-note timeline on a ~920px canvas. Time column 72px / rail 24px remain aligned and continuous; event rhythm is 28–36px. Observations, staff responses and facilities stay distinct from formal rules; empty Reality never means no animal presence."
+  "notes": "Consumer v11: Reality is the timeline, not a dashboard. A calmer ~860px reading measure keeps time, rail and event text legible while filters remain lightweight chrome. Observations, staff responses and facilities stay distinct from formal rules."
 }
