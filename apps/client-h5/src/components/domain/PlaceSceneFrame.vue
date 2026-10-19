@@ -19,7 +19,7 @@ const props = withDefaults(
   }>(),
   {
     src: null,
-    alt: "经审核允许公开展示的场所场景照片",
+    alt: "经审核公开的场所照片照片",
     variant: "hero",
     eager: false,
     placeType: null,
