@@ -133,6 +133,42 @@ function cyclePhase() {
     phase.value === "half" ? "expanded" : phase.value === "expanded" ? "closed" : "half";
 }
 
+let dragStartY: number | null = null;
+let suppressNextHandleClick = false;
+
+function onHandlePointerDown(event: PointerEvent) {
+  dragStartY = event.clientY;
+  suppressNextHandleClick = false;
+  (event.currentTarget as HTMLElement | null)?.setPointerCapture?.(event.pointerId);
+}
+
+function onHandlePointerUp(event: PointerEvent) {
+  if (dragStartY == null) return;
+  const delta = event.clientY - dragStartY;
+  dragStartY = null;
+
+  if (Math.abs(delta) < 36) return;
+
+  suppressNextHandleClick = true;
+  if (delta < 0) {
+    phase.value = "expanded";
+  } else {
+    phase.value = phase.value === "expanded" ? "half" : "closed";
+  }
+}
+
+function onHandlePointerCancel() {
+  dragStartY = null;
+}
+
+function onHandleClick() {
+  if (suppressNextHandleClick) {
+    suppressNextHandleClick = false;
+    return;
+  }
+  cyclePhase();
+}
+
 // A new selection is a new decision task. Reopen it at the designed half
 // height instead of carrying an expanded/closed phase from the previous place.
 watch(
@@ -171,7 +207,10 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
           phase === 'half' ? '展开场所面板' : phase === 'expanded' ? '收起场所面板' : '恢复场所面板'
         "
         :aria-expanded="phase === 'expanded'"
-        @click="cyclePhase"
+        @pointerdown="onHandlePointerDown"
+        @pointerup="onHandlePointerUp"
+        @pointercancel="onHandlePointerCancel"
+        @click="onHandleClick"
       >
         <span class="sheet__handle-bar" aria-hidden="true" />
       </button>
@@ -291,7 +330,9 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   padding: 0;
   border: none;
   background: transparent;
-  cursor: pointer;
+  cursor: ns-resize;
+  touch-action: none;
+  user-select: none;
 }
 
 .sheet__handle:focus-visible {
