@@ -43,6 +43,7 @@ const emit = defineEmits<{
 const freshness = computed(() =>
   freshnessLineFor(props.listStale, props.nearbyFetchedAtMs, !props.online),
 );
+const nearbyGridCount = computed(() => Math.min(props.verified.length, 3));
 </script>
 
 <template>
@@ -90,7 +91,10 @@ const freshness = computed(() =>
         </p>
 
         <!-- v0.2.4 §30：divider rows，非卡。 -->
-        <div class="home-nearby-grid">
+        <div
+          class="home-nearby-grid"
+          :class="`home-nearby-grid--${nearbyGridCount}`"
+        >
           <div
             v-for="(c, index) in verified.slice(0, 3)"
             :key="c.place.id"
