@@ -1,6 +1,6 @@
 {
   "id": "search.desktop",
-  "title": "Search Desktop Contract — Consumer Discovery v9",
+  "title": "Search Desktop Contract — Consumer v11 Urban Spatial Guide",
   "viewport": {
     "width": 1440,
     "height": 900
@@ -168,13 +168,12 @@
       "fallbacks": ["ul.result-list li"],
       "props": {
         "borderRadius": {
-          "min": 12,
-          "max": 18
+          "equals": 0
         }
       },
       "severity": "FAIL",
       "aggregate": "rows",
-      "note": "v9 results are compact place cards rather than divider-only database rows."
+      "note": "v11 Search is a divider-led place list; rows do not become floating cards."
     },
     {
       "id": "SEARCH_ROW_ELEVATED",
@@ -182,12 +181,12 @@
       "fallbacks": ["ul.result-list li"],
       "props": {
         "shadowed": {
-          "min": 1
+          "max": 0
         }
       },
       "severity": "FAIL",
       "aggregate": "rows",
-      "note": "Subtle elevation separates interactive place cards without turning the pane into a dashboard."
+      "note": "v11 removes per-row elevation so the result pane reads as one continuous place list."
     },
     {
       "id": "SEARCH_ROW_DIVIDER",
@@ -427,5 +426,5 @@
     "allcapsTokens": true,
     "refs": true
   },
-  "notes": "Consumer Discovery v9: desktop Search is a place-exploration list-detail workspace. Results are elevated spatial place cards with one Rule semantic status, a Reality headline, relevant condition and evidence/freshness metadata. The detail pane may use a wider 820px reading column and larger place identity. Rule remains first by default; explicit task lenses change emphasis without changing facts."
+  "notes": "Consumer v11: desktop Search is a divider-led place-exploration list-detail workspace. Rule remains first by default; Reality and evidence stay visible without turning each result into a floating card. Selection is a subtle background/left indicator, not a second card style."
 }
