@@ -25,8 +25,8 @@
 
 .place-preview__scene {
   display: block;
-  width: calc(100% + var(--pa-space-5) * 2);
-  margin: calc(var(--pa-space-5) * -1) calc(var(--pa-space-5) * -1) var(--pa-space-1);
+  width: calc(100% + var(--pa-space-5) + var(--pa-space-5));
+  margin: calc(0px - var(--pa-space-5)) calc(0px - var(--pa-space-5)) var(--pa-space-1);
   aspect-ratio: 16 / 7;
   object-fit: cover;
   border-radius: 0;
