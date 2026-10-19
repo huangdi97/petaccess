@@ -1,3 +1,21 @@
+## Current phase（2026-10-19 — Reference-board visual language + local runtime PASS / CI emulator blocked）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 保持 **OPEN + DRAFT**；未 merge、未 tag、未 Release。`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`；机器 PASS 不等于真人视觉验收。
+- 本轮 UI 提交：`fea264ca` 目的地视觉层（暖灰画布、深绿主色、场景 Hero、目的地卡片）、`71b43d95` 移动 Hero 构图、`0d6abde1` 去掉打包 WebView 的 backdrop-filter、`66d534a4` 搜索/地图真实审核缩略图 + 无照片场所的“分类场景示意”Hero、`881125c4` e2e 断言同步、`25490727` Android runtime 一次有界重试。这些提交只改 Consumer / Preview workflow / 文档，不改 domain 事实或 API 契约。
+- 视觉事实（机器复核，不代替真人验收）：
+  - 色板统一到 `#315C46 / #B67232 / #B05446 / #5E7C90 / #E5E1D5 / #1A1A1A / #5E685F`，页面画布为暖灰、内容卡为白；
+  - Home 使用原创城市公园插画 Hero（不是真实场所照片），Place 有审核媒体时用真实审核图、无媒体时用同一 Hero 版式并明确标注“暂无审核照片 · 分类场景示意”；
+  - Search / Map 列表只把 `purpose === "scene_photo"` 的受治理媒体当缩略图，其余保持分类 glyph；未审核/私有/失败一律 fail-closed。
+- UI 合同：本地 UI Oracle **559 PASS / 0 FAIL**（desktop + mobile）。按新目的地 Hero 同步更新 `place.mobile` 首屏行数 38→40、`place.desktop` fullpage 1500→1750 与 first-viewport blocks 3→2，均带 note；没有删除或降低其它闸门。
+- 测试：本地 `map-passport.spec.ts` **41/41 PASS**；同 HEAD `25490727` 的 PR CI、UI Direct Validation、UI Direct Visual、Public Preview Stack、Windows Preview Runtime、Android Phone Preview、Branch Autofmt 均 **SUCCESS**。
+- 本机真实运行时（Pixel 5 AVD API36 `emulator-5562`，swiftshader，安装 CI 构建的 APK）：
+  - FAST = **PASS**、`failure_count=0`；
+  - canonical CDP journey = **28/28 PASS**（21 public + 7 authenticated），`horizontalOverflow=false`、safe-area 正常、place-overview 通过；
+  - 本地 API 使用 8010，并用模拟器内 iptables DNAT 把 `10.0.2.2:8000` 指向 8010；CI 仍走标准 8000 链路。
+- CI Android Preview runtime 仍被外部环境阻塞：API35 在 `hardware_back_from_home` 处 emulator 消失（`adb: device 'emulator-5554' not found`、`Connection refused`）；API36 同类掉线后重试在 launch/CDP 阶段挂起，最终 45 分钟 job 被 cancel。已加入一次有界重试与 20 分钟墙钟上限（`25490727` + 本段），但当前 runner 上仍未取得 CI PASS。
+  - 结论：`ANDROID_RUNTIME_ACCEPTANCE`（本机真实模拟器）= **PASS**；CI 侧 = **BLOCKED_BY_EXTERNAL_ENVIRONMENT**，不能写成 CI PASS。
+- 当前停止线不变：PR 保持 draft，未 merge、未 tag、未 Release；下一轮在 runner 恢复后重跑 Android Preview，若继续复现再考虑降低 AVD 分辨率或拆分 FAST/journey job。
+
 ## Current phase（2026-10-17 — Local×Remote reconciliation + Android Preview runtime closure）
 
 - 分支 `feat/ui-direct-craft-v8`；PR #1 保持 **draft**；master / tag / GitHub Release 均未推进。`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`；机器 PASS 不等于真人视觉验收。

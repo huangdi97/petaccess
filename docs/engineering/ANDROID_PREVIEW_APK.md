@@ -263,3 +263,18 @@ Browser-domain 命令导致假失败。
 - 验收脚本在 Windows 本地运行时显式以 UTF-8 解码 CDP/Node 输出并显式 UTF-8 打印汇总；
   否则默认 GBK 会让含中文的成功结果在最后一步被误判为失败。
 
+### 9.2 运行时重试与墙钟上限（2026-10-19）
+
+- 2026-10-19 的 UI 视觉提交后，API35/API36 的 CI emulator 在 `hardware_back_from_home`
+  处真实掉线：`adb: device 'emulator-5554' not found` / `Connection refused`；同一份 APK
+  在本机 Pixel 5 AVD（API36，swiftshader）上 FAST 与 28/28 canonical CDP journey 均 PASS。
+  这证明掉线是 CI emulator/ADB 环境问题，不是页面状态或产品回归。
+- 因此 workflow 对 emulator runtime 增加一次有界重试：第一次失败保留失败结论并触发
+  `Retry Preview runtime after an emulator or ADB failure`；重试仍必须是真实 PASS。
+- 每个 attempt 的 smoke 脚本都有 20 分钟墙钟上限（`timeout --signal=KILL 1200`）。此前
+  重试在 emulator 已经卡死时会把 45 分钟 job budget 全部耗光，最后只得到 `cancelled`，
+  既没有 PASS 也没有可读的失败。
+- 这段只改变 CI 恢复策略，不改变 runtime 判定：`ANDROID_RUNTIME_ACCEPTANCE` 仍要求
+  FAST、journey、lifecycle/width/coverage 的真实证据；CI 环境阻塞期间只能记
+  `BLOCKED_BY_EXTERNAL_ENVIRONMENT`，不能把本机 PASS 写成 CI PASS。
+

@@ -468,7 +468,9 @@ jobs:
             -no-boot-anim
             -camera-back none
             -camera-front none
-          script: bash scripts/android_acceptance/ci_preview_emulator_smoke.sh
+          # A wedged emulator used to consume the whole 45-minute job budget.
+          # Give each attempt a hard wall-clock bound so the retry still has time.
+          script: timeout --signal=KILL 1200 bash scripts/android_acceptance/ci_preview_emulator_smoke.sh
 
       - name: Retry Preview runtime after an emulator or ADB failure
         if: steps.runtime.outcome == 'failure'
@@ -488,7 +490,9 @@ jobs:
             -no-boot-anim
             -camera-back none
             -camera-front none
-          script: bash scripts/android_acceptance/ci_preview_emulator_smoke.sh
+          # A wedged emulator used to consume the whole 45-minute job budget.
+          # Give each attempt a hard wall-clock bound so the retry still has time.
+          script: timeout --signal=KILL 1200 bash scripts/android_acceptance/ci_preview_emulator_smoke.sh
 
       - name: Upload Android runtime evidence
         if: always()
