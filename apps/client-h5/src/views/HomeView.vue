@@ -104,18 +104,6 @@ const homeFixture = computed(() => `home-${homeState.value}-v1`);
           </div>
         </section>
 
-        <section class="home-lenses" aria-label="你更想先看什么">
-          <div class="home-section-header home-section-header--lenses">
-            <div>
-              <h2 class="home-section-title">你更想先看什么？</h2>
-              <p class="muted home-section-hint">
-                从同一组规则、现场与证据事实中，先看你最关心的一层。
-              </p>
-            </div>
-          </div>
-          <HomeEntries :entries="HOME_ENTRIES" @select="goEntry" />
-        </section>
-
         <HomeNearbySection
           :loading="loading"
           :error="error"
@@ -134,6 +122,18 @@ const homeFixture = computed(() => `home-${homeState.value}-v1`);
           @why="why"
           @retry="load"
         />
+
+        <section class="home-lenses" aria-label="按空间问题继续查看">
+          <div class="home-section-header home-section-header--lenses">
+            <div>
+              <h2 class="home-section-title">继续按空间问题查看</h2>
+              <p class="muted home-section-hint">
+                规则、现场、设施与空间仍来自同一组事实，只改变你先看到什么。
+              </p>
+            </div>
+          </div>
+          <HomeEntries :entries="HOME_ENTRIES" @select="goEntry" />
+        </section>
 
         <!-- Canonical v0.10-R1: recent history comes after recommendations,
              overview and divergence so it never competes with the current task. -->
