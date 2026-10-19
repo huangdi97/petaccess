@@ -148,7 +148,7 @@ const SHOTS: Shot[] = [
       "map-lens-facility",
       "map-lens-divergence",
     ],
-    requiredText: ["规则", "现场", "设施", "不一致"],
+    requiredText: ["规则", "现场", "设施", "差异"],
     note: "Spatial Workspace: four first-class lenses share one place/snapshot model.",
   },
   {
