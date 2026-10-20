@@ -615,6 +615,7 @@ watch(currentQueryContext, () => {
                   v-if="lensProjectionFor(p).headline === 'rule'"
                   class="result-row__decision result-row__decision--lead"
                   data-testid="row-lens-headline"
+                  data-ui="search-rule-summary"
                 >
                   <template v-if="facts.get(p.id)?.answerError">规则结论暂时无法取得</template>
                   <template v-else-if="facts.get(p.id)?.answer">
@@ -647,14 +648,14 @@ watch(currentQueryContext, () => {
                 </p>
                 <p
                   v-else-if="
-                    facts.get(p.id)?.answer &&
-                    lensProjectionFor(p).headline !== 'rule' &&
-                    rowCondition(p)
+                    facts.get(p.id)?.answer && lensProjectionFor(p).headline !== 'rule'
                   "
                   class="result-row__condition-line"
                   data-testid="row-rule-condition"
+                  data-ui="search-rule-summary"
                 >
-                  进入前需满足：{{ rowCondition(p) }}
+                  规则：{{ answerPrimarySummary(facts.get(p.id)?.answer) }}
+                  <template v-if="rowCondition(p)"> · {{ rowCondition(p) }}</template>
                 </p>
 
                 <!-- Rules lens still keeps Reality visible as the secondary fact. -->
