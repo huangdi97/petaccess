@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { HomeCard } from "../../composables/useHomeLauncher";
 import { placeTypeLabel } from "@petaccess/client-core";
-import PlaceSceneFrame from "./PlaceSceneFrame.vue";
+import PlaceTypeGlyph from "./PlaceTypeGlyph.vue";
 import StatusBadge from "../StatusBadge.vue";
 
 defineProps<{ pending: HomeCard[] }>();
@@ -22,13 +22,9 @@ const emit = defineEmits<{ open: [id: string] }>();
       @click="emit('open', card.place.id)"
     >
       <div class="home-row__pending-identity">
-        <PlaceSceneFrame
-          class="home-row__pending-visual"
-          :src="null"
-          alt=""
-          :place-type="card.place.place_type"
-          variant="compact"
-        />
+        <span class="home-row__pending-visual" aria-hidden="true">
+          <PlaceTypeGlyph :place-type="card.place.place_type" size="md" />
+        </span>
         <div class="home-row__pending-copy">
           <div class="row home-row__head">
             <strong>{{ card.place.canonical_name }}</strong>
@@ -76,14 +72,15 @@ const emit = defineEmits<{ open: [id: string] }>();
 }
 
 .home-row__pending-visual {
-  --scene-frame-compact-width: 112px;
-  --scene-frame-compact-height: 84px;
-  --scene-frame-compact-empty-width: 112px;
-  --scene-frame-compact-empty-height: 84px;
-  --scene-frame-compact-mobile-width: 88px;
-  --scene-frame-compact-mobile-height: 66px;
-  --scene-frame-compact-empty-mobile-width: 88px;
-  --scene-frame-compact-empty-mobile-height: 66px;
+  display: inline-flex;
+  flex: 0 0 38px;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--pa-radius-control);
+  background: var(--pa-color-surface-muted);
+  color: var(--pa-color-accent);
 }
 .home-section-title {
   margin: 0;
