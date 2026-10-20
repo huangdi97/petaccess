@@ -14,7 +14,8 @@ test("health and decision home render nearby places", async ({ page }) => {
   // (search-first). The map moved to its own tab.
   await expect(page.getByTestId("home-title")).toBeVisible();
   await expect(page.getByTestId("home-search-input")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "近期值得先看" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "附近场所" })).toBeVisible();
+  await expect(page.getByText("近期值得先看", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "附近待补充" })).toBeVisible();
 
   // the map tab still renders the full shell; desktop is List+Map split so the
