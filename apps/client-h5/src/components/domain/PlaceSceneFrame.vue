@@ -69,9 +69,7 @@ const showImage = computed(() => Boolean(props.src) && !imageFailed.value);
         <small>有经审核允许公开的场景照片后，会显示在这里。</small>
       </span>
     </div>
-    <figcaption v-if="showImage" class="scene-frame__caption">
-      经审核公开的场所场景
-    </figcaption>
+    <figcaption v-if="showImage" class="scene-frame__caption">经审核公开的场所场景</figcaption>
   </figure>
 </template>
 
