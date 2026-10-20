@@ -8,7 +8,7 @@
 import type { HomeCard } from "../../composables/useHomeLauncher";
 import type { ConsumerLens } from "../../consumer/rowView";
 import PlaceResultRow from "./PlaceResultRow.vue";
-import PlaceSceneFrame from "./PlaceSceneFrame.vue";
+
 
 defineProps<{
   unavailable: HomeCard[];
@@ -35,16 +35,9 @@ const emit = defineEmits<{ open: [id: string] }>();
       :aria-label="`查看场所 ${card.place.canonical_name}`"
       @click="emit('open', card.place.id)"
     >
-      <PlaceSceneFrame
-        class="home-unavailable__scene"
-        :src="null"
-        alt=""
-        :place-type="card.place.place_type"
-        variant="compact"
-      />
       <PlaceResultRow
         :place="card.place"
-        :show-identity-glyph="false"
+        :show-identity-glyph="true"
         :answer="card.facts.answer"
         :answer-error="card.facts.answerError"
         :reality="card.facts.reality"
@@ -77,9 +70,7 @@ const emit = defineEmits<{ open: [id: string] }>();
 }
 
 .home-unavailable__row {
-  display: grid;
-  grid-template-columns: 112px minmax(0, 1fr);
-  gap: var(--pa-space-4);
+  display: block;
   width: 100%;
   padding: var(--pa-space-4) 0;
   border: 0;
@@ -96,21 +87,4 @@ const emit = defineEmits<{ open: [id: string] }>();
   outline-offset: -2px;
 }
 
-.home-unavailable__scene {
-  --scene-frame-compact-width: 112px;
-  --scene-frame-compact-height: 84px;
-  --scene-frame-compact-empty-width: 112px;
-  --scene-frame-compact-empty-height: 84px;
-  --scene-frame-compact-mobile-width: 88px;
-  --scene-frame-compact-mobile-height: 66px;
-  --scene-frame-compact-empty-mobile-width: 88px;
-  --scene-frame-compact-empty-mobile-height: 66px;
-}
-
-@media (max-width: 767px) {
-  .home-unavailable__row {
-    grid-template-columns: 88px minmax(0, 1fr);
-    gap: var(--pa-space-3);
-  }
-}
 </style>
