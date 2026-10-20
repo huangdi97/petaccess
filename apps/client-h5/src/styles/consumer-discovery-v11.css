@@ -661,7 +661,7 @@ html,
 #app .place-workspace .place-dossier__scene-note {
   position: static;
   align-self: flex-start;
-  margin: 0 0 6px;
+  margin: 4px 0 0;
   padding: 0;
   border: 0;
   background: transparent;
@@ -965,7 +965,7 @@ html,
   }
 
   #app .place-workspace .place-dossier__scene-note {
-    margin: 0 0 4px;
+    margin: 4px 0 0;
   }
 
   #app .place-workspace .place-overview-lead {
