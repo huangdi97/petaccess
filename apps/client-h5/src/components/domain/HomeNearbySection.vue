@@ -76,14 +76,6 @@ const nearbyGridCount = computed(() => Math.min(props.verified.length, 3));
           {{ freshness }}
         </p>
 
-        <HomeDigestHighlights
-          section="recommend"
-          :interest="interest"
-          :verified="verified"
-          :pending="pending"
-          @open="emit('open', $event)"
-        />
-
         <h2 class="home-section-title home-section-title--stacked">附近场所</h2>
 
         <p v-if="!verified.length" class="muted" data-testid="verified-empty">
