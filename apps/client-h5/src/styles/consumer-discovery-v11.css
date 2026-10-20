@@ -160,6 +160,10 @@ html,
   margin-top: 24px;
 }
 
+#app .home-workspace .home-nearby-heading .home-section-title--stacked {
+  margin-top: 0;
+}
+
 /* -------------------------------------------------------------- Search */
 #app .search-workspace .result-list {
   gap: 0;
