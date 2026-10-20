@@ -13,6 +13,19 @@
  * Imported after v10 so this remains a reversible presentation-only layer.
  */
 
+/* v11 uses a warm-white city canvas. The deeper beige remains available for
+ * semantic/tinted moments, but must not wash every reading surface in archival
+ * paper colour. */
+html,
+#app,
+#app .consumer-app-shell__main,
+#app .home-workspace,
+#app .place-workspace,
+#app .reality-workspace,
+#app .evidence-workspace {
+  background: var(--pa-discovery-v10-rail);
+}
+
 /* ---------------------------------------------------------------- Home */
 #app .home-workspace .page--home {
   max-width: var(--pa-layout-content-max);
@@ -287,21 +300,31 @@
   #app .map-workspace > .query-context {
     position: absolute;
     z-index: 24;
-    top: 76px;
+    top: 72px;
     right: 12px;
     left: 12px;
-    min-height: 44px;
-    padding: 8px 12px;
+    min-height: 38px;
+    padding: 5px 8px 5px 12px;
     border: 1px solid var(--pa-discovery-line);
-    border-radius: 13px;
+    border-radius: 12px;
     background: var(--pa-discovery-v10-paper);
-    box-shadow: 0 8px 24px var(--pa-discovery-v10-shadow-row);
+    box-shadow: 0 6px 18px var(--pa-discovery-v10-shadow-row);
+  }
+
+  #app .map-workspace > .query-context .query-context__label {
+    display: none;
+  }
+
+  #app .map-workspace > .query-context .query-context__edit {
+    min-height: 30px;
+    padding: 2px 9px;
+    font-size: 12px;
   }
 
   #app .map-workspace .map-lensbar {
     position: absolute;
     z-index: 23;
-    top: 128px;
+    top: 116px;
     left: 12px;
     min-height: 0;
     padding: 0;
@@ -332,7 +355,7 @@
   #app .map-workspace .map-viewbar {
     position: absolute;
     z-index: 23;
-    top: 128px;
+    top: 116px;
     right: 12px;
     padding: 0;
     border: 0;
@@ -368,6 +391,7 @@
   }
 
   #app .map-workspace .map-mobile-tools__search {
+    min-height: 52px;
     border-color: var(--pa-discovery-line);
     border-radius: 13px;
     box-shadow: 0 8px 24px var(--pa-discovery-v10-shadow-row);
