@@ -1,3 +1,32 @@
+## Current phase（2026-10-20 — v11 Map/Sheet/Search visual closure + PR CI repair）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 继续 **OPEN + DRAFT**；未 merge、未 tag、未 Release；`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
+- 进入本轮前真实远端 HEAD 为 `d003b7c82c6b20f89514fd800247bfb510a973e5`，相对 2026-10-19 的 `3c614320...` 已前进 77 commits；本地/其他 Agent 已重点推进 `MapSelectedSheet.vue`、`PlacePreview`、`MockMap`、Search/Place 与 v11 CSS。
+- `d003b7c8...` 机器状态：
+  - UI Direct Validation = SUCCESS；
+  - UI Direct Visual = SUCCESS；
+  - Public Preview Stack Validation = SUCCESS；
+  - PR CI = FAILURE，Playwright 196 passed / 4 failed。
+- 4 个 PR CI 失败已逐项核验，未把失败简单重跑或隐藏：
+  1. Home journey 仍断言旧层级标题“近期值得先看”为 heading；v11 现为“附近场所”主 heading + priority 文本；
+  2. transport-recovery contract 仍断言旧 verdict “明确允许”；canonical consumer verdict 已统一为“可以进入”；
+  3. reviewed scene test 仍断言旧 caption“经审核允许公开展示的场所场景”；组件当前为“经审核公开的场所场景”；
+  4. mobile selected sheet 的 Playwright synthetic PointerEvent 在第二次 drag 的 pointer capture 生命周期超时；真实指针仍需要 capture，但 synthetic pointer 不能假定是 active browser pointer。
+- 本轮直接修复：
+  - `257e8a11`：MapSelectedSheet 仅对 primary/真实 pointer 尝试 capture，并对 capture/release fail-safe；不降低真实拖动行为；
+  - `9c7b49e3` / `f6742f7e` / `45a1e5cb`：同步 v11 Home、verdict、reviewed-scene 三条旧 E2E 文案合同；
+  - `69f4d2be`：Home “附近待补充”移除 image-sized generic placeholder，改为 compact place-type glyph；
+  - `aea7a9f1`：transport-unavailable nearby rows 同样移除空 scene frame，回到地点身份 + transport truth；
+  - `649458df`：Search mobile 结果密度继续收紧（48px visual anchor、104px row），保持 divider-led place list。
+- 最新 UI Direct Visual artifact（来自 `d003b7c8...`）已人工抽查：
+  - Desktop Map 已形成稳定的 result pane | dominant map | single selected preview；
+  - Mobile selected sheet 已正确分离 active lens / Rule / recent Reality，half state 不再堆 evidence/count dashboard；
+  - Home v11 已从 landing hero 转为较短 city-space launcher；
+  - Place no-photo 状态已是 text-led editorial identity；
+  - Search 已去 card wall，但本轮继续降低图块对移动行高的主导。
+- 当前最新 HEAD（写入前源码）为 `649458df1dc8995309723144069f9042a5905c8d`。该 HEAD 的新 Actions / HUMAN_REVIEW 尚未完成，因此不得写成 PASS；必须以该 HEAD 后续实际 Actions 为准。
+- 下一门禁：等待同一最终 HEAD 的 PR CI + UI Direct Visual；若全绿，再拉取最新 HUMAN_REVIEW 对比本轮 Home/Search/Map selected/no-photo Place/Reality。机器全绿仍不能替代用户视觉签字。
+
 ## Current phase（2026-10-20 — Consumer v11 Map/Place visual hierarchy continuation）
 
 - 分支 `feat/ui-direct-craft-v8`；PR #1 继续 **OPEN + DRAFT**；未 merge、未 tag、未 Release。视觉签字仍为 `UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
