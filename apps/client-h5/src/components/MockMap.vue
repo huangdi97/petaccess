@@ -141,44 +141,62 @@ function isSelectedCluster(cluster: MapCluster): boolean {
  * stays very light cool neutral and low-contrast so the map never competes
  * with rule/reality/selected place. */
 const DISTRICT =
-  "M 12 12 H 248 A 10 10 0 0 1 258 22 V 238 A 10 10 0 0 1 248 248 H 12 A 10 10 0 0 1 2 238 V 22 A 10 10 0 0 1 12 2 Z";
-const RIVER = "M 0 40 Q 130 60 260 40 L 260 84 Q 130 104 0 84 Z";
-/** Soft open-space patch (park/green), very low opacity. */
+  "M 10 10 Q 58 2 108 12 T 208 8 Q 248 10 254 42 L 252 214 Q 244 250 204 254 L 48 252 Q 12 246 8 208 Z";
+const RIVER =
+  "M -8 54 C 42 42 86 64 132 56 S 216 36 270 54 L 270 78 C 214 62 176 82 132 82 S 42 68 -8 84 Z";
+/** Soft open-space patches are illustrative only; they carry no venue facts. */
 const OPEN_SPACE =
-  "M 100 96 Q 114 88 130 96 Q 146 88 160 98 L 160 130 Q 146 140 130 132 Q 114 140 100 128 Z";
+  "M 154 118 C 170 102 198 104 210 122 C 222 140 212 162 190 168 C 168 174 146 158 144 138 C 142 130 146 124 154 118 Z";
 const BLOCKS = [
-  "96,96 180,96 180,208 96,208",
-  "20,150 76,150 76,224 20,224",
-  "196,96 260,96 260,208 196,208",
-  "20,96 76,96 76,138 20,138",
-  "180,208 260,208 260,248 180,248",
-  "96,60 180,60 180,84 96,84",
+  "18,94 66,88 72,126 24,132",
+  "84,88 126,84 130,122 88,126",
+  "18,146 72,140 76,184 22,190",
+  "88,144 132,140 136,184 92,188",
+  "16,204 78,198 82,238 22,244",
+  "96,202 142,198 146,238 100,242",
+  "154,88 202,84 208,112 160,118",
+  "218,84 252,82 254,118 222,120",
+  "158,182 202,178 208,218 164,224",
+  "218,178 252,176 254,218 222,222",
+  "154,232 202,228 204,250 158,252",
+  "216,230 252,228 252,250 218,252",
 ];
-/** Road hierarchy: wider primary, narrower secondary. */
-const ROADS_PRIMARY = ["M 0 128 L 260 96", "M 180 0 L 196 260"];
+/** Road hierarchy: broad curved arterials plus quieter local streets. */
+const ROADS_PRIMARY = [
+  "M -10 136 C 54 126 102 132 150 118 S 220 96 270 104",
+  "M 146 -10 C 150 54 144 104 152 156 S 174 224 170 270",
+];
 const ROADS_SECONDARY = [
-  "M 0 224 L 260 208",
-  "M 76 0 L 96 260",
-  "M 20 138 L 76 138 L 76 150",
-  "M 196 84 L 196 96",
-  "M 96 96 L 96 60",
+  "M -8 196 C 54 188 104 192 150 184 S 220 160 270 166",
+  "M 72 -8 C 74 44 78 86 82 128 S 86 220 92 270",
+  "M 214 -8 C 212 44 214 86 218 128 S 222 220 228 270",
+  "M 10 76 C 70 72 122 74 166 66 S 222 52 260 58",
+  "M 12 238 C 60 232 106 234 144 228",
 ];
-/** Building mass hints: faint rectangles clustered inside blocks. Each entry is
- * "x,y,width,height" (rect geometry, not polygon points — the <rect> below
- * binds these fields directly). */
+/** Building mass hints: many small footprints create city texture without
+ * claiming a surveyed street/building plan. */
 const MASS = [
-  "104,104,16,12",
-  "128,104,16,12",
-  "152,104,16,12",
-  "104,124,16,12",
-  "128,124,16,12",
-  "152,124,16,12",
-  "104,168,20,16",
-  "132,168,20,16",
-  "28,158,16,12",
-  "52,158,16,12",
-  "204,104,20,16",
-  "232,104,16,12",
+  "28,102,12,9",
+  "46,99,12,9",
+  "94,96,12,10",
+  "112,94,10,10",
+  "30,154,14,10",
+  "52,150,12,12",
+  "98,150,12,10",
+  "116,148,12,12",
+  "30,214,14,10",
+  "52,210,14,11",
+  "106,210,12,10",
+  "124,208,10,12",
+  "166,94,14,9",
+  "186,91,12,10",
+  "228,92,12,10",
+  "168,192,14,11",
+  "188,188,12,12",
+  "228,190,14,10",
+  "168,238,12,8",
+  "188,236,12,9",
+  "228,236,12,9",
 ];
 </script>
 <template>
@@ -348,10 +366,10 @@ const MASS = [
 }
 
 .basemap-district {
-  fill: none;
+  fill: color-mix(in srgb, var(--pa-color-surface) 34%, transparent);
   stroke: var(--pa-color-border);
-  stroke-width: 2;
-  opacity: 0.55;
+  stroke-width: 1.5;
+  opacity: 0.72;
 }
 
 .basemap-open {
@@ -366,15 +384,15 @@ const MASS = [
 
 .basemap-block {
   fill: var(--pa-color-surface);
-  opacity: 0.55;
+  opacity: 0.72;
   stroke: var(--pa-color-border-subtle);
-  stroke-width: 1;
+  stroke-width: 0.8;
 }
 
 /* 建筑体块提示：极弱，仅提供密度感。 */
 .basemap-mass {
   fill: var(--pa-color-text-muted);
-  opacity: 0.08;
+  opacity: 0.11;
 }
 
 /* 道路层级：primary 更宽更明确，secondary 更细更弱。 */
