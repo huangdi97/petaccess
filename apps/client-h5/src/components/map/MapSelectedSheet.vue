@@ -52,7 +52,7 @@ type SheetPhase = "closed" | "half" | "expanded";
 const phase = ref<SheetPhase>("half");
 
 const TABBAR = "var(--pa-safe-total-bottom)";
-const HALF_H = "clamp(268px, 31vh, 292px)";
+const HALF_H = "clamp(252px, 29vh, 276px)";
 const EXPANDED_MAX_H = "min(72vh, 640px)";
 const EXPANDED_MIN_H = "min(348px, 44vh)";
 const CLOSED_H = "104px";
@@ -352,7 +352,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   padding: 0 var(--pa-space-4) var(--pa-space-4);
   display: flex;
   flex-direction: column;
-  gap: var(--pa-space-2);
+  gap: 0;
 }
 .sheet__head {
   display: flex;
@@ -408,8 +408,9 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   display: flex;
   flex-direction: column;
   gap: var(--pa-space-1);
-  padding: var(--pa-space-2) 0;
-  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  margin-top: var(--pa-space-2);
+  padding: var(--pa-space-2) 0 var(--pa-space-2) var(--pa-space-3);
+  border-left: 3px solid var(--pa-color-border-strong);
 }
 .sheet__primary-label {
   color: var(--pa-color-text-muted);
@@ -486,6 +487,9 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   display: flex;
   flex-direction: column;
   gap: var(--pa-space-1);
+  margin-top: var(--pa-space-2);
+  padding-top: var(--pa-space-2);
+  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
 }
 .sheet__reality-label {
   font-size: var(--pa-font-size-sm);
@@ -495,20 +499,15 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   color: var(--pa-color-text-primary);
 }
 .sheet__actions {
-  position: sticky;
-  bottom: 0;
-  z-index: 2;
-  margin-top: 0;
-  padding: var(--pa-space-1) 0 0;
-  background: linear-gradient(
-    to bottom,
-    color-mix(in srgb, var(--pa-color-surface) 0%, transparent),
-    var(--pa-color-surface) 28%
-  );
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--pa-space-2);
+  padding-top: var(--pa-space-2);
 }
 
 .sheet__cta {
-  width: 100%;
+  width: auto;
+  min-width: 136px;
   min-height: var(--pa-size-control-lg);
   justify-content: center;
 }
