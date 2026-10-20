@@ -207,10 +207,10 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
           phase === 'half' ? '展开场所面板' : phase === 'expanded' ? '收起场所面板' : '恢复场所面板'
         "
         :aria-expanded="phase === 'expanded'"
-        @pointerdown="onHandlePointerDown"
-        @pointerup="onHandlePointerUp"
-        @pointercancel="onHandlePointerCancel"
-        @click="onHandleClick"
+        @pointerdown.stop="onHandlePointerDown"
+        @pointerup.stop="onHandlePointerUp"
+        @pointercancel.stop="onHandlePointerCancel"
+        @click.stop="onHandleClick"
       >
         <span class="sheet__handle-bar" aria-hidden="true" />
       </button>
