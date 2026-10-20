@@ -165,6 +165,24 @@ html,
   background: var(--pa-discovery-v10-row-hover);
 }
 
+/* Search is a place list, not a status dashboard. The natural-language
+ * decision remains the visible conclusion; semantic colour only supports it. */
+#app .search-workspace .result-row[data-status="ALLOWED"] .result-row__decision--lead {
+  color: var(--pa-color-status-allowed);
+}
+
+#app .search-workspace .result-row[data-status="CONDITIONAL"] .result-row__decision--lead {
+  color: var(--pa-color-status-conditional);
+}
+
+#app .search-workspace .result-row[data-status="RESTRICTED"] .result-row__decision--lead {
+  color: var(--pa-color-status-restricted);
+}
+
+#app .search-workspace .result-row[data-status="CONFLICT"] .result-row__decision--lead {
+  color: var(--pa-color-status-conflict);
+}
+
 #app .search-workspace .result-row__visual {
   --scene-frame-compact-width: 64px;
   --scene-frame-compact-height: 64px;
@@ -773,7 +791,18 @@ html,
 
   #app .search-workspace .result-row,
   #app .search-workspace .result-row--selected {
+    min-height: 108px;
     margin: 0;
+  }
+
+  #app .search-workspace .result-row__link {
+    min-height: 108px;
+  }
+
+  /* Evidence provenance belongs in the detail surface on a phone. Search keeps
+   * one Rule line and one Reality line so results scan like places, not cards. */
+  #app .search-workspace .result-row__evidence-meta--inline {
+    display: none;
   }
 
   #app .reality-workspace .reality-workspace__body {
