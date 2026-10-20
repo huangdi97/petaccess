@@ -369,7 +369,8 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   justify-content: center;
 }
 
-.sheet[data-phase="closed"] :is(
+.sheet[data-phase="closed"]
+  :is(
     .sheet__primary,
     .sheet__secondary-fact,
     .sheet__reality,
