@@ -25,22 +25,22 @@ const {
 
 <template>
   <div class="query-context" data-testid="query-context" data-ui="query-context">
-    <span class="query-context__label" aria-hidden="true">当前查询</span>
+    <span class="query-context__label" aria-hidden="true">同行条件</span>
     <span class="query-context__value" data-testid="query-context-summary">{{ summary }}</span>
     <button
       type="button"
       class="query-context__edit"
       data-testid="query-context-edit"
-      aria-label="修改当前查询"
+      aria-label="调整同行条件"
       @click="openEditor"
     >
-      修改
+      调整
     </button>
 
     <PaDialog
       :open="open"
-      :title="'当前查询：' + summary"
-      description="这里只修改真正参与规则判断的查询条件。改变后，当前页面会按新的上下文重新取得 Rule + Reality 快照。"
+      :title="'同行条件：' + summary"
+      description="这里只调整会影响场所规则判断的同行条件。调整后，当前页面会按新的条件更新规则与现场信息。"
       width="sm"
       @close="open = false"
     >
@@ -65,7 +65,7 @@ const {
 
         <section v-if="session.mode === 'with_pet'" class="query-context__section">
           <div class="query-context__section-head">
-            <h3>本次查询对象</h3>
+            <h3>本次同行对象</h3>
             <RouterLink v-if="session.signedIn" class="btn-inline" to="/pets" @click="open = false">
               管理档案 →
             </RouterLink>
@@ -96,7 +96,7 @@ const {
             </button>
           </div>
           <p v-else class="muted query-context__hint">
-            没有宠物档案时按普通犬查询；只有规则真正需要体重等条件时才需要补充档案。
+            没有宠物档案时按普通犬情境查看；只有规则真正需要体重等条件时才需要补充档案。
           </p>
         </section>
 
