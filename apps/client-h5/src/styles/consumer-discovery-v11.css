@@ -708,7 +708,10 @@ html,
   /* The dossier owns conditions, exceptions and Reality. The sticky rail only
    * keeps a secondary verdict plus provenance/freshness so desktop Place does
    * not read like two competing dashboards. */
-  #app .place-workspace .decision-inspector--place :is(
+  #app
+    .place-workspace
+    .decision-inspector--place
+    :is(
       .inspector-block--condition,
       .inspector-block--exceptions,
       .inspector-block--verified,
