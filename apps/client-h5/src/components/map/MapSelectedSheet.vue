@@ -512,6 +512,32 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   justify-content: center;
 }
 
+/* Half is a glanceable decision surface. Keep the primary navigation action
+ * completely visible without making the sheet taller: it becomes a compact
+ * inline destination link pinned inside the sheet's lower reading edge. */
+.sheet[data-phase="half"] .sheet__body {
+  padding-bottom: 52px;
+}
+
+.sheet[data-phase="half"] .sheet__actions {
+  position: absolute;
+  right: var(--pa-space-4);
+  bottom: var(--pa-space-3);
+  margin: 0;
+  padding: 0;
+}
+
+.sheet[data-phase="half"] .sheet__cta {
+  min-width: 0;
+  min-height: 32px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--pa-color-accent);
+  box-shadow: none;
+}
+
 .sheet__close {
   flex: 0 0 auto;
   display: inline-flex;
