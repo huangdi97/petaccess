@@ -39,6 +39,7 @@ jobs:
             apps/client-h5/src/components/domain/PlaceResultRow.vue \
             apps/client-h5/src/components/domain/PlaceSceneFrame.vue \
             apps/client-h5/src/components/map/MapSelectedSheet.vue \
+            apps/client-h5/src/styles/consumer-discovery-v11.css \
             apps/client-h5/src/components/place/PlaceRulesPane.vue \
             apps/client-h5/src/components/place/PlaceOverviewPane.vue \
             apps/client-h5/src/composables/useHomeLauncher.ts \
@@ -89,6 +90,7 @@ jobs:
             apps/client-h5/src/components/domain/PlaceResultRow.vue
             apps/client-h5/src/components/domain/PlaceSceneFrame.vue
             apps/client-h5/src/components/map/MapSelectedSheet.vue
+            apps/client-h5/src/styles/consumer-discovery-v11.css
             apps/client-h5/src/components/place/PlaceRulesPane.vue
             apps/client-h5/src/components/place/PlaceOverviewPane.vue
             apps/client-h5/src/composables/useHomeLauncher.ts
