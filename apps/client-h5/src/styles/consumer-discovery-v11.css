@@ -568,6 +568,20 @@ html,
   font-size: 12px;
 }
 
+#app .place-workspace .place-nav {
+  padding-inline: 0;
+  background: transparent;
+  border-bottom: 1px solid var(--pa-discovery-line);
+}
+
+#app .place-workspace .place-nav__tab {
+  background: transparent;
+}
+
+#app .place-workspace .place-nav__tab--active {
+  background: transparent;
+}
+
 #app .place-workspace .place-overview-lead {
   gap: 32px;
 }
