@@ -52,10 +52,10 @@ type SheetPhase = "closed" | "half" | "expanded";
 const phase = ref<SheetPhase>("half");
 
 const TABBAR = "var(--pa-safe-total-bottom)";
-const HALF_H = "clamp(306px, 34vh, 324px)";
-const EXPANDED_MAX_H = "min(74vh, 660px)";
-const EXPANDED_MIN_H = "min(352px, 46vh)";
-const CLOSED_H = "56px";
+const HALF_H = "clamp(268px, 31vh, 292px)";
+const EXPANDED_MAX_H = "min(72vh, 640px)";
+const EXPANDED_MIN_H = "min(348px, 44vh)";
+const CLOSED_H = "104px";
 
 /** §23 geometry：phase → 高度；bottom 固定在 tabbar 上方。 */
 const sheetStyle = computed(() => {
@@ -326,7 +326,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   display: flex;
   justify-content: center;
   align-items: center;
-  height: var(--pa-layout-touch-target);
+  height: 28px;
   padding: 0;
   border: none;
   background: transparent;
@@ -349,21 +349,46 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  padding: 0 var(--pa-space-5) var(--pa-space-4);
+  padding: 0 var(--pa-space-4) var(--pa-space-4);
   display: flex;
   flex-direction: column;
-  gap: var(--pa-space-3);
+  gap: var(--pa-space-2);
 }
 .sheet__head {
   display: flex;
   flex-direction: column;
   gap: var(--pa-space-1);
 }
+.sheet[data-phase="closed"] .sheet__body {
+  overflow: hidden;
+  padding-bottom: 8px;
+}
+
+.sheet[data-phase="closed"] .sheet__head {
+  min-height: 68px;
+  justify-content: center;
+}
+
+.sheet[data-phase="closed"] :is(
+    .sheet__primary,
+    .sheet__secondary-fact,
+    .sheet__reality,
+    .sheet__block,
+    .sheet__actions,
+    .sheet__scene
+  ) {
+  display: none;
+}
+
+.sheet[data-phase="closed"] .sheet__meta {
+  display: block;
+}
+
 .sheet__title-row {
   display: flex;
   align-items: center;
   gap: var(--pa-space-2);
-  min-height: 36px;
+  min-height: 32px;
 }
 .sheet__name {
   flex: 1 1 auto;
@@ -382,7 +407,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   display: flex;
   flex-direction: column;
   gap: var(--pa-space-1);
-  padding: var(--pa-space-2) 0 var(--pa-space-3);
+  padding: var(--pa-space-2) 0;
   border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
 }
 .sheet__primary-label {
@@ -472,8 +497,8 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   position: sticky;
   bottom: 0;
   z-index: 2;
-  margin-top: var(--pa-space-1);
-  padding: var(--pa-space-2) 0 0;
+  margin-top: 0;
+  padding: var(--pa-space-1) 0 0;
   background: linear-gradient(
     to bottom,
     color-mix(in srgb, var(--pa-color-surface) 0%, transparent),
