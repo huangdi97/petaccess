@@ -463,13 +463,6 @@ const placeFixture = computed<string>(() => {
             }"
             data-ui="place-identity"
           >
-            <span
-              v-if="!placeSceneMedia"
-              class="place-dossier__scene-note"
-              data-testid="place-scene-note"
-            >
-              暂无审核场景照片
-            </span>
             <PlaceSceneFrame
               v-if="placeSceneMedia"
               class="place-dossier__scene place-dossier__scene--hero"
@@ -499,6 +492,13 @@ const placeFixture = computed<string>(() => {
                     }}
                   </RouterLink>
                 </div>
+                <span
+                  v-if="!placeSceneMedia"
+                  class="place-dossier__scene-note"
+                  data-testid="place-scene-note"
+                >
+                  暂无审核场景照片
+                </span>
                 <div
                   v-if="answer"
                   class="place-dossier__status"
