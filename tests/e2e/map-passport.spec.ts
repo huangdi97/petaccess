@@ -109,7 +109,7 @@ test("A4.3 — Search inspector only promotes reviewed scene_photo media", async
   const scene = page.getByTestId("inspector-scene-media");
   await expect(scene).toBeVisible({ timeout: 15000 });
   await expect(scene.locator("img")).toHaveAttribute("alt", /场所场景：云栖中心/);
-  await expect(scene).toContainText("经审核允许公开展示的场所场景");
+  await expect(scene).toContainText("经审核公开的场所场景");
   const selectedRowScene = page.getByTestId("search-row-scene-media");
   await expect(selectedRowScene).toBeVisible();
   // The compact row image is adjacent to the venue name, so it is decorative:
