@@ -1,3 +1,16 @@
+## Current phase（2026-10-20 — Consumer v11 Map/Place visual hierarchy continuation）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 继续 **OPEN + DRAFT**；未 merge、未 tag、未 Release。视觉签字仍为 `UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
+- 重新核验时远端已从上一轮 `3c614320...` 前进 32 commits 到 `cd695817...`；本地/其他 Agent 已进一步重构 `MapSelectedSheet.vue`、`PlacePreview`、v11 CSS 与 map/search/reality UI contracts，因此本轮只在最新事实之上继续，不覆盖既有成果。
+- `cd695817...` 的真实 CI：Public Preview Stack + UI Direct Validation = SUCCESS；PR CI = FAILURE（199/200 E2E，唯一失败为 mobile Map sheet drag pointer 事件）；UI Direct Visual = FAILURE（557 PASS / 2 FAIL，仅 desktop Place 旧 inspector 28px/1.75 hierarchy contract 与 v11 secondary-rail 设计冲突）。
+- 已直接修复：
+  - `c4bfea16`：MapSelectedSheet drag handle 的 pointer/click 事件 stop propagation，避免拖拽手势泄漏到地图导致 sheet 在 pointerup 前被撤销；
+  - `c890b9d8`：Place desktop oracle 升级到 v11 hierarchy——正文拥有完整 Rule decision，sticky inspector 是 secondary reference，不再要求 28px 主视觉；
+  - `9d98e13b`：mobile selected-place half sheet 从约 328–352px 收至约 306–324px，保留 Rule/Reality/CTA 但让地图上下文更可见；expanded/closed 同步收口；
+  - `2eea4a3d`：v11 阅读画布从偏深 archive-beige 提亮为 warm-white rail surface；mobile Map query context 压成 compact row，lens/view 控件上移，减少顶部 chrome 对地图画布的侵占。
+- 最新实际截图复核结论：Home / Place / Reality 已进入正确的 Urban Spatial Guide 视觉原型；下一重点不再是“去 card wall”本身，而是地图空间占比、selected-place bridge 的紧凑层级、warm-white 阅读表面和真实照片 Place 的 destination quality。
+- 当前最新源码 HEAD（本段写入前）为 `2eea4a3d12ff2848bce4a06c724dfc1110e83961`；该 HEAD 新 Actions 尚未形成可核验结果，禁止复用 `cd695817...` 的失败或更旧 HEAD 的 SUCCESS 作为当前结论。
+
 ## Current phase（2026-10-19 — Consumer v11 Urban Spatial Guide presentation closure in progress）
 
 - 分支 `feat/ui-direct-craft-v8`；PR #1 保持 **OPEN + DRAFT**；未 merge、未 tag、未 Release。当前 `UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
