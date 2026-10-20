@@ -208,6 +208,28 @@ html,
   border-radius: 10px;
 }
 
+/* Pending and transport-unavailable places are still places. Do not let the
+ * older global home-row card skin make uncertainty look like a separate
+ * product object. The state label changes; the list grammar does not. */
+#app .home-workspace button.home-row[data-testid^="pending-"],
+#app .home-workspace .home-unavailable__row {
+  margin: 0;
+  padding: 14px 0;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+#app .home-workspace button.home-row[data-testid^="pending-"]:hover,
+#app .home-workspace .home-unavailable__row:hover {
+  background: var(--pa-discovery-v10-row-hover);
+  box-shadow: none;
+  transform: none;
+}
+
 /* -------------------------------------------------------------- Search */
 #app .search-workspace .result-list {
   gap: 0;
