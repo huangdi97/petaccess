@@ -191,6 +191,23 @@ html,
   flex-basis: 64px;
 }
 
+#app .search-workspace .filter-toggle {
+  min-height: 32px;
+  padding: 0 2px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  font-weight: var(--pa-font-weight-600);
+}
+
+#app .search-workspace .filter-toggle:hover,
+#app .search-workspace .filter-toggle:focus-visible {
+  background: transparent;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
 #app .search-workspace .search-inspector {
   padding: 34px 46px 54px;
 }
@@ -236,6 +253,18 @@ html,
   border-bottom: 1px solid var(--pa-discovery-line);
   border-radius: 0;
   background: transparent;
+}
+
+#app .map-workspace .map-pane__coverage {
+  margin: 10px 0 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--pa-discovery-muted);
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 #app .map-workspace .map-place-list {
