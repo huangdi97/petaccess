@@ -357,7 +357,10 @@ test("A1.2 — mobile map searches without leaving the spatial canvas", async ({
   const detailAction = page.getByTestId("sheet-open-detail");
   await expect(detailAction).toBeVisible();
   await expect(detailAction).toHaveAttribute("href", `#/place/${MALL_ID}`);
-  const [sheetBox, actionBox] = await Promise.all([sheet.boundingBox(), detailAction.boundingBox()]);
+  const [sheetBox, actionBox] = await Promise.all([
+    sheet.boundingBox(),
+    detailAction.boundingBox(),
+  ]);
   expect(sheetBox).not.toBeNull();
   expect(actionBox).not.toBeNull();
   expect(actionBox!.x).toBeGreaterThanOrEqual(sheetBox!.x);
