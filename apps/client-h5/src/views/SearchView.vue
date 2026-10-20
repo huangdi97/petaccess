@@ -647,9 +647,7 @@ watch(currentQueryContext, () => {
                   规则结论暂时无法取得 —— 请检查网络后重试。
                 </p>
                 <p
-                  v-else-if="
-                    facts.get(p.id)?.answer && lensProjectionFor(p).headline !== 'rule'
-                  "
+                  v-else-if="facts.get(p.id)?.answer && lensProjectionFor(p).headline !== 'rule'"
                   class="result-row__condition-line"
                   data-testid="row-rule-condition"
                   data-ui="search-rule-summary"
