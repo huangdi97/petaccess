@@ -193,11 +193,11 @@
     },
     {
       "id": "SEARCH_MOBILE_RULE_STAYS_VISIBLE",
-      "selector": ".result-row__head-right .status-badge, [data-testid='row-rule-condition']",
+      "selector": "[data-ui='search-rule-summary']",
       "min": 1,
       "severity": "FAIL",
       "pages": ["search-mobile-ready"],
-      "note": "Rule remains visible as one semantic badge; only a relevant condition consumes another line."
+      "note": "v11: Rule remains visible as one natural-language summary; mobile search does not repeat it as a status badge."
     },
     {
       "id": "SEARCH_MOBILE_SPATIAL_IDENTITY",
