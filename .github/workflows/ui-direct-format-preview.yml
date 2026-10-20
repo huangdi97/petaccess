@@ -5,9 +5,6 @@ on:
     branches:
       - feat/ui-direct-craft-v8
 
-permissions:
-  contents: write
-
 jobs:
   format:
     runs-on: ubuntu-latest
@@ -72,22 +69,6 @@ jobs:
         shell: bash
         run: git diff -- .github/workflows/android-preview.yml .github/workflows/android-phone-preview.yml
 
-      - name: Commit canonical v11 formatter output once
-        if: ${{ github.event.head_commit.message == 'ci: apply one-shot v11 formatter' }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add \
-            apps/client-h5/src/components/map/MapSelectedSheet.vue \
-            apps/client-h5/src/styles/consumer-discovery-v11.css
-          if git diff --cached --quiet; then
-            echo "No v11 formatter delta."
-            exit 0
-          fi
-          git commit -m "chore: format v11 presentation"
-          git push origin HEAD:feat/ui-direct-craft-v8
       - uses: actions/upload-artifact@v4
         with:
           name: ui-direct-formatted-targets
