@@ -37,6 +37,7 @@ jobs:
             apps/client-h5/src/components/operator/OperatorClaimForm.vue \
             apps/client-h5/src/components/domain/DecisionInspector.vue \
             apps/client-h5/src/components/domain/PlaceResultRow.vue \
+            apps/client-h5/src/components/domain/PlaceSceneFrame.vue \
             apps/client-h5/src/components/map/MapSelectedSheet.vue \
             apps/client-h5/src/components/place/PlaceRulesPane.vue \
             apps/client-h5/src/components/place/PlaceOverviewPane.vue \
@@ -46,6 +47,7 @@ jobs:
             apps/client-h5/src/consumer/homeDigest.ts \
             apps/client-h5/src/views/PlaceView.vue \
             apps/client-h5/src/views/RealityTraceView.vue \
+            docs/ui/contracts/json/place.desktop.json \
             tests/e2e/place-route-race.spec.ts \
             tests/e2e/public-private-session-boundary.spec.ts \
             tests/e2e/contribute-wizard.spec.ts \
@@ -85,6 +87,7 @@ jobs:
             apps/client-h5/src/components/operator/OperatorClaimForm.vue
             apps/client-h5/src/components/domain/DecisionInspector.vue
             apps/client-h5/src/components/domain/PlaceResultRow.vue
+            apps/client-h5/src/components/domain/PlaceSceneFrame.vue
             apps/client-h5/src/components/map/MapSelectedSheet.vue
             apps/client-h5/src/components/place/PlaceRulesPane.vue
             apps/client-h5/src/components/place/PlaceOverviewPane.vue
@@ -94,6 +97,7 @@ jobs:
             apps/client-h5/src/consumer/homeDigest.ts
             apps/client-h5/src/views/PlaceView.vue
             apps/client-h5/src/views/RealityTraceView.vue
+            docs/ui/contracts/json/place.desktop.json
             tests/e2e/place-route-race.spec.ts
             tests/e2e/public-private-session-boundary.spec.ts
             tests/e2e/contribute-wizard.spec.ts
