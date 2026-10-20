@@ -139,13 +139,32 @@ let suppressNextHandleClick = false;
 function onHandlePointerDown(event: PointerEvent) {
   dragStartY = event.clientY;
   suppressNextHandleClick = false;
-  (event.currentTarget as HTMLElement | null)?.setPointerCapture?.(event.pointerId);
+
+  // Pointer capture is valuable for a real finger/mouse drag that leaves the
+  // 28px handle, but synthetic PointerEvents (including Playwright
+  // dispatchEvent) are not active browser pointers and can throw here. Keep
+  // real interaction robust without letting an unsupported capture abort the
+  // sheet gesture lifecycle.
+  if (event.isPrimary) {
+    try {
+      (event.currentTarget as HTMLElement | null)?.setPointerCapture?.(event.pointerId);
+    } catch {
+      // The drag still works when pointerup lands on the handle.
+    }
+  }
 }
 
 function onHandlePointerUp(event: PointerEvent) {
   if (dragStartY == null) return;
   const delta = event.clientY - dragStartY;
   dragStartY = null;
+
+  try {
+    const target = event.currentTarget as HTMLElement | null;
+    if (target?.hasPointerCapture?.(event.pointerId)) target.releasePointerCapture(event.pointerId);
+  } catch {
+    // Capture may already have been released by the browser.
+  }
 
   if (Math.abs(delta) < 36) return;
 
