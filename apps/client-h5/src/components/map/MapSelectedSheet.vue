@@ -52,10 +52,10 @@ type SheetPhase = "closed" | "half" | "expanded";
 const phase = ref<SheetPhase>("half");
 
 const TABBAR = "var(--pa-safe-total-bottom)";
-const HALF_H = "clamp(328px, 37vh, 352px)";
-const EXPANDED_MAX_H = "min(78vh, 680px)";
-const EXPANDED_MIN_H = "min(360px, 48vh)";
-const CLOSED_H = "60px";
+const HALF_H = "clamp(306px, 34vh, 324px)";
+const EXPANDED_MAX_H = "min(74vh, 660px)";
+const EXPANDED_MIN_H = "min(352px, 46vh)";
+const CLOSED_H = "56px";
 
 /** §23 geometry：phase → 高度；bottom 固定在 tabbar 上方。 */
 const sheetStyle = computed(() => {
