@@ -304,11 +304,11 @@
     },
     {
       "id": "SEARCH_RULE_STAYS_VISIBLE",
-      "selector": ".result-row__head-right .status-badge, [data-testid='row-rule-condition']",
+      "selector": "[data-ui='search-rule-summary']",
       "min": 1,
       "severity": "FAIL",
       "pages": ["search-ready", "search-selected"],
-      "note": "Rule stays visible as one semantic status badge; only a non-redundant condition consumes a second row line."
+      "note": "v11: Rule stays visible as one natural-language summary; semantic colour supports the conclusion without repeating a status badge."
     },
     {
       "id": "SEARCH_ROW_SPATIAL_IDENTITY",
