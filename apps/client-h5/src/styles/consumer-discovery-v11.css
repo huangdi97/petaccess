@@ -747,14 +747,18 @@ html,
 
 @media (max-width: 767px) {
   #app .home-workspace .home-discovery-hero {
-    min-height: 232px;
+    min-height: 214px;
     border-radius: 16px;
     background-position: 72% center;
   }
 
   #app .home-workspace .home-discovery-hero__content {
-    min-height: 232px;
+    min-height: 214px;
     padding: 16px;
+  }
+
+  #app .home-workspace .home-topline {
+    display: none;
   }
 
   #app .home-workspace .home-discovery-hero__eyebrow,
