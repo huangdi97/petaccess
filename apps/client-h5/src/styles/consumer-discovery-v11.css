@@ -164,6 +164,50 @@ html,
   margin-top: 0;
 }
 
+/* Nearby is a destination list, not a card gallery. Older v10 destination-card
+ * styling remains useful elsewhere, but Home v11 deliberately flattens these
+ * rows so the city/place content — not the container — carries the hierarchy. */
+#app .home-workspace .home-nearby-grid {
+  display: block;
+  margin-top: 8px;
+  border-top: 1px solid var(--pa-discovery-line);
+}
+
+#app .home-workspace .home-nearby-grid .home-row {
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#app .home-workspace .home-nearby-grid .home-row:hover {
+  border-color: var(--pa-discovery-line);
+  background: var(--pa-discovery-v10-row-hover);
+  box-shadow: none;
+}
+
+#app .home-workspace .home-nearby-grid .home-row__open {
+  padding: 14px 0 8px;
+}
+
+#app .home-workspace .home-nearby-grid .home-row__evidence-link {
+  margin: 0;
+  padding: 0 0 14px;
+  border: 0;
+}
+
+#app .home-workspace .home-nearby-grid .home-row__scene {
+  --scene-frame-compact-width: 112px;
+  --scene-frame-compact-height: 84px;
+  --scene-frame-compact-empty-width: 112px;
+  --scene-frame-compact-empty-height: 84px;
+  border-radius: 10px;
+}
+
 /* -------------------------------------------------------------- Search */
 #app .search-workspace .result-list {
   gap: 0;
