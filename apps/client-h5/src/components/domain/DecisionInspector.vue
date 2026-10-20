@@ -339,14 +339,14 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
           </p>
         </div>
 
-        <div v-if="keyCondition" class="inspector-block">
+        <div v-if="keyCondition" class="inspector-block inspector-block--condition">
           <span class="inspector-block__label">需要</span>
           <p class="inspector-block__value" data-testid="inspector-key-condition">
             {{ keyCondition }}
           </p>
         </div>
 
-        <div v-if="exceptions.length" class="inspector-block">
+        <div v-if="exceptions.length" class="inspector-block inspector-block--exceptions">
           <span class="inspector-block__label">限制区域</span>
           <p class="inspector-block__value">{{ exceptions.join("、") }}</p>
         </div>
@@ -358,12 +358,12 @@ const realityLineForPlace = computed(() => coexistenceRealityLine(props.snapshot
           </p>
         </div>
 
-        <div class="inspector-block">
+        <div class="inspector-block inspector-block--verified">
           <span class="inspector-block__label">最近核验</span>
           <p class="inspector-block__value">{{ latestVerifiedLabel }}</p>
         </div>
 
-        <div class="inspector-block" data-ui="search-reality">
+        <div class="inspector-block inspector-block--reality" data-ui="search-reality">
           <span class="inspector-block__label">现场</span>
           <p class="inspector-block__value">
             <template v-if="realityError">暂时无法取得</template>
