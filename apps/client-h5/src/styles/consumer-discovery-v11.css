@@ -660,6 +660,23 @@ html,
     font-size: 22px;
     line-height: 30px;
   }
+
+  /* The dossier owns conditions, exceptions and Reality. The sticky rail only
+   * keeps a secondary verdict plus provenance/freshness so desktop Place does
+   * not read like two competing dashboards. */
+  #app .place-workspace .decision-inspector--place :is(
+      .inspector-block--condition,
+      .inspector-block--exceptions,
+      .inspector-block--verified,
+      .inspector-block--reality
+    ) {
+    display: none;
+  }
+
+  #app .place-workspace .decision-inspector--place .inspector-block--meta {
+    padding-top: 18px;
+    border-top: 1px solid var(--pa-discovery-line);
+  }
 }
 
 #app .place-workspace .place-overview-lead > .place-section,
