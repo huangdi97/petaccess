@@ -1,6 +1,6 @@
 {
   "id": "place.desktop",
-  "title": "Place Desktop Contract — Consumer Discovery v9 Coexistence Dossier",
+  "title": "Place Desktop Contract — Consumer v11 Urban Spatial Guide",
   "viewport": {
     "width": 1440,
     "height": 900
@@ -66,7 +66,9 @@
     {
       "id": "PLACE_RAIL_WIDTH",
       "ui": "app-rail",
-      "fallbacks": [".desktop-rail"],
+      "fallbacks": [
+        ".desktop-rail"
+      ],
       "props": {
         "width": {
           "min": 64,
@@ -78,7 +80,9 @@
     {
       "id": "PLACE_TOP_CONTEXT_HEIGHT",
       "ui": "query-context",
-      "fallbacks": ["[data-testid='query-context']"],
+      "fallbacks": [
+        "[data-testid='query-context']"
+      ],
       "props": {
         "height": {
           "min": 56,
@@ -90,7 +94,9 @@
     {
       "id": "PLACE_MAIN_DOSSIER_X",
       "ui": "place-dossier",
-      "fallbacks": [".place-dossier"],
+      "fallbacks": [
+        ".place-dossier"
+      ],
       "props": {
         "left": {
           "min": 92,
@@ -102,7 +108,9 @@
     {
       "id": "PLACE_MAIN_DOSSIER_WIDTH",
       "ui": "place-dossier",
-      "fallbacks": [".place-dossier"],
+      "fallbacks": [
+        ".place-dossier"
+      ],
       "props": {
         "width": {
           "min": 820,
@@ -114,7 +122,10 @@
     {
       "id": "PLACE_MAIN_DOSSIER_PRESENT",
       "ui": "place-dossier",
-      "fallbacks": [".place-dossier", "[class*='dossier']"],
+      "fallbacks": [
+        ".place-dossier",
+        "[class*='dossier']"
+      ],
       "props": {
         "count": {
           "min": 1
@@ -125,7 +136,9 @@
     {
       "id": "PLACE_INSPECTOR_X",
       "ui": "place-inspector",
-      "fallbacks": ["[data-testid='decision-inspector']"],
+      "fallbacks": [
+        "[data-testid='decision-inspector']"
+      ],
       "props": {
         "left": {
           "min": 936,
@@ -138,7 +151,9 @@
     {
       "id": "PLACE_INSPECTOR_WIDTH",
       "ui": "place-inspector",
-      "fallbacks": ["[data-testid='decision-inspector']"],
+      "fallbacks": [
+        "[data-testid='decision-inspector']"
+      ],
       "props": {
         "width": {
           "min": 292,
@@ -150,7 +165,9 @@
     {
       "id": "PLACE_INSPECTOR_STICKY",
       "ui": "place-inspector",
-      "fallbacks": ["[data-testid='decision-inspector']"],
+      "fallbacks": [
+        "[data-testid='decision-inspector']"
+      ],
       "props": {
         "position": {
           "equals": "sticky"
@@ -161,7 +178,10 @@
     {
       "id": "PLACE_IDENTITY_NAME_SIZE",
       "ui": "place-name",
-      "fallbacks": [".place-dossier__name", "h1"],
+      "fallbacks": [
+        ".place-dossier__name",
+        "h1"
+      ],
       "props": {
         "fontSize": {
           "min": 32,
@@ -175,16 +195,22 @@
     },
     {
       "id": "PLACE_DECISION_FONT_SIZE",
-      "fallbacks": ["[data-testid='inspector-verdict']", ".place-unknown__headline"],
+      "fallbacks": [
+        "[data-testid='inspector-verdict']",
+        ".place-unknown__headline"
+      ],
       "props": {
         "fontSize": {
-          "min": 27,
-          "max": 29
+          "min": 21,
+          "max": 23
         }
       },
       "severity": "FAIL",
-      "pages": ["place-ready", "place-unknown"],
-      "note": "Desktop canonical composition has one full-size decision focal point in the sticky inspector; the left dossier keeps only a compact semantic state."
+      "pages": [
+        "place-ready",
+        "place-unknown"
+      ],
+      "note": "v11: the full Rule decision is owned by the dossier; the sticky rail is secondary reference context and must not compete with the destination identity."
     },
     {
       "id": "PLACE_SECTION_TITLE_SIZE",
@@ -205,7 +231,10 @@
     {
       "id": "PLACE_SECTION_GAP",
       "ui": "place-dossier",
-      "fallbacks": [".place-dossier", "main"],
+      "fallbacks": [
+        ".place-dossier",
+        "main"
+      ],
       "props": {
         "sectionGap": {
           "min": 24,
@@ -213,13 +242,18 @@
         }
       },
       "severity": "FAIL",
-      "pages": ["place-ready", "place-rules"],
+      "pages": [
+        "place-ready",
+        "place-rules"
+      ],
       "note": "section rhythm applies to multi-section dossier views; §15 unknown overview is a single minimal pane (nav between identity and pane is not a section gap)."
     },
     {
       "id": "PLACE_NAV_PRESENT",
       "ui": "place-nav",
-      "fallbacks": ["[data-ui='place-nav']"],
+      "fallbacks": [
+        "[data-ui='place-nav']"
+      ],
       "props": {
         "count": {
           "min": 1
@@ -230,32 +264,42 @@
     {
       "id": "PLACE_RULES_VIEW_PRESENT",
       "ui": "place-rules-view",
-      "fallbacks": ["[data-testid='place-rules-view']"],
+      "fallbacks": [
+        "[data-testid='place-rules-view']"
+      ],
       "props": {
         "count": {
           "min": 1
         }
       },
       "severity": "FAIL",
-      "pages": ["place-rules"]
+      "pages": [
+        "place-rules"
+      ]
     },
     {
       "id": "PLACE_OVERVIEW_FULLPAGE_HEIGHT",
       "ui": "place-dossier",
-      "fallbacks": [".place-dossier"],
+      "fallbacks": [
+        ".place-dossier"
+      ],
       "props": {
         "height": {
           "max": 1750
         }
       },
       "severity": "FAIL",
-      "pages": ["place-ready"],
+      "pages": [
+        "place-ready"
+      ],
       "note": "v11 destination hero (reviewed photo or labelled category scene) adds first-screen identity height; progressive disclosure below the fold is unchanged."
     },
     {
       "id": "PLACE_ZONE_ROW_HEIGHT",
       "ui": "zone-row",
-      "fallbacks": [".zone-row"],
+      "fallbacks": [
+        ".zone-row"
+      ],
       "props": {
         "height": {
           "min": 48,
@@ -264,12 +308,16 @@
       },
       "severity": "FAIL",
       "aggregate": "rows",
-      "pages": ["place-ready"]
+      "pages": [
+        "place-ready"
+      ]
     },
     {
       "id": "PLACE_IDENTITY_DECISION_ACTIONS",
       "ui": "place-identity",
-      "fallbacks": [".place-dossier__head .row button, .place-dossier__actions"],
+      "fallbacks": [
+        ".place-dossier__head .row button, .place-dossier__actions"
+      ],
       "props": {
         "count": {
           "max": 3
@@ -283,19 +331,30 @@
     {
       "id": "PLACE_ZONES_NOT_CARDS",
       "selector": "[data-ui='place-zones'] .zone-row, .zone-row",
-      "forbiddenClass": ["card", "panel"],
+      "forbiddenClass": [
+        "card",
+        "panel"
+      ],
       "severity": "FAIL"
     },
     {
       "id": "PLACE_NO_RAW_ZONE_ENUM",
       "selector": "[data-ui='place-zones'], .zone-row",
-      "forbiddenText": ["1F", "pet_area", "dining_area", "floor"],
+      "forbiddenText": [
+        "1F",
+        "pet_area",
+        "dining_area",
+        "floor"
+      ],
       "severity": "FAIL"
     },
     {
       "id": "PLACE_SECTION_NOT_CARD",
       "selector": "[data-ui='place-dossier'] .place-section",
-      "forbiddenClass": ["card", "panel"],
+      "forbiddenClass": [
+        "card",
+        "panel"
+      ],
       "severity": "FAIL"
     },
     {
@@ -303,21 +362,33 @@
       "selector": "[data-ui='place-history'] [aria-expanded='false'], [data-ui='place-history'] .disclosure-toggle",
       "min": 1,
       "severity": "FAIL",
-      "pages": ["place-rules"]
+      "pages": [
+        "place-rules"
+      ]
     },
     {
       "id": "PLACE_RULES_VIEW_HISTORY_COLLAPSED",
       "selector": "[data-ui='place-rules-view'] [data-ui='place-history'], [data-ui='place-rules-view'] .disclosure-toggle",
       "disclosureDefault": "collapsed",
       "severity": "FAIL",
-      "pages": ["place-rules"]
+      "pages": [
+        "place-rules"
+      ]
     },
     {
       "id": "PLACE_NO_STRAY_GLYPH",
       "selector": "[data-ui='place-dossier'], [data-testid='place-unknown']",
-      "forbiddenText": [">", "<", ":::", "——"],
+      "forbiddenText": [
+        ">",
+        "<",
+        ":::",
+        "——"
+      ],
       "severity": "FAIL",
-      "pages": ["place-ready", "place-unknown"]
+      "pages": [
+        "place-ready",
+        "place-unknown"
+      ]
     },
     {
       "id": "PLACE_NO_ENGINEERING_INVARIANT_COPY",
@@ -333,21 +404,29 @@
         "zone_type"
       ],
       "severity": "FAIL",
-      "pages": ["place-ready", "place-unknown"]
+      "pages": [
+        "place-ready",
+        "place-unknown"
+      ]
     },
     {
       "id": "PLACE_RULE_GROUP_HAS_CONTEXT",
       "selector": "[data-testid='rule-group-context'], [data-testid='rule-group']",
       "min": 1,
       "severity": "FAIL",
-      "pages": ["place-rules"]
+      "pages": [
+        "place-rules"
+      ]
     },
     {
       "id": "PLACE_COEXISTENCE_LEAD_PRESENT",
       "selector": "[data-ui='place-coexistence-lead']",
       "min": 1,
       "severity": "FAIL",
-      "pages": ["place-ready", "place-unknown"]
+      "pages": [
+        "place-ready",
+        "place-unknown"
+      ]
     },
     {
       "id": "PLACE_FIRST_SCREEN_ACTIONS",
@@ -355,22 +434,33 @@
       "min": 3,
       "max": 3,
       "severity": "FAIL",
-      "pages": ["place-ready", "place-unknown"],
-      "mustContainTexts": ["查看证据", "为什么", "纠错"]
+      "pages": [
+        "place-ready",
+        "place-unknown"
+      ],
+      "mustContainTexts": [
+        "查看证据",
+        "为什么",
+        "纠错"
+      ]
     },
     {
       "id": "PLACE_STAFF_RESPONSE_DETAIL",
       "selector": "[data-ui='place-staff-response']",
       "min": 1,
       "severity": "FAIL",
-      "pages": ["place-reality"]
+      "pages": [
+        "place-reality"
+      ]
     },
     {
       "id": "PLACE_ANIMAL_FACILITY_DETAIL",
       "selector": "[data-ui='place-animal-facilities']",
       "min": 1,
       "severity": "FAIL",
-      "pages": ["place-space"]
+      "pages": [
+        "place-space"
+      ]
     }
   ],
   "density": [
@@ -387,7 +477,11 @@
       "metric": "infoBlockCount",
       "min": 4,
       "severity": "FAIL",
-      "pages": ["place-ready", "place-rules", "place-unknown"],
+      "pages": [
+        "place-ready",
+        "place-rules",
+        "place-unknown"
+      ],
       "note": "Coexistence Passport stays populated even when Rule is unknown; unknown only affects the Rule dimension and never suppresses Reality/Staff/Facility/Evidence."
     }
   ],
@@ -403,10 +497,13 @@
       "id": "PLACE_DECISION_TO_BODY",
       "a": "[data-testid='inspector-verdict'], .place-unknown__headline",
       "b": "body",
-      "minRatio": 1.75,
+      "minRatio": 1.4,
       "severity": "FAIL",
-      "pages": ["place-ready", "place-unknown"],
-      "note": "Measure the single desktop decision focal point in the sticky inspector, not the compact dossier state."
+      "pages": [
+        "place-ready",
+        "place-unknown"
+      ],
+      "note": "v11: secondary sticky rail remains legible but subordinate; the dossier owns the primary Rule decision hierarchy."
     },
     {
       "id": "PLACE_SECTION_TO_BODY",
