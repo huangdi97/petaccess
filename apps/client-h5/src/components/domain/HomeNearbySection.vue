@@ -76,7 +76,10 @@ const nearbyGridCount = computed(() => Math.min(props.verified.length, 3));
           {{ freshness }}
         </p>
 
-        <h2 class="home-section-title home-section-title--stacked">附近场所</h2>
+        <div class="home-nearby-heading">
+          <h2 class="home-section-title home-section-title--stacked">附近场所</h2>
+          <span class="home-nearby-priority" data-ui="home-recommend">近期值得先看</span>
+        </div>
 
         <p v-if="!verified.length" class="muted" data-testid="verified-empty">
           这一区域暂无有依据的场所。可看地图，或改用搜索指定场所名。
