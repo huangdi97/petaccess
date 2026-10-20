@@ -32,15 +32,40 @@ html,
 }
 
 #app .home-workspace .home-discovery-hero {
-  min-height: 276px;
+  min-height: 248px;
   border-radius: 18px;
   box-shadow: 0 14px 34px var(--pa-discovery-v10-shadow-row);
 }
 
 #app .home-workspace .home-discovery-hero__content {
-  min-height: 276px;
+  min-height: 248px;
   max-width: 650px;
-  padding: 32px 40px 30px;
+  padding: 28px 40px 26px;
+}
+
+#app .home-workspace .home-discovery-hero__eyebrow {
+  display: none;
+}
+
+#app .home-workspace .home-topline {
+  margin-bottom: 12px;
+}
+
+#app .home-workspace .home-intro {
+  margin-bottom: 18px;
+}
+
+#app .home-workspace .home-intro h1 {
+  font-size: clamp(32px, 3vw, 44px);
+}
+
+#app .home-workspace .home-subtitle {
+  margin-top: 8px;
+}
+
+#app .home-workspace .home-search input,
+#app .home-workspace .home-search__submit {
+  min-height: 52px;
 }
 
 /* Home is a spatial starting point, not a marketing landing page. The
