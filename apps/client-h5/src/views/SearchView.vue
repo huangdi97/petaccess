@@ -35,7 +35,6 @@ import QueryContextBar from "../components/domain/QueryContextBar.vue";
 import PaBottomSheet from "../components/ui/PaBottomSheet.vue";
 import SkeletonList from "../components/SkeletonList.vue";
 import StateMessage from "../components/StateMessage.vue";
-import StatusBadge from "../components/StatusBadge.vue";
 import PlaceSceneFrame from "../components/domain/PlaceSceneFrame.vue";
 import { answerConditions, answerPrimarySummary, answerStatusKey } from "../answer";
 import {
@@ -564,6 +563,7 @@ watch(currentQueryContext, () => {
               class="result-row"
               :class="{ 'result-row--selected': selectedId === p.id }"
               :data-ui="selectedId === p.id ? 'search-selected-row' : 'search-result-row'"
+              :data-status="statuses[p.id] ?? 'UNKNOWN'"
               :aria-current="selectedId === p.id ? 'true' : undefined"
             >
               <RouterLink
@@ -605,7 +605,6 @@ watch(currentQueryContext, () => {
                     </div>
                   </div>
                   <div class="result-row__head-right">
-                    <StatusBadge :semantic="statuses[p.id] ?? 'UNKNOWN'" />
                     <span class="result-row__chevron" aria-hidden="true">›</span>
                   </div>
                 </div>
