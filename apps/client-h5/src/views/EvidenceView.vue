@@ -294,7 +294,7 @@ const uiFixture = computed<string>(() =>
         :description="privateContextNote"
         data-testid="evidence-private-context-note"
       />
-      <h1 class="visually-hidden">证据与来源</h1>
+      <h1 class="evidence-page-title">证据与来源</h1>
       <SkeletonList v-if="loading" :rows="4" />
       <StateMessage v-else-if="error" kind="ERROR" title="未能取得证据记录" :description="error">
         <template #action>
@@ -490,6 +490,15 @@ const uiFixture = computed<string>(() =>
   padding: var(--pa-space-5) var(--pa-space-6) var(--pa-space-7);
   max-width: 980px;
   margin: 0 auto;
+}
+
+.evidence-page-title {
+  margin: 0 0 var(--pa-space-5);
+  font-size: var(--pa-font-size-28);
+  font-weight: var(--pa-font-weight-650);
+  line-height: var(--pa-line-height-36);
+  letter-spacing: var(--pa-letter-spacing-tight);
+  color: var(--pa-color-text-primary);
 }
 
 .evidence-head {
@@ -768,8 +777,14 @@ const uiFixture = computed<string>(() =>
     padding: var(--pa-space-4);
   }
 
+  .evidence-page-title {
+    margin-bottom: var(--pa-space-4);
+    font-size: var(--pa-font-size-24);
+    line-height: var(--pa-line-height-32);
+  }
+
   .evidence-head__record {
-    font-size: var(--pa-font-size-22);
+    font-size: var(--pa-font-size-20);
     line-height: var(--pa-line-height-26);
   }
 
