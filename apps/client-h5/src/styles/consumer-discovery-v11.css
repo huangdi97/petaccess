@@ -867,6 +867,15 @@ html,
   box-shadow: none;
 }
 
+#app [data-ui-page="pets"] .profile-note {
+  padding: 16px 0 0;
+  border: 0;
+  border-top: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
 #app .explain-refresh {
   padding-inline: 0;
   border: 0;
