@@ -159,13 +159,13 @@ function toggleFilter(key: string) {
     </div>
     <p v-else class="muted map-lens-note" data-testid="map-lens-note">
       <template v-if="props.lens === 'reality'">
-        当前镜头展示经核验现场事实；没有记录不代表现场没有动物。
+        仅显示经核验现场事实；暂无记录不代表现场没有动物。
       </template>
       <template v-else-if="props.lens === 'facility'">
-        当前镜头展示动物设施事实；设施存在不等于允许进入。
+        仅显示动物设施事实；设施存在不代表允许进入。
       </template>
       <template v-else>
-        当前镜头对照规则与现场的差异；“不一致”只提示需要复核，不会自动改写正式规则。
+        仅提示规则与现场需要复核；不会自动改写正式规则。
       </template>
     </p>
 
@@ -195,7 +195,7 @@ function toggleFilter(key: string) {
         </template>
       </StateMessage>
       <template v-else>
-        <p class="notice map-pane__coverage" data-testid="coverage-hint">
+        <p class="muted map-pane__coverage" data-testid="coverage-hint">
           {{ props.coverageText }}
         </p>
 
@@ -331,7 +331,9 @@ function toggleFilter(key: string) {
 }
 
 .map-pane__coverage {
-  margin-top: var(--pa-space-1);
+  margin: var(--pa-space-1) 0 var(--pa-space-2);
+  font-size: var(--pa-font-size-sm);
+  line-height: var(--pa-line-height-20);
 }
 
 .map-lens-note {
