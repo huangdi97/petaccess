@@ -145,8 +145,15 @@ const DISTRICT =
 const RIVER =
   "M -8 54 C 42 42 86 64 132 56 S 216 36 270 54 L 270 78 C 214 62 176 82 132 82 S 42 68 -8 84 Z";
 /** Soft open-space patches are illustrative only; they carry no venue facts. */
-const OPEN_SPACE =
-  "M 154 118 C 170 102 198 104 210 122 C 222 140 212 162 190 168 C 168 174 146 158 144 138 C 142 130 146 124 154 118 Z";
+const OPEN_SPACES = [
+  "M 154 118 C 170 102 198 104 210 122 C 222 140 212 162 190 168 C 168 174 146 158 144 138 C 142 130 146 124 154 118 Z",
+  "M 24 26 C 38 18 58 20 68 34 C 76 46 68 62 52 66 C 36 70 20 60 18 46 C 16 38 18 32 24 26 Z",
+  "M 214 132 C 226 124 244 126 250 140 C 256 152 248 166 234 170 C 220 172 208 162 208 150 C 208 142 210 136 214 132 Z",
+];
+const PLAZAS = [
+  "100,30 134,28 138,52 104,56",
+  "158,34 190,32 194,54 160,58",
+];
 const BLOCKS = [
   "18,94 66,88 72,126 24,132",
   "84,88 126,84 130,122 88,126",
@@ -172,6 +179,24 @@ const ROADS_SECONDARY = [
   "M 214 -8 C 212 44 214 86 218 128 S 222 220 228 270",
   "M 10 76 C 70 72 122 74 166 66 S 222 52 260 58",
   "M 12 238 C 60 232 106 234 144 228",
+];
+const ROADS_LOCAL = [
+  "M 22 118 L 68 114",
+  "M 92 112 L 126 108",
+  "M 28 174 L 70 170",
+  "M 96 172 L 132 168",
+  "M 166 104 L 200 100",
+  "M 166 206 L 202 202",
+  "M 230 102 L 250 100",
+  "M 230 206 L 250 204",
+  "M 46 88 L 50 126",
+  "M 108 84 L 112 122",
+  "M 48 142 L 52 184",
+  "M 112 140 L 116 184",
+  "M 180 84 L 184 114",
+  "M 182 180 L 186 220",
+  "M 236 82 L 238 118",
+  "M 238 178 L 240 218",
 ];
 /** Building mass hints: many small footprints create city texture without
  * claiming a surveyed street/building plan. */
@@ -220,8 +245,9 @@ const MASS = [
       focusable="false"
     >
       <path class="basemap-district" :d="DISTRICT" />
-      <path class="basemap-open" :d="OPEN_SPACE" />
       <path class="basemap-river" :d="RIVER" />
+      <path v-for="p in OPEN_SPACES" :key="'open-' + p" class="basemap-open" :d="p" />
+      <polygon v-for="p in PLAZAS" :key="'plaza-' + p" class="basemap-plaza" :points="p" />
       <rect
         v-for="m in MASS"
         :key="m"
@@ -254,6 +280,12 @@ const MASS = [
         v-for="r in ROADS_SECONDARY"
         :key="'secondary-fill-' + r"
         class="basemap-road basemap-road--secondary"
+        :d="r"
+      />
+      <path
+        v-for="r in ROADS_LOCAL"
+        :key="'local-' + r"
+        class="basemap-road basemap-road--local"
         :d="r"
       />
     </svg>
@@ -361,38 +393,53 @@ const MASS = [
   inset: 0;
   width: 100%;
   height: 100%;
-  /* 画布基底 = 极浅冷中性色，SVG 元素在其上分层。 */
-  background: var(--pa-color-map-grid-a);
+  /*
+   * The fallback must still read as a city-space product. Keep it quieter than
+   * a real provider, but give blocks, open space and road hierarchy enough
+   * contrast that the canvas does not collapse into a pale test grid.
+   */
+  background: color-mix(
+    in srgb,
+    var(--pa-color-map-grid-a) 82%,
+    var(--pa-discovery-v10-paper)
+  );
 }
 
 .basemap-district {
-  fill: color-mix(in srgb, var(--pa-color-surface) 34%, transparent);
+  fill: color-mix(in srgb, var(--pa-color-surface) 42%, transparent);
   stroke: var(--pa-color-border);
   stroke-width: 1.5;
-  opacity: 0.72;
+  opacity: 0.9;
 }
 
 .basemap-open {
   fill: var(--pa-color-status-allowed-bg);
-  opacity: 0.45;
+  opacity: 0.62;
+}
+
+.basemap-plaza {
+  fill: var(--pa-discovery-v10-secondary-bg);
+  stroke: var(--pa-color-border-subtle);
+  stroke-width: 0.8;
+  opacity: 0.92;
 }
 
 .basemap-river {
   fill: var(--pa-color-reality-observed-bg);
-  opacity: 0.5;
+  opacity: 0.66;
 }
 
 .basemap-block {
   fill: var(--pa-color-surface);
-  opacity: 0.72;
-  stroke: var(--pa-color-border-subtle);
-  stroke-width: 0.8;
+  opacity: 0.9;
+  stroke: var(--pa-color-border);
+  stroke-width: 0.75;
 }
 
-/* 建筑体块提示：极弱，仅提供密度感。 */
+/* Building mass hints add urban density without claiming surveyed geometry. */
 .basemap-mass {
   fill: var(--pa-color-text-muted);
-  opacity: 0.11;
+  opacity: 0.13;
 }
 
 /* 道路层级：primary 更宽更明确，secondary 更细更弱。 */
@@ -402,26 +449,32 @@ const MASS = [
 }
 
 .basemap-road--primary-casing {
-  stroke: var(--pa-color-border);
+  stroke: var(--pa-color-border-strong);
   stroke-width: 8;
-  opacity: 0.7;
+  opacity: 0.48;
 }
 
 .basemap-road--primary {
   stroke: var(--pa-color-surface);
   stroke-width: 5;
-  opacity: 0.95;
+  opacity: 1;
 }
 
 .basemap-road--secondary-casing {
-  stroke: var(--pa-color-border-subtle);
+  stroke: var(--pa-color-border);
   stroke-width: 4;
-  opacity: 0.75;
+  opacity: 0.58;
 }
 
 .basemap-road--secondary {
   stroke: var(--pa-color-surface);
   stroke-width: 2;
+  opacity: 0.96;
+}
+
+.basemap-road--local {
+  stroke: var(--pa-color-border-subtle);
+  stroke-width: 1;
   opacity: 0.9;
 }
 
