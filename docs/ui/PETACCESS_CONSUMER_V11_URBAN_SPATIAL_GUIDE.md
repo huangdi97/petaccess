@@ -163,6 +163,8 @@ place identity
 
 A Rule condition must never appear directly beneath a Reality/Facility/Divergence headline without an explicit Rule label. Repeating the same verdict as both a status badge and a large text headline is forbidden.
 
+The active lens fact must not be repeated again as its own secondary block. In particular, when Reality is the active lens, the selected-place bridge shows Reality once, then Rule as the cross-dimension fact; it does not render a second identical “最近现场 / 现场概览” row.
+
 ### Reality
 
 The timeline is the page. The header provides title, scope and filters but must not read as a dashboard card.
