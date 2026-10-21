@@ -93,6 +93,25 @@ const primaryLabel = computed(() =>
   props.mapLensLabel ? props.mapLensName || "当前地图" : "规则",
 );
 const primaryText = computed(() => props.mapLensLabel || verdictText.value);
+const primaryToneClass = computed(() => {
+  if (props.mapLensLabel) {
+    if (props.mapLensName === "现场") return "sheet__primary--reality";
+    if (props.mapLensName === "设施") return "sheet__primary--facility";
+    if (props.mapLensName === "差异") return "sheet__primary--divergence";
+  }
+
+  switch ((props.status ?? "UNKNOWN").toUpperCase()) {
+    case "ALLOWED":
+    case "MATCH":
+      return "sheet__primary--allowed";
+    case "CONDITIONAL":
+      return "sheet__primary--conditional";
+    case "RESTRICTED":
+      return "sheet__primary--restricted";
+    default:
+      return "sheet__primary--unknown";
+  }
+});
 /** When Reality is already the active lens, repeating the same Reality summary
  * below it turns the bridge into a card stack. Other lenses keep Reality as a
  * genuinely different secondary fact. */
@@ -292,7 +311,11 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
           referrerpolicy="no-referrer"
         />
 
-        <div class="sheet__primary" data-testid="sheet-map-lens">
+        <div
+          class="sheet__primary"
+          :class="primaryToneClass"
+          data-testid="sheet-map-lens"
+        >
           <span class="sheet__primary-label">{{ primaryLabel }}</span>
           <strong>{{ primaryText }}</strong>
           <p
@@ -472,6 +495,30 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   margin-top: var(--pa-space-2);
   padding: var(--pa-space-2) 0 var(--pa-space-2) var(--pa-space-3);
   border-left: 3px solid var(--pa-color-border-strong);
+}
+
+/* The active fact dimension gets one restrained semantic rail. Copy remains
+ * explicit, so colour never becomes the only signal. */
+.sheet__primary--allowed {
+  border-left-color: var(--pa-color-status-allowed);
+}
+.sheet__primary--conditional {
+  border-left-color: var(--pa-color-status-conditional);
+}
+.sheet__primary--restricted {
+  border-left-color: var(--pa-color-status-restricted);
+}
+.sheet__primary--unknown {
+  border-left-color: var(--pa-color-status-unknown);
+}
+.sheet__primary--reality {
+  border-left-color: var(--pa-color-reality-observed);
+}
+.sheet__primary--facility {
+  border-left-color: var(--pa-color-facility-confirmed);
+}
+.sheet__primary--divergence {
+  border-left-color: var(--pa-color-reality-disputed);
 }
 .sheet__primary-label {
   color: var(--pa-color-text-muted);
