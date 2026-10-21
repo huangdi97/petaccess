@@ -215,6 +215,23 @@
       "pages": ["map-ready", "map-reality", "map-facility", "map-divergence"]
     },
     {
+      "id": "MAP_REALITY_PREVIEW_RULE_SECONDARY",
+      "selector": "[data-testid='place-preview'] [data-testid='preview-verdict']",
+      "min": 1,
+      "max": 1,
+      "severity": "FAIL",
+      "pages": ["map-reality"],
+      "note": "Reality is the active map fact; Rule stays visible once as the cross-dimension decision."
+    },
+    {
+      "id": "MAP_REALITY_PREVIEW_NO_REPEAT",
+      "selector": "[data-testid='place-preview'] [data-testid='preview-reality']",
+      "max": 0,
+      "severity": "FAIL",
+      "pages": ["map-reality"],
+      "note": "The active Reality fact must not be repeated again as a second Reality summary in the selected-place preview."
+    },
+    {
       "id": "MAP_RESULT_SPATIAL_IDENTITY",
       "selector": "[data-ui='map-result-pane'] [data-ui='place-type-glyph']",
       "min": 1,
