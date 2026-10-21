@@ -145,6 +145,25 @@ place identity
 
 Ordinary sections are editorial/divider-led. Large rounded containers are reserved for true floating surfaces or governed scene media.
 
+When governed scene media exists, it may become a destination surface rather than another inset card. On mobile it may bleed to the page edge so the place reads as a real location. Actions over the hero stay lightweight; do not rebuild a row of large pill buttons.
+
+When governed media does not exist, stay text-led. Never fill the visual gap with a generic venue illustration.
+
+### Selected place on Map
+
+The selected-place bridge is not a mini dossier.
+
+Half state prioritizes:
+
+```text
+place identity
+→ active map lens fact
+→ one cross-dimension fact when useful
+→ open place
+```
+
+If a governed scene photo exists, a small thumbnail may strengthen destination identity. If it does not exist, use the place-type glyph only. Evidence details remain for expanded state or the Place page.
+
 When a governed scene photo exists, it can create a destination-led header, but the photo header must not repeat the Rule verdict as a decorative badge. The Rule decision begins immediately below as its own semantic layer.
 
 When no governed scene photo exists, the identity stays text-led. A generic category scene must not be inserted merely to fill the visual gap.
