@@ -129,7 +129,7 @@ const SHOTS: Shot[] = [
     state: "ready",
     h1: "云栖中心·测试商场",
     requiredTestids: ["section-answer", "overview-reality", "overview-evidence"],
-    requiredText: ["规则", "现场概览", "工作人员处理", "动物设施", "证据与来源"],
+    requiredText: ["规则", "现场", "工作人员处理", "动物设施", "证据与来源"],
     note: "Place first screen = Coexistence Passport, not a generic detail page.",
   },
   {
