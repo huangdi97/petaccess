@@ -71,6 +71,8 @@ const ruleToneClass = computed(() => {
       return "place-preview__decision--conditional";
     case "RESTRICTED":
       return "place-preview__decision--restricted";
+    case "CONFLICT":
+      return "place-preview__decision--conflict";
     default:
       return "place-preview__decision--unknown";
   }
