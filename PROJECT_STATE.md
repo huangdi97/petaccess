@@ -1,3 +1,24 @@
+## Current phase（2026-10-21 — v11 canonical Overview ownership + PR CI recovery）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 继续 **OPEN + DRAFT**；未 merge、未 tag、未 Release；`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
+- 本轮重新核验远端时 HEAD=`3c86db24772617033abb9eda4cd943bf822a6b6d`，相对 2026-10-19 的 `3c614320...` 已前进 136 commits。该 HEAD 的 UI Direct Visual / UI Direct Validation / Public Preview Stack 均 SUCCESS；PR CI 失败于 2 个旧 E2E selector，不是 backend/type/build 失败：Engineering quality / Frontend / Backend 均 SUCCESS，Playwright 199/201。
+- 最新 Human Review 已实际拉取并目视复核：
+  - mobile Map selected sheet 已形成 dominant map + compact bridge，Rule / Reality 分层清楚；
+  - governed-media Place 已形成 destination hero + editorial overview；
+  - Home / Search / Reality 均明显摆脱旧 card-wall / SaaS archetype；
+  - 当前剩余问题主要进入“层级真实性与回归合同”阶段，而不是重新设计大框架。
+- PR CI 两个失败根因：
+  1. `h5-journey.spec.ts` 仍查找 Overview 已主动删除的 `inspector-verdict`；v11 canonical owner 已改为 dossier 内 `answer-status`；
+  2. `place-route-race.spec.ts` 仍查找 Overview 已删除的 `inspector-evidence`；同时 snapshot transport failure 的 Overview 证据文案需要明确区分“暂时无法取得”与“来源待补充”。
+- 本轮直接完成：
+  - `d15e1f8f`：PlaceOverviewPane 在 snapshot transport failure 时明确显示“规则依据暂时无法取得”，不把网络失败冒充为数据缺失；
+  - `21bb28bb`：mode-switch E2E 改绑 canonical Overview Rule owner（`answer-status`）；
+  - `1fb6755b`：partial-error E2E 改绑 `overview-evidence` 并检查 Rule / Reality failure truth；
+  - `b8af866c`：v11 设计母版合并重复 Selected Place 章节，冻结 Overview 单一 Rule owner 与 compact Map bridge 语义；
+  - `d936bfb0` / `161d93ec`：Map/Place acceptance 新增结构防回退：Overview 必须无 duplicate `place-inspector`，Rules secondary view 必须保留该 context rail。
+- 这轮没有修改 Rule / Reality / Evidence domain semantics、API、review governance、Tauri runtime、release signing 或发布状态。
+- 当前最终 branch tip 以 GitHub 为准；本段写入后 Actions 会再次按最终 HEAD 执行。任何旧 HEAD 的 SUCCESS 不得冒充当前结果。
+
 ## Current phase（2026-10-21 — v11 desktop Place destination hierarchy continuation）
 
 - 分支 `feat/ui-direct-craft-v8`；PR #1 继续 **OPEN + DRAFT**；未 merge、未 tag、未 Release；`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
