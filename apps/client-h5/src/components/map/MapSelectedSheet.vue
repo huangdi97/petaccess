@@ -108,6 +108,8 @@ const primaryToneClass = computed(() => {
       return "sheet__primary--conditional";
     case "RESTRICTED":
       return "sheet__primary--restricted";
+    case "CONFLICT":
+      return "sheet__primary--conflict";
     default:
       return "sheet__primary--unknown";
   }
@@ -510,6 +512,9 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
 }
 .sheet__primary--unknown {
   border-left-color: var(--pa-color-status-unknown);
+}
+.sheet__primary--conflict {
+  border-left-color: var(--pa-color-status-conflict);
 }
 .sheet__primary--reality {
   border-left-color: var(--pa-color-reality-observed);
