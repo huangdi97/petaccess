@@ -809,6 +809,92 @@ html,
   background: transparent;
 }
 
+/* ------------------------------------------- Legacy v9 surface shutdown */
+/* v9 intentionally promoted secondary routes into rounded destination cards.
+ * v11 is now the final presentation layer, so these selectors explicitly stop
+ * that older global cascade from resurrecting a second visual system. */
+#app :is(.privacy-head, .pet-new-head, .profile-head, .about-head, .explain-head) {
+  padding: 0 0 24px;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#app .mine-section,
+#app .privacy-section,
+#app .about-principles,
+#app .about-meta,
+#app :is(.explain-section, .reality-explain, .boundary-panel),
+#app .pet-new-section {
+  margin-top: 0;
+  padding: 22px 0;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#app .about-principles {
+  padding-top: 12px;
+}
+
+#app .about-meta {
+  border-top: 0;
+}
+
+#app .not-found {
+  margin-top: 24px;
+  padding: 24px 0;
+  border: 0;
+  border-top: 1px solid var(--pa-discovery-line);
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#app [data-ui-page="pets"] .state-message[data-state="EMPTY"] {
+  padding: 18px 0;
+  border: 0;
+  border-top: 1px solid var(--pa-discovery-line);
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#app .explain-refresh {
+  padding-inline: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+@media (max-width: 767px) {
+  #app :is(.privacy-head, .pet-new-head, .profile-head, .about-head, .explain-head) {
+    padding: 0 0 20px;
+  }
+
+  #app .mine-section,
+  #app .privacy-section,
+  #app .about-principles,
+  #app .about-meta,
+  #app :is(.explain-section, .reality-explain, .boundary-panel),
+  #app .pet-new-section {
+    margin-top: 0;
+    padding: 18px 0;
+    border-radius: 0;
+  }
+
+  #app .not-found {
+    margin-top: 12px;
+    padding: 20px 0;
+  }
+}
+
 /* ---------------------------------------------- Secondary task surfaces */
 /* These pages are workflows/reading surfaces inside the same city guide.
  * Reserve elevation for actual transient state; headers and repeated rows stay
