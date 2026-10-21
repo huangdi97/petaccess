@@ -1,3 +1,15 @@
+## Current phase（2026-10-21 — v11 destination surface continuation）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 继续 **OPEN + DRAFT**；未 merge、未 tag、未 Release；`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
+- 本轮重新核验远端真实 HEAD = `cf358366c53d88f8a30f8b51365bc7c3ca231a1a`；相对 2026-10-19 的 `3c614320...` 已前进 122 commits。该 HEAD 的 Public Preview Stack / UI Direct Validation / UI Direct Visual / PR CI 均 **SUCCESS**。
+- 已拉取并目视检查同 HEAD 最新 Human Review artifact（约 23 MB）：Home 已是 compact city-space launcher；Reality timeline 已成立；Map selected half sheet 已明显优于 v10；governed-media Place 仍有“inset rounded hero + pill actions”残留。
+- 本轮直接完成：
+  - `b6f4fc3b`：Map selected sheet 在存在 governed scene media 时，half/closed identity 使用真实小缩略图；无媒体继续只用 place-type glyph，不制造地点图片；
+  - `b4fdcafe`：governed-media Place hero 继续去卡片化——desktop 减弱圆角；mobile 改为 full-bleed destination surface；Hero actions 从大 pill 降为轻量文字动作。
+- 设计母版同步补充：Selected Place half state 只保留 place identity / active lens fact / 一个必要的跨维事实 / open-place；真实 scene photo 仅作为受治理 destination identity，不存在则绝不补 generic venue imagery。
+- 当前源码 HEAD（本段写入前）=`b4fdcafe119e4d23710da4a8c102c67bdc0f6ef7`。四条主 CI 已触发但仍处于 pending；不得提前声明 PASS。
+- 下一门禁：等待同一 HEAD 的 UI Direct Visual / PR CI；成功后重新拉取 Human Review，重点看 mobile governed-media Place 是否真正摆脱“卡片 Hero”、Map sheet 有照片/无照片两个分支是否都成立。
+
 ## Current phase（2026-10-21 — v11 reading surfaces + field-capture polish, CI pending）
 
 - 分支 `feat/ui-direct-craft-v8`；PR #1 继续 **OPEN + DRAFT**；未 merge、未 tag、未 Release；`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
