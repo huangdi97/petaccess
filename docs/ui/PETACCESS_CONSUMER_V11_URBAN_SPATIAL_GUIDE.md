@@ -149,6 +149,8 @@ On desktop Overview, the dossier itself is the **single owner** of the full Rule
 
 When governed scene media exists, it may become a destination surface rather than another inset card. On mobile it may bleed to the page edge so the place reads as a real location. Actions over the hero stay lightweight; do not rebuild a row of large pill buttons.
 
+Governed media is orientation, not the decision itself. The Rule section must begin inside the initial viewport on both desktop and mobile Human Review captures; enlarging the hero until Rule drops below the fold is a visual regression.
+
 When governed media does not exist, stay text-led. Never fill the visual gap with a generic venue illustration.
 
 ### Selected place on Map
