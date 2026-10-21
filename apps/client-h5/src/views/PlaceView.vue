@@ -429,6 +429,7 @@ const placeFixture = computed<string>(() => {
     <div class="place-workspace__body" :class="{ 'place-workspace__body--split': isWideLayout }">
       <!-- main dossier -->
       <main class="place-dossier" data-ui="place-dossier" aria-label="场所档案">
+        <h1 v-if="!place" class="place-dossier__route-title">场所</h1>
         <SkeletonList v-if="loading" :rows="4" />
         <StateMessage v-else-if="error" kind="ERROR" title="未能取得场所信息" :description="error">
           <template #action>
@@ -675,6 +676,14 @@ const placeFixture = computed<string>(() => {
   width: 100%;
   min-width: 0;
   max-width: 100%;
+}
+
+.place-dossier__route-title {
+  margin: 0 0 var(--pa-space-4);
+  color: var(--pa-color-text-primary);
+  font-size: var(--pa-font-size-28);
+  line-height: var(--pa-line-height-36);
+  font-weight: var(--pa-font-weight-650);
 }
 
 @media (min-width: 1024px) {
