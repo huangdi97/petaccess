@@ -1,3 +1,17 @@
+## Current phase（2026-10-21 — v11 desktop Place destination hierarchy continuation）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 继续 **OPEN + DRAFT**；未 merge、未 tag、未 Release；`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
+- 本轮重新从最新远端事实继续：进入时 HEAD=`822e9fc2404a205df2c4b0aa62ad25fac3b563a2`，相对 2026-10-19 的 `3c614320...` 已前进 126 commits。该 HEAD 的 UI Direct Visual / Public Preview Stack = SUCCESS，但 UI Direct Validation / PR CI 因 **单一 Prettier drift（MapSelectedSheet.vue）** 失败；Backend / engineering gate 已成功，不属于产品行为回归。
+- 已使用同 HEAD 成功的 `UI Direct Format Preview` artifact 作为 canonical Prettier 输出来源，而不是手工猜格式；`92cfb43a` 回写 MapSelectedSheet 唯一格式差异。
+- 同 HEAD 最新 Human Review 已再次目视复核：mobile selected-place half sheet、Home、Search、Reality、Contribution 已进入稳定的 Urban Spatial Guide 原型；desktop governed-media Place 仍存在一个明显的 dashboard 残留——Overview 主体已经拥有完整 Rule/Reality，但右侧 sticky DecisionInspector 再次重复结论。
+- 本轮继续完成 destination-first desktop Place：
+  - `f381a0c9`：PlaceOverviewPane 将“desktop 信息密度”与“是否存在外部 decision inspector”解耦；Overview 在 desktop 也能拥有完整自然语言 Rule decision；
+  - `ac26d01e`：desktop Overview / Unknown 不再渲染 sticky inspector，并扩展为约 960px 单一 destination reading surface；Rules / Space / Reality 二级视图仍保留 sticky decision context；
+  - `5f7fc3b4`：place.desktop UI oracle contract 同步拆分 Overview 960px + primary decision 与 secondary-view 820–860px + subordinate inspector，防止旧 contract 把重复侧栏重新逼回来；
+  - `239aed46`：v11 设计母版明确冻结“Overview 不重复 verdict；sticky decision rail 仅用于二级 Place views”的原则。
+- 外部设计复核：Apple 当前 HIG 强调 visual hierarchy / simplicity / preserve context；Apple Maps 的 place-card/detail-sheet 模式也把地点详情视作地图上下文中的单一详情表面。这支持 PetAccess 的 `Map → selected-place bridge → single destination Place`，而不是 `Place main content + duplicate verdict dashboard`。
+- 当前本段源码与合同已触发新 Actions；写入本段时仍在执行，因此禁止提前写 PASS。下一门禁是同一最终 HEAD 的 Prettier / UI Direct Validation / PR CI / UI Direct Visual，再拉取 Human Review 验证 desktop Overview 去 inspector 后是否真正更像目的地阅读页而不是后台详情页。
+
 ## Current phase（2026-10-21 — v11 destination surface continuation）
 
 - 分支 `feat/ui-direct-craft-v8`；PR #1 继续 **OPEN + DRAFT**；未 merge、未 tag、未 Release；`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
