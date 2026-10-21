@@ -28,6 +28,7 @@ const PAGES: { name: string; path: string }[] = [
   { name: "home", path: "/" },
   { name: "search", path: "/#/search" },
   { name: "map", path: "/#/map" },
+  { name: "map-selected", path: `/#/map?lens=reality&place=${PLACE_ID}` },
   { name: "place", path: `/#/place/${PLACE_ID}` },
   { name: "reality", path: `/#/place/${PLACE_ID}/reality` },
   { name: "evidence", path: `/#/place/${PLACE_ID}/evidence` },
