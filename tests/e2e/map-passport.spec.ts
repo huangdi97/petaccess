@@ -647,14 +647,14 @@ test("B1/B2 — Place Dossier 概览 + 规则/现场 view 关键段齐备", asyn
   await expect(page.getByTestId("overview-evidence")).toBeVisible();
   // v11 Overview is the single owner of the full Rule decision. A duplicate
   // desktop inspector would reintroduce the dashboard hierarchy we removed.
-  await expect(page.locator("[data-ui=\'place-inspector\']")).toHaveCount(0);
+  await expect(page.locator("[data-ui='place-inspector']")).toHaveCount(0);
   // Reality dimension visible on the overview too (recent reality block).
   await expect(page.getByTestId("overview-reality")).toBeVisible();
   // Rules view carries the source rows and may preserve the current decision
   // as secondary reading context.
   await page.goto(`${BASE}/#/place/${MALL_ID}?view=rules`);
   await expect(page.getByTestId("place-rules-view")).toBeVisible();
-  await expect(page.locator("[data-ui=\'place-inspector\']")).toBeVisible();
+  await expect(page.locator("[data-ui='place-inspector']")).toBeVisible();
   await expect(page.getByTestId("rule-source").first()).toBeVisible();
   // Reality view hosts the shared published v0.9 event log.
   await page.goto(`${BASE}/#/place/${MALL_ID}?view=reality`);
