@@ -231,6 +231,22 @@ const SHOTS: Shot[] = [
     note: "Selected Reality is shown once; Rule remains visible before opening the Place page.",
   },
   {
+    name: "10a_map_mobile_selected_governed_media",
+    scope: "mobile",
+    route: `/#/map?lens=rule&place=${MALL_ID}`,
+    governedSceneFixture: true,
+    page: "map",
+    h1: "规则与现场地图",
+    requiredTestids: [
+      "map-mobile-sheet",
+      "sheet-scene-thumb",
+      "sheet-map-lens",
+      "sheet-open-detail",
+    ],
+    requiredText: ["查看地点"],
+    note: "Governed-media map bridge fixture. The reviewed-scene branch must strengthen destination identity without turning the half sheet into a mini dossier.",
+  },
+  {
     name: "11_reality",
     scope: "both",
     route: `/#/place/${MALL_ID}/reality`,
