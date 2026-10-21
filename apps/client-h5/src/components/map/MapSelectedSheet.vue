@@ -53,6 +53,7 @@ const phase = ref<SheetPhase>("half");
 
 const TABBAR = "var(--pa-safe-total-bottom)";
 const HALF_H = "clamp(252px, 29vh, 276px)";
+const HALF_H_REALITY = "clamp(224px, 25vh, 244px)";
 const EXPANDED_MAX_H = "min(72vh, 640px)";
 const EXPANDED_MIN_H = "min(348px, 44vh)";
 const CLOSED_H = "104px";
@@ -68,7 +69,12 @@ const sheetStyle = computed(() => {
     };
   }
   return {
-    height: phase.value === "closed" ? CLOSED_H : HALF_H,
+    height:
+      phase.value === "closed"
+        ? CLOSED_H
+        : showRealitySupplement.value
+          ? HALF_H
+          : HALF_H_REALITY,
     bottom: TABBAR,
   };
 });
