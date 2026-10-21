@@ -1,3 +1,17 @@
+## Current phase（2026-10-21 — v11 spatial bridge polish continuation）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 继续 **OPEN + DRAFT**；未 merge、未 tag、未 Release；`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
+- 本轮继续只收 Consumer presentation，不改 Rule / Reality / Evidence 语义、API、审核治理或 Android runtime。
+- 外部参考再次支持当前结构：AccessNow 最新版将地点信息拆成清晰 section 并允许单 feature / photo 贡献；Mapstr 强调 map→place card→filter/tag 的轻量空间切换。PetAccess 继续拒绝总评分，只借鉴“地图主表面、地点上下文、单事实贡献”。
+- 本轮新增/继续完成：
+  - mobile Map 当前同行条件从满宽第二横条收为浮动 context chip，搜索保持唯一主输入；
+  - governed-media mobile selected sheet 已加入 canonical Human Review shot，今后 CI 同时审有图 / 无图桥接状态；
+  - selected Map route 已加入 320/360/390/430/768/800/1024/1280/1440/1920 responsive overflow 矩阵；
+  - desktop selected preview 有 governed scene media 时不再同时重复 place-type glyph；“查看场所”从主按钮降为轻量文本动作，继续避免 mini-dossier。
+- 上一轮 PR CI 的两个旧 selector 回归已经迁移到 v11 canonical Overview Rule/Evidence owner，并补充 snapshot transport failure 的显式 evidence 文案；同时新增结构门禁：Overview 禁止 duplicate sticky inspector，Rules secondary view 必须保留 context rail。
+- 当前源码 HEAD（本段写入前）=`4bd4814e7061993890a0d5549bc31f188f856404`。四条主 Actions 已触发但仍在执行；不得提前声明 PASS。
+- 下一视觉门：同一最终 HEAD 的 UI Direct Visual / PR CI 完成后，重新拉取 Human Review，重点看 mobile context chip、governed-media selected sheet、desktop selected preview、320px selected-map state。
+
 ## Current phase（2026-10-21 — v11 canonical Overview ownership + PR CI recovery）
 
 - 分支 `feat/ui-direct-craft-v8`；PR #1 继续 **OPEN + DRAFT**；未 merge、未 tag、未 Release；`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
