@@ -145,7 +145,7 @@ place identity
 
 Ordinary sections are editorial/divider-led. Large rounded containers are reserved for true floating surfaces or governed scene media.
 
-On desktop Overview, the dossier itself owns the full Rule decision and the destination narrative. Do not reserve a second column merely to repeat the same verdict. A sticky decision rail is allowed only on secondary Place views (Rules / Reality / Space / Evidence), where preserving the current decision while reading another dimension adds real context.
+On desktop Overview, the dossier itself is the **single owner** of the full Rule decision and the destination narrative. Do not reserve a second column merely to repeat the same verdict. A sticky decision rail is allowed only on secondary Place views (Rules / Reality / Space / Evidence), where preserving the current decision while reading another dimension adds real context. Automated tests must bind Overview Rule/error assertions to the dossier surface, not to a hidden or duplicate inspector.
 
 When governed scene media exists, it may become a destination surface rather than another inset card. On mobile it may bleed to the page edge so the place reads as a real location. Actions over the hero stay lightweight; do not rebuild a row of large pill buttons.
 
@@ -153,7 +153,7 @@ When governed media does not exist, stay text-led. Never fill the visual gap wit
 
 ### Selected place on Map
 
-The selected-place bridge is not a mini dossier.
+The selected-place sheet/card is the bridge between spatial browsing and a Place page, not a mini dossier.
 
 Half state prioritizes:
 
@@ -164,27 +164,21 @@ place identity
 → open place
 ```
 
-If a governed scene photo exists, a small thumbnail may strengthen destination identity. If it does not exist, use the place-type glyph only. Evidence details remain for expanded state or the Place page.
+Semantic rules:
 
-When a governed scene photo exists, it can create a destination-led header, but the photo header must not repeat the Rule verdict as a decorative badge. The Rule decision begins immediately below as its own semantic layer.
+- when the active lens is not Rule, Rule may appear once as an explicitly labelled secondary fact;
+- when Reality is the active lens, Reality appears once, followed by Rule as the cross-dimension fact — never a duplicate “最近现场 / 现场概览” block;
+- a Rule condition must never sit directly under a Reality / Facility / Divergence headline without an explicit Rule label;
+- repeating the same verdict as both a badge and a large headline is forbidden;
+- evidence details belong to expanded state or the Place page.
 
-When no governed scene photo exists, the identity stays text-led. A generic category scene must not be inserted merely to fill the visual gap.
+Destination identity rules:
 
-### Selected place on Map
+- governed scene photo: a small thumbnail may strengthen identity in half state and a larger governed image may appear in expanded state;
+- no governed scene photo: use the place-type glyph or text-led identity only;
+- never insert a generic category scene merely to fill visual space.
 
-The selected-place sheet/card is the bridge between spatial browsing and a Place page, so it must preserve semantic separation even in a compact surface:
-
-```text
-place identity
-→ active map lens fact
-→ Rule as a separately labelled secondary fact when the active lens is not Rule
-→ recent Reality
-→ open place
-```
-
-A Rule condition must never appear directly beneath a Reality/Facility/Divergence headline without an explicit Rule label. Repeating the same verdict as both a status badge and a large text headline is forbidden.
-
-The active lens fact must not be repeated again as its own secondary block. In particular, when Reality is the active lens, the selected-place bridge shows Reality once, then Rule as the cross-dimension fact; it does not render a second identical “最近现场 / 现场概览” row.
+The compact bridge must stay glanceable: selecting a place should reveal a decision surface, not replace the map with a second detail page.
 
 ### Reality
 
