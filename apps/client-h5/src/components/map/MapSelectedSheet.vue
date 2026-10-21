@@ -295,7 +295,11 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
           <strong data-testid="sheet-verdict-text">{{ secondaryRuleLine }}</strong>
         </p>
 
-        <div v-if="showRealitySupplement" class="sheet__reality" data-testid="sheet-reality">
+        <div
+          v-if="showRealitySupplement"
+          class="sheet__reality"
+          data-testid="sheet-reality"
+        >
           <span class="muted sheet__reality-label">最近现场</span>
           <span class="sheet__reality-line">
             {{ loading ? "加载中…" : error ? "暂时无法取得" : realityLine }}
