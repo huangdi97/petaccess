@@ -720,7 +720,16 @@ html,
 }
 
 #app .place-workspace .place-overview-lead {
-  gap: 32px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  margin-bottom: 0;
+}
+
+/* Overview is a reading sequence, not a two-up dashboard. Rule owns the first
+ * decision beat; Reality follows below the same reading measure. */
+#app .place-workspace .place-overview-lead > .place-section + .place-section {
+  padding-top: 24px;
+  border-top: 1px solid var(--pa-discovery-line);
 }
 
 /* Desktop Place keeps a sticky factual rail, but it must not read as a second
