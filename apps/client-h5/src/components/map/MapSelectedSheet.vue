@@ -242,24 +242,37 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
 
       <div class="sheet__body">
         <div class="sheet__head">
-          <div class="sheet__title-row">
-            <PlaceTypeGlyph :place-type="place.place_type" size="sm" />
-            <h2 class="sheet__name">{{ place.canonical_name }}</h2>
-            <button
-              class="sheet__close"
-              data-testid="sheet-close"
-              aria-label="关闭"
-              @click="emit('close')"
-            >
-              <PaIcon name="close" size="sm" label="关闭" />
-            </button>
+          <div class="sheet__identity">
+            <img
+              v-if="sceneMediaUrl && phase !== 'expanded'"
+              class="sheet__thumb"
+              :src="sceneMediaUrl"
+              :alt="`场所场景：${place.canonical_name}`"
+              loading="lazy"
+              decoding="async"
+              referrerpolicy="no-referrer"
+            />
+            <div class="sheet__identity-copy">
+              <div class="sheet__title-row">
+                <PlaceTypeGlyph v-if="!sceneMediaUrl || phase === 'expanded'" :place-type="place.place_type" size="sm" />
+                <h2 class="sheet__name">{{ place.canonical_name }}</h2>
+                <button
+                  class="sheet__close"
+                  data-testid="sheet-close"
+                  aria-label="关闭"
+                  @click="emit('close')"
+                >
+                  <PaIcon name="close" size="sm" label="关闭" />
+                </button>
+              </div>
+              <p class="muted sheet__meta">
+                {{ placeTypeLabel(place.place_type) }}
+                <template v-if="place.distance_m != null">
+                  · {{ Math.round(place.distance_m) }}m
+                </template>
+              </p>
+            </div>
           </div>
-          <p class="muted sheet__meta">
-            {{ placeTypeLabel(place.place_type) }}
-            <template v-if="place.distance_m != null">
-              · {{ Math.round(place.distance_m) }}m
-            </template>
-          </p>
         </div>
 
         <!-- Full media belongs to expanded detail and is never fabricated for
@@ -384,6 +397,24 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   flex-direction: column;
   gap: var(--pa-space-1);
 }
+.sheet__identity {
+  display: flex;
+  align-items: center;
+  gap: var(--pa-space-3);
+  min-width: 0;
+}
+.sheet__identity-copy {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.sheet__thumb {
+  flex: 0 0 68px;
+  width: 68px;
+  height: 54px;
+  object-fit: cover;
+  border-radius: var(--pa-radius-control);
+  background: var(--pa-color-surface-muted);
+}
 .sheet[data-phase="closed"] .sheet__body {
   overflow: hidden;
   padding-bottom: 8px;
@@ -420,7 +451,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   flex: 1 1 auto;
   min-width: 0;
   margin: 0;
-  font-size: var(--pa-font-size-xl);
+  font-size: var(--pa-font-size-2xl);
   font-weight: var(--pa-font-weight-650);
   line-height: var(--pa-line-height-26);
   color: var(--pa-color-text-primary);
