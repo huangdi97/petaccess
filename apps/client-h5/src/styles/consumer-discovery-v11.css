@@ -809,6 +809,140 @@ html,
   background: transparent;
 }
 
+/* ---------------------------------------------- Secondary task surfaces */
+/* These pages are workflows/reading surfaces inside the same city guide.
+ * Reserve elevation for actual transient state; headers and repeated rows stay
+ * editorial so entering a secondary route never feels like switching products. */
+
+#app .notifications-head,
+#app .boundary-head,
+#app .operator-claim__head {
+  padding: 0 0 24px;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#app .watch-events__list {
+  gap: 0;
+  border-top: 1px solid var(--pa-discovery-line);
+}
+
+#app .watch-event,
+#app .notification-row {
+  margin: 0;
+  padding-inline: 0;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#app .watch-event:hover:not(:disabled),
+#app .watch-event:focus-visible:not(:disabled) {
+  border-color: var(--pa-discovery-line);
+  background: var(--pa-discovery-v10-row-hover);
+  box-shadow: none;
+}
+
+#app .watch-event--unread {
+  background: var(--pa-discovery-v10-row-selected-bg);
+}
+
+#app .boundary-overview,
+#app .boundary-note {
+  padding-inline: 0;
+  border: 0;
+  border-top: 1px solid var(--pa-discovery-line);
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+}
+
+#app .boundary-name {
+  padding-inline: 0;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+}
+
+#app .operator-claim__place {
+  padding: 16px 0;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+}
+
+#app .operator-claim__guide {
+  gap: 0;
+  border-top: 1px solid var(--pa-discovery-line);
+}
+
+#app .operator-claim__guide > div {
+  padding: 14px 0;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+}
+
+#app .auth-intro {
+  padding: 8px 0 28px;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#app .auth-workspace {
+  border-color: var(--pa-discovery-line);
+  border-radius: 16px;
+  box-shadow: none;
+}
+
+@media (max-width: 767px) {
+  #app .notifications-head,
+  #app .boundary-head,
+  #app .operator-claim__head {
+    padding: 0 0 20px;
+  }
+
+  #app .watch-event,
+  #app .notification-row {
+    padding: 12px 0;
+  }
+
+  #app .boundary-overview,
+  #app .boundary-note {
+    padding: 14px 0;
+  }
+
+  #app .operator-claim__guide > div {
+    min-height: 0;
+  }
+
+  #app .auth-page {
+    gap: 16px;
+  }
+
+  #app .auth-intro {
+    padding: 0 0 18px;
+  }
+
+  #app .auth-workspace {
+    padding: 16px 0 0;
+    border: 0;
+    border-top: 1px solid var(--pa-discovery-line);
+    border-radius: 0;
+    background: transparent;
+  }
+}
+
 /* ---------------------------------------------------------------- Mine */
 #app .mine-head--signed-in {
   border-radius: 18px;
