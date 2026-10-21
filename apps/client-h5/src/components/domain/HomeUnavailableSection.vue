@@ -9,7 +9,6 @@ import type { HomeCard } from "../../composables/useHomeLauncher";
 import type { ConsumerLens } from "../../consumer/rowView";
 import PlaceResultRow from "./PlaceResultRow.vue";
 
-
 defineProps<{
   unavailable: HomeCard[];
   speciesLabel: string;
@@ -86,5 +85,4 @@ const emit = defineEmits<{ open: [id: string] }>();
   outline: 2px solid var(--pa-color-border-focus);
   outline-offset: -2px;
 }
-
 </style>
