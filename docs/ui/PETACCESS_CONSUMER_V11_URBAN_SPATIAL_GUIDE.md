@@ -169,6 +169,15 @@ The active lens fact must not be repeated again as its own secondary block. In p
 
 The timeline is the page. The header provides title, scope and filters but must not read as a dashboard card.
 
+### Secondary reading surfaces
+
+Mine, Settings, Privacy and About must feel like the same Urban Spatial Guide after the user leaves the map.
+
+- one strong identity anchor is allowed on Mine, but empty states and settings groups do not become repeated cards;
+- Settings / Privacy / About use editorial headers, section dividers and row-level hierarchy;
+- explanatory content is a reading surface, not a stack of feature cards;
+- destructive or permission-sensitive actions may keep explicit controls, but the surrounding explanation stays quiet.
+
 ## 4. Visual system
 
 - warm neutral canvas;
