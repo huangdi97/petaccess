@@ -254,7 +254,11 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
             />
             <div class="sheet__identity-copy">
               <div class="sheet__title-row">
-                <PlaceTypeGlyph v-if="!sceneMediaUrl || phase === 'expanded'" :place-type="place.place_type" size="sm" />
+                <PlaceTypeGlyph
+                  v-if="!sceneMediaUrl || phase === 'expanded'"
+                  :place-type="place.place_type"
+                  size="sm"
+                />
                 <h2 class="sheet__name">{{ place.canonical_name }}</h2>
                 <button
                   class="sheet__close"
