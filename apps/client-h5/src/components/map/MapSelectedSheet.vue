@@ -7,7 +7,7 @@
  * - 白色 surface、top radius 16、small drag handle、elevation、touch scroll；
  * - 三态：closed（56–64px peek）/ half（~328–352px）/ expanded（max 70–78vh）；
  * - 内容 = drag handle + Place name + Type·distance + active lens +
- *   separately-labelled Rule + 最近现场 + 查看地点 →；close 右上 icon。
+ *   separately-labelled Rule + cross-dimension recent Reality + 查看地点 →；close 右上 icon。
  * - `role="dialog"` + Escape 关闭（键盘可达）；reduced-motion 降级。
  */
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
@@ -91,6 +91,10 @@ const primaryLabel = computed(() =>
   props.mapLensLabel ? props.mapLensName || "当前地图" : "规则",
 );
 const primaryText = computed(() => props.mapLensLabel || verdictText.value);
+/** When Reality is already the active lens, repeating the same Reality summary
+ * below it turns the bridge into a card stack. Other lenses keep Reality as a
+ * genuinely different secondary fact. */
+const showRealitySupplement = computed(() => props.mapLensName !== "现场");
 const secondaryRuleLine = computed(() => {
   if (!props.mapLensLabel) return "";
   if (props.loading || props.error) return verdictText.value;
@@ -285,7 +289,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
           <strong data-testid="sheet-verdict-text">{{ secondaryRuleLine }}</strong>
         </p>
 
-        <div class="sheet__reality">
+        <div v-if="showRealitySupplement" class="sheet__reality" data-testid="sheet-reality">
           <span class="muted sheet__reality-label">最近现场</span>
           <span class="sheet__reality-line">
             {{ loading ? "加载中…" : error ? "暂时无法取得" : realityLine }}
