@@ -809,6 +809,24 @@ html,
   background: transparent;
 }
 
+/* ---------------------------------------------------------------- Mine */
+#app .mine-head--signed-in {
+  border-radius: 18px;
+  box-shadow: none;
+}
+
+#app .mine-section .mine-empty-state {
+  padding: 16px 0;
+  border: 0;
+  border-top: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+}
+
+#app .mine-section .mine-empty-state p {
+  margin-top: 4px;
+}
+
 /* ----------------------------------------------------------- Settings */
 #app .settings-head {
   padding: 0 0 24px;
