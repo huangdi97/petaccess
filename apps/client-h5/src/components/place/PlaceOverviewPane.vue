@@ -74,6 +74,7 @@ const realityMetaLine = computed(() => {
   return parts.join(" · ");
 });
 const primaryEvidence = computed(() => {
+  if (props.snapshotError) return "规则依据暂时无法取得";
   if (props.primarySourceLabel) return props.primarySourceLabel;
   const evidence = props.answer?.evidence_state.rules[0];
   return evidence ? publicSourceIssuer(evidence.source_type, evidence.issuer) : "来源待补充";
