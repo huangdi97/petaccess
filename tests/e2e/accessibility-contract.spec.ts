@@ -19,6 +19,10 @@ async function signIn(request: APIRequestContext): Promise<string> {
 async function auditCurrentSurface(page: Page, label: string): Promise<void> {
   await expect(page.getByTestId("consumer-app-shell")).toBeVisible({ timeout: 15000 });
   await expect(page.locator("[data-ui-page]").first()).toBeVisible({ timeout: 15000 });
+  // Route shells mount before data-backed headings on Place and other detail
+  // surfaces. Wait for the same visible h1 contract we assert below so the
+  // audit observes the settled consumer surface instead of a transient load.
+  await expect(page.locator("h1:visible").first()).toBeVisible({ timeout: 15000 });
 
   const report = await page.evaluate(() => {
     const isVisible = (element: Element): boolean => {
