@@ -51,6 +51,16 @@
         "fixture": "map-ready-v1",
         "h1": "规则与现场地图"
       }
+    },
+    {
+      "id": "map-mobile-reality-selected",
+      "route": "/#/map?lens=reality&place=5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+      "expect": {
+        "page": "map",
+        "state": "ready",
+        "fixture": "map-ready-v1",
+        "h1": "规则与现场地图"
+      }
     }
   ],
   "elements": [
@@ -152,8 +162,25 @@
       "selector": "[data-testid='map-mobile-sheet'] .status-badge",
       "max": 0,
       "severity": "FAIL",
-      "pages": ["map-mobile-selected-half", "map-mobile-expanded"],
+      "pages": ["map-mobile-selected-half", "map-mobile-expanded", "map-mobile-reality-selected"],
       "note": "v11 uses one natural-language fact hierarchy; the same verdict must not be repeated as a decorative badge."
+    },
+    {
+      "id": "MAP_MOBILE_REALITY_LENS_RULE_SECONDARY",
+      "selector": "[data-testid='map-mobile-sheet'] [data-testid='sheet-verdict']",
+      "min": 1,
+      "max": 1,
+      "severity": "FAIL",
+      "pages": ["map-mobile-reality-selected"],
+      "note": "Reality is the active fact; Rule remains visible once as the cross-dimension decision."
+    },
+    {
+      "id": "MAP_MOBILE_REALITY_LENS_NO_REPEAT",
+      "selector": "[data-testid='map-mobile-sheet'] [data-testid='sheet-reality']",
+      "max": 0,
+      "severity": "FAIL",
+      "pages": ["map-mobile-reality-selected"],
+      "note": "When Reality is already the active lens, do not repeat the same fact again as a recent-Reality block."
     },
     {
       "id": "MAP_EXPANDED_NO_FAKE_FILLER",
