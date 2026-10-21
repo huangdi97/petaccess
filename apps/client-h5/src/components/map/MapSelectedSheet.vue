@@ -167,11 +167,6 @@ function onHandlePointerDown(event: PointerEvent) {
   dragStartY = event.clientY;
   suppressNextHandleClick = false;
 
-  // Pointer capture is valuable for a real finger/mouse drag that leaves the
-  // 28px handle, but synthetic PointerEvents (including Playwright
-  // dispatchEvent) are not active browser pointers and can throw here. Keep
-  // real interaction robust without letting an unsupported capture abort the
-  // sheet gesture lifecycle.
   if (event.isPrimary) {
     try {
       (event.currentTarget as HTMLElement | null)?.setPointerCapture?.(event.pointerId);
@@ -215,8 +210,6 @@ function onHandleClick() {
   cyclePhase();
 }
 
-// A new selection is a new decision task. Reopen it at the designed half
-// height instead of carrying an expanded/closed phase from the previous place.
 watch(
   () => [props.open, props.place?.id] as const,
   ([open, placeId], previous) => {
@@ -301,8 +294,6 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
           </div>
         </div>
 
-        <!-- Full media belongs to expanded detail and is never fabricated for
-             missing records. The half sheet stays decision-first. -->
         <img
           v-if="sceneMediaUrl && phase === 'expanded'"
           class="sheet__scene"
@@ -337,7 +328,6 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
           </span>
         </div>
 
-        <!-- Evidence/Freshness：真实来源 + 规则核验时间 + Reality 证据计数。 -->
         <div
           v-if="phase === 'expanded'"
           class="sheet__block"
@@ -367,7 +357,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   position: fixed;
   inset: 0;
   z-index: var(--pa-z-sheet);
-  pointer-events: none; /* 透传给 map；sheet 本身可交互。 */
+  pointer-events: none;
 }
 .sheet {
   position: absolute;
@@ -398,7 +388,6 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   touch-action: none;
   user-select: none;
 }
-
 .sheet__handle:focus-visible {
   outline: 2px solid var(--pa-color-border-focus);
   outline-offset: -2px;
@@ -445,12 +434,10 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   overflow: hidden;
   padding-bottom: 8px;
 }
-
 .sheet[data-phase="closed"] .sheet__head {
   min-height: 68px;
   justify-content: center;
 }
-
 .sheet[data-phase="closed"]
   :is(
     .sheet__primary,
@@ -462,11 +449,9 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   ) {
   display: none;
 }
-
 .sheet[data-phase="closed"] .sheet__meta {
   display: block;
 }
-
 .sheet__title-row {
   display: flex;
   align-items: center;
@@ -494,9 +479,6 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   padding: var(--pa-space-2) 0 var(--pa-space-2) var(--pa-space-3);
   border-left: 3px solid var(--pa-color-border-strong);
 }
-
-/* The active fact dimension gets one restrained semantic rail. Copy remains
- * explicit, so colour never becomes the only signal. */
 .sheet__primary--allowed {
   border-left-color: var(--pa-color-status-allowed);
 }
@@ -556,14 +538,12 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   border-radius: var(--pa-radius-control);
   background: var(--pa-color-surface-muted);
 }
-
 .sheet__condition {
   margin: 0;
   font-size: var(--pa-font-size-base);
   font-weight: var(--pa-font-weight-600);
   color: var(--pa-color-text-primary);
 }
-/* §13 expanded blocks：真实信息块，label 弱化、value 为主内容。 */
 .sheet__block {
   display: flex;
   flex-direction: column;
@@ -572,18 +552,6 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
 .sheet__block-label {
   font-size: var(--pa-font-size-sm);
   color: var(--pa-color-text-secondary);
-}
-.sheet__verdict {
-  margin: 0;
-  font-size: var(--pa-font-size-lg);
-  font-weight: var(--pa-font-weight-650);
-  line-height: var(--pa-line-height-26);
-  color: var(--pa-color-text-primary);
-}
-.sheet__verdict--secondary {
-  font-size: var(--pa-font-size-base);
-  font-weight: var(--pa-font-weight-600);
-  line-height: var(--pa-line-height-23);
 }
 .sheet__evidence-line {
   margin: 0;
@@ -613,21 +581,15 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   margin-top: var(--pa-space-2);
   padding-top: var(--pa-space-2);
 }
-
 .sheet__cta {
   width: auto;
   min-width: 136px;
   min-height: var(--pa-size-control-lg);
   justify-content: center;
 }
-
-/* Half is a glanceable decision surface. Keep the primary navigation action
- * completely visible without making the sheet taller: it becomes a compact
- * inline destination link pinned inside the sheet's lower reading edge. */
 .sheet[data-phase="half"] .sheet__body {
   padding-bottom: 52px;
 }
-
 .sheet[data-phase="half"] .sheet__actions {
   position: absolute;
   right: var(--pa-space-4);
@@ -635,7 +597,6 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   margin: 0;
   padding: 0;
 }
-
 .sheet[data-phase="half"] .sheet__cta {
   min-width: 0;
   min-height: 32px;
@@ -646,7 +607,6 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   color: var(--pa-color-accent);
   box-shadow: none;
 }
-
 .sheet__close {
   flex: 0 0 auto;
   display: inline-flex;
@@ -666,8 +626,6 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   outline: 2px solid var(--pa-color-border-focus);
   outline-offset: -1px;
 }
-
-/* reduced motion：无高度动画。 */
 @media (prefers-reduced-motion: reduce) {
   .sheet {
     transition: none;
