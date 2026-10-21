@@ -278,6 +278,14 @@ html,
   color: var(--pa-color-status-conflict);
 }
 
+/* Unknown is important, but a list dominated by unknown places should not
+ * become a wall of equally loud "信息不足" headlines. Keep the wording explicit
+ * while lowering its visual weight below an actionable Rule conclusion. */
+#app .search-workspace .result-row[data-status="UNKNOWN"] .result-row__decision--lead {
+  color: var(--pa-color-text-secondary);
+  font-weight: var(--pa-font-weight-regular);
+}
+
 #app .search-workspace .result-row__visual {
   --scene-frame-compact-width: 56px;
   --scene-frame-compact-height: 56px;
