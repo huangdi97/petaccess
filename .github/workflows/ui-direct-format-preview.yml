@@ -39,7 +39,9 @@ jobs:
             apps/client-h5/src/components/domain/MapResultPane.vue \
             apps/client-h5/src/components/domain/PlaceResultRow.vue \
             apps/client-h5/src/components/domain/PlaceSceneFrame.vue \
+            apps/client-h5/src/components/domain/PlacePreview.vue \
             apps/client-h5/src/components/map/MapSelectedSheet.vue \
+            apps/client-h5/src/components/MockMap.vue \
             apps/client-h5/src/styles/consumer-discovery-v11.css \
             apps/client-h5/src/components/place/PlaceRulesPane.vue \
             apps/client-h5/src/components/place/PlaceOverviewPane.vue \
@@ -50,7 +52,9 @@ jobs:
             apps/client-h5/src/consumer/mapLens.ts \
             apps/client-h5/src/views/PlaceView.vue \
             apps/client-h5/src/views/RealityTraceView.vue \
+            docs/ui/contracts/json/evidence.json \
             docs/ui/contracts/json/place.desktop.json \
+            docs/ui/contracts/json/place.mobile.json \
             tests/e2e/place-route-race.spec.ts \
             tests/e2e/public-private-session-boundary.spec.ts \
             tests/e2e/contribute-wizard.spec.ts \
@@ -93,7 +97,9 @@ jobs:
             apps/client-h5/src/components/domain/MapResultPane.vue
             apps/client-h5/src/components/domain/PlaceResultRow.vue
             apps/client-h5/src/components/domain/PlaceSceneFrame.vue
+            apps/client-h5/src/components/domain/PlacePreview.vue
             apps/client-h5/src/components/map/MapSelectedSheet.vue
+            apps/client-h5/src/components/MockMap.vue
             apps/client-h5/src/styles/consumer-discovery-v11.css
             apps/client-h5/src/components/place/PlaceRulesPane.vue
             apps/client-h5/src/components/place/PlaceOverviewPane.vue
@@ -104,7 +110,9 @@ jobs:
             apps/client-h5/src/consumer/mapLens.ts
             apps/client-h5/src/views/PlaceView.vue
             apps/client-h5/src/views/RealityTraceView.vue
+            docs/ui/contracts/json/evidence.json
             docs/ui/contracts/json/place.desktop.json
+            docs/ui/contracts/json/place.mobile.json
             tests/e2e/place-route-race.spec.ts
             tests/e2e/public-private-session-boundary.spec.ts
             tests/e2e/contribute-wizard.spec.ts
