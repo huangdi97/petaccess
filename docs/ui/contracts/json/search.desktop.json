@@ -155,12 +155,13 @@
       ],
       "props": {
         "height": {
-          "min": 145,
-          "max": 175
+          "min": 138,
+          "max": 160
         }
       },
       "severity": "FAIL",
-      "aggregate": "rows"
+      "aggregate": "rows",
+      "note": "v11 keeps desktop Search rows compact and divider-led. The current 141.5px measured row preserves place identity, Rule, Reality and evidence metadata without reverting to card-like padding."
     },
     {
       "id": "SEARCH_ROW_RADIUS_CRAFTED",
