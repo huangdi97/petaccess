@@ -54,6 +54,27 @@ const realityLine = computed(() =>
       : coexistenceRealityLine(props.snapshot, props.snapshot?.reality_answer),
 );
 const showRealitySupplement = computed(() => props.mapLensName !== "现场");
+const activeLensToneClass = computed(() => {
+  if (!props.mapLensLabel) return "";
+  if (props.mapLensName === "现场") return "place-preview__lens--reality";
+  if (props.mapLensName === "设施") return "place-preview__lens--facility";
+  if (props.mapLensName === "差异") return "place-preview__lens--divergence";
+  return "";
+});
+const ruleToneClass = computed(() => {
+  if (props.mapLensLabel) return "";
+  switch ((props.status ?? "UNKNOWN").toUpperCase()) {
+    case "ALLOWED":
+    case "MATCH":
+      return "place-preview__decision--allowed";
+    case "CONDITIONAL":
+      return "place-preview__decision--conditional";
+    case "RESTRICTED":
+      return "place-preview__decision--restricted";
+    default:
+      return "place-preview__decision--unknown";
+  }
+});
 const metaLine = computed(() => {
   const parts: string[] = [placeTypeLabel(props.place?.place_type ?? "")];
   if (props.place?.distance_m != null) parts.push(`${Math.round(props.place.distance_m)}m`);
@@ -86,6 +107,7 @@ const metaLine = computed(() => {
       <div
         v-if="mapLensLabel"
         class="place-preview__lens place-preview__lens--primary"
+        :class="activeLensToneClass"
         data-testid="preview-map-lens"
       >
         <span class="place-preview__label">当前地图 · {{ mapLensName }}</span>
@@ -97,7 +119,10 @@ const metaLine = computed(() => {
            meaning of a Reality/Facility/Divergence marker. -->
       <div
         class="place-preview__decision"
-        :class="{ 'place-preview__decision--secondary': Boolean(mapLensLabel) }"
+        :class="[
+          { 'place-preview__decision--secondary': Boolean(mapLensLabel) },
+          ruleToneClass,
+        ]"
         data-testid="preview-verdict"
       >
         <span class="place-preview__label">规则</span>
