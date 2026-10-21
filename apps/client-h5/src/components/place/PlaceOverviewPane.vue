@@ -63,6 +63,8 @@ const ruleToneClass = computed(() => {
       return "place-fact--rule-conditional";
     case "RESTRICTED":
       return "place-fact--rule-restricted";
+    case "CONFLICT":
+      return "place-fact--rule-conflict";
     default:
       return "place-fact--rule-unknown";
   }
