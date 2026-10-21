@@ -139,6 +139,19 @@
       "severity": "FAIL"
     },
     {
+      "id": "PLACE_OVERVIEW_INSPECTOR_ABSENT",
+      "ui": "place-inspector",
+      "fallbacks": ["[data-testid='decision-inspector']"],
+      "props": {
+        "count": {
+          "max": 0
+        }
+      },
+      "severity": "FAIL",
+      "pages": ["place-ready", "place-unknown"],
+      "note": "v11 Overview is the destination surface; a duplicate sticky verdict rail is forbidden."
+    },
+    {
       "id": "PLACE_INSPECTOR_X",
       "ui": "place-inspector",
       "fallbacks": ["[data-testid='decision-inspector']"],
