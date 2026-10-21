@@ -918,6 +918,17 @@ html,
   border-top: 1px solid var(--pa-discovery-line);
 }
 
+#app .watch-events .state-message,
+#app .notifications-list .state-message {
+  max-width: none;
+  padding: 14px 0 14px 16px;
+  border: 0;
+  border-left: 3px solid var(--pa-discovery-v9-tone-01);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
 #app .watch-event,
 #app .notification-row {
   margin: 0;
@@ -955,6 +966,22 @@ html,
   border: 0;
   border-bottom: 1px solid var(--pa-discovery-line);
   border-radius: 0;
+}
+
+/* Each boundary attribute is a question, not another card. Keep the segmented
+ * choice control as the interactive surface, while the question itself lives
+ * in the editorial flow. */
+#app .boundary-list {
+  gap: 0;
+}
+
+#app .boundary-row {
+  padding: 18px 0;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 #app .operator-claim__place {
@@ -1007,6 +1034,10 @@ html,
 
   #app .boundary-overview,
   #app .boundary-note {
+    padding: 14px 0;
+  }
+
+  #app .boundary-row {
     padding: 14px 0;
   }
 
