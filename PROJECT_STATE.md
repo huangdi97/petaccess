@@ -1,3 +1,21 @@
+## Current phase（2026-10-21 — v11 spatial canvas + selected-place fact-language polish）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 保持 **OPEN + DRAFT**；未 merge、未 tag、未 Release；`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
+- 本轮重新核验远端真实 HEAD=`89a9994a67c466d296768171a10697c4835402f6`；相对 2026-10-19 的 `3c614320...` 已前进 **161 commits**。该 HEAD 的 PR CI / UI Direct Validation / UI Direct Visual / Public Preview Stack 全部 **SUCCESS**。
+- 已拉取并目视检查同 HEAD 的最新 Human Review（约 22.9 MB）。结论：Search、Place、Reality、Contribution 和 selected-place bridge 的大框架已经进入稳定 Urban Spatial Guide；当前最明显的残留不是 card-wall，而是 fallback map 仍偏“测试底图”，以及 Map selected surface 的 Rule / Reality / Facility / Divergence 视觉语法仍过于同质。
+- 外部设计复核继续支持当前方向：
+  - Apple HIG Maps 明确建议 selected place 使用 compact/full place card 并保持地图位置可见，避免重复信息；
+  - Apple Sheets 强调默认尺寸应帮助用户保留父级上下文；
+  - AllTrails 继续使用 map + drawer / nearby selection 的空间浏览模型；
+  - AccessNow 3.0 将地点信息拆成清晰 section，并支持单 feature / photo 贡献。PetAccess 只借鉴空间层级与单事实贡献，不引入总评分。
+- 本轮直接完成：
+  - `0460f57b`：增强 MockMap 城市空间 fallback——增加多块开放空间、plaza、local road，提升 block / road / river / urban mass 层次；继续明确标注“示意底图（非真实街道）”，不制造场所名、规则或定位精度。
+  - `40e2568b`：mobile MapSelectedSheet 为 Rule / Reality / Facility / Divergence 引入 restrained semantic rail；颜色只作辅助，文字结论仍为主。
+  - `ef346791` + `773f70a0`：desktop PlacePreview 同步同一 fact-dimension visual grammar；非 Rule lens 不让 Rule 色彩抢占主语义。
+  - `7f74af30`：v11 设计母版冻结“fallback map 必须像城市空间但不得伪造地理事实”以及“semantic rail 不能退化为 friendliness score”。
+- 当前最终 branch tip 以 GitHub 为准；本段写入后 Actions 会针对最终 HEAD 重跑。旧 HEAD 的 SUCCESS 不得冒充本轮结果。
+- 下一视觉门：同一最终 HEAD 的 UI Direct Visual / PR CI；之后重新拉取 Human Review，重点检查 fallback basemap 的城市感、mobile selected sheet 四类 lens、desktop selected preview，以及 320/360/390/430 宽度下是否仍保持地图主表面。
+
 ## Current phase（2026-10-21 — v11 visual contract repair + Search hierarchy closure）
 
 - 分支 `feat/ui-direct-craft-v8`；PR #1 继续 **OPEN + DRAFT**；未 merge、未 tag、未 Release。
