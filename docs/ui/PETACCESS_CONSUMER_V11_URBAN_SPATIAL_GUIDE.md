@@ -125,6 +125,8 @@ full spatial canvas
 
 No explanatory paragraph may permanently consume map height.
 
+When a real map provider is unavailable, the fallback map must still read as an urban spatial canvas rather than a test grid: it may use illustrative road hierarchy, blocks, open-space patches, water and building mass hints. It must remain explicitly disclosed as a non-surveyed illustrative basemap and must never invent venue names, operator facts or rule data.
+
 Desktop:
 
 ```text
@@ -156,6 +158,8 @@ When governed media does not exist, stay text-led. Never fill the visual gap wit
 ### Selected place on Map
 
 The selected-place sheet/card is the bridge between spatial browsing and a Place page, not a mini dossier.
+
+The active fact dimension may use one restrained semantic rail as a supporting cue — Rule status, Reality, Facility or Divergence — but the natural-language label and conclusion remain mandatory. Colour never becomes a friendliness score or the only carrier of meaning.
 
 Half state prioritizes:
 
