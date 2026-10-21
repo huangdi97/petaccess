@@ -207,7 +207,7 @@ export function mapLensCoverage(
       text:
         markers.length === 0
           ? "当前查询没有可显示的位置点。无地图点位不代表场所没有规则或现场事实。"
-          : `当前查询中 ${markers.length} 个可定位场所：${covered} 个已有规则结论，${unknown} 个信息不足或来源不一致${unavailableCopy}。信息不足不等于允许。`,
+          : `${markers.length} 个可定位场所 · ${covered} 个已有规则结论 · ${unknown} 个信息不足或来源不一致${unavailableCopy ? unavailableCopy.replace(/^，/, " · ") : ""}`,
     };
   }
 
@@ -220,7 +220,7 @@ export function mapLensCoverage(
     return {
       covered,
       unknown,
-      text: `当前查询中 ${markers.length} 个可定位场所：${covered} 个有经核验现场事实${unavailableCopy}。动物出现、工作人员处理与设施事实彼此独立；暂无动物记录不代表现场没有动物。`,
+      text: `${markers.length} 个可定位场所 · ${covered} 个有经核验现场事实${unavailableCopy ? unavailableCopy.replace(/^，/, " · ") : ""}`,
     };
   }
 
@@ -233,7 +233,7 @@ export function mapLensCoverage(
     return {
       covered,
       unknown,
-      text: `当前查询中 ${markers.length} 个可定位场所：${covered} 个有动物设施记录${unavailableCopy}。设施存在不等于允许进入。`,
+      text: `${markers.length} 个可定位场所 · ${covered} 个有动物设施记录${unavailableCopy ? unavailableCopy.replace(/^，/, " · ") : ""}`,
     };
   }
 
@@ -246,6 +246,6 @@ export function mapLensCoverage(
   return {
     covered,
     unknown,
-    text: `当前查询中 ${markers.length} 个可定位场所：${covered} 个需要重点对照规则与现场${unavailableCopy}。`,
+    text: `${markers.length} 个可定位场所 · ${covered} 个需要重点对照规则与现场${unavailableCopy ? unavailableCopy.replace(/^，/, " · ") : ""}`,
   };
 }
