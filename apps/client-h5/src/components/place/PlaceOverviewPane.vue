@@ -210,7 +210,8 @@ const divergenceLine = computed(() => {
       data-testid="overview-reality"
     >
       <h2 class="place-section__title place-fact__label">现场</h2>
-      <p class="place-reality-headline" data-testid="overview-reality-line">{{ realityLine }}</p>
+      <div class="place-reality-fact" data-ui="place-reality-fact">
+        <p class="place-reality-headline" data-testid="overview-reality-line">{{ realityLine }}</p>
       <p v-if="realityMetaLine" class="muted overview-note">{{ realityMetaLine }}</p>
       <p v-else-if="observationCount > 0 && desktop" class="muted overview-note">
         {{ observationCount }} 条现场记录
@@ -252,13 +253,14 @@ const divergenceLine = computed(() => {
           </RouterLink>
         </p>
       </div>
-      <RouterLink
-        class="btn-inline overview-reality-link"
-        :to="`?view=reality`"
-        data-testid="overview-reality-link"
-      >
-        查看现场记录 →
-      </RouterLink>
+        <RouterLink
+          class="btn-inline overview-reality-link"
+          :to="`?view=reality`"
+          data-testid="overview-reality-link"
+        >
+          查看现场记录 →
+        </RouterLink>
+      </div>
     </section>
   </div>
 
