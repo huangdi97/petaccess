@@ -328,9 +328,11 @@ const divergenceLine = computed(() => {
       <span class="evidence-summary-grid__label">现场来源</span>
       <span class="evidence-summary-grid__value" data-testid="overview-observation-count">
         {{
-          coexistence?.evidence_summary.reality_distinct_source_count
-            ? `${coexistence.evidence_summary.reality_distinct_source_count} 个来源`
-            : "暂无"
+          snapshotError
+            ? "现场来源暂时无法取得"
+            : coexistence?.evidence_summary.reality_distinct_source_count
+              ? `${coexistence.evidence_summary.reality_distinct_source_count} 个来源`
+              : "暂无"
         }}
       </span>
     </div>
