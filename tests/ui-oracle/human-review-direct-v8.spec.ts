@@ -19,13 +19,28 @@ const OUT = path.resolve("artifacts/ui-direct-v8/HUMAN_REVIEW");
 const GOVERNED_SCENE_FIXTURE_URL =
   "data:image/svg+xml;charset=utf-8," +
   encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="640" viewBox="0 0 1200 640">
-    <rect width="1200" height="640" fill="#eef3ee"/>
-    <rect x="54" y="54" width="1092" height="532" rx="28" fill="#fbfaf6" stroke="#315c46" stroke-width="8"/>
-    <rect x="96" y="116" width="330" height="330" rx="24" fill="#bfd6c7"/>
-    <rect x="470" y="116" width="626" height="160" rx="24" fill="#e7decc"/>
-    <rect x="470" y="308" width="626" height="138" rx="24" fill="#dce4d6"/>
-    <text x="96" y="510" fill="#315c46" font-family="system-ui,sans-serif" font-size="44" font-weight="700">CI 场景媒体测试卡</text>
-    <text x="96" y="558" fill="#5e685f" font-family="system-ui,sans-serif" font-size="26">NOT A REAL VENUE PHOTO · 仅验证受治理媒体布局</text>
+    <defs>
+      <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#dce8e2"/>
+        <stop offset="1" stop-color="#eef1e8"/>
+      </linearGradient>
+      <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#9fb7aa"/>
+        <stop offset="1" stop-color="#667d70"/>
+      </linearGradient>
+    </defs>
+    <rect width="1200" height="640" fill="url(#sky)"/>
+    <rect y="458" width="1200" height="182" fill="#d9d4c7"/>
+    <rect x="72" y="150" width="392" height="332" rx="20" fill="#d7ded6"/>
+    <rect x="112" y="190" width="312" height="250" rx="14" fill="url(#glass)"/>
+    <rect x="500" y="104" width="620" height="378" rx="24" fill="#ece8dc"/>
+    <rect x="548" y="154" width="524" height="138" rx="14" fill="#b7c7bc"/>
+    <rect x="548" y="326" width="248" height="116" rx="12" fill="#c7bda8"/>
+    <rect x="824" y="326" width="248" height="116" rx="12" fill="#d3ddd2"/>
+    <circle cx="1040" cy="494" r="62" fill="#6f8a72"/>
+    <circle cx="1102" cy="512" r="46" fill="#7e987e"/>
+    <rect x="1031" y="504" width="18" height="90" rx="8" fill="#6b5d49"/>
+    <path d="M0 532 C240 500 420 554 640 526 S980 500 1200 536 V640 H0Z" fill="#c3cbbd"/>
   </svg>`);
 
 function currentHead(): string {
@@ -126,7 +141,7 @@ const SHOTS: Shot[] = [
     h1: "云栖中心·测试商场",
     requiredTestids: ["place-scene-media", "section-answer", "overview-reality"],
     requiredText: ["规则", "现场概览", "证据与来源"],
-    note: "Governed-media layout fixture only. The visible CI card is deliberately non-photographic and explicitly NOT a real venue photo; it validates destination-header composition without fabricating place evidence.",
+    note: "Governed-media layout fixture only. The synthetic architectural scene is test-only and must never be interpreted as venue evidence; it exists solely to review destination-header composition.",
   },
   {
     name: "03a_place_unknown",
