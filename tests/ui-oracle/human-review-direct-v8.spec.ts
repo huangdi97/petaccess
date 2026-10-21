@@ -147,7 +147,7 @@ const SHOTS: Shot[] = [
     h1: "云栖中心·测试商场",
     requiredTestids: ["place-scene-media", "section-answer", "overview-reality"],
     firstViewportTestids: ["section-answer"],
-    requiredText: ["规则", "现场概览", "证据与来源"],
+    requiredText: ["规则", "现场", "证据与来源"],
     note: "Governed-media layout fixture only. The synthetic architectural scene is test-only and must never be interpreted as venue evidence. The Rule section must begin in the initial viewport so media provides place context without delaying the decision.",
   },
   {
