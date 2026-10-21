@@ -89,12 +89,13 @@
 }
 .place-preview__foot {
   margin-top: var(--pa-space-1);
-  padding-top: var(--pa-space-2);
-  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  padding-top: var(--pa-space-1);
+  border-top: 0;
 }
 
 .place-preview__cta {
   align-self: flex-start;
+  padding-inline: 0;
 }
 .place-preview__hint {
   margin: 0;
