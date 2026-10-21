@@ -380,6 +380,8 @@ async function runContract(
       const token = await signIn(request);
       await page.goto("/");
       await page.evaluate((t) => localStorage.setItem("pa_token", t), token);
+      await page.reload();
+      await settle(page);
     }
     await page.goto(pageDef.route);
     await freezeMotion(page);
