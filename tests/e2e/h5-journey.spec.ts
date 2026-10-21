@@ -69,8 +69,10 @@ test("mode switch re-evaluates: service dog → allowed", async ({ page }) => {
   await expect(page.getByTestId("query-service-role")).toBeVisible();
   await page.getByTestId("query-context-done").click();
   await expect(queryEdit).toBeFocused();
-  // service-dog mode asks as a working (assistance) dog → place-level allowed
-  await expect(page.getByTestId("inspector-verdict")).toHaveText("可以进入");
+  // service-dog mode asks as a working (assistance) dog → place-level allowed.
+  // v11 Overview owns the full Rule decision; the duplicate desktop inspector
+  // intentionally does not render on Overview.
+  await expect(page.getByTestId("answer-status")).toHaveText("可以进入");
   await page.getByTestId("query-context-edit").click();
   await page.getByRole("button", { name: "普通携带" }).click();
   await expect(page.getByTestId("place-workspace")).toHaveAttribute("data-ui-state", "unknown");
