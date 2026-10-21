@@ -313,11 +313,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
           referrerpolicy="no-referrer"
         />
 
-        <div
-          class="sheet__primary"
-          :class="primaryToneClass"
-          data-testid="sheet-map-lens"
-        >
+        <div class="sheet__primary" :class="primaryToneClass" data-testid="sheet-map-lens">
           <span class="sheet__primary-label">{{ primaryLabel }}</span>
           <strong>{{ primaryText }}</strong>
           <p
