@@ -200,14 +200,14 @@ export function mapLensCoverage(
       ["UNKNOWN", "CONFLICT"].includes(answerStatusKey(row.answer)),
     ).length;
     const covered = Math.max(0, markers.length - unknown - unavailable);
-    const unavailableCopy = unavailable ? `，${unavailable} 个暂时无法取得规则结论` : "";
+    const unavailableCopy = unavailable ? ` · ${unavailable} 个暂时无法取得规则结论` : "";
     return {
       covered,
       unknown,
       text:
         markers.length === 0
           ? "当前查询没有可显示的位置点。无地图点位不代表场所没有规则或现场事实。"
-          : `${markers.length} 个可定位场所 · ${covered} 个已有规则结论 · ${unknown} 个信息不足或来源不一致${unavailableCopy ? unavailableCopy.replace(/^，/, " · ") : ""}`,
+          : `${markers.length} 个可定位场所 · ${covered} 个已有规则结论 · ${unknown} 个信息不足或来源不一致${unavailableCopy}`,
     };
   }
 
@@ -216,11 +216,11 @@ export function mapLensCoverage(
       (row) => (row.snapshot?.evidence_summary.reality_evidence_count ?? 0) > 0,
     ).length;
     const unknown = Math.max(0, markers.length - covered - unavailable);
-    const unavailableCopy = unavailable ? `，${unavailable} 个现场信息暂时无法取得` : "";
+    const unavailableCopy = unavailable ? ` · ${unavailable} 个现场信息暂时无法取得` : "";
     return {
       covered,
       unknown,
-      text: `${markers.length} 个可定位场所 · ${covered} 个有经核验现场事实${unavailableCopy ? unavailableCopy.replace(/^，/, " · ") : ""}`,
+      text: `${markers.length} 个可定位场所 · ${covered} 个有经核验现场事实${unavailableCopy}`,
     };
   }
 
@@ -229,11 +229,11 @@ export function mapLensCoverage(
       (row.snapshot?.facility_summary ?? []).some((item) => item.count > 0),
     ).length;
     const unknown = Math.max(0, markers.length - covered - unavailable);
-    const unavailableCopy = unavailable ? `，${unavailable} 个设施信息暂时无法取得` : "";
+    const unavailableCopy = unavailable ? ` · ${unavailable} 个设施信息暂时无法取得` : "";
     return {
       covered,
       unknown,
-      text: `${markers.length} 个可定位场所 · ${covered} 个有动物设施记录${unavailableCopy ? unavailableCopy.replace(/^，/, " · ") : ""}`,
+      text: `${markers.length} 个可定位场所 · ${covered} 个有动物设施记录${unavailableCopy}`,
     };
   }
 
@@ -242,10 +242,10 @@ export function mapLensCoverage(
     return Boolean(state && !["RULE_REALITY_ALIGNED", "INSUFFICIENT_DATA"].includes(state));
   }).length;
   const unknown = Math.max(0, markers.length - covered - unavailable);
-  const unavailableCopy = unavailable ? `，${unavailable} 个对照结果暂时无法取得` : "";
+  const unavailableCopy = unavailable ? ` · ${unavailable} 个对照结果暂时无法取得` : "";
   return {
     covered,
     unknown,
-    text: `${markers.length} 个可定位场所 · ${covered} 个需要重点对照规则与现场${unavailableCopy ? unavailableCopy.replace(/^，/, " · ") : ""}`,
+    text: `${markers.length} 个可定位场所 · ${covered} 个需要重点对照规则与现场${unavailableCopy}`,
   };
 }
