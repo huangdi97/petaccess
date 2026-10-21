@@ -1428,8 +1428,9 @@ html,
 
   #app .search-workspace .result-row__decision,
   #app .search-workspace .result-row__reality-line--lead {
-    font-size: var(--pa-font-size-lg);
+    font-size: var(--pa-font-size-17);
     line-height: var(--pa-line-height-23);
+    font-weight: var(--pa-font-weight-medium);
   }
 
   /* Evidence provenance belongs in the detail surface on a phone. Search keeps
