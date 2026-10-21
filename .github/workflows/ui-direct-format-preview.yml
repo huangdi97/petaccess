@@ -36,6 +36,7 @@ jobs:
             apps/client-h5/src/components/contribute/RuleTargetPicker.vue \
             apps/client-h5/src/components/operator/OperatorClaimForm.vue \
             apps/client-h5/src/components/domain/DecisionInspector.vue \
+            apps/client-h5/src/components/domain/MapResultPane.vue \
             apps/client-h5/src/components/domain/PlaceResultRow.vue \
             apps/client-h5/src/components/domain/PlaceSceneFrame.vue \
             apps/client-h5/src/components/map/MapSelectedSheet.vue \
@@ -46,6 +47,7 @@ jobs:
             apps/client-h5/src/composables/useRuleLeadContribution.ts \
             apps/client-h5/src/composables/useMapWorkspace.ts \
             apps/client-h5/src/consumer/homeDigest.ts \
+            apps/client-h5/src/consumer/mapLens.ts \
             apps/client-h5/src/views/PlaceView.vue \
             apps/client-h5/src/views/RealityTraceView.vue \
             docs/ui/contracts/json/place.desktop.json \
@@ -88,6 +90,7 @@ jobs:
             apps/client-h5/src/components/contribute/RuleTargetPicker.vue
             apps/client-h5/src/components/operator/OperatorClaimForm.vue
             apps/client-h5/src/components/domain/DecisionInspector.vue
+            apps/client-h5/src/components/domain/MapResultPane.vue
             apps/client-h5/src/components/domain/PlaceResultRow.vue
             apps/client-h5/src/components/domain/PlaceSceneFrame.vue
             apps/client-h5/src/components/map/MapSelectedSheet.vue
@@ -98,6 +101,7 @@ jobs:
             apps/client-h5/src/composables/useRuleLeadContribution.ts
             apps/client-h5/src/composables/useMapWorkspace.ts
             apps/client-h5/src/consumer/homeDigest.ts
+            apps/client-h5/src/consumer/mapLens.ts
             apps/client-h5/src/views/PlaceView.vue
             apps/client-h5/src/views/RealityTraceView.vue
             docs/ui/contracts/json/place.desktop.json
