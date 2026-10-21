@@ -246,6 +246,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
             <img
               v-if="sceneMediaUrl && phase !== 'expanded'"
               class="sheet__thumb"
+              data-testid="sheet-scene-thumb"
               :src="sceneMediaUrl"
               :alt="`场所场景：${place.canonical_name}`"
               loading="lazy"
