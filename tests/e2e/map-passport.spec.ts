@@ -353,6 +353,7 @@ test("A1.2 — mobile map searches without leaving the spatial canvas", async ({
   });
   await expect(page.getByTestId("sheet-map-lens")).toContainText("规则");
   await expect(page.getByTestId("sheet-condition")).toContainText("需满足：");
+  await expect(page.getByTestId("sheet-reality")).toBeVisible();
   await expect(sheet.locator(".status-badge")).toHaveCount(0);
   const detailAction = page.getByTestId("sheet-open-detail");
   await expect(detailAction).toBeVisible();
@@ -383,7 +384,21 @@ test("A1.2b — mobile selected sheet keeps active Reality lens separate from Ru
   await expect(page.getByTestId("sheet-map-lens")).toContainText("现场");
   await expect(page.getByTestId("sheet-verdict")).toContainText("规则");
   await expect(page.getByTestId("sheet-verdict")).toContainText("需满足：");
+  await expect(page.getByTestId("sheet-reality")).toHaveCount(0);
   await expect(sheet.locator(".status-badge")).toHaveCount(0);
+});
+
+test("A1.2c — desktop Reality preview does not repeat the active Reality fact", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(`${BASE}/#/map?lens=reality&place=${MALL_ID}`);
+
+  const preview = page.getByTestId("place-preview");
+  await expect(preview).toBeVisible({ timeout: 15000 });
+  await expect(page.getByTestId("preview-map-lens")).toContainText("现场");
+  await expect(page.getByTestId("preview-verdict")).toContainText("规则");
+  await expect(page.getByTestId("preview-reality")).toHaveCount(0);
 });
 
 test("A1.2a — map-config outage never masquerades the simplified canvas as a real map", async ({
