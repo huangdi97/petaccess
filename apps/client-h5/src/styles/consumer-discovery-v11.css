@@ -826,6 +826,59 @@ html,
   width: 3px;
 }
 
+/* Place Overview's signature is two independent fact dimensions. Rule uses
+ * the published Rule status rail; Reality uses its own observed-fact rail.
+ * Text labels remain visible, so colour is never the verdict itself. */
+#app .place-workspace .place-fact--rule-allowed .sub-answer--mine::before {
+  background: var(--pa-color-status-allowed);
+}
+
+#app .place-workspace .place-fact--rule-conditional .sub-answer--mine::before {
+  background: var(--pa-color-status-conditional);
+}
+
+#app .place-workspace .place-fact--rule-restricted .sub-answer--mine::before {
+  background: var(--pa-color-status-restricted);
+}
+
+#app .place-workspace .place-fact--rule-conflict .sub-answer--mine::before {
+  background: var(--pa-color-status-conflict);
+}
+
+#app .place-workspace .place-fact--rule-unknown .sub-answer--mine::before {
+  background: var(--pa-color-status-unknown);
+}
+
+#app .place-workspace .place-reality-fact {
+  position: relative;
+  padding-left: 18px;
+}
+
+#app .place-workspace .place-reality-fact::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 3px;
+  border-radius: var(--pa-radius-pill);
+  background: var(--pa-color-reality-observed);
+  content: "";
+}
+
+@media (max-width: 767px) {
+  #app .place-workspace .place-fact__label {
+    margin-bottom: 8px;
+    color: var(--pa-discovery-muted);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 18px;
+  }
+
+  #app .place-workspace .place-reality-fact {
+    padding-left: 16px;
+  }
+}
+
 #app .place-workspace .zone-row {
   border-width: 0 0 1px;
   border-radius: 0;
