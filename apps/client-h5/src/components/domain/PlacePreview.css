@@ -96,6 +96,10 @@
 .place-preview__decision--unknown {
   border-left-color: var(--pa-color-status-unknown);
 }
+
+.place-preview__decision--conflict {
+  border-left-color: var(--pa-color-status-conflict);
+}
 .place-preview__verdict-text {
   margin: 0;
   font-size: var(--pa-font-size-xl);
