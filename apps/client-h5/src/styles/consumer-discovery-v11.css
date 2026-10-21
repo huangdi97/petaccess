@@ -470,8 +470,10 @@ html,
     position: absolute;
     z-index: 24;
     top: 72px;
-    right: 12px;
+    right: auto;
     left: 12px;
+    width: max-content;
+    max-width: calc(100% - 24px);
     min-height: 38px;
     padding: 5px 8px 5px 12px;
     border: 1px solid var(--pa-discovery-line);
