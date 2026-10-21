@@ -121,10 +121,7 @@ const metaLine = computed(() => {
            meaning of a Reality/Facility/Divergence marker. -->
       <div
         class="place-preview__decision"
-        :class="[
-          { 'place-preview__decision--secondary': Boolean(mapLensLabel) },
-          ruleToneClass,
-        ]"
+        :class="[{ 'place-preview__decision--secondary': Boolean(mapLensLabel) }, ruleToneClass]"
         data-testid="preview-verdict"
       >
         <span class="place-preview__label">规则</span>
