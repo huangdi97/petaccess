@@ -69,7 +69,8 @@ const sheetStyle = computed(() => {
     };
   }
   return {
-    height: phase.value === "closed" ? CLOSED_H : showRealitySupplement.value ? HALF_H : HALF_H_REALITY,
+    height:
+      phase.value === "closed" ? CLOSED_H : showRealitySupplement.value ? HALF_H : HALF_H_REALITY,
     bottom: TABBAR,
   };
 });
