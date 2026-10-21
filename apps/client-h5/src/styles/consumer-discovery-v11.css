@@ -846,7 +846,7 @@ html,
 
 /* ------------------------------------------------------------- Evidence */
 #app .evidence-workspace {
-  background: var(--pa-discovery-v9-tone-03);
+  background: var(--pa-discovery-v10-rail);
 }
 
 #app .evidence-workspace .evidence-workspace__body {
@@ -863,12 +863,17 @@ html,
 }
 
 #app .evidence-workspace .evidence-section {
+  padding: 22px 0;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
   border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 /* ------------------------------------------------------------- Reality */
 #app .reality-workspace {
-  background: var(--pa-discovery-v9-tone-03);
+  background: var(--pa-discovery-v10-rail);
 }
 
 #app .reality-workspace .reality-workspace__body {
@@ -998,12 +1003,28 @@ html,
 
   #app .search-workspace .result-row,
   #app .search-workspace .result-row--selected {
-    min-height: 108px;
+    min-height: 96px;
     margin: 0;
   }
 
   #app .search-workspace .result-row__link {
-    min-height: 108px;
+    min-height: 96px;
+    padding-block: 10px;
+  }
+
+  #app .search-workspace .result-row__name {
+    font-size: var(--pa-font-size-base);
+    font-weight: var(--pa-font-weight-600);
+  }
+
+  #app .search-workspace .result-row__meta {
+    font-size: var(--pa-font-size-sm);
+  }
+
+  #app .search-workspace .result-row__decision,
+  #app .search-workspace .result-row__reality-line--lead {
+    font-size: var(--pa-font-size-lg);
+    line-height: var(--pa-line-height-23);
   }
 
   /* Evidence provenance belongs in the detail surface on a phone. Search keeps
@@ -1012,7 +1033,8 @@ html,
     display: none;
   }
 
-  #app .reality-workspace .reality-workspace__body {
+  #app .reality-workspace .reality-workspace__body,
+  #app .evidence-workspace .evidence-workspace__body {
     padding: 20px 18px 32px;
   }
 
