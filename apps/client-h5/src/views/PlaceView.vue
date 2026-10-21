@@ -426,7 +426,13 @@ const placeFixture = computed<string>(() => {
     :data-ui-entity-id="placeId"
   >
     <QueryContextBar />
-    <div class="place-workspace__body" :class="{ 'place-workspace__body--split': isWideLayout }">
+    <div
+      class="place-workspace__body"
+      :class="{
+        'place-workspace__body--split': isWideLayout && view !== 'overview',
+        'place-workspace__body--overview-wide': isWideLayout && view === 'overview',
+      }"
+    >
       <!-- main dossier -->
       <main class="place-dossier" data-ui="place-dossier" aria-label="场所档案">
         <h1 v-if="!place" class="place-dossier__route-title">场所</h1>
@@ -538,6 +544,7 @@ const placeFixture = computed<string>(() => {
             :place-kind-label="placeTypeLabel(place.place_type)"
             :canonical-address="place.canonical_address"
             :desktop="isWideLayout"
+            :decision-inspector="false"
             :snapshot-error="Boolean(coexistenceError)"
           />
           <section
@@ -629,7 +636,7 @@ const placeFixture = computed<string>(() => {
 
       <!-- sticky decision inspector（desktop only；§26 固定内容） -->
       <aside
-        v-if="isWideLayout && place"
+        v-if="isWideLayout && place && view !== 'overview'"
         class="place-inspector"
         data-ui="place-inspector"
         aria-label="当前决策"
@@ -694,6 +701,16 @@ const placeFixture = computed<string>(() => {
     max-width: 1320px;
     margin: 0 auto;
     padding: var(--pa-space-5) var(--pa-space-6) var(--pa-space-8);
+  }
+
+  .place-workspace__body--overview-wide {
+    max-width: var(--pa-layout-content-960);
+    margin: 0 auto;
+    padding: var(--pa-space-5) var(--pa-space-6) var(--pa-space-8);
+  }
+
+  .place-workspace__body--overview-wide .place-dossier {
+    max-width: 100%;
   }
 
   .place-dossier {
