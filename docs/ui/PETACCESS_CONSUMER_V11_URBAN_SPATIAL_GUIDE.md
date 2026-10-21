@@ -147,6 +147,8 @@ place identity
 
 Ordinary sections are editorial/divider-led. Large rounded containers are reserved for true floating surfaces or governed scene media.
 
+The Overview has one recognizable PetAccess signature: **Rule and Reality are visibly named as two independent fact dimensions**. Rule may use its status rail; Reality uses its own observed-fact rail. They stay in one reading sequence and never collapse into a score, friendliness verdict, or blended state. On mobile the labels remain visible rather than relying on colour or position alone.
+
 On desktop Overview, the dossier itself is the **single owner** of the full Rule decision and the destination narrative. Do not reserve a second column merely to repeat the same verdict. A sticky decision rail is allowed only on secondary Place views (Rules / Reality / Space / Evidence), where preserving the current decision while reading another dimension adds real context. Automated tests must bind Overview Rule/error assertions to the dossier surface, not to a hidden or duplicate inspector.
 
 When governed scene media exists, it may become a destination surface rather than another inset card. On mobile it may bleed to the page edge so the place reads as a real location. Actions over the hero stay lightweight; do not rebuild a row of large pill buttons.
@@ -189,6 +191,10 @@ The compact bridge must stay glanceable: selecting a place should reveal a decis
 ### Reality
 
 The timeline is the page. The header provides title, scope and filters but must not read as a dashboard card.
+
+### Evidence
+
+Evidence is a provenance surface, not another place-detail page. The visible page purpose is **证据与来源**; place identity is subordinate context. Provenance stages, observed/submitted/reviewed time and source identity carry the hierarchy. Evidence styling must not imitate Rule decision styling or Reality timeline styling.
 
 ### Secondary reading surfaces
 
