@@ -809,6 +809,81 @@ html,
   background: transparent;
 }
 
+/* ----------------------------------------------------------- Settings */
+#app .settings-head {
+  padding: 0 0 24px;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#app .settings-section {
+  margin-top: 0;
+  padding: 24px 0;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+}
+
+#app .settings-row {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+}
+
+#app .settings-row + .settings-row {
+  margin-top: 0;
+}
+
+#app .settings-points {
+  gap: 0;
+}
+
+#app .settings-points p {
+  padding: 10px 0 10px 24px;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+}
+
+#app .settings-points p::before {
+  top: 10px;
+  left: 0;
+}
+
+#app .settings-links {
+  gap: 0;
+  border-top: 1px solid var(--pa-discovery-line);
+}
+
+#app .settings-link {
+  min-height: 48px;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+}
+
+@media (max-width: 767px) {
+  #app .settings-head {
+    padding: 0 0 20px;
+  }
+
+  #app .settings-section {
+    gap: 12px;
+    padding: 20px 0;
+  }
+
+  #app .settings-row {
+    padding: 10px 0;
+  }
+}
+
 /* --------------------------------------------------------- Contribution */
 #app .contribute-workspace .contribute-workspace__main {
   border-color: var(--pa-discovery-line);
