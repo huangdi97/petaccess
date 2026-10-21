@@ -69,8 +69,8 @@
       "fallbacks": ["ul.result-list li"],
       "props": {
         "height": {
-          "min": 138,
-          "max": 160
+          "min": 112,
+          "max": 148
         }
       },
       "severity": "FAIL",
@@ -87,7 +87,7 @@
       },
       "severity": "FAIL",
       "aggregate": "rows",
-      "note": "v11 mobile results are touch-friendly divider rows, not floating cards."
+      "note": "v11 mobile results are compact touch-friendly divider rows: place identity, one Rule line and one Reality line, not floating cards."
     },
     {
       "id": "SEARCH_MOBILE_ROW_ELEVATED",
