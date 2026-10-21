@@ -698,7 +698,9 @@ async function assertShot(page: Page, shot: Shot): Promise<Record<string, unknow
   }
   for (const id of shot.firstViewportTestids ?? []) {
     const locator = page.getByTestId(id).first();
-    await expect(locator, `${shot.name}: ${id} first viewport`).toBeVisible({ timeout: 15000 });
+    await expect(locator, `${shot.name}: ${id} first viewport`).toBeVisible({
+      timeout: 15000,
+    });
     const box = await locator.boundingBox();
     const viewportHeight = page.viewportSize()?.height ?? 0;
     expect(box).not.toBeNull();
