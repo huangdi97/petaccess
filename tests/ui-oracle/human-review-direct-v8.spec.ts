@@ -128,9 +128,14 @@ const SHOTS: Shot[] = [
     page: "place",
     state: "ready",
     h1: "云栖中心·测试商场",
-    requiredTestids: ["section-answer", "overview-reality", "overview-evidence"],
-    requiredText: ["规则", "现场", "工作人员处理", "动物设施", "证据与来源"],
-    note: "Place first screen = Coexistence Passport, not a generic detail page.",
+    requiredTestids: [
+      "section-answer",
+      "overview-reality",
+      "overview-evidence",
+      "place-map-link",
+    ],
+    requiredText: ["规则", "证据与来源"],
+    note: "Place first screen = destination identity + independent Rule/Reality facts, not a generic detail page or dashboard.",
   },
   {
     name: "03b_place_governed_media_fixture",
