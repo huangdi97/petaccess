@@ -1,3 +1,25 @@
+## Current phase（2026-10-21 — v11 reading surfaces + field-capture polish, CI pending）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 继续 **OPEN + DRAFT**；未 merge、未 tag、未 Release；`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
+- 本轮开始时重新核验远端真实 HEAD = `5f9d9b5754d1c34a9b6d1af6ea25b0f2f72faedf`；相对 2026-10-19 的 `3c614320...` 已前进 105 commits。该 HEAD 的 Public Preview Stack / UI Direct Validation / UI Direct Visual / PR CI 均 **SUCCESS**。
+- 已拉取并目视检查同 HEAD 的最新 `ui-direct-v8-visual`（约 25.6 MB）：
+  - Home 已从 landing page 收口为较短 city-space launcher；
+  - mobile/desktop Map 已形成 dominant spatial canvas + selected-place bridge；
+  - no-photo Place 为 text-led editorial identity；
+  - governed-photo Place 的 UI 层级已成立，但旧 Human Review fixture 内的大字测试水印会污染视觉判断；
+  - Reality / Evidence 仍因专属背景 override 呈现偏灰褐“档案纸”感；
+  - mobile Search 已去 card wall，但未知地点的“信息不足”重复层级仍偏响；
+  - mobile Contribution 流程正确，但整体仍像一张大表单卡。
+- 本轮直接完成：
+  - `84699ea3`：Evidence / Reality reading surface 切回 warm-white；Evidence sections 改为 editorial divider-led；mobile Search 再压缩 identity / Rule / Reality 行高与字号；
+  - `5b16f52e`：Human Review governed-media fixture 去除图内巨大 CI/NOT-A-REAL-VENUE 文字，改为无文字的明确 synthetic architecture fixture；真实性说明保留在 manifest note，不污染 UI 截图；
+  - `b792e1c3`：Search mobile geometry contract 同步到更紧凑的 v11 place-result flow；
+  - `01f18e6d`：mobile Contribution 去掉大外框卡片，仅手机变为 in-place field capture；desktop bounded workspace 不变；
+  - `e66fd5a8`：Search 中 UNKNOWN 仍明确显示“信息不足”，但降低视觉权重，避免未知地点占多数时形成重复大标题墙。
+- 外部参考复核：AccessNow 2025 新版把 place listing 重组为更清晰的 About / Features / Photos / Reviews，并支持只贡献一个 feature 或 photo；这与 PetAccess v11 的“地点分层 + 单事实贡献”方向一致，但 PetAccess 继续保持 Rule / Reality / Evidence 独立，不引入友好度总分。
+- 当前源码 HEAD（本段写入前）=`e66fd5a8a82f5f0b5c9c0a775f979adac100e641`。本段自身写入后 HEAD 会再次前进；最新 Actions / HUMAN_REVIEW 必须以最终 branch tip 实测为准，禁止复用 `5f9d9b57...` 的 SUCCESS 冒充当前结果。
+- 下一门禁：同一最终 HEAD 的 PR CI + UI Direct Visual 全绿后，重新拉取 HUMAN_REVIEW，重点目视 Search mobile density、Reality/Evidence warm-white、Contribution mobile shell、governed-media Place hero；机器 PASS 仍不等于用户 Human Visual Acceptance。
+
 ## Current phase（2026-10-20 — v11 Map/Sheet/Search visual closure + PR CI repair）
 
 - 分支 `feat/ui-direct-craft-v8`；PR #1 继续 **OPEN + DRAFT**；未 merge、未 tag、未 Release；`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
