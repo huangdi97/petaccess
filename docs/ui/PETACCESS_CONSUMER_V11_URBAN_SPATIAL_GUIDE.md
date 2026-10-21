@@ -211,6 +211,10 @@ For v11, review at minimum:
 - Place with governed photo;
 - Place without governed photo;
 - Reality desktop + mobile;
-- Contribution chooser mobile.
+- Evidence desktop + mobile;
+- Contribution chooser mobile;
+- one secondary-surface sweep covering Mine, Settings, Privacy, Notifications and Onboarding.
+
+The secondary sweep is not cosmetic scope creep: it proves that leaving the map/place journey does not resurrect the legacy rounded-card/SaaS visual system.
 
 `UI_HUMAN_VISUAL_ACCEPTANCE` remains pending until these rendered states are reviewed by a human.
