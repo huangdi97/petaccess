@@ -42,8 +42,10 @@ const props = withDefaults(
     snapshotError?: boolean;
     /** §11：mobile 也要 Space/Evidence summary row（非展开），desktop 五块齐全。 */
     desktop?: boolean;
+    /** True only when a separate sticky decision rail is visible beside this pane. */
+    decisionInspector?: boolean;
   }>(),
-  { desktop: true, snapshotError: false },
+  { desktop: true, decisionInspector: false, snapshotError: false },
 );
 
 const conditions = computed(() => answerConditions(props.answer));
@@ -147,11 +149,11 @@ const divergenceLine = computed(() => {
         <p v-if="desktop" class="muted sub-answer__context" data-testid="answer-context">
           {{ querySubject }} · 进入 · 公共区域
         </p>
-        <!-- Desktop has a persistent Decision Inspector, so the dossier keeps
-             Rule as a compact fact dimension instead of repeating a second
-             giant verdict. Mobile has no side inspector and therefore keeps
-             the full natural-language decision in the main reading flow. -->
-        <template v-if="desktop">
+        <!-- A secondary view may keep a persistent Decision Inspector, but the
+             Overview itself is the destination reading surface. When no
+             external inspector is present, keep the full natural-language Rule
+             decision in the dossier on desktop as well as mobile. -->
+        <template v-if="desktop && decisionInspector">
           <StatusBadge v-if="!snapshotError" :semantic="statusKey" />
           <span v-if="!snapshotError" class="visually-hidden" data-testid="answer-status">
             {{ verdict }}
