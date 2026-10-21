@@ -168,16 +168,14 @@ function rowCondition(p: PlaceSummary): string {
 
 function rowEvidenceMeta(p: PlaceSummary): string {
   const row = facts.value.get(p.id);
-  const safety = statuses.value[p.id] === "UNKNOWN" ? "信息不足不等于允许或禁止" : "";
   const realityMeta = coexistenceEvidenceLine(row?.snapshot, row?.reality);
-  if (realityMeta) return [safety, realityMeta].filter(Boolean).join(" · ");
+  if (realityMeta) return realityMeta;
 
   const rules = row?.snapshot?.evidence_summary.rule_evidence ?? [];
-  if (!rules.length) return [safety, "依据待补充"].filter(Boolean).join(" · ");
+  if (!rules.length) return "依据待补充";
   const primary = rules[0];
   const issuer = primary ? publicSourceIssuer(primary.source_type, primary.issuer) : "";
-  const evidence = issuer ? `${rules.length} 条规则依据 · ${issuer}` : `${rules.length} 条规则依据`;
-  return [safety, evidence].filter(Boolean).join(" · ");
+  return issuer ? `${rules.length} 条规则依据 · ${issuer}` : `${rules.length} 条规则依据`;
 }
 
 async function search() {
