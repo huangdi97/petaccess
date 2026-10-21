@@ -16,6 +16,17 @@ const MALL_ID = "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e";
 const CAFE_ID = "8412b521-5e1c-505d-9dec-568acb860c76";
 const BRANCH_ID = "3b5a341a-e550-5f0c-b35a-319ed43bd840";
 const OUT = path.resolve("artifacts/ui-direct-v8/HUMAN_REVIEW");
+const GOVERNED_SCENE_FIXTURE_URL =
+  "data:image/svg+xml;charset=utf-8," +
+  encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="640" viewBox="0 0 1200 640">
+    <rect width="1200" height="640" fill="#eef3ee"/>
+    <rect x="54" y="54" width="1092" height="532" rx="28" fill="#fbfaf6" stroke="#315c46" stroke-width="8"/>
+    <rect x="96" y="116" width="330" height="330" rx="24" fill="#bfd6c7"/>
+    <rect x="470" y="116" width="626" height="160" rx="24" fill="#e7decc"/>
+    <rect x="470" y="308" width="626" height="138" rx="24" fill="#dce4d6"/>
+    <text x="96" y="510" fill="#315c46" font-family="system-ui,sans-serif" font-size="44" font-weight="700">CI 场景媒体测试卡</text>
+    <text x="96" y="558" fill="#5e685f" font-family="system-ui,sans-serif" font-size="26">NOT A REAL VENUE PHOTO · 仅验证受治理媒体布局</text>
+  </svg>`);
 
 function currentHead(): string {
   // GITHUB_SHA in pull_request runs may refer to a synthetic merge commit.
@@ -41,6 +52,7 @@ interface Shot {
   prepareOperatorPolicy?: boolean;
   reviewReality?: boolean;
   submitReality?: boolean;
+  governedSceneFixture?: boolean;
   page?: string;
   state?: string;
   h1?: string;
@@ -103,6 +115,18 @@ const SHOTS: Shot[] = [
     requiredTestids: ["section-answer", "overview-reality", "overview-evidence"],
     requiredText: ["规则", "现场概览", "工作人员处理", "动物设施", "证据与来源"],
     note: "Place first screen = Coexistence Passport, not a generic detail page.",
+  },
+  {
+    name: "03b_place_governed_media_fixture",
+    scope: "both",
+    route: `/#/place/${MALL_ID}`,
+    governedSceneFixture: true,
+    page: "place",
+    state: "ready",
+    h1: "云栖中心·测试商场",
+    requiredTestids: ["place-scene-media", "section-answer", "overview-reality"],
+    requiredText: ["规则", "现场概览", "证据与来源"],
+    note: "Governed-media layout fixture only. The visible CI card is deliberately non-photographic and explicitly NOT a real venue photo; it validates destination-header composition without fabricating place evidence.",
   },
   {
     name: "03a_place_unknown",
@@ -718,6 +742,24 @@ test("direct-v8 canonical human-review packet", async ({ page, request }, testIn
       ? shot.route.replace("__OPERATOR_POLICY_PLACE__", operatorPolicyPlaceId)
       : shot.route;
 
+    if (shot.governedSceneFixture) {
+      await page.route("**/api/v1/evidence-bundles/*/public-media", async (route) => {
+        const bundleId =
+          route.request().url().split("/evidence-bundles/")[1]?.split("/")[0] ?? "visual-fixture";
+        await route.fulfill({
+          status: 200,
+          json: {
+            evidence_bundle_id: bundleId,
+            media_id: "human-review-ci-scene",
+            purpose: "scene_photo",
+            url: GOVERNED_SCENE_FIXTURE_URL,
+            mime_type: "image/svg+xml",
+            expires_in: 300,
+          },
+        });
+      });
+    }
+
     // Every shot must start from a fresh Document, not just a new hash. Several
     // human-review states intentionally reuse the same Contribution URL; a
     // hash-only page.goto would preserve the previous component's step state
@@ -771,6 +813,9 @@ test("direct-v8 canonical human-review packet", async ({ page, request }, testIn
     const actual = await assertShot(page, shot);
     const file = path.join(out, `${shot.name}.png`);
     await page.screenshot({ path: file });
+    if (shot.governedSceneFixture) {
+      await page.unroute("**/api/v1/evidence-bundles/*/public-media");
+    }
     rows.push({
       name: shot.name,
       viewport: `${viewport.width}x${viewport.height}`,
