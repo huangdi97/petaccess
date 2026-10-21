@@ -164,9 +164,7 @@ function toggleFilter(key: string) {
       <template v-else-if="props.lens === 'facility'">
         仅显示动物设施事实；设施存在不代表允许进入。
       </template>
-      <template v-else>
-        仅提示规则与现场需要复核；不会自动改写正式规则。
-      </template>
+      <template v-else> 仅提示规则与现场需要复核；不会自动改写正式规则。 </template>
     </p>
 
     <SkeletonList v-if="props.loading" :rows="3" />
