@@ -128,12 +128,7 @@ const SHOTS: Shot[] = [
     page: "place",
     state: "ready",
     h1: "云栖中心·测试商场",
-    requiredTestids: [
-      "section-answer",
-      "overview-reality",
-      "overview-evidence",
-      "place-map-link",
-    ],
+    requiredTestids: ["section-answer", "overview-reality", "overview-evidence", "place-map-link"],
     requiredText: ["规则", "证据与来源"],
     note: "Place first screen = destination identity + independent Rule/Reality facts, not a generic detail page or dashboard.",
   },
