@@ -1,3 +1,18 @@
+## Current phase（2026-10-21 — v11 visual contract repair + Search hierarchy closure）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 继续 **OPEN + DRAFT**；未 merge、未 tag、未 Release。
+- 重新核验时远端已比 2026-10-19 的 `3c614320...` 前进 **158 commits**，v11 已继续大规模落地：`MapSelectedSheet.vue`、Place/Search/Map、Human Review、视觉合同与 `consumer-discovery-v11.css` 均有实质更新。
+- HEAD `ca019183...` 的机器结果：PR CI / UI Direct Validation / Public Preview Stack = **SUCCESS**；UI Direct Visual = **FAIL**。失败发生在 `Compare UI contracts`，Human Review 截图捕获本身 SUCCESS。
+- 拉取并检查 run `39604053745` 的 `ui-direct-v8-visual`（约 23 MB）后确认：Home / Map / Map mobile / Place desktop / Place mobile / Reality / Evidence / Search desktop 合同均 **0 FAIL**；Search mobile 仅 1 WARN；唯一 FAIL 家族是 Contribution（18）。
+- Contribution FAIL 根因不是当前 UI 画面：oracle 的 `contribute-entry` probe 实际被 session-restore race 导回 Home（probe state = `page=home, route=#/`），后续 step-1 / step-2 / review 又可正常进入 Contribution。已在 `tests/ui-oracle/oracle.spec.ts` 中让 authenticated oracle 在写入 token 后完成一次 document reload + settle，再导航到受保护 route，避免把 Home DOM 误标成 Contribution。
+- 同一视觉包的 Search mobile 唯一 WARN 为 `SEARCH_MOBILE_PRIMARY_HEADLINE_TO_BODY`：主语义行 16px / body 15px，ratio = 1.07 < 1.1。已把移动 Search 的 Rule/Reality lead 提到 tokenized 17px + medium weight，保持地点名/metadata 结构不变。
+- 最新真实截图人工复核（不替代用户签字）：Map selected-place sheet 已形成轻量 spatial bridge；governed-media Place 已呈现 destination surface；Reality 是 timeline-first；Contribution chooser 已是 divider-led one-question flow；Home/Search 均已明显脱离 SaaS/card-wall 原型。
+- 本轮提交：
+  - `b157d16f` — stabilize authenticated UI oracle session before routing；
+  - `03dd56bc` — strengthen mobile Search semantic hierarchy。
+- 当前源码 HEAD：`03dd56bc40d6504dde9d07bb1833fdd00b47a9b7`。本段写入时该 HEAD 的新 Actions 尚未返回可核验结果，因此不得写为 PASS。
+- `UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW` 保持；下一门槛是同一最终 HEAD 的 UI Direct Visual 0 FAIL + 新 Human Review，再决定是否继续做更小的视觉精修。
+
 ## Current phase（2026-10-21 — v11 hierarchy closure: media serves Rule, CI pending）
 
 - 分支 `feat/ui-direct-craft-v8`；PR #1 继续 **OPEN + DRAFT**；未 merge、未 tag、未 Release；`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
