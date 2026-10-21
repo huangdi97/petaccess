@@ -600,7 +600,7 @@ html,
 
 #app .place-workspace .place-dossier__head--with-scene {
   min-height: 332px;
-  border-radius: 20px;
+  border-radius: 14px;
 }
 
 #app .place-workspace .place-dossier__head--with-scene .place-dossier__name {
@@ -617,14 +617,23 @@ html,
   display: none;
 }
 
+#app .place-workspace .place-dossier__head--with-scene .place-dossier__actions {
+  gap: 18px;
+}
+
+#app .place-workspace .place-dossier__head--with-scene .place-dossier__actions .btn-inline,
 #app
   .place-workspace
   .place-dossier__head--with-scene
   .place-dossier__actions
   .btn-inline:first-child {
-  border-color: var(--pa-discovery-v10-hero-glass-border);
-  background: var(--pa-discovery-v10-hero-glass);
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   color: var(--pa-discovery-v10-white);
+  box-shadow: none;
 }
 
 #app .place-workspace .place-dossier__head--illustrated {
@@ -1339,8 +1348,9 @@ html,
   }
 
   #app .place-workspace .place-dossier__head--with-scene {
-    min-height: 280px;
-    border-radius: 16px;
+    min-height: 276px;
+    margin-inline: calc(var(--pa-space-4) * -1);
+    border-radius: 0;
   }
 
   #app .place-workspace .place-dossier__head--with-scene .place-dossier__name {
@@ -1353,7 +1363,12 @@ html,
   }
 
   #app .place-workspace .place-dossier__head--with-scene .place-dossier__actions {
-    padding: 6px 18px 20px;
+    gap: 16px;
+    padding: 8px 18px 20px;
+  }
+
+  #app .place-workspace .place-dossier__head--with-scene .place-dossier__actions .btn-inline {
+    font-size: 12px;
   }
 
   #app .place-workspace .place-dossier__head--illustrated {
