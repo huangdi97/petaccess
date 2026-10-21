@@ -72,6 +72,7 @@ interface Shot {
   state?: string;
   h1?: string;
   requiredTestids?: string[];
+  firstViewportTestids?: string[];
   requiredText?: string[];
   note: string;
 }
@@ -140,8 +141,9 @@ const SHOTS: Shot[] = [
     state: "ready",
     h1: "云栖中心·测试商场",
     requiredTestids: ["place-scene-media", "section-answer", "overview-reality"],
+    firstViewportTestids: ["section-answer"],
     requiredText: ["规则", "现场概览", "证据与来源"],
-    note: "Governed-media layout fixture only. The synthetic architectural scene is test-only and must never be interpreted as venue evidence; it exists solely to review destination-header composition.",
+    note: "Governed-media layout fixture only. The synthetic architectural scene is test-only and must never be interpreted as venue evidence. The Rule section must begin in the initial viewport so media provides place context without delaying the decision.",
   },
   {
     name: "03a_place_unknown",
@@ -693,6 +695,14 @@ async function assertShot(page: Page, shot: Shot): Promise<Record<string, unknow
     await expect(page.getByTestId(id).first(), `${shot.name}: ${id}`).toBeVisible({
       timeout: 15000,
     });
+  }
+  for (const id of shot.firstViewportTestids ?? []) {
+    const locator = page.getByTestId(id).first();
+    await expect(locator, `${shot.name}: ${id} first viewport`).toBeVisible({ timeout: 15000 });
+    const box = await locator.boundingBox();
+    const viewportHeight = page.viewportSize()?.height ?? 0;
+    expect(box).not.toBeNull();
+    expect(box?.y ?? Number.POSITIVE_INFINITY).toBeLessThan(viewportHeight);
   }
   for (const value of shot.requiredText ?? []) {
     await expect(
