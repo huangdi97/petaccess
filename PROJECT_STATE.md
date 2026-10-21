@@ -1,3 +1,17 @@
+## Current phase（2026-10-21 — v11 Place dual-fact signature + Evidence purpose closure）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 继续 **OPEN + DRAFT**；未 merge、未 tag、未 Release；`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
+- 本轮在最新 Human Review 基础上继续收口，而不是重做 IA。目视确认当前最大残留已从 card-wall 转为“事实维度辨识度”：mobile Place 的 Rule 与 Reality 虽语义独立，但此前主要依赖顺序区分；Evidence 首屏则更像一条场所记录而不是明确的 provenance 页面。
+- 本轮直接完成：
+  - `e2683b13` / `3b9a6517` / `999b29ec` / `902df2b5`：Place Overview 冻结可见的 **规则 / 现场** 双事实语法。Rule rail 按 ALLOWED / CONDITIONAL / RESTRICTED / CONFLICT / UNKNOWN 辅助表达，Reality 使用独立 observed-fact rail；手机端两个维度标签保持可见，颜色永不成为唯一含义。
+  - `018b5917` / `a7601be4` / `8a8d809c`：Map Selected Sheet / desktop PlacePreview 补齐 CONFLICT rail，避免来源冲突错误退化为 Unknown 的视觉语气。
+  - `3bde7152` / `f31afa91`：Place mobile/desktop UI contracts 新增 `PLACE_OVERVIEW_FACT_DIMENSIONS_VISIBLE`，强制 Overview 同时可见“规则”“现场”两个维度，防止未来 Agent 再隐藏其中之一。
+  - `0176730f` / `dbf87a29`：Evidence 将“证据与来源”提升为真实可见 page title，地点名退为上下文；Evidence contract 增加首屏可见标题 gate。
+  - `ce56d3fc`：v11 母版冻结“Place 双事实签名”和“Evidence = provenance surface，不是另一张 Place detail”。
+- 这些改动不改变 Rule / Reality / Evidence domain semantics、API、审核治理、Android/Tauri runtime 或发布状态。
+- 当前 branch tip=`ce56d3fca9710bad23abdc77bf6a9b5495d5467b`。PR CI / UI Direct Visual / UI Direct Validation / Public Preview Stack 已触发但本段写入时均为 **QUEUED**；不得复用旧 HEAD 的全绿结论。
+- 下一门禁：等待同一 HEAD 的格式、E2E 与 UI contract 结果；若通过，再拉取 Human Review 核验 Place mobile 双 rail、Place desktop reading rhythm、Evidence 首屏 title 与新版 MockMap。机器 PASS 仍不等于用户 Human Visual Acceptance。
+
 ## Current phase（2026-10-21 — v11 spatial canvas + selected-place fact-language polish）
 
 - 分支 `feat/ui-direct-craft-v8`；PR #1 保持 **OPEN + DRAFT**；未 merge、未 tag、未 Release；`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
