@@ -49,8 +49,21 @@
   display: flex;
   flex-direction: column;
   gap: var(--pa-space-1);
-  padding-bottom: var(--pa-space-3);
+  padding: var(--pa-space-1) 0 var(--pa-space-3) var(--pa-space-3);
+  border-left: 3px solid var(--pa-color-border-strong);
   border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.place-preview__lens--reality {
+  border-left-color: var(--pa-color-reality-observed);
+}
+
+.place-preview__lens--facility {
+  border-left-color: var(--pa-color-facility-confirmed);
+}
+
+.place-preview__lens--divergence {
+  border-left-color: var(--pa-color-reality-disputed);
 }
 
 .place-preview__lens strong {
@@ -64,6 +77,24 @@
   flex-direction: column;
   align-items: flex-start;
   gap: var(--pa-space-1);
+  padding-left: var(--pa-space-3);
+  border-left: 3px solid var(--pa-color-border-strong);
+}
+
+.place-preview__decision--allowed {
+  border-left-color: var(--pa-color-status-allowed);
+}
+
+.place-preview__decision--conditional {
+  border-left-color: var(--pa-color-status-conditional);
+}
+
+.place-preview__decision--restricted {
+  border-left-color: var(--pa-color-status-restricted);
+}
+
+.place-preview__decision--unknown {
+  border-left-color: var(--pa-color-status-unknown);
 }
 .place-preview__verdict-text {
   margin: 0;
@@ -112,7 +143,9 @@
 
 .place-preview__decision--secondary {
   padding-top: var(--pa-space-1);
+  padding-left: 0;
   border-top: none;
+  border-left: 0;
 }
 
 .place-preview__decision--secondary .place-preview__verdict-text {
