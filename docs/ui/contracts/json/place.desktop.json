@@ -97,7 +97,23 @@
           "max": 112
         }
       },
-      "severity": "WARN"
+      "severity": "WARN",
+      "pages": ["place-rules", "place-space", "place-reality"],
+      "note": "Secondary views keep the left dossier column beside the contextual inspector."
+    },
+    {
+      "id": "PLACE_OVERVIEW_DOSSIER_X",
+      "ui": "place-dossier",
+      "fallbacks": [".place-dossier"],
+      "props": {
+        "left": {
+          "min": 260,
+          "max": 290
+        }
+      },
+      "severity": "FAIL",
+      "pages": ["place-ready", "place-unknown"],
+      "note": "v11 Overview is a centered 960px destination reading surface."
     },
     {
       "id": "PLACE_MAIN_DOSSIER_WIDTH",
@@ -290,12 +306,12 @@
       "fallbacks": [".place-dossier"],
       "props": {
         "height": {
-          "max": 1750
+          "max": 1800
         }
       },
       "severity": "FAIL",
       "pages": ["place-ready"],
-      "note": "v11 destination hero (reviewed photo or labelled category scene) adds first-screen identity height; progressive disclosure below the fold is unchanged."
+      "note": "v11 Overview reads Rule → Reality sequentially; the complete dossier must still stay within two 900px desktop viewports."
     },
     {
       "id": "PLACE_ZONE_ROW_HEIGHT",
