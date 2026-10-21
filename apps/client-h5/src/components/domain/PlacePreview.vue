@@ -53,6 +53,7 @@ const realityLine = computed(() =>
       ? "现场摘要暂时无法取得"
       : coexistenceRealityLine(props.snapshot, props.snapshot?.reality_answer),
 );
+const showRealitySupplement = computed(() => props.mapLensName !== "现场");
 const metaLine = computed(() => {
   const parts: string[] = [placeTypeLabel(props.place?.place_type ?? "")];
   if (props.place?.distance_m != null) parts.push(`${Math.round(props.place.distance_m)}m`);
@@ -118,8 +119,9 @@ const metaLine = computed(() => {
         </p>
       </div>
 
-      <!-- §32：最近现场 one line -->
-      <div class="place-preview__row">
+      <!-- Keep Reality as a cross-dimension supplement. If Reality is already
+           the active map lens, repeating the same line adds no information. -->
+      <div v-if="showRealitySupplement" class="place-preview__row">
         <span class="place-preview__label">现场概览</span>
         <span class="place-preview__value" data-testid="preview-reality">{{ realityLine }}</span>
       </div>
