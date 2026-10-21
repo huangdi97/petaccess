@@ -211,9 +211,9 @@ const SHOTS: Shot[] = [
     route: `/#/map?lens=reality&place=${MALL_ID}`,
     page: "map",
     h1: "规则与现场地图",
-    requiredTestids: ["map-mobile-sheet", "sheet-open-detail"],
-    requiredText: ["最近现场", "查看地点"],
-    note: "Map selection keeps the active lens, Rule and recent Reality visually distinct before opening the Place page.",
+    requiredTestids: ["map-mobile-sheet", "sheet-map-lens", "sheet-verdict", "sheet-open-detail"],
+    requiredText: ["查看地点"],
+    note: "Selected Reality is shown once; Rule remains visible before opening the Place page.",
   },
   {
     name: "11_reality",
