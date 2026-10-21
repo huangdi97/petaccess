@@ -32,15 +32,15 @@ html,
 }
 
 #app .home-workspace .home-discovery-hero {
-  min-height: 248px;
+  min-height: 232px;
   border-radius: 18px;
-  box-shadow: 0 14px 34px var(--pa-discovery-v10-shadow-row);
+  box-shadow: 0 12px 30px var(--pa-discovery-v10-shadow-row);
 }
 
 #app .home-workspace .home-discovery-hero__content {
-  min-height: 248px;
+  min-height: 232px;
   max-width: 650px;
-  padding: 28px 40px 26px;
+  padding: 24px 40px 22px;
 }
 
 #app .home-workspace .home-discovery-hero__eyebrow {
@@ -601,13 +601,16 @@ html,
 }
 
 #app .place-workspace .place-dossier__head--with-scene {
-  min-height: 332px;
+  min-height: 296px;
   border-radius: 14px;
 }
 
+/* Governed media establishes place identity, but it must not become a
+ * destination-poster that delays the actual Rule. Keep enough scene context
+ * to orient the user, then hand the first viewport back to decision content. */
 #app .place-workspace .place-dossier__head--with-scene .place-dossier__name {
   max-width: 18ch;
-  font-size: clamp(34px, 3vw, 42px);
+  font-size: clamp(32px, 2.7vw, 38px);
   line-height: 1.08;
 }
 
@@ -1322,14 +1325,14 @@ html,
   }
 
   #app .home-workspace .home-discovery-hero {
-    min-height: 214px;
+    min-height: 204px;
     border-radius: 16px;
     background-position: 72% center;
   }
 
   #app .home-workspace .home-discovery-hero__content {
-    min-height: 214px;
-    padding: 16px;
+    min-height: 204px;
+    padding: 14px 16px;
   }
 
   #app .home-workspace .home-topline {
@@ -1359,23 +1362,23 @@ html,
   }
 
   #app .place-workspace .place-dossier__head--with-scene {
-    min-height: 276px;
+    min-height: 238px;
     margin-inline: calc(var(--pa-space-4) * -1);
     border-radius: 0;
   }
 
   #app .place-workspace .place-dossier__head--with-scene .place-dossier__name {
     max-width: 16ch;
-    font-size: 30px;
+    font-size: 28px;
   }
 
   #app .place-workspace .place-dossier__head--with-scene .place-dossier__identity-row {
-    padding: 22px 18px 6px;
+    padding: 18px 18px 4px;
   }
 
   #app .place-workspace .place-dossier__head--with-scene .place-dossier__actions {
     gap: 16px;
-    padding: 8px 18px 20px;
+    padding: 6px 18px 16px;
   }
 
   #app .place-workspace .place-dossier__head--with-scene .place-dossier__actions .btn-inline {
