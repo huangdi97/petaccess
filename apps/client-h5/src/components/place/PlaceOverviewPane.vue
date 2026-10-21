@@ -54,6 +54,19 @@ const verdict = computed(() =>
   props.snapshotError ? "暂时无法取得" : answerVerdictLabel(props.answer),
 );
 const statusKey = computed(() => answerStatusKey(props.answer));
+const ruleToneClass = computed(() => {
+  if (props.snapshotError) return "place-fact--rule-unknown";
+  switch (statusKey.value) {
+    case "ALLOWED":
+      return "place-fact--rule-allowed";
+    case "CONDITIONAL":
+      return "place-fact--rule-conditional";
+    case "RESTRICTED":
+      return "place-fact--rule-restricted";
+    default:
+      return "place-fact--rule-unknown";
+  }
+});
 const querySubject = computed(() => `查询对象：${querySubjectLabel()}`);
 const realityLine = computed(() =>
   props.snapshotError
@@ -144,8 +157,13 @@ const divergenceLine = computed(() => {
   <!-- Canonical first screen: Rule + Reality are read together but never merged. -->
   <div class="place-overview-lead" data-ui="place-coexistence-lead">
     <!-- Current Decision（§17：完整 status surface 仅此一处；§9 自然语言补充） -->
-    <section class="place-section" data-testid="section-answer" data-ui="place-decision">
-      <h2 class="place-section__title" :class="{ 'visually-hidden': !desktop }">规则</h2>
+    <section
+      class="place-section place-fact place-fact--rule"
+      :class="ruleToneClass"
+      data-testid="section-answer"
+      data-ui="place-decision"
+    >
+      <h2 class="place-section__title place-fact__label">规则</h2>
       <div class="sub-answer sub-answer--mine" data-testid="answer">
         <p v-if="desktop" class="muted sub-answer__context" data-testid="answer-context">
           {{ querySubject }} · 进入 · 公共区域
@@ -186,8 +204,12 @@ const divergenceLine = computed(() => {
     </section>
 
     <!-- Recent Reality：mobile 保留一行 teaser + CTA（§11）。 -->
-    <section class="place-section" data-ui="place-reality-overview" data-testid="overview-reality">
-      <h2 class="place-section__title" :class="{ 'visually-hidden': !desktop }">现场概览</h2>
+    <section
+      class="place-section place-fact place-fact--reality"
+      data-ui="place-reality-overview"
+      data-testid="overview-reality"
+    >
+      <h2 class="place-section__title place-fact__label">现场</h2>
       <p class="place-reality-headline" data-testid="overview-reality-line">{{ realityLine }}</p>
       <p v-if="realityMetaLine" class="muted overview-note">{{ realityMetaLine }}</p>
       <p v-else-if="observationCount > 0 && desktop" class="muted overview-note">
