@@ -145,6 +145,8 @@ place identity
 
 Ordinary sections are editorial/divider-led. Large rounded containers are reserved for true floating surfaces or governed scene media.
 
+On desktop Overview, the dossier itself owns the full Rule decision and the destination narrative. Do not reserve a second column merely to repeat the same verdict. A sticky decision rail is allowed only on secondary Place views (Rules / Reality / Space / Evidence), where preserving the current decision while reading another dimension adds real context.
+
 When governed scene media exists, it may become a destination surface rather than another inset card. On mobile it may bleed to the page edge so the place reads as a real location. Actions over the hero stay lightweight; do not rebuild a row of large pill buttons.
 
 When governed media does not exist, stay text-led. Never fill the visual gap with a generic venue illustration.
