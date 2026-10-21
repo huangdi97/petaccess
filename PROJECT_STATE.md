@@ -1,3 +1,22 @@
+## Current phase（2026-10-21 — v11 hierarchy closure: media serves Rule, CI pending）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 继续 **OPEN + DRAFT**；未 merge、未 tag、未 Release；`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
+- 本轮从远端真实 HEAD `21fb486468c0b5f64517233856273bf8e9e1e3c4` 继续；相对 2026-10-19 的 `3c614320...` 已前进 150 commits。该 HEAD 的 UI Direct Validation / UI Direct Visual / Public Preview Stack = SUCCESS；PR CI 仅 Playwright 1/211 FAIL，其余 engineering/frontend/backend 均 SUCCESS。
+- PR CI 唯一失败根因不是视觉或 domain：snapshot transport failure 时 desktop Overview Evidence 的“规则依据”已显示“暂时无法取得”，但“现场来源”仍显示“暂无”，与 fail-closed partial truth 不一致。本轮 `6baf681a` 修复为 `snapshotError → 现场来源暂时无法取得`。
+- 同 HEAD 最新 Human Review（约 22.9 MB）已实际拉取并目视：
+  - mobile selected Map sheet 已形成 dominant map + compact place bridge；有/无 governed media 两种状态都成立；
+  - Home 已是 compact city-space launcher，但 governed media / city illustration 仍可继续压缩以让 nearby/Rule 更早进入首屏；
+  - no-photo Place 已是 text-led editorial identity；
+  - governed-media Place 仍有“媒体先于规则过多”的余量；Reality timeline 已稳定。
+- 本轮继续直接完成：
+  - `dc900bac`：Home desktop/mobile hero 再压缩；governed-media Place hero desktop/mobile 再压缩，Rule 更早进入首屏；
+  - `562cbe4d` / `85036d28`：清理 place mobile/desktop contract 的旧 v9/status-chip 描述，和 v11 单一 Rule owner 对齐；
+  - `c611bdfa`：Human Review 增加 `firstViewportTestids`；governed-media Place 强制 `section-answer` 起点位于初始 viewport 内；
+  - `3f67d88c`：v11 设计母版冻结“governed media = orientation, not decision；不能把 Rule 推到 fold 以下”。
+- 视觉方向保持：Map-first；Place destination-first；Rule=decision、Reality=time、Evidence=provenance；无审核照片绝不补 generic venue imagery；selected-place sheet 只做空间浏览到 Place 的 bridge，不变成 mini dossier。
+- 当前最终 HEAD（本段写入前）=`3f67d88c4378f5df9c3d7bd07c163420482179bb`。该 HEAD 的四条主 Actions 已触发并处于 pending/queued；禁止复用旧 HEAD 的 SUCCESS 作为当前结果。
+- 下一门禁：同一最终 HEAD 的 PR CI + UI Direct Visual；成功后拉取新的 Human Review，重点核验 governed-media Place 的 Rule 是否真实进入首屏，以及 Home 首屏空间占比是否继续优于上一轮。
+
 ## Current phase（2026-10-21 — v11 spatial bridge polish continuation）
 
 - 分支 `feat/ui-direct-craft-v8`；PR #1 继续 **OPEN + DRAFT**；未 merge、未 tag、未 Release；`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
