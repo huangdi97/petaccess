@@ -76,14 +76,15 @@ const useRealMap = computed(
 );
 
 const simplifiedBasemapCopy = computed(() => {
-  const compact = "简化空间底图 · 点位来自已收录坐标，尚未核验。";
+  const desktopCopy = "简化空间底图 · 点位来自已收录坐标，尚未核验。";
+  const mobileCopy = "简化空间底图 · 已收录坐标未核验";
   if (realMapError.value) {
     return isDesktop.value
       ? "真实底图暂不可用 · 当前为简化空间底图 · 点位来自已收录坐标，尚未核验。"
-      : `真实底图暂不可用 · ${compact}`;
+      : `真实底图暂不可用 · ${mobileCopy}`;
   }
   if (renderConfig.value && !renderConfig.value.real_enabled) {
-    return isDesktop.value ? `${compact} 可拖动查询周边。` : compact;
+    return isDesktop.value ? `${desktopCopy} 可拖动查询周边。` : mobileCopy;
   }
   if (
     renderConfig.value &&
@@ -91,7 +92,7 @@ const simplifiedBasemapCopy = computed(() => {
   ) {
     return isDesktop.value
       ? "地图底图配置未就绪 · 当前为简化空间底图 · 点位来自已收录坐标，尚未核验。"
-      : `地图底图未就绪 · ${compact}`;
+      : `地图底图未就绪 · ${mobileCopy}`;
   }
   return "";
 });
@@ -201,9 +202,14 @@ function chooseMapResult(id: string) {
 
     <!-- Canonical v0.10-R1 Map: Rule / Reality / Facility / Divergence are
          first-class lenses over the same CoexistenceSnapshot facts. -->
-    <nav class="map-lensbar" data-ui="map-lensbar" aria-label="地图信息镜头">
+    <nav
+      class="map-lensbar"
+      data-testid="map-lensbar"
+      data-ui="map-lensbar"
+      aria-label="地图信息镜头"
+    >
       <span class="map-lensbar__label">地图显示</span>
-      <div class="map-lensbar__options">
+      <div v-if="isDesktop" class="map-lensbar__options">
         <button
           v-for="item in MAP_LENSES"
           :key="item.key"
@@ -217,6 +223,14 @@ function chooseMapResult(id: string) {
           {{ item.label }}
         </button>
       </div>
+      <label v-else class="map-lensbar__mobile-select">
+        <span class="visually-hidden">地图显示内容</span>
+        <select v-model="lens" data-testid="map-lens-select" aria-label="地图显示内容">
+          <option v-for="item in MAP_LENSES" :key="item.key" :value="item.key">
+            {{ item.label }}
+          </option>
+        </select>
+      </label>
       <span class="map-lensbar__hint visually-hidden" data-testid="map-lens-semantics">
         “差异”用于查看规则与现场的不一致，不代表当前一定存在冲突。
       </span>
