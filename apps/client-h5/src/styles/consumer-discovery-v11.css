@@ -469,7 +469,7 @@ html,
   #app .map-workspace > .query-context {
     position: absolute;
     z-index: 24;
-    top: 72px;
+    top: 82px;
     right: 194px;
     left: 12px;
     width: auto;
@@ -504,7 +504,7 @@ html,
   #app .map-workspace .map-lensbar {
     position: absolute;
     z-index: 23;
-    top: 72px;
+    top: 82px;
     right: 104px;
     left: auto;
     min-height: 38px;
@@ -554,7 +554,7 @@ html,
   #app .map-workspace .map-viewbar {
     position: absolute;
     z-index: 23;
-    top: 72px;
+    top: 82px;
     right: 12px;
     padding: 0;
     border: 0;
