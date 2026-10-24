@@ -520,13 +520,27 @@ html,
   }
 
   #app .map-workspace .map-lensbar__mobile-select {
+    position: relative;
     display: block;
+  }
+
+  #app .map-workspace .map-lensbar__mobile-select::after {
+    position: absolute;
+    top: 50%;
+    right: 9px;
+    content: "⌄";
+    color: var(--pa-discovery-muted);
+    font-size: 12px;
+    line-height: 1;
+    transform: translateY(-58%);
+    pointer-events: none;
   }
 
   #app .map-workspace .map-lensbar__mobile-select select {
     width: 78px;
     min-height: 38px;
     padding: 0 24px 0 10px;
+    appearance: none;
     border: 1px solid var(--pa-discovery-line);
     border-radius: 12px;
     background: var(--pa-discovery-v10-paper);
@@ -554,7 +568,7 @@ html,
   }
 
   #app .map-workspace .map-viewbar__segment button {
-    min-height: 42px;
+    min-height: 38px;
     padding-inline: 10px;
     font-size: 12px;
   }
