@@ -287,10 +287,6 @@ const MASS = [
       />
     </svg>
 
-    <span class="map-provider muted" data-testid="map-provider-fallback">
-      示意底图（非真实街道） · 拖动查看周边
-    </span>
-
     <div class="map-spatial-aids" aria-hidden="true">
       <span class="map-compass">N</span>
       <span class="map-scale">{{ scaleLabel }}</span>
@@ -496,18 +492,6 @@ const MASS = [
 .map-zoom button:disabled {
   cursor: default;
   opacity: 0.45;
-}
-
-.map-provider {
-  position: absolute;
-  left: var(--pa-space-3);
-  bottom: var(--pa-space-2);
-  z-index: 2;
-  padding: 2px var(--pa-space-1);
-  border-radius: var(--pa-radius-sm);
-  background: color-mix(in srgb, var(--pa-color-surface) 88%, transparent);
-  font-size: var(--pa-font-size-xs);
-  pointer-events: none;
 }
 
 .map-spatial-aids {
