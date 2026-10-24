@@ -369,7 +369,7 @@ test("A1.2 — mobile map searches without leaving the spatial canvas", async ({
   expect(actionBox!.x + actionBox!.width).toBeLessThanOrEqual(sheetBox!.x + sheetBox!.width);
   expect(actionBox!.y + actionBox!.height).toBeLessThanOrEqual(sheetBox!.y + sheetBox!.height);
   const fallbackDisclosure = page.getByTestId("map-real-provider-fallback");
-  await expect(fallbackDisclosure).toContainText("点位来自已收录坐标");
+  await expect(fallbackDisclosure).toContainText("已收录坐标未核验");
   await expect(fallbackDisclosure).not.toContainText("当前环境未配置真实地图底图");
 });
 
