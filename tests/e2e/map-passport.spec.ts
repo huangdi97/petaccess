@@ -289,6 +289,40 @@ test("A1.0.1 — fallback marker 不靠颜色单独表达语义", async ({ page 
   await expect(pin.locator(".lbl")).not.toHaveText("");
 });
 
+test("A1.0.4 — mobile persistent map chrome stays two-row and non-overlapping", async ({
+  page,
+}) => {
+  for (const width of [320, 430]) {
+    await page.setViewportSize({ width, height: 932 });
+    await page.goto(`${BASE}/#/map`);
+
+    const search = page.locator(".map-mobile-tools__search");
+    const context = page.getByTestId("query-context");
+    const lens = page.getByTestId("map-lens-select");
+    const viewbar = page.locator(".map-viewbar");
+
+    await expect(search).toBeVisible({ timeout: 15000 });
+    await expect(context).toBeVisible();
+    await expect(lens).toBeVisible();
+    await expect(viewbar).toBeVisible();
+
+    const [searchBox, contextBox, lensBox, viewBox] = await Promise.all([
+      search.boundingBox(),
+      context.boundingBox(),
+      lens.boundingBox(),
+      viewbar.boundingBox(),
+    ]);
+    expect(searchBox).not.toBeNull();
+    expect(contextBox).not.toBeNull();
+    expect(lensBox).not.toBeNull();
+    expect(viewBox).not.toBeNull();
+
+    expect(searchBox!.y + searchBox!.height).toBeLessThanOrEqual(contextBox!.y - 4);
+    expect(contextBox!.x + contextBox!.width).toBeLessThanOrEqual(lensBox!.x - 4);
+    expect(lensBox!.x + lensBox!.width).toBeLessThanOrEqual(viewBox!.x - 4);
+  }
+});
+
 test("A1.0.3 — mobile compact lens selector stays route-synchronised", async ({ page }) => {
   await page.setViewportSize({ width: 430, height: 932 });
   await page.goto(`${BASE}/#/map`);
