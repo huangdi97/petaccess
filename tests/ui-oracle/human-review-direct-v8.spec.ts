@@ -278,8 +278,9 @@ const SHOTS: Shot[] = [
     state: "ready",
     h1: "证据与来源",
     requiredTestids: ["evidence-head", "evidence-items", "evidence-sources"],
+    firstViewportTestids: ["evidence-provenance"],
     requiredText: ["证据来源链", "观察时间", "提交时间", "核验时间", "规则依据", "现场来源"],
-    note: "Evidence = provenance record with Observed / Submitted / Reviewed kept distinct.",
+    note: "Evidence = provenance record; the provenance chain enters the first viewport before dense governance detail, with Observed / Submitted / Reviewed kept distinct.",
   },
   {
     name: "12a_evidence_dispute",

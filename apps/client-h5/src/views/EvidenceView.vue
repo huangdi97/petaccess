@@ -773,6 +773,13 @@ const uiFixture = computed<string>(() =>
     border-left: 0;
   }
 
+  /* Mobile Evidence is provenance-first: the source chain explains how the
+   * published facts are grounded before the denser governance summary. Desktop
+   * keeps the two-column reading surface. */
+  .evidence-leading--without-media :deep([data-ui="evidence-provenance"]) {
+    order: -1;
+  }
+
   .evidence-workspace__body {
     padding: var(--pa-space-4);
   }

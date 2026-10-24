@@ -196,6 +196,8 @@ The timeline is the page. The header provides title, scope and filters but must 
 
 Evidence is a provenance surface, not another place-detail page. The visible page purpose is **证据与来源**; place identity is subordinate context. Provenance stages, observed/submitted/reviewed time and source identity carry the hierarchy. Evidence styling must not imitate Rule decision styling or Reality timeline styling.
 
+On mobile, when no governed public media leads the record, the **provenance chain precedes the dense governance summary** and must enter the initial viewport. This makes “how do we know this?” the first Evidence-specific answer instead of presenting another status table before the source path. The summary remains available immediately below; no evidence fact or governance state is removed.
+
 ### Secondary reading surfaces
 
 Mine, Settings, Privacy and About must feel like the same Urban Spatial Guide after the user leaves the map.
