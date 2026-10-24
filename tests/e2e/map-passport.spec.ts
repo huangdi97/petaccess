@@ -545,7 +545,7 @@ test("A1.5 — dragging the fallback map requests places at the new center", asy
   await lngChanged;
 
   await expect(page.getByTestId("map")).toBeVisible();
-  await expect(page.getByTestId("map-provider-fallback")).toContainText("示意底图");
+  await expect(page.getByTestId("map-real-provider-fallback")).toContainText("简化空间底图");
 });
 
 test("A1.5.1 — zoom-out expands nearby radius and stops before coverage becomes false", async ({
