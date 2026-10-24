@@ -1,3 +1,25 @@
+## Current phase（2026-10-24 — v11 mobile Map chrome compression + spatial-context polish）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 继续 **OPEN + DRAFT**；未 merge、未 tag、未 Release；`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
+- 本轮先重新核验远端：进入时 HEAD=`d8048863aafa1527e8074670ccd8a8bf7c4659ec`，相对 2026-10-19 的 `3c614320...` 已前进 **196 commits**；该 HEAD 的 PR CI / UI Direct Validation / UI Direct Visual / Public Preview Stack 均 **SUCCESS**。同 HEAD 最新 Human Review artifact（约 23.2 MB）已实际拉取并目视检查。
+- 最新真人视觉复核结论（不代替用户签字）：Home / Search / Place / Reality / Evidence / Contribution 的大框架已稳定进入 Urban Spatial Guide；Map selected sheet（有/无 governed scene media）也已形成 compact spatial bridge。当前最明显残留集中在 **mobile Map 顶部 chrome 仍有三层感** 与 fallback basemap 的工程提示。
+- 外部设计复核继续支持本轮方向：
+  - Apple HIG Maps：地图应保持可交互、避免长期遮挡地图的非必要 UI；selected place 应使用 place card / sheet，同时保留地图上下文；
+  - AllTrails：map pin → bottom card → details，地图保持主表面。
+- 本轮直接完成：
+  - `ea3ef1e4`：移动 Map 的 Rule / Reality / Facility / Divergence 保持四个一等 Lens，但从永久四段式按钮收口为 compact mobile selector；desktop 四段式不变。
+  - `0157a8d0`：mobile query context + Lens selector + map/list control 压入同一第二行，地图从三层顶部 chrome 收为两层；query summary 在窄屏可省略截断但语义仍可编辑。
+  - `77e0d2c9` / `71646d78`：fallback map 真实性披露收为一份轻量 caption，删除 MockMap 内重复 provider 提示；不弱化“简化空间底图 / 已收录坐标未核验”事实。
+  - `aef608ba` / `e63ec7c1`：Human Review 与 map.mobile visual contract 改为 mobile compact Lens selector；四 Lens 数量和单一 active lens 仍是 FAIL gate。
+  - `6ba1eb1c`：E2E 同步 compact mobile basemap disclosure。
+  - `1c3a9704`：320–379px 明确覆盖旧 narrow-screen search offset，保持同一两行 overlay stack，不额外吃掉地图高度。
+  - `812ea474`：Lens selector / query context / map-list controls 统一为 38px rhythm、12px radius、同一 shadow language，减少拼装感。
+  - `f7e5ad9c`：新增 430px mobile Lens route-sync E2E，切换 Reality 后 selector / URL / marker semantics 必须同步。
+  - `b85e3f00`：删除 fallback map “缩放 N 级 · 示意比例”调试式 caption；真实 zoom 交互保留，简化底图不暗示额外测量精度。
+- 本轮未改变 Rule / Reality / Evidence domain semantics、API、治理审核、Tauri/Android runtime、release signing 或发布状态。
+- 当前源码 HEAD（本段写入前）=`b85e3f00c25be8f1e01b1b75145c70668f6b01db`。该 HEAD 的 Actions 已触发但本段写入时尚未取得完成结果；**禁止复用 d8048863 的 SUCCESS 冒充当前最终 HEAD PASS**。
+- 下一门禁：同一最终 HEAD 的 UI Direct Validation / PR CI / UI Direct Visual 全绿后，重新拉取 Human Review，重点目视 320/360/390/430 mobile Map 顶部占屏、Lens selector、selected sheet 与 fallback disclosure。机器 PASS 仍不等于用户 Human Visual Acceptance。
+
 ## Current phase（2026-10-21 — v11 Place dual-fact signature + Evidence purpose closure）
 
 - 分支 `feat/ui-direct-craft-v8`；PR #1 继续 **OPEN + DRAFT**；未 merge、未 tag、未 Release；`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
