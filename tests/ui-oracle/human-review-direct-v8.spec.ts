@@ -182,14 +182,8 @@ const SHOTS: Shot[] = [
     route: "/#/map?lens=rule",
     page: "map",
     h1: "规则与现场地图",
-    requiredTestids: [
-      "map",
-      "map-lens-rule",
-      "map-lens-reality",
-      "map-lens-facility",
-      "map-lens-divergence",
-    ],
-    requiredText: ["规则", "现场", "设施", "差异"],
+    requiredTestids: ["map", "map-lensbar"],
+    requiredText: ["规则"],
     note: "Spatial Workspace: four first-class lenses share one place/snapshot model.",
   },
   {
@@ -198,7 +192,7 @@ const SHOTS: Shot[] = [
     route: "/#/map?lens=reality",
     page: "map",
     h1: "规则与现场地图",
-    requiredTestids: ["map", "map-lens-reality"],
+    requiredTestids: ["map", "map-lensbar"],
     requiredText: ["现场"],
     note: "Reality lens includes published presence/staff/facility facts; no pet-friendliness score.",
   },
@@ -208,7 +202,7 @@ const SHOTS: Shot[] = [
     route: "/#/map?lens=facility",
     page: "map",
     h1: "规则与现场地图",
-    requiredTestids: ["map", "map-lens-facility"],
+    requiredTestids: ["map", "map-lensbar"],
     requiredText: ["设施"],
     note: "Facility is its own factual lens; facility != entry policy.",
   },
@@ -218,7 +212,7 @@ const SHOTS: Shot[] = [
     route: "/#/map?lens=divergence",
     page: "map",
     h1: "规则与现场地图",
-    requiredTestids: ["map", "map-lens-divergence"],
+    requiredTestids: ["map", "map-lensbar"],
     requiredText: ["差异"],
     note: "Divergence is descriptive only and never rewrites Rule or Reality.",
   },
@@ -717,6 +711,20 @@ async function assertShot(page: Page, shot: Shot): Promise<Record<string, unknow
   }
 
   if (shot.page === "map") {
+    const viewportWidth = page.viewportSize()?.width ?? 0;
+    if (viewportWidth < 768) {
+      const lensSelect = page.getByTestId("map-lens-select");
+      await expect(lensSelect, `${shot.name}: compact mobile lens selector`).toBeVisible();
+      await expect(lensSelect.locator("option")).toHaveCount(4);
+    } else {
+      for (const lens of ["rule", "reality", "facility", "divergence"]) {
+        await expect(
+          page.getByTestId(`map-lens-${lens}`),
+          `${shot.name}: desktop ${lens} lens`,
+        ).toBeVisible();
+      }
+    }
+
     const mock = page.locator('[data-ui="mock-map"]');
     if (await mock.isVisible().catch(() => false)) {
       await expect(
