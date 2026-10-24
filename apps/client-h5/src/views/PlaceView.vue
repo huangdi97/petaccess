@@ -1119,11 +1119,16 @@ const placeFixture = computed<string>(() => {
     white-space: normal;
   }
 
-  /* Mobile already has Map as a first-level bottom-nav destination. Keep the
-     Place first viewport focused on identity, decision and evidence actions;
-     the duplicate header map link also consumed one full content-budget line. */
+  /* Keep place-to-map continuity visible on mobile without promoting it to a
+     primary action. The compact text link preserves spatial context while the
+     Rule decision remains the first-screen owner. */
   .place-dossier__map-link {
-    display: none;
+    display: inline-flex;
+    align-items: center;
+    margin-top: var(--pa-space-1);
+    margin-left: 0;
+    font-size: var(--pa-font-size-sm);
+    line-height: var(--pa-line-height-20);
   }
 
   .place-dossier__watch {

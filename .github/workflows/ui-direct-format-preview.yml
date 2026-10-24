@@ -1,5 +1,8 @@
 name: UI Direct Format Preview
 
+permissions:
+  contents: write
+
 on:
   push:
     branches:
@@ -74,6 +77,24 @@ jobs:
       - name: Show Android Preview workflow format diff
         shell: bash
         run: git diff -- .github/workflows/android-preview.yml .github/workflows/android-phone-preview.yml
+
+      # One-shot branch repair: Format Preview already defines the canonical
+      # Prettier target set. Commit only tracked formatting drift, never
+      # generated artifacts. A GITHUB_TOKEN push does not recursively trigger
+      # another workflow run; this step will be removed after the repair.
+      - name: Commit canonical formatting drift
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet; then
+            echo "No formatting drift."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -u
+          git commit -m "style: apply canonical UI formatting"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
 
       - uses: actions/upload-artifact@v4
         with:
