@@ -31,7 +31,9 @@
       "route": "/#/map?place=8412b521-5e1c-505d-9dec-568acb860c76",
       "interactions": [
         {
-          "clickSelectors": ["[data-testid='sheet-handle']"],
+          "clickSelectors": [
+            "[data-testid='sheet-handle']"
+          ],
           "waitForSelector": "[data-testid='sheet-evidence']"
         }
       ],
@@ -72,12 +74,16 @@
         }
       },
       "severity": "FAIL",
-      "fallbacks": ["[data-testid='view-map'], [data-testid='view-list']"]
+      "fallbacks": [
+        "[data-testid='view-map'], [data-testid='view-list']"
+      ]
     },
     {
       "id": "MAP_MOBILE_SHEET_OVERLAY",
       "ui": "map-mobile-sheet",
-      "fallbacks": ["[data-testid='map-mobile-sheet']"],
+      "fallbacks": [
+        "[data-testid='map-mobile-sheet']"
+      ],
       "props": {
         "count": {
           "min": 1
@@ -91,12 +97,16 @@
         }
       },
       "severity": "FAIL",
-      "pages": ["map-mobile-selected-half"]
+      "pages": [
+        "map-mobile-selected-half"
+      ]
     },
     {
       "id": "MAP_MOBILE_SHEET_ABOVE_TABBAR",
       "ui": "map-mobile-sheet",
-      "fallbacks": ["[data-testid='map-mobile-sheet']"],
+      "fallbacks": [
+        "[data-testid='map-mobile-sheet']"
+      ],
       "props": {
         "top": {
           "min": 300,
@@ -108,12 +118,16 @@
         }
       },
       "severity": "FAIL",
-      "pages": ["map-mobile-selected-half"]
+      "pages": [
+        "map-mobile-selected-half"
+      ]
     },
     {
       "id": "MAP_MOBILE_SHEET_EXPANDED_HEIGHT",
       "ui": "map-mobile-sheet",
-      "fallbacks": ["[data-testid='map-mobile-sheet']"],
+      "fallbacks": [
+        "[data-testid='map-mobile-sheet']"
+      ],
       "props": {
         "height": {
           "min": 340,
@@ -121,13 +135,17 @@
         }
       },
       "severity": "FAIL",
-      "pages": ["map-mobile-expanded"],
+      "pages": [
+        "map-mobile-expanded"
+      ],
       "note": "Expanded sheet must visibly exceed half state and remain below the tab bar; sparse content should fit naturally without artificial filler."
     },
     {
       "id": "MAP_MOBILE_LENSBAR_PRESENT",
       "ui": "map-lensbar",
-      "fallbacks": ["[data-ui='map-lensbar']"],
+      "fallbacks": [
+        "[data-ui='map-lensbar']"
+      ],
       "props": {
         "count": {
           "min": 1
@@ -138,14 +156,19 @@
     {
       "id": "MAP_MOBILE_CANVAS_VIEWPORT_FILL",
       "ui": "map-canvas",
-      "fallbacks": ["[data-testid='map']"],
+      "fallbacks": [
+        "[data-testid='map']"
+      ],
       "props": {
         "height": {
           "min": 580
         }
       },
       "severity": "FAIL",
-      "pages": ["map-mobile-ready", "map-mobile-reality"],
+      "pages": [
+        "map-mobile-ready",
+        "map-mobile-reality"
+      ],
       "note": "At 430×932 the map canvas must occupy the available workspace above the 60px bottom tabbar. A fixed 480px canvas leaves an unusable empty strip and violates Map=Spatial Workspace."
     }
   ],
@@ -155,14 +178,20 @@
       "selector": "[data-testid='map-mobile-sheet'] .status-badge--block, [data-testid='map-mobile-sheet'] [style*='border']",
       "max": 0,
       "severity": "FAIL",
-      "pages": ["map-mobile-selected-half"]
+      "pages": [
+        "map-mobile-selected-half"
+      ]
     },
     {
       "id": "MAP_MOBILE_NO_DUPLICATE_STATUS_BADGE",
       "selector": "[data-testid='map-mobile-sheet'] .status-badge",
       "max": 0,
       "severity": "FAIL",
-      "pages": ["map-mobile-selected-half", "map-mobile-expanded", "map-mobile-reality-selected"],
+      "pages": [
+        "map-mobile-selected-half",
+        "map-mobile-expanded",
+        "map-mobile-reality-selected"
+      ],
       "note": "v11 uses one natural-language fact hierarchy; the same verdict must not be repeated as a decorative badge."
     },
     {
@@ -171,7 +200,9 @@
       "min": 1,
       "max": 1,
       "severity": "FAIL",
-      "pages": ["map-mobile-reality-selected"],
+      "pages": [
+        "map-mobile-reality-selected"
+      ],
       "note": "Reality is the active fact; Rule remains visible once as the cross-dimension decision."
     },
     {
@@ -179,7 +210,9 @@
       "selector": "[data-testid='map-mobile-sheet'] [data-testid='sheet-reality']",
       "max": 0,
       "severity": "FAIL",
-      "pages": ["map-mobile-reality-selected"],
+      "pages": [
+        "map-mobile-reality-selected"
+      ],
       "note": "When Reality is already the active lens, do not repeat the same fact again as a recent-Reality block."
     },
     {
@@ -187,30 +220,42 @@
       "selector": "[data-testid='map-mobile-sheet'] [class*='placeholder'], [data-testid='map-mobile-sheet'] [data-ui*='filler'], [data-testid='map-mobile-sheet'] [class*='lorem']",
       "max": 0,
       "severity": "FAIL",
-      "pages": ["map-mobile-expanded"],
+      "pages": [
+        "map-mobile-expanded"
+      ],
       "note": "v0.2.7 §13/§40：expanded 禁止伪造/占位内容，只允许真实已有信息。"
     },
     {
       "id": "MAP_MOBILE_FOUR_LENSES",
-      "selector": "[data-ui='map-lensbar'] button",
+      "selector": "[data-testid='map-lens-select'] option",
       "min": 4,
       "max": 4,
       "severity": "FAIL",
-      "mustContainTexts": ["规则", "现场", "设施", "差异"]
+      "mustContainTexts": [
+        "规则",
+        "现场",
+        "设施",
+        "差异"
+      ],
+      "note": "Mobile keeps all four first-class lenses in one compact selector so the map remains the dominant surface."
     },
     {
       "id": "MAP_MOBILE_ONE_ACTIVE_LENS",
-      "selector": "[data-ui='map-lensbar'] button[aria-pressed='true']",
+      "selector": "[data-testid='map-lens-select'] option:checked",
       "min": 1,
       "max": 1,
-      "severity": "FAIL"
+      "severity": "FAIL",
+      "note": "Exactly one lens is active in the compact mobile selector."
     },
     {
       "id": "MAP_MOBILE_ZOOM_CONTROLS_INTERACTIVE",
       "selector": "[data-ui='map-zoom'] button:not(:disabled)",
       "min": 1,
       "severity": "FAIL",
-      "pages": ["map-mobile-ready", "map-mobile-reality"]
+      "pages": [
+        "map-mobile-ready",
+        "map-mobile-reality"
+      ]
     }
   ],
   "density": [
@@ -221,7 +266,10 @@
       "min": 8,
       "max": 58,
       "severity": "FAIL",
-      "pages": ["map-mobile-selected-half", "map-mobile-expanded"],
+      "pages": [
+        "map-mobile-selected-half",
+        "map-mobile-expanded"
+      ],
       "note": "Expanded content may breathe, but actions must not be pinned down to manufacture empty space."
     }
   ],
@@ -233,7 +281,9 @@
       "min": 3,
       "max": 6,
       "severity": "FAIL",
-      "pages": ["map-mobile-expanded"],
+      "pages": [
+        "map-mobile-expanded"
+      ],
       "note": "v0.2.7 §13：expanded 只含真实信息块（decision/condition/reality/evidence/CTA）。"
     }
   ],
@@ -244,7 +294,10 @@
       "b": "[data-testid='map-mobile-sheet'] .sheet__meta",
       "minRatio": 1.3,
       "severity": "FAIL",
-      "pages": ["map-mobile-selected-half", "map-mobile-expanded"]
+      "pages": [
+        "map-mobile-selected-half",
+        "map-mobile-expanded"
+      ]
     }
   ],
   "language": {
@@ -254,5 +307,5 @@
     "allcapsTokens": true,
     "refs": true
   },
-  "notes": "Consumer v11 keeps the map as the dominant mobile surface. The selected-place overlay separates the active lens, Rule and recent Reality, carries no duplicate verdict badge, and expands only for real additional evidence/media."
+  "notes": "Consumer v11 keeps the map as the dominant mobile surface. Four Rule/Reality/Facility/Divergence lenses remain first-class but collapse into one compact mobile selector; desktop keeps the segmented lens row. The selected-place overlay separates the active lens, Rule and recent Reality, carries no duplicate verdict badge, and expands only for real additional evidence/media."
 }
