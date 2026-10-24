@@ -51,11 +51,6 @@ const emit = defineEmits<{
  * makes +/- a real spatial zoom rather than a decorative control. */
 const spanDeg = computed(() => 0.08 * Math.pow(2, 14 - props.camera.zoom));
 
-// The fallback background is illustrative, not a surveyed basemap.
-// Showing a metric scale bar on synthetic streets would imply unsupported
-// positional/measurement accuracy.
-const scaleLabel = computed(() => `缩放 ${Math.round(props.camera.zoom)} 级 · 示意比例`);
-
 /** Only on-viewport clusters receive marker DOM; no out-of-range point can
  * be clamped into a false edge location. The list still contains all nearby
  * locations even when they are beyond this zoom's current view. */
@@ -289,7 +284,6 @@ const MASS = [
 
     <div class="map-spatial-aids" aria-hidden="true">
       <span class="map-compass">N</span>
-      <span class="map-scale">{{ scaleLabel }}</span>
     </div>
 
     <div class="map-zoom" data-testid="map-zoom" data-ui="map-zoom" role="group" aria-label="缩放">
@@ -518,18 +512,6 @@ const MASS = [
   font-family: var(--pa-font-family-numeric);
   font-size: var(--pa-font-size-xs);
   font-weight: var(--pa-font-weight-650);
-}
-
-.map-scale {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
-  padding: 2px var(--pa-space-1);
-  border-radius: var(--pa-radius-sm);
-  background: color-mix(in srgb, var(--pa-color-surface) 88%, transparent);
-  font-family: var(--pa-font-family-numeric);
-  font-size: var(--pa-font-size-xs);
 }
 
 /* ---- pins ---- */
