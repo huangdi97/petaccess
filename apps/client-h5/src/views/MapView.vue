@@ -731,12 +731,16 @@ function chooseMapResult(id: string) {
 
 @media (max-width: 767px) {
   .map-provider-fallback {
-    right: var(--pa-space-3);
-    max-width: none;
-    padding: var(--pa-space-1) var(--pa-space-2);
-    border-radius: var(--pa-radius-sm);
+    right: auto;
+    max-width: calc(100% - var(--pa-space-6));
+    padding: 3px var(--pa-space-2);
+    border: 0;
+    border-radius: var(--pa-radius-pill);
     font-size: var(--pa-font-size-xs);
     line-height: var(--pa-line-height-20);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 
