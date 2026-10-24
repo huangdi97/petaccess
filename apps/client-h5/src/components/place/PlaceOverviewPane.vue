@@ -214,47 +214,51 @@ const divergenceLine = computed(() => {
       <h2 class="place-section__title place-fact__label">现场</h2>
       <div class="place-reality-fact" data-ui="place-reality-fact">
         <p class="place-reality-headline" data-testid="overview-reality-line">{{ realityLine }}</p>
-      <p v-if="realityMetaLine" class="muted overview-note">{{ realityMetaLine }}</p>
-      <p v-else-if="observationCount > 0 && desktop" class="muted overview-note">
-        {{ observationCount }} 条现场记录
-      </p>
-      <div class="coexistence-facts" data-ui="coexistence-facts">
-        <p class="coexistence-fact" data-testid="overview-staff-response">
-          <span v-if="desktop" class="coexistence-fact__label">工作人员处理</span>
-          <span class="coexistence-fact__value">
-            {{ desktop ? staffSummaryLine : `工作人员处理 · ${staffSummaryLine}` }}
-          </span>
-          <RouterLink
-            v-if="desktop"
-            class="btn-inline coexistence-fact__link"
-            :to="`?view=reality`"
-          >
-            查看处理记录 →
-          </RouterLink>
+        <p v-if="realityMetaLine" class="muted overview-note">{{ realityMetaLine }}</p>
+        <p v-else-if="observationCount > 0 && desktop" class="muted overview-note">
+          {{ observationCount }} 条现场记录
         </p>
-        <p class="coexistence-fact" data-testid="overview-animal-facility">
-          <span v-if="desktop" class="coexistence-fact__label">动物设施</span>
-          <span class="coexistence-fact__value">
-            {{ desktop ? facilitySummaryLine : `动物设施 · ${facilitySummaryLine}` }}
-          </span>
-          <RouterLink v-if="desktop" class="btn-inline coexistence-fact__link" :to="`?view=space`">
-            查看设施 →
-          </RouterLink>
-        </p>
-        <p v-if="divergenceLine" class="coexistence-fact coexistence-fact--divergence">
-          <span v-if="desktop" class="coexistence-fact__label">规则与现场</span>
-          <span class="coexistence-fact__value">
-            {{ desktop ? divergenceLine : `规则与现场 · ${divergenceLine}` }}
-          </span>
-          <RouterLink
-            v-if="desktop"
-            class="btn-inline coexistence-fact__link"
-            :to="`?view=evidence`"
-          >
-            查看依据 →
-          </RouterLink>
-        </p>
-      </div>
+        <div class="coexistence-facts" data-ui="coexistence-facts">
+          <p class="coexistence-fact" data-testid="overview-staff-response">
+            <span v-if="desktop" class="coexistence-fact__label">工作人员处理</span>
+            <span class="coexistence-fact__value">
+              {{ desktop ? staffSummaryLine : `工作人员处理 · ${staffSummaryLine}` }}
+            </span>
+            <RouterLink
+              v-if="desktop"
+              class="btn-inline coexistence-fact__link"
+              :to="`?view=reality`"
+            >
+              查看处理记录 →
+            </RouterLink>
+          </p>
+          <p class="coexistence-fact" data-testid="overview-animal-facility">
+            <span v-if="desktop" class="coexistence-fact__label">动物设施</span>
+            <span class="coexistence-fact__value">
+              {{ desktop ? facilitySummaryLine : `动物设施 · ${facilitySummaryLine}` }}
+            </span>
+            <RouterLink
+              v-if="desktop"
+              class="btn-inline coexistence-fact__link"
+              :to="`?view=space`"
+            >
+              查看设施 →
+            </RouterLink>
+          </p>
+          <p v-if="divergenceLine" class="coexistence-fact coexistence-fact--divergence">
+            <span v-if="desktop" class="coexistence-fact__label">规则与现场</span>
+            <span class="coexistence-fact__value">
+              {{ desktop ? divergenceLine : `规则与现场 · ${divergenceLine}` }}
+            </span>
+            <RouterLink
+              v-if="desktop"
+              class="btn-inline coexistence-fact__link"
+              :to="`?view=evidence`"
+            >
+              查看依据 →
+            </RouterLink>
+          </p>
+        </div>
         <RouterLink
           class="btn-inline overview-reality-link"
           :to="`?view=reality`"

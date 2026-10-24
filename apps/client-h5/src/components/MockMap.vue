@@ -150,10 +150,7 @@ const OPEN_SPACES = [
   "M 24 26 C 38 18 58 20 68 34 C 76 46 68 62 52 66 C 36 70 20 60 18 46 C 16 38 18 32 24 26 Z",
   "M 214 132 C 226 124 244 126 250 140 C 256 152 248 166 234 170 C 220 172 208 162 208 150 C 208 142 210 136 214 132 Z",
 ];
-const PLAZAS = [
-  "100,30 134,28 138,52 104,56",
-  "158,34 190,32 194,54 160,58",
-];
+const PLAZAS = ["100,30 134,28 138,52 104,56", "158,34 190,32 194,54 160,58"];
 const BLOCKS = [
   "18,94 66,88 72,126 24,132",
   "84,88 126,84 130,122 88,126",
@@ -398,11 +395,7 @@ const MASS = [
    * a real provider, but give blocks, open space and road hierarchy enough
    * contrast that the canvas does not collapse into a pale test grid.
    */
-  background: color-mix(
-    in srgb,
-    var(--pa-color-map-grid-a) 82%,
-    var(--pa-discovery-v10-paper)
-  );
+  background: color-mix(in srgb, var(--pa-color-map-grid-a) 82%, var(--pa-discovery-v10-paper));
 }
 
 .basemap-district {
