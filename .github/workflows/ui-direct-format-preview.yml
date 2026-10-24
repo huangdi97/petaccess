@@ -22,6 +22,7 @@ jobs:
         run: |
           pnpm exec prettier --write \
             apps/client-h5/src/views/HomeView.vue \
+            apps/client-h5/src/views/MapView.vue \
             apps/client-h5/src/views/ContributeView.vue \
             apps/client-h5/src/views/MineView.vue \
             apps/client-h5/src/views/NotificationsView.vue \
@@ -53,9 +54,11 @@ jobs:
             apps/client-h5/src/views/PlaceView.vue \
             apps/client-h5/src/views/RealityTraceView.vue \
             docs/ui/contracts/json/evidence.json \
+            docs/ui/contracts/json/map.mobile.json \
             docs/ui/contracts/json/place.desktop.json \
             docs/ui/contracts/json/place.mobile.json \
             tests/e2e/place-route-race.spec.ts \
+            tests/e2e/map-passport.spec.ts \
             tests/e2e/public-private-session-boundary.spec.ts \
             tests/e2e/contribute-wizard.spec.ts \
             tests/e2e/boundary-preferences.spec.ts \
@@ -80,6 +83,7 @@ jobs:
           name: ui-direct-formatted-targets
           path: |
             apps/client-h5/src/views/HomeView.vue
+            apps/client-h5/src/views/MapView.vue
             apps/client-h5/src/views/ContributeView.vue
             apps/client-h5/src/views/MineView.vue
             apps/client-h5/src/views/NotificationsView.vue
@@ -111,9 +115,11 @@ jobs:
             apps/client-h5/src/views/PlaceView.vue
             apps/client-h5/src/views/RealityTraceView.vue
             docs/ui/contracts/json/evidence.json
+            docs/ui/contracts/json/map.mobile.json
             docs/ui/contracts/json/place.desktop.json
             docs/ui/contracts/json/place.mobile.json
             tests/e2e/place-route-race.spec.ts
+            tests/e2e/map-passport.spec.ts
             tests/e2e/public-private-session-boundary.spec.ts
             tests/e2e/contribute-wizard.spec.ts
             tests/e2e/boundary-preferences.spec.ts
