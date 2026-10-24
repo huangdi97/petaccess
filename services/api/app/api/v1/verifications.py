@@ -10,9 +10,10 @@ from app.core.config import get_settings
 from app.core.errors import NotFound
 from app.core.idempotency import check_inflight, get_cached, store
 from app.core.ratelimit import check_rate_limit
-from app.core.security import get_current_user, get_optional_user
+from app.core.security import get_current_user, get_optional_user, require_role
 from app.db.session import get_db
-from app.models import AccessRule, Place, User, VerificationEvent
+from app.models import AccessRule, Place, User, VerificationEvent, Zone
+from app.models.enums import UserRole, VerificationEventType
 from app.schemas.civic import VerificationIn, VerificationOut
 from app.schemas.common import Page
 
@@ -29,12 +30,49 @@ def list_place_verifications(
 ) -> Page[VerificationOut]:
     stmt = (
         select(VerificationEvent)
-        .where(VerificationEvent.place_id == place_id)
+        .where(
+            VerificationEvent.place_id == place_id,
+            VerificationEvent.event_type.notin_(
+                (
+                    VerificationEventType.PLACE_CORRECTION,
+                    VerificationEventType.SIGNAGE_UPLOADED,
+                )
+            ),
+        )
         .order_by(VerificationEvent.occurred_at.desc())
     )
     total = db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
     rows = db.scalars(stmt.limit(limit).offset(offset)).all()
     return Page(items=rows, total=total, limit=limit, offset=offset)
+
+
+def list_place_corrections(
+    limit: int = Query(default=50, le=100),
+    offset: int = Query(default=0, ge=0),
+    user: User = Depends(require_role(UserRole.MODERATOR)),
+    db: Session = Depends(get_db),
+) -> Page[VerificationOut]:
+    """Moderator-only queue for user-submitted place correction leads."""
+
+    stmt = (
+        select(VerificationEvent)
+        .where(VerificationEvent.event_type == VerificationEventType.PLACE_CORRECTION)
+        .order_by(VerificationEvent.created_at.desc())
+    )
+    total = db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
+    rows = db.scalars(stmt.limit(limit).offset(offset)).all()
+    return Page(items=rows, total=total, limit=limit, offset=offset)
+
+
+# Explicit endpoint registration is intentional: it makes the route handler a
+# real first-party reference for the dead-code gate instead of relying on
+# decorator side effects that the static scanner cannot see.
+router.add_api_route(
+    "/admin/place-corrections",
+    list_place_corrections,
+    methods=["GET"],
+    response_model=Page[VerificationOut],
+)
 
 
 @router.post("/verifications", response_model=VerificationOut, status_code=201)
@@ -53,8 +91,22 @@ def create_verification(
     )
     if db.get(Place, body.place_id) is None:
         raise NotFound("场所不存在")
-    if body.rule_id and db.get(AccessRule, body.rule_id) is None:
-        raise NotFound("规则不存在")
+    if body.zone_id:
+        zone = db.get(Zone, body.zone_id)
+        if zone is None or zone.place_id != body.place_id:
+            raise NotFound("区域不属于该场所")
+    if body.rule_id:
+        rule = db.get(AccessRule, body.rule_id)
+        if rule is None:
+            raise NotFound("规则不存在")
+        owner_place_id = rule.place_id
+        if rule.zone_id:
+            rule_zone = db.get(Zone, rule.zone_id)
+            owner_place_id = rule_zone.place_id if rule_zone else None
+        if owner_place_id != body.place_id:
+            raise NotFound("规则不属于该场所")
+        if body.zone_id and body.zone_id != rule.zone_id:
+            raise NotFound("核验区域与规则适用区域不一致")
     idem_key = request.headers.get("Idempotency-Key", "")
     if idem_key:
         cached = get_cached("verification", idem_key)
@@ -69,11 +121,10 @@ def create_verification(
         occurred_at=datetime.now(UTC),
     )
     db.add(ev)
-    # touching a rule refreshes its last-verified time (still_valid only)
-    if body.rule_id and body.result == "still_valid":
-        rule = db.get(AccessRule, body.rule_id)
-        if rule:
-            rule.last_verified_at = datetime.now(UTC)
+    # A consumer confirmation is evidence, not Human Review. It must not
+    # refresh AccessRule.last_verified_at: that field is displayed as governed
+    # rule freshness across Home/Search/Place and may only move on a reviewed
+    # rule-governance path.
     db.commit()
     db.refresh(ev)
     if idem_key:

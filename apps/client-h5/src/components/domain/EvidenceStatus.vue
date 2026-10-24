@@ -63,10 +63,10 @@ const copy = computed<EvidenceStateCopy>(() => EVIDENCE_STATE_COPY[stateKey.valu
   display: inline-flex;
   align-items: center;
   gap: var(--pa-space-1);
-  border: var(--pa-border-width) solid currentColor;
-  border-radius: var(--pa-radius-sm);
+  border: var(--pa-border-width) solid transparent;
+  border-radius: var(--pa-radius-pill);
   padding: 2px var(--pa-space-2);
-  font-size: var(--pa-font-size-md);
+  font-size: var(--pa-font-size-sm);
   font-weight: var(--pa-font-weight-medium);
   line-height: var(--pa-line-height-tight);
   white-space: nowrap;

@@ -1,0 +1,15 @@
+{
+  "gitSha": "d2eeba2fe5ffbfba31f244881f6e1705a07f84c2",
+  "page": "search",
+  "state": "via-home",
+  "route": "/search",
+  "innerWidth": 412,
+  "innerHeight": 915,
+  "documentClientWidth": 412,
+  "documentScrollWidth": 412,
+  "href": "http://tauri.localhost/#/search?q=%E6%98%9F%E6%B2%B3",
+  "uiState": "ready",
+  "bodyTextHead": "当前查询 | 普通犬 · 进入 · 公共区域 | 修改 | 搜索场所规则 | × | 搜索 | 2 | 结果 2 | 筛选 | 最近搜索 | 清除 | 星河 | 星河咖啡·测试店 | 咖啡 |  | 信息不足 |  | 暂无足够",
+  "horizontalOverflow": false,
+  "screenshot": "20_android_home_to_search.png"
+}

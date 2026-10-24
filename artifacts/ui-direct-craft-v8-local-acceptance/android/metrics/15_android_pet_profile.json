@@ -1,0 +1,15 @@
+{
+  "gitSha": "d2eeba2fe5ffbfba31f244881f6e1705a07f84c2",
+  "page": "pet-profile",
+  "state": "ready",
+  "route": "/pets",
+  "innerWidth": 412,
+  "innerHeight": 915,
+  "devicePixelRatio": 2.625,
+  "documentClientWidth": 412,
+  "documentScrollWidth": 412,
+  "bodyTextHead": "当前查询 | 普通犬 · 进入 · 公共区域 | 修改 | 宠物档案 |  | 只填写规则判断真正需要的信息；留空字段保持未知，不会被系统猜",
+  "href": "http://tauri.localhost/#/pets",
+  "horizontalOverflow": false,
+  "screenshot": "15_android_pet_profile.png"
+}

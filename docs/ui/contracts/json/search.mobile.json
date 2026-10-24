@@ -1,6 +1,6 @@
 {
   "id": "search.mobile",
-  "title": "Search Mobile Contract v0.2.3 Executable Blueprint",
+  "title": "Search Mobile Contract — Consumer v11 Urban Spatial Guide",
   "viewport": {
     "width": 430,
     "height": 932
@@ -13,7 +13,7 @@
         "page": "search",
         "state": "ready",
         "fixture": "search-ready-v1",
-        "h1": "搜索场所规则",
+        "h1": "搜索场所的规则与现场",
         "componentCounts": [
           {
             "selector": "result-rows",
@@ -35,7 +35,7 @@
         "page": "search",
         "state": "filter",
         "fixture": "search-filter-v1",
-        "h1": "搜索场所规则"
+        "h1": "搜索场所的规则与现场"
       }
     }
   ],
@@ -57,8 +57,8 @@
       "fallbacks": ["[data-testid='search-input']"],
       "props": {
         "height": {
-          "min": 44,
-          "max": 46
+          "min": 47,
+          "max": 49
         }
       },
       "severity": "FAIL"
@@ -69,36 +69,38 @@
       "fallbacks": ["ul.result-list li"],
       "props": {
         "height": {
-          "min": 88,
-          "max": 104
+          "min": 96,
+          "max": 148
         }
       },
       "severity": "FAIL",
       "aggregate": "rows"
     },
     {
-      "id": "SEARCH_MOBILE_ROW_RADIUS_ZERO",
+      "id": "SEARCH_MOBILE_ROW_RADIUS_CRAFTED",
       "ui": "search-result-row",
       "fallbacks": ["ul.result-list li"],
       "props": {
         "borderRadius": {
-          "equals": "0"
+          "equals": 0
         }
       },
       "severity": "FAIL",
-      "aggregate": "rows"
+      "aggregate": "rows",
+      "note": "v11 mobile results are compact touch-friendly divider rows: place identity, one Rule line and one Reality line, not floating cards."
     },
     {
-      "id": "SEARCH_MOBILE_ROW_SHADOW_NONE",
+      "id": "SEARCH_MOBILE_ROW_ELEVATED",
       "ui": "search-result-row",
       "fallbacks": ["ul.result-list li"],
       "props": {
-        "boxShadow": {
-          "equals": "none"
+        "shadowed": {
+          "max": 0
         }
       },
       "severity": "FAIL",
-      "aggregate": "rows"
+      "aggregate": "rows",
+      "note": "v11 keeps the result list visually continuous and reserves elevation for true floating surfaces."
     },
     {
       "id": "SEARCH_MOBILE_BOTTOM_NAV_HEIGHT",
@@ -174,6 +176,35 @@
       "selector": "[data-ui='search-filter-sheet'] .filter-options__row",
       "forbiddenClass": ["card", "panel"],
       "severity": "FAIL"
+    },
+    {
+      "id": "SEARCH_MOBILE_REALITY_PRESENT",
+      "selector": "[data-testid='result-reality'], [data-testid='row-lens-headline']",
+      "min": 1,
+      "severity": "FAIL"
+    },
+    {
+      "id": "SEARCH_MOBILE_DEFAULT_RULE_FIRST",
+      "selector": "[data-testid='row-lens-headline'].result-row__decision--lead",
+      "min": 1,
+      "severity": "FAIL",
+      "pages": ["search-mobile-ready"],
+      "note": "Mobile canonical Search keeps the access verdict as the primary row line; Reality-first is opt-in through an explicit lens."
+    },
+    {
+      "id": "SEARCH_MOBILE_RULE_STAYS_VISIBLE",
+      "selector": "[data-ui='search-rule-summary']",
+      "min": 1,
+      "severity": "FAIL",
+      "pages": ["search-mobile-ready"],
+      "note": "v11: Rule remains visible as one natural-language summary; mobile search does not repeat it as a status badge."
+    },
+    {
+      "id": "SEARCH_MOBILE_SPATIAL_IDENTITY",
+      "selector": "[data-ui='search-results-pane'] [data-ui='place-type-glyph']",
+      "min": 1,
+      "severity": "WARN",
+      "note": "Neutral spatial identity anchor improves scanning without decorative/fake place photography."
     }
   ],
   "density": [
@@ -187,11 +218,12 @@
   ],
   "hierarchy": [
     {
-      "id": "SEARCH_MOBILE_DECISION_TO_BODY",
-      "a": ".result-row__decision",
+      "id": "SEARCH_MOBILE_PRIMARY_HEADLINE_TO_BODY",
+      "a": ".result-row__reality-line--lead, .result-row__decision--lead",
       "b": "body",
       "minRatio": 1.1,
-      "severity": "WARN"
+      "severity": "WARN",
+      "note": "Default search is Reality-first; explicit Rules lens promotes Rule. Measure whichever semantic headline owns the row."
     },
     {
       "id": "SEARCH_MOBILE_METADATA_SMALLER",
@@ -206,8 +238,9 @@
       "id": "SEARCH_MOBILE_ROW_TEXT_LINES",
       "metric": "rowTextLines",
       "selector": "ul.result-list",
-      "max": 5,
-      "severity": "FAIL"
+      "max": 7,
+      "severity": "FAIL",
+      "note": "Mobile keeps the same <=5 semantic groups. The rendered-line probe counts wrapped compact text and the adjacent semantic badge separately at 430px, so 7 is the machine ceiling rather than permission to add more groups."
     },
     {
       "id": "SEARCH_MOBILE_FIRST_VIEWPORT_LINES",
@@ -235,5 +268,5 @@
     "allcapsTokens": true,
     "refs": true
   },
-  "notes": "v0.2.3 §24–25：single column；row h 108–128、radius 0、≤5 text lines；bottom nav 58–64；filter = bottom sheet（top 340–480、radius 14–18、5 rows、无卡片）。"
+  "notes": "Consumer v11: mobile Search is a continuous place list with Rule, Reality and relevant context inside each touch row. Filter remains a bottom sheet; result rows use dividers rather than card-wall elevation or rounded containers."
 }

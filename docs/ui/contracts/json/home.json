@@ -1,6 +1,6 @@
 {
   "id": "home",
-  "title": "Home Contract",
+  "title": "Home Contract — Consumer v11 Urban Spatial Guide",
   "viewport": {
     "width": 1440,
     "height": 900
@@ -13,7 +13,7 @@
         "page": "home",
         "state": "ready",
         "fixture": "home-ready-v1",
-        "h1": "去之前，先看看这里的规则和现场。"
+        "h1": "去哪儿？先看规则与现场。"
       }
     }
   ],
@@ -63,15 +63,17 @@
       "severity": "WARN"
     },
     {
-      "id": "HOME_MAX_WIDTH_960",
+      "id": "HOME_DISCOVERY_WIDTH",
       "ui": "home",
       "fallbacks": [".page--home", "[data-ui='home']"],
       "props": {
         "width": {
-          "max": 960
+          "min": 1080,
+          "max": 1160
         }
       },
-      "severity": "WARN"
+      "severity": "FAIL",
+      "note": "Consumer Discovery v9 desktop uses a wider hospitality-style discovery canvas while keeping task focus and factual density."
     }
   ],
   "structure": [
@@ -92,6 +94,33 @@
       "selector": "[data-ui='home-lens'], .home-lens",
       "containsArrows": true,
       "severity": "WARN"
+    },
+    {
+      "id": "HOME_RECOMMEND_PRESENT",
+      "selector": "[data-ui='home-recommend']",
+      "min": 1,
+      "severity": "FAIL"
+    },
+    {
+      "id": "HOME_DIVERGENCE_NOT_CARD_WALL",
+      "selector": "[data-ui='home-divergence'] .home-divergence__row",
+      "forbiddenClass": ["card", "panel"],
+      "severity": "FAIL"
+    },
+    {
+      "id": "HOME_FOUR_TASK_LENSES",
+      "selector": "[data-ui='home-lens'] button",
+      "min": 4,
+      "max": 4,
+      "severity": "FAIL",
+      "mustContainTexts": ["现场是否有动物出现", "室内空间情况", "餐饮区域情况", "完整规则"]
+    },
+    {
+      "id": "HOME_NEARBY_SPATIAL_IDENTITY",
+      "selector": "[data-ui='home-nearby'] [data-ui='place-type-glyph']",
+      "min": 1,
+      "severity": "WARN",
+      "note": "Nearby rows use neutral place-type identity anchors rather than decorative/fake photos."
     }
   ],
   "density": [
@@ -110,5 +139,5 @@
     "allcapsTokens": true,
     "refs": true
   },
-  "notes": "Home is a task launcher, not a dashboard. Order: Location -> Query -> Search -> Recent -> Nearby -> Lens."
+  "notes": "Consumer v11: Home is a compact spatial launcher, not a marketing landing page. Search and nearby places enter early; the city illustration is decorative context only and never venue/evidence media. Secondary spatial lenses remain below the primary discovery task."
 }

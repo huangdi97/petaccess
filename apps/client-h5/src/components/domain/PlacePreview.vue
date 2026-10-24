@@ -6,7 +6,7 @@
  *   Place / Type·distance /
  *   Primary status + key condition /
  *   最近现场 /
- *   查看场所 →
+ *   查看地点 →
  * rule count / reality count / evidence count / conflict-analysis paragraph
  * 一律不上浮（进 Place dossier 详情）。
  *
@@ -18,9 +18,9 @@ import {
   type CoexistenceSnapshot,
   type PlaceSummary,
 } from "@petaccess/client-core";
-import { answerConditions, answerStatusKey, answerVerdictLabel } from "../../answer";
-import StatusBadge from "../StatusBadge.vue";
-import { realityStateLabel } from "../../reality";
+import { answerConditions, answerVerdictLabel } from "../../answer";
+import { coexistenceRealityLine } from "../../consumer/rowView";
+import PlaceTypeGlyph from "./PlaceTypeGlyph.vue";
 
 const props = withDefaults(
   defineProps<{
@@ -29,26 +29,57 @@ const props = withDefaults(
     snapshot?: CoexistenceSnapshot | null;
     loading?: boolean;
     error?: string;
+    mapLensName?: string;
+    mapLensLabel?: string;
+    sceneMediaUrl?: string | null;
   }>(),
-  { status: null, snapshot: null, loading: false, error: "" },
+  {
+    status: null,
+    snapshot: null,
+    loading: false,
+    error: "",
+    mapLensName: "",
+    mapLensLabel: "",
+    sceneMediaUrl: null,
+  },
 );
 
 const answer = computed(() => props.snapshot?.rule_answer ?? null);
-/** §32：Primary status 用 answer 的结论；外部 status prop 保留兼容。 */
-const statusKey = computed(() => answerStatusKey(answer.value));
 const keyCondition = computed(() => answerConditions(answer.value)[0] ?? "");
 const realityLine = computed(() =>
   props.loading
     ? "加载现场摘要中…"
     : props.error
       ? "现场摘要暂时无法取得"
-      : props.snapshot?.reality_answer
-        ? realityStateLabel(props.snapshot.reality_answer)
-        : "暂无足够现场记录",
+      : coexistenceRealityLine(props.snapshot, props.snapshot?.reality_answer),
 );
+const showRealitySupplement = computed(() => props.mapLensName !== "现场");
+const activeLensToneClass = computed(() => {
+  if (!props.mapLensLabel) return "";
+  if (props.mapLensName === "现场") return "place-preview__lens--reality";
+  if (props.mapLensName === "设施") return "place-preview__lens--facility";
+  if (props.mapLensName === "差异") return "place-preview__lens--divergence";
+  return "";
+});
+const ruleToneClass = computed(() => {
+  if (props.mapLensLabel) return "";
+  switch ((props.status ?? "UNKNOWN").toUpperCase()) {
+    case "ALLOWED":
+    case "MATCH":
+      return "place-preview__decision--allowed";
+    case "CONDITIONAL":
+      return "place-preview__decision--conditional";
+    case "RESTRICTED":
+      return "place-preview__decision--restricted";
+    case "CONFLICT":
+      return "place-preview__decision--conflict";
+    default:
+      return "place-preview__decision--unknown";
+  }
+});
 const metaLine = computed(() => {
   const parts: string[] = [placeTypeLabel(props.place?.place_type ?? "")];
-  if (props.place?.distance_m) parts.push(`${Math.round(props.place.distance_m)}m`);
+  if (props.place?.distance_m != null) parts.push(`${Math.round(props.place.distance_m)}m`);
   return parts.join(" · ");
 });
 </script>
@@ -56,32 +87,76 @@ const metaLine = computed(() => {
 <template>
   <section class="place-preview" data-testid="place-preview" :aria-busy="loading">
     <template v-if="place">
+      <img
+        v-if="sceneMediaUrl"
+        class="place-preview__scene"
+        :src="sceneMediaUrl"
+        :alt="`场所场景：${place.canonical_name}`"
+        loading="lazy"
+        decoding="async"
+        referrerpolicy="no-referrer"
+      />
+
       <!-- §32：Place + Type·distance -->
       <header class="place-preview__head">
-        <h2 class="place-preview__name">{{ place.canonical_name }}</h2>
-        <p class="place-preview__muted">{{ metaLine }}</p>
+        <PlaceTypeGlyph v-if="!sceneMediaUrl" :place-type="place.place_type" />
+        <div class="place-preview__identity">
+          <h2 class="place-preview__name">{{ place.canonical_name }}</h2>
+          <p class="place-preview__muted">{{ metaLine }}</p>
+        </div>
       </header>
 
-      <!-- §32：Primary status + key condition -->
-      <div class="place-preview__decision" data-testid="preview-verdict">
-        <StatusBadge :semantic="statusKey" />
+      <div
+        v-if="mapLensLabel"
+        class="place-preview__lens place-preview__lens--primary"
+        :class="activeLensToneClass"
+        data-testid="preview-map-lens"
+      >
+        <span class="place-preview__label">当前地图 · {{ mapLensName }}</span>
+        <strong>{{ mapLensLabel }}</strong>
+      </div>
+
+      <!-- Rule Lens: rule is primary. Other lenses: rule remains visible but
+           secondary, so green/allowed semantics never become the visible
+           meaning of a Reality/Facility/Divergence marker. -->
+      <div
+        class="place-preview__decision"
+        :class="[{ 'place-preview__decision--secondary': Boolean(mapLensLabel) }, ruleToneClass]"
+        data-testid="preview-verdict"
+      >
+        <span class="place-preview__label">规则</span>
         <p class="place-preview__verdict-text" data-testid="preview-verdict-text">
-          {{ answerVerdictLabel(answer) }}
+          {{
+            loading
+              ? "正在加载规则结论…"
+              : error
+                ? "规则结论暂时无法取得"
+                : answerVerdictLabel(answer)
+          }}
         </p>
-        <p v-if="keyCondition" class="place-preview__muted" data-testid="preview-condition">
+        <p
+          v-if="keyCondition && !loading && !error"
+          class="place-preview__muted"
+          data-testid="preview-condition"
+        >
           需满足：{{ keyCondition }}
         </p>
       </div>
 
-      <!-- §32：最近现场 one line -->
-      <div class="place-preview__row">
-        <span class="place-preview__label">最近现场</span>
+      <!-- Keep Reality as a cross-dimension supplement. If Reality is already
+           the active map lens, repeating the same line adds no information. -->
+      <div v-if="showRealitySupplement" class="place-preview__row">
+        <span class="place-preview__label">现场概览</span>
         <span class="place-preview__value" data-testid="preview-reality">{{ realityLine }}</span>
       </div>
 
       <!-- §32：查看场所 → -->
       <footer class="place-preview__foot">
-        <RouterLink class="btn primary" :to="`/place/${place.id}`" data-testid="preview-open">
+        <RouterLink
+          class="btn-inline place-preview__cta"
+          :to="`/place/${place.id}`"
+          data-testid="preview-open"
+        >
           查看场所 →
         </RouterLink>
       </footer>
@@ -93,71 +168,4 @@ const metaLine = computed(() => {
   </section>
 </template>
 
-<style scoped>
-/* §10：map selected preview = 允许的 floating card；半径 10–12 + elevation。 */
-.place-preview {
-  border: 1px solid var(--pa-color-border);
-  border-radius: var(--pa-radius-md);
-  background: var(--pa-color-surface);
-  padding: var(--pa-space-4);
-  display: flex;
-  flex-direction: column;
-  gap: var(--pa-space-3);
-  min-width: 0;
-}
-.place-preview__head {
-  display: flex;
-  flex-direction: column;
-  gap: var(--pa-space-1);
-}
-.place-preview__name {
-  font-size: var(--pa-font-size-xl);
-  font-weight: var(--pa-font-weight-600);
-  line-height: var(--pa-line-height-tight);
-  color: var(--pa-color-text-primary);
-  margin: 0;
-}
-.place-preview__muted {
-  margin: 0;
-  font-size: var(--pa-font-size-md);
-  color: var(--pa-color-text-muted);
-  line-height: var(--pa-line-height-base);
-}
-.place-preview__decision {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--pa-space-1);
-}
-.place-preview__verdict-text {
-  margin: 0;
-  font-size: var(--pa-font-size-xl);
-  font-weight: var(--pa-font-weight-650);
-  color: var(--pa-color-text-primary);
-}
-.place-preview__row {
-  display: flex;
-  gap: var(--pa-space-3);
-  align-items: baseline;
-}
-.place-preview__label {
-  font-size: var(--pa-font-size-md);
-  color: var(--pa-color-text-secondary);
-  flex-shrink: 0;
-}
-.place-preview__value {
-  font-size: var(--pa-font-size-md);
-  color: var(--pa-color-text-primary);
-  line-height: var(--pa-line-height-base);
-  min-width: 0;
-}
-.place-preview__foot {
-  margin-top: var(--pa-space-1);
-}
-.place-preview__hint {
-  margin: 0;
-  padding: var(--pa-space-6) var(--pa-space-4);
-  text-align: center;
-  color: var(--pa-color-text-muted);
-}
-</style>
+<style scoped src="./PlacePreview.css"></style>

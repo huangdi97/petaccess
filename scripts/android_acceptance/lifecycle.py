@@ -19,7 +19,6 @@ from .appops import (
     boot_trace,
     force_stop,
     launch,
-    package_dump,
     shell_pidof,
     wait_home_ready,
 )

@@ -48,10 +48,10 @@ const style = computed(() => ({
     :class="{ 'status-badge--block': block }"
     :style="style"
     :data-status="semantics.key"
+    :aria-label="semantics.ariaLabel"
     role="status"
   >
     <span class="status-badge__icon" aria-hidden="true">{{ semantics.icon }}</span>
-    <span class="status-badge__label">{{ semantics.label }}</span>
-    <span class="visually-hidden">（{{ semantics.ariaLabel }}）</span>
+    <span class="status-badge__label" aria-hidden="true">{{ semantics.label }}</span>
   </span>
 </template>

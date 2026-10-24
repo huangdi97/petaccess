@@ -29,6 +29,8 @@ from .enums import (
     RuleAction,
     RuleEffect,
     TemporaryAction,
+    WatchDomain,
+    WatchEventType,
     WatchStatus,
     WatchTargetType,
 )
@@ -206,17 +208,26 @@ class AuditLog(Base):
 
 
 class WatchSubscription(Base, PkMixin, TimestampMixin):
-    """User watches a place/zone/rule; notified when rules change (design #24)."""
+    """User follows reviewed Rule or Reality changes for one target."""
 
     __tablename__ = "watch_subscription"
     __table_args__ = (
-        UniqueConstraint("user_id", "target_type", "target_id", name="uq_watch_user_target"),
-        Index("ix_watch_target", "target_type", "target_id"),
+        UniqueConstraint(
+            "user_id",
+            "watch_domain",
+            "target_type",
+            "target_id",
+            name="uq_watch_user_domain_target",
+        ),
+        Index("ix_watch_target", "watch_domain", "target_type", "target_id"),
         CheckConstraint("target_id IS NOT NULL", name="needs_target"),
     )
 
     user_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("user.id", ondelete="CASCADE"), nullable=False
+    )
+    watch_domain: Mapped[WatchDomain] = mapped_column(
+        String(16), default=WatchDomain.RULE, nullable=False
     )
     target_type: Mapped[WatchTargetType] = mapped_column(String(16), nullable=False)
     target_id: Mapped[str] = mapped_column(String(36), nullable=False)
@@ -227,3 +238,45 @@ class WatchSubscription(Base, PkMixin, TimestampMixin):
     last_notified_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+
+
+class WatchEvent(Base, PkMixin, TimestampMixin):
+    """One reviewed Rule/Reality publication delivered to one Watch subscription.
+
+    The event is an in-app delivery ledger. It references already-published
+    product truth and deliberately does not copy private RealityReport provenance
+    or external-provider delivery state.
+    """
+
+    __tablename__ = "watch_event"
+    __table_args__ = (
+        UniqueConstraint(
+            "subscription_id",
+            "event_type",
+            "subject_id",
+            name="uq_watch_event_delivery",
+        ),
+        Index("ix_watch_event_user_created", "user_id", "created_at"),
+        Index("ix_watch_event_subscription_created", "subscription_id", "created_at"),
+    )
+
+    subscription_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("watch_subscription.id", ondelete="CASCADE"), nullable=False
+    )
+    user_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("user.id", ondelete="CASCADE"), nullable=False
+    )
+    watch_domain: Mapped[WatchDomain] = mapped_column(String(16), nullable=False)
+    target_type: Mapped[WatchTargetType] = mapped_column(String(16), nullable=False)
+    target_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    event_type: Mapped[WatchEventType] = mapped_column(String(64), nullable=False)
+    subject_type: Mapped[str] = mapped_column(String(32), nullable=False)
+    subject_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    place_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("place.id", ondelete="SET NULL"), nullable=True
+    )
+    occurred_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    read_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    payload: Mapped[dict] = mapped_column(JSON, default=dict, nullable=False)

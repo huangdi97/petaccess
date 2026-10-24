@@ -16,6 +16,7 @@ from app.models.enums import (
     ExternalContentPlatform,
     FacilityAccessMode,
     FacilityOperationalState,
+    FacilityPurposeState,
     FactEvidenceState,
     ObservationEffortDurationBucket,
     ObservationOrigin,
@@ -29,6 +30,7 @@ from app.models.enums import (
     RealityReportPrivacyState,
     RealityVerificationStatus,
     StaffActorRole,
+    StaffAwarenessState,
     StaffResponseAction,
     TimeCertainty,
     TimeEvidenceState,
@@ -118,6 +120,7 @@ class StaffResponseObservationOut(BaseModel):
     actor_role: StaffActorRole
     trigger_context: str | None
     response_action: StaffResponseAction
+    staff_awareness_state: StaffAwarenessState
     response_outcome: str | None
     policy_statement_verbatim: str | None
     observed_at: datetime
@@ -136,6 +139,7 @@ class AnimalFacilityOut(BaseModel):
     place_id: str
     zone_id: str | None
     facility_type: AnimalFacilityType
+    purpose_state: FacilityPurposeState
     operator_provided: bool
     access_mode: FacilityAccessMode
     capacity: int | None
@@ -155,25 +159,101 @@ class AnimalFacilityOut(BaseModel):
     freshness_state: RealityFreshnessState | None
 
 
+class RealityEventOut(BaseModel):
+    """One public, human-verified Reality event for the consumer timeline.
+
+    event_at always carries time_basis so a verification timestamp is never
+    presented as an observed event time. Staff identity is intentionally
+    absent: only role/action facts may be exposed. Facility facts remain
+    separate from entry policy.
+    """
+
+    id: str
+    event_type: str
+    place_id: str
+    zone_id: str | None = None
+    event_at: datetime
+    time_basis: str
+    time_evidence_state: str | None = None
+    origin: str | None = None
+    fact_evidence_state: str | None = None
+    place_match_state: str | None = None
+    content_published_at: datetime | None = None
+    claimed_event_at: datetime | None = None
+    animal_scope: str | None = None
+    observed_action: str | None = None
+    observed_context: str | None = None
+    staff_actor_role: str | None = None
+    staff_action: str | None = None
+    staff_awareness_state: str | None = None
+    staff_outcome: str | None = None
+    staff_policy_statement_verbatim: str | None = None
+    facility_type: str | None = None
+    facility_state: str | None = None
+    facility_purpose_state: str | None = None
+    facility_access_mode: str | None = None
+    facility_capacity: int | None = None
+    facility_size_limit: str | None = None
+    facility_weather_protection: bool | None = None
+    facility_shade: bool | None = None
+    facility_ventilation: bool | None = None
+    facility_water_available: bool | None = None
+    facility_supervision_state: str | None = None
+    facility_security_or_lock_state: str | None = None
+    facility_operator_provided: bool | None = None
+    source_id: str | None = None
+    evidence_bundle_id: str | None = None
+    evidence_material_type: str | None = None
+    evidence_source_platform: str | None = None
+    evidence_publisher_type: str | None = None
+    evidence_class: str | None = None
+    evidence_display_allowed: bool | None = None
+    submitted_at: datetime | None = None
+    confirmation_count: int = 0
+    dispute_open: bool = False
+    verification_status: str
+    freshness_state: str | None = None
+    last_verified_at: datetime | None = None
+
+
 # ---------------------------------------------------------------------------
 # Consumer aggregate — RealityAnswer (v0.9 §9, §11 CoexistenceSnapshot part)
 # ---------------------------------------------------------------------------
 
 
 class StaffResponseSummaryItem(BaseModel):
-    """Counts of one observed staff response action (facts only)."""
+    """Counts of one observed staff response action (facts only).
+
+    Awareness is part of the fact. It prevents an unknown-awareness
+    no-intervention observation from being summarized as staff "allowing" or
+    consciously ignoring the animal.
+    """
 
     response_action: StaffResponseAction
+    staff_awareness_state: StaffAwarenessState
     count: int
+    disputed_count: int = 0
 
 
 class FacilitySummaryItem(BaseModel):
     """One animal facility, with its verified freshness (facts only)."""
 
     facility_type: AnimalFacilityType
+    purpose_state: FacilityPurposeState
+    zone_id: str | None = None
+    zone_name: str | None = None
     count: int
+    disputed_count: int = 0
     operational_state: FacilityOperationalState
     last_verified_at: datetime | None
+
+
+class ObservedZoneFact(BaseModel):
+    """Published spatial facet attached to a verified presence fact."""
+
+    name: str
+    zone_type: str | None = None
+    indoor_outdoor: str | None = None
 
 
 class RealityAnswer(BaseModel):
@@ -184,6 +264,9 @@ class RealityAnswer(BaseModel):
     evidence_count: int = 0
     distinct_source_count: int = 0
     observed_zones: list[str] = []
+    observed_zone_facts: list[ObservedZoneFact] = []
+    observed_zone_types: list[str] = []
+    observed_indoor_outdoor: list[str] = []
     observed_actions: list[str] = []
     staff_response_summary: list[StaffResponseSummaryItem] = []
     facility_summary: list[FacilitySummaryItem] = []

@@ -18,10 +18,17 @@ from app.core.config import get_settings
 from app.core.errors import ApiError, NotFound
 from app.core.security import get_current_user, require_role
 from app.db.session import get_db
-from app.models import AccessRule, DisputeCase, ObservationClaim, User
+from app.models import (
+    AccessRule,
+    DisputeCase,
+    ObservationClaim,
+    User,
+)
 from app.models.enums import (
     DisputeCaseStatus,
+    DisputeTargetType,
     ObservationDisputeStatus,
+    RealityVerificationStatus,
     RuleStatus,
     UserRole,
 )
@@ -33,6 +40,7 @@ from app.schemas.civic import (
     DisputeReview,
 )
 from app.schemas.common import Page
+from app.services.dispute_targets import is_reality_dispute_target, require_dispute_target
 
 router = APIRouter(tags=["disputes"])
 admin = APIRouter(tags=["admin:disputes"])
@@ -46,17 +54,10 @@ def submit_dispute(
 ) -> DisputeCase:
     if not get_settings().feature_dispute:
         raise ApiError("异议功能未开放", code="feature_disabled", status_code=403)
-    # target must exist
-    if body.target_type == "access_rule":
-        if db.get(AccessRule, body.target_id) is None:
-            raise NotFound("目标规则不存在")
-    elif body.target_type == "observation_claim":
-        if db.get(ObservationClaim, body.target_id) is None:
-            raise NotFound("目标观察不存在")
-    else:
-        raise ApiError("不支持的异议目标类型")
+    target_type = body.target_type.value
+    target = require_dispute_target(db, target_type, body.target_id)
     case = DisputeCase(
-        target_type=body.target_type,
+        target_type=target_type,
         target_id=body.target_id,
         claimant_user_id=user.id,
         reason_code=body.reason_code,
@@ -65,12 +66,13 @@ def submit_dispute(
     )
     db.add(case)
     # mark the target as disputed (visible but flagged); content is preserved
-    if body.target_type == "access_rule":
-        rule = db.get(AccessRule, body.target_id)
-        rule.status = RuleStatus.DISPUTED  # type: ignore[union-attr]
-    else:
-        obs = db.get(ObservationClaim, body.target_id)
-        obs.dispute_status = ObservationDisputeStatus.OPEN  # type: ignore[union-attr]
+    if target_type == DisputeTargetType.ACCESS_RULE.value:
+        target.status = RuleStatus.DISPUTED
+    elif target_type == DisputeTargetType.OBSERVATION_CLAIM.value:
+        target.dispute_status = ObservationDisputeStatus.OPEN
+    # v0.9 Reality rows are immutable published facts. Opening a dispute does
+    # not rewrite or delete them; the consumer event projection reads the open
+    # DisputeCase and displays an explicit "异议处理中" state instead.
     db.flush()
     record_audit(
         db,
@@ -78,7 +80,7 @@ def submit_dispute(
         actor_user_id=user.id,
         actor_role=str(user.role),
         action=AuditEvent.DISPUTE_SUBMIT.value,
-        target_type=body.target_type,
+        target_type=target_type,
         target_id=body.target_id,
         after_state={"dispute_id": str(case.id), "reason_code": body.reason_code},
     )
@@ -196,7 +198,7 @@ def resolve_dispute(
     if case is None:
         raise NotFound("异议不存在")
     applied: dict = {"resolution": body.resolution.value}
-    if case.target_type == "access_rule":
+    if case.target_type == DisputeTargetType.ACCESS_RULE.value:
         rule = db.get(AccessRule, case.target_id)
         if rule is not None:
             if body.resolution == "rule_restored":
@@ -207,7 +209,7 @@ def resolve_dispute(
                 applied["rule_status"] = "archived"
             elif body.resolution == "no_change":
                 rule.status = RuleStatus.CURRENT
-    else:
+    elif case.target_type == DisputeTargetType.OBSERVATION_CLAIM.value:
         obs = db.get(ObservationClaim, case.target_id)
         if obs is not None:
             if body.resolution == "observation_upheld":
@@ -218,6 +220,19 @@ def resolve_dispute(
                 applied["withdrawn"] = True
             else:
                 obs.dispute_status = ObservationDisputeStatus.RESOLVED
+    elif is_reality_dispute_target(str(case.target_type)):
+        target = require_dispute_target(db, str(case.target_type), case.target_id)
+        # Published Reality facts are immutable history. A correction/archive
+        # resolution removes the old fact from consumer aggregates by revoking
+        # its verification posture; a corrected replacement must arrive through
+        # a new RealityCandidate, preserving provenance and audit.
+        if body.resolution in (
+            "observation_corrected",
+            "content_archived",
+            "content_deleted",
+        ):
+            target.verification_status = RealityVerificationStatus.UNVERIFIED
+            applied["reality_visibility"] = "withdrawn_from_consumer_projection"
     case.status = DisputeCaseStatus.RESOLVED
     case.resolution = body.resolution
     case.resolution_note = body.resolution_note
@@ -239,7 +254,14 @@ def resolve_dispute(
 
 
 def _apply_unverified(db: Session, case: DisputeCase) -> None:
-    if case.target_type == "access_rule":
+    if case.target_type == DisputeTargetType.ACCESS_RULE.value:
         rule = db.get(AccessRule, case.target_id)
         if rule is not None:
             rule.last_verified_at = None
+    elif case.target_type == DisputeTargetType.OBSERVATION_CLAIM.value:
+        obs = db.get(ObservationClaim, case.target_id)
+        if obs is not None:
+            obs.dispute_status = ObservationDisputeStatus.OPEN
+    # Reality facts stay immutable while the case is open. The open case itself
+    # is the temporary consumer flag; only a final reviewed correction/archive
+    # withdraws the old fact from the published projection.

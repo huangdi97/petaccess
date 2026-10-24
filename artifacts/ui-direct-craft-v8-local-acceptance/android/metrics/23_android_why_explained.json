@@ -1,0 +1,15 @@
+{
+  "gitSha": "d2eeba2fe5ffbfba31f244881f6e1705a07f84c2",
+  "page": "why",
+  "state": "explained",
+  "route": "/place/8412b521-5e1c-505d-9dec-568acb860c76/why",
+  "innerWidth": 412,
+  "innerHeight": 915,
+  "devicePixelRatio": 2.625,
+  "documentClientWidth": 412,
+  "documentScrollWidth": 412,
+  "href": "http://tauri.localhost/#/place/8412b521-5e1c-505d-9dec-568acb860c76/why",
+  "bodyTextHead": "当前查询 | 普通犬 · 进入 · 公共区域 | 修改 | 为什么是这个结果 |  | 这里展示当前查询所依据的规则层级、适用条件和来源；不",
+  "horizontalOverflow": false,
+  "screenshot": "23_android_why_explained.png"
+}

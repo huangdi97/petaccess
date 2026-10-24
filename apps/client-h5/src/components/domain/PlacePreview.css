@@ -1,0 +1,159 @@
+/* §10：map selected preview = 允许的 floating card；半径 10–12 + elevation。 */
+.place-preview {
+  border: 1px solid var(--pa-color-border);
+  border-radius: var(--pa-radius-md);
+  background: var(--pa-color-surface);
+  padding: var(--pa-space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-3);
+  min-width: 0;
+  overflow: hidden;
+}
+.place-preview__head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--pa-space-3);
+}
+
+.place-preview__identity {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-1);
+  min-width: 0;
+}
+
+.place-preview__scene {
+  display: block;
+  width: calc(100% + var(--pa-space-5) + var(--pa-space-5));
+  margin: calc(0px - var(--pa-space-5)) calc(0px - var(--pa-space-5)) var(--pa-space-1);
+  aspect-ratio: 16 / 7;
+  object-fit: cover;
+  border-radius: 0;
+  background: var(--pa-color-surface-muted);
+}
+.place-preview__name {
+  font-size: var(--pa-font-size-xl);
+  font-weight: var(--pa-font-weight-600);
+  line-height: var(--pa-line-height-tight);
+  color: var(--pa-color-text-primary);
+  margin: 0;
+}
+.place-preview__muted {
+  margin: 0;
+  font-size: var(--pa-font-size-md);
+  color: var(--pa-color-text-muted);
+  line-height: var(--pa-line-height-base);
+}
+.place-preview__lens {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-1);
+  padding: var(--pa-space-1) 0 var(--pa-space-3) var(--pa-space-3);
+  border-left: 3px solid var(--pa-color-border-strong);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.place-preview__lens--reality {
+  border-left-color: var(--pa-color-reality-observed);
+}
+
+.place-preview__lens--facility {
+  border-left-color: var(--pa-color-facility-confirmed);
+}
+
+.place-preview__lens--divergence {
+  border-left-color: var(--pa-color-reality-disputed);
+}
+
+.place-preview__lens strong {
+  font-size: var(--pa-font-size-base);
+  line-height: var(--pa-line-height-23);
+  color: var(--pa-color-text-primary);
+}
+
+.place-preview__decision {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--pa-space-1);
+  padding-left: var(--pa-space-3);
+  border-left: 3px solid var(--pa-color-border-strong);
+}
+
+.place-preview__decision--allowed {
+  border-left-color: var(--pa-color-status-allowed);
+}
+
+.place-preview__decision--conditional {
+  border-left-color: var(--pa-color-status-conditional);
+}
+
+.place-preview__decision--restricted {
+  border-left-color: var(--pa-color-status-restricted);
+}
+
+.place-preview__decision--unknown {
+  border-left-color: var(--pa-color-status-unknown);
+}
+
+.place-preview__decision--conflict {
+  border-left-color: var(--pa-color-status-conflict);
+}
+.place-preview__verdict-text {
+  margin: 0;
+  font-size: var(--pa-font-size-xl);
+  font-weight: var(--pa-font-weight-650);
+  color: var(--pa-color-text-primary);
+}
+.place-preview__row {
+  display: flex;
+  gap: var(--pa-space-3);
+  align-items: baseline;
+}
+.place-preview__label {
+  font-size: var(--pa-font-size-sm);
+  color: var(--pa-color-text-secondary);
+  flex-shrink: 0;
+}
+.place-preview__value {
+  font-size: var(--pa-font-size-md);
+  color: var(--pa-color-text-primary);
+  line-height: var(--pa-line-height-base);
+  min-width: 0;
+}
+.place-preview__foot {
+  margin-top: var(--pa-space-1);
+  padding-top: var(--pa-space-1);
+  border-top: 0;
+}
+
+.place-preview__cta {
+  align-self: flex-start;
+  padding-inline: 0;
+}
+.place-preview__hint {
+  margin: 0;
+  padding: var(--pa-space-6) var(--pa-space-4);
+  text-align: center;
+  color: var(--pa-color-text-muted);
+}
+
+.place-preview__lens--primary strong {
+  font-size: var(--pa-font-size-lg);
+  font-weight: var(--pa-font-weight-650);
+  line-height: var(--pa-line-height-26);
+}
+
+.place-preview__decision--secondary {
+  padding-top: var(--pa-space-1);
+  padding-left: 0;
+  border-top: none;
+  border-left: 0;
+}
+
+.place-preview__decision--secondary .place-preview__verdict-text {
+  font-size: var(--pa-font-size-base);
+  font-weight: var(--pa-font-weight-600);
+  line-height: var(--pa-line-height-23);
+}

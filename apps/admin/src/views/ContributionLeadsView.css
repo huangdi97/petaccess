@@ -1,0 +1,49 @@
+.page-head,
+.queue-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.page-head p {
+  max-width: 760px;
+}
+
+.governance-note {
+  display: grid;
+  gap: 6px;
+  margin: 16px 0 20px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--pa-color-bg-app);
+  font-size: 13px;
+}
+
+.governance-note span {
+  color: var(--muted);
+}
+
+.queue-section {
+  margin-top: 28px;
+}
+
+.queue-head {
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+
+.queue-head h2 {
+  margin: 0;
+}
+
+.lead-note {
+  max-width: 520px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}

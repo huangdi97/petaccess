@@ -6,6 +6,10 @@ import { bindStorage, configureApi } from "@petaccess/client-core";
 import { bootStage } from "./config/bootTrace";
 import { detectRuntimeKind, resolveApiEndpoint } from "./config/endpoints";
 import "./styles.css";
+import "./styles/consumer-discovery-v9.css";
+import "./styles/consumer-discovery-v10.css";
+import "./styles/consumer-discovery-v11.css";
+import { installVisualViewportState } from "./runtime/visualViewport";
 
 bootStage("INDEX_LOADED");
 
@@ -48,7 +52,25 @@ router.afterEach((to) => {
 
 router
   .isReady()
-  .then(() => bootStage("ROUTER_READY"))
+  .then(async () => {
+    bootStage("ROUTER_READY");
+    if (kind === "TAURI_ANDROID") {
+      document.documentElement.dataset.androidBack = "installing";
+      try {
+        const { installAndroidBackHandler } = await import("./runtime/androidBack");
+        await installAndroidBackHandler(router);
+        if (document.documentElement.dataset.androidBack === "installing") {
+          document.documentElement.dataset.androidBack = "system-root";
+        }
+        bootStage("ANDROID_BACK_READY");
+      } catch {
+        document.documentElement.dataset.androidBack = "failed";
+        bootStage("ANDROID_BACK_FAILED");
+      }
+    }
+  })
   .catch(() => bootStage("ROUTER_FAILED"));
+
+installVisualViewportState();
 
 createApp(App).use(router).mount("#app");

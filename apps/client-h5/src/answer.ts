@@ -31,6 +31,10 @@ export const ANSWERED_STATUSES: readonly StatusKey[] = ["ALLOWED", "CONDITIONAL"
  * one screen said 「有条件进入」 about the answer another called 「有条件可进入」.
  */
 export function answerVerdictLabel(answer: AccessAnswer | null | undefined): string {
+  // The status badge and the large natural-language verdict must agree.
+  // A provisional normative effect must never be presented as permission
+  // when the server also reports unresolved source conflicts.
+  if (answer?.conflict_state?.has_conflict) return "来源不一致，待复核";
   switch (answer?.normative_result.effect) {
     case "allowed":
       return "可以进入";
@@ -41,6 +45,16 @@ export function answerVerdictLabel(answer: AccessAnswer | null | undefined): str
     default:
       return "信息不足";
   }
+}
+
+/** A compact headline cannot bypass a conflicting status using the
+ * resolver's provisional summary. Never advertise permission during a
+ * published-rule conflict, even in a one-line search result. */
+export function answerPrimarySummary(answer: AccessAnswer | null | undefined): string {
+  // Consumer list headlines are a controlled vocabulary. Server summaries are
+  // useful trace material but may contain resolver/internal wording such as
+  // field names; conditions and evidence are rendered in their own rows.
+  return answerVerdictLabel(answer);
 }
 
 /**
@@ -57,8 +71,9 @@ export function answerScopeLabel(
   if (!answer) return `${speciesLabel} · 场所整体`;
   const scope = answer.scope_summary;
   if (scope.scope_level === "zone" && scope.zone) return `${speciesLabel} · ${scope.zone.name}`;
-  if (scope.scope_level === "none") return `${speciesLabel} · 尚无规则`;
+  if (scope.scope_level === "none") return `${speciesLabel} · 当前查询暂无适用规则`;
   if (scope.scope_level === "jurisdiction") return `${speciesLabel} · 辖区法规`;
+  if (scope.scope_level === "mixed") return `${speciesLabel} · 多层级适用范围`;
   return `${speciesLabel} · 场所整体`;
 }
 
@@ -75,7 +90,9 @@ export function answerConditions(
   answer: AccessAnswer | null | undefined,
   obligationLabels: Record<string, string> = {},
 ): string[] {
-  if (!answer) return [];
+  if (!answer || answer.conflict_state?.has_conflict) return [];
+  // Conflicting rule sources cannot yield actionable entry conditions until
+  // reviewed, even if the provisional resolver reports a conditional effect.
   const out: string[] = [];
   const push = (label: string) => {
     if (label && !out.includes(label)) out.push(label);
@@ -85,7 +102,7 @@ export function answerConditions(
     if (type) push(conditionLabel(type));
   }
   for (const obligation of answer.rights_information?.operator_obligations ?? []) {
-    push(obligationLabels[obligation] ?? obligation);
+    push(obligationLabels[obligation] ?? conditionLabel(obligation));
   }
   const missing = answer.condition_evaluation?.missing_inputs ?? [];
   if (missing.length) {
@@ -93,7 +110,7 @@ export function answerConditions(
       holder_scope: "需说明同行人身份（是否为残障人士）",
       service_role: "需说明动物角色（导盲犬 / 助听犬 / 其他服务犬）",
     };
-    for (const input of missing) push(zh[input] ?? `${input} 未知`);
+    for (const input of missing) push(zh[input] ?? "还需补充查询信息");
   }
   return out;
 }

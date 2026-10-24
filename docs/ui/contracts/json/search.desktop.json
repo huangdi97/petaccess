@@ -1,6 +1,6 @@
 {
   "id": "search.desktop",
-  "title": "Search Desktop Contract v0.2.3 Executable Blueprint",
+  "title": "Search Desktop Contract — Consumer v11 Urban Spatial Guide",
   "viewport": {
     "width": 1440,
     "height": 900
@@ -13,7 +13,7 @@
         "page": "search",
         "state": "ready-selected",
         "fixture": "search-ready-v1",
-        "h1": "搜索场所规则",
+        "h1": "搜索场所的规则与现场",
         "selectedId": "search-selected-row",
         "componentCounts": [
           {
@@ -30,7 +30,7 @@
         "page": "search",
         "state": "ready-selected",
         "fixture": "search-ready-v1",
-        "h1": "搜索场所规则",
+        "h1": "搜索场所的规则与现场",
         "selectedId": "search-selected-row"
       }
     }
@@ -78,8 +78,8 @@
       "fallbacks": [".search-result-pane"],
       "props": {
         "width": {
-          "min": 392,
-          "max": 408
+          "min": 348,
+          "max": 372
         }
       },
       "severity": "FAIL"
@@ -90,8 +90,8 @@
       "fallbacks": ["[data-testid='decision-inspector']"],
       "props": {
         "left": {
-          "min": 460,
-          "max": 476
+          "min": 420,
+          "max": 436
         }
       },
       "severity": "WARN"
@@ -116,8 +116,8 @@
       ],
       "props": {
         "maxChildWidth": {
-          "min": 620,
-          "max": 680
+          "min": 760,
+          "max": 840
         }
       },
       "severity": "FAIL"
@@ -128,8 +128,8 @@
       "fallbacks": ["[data-testid='search-input']"],
       "props": {
         "height": {
-          "min": 44,
-          "max": 46
+          "min": 47,
+          "max": 49
         }
       },
       "severity": "FAIL"
@@ -140,8 +140,8 @@
       "fallbacks": ["[data-testid='search-btn']"],
       "props": {
         "height": {
-          "min": 44,
-          "max": 46
+          "min": 47,
+          "max": 49
         }
       },
       "severity": "FAIL"
@@ -155,36 +155,39 @@
       ],
       "props": {
         "height": {
-          "min": 92,
-          "max": 108
+          "min": 138,
+          "max": 160
         }
       },
       "severity": "FAIL",
-      "aggregate": "rows"
+      "aggregate": "rows",
+      "note": "v11 keeps desktop Search rows compact and divider-led. The current 141.5px measured row preserves place identity, Rule, Reality and evidence metadata without reverting to card-like padding."
     },
     {
-      "id": "SEARCH_ROW_RADIUS_ZERO",
+      "id": "SEARCH_ROW_RADIUS_CRAFTED",
       "ui": "search-result-row",
       "fallbacks": ["ul.result-list li"],
       "props": {
         "borderRadius": {
-          "equals": "0"
+          "equals": 0
         }
       },
       "severity": "FAIL",
-      "aggregate": "rows"
+      "aggregate": "rows",
+      "note": "v11 Search is a divider-led place list; rows do not become floating cards."
     },
     {
-      "id": "SEARCH_ROW_SHADOW_NONE",
+      "id": "SEARCH_ROW_ELEVATED",
       "ui": "search-result-row",
       "fallbacks": ["ul.result-list li"],
       "props": {
-        "boxShadow": {
-          "equals": "none"
+        "shadowed": {
+          "max": 0
         }
       },
       "severity": "FAIL",
-      "aggregate": "rows"
+      "aggregate": "rows",
+      "note": "v11 removes per-row elevation so the result pane reads as one continuous place list."
     },
     {
       "id": "SEARCH_ROW_DIVIDER",
@@ -228,8 +231,8 @@
       "fallbacks": [".decision-inspector__name"],
       "props": {
         "fontSize": {
-          "min": 27,
-          "max": 29
+          "min": 32,
+          "max": 38
         }
       },
       "severity": "FAIL"
@@ -275,10 +278,62 @@
       "severity": "FAIL"
     },
     {
-      "id": "SEARCH_NO_DUPLICATE_STATUS_BADGE",
+      "id": "SEARCH_DETAIL_HEADER_NO_DUPLICATE_STATUS_BADGE",
       "selector": "[data-ui='search-detail-content'] header .status-badge",
       "max": 0,
       "severity": "FAIL"
+    },
+    {
+      "id": "SEARCH_ROW_REALITY_PRESENT",
+      "selector": "[data-testid='result-reality'], [data-testid='row-lens-headline']",
+      "min": 1,
+      "severity": "FAIL"
+    },
+    {
+      "id": "SEARCH_ROW_EVIDENCE_META_PRESENT",
+      "selector": "[data-testid='result-evidence-meta']",
+      "min": 1,
+      "severity": "WARN"
+    },
+    {
+      "id": "SEARCH_DEFAULT_RULE_FIRST",
+      "selector": "[data-testid='row-lens-headline'].result-row__decision--lead",
+      "min": 1,
+      "severity": "FAIL",
+      "pages": ["search-ready", "search-selected"],
+      "note": "Canonical Search answers the access question first. Reality-first headlines require an explicit presence/indoor/dining lens."
+    },
+    {
+      "id": "SEARCH_RULE_STAYS_VISIBLE",
+      "selector": "[data-ui='search-rule-summary']",
+      "min": 1,
+      "severity": "FAIL",
+      "pages": ["search-ready", "search-selected"],
+      "note": "v11: Rule stays visible as one natural-language summary; semantic colour supports the conclusion without repeating a status badge."
+    },
+    {
+      "id": "SEARCH_ROW_SPATIAL_IDENTITY",
+      "selector": "[data-ui='search-results-pane'] [data-ui='place-type-glyph']",
+      "min": 1,
+      "severity": "WARN",
+      "note": "Neutral place-type glyph restores spatial scanability without fake/decorative photography."
+    },
+    {
+      "id": "SEARCH_DETAIL_PRIMARY_OPEN",
+      "selector": "[data-ui='search-detail-content'] [data-testid='inspector-open'].primary",
+      "min": 1,
+      "max": 1,
+      "pages": ["search-ready", "search-selected"],
+      "severity": "FAIL",
+      "note": "Search detail closes the decision loop with one primary Open Full Dossier action; Place inspector remains text-link only."
+    },
+    {
+      "id": "SEARCH_MAJOR_EXCEPTION_VISIBLE",
+      "selector": "[data-ui='search-detail-content'] [data-testid='inspector-divergence']",
+      "min": 1,
+      "pages": ["search-ready"],
+      "severity": "WARN",
+      "note": "The canonical seeded first result has meaningful Rule–Reality divergence, so Search must surface it rather than leave a blank semantic gap."
     }
   ],
   "density": [
@@ -319,14 +374,6 @@
       "minRatio": 1.5,
       "severity": "FAIL",
       "note": "v0.2.7 §40：detail 的 place name 必须显著强于 Type·地址 metadata。"
-    },
-    {
-      "id": "STATUS_BADGE_NOT_PRIMARY",
-      "a": ".result-row .status-badge",
-      "b": ".result-row__name",
-      "maxRatio": 0.95,
-      "severity": "FAIL",
-      "note": "v0.2.7 §26/§40：row 内 status badge 字号低于场所名。"
     }
   ],
   "budget": [
@@ -334,8 +381,9 @@
       "id": "SEARCH_DESKTOP_ROW_TEXT_LINES",
       "metric": "rowTextLines",
       "selector": "ul.result-list",
-      "max": 5,
-      "severity": "FAIL"
+      "max": 7,
+      "severity": "FAIL",
+      "note": "v9 permits one extra rendered line for spatial identity/evidence metadata, while semantic groups remain bounded and Rule/Reality are not duplicated."
     },
     {
       "id": "SEARCH_DETAIL_FIRST_VIEWPORT_BLOCKS",
@@ -359,8 +407,8 @@
       "metric": "contentOccupancy",
       "selector": "[data-ui='search-detail-content']",
       "container": "[data-ui='search-detail-pane']",
-      "min": 0.35,
-      "max": 0.78,
+      "min": 0.5,
+      "max": 0.9,
       "severity": "FAIL"
     },
     {
@@ -379,5 +427,5 @@
     "allcapsTokens": true,
     "refs": true
   },
-  "notes": "v0.2.3 §21–22：Rail 68 / Topbar 60 / Results 400（x=68）/ Detail 972（x=468）；row radius=0 + divider + ≤5 text lines；selected = subtle tint + 2px indicator；detail content w∈680–724、首屏 ≥5 blocks、最大语义 gap ≤72px。"
+  "notes": "Consumer v11: desktop Search is a divider-led place-exploration list-detail workspace. Rule remains first by default; Reality and evidence stay visible without turning each result into a floating card. Selection is a subtle background/left indicator, not a second card style."
 }

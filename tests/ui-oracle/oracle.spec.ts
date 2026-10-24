@@ -380,6 +380,8 @@ async function runContract(
       const token = await signIn(request);
       await page.goto("/");
       await page.evaluate((t) => localStorage.setItem("pa_token", t), token);
+      await page.reload();
+      await settle(page);
     }
     await page.goto(pageDef.route);
     await freezeMotion(page);
@@ -468,6 +470,10 @@ for (const contractRow of CONTRACTS) {
     request,
   }, testInfo) => {
     const project = testInfo.project.name;
+    test.skip(
+      project === "oracle-tablet",
+      "canonical contract rows own desktop/mobile viewports; tablet has dedicated responsive and Human Review evidence",
+    );
     const wantDesktop = contractRow.viewport.width >= 1000;
     const isDesktopProject = project === "oracle-desktop";
     test.skip(

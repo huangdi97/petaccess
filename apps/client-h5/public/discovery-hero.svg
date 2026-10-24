@@ -1,0 +1,143 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" fill="none" role="img" aria-label="城市公园与携宠散步的抽象场景插画">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#F8EED8"/>
+      <stop offset="0.5" stop-color="#F1E8D2"/>
+      <stop offset="0.78" stop-color="#E6E7D4"/>
+      <stop offset="1" stop-color="#DCE4D4"/>
+    </linearGradient>
+    <linearGradient id="far" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#C2CDBD"/>
+      <stop offset="1" stop-color="#CBD5C5"/>
+    </linearGradient>
+    <linearGradient id="mid" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#93A895"/>
+      <stop offset="1" stop-color="#A8BA9F"/>
+    </linearGradient>
+    <linearGradient id="lawn" x1="0" y1="0" x2="0.15" y2="1">
+      <stop stop-color="#7F9874"/>
+      <stop offset="1" stop-color="#5A7A5B"/>
+    </linearGradient>
+    <linearGradient id="path" x1="0" y1="0" x2="1" y2="0.1">
+      <stop stop-color="#F3EAD6"/>
+      <stop offset="1" stop-color="#E3D8C0"/>
+    </linearGradient>
+    <radialGradient id="sunGlow" cx="0.5" cy="0.5" r="0.5">
+      <stop stop-color="#F9D79F" stop-opacity="0.75"/>
+      <stop offset="0.6" stop-color="#F7D3A0" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#F7D3A0" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="vignette" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#2A2419" stop-opacity="0"/>
+      <stop offset="0.78" stop-color="#2A2419" stop-opacity="0"/>
+      <stop offset="1" stop-color="#2A2419" stop-opacity="0.18"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#sky)"/>
+  <circle cx="1190" cy="220" r="270" fill="url(#sunGlow)"/>
+  <circle cx="1190" cy="220" r="86" fill="#F8D9A5"/>
+
+  <!-- distant skyline -->
+  <g fill="url(#far)">
+    <rect x="80" y="410" width="86" height="190" rx="4"/>
+    <rect x="178" y="366" width="54" height="234" rx="4"/>
+    <rect x="246" y="438" width="104" height="162" rx="4"/>
+    <rect x="364" y="392" width="66" height="208" rx="4"/>
+    <rect x="444" y="330" width="48" height="270" rx="4"/>
+    <rect x="506" y="420" width="112" height="180" rx="4"/>
+    <rect x="632" y="378" width="60" height="222" rx="4"/>
+    <rect x="706" y="442" width="92" height="158" rx="4"/>
+    <rect x="812" y="396" width="56" height="204" rx="4"/>
+    <rect x="882" y="348" width="70" height="252" rx="4"/>
+    <rect x="966" y="424" width="120" height="176" rx="4"/>
+    <rect x="1100" y="386" width="58" height="214" rx="4"/>
+    <rect x="1172" y="440" width="96" height="160" rx="4"/>
+    <rect x="1282" y="402" width="70" height="198" rx="4"/>
+    <rect x="1366" y="452" width="112" height="148" rx="4"/>
+    <rect x="1492" y="398" width="58" height="202" rx="4"/>
+  </g>
+
+  <!-- window hints -->
+  <g fill="#F4EFDF" opacity="0.3">
+    <rect x="196" y="388" width="8" height="12" rx="1"/>
+    <rect x="212" y="388" width="8" height="12" rx="1"/>
+    <rect x="196" y="412" width="8" height="12" rx="1"/>
+    <rect x="212" y="412" width="8" height="12" rx="1"/>
+    <rect x="196" y="436" width="8" height="12" rx="1"/>
+    <rect x="212" y="436" width="8" height="12" rx="1"/>
+    <rect x="462" y="352" width="7" height="11" rx="1"/>
+    <rect x="476" y="352" width="7" height="11" rx="1"/>
+    <rect x="462" y="376" width="7" height="11" rx="1"/>
+    <rect x="476" y="376" width="7" height="11" rx="1"/>
+    <rect x="898" y="370" width="8" height="12" rx="1"/>
+    <rect x="914" y="370" width="8" height="12" rx="1"/>
+    <rect x="898" y="394" width="8" height="12" rx="1"/>
+    <rect x="914" y="394" width="8" height="12" rx="1"/>
+    <rect x="1298" y="424" width="8" height="12" rx="1"/>
+    <rect x="1314" y="424" width="8" height="12" rx="1"/>
+    <rect x="1298" y="448" width="8" height="12" rx="1"/>
+    <rect x="1314" y="448" width="8" height="12" rx="1"/>
+  </g>
+
+  <!-- midground buildings -->
+  <g fill="url(#mid)">
+    <rect x="-10" y="520" width="150" height="150" rx="6"/>
+    <rect x="164" y="496" width="102" height="174" rx="6"/>
+    <rect x="288" y="536" width="146" height="134" rx="6"/>
+    <rect x="456" y="500" width="86" height="170" rx="6"/>
+    <rect x="562" y="548" width="180" height="122" rx="6"/>
+    <rect x="762" y="512" width="98" height="158" rx="6"/>
+    <rect x="880" y="544" width="156" height="126" rx="6"/>
+    <rect x="1058" y="506" width="94" height="164" rx="6"/>
+    <rect x="1172" y="548" width="170" height="122" rx="6"/>
+    <rect x="1362" y="516" width="106" height="154" rx="6"/>
+    <rect x="1488" y="548" width="122" height="122" rx="6"/>
+  </g>
+
+  <!-- lawn / path -->
+  <rect x="0" y="632" width="1600" height="268" fill="url(#lawn)"/>
+  <path d="M-20 738c250-34 470-16 690 18s440 44 690 12 260-26 260-26v70c-140 4-260 16-390 38s-340 26-570-6-430-50-680 0z" fill="url(#path)"/>
+  <path d="M-40 842c260-28 520-26 780 6s520 26 900-14v86H-40z" fill="#597757" opacity="0.9"/>
+
+  <!-- trees -->
+  <g>
+    <rect x="126" y="600" width="12" height="86" rx="6" fill="#6E5E46"/>
+    <circle cx="132" cy="560" r="58" fill="#4F7050"/>
+    <circle cx="92" cy="592" r="40" fill="#5C7C58"/>
+    <circle cx="176" cy="592" r="44" fill="#5C7C58"/>
+    <rect x="1428" y="588" width="12" height="94" rx="6" fill="#6E5E46"/>
+    <circle cx="1434" cy="548" r="64" fill="#4F7050"/>
+    <circle cx="1386" cy="588" r="44" fill="#5C7C58"/>
+    <circle cx="1482" cy="586" r="46" fill="#5C7C58"/>
+    <rect x="470" y="640" width="9" height="62" rx="4" fill="#6E5E46"/>
+    <circle cx="474" cy="614" r="38" fill="#55765A"/>
+  </g>
+
+  <!-- dog walker silhouette -->
+  <g fill="#233629" transform="translate(300 0)">
+    <circle cx="878" cy="566" r="17"/>
+    <path d="M864 588c-5 24-7 48-5 72h13l5-40 7 40h13c2-26 0-50-5-72z"/>
+    <path d="M862 598c-13 9-22 22-27 38l9 5c7-12 14-20 24-26z"/>
+    <path d="M894 598c12 9 21 21 26 36l-9 5c-7-12-14-19-23-25z"/>
+    <path d="M868 656c-4 11-9 20-16 27l7 7c11-9 18-20 22-31z"/>
+    <path d="M888 656c4 11 9 20 16 27l-7 7c-11-9-18-20-22-31z"/>
+    <path d="M896 624c26 6 48 4 70-6" stroke="#233629" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <ellipse cx="986" cy="640" rx="33" ry="16"/>
+    <circle cx="1020" cy="626" r="13"/>
+    <path d="M1030 616l13-9 6 11-11 8z"/>
+    <path d="M958 650l-4 21h8l6-19z"/>
+    <path d="M982 652l-2 21h8l4-19z"/>
+    <path d="M1002 652l2 21h8l-2-19z"/>
+    <path d="M952 634c-11-2-21-9-28-18 11 4 22 7 31 11z"/>
+  </g>
+
+  <!-- birds -->
+  <g stroke="#7C8B78" stroke-width="3" stroke-linecap="round" opacity="0.5">
+    <path d="M1040 300c8-8 14-8 22 0"/>
+    <path d="M1084 278c10-10 18-10 28 0"/>
+    <path d="M984 330c7-7 13-7 20 0"/>
+  </g>
+
+  <rect width="1600" height="900" fill="url(#vignette)"/>
+</svg>
