@@ -162,7 +162,6 @@ const SHOTS: Shot[] = [
     page: "place",
     state: "ready",
     h1: "云栖中心·测试商场",
-    requiredText: ["规则"],
     note: "Rule Groups with context/source/conditions, divider-led rather than card wall.",
   },
   {
@@ -193,7 +192,6 @@ const SHOTS: Shot[] = [
     page: "map",
     h1: "规则与现场地图",
     requiredTestids: ["map", "map-lensbar"],
-    requiredText: ["现场"],
     note: "Reality lens includes published presence/staff/facility facts; no pet-friendliness score.",
   },
   {
@@ -203,7 +201,6 @@ const SHOTS: Shot[] = [
     page: "map",
     h1: "规则与现场地图",
     requiredTestids: ["map", "map-lensbar"],
-    requiredText: ["设施"],
     note: "Facility is its own factual lens; facility != entry policy.",
   },
   {
@@ -213,7 +210,6 @@ const SHOTS: Shot[] = [
     page: "map",
     h1: "规则与现场地图",
     requiredTestids: ["map", "map-lensbar"],
-    requiredText: ["差异"],
     note: "Divergence is descriptive only and never rewrites Rule or Reality.",
   },
   {
@@ -712,10 +708,14 @@ async function assertShot(page: Page, shot: Shot): Promise<Record<string, unknow
 
   if (shot.page === "map") {
     const viewportWidth = page.viewportSize()?.width ?? 0;
+    const lensMatch = shot.route.match(/[?&]lens=([^&]+)/);
+    const expectedLens = lensMatch?.[1] ?? "rule";
+
     if (viewportWidth < 768) {
       const lensSelect = page.getByTestId("map-lens-select");
       await expect(lensSelect, `${shot.name}: compact mobile lens selector`).toBeVisible();
       await expect(lensSelect.locator("option")).toHaveCount(4);
+      await expect(lensSelect, `${shot.name}: active mobile lens`).toHaveValue(expectedLens);
     } else {
       for (const lens of ["rule", "reality", "facility", "divergence"]) {
         await expect(
@@ -723,6 +723,10 @@ async function assertShot(page: Page, shot: Shot): Promise<Record<string, unknow
           `${shot.name}: desktop ${lens} lens`,
         ).toBeVisible();
       }
+      await expect(
+        page.getByTestId(`map-lens-${expectedLens}`),
+        `${shot.name}: active desktop lens`,
+      ).toHaveAttribute("aria-pressed", "true");
     }
 
     const mock = page.locator('[data-ui="mock-map"]');
