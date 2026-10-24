@@ -289,6 +289,24 @@ test("A1.0.1 — fallback marker 不靠颜色单独表达语义", async ({ page 
   await expect(pin.locator(".lbl")).not.toHaveText("");
 });
 
+test("A1.0.3 — mobile compact lens selector stays route-synchronised", async ({ page }) => {
+  await page.setViewportSize({ width: 430, height: 932 });
+  await page.goto(`${BASE}/#/map`);
+
+  const selector = page.getByTestId("map-lens-select");
+  await expect(selector).toBeVisible({ timeout: 15000 });
+  await expect(selector.locator("option")).toHaveCount(4);
+  await expect(selector).toHaveValue("rule");
+
+  await selector.selectOption("reality");
+  await expect(selector).toHaveValue("reality");
+  await expect(page).toHaveURL(/#\/map\?lens=reality/);
+
+  const glyph = page.locator(".dot__glyph").first();
+  await expect(glyph).toBeVisible({ timeout: 15000 });
+  await expect(glyph).not.toHaveText("✓");
+});
+
 test("A1.0.2 — nearby venue cluster is neutral and requires per-place inspection", async ({
   page,
 }) => {
