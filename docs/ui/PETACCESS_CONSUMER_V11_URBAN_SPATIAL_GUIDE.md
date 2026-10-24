@@ -125,7 +125,16 @@ full spatial canvas
 
 No explanatory paragraph may permanently consume map height.
 
+On mobile, persistent map chrome should resolve to **at most two overlay rows** above the spatial canvas:
+
+1. in-map search / locate;
+2. compact query context + current Lens selector + map/list control.
+
+Rule / Reality / Facility / Divergence remain four first-class lenses, but mobile does not need four permanently expanded buttons. Desktop may keep the segmented four-lens row because horizontal space is not the scarce resource there.
+
 When a real map provider is unavailable, the fallback map must still read as an urban spatial canvas rather than a test grid: it may use illustrative road hierarchy, blocks, open-space patches, water and building mass hints. It must remain explicitly disclosed as a non-surveyed illustrative basemap and must never invent venue names, operator facts or rule data.
+
+Fallback truth should be disclosed **once**. Do not stack a provider caption and a second app-level disclosure for the same fact. Do not show metric scale, zoom-level prose or other pseudo-precision on an illustrative basemap; real zoom interaction may remain.
 
 Desktop:
 
