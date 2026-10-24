@@ -470,12 +470,13 @@ html,
     position: absolute;
     z-index: 24;
     top: 72px;
-    right: auto;
+    right: 194px;
     left: 12px;
-    width: max-content;
-    max-width: calc(100% - 24px);
+    width: auto;
+    max-width: none;
+    min-width: 0;
     min-height: 38px;
-    padding: 5px 8px 5px 12px;
+    padding: 5px 6px 5px 10px;
     border: 1px solid var(--pa-discovery-line);
     border-radius: 12px;
     background: var(--pa-discovery-v10-paper);
@@ -486,47 +487,60 @@ html,
     display: none;
   }
 
+  #app .map-workspace > .query-context .query-context__value {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   #app .map-workspace > .query-context .query-context__edit {
+    flex: 0 0 auto;
     min-height: 30px;
-    padding: 2px 9px;
+    padding: 2px 7px;
     font-size: 12px;
   }
 
   #app .map-workspace .map-lensbar {
     position: absolute;
     z-index: 23;
-    top: 116px;
-    left: 12px;
-    min-height: 0;
+    top: 72px;
+    right: 104px;
+    left: auto;
+    min-height: 38px;
     padding: 0;
     border: 0;
     background: transparent;
   }
 
   #app .map-workspace .map-lensbar__label,
-  #app .map-workspace .map-lensbar__hint {
+  #app .map-workspace .map-lensbar__hint,
+  #app .map-workspace .map-lensbar__options {
     display: none;
   }
 
-  #app .map-workspace .map-lensbar__options {
-    gap: 0;
-    padding: 3px;
-    border-color: var(--pa-discovery-line);
-    border-radius: 12px;
-    background: var(--pa-discovery-v10-paper);
-    box-shadow: 0 6px 18px var(--pa-discovery-v10-shadow-row);
+  #app .map-workspace .map-lensbar__mobile-select {
+    display: block;
   }
 
-  #app .map-workspace .map-lensbar__button {
-    min-height: 36px;
-    padding-inline: 10px;
+  #app .map-workspace .map-lensbar__mobile-select select {
+    width: 78px;
+    min-height: 38px;
+    padding: 0 24px 0 10px;
+    border: 1px solid var(--pa-discovery-line);
+    border-radius: 12px;
+    background: var(--pa-discovery-v10-paper);
+    color: var(--pa-discovery-ink);
+    box-shadow: 0 6px 18px var(--pa-discovery-v10-shadow-row);
+    font: inherit;
     font-size: 12px;
+    font-weight: 650;
   }
 
   #app .map-workspace .map-viewbar {
     position: absolute;
     z-index: 23;
-    top: 116px;
+    top: 72px;
     right: 12px;
     padding: 0;
     border: 0;
@@ -579,7 +593,15 @@ html,
   }
 
   #app .map-workspace--mobile-list .map-lensbar {
+    width: auto;
+    min-height: 0;
     padding: 8px 12px 4px;
+  }
+
+  #app .map-workspace--mobile-list .map-lensbar__mobile-select select {
+    width: 100%;
+    min-width: 112px;
+    box-shadow: none;
   }
 
   #app .map-workspace--mobile-list .map-viewbar {
