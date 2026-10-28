@@ -466,12 +466,26 @@ html,
     background: var(--pa-color-map-grid-a);
   }
 
-  #app .map-workspace > .query-context {
+  #app .map-workspace .map-context-strip {
     position: absolute;
     z-index: 24;
     top: 82px;
-    right: 194px;
+    right: 12px;
     left: 12px;
+    display: flex;
+    align-items: stretch;
+    gap: 4px;
+    pointer-events: none;
+  }
+
+  #app .map-workspace .map-context-strip > * {
+    pointer-events: auto;
+  }
+
+  #app .map-workspace .map-context-strip > .query-context {
+    position: static;
+    z-index: auto;
+    flex: 1 1 auto;
     width: auto;
     max-width: none;
     min-width: 0;
@@ -483,30 +497,28 @@ html,
     box-shadow: 0 6px 18px var(--pa-discovery-v10-shadow-row);
   }
 
-  #app .map-workspace > .query-context .query-context__label {
+  #app .map-workspace .map-context-strip > .query-context .query-context__label {
     display: none;
   }
 
-  #app .map-workspace > .query-context .query-context__value {
+  #app .map-workspace .map-context-strip > .query-context .query-context__value {
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  #app .map-workspace > .query-context .query-context__edit {
+  #app .map-workspace .map-context-strip > .query-context .query-context__edit {
     flex: 0 0 auto;
     min-height: 30px;
     padding: 2px 7px;
     font-size: 12px;
   }
 
-  #app .map-workspace .map-lensbar {
-    position: absolute;
-    z-index: 23;
-    top: 82px;
-    right: 106px;
-    left: auto;
+  #app .map-workspace .map-context-strip > .map-lensbar {
+    position: static;
+    z-index: auto;
+    flex: 0 0 auto;
     min-height: 38px;
     padding: 0;
     border: 0;
@@ -551,11 +563,10 @@ html,
     font-weight: 650;
   }
 
-  #app .map-workspace .map-viewbar {
-    position: absolute;
-    z-index: 23;
-    top: 82px;
-    right: 12px;
+  #app .map-workspace .map-context-strip > .map-viewbar {
+    position: static;
+    z-index: auto;
+    flex: 0 0 auto;
     padding: 0;
     border: 0;
   }
@@ -596,20 +607,25 @@ html,
     box-shadow: 0 8px 24px var(--pa-discovery-v10-shadow-row);
   }
 
-  #app .map-workspace--mobile-list > .query-context,
-  #app .map-workspace--mobile-list .map-lensbar,
-  #app .map-workspace--mobile-list .map-viewbar {
+  #app .map-workspace--mobile-list .map-context-strip {
     position: static;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    padding: 10px 12px 8px;
+    background: var(--pa-discovery-v10-paper);
+    pointer-events: auto;
   }
 
-  #app .map-workspace--mobile-list > .query-context {
-    margin: 10px 12px 0;
+  #app .map-workspace--mobile-list .map-context-strip > .query-context {
+    grid-column: 1 / -1;
+    margin: 0;
   }
 
-  #app .map-workspace--mobile-list .map-lensbar {
+  #app .map-workspace--mobile-list .map-context-strip > .map-lensbar {
     width: auto;
     min-height: 0;
-    padding: 8px 12px 4px;
+    padding: 0;
   }
 
   #app .map-workspace--mobile-list .map-lensbar__mobile-select select {
@@ -618,9 +634,9 @@ html,
     box-shadow: none;
   }
 
-  #app .map-workspace--mobile-list .map-viewbar {
+  #app .map-workspace--mobile-list .map-context-strip > .map-viewbar {
     justify-content: flex-end;
-    padding: 4px 12px 8px;
+    padding: 0;
   }
 
   #app .map-workspace--mobile-list .map-workspace__body {
