@@ -471,6 +471,25 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   margin: 0;
   font-size: var(--pa-font-size-md);
 }
+
+/* Half state is a spatial bridge, not a second detail page. Long identity or
+ * decision copy must not grow the sheet enough to steal map context; expanded
+ * state remains the place to read the full text. */
+.sheet[data-phase="half"] .sheet__name,
+.sheet[data-phase="half"] .sheet__meta,
+.sheet[data-phase="half"] .sheet__condition,
+.sheet[data-phase="half"] .sheet__reality-line {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sheet[data-phase="half"] .sheet__primary strong {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
 .sheet__primary {
   display: flex;
   flex-direction: column;
