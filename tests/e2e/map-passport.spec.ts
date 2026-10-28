@@ -882,6 +882,21 @@ test("B2.3 — Reality keeps the selected zone isolated from other areas", async
   await expect(page.locator('[data-ui="reality-event"]')).toHaveCount(2);
 });
 
+test("B2.4.1 — Reality facts survive a failed supporting Place identity lookup", async ({
+  page,
+}) => {
+  await page.route(`**/api/v1/places/${MALL_ID}`, (route) =>
+    route.fulfill({ status: 503, json: { detail: "place context unavailable" } }),
+  );
+
+  await page.goto(`${BASE}/#/place/${MALL_ID}/reality`);
+
+  await expect(page.getByTestId("reality-workspace")).toHaveAttribute("data-ui-state", "ready");
+  await expect(page.getByTestId("trace-observations")).toBeVisible();
+  await expect(page.locator('[data-ui="reality-event"]').first()).toBeVisible();
+  await expect(page.getByTestId("reality-place-context")).toContainText("当前场所");
+});
+
 test("B2.5 — adding Reality from an empty scoped timeline retains the verified zone", async ({
   page,
   request,
