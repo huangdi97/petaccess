@@ -201,64 +201,64 @@ function chooseMapResult(id: string) {
     <div class="map-context-strip">
       <QueryContextBar />
 
-    <!-- Canonical v0.10-R1 Map: Rule / Reality / Facility / Divergence are
-         first-class lenses over the same CoexistenceSnapshot facts. -->
-    <nav
-      class="map-lensbar"
-      data-testid="map-lensbar"
-      data-ui="map-lensbar"
-      aria-label="地图信息镜头"
-    >
-      <span class="map-lensbar__label">地图显示</span>
-      <div v-if="isDesktop" class="map-lensbar__options">
-        <button
-          v-for="item in MAP_LENSES"
-          :key="item.key"
-          type="button"
-          class="map-lensbar__button"
-          :class="{ 'map-lensbar__button--active': lens === item.key }"
-          :aria-pressed="lens === item.key"
-          :data-testid="'map-lens-' + item.key"
-          @click="lens = item.key"
-        >
-          {{ item.label }}
-        </button>
-      </div>
-      <label v-else class="map-lensbar__mobile-select">
-        <span class="visually-hidden">地图显示内容</span>
-        <select v-model="lens" data-testid="map-lens-select" aria-label="地图显示内容">
-          <option v-for="item in MAP_LENSES" :key="item.key" :value="item.key">
+      <!-- Canonical v0.10-R1 Map: Rule / Reality / Facility / Divergence are
+           first-class lenses over the same CoexistenceSnapshot facts. -->
+      <nav
+        class="map-lensbar"
+        data-testid="map-lensbar"
+        data-ui="map-lensbar"
+        aria-label="地图信息镜头"
+      >
+        <span class="map-lensbar__label">地图显示</span>
+        <div v-if="isDesktop" class="map-lensbar__options">
+          <button
+            v-for="item in MAP_LENSES"
+            :key="item.key"
+            type="button"
+            class="map-lensbar__button"
+            :class="{ 'map-lensbar__button--active': lens === item.key }"
+            :aria-pressed="lens === item.key"
+            :data-testid="'map-lens-' + item.key"
+            @click="lens = item.key"
+          >
             {{ item.label }}
-          </option>
-        </select>
-      </label>
-      <span class="map-lensbar__hint visually-hidden" data-testid="map-lens-semantics">
-        “差异”用于查看规则与现场的不一致，不代表当前一定存在冲突。
-      </span>
-    </nav>
+          </button>
+        </div>
+        <label v-else class="map-lensbar__mobile-select">
+          <span class="visually-hidden">地图显示内容</span>
+          <select v-model="lens" data-testid="map-lens-select" aria-label="地图显示内容">
+            <option v-for="item in MAP_LENSES" :key="item.key" :value="item.key">
+              {{ item.label }}
+            </option>
+          </select>
+        </label>
+        <span class="map-lensbar__hint visually-hidden" data-testid="map-lens-semantics">
+          “差异”用于查看规则与现场的不一致，不代表当前一定存在冲突。
+        </span>
+      </nav>
 
-    <!-- v0.2.4 §32：desktop 没有「地图/列表」模式切换 —— desktop 恒为 List+Map。
-         Mobile 保留 compact mode toggle（仅确有必要时）。 -->
-    <div v-if="!isDesktop" class="map-viewbar" role="group" aria-label="视图切换">
-      <div class="map-viewbar__segment">
-        <button
-          type="button"
-          :class="{ active: view === 'map' }"
-          data-testid="view-map"
-          @click="view = 'map'"
-        >
-          地图
-        </button>
-        <button
-          type="button"
-          :class="{ active: view === 'list' }"
-          data-testid="view-list"
-          @click="view = 'list'"
-        >
-          列表
-        </button>
+      <!-- v0.2.4 §32：desktop 没有「地图/列表」模式切换 —— desktop 恒为 List+Map。
+           Mobile 保留 compact mode toggle（仅确有必要时）。 -->
+      <div v-if="!isDesktop" class="map-viewbar" role="group" aria-label="视图切换">
+        <div class="map-viewbar__segment">
+          <button
+            type="button"
+            :class="{ active: view === 'map' }"
+            data-testid="view-map"
+            @click="view = 'map'"
+          >
+            地图
+          </button>
+          <button
+            type="button"
+            :class="{ active: view === 'list' }"
+            data-testid="view-list"
+            @click="view = 'list'"
+          >
+            列表
+          </button>
+        </div>
       </div>
-    </div>
     </div>
 
     <div
