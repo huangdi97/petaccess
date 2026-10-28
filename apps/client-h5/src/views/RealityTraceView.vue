@@ -106,6 +106,17 @@ const summaryLine = computed(() => {
 
 const loadEpoch = createEpoch();
 
+async function loadPlaceContext(epoch: number, id: string) {
+  try {
+    const row = await client.place(id);
+    if (!loadEpoch.isCurrent(epoch) || placeId.value !== id) return;
+    place.value = row;
+  } catch {
+    // Place identity is supporting context for this page. A failed place lookup
+    // must never hide or delay already-published Reality facts.
+  }
+}
+
 async function restorePrivateSession(epoch: number, id: string) {
   privateSessionReady.value = false;
   privateSessionNote.value = "";
@@ -161,16 +172,12 @@ async function load() {
   privateSessionNote.value = "";
   const isCurrent = () => loadEpoch.isCurrent(epoch) && placeId.value === id;
   void restorePrivateSession(epoch, id);
+  void loadPlaceContext(epoch, id);
   try {
-    const [eventRows, zoneRows, placeRow] = await Promise.all([
-      client.realityEvents(id),
-      client.zones(id),
-      client.place(id).catch(() => null),
-    ]);
+    const [eventRows, zoneRows] = await Promise.all([client.realityEvents(id), client.zones(id)]);
     if (!isCurrent()) return;
     events.value = eventRows;
     zones.value = zoneRows;
-    place.value = placeRow;
     void loadPublicMedia(eventRows, epoch);
   } catch (e) {
     if (isCurrent()) error.value = presentDescription(e);
