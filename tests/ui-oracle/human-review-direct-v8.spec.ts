@@ -251,13 +251,7 @@ const SHOTS: Shot[] = [
       "reality-filter",
       "reality-place-context",
     ],
-    requiredText: [
-      "云栖中心·测试商场",
-      "现场记录",
-      "工作人员处理",
-      "设施",
-      "不等于正式准入规则",
-    ],
+    requiredText: ["云栖中心·测试商场", "现场记录", "工作人员处理", "设施", "不等于正式准入规则"],
     note: "Reality = published v0.9 event log: presence/staff/facility, human-verified and time-basis explicit.",
   },
   {
