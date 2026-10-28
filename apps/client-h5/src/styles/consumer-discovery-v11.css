@@ -32,15 +32,15 @@ html,
 }
 
 #app .home-workspace .home-discovery-hero {
-  min-height: 232px;
+  min-height: 212px;
   border-radius: 18px;
-  box-shadow: 0 12px 30px var(--pa-discovery-v10-shadow-row);
+  box-shadow: 0 10px 26px var(--pa-discovery-v10-shadow-row);
 }
 
 #app .home-workspace .home-discovery-hero__content {
-  min-height: 232px;
+  min-height: 212px;
   max-width: 650px;
-  padding: 24px 40px 22px;
+  padding: 20px 36px 20px;
 }
 
 #app .home-workspace .home-discovery-hero__eyebrow {
@@ -48,7 +48,31 @@ html,
 }
 
 #app .home-workspace .home-topline {
-  margin-bottom: 12px;
+  margin-bottom: 8px;
+}
+
+/* Desktop Home should read as a city-space launcher, not a branded campaign
+ * banner. Coverage and the map shortcut stay available, but lose pill/button
+ * chrome so the actual question + search own the hero. */
+#app .home-workspace .home-topline strong {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--pa-discovery-v10-hero-body);
+  font-size: 12px;
+  font-weight: var(--pa-font-weight-medium);
+}
+
+#app .home-workspace .home-topline .btn-inline {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--pa-discovery-v10-white);
+  font-size: 12px;
+  font-weight: var(--pa-font-weight-medium);
 }
 
 #app .home-workspace .home-intro {
@@ -284,6 +308,22 @@ html,
 #app .search-workspace .result-row[data-status="UNKNOWN"] .result-row__decision--lead {
   color: var(--pa-color-text-secondary);
   font-weight: var(--pa-font-weight-regular);
+}
+
+/* Unknown remains explicit, but it is not an actionable verdict. In dense
+ * mobile result lists it should sit below confirmed/conditional Rule lines in
+ * visual priority rather than repeating as five equally loud headlines. */
+@media (max-width: 767px) {
+  #app .search-workspace .result-row[data-status="UNKNOWN"] .result-row__decision--lead {
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  #app .search-workspace .result-row[data-status="UNKNOWN"] .result-row__reality-line {
+    color: var(--pa-color-text-muted);
+    font-size: 12px;
+    line-height: 18px;
+  }
 }
 
 #app .search-workspace .result-row__visual {
@@ -1567,12 +1607,40 @@ html,
     display: none;
   }
 
-  #app .reality-workspace .reality-workspace__body,
+  #app .reality-workspace .reality-workspace__body {
+    gap: 14px;
+    padding: 14px 18px 32px;
+  }
+
   #app .evidence-workspace .evidence-workspace__body {
     padding: 20px 18px 32px;
   }
 
+  #app .reality-workspace .reality-head {
+    padding-bottom: 12px;
+  }
+
+  #app .reality-workspace .reality-head__place-context {
+    margin-bottom: 3px;
+  }
+
   #app .reality-workspace .reality-head__title {
-    font-size: 26px;
+    font-size: 25px;
+    line-height: 31px;
+  }
+
+  #app .reality-workspace .reality-head__intro {
+    margin-block: 4px 6px;
+    font-size: 12px;
+    line-height: 18px;
+  }
+
+  #app .reality-workspace .reality-head__summary {
+    font-size: 12px;
+    line-height: 18px;
+  }
+
+  #app .reality-workspace .reality-filters {
+    margin-top: 6px;
   }
 }
