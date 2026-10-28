@@ -1,33 +1,40 @@
-/**
- * useMapWorkspace — Map page data and selection state (freeze §9).
- *
- * Marker statuses derive from the SAME CoexistenceSnapshot rows the other
- * surfaces read (SSOT) via the consumer repository's bounded-concurrency
- * enrichment — never a second resolver. The selected place's floating preview
- * fetches one snapshot through snapshotFor() (same cache as the rows).
- * Geolocation is a one-shot read (ADR-012: no continuous location history).
- */
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import {
   clusterMarkers,
-  coverageHint,
   session,
   synthDemoCamera,
-  synthMarkerPosition,
   type CoexistenceSnapshot,
-  type LocationState,
   type MapCamera,
   type MapMarker,
   type PlaceSummary,
 } from "@petaccess/client-core";
 
-import { answerStatusKey } from "../answer";
-import { enrichRows, nearbyPlaces, snapshotFor } from "../consumer/repository";
+import {
+  mapLensCoverage,
+  mapLensLabel,
+  mapLensTone,
+  parseMapLens,
+  type MapLensKey,
+} from "../consumer/mapLens";
+import {
+  createEpoch,
+  currentQueryContext,
+  enrichRows,
+  nearbyPlaces,
+  snapshotFor,
+  type RowFacts,
+} from "../consumer/repository";
 import { presentDescription } from "../errors";
+import { mapMarkersFor, visibleMapPlaces } from "../consumer/mapSpatialProjection";
 import { useBreakpoint } from "./useBreakpoint";
+import { useMapClusterSelection } from "./useMapClusterSelection";
+import { useMapDeepLink } from "./useMapDeepLink";
+import { useMapLensRoute } from "./useMapLensRoute";
+import { useMapSearch } from "./useMapSearch";
+import { useOneShotMapLocation } from "./useOneShotMapLocation";
+import { usePlaceSceneMedia } from "./usePlaceSceneMedia";
 
-/** Load state of the floating preview for the selected place. */
 export interface PreviewState {
   snapshot: CoexistenceSnapshot | null;
   loading: boolean;
@@ -40,133 +47,125 @@ export function useMapWorkspace() {
 
   const camera = ref<MapCamera>(synthDemoCamera());
   const places = ref<PlaceSummary[]>([]);
-  const statuses = ref<Record<string, MapMarker["status"]>>({});
+  const facts = ref<Map<string, RowFacts>>(new Map());
+  const lens = ref<MapLensKey>(parseMapLens(route.query.lens));
   const loading = ref(true);
   const error = ref("");
-  const locationState = ref<LocationState>("IDLE");
   const view = ref<"map" | "list">("map");
   const selected = ref<PlaceSummary | null>(null);
   const { desktop: isDesktop } = useBreakpoint();
   const preview = ref<PreviewState>({ snapshot: null, loading: false, error: "" });
+  const selectedSceneMedia = usePlaceSceneMedia(computed(() => selected.value?.id ?? null));
+  const loadEpoch = createEpoch();
+  const previewEpoch = createEpoch();
   const activeFilters = ref<string[]>([]);
+  const statuses = computed<Record<string, MapMarker["status"]>>(() => {
+    const out: Record<string, MapMarker["status"]> = {};
+    for (const p of places.value) out[p.id] = mapLensTone(lens.value, facts.value.get(p.id));
+    return out;
+  });
+  const lensLabels = computed<Record<string, string>>(() => {
+    const out: Record<string, string> = {};
+    for (const p of places.value) out[p.id] = mapLensLabel(lens.value, facts.value.get(p.id));
+    return out;
+  });
+  const unavailablePlaces = computed<Record<string, boolean>>(() => {
+    const out: Record<string, boolean> = {};
+    for (const place of places.value) {
+      const row = facts.value.get(place.id);
+      out[place.id] =
+        !row ||
+        (lens.value === "rule"
+          ? row.answerError
+          : lens.value === "reality" || lens.value === "facility"
+            ? row.realityError
+            : row.answerError || row.realityError);
+    }
+    return out;
+  });
+  const markers = computed<MapMarker[]>(() => mapMarkersFor(places.value, statuses.value));
 
-  const markers = computed<MapMarker[]>(() =>
-    places.value.map((p) => {
-      const pos = synthMarkerPosition(p.id, camera.value);
-      return {
-        id: p.id,
-        lat: pos.lat,
-        lng: pos.lng,
-        label: p.canonical_name,
-        status: statuses.value[p.id] ?? "UNKNOWN",
-      };
-    }),
+  const visiblePlaces = computed(() =>
+    visibleMapPlaces(lens.value, activeFilters.value, places.value, statuses.value),
   );
 
-  const clusters = computed(() => clusterMarkers(markers.value, camera.value.zoom));
-  const coverage = computed(() => coverageHint(markers.value));
+  const visiblePlaceIds = computed(() => new Set(visiblePlaces.value.map((place) => place.id)));
+  const visibleMarkers = computed(() =>
+    markers.value.filter((marker) => visiblePlaceIds.value.has(marker.id)),
+  );
+  const visibleMissingSpatialCount = computed(
+    () =>
+      visiblePlaces.value.filter((place) => place.latitude == null || place.longitude == null)
+        .length,
+  );
 
-  const visiblePlaces = computed(() => {
-    if (!activeFilters.value.length) return places.value;
-    return places.value.filter((p) =>
-      activeFilters.value.includes(statuses.value[p.id] ?? "UNKNOWN"),
-    );
+  const clusters = computed(() => clusterMarkers(visibleMarkers.value, camera.value.zoom));
+  const coverage = computed(() => {
+    const base = mapLensCoverage(lens.value, facts.value, visibleMarkers.value);
+    if (!visibleMissingSpatialCount.value) return base;
+    return {
+      ...base,
+      text: `${base.text} 另有 ${visibleMissingSpatialCount.value} 个场所缺少可用位置坐标，仅在列表显示。`,
+    };
   });
 
-  /** One-shot geolocation (ADR-012: no continuous location history). */
-  function locate() {
-    if (!("geolocation" in navigator)) {
-      locationState.value = "UNAVAILABLE";
-      return;
-    }
-    locationState.value = "REQUESTING";
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        camera.value = {
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-          zoom: camera.value.zoom,
-        };
-        locationState.value = "GRANTED";
-        void load();
-      },
-      () => {
-        // Permission refused is not a dead end: the map falls back to a manual
-        // area (Consumer UX §20) instead of an empty screen.
-        locationState.value = "DENIED";
-      },
-      { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 },
-    );
-  }
-
-  /**
-   * Marker statuses, derived from the SAME CoexistenceSnapshot rows the other
-   * surfaces read (SSOT) via the consumer repository's bounded-concurrency
-   * enrichment. Never a second resolver.
-   */
-  async function deriveStatuses(list: PlaceSummary[]) {
-    const facts = await enrichRows(list);
-    const out: Record<string, MapMarker["status"]> = {};
-    for (const [id, row] of facts) out[id] = answerStatusKey(row.answer);
-    statuses.value = out;
-  }
-
   async function load() {
+    const epoch = loadEpoch.begin();
     loading.value = true;
     error.value = "";
     try {
-      const res = await nearbyPlaces();
-      places.value = res.items;
-      await deriveStatuses(places.value);
+      const res = await nearbyPlaces(camera.value);
+      if (!loadEpoch.isCurrent(epoch)) return;
+      const nextPlaces = res.items;
+      const nextFacts = await enrichRows(nextPlaces);
+      if (!loadEpoch.isCurrent(epoch)) return;
+      places.value = nextPlaces;
+      facts.value = nextFacts;
       resolveSelection();
     } catch (e) {
-      error.value = presentDescription(e);
+      if (loadEpoch.isCurrent(epoch)) error.value = presentDescription(e);
     } finally {
-      loading.value = false;
+      if (loadEpoch.isCurrent(epoch)) loading.value = false;
     }
   }
 
+  let queryContextReady = false;
+
   onMounted(async () => {
-    await session.restore();
+    try {
+      await session.restore();
+    } catch {}
     await load();
+    queryContextReady = true;
   });
 
   function open(id: string) {
     router.push({ name: "place", params: { id } });
   }
 
-  function onSelectCluster(cluster: { memberIds: string[]; count: number }) {
-    if (cluster.count === 1) {
-      const p = places.value.find((x) => x.id === cluster.memberIds[0]) ?? null;
-      selected.value = p;
-      if (p) {
-        syncRoutePlace(p.id);
-        void selectPlace(p);
-      }
-      return;
-    }
-    // zooming in splits the cluster; the user asked to see the members
-    camera.value = { ...camera.value, zoom: Math.min(18, camera.value.zoom + 1) };
-  }
+  const { onSelectCluster, selectResult } = useMapClusterSelection({
+    camera,
+    places,
+    selected,
+    preview,
+    syncRoutePlace,
+    selectPlace,
+    reload: load,
+  });
 
-  function goSearch() {
-    router.push({ name: "search" });
-  }
-
-  /** M4 A4 — the selected place is a route query so deep links and history work. */
   function syncRoutePlace(id: string | null) {
     const current = typeof route.query.place === "string" ? route.query.place : null;
     if (current === id) return;
     void router.push({ query: { ...route.query, place: id || undefined } });
   }
 
-  /** Pick the previewed place from the deep link, else keep a valid selection. */
   function resolveSelection() {
     const fromQuery = typeof route.query.place === "string" ? route.query.place : null;
     if (fromQuery) {
       const p = places.value.find((x) => x.id === fromQuery) ?? null;
       selected.value = p;
       if (p) void selectPlace(p);
+      else requestDeepLinkedPlace(fromQuery);
       return;
     }
     if (!selected.value || !places.value.some((p) => p.id === selected.value?.id)) {
@@ -175,45 +174,107 @@ export function useMapWorkspace() {
     }
   }
 
-  /** M4 A1 — the floating preview fetches the ONE CoexistenceSnapshot for the
-   *  place via the consumer repository (SSOT, same cache as rows). */
   async function selectPlace(p: PlaceSummary) {
-    // v0.2.5 §24：mobile selected sheet 需要 key condition + 最近现场，
-    // snapshot 不再只给 desktop 取。
+    const epoch = previewEpoch.begin();
     preview.value = { snapshot: null, loading: true, error: "" };
     try {
       const { snapshot } = await snapshotFor(p.id);
+      if (!previewEpoch.isCurrent(epoch) || selected.value?.id !== p.id) return;
       preview.value = { snapshot, loading: false, error: "" };
     } catch (e) {
+      if (!previewEpoch.isCurrent(epoch) || selected.value?.id !== p.id) return;
       preview.value = { snapshot: null, loading: false, error: presentDescription(e) };
     }
   }
 
-  // Back/forward or an external deep link changes ?place= → update the selection
-  // (guard keeps this from looping when it was our own push).
+  const { state: locationState, locate } = useOneShotMapLocation({
+    camera,
+    reload: load,
+  });
+
+  const {
+    loading: mapSearchLoading,
+    error: mapSearchError,
+    search: searchMap,
+  } = useMapSearch({
+    camera,
+    places,
+    facts,
+    view,
+    isDesktop,
+    loadNearby: load,
+    selectTarget: async (place) => {
+      selected.value = place;
+      syncRoutePlace(place.id);
+      await selectPlace(place);
+    },
+  });
+  const { request: requestDeepLinkedPlace, invalidate: invalidateDeepLink } = useMapDeepLink({
+    route,
+    camera,
+    places,
+    facts,
+    view,
+    isDesktop,
+    error: mapSearchError,
+    loadNearby: load,
+    select: async (place) => {
+      selected.value = place;
+      await selectPlace(place);
+    },
+  });
+
+  useMapLensRoute(lens, activeFilters);
+
   watch(
     () => route.query.place,
     (v) => {
       const next = typeof v === "string" ? v : null;
+      invalidateDeepLink();
       const cur = selected.value?.id ?? null;
       if (next === cur) return;
       const p = places.value.find((x) => x.id === next) ?? null;
       selected.value = p;
       if (p) void selectPlace(p);
+      else if (next) requestDeepLinkedPlace(next);
     },
   );
+
+  watch(visiblePlaces, (list) => {
+    if (!selected.value || list.some((place) => place.id === selected.value?.id)) return;
+    const next = isDesktop.value && list.length ? list[0] : null;
+    selected.value = next;
+    syncRoutePlace(next?.id ?? null);
+    if (next) void selectPlace(next);
+    else preview.value = { snapshot: null, loading: false, error: "" };
+  });
+
+  watch(currentQueryContext, () => {
+    if (!queryContextReady) return;
+    void (async () => {
+      await load();
+      if (selected.value) await selectPlace(selected.value);
+    })();
+  });
 
   return {
     camera,
     places,
+    facts,
+    lens,
+    lensLabels,
     statuses,
+    unavailablePlaces,
     loading,
     error,
     locationState,
+    mapSearchLoading,
+    mapSearchError,
     view,
     selected,
     isDesktop,
     preview,
+    selectedSceneMedia,
     activeFilters,
     clusters,
     coverage,
@@ -221,8 +282,9 @@ export function useMapWorkspace() {
     locate,
     load,
     open,
+    selectResult,
     onSelectCluster,
-    goSearch,
+    searchMap,
     syncRoutePlace,
   };
 }

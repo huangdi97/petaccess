@@ -1,0 +1,15 @@
+{
+  "gitSha": "d2eeba2fe5ffbfba31f244881f6e1705a07f84c2",
+  "page": "mine",
+  "state": "ready",
+  "route": "/mine",
+  "innerWidth": 412,
+  "innerHeight": 915,
+  "devicePixelRatio": 2.625,
+  "documentClientWidth": 412,
+  "documentScrollWidth": 412,
+  "bodyTextHead": "当前查询 | 普通犬 · 进入 · 公共区域 | 修改 | 我的 | ○ | 登录后管理你的出行设置 |  | 宠物档案、规则关注和贡献记录只在登录",
+  "href": "http://tauri.localhost/#/mine",
+  "horizontalOverflow": false,
+  "screenshot": "12_android_mine.png"
+}

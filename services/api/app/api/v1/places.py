@@ -33,6 +33,7 @@ from app.schemas.places import (
 )
 from app.services.dev_fixture import (
     dev_fixture_active,
+    fixture_nearby_summaries,
     fixture_place_out,
     fixture_place_summaries,
     is_fixture_place_id,
@@ -70,7 +71,9 @@ def _disambiguation_projection():
         .scalar_subquery()
         .label("last_verified_at")
     )
-    return parent_place_name, rule_count, last_verified_at
+    latitude = func.ST_Y(Place.location).label("latitude")
+    longitude = func.ST_X(Place.location).label("longitude")
+    return parent_place_name, rule_count, last_verified_at, latitude, longitude
 
 
 def _search_order(q: str, rule_count, last_verified_at):
@@ -121,12 +124,14 @@ def _matched_alias(place: Place, q: str) -> str | None:
 
 
 def _to_summary(row, q: str | None = None) -> PlaceSummary:
-    place, parent_place_name, rule_count, last_verified_at = row
+    place, parent_place_name, rule_count, last_verified_at, latitude, longitude = row
     return PlaceSummary(
         id=place.id,
         canonical_name=place.canonical_name,
         place_type=place.place_type,
         canonical_address=place.canonical_address,
+        latitude=float(latitude) if latitude is not None else None,
+        longitude=float(longitude) if longitude is not None else None,
         parent_place_name=parent_place_name,
         matched_alias=_matched_alias(place, q) if q else None,
         alias_names=list(place.alias_names or []),
@@ -137,16 +142,27 @@ def _to_summary(row, q: str | None = None) -> PlaceSummary:
 
 @router.get("/places", response_model=Page[PlaceSummary])
 def list_places(
-    q: str | None = Query(default=None, max_length=100, description="fuzzy name search"),
+    q: str | None = Query(
+        default=None,
+        max_length=100,
+        description="place, alias, parent-place or address search",
+    ),
     place_type: str | None = None,
     limit: int = Query(default=20, le=100),
     offset: int = Query(default=0, ge=0),
     db: Session = Depends(get_db),
 ) -> Page[PlaceSummary]:
-    parent_place_name, rule_count, last_verified_at = _disambiguation_projection()
-    stmt = select(Place, parent_place_name, rule_count, last_verified_at).where(
-        Place.lifecycle_status == LifecycleStatus.ACTIVE
+    parent_place_name, rule_count, last_verified_at, latitude, longitude = (
+        _disambiguation_projection()
     )
+    stmt = select(
+        Place,
+        parent_place_name,
+        rule_count,
+        last_verified_at,
+        latitude,
+        longitude,
+    ).where(Place.lifecycle_status == LifecycleStatus.ACTIVE)
     if q:
         # pg_trgm similarity + ILIKE fallback in one OR for CJK friendliness.
         # Aliases get the same treatment: a hit on a former name or a brand
@@ -156,12 +172,19 @@ def list_places(
             "EXISTS (SELECT 1 FROM jsonb_array_elements_text(place.alias_names) AS alias_name "
             "WHERE alias_name % :q OR alias_name ILIKE :like)"
         ).params(q=q, like=f"%{q}%")
+        # The Consumer search field promises place / district / address.
+        # Keep that promise in the canonical query instead of making address
+        # text a UI-only affordance. Parent place names cover common
+        # mall/campus/district-container searches; address remains an ILIKE
+        # fallback because CJK street text is often short and exact-ish.
         stmt = stmt.where(
             or_(
                 text("place.canonical_name % :q OR place.canonical_name ILIKE :like").params(
                     q=q, like=f"%{q}%"
                 ),
                 alias_hit,
+                Place.canonical_address.ilike(f"%{q}%"),
+                parent_place_name.ilike(f"%{q}%"),
             )
         )
     if place_type:
@@ -190,7 +213,9 @@ def nearby_places(
 ) -> Page[PlaceSummary]:
     """PostGIS ST_DWithin nearby search ordered by distance (GIST-indexed)."""
     point = text("ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography")
-    parent_place_name, rule_count, last_verified_at = _disambiguation_projection()
+    parent_place_name, rule_count, last_verified_at, latitude, longitude = (
+        _disambiguation_projection()
+    )
     base = (
         select(
             Place,
@@ -198,6 +223,8 @@ def nearby_places(
             parent_place_name,
             rule_count,
             last_verified_at,
+            latitude,
+            longitude,
         )
         .where(
             Place.lifecycle_status == LifecycleStatus.ACTIVE,
@@ -210,13 +237,42 @@ def nearby_places(
     rows = db.execute(base.order_by(text("distance_m")).limit(limit).offset(offset)).all()
     items = []
     for row in rows:
-        summary = _to_summary((row[0], row[2], row[3], row[4]))
+        summary = _to_summary((row[0], row[2], row[3], row[4], row[5], row[6]))
         summary.distance_m = round(float(row[1] or 0), 1)
         items.append(summary)
     if not items and dev_fixture_active():
-        fixtures = fixture_place_summaries()
-        return Page(items=fixtures, total=len(fixtures), limit=limit, offset=offset)
+        fixtures = fixture_nearby_summaries(lat, lng, radius_m)
+        return Page(
+            items=fixtures[offset : offset + limit],
+            total=len(fixtures),
+            limit=limit,
+            offset=offset,
+        )
     return Page(items=items, total=total, limit=limit, offset=offset)
+
+
+@router.get("/places/{place_id}/summary", response_model=PlaceSummary)
+def get_place_summary(place_id: str, db: Session = Depends(get_db)) -> PlaceSummary:
+    """Exact-ID public map/list projection, independent of fuzzy search limits.
+
+    Never guess a coordinate or serve an unpublished place as a public
+    destination. This uses the very same projected Rule/Reality metadata and
+    PostGIS representative point as /places and /places/nearby.
+    """
+    parent_name, rule_count, verified_at, latitude, longitude = _disambiguation_projection()
+    row = db.execute(
+        select(Place, parent_name, rule_count, verified_at, latitude, longitude).where(
+            Place.id == place_id, Place.lifecycle_status == LifecycleStatus.ACTIVE
+        )
+    ).one_or_none()
+    if row is not None:
+        return _to_summary(row)
+
+    if dev_fixture_active():
+        for fixture in fixture_place_summaries():
+            if fixture.id == place_id:
+                return fixture
+    raise NotFound("场所不存在或尚未公开")
 
 
 @router.get("/places/{place_id}", response_model=PlaceOut)
@@ -227,7 +283,7 @@ def get_place(place_id: str, db: Session = Depends(get_db)) -> Place | PlaceOut:
             fixture = fixture_place_out(place_id)
             if fixture is not None:
                 return fixture
-        raise NotFound("鍦烘墍涓嶅瓨鍦?")
+        raise NotFound("场所不存在")
     return place
 
 

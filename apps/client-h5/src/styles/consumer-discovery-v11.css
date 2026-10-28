@@ -1,0 +1,1647 @@
+/**
+ * PetAccess Consumer Discovery v11 — Urban Spatial Guide.
+ *
+ * The product is a city-space rule guide, not a landing page and not a rule
+ * database. This layer keeps all Rule / Reality / Evidence semantics intact
+ * while changing composition:
+ *   1. nearby places lead Home before secondary lenses;
+ *   2. Map is the dominant mobile surface and chrome floats above it;
+ *   3. Search results read as a place list, not a wall of cards;
+ *   4. Place uses one destination identity, then editorial fact sections;
+ *   5. Reality starts with the timeline instead of a dashboard-like header.
+ *
+ * Imported after v10 so this remains a reversible presentation-only layer.
+ */
+
+/* v11 uses a warm-white city canvas. The deeper beige remains available for
+ * semantic/tinted moments, but must not wash every reading surface in archival
+ * paper colour. */
+html,
+#app,
+#app .consumer-app-shell__main,
+#app .home-workspace,
+#app .place-workspace,
+#app .reality-workspace,
+#app .evidence-workspace {
+  background: var(--pa-discovery-v10-rail);
+}
+
+/* ---------------------------------------------------------------- Home */
+#app .home-workspace .page--home {
+  max-width: var(--pa-layout-content-max);
+}
+
+#app .home-workspace .home-discovery-hero {
+  min-height: 212px;
+  border-radius: 18px;
+  box-shadow: 0 10px 26px var(--pa-discovery-v10-shadow-row);
+}
+
+#app .home-workspace .home-discovery-hero__content {
+  min-height: 212px;
+  max-width: 650px;
+  padding: 20px 36px 20px;
+}
+
+#app .home-workspace .home-discovery-hero__eyebrow {
+  display: none;
+}
+
+/* The global query context already answers "who / action / scope". Keep the
+ * redundant brand / pilot label out of the hero, but preserve one quiet Map
+ * shortcut as a spatial affordance. Absolute positioning prevents the utility
+ * link from growing the hero back into a campaign banner. */
+#app .home-workspace .home-topline {
+  position: absolute;
+  top: 18px;
+  right: 24px;
+  z-index: 3;
+  display: block;
+  margin: 0;
+}
+
+#app .home-workspace .home-topline strong {
+  display: none;
+}
+
+#app .home-workspace .home-topline .btn-inline {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--pa-discovery-v10-white);
+  font-size: 12px;
+  font-weight: var(--pa-font-weight-medium);
+  box-shadow: none;
+}
+
+#app .home-workspace .home-intro {
+  margin-bottom: 18px;
+}
+
+#app .home-workspace .home-intro h1 {
+  font-size: clamp(32px, 3vw, 44px);
+}
+
+#app .home-workspace .home-subtitle {
+  margin-top: 8px;
+}
+
+#app .home-workspace .home-search input,
+#app .home-workspace .home-search__submit {
+  min-height: 52px;
+}
+
+/* Home is a spatial starting point, not a marketing landing page. The
+ * secondary explainer bubble duplicated the product proposition and pushed
+ * nearby places below the fold, so v11 keeps the city scene but removes the
+ * promo-style callout. */
+#app .home-workspace .home-discovery-hero__annotation {
+  display: none;
+}
+
+#app .home-workspace .home-lenses {
+  margin-top: 34px;
+  padding-top: 24px;
+  border-top: 1px solid var(--pa-discovery-line);
+}
+
+#app .home-workspace .home-section-header--lenses {
+  margin-bottom: 8px;
+}
+
+#app .home-workspace .home-lenses .home-section-title {
+  font-size: 19px;
+}
+
+#app .home-workspace .home-lenses .home-section-hint {
+  max-width: 560px;
+}
+
+#app .home-workspace .home-entries {
+  gap: 0;
+  margin-top: 10px;
+  border-top: 1px solid var(--pa-discovery-line);
+}
+
+#app .home-workspace .home-entries .entry {
+  min-height: 72px;
+  padding: 14px 12px;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+#app .home-workspace .home-entries .entry:hover {
+  background: var(--pa-discovery-v10-row-hover);
+  box-shadow: none;
+  transform: none;
+}
+
+#app .home-workspace .home-entries .entry-icon-shell {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+}
+
+#app .home-workspace .home-entries .entry-hint {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+#app .home-workspace .home-recommend {
+  margin: 22px 0 0;
+  padding: 0 0 18px;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+}
+
+#app .home-workspace .home-recommend__row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 4px 12px;
+  padding: 14px 0 0;
+  border-top: 0;
+}
+
+#app .home-workspace .home-recommend__name {
+  font-size: 17px;
+}
+
+#app .home-workspace .home-recommend__headline,
+#app .home-workspace .home-recommend__meta {
+  grid-column: 2;
+}
+
+#app .home-workspace .home-section-title--stacked {
+  margin-top: 24px;
+}
+
+#app .home-workspace .home-nearby-heading .home-section-title--stacked {
+  margin-top: 0;
+}
+
+/* Nearby is a destination list, not a card gallery. Older v10 destination-card
+ * styling remains useful elsewhere, but Home v11 deliberately flattens these
+ * rows so the city/place content — not the container — carries the hierarchy. */
+#app .home-workspace .home-nearby-grid {
+  display: block;
+  margin-top: 8px;
+  border-top: 1px solid var(--pa-discovery-line);
+}
+
+#app .home-workspace .home-nearby-grid .home-row {
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#app .home-workspace .home-nearby-grid .home-row:hover {
+  border-color: var(--pa-discovery-line);
+  background: var(--pa-discovery-v10-row-hover);
+  box-shadow: none;
+}
+
+#app .home-workspace .home-nearby-grid .home-row__open {
+  padding: 14px 0 8px;
+}
+
+#app .home-workspace .home-nearby-grid .home-row__evidence-link {
+  margin: 0;
+  padding: 0 0 14px;
+  border: 0;
+}
+
+#app .home-workspace .home-nearby-grid .home-row__scene {
+  --scene-frame-compact-width: 112px;
+  --scene-frame-compact-height: 84px;
+  --scene-frame-compact-empty-width: 112px;
+  --scene-frame-compact-empty-height: 84px;
+  border-radius: 10px;
+}
+
+/* Pending and transport-unavailable places are still places. Do not let the
+ * older global home-row card skin make uncertainty look like a separate
+ * product object. The state label changes; the list grammar does not. */
+#app .home-workspace button.home-row[data-testid^="pending-"],
+#app .home-workspace .home-unavailable__row {
+  margin: 0;
+  padding: 14px 0;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+#app .home-workspace button.home-row[data-testid^="pending-"]:hover,
+#app .home-workspace .home-unavailable__row:hover {
+  background: var(--pa-discovery-v10-row-hover);
+  box-shadow: none;
+  transform: none;
+}
+
+/* -------------------------------------------------------------- Search */
+#app .search-workspace .result-list {
+  gap: 0;
+  padding-top: 0;
+}
+
+#app .search-workspace .result-row,
+#app .search-workspace .result-row--selected {
+  min-height: 118px;
+  margin: 0;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: var(--pa-discovery-v10-paper);
+  box-shadow: none;
+}
+
+#app .search-workspace .result-row--selected {
+  border-left: 3px solid var(--pa-discovery-v9-tone-01);
+  background: var(--pa-discovery-v10-row-selected-bg);
+}
+
+#app .search-workspace .result-row__link {
+  padding: 14px 16px;
+}
+
+#app .search-workspace .result-row__link:hover {
+  background: var(--pa-discovery-v10-row-hover);
+}
+
+/* Search is a place list, not a status dashboard. The natural-language
+ * decision remains the visible conclusion; semantic colour only supports it. */
+#app .search-workspace .result-row[data-status="ALLOWED"] .result-row__decision--lead {
+  color: var(--pa-color-status-allowed);
+}
+
+#app .search-workspace .result-row[data-status="CONDITIONAL"] .result-row__decision--lead {
+  color: var(--pa-color-status-conditional);
+}
+
+#app .search-workspace .result-row[data-status="RESTRICTED"] .result-row__decision--lead {
+  color: var(--pa-color-status-restricted);
+}
+
+#app .search-workspace .result-row[data-status="CONFLICT"] .result-row__decision--lead {
+  color: var(--pa-color-status-conflict);
+}
+
+/* Unknown is important, but a list dominated by unknown places should not
+ * become a wall of equally loud "信息不足" headlines. Keep the wording explicit
+ * while lowering its visual weight below an actionable Rule conclusion. */
+#app .search-workspace .result-row[data-status="UNKNOWN"] .result-row__decision--lead {
+  color: var(--pa-color-text-secondary);
+  font-weight: var(--pa-font-weight-regular);
+}
+
+/* Unknown remains explicit, but it is not an actionable verdict. In dense
+ * mobile result lists it should sit below confirmed/conditional Rule lines in
+ * visual priority rather than repeating as five equally loud headlines. */
+@media (max-width: 767px) {
+  #app .search-workspace .result-row[data-status="UNKNOWN"] .result-row__decision--lead {
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  #app .search-workspace .result-row[data-status="UNKNOWN"] .result-row__reality-line {
+    color: var(--pa-color-text-muted);
+    font-size: 12px;
+    line-height: 18px;
+  }
+}
+
+#app .search-workspace .result-row__visual {
+  --scene-frame-compact-width: 56px;
+  --scene-frame-compact-height: 56px;
+  --scene-frame-compact-empty-width: 56px;
+  --scene-frame-compact-empty-height: 56px;
+  flex-basis: 56px;
+}
+
+@media (max-width: 767px) {
+  #app .search-workspace .result-row,
+  #app .search-workspace .result-row--selected {
+    min-height: 104px;
+  }
+
+  #app .search-workspace .result-row__link {
+    padding: 12px 16px;
+  }
+
+  #app .search-workspace .result-row__visual {
+    --scene-frame-compact-width: 48px;
+    --scene-frame-compact-height: 48px;
+    --scene-frame-compact-empty-width: 48px;
+    --scene-frame-compact-empty-height: 48px;
+    flex-basis: 48px;
+  }
+}
+
+#app .search-workspace .filter-toggle {
+  min-height: 32px;
+  padding: 0 2px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  font-weight: var(--pa-font-weight-600);
+}
+
+#app .search-workspace .filter-toggle:hover,
+#app .search-workspace .filter-toggle:focus-visible {
+  background: transparent;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+#app .search-workspace .search-inspector {
+  padding: 34px 46px 54px;
+}
+
+#app .search-workspace .inspector-block--decision,
+#app .search-workspace .inspector-secondary {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+#app .search-workspace .inspector-block--decision {
+  padding-left: 20px;
+  border-width: 0 0 0 3px;
+  background: transparent;
+}
+
+#app .search-workspace .inspector-secondary {
+  border: 0;
+  border-top: 1px solid var(--pa-discovery-line);
+  background: transparent;
+}
+
+/* ---------------------------------------------------------------- Map */
+#app .map-workspace .map-canvas {
+  border-color: var(--pa-discovery-line);
+  background: var(--pa-color-map-grid-a);
+  box-shadow: none;
+}
+
+#app .map-workspace .map-preview-float {
+  border-radius: 16px;
+  box-shadow: 0 18px 44px var(--pa-discovery-v10-shadow-strong);
+}
+
+#app .map-workspace .map-pane {
+  padding: 18px 16px;
+}
+
+#app .map-workspace .map-pane__head {
+  margin-bottom: 10px;
+  padding: 0 0 12px;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+}
+
+#app .map-workspace .map-pane__coverage {
+  margin: 10px 0 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--pa-discovery-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+#app .map-workspace .map-place-list {
+  border-top: 1px solid var(--pa-discovery-line);
+}
+
+#app .map-workspace .map-place-row,
+#app .map-workspace .map-place-row--selected {
+  margin: 0;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+  overflow: visible;
+  box-shadow: none;
+  transform: none;
+}
+
+#app .map-workspace .map-place-row:hover,
+#app .map-workspace .map-place-row:focus-within {
+  border-color: var(--pa-discovery-line);
+  background: var(--pa-discovery-v10-row-hover);
+  box-shadow: none;
+  transform: none;
+}
+
+#app .map-workspace .map-place-row--selected {
+  background: var(--pa-discovery-v10-row-selected-bg);
+}
+
+#app .map-workspace .map-place-row__button {
+  padding: 14px 10px;
+}
+
+#app .map-workspace .map-place-row__scene {
+  --scene-frame-compact-width: 52px;
+  --scene-frame-compact-height: 52px;
+  --scene-frame-compact-empty-width: 52px;
+  --scene-frame-compact-empty-height: 52px;
+  flex-basis: 52px;
+}
+
+@media (min-width: 768px) {
+  #app .home-workspace .home-nearby-grid--1 {
+    grid-template-columns: minmax(0, 620px);
+  }
+
+  #app .home-workspace .home-nearby-grid--2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: 880px;
+  }
+}
+
+@media (min-width: 768px) {
+  #app .map-workspace .map-workspace__body,
+  #app .map-workspace .map-workspace__body--split {
+    gap: 0;
+    padding: 0;
+  }
+
+  #app .map-workspace .map-canvas {
+    border-top: 0;
+    border-right: 0;
+    border-bottom: 0;
+    border-radius: 0;
+  }
+
+  #app .map-workspace .map-lensbar {
+    min-height: 52px;
+    padding-block: 4px;
+  }
+}
+
+@media (max-width: 767px) {
+  #app .map-workspace {
+    position: relative;
+    background: var(--pa-color-map-grid-a);
+  }
+
+  #app .map-workspace .map-context-strip {
+    position: absolute;
+    z-index: 24;
+    top: 82px;
+    right: 12px;
+    left: 12px;
+    display: flex;
+    align-items: stretch;
+    gap: 4px;
+    pointer-events: none;
+  }
+
+  #app .map-workspace .map-context-strip > * {
+    pointer-events: auto;
+  }
+
+  #app .map-workspace .map-context-strip > .query-context {
+    position: static;
+    z-index: auto;
+    flex: 1 1 auto;
+    width: auto;
+    max-width: none;
+    min-width: 0;
+    min-height: 38px;
+    padding: 5px 6px 5px 10px;
+    border: 1px solid var(--pa-discovery-line);
+    border-radius: 12px;
+    background: var(--pa-discovery-v10-paper);
+    box-shadow: 0 6px 18px var(--pa-discovery-v10-shadow-row);
+  }
+
+  #app .map-workspace .map-context-strip > .query-context .query-context__label {
+    display: none;
+  }
+
+  #app .map-workspace .map-context-strip > .query-context .query-context__value {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  #app .map-workspace .map-context-strip > .query-context .query-context__edit {
+    flex: 0 0 auto;
+    min-height: 30px;
+    padding: 2px 7px;
+    font-size: 12px;
+  }
+
+  #app .map-workspace .map-context-strip > .map-lensbar {
+    position: static;
+    z-index: auto;
+    flex: 0 0 auto;
+    min-height: 38px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+
+  #app .map-workspace .map-lensbar__label,
+  #app .map-workspace .map-lensbar__hint,
+  #app .map-workspace .map-lensbar__options {
+    display: none;
+  }
+
+  #app .map-workspace .map-lensbar__mobile-select {
+    position: relative;
+    display: block;
+  }
+
+  #app .map-workspace .map-lensbar__mobile-select::after {
+    position: absolute;
+    top: 50%;
+    right: 9px;
+    content: "⌄";
+    color: var(--pa-discovery-muted);
+    font-size: 12px;
+    line-height: 1;
+    transform: translateY(-58%);
+    pointer-events: none;
+  }
+
+  #app .map-workspace .map-lensbar__mobile-select select {
+    width: 78px;
+    min-height: 38px;
+    padding: 0 24px 0 10px;
+    appearance: none;
+    border: 1px solid var(--pa-discovery-line);
+    border-radius: 12px;
+    background: var(--pa-discovery-v10-paper);
+    color: var(--pa-discovery-ink);
+    box-shadow: 0 6px 18px var(--pa-discovery-v10-shadow-row);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 650;
+  }
+
+  #app .map-workspace .map-context-strip > .map-viewbar {
+    position: static;
+    z-index: auto;
+    flex: 0 0 auto;
+    padding: 0;
+    border: 0;
+  }
+
+  #app .map-workspace .map-viewbar__segment {
+    border-color: var(--pa-discovery-line);
+    border-radius: 12px;
+    background: var(--pa-discovery-v10-paper);
+    box-shadow: 0 6px 18px var(--pa-discovery-v10-shadow-row);
+  }
+
+  #app .map-workspace .map-viewbar__segment button {
+    min-height: 38px;
+    padding-inline: 10px;
+    font-size: 12px;
+  }
+
+  #app .map-workspace .map-workspace__body {
+    gap: 0;
+    padding: 0;
+  }
+
+  #app .map-workspace .map-canvas {
+    border: 0;
+    border-radius: 0;
+  }
+
+  #app .map-workspace .map-mobile-tools {
+    top: 12px;
+    right: 12px;
+    left: 12px;
+  }
+
+  #app .map-workspace .map-mobile-tools__search {
+    min-height: 52px;
+    border-color: var(--pa-discovery-line);
+    border-radius: 13px;
+    box-shadow: 0 8px 24px var(--pa-discovery-v10-shadow-row);
+  }
+
+  #app .map-workspace--mobile-list .map-context-strip {
+    position: static;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    padding: 10px 12px 8px;
+    background: var(--pa-discovery-v10-paper);
+    pointer-events: auto;
+  }
+
+  #app .map-workspace--mobile-list .map-context-strip > .query-context {
+    grid-column: 1 / -1;
+    margin: 0;
+  }
+
+  #app .map-workspace--mobile-list .map-context-strip > .map-lensbar {
+    width: auto;
+    min-height: 0;
+    padding: 0;
+  }
+
+  #app .map-workspace--mobile-list .map-lensbar__mobile-select select {
+    width: 100%;
+    min-width: 112px;
+    box-shadow: none;
+  }
+
+  #app .map-workspace--mobile-list .map-context-strip > .map-viewbar {
+    justify-content: flex-end;
+    padding: 0;
+  }
+
+  #app .map-workspace--mobile-list .map-workspace__body {
+    min-height: 0;
+    background: var(--pa-discovery-v10-paper);
+  }
+}
+
+@media (max-width: 379px) {
+  /* The component's legacy narrow-screen rule used to push search down to
+   * 60px. v11 keeps one two-row overlay stack even at 320px so the map does
+   * not lose another band of spatial context. */
+  #app .map-workspace .map-mobile-tools {
+    top: 12px;
+  }
+}
+
+/* --------------------------------------------------------------- Place */
+/* Place identity answers "where"; the Rule section answers "can I enter".
+ * Do not repeat a status chip in the destination header. */
+#app .place-workspace .place-dossier__status {
+  display: none;
+}
+
+#app .place-workspace .place-dossier__head--with-scene {
+  min-height: 296px;
+  border-radius: 14px;
+}
+
+/* Governed media establishes place identity, but it must not become a
+ * destination-poster that delays the actual Rule. Keep enough scene context
+ * to orient the user, then hand the first viewport back to decision content. */
+#app .place-workspace .place-dossier__head--with-scene .place-dossier__name {
+  max-width: 18ch;
+  font-size: clamp(32px, 2.7vw, 38px);
+  line-height: 1.08;
+}
+
+#app .place-workspace .place-dossier__head--with-scene .place-dossier__meta {
+  max-width: 68ch;
+}
+
+#app .place-workspace .place-dossier__head--with-scene .place-dossier__status {
+  display: none;
+}
+
+#app .place-workspace .place-dossier__head--with-scene .place-dossier__actions {
+  gap: 18px;
+}
+
+#app .place-workspace .place-dossier__head--with-scene .place-dossier__actions .btn-inline,
+#app
+  .place-workspace
+  .place-dossier__head--with-scene
+  .place-dossier__actions
+  .btn-inline:first-child {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--pa-discovery-v10-white);
+  box-shadow: none;
+}
+
+#app .place-workspace .place-dossier__head--illustrated {
+  min-height: 0;
+  overflow: visible;
+  padding: 0 0 18px;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+}
+
+#app .place-workspace .place-dossier__head--illustrated::after {
+  display: none;
+}
+
+#app .place-workspace .place-dossier__head--illustrated .place-dossier__scene--fallback {
+  display: none;
+}
+
+#app .place-workspace .place-dossier__head--illustrated .place-dossier__identity-row {
+  padding: 6px 0 8px;
+}
+
+#app .place-workspace .place-dossier__head--illustrated .place-dossier__name {
+  color: var(--pa-discovery-ink);
+}
+
+#app .place-workspace .place-dossier__head--illustrated .place-dossier__meta {
+  color: var(--pa-discovery-muted);
+}
+
+#app .place-workspace .place-dossier__head--illustrated .place-dossier__map-link {
+  color: var(--pa-discovery-v9-tone-01);
+}
+
+#app .place-workspace .place-dossier__head--illustrated .place-dossier__actions {
+  gap: 18px;
+  padding: 8px 0 0;
+}
+
+#app .place-workspace .place-dossier__head--illustrated .place-dossier__actions .btn-inline {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--pa-discovery-v9-tone-01);
+}
+
+#app
+  .place-workspace
+  .place-dossier__head--illustrated
+  .place-dossier__actions
+  .btn-inline:first-child {
+  border: 0;
+  background: transparent;
+  color: var(--pa-discovery-v9-tone-01);
+}
+
+#app .place-workspace .place-dossier__scene-note {
+  position: static;
+  align-self: flex-start;
+  margin: 4px 0 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--pa-discovery-muted);
+  font-size: 12px;
+}
+
+#app .place-workspace .place-nav {
+  padding-inline: 0;
+  background: transparent;
+  border-bottom: 1px solid var(--pa-discovery-line);
+}
+
+#app .place-workspace .place-nav__tab {
+  background: transparent;
+}
+
+#app .place-workspace .place-nav__tab--active {
+  background: transparent;
+}
+
+#app .place-workspace .place-overview-lead {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  margin-bottom: 0;
+}
+
+/* Overview is a reading sequence, not a two-up dashboard. Rule owns the first
+ * decision beat; Reality follows below the same reading measure. */
+#app .place-workspace .place-overview-lead > .place-section + .place-section {
+  padding-top: 24px;
+  border-top: 1px solid var(--pa-discovery-line);
+}
+
+/* Desktop Place keeps a sticky factual rail, but it must not read as a second
+ * dashboard card beside the destination. Identity and the full Rule decision
+ * live in the dossier; the rail is secondary reference context. */
+@media (min-width: 1024px) {
+  #app .place-workspace .place-inspector {
+    padding: 8px 0 0 24px;
+    border: 0;
+    border-left: 1px solid var(--pa-discovery-line);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  #app .place-workspace .decision-inspector--place {
+    min-height: 0;
+    gap: 18px;
+    padding-bottom: 24px;
+  }
+
+  #app .place-workspace .decision-inspector--place .inspector-block--context {
+    display: none;
+  }
+
+  #app .place-workspace .decision-inspector--place .inspector-block--decision {
+    padding: 0 0 0 16px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  #app .place-workspace .decision-inspector--place .inspector-block--decision::before {
+    top: 0;
+    bottom: 0;
+  }
+
+  #app .place-workspace .decision-inspector--place .inspector-decision {
+    font-size: 22px;
+    line-height: 30px;
+  }
+
+  /* The dossier owns conditions, exceptions and Reality. The sticky rail only
+   * keeps a secondary verdict plus provenance/freshness so desktop Place does
+   * not read like two competing dashboards. */
+  #app
+    .place-workspace
+    .decision-inspector--place
+    :is(
+      .inspector-block--condition,
+      .inspector-block--exceptions,
+      .inspector-block--verified,
+      .inspector-block--reality
+    ) {
+    display: none;
+  }
+
+  #app .place-workspace .decision-inspector--place .inspector-block--meta {
+    padding-top: 18px;
+    border-top: 1px solid var(--pa-discovery-line);
+  }
+}
+
+#app .place-workspace .place-overview-lead > .place-section,
+#app .place-workspace .place-section {
+  padding: 24px 0;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#app .place-workspace .place-overview-lead > .place-section + .place-section {
+  padding-left: 0;
+  border-left: 0;
+}
+
+#app .place-workspace .sub-answer--mine {
+  padding: 0 0 0 18px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+#app .place-workspace .sub-answer--mine::before {
+  top: 0;
+  bottom: 0;
+  width: 3px;
+}
+
+/* Place Overview's signature is two independent fact dimensions. Rule uses
+ * the published Rule status rail; Reality uses its own observed-fact rail.
+ * Text labels remain visible, so colour is never the verdict itself. */
+#app .place-workspace .place-fact--rule-allowed .sub-answer--mine::before {
+  background: var(--pa-color-status-allowed);
+}
+
+#app .place-workspace .place-fact--rule-conditional .sub-answer--mine::before {
+  background: var(--pa-color-status-conditional);
+}
+
+#app .place-workspace .place-fact--rule-restricted .sub-answer--mine::before {
+  background: var(--pa-color-status-restricted);
+}
+
+#app .place-workspace .place-fact--rule-conflict .sub-answer--mine::before {
+  background: var(--pa-color-status-conflict);
+}
+
+#app .place-workspace .place-fact--rule-unknown .sub-answer--mine::before {
+  background: var(--pa-color-status-unknown);
+}
+
+#app .place-workspace .place-reality-fact {
+  position: relative;
+  padding-left: 18px;
+}
+
+#app .place-workspace .place-reality-fact::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 3px;
+  border-radius: var(--pa-radius-pill);
+  background: var(--pa-color-reality-observed);
+  content: "";
+}
+
+@media (max-width: 767px) {
+  #app .place-workspace .place-fact__label {
+    margin-bottom: 8px;
+    color: var(--pa-discovery-muted);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 18px;
+  }
+
+  #app .place-workspace .place-reality-fact {
+    padding-left: 16px;
+  }
+}
+
+#app .place-workspace .zone-row {
+  border-width: 0 0 1px;
+  border-radius: 0;
+  background: transparent;
+}
+
+/* ------------------------------------------- Legacy v9 surface shutdown */
+/* v9 intentionally promoted secondary routes into rounded destination cards.
+ * v11 is now the final presentation layer, so these selectors explicitly stop
+ * that older global cascade from resurrecting a second visual system. */
+#app :is(.privacy-head, .pet-new-head, .profile-head, .about-head, .explain-head) {
+  padding: 0 0 24px;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#app .mine-section,
+#app .privacy-section,
+#app .notifications-channel,
+#app .about-principles,
+#app .about-meta,
+#app :is(.explain-section, .reality-explain, .boundary-panel),
+#app .pet-new-section {
+  margin-top: 0;
+  padding: 22px 0;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#app .about-principles {
+  padding-top: 12px;
+}
+
+#app .about-meta {
+  border-top: 0;
+}
+
+#app .not-found {
+  margin-top: 24px;
+  padding: 24px 0;
+  border: 0;
+  border-top: 1px solid var(--pa-discovery-line);
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#app [data-ui-page="pets"] .state-message[data-state="EMPTY"] {
+  padding: 18px 0;
+  border: 0;
+  border-top: 1px solid var(--pa-discovery-line);
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#app [data-ui-page="pets"] .profile-note {
+  padding: 16px 0 0;
+  border: 0;
+  border-top: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#app .explain-refresh {
+  padding-inline: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+@media (max-width: 767px) {
+  #app :is(.privacy-head, .pet-new-head, .profile-head, .about-head, .explain-head) {
+    padding: 0 0 20px;
+  }
+
+  #app .mine-section,
+  #app .privacy-section,
+  #app .notifications-channel,
+  #app .about-principles,
+  #app .about-meta,
+  #app :is(.explain-section, .reality-explain, .boundary-panel),
+  #app .pet-new-section {
+    margin-top: 0;
+    padding: 18px 0;
+    border-radius: 0;
+  }
+
+  #app .not-found {
+    margin-top: 12px;
+    padding: 20px 0;
+  }
+}
+
+/* ---------------------------------------------- Secondary task surfaces */
+/* These pages are workflows/reading surfaces inside the same city guide.
+ * Reserve elevation for actual transient state; headers and repeated rows stay
+ * editorial so entering a secondary route never feels like switching products. */
+
+#app .notifications-head,
+#app .boundary-head,
+#app .operator-claim__head {
+  padding: 0 0 24px;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#app .watch-events__list {
+  gap: 0;
+  border-top: 1px solid var(--pa-discovery-line);
+}
+
+#app .watch-events .state-message,
+#app .notifications-list .state-message {
+  max-width: none;
+  padding: 14px 0 14px 16px;
+  border: 0;
+  border-left: 3px solid var(--pa-discovery-v9-tone-01);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#app .watch-event,
+#app .notification-row {
+  margin: 0;
+  padding-inline: 0;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#app .watch-event:hover:not(:disabled),
+#app .watch-event:focus-visible:not(:disabled) {
+  border-color: var(--pa-discovery-line);
+  background: var(--pa-discovery-v10-row-hover);
+  box-shadow: none;
+}
+
+#app .watch-event--unread {
+  background: var(--pa-discovery-v10-row-selected-bg);
+}
+
+#app .boundary-overview,
+#app .boundary-note {
+  padding-inline: 0;
+  border: 0;
+  border-top: 1px solid var(--pa-discovery-line);
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+}
+
+#app .boundary-name {
+  padding-inline: 0;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+}
+
+/* Each boundary attribute is a question, not another card. Keep the segmented
+ * choice control as the interactive surface, while the question itself lives
+ * in the editorial flow. */
+#app .boundary-list {
+  gap: 0;
+}
+
+#app .boundary-row {
+  padding: 18px 0;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#app .operator-claim__place {
+  padding: 16px 0;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+}
+
+#app .operator-claim__guide {
+  gap: 0;
+  border-top: 1px solid var(--pa-discovery-line);
+}
+
+#app .operator-claim__guide > div {
+  padding: 14px 0;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+}
+
+#app .auth-intro {
+  padding: 8px 0 28px;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#app .auth-workspace {
+  border-color: var(--pa-discovery-line);
+  border-radius: 16px;
+  box-shadow: none;
+}
+
+@media (max-width: 767px) {
+  #app .notifications-head,
+  #app .boundary-head,
+  #app .operator-claim__head {
+    padding: 0 0 20px;
+  }
+
+  #app .watch-event,
+  #app .notification-row {
+    padding: 12px 0;
+  }
+
+  #app .boundary-overview,
+  #app .boundary-note {
+    padding: 14px 0;
+  }
+
+  #app .boundary-row {
+    padding: 14px 0;
+  }
+
+  #app .operator-claim__guide > div {
+    min-height: 0;
+  }
+
+  #app .auth-page {
+    gap: 16px;
+  }
+
+  #app .auth-intro {
+    padding: 0 0 18px;
+  }
+
+  #app .auth-workspace {
+    padding: 16px 0 0;
+    border: 0;
+    border-top: 1px solid var(--pa-discovery-line);
+    border-radius: 0;
+    background: transparent;
+  }
+}
+
+/* ---------------------------------------------------------------- Mine */
+#app .mine-head--signed-in {
+  border-radius: 18px;
+  box-shadow: none;
+}
+
+#app .mine-section .mine-empty-state {
+  padding: 16px 0;
+  border: 0;
+  border-top: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+}
+
+#app .mine-section .mine-empty-state p {
+  margin-top: 4px;
+}
+
+/* ----------------------------------------------------------- Settings */
+#app .settings-head {
+  padding: 0 0 24px;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#app .settings-section {
+  margin-top: 0;
+  padding: 24px 0;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+}
+
+#app .settings-row {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+}
+
+#app .settings-row + .settings-row {
+  margin-top: 0;
+}
+
+#app .settings-points {
+  gap: 0;
+}
+
+#app .settings-points p {
+  padding: 10px 0 10px 24px;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+}
+
+#app .settings-points p::before {
+  top: 10px;
+  left: 0;
+}
+
+#app .settings-links {
+  gap: 0;
+  border-top: 1px solid var(--pa-discovery-line);
+}
+
+#app .settings-link {
+  min-height: 48px;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+}
+
+@media (max-width: 767px) {
+  #app .settings-head {
+    padding: 0 0 20px;
+  }
+
+  #app .settings-section {
+    gap: 12px;
+    padding: 20px 0;
+  }
+
+  #app .settings-row {
+    padding: 10px 0;
+  }
+}
+
+/* --------------------------------------------------------- Contribution */
+#app .contribute-workspace .contribute-workspace__main {
+  border-color: var(--pa-discovery-line);
+  border-radius: 16px;
+  box-shadow: none;
+}
+
+#app .contribute-workspace .entry-options {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  border-top: 1px solid var(--pa-discovery-line);
+}
+
+#app .contribute-workspace .entry-option__button {
+  min-height: 82px;
+  padding: 14px 8px;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+#app .contribute-workspace .entry-option__button:hover,
+#app .contribute-workspace .entry-option__button:focus-visible {
+  background: var(--pa-discovery-v10-row-hover);
+  box-shadow: none;
+  transform: none;
+}
+
+#app .contribute-workspace .entry-option__button--selected {
+  background: var(--pa-discovery-v10-row-selected-bg);
+  box-shadow: inset 3px 0 0 var(--pa-discovery-v9-tone-01);
+}
+
+#app .contribute-workspace .entry-option__icon {
+  width: 36px;
+  height: 36px;
+  flex-basis: 36px;
+  border-radius: 10px;
+}
+
+/* ------------------------------------------------------------- Evidence */
+#app .evidence-workspace {
+  background: var(--pa-discovery-v10-rail);
+}
+
+#app .evidence-workspace .evidence-workspace__body {
+  max-width: 900px;
+}
+
+#app .evidence-workspace .evidence-head {
+  padding: 0 0 20px;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#app .evidence-workspace .evidence-section {
+  padding: 22px 0;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* ------------------------------------------------------------- Reality */
+#app .reality-workspace {
+  background: var(--pa-discovery-v10-rail);
+}
+
+#app .reality-workspace .reality-workspace__body {
+  gap: 20px;
+  max-width: 860px;
+}
+
+#app .reality-workspace .reality-head {
+  padding: 0 0 18px;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#app .reality-workspace .reality-head__place-context {
+  display: inline-flex;
+  justify-content: flex-start;
+  width: auto;
+  max-width: 100%;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: 12px;
+}
+
+#app .reality-workspace .reality-head__place-context span:last-child::before {
+  content: "· ";
+}
+
+#app .reality-workspace .reality-head__title {
+  font-size: 28px;
+  letter-spacing: -0.03em;
+}
+
+#app .reality-workspace .reality-filters {
+  padding-inline: 0;
+  border: 0;
+  border-bottom: 1px solid var(--pa-discovery-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+@media (max-width: 767px) {
+  /* Mobile Contribution should feel like an in-place field capture flow, not a
+   * form dropped inside a large SaaS card. The desktop bounded workspace stays
+   * unchanged; only the phone presentation loses the decorative shell. */
+  #app .contribute-workspace .contribute-workspace__main {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  #app .contribute-workspace .contribution-step-shell {
+    border-radius: 0;
+  }
+
+  #app .query-context {
+    min-height: 48px;
+    padding: 6px 14px;
+  }
+
+  #app .query-context__edit {
+    min-height: 32px;
+    padding: 0 4px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  #app .query-context__edit:hover,
+  #app .query-context__edit:focus-visible {
+    background: transparent;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  #app .home-workspace .home-discovery-hero {
+    min-height: 204px;
+    border-radius: 16px;
+    background-position: 72% center;
+  }
+
+  #app .home-workspace .home-discovery-hero__content {
+    min-height: 204px;
+    padding: 14px 16px;
+  }
+
+  #app .home-workspace .home-topline {
+    display: none;
+  }
+
+  #app .home-workspace .home-discovery-hero__eyebrow,
+  #app .home-workspace .home-discovery-hero__annotation {
+    display: none;
+  }
+
+  #app .home-workspace .home-intro {
+    margin-bottom: 12px;
+  }
+
+  #app .home-workspace .home-intro h1 {
+    max-width: 14ch;
+    font-size: 26px;
+  }
+
+  #app .home-workspace .home-subtitle {
+    max-width: 24ch;
+  }
+
+  #app .home-workspace .home-lenses {
+    margin-top: 28px;
+  }
+
+  #app .place-workspace .place-dossier__head--with-scene {
+    min-height: 238px;
+    margin-inline: calc(var(--pa-space-4) * -1);
+    border-radius: 0;
+  }
+
+  #app .place-workspace .place-dossier__head--with-scene .place-dossier__name {
+    max-width: 16ch;
+    font-size: 28px;
+  }
+
+  #app .place-workspace .place-dossier__head--with-scene .place-dossier__identity-row {
+    padding: 18px 18px 4px;
+  }
+
+  #app .place-workspace .place-dossier__head--with-scene .place-dossier__actions {
+    gap: 16px;
+    padding: 6px 18px 16px;
+  }
+
+  #app .place-workspace .place-dossier__head--with-scene .place-dossier__actions .btn-inline {
+    font-size: 12px;
+  }
+
+  #app .place-workspace .place-dossier__head--illustrated {
+    min-height: 0;
+  }
+
+  #app .place-workspace .place-dossier__head--illustrated .place-dossier__identity-row {
+    padding: 4px 0 6px;
+  }
+
+  #app .place-workspace .place-dossier__scene-note {
+    margin: 4px 0 0;
+  }
+
+  #app .place-workspace .place-overview-lead {
+    gap: 0;
+  }
+
+  #app .place-workspace .place-overview-lead > .place-section,
+  #app .place-workspace .place-section {
+    padding: 18px 0;
+  }
+
+  #app .search-workspace .result-row,
+  #app .search-workspace .result-row--selected {
+    min-height: 96px;
+    margin: 0;
+  }
+
+  #app .search-workspace .result-row__link {
+    min-height: 96px;
+    padding-block: 10px;
+  }
+
+  #app .search-workspace .result-row__name {
+    font-size: var(--pa-font-size-base);
+    font-weight: var(--pa-font-weight-600);
+  }
+
+  #app .search-workspace .result-row__meta {
+    font-size: var(--pa-font-size-sm);
+  }
+
+  #app .search-workspace .result-row__decision,
+  #app .search-workspace .result-row__reality-line--lead {
+    font-size: var(--pa-font-size-17);
+    line-height: var(--pa-line-height-23);
+    font-weight: var(--pa-font-weight-medium);
+  }
+
+  /* Evidence provenance belongs in the detail surface on a phone. Search keeps
+   * one Rule line and one Reality line so results scan like places, not cards. */
+  #app .search-workspace .result-row__evidence-meta--inline {
+    display: none;
+  }
+
+  #app .reality-workspace .reality-workspace__body {
+    gap: 14px;
+    padding: 14px 18px 32px;
+  }
+
+  #app .evidence-workspace .evidence-workspace__body {
+    padding: 20px 18px 32px;
+  }
+
+  #app .reality-workspace .reality-head {
+    padding-bottom: 12px;
+  }
+
+  #app .reality-workspace .reality-head__place-context {
+    margin-bottom: 3px;
+  }
+
+  #app .reality-workspace .reality-head__title {
+    font-size: 25px;
+    line-height: 31px;
+  }
+
+  #app .reality-workspace .reality-head__intro {
+    margin-block: 4px 6px;
+    font-size: 12px;
+    line-height: 18px;
+  }
+
+  #app .reality-workspace .reality-head__summary {
+    font-size: 12px;
+    line-height: 18px;
+  }
+
+  #app .reality-workspace .reality-filters {
+    margin-top: 6px;
+  }
+}

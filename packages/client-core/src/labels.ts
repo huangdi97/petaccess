@@ -6,8 +6,9 @@
  * product. Client H5 and Admin share this map so the same place type is never
  * named two different ways in two tabs.
  *
- * Lookups are total-by-fallback: an enum value added on the server before this
- * map catches up shows the raw value instead of blanking the row.
+ * Lookups are total-by-fallback, but Consumer surfaces never expose raw enum
+ * identifiers. A server enum added before this map catches up degrades to a
+ * neutral Chinese label; the original value remains available in the data layer.
  */
 
 export const PLACE_TYPE_LABELS: Record<string, string> = {
@@ -34,7 +35,7 @@ export const PLACE_TYPE_LABELS: Record<string, string> = {
 
 export function placeTypeLabel(value: string | null | undefined): string {
   if (!value) return "";
-  return PLACE_TYPE_LABELS[value] ?? value;
+  return PLACE_TYPE_LABELS[value] ?? "其他场所";
 }
 
 /**

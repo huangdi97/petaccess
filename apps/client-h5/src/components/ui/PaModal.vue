@@ -5,6 +5,7 @@
  * inside the panel never close it) or the host driving `open` down.
  */
 import { onBeforeUnmount, onMounted } from "vue";
+import { useDialogFocus } from "../../composables/useDialogFocus";
 
 const props = withDefaults(defineProps<{ open: boolean; title?: string | null }>(), {
   title: null,
@@ -13,6 +14,8 @@ const props = withDefaults(defineProps<{ open: boolean; title?: string | null }>
 const emit = defineEmits<{ close: [] }>();
 
 defineOptions({ name: "PaModal" });
+
+const { panel, keepFocusInside } = useDialogFocus(() => props.open);
 
 /** Close on Escape whether focus is inside the modal or still in the page. */
 function onWindowKey(e: KeyboardEvent) {
@@ -28,11 +31,14 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onWindowKey));
     <div v-if="open" class="pa-modal">
       <div class="pa-modal__overlay" @click.self="emit('close')"></div>
       <section
+        ref="panel"
         class="pa-modal__panel"
         role="dialog"
         aria-modal="true"
+        tabindex="-1"
         :aria-label="title ?? undefined"
         @keydown.esc.stop="emit('close')"
+        @keydown="keepFocusInside"
       >
         <header v-if="title" class="pa-modal__header">
           <h2 class="pa-modal__title">{{ title }}</h2>

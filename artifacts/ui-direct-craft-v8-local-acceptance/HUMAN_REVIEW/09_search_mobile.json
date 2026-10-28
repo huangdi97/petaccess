@@ -1,0 +1,12 @@
+﻿{
+  "order": 9,
+  "name": "09_search_mobile",
+  "platform": "web",
+  "device": "mobile",
+  "viewport": "430x932",
+  "route": "/#/search?q=星河",
+  "state": "selected",
+  "gitSha": "d2eeba2fe5ffbfba31f244881f6e1705a07f84c2",
+  "valid": true,
+  "screenshot": "09_search_mobile.png"
+}

@@ -1,0 +1,25 @@
+{
+  "gitSha": "d2eeba2fe5ffbfba31f244881f6e1705a07f84c2",
+  "page": "reality",
+  "state": "ready",
+  "route": "/#/place/8412b521-5e1c-505d-9dec-568acb860c76/reality",
+  "innerWidth": 1120,
+  "innerHeight": 760,
+  "outerWidth": 1121,
+  "outerHeight": 761,
+  "devicePixelRatio": 1.25,
+  "visualViewportWidth": 1120,
+  "visualViewportHeight": 760,
+  "documentClientWidth": 1120,
+  "documentScrollWidth": 1120,
+  "rail": {
+    "clientWidth": 67,
+    "scrollWidth": 67
+  },
+  "contribution": null,
+  "horizontalOverflow": false,
+  "railHorizontalOverflow": false,
+  "contributionLayoutMode": null,
+  "consoleErrors": [],
+  "screenshot": "06_reality.png"
+}

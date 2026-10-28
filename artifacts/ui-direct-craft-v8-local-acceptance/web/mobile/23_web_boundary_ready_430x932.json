@@ -1,0 +1,15 @@
+{
+  "gitSha": "d2eeba2fe5ffbfba31f244881f6e1705a07f84c2",
+  "route": "/#/boundary",
+  "page": "boundary",
+  "state": "ready",
+  "viewportWidth": 430,
+  "viewportHeight": 932,
+  "devicePixelRatio": 1,
+  "documentClientWidth": 430,
+  "documentScrollWidth": 430,
+  "horizontalOverflow": false,
+  "consoleErrors": [],
+  "networkErrors": [],
+  "screenshot": "23_web_boundary_ready_430x932.png"
+}

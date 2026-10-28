@@ -24,6 +24,11 @@
 - **主工作区路径含 CJK（`E:\AI\宠物管理`）→ AGP 拒绝构建**（`Failed to apply plugin 'com.android.internal.application' > Your project path contains non-ASCII characters...`，b.android.com/95744）。本地 Android 构建一律使用 ASCII worktree：
   `git worktree add D:\pa-<label> <commit>`
 - Windows host 构建 Rust/android 需要 MSVC：在 cmd 内 `call "D:\Code\Visual Studio\Visual Studio\VC\Auxiliary\Build\vcvars64.bat" >nul`。注意：vcvars 输出重定向到**文件**会导致其退出（异常中断），必须 `>nul 2>&1`。
+- Android SDK/签名工具链与 CI 同步固定为 **Platform API 36 + Build Tools 36.0.0 + NDK 27.1.12297006**。本机缺少时先执行：
+  ```
+  sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0" "ndk;27.1.12297006"
+  ```
+  不得依赖 Android Studio 或 CI runner “碰巧已经预装”的 SDK 组件。
 - 构建链（与 CI 等价）：
   ```
   pnpm install --frozen-lockfile
@@ -38,6 +43,40 @@
 - `CARGO_TARGET_DIR=D:\…` 可避免占用 E: 磁盘。
 
 ## 4. 运行验证（F03/F06 流程）
+
+### 4.0 当前客户端边界（v0.10-R1）
+
+- **唯一当前 Consumer**：`apps/client-h5`。
+- **唯一当前 Android 壳层**：`apps/client-h5/src-tauri`。
+- `apps/client` 是 `LEGACY_REFERENCE_ONLY`，不得用 HBuilderX 构建当前 Android 包，不得用其页面做 Human Visual Acceptance，也不得把其历史 Observation / synthetic marker 逻辑迁回当前 Consumer。
+- `.github/workflows/release-ci.yml` 是 Android release 构建事实源；工程门禁会拒绝 release workflow 重新依赖 `apps/client`。
+
+### 4.1 FAST semantic gate
+
+`python scripts/android_acceptance/m3_fast.py` 不再只验证“进程存在 + 有截图”。当前 FAST 必须逐页完成：
+
+```text
+Home
+Search
+Map
+Place
+Reality
+Evidence
+Android hardware Back: Evidence -> Reality
+Fresh Home hardware Back -> finish MainActivity
+Nav round-trip: Map -> Home
+```
+
+每个页面动作都要求：
+
+1. CDP 可连接当前 debug WebView；
+2. Consumer shell 存在；
+3. `data-ui-page` 与目标页面一致；
+4. document 无横向 overflow；
+5. 在**该页面仍处于当前状态时**立即截图；
+6. 任一动作写入 `ERROR` 时，FAST 命令必须非零退出。
+
+全量 `cdp_journey.cjs` 进一步要求 **19/19 个 Router 页面 + Place rules/space 两个额外视图（21/21 cases）** 全部 PASS 后，Routes coverage 才能标记为 `COVERED`。每个页面必须暴露统一 `data-ui-page` 身份；仅存在旧 `cdp_journey_ws.json` 或只覆盖核心导航不再足以证明当前路由覆盖。
 
 - Boot 可观测性：`VITE_BOOT_TRACE=1` 构建 → debug APK → `adb logcat -d -s Tauri/Console` 应见
   `PETACCESS_BOOT=INDEX_LOADED / VUE_CREATED / APP_SHELL_MOUNTED / ROUTER_READY / HOME_READY`。

@@ -1,89 +1,262 @@
-# Map — Area / Lens 选择器现状
+# Map — Spatial Workspace / Area / Lens 当前真实状态
 
-> 结论先说：**MAP_AREA_LENS = FAIL（未实现）**。本文件说明现在有什么、缺什么、为什么本轮不补，
-> 以及补上需要的前置条件。不把"没做"写成"做了简化版"。
+> 2026-10-05 direct-v8 canonical visual recovery 更新。
+> 本文只记录当前事实，不把“可继续实现”写成“已经完成”。
 
-## 1. 现在真实有什么
+## 1. 当前结论
 
-`apps/client-h5/src/views/MapView.vue` + `packages/client-core/src/platform/map.ts`
-
-| 能力 | 状态 | 依据 |
-|---|---|---|
-| 地图 / 列表双视图切换 | 实现 | `view` ref + `data-testid="map"` / `view-list` |
-| 地图渲染 | **Mock** | `<MockMap>`，无真实瓦片 SDK；`MapProvider` 仅有 mock adapter |
-| 相机（中心 + zoom） | 实现 | `synthDemoCamera()` → `MapCamera` |
-| 定位 | 一次性 | `navigator.geolocation.getCurrentPosition`，无 watch（ADR-012） |
-| 定位状态文案 | 实现 | `LOCATION_LABELS`：`IDLE / REQUESTING / GRANTED / DENIED / UNAVAILABLE` |
-| 覆盖度提示 | 实现 | `coverageHint()`：`当前视野 N 个场所：X 个已有结论，Y 个信息不足或存在不一致。信息不足 ≠ 允许。` |
-| 状态筛选 | 实现 | 5 个中性状态（明确允许 / 有条件 / 明确限制 / 信息不足 / 来源不一致），**不是排序** |
-| 信息不足默认不隐藏 | 实现 | 无筛选时 `visiblePlaces` 返回全部；空筛选结果给出「清除筛选」 |
-| 聚合 | 实现 | `clusterMarkers(markers, zoom)` |
-| 底部卡片（bottom sheet） | 实现 | `selected` → 详情入口，从列表点击可打开 |
-| 列表兜底 | 实现 | 地图失败不是死路：列表始终可用 |
-| **Area（区域）选择器** | **未实现** | 源码中不存在 |
-| **Lens（镜头）选择器** | **未实现** | 源码中不存在 |
-
-## 2. 为什么本轮不补
-
-### 2.1 坐标是合成的
-
-`synthMarkerPosition(id, camera)` 从场所 UUID 的哈希导出稳定偏移：
-
-```ts
-let h = 0;
-for (const c of id) h = (h * 31 + c.charCodeAt(0)) % 100000;
-const dx = ((h % 41) - 20) / 20;   // -1..1
-const dy = ((Math.floor(h / 41) % 37) - 18) / 18;
+```text
+MAP_SPATIAL_WORKSPACE          = IMPLEMENTED
+MAP_FOUR_LENSES                = IMPLEMENTED
+MAP_REAL_PLACE_COORDINATES     = IMPLEMENTED
+MAP_ONE_SHOT_LOCATION_QUERY    = IMPLEMENTED
+MAP_INLINE_SPATIAL_SEARCH      = IMPLEMENTED
+MAP_REAL_TILE_RENDERER_CODE    = IMPLEMENTED
+MAP_REAL_TILE_RUNTIME          = BLOCKED_EXTERNAL
+MAP_WGS84_TO_GCJ02_BOUNDARY    = IMPLEMENTED
+MAP_AREA_SELECTOR              = NOT_IMPLEMENTED
 ```
 
-也就是说：**图钉位置与场所的真实经纬度无关**，只保证"同一个场所在同一处"。
+这里最重要的变化是：**Map marker 不再以 UUID 哈希位置作为正常数据路径。**
 
-`nearby` 接口返回 `distance_m`，但**不返回坐标**——真实 provider 在客户端解析坐标。当前只有 Mock provider。
+当前数据链：
 
-后果：在合成坐标上画一个"区域"框，框选出来的结果**看起来是对的、实际是随机的**。
-这正是这个产品最不能出的那类错误——把「演示能跑」呈现成「空间结论」。
+```text
+PostGIS Place.location
+→ GET /places / GET /places/nearby
+→ PlaceSummary.latitude / longitude
+→ Consumer repository
+→ useMapWorkspace
+→ marker / clustering / four-lens projection
+```
 
-### 2.2 Lens 还没有产品定义
+只有 dev/test 或旧 payload 真正缺少坐标时，才允许
+`synthMarkerPosition()` 作为 deterministic fallback；它不再代表生产空间事实。
 
-「镜头」通常是"按某个维度重看图面"（例如只看服务犬相关、只看带围栏的场地）。
-本项目现有硬约束里，`不做遇宠率`、`AI != final rule judge`、`UNKNOWN != allowed`。
-在这些约束下，"镜头"要么是**筛选**（已有 5 个中性状态筛选），要么需要新的产品定义——
-而新增维度等于新增一种可以被误读成结论的视图类型，不能由实现方自己发明。
+## 2. 已经完成
 
-## 3. 补上它需要什么（前置条件，按顺序）
+### 2.1 Spatial Workspace
 
-1. **真实 Map provider**：`MapProvider` 的腾讯地图（或等价）adapter，`nearby`/`places` 返回或可解析真实坐标。
-   现有 `MapProvider` 接口 + adapter 结构已就位，缺的是非 mock 实现。
-   在此之前，任何"区域"能力都只是在合成坐标上做样子。
-2. **规则覆盖边界（Area 的语义来源）**：Area 只有在能对应"某个行政/管辖范围"时才有意义——
-   本项目里那是 `jurisdiction_rule` + `jurisdiction_code`。所以 Area 选择器应该绑定**管辖范围**，
-   而不是屏幕上的一个矩形。
-3. **Lens 的产品定义**：由产品/治理侧给出"镜头"清单，且每个镜头必须能被落成**筛选**而不是**评分**，
-   否则会与「不做遇宠率」「AI 不做终裁」冲突。
-4. **可回归的测试**：Area 选择要有"选了某区域必须返回该区域场所、且不返回区域外场所"的断言，
-   不能只截一张图。
+Desktop：
 
-## 4. 本轮的替代做法（已做）
+```text
+Rail
++ Results Pane
++ Spatial Canvas
++ selected floating preview
+```
 
-不做假的功能，但把"地图能诚实说什么"补齐：
+Mobile：
 
-- `coverageHint()` 明说当前视野内有几个场所已有结论、几个信息不足，并写明「信息不足 ≠ 允许」。
-- 未收录时文案是「当前视野内暂无已收录场所。未收录不代表该场所没有规则。」——不把空视野说成"安全"。
-- 定位被拒不是死路：`DENIED` / `UNAVAILABLE` 都退回默认中心，并如实说明。
-- 列表始终是地图的兜底，地图挂了不影响用户拿到结论。
-- 视觉回归覆盖 `map`（地图壳 + 列表兜底）与 `map-sheet`（底部卡片）三个视口，见
-  `docs/frontend/VISUAL_REGRESSION_BASELINE.md`。
+```text
+full spatial canvas
++ bottom sheet (collapsed / half / expanded)
++ bottom nav
+```
 
-## 5. 判定
+List 与 Map selection 使用同一个 place id，selection 持续可见；Map 不是 Home。
 
-| 项 | 判定 |
-|---|---|
-| MAP_RENDER（Mock） | PASS_WITH_LIMITATIONS（无真实瓦片） |
-| MAP_LIST_FALLBACK | PASS |
-| MAP_COVERAGE_HINT | PASS |
-| MAP_STATE_FILTER | PASS |
-| MAP_LOCATION_STATES | PASS |
-| **MAP_AREA_SELECTOR** | **FAIL（未实现）** |
-| **MAP_LENS_SELECTOR** | **FAIL（未实现）** |
+### 2.2 四 Lens
 
-`MAP_AREA_LENS` 整体 = **FAIL**。这不是"简化实现"，是没做；写出前置条件而不是写一个会骗人的版本。
+同一个 `CoexistenceSnapshot` 上提供：
+
+- Rule；
+- Reality；
+- Facility；
+- Divergence。
+
+Lens 只改变 consumer projection，不新增第二 resolver，也不把 Reality / Facility tone
+解释成准入结论。Rule Lens 可以按准入状态筛选；其他 Lens 默认保持完整空间态势。
+
+### 2.3 真实 representative coordinates
+
+`PlaceSummary` 现在携带可空的：
+
+```text
+latitude
+longitude
+```
+
+来自 PostGIS `Place.location` 的 WGS84 representative point。
+
+原则：
+
+- 有真实坐标 → 必须直接使用；
+- 没有坐标 → Consumer 不得猜；
+- dev/test fixture 可使用明确的稳定 fixture coordinates；
+- legacy incomplete payload 才可触发 synthetic fallback；
+- synthetic fallback 永远不是 provenance，也不写回数据库。
+
+### 2.4 定位真的影响 nearby 查询
+
+过去存在一个产品级缺陷：
+
+```text
+navigator.geolocation 更新 camera
+但 nearbyPlaces() 仍固定查询 synthDemoCamera()
+```
+
+结果是“地图移动了，但查询区域没移动”。
+
+direct-v8 已改为：
+
+```text
+camera(lat,lng)
+→ nearbyPlaces(camera)
+→ cache key 含 lat/lng/radius
+→ /places/nearby?lat=...&lng=...
+```
+
+因此一次性定位现在真正改变空间查询，仍遵守 ADR-012：
+不连续追踪、不保存用户移动轨迹。
+
+### 2.5 Map 内搜索是真实空间操作
+
+过去 Map 左栏的“搜索场所 / 类别 / 附近”只是一个跳转到 Search 页的快捷按钮，
+这不符合 Spatial Workspace：用户离开了当前地图、camera 与 selection 也失去连续性。
+
+direct-v8 现在改为：
+
+```text
+Map search input
+→ GET /places?q=
+→ canonical name / alias / canonical address / parent place
+→ 命中有 verified representative point
+→ camera recenter
+→ nearby query
+→ list + marker + selection + preview 同步
+
+命中但没有已核验坐标
+→ 保留为真实 list result
+→ 不生成 marker
+→ 明确提示“仅在列表显示”
+```
+
+这使“商场 / 园区 / 父场所名称”和地址真正可检索，而不只是 UI placeholder 的承诺。
+搜索仍不创建 Place，也不使用第三方 POI 结果绕过 PetAccess 的治理模型。
+
+## 3. Real Map：代码链已接通，真实运行仍是 External Blocker
+
+当前分支已经不再停在“以后换 provider”的接口注释，而是有两套真实可切换 renderer：
+
+```text
+feature_real_map=false / key 缺失
+→ MockMap（简化空间底图，真实 PetAccess 坐标）
+
+feature_real_map=true
++ MAP_PROVIDER=tencent
++ TENCENT_MAP_KEY_CLIENT
++ TENCENT_MAP_KEY_SERVER
+→ TencentMap（真实腾讯 GL 瓦片）
+```
+
+新增链路：
+
+```text
+PostGIS EPSG:4326 governed coordinate
+→ /ai/map/translate
+→ Tencent WebService coord/v1/translate type=1
+→ GCJ-02 presentation coordinate
+→ Tencent JavaScript API GL real basemap
+→ PetAccess-owned accessible marker overlay
+```
+
+这里刻意不把 GCJ-02 写回数据库。PetAccess 的事实坐标继续以
+`Place.location / PlaceGeometry = EPSG:4326` 为治理事实；provider 坐标只属于 render boundary。
+
+官方依据：
+
+- Tencent JavaScript API GL 基础入门：
+  https://lbs.qq.com/webApi/javascriptGL/glGuide/glBasic
+  - 浏览器通过 `https://map.qq.com/api/gljs?v=1.exp&key=...` 加载；
+  - SDK 使用 GCJ-02；
+  - GPS / 其它坐标需要先转换。
+- Tencent WebService 坐标转换：
+  https://lbs.qq.com/service/webService/webServiceGuide/webServiceTranslate
+  - `/ws/coord/v1/translate`；
+  - `type=1` = GPS 坐标；
+  - 支持批量转换。
+
+安全边界：
+
+- `TENCENT_MAP_KEY_CLIENT` 是 JavaScript GL 本来就会暴露在浏览器请求中的 Web key，
+  只能在 `feature_real_map=true` 且 server/client key 都完整时从 public map config 返回；
+  部署时必须在腾讯控制台限制允许域名。
+- `TENCENT_MAP_KEY_SERVER` 永不发到客户端；WGS84→GCJ-02 由 API 代理转换。
+- Tauri CSP 已显式 allowlist 腾讯地图 GL / tile 域名，不开放任意第三方脚本。
+- SDK 加载 / 坐标转换失败时自动退回 MockMap；List / Rule / Reality / Evidence 不丢失。
+
+**还没有完成的是外部运行验收，不是源码 adapter：**
+
+- 需要真实 `TENCENT_MAP_KEY_CLIENT / SERVER`；
+- 需要 Web 真瓦片截图；
+- Windows WebView2 真瓦片 smoke；
+- Android WebView 真瓦片 smoke；
+- 如 SDK 实际请求域名超出当前 CSP allowlist，只允许依据真实 console/CSP error 精确补域名；
+- 需要确认 attribution、touch/keyboard、SDK load failure fallback。
+
+因此当前应写：
+
+```text
+REAL_TILE_RENDERER_CODE = IMPLEMENTED
+REAL_TILE_RUNTIME = BLOCKED_EXTERNAL_KEY
+```
+
+不能写：
+
+```text
+REAL_TILE_BASEMAP_RUNTIME = PASS  ❌
+```
+
+## 4. Area selector
+
+Area selector 仍未实现，而且当前**不应该用一个静态下拉框假装完成**。
+
+本轮重新审计了当前数据模型：
+
+- `PlaceGeometry` 只治理 Place / Zone 的空间几何；
+- `JurisdictionRule` 有 `jurisdiction_level / jurisdiction_id`，但没有可用于地图裁剪的
+  jurisdiction / district geometry；
+- 当前没有一套带 provenance 的行政区 / 商圈 Area 实体与边界数据。
+
+因此现在能真实完成的是 Place / parent-place / address search + camera / viewport spatial query；
+不能把名字字符串或 synthetic rectangle 冒充 Area geometry。
+
+后续若把 Area 纳入发行范围，至少需要：
+
+1. 明确 Area 数据源和许可；
+2. 建立可追溯的 Area geometry（WGS84 internal truth）；
+3. Area selection 真正改变 nearby/search spatial query；
+4. 区域内外 / 边界 / 缺失 geometry 回归断言；
+5. provider 坐标转换仍只发生在 presentation boundary；
+6. 不把“区域未收录”解释为“允许”。
+
+所以这里的 `NOT_IMPLEMENTED` 是**诚实的数据能力边界**，不是一个应该用假 UI 填掉的视觉缺口。
+
+## 5. Map UX 研究约束
+
+本轮参考成熟 map / split-view 官方模式：
+
+- Apple Split View：selection 应持续高亮，使 list → detail/canvas 关系稳定；
+- Apple Search：搜索范围必须清楚，结果尽量简化，desktop split view 中 search 与列表相邻；
+- Google Maps controls：地图控件应是原生 button/form，可键盘访问，不用 div 冒充交互控件；
+- Google accessible markers：marker 应可 click/focus，并有可读 title/aria 语义。
+
+这些模式只用于加强现有冻结设计，不改变 PetAccess 语义。
+
+## 6. 最终边界
+
+当前可写：
+
+```text
+PetAccess Map 已是使用真实 Place coordinates 的四 Lens Spatial Workspace。
+```
+
+当前不可写：
+
+```text
+PetAccess 已完成真实腾讯地图生产接入。  ❌
+```
+
+真实瓦片 provider 是最后一个明确的 EXTERNAL integration gap；其余不应再用“没有地图 key”
+作为理由保留假的位置查询或 UUID 几何。

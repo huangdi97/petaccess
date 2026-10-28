@@ -12,6 +12,7 @@ import pytest
 from app.core.config import (
     DEV_ONLY_DEFAULTS,
     InsecureDefaultSecret,
+    InvalidPublicApiBase,
     Settings,
     validate_runtime,
 )
@@ -42,7 +43,34 @@ def test_a_production_environment_must_not_keep_the_dev_default(env):
 
 
 def test_a_production_environment_with_a_real_secret_starts():
-    validate_runtime(_settings(app_env="production", jwt_secret="a" * 48))
+    validate_runtime(
+        _settings(
+            app_env="production",
+            jwt_secret="a" * 48,
+            api_base_url="https://api.petaccess.example",
+        )
+    )
+
+
+@pytest.mark.parametrize(
+    "api_base_url",
+    [
+        "http://api.petaccess.example",
+        "http://localhost:8000",
+        "https://localhost:8000",
+        "http://127.0.0.1:8000",
+        "http://10.0.2.2:8000",
+    ],
+)
+def test_a_production_environment_requires_a_public_https_api_base(api_base_url):
+    with pytest.raises(InvalidPublicApiBase):
+        validate_runtime(
+            _settings(
+                app_env="production",
+                jwt_secret="a" * 48,
+                api_base_url=api_base_url,
+            )
+        )
 
 
 def test_the_known_dev_default_is_the_one_declared_in_settings():

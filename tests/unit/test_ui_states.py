@@ -44,9 +44,11 @@ REQUIRED_PER_VIEW = {
     "MapView.vue": ("SkeletonList", "StateMessage"),
     "ContributeView.vue": ("StateMessage",),
     "MineView.vue": ("StateMessage",),
+    "OperatorClaimView.vue": ("SkeletonList", "StateMessage"),
     "PetProfileView.vue": ("SkeletonList", "StateMessage"),
     "NotificationsView.vue": ("SkeletonList", "StateMessage"),
     "BoundaryView.vue": ("SkeletonList", "StateMessage"),
+    "PrivacyView.vue": ("SkeletonList", "StateMessage"),
     "MatchExplainView.vue": ("StateMessage",),
     "RealityTraceView.vue": ("SkeletonList", "StateMessage"),
     "EvidenceView.vue": ("SkeletonList", "StateMessage"),
@@ -58,7 +60,6 @@ REQUIRED_PER_VIEW = {
 # inline. Every route view must be in exactly one of the two maps.
 DECLARED_STATIC = {
     "AboutView.vue": "@ui-static",
-    "PrivacyView.vue": "@ui-static",
     "SettingsView.vue": "@ui-static",
     "OnboardingView.vue": "@ui-static",
     "NotFoundView.vue": "@ui-static",
@@ -85,7 +86,6 @@ def _view_plus_imports(path: Path) -> str:
         if candidate.exists() and H5_SRC in candidate.parents:
             parts.append(_read(candidate))
     return "\n".join(parts)
-
 
 
 # ------------------------------------------------------------- §5.5 vocabulary

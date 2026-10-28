@@ -125,6 +125,63 @@ def scope_violations(candidate) -> list[tuple[str, bool, str]]:
     ]
 
 
+def _supersession_target_violations(
+    db: Session, candidate: RuleCandidate
+) -> list[tuple[str, bool, str]]:
+    """Validate an explicitly targeted replacement without inferring intent.
+
+    A user change lead may point at one current AccessRule. That relation is
+    review context only until publish time. At the write boundary the target
+    must still be current, have the same owner/action and live on the same
+    normative layer. Cross-layer replacement would let an operator/user lead
+    silently retire a legal or guidance rule, so it is refused.
+    """
+
+    target_id = candidate.supersedes_rule_id
+    if not target_id:
+        return []
+    target = db.get(AccessRule, target_id)
+    if target is None:
+        return [
+            (
+                "supersession_target_missing",
+                True,
+                "候选指向的待替换规则不存在，不能发布",
+            )
+        ]
+
+    # Supersession may legitimately narrow/widen/move a rule between zones.
+    # The immutable boundary is the owning Place, not the old zone id.
+    same_owner = target.place_id == candidate.place_id
+    same_action = target.action == candidate.action
+    same_layer = (target.rule_layer or "OPERATOR_POLICY") == (
+        candidate.rule_layer or "OPERATOR_POLICY"
+    )
+    current = str(target.status) == "current"
+    return [
+        (
+            "supersession_target_not_current",
+            not current,
+            "待替换规则已不是现行版本，必须重新核对变更目标",
+        ),
+        (
+            "supersession_owner_mismatch",
+            not same_owner,
+            "待替换规则与候选不属于同一场所",
+        ),
+        (
+            "supersession_action_mismatch",
+            not same_action,
+            "待替换规则与候选不是同一类动作，不能直接替换",
+        ),
+        (
+            "supersession_layer_mismatch",
+            not same_layer,
+            "待替换规则与候选不在同一规范层级，禁止跨层替换",
+        ),
+    ]
+
+
 def evaluate_for_publish(
     db: Session, candidate: RuleCandidate, *, now: datetime | None = None
 ) -> list[GateViolation]:
@@ -268,6 +325,9 @@ def evaluate_for_publish(
     # live in one place (`scope_violations`) so tests and the gate cannot drift.
     violations += _collect(scope_violations(candidate))
 
+    # ---- 4d. explicit supersession target ------------------------------------
+    violations += _collect(_supersession_target_violations(db, candidate))
+
     # ---- 5. unresolved conflict ---------------------------------------------
     conflict = _has_unresolved_conflict(db, candidate)
     violations += _collect(
@@ -327,4 +387,9 @@ def _has_unresolved_conflict(db: Session, candidate: RuleCandidate) -> bool:
             AccessRule.action == candidate.action,
         )
     ).all()
-    return any(r.effect != candidate.effect and r.source_id != candidate.source_id for r in rows)
+    return any(
+        r.effect != candidate.effect
+        and r.source_id != candidate.source_id
+        and r.id != candidate.supersedes_rule_id
+        for r in rows
+    )
