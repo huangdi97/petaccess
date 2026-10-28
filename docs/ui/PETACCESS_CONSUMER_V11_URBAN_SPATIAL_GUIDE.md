@@ -78,6 +78,8 @@ These dimensions should not become three visually identical cards.
 
 Contribution remains a short multi-step question flow. One screen asks one factual question. User submissions remain pending review and never directly promote themselves to Rule truth.
 
+On mobile/tablet, the first contribution step keeps the **target place visible as lightweight context** before the question. This prevents fast field capture from being attached to the wrong venue. The context is divider-led text, not another card; later structured steps may carry their own place/zone context and must not duplicate a permanent dashboard rail.
+
 ## 3. v11 page composition
 
 ### Home
