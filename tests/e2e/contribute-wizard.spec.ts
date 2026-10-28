@@ -74,6 +74,10 @@ test("A1.mobile — authenticated contribution chooser never overflows phone vie
     await expect(page.getByTestId("entry-reality-observed_presence")).toBeVisible({
       timeout: 15000,
     });
+    await expect(page.getByTestId("contribution-mobile-place-context")).toContainText(
+      "云栖中心·测试商场",
+    );
+    await expect(page.getByTestId("contribution-mobile-place-context")).toContainText("当前场所");
 
     const layout = await page.evaluate(() => {
       const viewportWidth = window.innerWidth;
