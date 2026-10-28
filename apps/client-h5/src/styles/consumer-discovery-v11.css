@@ -1390,6 +1390,20 @@ html,
   box-shadow: none;
 }
 
+#app .reality-workspace .reality-head__place-context {
+  display: inline-flex;
+  justify-content: flex-start;
+  width: auto;
+  max-width: 100%;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: 12px;
+}
+
+#app .reality-workspace .reality-head__place-context span:last-child::before {
+  content: "· ";
+}
+
 #app .reality-workspace .reality-head__title {
   font-size: 28px;
   letter-spacing: -0.03em;
