@@ -1,3 +1,23 @@
+## Current phase（2026-10-28 — v11 adaptive Map context + Reality place-context closure）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 继续 **OPEN + DRAFT**；未 merge、未 tag、未 Release；`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
+- 本轮重新核验远端真实状态：进入时 HEAD=`37257281944f6d24ff4b89ac9bd237c609e0ef25`，相对 2026-10-19 的 `3c614320...` 已前进 **215 commits**。该 HEAD 的 UI Direct Validation / UI Direct Visual / Public Preview Stack = **SUCCESS**；PR CI 仅 Playwright 失败，其余 Engineering / Frontend / Backend 均 SUCCESS。
+- PR CI 唯一失败为 mobile Map chrome 几何：`A1.0.4` 在窄屏要求 query-context → Lens → map/list 之间至少 4px 间距，实际 Lens 与 viewbar 仅 2px（expected <=214, received 216）。这不是 domain / API / backend 回归。
+- 已拉取并目视检查同 HEAD 最新 Human Review artifact（约 23.1 MB）。结论：
+  - mobile selected-place sheet（有/无 governed scene media）已经形成稳定 compact spatial bridge；
+  - Home / Search / governed-media Place / no-photo Place / Reality / Contribution 已明显脱离旧 SaaS/card-wall 原型；
+  - 当前更值得继续收口的是“空间上下文是否始终清楚”和“窄屏 overlay 是否结构性稳定”，而不是重新做视觉风格。
+- 本轮直接完成：
+  - `ef178ea3`：先修复当前 2px mobile Map control collision；
+  - `6b2c4a3b` / `96157c4a`：独立 Reality timeline 增加轻量 Place context / 返回地点；place identity 采用 best-effort 独立请求，不阻塞已发布 Reality facts；
+  - `00f6b492`：Human Review 强制 Reality 显示 place context；
+  - `4da787ed` / `1bdf1448` / `b0dca0f1`：将 mobile Map 第二 overlay row 从三个 unrelated absolute offsets 重构为一个 adaptive flex layout group；query context 先收缩/截断，Lens 与 map/list 保留触控尺寸，避免后续字号/文案变化再次产生 offset collision；
+  - `4ce3a53e`：v11 母版冻结 adaptive Map row 与 Reality place-context / non-blocking 原则；
+  - `fa32b1f7`：A1.0.4 几何门从 320/430 扩展到 **320 / 360 / 390 / 430** 四档宽度。
+- 外部设计复核继续支持这一方向：最新 Apple HIG Layout 强调以稳定分组、视觉层级和自适应关系组织相邻控件；MapKit/Apple Maps 继续采用 map + place card 的位置上下文模型。PetAccess 只借鉴层级与空间桥接，不引入评分/POI 商业目录语义。
+- 当前最终 HEAD（本段写入前）=`fa32b1f718d98259d21a80b115a0a2719069191d`。该 HEAD 的 Actions 已由提交触发，但本段写入时尚未取得同 HEAD 完成结果；**禁止复用旧 HEAD 的 SUCCESS 冒充当前 PASS**。
+- 下一门禁：同一最终 HEAD 的 Prettier / UI Direct Validation / PR CI / UI Direct Visual；之后重新拉 Human Review，重点核验 320/360/390/430 Map 第二行、Reality place context、selected sheet 与地图主表面。
+
 ## Current phase（2026-10-24 — v11 mobile Map chrome compression + spatial-context polish）
 
 - 分支 `feat/ui-direct-craft-v8`；PR #1 继续 **OPEN + DRAFT**；未 merge、未 tag、未 Release；`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
