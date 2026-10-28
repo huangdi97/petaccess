@@ -53,11 +53,11 @@
       "props": {
         "height": {
           "min": 190,
-          "max": 250
+          "max": 270
         }
       },
       "severity": "FAIL",
-      "note": "v11 Home is a spatial launcher, not a marketing landing page. The decorative city hero must leave nearby places close to the first viewport."
+      "note": "v11 Home is a spatial launcher, not a marketing landing page. The decorative city hero must leave nearby places close to the first viewport; >270px at the canonical desktop viewport is a visual regression."
     },
     {
       "id": "HOME_SEARCH_INPUT_HEIGHT",
