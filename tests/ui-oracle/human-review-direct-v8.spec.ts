@@ -247,12 +247,7 @@ const SHOTS: Shot[] = [
     waitTestid: "sheet-evidence",
     page: "map",
     h1: "规则与现场地图",
-    requiredTestids: [
-      "map-mobile-sheet",
-      "sheet-map-lens",
-      "sheet-evidence",
-      "sheet-open-detail",
-    ],
+    requiredTestids: ["map-mobile-sheet", "sheet-map-lens", "sheet-evidence", "sheet-open-detail"],
     requiredText: ["证据与来源", "查看地点"],
     note: "Expanded selected-place sheet is reviewed as a deeper reading state while preserving the surrounding map; it must not regress into a full mini dossier.",
   },
