@@ -21,7 +21,9 @@
     {
       "id": "HOME_QUERY_CONTEXT",
       "ui": "query-context",
-      "fallbacks": ["[data-testid='query-context']"],
+      "fallbacks": [
+        "[data-testid='query-context']"
+      ],
       "props": {
         "count": {
           "min": 1
@@ -32,7 +34,9 @@
     {
       "id": "HOME_PRIMARY_SEARCH",
       "ui": "home-search",
-      "fallbacks": ["[data-testid='home-search']"],
+      "fallbacks": [
+        "[data-testid='home-search']"
+      ],
       "props": {
         "count": {
           "min": 1
@@ -41,9 +45,26 @@
       "severity": "FAIL"
     },
     {
+      "id": "HOME_HERO_COMPACT",
+      "ui": "home-discovery-hero",
+      "fallbacks": [
+        ".home-discovery-hero"
+      ],
+      "props": {
+        "height": {
+          "min": 190,
+          "max": 250
+        }
+      },
+      "severity": "FAIL",
+      "note": "v11 Home is a spatial launcher, not a marketing landing page. The decorative city hero must leave nearby places close to the first viewport."
+    },
+    {
       "id": "HOME_SEARCH_INPUT_HEIGHT",
       "ui": "home-search-input",
-      "fallbacks": ["[data-testid='home-search-input']"],
+      "fallbacks": [
+        "[data-testid='home-search-input']"
+      ],
       "props": {
         "height": {
           "min": 44
@@ -54,7 +75,9 @@
     {
       "id": "HOME_NEARBY_SECTION",
       "ui": "home-nearby",
-      "fallbacks": ["[data-testid='home-freshness'], [data-testid='home-empty']"],
+      "fallbacks": [
+        "[data-testid='home-freshness'], [data-testid='home-empty']"
+      ],
       "props": {
         "count": {
           "min": 1
@@ -65,7 +88,10 @@
     {
       "id": "HOME_DISCOVERY_WIDTH",
       "ui": "home",
-      "fallbacks": [".page--home", "[data-ui='home']"],
+      "fallbacks": [
+        ".page--home",
+        "[data-ui='home']"
+      ],
       "props": {
         "width": {
           "min": 1080,
@@ -104,7 +130,10 @@
     {
       "id": "HOME_DIVERGENCE_NOT_CARD_WALL",
       "selector": "[data-ui='home-divergence'] .home-divergence__row",
-      "forbiddenClass": ["card", "panel"],
+      "forbiddenClass": [
+        "card",
+        "panel"
+      ],
       "severity": "FAIL"
     },
     {
@@ -113,7 +142,12 @@
       "min": 4,
       "max": 4,
       "severity": "FAIL",
-      "mustContainTexts": ["现场是否有动物出现", "室内空间情况", "餐饮区域情况", "完整规则"]
+      "mustContainTexts": [
+        "现场是否有动物出现",
+        "室内空间情况",
+        "餐饮区域情况",
+        "完整规则"
+      ]
     },
     {
       "id": "HOME_NEARBY_SPATIAL_IDENTITY",
@@ -139,5 +173,5 @@
     "allcapsTokens": true,
     "refs": true
   },
-  "notes": "Consumer v11: Home is a compact spatial launcher, not a marketing landing page. Search and nearby places enter early; the city illustration is decorative context only and never venue/evidence media. Secondary spatial lenses remain below the primary discovery task."
+  "notes": "Consumer v11: Home is a compact spatial launcher, not a marketing landing page. Search and nearby places enter early; the city illustration is decorative context only and never venue/evidence media. Desktop utility chrome inside the hero stays visually quiet, and the hero height is fail-gated so secondary branding cannot push nearby spatial facts down the page."
 }
