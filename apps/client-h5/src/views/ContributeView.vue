@@ -268,6 +268,20 @@ const { desktop: isDesktop } = useBreakpoint();
           </StateMessage>
 
           <template v-else>
+            <div
+              v-if="!isDesktop && step === 'entry'"
+              class="contribute-mobile-context"
+              data-testid="contribution-mobile-place-context"
+              data-ui="contribution-mobile-place-context"
+              aria-label="当前贡献场所"
+            >
+              <span class="contribute-mobile-context__label">当前场所</span>
+              <strong class="contribute-mobile-context__value">
+                {{ placeName || "场所名称待补充" }}
+              </strong>
+              <span class="contribute-mobile-context__sub">{{ contextZoneLabel }}</span>
+            </div>
+
             <ContributeEntry
               v-if="step === 'entry'"
               @select="step = $event"
@@ -437,6 +451,46 @@ const { desktop: isDesktop } = useBreakpoint();
   font-size: var(--pa-font-size-md);
   line-height: var(--pa-line-height-23);
   color: var(--pa-color-text-secondary);
+}
+
+/* On phone/tablet the desktop context rail is absent. Keep one lightweight
+ * place anchor above the first question so a fast field contribution cannot be
+ * accidentally attached to the wrong venue. This is context, not another card. */
+.contribute-mobile-context {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--pa-space-1) var(--pa-space-2);
+  margin: 0 0 var(--pa-space-4);
+  padding: 0 0 var(--pa-space-3);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.contribute-mobile-context__label {
+  color: var(--pa-color-text-muted);
+  font-size: var(--pa-font-size-sm);
+  line-height: var(--pa-line-height-20);
+}
+
+.contribute-mobile-context__value {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--pa-color-text-primary);
+  font-size: var(--pa-font-size-base);
+  font-weight: var(--pa-font-weight-650);
+  line-height: var(--pa-line-height-20);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contribute-mobile-context__sub {
+  grid-column: 2;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--pa-color-text-muted);
+  font-size: var(--pa-font-size-sm);
+  line-height: var(--pa-line-height-20);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 /* v0.2.7-R1 P0-2 measured desktop layout model (real Windows runtime):
    - COMPACT_DESKTOP: 768px <= viewport < 1120px  -> rail + single column.
