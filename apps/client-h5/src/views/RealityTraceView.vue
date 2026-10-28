@@ -12,6 +12,7 @@ import { useRoute } from "vue-router";
 import {
   client,
   session,
+  type PlaceDetail,
   type PublicEvidenceMediaView,
   type RealityEventView,
   type Zone,
@@ -32,6 +33,7 @@ const realityConfirmation = useRealityConfirmation(() => placeId.value);
 
 const events = ref<RealityEventView[]>([]);
 const zones = ref<Zone[]>([]);
+const place = ref<PlaceDetail | null>(null);
 const publicMediaByBundle = ref<Map<string, PublicEvidenceMediaView>>(new Map());
 const loading = ref(true);
 const error = ref("");
@@ -153,16 +155,22 @@ async function load() {
   error.value = "";
   events.value = [];
   zones.value = [];
+  place.value = null;
   publicMediaByBundle.value = new Map();
   privateSessionReady.value = false;
   privateSessionNote.value = "";
   const isCurrent = () => loadEpoch.isCurrent(epoch) && placeId.value === id;
   void restorePrivateSession(epoch, id);
   try {
-    const [eventRows, zoneRows] = await Promise.all([client.realityEvents(id), client.zones(id)]);
+    const [eventRows, zoneRows, placeRow] = await Promise.all([
+      client.realityEvents(id),
+      client.zones(id),
+      client.place(id).catch(() => null),
+    ]);
     if (!isCurrent()) return;
     events.value = eventRows;
     zones.value = zoneRows;
+    place.value = placeRow;
     void loadPublicMedia(eventRows, epoch);
   } catch (e) {
     if (isCurrent()) error.value = presentDescription(e);
@@ -215,6 +223,14 @@ const uiFixture = computed<string>(() =>
           data-testid="reality-private-session-note"
         />
         <header class="reality-head" data-testid="trace-summary">
+          <RouterLink
+            class="reality-head__place-context"
+            data-testid="reality-place-context"
+            :to="{ name: 'place', params: { id: placeId } }"
+          >
+            <span>{{ place?.canonical_name ?? "当前场所" }}</span>
+            <span aria-hidden="true">返回地点 →</span>
+          </RouterLink>
           <h2 class="reality-head__title">现场记录</h2>
           <p v-if="zoneId" class="reality-head__zone" data-testid="reality-zone-scope">
             <span
@@ -322,6 +338,37 @@ const uiFixture = computed<string>(() =>
   border-radius: calc(var(--pa-radius-md) + 2px);
   background: var(--pa-color-surface-raised);
   box-shadow: var(--pa-elevation-1);
+}
+
+.reality-head__place-context {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pa-space-3);
+  width: 100%;
+  margin: 0 0 var(--pa-space-3);
+  color: var(--pa-color-accent);
+  font-size: var(--pa-font-size-sm);
+  font-weight: var(--pa-font-weight-600);
+  text-decoration: none;
+}
+
+.reality-head__place-context:hover,
+.reality-head__place-context:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.reality-head__place-context span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reality-head__place-context span:last-child {
+  flex: 0 0 auto;
+  color: var(--pa-color-text-muted);
+  font-weight: var(--pa-font-weight-medium);
 }
 
 .reality-head__title {
