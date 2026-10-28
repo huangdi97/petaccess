@@ -329,6 +329,18 @@ const SHOTS: Shot[] = [
     note: "Contribution entry has five consumer intents and no admin/schema language.",
   },
   {
+    name: "13a_contribution_mobile_place_context",
+    scope: "mobile",
+    route: `/#/contribute/${MALL_ID}`,
+    auth: true,
+    page: "contribution",
+    state: "choose-type",
+    h1: "你刚刚知道了什么？",
+    requiredTestids: ["contribution-mobile-place-context", "entry-next"],
+    requiredText: ["当前场所", "云栖中心·测试商场"],
+    note: "Mobile contribution keeps the target place visible before the first factual question without adding a card or dashboard rail.",
+  },
+  {
     name: "14_contribution_rule",
     scope: "both",
     route: `/#/contribute/${MALL_ID}`,
