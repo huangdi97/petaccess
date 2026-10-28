@@ -292,7 +292,7 @@ test("A1.0.1 — fallback marker 不靠颜色单独表达语义", async ({ page 
 test("A1.0.4 — mobile persistent map chrome stays two-row and non-overlapping", async ({
   page,
 }) => {
-  for (const width of [320, 430]) {
+  for (const width of [320, 360, 390, 430]) {
     await page.setViewportSize({ width, height: 932 });
     await page.goto(`${BASE}/#/map`);
 
