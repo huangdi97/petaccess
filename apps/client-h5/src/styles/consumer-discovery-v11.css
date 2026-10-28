@@ -47,32 +47,12 @@ html,
   display: none;
 }
 
+/* The global query context already answers "who / action / scope" and both
+ * desktop rail + mobile tabbar expose Map. Repeating brand / pilot / map
+ * chrome inside the hero made Home read like a campaign banner, so v11 keeps
+ * the hero focused on one question and one search action. */
 #app .home-workspace .home-topline {
-  margin-bottom: 8px;
-}
-
-/* Desktop Home should read as a city-space launcher, not a branded campaign
- * banner. Coverage and the map shortcut stay available, but lose pill/button
- * chrome so the actual question + search own the hero. */
-#app .home-workspace .home-topline strong {
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  color: var(--pa-discovery-v10-hero-body);
-  font-size: 12px;
-  font-weight: var(--pa-font-weight-medium);
-}
-
-#app .home-workspace .home-topline .btn-inline {
-  min-height: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  color: var(--pa-discovery-v10-white);
-  font-size: 12px;
-  font-weight: var(--pa-font-weight-medium);
+  display: none;
 }
 
 #app .home-workspace .home-intro {
