@@ -198,7 +198,8 @@ function chooseMapResult(id: string) {
     :data-ui-fixture="uiFixture"
   >
     <h1 class="visually-hidden">规则与现场地图</h1>
-    <QueryContextBar />
+    <div class="map-context-strip">
+      <QueryContextBar />
 
     <!-- Canonical v0.10-R1 Map: Rule / Reality / Facility / Divergence are
          first-class lenses over the same CoexistenceSnapshot facts. -->
@@ -257,6 +258,7 @@ function chooseMapResult(id: string) {
           列表
         </button>
       </div>
+    </div>
     </div>
 
     <div
@@ -441,6 +443,10 @@ function chooseMapResult(id: string) {
   display: flex;
   flex-direction: column;
   background: var(--pa-color-surface-muted);
+}
+
+.map-context-strip {
+  display: contents;
 }
 
 .map-lensbar {
