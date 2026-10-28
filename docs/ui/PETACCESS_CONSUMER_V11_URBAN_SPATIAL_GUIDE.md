@@ -94,6 +94,8 @@ city / current query
 
 The spatial-question entry set is secondary navigation, not a feature catalogue.
 
+The Home hero is **orientation, not marketing**. On desktop, coverage and map shortcuts remain utility text rather than promotional pills; the decorative city scene must stay compact enough that nearby spatial facts enter immediately after the primary search task.
+
 ### Search
 
 Search is a place list, not a collection of floating cards.
