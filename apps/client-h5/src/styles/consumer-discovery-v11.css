@@ -47,12 +47,33 @@ html,
   display: none;
 }
 
-/* The global query context already answers "who / action / scope" and both
- * desktop rail + mobile tabbar expose Map. Repeating brand / pilot / map
- * chrome inside the hero made Home read like a campaign banner, so v11 keeps
- * the hero focused on one question and one search action. */
+/* The global query context already answers "who / action / scope". Keep the
+ * redundant brand / pilot label out of the hero, but preserve one quiet Map
+ * shortcut as a spatial affordance. Absolute positioning prevents the utility
+ * link from growing the hero back into a campaign banner. */
 #app .home-workspace .home-topline {
+  position: absolute;
+  top: 18px;
+  right: 24px;
+  z-index: 3;
+  display: block;
+  margin: 0;
+}
+
+#app .home-workspace .home-topline strong {
   display: none;
+}
+
+#app .home-workspace .home-topline .btn-inline {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--pa-discovery-v10-white);
+  font-size: 12px;
+  font-weight: var(--pa-font-weight-medium);
+  box-shadow: none;
 }
 
 #app .home-workspace .home-intro {
