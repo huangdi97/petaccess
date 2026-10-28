@@ -132,6 +132,8 @@ On mobile, persistent map chrome should resolve to **at most two overlay rows** 
 
 Rule / Reality / Facility / Divergence remain four first-class lenses, but mobile does not need four permanently expanded buttons. Desktop may keep the segmented four-lens row because horizontal space is not the scarce resource there.
 
+The second mobile overlay row is one **adaptive layout group**, not three unrelated absolutely positioned widgets. Query context grows and truncates first; Lens and map/list controls keep their touch targets. The group must preserve a visible gap at 320 / 360 / 390 / 430px and survive label/font changes without offset tuning.
+
 When a real map provider is unavailable, the fallback map must still read as an urban spatial canvas rather than a test grid: it may use illustrative road hierarchy, blocks, open-space patches, water and building mass hints. It must remain explicitly disclosed as a non-surveyed illustrative basemap and must never invent venue names, operator facts or rule data.
 
 Fallback truth should be disclosed **once**. Do not stack a provider caption and a second app-level disclosure for the same fact. Do not show metric scale, zoom-level prose or other pseudo-precision on an illustrative basemap; real zoom interaction may remain.
@@ -200,6 +202,8 @@ The compact bridge must stay glanceable: selecting a place should reveal a decis
 ### Reality
 
 The timeline is the page. The header provides title, scope and filters but must not read as a dashboard card.
+
+A standalone Reality route must preserve **place context** before the timeline: show the current place name as a lightweight return/context link, not as a second destination hero. Loading that identity is supporting UI only and must never block published Reality facts if the place-detail lookup is slow or unavailable.
 
 ### Evidence
 
