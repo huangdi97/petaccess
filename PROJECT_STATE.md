@@ -1,3 +1,18 @@
+## Current phase（2026-11-02 — v11 Web final closure sweep：独立复核，无代码改动）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 继续 **OPEN + DRAFT**；未 merge、未 tag、未 Release；`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
+- 开工重新核验远端：`origin/feat/ui-direct-craft-v8` = `160745e9d279379af927f4dd0d14c1bb360ea7fd`，与 PR #1 `head.sha` 一致，相对上一轮 **未前进**。进入时本地在 `master` @ `42ed4e34`（该 SHA 祖先，落后 3026 commits），工作树干净，无待保护成果。
+- 该 SHA 的 check runs 实测：PR CI / UI Direct Validation / UI Direct Visual / Public Preview Stack = **SUCCESS**；`Android Preview · API 35` 与 `API 36 runtime smoke` = **FAILURE**（既存、Web 范围外，未处理）。
+- 本轮性质：**独立复核轮，未修改任何功能 / 视觉 / 合同代码**。最终 HEAD 仍为 `160745e9...`。详见 `WEB_FINAL_CLOSURE_REPORT.md`。
+- 本机原无 Node / Python / PostgreSQL / Docker；为让 PASS 可复现，本轮在会话 scratch 内搭建 Node 22.23.4 + pnpm 12.4.1 + Python 3.12(uv) + PostgreSQL 17.7/PostGIS 3.6 + Redis，并用仓库自带脚本灌入 `petaccess_visual` / `petaccess_e2e`；`.env` 被工具安全策略禁止写入，改为进程环境变量注入，未新增凭据文件。
+- 本地真实执行结果：`pnpm lint:fe` PASS；`pnpm format:check:fe` PASS；`client-h5` build PASS；`admin` build PASS；UI Oracle 三视口（desktop 1440×900 / tablet 800×1080 / mobile 430×932）采集 **0 failed**；`compare.ts ui-direct-v8` = **PASS 580 / WARN 0 / FAIL 0**（11 份合同全绿）。
+- Human Review artifact 本机重建于 `artifacts/ui-direct-v8/HUMAN_REVIEW/`，manifests 绑定 `sourceHead=160745e9...`、`humanVisualAcceptance=PENDING`：desktop 40 / tablet 40 / mobile 43，共 123 张，全部来自真实 runtime + 真实 fixture。
+- 本轮新增独立 DOM 审计：10 视口（320/360/390/430/768/800/1024/1280/1440/1920）× 19 路由 = **190 次真实渲染**，结果 **横向溢出 0、重复/缺失 h1 0、可见 enum/UUID/snake_case/工程语泄漏 0、consumer CSS 硬编码颜色 0**。
+- 已记录的 P2 债（本轮未擅改，避免在磁盘退化下改动已验证 UI）：`.place-dossier__scene--fallback` 死选择器 4 处（元素从不渲染）；移动端部分独立操作控件 < 44px（`query-context__edit` / `filter-toggle` / map lens `<select>` / reality 筛选）；每页 `public-media` 404 控制台噪声（fail-closed 设计，需后端合同变更才能去噪）。
+- 未完成：**本地完整 Consumer E2E 未跑成**——`isolated_db --role E2E --reset` 在本机稳定耗时 ≈400 s（两次 400459 / 401662 ms），超出 `playwright.config.ts` 的 180 s webServer 预算；手工预建库后 `uvicorn` 300 s 内仍未绑定端口；期间该机 D: 卷一度整体掉线（`os error 267/3`）。E2E 权威证据仍为同 SHA 的 PR CI 结果，未以旧结论冒充新执行。期间曾怀疑 playwright 配置路径写法在 Windows 下失效，已用可复现实验证伪并 `git checkout` 全量回退。
+- 人审三态：`MACHINE_PASS = PASS`；`ASSISTANT_VISUAL_REVIEW = NOT PERFORMED`（本轮无像素级复核，只有 DOM 测量）；`USER_HUMAN_ACCEPTANCE = PENDING_REVIEW`。
+- 停止线：PR 继续 Draft，等待用户本人对绑定 `160745e9...` 的 Human Review artifact 明确签字后再讨论 baseline promotion / PR ready / master / Release。本地 Agent 不代签。
+
 ## Current phase（2026-10-28 — v11 adaptive Map + Reality context VERIFIED）
 
 - 分支 `feat/ui-direct-craft-v8`；PR #1 继续 **OPEN + DRAFT**；未 merge、未 tag、未 Release；`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`（机器与助手目视复核都不能替代用户签字）。
