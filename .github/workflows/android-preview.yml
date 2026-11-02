@@ -468,12 +468,23 @@ jobs:
             -no-boot-anim
             -camera-back none
             -camera-front none
-          # A wedged emulator used to consume the whole 45-minute job budget.
-          # Give each attempt a hard wall-clock bound so the retry still has time.
-          script: timeout --signal=KILL 1200 bash scripts/android_acceptance/ci_preview_emulator_smoke.sh
+          # The measured worst case is ~28 minutes: the packaged-WebView journey
+          # plus the IME gate, lifecycle/performance/stress probes and the
+          # width/coverage matrices all run on a single emulator boot, and the
+          # earlier 1200s bound reliably killed a healthy run mid-matrix
+          # (exit 137) after every semantic gate had already passed. 2100s keeps
+          # headroom while leaving room for the job's 45-minute budget.
+          script: timeout --signal=KILL 2100 bash scripts/android_acceptance/ci_preview_emulator_smoke.sh
 
+      # Retry only when the run died before the packaged-WebView journey wrote
+      # any evidence — that is the wedged-emulator / dropped-ADB signature the
+      # retry exists for. A failure *after* the journey is deterministic (a
+      # semantic gate, or the wall clock), so repeating it on a fresh AVD burns
+      # half the job budget and still reports the same verdict.
       - name: Retry Preview runtime after an emulator or ADB failure
-        if: steps.runtime.outcome == 'failure'
+        if: >-
+          steps.runtime.outcome == 'failure' &&
+          hashFiles('artifacts/android-preview-runtime-api*/runtime/cdp_journey_playwright.json') == ''
         uses: ReactiveCircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api_level }}
