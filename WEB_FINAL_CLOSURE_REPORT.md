@@ -109,12 +109,11 @@ Human Review 截图清单（40 个状态槽）已包含任务书 §45 要求的�
 
 ## 9. CI 状态约束
 
-依据任务书 §52，最终结论只能绑定**同一 SHA**。本轮**未产生新的源码 HEAD**（无代码改动），因此：
+依据任务书 §52，最终结论只能绑定**同一 SHA**。本轮**未产生新的源码树**（无代码改动），事实如下：
 
-- 当前最终 HEAD 仍为 `160745e9d279379af927f4dd0d14c1bb360ea7fd`；
-- 该 SHA 的四条主门禁为 **SUCCESS**（见 §1），Android 两条 runtime smoke 为 FAILURE（既存、范围外）。
-
-若后续提交文档或代码，必须重新取得**新 SHA** 的四条门禁结果，不得复用本次 PASS。
+- 本轮实测源码树 = `160745e9d279379af927f4dd0d14c1bb360ea7fd`；该 SHA 四条主门禁 **SUCCESS**（见 §1），Android 两条 runtime smoke 为 FAILURE（既存、范围外）。
+- 本报告的记录提交为 **docs-only**（`e7c77a70b7c032c7551b8d93d80a283aec6dc1de`，相对上述源码树仅新增本文件与 `PROJECT_STATE.md`，代码树不变）。该 SHA 的 PR #1 checks 实测 **12/12 SUCCESS**（含 UI lint/typecheck/build、UI oracle and screenshots、Playwright subset、Backend mypy + tests、Engineering quality gate、Build + boot Preview backend contract、format ×2、autofmt），`mergeable_state = clean`。
+- 若后续再提交代码，必须重新取得**新 SHA** 的四条门禁结果，不得复用本次 PASS。
 
 ## 10. Release 边界
 

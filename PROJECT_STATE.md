@@ -3,7 +3,7 @@
 - 分支 `feat/ui-direct-craft-v8`；PR #1 继续 **OPEN + DRAFT**；未 merge、未 tag、未 Release；`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
 - 开工重新核验远端：`origin/feat/ui-direct-craft-v8` = `160745e9d279379af927f4dd0d14c1bb360ea7fd`，与 PR #1 `head.sha` 一致，相对上一轮 **未前进**。进入时本地在 `master` @ `42ed4e34`（该 SHA 祖先，落后 3026 commits），工作树干净，无待保护成果。
 - 该 SHA 的 check runs 实测：PR CI / UI Direct Validation / UI Direct Visual / Public Preview Stack = **SUCCESS**；`Android Preview · API 35` 与 `API 36 runtime smoke` = **FAILURE**（既存、Web 范围外，未处理）。
-- 本轮性质：**独立复核轮，未修改任何功能 / 视觉 / 合同代码**。最终 HEAD 仍为 `160745e9...`。详见 `WEB_FINAL_CLOSURE_REPORT.md`。
+- 本轮性质：**独立复核轮，未修改任何功能 / 视觉 / 合同代码**。本轮实测源码树 = `160745e9d279379af927f4dd0d14c1bb360ea7fd`；记录提交 `e7c77a70`（docs-only，代码树不变，该 SHA 的 PR #1 checks 12/12 SUCCESS，`mergeable_state=clean`）。详见 `WEB_FINAL_CLOSURE_REPORT.md`。
 - 本机原无 Node / Python / PostgreSQL / Docker；为让 PASS 可复现，本轮在会话 scratch 内搭建 Node 22.23.4 + pnpm 12.4.1 + Python 3.12(uv) + PostgreSQL 17.7/PostGIS 3.6 + Redis，并用仓库自带脚本灌入 `petaccess_visual` / `petaccess_e2e`；`.env` 被工具安全策略禁止写入，改为进程环境变量注入，未新增凭据文件。
 - 本地真实执行结果：`pnpm lint:fe` PASS；`pnpm format:check:fe` PASS；`client-h5` build PASS；`admin` build PASS；UI Oracle 三视口（desktop 1440×900 / tablet 800×1080 / mobile 430×932）采集 **0 failed**；`compare.ts ui-direct-v8` = **PASS 580 / WARN 0 / FAIL 0**（11 份合同全绿）。
 - Human Review artifact 本机重建于 `artifacts/ui-direct-v8/HUMAN_REVIEW/`，manifests 绑定 `sourceHead=160745e9...`、`humanVisualAcceptance=PENDING`：desktop 40 / tablet 40 / mobile 43，共 123 张，全部来自真实 runtime + 真实 fixture。
