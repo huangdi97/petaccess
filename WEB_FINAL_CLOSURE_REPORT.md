@@ -9,9 +9,9 @@ PetAccess Web Consumer — v11 Urban Spatial Guide final closure sweep.
 | PR | #1（OPEN + DRAFT，未 merge / 未 tag / 未 Release） |
 | Scope | `apps/client-h5`（canonical Web Consumer） |
 | Report date | 2026-11-02 |
-| `WEB_IMPLEMENTATION` | **UNCHANGED this round** — no functional, visual or contract code was modified; see §7 |
+| `WEB_IMPLEMENTATION` | **COMPLETE for the v11 P2 cleanup scope** — 4 consumer files touched (dead selector removal + 44px touch targets); no domain, API or contract change; see §7–§8 |
 | `WEB_MACHINE_ACCEPTANCE` | **PASS**（本地独立复核，见 §3） |
-| `WEB_VISUAL_CANDIDATE` | **READY_FOR_HUMAN**（Human Review artifact 已绑定本 SHA） |
+| `WEB_VISUAL_CANDIDATE` | **READY_FOR_HUMAN**（Human Review artifact 由同一 SHA 的 UI Direct Visual 生成） |
 | `UI_HUMAN_VISUAL_ACCEPTANCE` | **PENDING_REVIEW**（本轮未取得、也不得代签） |
 
 ---
@@ -53,6 +53,8 @@ PetAccess Web Consumer — v11 Urban Spatial Guide final closure sweep.
 
 分合同：`contribution 66 / evidence 36 / global 33 / home 23 / map 59 / map.mobile 62 / place.desktop 93 / place.mobile 70 / reality 36 / search.desktop 60 / search.mobile 42`，均为 0 WARN / 0 FAIL。
 
+上述 Oracle 数字是在本次 P2 改动（删死选择器 + 44px 触控目标）**之后**重新采集的：先跑 desktop/tablet/mobile 三视口 `oracle.spec` + `secondary-craft.spec`（0 failed：desktop 9 pass/3 skip、tablet 1 pass/11 skip、mobile 4 pass/8 skip），再 `compare.ts`。中间出现过一次 `global / SINGLE_H1 actual=0`（Place 页），单独复跑该合同后恢复 `global PASS=33 FAIL=0`，据此判定为采集瞬间 Place 详情未渲染的 flake，非回归；如实记录，不掩盖。
+
 ## 4. Consumer 路由覆盖
 
 `apps/client-h5/src/router.ts` 实际枚举 **21 条 route**（含 catch-all），全部进入本轮 sweep：
@@ -93,14 +95,15 @@ Human Review 截图清单（40 个状态槽）已包含任务书 §45 要求的�
    - 绕开自举、手工预建库并直接启动 API 后，`uvicorn` 在 **300 s 内仍未绑定端口**（应用导入阶段即超慢），同一台机器期间还出现过 **工作区磁盘整体掉线**（`D:\AI\城市空间\petaccess` 一度不可访问，工具报 `os error 267/3`）。
    - 因此 E2E 的权威证据仍是**同一 SHA 的 PR CI Playwright 结果**，本轮未产生新的本地 E2E 结论，**不以旧结论冒充新执行**。
 2. **未做像素级目视复核。** 本轮只有 DOM 测量证据；我不对截图外观作任何"看起来正确"的判断。assistant visual review 在本轮为 **NOT PERFORMED**。
-3. **未修改任何功能 / 视觉 / 合同代码。** 期间曾怀疑 `playwright*.config.ts` 的 `JSON.stringify` 路径写法在 Windows 下失效并改了 5 个配置，随后用可复现实验证伪（Windows 会规范化重复反斜杠，cmd 两种写法均正常退出 0），**已全部 `git checkout` 回退**，不留无依据改动。
+3. **本轮只做了收尾性的最小代码改动**（不触碰 domain semantics / API / 合同）：删除死选择器、把两处 quiet text action 提到 44px 触控目标，详见 §8。此前曾怀疑 `playwright*.config.ts` 的 `JSON.stringify` 路径写法在 Windows 下失效并改了 5 个配置，随后用可复现实验证伪（Windows 会规范化重复反斜杠，cmd 两种写法均正常退出 0），**已全部 `git checkout` 回退**，不留无依据改动。
 
 ## 8. 已知剩余问题（debt）
 
 | 级别 | 项 | 位置 | 说明 |
 |---|---|---|---|
-| P2 | 死选择器 `.place-dossier__scene--fallback`（4 处，元素从不渲染） | `apps/client-h5/src/styles/consumer-discovery-v10.css:997`、`consumer-discovery-v11.css:760`、`src/views/PlaceView.vue:776`、`PlaceView.vue:1027` | §6/§58 允许安全清理；本轮因磁盘退化无法可靠复跑 Oracle 而未改，避免在未复验情况下改动已验证 UI |
-| P2 | 移动端部分独立操作控件高度 < 44px | `.query-context__edit` 34×32、`.filter-toggle` 30×32、map lens `<select>` 78×38、reality 筛选 34 高、privacy 120×40 | `GLOBAL_UI_CONTRACT` 声明 `--pa-layout-touch-target: 44px`，实测未达标；仍满足 WCAG 2.2 AA 2.5.8（≥24×24）。抬到 44 会改变 `query-context` / `map-lensbar` 容器高度，需同步更新合同并复跑 123 张截图，风险大于收益，故记录不擅改 |
+| **CLOSED** | 死选择器 `.place-dossier__scene--fallback` | 已从 `consumer-discovery-v10.css`、`consumer-discovery-v11.css`、`PlaceView.vue`（基础块 + mobile 块）全部删除 | 该元素在模板中从不渲染（`PlaceSceneFrame` 为 `v-if="placeSceneMedia"`）。删除后全仓 `scene--fallback` 引用数 = **0**，Oracle 复验 **580 PASS / 0 FAIL** 不变 |
+| **CLOSED（部分）** | quiet text action 触控目标 < 44px | `.filter-toggle`（search 工具栏）、`.reality-filter-chip`（Reality 筛选） | 两处改用 `var(--pa-layout-touch-target)`。390×844 实测：二者已不再出现在 <44px 列表。工具栏与筛选条各自独占一行，抬高它们不侵占 Map 画布 |
+| P2（保留） | Map chrome 与 privacy 的少数控件仍 < 44px | `.query-context__edit` 34×32、map lens `<select>` 78×38、privacy 120×40 | 抬高 `query-context__edit` 会把第二 overlay row 从 48px 顶到 56px，直接压缩 `map-canvas`，与 `map.mobile` 的 `MAP_MOBILE_CANVAS_VIEWPORT_FILL ≥580px`（Map=支配表面）冲突。按"Map 必须主导"优先，保留尺寸并记录；仍满足 WCAG 2.2 AA 2.5.8（≥24×24） |
 | P2 | 每页 `public-media` 404 控制台噪声 | `services/api/app/api/v1/public_media.py:26` ↔ `apps/client-h5/src/consumer/publicSceneMedia.ts` | 设计上的 fail-closed；若要去噪需后端改为 200 + `available:false`，属 API 合同变更，超出本轮 |
 | 既存 | Android Preview runtime smoke（API 35 / 36）FAILURE | GitHub Actions | 与本轮 Web 范围无关，未处理 |
 | 环境 | 本机 D: 卷不稳定（曾整体掉线） | — | 影响本地重型验证的可重复性 |
