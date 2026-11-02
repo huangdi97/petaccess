@@ -158,6 +158,19 @@ const visible = computed(() => {
   });
 });
 
+/**
+ * How many visible results currently have no sufficient basis (UNKNOWN).
+ *
+ * Rows deliberately stopped repeating the "信息不足不等于允许或禁止" disclaimer
+ * on every line (a4b9906): repetition inside a list is noise. The invariant is
+ * still a product requirement, so it is stated once for the whole page — and
+ * only while there is at least one such place, which keeps it a fact about the
+ * current result set rather than a permanent banner.
+ */
+const unknownCount = computed(
+  () => visible.value.filter((p) => (statuses.value[p.id] ?? "UNKNOWN") === "UNKNOWN").length,
+);
+
 /** The one key condition for a row (or "" when none) — §32 row budget. */
 function rowCondition(p: PlaceSummary): string {
   const answer = facts.value.get(p.id)?.answer;
@@ -440,6 +453,17 @@ watch(currentQueryContext, () => {
             </button>
           </div>
         </header>
+        <!-- 不变量：整页说明一次，不再逐行重复；仅当当前结果里确实有依据不足
+             的场所时出现，避免变成常驻解释条。 -->
+        <p
+          v-if="unknownCount"
+          class="search-unknown-note muted"
+          data-testid="search-unknown-note"
+          data-ui="search-unknown-note"
+        >
+          信息不足不等于允许或禁止。{{ unknownCount }}
+          个场所当前依据不足，补充来源或现场依据后才会给出结论。
+        </p>
 
         <!-- 最近搜索：仅在真实存在时显示（v0.2.4 §11 ≤56px vertical）。 -->
         <div v-if="recent.length" class="recent-bar" data-testid="search-recent">
@@ -929,6 +953,15 @@ watch(currentQueryContext, () => {
 
 .search-toolbar .filter-toggle {
   margin-left: auto;
+}
+
+/* One page-level UNKNOWN invariant instead of a per-row disclaimer. Divider-led
+ * and quiet: it is a reading note about the current result set, not a banner. */
+.search-unknown-note {
+  margin: 0 0 var(--pa-space-2);
+  padding-block: var(--pa-space-1);
+  font-size: var(--pa-font-size-sm);
+  line-height: var(--pa-line-height-base);
 }
 
 .filter-bar {
