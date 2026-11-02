@@ -773,11 +773,6 @@ const placeFixture = computed<string>(() => {
   padding-block: var(--pa-space-3);
 }
 
-.place-dossier__head:not(.place-dossier__head--with-scene) .place-dossier__scene--fallback {
-  --scene-frame-compact-width: 92px;
-  --scene-frame-compact-height: 64px;
-}
-
 .place-dossier__identity-row {
   display: flex;
   align-items: flex-start;
@@ -1022,11 +1017,6 @@ const placeFixture = computed<string>(() => {
     flex-wrap: wrap;
     align-items: center;
     gap: var(--pa-space-2) var(--pa-space-3);
-  }
-
-  .place-dossier__head:not(.place-dossier__head--with-scene) .place-dossier__scene--fallback {
-    --scene-frame-compact-width: 116px;
-    --scene-frame-compact-height: 76px;
   }
 }
 

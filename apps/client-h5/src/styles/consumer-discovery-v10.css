@@ -994,10 +994,6 @@ html,
   );
 }
 
-#app .place-workspace .place-dossier__head--illustrated .place-dossier__scene--fallback {
-  display: none;
-}
-
 #app .place-workspace .place-dossier__head--illustrated .place-dossier__identity-row {
   position: relative;
   z-index: 2;

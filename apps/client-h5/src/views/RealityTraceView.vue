@@ -421,7 +421,9 @@ const uiFixture = computed<string>(() =>
 }
 
 .reality-filter-chip {
-  min-height: 34px;
+  /* GLOBAL_UI_CONTRACT: 44px touch target. The chip row is a scrollable filter
+   * strip, not part of the timeline geometry (REALITY_RAIL_CONTINUOUS). */
+  min-height: var(--pa-layout-touch-target);
   padding: 0 var(--pa-space-3);
   border: 0;
   border-radius: var(--pa-radius-pill);
