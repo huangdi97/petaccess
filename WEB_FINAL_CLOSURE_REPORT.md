@@ -25,7 +25,7 @@ PetAccess Web Consumer — v11 Urban Spatial Guide final closure sweep.
 - 该 SHA 的 GitHub Actions（PR #1 check runs）实测：
   - PR CI / UI Direct Validation / UI Direct Visual / Public Preview Stack = **SUCCESS**；
   - **`Android Preview · API 35 runtime smoke` 与 `API 36 runtime smoke` = FAILURE**（PR 因此 `mergeable_state=unstable`）。
-    这是本轮之前就存在的既存状态，不是 Web 改动引入；Android 不在本轮视觉开发范围。**未修复，如实记录。**
+    这是本轮之前就存在的既存状态，不是 Web 改动引入。**该缺陷随后已定位并修复，见 §12。**
 
 ## 2. 本地运行环境（本轮从零搭建）
 
@@ -105,7 +105,7 @@ Human Review 截图清单（40 个状态槽）已包含任务书 §45 要求的�
 | **CLOSED（部分）** | quiet text action 触控目标 < 44px | `.filter-toggle`（search 工具栏）、`.reality-filter-chip`（Reality 筛选） | 两处改用 `var(--pa-layout-touch-target)`。390×844 实测：二者已不再出现在 <44px 列表。工具栏与筛选条各自独占一行，抬高它们不侵占 Map 画布 |
 | P2（保留） | Map chrome 与 privacy 的少数控件仍 < 44px | `.query-context__edit` 34×32、map lens `<select>` 78×38、privacy 120×40 | 抬高 `query-context__edit` 会把第二 overlay row 从 48px 顶到 56px，直接压缩 `map-canvas`，与 `map.mobile` 的 `MAP_MOBILE_CANVAS_VIEWPORT_FILL ≥580px`（Map=支配表面）冲突。按"Map 必须主导"优先，保留尺寸并记录；仍满足 WCAG 2.2 AA 2.5.8（≥24×24） |
 | P2 | 每页 `public-media` 404 控制台噪声 | `services/api/app/api/v1/public_media.py:26` ↔ `apps/client-h5/src/consumer/publicSceneMedia.ts` | 设计上的 fail-closed；若要去噪需后端改为 200 + `available:false`，属 API 合同变更，超出本轮 |
-| 既存 | Android Preview runtime smoke（API 35 / 36）FAILURE | GitHub Actions | 与本轮 Web 范围无关，未处理 |
+| **CLOSED** | Android Preview runtime smoke（API 35 / 36）FAILURE | `apps/client-h5/src/views/SearchView.vue`、`.github/workflows/android-preview.yml` | 由两个独立缺陷叠加而成，均已修复并在真实模拟器上复验通过；详见 §12 |
 | 环境 | 本机 D: 卷不稳定（曾整体掉线） | — | 影响本地重型验证的可重复性 |
 
 **P0 = 0 / P1 = 0（Web 范围内，基于本轮实测证据）**：无 Rule/Reality 语义混淆、无伪造媒体、无错位数据竞争、190 次渲染 0 横向溢出、Map 仍为支配表面、Place 有/无照片两条路径均 text-led 或 destination surface、Evidence provenance 可见、Contribution 目标地点上下文存在、无空白/报错路由、build 通过、无重大无障碍阻断（44px 目标见上表 P2）。
@@ -114,7 +114,7 @@ Human Review 截图清单（40 个状态槽）已包含任务书 §45 要求的�
 
 依据任务书 §52，最终结论只能绑定**同一 SHA**。本轮**未产生新的源码树**（无代码改动），事实如下：
 
-- 本轮实测源码树 = `160745e9d279379af927f4dd0d14c1bb360ea7fd`；该 SHA 四条主门禁 **SUCCESS**（见 §1），Android 两条 runtime smoke 为 FAILURE（既存、范围外）。
+- 本轮实测源码树起点 = `160745e9d279379af927f4dd0d14c1bb360ea7fd`（该 SHA 四条主门禁 SUCCESS、Android 两条 runtime smoke FAILURE）。此后为收口 P2 与 Android 缺陷追加了 `ui:` / `ci:` 提交，其 CI 结果见 §12。
 - 本报告的记录提交为 **docs-only**（`e7c77a70b7c032c7551b8d93d80a283aec6dc1de`，相对上述源码树仅新增本文件与 `PROJECT_STATE.md`，代码树不变）。该 SHA 的 PR #1 checks 实测 **12/12 SUCCESS**（含 UI lint/typecheck/build、UI oracle and screenshots、Playwright subset、Backend mypy + tests、Engineering quality gate、Build + boot Preview backend contract、format ×2、autofmt），`mergeable_state = clean`。
 - 若后续再提交代码，必须重新取得**新 SHA** 的四条门禁结果，不得复用本次 PASS。
 
@@ -131,3 +131,31 @@ USER_HUMAN_ACCEPTANCE      = PENDING_REVIEW
 ```
 
 `UI_HUMAN_VISUAL_ACCEPTANCE` 继续保持 **PENDING_REVIEW**，直到用户本人对绑定 `160745e9...` 的 Human Review artifact 明确签字。本地 Agent 不代签。
+
+## 12. Android API 35 / API 36 runtime smoke 收口（独立缺陷，后补完成）
+
+两条 runtime smoke 长期为红。用真实 job 日志定位到两个叠加缺陷，逐一修复并在模拟器上复验。
+
+**缺陷一 · 产品文案（真缺陷）**
+
+- 现象：CDP 旅程 28/28 PASS、IME 闸门 2/2 PASS，job 仍失败；输出 `result: FAIL`、`passed 17 / failed 1`，唯一失败项是 `search / 信息不足不等于允许或禁止`。
+- 根因：`a4b9906`（ui: reduce repeated unknown disclaimers in search rows）为消除列表噪音，把该句从每条 UNKNOWN 结果行删掉。设计意图正确，但 `scripts/android_acceptance/derive_domain_semantics.py` 要求它出现在渲染后的 Search 页面，于是产品不变量在 Search 上彻底消失。
+- 修复（`5a11ca7c`）：改为整页说明一次，且仅当当前结果确实包含依据不足的场所时出现；不恢复逐行重复。
+- 本地验证（393×851，8 条结果）：整页出现 1 次、结果行内 0 次；`search.desktop` 60 PASS、`search.mobile` 42 PASS。
+
+**缺陷二 · CI 墙钟预算与盲目重试**
+
+- 现象（修复一后暴露）：旅程与全部语义闸门通过后，步骤被 `timeout --signal=KILL 1200` 杀死（exit 137）；无条件重试在全新 AVD 上重复同一确定性超时，吃掉整个 45 分钟 job 预算。
+- 根因：完整 smoke（旅程 + IME + 生命周期/性能/压力探针 + 宽度矩阵 + 覆盖矩阵）实测约需 28 分钟；而"旅程之后失败"是确定性的，重试不可能改变结论。
+- 修复（`3383c607`）：单次预算 1200s → 2100s；重试条件收紧为仅当 `cdp_journey_playwright.json` 未产出（真正的模拟器/ADB 基础设施故障）时才触发。
+
+**实测证据（同一 SHA `3383c607`，run `41449832900`）**
+
+| Job | 结果 | 耗时 |
+|---|---|---|
+| Android Preview · API 35 runtime smoke | SUCCESS | 13:10:13 → 13:46:55 |
+| Android Preview · API 36 runtime smoke | SUCCESS | 13:10:13 → 13:47:20 |
+
+- 语义闸门 `result = PASS`、`passed 18 / failed 0`；四项不变量 `unknownIsNotAllowed / observationIsNotRule / staffResponseIsNotOperatorPolicy / facilityIsNotEntryPolicy` 全 true；`信息不足不等于允许或禁止` `ok = true`。
+- 同 run 内 PR CI、UI Direct Validation、UI Direct Visual、Public Preview Stack、Windows Preview、Android APK 亦全部 SUCCESS；PR #1 `mergeable_state` 由 `unstable` 变为 `clean`。
+- 未改变 Rule / Reality / Evidence domain semantics、API 合同或审核治理；`UI_HUMAN_VISUAL_ACCEPTANCE` 仍为 `PENDING_REVIEW`。

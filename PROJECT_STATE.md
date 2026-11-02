@@ -1,3 +1,11 @@
+## Current phase（2026-11-02 — Android API 35/36 runtime smoke 由红转绿）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 仍 **OPEN + DRAFT**（未 merge/tag/Release），但 `mergeable_state` 已从 `unstable` 变为 **`clean`**：长期红着的两个 Android runtime smoke 已修复并实测通过。
+- **缺陷一（产品缺陷）**：`a4b9906` 为减少列表噪音，把「信息不足不等于允许或禁止」从每条 UNKNOWN 结果行移除，但 `scripts/android_acceptance/derive_domain_semantics.py` 仍要求该句出现在渲染后的 Search 页面，于是两个模拟器 job 稳定停在 17 passed / 1 failed（CDP 旅程本身 28/28 PASS）。修复：改为**整页说明一次**，且仅当当前结果里确有依据不足的场所时出现 —— 保留"不逐行重复"的设计收益，行内出现次数为 0。提交 `5a11ca7c`。
+- **缺陷二（CI 预算缺陷）**：语义闸门修好后暴露出第二个问题——完整 smoke 需要约 28 分钟（打包 WebView 旅程 + IME 闸门 + 生命周期/性能/压力探针 + 宽度与覆盖矩阵），而步骤墙钟是 1200s，健康运行会在矩阵中途被 SIGKILL(137)；无条件重试又把同一个确定性超时再跑一遍，吃掉整个 45 分钟 job 预算。修复：单次预算提到 **2100s**；重试改为仅当 `cdp_journey_playwright.json` 未产出（= 模拟器/ADB 基础设施故障）时才触发。提交 `3383c607`。
+- **实测结果（同一 SHA `3383c607`，run `41449832900`）**：`Android Preview · API 35 runtime smoke` = **SUCCESS**（13:10:13→13:46:55），`Android Preview · API 36 runtime smoke` = **SUCCESS**（13:10:13→13:47:20）；语义闸门 `result=PASS`、`passed 18 / failed 0`、四项 invariant 全 true；IME 闸门 2/2；同时 PR CI / UI Direct Validation / UI Direct Visual / Public Preview Stack / Windows Preview / Android APK 均 SUCCESS。
+- 仍未改变：Rule / Reality / Evidence domain semantics、API 合同、审核治理、release signing。`UI_HUMAN_VISUAL_ACCEPTANCE` 继续 `PENDING_REVIEW`。
+
 ## Current phase（2026-11-02 — v11 Web final closure sweep：独立复核 + P2 清理收口）
 
 - 分支 `feat/ui-direct-craft-v8`；PR #1 继续 **OPEN + DRAFT**；未 merge、未 tag、未 Release；`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
