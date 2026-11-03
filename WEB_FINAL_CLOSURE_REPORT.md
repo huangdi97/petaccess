@@ -53,7 +53,7 @@ PetAccess Web Consumer — v11 Urban Spatial Guide final closure sweep.
 
 分合同：`contribution 66 / evidence 36 / global 33 / home 23 / map 59 / map.mobile 62 / place.desktop 93 / place.mobile 70 / reality 36 / search.desktop 60 / search.mobile 42`，均为 0 WARN / 0 FAIL。
 
-上述 Oracle 数字是在本次 P2 改动（删死选择器 + 44px 触控目标）**之后**重新采集的：先跑 desktop/tablet/mobile 三视口 `oracle.spec` + `secondary-craft.spec`（0 failed：desktop 9 pass/3 skip、tablet 1 pass/11 skip、mobile 4 pass/8 skip），再 `compare.ts`。中间出现过一次 `global / SINGLE_H1 actual=0`（Place 页），单独复跑该合同后恢复 `global PASS=33 FAIL=0`，据此判定为采集瞬间 Place 详情未渲染的 flake，非回归；如实记录，不掩盖。
+上述 Oracle 数字是在本次 P2 改动（删死选择器 + 44px 触控目标）**之后**重新采集的：先跑 desktop/tablet/mobile 三视口 `oracle.spec` + `secondary-craft.spec`（0 failed：desktop 9 pass/3 skip、tablet 1 pass/11 skip、mobile 4 pass/8 skip），再 `compare.ts`。中间反复出现 `global / SINGLE_H1 actual=0`（Place 页）：单独复跑可恢复，但会复发。本轮已把它**根因化并修掉**——`settle()` 原本只等 `networkidle` + 无 skeleton 类，而 Place overview 在 `data-ui-state="loading"` 的 200–400ms 窗口里既没有 skeleton 也没有 h1，于是探针量到了未渲染状态。现在 `settle()` 会等待壳状态离开 `loading`（有界 15s + 兜底），最终 `compare.ts` = **PASS 580 / WARN 0 / FAIL 0**。
 
 ## 4. Consumer 路由覆盖
 
@@ -103,7 +103,7 @@ Human Review 截图清单（40 个状态槽）已包含任务书 §45 要求的�
 |---|---|---|---|
 | **CLOSED** | 死选择器 `.place-dossier__scene--fallback` | 已从 `consumer-discovery-v10.css`、`consumer-discovery-v11.css`、`PlaceView.vue`（基础块 + mobile 块）全部删除 | 该元素在模板中从不渲染（`PlaceSceneFrame` 为 `v-if="placeSceneMedia"`）。删除后全仓 `scene--fallback` 引用数 = **0**，Oracle 复验 **580 PASS / 0 FAIL** 不变 |
 | **CLOSED（部分）** | quiet text action 触控目标 < 44px | `.filter-toggle`（search 工具栏）、`.reality-filter-chip`（Reality 筛选） | 两处改用 `var(--pa-layout-touch-target)`。390×844 实测：二者已不再出现在 <44px 列表。工具栏与筛选条各自独占一行，抬高它们不侵占 Map 画布 |
-| P2（保留） | Map chrome 与 privacy 的少数控件仍 < 44px | `.query-context__edit` 34×32、map lens `<select>` 78×38、privacy 120×40 | 抬高 `query-context__edit` 会把第二 overlay row 从 48px 顶到 56px，直接压缩 `map-canvas`，与 `map.mobile` 的 `MAP_MOBILE_CANVAS_VIEWPORT_FILL ≥580px`（Map=支配表面）冲突。按"Map 必须主导"优先，保留尺寸并记录；仍满足 WCAG 2.2 AA 2.5.8（≥24×24） |
+| **CLOSED** | Map chrome 与 privacy 的控件 < 44px | `.query-context__edit`、map lens `<select>`、`.map-viewbar__segment button`、`.privacy-action` | 移动端 Map 第二 overlay row 是 `position: absolute` 浮层，**不占用 map-canvas 高度**，所以抬高它不会牺牲地图支配性（原先的顾虑基于错误前提，已纠正）。实测 390×844 / 430×932：`调整` **44×44**、lens select **78×44**，`map-canvas` 仍为 784 / 872（远超合同下限 580）；`map.mobile` 合同 62 项 **0 FAIL** |
 | P2 | 每页 `public-media` 404 控制台噪声 | `services/api/app/api/v1/public_media.py:26` ↔ `apps/client-h5/src/consumer/publicSceneMedia.ts` | 设计上的 fail-closed；若要去噪需后端改为 200 + `available:false`，属 API 合同变更，超出本轮 |
 | **CLOSED** | Android Preview runtime smoke（API 35 / 36）FAILURE | `apps/client-h5/src/views/SearchView.vue`、`.github/workflows/android-preview.yml` | 由两个独立缺陷叠加而成，均已修复并在真实模拟器上复验通过；详见 §12 |
 | 环境 | 本机 D: 卷不稳定（曾整体掉线） | — | 影响本地重型验证的可重复性 |

@@ -84,7 +84,9 @@
 
 .privacy-action {
   margin-top: var(--pa-space-3);
-  min-height: var(--pa-size-control-md);
+  /* GLOBAL_UI_CONTRACT 44px touch target. Standalone action in a reading
+   * section, so the extra 4px costs no layout anywhere else. */
+  min-height: var(--pa-layout-touch-target);
   border: none;
   background: transparent;
   color: var(--pa-color-accent);

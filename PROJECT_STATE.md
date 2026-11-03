@@ -1,3 +1,11 @@
+## Current phase（2026-11-02 — 移动端 44px 触控目标收口 + Oracle settle 误报根因修复）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 仍 **OPEN + DRAFT**，`mergeable_state = clean`。
+- **触控目标收口（`ui:`）**：此前以为"抬高 mobile Map 第二行会压缩地图画布"，实测证明这个前提是错的——`.map-context-strip` 在 ≤767px 是 `position: absolute` 浮层，**不占用 map-canvas 高度**。据此把 `.query-context__edit`（34×32 → **44×44**）、map lens `<select>`（78×38 → **78×44**）、`.map-viewbar__segment button`、`.privacy-action`（40 → 44）统一改用 `var(--pa-layout-touch-target)`。实测 390×844 / 430×932：`map-canvas` 仍为 **784 / 872**（合同下限 580），无横向溢出；`map.mobile` 合同 **62 PASS / 0 FAIL**。
+- **Oracle 误报根因修复（`test:`）**：`global / SINGLE_H1 actual=0` 在 Place 页反复出现，单跑可恢复但会复发。根因是 `settle()` 只等 `networkidle` + 无 `skeleton` 类，而 Place overview 在 `data-ui-state="loading"` 的 200–400ms 窗口内既无 skeleton 也无 h1，探针量到了未渲染状态。现在 `settle()` 追加"等待壳状态离开 loading"（有界 15s + 兜底 + 250ms 收尾）。修复后 `compare.ts` = **PASS 580 / WARN 0 / FAIL 0**，不再需要靠重跑掩盖。
+- 本地门禁：`pnpm format:check:fe` PASS、`pnpm lint:fe` PASS、`client-h5` build PASS。
+- 未改变：Rule / Reality / Evidence domain semantics、API 合同、审核治理。`UI_HUMAN_VISUAL_ACCEPTANCE` 继续 `PENDING_REVIEW`。
+
 ## Current phase（2026-11-02 — Android API 35/36 runtime smoke 由红转绿）
 
 - 分支 `feat/ui-direct-craft-v8`；PR #1 仍 **OPEN + DRAFT**（未 merge/tag/Release），但 `mergeable_state` 已从 `unstable` 变为 **`clean`**：长期红着的两个 Android runtime smoke 已修复并实测通过。

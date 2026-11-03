@@ -533,8 +533,13 @@ html,
     width: auto;
     max-width: none;
     min-width: 0;
-    min-height: 38px;
-    padding: 5px 6px 5px 10px;
+    /* GLOBAL_UI_CONTRACT 44px touch target. The strip is an absolute overlay
+     * (see `position: absolute` above), so a taller row never takes space from
+     * the map canvas — map dominance is untouched. 46px = a 44px content box
+     * plus the 1px border on each side, so the edit control fits as a real
+     * 44px target instead of the 30px it used to be. */
+    min-height: 46px;
+    padding: 0 6px 0 10px;
     border: 1px solid var(--pa-discovery-line);
     border-radius: 12px;
     background: var(--pa-discovery-v10-paper);
@@ -554,8 +559,10 @@ html,
 
   #app .map-workspace .map-context-strip > .query-context .query-context__edit {
     flex: 0 0 auto;
-    min-height: 30px;
-    padding: 2px 7px;
+    /* Both axes: 44px height alone still leaves a 38px-wide tap column. */
+    min-width: var(--pa-layout-touch-target);
+    min-height: var(--pa-layout-touch-target);
+    padding: 0 7px;
     font-size: 12px;
   }
 
@@ -563,7 +570,7 @@ html,
     position: static;
     z-index: auto;
     flex: 0 0 auto;
-    min-height: 38px;
+    min-height: var(--pa-layout-touch-target);
     padding: 0;
     border: 0;
     background: transparent;
@@ -594,7 +601,7 @@ html,
 
   #app .map-workspace .map-lensbar__mobile-select select {
     width: 78px;
-    min-height: 38px;
+    min-height: var(--pa-layout-touch-target);
     padding: 0 24px 0 10px;
     appearance: none;
     border: 1px solid var(--pa-discovery-line);
@@ -623,7 +630,7 @@ html,
   }
 
   #app .map-workspace .map-viewbar__segment button {
-    min-height: 38px;
+    min-height: var(--pa-layout-touch-target);
     padding-inline: 10px;
     font-size: 12px;
   }
