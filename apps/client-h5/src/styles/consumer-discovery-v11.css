@@ -745,7 +745,10 @@ html,
   .place-dossier__actions
   .btn-inline:first-child {
   min-height: 0;
-  padding: 0;
+  /* 2px block padding lifts the inline text link from a 20px box to the WCAG
+   * 2.2 AA 2.5.8 floor of 24px without changing the row's wrapped width. The
+   * scoped rule in PlaceView cannot win here (#app-prefixed selectors do). */
+  padding: 2px 0;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -790,7 +793,7 @@ html,
 
 #app .place-workspace .place-dossier__head--illustrated .place-dossier__actions .btn-inline {
   min-height: 0;
-  padding: 0;
+  padding: 2px 0;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -1065,6 +1068,9 @@ html,
   border: 0;
   border-radius: 0;
   background: transparent;
+  /* v9 owns this control and pins 40px; v11 loads later at equal specificity,
+   * so the touch-target value has to be restated here to actually win. */
+  min-height: var(--pa-layout-touch-target);
 }
 
 @media (max-width: 767px) {
@@ -1445,6 +1451,9 @@ html,
   gap: 8px;
   margin-bottom: 6px;
   font-size: 12px;
+  /* WCAG 2.2 AA 2.5.8: an 18px inline box is below the 24px floor; 3px of
+   * block padding lifts it without changing the header rhythm. */
+  padding-block: 3px;
 }
 
 #app .reality-workspace .reality-head__place-context span:last-child::before {
@@ -1480,12 +1489,16 @@ html,
   }
 
   #app .query-context {
+    /* Keep the 48px bar: the 44px edit target needs the 6px block padding to
+     * give way, otherwise the bar would grow to 56px and eat into the mobile
+     * first-viewport budget that place.mobile measures. */
     min-height: 48px;
-    padding: 6px 14px;
+    padding: 2px 14px;
   }
 
   #app .query-context__edit {
-    min-height: 32px;
+    min-width: var(--pa-layout-touch-target);
+    min-height: var(--pa-layout-touch-target);
     padding: 0 4px;
     border: 0;
     border-radius: 0;

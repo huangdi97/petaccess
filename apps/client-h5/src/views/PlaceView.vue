@@ -807,6 +807,9 @@ const placeFixture = computed<string>(() => {
   color: var(--pa-color-accent);
   font-size: var(--pa-font-size-sm);
   white-space: nowrap;
+  /* WCAG 2.2 AA 2.5.8: the inline link box is line-height tall (20px); 2px of
+   * block padding lifts the tap target to 24px without moving the row. */
+  padding-block: 2px;
 }
 
 .place-dossier__map-link:hover,

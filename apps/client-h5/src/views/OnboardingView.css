@@ -124,7 +124,8 @@
 
 .auth-skip {
   margin-top: var(--pa-space-5);
-  min-height: var(--pa-size-control-md);
+  /* GLOBAL_UI_CONTRACT 44px touch target (was --pa-size-control-md = 40px). */
+  min-height: var(--pa-layout-touch-target);
   border: none;
   background: transparent;
   color: var(--pa-color-accent);

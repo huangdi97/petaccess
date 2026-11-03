@@ -1,3 +1,12 @@
+## Current phase（2026-11-02 — 触控目标全量收口：44px 独立控件 + 24px 行内链接）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 **OPEN + DRAFT**，`mergeable_state = clean`。
+- 本轮把触控目标从"只修地图浮层"扩展到全站，并纠正一处判断失误：`#app` 前缀规则优先于 SFC scoped 规则，先前写在 scoped 里的 44px/24px 被 v9/v11 的同名规则覆盖，等于没生效。权威值改写到 v11。
+- 已达成 44px 的独立控件：search「筛选」、Reality 筛选项、地图「调整」、lens `<select>`、map/list 分段按钮、**页面级「调整」**（改 44×44 的同时把该条 6px 上下内边距让位为 2px，条高仍 48px，不动 `place.mobile` 首屏行数预算）、onboarding「先浏览公开内容」、Why「重新获取」、Privacy「清除本机登录状态」。
+- 行内文本链接（Place 动作行、`地图定位 →`、Reality 返回地点）：20/18px → **24px**，达到 WCAG 2.2 AA 2.5.8 下限；不强行拉到 44px，避免破坏 v11 编辑式动作行节奏。
+- 复核：`pnpm format:check:fe` / `lint:fe` / `client-h5` build 均 PASS；三视口 Oracle 采集 **0 failed**，`compare.ts` = **PASS 580 / 0 WARN / 0 FAIL**（无 flake，settle 修复生效）；移动端 4 视口 × 19 路由 = **76 次渲染**，横向溢出 0 / h1 问题 0 / 可见泄漏 0，剩余 <44px 项仅为行内链接且实测 24px。
+- 仍未做：`public-media` 404 控制台噪声（见报告 §8，需后端合同变更或跨路由缓存，后者会让 Human Review 的同文档多次 goto 命中负缓存而掩盖 governed media，风险不可接受，故保留为已知 P2）。`UI_HUMAN_VISUAL_ACCEPTANCE` 继续 `PENDING_REVIEW`。
+
 ## Current phase（2026-11-02 — 移动端 44px 触控目标收口 + Oracle settle 误报根因修复）
 
 - 分支 `feat/ui-direct-craft-v8`；PR #1 仍 **OPEN + DRAFT**，`mergeable_state = clean`。
