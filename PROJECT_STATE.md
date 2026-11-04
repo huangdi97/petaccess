@@ -1,3 +1,12 @@
+## Current phase（2026-11-02 — 本地 E2E 全量试跑 + `public-media` 404 结论纠正）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 **OPEN + DRAFT**，`mergeable_state = clean`；代码树与本条记录之前的 SHA 一致（本条只改文档）。
+- **本地 E2E 首次跑通全集**（此前一直靠 CI 代跑）：标准端口栈（API 8010 role E2E + preview 5175）+ 临时 config（`webServer: []`，绕开本机 ~400s 的建库自举）→ 315 例 **296 passed / 19 failed**。
+- 失败归因（已用串行复跑验证，不是猜的）：把 11 个失败 spec 单独跑，**CI 会执行的那批 17/17 全通过**（h5-shell / place-route-race / public-session-degrade），说明大跑失败来自本机资源竞争与 30s 超时；`contribute-wizard` / `h5-journey` 的媒体用例需要 S3，而 CI 的 Playwright job 会先起 MinIO（`docker.io/pgsty/silo`），本机无 Docker、MinIO 官方二进制已 410 不可下载，属**环境缺口非产品缺陷**。
+- 真正稳定失败的 7 项全部是 **CI 从不执行**的旧 spec（如 `consumer-routes` 仍断言已不存在的 404 文案），属测试腐化；`tests/e2e` 共 24 个 spec，CI 只显式列出约 16 个 → 已作为 Debt 记入报告 §8，未擅自改写测试。
+- **纠正一条历史判断**：`public-media` 404 控制台噪声此前被我列为"可改后端去掉的 P2"。读 `services/api/app/api/v1/public_media.py` 后确认它是对所有"无合格公开媒体"情形统一 404，这正是 fail-closed 的信息边界——改成 200 + `available:false` 会泄露 bundle 是否存在。故**不改后端、也不加跨路由负缓存**（后者会让 Human Review 同文档多次 goto 命中负缓存而掩盖 governed media）。非 CI 的 `m3-consumer-core` console gate 因此报错，若将来纳入 CI，应给该 gate 加 allow-list 而非放宽 API。
+- 下一步门禁：本条为 docs-only，Android 工作流有 `paths:` 过滤不会触发；如需设备证据绑定本条 SHA，用 `workflow_dispatch` 显式触发。
+
 ## Current phase（2026-11-02 — 触控目标全量收口：44px 独立控件 + 24px 行内链接）
 
 - 分支 `feat/ui-direct-craft-v8`；PR #1 **OPEN + DRAFT**，`mergeable_state = clean`。

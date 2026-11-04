@@ -86,7 +86,7 @@ Human Review 截图清单（40 个状态槽）已包含任务书 §45 要求的�
 补充定位结论：
 
 - `place-dossier__scene--fallback` 元素在模板中 **从不渲染**（`PlaceSceneFrame` 为 `v-if="placeSceneMedia"`），但对应 CSS 仍存在 4 处 → **死选择器**（见 §8）。
-- 每页控制台出现 `GET /api/v1/evidence-bundles/{id}/public-media → 404`：该端点对"无公开媒体"的 bundle 返回 404，客户端 `publicSceneMedia.ts` 已 `catch → null` **fail-closed**，语义正确，属数据相关网络噪声，非缺陷。
+- 每页控制台出现 `GET /api/v1/evidence-bundles/{id}/public-media → 404`：客户端 `publicSceneMedia.ts` 已 `catch → null` **fail-closed**。读 `public_media.py` 后确认这是刻意的信息边界（统一 404 才不泄露 bundle 是否存在），**不是缺陷、也不应改成 200**；详见 §8 的纠正条目。
 
 **最终形态复核（最后一次改动之后）**：移动端 4 视口（320/360/390/430）× 19 路由 = **76 次渲染**，横向溢出 **0**、重复/缺失 h1 **0**、可见泄漏 **0**；触控项从最初的 80 条降到 16 条，且全部为行内文本链接，实测高度均为 **24px**（达到 WCAG 2.2 AA 2.5.8 下限）。90+ 项 44px 目标已覆盖：search 筛选、Reality 筛选、地图「调整」、lens select、map/list 分段按钮、Query context「调整」、onboarding 跳过、Why「重新获取」、Privacy 清除本机状态。
 
@@ -107,9 +107,10 @@ Human Review 截图清单（40 个状态槽）已包含任务书 §45 要求的�
 | **CLOSED（部分）** | quiet text action 触控目标 < 44px | `.filter-toggle`（search 工具栏）、`.reality-filter-chip`（Reality 筛选） | 两处改用 `var(--pa-layout-touch-target)`。390×844 实测：二者已不再出现在 <44px 列表。工具栏与筛选条各自独占一行，抬高它们不侵占 Map 画布 |
 | **CLOSED** | Map chrome 与 privacy 的控件 < 44px | `.query-context__edit`、map lens `<select>`、`.map-viewbar__segment button`、`.privacy-action` | 移动端 Map 第二 overlay row 是 `position: absolute` 浮层，**不占用 map-canvas 高度**，所以抬高它不会牺牲地图支配性（原先的顾虑基于错误前提，已纠正）。实测 390×844 / 430×932：`调整` **44×44**、lens select **78×44**，`map-canvas` 仍为 784 / 872（远超合同下限 580）；`map.mobile` 合同 62 项 **0 FAIL** |
 | **CLOSED** | 页面级 query-context 与行内文本链接的触控目标 | `.query-context__edit`（非地图页）、`.auth-skip`、`.explain-refresh`、`.place-dossier__actions .btn-inline`、`.place-dossier__map-link`、`.reality-head__place-context` | 页面级「调整」34×32 → **44×44**，同时把该条的 6px 上下内边距让位为 2px，条高保持 **48px**（不动 `place.mobile` 首屏行数预算）；`#app` 前缀规则优先于 SFC scoped，因此权威值写在 v11（v9 把 `.explain-refresh` 钉在 40px，v11 以同特异性后置覆盖）。行内文本链接 20/18px → **24px**（WCAG 2.2 AA 2.5.8 下限）。最终移动端审计：剩余 <44px 项**仅为行内链接且全部 24px** |
-| P2 | 每页 `public-media` 404 控制台噪声 | `services/api/app/api/v1/public_media.py:26` ↔ `apps/client-h5/src/consumer/publicSceneMedia.ts` | 设计上的 fail-closed；若要去噪需后端改为 200 + `available:false`，属 API 合同变更，超出本轮 |
+| **NOT A DEFECT**（已纠正） | 每页 `public-media` 404 控制台噪声 | `services/api/app/api/v1/public_media.py:26` ↔ `apps/client-h5/src/consumer/publicSceneMedia.ts` | 我此前把它列为可修 P2 是**错的**。读实现后确认：该端点对所有"无合格公开媒体"的情形统一返回 404，正是 fail-closed 的信息边界——若改成 200 + `available:false`，就等于告诉调用方"这个 bundle 存在但没有获批媒体"，形成 bundle 可枚举的侧信道。客户端已 `catch → null`。**不改后端、也不加跨路由负缓存**（后者会让 Human Review 同文档多次 goto 命中负缓存而掩盖 governed media）。非 CI 的 `m3-consumer-core` console gate 会因此报错，若要把它纳入 CI，应给该 gate 加这条探针的 allow-list，而不是放宽 API |
 | **CLOSED** | Android Preview runtime smoke（API 35 / 36）FAILURE | `apps/client-h5/src/views/SearchView.vue`、`.github/workflows/android-preview.yml` | 由两个独立缺陷叠加而成，均已修复并在真实模拟器上复验通过；详见 §12 |
 | 环境 | 本机 D: 卷不稳定（曾整体掉线） | — | 影响本地重型验证的可重复性 |
+| Debt | E2E spec 覆盖缺口 | `tests/e2e/*.spec.ts` 共 **24** 个文件，CI 只显式列出其中约 16 个 | 本机跑全集（315 例）得 **296 passed / 19 failed**；把 11 个失败 spec 串行单独跑后，CI 会跑的那批（h5-shell / place-route-race / public-session-degrade）**17/17 通过** —— 大跑失败源自本机资源竞争。真正稳定失败的是 7 项**CI 从不执行**的旧 spec（如 `consumer-routes` 仍断言已不存在的 404 文案「你访问的页面不存在或已被移动……」），属测试腐化，未擅自改写 |
 
 **P0 = 0 / P1 = 0（Web 范围内，基于本轮实测证据）**：无 Rule/Reality 语义混淆、无伪造媒体、无错位数据竞争、190 次渲染 0 横向溢出、Map 仍为支配表面、Place 有/无照片两条路径均 text-led 或 destination surface、Evidence provenance 可见、Contribution 目标地点上下文存在、无空白/报错路由、build 通过、无重大无障碍阻断（44px 目标见上表 P2）。
 
