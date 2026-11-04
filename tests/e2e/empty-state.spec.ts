@@ -19,13 +19,15 @@ test("home shows the global empty state when no published places exist", async (
   await expect(empty).toBeVisible();
   await expect(empty).toContainText("当前还没有已发布的场所数据");
 
-  // The two first-class exits: the map and the contribution flow.
+  // The empty state offers the two exits the current design defines: the map
+  // and search. Contribution is deliberately not one of them — the description
+  // says contributing needs a bound place, so an empty world cannot use it.
   const mapLink = page.getByTestId("home-empty-map");
-  const contributeLink = page.getByTestId("home-empty-contribute");
+  const searchLink = page.getByTestId("home-empty-search");
   await expect(mapLink).toBeVisible();
-  await expect(contributeLink).toBeVisible();
+  await expect(searchLink).toBeVisible();
   await expect(mapLink).toHaveAttribute("href", /\/map/);
-  await expect(contributeLink).toHaveAttribute("href", /\/contribute/);
+  await expect(searchLink).toHaveAttribute("href", /\/search/);
 
   // Empty world is a normal state, not a crash: no ERROR banner anywhere.
   await expect(page.locator('[data-state="ERROR"]')).toHaveCount(0);

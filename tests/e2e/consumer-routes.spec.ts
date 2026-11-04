@@ -18,9 +18,12 @@ test("A1 — unknown paths render the unified 404 state, never a blank page", as
   ).toBeVisible();
   // The product shell survives the 404 (rail/tabbar is still reachable).
   await expect(page.getByTestId("consumer-app-shell")).toBeVisible();
-  await expect(
-    page.getByText("你访问的页面不存在或已被移动。返回首页继续查找场所。"),
-  ).toBeVisible();
+  // The state contract is "never a blank page, always a way back". Assert the
+  // current explanation and a recovery link rather than one frozen sentence:
+  // the copy has been reworded since this spec was written, and pinning the
+  // exact prose is what let the spec rot out of the suite.
+  await expect(page.getByTestId("not-found")).toContainText("链接可能已经失效");
+  await expect(page.getByTestId("not-found").getByRole("link", { name: "返回首页" })).toBeVisible();
 });
 
 test("A3 — every core route sets a document title", async ({ page }) => {

@@ -288,6 +288,11 @@ jobs:
             tests/e2e/watch-domains.spec.ts \
             tests/e2e/contribute-route-race.spec.ts \
             tests/e2e/accessibility-contract.spec.ts \
+            tests/e2e/consumer-routes.spec.ts \
+            tests/e2e/empty-state.spec.ts \
+            tests/e2e/m3-consumer-core.spec.ts \
+            tests/e2e/place-preview-overflow.spec.ts \
+            tests/e2e/query-context.spec.ts \
             --workers=1
 
       - name: Playwright contribution mobile + chronology contracts
