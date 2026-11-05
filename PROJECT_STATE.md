@@ -1,3 +1,15 @@
+## Current phase（2026-11-05 — E2E 覆盖从 16/24 扩到 24/24，测试腐化清零）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 **OPEN + DRAFT**，`mergeable_state = clean`；远端 = 本地 = `aa90401a`。
+- **覆盖面缺口关闭**：`tests/e2e` 共 24 个 spec，此前 CI 只显式列出约 16 个，8 个长期无人执行并静默腐化。本轮把 5 个断言陈旧者按当前产品改写（不放松断言、不删用例），另 3 个修好预算或直接并入，现 **24/24 全部在 CI 执行**（22 主列表 + DPI 独立 step + `contribute-wizard` 子集 step）。
+- 腐化归因（逐条实测）：`consumer-routes` 断言已重写的 404 整句；`empty-state` 要求 Home 空态有"去贡献"出口，而产品按设计只给 map + 搜索（描述本身写明贡献需先绑定场所）；`place-preview-overflow` / `m3-consumer-core` 用场所名选行，行 key 早已是 `result-<id>`；`query-context` 在按设计隐藏查询条的 `/pets`、`/privacy` 上断言，且要求每个 surface 都发快照请求，而 60s 按完整语境 key 的缓存本就会命中第二个。
+- **`public-media` 404 控制台噪声按上条记录的建议收口**（"若将来纳入 CI，应给 gate 加 allow-list"）：只对 `m3-consumer-core` 控制台闸门精确放行该 404，其他 `console.error` 与 `pageerror` 仍然失败；未改后端合同、未加跨路由负缓存。
+- `desktop-dpi` 进 CI 的两处真因：`settle()` 只等骨架屏，而 Place overview 无骨架屏 → 会在 `data-ui-state="loading"` 窗口内测量溢出（与 UI Oracle 同一判断，已补有界等待）；30s 默认预算对 9 cell × 6 surface 不够 → 独立 step 用 `--workers=1 --timeout=120000`。
+- 实测（同一 SHA `aa90401a`，PR CI = SUCCESS）：主 Playwright step **243 passed**、DPI 矩阵 **54 passed (41.4s)**、contribute 子集 **2 passed**，CI 内合计 **299** 例；UI Direct Validation / Visual、Public Preview Stack、Format Preview、Autofmt 均 SUCCESS。
+- 本地实测（标准端口栈 + 临时 config，绕开 ~400s 建库自举）：5 个改写 spec 合跑 26 passed；DPI 矩阵 54/54（53s）；`backend-down-home` + `pa-icon-size` 3 passed。`pnpm format:check:fe` / `lint:fe` PASS。
+- 未改变：Rule / Reality / Evidence domain semantics、API 合同、审核治理、release signing。`UI_HUMAN_VISUAL_ACCEPTANCE` 继续 `PENDING_REVIEW`。
+- 停止线：PR 继续 Draft。Android 设备证据此前绑定 `10d6409d` / `da4717c9`；其后 4 个提交只动 `tests/`、CI 配置与文档，APK 未变，如需绑定最新 SHA 用 `workflow_dispatch` 显式触发。
+
 ## Current phase（2026-11-02 — 本地 E2E 全量试跑 + `public-media` 404 结论纠正）
 
 - 分支 `feat/ui-direct-craft-v8`；PR #1 **OPEN + DRAFT**，`mergeable_state = clean`；代码树与本条记录之前的 SHA 一致（本条只改文档）。
