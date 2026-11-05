@@ -29,8 +29,8 @@ artifacts/*
 !artifacts/blind-ui-compiler-v2/
 !artifacts/blind-ui-productization-v4/
 !artifacts/ui-human-closure-v5/
-!artifacts/rc-v020/
-.playwright/
+!artifacts/ui-direct-craft-v8-local-acceptance/
+
 *.tsbuildinfo
 .vite/
 .workbuddy/
@@ -70,3 +70,6 @@ coverage.json
 !artifacts/ui-product-craft-v7/
 !artifacts/ui-product-craft-v7-runtime-closure/
 !artifacts/ui-product-craft-v7-runtime-final/
+
+# Generated only for one-off HTTPS Android Phone Preview builds.
+apps/client-h5/src-tauri/tauri.phone-preview.generated.json

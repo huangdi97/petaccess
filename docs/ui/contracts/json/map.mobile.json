@@ -1,6 +1,6 @@
 {
   "id": "map.mobile",
-  "title": "Map Mobile Contract v0.2.5 (overlay bottom sheet §22–24/§49)",
+  "title": "Map Mobile Contract — Consumer v11 Spatial Overlay",
   "viewport": {
     "width": 430,
     "height": 932
@@ -13,7 +13,7 @@
         "page": "map",
         "state": "ready",
         "fixture": "map-ready-v1",
-        "h1": "规则地图"
+        "h1": "规则与现场地图"
       }
     },
     {
@@ -23,7 +23,7 @@
         "page": "map",
         "state": "ready",
         "fixture": "map-ready-v1",
-        "h1": "规则地图"
+        "h1": "规则与现场地图"
       }
     },
     {
@@ -32,14 +32,34 @@
       "interactions": [
         {
           "clickSelectors": ["[data-testid='sheet-handle']"],
-          "waitForSelector": "[data-testid='sheet-verdict']"
+          "waitForSelector": "[data-testid='sheet-evidence']"
         }
       ],
       "expect": {
         "page": "map",
         "state": "ready",
         "fixture": "map-ready-v1",
-        "h1": "规则地图"
+        "h1": "规则与现场地图"
+      }
+    },
+    {
+      "id": "map-mobile-reality",
+      "route": "/#/map?lens=reality",
+      "expect": {
+        "page": "map",
+        "state": "ready",
+        "fixture": "map-ready-v1",
+        "h1": "规则与现场地图"
+      }
+    },
+    {
+      "id": "map-mobile-reality-selected",
+      "route": "/#/map?lens=reality&place=5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+      "expect": {
+        "page": "map",
+        "state": "ready",
+        "fixture": "map-ready-v1",
+        "h1": "规则与现场地图"
       }
     }
   ],
@@ -96,12 +116,37 @@
       "fallbacks": ["[data-testid='map-mobile-sheet']"],
       "props": {
         "height": {
-          "min": 480
+          "min": 340,
+          "max": 680
         }
       },
       "severity": "FAIL",
       "pages": ["map-mobile-expanded"],
-      "note": "v0.2.7 §13：expanded 必须真实展开（≥480px），且不遮 tabbar。"
+      "note": "Expanded sheet must visibly exceed half state and remain below the tab bar; sparse content should fit naturally without artificial filler."
+    },
+    {
+      "id": "MAP_MOBILE_LENSBAR_PRESENT",
+      "ui": "map-lensbar",
+      "fallbacks": ["[data-ui='map-lensbar']"],
+      "props": {
+        "count": {
+          "min": 1
+        }
+      },
+      "severity": "FAIL"
+    },
+    {
+      "id": "MAP_MOBILE_CANVAS_VIEWPORT_FILL",
+      "ui": "map-canvas",
+      "fallbacks": ["[data-testid='map']"],
+      "props": {
+        "height": {
+          "min": 580
+        }
+      },
+      "severity": "FAIL",
+      "pages": ["map-mobile-ready", "map-mobile-reality"],
+      "note": "At 430×932 the map canvas must occupy the available workspace above the 60px bottom tabbar. A fixed 480px canvas leaves an unusable empty strip and violates Map=Spatial Workspace."
     }
   ],
   "structure": [
@@ -113,12 +158,61 @@
       "pages": ["map-mobile-selected-half"]
     },
     {
+      "id": "MAP_MOBILE_NO_DUPLICATE_STATUS_BADGE",
+      "selector": "[data-testid='map-mobile-sheet'] .status-badge",
+      "max": 0,
+      "severity": "FAIL",
+      "pages": ["map-mobile-selected-half", "map-mobile-expanded", "map-mobile-reality-selected"],
+      "note": "v11 uses one natural-language fact hierarchy; the same verdict must not be repeated as a decorative badge."
+    },
+    {
+      "id": "MAP_MOBILE_REALITY_LENS_RULE_SECONDARY",
+      "selector": "[data-testid='map-mobile-sheet'] [data-testid='sheet-verdict']",
+      "min": 1,
+      "max": 1,
+      "severity": "FAIL",
+      "pages": ["map-mobile-reality-selected"],
+      "note": "Reality is the active fact; Rule remains visible once as the cross-dimension decision."
+    },
+    {
+      "id": "MAP_MOBILE_REALITY_LENS_NO_REPEAT",
+      "selector": "[data-testid='map-mobile-sheet'] [data-testid='sheet-reality']",
+      "max": 0,
+      "severity": "FAIL",
+      "pages": ["map-mobile-reality-selected"],
+      "note": "When Reality is already the active lens, do not repeat the same fact again as a recent-Reality block."
+    },
+    {
       "id": "MAP_EXPANDED_NO_FAKE_FILLER",
       "selector": "[data-testid='map-mobile-sheet'] [class*='placeholder'], [data-testid='map-mobile-sheet'] [data-ui*='filler'], [data-testid='map-mobile-sheet'] [class*='lorem']",
       "max": 0,
       "severity": "FAIL",
       "pages": ["map-mobile-expanded"],
       "note": "v0.2.7 §13/§40：expanded 禁止伪造/占位内容，只允许真实已有信息。"
+    },
+    {
+      "id": "MAP_MOBILE_FOUR_LENSES",
+      "selector": "[data-testid='map-lens-select'] option",
+      "min": 4,
+      "max": 4,
+      "severity": "FAIL",
+      "mustContainTexts": ["规则", "现场", "设施", "差异"],
+      "note": "Mobile keeps all four first-class lenses in one compact selector so the map remains the dominant surface."
+    },
+    {
+      "id": "MAP_MOBILE_ONE_ACTIVE_LENS",
+      "selector": "[data-testid='map-lens-select'] option:checked",
+      "min": 1,
+      "max": 1,
+      "severity": "FAIL",
+      "note": "Exactly one lens is active in the compact mobile selector."
+    },
+    {
+      "id": "MAP_MOBILE_ZOOM_CONTROLS_INTERACTIVE",
+      "selector": "[data-ui='map-zoom'] button:not(:disabled)",
+      "min": 1,
+      "severity": "FAIL",
+      "pages": ["map-mobile-ready", "map-mobile-reality"]
     }
   ],
   "density": [
@@ -127,10 +221,10 @@
       "selector": "[data-testid='map-mobile-sheet'] .sheet__body",
       "metric": "largestVerticalGap",
       "min": 8,
-      "max": 48,
+      "max": 58,
       "severity": "FAIL",
       "pages": ["map-mobile-selected-half", "map-mobile-expanded"],
-      "note": "v0.2.7 §40：sheet 内容段间距稳定 8–48px，无巨大 gap。"
+      "note": "Expanded content may breathe, but actions must not be pinned down to manufacture empty space."
     }
   ],
   "composition": [
@@ -153,14 +247,6 @@
       "minRatio": 1.3,
       "severity": "FAIL",
       "pages": ["map-mobile-selected-half", "map-mobile-expanded"]
-    },
-    {
-      "id": "STATUS_BADGE_NOT_PRIMARY",
-      "a": "[data-testid='map-mobile-sheet'] .status-badge",
-      "b": "[data-testid='map-mobile-sheet'] .sheet__name",
-      "maxRatio": 0.9,
-      "severity": "FAIL",
-      "pages": ["map-mobile-selected-half", "map-mobile-expanded"]
     }
   ],
   "language": {
@@ -170,5 +256,5 @@
     "allcapsTokens": true,
     "refs": true
   },
-  "notes": "v0.2.5 §22–24/§49：mobile map 恒 overlay；selected = real bottom sheet（fixed overlay、radius 16、half 280–340、top < 700、不与 tabbar 重叠）。"
+  "notes": "Consumer v11 keeps the map as the dominant mobile surface. Four Rule/Reality/Facility/Divergence lenses remain first-class but collapse into one compact mobile selector; desktop keeps the segmented lens row. The selected-place overlay separates the active lens, Rule and recent Reality, carries no duplicate verdict badge, and expands only for real additional evidence/media."
 }

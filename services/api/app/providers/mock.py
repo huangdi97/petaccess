@@ -156,7 +156,19 @@ class MockMapProvider:
         return {"address": f"演示市虚构路 {round(lng * 100) % 100} 号", "provider": "mock"}
 
     def render_config(self) -> dict:
-        return {"provider": "mock", "center": {"lat": 31.23, "lng": 121.47}, "zoom": 14}
+        return {
+            "provider": "mock",
+            "center": {"lat": 31.23, "lng": 121.47},
+            "zoom": 14,
+            "input_coordinate_system": "EPSG:4326",
+            "render_coordinate_system": "EPSG:4326",
+        }
+
+    def translate_coordinates(self, coordinates: list[tuple[float, float]]) -> list[dict]:
+        return [{"lat": lat, "lng": lng} for lat, lng in coordinates]
+
+    def normalize_render_coordinates(self, coordinates: list[tuple[float, float]]) -> list[dict]:
+        return [{"lat": lat, "lng": lng} for lat, lng in coordinates]
 
     def open_navigation(self, lat: float, lng: float, name: str) -> dict:
         return {"action": "mock_navigation", "lat": lat, "lng": lng, "name": name}

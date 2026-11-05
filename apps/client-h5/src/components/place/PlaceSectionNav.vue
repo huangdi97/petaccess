@@ -2,7 +2,7 @@
 /**
  * PlaceSectionNav — Place Dossier local section navigation (§15).
  *
- * 概览 / 空间 / 规则 / 现场 / 证据。Desktop = text tab + underline；
+ * 概览 / 规则 / 现场 / 空间 / 证据。Desktop = text tab + underline；
  * Mobile = horizontal scroll text tab。不是 pill。切换写回 ?view= query so
  * deep link / back-forward / refresh 全部可用。
  */
@@ -21,9 +21,9 @@ const ROUTE_BY_VIEW: Record<PlaceViewKey, string> = {
 
 const TABS: { key: PlaceViewKey; label: string }[] = [
   { key: "overview", label: "概览" },
-  { key: "space", label: "空间" },
   { key: "rules", label: "规则" },
   { key: "reality", label: "现场" },
+  { key: "space", label: "空间" },
   { key: "evidence", label: "证据" },
 ];
 
@@ -42,7 +42,7 @@ const activeView = computed(() =>
 
 function select(v: PlaceViewKey) {
   if (v === activeView.value) return;
-  void router.replace({
+  void router.push({
     query: { ...route.query, view: ROUTE_BY_VIEW[v] },
   });
 }
@@ -98,5 +98,23 @@ function select(v: PlaceViewKey) {
 }
 .place-nav__tab:hover {
   color: var(--pa-color-accent);
+}
+
+@media (max-width: 767px) {
+  .place-nav {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: visible;
+  }
+
+  .place-nav__tab {
+    min-width: 0;
+    width: 100%;
+    padding-inline: var(--pa-space-1);
+    text-align: center;
+  }
 }
 </style>

@@ -148,7 +148,7 @@ def summarize(
     if not rows:
         return RealitySummary(
             state=INSUFFICIENT_OBSERVATION,
-            note="暂无记录（≠ 没有动物）",
+            note="暂无记录，不代表没有动物",
         )
 
     last = all_rows[0]
@@ -176,7 +176,7 @@ def summarize(
         note = "仅历史记录，不呈现为近期"
     elif not recent:
         state = NO_RECENT_RECORD
-        note = "暂无近期记录（≠ 没有动物）"
+        note = "暂无近期记录，不代表没有动物"
     elif any_unverified:
         state = INSUFFICIENT_OBSERVATION
         note = "近期记录尚未完成人工核验"

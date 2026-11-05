@@ -1,0 +1,12 @@
+﻿{
+  "order": 15,
+  "name": "15_contribution_mobile",
+  "platform": "web",
+  "device": "mobile",
+  "viewport": "430x932",
+  "route": "/#/contribute/5a9084d0...",
+  "state": "step1",
+  "gitSha": "d2eeba2fe5ffbfba31f244881f6e1705a07f84c2",
+  "valid": true,
+  "screenshot": "15_contribution_mobile.png"
+}

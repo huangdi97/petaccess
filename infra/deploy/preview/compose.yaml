@@ -1,0 +1,135 @@
+name: petaccess-public-preview
+
+x-petaccess-env: &petaccess-env
+  APP_ENV: staging
+  APP_NAME: pet-access-map-preview
+  API_BASE_URL: https://${PETACCESS_PREVIEW_DOMAIN}/api/v1
+  PETACCESS_PREVIEW_DOMAIN: ${PETACCESS_PREVIEW_DOMAIN}
+  DATABASE_URL: ${DATABASE_URL}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+  REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+  CELERY_TASK_QUEUE: ${CELERY_TASK_QUEUE:-petaccess_preview}
+  S3_ENDPOINT: http://storage:9000
+  S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+  S3_SECRET_KEY: ${S3_SECRET_KEY}
+  S3_BUCKET: ${S3_BUCKET:-petaccess-preview}
+  S3_REGION: ${S3_REGION:-us-east-1}
+  S3_SECURE: "false"
+  JWT_SECRET: ${JWT_SECRET}
+  MAP_PROVIDER: ${MAP_PROVIDER:-mock}
+  FEATURE_REAL_MAP: ${FEATURE_REAL_MAP:-false}
+  TENCENT_MAP_KEY_CLIENT: ${TENCENT_MAP_KEY_CLIENT:-}
+  TENCENT_MAP_KEY_SERVER: ${TENCENT_MAP_KEY_SERVER:-}
+  AI_PROVIDER: ${AI_PROVIDER:-mock}
+  VISION_PROVIDER: ${VISION_PROVIDER:-mock}
+  OCR_PROVIDER: ${OCR_PROVIDER:-mock}
+  FEATURE_REAL_AI: ${FEATURE_REAL_AI:-false}
+  AI_API_KEY: ${AI_API_KEY:-}
+  NOTIFICATION_PROVIDER: ${NOTIFICATION_PROVIDER:-mock}
+
+services:
+  db:
+    image: postgis/postgis:17-3.5
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-petaccess_preview}
+      POSTGRES_USER: ${POSTGRES_USER:-petaccess}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - preview_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U ${POSTGRES_USER:-petaccess} -d ${POSTGRES_DB:-petaccess_preview}
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - preview_redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  storage:
+    image: docker.io/pgsty/silo:RELEASE.2026-09-16T00-00-00Z
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY}
+    volumes:
+      - preview_storage:/data
+
+  api:
+    image: petaccess-preview-api:${PETACCESS_IMAGE_TAG:-local}
+    build:
+      context: ../../..
+      dockerfile: infra/deploy/preview/Dockerfile
+    restart: unless-stopped
+    environment:
+      <<: *petaccess-env
+      PORT: "8000"
+      PETACCESS_RUN_MIGRATIONS: "1"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      storage:
+        condition: service_started
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+  worker:
+    image: petaccess-preview-api:${PETACCESS_IMAGE_TAG:-local}
+    build:
+      context: ../../..
+      dockerfile: infra/deploy/preview/Dockerfile
+    restart: unless-stopped
+    entrypoint:
+      - /usr/local/bin/petaccess-preview-worker
+    environment:
+      <<: *petaccess-env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      storage:
+        condition: service_started
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+  edge:
+    image: caddy:2.11.4-alpine
+    restart: unless-stopped
+    environment:
+      PETACCESS_PREVIEW_DOMAIN: ${PETACCESS_PREVIEW_DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - preview_caddy_data:/data
+      - preview_caddy_config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  preview_postgres:
+  preview_redis:
+  preview_storage:
+  preview_caddy_data:
+  preview_caddy_config:

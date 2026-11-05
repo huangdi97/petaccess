@@ -1,0 +1,12 @@
+﻿{
+  "order": 8,
+  "name": "08_home_mobile",
+  "platform": "web",
+  "device": "mobile",
+  "viewport": "430x932",
+  "route": "/",
+  "state": "ready",
+  "gitSha": "d2eeba2fe5ffbfba31f244881f6e1705a07f84c2",
+  "valid": true,
+  "screenshot": "08_home_mobile.png"
+}

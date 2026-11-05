@@ -131,6 +131,24 @@ async function settle(page: import("@playwright/test").Page): Promise<void> {
       timeout: 12000,
     })
     .catch(() => {});
+  // The shell publishes its own state on [data-ui-page]. "loading" means the
+  // first data render has not happened yet, and a page is not required to show
+  // a skeleton while it waits (the Place overview renders none), so the check
+  // above can pass while the h1 is still missing. Measuring that window used to
+  // produce a recurring false SINGLE_H1=0 on the global contract's Place page.
+  // Wait for the app to declare a settled state; bounded, so a page that never
+  // settles still gets measured instead of hanging the contract.
+  await page
+    .waitForFunction(
+      () => {
+        const host = document.querySelector("[data-ui-page]");
+        if (!host) return true;
+        return host.getAttribute("data-ui-state") !== "loading";
+      },
+      { timeout: 15000 },
+    )
+    .catch(() => {});
+  // Let the post-load layout pass finish before anything is measured.
   await page.waitForTimeout(250);
 }
 
@@ -380,6 +398,8 @@ async function runContract(
       const token = await signIn(request);
       await page.goto("/");
       await page.evaluate((t) => localStorage.setItem("pa_token", t), token);
+      await page.reload();
+      await settle(page);
     }
     await page.goto(pageDef.route);
     await freezeMotion(page);
@@ -468,6 +488,10 @@ for (const contractRow of CONTRACTS) {
     request,
   }, testInfo) => {
     const project = testInfo.project.name;
+    test.skip(
+      project === "oracle-tablet",
+      "canonical contract rows own desktop/mobile viewports; tablet has dedicated responsive and Human Review evidence",
+    );
     const wantDesktop = contractRow.viewport.width >= 1000;
     const isDesktopProject = project === "oracle-desktop";
     test.skip(

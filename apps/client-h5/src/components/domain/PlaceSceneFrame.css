@@ -1,0 +1,219 @@
+.scene-frame {
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  background: var(--pa-color-surface-muted);
+}
+
+.scene-frame__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.scene-frame__empty {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--pa-space-3);
+  padding: var(--pa-space-4);
+  color: var(--pa-color-text-secondary);
+  background:
+    linear-gradient(120deg, var(--pa-color-accent-weak), transparent 48%),
+    var(--pa-color-surface-muted);
+}
+
+.scene-frame__identity-glyph {
+  position: relative;
+  z-index: 2;
+}
+
+.scene-frame__abstract {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.scene-frame__abstract::before,
+.scene-frame__abstract::after,
+.scene-frame__abstract-block,
+.scene-frame__abstract-path {
+  content: "";
+  position: absolute;
+  display: block;
+}
+
+.scene-frame__abstract::before {
+  width: 54%;
+  height: 72%;
+  right: -8%;
+  bottom: -28%;
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  transform: rotate(-9deg);
+  background: color-mix(in srgb, var(--pa-color-surface) 72%, transparent);
+}
+
+.scene-frame__abstract::after {
+  width: 38%;
+  height: 52%;
+  right: 18%;
+  top: -22%;
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  transform: rotate(13deg);
+}
+
+.scene-frame__abstract-block--a {
+  width: 84px;
+  height: 42px;
+  left: 46%;
+  top: 48%;
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  background: color-mix(in srgb, var(--pa-color-surface) 82%, transparent);
+}
+
+.scene-frame__abstract-block--b {
+  width: 56px;
+  height: 32px;
+  left: 66%;
+  top: 32%;
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  background: color-mix(in srgb, var(--pa-color-surface) 76%, transparent);
+}
+
+.scene-frame__abstract-path {
+  width: 74%;
+  height: 1px;
+  left: 33%;
+  top: 62%;
+  background: var(--pa-color-border);
+  transform: rotate(-8deg);
+  opacity: 0.65;
+}
+
+.scene-frame__empty-copy {
+  position: relative;
+  z-index: 2;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.scene-frame__empty-copy strong {
+  font-size: var(--pa-font-size-md);
+  font-weight: var(--pa-font-weight-600);
+  color: var(--pa-color-text-primary);
+}
+
+.scene-frame__empty-copy small,
+.scene-frame__caption {
+  font-size: var(--pa-font-size-xs);
+  line-height: var(--pa-line-height-20);
+  color: var(--pa-color-text-muted);
+}
+
+.scene-frame__caption {
+  display: block;
+  padding: var(--pa-space-1) var(--pa-space-2);
+  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.scene-frame--hero {
+  width: 100%;
+  max-width: none;
+  min-height: 132px;
+  border-radius: var(--pa-radius-control);
+}
+
+.scene-frame--hero .scene-frame__image {
+  aspect-ratio: 16 / 6;
+}
+
+.scene-frame--hero.scene-frame--empty {
+  max-width: none;
+  min-height: 0;
+}
+
+/* A missing reviewed photo is an honest identity placeholder, not a synthetic
+ * hero image. Keep the empty state compact so evidence and decision content
+ * remain above the fold; real reviewed photos still retain the wide 16:6 frame. */
+.scene-frame--hero.scene-frame--empty .scene-frame__empty {
+  height: 104px;
+  padding-block: var(--pa-space-3);
+}
+
+@media (max-width: 767px) {
+  .scene-frame--hero.scene-frame--empty .scene-frame__empty {
+    height: 88px;
+    padding-block: var(--pa-space-2);
+  }
+}
+
+.scene-frame--compact {
+  flex: 0 0 var(--scene-frame-compact-width, 152px);
+  width: var(--scene-frame-compact-width, 152px);
+  height: var(--scene-frame-compact-height, 96px);
+  border-radius: var(--pa-radius-control);
+}
+
+.scene-frame--compact .scene-frame__empty {
+  padding: var(--pa-space-2);
+  gap: var(--pa-space-2);
+}
+
+.scene-frame--compact .scene-frame__empty-copy {
+  display: none;
+}
+
+.scene-frame--compact .scene-frame__empty {
+  justify-content: center;
+}
+
+.scene-frame--compact.scene-frame--empty {
+  flex-basis: var(--scene-frame-compact-empty-width, 104px);
+  width: var(--scene-frame-compact-empty-width, 104px);
+  height: var(--scene-frame-compact-empty-height, 72px);
+}
+
+/* Missing reviewed media still needs an identity anchor, but it must read as
+   an abstract spatial placeholder rather than a fake venue photograph. */
+.scene-frame--compact.scene-frame--empty .scene-frame__abstract {
+  display: block;
+  opacity: 0.72;
+}
+
+/* Compact identity placeholders are visual anchors, not repeated error copy.
+ * The detailed "reviewed media only" explanation belongs on media surfaces,
+ * while Search/Place identity stays quiet when no public photo exists. */
+
+.scene-frame--compact .scene-frame__caption {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .scene-frame--compact {
+    flex-basis: var(--scene-frame-compact-mobile-width, 96px);
+    width: var(--scene-frame-compact-mobile-width, 96px);
+    height: var(--scene-frame-compact-mobile-height, 64px);
+  }
+
+  .scene-frame--compact.scene-frame--empty {
+    flex-basis: var(--scene-frame-compact-empty-mobile-width, 80px);
+    width: var(--scene-frame-compact-empty-mobile-width, 80px);
+    height: var(--scene-frame-compact-empty-mobile-height, 60px);
+  }
+
+  .scene-frame--compact .scene-frame__empty {
+    justify-content: center;
+    padding: var(--pa-space-1);
+  }
+
+  .scene-frame--compact .scene-frame__empty-copy {
+    display: none;
+  }
+}

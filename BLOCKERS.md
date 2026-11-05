@@ -2,60 +2,65 @@
 
 Template per GOAL §2: 缺什么 / 为什么 / 用户要做什么 / 拿到后执行什么 / 影响哪个 Gate。
 
-## B-01 uni-app x 全端构建需要 HBuilderX
-- Type: 工具链（GUI IDE，无法无人值守安装/驱动）
-- Affected gate: G18 微信 / G19 Android / G20 iOS / G21 HarmonyOS（uni-app x 编译产物）
-- Missing external input: HBuilderX（含 uni-app x 编译插件）；HarmonyOS 端另需 DevEco Studio
-- Why code cannot complete it: uni-app x 官方构建链路绑定 HBuilderX GUI（无 npm CLI，
-  `dcloudio/uni-preset-vue` 无 vite-uts 分支）；HBuilderX 下载入口对脚本访问受限
-  （dcloud.io 403/404），且安装属于系统级变更，需用户亲自执行。
-- Work already completed: 完整 uni-app x 源码工程（apps/client：manifest.json、pages.json、
-  App.uvue、7 个页面 .uvue、平台 adapter）；全部业务逻辑在平台无关的
-  @petaccess/client-core（与 H5 验证应用共享，已真跑）。
-- Exact user action:
-  1. 从 https://www.dcloud.io/hbuilderx.html 下载并安装 HBuilderX（4.8+）；
-  2. HBuilderX → 工具 → 插件安装 → 安装「uni-app x 编译插件」；
-  3. 文件 → 打开目录 → 选择 `apps/client`；
-  4. 运行 → 运行到浏览器 → Chrome（H5）；或 运行到微信开发者工具 / 真机。
-- Exact verification after resolution:
-  `cd apps/client && HBuilderX 运行 H5` → 页面与 apps/client-h5 行为一致；
-  微信端需 AppID（见 B-02）；Android/iOS/HarmonyOS 需对应签名/账号（B-03）。
-- 影响：G18/G19/G20/G21 在 HBuilderX 就绪前标记 BLOCKED_EXTERNAL；
-  H5 行为已由 apps/client-h5 + Playwright（G17）真实验证。
+## B-01 historical uni-app x path — RETIRED / SUPERSEDED
 
-## B-02 微信小程序 AppID / 类目 / 隐私接口审批
-- Type: 第三方账号凭证
-- Affected gate: G18
-- Missing external input: 微信小程序 AppID（manifest.json `mp-weixin.appid` 为空），
-  类目审核、`getLocation` 隐私接口审批
-- Why code cannot complete it: 需要注册微信小程序主体并过审，无法自动化。
-- Work already completed: manifest.json 已含 `requiredPrivateInfos` 与位置用途说明；
-  代码不依赖真实 AppID（urlCheck=false，mock provider）。
-- Exact user action: 注册小程序 → AppID 填入 apps/client/manifest.json → 微信开发者工具导入 apps/client。
-- Exact verification after resolution: 微信开发者工具编译预览通过。
-- 影响：G18 BLOCKED_EXTERNAL。
+- Status: **RETIRED（v0.10-R1 architecture convergence）**
+- Current release impact: **none**
+- Canonical Consumer: `apps/client-h5`
+- Canonical Windows / Android runtime: `apps/client-h5/src-tauri`（Tauri 2）
+- Canonical Android release: `.github/workflows/release-ci.yml`
+- Historical source retained at: `apps/client`（`LEGACY_REFERENCE_ONLY`）
 
-## B-03 移动端签名与开发者账号（Android 上架 / iOS 证书 / HarmonyOS 签名）
-- Type: 第三方账号与证书
-- Affected gate: G19 / G20 / G21
-- Missing external input: Android 签名 keystore 与应用市场账号；Apple Developer 账号与证书；
-  华为开发者账号与发布证书（DevEco Studio）
-- Why code cannot complete it: 证书/账号必须由主体持有者申请。
-- Work already completed: uni-app x 源码工程就绪；平台差异集中在 platform adapter。
-- Exact user action: 申请对应账号/证书后，在 HBuilderX 中按标准流程云打包/本地打包。
-- Exact verification after resolution: 对应平台安装包真机安装启动。
-- 影响：G19/G20/G21 BLOCKED_EXTERNAL。
+The previous blocker text treated HBuilderX / uni-app x as the required Android build path. That is no longer true. v0.10-R1 converged the product onto one Vue Consumer implementation with Tauri 2 shells for Windows and Android, specifically to avoid a second Consumer implementation drifting in UI and product truth.
+
+`apps/client` therefore must not be used for current Android screenshots, runtime acceptance, Human Visual Acceptance, or release builds. Its historical pages predate the current RealityReport / Rule + Reality + Evidence model and include legacy shortcuts that are intentionally excluded from the current release path.
+
+Current Android development / verification path:
+
+1. build `apps/client-h5`;
+2. use `apps/client-h5/src-tauri`;
+3. run `tauri android init` only for generated Android project material;
+4. build/sign through the Tauri Android toolchain and the release workflow;
+5. verify the resulting APK against the same Consumer UI and semantic contracts as H5.
+
+HBuilderX is not a current Android blocker.
+
+## B-02 WeChat mini-program path — DEFERRED, not a current release gate
+
+- Status: **DEFERRED / FUTURE CHANNEL**
+- Current Windows / Android release impact: **none**
+- The historical uni-app x `mp-weixin` configuration remains only as reference and must not be treated as the canonical Consumer.
+- If a WeChat mini-program is reactivated as a product target, its delivery architecture must first be re-decided against the v0.10 single-Consumer principle; do not resume by publishing `apps/client` unchanged.
+- External inputs would still include a WeChat AppID, category approval and privacy-interface approval.
+
+## B-03 mobile signing / developer accounts
+
+- Android engineering signing/build status: **RESOLVED for the current Tauri release chain**.
+- Android release workflow consumes the release keystore from GitHub Secrets, builds the Tauri Android APK, signs it, and verifies it with `apksigner`.
+- Android store listing remains external-account work and is not required for local APK acceptance.
+- iOS / HarmonyOS distribution credentials remain future external inputs if/when those release targets are activated.
+- Do **not** use HBuilderX or `apps/client` to resolve Android signing.
 
 ## B-04 腾讯地图 Key
 - Type: 第三方服务凭证
-- Affected gate: G08（地图真实数据）
-- Missing external input: TENCENT_MAP_KEY_CLIENT / TENCENT_MAP_KEY_SERVER（.env）
-- Why code cannot complete it: Key 需腾讯位置服务账号申请。
-- Work already completed: MapProvider 抽象 + Mock 实现（synthetic 场所/图钉/多边形渲染），
-  拿到 Key 后只需在 provider factory 切换（factory.py / map adapter），业务逻辑零改动。
-- Exact user action: 申请 Key → 填 .env → FEATURE_REAL_MAP=true → 重启 API。
-- Exact verification after resolution: /ai/map/config 返回 tencent provider；前端地图渲染真实底图。
-- 影响：G08 以 Mock 实现 PASS（viewport/search/zone 渲染与业务逻辑真跑），真实底图留待 Key。
+- Affected gate: G08（真实地图底图）
+- Missing external input: `TENCENT_MAP_KEY_CLIENT` / `TENCENT_MAP_KEY_SERVER`
+- Why code cannot complete it: Key 需腾讯位置服务账号申请并配置对应 JavaScript GL / WebService 能力与授权边界。
+- Work already completed:
+  - Provider-neutral fallback 只使用 **PetAccess 已收录的真实代表坐标**做聚合与点位投影，不伪造场所坐标、道路、多边形或现场证据；
+  - fallback 明确标注为简化空间底图，不冒充 surveyed geography；
+  - Tencent JS GL renderer、WGS84 → GCJ-02 服务端转换、GCJ-02 → WGS84 交互中心归一化均已实现；
+  - Android Runtime Review Board 会记录当前 packaged surface 是 `fallback` 还是 `tencent`；
+  - Phone Preview 支持 `require_real_map=true`，会在打包前同时验证 `/ai/map/config` 与 `/ai/map/translate`。
+- Exact user action: 申请并配置 client/server Key → API 设置 `MAP_PROVIDER=tencent`、
+  `FEATURE_REAL_MAP=true` → 配置 Key 授权边界 → 运行真实地图 Phone Preview。
+- Exact verification after resolution:
+  1. `/api/v1/ai/map/config` → `provider=tencent`, `real_enabled=true`；
+  2. `/api/v1/ai/map/translate` → `provider=tencent`, `coordinate_system=GCJ-02`；
+  3. Android packaged runtime Review Board → `Map provider = tencent`；
+  4. `PETACCESS_REQUIRE_REAL_MAP=1` journey PASS。
+- 影响：没有 Key 时地图功能与真实地点坐标仍可用，但只允许声明 **provider-neutral fallback**；
+  不得宣称“真实腾讯底图已接入”。
 
 ## B-05 真实 AI Provider Key（vision/OCR）
 - Type: 第三方服务凭证
@@ -80,8 +85,27 @@ Template per GOAL §2: 缺什么 / 为什么 / 用户要做什么 / 拿到后执
 - Type: 主体资质与法律确认
 - Affected gate: G22/G23 的上线部分（不影响本地 RC）
 - Missing external input: 域名、ICP 备案、隐私政策主体、地图业务边界合规确认（design #43）
-- Work already completed: 合规等待项均以 feature flag / Mock 隔离（design #43 第 10 条）。
+- Work already completed: 合规等待项均以 feature flag / provider boundary 隔离；未配置真实 Provider 时产品显式展示 fallback，不伪造完成状态。
 - 影响：上线部署时补充。
+
+## B-08 Signed Release Public API — FAIL-CLOSED EXTERNAL GATE
+
+- Type: 部署基础设施 / GitHub Repository Variable
+- Affected gate: Windows signed/installer artifact、Android signed APK、对外可安装 Release
+- Required external input: `PETACCESS_PUBLIC_API_BASE=https://<真实域名>/api/v1`
+- Why code cannot invent it: 生产 API 域名与部署环境必须由真实基础设施提供，不能为了让构建变绿伪造域名。
+- Work already completed:
+  - `scripts/release/verify_public_api.cjs`：要求 HTTPS、`/api/v1/ping` 与 `/health` 都证明是在线 PetAccess API；
+  - `scripts/release/generate_tauri_release_config.cjs`：生成 signed-build 专用严格 CSP，移除开发用 localhost / `10.0.2.2` origin；
+  - `release-ci.yml`：Windows / Android 都必须显式注入生产 API base，并在打包前验证 endpoint 已编入 Consumer；
+  - engineering gate + PR CI 防止回退到 packaged dev defaults。
+- Exact user action:
+  1. 部署真实 HTTPS PetAccess API；
+  2. 在 GitHub Repository Variables 配置 `PETACCESS_PUBLIC_API_BASE`；
+  3. 确认 `/health` 与 `/api/v1/ping` 可从 GitHub runner 访问；
+  4. 再授权 tag/release 流程。
+- Exact verification after resolution: Release CI 的 `Verify packaged runtime API` PASS，随后 Windows/Android signed jobs 才允许执行。
+- 影响：变量缺失、HTTP、错误服务或后端不可达时 **Release 必须失败**；Preview APK 不受此门限制。
 
 ---
 
@@ -181,7 +205,7 @@ Template per GOAL §2: 缺什么 / 为什么 / 用户要做什么 / 拿到后执
 
 ## 2026-09-15 接管复核（AGENT_MASTER_CONTINUE）
 
-### GOV-01 — 缺具名人类评审员（**仍成立，唯一剩余发布阻塞**）
+### GOV-01 — 缺具名人类评审员（**仍成立；唯一剩余规则数据发布裁决阻塞**）
 
 - Type: 治理 / 人工裁决
 - Affected gate: `PILOT_REVIEW_PUBLISH_GATE`、`B Publish`、30–50 Place 扩量
@@ -214,18 +238,40 @@ Template per GOAL §2: 缺什么 / 为什么 / 用户要做什么 / 拿到后执
 | T-03 | `reality_audit` 忽略注入 `now`（测试随真实日期漂移） | FIXED — threading `now` + 样本去 time-bomb |
 | T-05 | `policy_template_rule` 缺 scope 列（模板 service_dog 条目静默失效） | FIXED — 迁移 `d4a8b2f6c903` |
 
-### 仍然成立的外部阻塞（未变）
+### 当前仍成立的外部阻塞（按现状重核）
 
-`BLK-LEGAL-01`（法律文本未经执业律师审阅）、`BLK-PLAT-01`（平台审核未提交）、
-`B-01…B-07`（工具链 / 凭证 / 资质）——**均只阻塞各自对应的 Gate**，不阻塞 A / C。
+以下项目只阻塞各自对应的 Gate，不应被扩大解释为“整个 PetAccess 都不能继续”：
+
+- `GOV-01`：R2 规则候选缺具名人类评审员最终签署；
+- `BLK-LEGAL-01`：法律文本仍需执业律师审阅；
+- `BLK-PLAT-01`：应用商店 / 小程序等平台审核尚未提交；
+- `B-04`：腾讯地图 client/server Key 未提供，因此只能声明 provider-neutral fallback；
+- `B-05`：真实 Vision/OCR Provider Key 未提供，真实 AI 识别保持 BLOCKED_EXTERNAL；
+- `B-07`：生产域名、备案与正式法务主体信息未冻结；
+- `B-08`：signed Release 需要真实 HTTPS `PETACCESS_PUBLIC_API_BASE`；
+- standalone **Android Phone Preview** 需要 `PETACCESS_PHONE_PREVIEW_API_BASE`，当前 workflow 会显式显示
+  `BLOCKED_BY_API_BASE`；这不阻塞 USB Preview / emulator Preview。
+
+以下旧项**不再属于当前 Android / Consumer 阻塞**：
+
+- `B-01` 已 RETIRED：uni-app x / HBuilderX 不是当前发行路径；
+- `B-02` 是未来 WeChat channel 的 DEFERRED 项，不是当前 Windows/Android gate；
+- `B-03` Android 工程签名链已 RESOLVED；只剩商店账号/提交属于外部发行工作；
+- `B-06` OAuth / 短信属于可选登录方式扩展，当前账密登录闭环不依赖它。
+
+因此不要再使用旧的“`B-01…B-07` 全部仍成立”概括。
 
 ---
 
 ## 2026-09-22 会话追加（v0.9-R1 Reality Layer 六阶段推进）
 
-### LOCAL_DOCKER_DESKTOP_ENGINE_UNSTABLE —— Docker daemon 不可达（当前）
+### LOCAL_DOCKER_DESKTOP_ENGINE_UNSTABLE —— 2026-09-22 历史本地观察
 
-> 状态：BLOCKED_EXTERNAL（本轮只探测与记录，不做启动循环；契约边界 #2）
+> 状态：**HISTORICAL_LOCAL_OBSERVATION / REPROBE_REQUIRED**。该结论只证明
+> 2026-09-22 当次本机 Docker daemon 不可达，不能自动外推到当前工作区或 GitHub CI。
+> 当前 GitHub PR/Android Preview CI 已能启动 PostgreSQL / Redis / S3-compatible
+> containers；本地 Agent 若需要数据库集成验证，必须先重新执行一次 Docker 健康探测，
+> 再决定本地 gate 是 READY 还是 BLOCKED。
 
 - Type: 执行环境
 - Affected gate: AC2–AC5（Reality DB Migration Verification / 真实持久化 /

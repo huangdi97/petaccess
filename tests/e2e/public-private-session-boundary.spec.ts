@@ -1,0 +1,61 @@
+import { expect, test } from "@playwright/test";
+
+const BASE = "http://127.0.0.1:5175";
+const MALL_ID = "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e";
+
+async function injectExpiredSession(page: import("@playwright/test").Page) {
+  await page.addInitScript(() => localStorage.setItem("pa_token", "expired-e2e-token"));
+}
+
+test("Reality remains public while expired private session hides confirmation writes", async ({
+  page,
+}) => {
+  await injectExpiredSession(page);
+  await page.goto(`${BASE}/#/place/${MALL_ID}/reality`);
+
+  await expect(page.getByTestId("reality-workspace")).toBeVisible();
+  await expect(page.getByTestId("reality-private-session-note")).toContainText("登录状态已失效", {
+    timeout: 15000,
+  });
+  await expect(page.getByTestId("trace-observations")).toBeVisible();
+  await expect(page.getByRole("button", { name: "我现在也看到了" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "设施还在" })).toHaveCount(0);
+});
+
+test("Evidence remains public while expired private session offers sign-in, not dispute write", async ({
+  page,
+}) => {
+  await injectExpiredSession(page);
+  await page.goto(`${BASE}/#/place/${MALL_ID}/evidence`);
+
+  await expect(page.getByTestId("evidence-workspace")).toBeVisible();
+  await expect(page.getByTestId("evidence-private-context-note")).toContainText("登录状态已失效", {
+    timeout: 15000,
+  });
+  await expect(page.getByTestId("evidence-head")).toBeVisible();
+  await expect(page.getByTestId("reality-dispute-open")).toHaveCount(0);
+  const signIn = page.getByTestId("reality-dispute-sign-in").first();
+  await expect(signIn).toBeVisible();
+  await expect(signIn).toContainText("登录后提出异议");
+});
+
+test("Privacy distinguishes a local token from a restored private-data session", async ({
+  page,
+}) => {
+  await page.addInitScript(() => localStorage.setItem("pa_token", "temporarily-unverified-token"));
+  await page.route("**/api/v1/auth/me", async (route) => {
+    await route.fulfill({ status: 503, json: { detail: "account service unavailable" } });
+  });
+
+  await page.goto(`${BASE}/#/privacy`);
+
+  await expect(page.getByText("当前设备已登录。")).toBeVisible();
+  await expect(page.getByTestId("privacy-rights-load-error")).toContainText("账号状态暂不可用");
+  await expect(page.getByTestId("privacy-export")).toHaveCount(0);
+  await expect(page.getByTestId("privacy-delete-request-open")).toHaveCount(0);
+
+  await page.getByTestId("clear-local").click();
+  await expect(page.getByTestId("cleared-msg")).toBeVisible();
+  await expect(page.getByText("当前设备未登录。")).toBeVisible();
+  await expect(page.getByTestId("privacy-export")).toHaveCount(0);
+});

@@ -431,6 +431,60 @@ def test_watch_subscribe_is_idempotent(client, moderator):
     assert len(mine) == 1, "duplicate watch rows would double-notify the user"
 
 
+def test_rule_and_reality_watches_are_independent(client, moderator):
+    """§39: the same place may have one Rule Watch and one Reality Watch."""
+    place_id = _new_place(client, moderator, "WAVE01 双域关注公园")
+    rule = client.post(
+        "/api/v1/watches",
+        json={
+            "watch_domain": "rule",
+            "target_type": "place",
+            "target_id": place_id,
+            "channels": ["in_app"],
+        },
+        headers=_auth(moderator),
+    )
+    reality = client.post(
+        "/api/v1/watches",
+        json={
+            "watch_domain": "reality",
+            "target_type": "place",
+            "target_id": place_id,
+            "channels": ["in_app"],
+        },
+        headers=_auth(moderator),
+    )
+    assert rule.status_code == 201, rule.text
+    assert reality.status_code == 201, reality.text
+    assert rule.json()["id"] != reality.json()["id"]
+    assert rule.json()["watch_domain"] == "rule"
+    assert reality.json()["watch_domain"] == "reality"
+
+    watches = client.get("/api/v1/watches", headers=_auth(moderator)).json()
+    mine = [watch for watch in watches if watch["target_id"] == place_id]
+    assert {watch["watch_domain"] for watch in mine} == {"rule", "reality"}
+
+
+def test_unsubscribed_watch_is_not_returned_as_active_ui_state(client, moderator):
+    """A soft-deleted subscription must not reappear after page refresh."""
+    place_id = _new_place(client, moderator, "WAVE01 关注列表公园")
+    sub = client.post(
+        "/api/v1/watches",
+        json={
+            "watch_domain": "reality",
+            "target_type": "place",
+            "target_id": place_id,
+            "channels": ["in_app"],
+        },
+        headers=_auth(moderator),
+    ).json()
+    response = client.delete(f"/api/v1/watches/{sub['id']}", headers=_auth(moderator))
+    assert response.status_code == 204
+
+    visible = client.get("/api/v1/watches", headers=_auth(moderator)).json()
+    assert all(watch["id"] != sub["id"] for watch in visible)
+
+
 def test_watch_unsubscribe_stops_delivery(client, moderator):
     """Unsubscribed watches must be excluded from the sweep (§81)."""
     place_id = _new_place(client, moderator, "WAVE01 关注退订公园")

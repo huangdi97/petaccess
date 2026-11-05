@@ -159,5 +159,9 @@ def test_classify_fatal_and_anr() -> None:
     assert counts["chromium"] >= 1
 
 
-def test_serial_state_missing_when_offline() -> None:
-    assert serial_state("emulator-9999") in ("missing", "offline", "device")
+def test_serial_state_missing_when_offline(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Unit scope must not invoke the machine's real SDK or owned emulator."""
+    from scripts.android_acceptance import adb as adb_module
+
+    monkeypatch.setattr(adb_module, "devices", lambda: [("emulator-5562", "device")])
+    assert serial_state("emulator-9999") == "missing"

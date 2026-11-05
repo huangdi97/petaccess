@@ -30,7 +30,7 @@ const OUT = path.resolve("artifacts/ui-product-craft-v7/HUMAN_REVIEW");
 const BEFORE_DIR = path.resolve("tests/visual/consumer.spec.ts-snapshots");
 const API = "http://127.0.0.1:8012/api/v1";
 const MALL_ID = "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e"; // ready fixture
-const CAFE_ID = "8412b521-5e1c-505d-9dec-568acb860c76"; // reality/evidence fixture
+const CAFE_ID = "8412b521-5e1c-505d-9dec-568acb860c76"; // canonical v0.9 empty fixture
 
 interface StateExpect {
   page?: string;
@@ -68,7 +68,7 @@ const SHOTS: Shot[] = [
       page: "home",
       state: "ready",
       fixture: "home-ready-v1",
-      h1: "去之前，先看看这里的规则和现场。",
+      h1: "去之前，先看规则与现场。",
     },
     note: "v0.2.7：Home task launcher 保持；本页无 craft 改动（基线对照）。",
   },
@@ -163,7 +163,7 @@ const SHOTS: Shot[] = [
     name: "08_reality_desktop",
     width: 1440,
     height: 900,
-    route: `/#/place/${CAFE_ID}/reality`,
+    route: `/#/place/${MALL_ID}/reality`,
     before: "reality-trace-h5-1440-win32.png",
     expect: {
       page: "reality",
@@ -171,20 +171,20 @@ const SHOTS: Shot[] = [
       fixture: "reality-ready-v1",
       h1: "现场轨迹",
     },
-    note: "v0.2.7 §24：Observed Fact 主行、Location 次行、staff 从属、meta 第三层。",
+    note: "v0.10-R1：published presence / staff / facility 共用时间轴；事件、地点、核验/证据分层。",
   },
   {
     name: "09_evidence_desktop",
     width: 1440,
     height: 900,
-    route: `/#/place/${CAFE_ID}/evidence`,
+    route: `/#/place/${MALL_ID}/evidence`,
     expect: {
       page: "evidence",
       state: "ready",
       fixture: "evidence-records-v1",
       h1: "证据与来源",
     },
-    note: "v0.2.7 §25：record identity 22/650 为首要事实；provenance 层级不变。",
+    note: "v0.10-R1：真实 v0.9 Evidence Record；规则依据与现场依据并维、Observed/Submitted/Reviewed 分开。",
   },
   {
     name: "10_contribution_desktop_choose",

@@ -25,7 +25,7 @@ from typing import Any
 from app.services.rule_reality_divergence import Divergence, divergence
 
 #: Bump when the shape or derivation rules change. Consumers key off this.
-COEXISTENCE_SNAPSHOT_VERSION = "coexistence-snapshot/1"
+COEXISTENCE_SNAPSHOT_VERSION = "coexistence-snapshot/2"
 
 
 @dataclass(frozen=True)
@@ -65,6 +65,9 @@ def build_coexistence_snapshot(
     reality_answer: dict[str, Any],
     staff_response_summary: list[dict[str, Any]],
     facility_summary: list[dict[str, Any]],
+    reality_evidence_count: int | None = None,
+    reality_distinct_source_count: int | None = None,
+    reality_verification_state: str | None = None,
     now: datetime | None = None,
 ) -> CoexistenceSnapshot:
     """Assemble one snapshot. Pure: takes plain values, returns plain values.
@@ -81,8 +84,21 @@ def build_coexistence_snapshot(
     reality_state = str(reality_answer.get("state") or "INSUFFICIENT_OBSERVATION")
 
     rule_evidence_state = rule_answer.get("evidence_state") or {}
-    reality_evidence_count = int(reality_answer.get("evidence_count") or 0)
-    reality_distinct_sources = int(reality_answer.get("distinct_source_count") or 0)
+    reality_evidence_count = (
+        int(reality_answer.get("evidence_count") or 0)
+        if reality_evidence_count is None
+        else reality_evidence_count
+    )
+    reality_distinct_sources = (
+        int(reality_answer.get("distinct_source_count") or 0)
+        if reality_distinct_source_count is None
+        else reality_distinct_source_count
+    )
+    reality_verification_state = (
+        reality_answer.get("verification_state")
+        if reality_verification_state is None
+        else reality_verification_state
+    )
 
     return CoexistenceSnapshot(
         place_id=place_id,
@@ -103,7 +119,7 @@ def build_coexistence_snapshot(
             ),
             reality_evidence_count=reality_evidence_count,
             reality_distinct_source_count=reality_distinct_sources,
-            reality_verification_state=reality_answer.get("verification_state"),
+            reality_verification_state=reality_verification_state,
         ),
     )
 

@@ -237,6 +237,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/places/{place_id}/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Place Summary */
+        get: operations["get_place_summary_api_v1_places__place_id__summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/places/{place_id}": {
         parameters: {
             query?: never;
@@ -483,6 +500,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/sources/{source_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Source */
+        get: operations["get_source_api_v1_sources__source_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/places/{place_id}/observations": {
         parameters: {
             query?: never;
@@ -546,6 +580,26 @@ export interface paths {
          * @description The reality half of a CoexistenceSnapshot, per place (v0.9 §9).
          */
         get: operations["place_reality_api_v1_places__place_id__reality_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/places/{place_id}/reality/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consumer Reality Events
+         * @description Published human-verified Reality facts as one consumer timeline.
+         */
+        get: operations["consumer_reality_events_api_v1_places__place_id__reality_events_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1052,6 +1106,26 @@ export interface paths {
         put?: never;
         /** Upload Media */
         post: operations["upload_media_api_v1_media_upload_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/media/mine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * My Media
+         * @description List the caller's active uploads without exposing object-storage URLs.
+         */
+        get: operations["my_media_api_v1_media_mine_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2857,6 +2931,44 @@ export interface components {
          * @enum {string}
          */
         MandatoryLevel: "mandatory" | "advisory" | "operator_discretion";
+        /** MediaMetaOut */
+        MediaMetaOut: {
+            /** Id */
+            id: string;
+            /** Purpose */
+            purpose: string;
+            /** Privacy Class */
+            privacy_class: string;
+            /** Mime Type */
+            mime_type: string;
+            /** Byte Size */
+            byte_size: number;
+            /** Moderation Status */
+            moderation_status: string;
+            /** Ocr Text */
+            ocr_text?: string | null;
+            /** Ocr Rule Candidates */
+            ocr_rule_candidates?: {
+                [key: string]: unknown;
+            }[] | null;
+            /** Upload Status */
+            upload_status: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at?: string | null;
+            /**
+             * Deleted At
+             * Format: date-time
+             */
+            deleted_at?: string | null;
+        };
         /** MonitorIn */
         MonitorIn: {
             /** Source Id */
@@ -3490,6 +3602,10 @@ export interface components {
             place_type: components["schemas"]["PlaceType"];
             /** Canonical Address */
             canonical_address: string | null;
+            /** Latitude */
+            latitude?: number | null;
+            /** Longitude */
+            longitude?: number | null;
             /** Distance M */
             distance_m?: number | null;
             /** Parent Place Name */
@@ -3855,6 +3971,112 @@ export interface components {
          * @description Moderation posture of a report (addendum PHASE 12–13 Anti-Abuse).
          * @enum {string}
          */
+        /**
+         * RealityEventOut
+         * @description One public, human-verified Reality event for the consumer timeline.
+         *
+         *     event_at always carries time_basis so a verification timestamp is never
+         *     presented as an observed event time. Staff identity is intentionally
+         *     absent: only role/action facts may be exposed. Facility facts remain
+         *     separate from entry policy.
+         */
+        RealityEventOut: {
+            /** Id */
+            id: string;
+            /** Event Type */
+            event_type: string;
+            /** Place Id */
+            place_id: string;
+            /** Zone Id */
+            zone_id?: string | null;
+            /**
+             * Event At
+             * Format: date-time
+             */
+            event_at: string;
+            /** Time Basis */
+            time_basis: string;
+            /** Time Evidence State */
+            time_evidence_state?: string | null;
+            /** Origin */
+            origin?: string | null;
+            /** Fact Evidence State */
+            fact_evidence_state?: string | null;
+            /** Place Match State */
+            place_match_state?: string | null;
+            /** Content Published At */
+            content_published_at?: string | null;
+            /** Claimed Event At */
+            claimed_event_at?: string | null;
+            /** Animal Scope */
+            animal_scope?: string | null;
+            /** Observed Action */
+            observed_action?: string | null;
+            /** Observed Context */
+            observed_context?: string | null;
+            /** Staff Actor Role */
+            staff_actor_role?: string | null;
+            /** Staff Action */
+            staff_action?: string | null;
+            /** Staff Awareness State */
+            staff_awareness_state?: string | null;
+            /** Staff Outcome */
+            staff_outcome?: string | null;
+            /** Staff Policy Statement Verbatim */
+            staff_policy_statement_verbatim?: string | null;
+            /** Facility Type */
+            facility_type?: string | null;
+            /** Facility State */
+            facility_state?: string | null;
+            /** Facility Purpose State */
+            facility_purpose_state?: string | null;
+            /** Facility Access Mode */
+            facility_access_mode?: string | null;
+            /** Facility Capacity */
+            facility_capacity?: number | null;
+            /** Facility Size Limit */
+            facility_size_limit?: string | null;
+            /** Facility Weather Protection */
+            facility_weather_protection?: boolean | null;
+            /** Facility Shade */
+            facility_shade?: boolean | null;
+            /** Facility Ventilation */
+            facility_ventilation?: boolean | null;
+            /** Facility Water Available */
+            facility_water_available?: boolean | null;
+            /** Facility Supervision State */
+            facility_supervision_state?: string | null;
+            /** Facility Security Or Lock State */
+            facility_security_or_lock_state?: string | null;
+            /** Facility Operator Provided */
+            facility_operator_provided?: boolean | null;
+            /** Source Id */
+            source_id?: string | null;
+            /** Evidence Bundle Id */
+            evidence_bundle_id?: string | null;
+            /** Evidence Material Type */
+            evidence_material_type?: string | null;
+            /** Evidence Source Platform */
+            evidence_source_platform?: string | null;
+            /** Evidence Publisher Type */
+            evidence_publisher_type?: string | null;
+            /** Evidence Class */
+            evidence_class?: string | null;
+            /** Evidence Display Allowed */
+            evidence_display_allowed?: boolean | null;
+            /** Submitted At */
+            submitted_at?: string | null;
+            /** Confirmation Count */
+            confirmation_count?: number;
+            /** Dispute Open */
+            dispute_open?: boolean;
+            /** Verification Status */
+            verification_status: string;
+            /** Freshness State */
+            freshness_state?: string | null;
+            /** Last Verified At */
+            last_verified_at?: string | null;
+        };
         RealityReportModerationState: "pending" | "flagged" | "approved" | "rejected" | "removed";
         /** RealityReportOut */
         RealityReportOut: {
@@ -4518,8 +4740,15 @@ export interface components {
          * @enum {string}
          */
         VerificationResult: "still_valid" | "changed" | "uncertain";
+        /**
+         * WatchDomain
+         * @enum {string}
+         */
+        WatchDomain: "rule" | "reality";
         /** WatchIn */
         WatchIn: {
+            /** @default rule */
+            watch_domain?: components["schemas"]["WatchDomain"];
             target_type: components["schemas"]["WatchTargetType"];
             /** Target Id */
             target_id: string;
@@ -4537,6 +4766,7 @@ export interface components {
             id: string;
             /** User Id */
             user_id: string;
+            watch_domain: components["schemas"]["WatchDomain"];
             target_type: components["schemas"]["WatchTargetType"];
             /** Target Id */
             target_id: string;
@@ -5021,6 +5251,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Page_PlaceSummary_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_place_summary_api_v1_places__place_id__summary_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                place_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlaceSummary"];
                 };
             };
             /** @description Validation Error */
@@ -5534,6 +5795,37 @@ export interface operations {
             };
         };
     };
+    get_source_api_v1_sources__source_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     create_source_api_v1_sources_post: {
         parameters: {
             query?: never;
@@ -5683,6 +5975,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RealityAnswer"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    consumer_reality_events_api_v1_places__place_id__reality_events_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                place_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RealityEventOut"][];
                 };
             };
             /** @description Validation Error */
@@ -6729,6 +7054,26 @@ export interface operations {
             };
         };
     };
+    my_media_api_v1_media_mine_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MediaMetaOut"][];
+                };
+            };
+        };
+    };
     media_url_api_v1_media__media_id__url_get: {
         parameters: {
             query?: never;
@@ -6779,9 +7124,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["MediaMetaOut"];
                 };
             };
             /** @description Validation Error */

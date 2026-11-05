@@ -88,8 +88,9 @@ def test_empty_record_is_not_no_animal():
     s = summarize([], now=NOW)
     assert s.state == INSUFFICIENT_OBSERVATION
     assert s.state != NO_RECENT_RECORD
-    # absence of a record is never evidence of absence
-    assert s.note and "≠" in s.note  # 暂无记录（≠ 没有动物）
+    # absence of a record is never evidence of absence; consumer copy uses
+    # natural language instead of an engineering inequality symbol.
+    assert s.note and "不代表没有动物" in s.note
 
 
 def test_single_recent_observation_does_not_become_recurrence():

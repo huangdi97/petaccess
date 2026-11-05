@@ -24,9 +24,7 @@ from pathlib import Path
 
 PTY = Path(__file__).resolve().parents[2]  # repo root
 API_DIR = PTY / "services" / "api"
-CONTROL_FILE = Path(
-    r"E:\AI\宠物管理\artifacts\android_acceptance\runtime\backend_control.json"
-)
+CONTROL_FILE = Path(r"E:\AI\宠物管理\artifacts\android_acceptance\runtime\backend_control.json")
 
 _status_control = {"delay_ms": 0, "status": None, "paths": []}
 
@@ -63,9 +61,9 @@ class ControlMiddleware:
         path = scope.get("path", "")
         paths = _status_control["paths"]
         if st and paths and any(path.startswith(p) for p in paths):
-            body = json.dumps(
-                {"detail": f"injected test status {st}", "test_only": True}
-            ).encode("utf-8")
+            body = json.dumps({"detail": f"injected test status {st}", "test_only": True}).encode(
+                "utf-8"
+            )
             await send(
                 {
                     "type": "http.response.start",

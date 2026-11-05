@@ -1,0 +1,15 @@
+{
+  "gitSha": "d2eeba2fe5ffbfba31f244881f6e1705a07f84c2",
+  "page": "boundary",
+  "state": "ready",
+  "route": "/boundary",
+  "innerWidth": 412,
+  "innerHeight": 915,
+  "devicePixelRatio": 2.625,
+  "documentClientWidth": 412,
+  "documentScrollWidth": 412,
+  "bodyTextHead": "当前查询 | 普通犬 · 进入 · 公共区域 | 修改 | 共处边界 |  | 这些是你自己的出行偏好，只用于逐项比对场所公开记录，不形成场",
+  "href": "http://tauri.localhost/#/boundary",
+  "horizontalOverflow": false,
+  "screenshot": "16_android_boundary.png"
+}

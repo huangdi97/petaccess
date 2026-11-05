@@ -31,10 +31,11 @@
 5. **evidence retention / deletion** — PASS（部分）。媒体有 TTL；证据包以可追溯性要求长期
    保留（产品语义：来源变更可审计）；删除走候选驳回 + media delete 流程。
 6. **BoundaryProfile 最小化** — PASS。仅 attribute+stance，无自由文本、无位置。
-7. **小区不存住户养宠档案** — PASS。`residential_community` 仅作为 place_type；
+7. **用户数据副本 / 删除申请** — PASS（申请层）。登录用户可通过服务端接口导出自己的账号、宠物档案、共处边界、关注、贡献活动和上传媒体元数据；删除申请写入 append-only audit trail，重复提交幂等。申请提交不会冒充物理删除完成；已发布贡献/证据的最终删除或去标识化仍需保留义务审核。
+8. **小区不存住户养宠档案** — PASS。`residential_community` 仅作为 place_type；
    无住户/住户宠物模型（全库 39 表核查无 resident 类实体）；松风社区 demo 只含公共区域规则。
 
 ## 结论
 
-隐私基线 **PASS**（7 项中 6 项有代码/测试实证；redaction 能力如实登记为缺口并给出
+隐私基线 **PASS**（8 项中 7 项有代码/测试实证；redaction 能力如实登记为缺口并给出
 缓解与 PART B 执行约束）。小区住户数据、连续轨迹、遇宠率三项产品红线持续为零。

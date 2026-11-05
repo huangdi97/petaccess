@@ -27,12 +27,32 @@ body {
   background: var(--bg);
   color: var(--text);
   font-size: var(--pa-font-size-base);
+  line-height: var(--pa-line-height-base);
   font-family: var(--pa-font-family);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 #app {
   min-height: 100vh;
+  min-height: 100dvh;
   background: var(--bg);
   position: relative;
+}
+
+/* Android WebView / mobile browser IME contract.
+ * visualViewport.ts only marks IME visible when a text-entry control owns
+ * focus and the visual viewport is materially occluded. Hide persistent
+ * bottom navigation while typing so it never floats above the keyboard or
+ * steals vertical space from the focused form. */
+html[data-ime="visible"] .mobile-tabbar {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(100%);
+}
+
+html[data-ime="visible"] .consumer-app-shell__main {
+  padding-bottom: 0;
 }
 a {
   color: inherit;
@@ -40,6 +60,9 @@ a {
 }
 h1 {
   font-size: var(--pa-font-size-2xl);
+  font-weight: var(--pa-font-weight-650);
+  line-height: var(--pa-line-height-32);
+  letter-spacing: -0.01em;
   margin: 0;
 }
 h2 {
@@ -120,6 +143,10 @@ button {
   cursor: pointer;
   color: var(--text);
   font-family: inherit;
+  transition:
+    border-color var(--pa-motion-fast) var(--pa-motion-ease),
+    background-color var(--pa-motion-fast) var(--pa-motion-ease),
+    color var(--pa-motion-fast) var(--pa-motion-ease);
 }
 button.primary {
   background: var(--accent);
@@ -292,17 +319,19 @@ label {
   display: inline-flex;
   align-items: center;
   gap: var(--pa-space-1);
-  border-radius: var(--pa-radius-sm);
+  border-radius: var(--pa-radius-pill);
   padding: 2px var(--pa-space-2);
-  font-size: var(--pa-font-size-md);
+  font-size: var(--pa-font-size-sm);
   font-weight: var(--pa-font-weight-medium);
-  line-height: var(--pa-line-height-tight);
-  border: var(--pa-border-width) solid currentColor;
+  line-height: var(--pa-line-height-20);
+  border: var(--pa-border-width) solid transparent;
   white-space: nowrap;
 }
 .status-badge .status-badge__icon {
+  font-size: var(--pa-font-size-xs);
   font-weight: var(--pa-font-weight-bold);
   line-height: 1;
+  opacity: 0.9;
 }
 .status-badge--block {
   display: flex;
@@ -426,14 +455,16 @@ a.pill.active {
 }
 
 .state-message {
-  background: var(--panel);
-  border: var(--pa-border-width) solid var(--line);
-  border-radius: var(--pa-radius-lg);
-  padding: var(--pa-space-5) var(--pa-space-4);
-  text-align: center;
+  background: var(--pa-color-surface-muted);
+  border: none;
+  border-left: var(--pa-border-width-strong) solid var(--pa-color-border-strong);
+  border-radius: 0;
+  padding: var(--pa-space-4) var(--pa-space-5);
+  text-align: left;
+  max-width: 680px;
 }
 .state-message__icon {
-  font-size: var(--pa-font-size-2xl);
+  font-size: var(--pa-font-size-xl);
   line-height: 1;
   color: var(--muted);
 }
@@ -449,6 +480,9 @@ a.pill.active {
   line-height: var(--pa-line-height-base);
 }
 .state-message__action {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pa-space-2);
   margin-top: var(--pa-space-3);
 }
 

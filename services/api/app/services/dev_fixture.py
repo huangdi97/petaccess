@@ -27,6 +27,7 @@ The dataset is deliberately small and clearly fictional (names carry
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from math import asin, cos, radians, sin, sqrt
 
 from app.core.config import Settings, get_settings
 from app.db.safety import DatabaseRole, classify_database_name, database_name_from_url
@@ -40,6 +41,8 @@ _FIXTURE_PLACES: tuple[dict[str, object], ...] = (
         "canonical_name": "滨江公园 · 演示",
         "place_type": "park",
         "canonical_address": "上海市 · 滨江大道 100 号",
+        "latitude": 31.2338,
+        "longitude": 121.4936,
         "rule_count": 3,
         "last_verified_at": "2026-09-01T08:00:00Z",
     },
@@ -48,6 +51,8 @@ _FIXTURE_PLACES: tuple[dict[str, object], ...] = (
         "canonical_name": "栖霞咖啡 · 演示分店",
         "place_type": "cafe",
         "canonical_address": "上海市 · 栖霞路 45 号",
+        "latitude": 31.2392,
+        "longitude": 121.4864,
         "rule_count": 1,
         "last_verified_at": "2026-09-05T10:30:00Z",
     },
@@ -56,6 +61,8 @@ _FIXTURE_PLACES: tuple[dict[str, object], ...] = (
         "canonical_name": "云栖中心 · 演示商场",
         "place_type": "mall",
         "canonical_address": "上海市 · 云栖路 88 号",
+        "latitude": 31.2259,
+        "longitude": 121.4768,
         "rule_count": 2,
         "last_verified_at": "2026-09-10T12:00:00Z",
     },
@@ -92,6 +99,8 @@ def fixture_place_summaries(q: str | None = None) -> list[PlaceSummary]:
                 canonical_name=name,
                 place_type=str(row["place_type"]),
                 canonical_address=str(row["canonical_address"]) or None,
+                latitude=float(str(row["latitude"])),
+                longitude=float(str(row["longitude"])),
                 parent_place_name=None,
                 matched_alias=None,
                 alias_names=[],
@@ -102,6 +111,30 @@ def fixture_place_summaries(q: str | None = None) -> list[PlaceSummary]:
             )
         )
     return out
+
+
+def fixture_nearby_summaries(lat: float, lng: float, radius_m: int) -> list[PlaceSummary]:
+    """Return only demo places genuinely within the requested map radius.
+
+    A one-shot device location away from Shanghai must not produce Shanghai
+    fixtures as its 'nearby' results. Distance is based on the fixed WGS84
+    demo points; it is never generated from a place ID.
+    """
+    earth_radius_m = 6_371_008.8
+    nearby: list[PlaceSummary] = []
+    for place in fixture_place_summaries():
+        if place.latitude is None or place.longitude is None:
+            continue
+        lat_delta = radians(place.latitude - lat)
+        lng_delta = radians(place.longitude - lng)
+        a = sin(lat_delta / 2) ** 2 + (
+            cos(radians(lat)) * cos(radians(place.latitude)) * sin(lng_delta / 2) ** 2
+        )
+        distance_m = 2 * earth_radius_m * asin(min(1.0, sqrt(a)))
+        if distance_m <= radius_m:
+            place.distance_m = round(distance_m, 1)
+            nearby.append(place)
+    return sorted(nearby, key=lambda place: place.distance_m or 0)
 
 
 def is_fixture_place_id(place_id: str) -> bool:
@@ -131,6 +164,7 @@ def fixture_place_out(place_id: str) -> PlaceOut | None:
 __all__ = [
     "dev_fixture_active",
     "fixture_place_summaries",
+    "fixture_nearby_summaries",
     "is_fixture_place_id",
     "fixture_place_out",
 ]

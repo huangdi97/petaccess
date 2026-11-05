@@ -49,7 +49,7 @@ export const CONDITION_LABELS: Record<string, string> = {
  * already decided by the server and arrives inside the answer.
  */
 export function conditionLabel(type: string): string {
-  return CONDITION_LABELS[type] ?? type;
+  return CONDITION_LABELS[type] ?? "其他条件";
 }
 
 /** Latest verification + source summary for the place header. */

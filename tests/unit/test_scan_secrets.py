@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from scan_secrets import is_dev_line, scan_text
+from scan_secrets import is_dev_line, is_known_history_template, scan_text
 
 
 def test_is_dev_line_marks_demo_values() -> None:
@@ -37,6 +37,26 @@ def test_scan_text_skips_dev_generic_secret() -> None:
     assert hits == []
 
 
+def test_scan_text_skips_public_preview_ci_fixture_credentials() -> None:
+    hits = scan_text(
+        "\n".join(
+            [
+                "DATABASE_URL=postgresql+psycopg://petaccess:ci_preview_postgres_0123456789abcdef@db:5432/petaccess_preview_ci",
+                "S3_SECRET_KEY=ci_preview_storage_0123456789abcdef",
+                "JWT_SECRET=ci_preview_jwt_0123456789abcdef0123456789abcdef",
+            ]
+        )
+    )
+    assert hits == []
+
+
+def test_public_preview_ci_marker_never_hides_high_signal_secret() -> None:
+    hits = scan_text(
+        "AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE JWT_SECRET=ci_preview_jwt_0123456789abcdef"
+    )
+    assert any(name == "AWS access key" for name, _ in hits)
+
+
 def test_scan_text_finds_real_generic_secret() -> None:
     hits = scan_text('password = "s3cr3t-password-1234567890"')
     assert any(name == "generic secret assignment" for name, _ in hits)
@@ -47,3 +67,47 @@ def test_scan_text_finds_db_url_credentials() -> None:
         'url = "postgresql://petaccess:REALPASSWORD-1234567890@127.0.0.1:5432/petaccess"'
     )
     assert any(name == "DB URL with credentials" for name, _ in hits)
+
+
+def test_history_exemption_is_narrow_to_removed_dynamic_preview_db_template() -> None:
+    template = (
+        'DATABASE_URL="postgresql+psycopg://$POSTGRES_USER:$POSTGRES_PASSWORD@db:5432/$POSTGRES_DB"'
+    )
+    assert is_known_history_template(
+        ".github/workflows/public-preview-deploy.yml",
+        "DB URL with credentials",
+        template,
+    )
+    assert not is_known_history_template(
+        ".github/workflows/public-preview-deploy.yml",
+        "DB URL with credentials",
+        "DATABASE_URL=postgresql://petaccess:REALPASSWORD-1234567890@db:5432/petaccess",
+    )
+    assert not is_known_history_template(
+        "other.yml",
+        "DB URL with credentials",
+        template,
+    )
+
+
+def test_history_exemption_covers_only_retired_safe_preview_fixtures() -> None:
+    assert is_known_history_template(
+        "scripts/render_preview_database_url.py",
+        "DB URL with credentials",
+        "embed a credential-bearing postgresql://user:password@host template.",
+    )
+    assert is_known_history_template(
+        "tests/unit/test_preview_database_url.py",
+        "DB URL with credentials",
+        '"postgresql+psycopg://pet%20access:p%40ss%3A%2F%3F%23%5B%5D@db:5432/preview%20db"',
+    )
+    assert not is_known_history_template(
+        "scripts/render_preview_database_url.py",
+        "DB URL with credentials",
+        "postgresql://admin:REALPASSWORD-1234567890@prod-db:5432/petaccess",
+    )
+    assert not is_known_history_template(
+        "tests/unit/test_preview_database_url.py",
+        "DB URL with credentials",
+        '"postgresql+psycopg://pet%20access:DIFFERENT@db:5432/preview%20db"',
+    )

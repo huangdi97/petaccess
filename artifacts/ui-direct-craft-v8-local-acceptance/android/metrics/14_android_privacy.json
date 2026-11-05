@@ -1,0 +1,15 @@
+{
+  "gitSha": "d2eeba2fe5ffbfba31f244881f6e1705a07f84c2",
+  "page": "privacy",
+  "state": "ready",
+  "route": "/privacy",
+  "innerWidth": 412,
+  "innerHeight": 915,
+  "devicePixelRatio": 2.625,
+  "documentClientWidth": 412,
+  "documentScrollWidth": 412,
+  "bodyTextHead": "当前查询 | 普通犬 · 进入 · 公共区域 | 修改 | 隐私与数据 |  | 只收集完成查询、核验和账号功能所需要的数据；位置不会被默认",
+  "href": "http://tauri.localhost/#/privacy",
+  "horizontalOverflow": false,
+  "screenshot": "14_android_privacy.png"
+}

@@ -1,0 +1,9 @@
+{
+  "productName": "PetAccess Preview",
+  "identifier": "com.petaccess.map.preview",
+  "bundle": {
+    "android": {
+      "debugApplicationIdSuffix": null
+    }
+  }
+}

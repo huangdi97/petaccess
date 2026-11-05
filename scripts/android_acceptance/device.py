@@ -105,9 +105,7 @@ def reset_wm(serial: str) -> None:
     time.sleep(3)
 
 
-def write_device_json(
-    facts: DeviceFacts, path: Path, extra: dict | None = None
-) -> Path:
+def write_device_json(facts: DeviceFacts, path: Path, extra: dict | None = None) -> Path:
     payload = asdict(facts)
     if extra:
         payload.update(extra)

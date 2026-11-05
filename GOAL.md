@@ -5,6 +5,19 @@
 > 必须先读 `AGENTS.md`、`docs/MASTER_DESIGN_v0.3_DEV.md`、`DECISIONS.md`，再执行本文件。
 > 不允许只做脚手架、只写 TODO、只生成页面截图或只输出计划后停止。
 
+> **v0.10-R1 Runtime Convergence Override（当前有效）**
+>
+> 本文件保留了早期 v0.3 的 uni-app x 目标作为历史设计背景；当下执行时，凡与以下边界冲突的旧段落一律视为 **SUPERSEDED**，不得继续作为实现指令：
+>
+> - 当前唯一 Consumer：`apps/client-h5`（Vue 3 + Vite）；
+> - 当前 Windows / Android 壳层：`apps/client-h5/src-tauri`（Tauri 2）；
+> - 当前 Android Preview / Release 均从同一 Consumer 构建，不复制第二套业务/UI；
+> - `apps/client`（uni-app x）仅为 `LEGACY_REFERENCE_ONLY`，禁止用于当前 Android 构建、截图、人审、Release 或新功能开发；
+> - 微信 / iOS / HarmonyOS 如未来重新激活，必须先重新做渠道架构决策，不能直接恢复发布旧 `apps/client`。
+>
+> 当前运行时事实以 `PROJECT_STATE.md`、`BLOCKERS.md`、`README.md`、
+> `docs/engineering/ANDROID_TAURI_FORENSIC_RUNBOOK.md` 和 v0.10-R1 母版为准。
+
 ---
 
 # 0. 总目标

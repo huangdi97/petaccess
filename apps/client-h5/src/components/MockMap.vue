@@ -18,25 +18,51 @@
  * amber ring, ALLOWED = subtle positive fill, RESTRICTED = subtle restriction
  * fill, SELECTED = scale + halo + elevation. No big coloured pins, no emoji.
  */
-import { computed } from "vue";
-import type { MapCamera, MapCluster, MapMarker } from "@petaccess/client-core";
-import { STATUS_GLYPHS } from "@petaccess/client-core";
+import { computed, ref } from "vue";
+import {
+  MAP_MAX_ZOOM,
+  MAP_MIN_ZOOM,
+  type MapCamera,
+  type MapCluster,
+  type MapMarker,
+} from "@petaccess/client-core";
+import { mapLensGlyph } from "../consumer/mapLens";
 
 const props = withDefaults(
   defineProps<{
     camera: MapCamera;
     clusters: MapCluster[];
     selectedId?: string | null;
+    lens?: string;
+    lensLabels?: Record<string, string>;
   }>(),
-  { selectedId: null },
+  { selectedId: null, lens: "rule", lensLabels: () => ({}) },
 );
 
-const emit = defineEmits<{ select: [cluster: MapCluster] }>();
+const emit = defineEmits<{
+  select: [cluster: MapCluster];
+  zoom: [delta: number];
+  pan: [lat: number, lng: number];
+}>();
 
-/** Degrees of longitude visible at this zoom (deterministic, provider-free). */
-const spanDeg = computed(() => 0.02 / Math.max(1, props.camera.zoom / 14));
+/** Approximate longitude span of a ~desktop map viewport.
+ * Web maps scale by 2× per zoom level; keeping the fallback on the same
+ * exponential model prevents nearby results from collapsing onto the edge and
+ * makes +/- a real spatial zoom rather than a decorative control. */
+const spanDeg = computed(() => 0.08 * Math.pow(2, 14 - props.camera.zoom));
 
-/** Projection, clamped so the whole pin box stays inside the surface. */
+/** Only on-viewport clusters receive marker DOM; no out-of-range point can
+ * be clamped into a false edge location. The list still contains all nearby
+ * locations even when they are beyond this zoom's current view. */
+const visibleClusters = computed(() =>
+  props.clusters.filter(
+    (cluster) =>
+      Math.abs(cluster.lng - props.camera.lng) <= spanDeg.value / 2 &&
+      Math.abs(cluster.lat - props.camera.lat) <= (spanDeg.value * 0.62) / 2,
+  ),
+);
+
+/** Projection, clamped only for an actually visible edge point. */
 const PIN_HEIGHT_PX = 44;
 const PIN_HALF_WIDTH_PX = 32;
 /** Keeps pins off the bottom edge, where the surface border sits. */
@@ -51,54 +77,157 @@ function project(lat: number, lng: number): { left: string; top: string } {
   };
 }
 
-const glyph = (status: MapMarker["status"]) => STATUS_GLYPHS[status] ?? STATUS_GLYPHS.UNKNOWN;
+const dragStart = ref<{ x: number; y: number; pointerId: number } | null>(null);
+const dragging = ref(false);
+
+function startPan(event: PointerEvent) {
+  if (event.button !== 0) return;
+  if ((event.target as HTMLElement).closest(".map-pin, .map-zoom, button, input")) return;
+  dragStart.value = { x: event.clientX, y: event.clientY, pointerId: event.pointerId };
+  (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+}
+
+function updatePan(event: PointerEvent) {
+  if (dragStart.value?.pointerId !== event.pointerId) return;
+  dragging.value =
+    Math.hypot(event.clientX - dragStart.value.x, event.clientY - dragStart.value.y) > 8;
+}
+
+function endPan(event: PointerEvent) {
+  const start = dragStart.value;
+  if (!start || start.pointerId !== event.pointerId) return;
+  const el = event.currentTarget as HTMLElement;
+  if (el.hasPointerCapture(event.pointerId)) el.releasePointerCapture(event.pointerId);
+  dragStart.value = null;
+  dragging.value = false;
+  const dx = event.clientX - start.x;
+  const dy = event.clientY - start.y;
+  if (Math.hypot(dx, dy) <= 8) return;
+  const bounds = el.getBoundingClientRect();
+  if (!bounds.width || !bounds.height) return;
+
+  const lat = Math.max(
+    -90,
+    Math.min(90, props.camera.lat + (dy / bounds.height) * spanDeg.value * 0.62),
+  );
+  const lng = props.camera.lng - (dx / bounds.width) * spanDeg.value;
+  emit("pan", lat, ((((lng + 180) % 360) + 360) % 360) - 180);
+}
+
+function cancelPan() {
+  dragStart.value = null;
+  dragging.value = false;
+}
+
+const glyph = (status: MapMarker["status"]) => mapLensGlyph(props.lens, status);
+
+function markerLabel(cluster: MapCluster): string {
+  if (cluster.count > 1) return `${cluster.count} 个场所`;
+  const id = cluster.memberIds[0];
+  return id ? (props.lensLabels[id] ?? "信息不足") : "信息不足";
+}
+
+function isSelectedCluster(cluster: MapCluster): boolean {
+  return props.selectedId ? cluster.memberIds.includes(props.selectedId) : false;
+}
 
 /* ---- Abstract urban spatial canvas (v0.2.7 §8) -------------------------
  * Everything is pure decoration; no data semantics live here. The palette
  * stays very light cool neutral and low-contrast so the map never competes
  * with rule/reality/selected place. */
 const DISTRICT =
-  "M 12 12 H 248 A 10 10 0 0 1 258 22 V 238 A 10 10 0 0 1 248 248 H 12 A 10 10 0 0 1 2 238 V 22 A 10 10 0 0 1 12 2 Z";
-const RIVER = "M 0 40 Q 130 60 260 40 L 260 84 Q 130 104 0 84 Z";
-/** Soft open-space patch (park/green), very low opacity. */
-const OPEN_SPACE =
-  "M 100 96 Q 114 88 130 96 Q 146 88 160 98 L 160 130 Q 146 140 130 132 Q 114 140 100 128 Z";
+  "M 10 10 Q 58 2 108 12 T 208 8 Q 248 10 254 42 L 252 214 Q 244 250 204 254 L 48 252 Q 12 246 8 208 Z";
+const RIVER =
+  "M -8 54 C 42 42 86 64 132 56 S 216 36 270 54 L 270 78 C 214 62 176 82 132 82 S 42 68 -8 84 Z";
+/** Soft open-space patches are illustrative only; they carry no venue facts. */
+const OPEN_SPACES = [
+  "M 154 118 C 170 102 198 104 210 122 C 222 140 212 162 190 168 C 168 174 146 158 144 138 C 142 130 146 124 154 118 Z",
+  "M 24 26 C 38 18 58 20 68 34 C 76 46 68 62 52 66 C 36 70 20 60 18 46 C 16 38 18 32 24 26 Z",
+  "M 214 132 C 226 124 244 126 250 140 C 256 152 248 166 234 170 C 220 172 208 162 208 150 C 208 142 210 136 214 132 Z",
+];
+const PLAZAS = ["100,30 134,28 138,52 104,56", "158,34 190,32 194,54 160,58"];
 const BLOCKS = [
-  "96,96 180,96 180,208 96,208",
-  "20,150 76,150 76,224 20,224",
-  "196,96 260,96 260,208 196,208",
-  "20,96 76,96 76,138 20,138",
-  "180,208 260,208 260,248 180,248",
-  "96,60 180,60 180,84 96,84",
+  "18,94 66,88 72,126 24,132",
+  "84,88 126,84 130,122 88,126",
+  "18,146 72,140 76,184 22,190",
+  "88,144 132,140 136,184 92,188",
+  "16,204 78,198 82,238 22,244",
+  "96,202 142,198 146,238 100,242",
+  "154,88 202,84 208,112 160,118",
+  "218,84 252,82 254,118 222,120",
+  "158,182 202,178 208,218 164,224",
+  "218,178 252,176 254,218 222,222",
+  "154,232 202,228 204,250 158,252",
+  "216,230 252,228 252,250 218,252",
 ];
-/** Road hierarchy: wider primary, narrower secondary. */
-const ROADS_PRIMARY = ["M 0 128 L 260 96", "M 180 0 L 196 260"];
+/** Road hierarchy: broad curved arterials plus quieter local streets. */
+const ROADS_PRIMARY = [
+  "M -10 136 C 54 126 102 132 150 118 S 220 96 270 104",
+  "M 146 -10 C 150 54 144 104 152 156 S 174 224 170 270",
+];
 const ROADS_SECONDARY = [
-  "M 0 224 L 260 208",
-  "M 76 0 L 96 260",
-  "M 20 138 L 76 138 L 76 150",
-  "M 196 84 L 196 96",
-  "M 96 96 L 96 60",
+  "M -8 196 C 54 188 104 192 150 184 S 220 160 270 166",
+  "M 72 -8 C 74 44 78 86 82 128 S 86 220 92 270",
+  "M 214 -8 C 212 44 214 86 218 128 S 222 220 228 270",
+  "M 10 76 C 70 72 122 74 166 66 S 222 52 260 58",
+  "M 12 238 C 60 232 106 234 144 228",
 ];
-/** Building mass hints: faint rectangles clustered inside blocks. */
+const ROADS_LOCAL = [
+  "M 22 118 L 68 114",
+  "M 92 112 L 126 108",
+  "M 28 174 L 70 170",
+  "M 96 172 L 132 168",
+  "M 166 104 L 200 100",
+  "M 166 206 L 202 202",
+  "M 230 102 L 250 100",
+  "M 230 206 L 250 204",
+  "M 46 88 L 50 126",
+  "M 108 84 L 112 122",
+  "M 48 142 L 52 184",
+  "M 112 140 L 116 184",
+  "M 180 84 L 184 114",
+  "M 182 180 L 186 220",
+  "M 236 82 L 238 118",
+  "M 238 178 L 240 218",
+];
+/** Building mass hints: many small footprints create city texture without
+ * claiming a surveyed street/building plan. */
 const MASS = [
-  "104,104 120,104 120,116 104,116",
-  "128,104 144,104 144,116 128,116",
-  "152,104 168,104 168,116 152,116",
-  "104,124 120,124 120,136 104,136",
-  "128,124 144,124 144,136 128,136",
-  "152,124 168,124 168,136 152,136",
-  "104,168 124,168 124,184 104,184",
-  "132,168 152,168 152,184 132,184",
-  "28,158 44,158 44,170 28,170",
-  "52,158 68,158 68,170 52,170",
-  "204,104 224,104 224,120 204,120",
-  "232,104 248,104 248,120 232,120",
+  "28,102,12,9",
+  "46,99,12,9",
+  "94,96,12,10",
+  "112,94,10,10",
+  "30,154,14,10",
+  "52,150,12,12",
+  "98,150,12,10",
+  "116,148,12,12",
+  "30,214,14,10",
+  "52,210,14,11",
+  "106,210,12,10",
+  "124,208,10,12",
+  "166,94,14,9",
+  "186,91,12,10",
+  "228,92,12,10",
+  "168,192,14,11",
+  "188,188,12,12",
+  "228,190,14,10",
+  "168,238,12,8",
+  "188,236,12,9",
+  "228,236,12,9",
 ];
 </script>
-
 <template>
-  <div class="map-surface" data-testid="map-surface" data-ui="mock-map">
+  <div
+    class="map-surface"
+    :class="[`map-surface--${lens}`, { 'map-surface--dragging': dragging }]"
+    data-testid="map-surface"
+    data-ui="mock-map"
+    aria-label="简化空间底图，可拖动调整附近查询区域"
+    @pointerdown="startPan"
+    @pointermove="updatePan"
+    @pointerup="endPan"
+    @pointercancel="cancelPan"
+  >
     <!-- 空间基底：道路层级/街区/开放空间/建筑体块/水系（SVG，纯表现，不承载数据语义） -->
     <svg
       class="map-basemap"
@@ -108,72 +237,125 @@ const MASS = [
       focusable="false"
     >
       <path class="basemap-district" :d="DISTRICT" />
-      <path class="basemap-open" :d="OPEN_SPACE" />
       <path class="basemap-river" :d="RIVER" />
+      <path v-for="p in OPEN_SPACES" :key="'open-' + p" class="basemap-open" :d="p" />
+      <polygon v-for="p in PLAZAS" :key="'plaza-' + p" class="basemap-plaza" :points="p" />
       <rect
         v-for="m in MASS"
         :key="m"
         class="basemap-mass"
         :x="m.split(',')[0]"
         :y="m.split(',')[1]"
-        :width="Number(m.split(',')[2]) - Number(m.split(',')[0])"
-        :height="Number(m.split(',')[3]) - Number(m.split(',')[1])"
+        :width="m.split(',')[2]"
+        :height="m.split(',')[3]"
       />
       <polygon v-for="b in BLOCKS" :key="b" class="basemap-block" :points="b" />
-      <path v-for="r in ROADS_PRIMARY" :key="r" class="basemap-road basemap-road--primary" :d="r" />
+      <path
+        v-for="r in ROADS_PRIMARY"
+        :key="'primary-casing-' + r"
+        class="basemap-road basemap-road--primary-casing"
+        :d="r"
+      />
+      <path
+        v-for="r in ROADS_PRIMARY"
+        :key="'primary-fill-' + r"
+        class="basemap-road basemap-road--primary"
+        :d="r"
+      />
       <path
         v-for="r in ROADS_SECONDARY"
-        :key="r"
+        :key="'secondary-casing-' + r"
+        class="basemap-road basemap-road--secondary-casing"
+        :d="r"
+      />
+      <path
+        v-for="r in ROADS_SECONDARY"
+        :key="'secondary-fill-' + r"
         class="basemap-road basemap-road--secondary"
+        :d="r"
+      />
+      <path
+        v-for="r in ROADS_LOCAL"
+        :key="'local-' + r"
+        class="basemap-road basemap-road--local"
         :d="r"
       />
     </svg>
 
+    <div class="map-spatial-aids" aria-hidden="true">
+      <span class="map-compass">N</span>
+    </div>
+
     <div class="map-zoom" data-testid="map-zoom" data-ui="map-zoom" role="group" aria-label="缩放">
-      <button type="button" aria-label="放大" disabled>＋</button>
-      <button type="button" aria-label="缩小" disabled>－</button>
+      <button
+        type="button"
+        aria-label="放大"
+        :disabled="camera.zoom >= MAP_MAX_ZOOM"
+        @click="emit('zoom', 1)"
+      >
+        ＋
+      </button>
+      <button
+        type="button"
+        aria-label="缩小"
+        :disabled="camera.zoom <= MAP_MIN_ZOOM"
+        @click="emit('zoom', -1)"
+      >
+        －
+      </button>
     </div>
 
     <div
-      v-for="c in clusters"
+      v-for="c in visibleClusters"
       :key="c.id"
       class="map-pin"
-      :class="{ 'map-pin--selected': selectedId === c.memberIds[0] }"
-      :data-selected="selectedId === c.memberIds[0] ? 'true' : undefined"
-      :data-ui="
-        c.count > 1
-          ? selectedId === c.memberIds[0]
-            ? 'map-marker-selected'
-            : 'map-marker'
-          : undefined
-      "
+      :class="{ 'map-pin--selected': isSelectedCluster(c) }"
+      :data-selected="isSelectedCluster(c) ? 'true' : undefined"
+      :data-ui="c.count > 1 ? 'map-marker' : undefined"
       :style="project(c.lat, c.lng)"
       :data-testid="c.count > 1 ? 'cluster-' + c.id : 'pin-' + c.memberIds[0]"
-      :aria-label="`${c.count} 个场所，${glyph(c.status)}`"
+      :aria-label="
+        c.count > 1
+          ? `${c.count} 个场所；准入结论需分别查看，放大可展开`
+          : `1 个场所，${markerLabel(c)}`
+      "
       role="button"
       tabindex="0"
       @click="emit('select', c)"
       @keydown.enter="emit('select', c)"
+      @keydown.space.prevent="emit('select', c)"
     >
       <template v-if="c.count > 1">
-        <div class="map-cluster" :class="'s-' + c.status">{{ c.count }}</div>
+        <!-- Aggregate counts have no single policy state. Always neutral;
+             a priority status must not be attributed to all member places. -->
+        <div
+          class="map-cluster"
+          :class="{ 'map-cluster--selected': isSelectedCluster(c) }"
+          :data-ui="isSelectedCluster(c) ? 'map-marker-selected' : 'map-marker'"
+          :data-selected="isSelectedCluster(c) ? 'true' : undefined"
+        >
+          {{ c.count }}
+        </div>
       </template>
       <template v-else>
-        <!-- v0.2.5 §26：未选中 marker 只显示小 symbol，不永久铺满状态字；
-             只有选中的（或 hover）才上 label。 -->
-        <div v-if="selectedId === c.memberIds[0]" class="lbl" :class="'s-' + c.status">
-          {{ glyph(c.status) }}
+        <!-- Status is never color-only: the compact marker carries a single
+             shape glyph; full semantic copy stays horizontal in the label,
+             results pane and selected preview. Never put words inside the dot. -->
+        <div class="lbl" :class="'s-' + c.status">
+          {{ markerLabel(c) }}
         </div>
-        <!-- v0.2.7 §10：dot 是 marker 本体（含语义形状），data-ui 供几何 gate 测量：
-             map-marker / map-marker-selected（scale + halo + elevation）。 -->
         <div
           class="dot"
-          :class="['s-' + c.status, { 'dot--selected': selectedId === c.memberIds[0] }]"
-          :data-ui="selectedId === c.memberIds[0] ? 'map-marker-selected' : 'map-marker'"
-        ></div>
+          :class="['s-' + c.status, { 'dot--selected': isSelectedCluster(c) }]"
+          :data-ui="isSelectedCluster(c) ? 'map-marker-selected' : 'map-marker'"
+        >
+          <span class="dot__glyph" aria-hidden="true">{{ glyph(c.status) }}</span>
+        </div>
       </template>
     </div>
-    <div v-if="!clusters.length" class="map-empty muted">当前视野内暂无已收录场所</div>
+    <div v-if="!visibleClusters.length" class="map-empty muted">
+      当前画面暂无点位；附近结果仍可在列表查看
+    </div>
   </div>
 </template>
 
@@ -184,6 +366,12 @@ const MASS = [
   height: 100%;
   min-height: 480px;
   overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+}
+
+.map-surface--dragging {
+  cursor: grabbing;
 }
 
 /* 空间基底：轻量抽象城市画布 —— 不是灰网格+数字（v0.2.7 §8）。 */
@@ -192,55 +380,88 @@ const MASS = [
   inset: 0;
   width: 100%;
   height: 100%;
-  /* 画布基底 = 极浅冷中性色，SVG 元素在其上分层。 */
-  background: var(--pa-color-map-grid-a);
+  /*
+   * The fallback must still read as a city-space product. Keep it quieter than
+   * a real provider, but give blocks, open space and road hierarchy enough
+   * contrast that the canvas does not collapse into a pale test grid.
+   */
+  background: color-mix(in srgb, var(--pa-color-map-grid-a) 82%, var(--pa-discovery-v10-paper));
 }
 
 .basemap-district {
-  fill: none;
+  fill: color-mix(in srgb, var(--pa-color-surface) 42%, transparent);
   stroke: var(--pa-color-border);
-  stroke-width: 2;
-  opacity: 0.55;
+  stroke-width: 1.5;
+  opacity: 0.9;
 }
 
 .basemap-open {
   fill: var(--pa-color-status-allowed-bg);
-  opacity: 0.45;
+  opacity: 0.62;
+}
+
+.basemap-plaza {
+  fill: var(--pa-discovery-v10-secondary-bg);
+  stroke: var(--pa-color-border-subtle);
+  stroke-width: 0.8;
+  opacity: 0.92;
 }
 
 .basemap-river {
   fill: var(--pa-color-reality-observed-bg);
-  opacity: 0.5;
+  opacity: 0.66;
 }
 
 .basemap-block {
   fill: var(--pa-color-surface);
-  opacity: 0.55;
-  stroke: var(--pa-color-border-subtle);
-  stroke-width: 1;
+  opacity: 0.9;
+  stroke: var(--pa-color-border);
+  stroke-width: 0.75;
 }
 
-/* 建筑体块提示：极弱，仅提供密度感。 */
+/* Building mass hints add urban density without claiming surveyed geometry. */
 .basemap-mass {
   fill: var(--pa-color-text-muted);
-  opacity: 0.08;
+  opacity: 0.13;
 }
 
 /* 道路层级：primary 更宽更明确，secondary 更细更弱。 */
 .basemap-road {
   fill: none;
-  stroke: var(--pa-color-map-grid-b);
-}
-.basemap-road--primary {
-  stroke-width: 5;
-  opacity: 0.9;
-}
-.basemap-road--secondary {
-  stroke-width: 2;
-  opacity: 0.65;
+  vector-effect: non-scaling-stroke;
 }
 
-/* 缩放控件：空间感 affordance（mock 阶段为展示性控件）。 */
+.basemap-road--primary-casing {
+  stroke: var(--pa-color-border-strong);
+  stroke-width: 8;
+  opacity: 0.48;
+}
+
+.basemap-road--primary {
+  stroke: var(--pa-color-surface);
+  stroke-width: 5;
+  opacity: 1;
+}
+
+.basemap-road--secondary-casing {
+  stroke: var(--pa-color-border);
+  stroke-width: 4;
+  opacity: 0.58;
+}
+
+.basemap-road--secondary {
+  stroke: var(--pa-color-surface);
+  stroke-width: 2;
+  opacity: 0.96;
+}
+
+.basemap-road--local {
+  stroke: var(--pa-color-border-subtle);
+  stroke-width: 1;
+  opacity: 0.9;
+}
+
+/* 缩放控件：mock fallback 也保持真实交互，不展示道具按钮。 */
 .map-zoom {
   position: absolute;
   right: var(--pa-space-3);
@@ -259,7 +480,38 @@ const MASS = [
   background: var(--pa-color-surface);
   color: var(--pa-color-text-primary);
   font-size: var(--pa-font-size-lg);
+  cursor: pointer;
+}
+
+.map-zoom button:disabled {
   cursor: default;
+  opacity: 0.45;
+}
+
+.map-spatial-aids {
+  position: absolute;
+  right: var(--pa-space-3);
+  bottom: var(--pa-space-3);
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  gap: var(--pa-space-3);
+  color: var(--pa-color-text-secondary);
+  pointer-events: none;
+}
+
+.map-compass {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: var(--pa-border-width) solid var(--pa-color-border);
+  border-radius: var(--pa-radius-pill);
+  background: color-mix(in srgb, var(--pa-color-surface) 92%, transparent);
+  font-family: var(--pa-font-family-numeric);
+  font-size: var(--pa-font-size-xs);
+  font-weight: var(--pa-font-weight-650);
 }
 
 /* ---- pins ---- */
@@ -275,6 +527,20 @@ const MASS = [
   min-width: 32px;
   cursor: pointer;
   z-index: 1;
+  /* The visible label must not cover another nearby dot's hit target.
+     Only the actual marker glyph receives the pointer; keyboard users
+     can still focus the parent as a single labelled control. */
+  pointer-events: none;
+}
+
+.map-pin .dot,
+.map-pin .map-cluster {
+  pointer-events: auto;
+}
+
+.map-pin:focus-visible,
+.map-pin:hover {
+  z-index: 4;
 }
 
 .map-pin--selected {
@@ -282,6 +548,7 @@ const MASS = [
 }
 
 .map-cluster {
+  background: var(--pa-color-text-secondary);
   min-width: 24px;
   height: 24px;
   border-radius: var(--pa-radius-pill);
@@ -294,14 +561,39 @@ const MASS = [
   padding: 0 var(--pa-space-1);
 }
 
+.map-cluster--selected {
+  min-width: 30px;
+  height: 30px;
+  box-shadow:
+    0 0 0 4px var(--pa-color-accent-weak),
+    var(--pa-elevation-2);
+}
+
 .lbl {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-size: var(--pa-font-size-sm);
   font-weight: var(--pa-font-weight-medium);
   white-space: nowrap;
   background: var(--pa-color-map-label-bg);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
   border-radius: var(--pa-radius-sm);
-  padding: 0 var(--pa-space-1);
+  padding: 1px var(--pa-space-1);
   color: var(--pa-color-text-primary);
+  opacity: 0;
+  transform: translateY(2px);
+  pointer-events: none;
+  transition:
+    opacity var(--pa-motion-fast) var(--pa-motion-ease),
+    transform var(--pa-motion-fast) var(--pa-motion-ease);
+}
+
+.map-pin:hover .lbl,
+.map-pin:focus-visible .lbl,
+.map-pin--selected .lbl {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 /* v0.2.7 §10 marker 系统：
@@ -312,22 +604,61 @@ const MASS = [
  * - SELECTED     = scale 1.33x + halo + elevation（dot--selected）
  */
 .dot {
-  width: 12px;
-  height: 12px;
+  width: 18px;
+  height: 18px;
   border-radius: var(--pa-radius-pill);
   border: 2px solid var(--pa-color-map-pin-border);
-  transition: box-shadow var(--pa-motion-fast) var(--pa-motion-ease);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--pa-color-text-inverse);
+  font-family: var(--pa-font-family-numeric);
+  font-size: 10px;
+  font-weight: var(--pa-font-weight-bold);
+  line-height: 1;
+  transition:
+    box-shadow var(--pa-motion-fast) var(--pa-motion-ease),
+    transform var(--pa-motion-fast) var(--pa-motion-ease);
+}
+
+.dot__glyph {
+  transform: translateY(-0.5px);
 }
 
 .dot.s-CONDITIONAL {
-  background: transparent;
+  background: var(--pa-color-surface);
   border-width: 3px;
   border-color: var(--pa-color-status-conditional);
+  color: var(--pa-color-status-conditional);
+}
+
+.dot.s-UNKNOWN {
+  background: var(--pa-color-surface);
+  color: var(--pa-color-status-unknown);
+}
+
+.dot.s-RESTRICTED {
+  border-radius: 5px;
+}
+
+.dot.s-CONFLICT {
+  border-radius: 4px;
+  transform: rotate(45deg);
+}
+
+.dot.s-CONFLICT .dot__glyph {
+  transform: rotate(-45deg) translateY(-0.5px);
+}
+
+.dot.s-STALE {
+  background: var(--pa-color-surface);
+  border-style: dashed;
+  color: var(--pa-color-status-stale);
 }
 
 .dot--selected {
-  width: 16px;
-  height: 16px;
+  width: 22px;
+  height: 22px;
   box-shadow:
     0 0 0 4px var(--pa-color-accent-weak),
     var(--pa-elevation-2);
@@ -351,6 +682,54 @@ const MASS = [
   background: var(--pa-color-status-allowed);
 }
 
+.s-STALE {
+  background: var(--pa-color-status-stale);
+}
+
+/* Non-rule lenses reuse marker state keys only as an internal carrier for
+ * clustering/selection. Their visible palette must express the active fact
+ * dimension, never access morality ("green = allowed"). */
+.map-surface--reality .s-ALLOWED,
+.map-surface--reality .s-MATCH {
+  background: var(--pa-color-reality-observed);
+}
+
+.map-surface--reality .s-STALE {
+  background: var(--pa-color-reality-historical);
+}
+
+.map-surface--reality .s-UNKNOWN {
+  background: var(--pa-color-reality-insufficient);
+}
+
+.map-surface--reality .s-CONFLICT {
+  background: var(--pa-color-reality-disputed);
+}
+
+.map-surface--facility .s-ALLOWED,
+.map-surface--facility .s-MATCH {
+  background: var(--pa-color-facility-confirmed);
+}
+
+.map-surface--facility .s-UNKNOWN,
+.map-surface--facility .s-STALE {
+  background: var(--pa-color-facility-unverified);
+}
+
+.map-surface--facility .dot.s-CONDITIONAL {
+  background: transparent;
+  border-color: var(--pa-color-facility-unverified);
+}
+
+.map-surface--facility .map-cluster.s-CONDITIONAL {
+  background: var(--pa-color-facility-unverified);
+}
+
+.map-surface--divergence .s-ALLOWED,
+.map-surface--divergence .s-MATCH {
+  background: var(--pa-color-reality-observed);
+}
+
 /* Cluster（数字聚合）保留实心语义填充；dot 的 CONDITIONAL 是环（见上）。 */
 .map-cluster.s-CONDITIONAL {
   background: var(--pa-color-status-conditional);
@@ -366,6 +745,23 @@ const MASS = [
 
 .s-CONFLICT {
   background: var(--pa-color-status-conflict);
+}
+
+/* Text labels stay neutral. Semantic tone belongs to the marker shape; this
+ * avoids turning hover labels into a traffic-light UI. */
+.lbl.s-ALLOWED,
+.lbl.s-MATCH,
+.lbl.s-CONDITIONAL,
+.lbl.s-RESTRICTED,
+.lbl.s-UNKNOWN,
+.lbl.s-CONFLICT,
+.lbl.s-STALE,
+.map-surface--reality .lbl,
+.map-surface--facility .lbl,
+.map-surface--divergence .lbl {
+  background: var(--pa-color-map-label-bg);
+  color: var(--pa-color-text-primary);
+  border-color: var(--pa-color-border-subtle);
 }
 
 .map-empty {

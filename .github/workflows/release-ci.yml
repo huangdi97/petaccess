@@ -35,6 +35,20 @@ jobs:
           echo "tag=$TAG pkg=$PKG"
           [ "$TAG" = "v${PKG}" ] || { echo "tag/version mismatch"; exit 1; }
 
+  runtime-api:
+    name: Verify packaged runtime API
+    runs-on: ubuntu-latest
+    needs: verify
+    env:
+      PETACCESS_PUBLIC_API_BASE: ${{ vars.PETACCESS_PUBLIC_API_BASE }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Verify live PetAccess API identity
+        run: node scripts/release/verify_public_api.cjs
+
   quality:
     name: Engineering gate + backend
     runs-on: ubuntu-latest
@@ -80,16 +94,18 @@ jobs:
       - name: Start MinIO (S3 dependency for media tests)
         shell: bash
         run: |
+          # Keep release verification on the same pinned S3-compatible test
+          # image as PR CI. Upstream Quay anonymous pulls have returned 401;
+          # a release gate must not depend on that mutable external failure.
           docker run -d --name minio -p 9000:9000 -p 9001:9001 \
             -e MINIO_ROOT_USER=minio \
             -e MINIO_ROOT_PASSWORD=minio_dev_only \
-            quay.io/minio/minio:latest server /data
+            docker.io/pgsty/silo:RELEASE.2026-09-16T00-00-00Z server /data
           for i in $(seq 1 30); do
             curl -sf http://localhost:9000/minio/health/live >/dev/null && break
             sleep 2
           done
           curl -sf http://localhost:9000/minio/health/live || { echo "minio did not become healthy"; exit 1; }
-      - run: uv run mypy services/api/app
       - run: uv run mypy services/api/app
       - run: uv run pytest -q
 
@@ -117,7 +133,10 @@ jobs:
   windows:
     name: Windows NSIS installer
     runs-on: windows-latest
-    needs: frontend
+    needs: [frontend, runtime-api, quality]
+    env:
+      PETACCESS_PUBLIC_API_BASE: ${{ vars.PETACCESS_PUBLIC_API_BASE }}
+      VITE_TAURI_API_BASE: ${{ vars.PETACCESS_PUBLIC_API_BASE }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -125,6 +144,11 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: "22", cache: pnpm }
       - run: pnpm install --frozen-lockfile
+      - name: Generate strict signed-release runtime config
+        shell: bash
+        run: |
+          node scripts/release/generate_tauri_release_config.cjs \
+            apps/client-h5/src-tauri/tauri.release.generated.json
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
       - name: Cache cargo
@@ -135,8 +159,15 @@ jobs:
             apps/client-h5/src-tauri/target
           key: cargo-windows-${{ hashFiles('apps/client-h5/src-tauri/Cargo.lock') }}
       - run: pnpm --filter @petaccess/client-h5 build
+      - name: Verify Windows release API endpoint is baked into Consumer
+        shell: bash
+        run: |
+          grep -R --binary-files=text --fixed-strings "$PETACCESS_PUBLIC_API_BASE" \
+            apps/client-h5/dist >/dev/null
       - name: Build Windows bundle
-        run: pnpm --filter @petaccess/client-h5 exec tauri build
+        run: >-
+          pnpm --filter @petaccess/client-h5 exec tauri build
+          --config src-tauri/tauri.release.generated.json
       - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
@@ -146,8 +177,11 @@ jobs:
   android:
     name: Android signed APK
     runs-on: ubuntu-latest
-    needs: frontend
+    needs: [frontend, runtime-api]
     env:
+      PETACCESS_PUBLIC_API_BASE: ${{ vars.PETACCESS_PUBLIC_API_BASE }}
+      VITE_TAURI_API_BASE: ${{ vars.PETACCESS_PUBLIC_API_BASE }}
+      VITE_TAURI_ANDROID_API_BASE: ${{ vars.PETACCESS_PUBLIC_API_BASE }}
       ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
       ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
       ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
@@ -159,6 +193,11 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: "22", cache: pnpm }
       - run: pnpm install --frozen-lockfile
+      - name: Generate strict signed-release runtime config
+        shell: bash
+        run: |
+          node scripts/release/generate_tauri_release_config.cjs \
+            apps/client-h5/src-tauri/tauri.release.generated.json
       - name: Install Rust + Android targets
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -182,8 +221,8 @@ jobs:
           echo "ANDROID_SDK_ROOT=$SDK" >> "$GITHUB_ENV"
           echo "sdkmanager=$SDKMGMT" >> "$GITHUB_ENV"
           yes | "$SDKMGMT" --licenses >/dev/null 2>&1 || true
-          "$SDKMGMT" --install "platform-tools" "platforms;android-35" \
-            "build-tools;35.0.0" "ndk;27.1.12297006"
+          "$SDKMGMT" --install "platform-tools" "platforms;android-36" \
+            "build-tools;36.0.0" "ndk;27.1.12297006"
           echo "NDK_HOME=$SDK/ndk/27.1.12297006" >> "$GITHUB_ENV"
       - name: Set up Java 17 (Gradle/AGP)
         uses: actions/setup-java@v4
@@ -198,19 +237,68 @@ jobs:
             apps/client-h5/src-tauri/target
           key: cargo-android-${{ hashFiles('apps/client-h5/src-tauri/Cargo.lock') }}
       - run: pnpm --filter @petaccess/client-h5 build
-      - name: Tauri android init (generated project not committed)
-        run: pnpm --filter @petaccess/client-h5 exec tauri android init
-      - name: Build Android release APK
-        run: pnpm --filter @petaccess/client-h5 exec tauri android build --target aarch64 --target armv7 --target i686 --target x86_64
-      - name: Sign APK with release keystore (Secrets)
+      - name: Verify Android release API endpoint is baked into Consumer
         shell: bash
         run: |
-          APK=$(find apps/client-h5/src-tauri/gen/android -name "*-unsigned.apk" | head -1)
-          echo "unsigned: $APK"
+          grep -R --binary-files=text --fixed-strings "$PETACCESS_PUBLIC_API_BASE" \
+            apps/client-h5/dist >/dev/null
+      - name: Tauri android init (generated project not committed)
+        run: >-
+          pnpm --filter @petaccess/client-h5 exec tauri android init
+          --config src-tauri/tauri.release.generated.json
+      - name: Enforce Android keyboard runtime contract
+        shell: bash
+        run: |
+          python3 scripts/android_acceptance/ensure_adjust_resize.py
+          python3 scripts/android_acceptance/ensure_adjust_resize.py --check
+          python3 scripts/android_acceptance/ensure_native_ime_bridge.py
+          python3 scripts/android_acceptance/ensure_native_ime_bridge.py --check
+      - name: Build Android universal release APK
+        run: >-
+          pnpm --filter @petaccess/client-h5 exec tauri android build
+          --config src-tauri/tauri.release.generated.json
+          --apk
+          --target aarch64
+          --target armv7
+          --target i686
+          --target x86_64
+      - name: Verify and sign universal APK with release keystore
+        shell: bash
+        run: |
+          mapfile -t APKS < <(
+            find apps/client-h5/src-tauri/gen/android \
+              -type f \
+              -path "*/outputs/apk/universal/release/*-unsigned.apk" \
+              -print
+          )
+          if [ "${#APKS[@]}" -ne 1 ]; then
+            echo "Expected exactly one universal release unsigned APK, found ${#APKS[@]}"
+            find apps/client-h5/src-tauri/gen/android -type f -name "*.apk" -print || true
+            exit 1
+          fi
+          APK="${APKS[0]}"
+          echo "unsigned universal APK: $APK"
+
+          APKSIGNER="${ANDROID_HOME}/build-tools/36.0.0/apksigner"
+          AAPT="${ANDROID_HOME}/build-tools/36.0.0/aapt"
+          BADGING="$("$AAPT" dump badging "$APK")"
+          printf '%s\n' "$BADGING" > RELEASE_ANDROID_BADGING.txt
+          "$AAPT" dump xmltree "$APK" AndroidManifest.xml > RELEASE_ANDROID_MANIFEST.txt
+          grep -Eq 'android:windowSoftInputMode.*0x10' RELEASE_ANDROID_MANIFEST.txt || {
+            echo "Release APK MainActivity is missing SOFT_INPUT_ADJUST_RESIZE (0x10)"
+            grep -n 'windowSoftInputMode' RELEASE_ANDROID_MANIFEST.txt || true
+            exit 1
+          }
+          for ABI in arm64-v8a armeabi-v7a x86 x86_64; do
+            echo "$BADGING" | grep -Fq "'$ABI'" || {
+              echo "Universal release APK is missing native ABI: $ABI"
+              grep "native-code:" RELEASE_ANDROID_BADGING.txt || true
+              exit 1
+            }
+          done
+
           printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.keystore"
           OUT="PetAccess_0.1.0-android-universal.apk"
-          APKSIGNER="${ANDROID_HOME}/build-tools/35.0.0/apksigner"
-          if [ ! -x "$APKSIGNER" ]; then APKSIGNER="${ANDROID_HOME}/build-tools/35.0.0/apksigner.bat"; fi
           "$APKSIGNER" sign \
             --ks "$RUNNER_TEMP/release.keystore" \
             --ks-key-alias "$ANDROID_KEY_ALIAS" \
@@ -218,11 +306,16 @@ jobs:
             --key-pass "pass:$ANDROID_KEY_PASSWORD" \
             --out "$OUT" "$APK"
           "$APKSIGNER" verify --verbose "$OUT"
+          "$APKSIGNER" verify --print-certs "$OUT" > RELEASE_ANDROID_SIGNER_CERTS.txt
       - name: Upload signed APK
         uses: actions/upload-artifact@v4
         with:
           name: petaccess-0.1.0-android-universal.apk
-          path: PetAccess_0.1.0-android-universal.apk
+          path: |
+            PetAccess_0.1.0-android-universal.apk
+            RELEASE_ANDROID_BADGING.txt
+            RELEASE_ANDROID_MANIFEST.txt
+            RELEASE_ANDROID_SIGNER_CERTS.txt
 
   artifacts:
     name: Checksums + SBOM

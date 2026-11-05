@@ -103,7 +103,10 @@ def capture_default_name(
     serial: str, device_tag: str, route: str, state: str, scenario: str
 ) -> Path:
     """Persist a screenshot under the unified evidence naming (section 111)."""
-    safe = lambda s: "".join(c if c.isalnum() or c in "_-." else "_" for c in s)
+
+    def safe(s):
+        return "".join(c if c.isalnum() or c in "_-." else "_" for c in s)
+
     name = f"{safe(device_tag)}__{safe(route)}__{safe(state)}__{safe(scenario)}.png"
     return capture(serial, SCREENSHOT_DIR / name)
 

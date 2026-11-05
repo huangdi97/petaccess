@@ -112,6 +112,7 @@ def scene(client, moderator):
         "governed": governed,
         "uncovered": uncovered,
         "rule_id": rule.json()["id"],
+        "source_id": src.json()["id"],
     }
 
 
@@ -179,6 +180,52 @@ def test_evidence_state_reports_the_relay_and_the_pending_gap(client, scene):
     assert ev["first_party_operator_source_count"] == 0
 
 
+def test_active_temporary_policy_keeps_its_source_in_unified_evidence(client, scene):
+    """An EventPolicy can govern the answer without becoming an evidence gap."""
+    from datetime import UTC, datetime, timedelta
+
+    from app.db.session import get_session_factory
+    from app.models import EventPolicy
+
+    now = datetime.now(UTC)
+    with get_session_factory()() as db:
+        event = EventPolicy(
+            place_id=scene["place_id"],
+            zone_id=None,
+            name="临时活动准入测试",
+            animal_scope="ordinary_pet",
+            action="enter",
+            effect="conditional",
+            conditions=[{"condition_type": "leash_required", "value_flag": True}],
+            effective_from=now - timedelta(hours=1),
+            effective_to=now + timedelta(hours=1),
+            source_id=scene["source_id"],
+            status="current",
+        )
+        db.add(event)
+        db.commit()
+        event_id = event.id
+
+    try:
+        data = _answer(client, scene["place_id"], zone_id=None)
+        expected_rule_id = f"ev-{event_id}"
+        assert expected_rule_id in data["normative_result"]["governing_rule_ids"]
+        entry = next(
+            item for item in data["evidence_state"]["rules"] if item["rule_id"] == expected_rule_id
+        )
+        assert entry["source_id"] == scene["source_id"]
+        assert entry["source_type"] == "government_service"
+        assert entry["directness"] == "secondary"
+        assert entry["issuer"]
+        assert entry["provenance_statement"]
+    finally:
+        with get_session_factory()() as db:
+            row = db.get(EventPolicy, event_id)
+            if row is not None:
+                db.delete(row)
+                db.commit()
+
+
 def test_no_confirmation_claim_is_reachable(client, scene):
     """A relayed government source must never read as the operator confirming."""
     import json
@@ -201,3 +248,32 @@ def test_zone_from_another_place_is_refused(client, scene, moderator):
     )
     # Answering would resolve this place's rules against another place's zone.
     assert r.status_code == 404
+
+
+def test_coexistence_snapshot_rejects_unknown_zone(client, scene):
+    missing_zone = str(uuid.uuid4())
+    r = client.post(
+        f"/api/v1/places/{scene['place_id']}/coexistence",
+        json={"animal": "dog", "service_role": "none", "action": "enter", "zone_id": missing_zone},
+    )
+    assert r.status_code == 404
+    assert "区域不存在" in r.text
+
+
+def test_coexistence_snapshot_rejects_zone_from_another_place(client, scene, moderator):
+    other = client.post(
+        "/api/v1/places",
+        json={"canonical_name": f"共处快照别处{uuid.uuid4().hex[:6]}", "place_type": "park"},
+        headers=_auth(moderator),
+    ).json()["id"]
+    foreign_zone = client.post(
+        "/api/v1/zones",
+        json={"place_id": other, "name": "外部区域", "zone_type": "area"},
+        headers=_auth(moderator),
+    ).json()["id"]
+    r = client.post(
+        f"/api/v1/places/{scene['place_id']}/coexistence",
+        json={"animal": "dog", "service_role": "none", "action": "enter", "zone_id": foreign_zone},
+    )
+    assert r.status_code == 404
+    assert "区域不属于该场所" in r.text
