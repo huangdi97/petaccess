@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - feat/ui-direct-craft-v8
+      - master
     paths:
       - "apps/client-h5/**"
       - "packages/client-core/**"

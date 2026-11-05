@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - feat/ui-direct-craft-v8
+      - master
     paths:
       - ".github/workflows/windows-preview.yml"
       - "apps/client-h5/**"
