@@ -1,7 +1,7 @@
 [package]
 name = "petaccess"
-version = "0.1.0"
-description = "PetAccess — 宠物准入与公共空间共处规则地图 (v0.1.0 Early Preview)"
+version = "0.2.0"
+description = "PetAccess — 宠物准入与公共空间共处规则地图 (v0.2.0 Early Preview)"
 authors = ["huangdi97"]
 license = "MIT"
 edition = "2021"

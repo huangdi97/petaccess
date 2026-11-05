@@ -1,6 +1,6 @@
 {
   "name": "@petaccess/client-h5",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "Canonical PetAccess Consumer (Vue 3 + Vite) shared by Web and Tauri 2 Windows/Android runtimes.",

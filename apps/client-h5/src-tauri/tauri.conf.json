@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "PetAccess",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "identifier": "com.petaccess.map",
   "build": {
     "frontendDist": "../dist",
@@ -30,7 +30,7 @@
     "targets": ["nsis"],
     "category": "Lifestyle",
     "shortDescription": "宠物准入与公共空间共处规则地图 — Early Preview",
-    "longDescription": "查询场所对宠物的准入规则、查看经核验的现场事实并贡献线索。当前为 0.1.0 Early Preview：数据可能为空，不代表场所没有规则。",
+    "longDescription": "查询场所对宠物的准入规则、查看经核验的现场事实并贡献线索。当前为 0.2.0 Early Preview：数据可能为空，不代表场所没有规则。",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

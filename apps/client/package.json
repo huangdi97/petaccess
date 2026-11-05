@@ -1,6 +1,6 @@
 {
   "name": "@petaccess/client",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "LEGACY REFERENCE ONLY — historical uni-app x client. Do not build or release. Canonical Consumer is apps/client-h5; Android/Windows runtime is apps/client-h5/src-tauri.",
   "dependencies": {

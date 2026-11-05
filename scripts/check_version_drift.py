@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""v0.1.0 version single-source-of-truth gate (Phase AE).
+"""v0.2.0 version single-source-of-truth gate (Phase AE).
 
 Checks that every publishable surface declares the SAME version and returns
 non-zero on drift so CI can block a release with mismatched versions.
@@ -19,7 +19,7 @@ Checked surfaces:
   APK metadata is verified at build time (aapt2 badging, see
   docs/release/ANDROID_SIGNING.md).
 
-Expected value: 0.1.0
+Expected value: 0.2.0
 """
 
 from __future__ import annotations
@@ -30,7 +30,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-EXPECTED = "0.1.0"
+EXPECTED = "0.2.0"
 
 PACKAGE_JSONS = [
     "package.json",
@@ -84,7 +84,7 @@ def main() -> int:
     for rel, pat, grp in TEXT_SOURCES:
         check_text(rel, pat, grp, found, errors)
 
-    print("VERSION_SSOT check (expected 0.1.0)")
+    print(f"VERSION_SSOT check (expected {EXPECTED})")
     for line in found:
         print(f"  {line}")
     if errors:

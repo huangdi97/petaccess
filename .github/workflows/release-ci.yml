@@ -1,4 +1,4 @@
-name: Release CI (v0.1.0)
+name: Release CI
 
 # Tag v* triggers the full release pipeline: verify version -> tests -> build
 # H5 -> Windows NSIS -> Android APK (signed via Secrets) -> checksums -> SBOM.
@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   verify:
-    name: Verify tag version == 0.1.0
+    name: Verify tag matches version SSOT
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -171,7 +171,7 @@ jobs:
       - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
-          name: petaccess-0.1.0-windows-x64-setup.exe
+          name: petaccess-${{ github.ref_name }}-windows-x64-setup.exe
           path: apps/client-h5/src-tauri/target/release/bundle/nsis/*-setup.exe
 
   android:
@@ -298,7 +298,7 @@ jobs:
           done
 
           printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.keystore"
-          OUT="PetAccess_0.1.0-android-universal.apk"
+          OUT="PetAccess_${GITHUB_REF_NAME#v}-android-universal.apk"
           "$APKSIGNER" sign \
             --ks "$RUNNER_TEMP/release.keystore" \
             --ks-key-alias "$ANDROID_KEY_ALIAS" \
@@ -310,9 +310,9 @@ jobs:
       - name: Upload signed APK
         uses: actions/upload-artifact@v4
         with:
-          name: petaccess-0.1.0-android-universal.apk
+          name: petaccess-${{ github.ref_name }}-android-universal.apk
           path: |
-            PetAccess_0.1.0-android-universal.apk
+            PetAccess_*-android-universal.apk
             RELEASE_ANDROID_BADGING.txt
             RELEASE_ANDROID_MANIFEST.txt
             RELEASE_ANDROID_SIGNER_CERTS.txt
@@ -341,10 +341,10 @@ jobs:
         run: cd artifacts && sha256sum -c SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: v0.1.0-release-assets
+          name: ${{ github.ref_name }}-release-assets
           path: artifacts
 
-  # NOTE: no release job here. Creating the GitHub Release / tag v0.1.0 is a
+  # NOTE: no release job here. Creating the GitHub Release / tag is a
   # human-gated step (RELEASE_V0_1_0_AUTHORIZATION by huangdi97). This
   # workflow proves CI can produce the artifacts; publishing them happens in a
   # later, explicitly authorized workflow.

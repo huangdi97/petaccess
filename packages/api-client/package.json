@@ -1,6 +1,6 @@
 {
   "name": "@petaccess/api-client",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "OpenAPI-generated TS client for the Place Animal Access Map API (SSOT: FastAPI OpenAPI)",

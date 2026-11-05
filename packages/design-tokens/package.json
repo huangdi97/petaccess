@@ -1,6 +1,6 @@
 {
   "name": "@petaccess/design-tokens",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "Neutral, evidence-first design tokens for the pet access map (UI_UX_IMPLEMENTATION_SPEC 搂9). Single source of truth for colour, spacing, type, elevation and status semantics across apps/client (uni-app x), apps/client-h5 and apps/admin.",
