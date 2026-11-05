@@ -1,0 +1,27 @@
+{
+  "name": "13_contribution_mobile_step1",
+  "viewport": "430x932",
+  "route": "/#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+  "expected": {
+    "page": "contribution",
+    "state": "step-1",
+    "fixture": "contribution-step-1-v1",
+    "h1": "现场贡献"
+  },
+  "actual": {
+    "route": "#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+    "page": "contribution",
+    "state": "step-1",
+    "fixture": "contribution-step-1-v1",
+    "h1": "现场贡献",
+    "entityId": null,
+    "selectedId": null,
+    "count": null,
+    "counts": {}
+  },
+  "valid": true,
+  "mismatches": [],
+  "before": "contribute-h5-390-win32.png",
+  "note": "v0.2.7：mobile 单列不变；context rail 仅 desktop 渲染。",
+  "generatedAt": "2026-10-02T18:30:40.120Z"
+}

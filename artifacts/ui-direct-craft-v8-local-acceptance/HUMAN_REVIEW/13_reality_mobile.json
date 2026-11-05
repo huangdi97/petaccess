@@ -1,0 +1,12 @@
+﻿{
+  "order": 13,
+  "name": "13_reality_mobile",
+  "platform": "web",
+  "device": "mobile",
+  "viewport": "430x932",
+  "route": "/#/place/8412b521.../reality",
+  "state": "ready",
+  "gitSha": "d2eeba2fe5ffbfba31f244881f6e1705a07f84c2",
+  "valid": true,
+  "screenshot": "13_reality_mobile.png"
+}

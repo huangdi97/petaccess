@@ -12,13 +12,23 @@
  * `superseded`, `floor`).
  */
 import {
-  conditionLabel,
+  conditionLabel as coreConditionLabel,
   placeTypeLabel,
   ruleSummaryLabel,
   type PlaceSummary,
 } from "@petaccess/client-core";
 
-export { conditionLabel, placeTypeLabel, ruleSummaryLabel };
+export { placeTypeLabel, ruleSummaryLabel };
+
+/** Consumer-safe condition copy. The shared core mapper deliberately returns
+ * unknown tokens verbatim for developer compatibility; Consumer surfaces must
+ * not leak a new enum before its wording has been reviewed. */
+export function conditionLabel(value: string | null | undefined): string {
+  if (!value) return "其他已记录条件";
+  const label = coreConditionLabel(value);
+  return label === value ? "其他已记录条件" : label;
+}
+export * from "./realityLabels";
 
 /** Zones (services/api/app/models/enums.py → ZoneType). */
 export const ZONE_TYPE_LABELS: Record<string, string> = {
@@ -147,74 +157,6 @@ export function mandatoryLevelLabel(value: string | null | undefined): string {
   return MANDATORY_LEVEL_LABELS[value ?? ""] ?? "约束力未知";
 }
 
-/** Observed actions (ObservedAction). */
-export const OBSERVED_ACTION_LABELS: Record<string, string> = {
-  entered: "进入",
-  present: "在场",
-  stayed: "停留",
-  dined_near_table: "在餐桌附近用餐",
-  on_customer_seat: "在顾客座椅上",
-  on_table_surface: "在桌面上",
-  near_food_service: "在食品服务区附近",
-  in_self_service_food_area: "在自助食品区",
-  leashed: "牵引中",
-  off_leash: "未牵引",
-  in_carrier: "装载中",
-  in_stroller: "推车中",
-};
-
-export function observedActionLabel(value: string | null | undefined): string {
-  return OBSERVED_ACTION_LABELS[value ?? ""] ?? "其他观察动作";
-}
-
-/** Staff response actions (StaffResponseAction / ObservationStaffAction). */
-export const STAFF_ACTION_LABELS: Record<string, string> = {
-  explicitly_allowed: "明确允许",
-  explicitly_refused: "明确拒绝",
-  asked_to_remove: "要求带离",
-  no_interaction_observed: "未观察到干预",
-  interaction_unknown: "干预情况未知",
-};
-
-export function staffActionLabel(value: string | null | undefined): string {
-  return STAFF_ACTION_LABELS[value ?? ""] ?? "处理情况未知";
-}
-
-/** Facility operational states (FacilityOperationalState). */
-export const FACILITY_STATE_LABELS: Record<string, string> = {
-  active: "正常使用中",
-  temporarily_unavailable: "暂时不可用",
-  removed: "已移除",
-  unknown: "状态未知",
-};
-/** Animal facility types (AnimalFacilityType) — for the reality facility summary. */
-export const ANIMAL_FACILITY_LABELS: Record<string, string> = {
-  outdoor_holding_cage: "户外安置笼",
-  kennel: "犬舍",
-  tether_point: "拴宠点",
-  pet_waiting_area: "携宠等候区",
-  pet_parking: "宠物暂放区",
-  water_bowl: "饮水碗",
-  pet_stroller: "宠物推车",
-  carrier_storage: "宠物箱寄存",
-  pet_entrance: "宠物入口",
-  pet_elevator: "宠物电梯",
-  dedicated_pet_zone: "独立携宠区",
-  waste_bag_station: "拾便袋站",
-  cleaning_station: "清洁站",
-  washing_point: "清洗点",
-  dedicated_pet_tableware: "专用宠物餐具",
-  other: "其他设施",
-};
-
-export function animalFacilityLabel(value: string | null | undefined): string {
-  return ANIMAL_FACILITY_LABELS[value ?? ""] ?? "其他设施";
-}
-
-export function facilityStateLabel(value: string | null | undefined): string {
-  return FACILITY_STATE_LABELS[value ?? ""] ?? "状态未知";
-}
-
 /** Amenity types (PlaceView AMENITY_LABELS). */
 export const AMENITY_LABELS: Record<string, string> = {
   PET_WATER: "宠物饮水",
@@ -260,6 +202,40 @@ export const COEXISTENCE_VALUE_LABELS: Record<string, string> = {
 
 export function coexistenceValueLabel(value: string | null | undefined): string {
   return COEXISTENCE_VALUE_LABELS[value ?? ""] ?? "状态未知";
+}
+
+/** Facility supervision/security fields can contain reviewed imported
+ * strings. Only known consumer vocabulary is ever rendered; unknown tokens
+ * remain truthful but opaque rather than leaking an internal value. */
+const FACILITY_SUPERVISION_LABELS: Record<string, string> = {
+  有工作人员看护: "有工作人员看护",
+  无人固定看护: "无人固定看护",
+  staff_present: "有工作人员看护",
+  supervised: "有工作人员看护",
+  unattended: "无人固定看护",
+  none: "无人固定看护",
+  unknown: "未确认",
+};
+
+export function facilitySupervisionLabel(value: string | null | undefined): string {
+  if (!value) return "未确认";
+  return FACILITY_SUPERVISION_LABELS[value] ?? "看护情况已记录，待核验";
+}
+
+const FACILITY_SECURITY_LABELS: Record<string, string> = {
+  "可锁闭 / 有安全门": "可锁闭 / 有安全门",
+  "开放式 / 不可锁闭": "开放式 / 不可锁闭",
+  lockable: "可锁闭 / 有安全门",
+  locked: "可锁闭 / 有安全门",
+  secure_gate: "可锁闭 / 有安全门",
+  open: "开放式 / 不可锁闭",
+  unlocked: "开放式 / 不可锁闭",
+  unknown: "未确认",
+};
+
+export function facilitySecurityLabel(value: string | null | undefined): string {
+  if (!value) return "未确认";
+  return FACILITY_SECURITY_LABELS[value] ?? "安全情况已记录，待核验";
 }
 
 /** Entrance types (PlaceView ENTRANCE_LABELS). */

@@ -1,0 +1,975 @@
+{
+  "contractId": "evidence",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "stage": "r111-audit",
+  "generatedAt": "2026-10-03T14:25:14.543Z",
+  "pages": [
+    {
+      "pageId": "evidence-empty",
+      "route": "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e/evidence",
+      "elements": {
+        "EVIDENCE_MAX_WIDTH": {
+          "bbox": {
+            "x": 344,
+            "y": 61,
+            "width": 820,
+            "height": 1580
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "16px",
+            "margin": "0px 276px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "24px",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 820,
+          "contentHeightInViewport": 839,
+          "leftRelative": 344,
+          "sectionGapAvg": 24,
+          "scrollWidth": 820,
+          "clientWidth": 820,
+          "rows": [
+            {
+              "height": 1580,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "EVIDENCE_PROVENANCE": {
+          "bbox": {
+            "x": 360,
+            "y": 199,
+            "width": 788,
+            "height": 373
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "4px",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "证据来源链",
+          "count": 1,
+          "maxChildWidth": 788,
+          "contentHeightInViewport": 373,
+          "leftRelative": 360,
+          "sectionGapAvg": 52,
+          "scrollWidth": 788,
+          "clientWidth": 788,
+          "rows": [
+            {
+              "height": 373,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "EVIDENCE_RAIL_WIDTH": {
+          "bbox": {
+            "x": 371,
+            "y": 250,
+            "width": 2,
+            "height": 316
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgb(238, 242, 245)",
+            "position": "absolute",
+            "overflow": "visible",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 2,
+          "contentHeightInViewport": 316,
+          "leftRelative": 371,
+          "sectionGapAvg": null,
+          "scrollWidth": 2,
+          "clientWidth": 2,
+          "rows": [
+            {
+              "height": 316,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "EVIDENCE_RAIL_CONTINUOUS": {
+          "bbox": {
+            "x": 371,
+            "y": 250,
+            "width": 2,
+            "height": 316
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgb(238, 242, 245)",
+            "position": "absolute",
+            "overflow": "visible",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 2,
+          "contentHeightInViewport": 316,
+          "leftRelative": 371,
+          "sectionGapAvg": null,
+          "scrollWidth": 2,
+          "clientWidth": 2,
+          "rows": [
+            {
+              "height": 316,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "EVIDENCE_MARKER_COL": {
+          "bbox": {
+            "x": 360,
+            "y": 244,
+            "width": 788,
+            "height": 40
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "0px 0px 32px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "relative",
+            "overflow": "visible",
+            "gap": "0px 12px",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "24px 752px"
+          },
+          "ariaLabel": "",
+          "count": 5,
+          "maxChildWidth": 788,
+          "contentHeightInViewport": 40,
+          "leftRelative": 360,
+          "sectionGapAvg": null,
+          "scrollWidth": 788,
+          "clientWidth": 788,
+          "rows": [
+            {
+              "height": 40,
+              "borderRadius": "0px"
+            },
+            {
+              "height": 40,
+              "borderRadius": "0px"
+            },
+            {
+              "height": 40,
+              "borderRadius": "0px"
+            },
+            {
+              "height": 40,
+              "borderRadius": "0px"
+            },
+            {
+              "height": 40,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "EVIDENCE_ITEMS": {
+          "bbox": {
+            "x": 360,
+            "y": 954,
+            "width": 788,
+            "height": 186
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "4px",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "证据条目",
+          "count": 1,
+          "maxChildWidth": 788,
+          "contentHeightInViewport": 0,
+          "leftRelative": 360,
+          "sectionGapAvg": null,
+          "scrollWidth": 788,
+          "clientWidth": 788,
+          "rows": [
+            {
+              "height": 186,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "EVIDENCE_SOURCES": {
+          "bbox": {
+            "x": 360,
+            "y": 1164,
+            "width": 788,
+            "height": 461
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "4px",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "来源列表",
+          "count": 1,
+          "maxChildWidth": 788,
+          "contentHeightInViewport": 0,
+          "leftRelative": 360,
+          "sectionGapAvg": 4,
+          "scrollWidth": 788,
+          "clientWidth": 788,
+          "rows": [
+            {
+              "height": 461,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "EVIDENCE_QUERY_CONTEXT": {
+          "bbox": {
+            "x": 68,
+            "y": 0,
+            "width": 1372,
+            "height": 61
+          },
+          "computed": {
+            "fontSize": "13px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "8px 16px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "8px",
+            "borderBottomWidth": "1px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 1372,
+          "contentHeightInViewport": 61,
+          "leftRelative": 68,
+          "sectionGapAvg": null,
+          "scrollWidth": 1372,
+          "clientWidth": 1372,
+          "rows": [
+            {
+              "height": 61,
+              "borderRadius": "0px"
+            }
+          ]
+        }
+      },
+      "structure": {
+        "EVIDENCE_PROVENANCE_5_STEPS": {
+          "count": 5,
+          "sampleClasses": [
+            "provenance-step provenance-step--pending",
+            "provenance-step provenance-step--pending",
+            "provenance-step provenance-step--pending"
+          ],
+          "sampleText": "原始证据\n待补充\n暂无原始证据",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 5,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": 0
+        },
+        "EVIDENCE_PROVENANCE_STEP_LABELS": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "EVIDENCE_MARKER_X_CONSISTENT": {
+          "count": 5,
+          "sampleClasses": [
+            "provenance-step__mark",
+            "provenance-step__mark",
+            "provenance-step__mark"
+          ],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 5,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": 0
+        },
+        "EVIDENCE_DISCLAIMER": {
+          "count": 1,
+          "sampleClasses": [
+            "evidence-disclaimer"
+          ],
+          "sampleText": "现场事实不代表正式准入规则。",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 1,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "EVIDENCE_NO_UUID_TEXT": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "EVIDENCE_TIMES_SEPARATED": {
+          "count": 1,
+          "sampleClasses": [
+            "evidence-section"
+          ],
+          "sampleText": "时间记录\n观察时间\n未记录\n提交时间\n未记录\n核验时间\n未记录\n核验记录\n核验：信息待核验\n核验记录\n一手来源：待补充\n核验记录\n是否存在争议：无已登记争议",
+          "surfaceRows": 6,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 1,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "EVIDENCE_RECORD_IDENTITY_VISIBLE": {
+          "count": 1,
+          "sampleClasses": [
+            "evidence-head"
+          ],
+          "sampleText": "暂无现场记录\n\n该场所尚未收录现场事实。未收录不代表没有动物。\n\n现场事实不代表正式准入规则。",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 1,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "EVIDENCE_PROVENANCE_3_STEPS_VISIBLE": {
+          "count": 5,
+          "sampleClasses": [
+            "provenance-step provenance-step--pending",
+            "provenance-step provenance-step--pending",
+            "provenance-step provenance-step--pending"
+          ],
+          "sampleText": "原始证据\n待补充\n暂无原始证据",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 5,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": 0
+        }
+      },
+      "density": {
+        "EVIDENCE_PROV_STEP_GAP": {
+          "largestVerticalGap": 32,
+          "horizontalOverflowPx": 0,
+          "infoBlockCount": 0,
+          "firstViewportVisibleTextLines": 32,
+          "contentHeightInViewport": 328,
+          "primaryActionCount": 0
+        }
+      },
+      "hierarchy": {},
+      "budget": {},
+      "composition": {},
+      "state": {
+        "route": "#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e/evidence",
+        "page": "evidence",
+        "state": "empty",
+        "fixture": "evidence-empty-v1",
+        "h1": "证据与来源",
+        "entityId": "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+        "resultCount": null,
+        "selectedId": null,
+        "componentCounts": {}
+      },
+      "language": {
+        "uuidHits": [],
+        "enumHits": [],
+        "invariantHits": [],
+        "allcapsHits": [],
+        "refHits": []
+      },
+      "screenshot": "evidence-evidence-empty.png"
+    },
+    {
+      "pageId": "evidence-records",
+      "route": "/#/place/8412b521-5e1c-505d-9dec-568acb860c76/evidence",
+      "elements": {
+        "EVIDENCE_MAX_WIDTH": {
+          "bbox": {
+            "x": 344,
+            "y": 61,
+            "width": 820,
+            "height": 1677.5
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "16px",
+            "margin": "0px 276px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "24px",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 820,
+          "contentHeightInViewport": 839,
+          "leftRelative": 344,
+          "sectionGapAvg": 24,
+          "scrollWidth": 820,
+          "clientWidth": 820,
+          "rows": [
+            {
+              "height": 1677.5,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "EVIDENCE_PROVENANCE": {
+          "bbox": {
+            "x": 360,
+            "y": 220,
+            "width": 788,
+            "height": 373
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "4px",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "证据来源链",
+          "count": 1,
+          "maxChildWidth": 788,
+          "contentHeightInViewport": 373,
+          "leftRelative": 360,
+          "sectionGapAvg": 52,
+          "scrollWidth": 788,
+          "clientWidth": 788,
+          "rows": [
+            {
+              "height": 373,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "EVIDENCE_RAIL_WIDTH": {
+          "bbox": {
+            "x": 371,
+            "y": 271,
+            "width": 2,
+            "height": 316
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgb(238, 242, 245)",
+            "position": "absolute",
+            "overflow": "visible",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 2,
+          "contentHeightInViewport": 316,
+          "leftRelative": 371,
+          "sectionGapAvg": null,
+          "scrollWidth": 2,
+          "clientWidth": 2,
+          "rows": [
+            {
+              "height": 316,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "EVIDENCE_RAIL_CONTINUOUS": {
+          "bbox": {
+            "x": 371,
+            "y": 271,
+            "width": 2,
+            "height": 316
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgb(238, 242, 245)",
+            "position": "absolute",
+            "overflow": "visible",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 2,
+          "contentHeightInViewport": 316,
+          "leftRelative": 371,
+          "sectionGapAvg": null,
+          "scrollWidth": 2,
+          "clientWidth": 2,
+          "rows": [
+            {
+              "height": 316,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "EVIDENCE_MARKER_COL": {
+          "bbox": {
+            "x": 360,
+            "y": 265,
+            "width": 788,
+            "height": 40
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "0px 0px 32px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "relative",
+            "overflow": "visible",
+            "gap": "0px 12px",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "24px 752px"
+          },
+          "ariaLabel": "",
+          "count": 5,
+          "maxChildWidth": 788,
+          "contentHeightInViewport": 40,
+          "leftRelative": 360,
+          "sectionGapAvg": null,
+          "scrollWidth": 788,
+          "clientWidth": 788,
+          "rows": [
+            {
+              "height": 40,
+              "borderRadius": "0px"
+            },
+            {
+              "height": 40,
+              "borderRadius": "0px"
+            },
+            {
+              "height": 40,
+              "borderRadius": "0px"
+            },
+            {
+              "height": 40,
+              "borderRadius": "0px"
+            },
+            {
+              "height": 40,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "EVIDENCE_ITEMS": {
+          "bbox": {
+            "x": 360,
+            "y": 975,
+            "width": 788,
+            "height": 262.5
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "4px",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "证据条目",
+          "count": 1,
+          "maxChildWidth": 788,
+          "contentHeightInViewport": 0,
+          "leftRelative": 360,
+          "sectionGapAvg": 8,
+          "scrollWidth": 788,
+          "clientWidth": 788,
+          "rows": [
+            {
+              "height": 262.5,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "EVIDENCE_SOURCES": {
+          "bbox": {
+            "x": 360,
+            "y": 1261.5,
+            "width": 788,
+            "height": 461
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "4px",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "来源列表",
+          "count": 1,
+          "maxChildWidth": 788,
+          "contentHeightInViewport": 0,
+          "leftRelative": 360,
+          "sectionGapAvg": 4,
+          "scrollWidth": 788,
+          "clientWidth": 788,
+          "rows": [
+            {
+              "height": 461,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "EVIDENCE_QUERY_CONTEXT": {
+          "bbox": {
+            "x": 68,
+            "y": 0,
+            "width": 1372,
+            "height": 61
+          },
+          "computed": {
+            "fontSize": "13px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "8px 16px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "8px",
+            "borderBottomWidth": "1px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 1372,
+          "contentHeightInViewport": 61,
+          "leftRelative": 68,
+          "sectionGapAvg": null,
+          "scrollWidth": 1372,
+          "clientWidth": 1372,
+          "rows": [
+            {
+              "height": 61,
+              "borderRadius": "0px"
+            }
+          ]
+        }
+      },
+      "structure": {
+        "EVIDENCE_PROVENANCE_5_STEPS": {
+          "count": 5,
+          "sampleClasses": [
+            "provenance-step provenance-step--filled",
+            "provenance-step provenance-step--filled",
+            "provenance-step provenance-step--filled"
+          ],
+          "sampleText": "原始证据\n已完成\n现场记录已收录",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 5,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": 0
+        },
+        "EVIDENCE_PROVENANCE_STEP_LABELS": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "EVIDENCE_MARKER_X_CONSISTENT": {
+          "count": 5,
+          "sampleClasses": [
+            "provenance-step__mark",
+            "provenance-step__mark",
+            "provenance-step__mark"
+          ],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 5,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": 0
+        },
+        "EVIDENCE_DISCLAIMER": {
+          "count": 1,
+          "sampleClasses": [
+            "evidence-disclaimer"
+          ],
+          "sampleText": "现场事实不代表正式准入规则。",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 1,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "EVIDENCE_NO_UUID_TEXT": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "EVIDENCE_TIMES_SEPARATED": {
+          "count": 1,
+          "sampleClasses": [
+            "evidence-section"
+          ],
+          "sampleText": "时间记录\n观察时间\n2026-09-29 22:24\n提交时间\n未记录\n核验时间\n未记录\n核验记录\n核验：信息待核验\n核验记录\n一手来源：待补充\n核验记录\n是否存在争议：无已登记争议",
+          "surfaceRows": 6,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 1,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "EVIDENCE_RECORD_IDENTITY_VISIBLE": {
+          "count": 1,
+          "sampleClasses": [
+            "evidence-head"
+          ],
+          "sampleText": "星河咖啡·测试店\n\n户外座位区 · 2026-09-29 22:24\n\n2 条现场记录 · 8 个来源 · 3 个待核验\n\n现场事实不代表正式准入规则。",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 1,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "EVIDENCE_PROVENANCE_3_STEPS_VISIBLE": {
+          "count": 5,
+          "sampleClasses": [
+            "provenance-step provenance-step--filled",
+            "provenance-step provenance-step--filled",
+            "provenance-step provenance-step--filled"
+          ],
+          "sampleText": "原始证据\n已完成\n现场记录已收录",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 5,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": 0
+        }
+      },
+      "density": {
+        "EVIDENCE_PROV_STEP_GAP": {
+          "largestVerticalGap": 32,
+          "horizontalOverflowPx": 0,
+          "infoBlockCount": 0,
+          "firstViewportVisibleTextLines": 33,
+          "contentHeightInViewport": 328,
+          "primaryActionCount": 0
+        }
+      },
+      "hierarchy": {},
+      "budget": {},
+      "composition": {},
+      "state": {
+        "route": "#/place/8412b521-5e1c-505d-9dec-568acb860c76/evidence",
+        "page": "evidence",
+        "state": "ready",
+        "fixture": "evidence-records-v1",
+        "h1": "证据与来源",
+        "entityId": "8412b521-5e1c-505d-9dec-568acb860c76",
+        "resultCount": null,
+        "selectedId": null,
+        "componentCounts": {}
+      },
+      "language": {
+        "uuidHits": [],
+        "enumHits": [],
+        "invariantHits": [],
+        "allcapsHits": [],
+        "refHits": []
+      },
+      "screenshot": "evidence-evidence-records.png"
+    }
+  ]
+}

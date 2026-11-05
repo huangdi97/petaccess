@@ -1,0 +1,22 @@
+{
+  "name": "07_web_contribution_compact",
+  "viewport": "1000x900",
+  "route": "/#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+  "expected": {
+    "page": "contribution",
+    "state": "choose-type",
+    "fixture": "contribution-choose-type-v1",
+    "h1": "你刚刚知道了什么？"
+  },
+  "actual": {
+    "route": "#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+    "page": "contribution",
+    "state": "choose-type",
+    "fixture": "contribution-choose-type-v1",
+    "h1": "你刚刚知道了什么？"
+  },
+  "valid": true,
+  "mismatches": [],
+  "note": "v0.2.7-R1 COMPACT_DESKTOP (768–1119): rail + 单栏 task（context rail 不并排）。",
+  "generatedAt": "2026-10-03T08:15:12.040Z"
+}

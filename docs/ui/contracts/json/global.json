@@ -27,6 +27,14 @@
       "severity": "FAIL"
     },
     {
+      "id": "DESKTOP_RAIL_NO_HORIZONTAL_OVERFLOW",
+      "ui": "app-rail",
+      "fallbacks": [".desktop-rail"],
+      "props": { "hOverflow": { "equals": 0 } },
+      "severity": "FAIL",
+      "note": "v0.2.7-R1 P0-1: rail.scrollWidth <= rail.clientWidth + 1 — content must never enlarge the 68px rail or create a horizontal scrollbar."
+    },
+    {
       "id": "SINGLE_H1",
       "ui": "page-h1",
       "fallbacks": ["h1"],

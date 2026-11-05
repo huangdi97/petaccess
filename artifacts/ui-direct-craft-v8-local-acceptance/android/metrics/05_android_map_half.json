@@ -1,0 +1,15 @@
+{
+  "gitSha": "d2eeba2fe5ffbfba31f244881f6e1705a07f84c2",
+  "page": "map",
+  "state": "half",
+  "route": "/map?place=8412b521-5e1c-505d-9dec-568acb860c76",
+  "innerWidth": 412,
+  "innerHeight": 915,
+  "devicePixelRatio": 2.625,
+  "documentClientWidth": 412,
+  "documentScrollWidth": 412,
+  "bodyTextHead": "规则地图 | 当前查询 | 普通犬 · 进入 · 公共区域 | 修改 | 地图 | 列表 | ＋ | － | ? 信息不足 | 星河咖啡·测试店 | ○ | 信息不",
+  "href": "http://tauri.localhost/#/map?place=8412b521-5e1c-505d-9dec-568acb860c76",
+  "horizontalOverflow": false,
+  "screenshot": "05_android_map_half.png"
+}

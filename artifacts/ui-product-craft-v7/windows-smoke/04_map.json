@@ -1,0 +1,11 @@
+{
+  "name": "04_map",
+  "hash": "#/map",
+  "h1": "规则地图",
+  "page": "map",
+  "state": "ready",
+  "rail": 1,
+  "overflow": 0,
+  "valid": true,
+  "note": ""
+}

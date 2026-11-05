@@ -1,0 +1,12 @@
+﻿{
+  "order": 12,
+  "name": "12_map_mobile_expanded",
+  "platform": "web",
+  "device": "mobile",
+  "viewport": "430x932",
+  "route": "/#/map?place=8412b521...",
+  "state": "expanded",
+  "gitSha": "d2eeba2fe5ffbfba31f244881f6e1705a07f84c2",
+  "valid": true,
+  "screenshot": "12_map_mobile_expanded.png"
+}

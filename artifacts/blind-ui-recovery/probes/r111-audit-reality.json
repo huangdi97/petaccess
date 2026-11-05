@@ -1,0 +1,900 @@
+{
+  "contractId": "reality",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "stage": "r111-audit",
+  "generatedAt": "2026-10-03T14:25:25.314Z",
+  "pages": [
+    {
+      "pageId": "reality-ready",
+      "route": "/#/place/8412b521-5e1c-505d-9dec-568acb860c76/reality",
+      "elements": {
+        "REALITY_MAX_WIDTH": {
+          "bbox": {
+            "x": 344,
+            "y": 61,
+            "width": 820,
+            "height": 553.5
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "16px",
+            "margin": "0px 276px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "24px",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 820,
+          "contentHeightInViewport": 553.5,
+          "leftRelative": 344,
+          "sectionGapAvg": 108.5,
+          "scrollWidth": 820,
+          "clientWidth": 820,
+          "rows": [
+            {
+              "height": 553.5,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "REALITY_RAIL_WIDTH": {
+          "bbox": {
+            "x": 443,
+            "y": 247.5,
+            "width": 2,
+            "height": 319
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgb(238, 242, 245)",
+            "position": "absolute",
+            "overflow": "visible",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 2,
+          "contentHeightInViewport": 319,
+          "leftRelative": 443,
+          "sectionGapAvg": null,
+          "scrollWidth": 2,
+          "clientWidth": 2,
+          "rows": [
+            {
+              "height": 319,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "REALITY_RAIL_CONTINUOUS": {
+          "bbox": {
+            "x": 443,
+            "y": 247.5,
+            "width": 2,
+            "height": 319
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgb(238, 242, 245)",
+            "position": "absolute",
+            "overflow": "visible",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 2,
+          "contentHeightInViewport": 319,
+          "leftRelative": 443,
+          "sectionGapAvg": null,
+          "scrollWidth": 2,
+          "clientWidth": 2,
+          "rows": [
+            {
+              "height": 319,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "REALITY_DATE_GROUP_SEP": {
+          "bbox": {
+            "x": 360,
+            "y": 239.5,
+            "width": 788,
+            "height": 16
+          },
+          "computed": {
+            "fontSize": "12px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "0px 0px 0px 96px",
+            "margin": "28px 0px 20px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 2,
+          "maxChildWidth": 788,
+          "contentHeightInViewport": 16,
+          "leftRelative": 360,
+          "sectionGapAvg": null,
+          "scrollWidth": 788,
+          "clientWidth": 788,
+          "rows": [
+            {
+              "height": 16,
+              "borderRadius": "0px"
+            },
+            {
+              "height": 16,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "REALITY_TIME_COL": {
+          "bbox": {
+            "x": 360,
+            "y": 275.5,
+            "width": 788,
+            "height": 118
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "0px 0px 24px",
+            "margin": "0px 0px 24px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "0px 12px",
+            "borderBottomWidth": "1px",
+            "gridTemplateColumns": "72px 24px 668px"
+          },
+          "ariaLabel": "",
+          "count": 2,
+          "maxChildWidth": 788,
+          "contentHeightInViewport": 118,
+          "leftRelative": 360,
+          "sectionGapAvg": null,
+          "scrollWidth": 788,
+          "clientWidth": 788,
+          "rows": [
+            {
+              "height": 118,
+              "borderRadius": "0px"
+            },
+            {
+              "height": 117,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "REALITY_TRACE_ROWS": {
+          "bbox": {
+            "x": 360,
+            "y": 211.5,
+            "width": 788,
+            "height": 387
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 788,
+          "contentHeightInViewport": 387,
+          "leftRelative": 360,
+          "sectionGapAvg": 64,
+          "scrollWidth": 788,
+          "clientWidth": 788,
+          "rows": [
+            {
+              "height": 387,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "REALITY_EVENT_ROW_COUNT": {
+          "bbox": {
+            "x": 360,
+            "y": 275.5,
+            "width": 788,
+            "height": 118
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "0px 0px 24px",
+            "margin": "0px 0px 24px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "0px 12px",
+            "borderBottomWidth": "1px",
+            "gridTemplateColumns": "72px 24px 668px"
+          },
+          "ariaLabel": "",
+          "count": 2,
+          "maxChildWidth": 788,
+          "contentHeightInViewport": 118,
+          "leftRelative": 360,
+          "sectionGapAvg": null,
+          "scrollWidth": 788,
+          "clientWidth": 788,
+          "rows": [
+            {
+              "height": 118,
+              "borderRadius": "0px"
+            },
+            {
+              "height": 117,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "REALITY_FIRST_EVENT_TOP": {
+          "bbox": {
+            "x": 360,
+            "y": 275.5,
+            "width": 788,
+            "height": 118
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "0px 0px 24px",
+            "margin": "0px 0px 24px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "0px 12px",
+            "borderBottomWidth": "1px",
+            "gridTemplateColumns": "72px 24px 668px"
+          },
+          "ariaLabel": "",
+          "count": 2,
+          "maxChildWidth": 788,
+          "contentHeightInViewport": 118,
+          "leftRelative": 360,
+          "sectionGapAvg": null,
+          "scrollWidth": 788,
+          "clientWidth": 788,
+          "rows": [
+            {
+              "height": 118,
+              "borderRadius": "0px"
+            },
+            {
+              "height": 117,
+              "borderRadius": "0px"
+            }
+          ]
+        }
+      },
+      "structure": {
+        "REALITY_EVENT_NOT_CARD": {
+          "count": 2,
+          "sampleClasses": [
+            "trace-row",
+            "trace-row"
+          ],
+          "sampleText": "22:24\n\n犬 · 进入 （工作人员：未观察到干预）\n\n户外座位区\n\n 地点已确认 · 时间待核验\n查看证据 →",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 2,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": 0
+        },
+        "REALITY_TIME_X_CONSISTENT": {
+          "count": 2,
+          "sampleClasses": [
+            "trace-row__time",
+            "trace-row__time"
+          ],
+          "sampleText": "22:24",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 2,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": 0
+        },
+        "REALITY_MARKER_X_CONSISTENT": {
+          "count": 2,
+          "sampleClasses": [
+            "trace-row__dot",
+            "trace-row__dot"
+          ],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 2,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": 0
+        },
+        "REALITY_EMPTY_COPY": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": [
+              "暂无近期现场记录",
+              "这并不代表现场没有动物"
+            ]
+          },
+          "xSpread": null
+        },
+        "REALITY_NO_INVARIANT_TEXT": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "REALITY_FIRST_VIEWPORT_EVENTS": {
+          "count": 2,
+          "sampleClasses": [
+            "trace-row",
+            "trace-row"
+          ],
+          "sampleText": "22:24\n\n犬 · 进入 （工作人员：未观察到干预）\n\n户外座位区\n\n 地点已确认 · 时间待核验\n查看证据 →",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 2,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": 0
+        }
+      },
+      "density": {
+        "REALITY_EVENT_GAP": {
+          "largestVerticalGap": 28,
+          "horizontalOverflowPx": 0,
+          "infoBlockCount": 0,
+          "firstViewportVisibleTextLines": 29,
+          "contentHeightInViewport": 335,
+          "primaryActionCount": 0
+        },
+        "REALITY_EMPTY_STATE_HAS_ACTIONS": {
+          "largestVerticalGap": null,
+          "horizontalOverflowPx": 0,
+          "infoBlockCount": 2,
+          "firstViewportVisibleTextLines": 29,
+          "contentHeightInViewport": null,
+          "primaryActionCount": 0
+        }
+      },
+      "hierarchy": {
+        "REALITY_TITLE_TO_BODY": {
+          "aFontSize": 18,
+          "bFontSize": 15,
+          "ratio": 1.2
+        },
+        "PRIMARY_CONTENT_DOMINATES_METADATA": {
+          "aFontSize": 18,
+          "bFontSize": 13,
+          "ratio": 1.38
+        }
+      },
+      "budget": {},
+      "composition": {},
+      "state": {
+        "route": "#/place/8412b521-5e1c-505d-9dec-568acb860c76/reality",
+        "page": "reality",
+        "state": "ready",
+        "fixture": "reality-ready-v1",
+        "h1": "现场轨迹",
+        "entityId": "8412b521-5e1c-505d-9dec-568acb860c76",
+        "resultCount": null,
+        "selectedId": null,
+        "componentCounts": {}
+      },
+      "language": {
+        "uuidHits": [],
+        "enumHits": [],
+        "invariantHits": [],
+        "allcapsHits": [],
+        "refHits": []
+      },
+      "screenshot": "reality-reality-ready.png"
+    },
+    {
+      "pageId": "reality-empty",
+      "route": "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e/reality",
+      "elements": {
+        "REALITY_MAX_WIDTH": {
+          "bbox": {
+            "x": 344,
+            "y": 61,
+            "width": 820,
+            "height": 305.5
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "16px",
+            "margin": "0px 276px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "24px",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 820,
+          "contentHeightInViewport": 305.5,
+          "leftRelative": 344,
+          "sectionGapAvg": 108.5,
+          "scrollWidth": 820,
+          "clientWidth": 820,
+          "rows": [
+            {
+              "height": 305.5,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "REALITY_RAIL_WIDTH": {
+          "bbox": {
+            "x": 443,
+            "y": 235.5,
+            "width": 2,
+            "height": 0
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgb(238, 242, 245)",
+            "position": "absolute",
+            "overflow": "visible",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 2,
+          "contentHeightInViewport": 0,
+          "leftRelative": 443,
+          "sectionGapAvg": null,
+          "scrollWidth": 2,
+          "clientWidth": 2,
+          "rows": [
+            {
+              "height": 0,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "REALITY_RAIL_CONTINUOUS": {
+          "bbox": {
+            "x": 443,
+            "y": 235.5,
+            "width": 2,
+            "height": 0
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgb(238, 242, 245)",
+            "position": "absolute",
+            "overflow": "visible",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 2,
+          "contentHeightInViewport": 0,
+          "leftRelative": 443,
+          "sectionGapAvg": null,
+          "scrollWidth": 2,
+          "clientWidth": 2,
+          "rows": [
+            {
+              "height": 0,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "REALITY_DATE_GROUP_SEP": {
+          "bbox": {
+            "x": null,
+            "y": null,
+            "width": null,
+            "height": null
+          },
+          "computed": {
+            "fontSize": null,
+            "fontWeight": null,
+            "lineHeight": null,
+            "padding": null,
+            "margin": null,
+            "borderRadius": null,
+            "boxShadow": null,
+            "backgroundColor": null,
+            "position": null,
+            "overflow": null,
+            "gap": null,
+            "borderBottomWidth": null,
+            "gridTemplateColumns": null
+          },
+          "ariaLabel": "",
+          "count": 0,
+          "maxChildWidth": null,
+          "contentHeightInViewport": null,
+          "leftRelative": null,
+          "sectionGapAvg": null,
+          "scrollWidth": null,
+          "clientWidth": null,
+          "rows": []
+        },
+        "REALITY_TIME_COL": {
+          "bbox": {
+            "x": null,
+            "y": null,
+            "width": null,
+            "height": null
+          },
+          "computed": {
+            "fontSize": null,
+            "fontWeight": null,
+            "lineHeight": null,
+            "padding": null,
+            "margin": null,
+            "borderRadius": null,
+            "boxShadow": null,
+            "backgroundColor": null,
+            "position": null,
+            "overflow": null,
+            "gap": null,
+            "borderBottomWidth": null,
+            "gridTemplateColumns": null
+          },
+          "ariaLabel": "",
+          "count": 0,
+          "maxChildWidth": null,
+          "contentHeightInViewport": null,
+          "leftRelative": null,
+          "sectionGapAvg": null,
+          "scrollWidth": null,
+          "clientWidth": null,
+          "rows": []
+        },
+        "REALITY_TRACE_ROWS": {
+          "bbox": {
+            "x": 360,
+            "y": 211.5,
+            "width": 788,
+            "height": 139
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 788,
+          "contentHeightInViewport": 139,
+          "leftRelative": 360,
+          "sectionGapAvg": null,
+          "scrollWidth": 788,
+          "clientWidth": 788,
+          "rows": [
+            {
+              "height": 139,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "REALITY_EVENT_ROW_COUNT": {
+          "bbox": {
+            "x": null,
+            "y": null,
+            "width": null,
+            "height": null
+          },
+          "computed": {
+            "fontSize": null,
+            "fontWeight": null,
+            "lineHeight": null,
+            "padding": null,
+            "margin": null,
+            "borderRadius": null,
+            "boxShadow": null,
+            "backgroundColor": null,
+            "position": null,
+            "overflow": null,
+            "gap": null,
+            "borderBottomWidth": null,
+            "gridTemplateColumns": null
+          },
+          "ariaLabel": "",
+          "count": 0,
+          "maxChildWidth": null,
+          "contentHeightInViewport": null,
+          "leftRelative": null,
+          "sectionGapAvg": null,
+          "scrollWidth": null,
+          "clientWidth": null,
+          "rows": []
+        },
+        "REALITY_FIRST_EVENT_TOP": {
+          "bbox": {
+            "x": null,
+            "y": null,
+            "width": null,
+            "height": null
+          },
+          "computed": {
+            "fontSize": null,
+            "fontWeight": null,
+            "lineHeight": null,
+            "padding": null,
+            "margin": null,
+            "borderRadius": null,
+            "boxShadow": null,
+            "backgroundColor": null,
+            "position": null,
+            "overflow": null,
+            "gap": null,
+            "borderBottomWidth": null,
+            "gridTemplateColumns": null
+          },
+          "ariaLabel": "",
+          "count": 0,
+          "maxChildWidth": null,
+          "contentHeightInViewport": null,
+          "leftRelative": null,
+          "sectionGapAvg": null,
+          "scrollWidth": null,
+          "clientWidth": null,
+          "rows": []
+        }
+      },
+      "structure": {
+        "REALITY_EVENT_NOT_CARD": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "REALITY_TIME_X_CONSISTENT": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "REALITY_MARKER_X_CONSISTENT": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "REALITY_EMPTY_COPY": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "REALITY_NO_INVARIANT_TEXT": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "REALITY_FIRST_VIEWPORT_EVENTS": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        }
+      },
+      "density": {
+        "REALITY_EVENT_GAP": {
+          "largestVerticalGap": null,
+          "horizontalOverflowPx": 0,
+          "infoBlockCount": 0,
+          "firstViewportVisibleTextLines": 17,
+          "contentHeightInViewport": 0,
+          "primaryActionCount": 0
+        },
+        "REALITY_EMPTY_STATE_HAS_ACTIONS": {
+          "largestVerticalGap": 21,
+          "horizontalOverflowPx": 0,
+          "infoBlockCount": 0,
+          "firstViewportVisibleTextLines": 17,
+          "contentHeightInViewport": 123,
+          "primaryActionCount": 1
+        }
+      },
+      "hierarchy": {
+        "REALITY_TITLE_TO_BODY": {
+          "aFontSize": 18,
+          "bFontSize": 15,
+          "ratio": 1.2
+        },
+        "PRIMARY_CONTENT_DOMINATES_METADATA": {
+          "aFontSize": 18,
+          "bFontSize": 13,
+          "ratio": 1.38
+        }
+      },
+      "budget": {},
+      "composition": {},
+      "state": {
+        "route": "#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e/reality",
+        "page": "reality",
+        "state": "empty",
+        "fixture": "reality-empty-v1",
+        "h1": "现场轨迹",
+        "entityId": "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+        "resultCount": null,
+        "selectedId": null,
+        "componentCounts": {}
+      },
+      "language": {
+        "uuidHits": [],
+        "enumHits": [],
+        "invariantHits": [],
+        "allcapsHits": [],
+        "refHits": []
+      },
+      "screenshot": "reality-reality-empty.png"
+    }
+  ]
+}

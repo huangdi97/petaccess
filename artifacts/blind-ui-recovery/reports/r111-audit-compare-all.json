@@ -1,0 +1,3868 @@
+{
+  "stage": "r111-audit",
+  "generatedAt": "2026-10-03T14:26:04.588Z",
+  "artifacts": [
+    {
+      "contractId": "contribution",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "generatedAt": "2026-10-03T14:26:04.548Z",
+      "rows": [
+        {
+          "id": "CONTRIBUTE_4_CHOICES_FIRST_VIEWPORT",
+          "kind": "structure",
+          "target": "visibleInViewport>=4",
+          "actual": 5,
+          "result": "PASS",
+          "detail": "visibleInViewport=5"
+        },
+        {
+          "id": "CONTRIBUTE_5_OPTIONS",
+          "kind": "structure",
+          "target": "min=5",
+          "actual": 5,
+          "result": "PASS",
+          "detail": "count=5"
+        },
+        {
+          "id": "CONTRIBUTE_FIRST_SCREEN",
+          "kind": "element",
+          "target": {
+            "min": 1
+          },
+          "actual": 1,
+          "result": "PASS",
+          "detail": "target=1..- actual=1 raw=\"\""
+        },
+        {
+          "id": "CONTRIBUTE_LOCATION_COPY_CORRECT",
+          "kind": "structure",
+          "target": "forbidden=ADR-,GPS 轨迹（,位置信息仅用于核验场所，不保存连续位置轨迹",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "CONTRIBUTE_NEEDS_PLACE_GUARD",
+          "kind": "structure",
+          "target": "min=1",
+          "actual": 1,
+          "result": "PASS",
+          "detail": "count=1"
+        },
+        {
+          "id": "CONTRIBUTE_NEEDS_PLACE_HIDES_QUERY",
+          "kind": "structure",
+          "target": "max=0",
+          "actual": 0,
+          "result": "PASS",
+          "detail": "count=0"
+        },
+        {
+          "id": "CONTRIBUTE_OPTION_LABELS",
+          "kind": "structure",
+          "target": "must=我看到了新的规则,我在现场看到动物,工作人员进行了处理,我发现了相关设施,场所信息有误",
+          "actual": [],
+          "result": "PASS",
+          "detail": "missing="
+        },
+        {
+          "id": "CONTRIBUTE_QUESTION_TEXT",
+          "kind": "structure",
+          "target": "must=你刚刚知道了什么",
+          "actual": [],
+          "result": "PASS",
+          "detail": "missing="
+        },
+        {
+          "id": "contribute-entry-ALLCAPS",
+          "kind": "language",
+          "target": "allcaps=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "contribute-entry-COMP-choice-count",
+          "kind": "state",
+          "target": "count>=5",
+          "actual": 5,
+          "result": "PASS",
+          "detail": "selector=choice-count count=5"
+        },
+        {
+          "id": "contribute-entry-ENUM",
+          "kind": "language",
+          "target": "enum=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "contribute-entry-FIXTURE",
+          "kind": "state",
+          "target": "fixture",
+          "actual": "contribution-choose-type-v1",
+          "result": "PASS",
+          "detail": "expected=contribution-choose-type-v1 actual=contribution-choose-type-v1 route=#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e"
+        },
+        {
+          "id": "contribute-entry-H1",
+          "kind": "state",
+          "target": "h1",
+          "actual": "你刚刚知道了什么？",
+          "result": "PASS",
+          "detail": "expected=你刚刚知道了什么？ actual=你刚刚知道了什么？ route=#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e"
+        },
+        {
+          "id": "contribute-entry-INVARIANT",
+          "kind": "language",
+          "target": "invariant=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "contribute-entry-PAGE",
+          "kind": "state",
+          "target": "page",
+          "actual": "contribution",
+          "result": "PASS",
+          "detail": "expected=contribution actual=contribution route=#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e"
+        },
+        {
+          "id": "contribute-entry-REFS",
+          "kind": "language",
+          "target": "refs=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "contribute-entry-STATE",
+          "kind": "state",
+          "target": "state",
+          "actual": "choose-type",
+          "result": "PASS",
+          "detail": "expected=choose-type actual=choose-type route=#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e"
+        },
+        {
+          "id": "contribute-entry-UUID",
+          "kind": "language",
+          "target": "uuid=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "contribute-needs-place-ALLCAPS",
+          "kind": "language",
+          "target": "allcaps=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "contribute-needs-place-ENUM",
+          "kind": "language",
+          "target": "enum=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "contribute-needs-place-FIXTURE",
+          "kind": "state",
+          "target": "fixture",
+          "actual": "contribution-needs-place-v1",
+          "result": "PASS",
+          "detail": "expected=contribution-needs-place-v1 actual=contribution-needs-place-v1 route=#/contribute"
+        },
+        {
+          "id": "contribute-needs-place-H1",
+          "kind": "state",
+          "target": "h1",
+          "actual": "现场贡献",
+          "result": "PASS",
+          "detail": "expected=现场贡献 actual=现场贡献 route=#/contribute"
+        },
+        {
+          "id": "contribute-needs-place-INVARIANT",
+          "kind": "language",
+          "target": "invariant=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "contribute-needs-place-PAGE",
+          "kind": "state",
+          "target": "page",
+          "actual": "contribution",
+          "result": "PASS",
+          "detail": "expected=contribution actual=contribution route=#/contribute"
+        },
+        {
+          "id": "contribute-needs-place-REFS",
+          "kind": "language",
+          "target": "refs=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "contribute-needs-place-STATE",
+          "kind": "state",
+          "target": "state",
+          "actual": "needs-place",
+          "result": "PASS",
+          "detail": "expected=needs-place actual=needs-place route=#/contribute"
+        },
+        {
+          "id": "contribute-needs-place-UUID",
+          "kind": "language",
+          "target": "uuid=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "contribute-step-1-ALLCAPS",
+          "kind": "language",
+          "target": "allcaps=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "contribute-step-1-ENUM",
+          "kind": "language",
+          "target": "enum=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "contribute-step-1-FIXTURE",
+          "kind": "state",
+          "target": "fixture",
+          "actual": "contribution-step-1-v1",
+          "result": "PASS",
+          "detail": "expected=contribution-step-1-v1 actual=contribution-step-1-v1 route=#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e"
+        },
+        {
+          "id": "contribute-step-1-H1",
+          "kind": "state",
+          "target": "h1",
+          "actual": "现场贡献",
+          "result": "PASS",
+          "detail": "expected=现场贡献 actual=现场贡献 route=#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e"
+        },
+        {
+          "id": "contribute-step-1-INVARIANT",
+          "kind": "language",
+          "target": "invariant=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "contribute-step-1-PAGE",
+          "kind": "state",
+          "target": "page",
+          "actual": "contribution",
+          "result": "PASS",
+          "detail": "expected=contribution actual=contribution route=#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e"
+        },
+        {
+          "id": "contribute-step-1-REFS",
+          "kind": "language",
+          "target": "refs=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "contribute-step-1-STATE",
+          "kind": "state",
+          "target": "state",
+          "actual": "step-1",
+          "result": "PASS",
+          "detail": "expected=step-1 actual=step-1 route=#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e"
+        },
+        {
+          "id": "contribute-step-1-UUID",
+          "kind": "language",
+          "target": "uuid=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "contribute-step-2-ALLCAPS",
+          "kind": "language",
+          "target": "allcaps=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "contribute-step-2-ENUM",
+          "kind": "language",
+          "target": "enum=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "contribute-step-2-FIXTURE",
+          "kind": "state",
+          "target": "fixture",
+          "actual": "contribution-step-2-v1",
+          "result": "PASS",
+          "detail": "expected=contribution-step-2-v1 actual=contribution-step-2-v1 route=#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e"
+        },
+        {
+          "id": "contribute-step-2-H1",
+          "kind": "state",
+          "target": "h1",
+          "actual": "现场贡献",
+          "result": "PASS",
+          "detail": "expected=现场贡献 actual=现场贡献 route=#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e"
+        },
+        {
+          "id": "contribute-step-2-INVARIANT",
+          "kind": "language",
+          "target": "invariant=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "contribute-step-2-PAGE",
+          "kind": "state",
+          "target": "page",
+          "actual": "contribution",
+          "result": "PASS",
+          "detail": "expected=contribution actual=contribution route=#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e"
+        },
+        {
+          "id": "contribute-step-2-REFS",
+          "kind": "language",
+          "target": "refs=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "contribute-step-2-STATE",
+          "kind": "state",
+          "target": "state",
+          "actual": "step-2",
+          "result": "PASS",
+          "detail": "expected=step-2 actual=step-2 route=#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e"
+        },
+        {
+          "id": "contribute-step-2-UUID",
+          "kind": "language",
+          "target": "uuid=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "CONTRIBUTION_CONTEXT_NO_HORIZONTAL_OVERFLOW",
+          "kind": "element",
+          "target": {
+            "equals": 0
+          },
+          "actual": 0,
+          "result": "PASS",
+          "detail": "target=-..- ==0 actual=0 raw=\"\""
+        },
+        {
+          "id": "CONTRIBUTION_CONTEXT_VISIBLE",
+          "kind": "element",
+          "target": {
+            "min": 1
+          },
+          "actual": 1,
+          "result": "PASS",
+          "detail": "target=1..- actual=1 raw=\"\""
+        },
+        {
+          "id": "CONTRIBUTION_DESKTOP_WORKSPACE_BALANCE",
+          "kind": "composition",
+          "target": {
+            "min": 0.55,
+            "max": 0.8
+          },
+          "actual": 0.64,
+          "result": "PASS",
+          "detail": "actual=0.64 metric=inspectorOccupancy"
+        },
+        {
+          "id": "CONTRIBUTION_FIELD_GROUP_RHYTHM",
+          "kind": "density",
+          "target": {
+            "min": 16,
+            "max": 40
+          },
+          "actual": 24,
+          "result": "PASS",
+          "detail": "actual=24 metric=largestVerticalGap"
+        },
+        {
+          "id": "CONTRIBUTION_MAIN_COLUMN_BOUNDED",
+          "kind": "element",
+          "target": {
+            "min": 620,
+            "max": 760
+          },
+          "actual": 664,
+          "result": "PASS",
+          "detail": "target=620..760 actual=664 raw=664"
+        },
+        {
+          "id": "CONTRIBUTION_MAIN_NO_HORIZONTAL_OVERFLOW",
+          "kind": "element",
+          "target": {
+            "equals": 0
+          },
+          "actual": 0,
+          "result": "PASS",
+          "detail": "target=-..- ==0 actual=0 raw=\"\""
+        },
+        {
+          "id": "CONTRIBUTION_OPTION_ROWS_NOT_PILLS",
+          "kind": "structure",
+          "target": "min=3",
+          "actual": 3,
+          "result": "PASS",
+          "detail": "count=3"
+        },
+        {
+          "id": "CONTRIBUTION_STEP_CONTEXT_PRESENT",
+          "kind": "structure",
+          "target": "min=4",
+          "actual": 4,
+          "result": "PASS",
+          "detail": "count=4"
+        },
+        {
+          "id": "CONTRIBUTION_WORKSPACE_NO_HORIZONTAL_OVERFLOW",
+          "kind": "element",
+          "target": {
+            "equals": 0
+          },
+          "actual": 0,
+          "result": "PASS",
+          "detail": "target=-..- ==0 actual=0 raw=\"\""
+        },
+        {
+          "id": "PRIMARY_CONTENT_DOMINATES_METADATA",
+          "kind": "hierarchy",
+          "target": "ratio>=1.4",
+          "actual": 1.54,
+          "result": "PASS",
+          "detail": "ratio=1.54 a=20px b=13px"
+        }
+      ],
+      "summary": {
+        "PASS": 55,
+        "WARN": 0,
+        "FAIL": 0
+      }
+    },
+    {
+      "contractId": "evidence",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "generatedAt": "2026-10-03T14:26:04.558Z",
+      "rows": [
+        {
+          "id": "EVIDENCE_DISCLAIMER",
+          "kind": "structure",
+          "target": "must=现场事实不代表正式准入规则",
+          "actual": [],
+          "result": "PASS",
+          "detail": "missing="
+        },
+        {
+          "id": "EVIDENCE_ITEMS",
+          "kind": "element",
+          "target": {
+            "min": 1
+          },
+          "actual": 1,
+          "result": "PASS",
+          "detail": "target=1..- actual=1 raw=\"\""
+        },
+        {
+          "id": "EVIDENCE_MARKER_COL",
+          "kind": "element",
+          "target": {
+            "startsWith": "24px"
+          },
+          "actual": "24px 752px",
+          "result": "PASS",
+          "detail": "target=-..- startsWith=24px actual=24px 752px raw=\"24px 752px\""
+        },
+        {
+          "id": "EVIDENCE_MARKER_X_CONSISTENT",
+          "kind": "structure",
+          "target": "xConsistent<=1",
+          "actual": 0,
+          "result": "PASS",
+          "detail": "xSpread=0"
+        },
+        {
+          "id": "EVIDENCE_MAX_WIDTH",
+          "kind": "element",
+          "target": {
+            "min": 780,
+            "max": 824
+          },
+          "actual": 820,
+          "result": "PASS",
+          "detail": "target=780..824 actual=820 raw=820"
+        },
+        {
+          "id": "EVIDENCE_NO_UUID_TEXT",
+          "kind": "structure",
+          "target": "uuid=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "uuidHits="
+        },
+        {
+          "id": "EVIDENCE_PROV_STEP_GAP",
+          "kind": "density",
+          "target": {
+            "min": 28,
+            "max": 36
+          },
+          "actual": 32,
+          "result": "PASS",
+          "detail": "actual=32 metric=largestVerticalGap"
+        },
+        {
+          "id": "EVIDENCE_PROVENANCE",
+          "kind": "element",
+          "target": {
+            "min": 1
+          },
+          "actual": 1,
+          "result": "PASS",
+          "detail": "target=1..- actual=1 raw=\"\""
+        },
+        {
+          "id": "EVIDENCE_PROVENANCE_3_STEPS_VISIBLE",
+          "kind": "structure",
+          "target": "visibleInViewport>=3",
+          "actual": 5,
+          "result": "PASS",
+          "detail": "visibleInViewport=5"
+        },
+        {
+          "id": "EVIDENCE_PROVENANCE_5_STEPS",
+          "kind": "structure",
+          "target": "min=5",
+          "actual": 5,
+          "result": "PASS",
+          "detail": "count=5"
+        },
+        {
+          "id": "EVIDENCE_PROVENANCE_STEP_LABELS",
+          "kind": "structure",
+          "target": "must=原始证据,地点匹配,时间确认,来源确认,人工核验",
+          "actual": [],
+          "result": "PASS",
+          "detail": "missing="
+        },
+        {
+          "id": "EVIDENCE_QUERY_CONTEXT",
+          "kind": "element",
+          "target": {
+            "min": 1
+          },
+          "actual": 1,
+          "result": "PASS",
+          "detail": "target=1..- actual=1 raw=\"\""
+        },
+        {
+          "id": "EVIDENCE_RAIL_CONTINUOUS",
+          "kind": "element",
+          "target": {
+            "min": 140
+          },
+          "actual": 316,
+          "result": "PASS",
+          "detail": "target=140..- actual=316 raw=316"
+        },
+        {
+          "id": "EVIDENCE_RAIL_WIDTH",
+          "kind": "element",
+          "target": {
+            "equals": 2
+          },
+          "actual": 2,
+          "result": "PASS",
+          "detail": "target=-..- ==2 actual=2 raw=2"
+        },
+        {
+          "id": "EVIDENCE_RECORD_IDENTITY_VISIBLE",
+          "kind": "structure",
+          "target": "visibleInViewport>=1",
+          "actual": 1,
+          "result": "PASS",
+          "detail": "visibleInViewport=1"
+        },
+        {
+          "id": "EVIDENCE_SOURCES",
+          "kind": "element",
+          "target": {
+            "min": 1
+          },
+          "actual": 1,
+          "result": "PASS",
+          "detail": "target=1..- actual=1 raw=\"\""
+        },
+        {
+          "id": "EVIDENCE_TIMES_SEPARATED",
+          "kind": "structure",
+          "target": "surfaceRows=3-undefined",
+          "actual": 6,
+          "result": "PASS",
+          "detail": "surfaceRows=6"
+        },
+        {
+          "id": "evidence-empty-ALLCAPS",
+          "kind": "language",
+          "target": "allcaps=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "evidence-empty-ENUM",
+          "kind": "language",
+          "target": "enum=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "evidence-empty-FIXTURE",
+          "kind": "state",
+          "target": "fixture",
+          "actual": "evidence-empty-v1",
+          "result": "PASS",
+          "detail": "expected=evidence-empty-v1 actual=evidence-empty-v1 route=#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e/evidence"
+        },
+        {
+          "id": "evidence-empty-H1",
+          "kind": "state",
+          "target": "h1",
+          "actual": "证据与来源",
+          "result": "PASS",
+          "detail": "expected=证据与来源 actual=证据与来源 route=#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e/evidence"
+        },
+        {
+          "id": "evidence-empty-INVARIANT",
+          "kind": "language",
+          "target": "invariant=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "evidence-empty-PAGE",
+          "kind": "state",
+          "target": "page",
+          "actual": "evidence",
+          "result": "PASS",
+          "detail": "expected=evidence actual=evidence route=#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e/evidence"
+        },
+        {
+          "id": "evidence-empty-REFS",
+          "kind": "language",
+          "target": "refs=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "evidence-empty-STATE",
+          "kind": "state",
+          "target": "state",
+          "actual": "empty",
+          "result": "PASS",
+          "detail": "expected=empty actual=empty route=#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e/evidence"
+        },
+        {
+          "id": "evidence-empty-UUID",
+          "kind": "language",
+          "target": "uuid=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "evidence-records-ALLCAPS",
+          "kind": "language",
+          "target": "allcaps=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "evidence-records-ENUM",
+          "kind": "language",
+          "target": "enum=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "evidence-records-FIXTURE",
+          "kind": "state",
+          "target": "fixture",
+          "actual": "evidence-records-v1",
+          "result": "PASS",
+          "detail": "expected=evidence-records-v1 actual=evidence-records-v1 route=#/place/8412b521-5e1c-505d-9dec-568acb860c76/evidence"
+        },
+        {
+          "id": "evidence-records-H1",
+          "kind": "state",
+          "target": "h1",
+          "actual": "证据与来源",
+          "result": "PASS",
+          "detail": "expected=证据与来源 actual=证据与来源 route=#/place/8412b521-5e1c-505d-9dec-568acb860c76/evidence"
+        },
+        {
+          "id": "evidence-records-INVARIANT",
+          "kind": "language",
+          "target": "invariant=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "evidence-records-PAGE",
+          "kind": "state",
+          "target": "page",
+          "actual": "evidence",
+          "result": "PASS",
+          "detail": "expected=evidence actual=evidence route=#/place/8412b521-5e1c-505d-9dec-568acb860c76/evidence"
+        },
+        {
+          "id": "evidence-records-REFS",
+          "kind": "language",
+          "target": "refs=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "evidence-records-STATE",
+          "kind": "state",
+          "target": "state",
+          "actual": "ready",
+          "result": "PASS",
+          "detail": "expected=ready actual=ready route=#/place/8412b521-5e1c-505d-9dec-568acb860c76/evidence"
+        },
+        {
+          "id": "evidence-records-UUID",
+          "kind": "language",
+          "target": "uuid=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        }
+      ],
+      "summary": {
+        "PASS": 35,
+        "WARN": 0,
+        "FAIL": 0
+      }
+    },
+    {
+      "contractId": "global",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "generatedAt": "2026-10-03T14:26:04.561Z",
+      "rows": [
+        {
+          "id": "APP_RAIL_WIDTH",
+          "kind": "element",
+          "target": {
+            "min": 64,
+            "max": 72
+          },
+          "actual": 68,
+          "result": "PASS",
+          "detail": "target=64..72 actual=68 raw=68"
+        },
+        {
+          "id": "contribute-ALLCAPS",
+          "kind": "language",
+          "target": "allcaps=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "contribute-ENUM",
+          "kind": "language",
+          "target": "enum=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "contribute-INVARIANT",
+          "kind": "language",
+          "target": "invariant=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "contribute-UUID",
+          "kind": "language",
+          "target": "uuid=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "DESKTOP_RAIL_NO_HORIZONTAL_OVERFLOW",
+          "kind": "element",
+          "target": {
+            "equals": 0
+          },
+          "actual": 0,
+          "result": "PASS",
+          "detail": "target=-..- ==0 actual=0 raw=\"\""
+        },
+        {
+          "id": "evidence-ALLCAPS",
+          "kind": "language",
+          "target": "allcaps=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "evidence-ENUM",
+          "kind": "language",
+          "target": "enum=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "evidence-INVARIANT",
+          "kind": "language",
+          "target": "invariant=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "evidence-UUID",
+          "kind": "language",
+          "target": "uuid=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "home-ALLCAPS",
+          "kind": "language",
+          "target": "allcaps=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "home-ENUM",
+          "kind": "language",
+          "target": "enum=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "home-INVARIANT",
+          "kind": "language",
+          "target": "invariant=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "home-UUID",
+          "kind": "language",
+          "target": "uuid=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "map-ALLCAPS",
+          "kind": "language",
+          "target": "allcaps=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "map-ENUM",
+          "kind": "language",
+          "target": "enum=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "map-INVARIANT",
+          "kind": "language",
+          "target": "invariant=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "map-UUID",
+          "kind": "language",
+          "target": "uuid=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "NO_GLOBAL_HORIZONTAL_OVERFLOW",
+          "kind": "density",
+          "target": {
+            "max": 1
+          },
+          "actual": 0,
+          "result": "PASS",
+          "detail": "actual=0 metric=horizontalOverflow"
+        },
+        {
+          "id": "place-ALLCAPS",
+          "kind": "language",
+          "target": "allcaps=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "place-ENUM",
+          "kind": "language",
+          "target": "enum=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "place-INVARIANT",
+          "kind": "language",
+          "target": "invariant=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "place-UUID",
+          "kind": "language",
+          "target": "uuid=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "RAIL_HAS_ARIA_LABEL",
+          "kind": "element",
+          "target": {
+            "min": 1
+          },
+          "actual": 1,
+          "result": "PASS",
+          "detail": "target=1..- actual=1 raw=\"\""
+        },
+        {
+          "id": "reality-ALLCAPS",
+          "kind": "language",
+          "target": "allcaps=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "reality-ENUM",
+          "kind": "language",
+          "target": "enum=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "reality-INVARIANT",
+          "kind": "language",
+          "target": "invariant=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "reality-UUID",
+          "kind": "language",
+          "target": "uuid=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "search-ALLCAPS",
+          "kind": "language",
+          "target": "allcaps=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "search-ENUM",
+          "kind": "language",
+          "target": "enum=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "search-INVARIANT",
+          "kind": "language",
+          "target": "invariant=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "search-UUID",
+          "kind": "language",
+          "target": "uuid=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "SINGLE_H1",
+          "kind": "element",
+          "target": {
+            "min": 1,
+            "max": 1
+          },
+          "actual": 1,
+          "result": "PASS",
+          "detail": "target=1..1 actual=1 raw=\"\""
+        }
+      ],
+      "summary": {
+        "PASS": 33,
+        "WARN": 0,
+        "FAIL": 0
+      }
+    },
+    {
+      "contractId": "home",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "generatedAt": "2026-10-03T14:26:04.562Z",
+      "rows": [
+        {
+          "id": "HOME_LENS_IS_LINK_ROWS",
+          "kind": "structure",
+          "target": "arrows>=1",
+          "actual": 1,
+          "result": "PASS",
+          "detail": "hasArrows=true"
+        },
+        {
+          "id": "HOME_MAX_SEMANTIC_GAP",
+          "kind": "density",
+          "target": {
+            "max": 180
+          },
+          "actual": 24,
+          "result": "PASS",
+          "detail": "actual=24 metric=largestVerticalGap"
+        },
+        {
+          "id": "HOME_MAX_WIDTH_960",
+          "kind": "element",
+          "target": {
+            "max": 960
+          },
+          "actual": 960,
+          "result": "PASS",
+          "detail": "target=-..960 actual=960 raw=960"
+        },
+        {
+          "id": "HOME_NEARBY_SECTION",
+          "kind": "element",
+          "target": {
+            "min": 1
+          },
+          "actual": 1,
+          "result": "PASS",
+          "detail": "target=1..- actual=1 raw=\"\""
+        },
+        {
+          "id": "HOME_NO_FEATURE_CARD_WALL",
+          "kind": "structure",
+          "target": "max=0",
+          "actual": 0,
+          "result": "PASS",
+          "detail": "count=0"
+        },
+        {
+          "id": "HOME_NO_PERSPECTIVE_TRIO",
+          "kind": "structure",
+          "target": "max=0",
+          "actual": 0,
+          "result": "PASS",
+          "detail": "count=0"
+        },
+        {
+          "id": "HOME_PRIMARY_SEARCH",
+          "kind": "element",
+          "target": {
+            "min": 1
+          },
+          "actual": 1,
+          "result": "PASS",
+          "detail": "target=1..- actual=1 raw=\"\""
+        },
+        {
+          "id": "HOME_QUERY_CONTEXT",
+          "kind": "element",
+          "target": {
+            "min": 1
+          },
+          "actual": 1,
+          "result": "PASS",
+          "detail": "target=1..- actual=1 raw=\"\""
+        },
+        {
+          "id": "HOME_SEARCH_INPUT_HEIGHT",
+          "kind": "element",
+          "target": {
+            "min": 44
+          },
+          "actual": 44,
+          "result": "PASS",
+          "detail": "target=44..- actual=44 raw=44"
+        },
+        {
+          "id": "home-ready-ALLCAPS",
+          "kind": "language",
+          "target": "allcaps=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "home-ready-ENUM",
+          "kind": "language",
+          "target": "enum=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "home-ready-FIXTURE",
+          "kind": "state",
+          "target": "fixture",
+          "actual": "home-ready-v1",
+          "result": "PASS",
+          "detail": "expected=home-ready-v1 actual=home-ready-v1 route=#/"
+        },
+        {
+          "id": "home-ready-H1",
+          "kind": "state",
+          "target": "h1",
+          "actual": "去之前，先看看这里的规则和现场。",
+          "result": "PASS",
+          "detail": "expected=去之前，先看看这里的规则和现场。 actual=去之前，先看看这里的规则和现场。 route=#/"
+        },
+        {
+          "id": "home-ready-INVARIANT",
+          "kind": "language",
+          "target": "invariant=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "home-ready-PAGE",
+          "kind": "state",
+          "target": "page",
+          "actual": "home",
+          "result": "PASS",
+          "detail": "expected=home actual=home route=#/"
+        },
+        {
+          "id": "home-ready-REFS",
+          "kind": "language",
+          "target": "refs=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "home-ready-STATE",
+          "kind": "state",
+          "target": "state",
+          "actual": "ready",
+          "result": "PASS",
+          "detail": "expected=ready actual=ready route=#/"
+        },
+        {
+          "id": "home-ready-UUID",
+          "kind": "language",
+          "target": "uuid=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        }
+      ],
+      "summary": {
+        "PASS": 18,
+        "WARN": 0,
+        "FAIL": 0
+      }
+    },
+    {
+      "contractId": "map",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "generatedAt": "2026-10-03T14:26:04.564Z",
+      "rows": [
+        {
+          "id": "MAP_CANVAS_OCCUPANCY",
+          "kind": "element",
+          "target": {
+            "min": 700
+          },
+          "actual": 948,
+          "result": "PASS",
+          "detail": "target=700..- actual=948 raw=948"
+        },
+        {
+          "id": "MAP_CANVAS_PRESENT",
+          "kind": "element",
+          "target": {
+            "min": 1
+          },
+          "actual": 1,
+          "result": "PASS",
+          "detail": "target=1..- actual=1 raw=\"\""
+        },
+        {
+          "id": "MAP_FILTER_TOGGLE",
+          "kind": "element",
+          "target": {
+            "min": 1
+          },
+          "actual": 1,
+          "result": "PASS",
+          "detail": "target=1..- actual=1 raw=\"\""
+        },
+        {
+          "id": "MAP_MOCK_BLOCK_POLYGONS",
+          "kind": "structure",
+          "target": "min=2",
+          "actual": 6,
+          "result": "PASS",
+          "detail": "count=6"
+        },
+        {
+          "id": "MAP_MOCK_MARKERS",
+          "kind": "structure",
+          "target": "min=4",
+          "actual": 5,
+          "result": "PASS",
+          "detail": "count=5"
+        },
+        {
+          "id": "MAP_MOCK_ROAD_LINES",
+          "kind": "structure",
+          "target": "min=3",
+          "actual": 10,
+          "result": "PASS",
+          "detail": "count=10"
+        },
+        {
+          "id": "MAP_MOCK_SELECTED_MARKER",
+          "kind": "structure",
+          "target": "min=1",
+          "actual": 2,
+          "result": "PASS",
+          "detail": "count=2"
+        },
+        {
+          "id": "MAP_MOCK_ZOOM_AFFORDANCE",
+          "kind": "structure",
+          "target": "min=1",
+          "actual": 1,
+          "result": "PASS",
+          "detail": "count=1"
+        },
+        {
+          "id": "MAP_NO_FILTER_PILL_WALL",
+          "kind": "structure",
+          "target": "max=0",
+          "actual": 0,
+          "result": "PASS",
+          "detail": "count=0"
+        },
+        {
+          "id": "MAP_PREVIEW_FOCUSED",
+          "kind": "element",
+          "target": {
+            "min": 1
+          },
+          "actual": 1,
+          "result": "PASS",
+          "detail": "target=1..- actual=1 raw=\"\""
+        },
+        {
+          "id": "MAP_RESULT_PANE_WIDTH",
+          "kind": "element",
+          "target": {
+            "min": 360,
+            "max": 420
+          },
+          "actual": 400,
+          "result": "PASS",
+          "detail": "target=360..420 actual=400 raw=400"
+        },
+        {
+          "id": "MAP_RESULT_ROWS_NOT_CARDS",
+          "kind": "structure",
+          "target": "forbiddenClass=card,panel",
+          "actual": [],
+          "result": "PASS",
+          "detail": "classes=map-place-row | map-place-row | map-place-row"
+        },
+        {
+          "id": "MAP_SELECTED_HIERARCHY",
+          "kind": "element",
+          "target": {
+            "min": 14,
+            "max": 40
+          },
+          "actual": 22.62744140625,
+          "result": "PASS",
+          "detail": "target=14..40 actual=22.62744140625 raw=22.62744140625"
+        },
+        {
+          "id": "map-ready-ALLCAPS",
+          "kind": "language",
+          "target": "allcaps=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "map-ready-ENUM",
+          "kind": "language",
+          "target": "enum=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "map-ready-FIXTURE",
+          "kind": "state",
+          "target": "fixture",
+          "actual": "map-ready-v1",
+          "result": "PASS",
+          "detail": "expected=map-ready-v1 actual=map-ready-v1 route=#/map"
+        },
+        {
+          "id": "map-ready-H1",
+          "kind": "state",
+          "target": "h1",
+          "actual": "规则地图",
+          "result": "PASS",
+          "detail": "expected=规则地图 actual=规则地图 route=#/map"
+        },
+        {
+          "id": "map-ready-INVARIANT",
+          "kind": "language",
+          "target": "invariant=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "map-ready-PAGE",
+          "kind": "state",
+          "target": "page",
+          "actual": "map",
+          "result": "PASS",
+          "detail": "expected=map actual=map route=#/map"
+        },
+        {
+          "id": "map-ready-REFS",
+          "kind": "language",
+          "target": "refs=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "map-ready-STATE",
+          "kind": "state",
+          "target": "state",
+          "actual": "ready",
+          "result": "PASS",
+          "detail": "expected=ready actual=ready route=#/map"
+        },
+        {
+          "id": "map-ready-UUID",
+          "kind": "language",
+          "target": "uuid=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        }
+      ],
+      "summary": {
+        "PASS": 22,
+        "WARN": 0,
+        "FAIL": 0
+      }
+    },
+    {
+      "contractId": "map.mobile",
+      "viewport": {
+        "width": 430,
+        "height": 932
+      },
+      "generatedAt": "2026-10-03T14:26:04.566Z",
+      "rows": [
+        {
+          "id": "MAP_EXPANDED_NO_FAKE_FILLER",
+          "kind": "structure",
+          "target": "max=0",
+          "actual": 0,
+          "result": "PASS",
+          "detail": "count=0"
+        },
+        {
+          "id": "MAP_EXPANDED_REAL_BLOCKS",
+          "kind": "composition",
+          "target": {
+            "min": 3,
+            "max": 6
+          },
+          "actual": 5,
+          "result": "PASS",
+          "detail": "actual=5 metric=semanticBlockCount"
+        },
+        {
+          "id": "MAP_MOBILE_SHEET_ABOVE_TABBAR",
+          "kind": "element",
+          "target": {
+            "min": 300,
+            "max": 700
+          },
+          "actual": 552,
+          "result": "PASS",
+          "detail": "target=300..700 actual=552 raw=\"\""
+        },
+        {
+          "id": "MAP_MOBILE_SHEET_CONTENT_DENSITY",
+          "kind": "density",
+          "target": {
+            "min": 8,
+            "max": 48
+          },
+          "actual": 16,
+          "result": "PASS",
+          "detail": "actual=16 metric=largestVerticalGap"
+        },
+        {
+          "id": "MAP_MOBILE_SHEET_EXPANDED_HEIGHT",
+          "kind": "element",
+          "target": {
+            "min": 480
+          },
+          "actual": 680,
+          "result": "PASS",
+          "detail": "target=480..- actual=680 raw=680"
+        },
+        {
+          "id": "MAP_MOBILE_SHEET_NO_OUTLINE_STATUS",
+          "kind": "structure",
+          "target": "max=0",
+          "actual": 0,
+          "result": "PASS",
+          "detail": "count=0"
+        },
+        {
+          "id": "MAP_MOBILE_SHEET_OVERLAY",
+          "kind": "element",
+          "target": {
+            "min": 1
+          },
+          "actual": 1,
+          "result": "PASS",
+          "detail": "target=1..- actual=1 raw=\"\""
+        },
+        {
+          "id": "MAP_MOBILE_TOGGLE_SEGMENTED",
+          "kind": "element",
+          "target": {
+            "min": 2
+          },
+          "actual": 2,
+          "result": "PASS",
+          "detail": "target=2..- actual=2 raw=\"\""
+        },
+        {
+          "id": "map-mobile-expanded-ALLCAPS",
+          "kind": "language",
+          "target": "allcaps=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "map-mobile-expanded-ENUM",
+          "kind": "language",
+          "target": "enum=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "map-mobile-expanded-FIXTURE",
+          "kind": "state",
+          "target": "fixture",
+          "actual": "map-ready-v1",
+          "result": "PASS",
+          "detail": "expected=map-ready-v1 actual=map-ready-v1 route=#/map?place=8412b521-5e1c-505d-9dec-568acb860c76"
+        },
+        {
+          "id": "map-mobile-expanded-H1",
+          "kind": "state",
+          "target": "h1",
+          "actual": "规则地图",
+          "result": "PASS",
+          "detail": "expected=规则地图 actual=规则地图 route=#/map?place=8412b521-5e1c-505d-9dec-568acb860c76"
+        },
+        {
+          "id": "map-mobile-expanded-INVARIANT",
+          "kind": "language",
+          "target": "invariant=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "map-mobile-expanded-PAGE",
+          "kind": "state",
+          "target": "page",
+          "actual": "map",
+          "result": "PASS",
+          "detail": "expected=map actual=map route=#/map?place=8412b521-5e1c-505d-9dec-568acb860c76"
+        },
+        {
+          "id": "map-mobile-expanded-REFS",
+          "kind": "language",
+          "target": "refs=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "map-mobile-expanded-STATE",
+          "kind": "state",
+          "target": "state",
+          "actual": "ready",
+          "result": "PASS",
+          "detail": "expected=ready actual=ready route=#/map?place=8412b521-5e1c-505d-9dec-568acb860c76"
+        },
+        {
+          "id": "map-mobile-expanded-UUID",
+          "kind": "language",
+          "target": "uuid=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "map-mobile-ready-ALLCAPS",
+          "kind": "language",
+          "target": "allcaps=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "map-mobile-ready-ENUM",
+          "kind": "language",
+          "target": "enum=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "map-mobile-ready-FIXTURE",
+          "kind": "state",
+          "target": "fixture",
+          "actual": "map-ready-v1",
+          "result": "PASS",
+          "detail": "expected=map-ready-v1 actual=map-ready-v1 route=#/map"
+        },
+        {
+          "id": "map-mobile-ready-H1",
+          "kind": "state",
+          "target": "h1",
+          "actual": "规则地图",
+          "result": "PASS",
+          "detail": "expected=规则地图 actual=规则地图 route=#/map"
+        },
+        {
+          "id": "map-mobile-ready-INVARIANT",
+          "kind": "language",
+          "target": "invariant=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "map-mobile-ready-PAGE",
+          "kind": "state",
+          "target": "page",
+          "actual": "map",
+          "result": "PASS",
+          "detail": "expected=map actual=map route=#/map"
+        },
+        {
+          "id": "map-mobile-ready-REFS",
+          "kind": "language",
+          "target": "refs=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "map-mobile-ready-STATE",
+          "kind": "state",
+          "target": "state",
+          "actual": "ready",
+          "result": "PASS",
+          "detail": "expected=ready actual=ready route=#/map"
+        },
+        {
+          "id": "map-mobile-ready-UUID",
+          "kind": "language",
+          "target": "uuid=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "map-mobile-selected-half-ALLCAPS",
+          "kind": "language",
+          "target": "allcaps=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "map-mobile-selected-half-ENUM",
+          "kind": "language",
+          "target": "enum=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "map-mobile-selected-half-FIXTURE",
+          "kind": "state",
+          "target": "fixture",
+          "actual": "map-ready-v1",
+          "result": "PASS",
+          "detail": "expected=map-ready-v1 actual=map-ready-v1 route=#/map?place=8412b521-5e1c-505d-9dec-568acb860c76"
+        },
+        {
+          "id": "map-mobile-selected-half-H1",
+          "kind": "state",
+          "target": "h1",
+          "actual": "规则地图",
+          "result": "PASS",
+          "detail": "expected=规则地图 actual=规则地图 route=#/map?place=8412b521-5e1c-505d-9dec-568acb860c76"
+        },
+        {
+          "id": "map-mobile-selected-half-INVARIANT",
+          "kind": "language",
+          "target": "invariant=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "map-mobile-selected-half-PAGE",
+          "kind": "state",
+          "target": "page",
+          "actual": "map",
+          "result": "PASS",
+          "detail": "expected=map actual=map route=#/map?place=8412b521-5e1c-505d-9dec-568acb860c76"
+        },
+        {
+          "id": "map-mobile-selected-half-REFS",
+          "kind": "language",
+          "target": "refs=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "map-mobile-selected-half-STATE",
+          "kind": "state",
+          "target": "state",
+          "actual": "ready",
+          "result": "PASS",
+          "detail": "expected=ready actual=ready route=#/map?place=8412b521-5e1c-505d-9dec-568acb860c76"
+        },
+        {
+          "id": "map-mobile-selected-half-UUID",
+          "kind": "language",
+          "target": "uuid=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "PRIMARY_CONTENT_DOMINATES_METADATA",
+          "kind": "hierarchy",
+          "target": "ratio>=1.3",
+          "actual": 1.38,
+          "result": "PASS",
+          "detail": "ratio=1.38 a=18px b=13px"
+        },
+        {
+          "id": "STATUS_BADGE_NOT_PRIMARY",
+          "kind": "hierarchy",
+          "target": "ratio<=0.9",
+          "actual": 0.72,
+          "result": "PASS",
+          "detail": "ratio=0.72 a=13px b=18px"
+        }
+      ],
+      "summary": {
+        "PASS": 37,
+        "WARN": 0,
+        "FAIL": 0
+      }
+    },
+    {
+      "contractId": "place.desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "generatedAt": "2026-10-03T14:26:04.571Z",
+      "rows": [
+        {
+          "id": "PLACE_ACTIONS_MAX_TWO",
+          "kind": "element",
+          "target": {
+            "max": 2
+          },
+          "actual": 1,
+          "result": "PASS",
+          "detail": "target=-..2 actual=1 raw=\"\""
+        },
+        {
+          "id": "PLACE_DECISION_FONT_SIZE",
+          "kind": "element",
+          "target": {
+            "min": 27,
+            "max": 29
+          },
+          "actual": 28,
+          "result": "PASS",
+          "detail": "target=27..29 actual=28 raw=\"28px\""
+        },
+        {
+          "id": "PLACE_DECISION_TO_BODY",
+          "kind": "hierarchy",
+          "target": "ratio>=1.75",
+          "actual": 1.87,
+          "result": "PASS",
+          "detail": "ratio=1.87 a=28px b=15px"
+        },
+        {
+          "id": "PLACE_DESKTOP_FIRST_VIEWPORT_BLOCKS",
+          "kind": "budget",
+          "target": {
+            "min": 3
+          },
+          "actual": 8,
+          "result": "PASS",
+          "detail": "actual=8 metric=firstViewportBlocks"
+        },
+        {
+          "id": "PLACE_DESKTOP_FIRST_VIEWPORT_LINES",
+          "kind": "budget",
+          "target": {
+            "max": 60
+          },
+          "actual": 36,
+          "result": "PASS",
+          "detail": "actual=36 metric=firstViewportTextLines"
+        },
+        {
+          "id": "PLACE_HISTORY_COLLAPSED_MOBILE",
+          "kind": "structure",
+          "target": "min=1",
+          "actual": 1,
+          "result": "PASS",
+          "detail": "count=1"
+        },
+        {
+          "id": "PLACE_IDENTITY_NAME_SIZE",
+          "kind": "element",
+          "target": {
+            "min": 27,
+            "max": 29
+          },
+          "actual": 28,
+          "result": "PASS",
+          "detail": "target=27..29 actual=28 raw=\"28px\""
+        },
+        {
+          "id": "PLACE_IDENTITY_TO_BODY",
+          "kind": "hierarchy",
+          "target": "ratio>=1.6",
+          "actual": 1.87,
+          "result": "PASS",
+          "detail": "ratio=1.87 a=28px b=15px"
+        },
+        {
+          "id": "PLACE_INFO_BLOCKS",
+          "kind": "density",
+          "target": {
+            "min": 4
+          },
+          "actual": 10,
+          "result": "PASS",
+          "detail": "actual=10 metric=infoBlockCount"
+        },
+        {
+          "id": "PLACE_INSPECTOR_OCCUPANCY",
+          "kind": "composition",
+          "target": {
+            "min": 0.22
+          },
+          "actual": 0.23,
+          "result": "PASS",
+          "detail": "actual=0.23 metric=inspectorOccupancy"
+        },
+        {
+          "id": "PLACE_INSPECTOR_STICKY",
+          "kind": "element",
+          "target": {
+            "equals": "sticky"
+          },
+          "actual": "sticky",
+          "result": "PASS",
+          "detail": "target=-..- ==sticky actual=sticky raw=\"sticky\""
+        },
+        {
+          "id": "PLACE_INSPECTOR_WIDTH",
+          "kind": "element",
+          "target": {
+            "min": 320,
+            "max": 350
+          },
+          "actual": 320,
+          "result": "PASS",
+          "detail": "target=320..350 actual=320 raw=320"
+        },
+        {
+          "id": "PLACE_INSPECTOR_X",
+          "kind": "element",
+          "target": {
+            "min": 936,
+            "max": 1000
+          },
+          "actual": 952,
+          "result": "PASS",
+          "detail": "target=936..1000 actual=952 raw=\"\""
+        },
+        {
+          "id": "PLACE_MAIN_DOSSIER_PRESENT",
+          "kind": "element",
+          "target": {
+            "min": 1
+          },
+          "actual": 1,
+          "result": "PASS",
+          "detail": "target=1..- actual=1 raw=\"\""
+        },
+        {
+          "id": "PLACE_MAIN_DOSSIER_WIDTH",
+          "kind": "element",
+          "target": {
+            "min": 820,
+            "max": 860
+          },
+          "actual": 820,
+          "result": "PASS",
+          "detail": "target=820..860 actual=820 raw=820"
+        },
+        {
+          "id": "PLACE_MAIN_DOSSIER_X",
+          "kind": "element",
+          "target": {
+            "min": 92,
+            "max": 112
+          },
+          "actual": 100,
+          "result": "PASS",
+          "detail": "target=92..112 actual=100 raw=\"\""
+        },
+        {
+          "id": "PLACE_MAX_SEMANTIC_GAP",
+          "kind": "density",
+          "target": {
+            "max": 180
+          },
+          "actual": 24,
+          "result": "PASS",
+          "detail": "actual=24 metric=largestVerticalGap"
+        },
+        {
+          "id": "PLACE_NAV_PRESENT",
+          "kind": "element",
+          "target": {
+            "min": 1
+          },
+          "actual": 1,
+          "result": "PASS",
+          "detail": "target=1..- actual=1 raw=\"\""
+        },
+        {
+          "id": "PLACE_NO_ENGINEERING_INVARIANT_COPY",
+          "kind": "structure",
+          "target": "forbidden=≠,UNKNOWN,ALLOWED,PROHIBITED,CONDITIONAL,source_id,rule_id,zone_type",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "PLACE_NO_RAW_ZONE_ENUM",
+          "kind": "structure",
+          "target": "forbidden=1F,pet_area,dining_area,floor",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "PLACE_NO_STRAY_GLYPH",
+          "kind": "structure",
+          "target": "forbidden=>,<,:::,——",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "PLACE_OVERVIEW_FULLPAGE_HEIGHT",
+          "kind": "element",
+          "target": {
+            "max": 1500
+          },
+          "actual": 1126.25,
+          "result": "PASS",
+          "detail": "target=-..1500 actual=1126.25 raw=1126.25"
+        },
+        {
+          "id": "PLACE_RAIL_WIDTH",
+          "kind": "element",
+          "target": {
+            "min": 64,
+            "max": 72
+          },
+          "actual": 68,
+          "result": "PASS",
+          "detail": "target=64..72 actual=68 raw=68"
+        },
+        {
+          "id": "PLACE_RULE_GROUP_HAS_CONTEXT",
+          "kind": "structure",
+          "target": "min=1",
+          "actual": 10,
+          "result": "PASS",
+          "detail": "count=10"
+        },
+        {
+          "id": "PLACE_RULES_VIEW_HISTORY_COLLAPSED",
+          "kind": "structure",
+          "target": "collapsed-default",
+          "actual": 1,
+          "result": "PASS",
+          "detail": "collapsed=true"
+        },
+        {
+          "id": "PLACE_RULES_VIEW_PRESENT",
+          "kind": "element",
+          "target": {
+            "min": 1
+          },
+          "actual": 1,
+          "result": "PASS",
+          "detail": "target=1..- actual=1 raw=\"\""
+        },
+        {
+          "id": "PLACE_SECTION_GAP",
+          "kind": "element",
+          "target": {
+            "min": 24,
+            "max": 40
+          },
+          "actual": 24,
+          "result": "PASS",
+          "detail": "target=24..40 actual=24 raw=\"\""
+        },
+        {
+          "id": "PLACE_SECTION_NOT_CARD",
+          "kind": "structure",
+          "target": "forbiddenClass=card,panel",
+          "actual": [],
+          "result": "PASS",
+          "detail": "classes=place-section | place-section | place-section"
+        },
+        {
+          "id": "PLACE_SECTION_TITLE_SIZE",
+          "kind": "element",
+          "target": {
+            "min": 18,
+            "max": 19
+          },
+          "actual": 18,
+          "result": "PASS",
+          "detail": "target=18..19 actual=18 raw=\"18px\""
+        },
+        {
+          "id": "PLACE_SECTION_TO_BODY",
+          "kind": "hierarchy",
+          "target": "ratio>=1.15",
+          "actual": 1.2,
+          "result": "PASS",
+          "detail": "ratio=1.2 a=18px b=15px"
+        },
+        {
+          "id": "PLACE_STATUS_REPEAT",
+          "kind": "composition",
+          "target": {
+            "max": 2
+          },
+          "actual": 1,
+          "result": "PASS",
+          "detail": "actual=1 metric=primaryStatusRepeatCount"
+        },
+        {
+          "id": "PLACE_TOP_CONTEXT_HEIGHT",
+          "kind": "element",
+          "target": {
+            "min": 56,
+            "max": 64
+          },
+          "actual": 61,
+          "result": "PASS",
+          "detail": "target=56..64 actual=61 raw=61"
+        },
+        {
+          "id": "PLACE_ZONE_ROW_HEIGHT",
+          "kind": "element",
+          "target": {
+            "min": 48,
+            "max": 56
+          },
+          "actual": 48,
+          "result": "PASS",
+          "detail": "target=48..56 actual=48 raw=48"
+        },
+        {
+          "id": "PLACE_ZONES_NOT_CARDS",
+          "kind": "structure",
+          "target": "forbiddenClass=card,panel",
+          "actual": [],
+          "result": "PASS",
+          "detail": "classes=zone-row | zone-row | zone-row"
+        },
+        {
+          "id": "place-ready-ALLCAPS",
+          "kind": "language",
+          "target": "allcaps=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "place-ready-ENTITY",
+          "kind": "state",
+          "target": "entityId",
+          "actual": "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+          "result": "PASS",
+          "detail": "expected=5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e actual=5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e route=#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e"
+        },
+        {
+          "id": "place-ready-ENUM",
+          "kind": "language",
+          "target": "enum=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "place-ready-FIXTURE",
+          "kind": "state",
+          "target": "fixture",
+          "actual": "place-ready-v1",
+          "result": "PASS",
+          "detail": "expected=place-ready-v1 actual=place-ready-v1 route=#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e"
+        },
+        {
+          "id": "place-ready-H1",
+          "kind": "state",
+          "target": "h1",
+          "actual": "云栖中心·测试商场",
+          "result": "PASS",
+          "detail": "expected=云栖中心·测试商场 actual=云栖中心·测试商场 route=#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e"
+        },
+        {
+          "id": "place-ready-INVARIANT",
+          "kind": "language",
+          "target": "invariant=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "place-ready-PAGE",
+          "kind": "state",
+          "target": "page",
+          "actual": "place",
+          "result": "PASS",
+          "detail": "expected=place actual=place route=#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e"
+        },
+        {
+          "id": "place-ready-REFS",
+          "kind": "language",
+          "target": "refs=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "place-ready-STATE",
+          "kind": "state",
+          "target": "state",
+          "actual": "ready",
+          "result": "PASS",
+          "detail": "expected=ready actual=ready route=#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e"
+        },
+        {
+          "id": "place-ready-UUID",
+          "kind": "language",
+          "target": "uuid=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "place-rules-ALLCAPS",
+          "kind": "language",
+          "target": "allcaps=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "place-rules-ENTITY",
+          "kind": "state",
+          "target": "entityId",
+          "actual": "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+          "result": "PASS",
+          "detail": "expected=5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e actual=5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e route=#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e?view=rules"
+        },
+        {
+          "id": "place-rules-ENUM",
+          "kind": "language",
+          "target": "enum=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "place-rules-FIXTURE",
+          "kind": "state",
+          "target": "fixture",
+          "actual": "place-ready-v1",
+          "result": "PASS",
+          "detail": "expected=place-ready-v1 actual=place-ready-v1 route=#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e?view=rules"
+        },
+        {
+          "id": "place-rules-H1",
+          "kind": "state",
+          "target": "h1",
+          "actual": "云栖中心·测试商场",
+          "result": "PASS",
+          "detail": "expected=云栖中心·测试商场 actual=云栖中心·测试商场 route=#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e?view=rules"
+        },
+        {
+          "id": "place-rules-INVARIANT",
+          "kind": "language",
+          "target": "invariant=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "place-rules-PAGE",
+          "kind": "state",
+          "target": "page",
+          "actual": "place",
+          "result": "PASS",
+          "detail": "expected=place actual=place route=#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e?view=rules"
+        },
+        {
+          "id": "place-rules-REFS",
+          "kind": "language",
+          "target": "refs=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "place-rules-STATE",
+          "kind": "state",
+          "target": "state",
+          "actual": "ready",
+          "result": "PASS",
+          "detail": "expected=ready actual=ready route=#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e?view=rules"
+        },
+        {
+          "id": "place-rules-UUID",
+          "kind": "language",
+          "target": "uuid=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "place-unknown-ALLCAPS",
+          "kind": "language",
+          "target": "allcaps=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "place-unknown-ENTITY",
+          "kind": "state",
+          "target": "entityId",
+          "actual": "3b5a341a-e550-5f0c-b35a-319ed43bd840",
+          "result": "PASS",
+          "detail": "expected=3b5a341a-e550-5f0c-b35a-319ed43bd840 actual=3b5a341a-e550-5f0c-b35a-319ed43bd840 route=#/place/3b5a341a-e550-5f0c-b35a-319ed43bd840"
+        },
+        {
+          "id": "place-unknown-ENUM",
+          "kind": "language",
+          "target": "enum=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "place-unknown-FIXTURE",
+          "kind": "state",
+          "target": "fixture",
+          "actual": "place-unknown-v1",
+          "result": "PASS",
+          "detail": "expected=place-unknown-v1 actual=place-unknown-v1 route=#/place/3b5a341a-e550-5f0c-b35a-319ed43bd840"
+        },
+        {
+          "id": "place-unknown-H1",
+          "kind": "state",
+          "target": "h1",
+          "actual": "星河咖啡·栖霞分店",
+          "result": "PASS",
+          "detail": "expected=星河咖啡·栖霞分店 actual=星河咖啡·栖霞分店 route=#/place/3b5a341a-e550-5f0c-b35a-319ed43bd840"
+        },
+        {
+          "id": "place-unknown-INVARIANT",
+          "kind": "language",
+          "target": "invariant=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "place-unknown-PAGE",
+          "kind": "state",
+          "target": "page",
+          "actual": "place",
+          "result": "PASS",
+          "detail": "expected=place actual=place route=#/place/3b5a341a-e550-5f0c-b35a-319ed43bd840"
+        },
+        {
+          "id": "place-unknown-REFS",
+          "kind": "language",
+          "target": "refs=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "place-unknown-STATE",
+          "kind": "state",
+          "target": "state",
+          "actual": "unknown",
+          "result": "PASS",
+          "detail": "expected=unknown actual=unknown route=#/place/3b5a341a-e550-5f0c-b35a-319ed43bd840"
+        },
+        {
+          "id": "place-unknown-UUID",
+          "kind": "language",
+          "target": "uuid=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        }
+      ],
+      "summary": {
+        "PASS": 64,
+        "WARN": 0,
+        "FAIL": 0
+      }
+    },
+    {
+      "contractId": "place.mobile",
+      "viewport": {
+        "width": 430,
+        "height": 932
+      },
+      "generatedAt": "2026-10-03T14:26:04.574Z",
+      "rows": [
+        {
+          "id": "PLACE_MOBILE_BOTTOM_NAV_HEIGHT",
+          "kind": "element",
+          "target": {
+            "min": 58,
+            "max": 64
+          },
+          "actual": 61,
+          "result": "PASS",
+          "detail": "target=58..64 actual=61 raw=61"
+        },
+        {
+          "id": "PLACE_MOBILE_DECISION_SIZE",
+          "kind": "element",
+          "target": {
+            "min": 23,
+            "max": 25
+          },
+          "actual": 24,
+          "result": "PASS",
+          "detail": "target=23..25 actual=24 raw=\"24px\""
+        },
+        {
+          "id": "PLACE_MOBILE_DECISION_VISIBLE",
+          "kind": "element",
+          "target": {
+            "min": 1
+          },
+          "actual": 1,
+          "result": "PASS",
+          "detail": "target=1..- actual=1 raw=\"\""
+        },
+        {
+          "id": "PLACE_MOBILE_FIRST_VIEWPORT_BLOCKS",
+          "kind": "budget",
+          "target": {
+            "min": 2
+          },
+          "actual": 4,
+          "result": "PASS",
+          "detail": "actual=4 metric=firstViewportBlocks"
+        },
+        {
+          "id": "PLACE_MOBILE_FIRST_VIEWPORT_LINES",
+          "kind": "budget",
+          "target": {
+            "max": 30
+          },
+          "actual": 27,
+          "result": "PASS",
+          "detail": "actual=27 metric=firstViewportTextLines"
+        },
+        {
+          "id": "PLACE_MOBILE_HISTORY_COLLAPSED",
+          "kind": "structure",
+          "target": "collapsed-default",
+          "actual": 1,
+          "result": "PASS",
+          "detail": "collapsed=true"
+        },
+        {
+          "id": "PLACE_MOBILE_INSPECTOR_ABSENT",
+          "kind": "element",
+          "target": {
+            "max": 0
+          },
+          "actual": 0,
+          "result": "PASS",
+          "detail": "target=-..0 actual=0 raw=\"\""
+        },
+        {
+          "id": "PLACE_MOBILE_MAX_GAP",
+          "kind": "density",
+          "target": {
+            "max": 180
+          },
+          "actual": 24,
+          "result": "PASS",
+          "detail": "actual=24 metric=largestVerticalGap"
+        },
+        {
+          "id": "PLACE_MOBILE_NAME_VISIBLE",
+          "kind": "element",
+          "target": {
+            "min": 1
+          },
+          "actual": 1,
+          "result": "PASS",
+          "detail": "target=1..- actual=1 raw=\"\""
+        },
+        {
+          "id": "PLACE_MOBILE_OVERVIEW_FULLPAGE_HEIGHT",
+          "kind": "element",
+          "target": {
+            "max": 2000
+          },
+          "actual": 594.25,
+          "result": "PASS",
+          "detail": "target=-..2000 actual=594.25 raw=594.25"
+        },
+        {
+          "id": "PLACE_MOBILE_OVERVIEW_SUMMARY_PRESENT",
+          "kind": "structure",
+          "target": "min=2",
+          "actual": 2,
+          "result": "PASS",
+          "detail": "count=2"
+        },
+        {
+          "id": "PLACE_MOBILE_STATUS_REPEAT",
+          "kind": "composition",
+          "target": {
+            "max": 2
+          },
+          "actual": 1,
+          "result": "PASS",
+          "detail": "actual=1 metric=primaryStatusRepeatCount"
+        },
+        {
+          "id": "PLACE_MOBILE_ZONES_NOT_CARDS",
+          "kind": "structure",
+          "target": "forbiddenClass=card,panel",
+          "actual": [],
+          "result": "PASS",
+          "detail": "classes="
+        },
+        {
+          "id": "PLACE_NO_ENGINEERING_INVARIANT_COPY",
+          "kind": "structure",
+          "target": "forbidden=≠,UNKNOWN,ALLOWED,PROHIBITED,CONDITIONAL,source_id,rule_id,zone_type",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "PLACE_NO_STRAY_GLYPH",
+          "kind": "structure",
+          "target": "forbidden=>,<,:::,——",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "place-mobile-ready-ALLCAPS",
+          "kind": "language",
+          "target": "allcaps=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "place-mobile-ready-ENTITY",
+          "kind": "state",
+          "target": "entityId",
+          "actual": "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+          "result": "PASS",
+          "detail": "expected=5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e actual=5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e route=#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e"
+        },
+        {
+          "id": "place-mobile-ready-ENUM",
+          "kind": "language",
+          "target": "enum=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "place-mobile-ready-FIXTURE",
+          "kind": "state",
+          "target": "fixture",
+          "actual": "place-ready-v1",
+          "result": "PASS",
+          "detail": "expected=place-ready-v1 actual=place-ready-v1 route=#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e"
+        },
+        {
+          "id": "place-mobile-ready-H1",
+          "kind": "state",
+          "target": "h1",
+          "actual": "云栖中心·测试商场",
+          "result": "PASS",
+          "detail": "expected=云栖中心·测试商场 actual=云栖中心·测试商场 route=#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e"
+        },
+        {
+          "id": "place-mobile-ready-INVARIANT",
+          "kind": "language",
+          "target": "invariant=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "place-mobile-ready-PAGE",
+          "kind": "state",
+          "target": "page",
+          "actual": "place",
+          "result": "PASS",
+          "detail": "expected=place actual=place route=#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e"
+        },
+        {
+          "id": "place-mobile-ready-REFS",
+          "kind": "language",
+          "target": "refs=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "place-mobile-ready-STATE",
+          "kind": "state",
+          "target": "state",
+          "actual": "ready",
+          "result": "PASS",
+          "detail": "expected=ready actual=ready route=#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e"
+        },
+        {
+          "id": "place-mobile-ready-UUID",
+          "kind": "language",
+          "target": "uuid=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "place-mobile-rules-ALLCAPS",
+          "kind": "language",
+          "target": "allcaps=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "place-mobile-rules-ENTITY",
+          "kind": "state",
+          "target": "entityId",
+          "actual": "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+          "result": "PASS",
+          "detail": "expected=5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e actual=5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e route=#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e?view=rules"
+        },
+        {
+          "id": "place-mobile-rules-ENUM",
+          "kind": "language",
+          "target": "enum=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "place-mobile-rules-FIXTURE",
+          "kind": "state",
+          "target": "fixture",
+          "actual": "place-ready-v1",
+          "result": "PASS",
+          "detail": "expected=place-ready-v1 actual=place-ready-v1 route=#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e?view=rules"
+        },
+        {
+          "id": "place-mobile-rules-H1",
+          "kind": "state",
+          "target": "h1",
+          "actual": "云栖中心·测试商场",
+          "result": "PASS",
+          "detail": "expected=云栖中心·测试商场 actual=云栖中心·测试商场 route=#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e?view=rules"
+        },
+        {
+          "id": "place-mobile-rules-INVARIANT",
+          "kind": "language",
+          "target": "invariant=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "place-mobile-rules-PAGE",
+          "kind": "state",
+          "target": "page",
+          "actual": "place",
+          "result": "PASS",
+          "detail": "expected=place actual=place route=#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e?view=rules"
+        },
+        {
+          "id": "place-mobile-rules-REFS",
+          "kind": "language",
+          "target": "refs=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "place-mobile-rules-STATE",
+          "kind": "state",
+          "target": "state",
+          "actual": "ready",
+          "result": "PASS",
+          "detail": "expected=ready actual=ready route=#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e?view=rules"
+        },
+        {
+          "id": "place-mobile-rules-UUID",
+          "kind": "language",
+          "target": "uuid=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        }
+      ],
+      "summary": {
+        "PASS": 35,
+        "WARN": 0,
+        "FAIL": 0
+      }
+    },
+    {
+      "contractId": "reality",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "generatedAt": "2026-10-03T14:26:04.577Z",
+      "rows": [
+        {
+          "id": "PRIMARY_CONTENT_DOMINATES_METADATA",
+          "kind": "hierarchy",
+          "target": "ratio>=1.1",
+          "actual": 1.38,
+          "result": "PASS",
+          "detail": "ratio=1.38 a=18px b=13px"
+        },
+        {
+          "id": "REALITY_DATE_GROUP_SEP",
+          "kind": "element",
+          "target": {
+            "min": 28
+          },
+          "actual": 28,
+          "result": "PASS",
+          "detail": "target=28..- actual=28 raw=\"28px 0px 20px\""
+        },
+        {
+          "id": "REALITY_EMPTY_COPY",
+          "kind": "structure",
+          "target": "must=暂无近期现场记录,这并不代表现场没有动物",
+          "actual": [],
+          "result": "PASS",
+          "detail": "missing="
+        },
+        {
+          "id": "REALITY_EMPTY_STATE_HAS_ACTIONS",
+          "kind": "density",
+          "target": "primaryAction>=1",
+          "actual": 1,
+          "result": "PASS",
+          "detail": "primary=1"
+        },
+        {
+          "id": "REALITY_EVENT_GAP",
+          "kind": "density",
+          "target": {
+            "min": 20,
+            "max": 28
+          },
+          "actual": 28,
+          "result": "PASS",
+          "detail": "actual=28 metric=largestVerticalGap"
+        },
+        {
+          "id": "REALITY_EVENT_NOT_CARD",
+          "kind": "structure",
+          "target": "forbiddenClass=panel,card",
+          "actual": [],
+          "result": "PASS",
+          "detail": "classes=trace-row | trace-row"
+        },
+        {
+          "id": "REALITY_EVENT_ROW_COUNT",
+          "kind": "element",
+          "target": {
+            "min": 1
+          },
+          "actual": 2,
+          "result": "PASS",
+          "detail": "target=1..- actual=2 raw=\"\""
+        },
+        {
+          "id": "REALITY_FIRST_EVENT_TOP",
+          "kind": "element",
+          "target": {
+            "max": 360
+          },
+          "actual": 275.5,
+          "result": "PASS",
+          "detail": "target=-..360 actual=275.5 raw=\"\""
+        },
+        {
+          "id": "REALITY_FIRST_VIEWPORT_EVENTS",
+          "kind": "structure",
+          "target": "visibleInViewport>=1",
+          "actual": 2,
+          "result": "PASS",
+          "detail": "visibleInViewport=2"
+        },
+        {
+          "id": "REALITY_MARKER_X_CONSISTENT",
+          "kind": "structure",
+          "target": "xConsistent<=1",
+          "actual": 0,
+          "result": "PASS",
+          "detail": "xSpread=0"
+        },
+        {
+          "id": "REALITY_MAX_WIDTH",
+          "kind": "element",
+          "target": {
+            "min": 780,
+            "max": 824
+          },
+          "actual": 820,
+          "result": "PASS",
+          "detail": "target=780..824 actual=820 raw=820"
+        },
+        {
+          "id": "REALITY_NO_INVARIANT_TEXT",
+          "kind": "structure",
+          "target": "forbidden=NO_RECENT_RECORD,INSUFFICIENT_OBSERVATION,OBSERVED_RECENTLY,MULTI_EVIDENCE_OBSERVED,RULE_REALITY_ALIGNED,POTENTIAL_CONFLICT",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "REALITY_RAIL_CONTINUOUS",
+          "kind": "element",
+          "target": {
+            "min": 60
+          },
+          "actual": 319,
+          "result": "PASS",
+          "detail": "target=60..- actual=319 raw=319"
+        },
+        {
+          "id": "REALITY_RAIL_WIDTH",
+          "kind": "element",
+          "target": {
+            "equals": 2
+          },
+          "actual": 2,
+          "result": "PASS",
+          "detail": "target=-..- ==2 actual=2 raw=2"
+        },
+        {
+          "id": "REALITY_TIME_COL",
+          "kind": "element",
+          "target": {
+            "startsWith": "72px 24px"
+          },
+          "actual": "72px 24px 668px",
+          "result": "PASS",
+          "detail": "target=-..- startsWith=72px 24px actual=72px 24px 668px raw=\"72px 24px 668px\""
+        },
+        {
+          "id": "REALITY_TIME_X_CONSISTENT",
+          "kind": "structure",
+          "target": "xConsistent<=1",
+          "actual": 0,
+          "result": "PASS",
+          "detail": "xSpread=0"
+        },
+        {
+          "id": "REALITY_TITLE_TO_BODY",
+          "kind": "hierarchy",
+          "target": "ratio>=1.15",
+          "actual": 1.2,
+          "result": "PASS",
+          "detail": "ratio=1.2 a=18px b=15px"
+        },
+        {
+          "id": "REALITY_TRACE_ROWS",
+          "kind": "element",
+          "target": {
+            "min": 1
+          },
+          "actual": 1,
+          "result": "PASS",
+          "detail": "target=1..- actual=1 raw=\"\""
+        },
+        {
+          "id": "reality-empty-ALLCAPS",
+          "kind": "language",
+          "target": "allcaps=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "reality-empty-ENUM",
+          "kind": "language",
+          "target": "enum=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "reality-empty-FIXTURE",
+          "kind": "state",
+          "target": "fixture",
+          "actual": "reality-empty-v1",
+          "result": "PASS",
+          "detail": "expected=reality-empty-v1 actual=reality-empty-v1 route=#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e/reality"
+        },
+        {
+          "id": "reality-empty-H1",
+          "kind": "state",
+          "target": "h1",
+          "actual": "现场轨迹",
+          "result": "PASS",
+          "detail": "expected=现场轨迹 actual=现场轨迹 route=#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e/reality"
+        },
+        {
+          "id": "reality-empty-INVARIANT",
+          "kind": "language",
+          "target": "invariant=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "reality-empty-PAGE",
+          "kind": "state",
+          "target": "page",
+          "actual": "reality",
+          "result": "PASS",
+          "detail": "expected=reality actual=reality route=#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e/reality"
+        },
+        {
+          "id": "reality-empty-REFS",
+          "kind": "language",
+          "target": "refs=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "reality-empty-STATE",
+          "kind": "state",
+          "target": "state",
+          "actual": "empty",
+          "result": "PASS",
+          "detail": "expected=empty actual=empty route=#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e/reality"
+        },
+        {
+          "id": "reality-empty-UUID",
+          "kind": "language",
+          "target": "uuid=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "reality-ready-ALLCAPS",
+          "kind": "language",
+          "target": "allcaps=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "reality-ready-ENUM",
+          "kind": "language",
+          "target": "enum=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "reality-ready-FIXTURE",
+          "kind": "state",
+          "target": "fixture",
+          "actual": "reality-ready-v1",
+          "result": "PASS",
+          "detail": "expected=reality-ready-v1 actual=reality-ready-v1 route=#/place/8412b521-5e1c-505d-9dec-568acb860c76/reality"
+        },
+        {
+          "id": "reality-ready-H1",
+          "kind": "state",
+          "target": "h1",
+          "actual": "现场轨迹",
+          "result": "PASS",
+          "detail": "expected=现场轨迹 actual=现场轨迹 route=#/place/8412b521-5e1c-505d-9dec-568acb860c76/reality"
+        },
+        {
+          "id": "reality-ready-INVARIANT",
+          "kind": "language",
+          "target": "invariant=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "reality-ready-PAGE",
+          "kind": "state",
+          "target": "page",
+          "actual": "reality",
+          "result": "PASS",
+          "detail": "expected=reality actual=reality route=#/place/8412b521-5e1c-505d-9dec-568acb860c76/reality"
+        },
+        {
+          "id": "reality-ready-REFS",
+          "kind": "language",
+          "target": "refs=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "reality-ready-STATE",
+          "kind": "state",
+          "target": "state",
+          "actual": "ready",
+          "result": "PASS",
+          "detail": "expected=ready actual=ready route=#/place/8412b521-5e1c-505d-9dec-568acb860c76/reality"
+        },
+        {
+          "id": "reality-ready-UUID",
+          "kind": "language",
+          "target": "uuid=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        }
+      ],
+      "summary": {
+        "PASS": 36,
+        "WARN": 0,
+        "FAIL": 0
+      }
+    },
+    {
+      "contractId": "search.desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "generatedAt": "2026-10-03T14:26:04.581Z",
+      "rows": [
+        {
+          "id": "DECISION_TO_BODY",
+          "kind": "hierarchy",
+          "target": "ratio>=1.75",
+          "actual": 1.87,
+          "result": "PASS",
+          "detail": "ratio=1.87 a=28px b=15px"
+        },
+        {
+          "id": "DETAIL_NOT_FIELD_TABLE",
+          "kind": "structure",
+          "target": "max=0",
+          "actual": 0,
+          "result": "PASS",
+          "detail": "count=0"
+        },
+        {
+          "id": "FILTER_SINGLE_ENTRY",
+          "kind": "structure",
+          "target": "min=1",
+          "actual": 1,
+          "result": "PASS",
+          "detail": "count=1"
+        },
+        {
+          "id": "METADATA_TO_BODY",
+          "kind": "hierarchy",
+          "target": "ratio<=0.95",
+          "actual": 0.87,
+          "result": "PASS",
+          "detail": "ratio=0.87 a=13px b=15px"
+        },
+        {
+          "id": "NO_RESULT_CARD_ROWS",
+          "kind": "structure",
+          "target": "forbiddenClass=card,panel",
+          "actual": [],
+          "result": "PASS",
+          "detail": "classes=result-row result-row--selected | result-row | result-row"
+        },
+        {
+          "id": "NO_ROW_PILL_WALL",
+          "kind": "structure",
+          "target": "max=0",
+          "actual": 0,
+          "result": "PASS",
+          "detail": "count=0"
+        },
+        {
+          "id": "PAGE_TITLE_TO_BODY",
+          "kind": "hierarchy",
+          "target": "ratio>=1.6",
+          "actual": 1.87,
+          "result": "PASS",
+          "detail": "ratio=1.87 a=28px b=15px"
+        },
+        {
+          "id": "PRIMARY_CONTENT_DOMINATES_METADATA",
+          "kind": "hierarchy",
+          "target": "ratio>=1.5",
+          "actual": 2.15,
+          "result": "PASS",
+          "detail": "ratio=2.15 a=28px b=13px"
+        },
+        {
+          "id": "SEARCH_BUTTON_HEIGHT",
+          "kind": "element",
+          "target": {
+            "min": 44,
+            "max": 46
+          },
+          "actual": 44,
+          "result": "PASS",
+          "detail": "target=44..46 actual=44 raw=44"
+        },
+        {
+          "id": "SEARCH_COUNT_LINE",
+          "kind": "element",
+          "target": {
+            "min": 1
+          },
+          "actual": 1,
+          "result": "PASS",
+          "detail": "target=1..- actual=1 raw=\"\""
+        },
+        {
+          "id": "SEARCH_DECISION_FONT_SIZE",
+          "kind": "element",
+          "target": {
+            "min": 27,
+            "max": 29
+          },
+          "actual": 28,
+          "result": "PASS",
+          "detail": "target=27..29 actual=28 raw=\"28px\""
+        },
+        {
+          "id": "SEARCH_DECISION_LABEL_SIZE",
+          "kind": "element",
+          "target": {
+            "min": 12,
+            "max": 13
+          },
+          "actual": 12,
+          "result": "PASS",
+          "detail": "target=12..13 actual=12 raw=\"12px\""
+        },
+        {
+          "id": "SEARCH_DESKTOP_ROW_TEXT_LINES",
+          "kind": "budget",
+          "target": {
+            "max": 5
+          },
+          "actual": 5,
+          "result": "PASS",
+          "detail": "actual=5 metric=rowTextLines"
+        },
+        {
+          "id": "SEARCH_DETAIL_CONTENT_OCCUPANCY",
+          "kind": "composition",
+          "target": {
+            "min": 0.35,
+            "max": 0.78
+          },
+          "actual": 0.68,
+          "result": "PASS",
+          "detail": "actual=0.68 metric=contentOccupancy"
+        },
+        {
+          "id": "SEARCH_DETAIL_CONTENT_WIDTH",
+          "kind": "element",
+          "target": {
+            "min": 620,
+            "max": 680
+          },
+          "actual": 660,
+          "result": "PASS",
+          "detail": "target=620..680 actual=660 raw=\"\""
+        },
+        {
+          "id": "SEARCH_DETAIL_FIRST_VIEWPORT_BLOCKS",
+          "kind": "budget",
+          "target": {
+            "min": 4
+          },
+          "actual": 12,
+          "result": "PASS",
+          "detail": "actual=12 metric=firstViewportBlocks"
+        },
+        {
+          "id": "SEARCH_DETAIL_MAX_SEMANTIC_GAP",
+          "kind": "density",
+          "target": {
+            "max": 72
+          },
+          "actual": 36,
+          "result": "PASS",
+          "detail": "actual=36 metric=largestVerticalGap"
+        },
+        {
+          "id": "SEARCH_DETAIL_PANE_PRESENT",
+          "kind": "element",
+          "target": {
+            "min": 1
+          },
+          "actual": 1,
+          "result": "PASS",
+          "detail": "target=1..- actual=1 raw=\"\""
+        },
+        {
+          "id": "SEARCH_DETAIL_PANE_X",
+          "kind": "element",
+          "target": {
+            "min": 460,
+            "max": 476
+          },
+          "actual": 468,
+          "result": "PASS",
+          "detail": "target=460..476 actual=468 raw=\"\""
+        },
+        {
+          "id": "SEARCH_INPUT_HEIGHT",
+          "kind": "element",
+          "target": {
+            "min": 44,
+            "max": 46
+          },
+          "actual": 44,
+          "result": "PASS",
+          "detail": "target=44..46 actual=44 raw=44"
+        },
+        {
+          "id": "SEARCH_NO_DUPLICATE_STATUS_BADGE",
+          "kind": "structure",
+          "target": "max=0",
+          "actual": 0,
+          "result": "PASS",
+          "detail": "count=0"
+        },
+        {
+          "id": "SEARCH_PAGE_TITLE_SIZE",
+          "kind": "element",
+          "target": {
+            "min": 27,
+            "max": 29
+          },
+          "actual": 28,
+          "result": "PASS",
+          "detail": "target=27..29 actual=28 raw=\"28px\""
+        },
+        {
+          "id": "SEARCH_PRIMARY_STATUS_REPEAT",
+          "kind": "composition",
+          "target": {
+            "max": 2
+          },
+          "actual": 0,
+          "result": "PASS",
+          "detail": "actual=0 metric=primaryStatusRepeatCount"
+        },
+        {
+          "id": "SEARCH_RAIL_WIDTH",
+          "kind": "element",
+          "target": {
+            "min": 64,
+            "max": 72
+          },
+          "actual": 68,
+          "result": "PASS",
+          "detail": "target=64..72 actual=68 raw=68"
+        },
+        {
+          "id": "SEARCH_RESULT_PANE_FIRST_VIEWPORT_LINES",
+          "kind": "budget",
+          "target": {
+            "max": 40
+          },
+          "actual": 27,
+          "result": "PASS",
+          "detail": "actual=27 metric=firstViewportTextLines"
+        },
+        {
+          "id": "SEARCH_RESULT_PANE_WIDTH",
+          "kind": "element",
+          "target": {
+            "min": 392,
+            "max": 408
+          },
+          "actual": 400,
+          "result": "PASS",
+          "detail": "target=392..408 actual=400 raw=400"
+        },
+        {
+          "id": "SEARCH_RESULT_PANE_X",
+          "kind": "element",
+          "target": {
+            "min": 60,
+            "max": 76
+          },
+          "actual": 68,
+          "result": "PASS",
+          "detail": "target=60..76 actual=68 raw=\"\""
+        },
+        {
+          "id": "SEARCH_ROW_DIVIDER",
+          "kind": "element",
+          "target": {
+            "min": 1
+          },
+          "actual": 1,
+          "result": "PASS",
+          "detail": "target=1..- actual=1 raw=\"1px\""
+        },
+        {
+          "id": "SEARCH_ROW_HEIGHT",
+          "kind": "element",
+          "target": {
+            "min": 92,
+            "max": 108
+          },
+          "actual": 108,
+          "result": "PASS",
+          "detail": "target=92..108 actual=108 raw=108"
+        },
+        {
+          "id": "SEARCH_ROW_RADIUS_ZERO",
+          "kind": "element",
+          "target": {
+            "equals": "0"
+          },
+          "actual": 0,
+          "result": "PASS",
+          "detail": "target=-..- ==0 actual=0 raw=\"0px\""
+        },
+        {
+          "id": "SEARCH_ROW_SHADOW_NONE",
+          "kind": "element",
+          "target": {
+            "equals": "none"
+          },
+          "actual": "none",
+          "result": "PASS",
+          "detail": "target=-..- ==none actual=none raw=\"none\""
+        },
+        {
+          "id": "SEARCH_TOP_CONTEXT_HEIGHT",
+          "kind": "element",
+          "target": {
+            "min": 56,
+            "max": 64
+          },
+          "actual": 61,
+          "result": "PASS",
+          "detail": "target=56..64 actual=61 raw=61"
+        },
+        {
+          "id": "search-ready-ALLCAPS",
+          "kind": "language",
+          "target": "allcaps=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "search-ready-COMP-result-rows",
+          "kind": "state",
+          "target": "count>=3",
+          "actual": 5,
+          "result": "PASS",
+          "detail": "selector=result-rows count=5"
+        },
+        {
+          "id": "search-ready-ENUM",
+          "kind": "language",
+          "target": "enum=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "search-ready-FIXTURE",
+          "kind": "state",
+          "target": "fixture",
+          "actual": "search-ready-v1",
+          "result": "PASS",
+          "detail": "expected=search-ready-v1 actual=search-ready-v1 route=#/search"
+        },
+        {
+          "id": "search-ready-H1",
+          "kind": "state",
+          "target": "h1",
+          "actual": "搜索场所规则",
+          "result": "PASS",
+          "detail": "expected=搜索场所规则 actual=搜索场所规则 route=#/search"
+        },
+        {
+          "id": "search-ready-INVARIANT",
+          "kind": "language",
+          "target": "invariant=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "search-ready-PAGE",
+          "kind": "state",
+          "target": "page",
+          "actual": "search",
+          "result": "PASS",
+          "detail": "expected=search actual=search route=#/search"
+        },
+        {
+          "id": "search-ready-REFS",
+          "kind": "language",
+          "target": "refs=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "search-ready-SELECTED",
+          "kind": "state",
+          "target": "selectedId",
+          "actual": "search-selected-row",
+          "result": "PASS",
+          "detail": "expected=search-selected-row actual=search-selected-row route=#/search"
+        },
+        {
+          "id": "search-ready-STATE",
+          "kind": "state",
+          "target": "state",
+          "actual": "ready-selected",
+          "result": "PASS",
+          "detail": "expected=ready-selected actual=ready-selected route=#/search"
+        },
+        {
+          "id": "search-ready-UUID",
+          "kind": "language",
+          "target": "uuid=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "search-selected-ALLCAPS",
+          "kind": "language",
+          "target": "allcaps=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "search-selected-ENUM",
+          "kind": "language",
+          "target": "enum=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "search-selected-FIXTURE",
+          "kind": "state",
+          "target": "fixture",
+          "actual": "search-ready-v1",
+          "result": "PASS",
+          "detail": "expected=search-ready-v1 actual=search-ready-v1 route=#/search?q=%E6%98%9F%E6%B2%B3"
+        },
+        {
+          "id": "search-selected-H1",
+          "kind": "state",
+          "target": "h1",
+          "actual": "搜索场所规则",
+          "result": "PASS",
+          "detail": "expected=搜索场所规则 actual=搜索场所规则 route=#/search?q=%E6%98%9F%E6%B2%B3"
+        },
+        {
+          "id": "search-selected-INVARIANT",
+          "kind": "language",
+          "target": "invariant=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "search-selected-PAGE",
+          "kind": "state",
+          "target": "page",
+          "actual": "search",
+          "result": "PASS",
+          "detail": "expected=search actual=search route=#/search?q=%E6%98%9F%E6%B2%B3"
+        },
+        {
+          "id": "search-selected-REFS",
+          "kind": "language",
+          "target": "refs=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "search-selected-SELECTED",
+          "kind": "state",
+          "target": "selectedId",
+          "actual": "search-selected-row",
+          "result": "PASS",
+          "detail": "expected=search-selected-row actual=search-selected-row route=#/search?q=%E6%98%9F%E6%B2%B3"
+        },
+        {
+          "id": "search-selected-STATE",
+          "kind": "state",
+          "target": "state",
+          "actual": "ready-selected",
+          "result": "PASS",
+          "detail": "expected=ready-selected actual=ready-selected route=#/search?q=%E6%98%9F%E6%B2%B3"
+        },
+        {
+          "id": "search-selected-UUID",
+          "kind": "language",
+          "target": "uuid=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "STATUS_BADGE_NOT_PRIMARY",
+          "kind": "hierarchy",
+          "target": "ratio<=0.95",
+          "actual": 0.81,
+          "result": "PASS",
+          "detail": "ratio=0.81 a=13px b=16px"
+        }
+      ],
+      "summary": {
+        "PASS": 54,
+        "WARN": 0,
+        "FAIL": 0
+      }
+    },
+    {
+      "contractId": "search.mobile",
+      "viewport": {
+        "width": 430,
+        "height": 932
+      },
+      "generatedAt": "2026-10-03T14:26:04.586Z",
+      "rows": [
+        {
+          "id": "SEARCH_MOBILE_BOTTOM_NAV_HEIGHT",
+          "kind": "element",
+          "target": {
+            "min": 58,
+            "max": 64
+          },
+          "actual": 61,
+          "result": "PASS",
+          "detail": "target=58..64 actual=61 raw=61"
+        },
+        {
+          "id": "SEARCH_MOBILE_DECISION_TO_BODY",
+          "kind": "hierarchy",
+          "target": "ratio>=1.1",
+          "actual": 1.2,
+          "result": "PASS",
+          "detail": "ratio=1.2 a=18px b=15px"
+        },
+        {
+          "id": "SEARCH_MOBILE_DETAIL_PANE_ABSENT",
+          "kind": "element",
+          "target": {
+            "max": 0
+          },
+          "actual": 0,
+          "result": "PASS",
+          "detail": "target=-..0 actual=0 raw=\"\""
+        },
+        {
+          "id": "SEARCH_MOBILE_FILTER_IS_SHEET",
+          "kind": "structure",
+          "target": "visibleAfterClick>=1",
+          "actual": 1,
+          "result": "PASS",
+          "detail": "visible=1"
+        },
+        {
+          "id": "SEARCH_MOBILE_FILTER_TOGGLE",
+          "kind": "element",
+          "target": {
+            "min": 1
+          },
+          "actual": 1,
+          "result": "PASS",
+          "detail": "target=1..- actual=1 raw=\"\""
+        },
+        {
+          "id": "SEARCH_MOBILE_FIRST_VIEWPORT_FILL",
+          "kind": "density",
+          "target": {
+            "min": 200
+          },
+          "actual": 633,
+          "result": "PASS",
+          "detail": "actual=633 metric=contentHeightInViewport"
+        },
+        {
+          "id": "SEARCH_MOBILE_FIRST_VIEWPORT_LINES",
+          "kind": "budget",
+          "target": {
+            "max": 46
+          },
+          "actual": 27,
+          "result": "PASS",
+          "detail": "actual=27 metric=firstViewportTextLines"
+        },
+        {
+          "id": "SEARCH_MOBILE_INPUT_HEIGHT",
+          "kind": "element",
+          "target": {
+            "min": 44,
+            "max": 46
+          },
+          "actual": 44,
+          "result": "PASS",
+          "detail": "target=44..46 actual=44 raw=44"
+        },
+        {
+          "id": "SEARCH_MOBILE_METADATA_SMALLER",
+          "kind": "hierarchy",
+          "target": "ratio<=1",
+          "actual": 0.87,
+          "result": "PASS",
+          "detail": "ratio=0.87 a=13px b=15px"
+        },
+        {
+          "id": "SEARCH_MOBILE_NO_CARD_ROWS",
+          "kind": "structure",
+          "target": "forbiddenClass=card,panel",
+          "actual": [],
+          "result": "PASS",
+          "detail": "classes=result-row | result-row | result-row"
+        },
+        {
+          "id": "SEARCH_MOBILE_NO_FILTER_CARDS",
+          "kind": "structure",
+          "target": "forbiddenClass=card,panel",
+          "actual": [],
+          "result": "PASS",
+          "detail": "classes=filter-options__row | filter-options__row | filter-options__row"
+        },
+        {
+          "id": "SEARCH_MOBILE_ROW_HEIGHT",
+          "kind": "element",
+          "target": {
+            "min": 88,
+            "max": 104
+          },
+          "actual": 104,
+          "result": "PASS",
+          "detail": "target=88..104 actual=104 raw=104"
+        },
+        {
+          "id": "SEARCH_MOBILE_ROW_RADIUS_ZERO",
+          "kind": "element",
+          "target": {
+            "equals": "0"
+          },
+          "actual": 0,
+          "result": "PASS",
+          "detail": "target=-..- ==0 actual=0 raw=\"0px\""
+        },
+        {
+          "id": "SEARCH_MOBILE_ROW_SHADOW_NONE",
+          "kind": "element",
+          "target": {
+            "equals": "none"
+          },
+          "actual": "none",
+          "result": "PASS",
+          "detail": "target=-..- ==none actual=none raw=\"none\""
+        },
+        {
+          "id": "SEARCH_MOBILE_ROW_TEXT_LINES",
+          "kind": "budget",
+          "target": {
+            "max": 5
+          },
+          "actual": 5,
+          "result": "PASS",
+          "detail": "actual=5 metric=rowTextLines"
+        },
+        {
+          "id": "SEARCH_MOBILE_SHEET_FIVE_FILTER_ROWS",
+          "kind": "structure",
+          "target": "min=5",
+          "actual": 6,
+          "result": "PASS",
+          "detail": "count=6"
+        },
+        {
+          "id": "SEARCH_MOBILE_SHEET_RADIUS",
+          "kind": "element",
+          "target": {
+            "min": 14,
+            "max": 18
+          },
+          "actual": 16,
+          "result": "PASS",
+          "detail": "target=14..18 actual=16 raw=\"16px 16px 0px 0px\""
+        },
+        {
+          "id": "SEARCH_MOBILE_SHEET_TOP",
+          "kind": "element",
+          "target": {
+            "min": 340,
+            "max": 480
+          },
+          "actual": 475,
+          "result": "PASS",
+          "detail": "target=340..480 actual=475 raw=\"\""
+        },
+        {
+          "id": "SEARCH_MOBILE_STATUS_REPEAT",
+          "kind": "composition",
+          "target": {
+            "max": 3
+          },
+          "actual": 1,
+          "result": "PASS",
+          "detail": "actual=1 metric=primaryStatusRepeatCount"
+        },
+        {
+          "id": "search-mobile-filter-ALLCAPS",
+          "kind": "language",
+          "target": "allcaps=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "search-mobile-filter-ENUM",
+          "kind": "language",
+          "target": "enum=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "search-mobile-filter-FIXTURE",
+          "kind": "state",
+          "target": "fixture",
+          "actual": "search-filter-v1",
+          "result": "PASS",
+          "detail": "expected=search-filter-v1 actual=search-filter-v1 route=#/search"
+        },
+        {
+          "id": "search-mobile-filter-H1",
+          "kind": "state",
+          "target": "h1",
+          "actual": "搜索场所规则",
+          "result": "PASS",
+          "detail": "expected=搜索场所规则 actual=搜索场所规则 route=#/search"
+        },
+        {
+          "id": "search-mobile-filter-INVARIANT",
+          "kind": "language",
+          "target": "invariant=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "search-mobile-filter-PAGE",
+          "kind": "state",
+          "target": "page",
+          "actual": "search",
+          "result": "PASS",
+          "detail": "expected=search actual=search route=#/search"
+        },
+        {
+          "id": "search-mobile-filter-REFS",
+          "kind": "language",
+          "target": "refs=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "search-mobile-filter-STATE",
+          "kind": "state",
+          "target": "state",
+          "actual": "filter",
+          "result": "PASS",
+          "detail": "expected=filter actual=filter route=#/search"
+        },
+        {
+          "id": "search-mobile-filter-UUID",
+          "kind": "language",
+          "target": "uuid=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "search-mobile-ready-ALLCAPS",
+          "kind": "language",
+          "target": "allcaps=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "search-mobile-ready-COMP-result-rows",
+          "kind": "state",
+          "target": "count>=3",
+          "actual": 5,
+          "result": "PASS",
+          "detail": "selector=result-rows count=5"
+        },
+        {
+          "id": "search-mobile-ready-ENUM",
+          "kind": "language",
+          "target": "enum=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "search-mobile-ready-FIXTURE",
+          "kind": "state",
+          "target": "fixture",
+          "actual": "search-ready-v1",
+          "result": "PASS",
+          "detail": "expected=search-ready-v1 actual=search-ready-v1 route=#/search"
+        },
+        {
+          "id": "search-mobile-ready-H1",
+          "kind": "state",
+          "target": "h1",
+          "actual": "搜索场所规则",
+          "result": "PASS",
+          "detail": "expected=搜索场所规则 actual=搜索场所规则 route=#/search"
+        },
+        {
+          "id": "search-mobile-ready-INVARIANT",
+          "kind": "language",
+          "target": "invariant=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "search-mobile-ready-PAGE",
+          "kind": "state",
+          "target": "page",
+          "actual": "search",
+          "result": "PASS",
+          "detail": "expected=search actual=search route=#/search"
+        },
+        {
+          "id": "search-mobile-ready-REFS",
+          "kind": "language",
+          "target": "refs=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        },
+        {
+          "id": "search-mobile-ready-STATE",
+          "kind": "state",
+          "target": "state",
+          "actual": "ready",
+          "result": "PASS",
+          "detail": "expected=ready actual=ready route=#/search"
+        },
+        {
+          "id": "search-mobile-ready-UUID",
+          "kind": "language",
+          "target": "uuid=0",
+          "actual": [],
+          "result": "PASS",
+          "detail": "hits="
+        }
+      ],
+      "summary": {
+        "PASS": 38,
+        "WARN": 0,
+        "FAIL": 0
+      }
+    }
+  ]
+}

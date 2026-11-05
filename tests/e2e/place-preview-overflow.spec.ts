@@ -17,7 +17,8 @@ test("search with results does not overflow horizontally on split-layout widths"
   await page.getByTestId("search-input").fill("星河");
   await page.getByTestId("search-btn").click();
 
-  const result = page.getByTestId("result-星河咖啡·测试店");
+  // Rows are keyed by place id, not name, so select by the visible identity.
+  const result = page.locator("ul.result-list li").filter({ hasText: "星河咖啡·测试店" }).first();
   await expect(result).toBeVisible({ timeout: 15000 });
   // The detail inspector must have mounted for the overflow scenario.
   await expect(page.getByTestId("decision-inspector")).toBeVisible({ timeout: 15000 });

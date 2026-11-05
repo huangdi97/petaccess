@@ -49,6 +49,20 @@ def _symbol_in_text(text: str, symbol: str) -> bool:
     return re.search(rf"\b{re.escape(symbol)}\b", text) is not None
 
 
+def _is_framework_registered(node: ast.AST) -> bool:
+    """Top-level FastAPI handlers are referenced through decorators, not by symbol name."""
+    if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+        return False
+    route_methods = {"get", "post", "put", "patch", "delete", "options", "head", "websocket"}
+    for decorator in node.decorator_list:
+        target = decorator.func if isinstance(decorator, ast.Call) else decorator
+        if isinstance(target, ast.Attribute) and target.attr in route_methods:
+            owner = target.value
+            if isinstance(owner, ast.Name) and owner.id in {"router", "admin"}:
+                return True
+    return False
+
+
 def _dead_code_violations(corpus: dict[Path, str], py_roots: list[Path]) -> list[dict]:
     """A top-level symbol is dead when it never appears in the corpus except on
     its own definition line(s). Decorators/string task names count as usage
@@ -67,6 +81,8 @@ def _dead_code_violations(corpus: dict[Path, str], py_roots: list[Path]) -> list
             if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
                 continue
             name = node.name
+            if _is_framework_registered(node):
+                continue
             # Exclude only this symbol's definition lines in this file.
             def_linenos = {
                 n.lineno

@@ -1,8 +1,11 @@
 # UI Reconstruction — Design Freeze
 
 > Derived from v0.10-R1 Canonical Master and Approved Visual Reference.
-> **Canonical wins on conflict.** Supersedes the M3 freeze only in scope: this
-> round adds the Spatial Dossier page archetypes and Query Context primitive.
+> **Canonical wins on conflict.** As of 2026-10-05, direct-v8 recovery is further
+> constrained by `DIRECT_V8_CANONICAL_VISUAL_RECOVERY_2026-10-05.md`. Machine
+> contracts may measure this freeze, but may not narrow away Canonical product
+> content such as Home recommendations/divergence, Map four lenses, or the
+> Place Coexistence Passport first-screen facts.
 
 ## 1. Product position (unchanged, frozen)
 
@@ -29,9 +32,9 @@ Place Mention ≠ Exact Place Match; Publication Time ≠ Event Time.
 
 | Page | Archetype | Core body | Card target |
 |---|---|---|---|
-| Home | Task Launcher | search + recent/nearby + secondary lens | 0–1 |
+| Home | Task Launcher + Coexistence Digest | search + 4 task lenses + recommendations + Rule/Reality overview + divergence + recent | 0–1 |
 | Search | List–Detail Workspace | result pane + detail inspector | 0 |
-| Map | Spatial Workspace | map canvas; UI = pane/overlay | only floating preview 1 |
+| Map | Spatial Workspace | map canvas + Rule/Reality/Facility/Divergence lenses; UI = pane/overlay | only floating preview 1 |
 | Place | Dossier + Decision Inspector | dossier + sticky inspector | 0–1 |
 | Reality | Temporal Event Log | timeline | 0 |
 | Evidence | Evidence Record + Provenance | evidence + provenance | 0–1 media surface |
@@ -93,9 +96,11 @@ and never let an old request overwrite the new context.
 ## 9. Page-specific freeze
 
 ### Home — Task Launcher
-Location → 当前查询 → primary search → recent/nearby → secondary lens.
+Location → 当前查询 → primary search → four task lenses → 按你的关注推荐 →
+Rule/Reality 速览 → Rule-Reality divergence（有则显示）→ recent.
 No hero photo, no perspective pill trio, no colourful feature cards, no
-category chip wall, no feature catalogue.
+category chip wall, no feature catalogue. “推荐”只做事实相关性上浮，不做
+pet-friendly / avoidance ranking.
 
 ### Search — List–Detail Workspace
 Desktop: rail + 360–420px result pane + remaining detail inspector. Result
@@ -106,15 +111,19 @@ two-pane.
 
 ### Map — Spatial Workspace
 Map is the canvas; UI is pane/overlay. Desktop: rail + result pane + full map.
-Selected place shows the one floating preview. Markers = shape + semantic
-state (●◐▬○◇). Mobile: full map + bottom sheet (collapsed/medium/full).
+Selected place shows the one floating preview. The map exposes four first-class
+lenses over the SAME CoexistenceSnapshot: Rule / Reality / Facility /
+Divergence. Markers = shape + text + semantic tone; a non-Rule lens must never
+reuse access-verdict copy. Mobile: full map + bottom sheet (collapsed/medium/full).
 
 ### Place — Dossier + Decision Inspector
 Desktop: rail + main dossier (Identity / Overview / Space-Zones / Rules /
-Reality / Staff-Facilities / Evidence) + sticky inspector (only 3–5 key
-facts: current context / primary status / conditions / major exception /
-source-verified-freshness). Zones render as divider rows, not cards. No big
-photo hero. Mobile: single column.
+Reality / Staff-Facilities / Evidence) + sticky inspector. The Overview first
+screen MUST answer Rule + Reality together and surface verified Staff Response,
+Animal Facility and meaningful Rule-Reality Divergence when present. First
+screen actions: Evidence / Why / Correction-Contribution. Inspector still shows
+only 3–5 decision facts. Zones render as divider rows, not cards. No big photo
+hero. Mobile: single column.
 
 ### Reality — Temporal Event Log
 TIME → EVENT → LOCATION → EVIDENCE. Events are rows on a timeline, not cards.

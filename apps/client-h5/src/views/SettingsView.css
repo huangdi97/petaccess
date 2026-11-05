@@ -1,0 +1,181 @@
+.settings-head {
+  padding: var(--pa-space-5);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: calc(var(--pa-radius-md) + 3px);
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--pa-color-accent-weak) 50%, transparent),
+      transparent 72%
+    ),
+    var(--pa-color-surface-raised);
+  box-shadow: var(--pa-elevation-1);
+}
+
+.settings-head__kicker {
+  margin: 0 0 var(--pa-space-2);
+  color: var(--pa-color-accent);
+  font-size: var(--pa-font-size-sm);
+  font-weight: var(--pa-font-weight-650);
+  letter-spacing: var(--pa-letter-spacing-wide);
+}
+
+.settings-head p:last-child {
+  max-width: 720px;
+  margin: var(--pa-space-2) 0 0;
+  line-height: var(--pa-line-height-23);
+}
+
+.settings-section {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: var(--pa-space-6);
+  margin-top: var(--pa-space-4);
+  padding: var(--pa-space-5);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: var(--pa-radius-md);
+  background: var(--pa-color-surface-raised);
+}
+
+.settings-section__lead h2 {
+  margin: 0;
+  font-size: var(--pa-font-size-18);
+  font-weight: var(--pa-font-weight-650);
+  color: var(--pa-color-text-primary);
+}
+
+.settings-section__lead p {
+  margin: var(--pa-space-2) 0 0;
+  font-size: var(--pa-font-size-md);
+  line-height: var(--pa-line-height-20);
+}
+
+.settings-section__body {
+  min-width: 0;
+}
+
+.settings-row {
+  display: grid;
+  grid-template-columns: 124px minmax(0, 1fr);
+  gap: var(--pa-space-4);
+  padding: var(--pa-space-3);
+  border-bottom: 0;
+  border-radius: var(--pa-radius-control);
+  background: var(--pa-color-surface-muted);
+}
+
+.settings-row + .settings-row {
+  margin-top: var(--pa-space-2);
+}
+
+.settings-row strong {
+  font-size: var(--pa-font-size-base);
+}
+
+.settings-row span {
+  line-height: var(--pa-line-height-20);
+}
+
+.settings-points {
+  display: grid;
+  gap: var(--pa-space-2);
+}
+
+.settings-points p {
+  position: relative;
+  margin: 0;
+  padding: var(--pa-space-3) var(--pa-space-3) var(--pa-space-3) 34px;
+  border-radius: var(--pa-radius-control);
+  background: var(--pa-color-surface-muted);
+  color: var(--pa-color-text-secondary);
+  line-height: var(--pa-line-height-20);
+}
+
+.settings-points p::before {
+  content: "✓";
+  position: absolute;
+  top: var(--pa-space-3);
+  left: var(--pa-space-3);
+  color: var(--pa-color-accent);
+  font-weight: var(--pa-font-weight-650);
+}
+
+.settings-links {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--pa-space-2);
+}
+
+.settings-link {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--pa-space-4);
+  min-height: 52px;
+  align-items: center;
+  padding: 0 var(--pa-space-3);
+  border: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-radius: var(--pa-radius-control);
+  background: var(--pa-color-surface-muted);
+  color: var(--pa-color-text-primary);
+  text-decoration: none;
+}
+
+.settings-link:first-child {
+  margin-top: 0;
+}
+
+.settings-link:hover,
+.settings-link:focus-visible {
+  color: var(--pa-color-accent);
+}
+
+.settings-about p {
+  max-width: 620px;
+  margin: 0 0 var(--pa-space-3);
+  line-height: var(--pa-line-height-23);
+}
+
+.settings-foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--pa-space-3);
+  padding-top: var(--pa-space-5);
+  color: var(--pa-color-text-muted);
+  font-size: var(--pa-font-size-sm);
+}
+
+@media (max-width: 767px) {
+  .settings-head {
+    padding: var(--pa-space-4);
+  }
+
+  .settings-section {
+    grid-template-columns: 1fr;
+    gap: var(--pa-space-3);
+    margin-top: var(--pa-space-3);
+    padding: var(--pa-space-4);
+  }
+
+  .settings-section__lead p {
+    max-width: 34em;
+  }
+
+  .settings-row {
+    grid-template-columns: 1fr;
+    gap: var(--pa-space-1);
+    padding: var(--pa-space-3);
+  }
+
+  .settings-links {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-link {
+    min-height: 50px;
+  }
+
+  .settings-foot {
+    padding-inline: var(--pa-space-1);
+  }
+}

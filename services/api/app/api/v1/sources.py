@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.core.audit import record_audit
 from app.core.audit_events import AuditEvent
+from app.core.errors import NotFound
 from app.core.security import get_optional_user, require_role
 from app.db.session import get_db
 from app.models import Source, User
@@ -33,6 +34,18 @@ def list_sources(
     total = db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
     rows = db.scalars(stmt.order_by(Source.collected_at.desc()).limit(limit).offset(offset)).all()
     return Page(items=rows, total=total, limit=limit, offset=offset)
+
+
+@router.get("/sources/{source_id}", response_model=SourceOut)
+def get_source(
+    source_id: str,
+    user=Depends(get_optional_user),
+    db: Session = Depends(get_db),
+) -> Source:
+    source = db.get(Source, source_id)
+    if source is None:
+        raise NotFound("来源不存在")
+    return source
 
 
 @admin.post("/sources", response_model=SourceOut, status_code=201)

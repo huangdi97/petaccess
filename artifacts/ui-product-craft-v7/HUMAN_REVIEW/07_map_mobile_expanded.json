@@ -1,0 +1,27 @@
+{
+  "name": "07_map_mobile_expanded",
+  "viewport": "430x932",
+  "route": "/#/map?place=8412b521-5e1c-505d-9dec-568acb860c76",
+  "expected": {
+    "page": "map",
+    "state": "ready",
+    "fixture": "map-ready-v1",
+    "h1": "规则地图"
+  },
+  "actual": {
+    "route": "#/map?place=8412b521-5e1c-505d-9dec-568acb860c76",
+    "page": "map",
+    "state": "ready",
+    "fixture": "map-ready-v1",
+    "h1": "规则地图",
+    "entityId": null,
+    "selectedId": "map-marker-selected",
+    "count": null,
+    "counts": {}
+  },
+  "valid": true,
+  "mismatches": [],
+  "before": null,
+  "note": "v0.2.7 §13：expanded 只加真实信息（结论/证据与来源），无伪造填充。",
+  "generatedAt": "2026-10-02T18:30:38.253Z"
+}

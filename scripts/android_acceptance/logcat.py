@@ -11,6 +11,7 @@ reporting layer; this module only classifies and persists.
 
 from __future__ import annotations
 
+import os
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -20,7 +21,7 @@ from .adb import DEFAULT_SERIAL, check_serial, shell
 LOG_DIR = Path(r"E:\AI\宠物管理\artifacts\android_acceptance\logs")
 
 #: Bundle identifiers this session is allowed to touch.
-APP_PACKAGE = "com.petaccess.map"
+APP_PACKAGE = os.environ.get("PETACCESS_ANDROID_PACKAGE", "com.petaccess.map")
 
 
 @dataclass
@@ -48,7 +49,10 @@ PATTERNS: dict[str, str] = {
     "tauri": r"Tauri|wry|tao",
     "js": r"Uncaught|TypeError|ReferenceError|SyntaxError|unhandledrejection|Vue warn",
     "csp": r"Content Security Policy|Refused to (load|connect|execute)",
-    "network": r"cleartext|CLEARTEXT|NetworkSecurity|ECONNREFUSED|ERR_|net::ERR|TimeoutError|failed to connect",
+    "network": (
+        r"cleartext|CLEARTEXT|NetworkSecurity|ECONNREFUSED|ERR_|"
+        r"net::ERR|TimeoutError|failed to connect"
+    ),
 }
 
 

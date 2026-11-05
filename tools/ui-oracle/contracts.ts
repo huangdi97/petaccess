@@ -199,6 +199,8 @@ export interface ElementMeasurement {
   contentHeightInViewport: number | null;
   leftRelative: number | null;
   sectionGapAvg: number | null;
+  scrollWidth: number | null;
+  clientWidth: number | null;
   rows: Array<{ height: number | null; borderRadius: string | null }>;
 }
 

@@ -1,0 +1,30 @@
+{
+  "name": "02_search_desktop",
+  "viewport": "1440x900",
+  "route": "/#/search",
+  "expected": {
+    "page": "search",
+    "state": "ready-selected",
+    "fixture": "search-ready-v1",
+    "h1": "搜索场所规则",
+    "selectedId": "search-selected-row"
+  },
+  "actual": {
+    "route": "#/search",
+    "page": "search",
+    "state": "ready-selected",
+    "fixture": "search-ready-v1",
+    "h1": "搜索场所规则",
+    "entityId": null,
+    "selectedId": "search-selected-row",
+    "count": 5,
+    "counts": {
+      "result-rows": 5
+    }
+  },
+  "valid": true,
+  "mismatches": [],
+  "before": "search-fixture-h5-1440-win32.png",
+  "note": "v0.2.7 §22：detail secondary evidence grouping（reality+evidence 归组、顶部细分隔线）。",
+  "generatedAt": "2026-10-02T18:30:36.946Z"
+}

@@ -1,0 +1,15 @@
+{
+  "gitSha": "d2eeba2fe5ffbfba31f244881f6e1705a07f84c2",
+  "page": "not-found",
+  "state": "ready",
+  "route": "/no-such-route-xyz",
+  "innerWidth": 412,
+  "innerHeight": 915,
+  "devicePixelRatio": 2.625,
+  "documentClientWidth": 412,
+  "documentScrollWidth": 412,
+  "bodyTextHead": "当前查询 | 普通犬 · 进入 · 公共区域 | 修改 |  | 404 |  | 这个页面不存在 |  | 链接可能已经失效，也可能是地址输入有误。你",
+  "href": "http://tauri.localhost/#/no-such-route-xyz",
+  "horizontalOverflow": false,
+  "screenshot": "19_android_not_found.png"
+}

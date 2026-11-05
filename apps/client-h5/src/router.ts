@@ -13,7 +13,7 @@ export const routes: RouteRecordRaw[] = [
     path: "/map",
     name: "map",
     component: () => import("./views/MapView.vue"),
-    meta: { title: "规则地图" },
+    meta: { title: "规则与现场地图" },
   },
   {
     path: "/onboarding",
@@ -105,7 +105,7 @@ export const routes: RouteRecordRaw[] = [
     path: "/place/:id/reality",
     name: "reality-trace",
     component: () => import("./views/RealityTraceView.vue"),
-    meta: { title: "现场轨迹" },
+    meta: { title: "现场记录" },
   },
   // UI Reconstruction: Evidence Record + Provenance (§9).
   {
@@ -113,6 +113,12 @@ export const routes: RouteRecordRaw[] = [
     name: "evidence",
     component: () => import("./views/EvidenceView.vue"),
     meta: { title: "证据与来源" },
+  },
+  {
+    path: "/place/:id/operator-claim",
+    name: "operator-claim",
+    component: () => import("./views/OperatorClaimView.vue"),
+    meta: { title: "场所方认领" },
   },
   // M3: unknown paths land on the unified NotFound state instead of a blank
   // router warning (A1). Order matters: catch-all must be last.

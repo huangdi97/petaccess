@@ -147,8 +147,8 @@ def test_no_forbidden_copy_in_user_facing_sources():
 def test_unknown_is_never_presented_as_allowed():
     """§2.10: UNKNOWN must never be worded as permission."""
     ts = _read(TOKENS_TS)
-    assert '"尚未核验"' in ts
-    assert "不代表允许" in ts
+    assert 'label: "信息不足"' in ts
+    assert "不代表允许或禁止" in ts
 
 
 def test_observation_disclaimer_present():

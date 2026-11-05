@@ -1,0 +1,13 @@
+{
+  "gitSha": "d2eeba2fe5ffbfba31f244881f6e1705a07f84c2",
+  "page": "desktop-rail",
+  "state": "closeup",
+  "rail": {
+    "x": 0,
+    "y": 0,
+    "width": 68,
+    "height": 760,
+    "label": "app-rail"
+  },
+  "screenshot": "15_desktop_rail_closeup.png"
+}

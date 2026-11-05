@@ -1,0 +1,26 @@
+{
+  "round": "v0.2.7-R1",
+  "mode": "after",
+  "target": "Windows targeted smoke (9 consumer routes, real Tauri v2 + WebView2)",
+  "runtime": "Tauri v2 (debug --no-bundle) + host WebView2, remote debugging :9223",
+  "binary": "D:\\pa-fix-target-win\\debug\\petaccess.exe (R1 fixed)",
+  "api": "petaccess_visual @ 127.0.0.1:8016",
+  "checks": {
+    "WINDOW_CHROME": "PASS (app launched via WMI-detached process)",
+    "DESKTOP_RAIL_PRESENT": "PASS",
+    "DESKTOP_RAIL_NO_HORIZONTAL_OVERFLOW": "PASS",
+    "CONTRIBUTION_RUNTIME_COMPOSITION_MODE": "PASS",
+    "STATE_INTEGRITY": "PASS",
+    "NO_DOCUMENT_HORIZONTAL_OVERFLOW": "PASS"
+  },
+  "summary": {
+    "railOverflowRoutes": [],
+    "wideCompositionRoutes": [
+      "07_contribution_choose",
+      "08_contribution_step1",
+      "09_contribution_step2"
+    ],
+    "compactCompositionRoutes": []
+  },
+  "generatedAt": "2026-10-03T08:07:00.079Z"
+}

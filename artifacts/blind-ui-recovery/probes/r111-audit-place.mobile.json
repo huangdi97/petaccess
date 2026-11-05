@@ -1,0 +1,694 @@
+{
+  "contractId": "place.mobile",
+  "viewport": {
+    "width": 430,
+    "height": 932
+  },
+  "stage": "r111-audit",
+  "generatedAt": "2026-10-03T14:25:33.584Z",
+  "pages": [
+    {
+      "pageId": "place-mobile-ready",
+      "route": "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+      "elements": {
+        "PLACE_MOBILE_INSPECTOR_ABSENT": {
+          "bbox": {
+            "x": null,
+            "y": null,
+            "width": null,
+            "height": null
+          },
+          "computed": {
+            "fontSize": null,
+            "fontWeight": null,
+            "lineHeight": null,
+            "padding": null,
+            "margin": null,
+            "borderRadius": null,
+            "boxShadow": null,
+            "backgroundColor": null,
+            "position": null,
+            "overflow": null,
+            "gap": null,
+            "borderBottomWidth": null,
+            "gridTemplateColumns": null
+          },
+          "ariaLabel": "",
+          "count": 0,
+          "maxChildWidth": null,
+          "contentHeightInViewport": null,
+          "leftRelative": null,
+          "sectionGapAvg": null,
+          "scrollWidth": null,
+          "clientWidth": null,
+          "rows": []
+        },
+        "PLACE_MOBILE_NAME_VISIBLE": {
+          "bbox": {
+            "x": 16,
+            "y": 77,
+            "width": 398,
+            "height": 31
+          },
+          "computed": {
+            "fontSize": "23px",
+            "fontWeight": "650",
+            "lineHeight": "31px",
+            "padding": "0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 398,
+          "contentHeightInViewport": 31,
+          "leftRelative": 16,
+          "sectionGapAvg": null,
+          "scrollWidth": 398,
+          "clientWidth": 398,
+          "rows": [
+            {
+              "height": 31,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "PLACE_MOBILE_DECISION_VISIBLE": {
+          "bbox": {
+            "x": 16,
+            "y": 218,
+            "width": 398,
+            "height": 180.25
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "0px 0px 24px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 398,
+          "contentHeightInViewport": 180.25,
+          "leftRelative": 16,
+          "sectionGapAvg": null,
+          "scrollWidth": 398,
+          "clientWidth": 398,
+          "rows": [
+            {
+              "height": 180.25,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "PLACE_MOBILE_DECISION_SIZE": {
+          "bbox": {
+            "x": 34,
+            "y": 294.25,
+            "width": 364,
+            "height": 32
+          },
+          "computed": {
+            "fontSize": "24px",
+            "fontWeight": "650",
+            "lineHeight": "32px",
+            "padding": "0px",
+            "margin": "4px 0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 364,
+          "contentHeightInViewport": 32,
+          "leftRelative": 34,
+          "sectionGapAvg": null,
+          "scrollWidth": 364,
+          "clientWidth": 364,
+          "rows": [
+            {
+              "height": 32,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "PLACE_MOBILE_BOTTOM_NAV_HEIGHT": {
+          "bbox": {
+            "x": 0,
+            "y": 871,
+            "width": 430,
+            "height": 61
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "position": "fixed",
+            "overflow": "visible",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "主导航",
+          "count": 1,
+          "maxChildWidth": 430,
+          "contentHeightInViewport": 61,
+          "leftRelative": 0,
+          "sectionGapAvg": null,
+          "scrollWidth": 430,
+          "clientWidth": 430,
+          "rows": [
+            {
+              "height": 61,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "PLACE_MOBILE_OVERVIEW_FULLPAGE_HEIGHT": {
+          "bbox": {
+            "x": 16,
+            "y": 77,
+            "width": 398,
+            "height": 594.25
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "场所档案",
+          "count": 1,
+          "maxChildWidth": 398,
+          "contentHeightInViewport": 594.25,
+          "leftRelative": 16,
+          "sectionGapAvg": 24,
+          "scrollWidth": 398,
+          "clientWidth": 398,
+          "rows": [
+            {
+              "height": 594.25,
+              "borderRadius": "0px"
+            }
+          ]
+        }
+      },
+      "structure": {
+        "PLACE_MOBILE_HISTORY_COLLAPSED": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "PLACE_MOBILE_ZONES_NOT_CARDS": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "PLACE_MOBILE_OVERVIEW_SUMMARY_PRESENT": {
+          "count": 2,
+          "sampleClasses": [
+            "router-link-active router-link-exact-active overview-summary-row",
+            "router-link-active router-link-exact-active overview-summary-row"
+          ],
+          "sampleText": "空间\n5 个已收录区域\n查看 →",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 2,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": 0
+        },
+        "PLACE_NO_STRAY_GLYPH": {
+          "count": 1,
+          "sampleClasses": [
+            "place-dossier"
+          ],
+          "sampleText": "云栖中心·测试商场\n\n商场 · 演示市云栖区栖霞街 66 号（虚构地址）\n\n概览\n空间\n规则\n现场\n证据\n当前结论\n◐\n有条件\n（有条件：满足所附条件后方可进入）\n\n有条件进入\n\n需满足：需宠物包\n\n当前结论仅适用于这次查询。\n\n最近现场\n\n现场记录不足或未完成人工核验\n\n查看现场记录 →\n空间\n5 个已收录区域\n查看 →\n依据\n云栖商业管理有限公司（演示） · 最近核验 2026-08-19\n查",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 1,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "PLACE_NO_ENGINEERING_INVARIANT_COPY": {
+          "count": 1,
+          "sampleClasses": [
+            "place-dossier"
+          ],
+          "sampleText": "云栖中心·测试商场\n\n商场 · 演示市云栖区栖霞街 66 号（虚构地址）\n\n概览\n空间\n规则\n现场\n证据\n当前结论\n◐\n有条件\n（有条件：满足所附条件后方可进入）\n\n有条件进入\n\n需满足：需宠物包\n\n当前结论仅适用于这次查询。\n\n最近现场\n\n现场记录不足或未完成人工核验\n\n查看现场记录 →\n空间\n5 个已收录区域\n查看 →\n依据\n云栖商业管理有限公司（演示） · 最近核验 2026-08-19\n查",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 1,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        }
+      },
+      "density": {
+        "PLACE_MOBILE_MAX_GAP": {
+          "largestVerticalGap": 24,
+          "horizontalOverflowPx": 0,
+          "infoBlockCount": 4,
+          "firstViewportVisibleTextLines": 35,
+          "contentHeightInViewport": 594.25,
+          "primaryActionCount": 0
+        }
+      },
+      "hierarchy": {},
+      "budget": {
+        "PLACE_MOBILE_FIRST_VIEWPORT_BLOCKS": {
+          "value": 4
+        },
+        "PLACE_MOBILE_FIRST_VIEWPORT_LINES": {
+          "value": 27
+        }
+      },
+      "composition": {
+        "PLACE_MOBILE_STATUS_REPEAT": {
+          "value": 1
+        }
+      },
+      "state": {
+        "route": "#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+        "page": "place",
+        "state": "ready",
+        "fixture": "place-ready-v1",
+        "h1": "云栖中心·测试商场",
+        "entityId": "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+        "resultCount": null,
+        "selectedId": null,
+        "componentCounts": {}
+      },
+      "language": {
+        "uuidHits": [],
+        "enumHits": [],
+        "invariantHits": [],
+        "allcapsHits": [],
+        "refHits": []
+      },
+      "screenshot": "place.mobile-place-mobile-ready.png"
+    },
+    {
+      "pageId": "place-mobile-rules",
+      "route": "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e?view=rules",
+      "elements": {
+        "PLACE_MOBILE_INSPECTOR_ABSENT": {
+          "bbox": {
+            "x": null,
+            "y": null,
+            "width": null,
+            "height": null
+          },
+          "computed": {
+            "fontSize": null,
+            "fontWeight": null,
+            "lineHeight": null,
+            "padding": null,
+            "margin": null,
+            "borderRadius": null,
+            "boxShadow": null,
+            "backgroundColor": null,
+            "position": null,
+            "overflow": null,
+            "gap": null,
+            "borderBottomWidth": null,
+            "gridTemplateColumns": null
+          },
+          "ariaLabel": "",
+          "count": 0,
+          "maxChildWidth": null,
+          "contentHeightInViewport": null,
+          "leftRelative": null,
+          "sectionGapAvg": null,
+          "scrollWidth": null,
+          "clientWidth": null,
+          "rows": []
+        },
+        "PLACE_MOBILE_NAME_VISIBLE": {
+          "bbox": {
+            "x": 16,
+            "y": 77,
+            "width": 398,
+            "height": 31
+          },
+          "computed": {
+            "fontSize": "23px",
+            "fontWeight": "650",
+            "lineHeight": "31px",
+            "padding": "0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 398,
+          "contentHeightInViewport": 31,
+          "leftRelative": 16,
+          "sectionGapAvg": null,
+          "scrollWidth": 398,
+          "clientWidth": 398,
+          "rows": [
+            {
+              "height": 31,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "PLACE_MOBILE_DECISION_VISIBLE": {
+          "bbox": {
+            "x": null,
+            "y": null,
+            "width": null,
+            "height": null
+          },
+          "computed": {
+            "fontSize": null,
+            "fontWeight": null,
+            "lineHeight": null,
+            "padding": null,
+            "margin": null,
+            "borderRadius": null,
+            "boxShadow": null,
+            "backgroundColor": null,
+            "position": null,
+            "overflow": null,
+            "gap": null,
+            "borderBottomWidth": null,
+            "gridTemplateColumns": null
+          },
+          "ariaLabel": "",
+          "count": 0,
+          "maxChildWidth": null,
+          "contentHeightInViewport": null,
+          "leftRelative": null,
+          "sectionGapAvg": null,
+          "scrollWidth": null,
+          "clientWidth": null,
+          "rows": []
+        },
+        "PLACE_MOBILE_DECISION_SIZE": {
+          "bbox": {
+            "x": null,
+            "y": null,
+            "width": null,
+            "height": null
+          },
+          "computed": {
+            "fontSize": null,
+            "fontWeight": null,
+            "lineHeight": null,
+            "padding": null,
+            "margin": null,
+            "borderRadius": null,
+            "boxShadow": null,
+            "backgroundColor": null,
+            "position": null,
+            "overflow": null,
+            "gap": null,
+            "borderBottomWidth": null,
+            "gridTemplateColumns": null
+          },
+          "ariaLabel": "",
+          "count": 0,
+          "maxChildWidth": null,
+          "contentHeightInViewport": null,
+          "leftRelative": null,
+          "sectionGapAvg": null,
+          "scrollWidth": null,
+          "clientWidth": null,
+          "rows": []
+        },
+        "PLACE_MOBILE_BOTTOM_NAV_HEIGHT": {
+          "bbox": {
+            "x": 0,
+            "y": 871,
+            "width": 430,
+            "height": 61
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "position": "fixed",
+            "overflow": "visible",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "主导航",
+          "count": 1,
+          "maxChildWidth": 430,
+          "contentHeightInViewport": 61,
+          "leftRelative": 0,
+          "sectionGapAvg": null,
+          "scrollWidth": 430,
+          "clientWidth": 430,
+          "rows": [
+            {
+              "height": 61,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "PLACE_MOBILE_OVERVIEW_FULLPAGE_HEIGHT": {
+          "bbox": {
+            "x": 16,
+            "y": 77,
+            "width": 398,
+            "height": 1643.75
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "场所档案",
+          "count": 1,
+          "maxChildWidth": 398,
+          "contentHeightInViewport": 855,
+          "leftRelative": 16,
+          "sectionGapAvg": 24,
+          "scrollWidth": 398,
+          "clientWidth": 398,
+          "rows": [
+            {
+              "height": 1643.75,
+              "borderRadius": "0px"
+            }
+          ]
+        }
+      },
+      "structure": {
+        "PLACE_MOBILE_HISTORY_COLLAPSED": {
+          "count": 3,
+          "sampleClasses": [
+            "place-section",
+            "history-list",
+            "muted history-note"
+          ],
+          "sampleText": "历史版本与纠错\n查看全部历史版本 1\n\n管理方声明与用户观察并存：认领后管理方规则标注来源，用户仍可提交现场记录。\n\n报告规则 / 贡献 →",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": true,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": 16
+        },
+        "PLACE_MOBILE_ZONES_NOT_CARDS": {
+          "count": 1,
+          "sampleClasses": [
+            "zone-row"
+          ],
+          "sampleText": "普通宠物 · 进入 已被取代（历史）✓明确允许（明确允许：已核验来源明确允许）",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "PLACE_MOBILE_OVERVIEW_SUMMARY_PRESENT": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "PLACE_NO_STRAY_GLYPH": {
+          "count": 1,
+          "sampleClasses": [
+            "place-dossier"
+          ],
+          "sampleText": "云栖中心·测试商场\n\n商场 · 演示市云栖区栖霞街 66 号（虚构地址）\n\n概览\n空间\n规则\n现场\n证据\n楼层\n普通宠物 · 进入\n◐\n有条件\n（有条件：满足所附条件后方可进入）\n\n需宠物包\n\n需推车\n\n云栖商业管理有限公司（演示） \n◉\n管理方确认\n · 最近核验 2026-08-19\n\n普通宠物 · 进入\n◐\n有条件\n（有条件：满足所附条件后方可进入）\n\n需宠物包\n\n需推车\n\n云栖商业管理有限",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 1,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "PLACE_NO_ENGINEERING_INVARIANT_COPY": {
+          "count": 1,
+          "sampleClasses": [
+            "place-dossier"
+          ],
+          "sampleText": "云栖中心·测试商场\n\n商场 · 演示市云栖区栖霞街 66 号（虚构地址）\n\n概览\n空间\n规则\n现场\n证据\n楼层\n普通宠物 · 进入\n◐\n有条件\n（有条件：满足所附条件后方可进入）\n\n需宠物包\n\n需推车\n\n云栖商业管理有限公司（演示） \n◉\n管理方确认\n · 最近核验 2026-08-19\n\n普通宠物 · 进入\n◐\n有条件\n（有条件：满足所附条件后方可进入）\n\n需宠物包\n\n需推车\n\n云栖商业管理有限",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 1,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        }
+      },
+      "density": {
+        "PLACE_MOBILE_MAX_GAP": {
+          "largestVerticalGap": 24,
+          "horizontalOverflowPx": 0,
+          "infoBlockCount": 13,
+          "firstViewportVisibleTextLines": 42,
+          "contentHeightInViewport": 855,
+          "primaryActionCount": 0
+        }
+      },
+      "hierarchy": {},
+      "budget": {
+        "PLACE_MOBILE_FIRST_VIEWPORT_BLOCKS": {
+          "value": 8
+        },
+        "PLACE_MOBILE_FIRST_VIEWPORT_LINES": {
+          "value": 34
+        }
+      },
+      "composition": {
+        "PLACE_MOBILE_STATUS_REPEAT": {
+          "value": 0
+        }
+      },
+      "state": {
+        "route": "#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e?view=rules",
+        "page": "place",
+        "state": "ready",
+        "fixture": "place-ready-v1",
+        "h1": "云栖中心·测试商场",
+        "entityId": "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+        "resultCount": null,
+        "selectedId": null,
+        "componentCounts": {}
+      },
+      "language": {
+        "uuidHits": [],
+        "enumHits": [],
+        "invariantHits": [],
+        "allcapsHits": [],
+        "refHits": []
+      },
+      "screenshot": "place.mobile-place-mobile-rules.png"
+    }
+  ]
+}

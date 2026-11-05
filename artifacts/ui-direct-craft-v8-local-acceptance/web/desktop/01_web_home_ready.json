@@ -1,0 +1,15 @@
+{
+  "gitSha": "d2eeba2fe5ffbfba31f244881f6e1705a07f84c2",
+  "route": "/",
+  "page": "home",
+  "state": "ready",
+  "viewportWidth": 1440,
+  "viewportHeight": 900,
+  "devicePixelRatio": 1,
+  "documentClientWidth": 1440,
+  "documentScrollWidth": 1440,
+  "horizontalOverflow": false,
+  "consoleErrors": [],
+  "networkErrors": [],
+  "screenshot": "01_web_home_ready.png"
+}

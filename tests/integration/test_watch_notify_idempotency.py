@@ -147,6 +147,38 @@ def _sink_messages_for(place_name: str) -> list[dict]:
     return out
 
 
+def test_rule_sweep_does_not_deliver_to_reality_watch(watched_venue):
+    """Rule Watch and Reality Watch are separate notification domains."""
+    from app.db.session import get_session_factory
+    from app.models import WatchSubscription
+    from app.worker.tasks import notify_rule_changes
+
+    place, _, rule_watch = watched_venue
+    session = get_session_factory()()
+    reality_watch = WatchSubscription(
+        id=str(uuid.uuid4()),
+        user_id=rule_watch.user_id,
+        watch_domain="reality",
+        target_type="place",
+        target_id=place.id,
+        channels=["in_app"],
+        last_notified_at=None,
+    )
+    session.add(reality_watch)
+    session.commit()
+    try:
+        before = len(_sink_messages_for(place.canonical_name))
+        notify_rule_changes.run()
+        after = _sink_messages_for(place.canonical_name)
+        assert len(after) - before == 1, "rule sweep must notify only the Rule Watch"
+        session.refresh(reality_watch)
+        assert reality_watch.last_notified_at is None
+    finally:
+        session.delete(reality_watch)
+        session.commit()
+        session.close()
+
+
 def test_a_second_sweep_does_not_renotify(watched_venue):
     from app.worker.tasks import notify_rule_changes
 

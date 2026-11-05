@@ -1,5 +1,659 @@
+## Current phase（2026-11-05 — PR #1 已合入 human-review 基分支）
+
+- `feat/ui-direct-craft-v8` 已通过 PR #1 合入 `feat/ui-product-craft-v7-human-review-final`：merge commit `21d73cff`，父提交 `96fb31e7` + `136a148c`；合并后基分支树与 head 树逐字节一致（`git diff --stat 136a148c 21d73cff` 为空）。PR #1 现为 `closed / merged`；**未 tag、未 release、未动 `master`**。
+- 合并前实测：head `136a148c` 的 12 项 check 全 **success**；CI 内 299 例（243 journeys + 54 DPI + 2 contribute），24/24 个 e2e spec 全部被执行。
+- **`UI_HUMAN_VISUAL_ACCEPTANCE` 从未签字**，仍为 `PENDING_REVIEW`。本次合并按 owner 明确指令执行，不构成人审通过，也未据此做 baseline promotion —— 机器核验事实与人审结论必须分开记录，合并动作不改变这一点。
+- 下一步（未做）：在基分支重建 Human Review artifact 并取得用户签字；Android 设备证据仍绑定 `10d6409d` / `da4717c9`（自那以后 `apps/client-h5` 零改动，APK 未变）。
+
+## Current phase（2026-11-05 — E2E 覆盖从 16/24 扩到 24/24，测试腐化清零）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 **OPEN + DRAFT**，`mergeable_state = clean`；远端 = 本地 = `aa90401a`。
+- **覆盖面缺口关闭**：`tests/e2e` 共 24 个 spec，此前 CI 只显式列出约 16 个，8 个长期无人执行并静默腐化。本轮把 5 个断言陈旧者按当前产品改写（不放松断言、不删用例），另 3 个修好预算或直接并入，现 **24/24 全部在 CI 执行**（22 主列表 + DPI 独立 step + `contribute-wizard` 子集 step）。
+- 腐化归因（逐条实测）：`consumer-routes` 断言已重写的 404 整句；`empty-state` 要求 Home 空态有"去贡献"出口，而产品按设计只给 map + 搜索（描述本身写明贡献需先绑定场所）；`place-preview-overflow` / `m3-consumer-core` 用场所名选行，行 key 早已是 `result-<id>`；`query-context` 在按设计隐藏查询条的 `/pets`、`/privacy` 上断言，且要求每个 surface 都发快照请求，而 60s 按完整语境 key 的缓存本就会命中第二个。
+- **`public-media` 404 控制台噪声按上条记录的建议收口**（"若将来纳入 CI，应给 gate 加 allow-list"）：只对 `m3-consumer-core` 控制台闸门精确放行该 404，其他 `console.error` 与 `pageerror` 仍然失败；未改后端合同、未加跨路由负缓存。
+- `desktop-dpi` 进 CI 的两处真因：`settle()` 只等骨架屏，而 Place overview 无骨架屏 → 会在 `data-ui-state="loading"` 窗口内测量溢出（与 UI Oracle 同一判断，已补有界等待）；30s 默认预算对 9 cell × 6 surface 不够 → 独立 step 用 `--workers=1 --timeout=120000`。
+- 实测（同一 SHA `aa90401a`，PR CI = SUCCESS）：主 Playwright step **243 passed**、DPI 矩阵 **54 passed (41.4s)**、contribute 子集 **2 passed**，CI 内合计 **299** 例；UI Direct Validation / Visual、Public Preview Stack、Format Preview、Autofmt 均 SUCCESS。
+- 本地实测（标准端口栈 + 临时 config，绕开 ~400s 建库自举）：5 个改写 spec 合跑 26 passed；DPI 矩阵 54/54（53s）；`backend-down-home` + `pa-icon-size` 3 passed。`pnpm format:check:fe` / `lint:fe` PASS。
+- 未改变：Rule / Reality / Evidence domain semantics、API 合同、审核治理、release signing。`UI_HUMAN_VISUAL_ACCEPTANCE` 继续 `PENDING_REVIEW`。
+- 停止线：PR 继续 Draft。Android 设备证据此前绑定 `10d6409d` / `da4717c9`；其后 4 个提交只动 `tests/`、CI 配置与文档，APK 未变，如需绑定最新 SHA 用 `workflow_dispatch` 显式触发。
+
+## Current phase（2026-11-02 — 本地 E2E 全量试跑 + `public-media` 404 结论纠正）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 **OPEN + DRAFT**，`mergeable_state = clean`；代码树与本条记录之前的 SHA 一致（本条只改文档）。
+- **本地 E2E 首次跑通全集**（此前一直靠 CI 代跑）：标准端口栈（API 8010 role E2E + preview 5175）+ 临时 config（`webServer: []`，绕开本机 ~400s 的建库自举）→ 315 例 **296 passed / 19 failed**。
+- 失败归因（已用串行复跑验证，不是猜的）：把 11 个失败 spec 单独跑，**CI 会执行的那批 17/17 全通过**（h5-shell / place-route-race / public-session-degrade），说明大跑失败来自本机资源竞争与 30s 超时；`contribute-wizard` / `h5-journey` 的媒体用例需要 S3，而 CI 的 Playwright job 会先起 MinIO（`docker.io/pgsty/silo`），本机无 Docker、MinIO 官方二进制已 410 不可下载，属**环境缺口非产品缺陷**。
+- 真正稳定失败的 7 项全部是 **CI 从不执行**的旧 spec（如 `consumer-routes` 仍断言已不存在的 404 文案），属测试腐化；`tests/e2e` 共 24 个 spec，CI 只显式列出约 16 个 → 已作为 Debt 记入报告 §8，未擅自改写测试。
+- **纠正一条历史判断**：`public-media` 404 控制台噪声此前被我列为"可改后端去掉的 P2"。读 `services/api/app/api/v1/public_media.py` 后确认它是对所有"无合格公开媒体"情形统一 404，这正是 fail-closed 的信息边界——改成 200 + `available:false` 会泄露 bundle 是否存在。故**不改后端、也不加跨路由负缓存**（后者会让 Human Review 同文档多次 goto 命中负缓存而掩盖 governed media）。非 CI 的 `m3-consumer-core` console gate 因此报错，若将来纳入 CI，应给该 gate 加 allow-list 而非放宽 API。
+- 下一步门禁：本条为 docs-only，Android 工作流有 `paths:` 过滤不会触发；如需设备证据绑定本条 SHA，用 `workflow_dispatch` 显式触发。
+
+## Current phase（2026-11-02 — 触控目标全量收口：44px 独立控件 + 24px 行内链接）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 **OPEN + DRAFT**，`mergeable_state = clean`。
+- 本轮把触控目标从"只修地图浮层"扩展到全站，并纠正一处判断失误：`#app` 前缀规则优先于 SFC scoped 规则，先前写在 scoped 里的 44px/24px 被 v9/v11 的同名规则覆盖，等于没生效。权威值改写到 v11。
+- 已达成 44px 的独立控件：search「筛选」、Reality 筛选项、地图「调整」、lens `<select>`、map/list 分段按钮、**页面级「调整」**（改 44×44 的同时把该条 6px 上下内边距让位为 2px，条高仍 48px，不动 `place.mobile` 首屏行数预算）、onboarding「先浏览公开内容」、Why「重新获取」、Privacy「清除本机登录状态」。
+- 行内文本链接（Place 动作行、`地图定位 →`、Reality 返回地点）：20/18px → **24px**，达到 WCAG 2.2 AA 2.5.8 下限；不强行拉到 44px，避免破坏 v11 编辑式动作行节奏。
+- 复核：`pnpm format:check:fe` / `lint:fe` / `client-h5` build 均 PASS；三视口 Oracle 采集 **0 failed**，`compare.ts` = **PASS 580 / 0 WARN / 0 FAIL**（无 flake，settle 修复生效）；移动端 4 视口 × 19 路由 = **76 次渲染**，横向溢出 0 / h1 问题 0 / 可见泄漏 0，剩余 <44px 项仅为行内链接且实测 24px。
+- 仍未做：`public-media` 404 控制台噪声（见报告 §8，需后端合同变更或跨路由缓存，后者会让 Human Review 的同文档多次 goto 命中负缓存而掩盖 governed media，风险不可接受，故保留为已知 P2）。`UI_HUMAN_VISUAL_ACCEPTANCE` 继续 `PENDING_REVIEW`。
+
+## Current phase（2026-11-02 — 移动端 44px 触控目标收口 + Oracle settle 误报根因修复）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 仍 **OPEN + DRAFT**，`mergeable_state = clean`。
+- **触控目标收口（`ui:`）**：此前以为"抬高 mobile Map 第二行会压缩地图画布"，实测证明这个前提是错的——`.map-context-strip` 在 ≤767px 是 `position: absolute` 浮层，**不占用 map-canvas 高度**。据此把 `.query-context__edit`（34×32 → **44×44**）、map lens `<select>`（78×38 → **78×44**）、`.map-viewbar__segment button`、`.privacy-action`（40 → 44）统一改用 `var(--pa-layout-touch-target)`。实测 390×844 / 430×932：`map-canvas` 仍为 **784 / 872**（合同下限 580），无横向溢出；`map.mobile` 合同 **62 PASS / 0 FAIL**。
+- **Oracle 误报根因修复（`test:`）**：`global / SINGLE_H1 actual=0` 在 Place 页反复出现，单跑可恢复但会复发。根因是 `settle()` 只等 `networkidle` + 无 `skeleton` 类，而 Place overview 在 `data-ui-state="loading"` 的 200–400ms 窗口内既无 skeleton 也无 h1，探针量到了未渲染状态。现在 `settle()` 追加"等待壳状态离开 loading"（有界 15s + 兜底 + 250ms 收尾）。修复后 `compare.ts` = **PASS 580 / WARN 0 / FAIL 0**，不再需要靠重跑掩盖。
+- 本地门禁：`pnpm format:check:fe` PASS、`pnpm lint:fe` PASS、`client-h5` build PASS。
+- 未改变：Rule / Reality / Evidence domain semantics、API 合同、审核治理。`UI_HUMAN_VISUAL_ACCEPTANCE` 继续 `PENDING_REVIEW`。
+
+## Current phase（2026-11-02 — Android API 35/36 runtime smoke 由红转绿）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 仍 **OPEN + DRAFT**（未 merge/tag/Release），但 `mergeable_state` 已从 `unstable` 变为 **`clean`**：长期红着的两个 Android runtime smoke 已修复并实测通过。
+- **缺陷一（产品缺陷）**：`a4b9906` 为减少列表噪音，把「信息不足不等于允许或禁止」从每条 UNKNOWN 结果行移除，但 `scripts/android_acceptance/derive_domain_semantics.py` 仍要求该句出现在渲染后的 Search 页面，于是两个模拟器 job 稳定停在 17 passed / 1 failed（CDP 旅程本身 28/28 PASS）。修复：改为**整页说明一次**，且仅当当前结果里确有依据不足的场所时出现 —— 保留"不逐行重复"的设计收益，行内出现次数为 0。提交 `5a11ca7c`。
+- **缺陷二（CI 预算缺陷）**：语义闸门修好后暴露出第二个问题——完整 smoke 需要约 28 分钟（打包 WebView 旅程 + IME 闸门 + 生命周期/性能/压力探针 + 宽度与覆盖矩阵），而步骤墙钟是 1200s，健康运行会在矩阵中途被 SIGKILL(137)；无条件重试又把同一个确定性超时再跑一遍，吃掉整个 45 分钟 job 预算。修复：单次预算提到 **2100s**；重试改为仅当 `cdp_journey_playwright.json` 未产出（= 模拟器/ADB 基础设施故障）时才触发。提交 `3383c607`。
+- **实测结果（同一 SHA `3383c607`，run `41449832900`）**：`Android Preview · API 35 runtime smoke` = **SUCCESS**（13:10:13→13:46:55），`Android Preview · API 36 runtime smoke` = **SUCCESS**（13:10:13→13:47:20）；语义闸门 `result=PASS`、`passed 18 / failed 0`、四项 invariant 全 true；IME 闸门 2/2；同时 PR CI / UI Direct Validation / UI Direct Visual / Public Preview Stack / Windows Preview / Android APK 均 SUCCESS。
+- 仍未改变：Rule / Reality / Evidence domain semantics、API 合同、审核治理、release signing。`UI_HUMAN_VISUAL_ACCEPTANCE` 继续 `PENDING_REVIEW`。
+
+## Current phase（2026-11-02 — v11 Web final closure sweep：独立复核 + P2 清理收口）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 继续 **OPEN + DRAFT**；未 merge、未 tag、未 Release；`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
+- 开工重新核验远端：`origin/feat/ui-direct-craft-v8` = `160745e9d279379af927f4dd0d14c1bb360ea7fd`，与 PR #1 `head.sha` 一致，相对上一轮 **未前进**。进入时本地在 `master` @ `42ed4e34`（该 SHA 祖先，落后 3026 commits），工作树干净，无待保护成果。
+- 该 SHA 的 check runs 实测：PR CI / UI Direct Validation / UI Direct Visual / Public Preview Stack = **SUCCESS**；`Android Preview · API 35` 与 `API 36 runtime smoke` = **FAILURE**（既存、Web 范围外，未处理）。
+- 本轮性质：**独立复核 + P2 清理**。实测源码树 = `160745e9...`；记录提交 `e7c77a70`（docs-only，该 SHA PR #1 checks 12/12 SUCCESS、`mergeable_state=clean`），其后 `ui:` 提交做 P2 收尾（4 个 consumer 文件）。未触碰 domain semantics / API / 合同。详见 `WEB_FINAL_CLOSURE_REPORT.md`。
+- 本机原无 Node / Python / PostgreSQL / Docker；为让 PASS 可复现，本轮在会话 scratch 内搭建 Node 22.23.4 + pnpm 12.4.1 + Python 3.12(uv) + PostgreSQL 17.7/PostGIS 3.6 + Redis，并用仓库自带脚本灌入 `petaccess_visual` / `petaccess_e2e`；`.env` 被工具安全策略禁止写入，改为进程环境变量注入，未新增凭据文件。
+- 本地真实执行结果：`pnpm lint:fe` PASS；`pnpm format:check:fe` PASS；`client-h5` build PASS；`admin` build PASS；UI Oracle 三视口（desktop 1440×900 / tablet 800×1080 / mobile 430×932）采集 **0 failed**；`compare.ts ui-direct-v8` = **PASS 580 / WARN 0 / FAIL 0**（11 份合同全绿）。
+- Human Review artifact 本机重建于 `artifacts/ui-direct-v8/HUMAN_REVIEW/`，manifests 绑定 `sourceHead=160745e9...`、`humanVisualAcceptance=PENDING`：desktop 40 / tablet 40 / mobile 43，共 123 张，全部来自真实 runtime + 真实 fixture。
+- 本轮新增独立 DOM 审计：10 视口（320/360/390/430/768/800/1024/1280/1440/1920）× 19 路由 = **190 次真实渲染**，结果 **横向溢出 0、重复/缺失 h1 0、可见 enum/UUID/snake_case/工程语泄漏 0、consumer CSS 硬编码颜色 0**。
+- P2 收口（本地 Oracle 复验后提交）：**已关闭** `.place-dossier__scene--fallback` 死选择器（v10 / v11 / PlaceView 基础块 + mobile 块，全仓引用数归 0）；**已关闭** `.filter-toggle` 与 `.reality-filter-chip` 的 <44px 触控目标（改用 `var(--pa-layout-touch-target)`，390×844 实测已不再落入 <44px 列表）。**保留** map chrome（`.query-context__edit` 34×32、lens `<select>` 78×38）与 privacy 40px：抬高会把 mobile Map 第二 overlay row 从 48px 顶到 56px，与 `MAP_MOBILE_CANVAS_VIEWPORT_FILL ≥580px`（Map=支配表面）冲突，按 Map 主导优先保留并记录。`public-media` 404 噪声需后端合同变更，仍待办。
+- 改动后复验：`pnpm lint:fe` PASS、`pnpm format:check:fe` PASS、`client-h5` build PASS；三视口 `oracle.spec` + `secondary-craft.spec` 采集 **0 failed**；`compare.ts ui-direct-v8` = **PASS 580 / WARN 0 / FAIL 0**。中途一次 `global / SINGLE_H1 actual=0`（Place 页）经单独复跑恢复 `global PASS=33 FAIL=0`，判定为采集瞬时 flake，已如实记录在报告 §3。
+- 未完成：**本地完整 Consumer E2E 未跑成**——`isolated_db --role E2E --reset` 在本机稳定耗时 ≈400 s（两次 400459 / 401662 ms），超出 `playwright.config.ts` 的 180 s webServer 预算；手工预建库后 `uvicorn` 300 s 内仍未绑定端口；期间该机 D: 卷一度整体掉线（`os error 267/3`）。E2E 权威证据仍为同 SHA 的 PR CI 结果，未以旧结论冒充新执行。期间曾怀疑 playwright 配置路径写法在 Windows 下失效，已用可复现实验证伪并 `git checkout` 全量回退。
+- 人审三态：`MACHINE_PASS = PASS`；`ASSISTANT_VISUAL_REVIEW = NOT PERFORMED`（本轮无像素级复核，只有 DOM 测量）；`USER_HUMAN_ACCEPTANCE = PENDING_REVIEW`。
+- 停止线：PR 继续 Draft，等待用户本人对绑定 `160745e9...` 的 Human Review artifact 明确签字后再讨论 baseline promotion / PR ready / master / Release。本地 Agent 不代签。
+
+## Current phase（2026-10-28 — v11 adaptive Map + Reality context VERIFIED）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 继续 **OPEN + DRAFT**；未 merge、未 tag、未 Release；`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`（机器与助手目视复核都不能替代用户签字）。
+- 本轮从远端 HEAD `37257281944f6d24ff4b89ac9bd237c609e0ef25` 继续。进入时唯一 PR CI 回归是 mobile Map 第二 overlay row 在窄屏 Lens / map-list 间仅 2px 间距；Backend / Frontend / Engineering 与 UI Visual 其余部分均正常。
+- 源码闭环 HEAD = `50d0453f693167f7ca2937c6f93b8c81d0aa395d`。该 HEAD 四条主门禁已取得**同一 SHA 的真实结果**：
+  - PR CI = **SUCCESS**（Engineering / Frontend / Backend / Playwright 全部 SUCCESS）；
+  - UI Direct Validation = **SUCCESS**（ESLint / Prettier / client-h5 build / admin build）；
+  - UI Direct Visual = **SUCCESS**；
+  - Public Preview Stack Validation = **SUCCESS**。
+- 本轮直接完成：
+  - mobile Map 第二 overlay row 从三个 unrelated absolute offsets 重构为一个 adaptive flex group；query context 是唯一可收缩/ellipsis 区，Lens 与 map/list 保留触控尺寸；
+  - A1.0.4 响应式门扩展到 **320 / 360 / 390 / 430px**，并在最终 PR CI 实际 PASS；
+  - standalone Reality timeline 增加轻量 Place context / 返回地点；Place identity 采用 best-effort 独立请求，不阻塞 Reality facts；
+  - 新增 E2E：即使 `/places/:id` supporting lookup 返回 503，Reality 仍必须保持 `ready`、显示已发布事件，并以“当前场所”降级上下文；
+  - Human Review 强制 Reality place context；v11 母版冻结 adaptive Map row 与 non-blocking Reality context 原则。
+- 最终 Human Review artifact：run `40645957545` / artifact `12797951501`（约 23.1 MB），manifests 均绑定 `50d0453f...`：desktop **40** 张、tablet **40** 张、mobile **41** 张。11 个 UI compare reports 均 **0 WARN / 0 FAIL**。
+- 最新截图目视复核（不替代用户签字）：
+  - mobile Map 保持“两行 overlay + dominant spatial canvas”，selected sheet 有/无 governed media 均为 compact spatial bridge；
+  - Reality 顶部现在明确显示所属 Place，但仍保持 timeline-first；
+  - no-photo Place 为 text-led identity，governed-media Place 为 destination surface，Rule 进入首屏；
+  - Home / Search / Evidence / Contribution 未发现新的 card-wall / SaaS archetype 回退。
+- 本轮未改变 Rule / Reality / Evidence domain semantics、API、审核治理、Tauri/Android runtime、release signing 或发布状态。
+- 停止线：当前可视为 **v11 machine-verified + assistant visual-reviewed candidate**；PR 继续 Draft，`UI_HUMAN_VISUAL_ACCEPTANCE` 继续 PENDING，等待用户对这组最终运行截图明确签字后再讨论 baseline promotion / PR ready / master / Release。
+
+
+## Current phase（2026-10-24 — v11 mobile Map chrome compression + spatial-context polish）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 继续 **OPEN + DRAFT**；未 merge、未 tag、未 Release；`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
+- 本轮先重新核验远端：进入时 HEAD=`d8048863aafa1527e8074670ccd8a8bf7c4659ec`，相对 2026-10-19 的 `3c614320...` 已前进 **196 commits**；该 HEAD 的 PR CI / UI Direct Validation / UI Direct Visual / Public Preview Stack 均 **SUCCESS**。同 HEAD 最新 Human Review artifact（约 23.2 MB）已实际拉取并目视检查。
+- 最新真人视觉复核结论（不代替用户签字）：Home / Search / Place / Reality / Evidence / Contribution 的大框架已稳定进入 Urban Spatial Guide；Map selected sheet（有/无 governed scene media）也已形成 compact spatial bridge。当前最明显残留集中在 **mobile Map 顶部 chrome 仍有三层感** 与 fallback basemap 的工程提示。
+- 外部设计复核继续支持本轮方向：
+  - Apple HIG Maps：地图应保持可交互、避免长期遮挡地图的非必要 UI；selected place 应使用 place card / sheet，同时保留地图上下文；
+  - AllTrails：map pin → bottom card → details，地图保持主表面。
+- 本轮直接完成：
+  - `ea3ef1e4`：移动 Map 的 Rule / Reality / Facility / Divergence 保持四个一等 Lens，但从永久四段式按钮收口为 compact mobile selector；desktop 四段式不变。
+  - `0157a8d0`：mobile query context + Lens selector + map/list control 压入同一第二行，地图从三层顶部 chrome 收为两层；query summary 在窄屏可省略截断但语义仍可编辑。
+  - `77e0d2c9` / `71646d78`：fallback map 真实性披露收为一份轻量 caption，删除 MockMap 内重复 provider 提示；不弱化“简化空间底图 / 已收录坐标未核验”事实。
+  - `aef608ba` / `e63ec7c1`：Human Review 与 map.mobile visual contract 改为 mobile compact Lens selector；四 Lens 数量和单一 active lens 仍是 FAIL gate。
+  - `6ba1eb1c`：E2E 同步 compact mobile basemap disclosure。
+  - `1c3a9704`：320–379px 明确覆盖旧 narrow-screen search offset，保持同一两行 overlay stack，不额外吃掉地图高度。
+  - `812ea474`：Lens selector / query context / map-list controls 统一为 38px rhythm、12px radius、同一 shadow language，减少拼装感。
+  - `f7e5ad9c`：新增 430px mobile Lens route-sync E2E，切换 Reality 后 selector / URL / marker semantics 必须同步。
+  - `b85e3f00`：删除 fallback map “缩放 N 级 · 示意比例”调试式 caption；真实 zoom 交互保留，简化底图不暗示额外测量精度。
+- 本轮未改变 Rule / Reality / Evidence domain semantics、API、治理审核、Tauri/Android runtime、release signing 或发布状态。
+- 当前源码 HEAD（本段写入前）=`b85e3f00c25be8f1e01b1b75145c70668f6b01db`。该 HEAD 的 Actions 已触发但本段写入时尚未取得完成结果；**禁止复用 d8048863 的 SUCCESS 冒充当前最终 HEAD PASS**。
+- 下一门禁：同一最终 HEAD 的 UI Direct Validation / PR CI / UI Direct Visual 全绿后，重新拉取 Human Review，重点目视 320/360/390/430 mobile Map 顶部占屏、Lens selector、selected sheet 与 fallback disclosure。机器 PASS 仍不等于用户 Human Visual Acceptance。
+
+## Current phase（2026-10-21 — v11 Place dual-fact signature + Evidence purpose closure）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 继续 **OPEN + DRAFT**；未 merge、未 tag、未 Release；`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
+- 本轮在最新 Human Review 基础上继续收口，而不是重做 IA。目视确认当前最大残留已从 card-wall 转为“事实维度辨识度”：mobile Place 的 Rule 与 Reality 虽语义独立，但此前主要依赖顺序区分；Evidence 首屏则更像一条场所记录而不是明确的 provenance 页面。
+- 本轮直接完成：
+  - `e2683b13` / `3b9a6517` / `999b29ec` / `902df2b5`：Place Overview 冻结可见的 **规则 / 现场** 双事实语法。Rule rail 按 ALLOWED / CONDITIONAL / RESTRICTED / CONFLICT / UNKNOWN 辅助表达，Reality 使用独立 observed-fact rail；手机端两个维度标签保持可见，颜色永不成为唯一含义。
+  - `018b5917` / `a7601be4` / `8a8d809c`：Map Selected Sheet / desktop PlacePreview 补齐 CONFLICT rail，避免来源冲突错误退化为 Unknown 的视觉语气。
+  - `3bde7152` / `f31afa91`：Place mobile/desktop UI contracts 新增 `PLACE_OVERVIEW_FACT_DIMENSIONS_VISIBLE`，强制 Overview 同时可见“规则”“现场”两个维度，防止未来 Agent 再隐藏其中之一。
+  - `0176730f` / `dbf87a29`：Evidence 将“证据与来源”提升为真实可见 page title，地点名退为上下文；Evidence contract 增加首屏可见标题 gate。
+  - `ce56d3fc`：v11 母版冻结“Place 双事实签名”和“Evidence = provenance surface，不是另一张 Place detail”。
+- 这些改动不改变 Rule / Reality / Evidence domain semantics、API、审核治理、Android/Tauri runtime 或发布状态。
+- 当前 branch tip=`ce56d3fca9710bad23abdc77bf6a9b5495d5467b`。PR CI / UI Direct Visual / UI Direct Validation / Public Preview Stack 已触发但本段写入时均为 **QUEUED**；不得复用旧 HEAD 的全绿结论。
+- 下一门禁：等待同一 HEAD 的格式、E2E 与 UI contract 结果；若通过，再拉取 Human Review 核验 Place mobile 双 rail、Place desktop reading rhythm、Evidence 首屏 title 与新版 MockMap。机器 PASS 仍不等于用户 Human Visual Acceptance。
+
+## Current phase（2026-10-21 — v11 spatial canvas + selected-place fact-language polish）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 保持 **OPEN + DRAFT**；未 merge、未 tag、未 Release；`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
+- 本轮重新核验远端真实 HEAD=`89a9994a67c466d296768171a10697c4835402f6`；相对 2026-10-19 的 `3c614320...` 已前进 **161 commits**。该 HEAD 的 PR CI / UI Direct Validation / UI Direct Visual / Public Preview Stack 全部 **SUCCESS**。
+- 已拉取并目视检查同 HEAD 的最新 Human Review（约 22.9 MB）。结论：Search、Place、Reality、Contribution 和 selected-place bridge 的大框架已经进入稳定 Urban Spatial Guide；当前最明显的残留不是 card-wall，而是 fallback map 仍偏“测试底图”，以及 Map selected surface 的 Rule / Reality / Facility / Divergence 视觉语法仍过于同质。
+- 外部设计复核继续支持当前方向：
+  - Apple HIG Maps 明确建议 selected place 使用 compact/full place card 并保持地图位置可见，避免重复信息；
+  - Apple Sheets 强调默认尺寸应帮助用户保留父级上下文；
+  - AllTrails 继续使用 map + drawer / nearby selection 的空间浏览模型；
+  - AccessNow 3.0 将地点信息拆成清晰 section，并支持单 feature / photo 贡献。PetAccess 只借鉴空间层级与单事实贡献，不引入总评分。
+- 本轮直接完成：
+  - `0460f57b`：增强 MockMap 城市空间 fallback——增加多块开放空间、plaza、local road，提升 block / road / river / urban mass 层次；继续明确标注“示意底图（非真实街道）”，不制造场所名、规则或定位精度。
+  - `40e2568b`：mobile MapSelectedSheet 为 Rule / Reality / Facility / Divergence 引入 restrained semantic rail；颜色只作辅助，文字结论仍为主。
+  - `ef346791` + `773f70a0`：desktop PlacePreview 同步同一 fact-dimension visual grammar；非 Rule lens 不让 Rule 色彩抢占主语义。
+  - `7f74af30`：v11 设计母版冻结“fallback map 必须像城市空间但不得伪造地理事实”以及“semantic rail 不能退化为 friendliness score”。
+- 当前最终 branch tip 以 GitHub 为准；本段写入后 Actions 会针对最终 HEAD 重跑。旧 HEAD 的 SUCCESS 不得冒充本轮结果。
+- 下一视觉门：同一最终 HEAD 的 UI Direct Visual / PR CI；之后重新拉取 Human Review，重点检查 fallback basemap 的城市感、mobile selected sheet 四类 lens、desktop selected preview，以及 320/360/390/430 宽度下是否仍保持地图主表面。
+
+## Current phase（2026-10-21 — v11 visual contract repair + Search hierarchy closure）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 继续 **OPEN + DRAFT**；未 merge、未 tag、未 Release。
+- 重新核验时远端已比 2026-10-19 的 `3c614320...` 前进 **158 commits**，v11 已继续大规模落地：`MapSelectedSheet.vue`、Place/Search/Map、Human Review、视觉合同与 `consumer-discovery-v11.css` 均有实质更新。
+- HEAD `ca019183...` 的机器结果：PR CI / UI Direct Validation / Public Preview Stack = **SUCCESS**；UI Direct Visual = **FAIL**。失败发生在 `Compare UI contracts`，Human Review 截图捕获本身 SUCCESS。
+- 拉取并检查 run `39604053745` 的 `ui-direct-v8-visual`（约 23 MB）后确认：Home / Map / Map mobile / Place desktop / Place mobile / Reality / Evidence / Search desktop 合同均 **0 FAIL**；Search mobile 仅 1 WARN；唯一 FAIL 家族是 Contribution（18）。
+- Contribution FAIL 根因不是当前 UI 画面：oracle 的 `contribute-entry` probe 实际被 session-restore race 导回 Home（probe state = `page=home, route=#/`），后续 step-1 / step-2 / review 又可正常进入 Contribution。已在 `tests/ui-oracle/oracle.spec.ts` 中让 authenticated oracle 在写入 token 后完成一次 document reload + settle，再导航到受保护 route，避免把 Home DOM 误标成 Contribution。
+- 同一视觉包的 Search mobile 唯一 WARN 为 `SEARCH_MOBILE_PRIMARY_HEADLINE_TO_BODY`：主语义行 16px / body 15px，ratio = 1.07 < 1.1。已把移动 Search 的 Rule/Reality lead 提到 tokenized 17px + medium weight，保持地点名/metadata 结构不变。
+- 最新真实截图人工复核（不替代用户签字）：Map selected-place sheet 已形成轻量 spatial bridge；governed-media Place 已呈现 destination surface；Reality 是 timeline-first；Contribution chooser 已是 divider-led one-question flow；Home/Search 均已明显脱离 SaaS/card-wall 原型。
+- 本轮提交：
+  - `b157d16f` — stabilize authenticated UI oracle session before routing；
+  - `03dd56bc` — strengthen mobile Search semantic hierarchy。
+- 当前源码 HEAD：`03dd56bc40d6504dde9d07bb1833fdd00b47a9b7`。本段写入时该 HEAD 的新 Actions 尚未返回可核验结果，因此不得写为 PASS。
+- `UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW` 保持；下一门槛是同一最终 HEAD 的 UI Direct Visual 0 FAIL + 新 Human Review，再决定是否继续做更小的视觉精修。
+
+## Current phase（2026-10-21 — v11 hierarchy closure: media serves Rule, CI pending）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 继续 **OPEN + DRAFT**；未 merge、未 tag、未 Release；`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
+- 本轮从远端真实 HEAD `21fb486468c0b5f64517233856273bf8e9e1e3c4` 继续；相对 2026-10-19 的 `3c614320...` 已前进 150 commits。该 HEAD 的 UI Direct Validation / UI Direct Visual / Public Preview Stack = SUCCESS；PR CI 仅 Playwright 1/211 FAIL，其余 engineering/frontend/backend 均 SUCCESS。
+- PR CI 唯一失败根因不是视觉或 domain：snapshot transport failure 时 desktop Overview Evidence 的“规则依据”已显示“暂时无法取得”，但“现场来源”仍显示“暂无”，与 fail-closed partial truth 不一致。本轮 `6baf681a` 修复为 `snapshotError → 现场来源暂时无法取得`。
+- 同 HEAD 最新 Human Review（约 22.9 MB）已实际拉取并目视：
+  - mobile selected Map sheet 已形成 dominant map + compact place bridge；有/无 governed media 两种状态都成立；
+  - Home 已是 compact city-space launcher，但 governed media / city illustration 仍可继续压缩以让 nearby/Rule 更早进入首屏；
+  - no-photo Place 已是 text-led editorial identity；
+  - governed-media Place 仍有“媒体先于规则过多”的余量；Reality timeline 已稳定。
+- 本轮继续直接完成：
+  - `dc900bac`：Home desktop/mobile hero 再压缩；governed-media Place hero desktop/mobile 再压缩，Rule 更早进入首屏；
+  - `562cbe4d` / `85036d28`：清理 place mobile/desktop contract 的旧 v9/status-chip 描述，和 v11 单一 Rule owner 对齐；
+  - `c611bdfa`：Human Review 增加 `firstViewportTestids`；governed-media Place 强制 `section-answer` 起点位于初始 viewport 内；
+  - `3f67d88c`：v11 设计母版冻结“governed media = orientation, not decision；不能把 Rule 推到 fold 以下”。
+- 视觉方向保持：Map-first；Place destination-first；Rule=decision、Reality=time、Evidence=provenance；无审核照片绝不补 generic venue imagery；selected-place sheet 只做空间浏览到 Place 的 bridge，不变成 mini dossier。
+- 当前最终 HEAD（本段写入前）=`3f67d88c4378f5df9c3d7bd07c163420482179bb`。该 HEAD 的四条主 Actions 已触发并处于 pending/queued；禁止复用旧 HEAD 的 SUCCESS 作为当前结果。
+- 下一门禁：同一最终 HEAD 的 PR CI + UI Direct Visual；成功后拉取新的 Human Review，重点核验 governed-media Place 的 Rule 是否真实进入首屏，以及 Home 首屏空间占比是否继续优于上一轮。
+
+## Current phase（2026-10-21 — v11 spatial bridge polish continuation）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 继续 **OPEN + DRAFT**；未 merge、未 tag、未 Release；`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
+- 本轮继续只收 Consumer presentation，不改 Rule / Reality / Evidence 语义、API、审核治理或 Android runtime。
+- 外部参考再次支持当前结构：AccessNow 最新版将地点信息拆成清晰 section 并允许单 feature / photo 贡献；Mapstr 强调 map→place card→filter/tag 的轻量空间切换。PetAccess 继续拒绝总评分，只借鉴“地图主表面、地点上下文、单事实贡献”。
+- 本轮新增/继续完成：
+  - mobile Map 当前同行条件从满宽第二横条收为浮动 context chip，搜索保持唯一主输入；
+  - governed-media mobile selected sheet 已加入 canonical Human Review shot，今后 CI 同时审有图 / 无图桥接状态；
+  - selected Map route 已加入 320/360/390/430/768/800/1024/1280/1440/1920 responsive overflow 矩阵；
+  - desktop selected preview 有 governed scene media 时不再同时重复 place-type glyph；“查看场所”从主按钮降为轻量文本动作，继续避免 mini-dossier。
+- 上一轮 PR CI 的两个旧 selector 回归已经迁移到 v11 canonical Overview Rule/Evidence owner，并补充 snapshot transport failure 的显式 evidence 文案；同时新增结构门禁：Overview 禁止 duplicate sticky inspector，Rules secondary view 必须保留 context rail。
+- 当前源码 HEAD（本段写入前）=`4bd4814e7061993890a0d5549bc31f188f856404`。四条主 Actions 已触发但仍在执行；不得提前声明 PASS。
+- 下一视觉门：同一最终 HEAD 的 UI Direct Visual / PR CI 完成后，重新拉取 Human Review，重点看 mobile context chip、governed-media selected sheet、desktop selected preview、320px selected-map state。
+
+## Current phase（2026-10-21 — v11 canonical Overview ownership + PR CI recovery）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 继续 **OPEN + DRAFT**；未 merge、未 tag、未 Release；`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
+- 本轮重新核验远端时 HEAD=`3c86db24772617033abb9eda4cd943bf822a6b6d`，相对 2026-10-19 的 `3c614320...` 已前进 136 commits。该 HEAD 的 UI Direct Visual / UI Direct Validation / Public Preview Stack 均 SUCCESS；PR CI 失败于 2 个旧 E2E selector，不是 backend/type/build 失败：Engineering quality / Frontend / Backend 均 SUCCESS，Playwright 199/201。
+- 最新 Human Review 已实际拉取并目视复核：
+  - mobile Map selected sheet 已形成 dominant map + compact bridge，Rule / Reality 分层清楚；
+  - governed-media Place 已形成 destination hero + editorial overview；
+  - Home / Search / Reality 均明显摆脱旧 card-wall / SaaS archetype；
+  - 当前剩余问题主要进入“层级真实性与回归合同”阶段，而不是重新设计大框架。
+- PR CI 两个失败根因：
+  1. `h5-journey.spec.ts` 仍查找 Overview 已主动删除的 `inspector-verdict`；v11 canonical owner 已改为 dossier 内 `answer-status`；
+  2. `place-route-race.spec.ts` 仍查找 Overview 已删除的 `inspector-evidence`；同时 snapshot transport failure 的 Overview 证据文案需要明确区分“暂时无法取得”与“来源待补充”。
+- 本轮直接完成：
+  - `d15e1f8f`：PlaceOverviewPane 在 snapshot transport failure 时明确显示“规则依据暂时无法取得”，不把网络失败冒充为数据缺失；
+  - `21bb28bb`：mode-switch E2E 改绑 canonical Overview Rule owner（`answer-status`）；
+  - `1fb6755b`：partial-error E2E 改绑 `overview-evidence` 并检查 Rule / Reality failure truth；
+  - `b8af866c`：v11 设计母版合并重复 Selected Place 章节，冻结 Overview 单一 Rule owner 与 compact Map bridge 语义；
+  - `d936bfb0` / `161d93ec`：Map/Place acceptance 新增结构防回退：Overview 必须无 duplicate `place-inspector`，Rules secondary view 必须保留该 context rail。
+- 这轮没有修改 Rule / Reality / Evidence domain semantics、API、review governance、Tauri runtime、release signing 或发布状态。
+- 当前最终 branch tip 以 GitHub 为准；本段写入后 Actions 会再次按最终 HEAD 执行。任何旧 HEAD 的 SUCCESS 不得冒充当前结果。
+
+## Current phase（2026-10-21 — v11 desktop Place destination hierarchy continuation）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 继续 **OPEN + DRAFT**；未 merge、未 tag、未 Release；`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
+- 本轮重新从最新远端事实继续：进入时 HEAD=`822e9fc2404a205df2c4b0aa62ad25fac3b563a2`，相对 2026-10-19 的 `3c614320...` 已前进 126 commits。该 HEAD 的 UI Direct Visual / Public Preview Stack = SUCCESS，但 UI Direct Validation / PR CI 因 **单一 Prettier drift（MapSelectedSheet.vue）** 失败；Backend / engineering gate 已成功，不属于产品行为回归。
+- 已使用同 HEAD 成功的 `UI Direct Format Preview` artifact 作为 canonical Prettier 输出来源，而不是手工猜格式；`92cfb43a` 回写 MapSelectedSheet 唯一格式差异。
+- 同 HEAD 最新 Human Review 已再次目视复核：mobile selected-place half sheet、Home、Search、Reality、Contribution 已进入稳定的 Urban Spatial Guide 原型；desktop governed-media Place 仍存在一个明显的 dashboard 残留——Overview 主体已经拥有完整 Rule/Reality，但右侧 sticky DecisionInspector 再次重复结论。
+- 本轮继续完成 destination-first desktop Place：
+  - `f381a0c9`：PlaceOverviewPane 将“desktop 信息密度”与“是否存在外部 decision inspector”解耦；Overview 在 desktop 也能拥有完整自然语言 Rule decision；
+  - `ac26d01e`：desktop Overview / Unknown 不再渲染 sticky inspector，并扩展为约 960px 单一 destination reading surface；Rules / Space / Reality 二级视图仍保留 sticky decision context；
+  - `5f7fc3b4`：place.desktop UI oracle contract 同步拆分 Overview 960px + primary decision 与 secondary-view 820–860px + subordinate inspector，防止旧 contract 把重复侧栏重新逼回来；
+  - `239aed46`：v11 设计母版明确冻结“Overview 不重复 verdict；sticky decision rail 仅用于二级 Place views”的原则。
+- 外部设计复核：Apple 当前 HIG 强调 visual hierarchy / simplicity / preserve context；Apple Maps 的 place-card/detail-sheet 模式也把地点详情视作地图上下文中的单一详情表面。这支持 PetAccess 的 `Map → selected-place bridge → single destination Place`，而不是 `Place main content + duplicate verdict dashboard`。
+- 当前本段源码与合同已触发新 Actions；写入本段时仍在执行，因此禁止提前写 PASS。下一门禁是同一最终 HEAD 的 Prettier / UI Direct Validation / PR CI / UI Direct Visual，再拉取 Human Review 验证 desktop Overview 去 inspector 后是否真正更像目的地阅读页而不是后台详情页。
+
+## Current phase（2026-10-21 — v11 destination surface continuation）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 继续 **OPEN + DRAFT**；未 merge、未 tag、未 Release；`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
+- 本轮重新核验远端真实 HEAD = `cf358366c53d88f8a30f8b51365bc7c3ca231a1a`；相对 2026-10-19 的 `3c614320...` 已前进 122 commits。该 HEAD 的 Public Preview Stack / UI Direct Validation / UI Direct Visual / PR CI 均 **SUCCESS**。
+- 已拉取并目视检查同 HEAD 最新 Human Review artifact（约 23 MB）：Home 已是 compact city-space launcher；Reality timeline 已成立；Map selected half sheet 已明显优于 v10；governed-media Place 仍有“inset rounded hero + pill actions”残留。
+- 本轮直接完成：
+  - `b6f4fc3b`：Map selected sheet 在存在 governed scene media 时，half/closed identity 使用真实小缩略图；无媒体继续只用 place-type glyph，不制造地点图片；
+  - `b4fdcafe`：governed-media Place hero 继续去卡片化——desktop 减弱圆角；mobile 改为 full-bleed destination surface；Hero actions 从大 pill 降为轻量文字动作。
+- 设计母版同步补充：Selected Place half state 只保留 place identity / active lens fact / 一个必要的跨维事实 / open-place；真实 scene photo 仅作为受治理 destination identity，不存在则绝不补 generic venue imagery。
+- 当前源码 HEAD（本段写入前）=`b4fdcafe119e4d23710da4a8c102c67bdc0f6ef7`。四条主 CI 已触发但仍处于 pending；不得提前声明 PASS。
+- 下一门禁：等待同一 HEAD 的 UI Direct Visual / PR CI；成功后重新拉取 Human Review，重点看 mobile governed-media Place 是否真正摆脱“卡片 Hero”、Map sheet 有照片/无照片两个分支是否都成立。
+
+## Current phase（2026-10-21 — v11 reading surfaces + field-capture polish, CI pending）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 继续 **OPEN + DRAFT**；未 merge、未 tag、未 Release；`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
+- 本轮开始时重新核验远端真实 HEAD = `5f9d9b5754d1c34a9b6d1af6ea25b0f2f72faedf`；相对 2026-10-19 的 `3c614320...` 已前进 105 commits。该 HEAD 的 Public Preview Stack / UI Direct Validation / UI Direct Visual / PR CI 均 **SUCCESS**。
+- 已拉取并目视检查同 HEAD 的最新 `ui-direct-v8-visual`（约 25.6 MB）：
+  - Home 已从 landing page 收口为较短 city-space launcher；
+  - mobile/desktop Map 已形成 dominant spatial canvas + selected-place bridge；
+  - no-photo Place 为 text-led editorial identity；
+  - governed-photo Place 的 UI 层级已成立，但旧 Human Review fixture 内的大字测试水印会污染视觉判断；
+  - Reality / Evidence 仍因专属背景 override 呈现偏灰褐“档案纸”感；
+  - mobile Search 已去 card wall，但未知地点的“信息不足”重复层级仍偏响；
+  - mobile Contribution 流程正确，但整体仍像一张大表单卡。
+- 本轮直接完成：
+  - `84699ea3`：Evidence / Reality reading surface 切回 warm-white；Evidence sections 改为 editorial divider-led；mobile Search 再压缩 identity / Rule / Reality 行高与字号；
+  - `5b16f52e`：Human Review governed-media fixture 去除图内巨大 CI/NOT-A-REAL-VENUE 文字，改为无文字的明确 synthetic architecture fixture；真实性说明保留在 manifest note，不污染 UI 截图；
+  - `b792e1c3`：Search mobile geometry contract 同步到更紧凑的 v11 place-result flow；
+  - `01f18e6d`：mobile Contribution 去掉大外框卡片，仅手机变为 in-place field capture；desktop bounded workspace 不变；
+  - `e66fd5a8`：Search 中 UNKNOWN 仍明确显示“信息不足”，但降低视觉权重，避免未知地点占多数时形成重复大标题墙。
+- 外部参考复核：AccessNow 2025 新版把 place listing 重组为更清晰的 About / Features / Photos / Reviews，并支持只贡献一个 feature 或 photo；这与 PetAccess v11 的“地点分层 + 单事实贡献”方向一致，但 PetAccess 继续保持 Rule / Reality / Evidence 独立，不引入友好度总分。
+- 当前源码 HEAD（本段写入前）=`e66fd5a8a82f5f0b5c9c0a775f979adac100e641`。本段自身写入后 HEAD 会再次前进；最新 Actions / HUMAN_REVIEW 必须以最终 branch tip 实测为准，禁止复用 `5f9d9b57...` 的 SUCCESS 冒充当前结果。
+- 下一门禁：同一最终 HEAD 的 PR CI + UI Direct Visual 全绿后，重新拉取 HUMAN_REVIEW，重点目视 Search mobile density、Reality/Evidence warm-white、Contribution mobile shell、governed-media Place hero；机器 PASS 仍不等于用户 Human Visual Acceptance。
+
+## Current phase（2026-10-20 — v11 Map/Sheet/Search visual closure + PR CI repair）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 继续 **OPEN + DRAFT**；未 merge、未 tag、未 Release；`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
+- 进入本轮前真实远端 HEAD 为 `d003b7c82c6b20f89514fd800247bfb510a973e5`，相对 2026-10-19 的 `3c614320...` 已前进 77 commits；本地/其他 Agent 已重点推进 `MapSelectedSheet.vue`、`PlacePreview`、`MockMap`、Search/Place 与 v11 CSS。
+- `d003b7c8...` 机器状态：
+  - UI Direct Validation = SUCCESS；
+  - UI Direct Visual = SUCCESS；
+  - Public Preview Stack Validation = SUCCESS；
+  - PR CI = FAILURE，Playwright 196 passed / 4 failed。
+- 4 个 PR CI 失败已逐项核验，未把失败简单重跑或隐藏：
+  1. Home journey 仍断言旧层级标题“近期值得先看”为 heading；v11 现为“附近场所”主 heading + priority 文本；
+  2. transport-recovery contract 仍断言旧 verdict “明确允许”；canonical consumer verdict 已统一为“可以进入”；
+  3. reviewed scene test 仍断言旧 caption“经审核允许公开展示的场所场景”；组件当前为“经审核公开的场所场景”；
+  4. mobile selected sheet 的 Playwright synthetic PointerEvent 在第二次 drag 的 pointer capture 生命周期超时；真实指针仍需要 capture，但 synthetic pointer 不能假定是 active browser pointer。
+- 本轮直接修复：
+  - `257e8a11`：MapSelectedSheet 仅对 primary/真实 pointer 尝试 capture，并对 capture/release fail-safe；不降低真实拖动行为；
+  - `9c7b49e3` / `f6742f7e` / `45a1e5cb`：同步 v11 Home、verdict、reviewed-scene 三条旧 E2E 文案合同；
+  - `69f4d2be`：Home “附近待补充”移除 image-sized generic placeholder，改为 compact place-type glyph；
+  - `aea7a9f1`：transport-unavailable nearby rows 同样移除空 scene frame，回到地点身份 + transport truth；
+  - `649458df`：Search mobile 结果密度继续收紧（48px visual anchor、104px row），保持 divider-led place list。
+- 最新 UI Direct Visual artifact（来自 `d003b7c8...`）已人工抽查：
+  - Desktop Map 已形成稳定的 result pane | dominant map | single selected preview；
+  - Mobile selected sheet 已正确分离 active lens / Rule / recent Reality，half state 不再堆 evidence/count dashboard；
+  - Home v11 已从 landing hero 转为较短 city-space launcher；
+  - Place no-photo 状态已是 text-led editorial identity；
+  - Search 已去 card wall，但本轮继续降低图块对移动行高的主导。
+- 当前最新 HEAD（写入前源码）为 `649458df1dc8995309723144069f9042a5905c8d`。该 HEAD 的新 Actions / HUMAN_REVIEW 尚未完成，因此不得写成 PASS；必须以该 HEAD 后续实际 Actions 为准。
+- 下一门禁：等待同一最终 HEAD 的 PR CI + UI Direct Visual；若全绿，再拉取最新 HUMAN_REVIEW 对比本轮 Home/Search/Map selected/no-photo Place/Reality。机器全绿仍不能替代用户视觉签字。
+
+## Current phase（2026-10-20 — Consumer v11 Map/Place visual hierarchy continuation）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 继续 **OPEN + DRAFT**；未 merge、未 tag、未 Release。视觉签字仍为 `UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
+- 重新核验时远端已从上一轮 `3c614320...` 前进 32 commits 到 `cd695817...`；本地/其他 Agent 已进一步重构 `MapSelectedSheet.vue`、`PlacePreview`、v11 CSS 与 map/search/reality UI contracts，因此本轮只在最新事实之上继续，不覆盖既有成果。
+- `cd695817...` 的真实 CI：Public Preview Stack + UI Direct Validation = SUCCESS；PR CI = FAILURE（199/200 E2E，唯一失败为 mobile Map sheet drag pointer 事件）；UI Direct Visual = FAILURE（557 PASS / 2 FAIL，仅 desktop Place 旧 inspector 28px/1.75 hierarchy contract 与 v11 secondary-rail 设计冲突）。
+- 已直接修复：
+  - `c4bfea16`：MapSelectedSheet drag handle 的 pointer/click 事件 stop propagation，避免拖拽手势泄漏到地图导致 sheet 在 pointerup 前被撤销；
+  - `c890b9d8`：Place desktop oracle 升级到 v11 hierarchy——正文拥有完整 Rule decision，sticky inspector 是 secondary reference，不再要求 28px 主视觉；
+  - `9d98e13b`：mobile selected-place half sheet 从约 328–352px 收至约 306–324px，保留 Rule/Reality/CTA 但让地图上下文更可见；expanded/closed 同步收口；
+  - `2eea4a3d`：v11 阅读画布从偏深 archive-beige 提亮为 warm-white rail surface；mobile Map query context 压成 compact row，lens/view 控件上移，减少顶部 chrome 对地图画布的侵占。
+- 最新实际截图复核结论：Home / Place / Reality 已进入正确的 Urban Spatial Guide 视觉原型；下一重点不再是“去 card wall”本身，而是地图空间占比、selected-place bridge 的紧凑层级、warm-white 阅读表面和真实照片 Place 的 destination quality。
+- 当前最新源码 HEAD（本段写入前）为 `2eea4a3d12ff2848bce4a06c724dfc1110e83961`；该 HEAD 新 Actions 尚未形成可核验结果，禁止复用 `cd695817...` 的失败或更旧 HEAD 的 SUCCESS 作为当前结论。
+
+## Current phase（2026-10-19 — Consumer v11 Urban Spatial Guide presentation closure in progress）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 保持 **OPEN + DRAFT**；未 merge、未 tag、未 Release。当前 `UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
+- 本轮不是新增 domain 功能，而是继续执行 `docs/ui/PETACCESS_CONSUMER_V11_URBAN_SPATIAL_GUIDE.md`：PetAccess 的 Consumer 第一视觉原型从“规则数据库 / landing page / card wall”收口为 **city-space rule and reality guide**。
+- 已直接落地的 v11 视觉原则：
+  - Home Hero 从营销式大横幅继续压缩，保留城市空间感但让 Nearby / current task 更早进入首屏；桌面 promo annotation 移除。
+  - Map 的“差异”语义解释继续保留在 DOM / accessibility contract，但不再永久占据空间画布；地图本身保持主表面。
+  - 无审核场景照片的 Place 不再渲染 generic category scene illustration；只显示明确的“暂无审核场景照片”并回到 text-led place identity，避免把示意图误读成地点事实。
+  - 无照片 Place header 改为 editorial / divider-led 结构；操作项降级为文本型动作，不再组成大圆角按钮组。
+  - Reality filter chrome 从独立白卡继续降级为内容工具条，timeline 保持主视觉。
+  - Search / Map list / Contribution 继续沿用 v11 divider-led / one-question-at-a-time 方向。
+- 新真实性回归合同：`tests/e2e/map-passport.spec.ts` 明确要求无审核 scene photo 时 `place-scene-fallback` **必须不存在**，而不是仅隐藏；避免未来 Agent 为视觉填充重新引入 generic venue imagery。
+- 本轮提交链截至当前：
+  - `a87bf305` — evidence-honest no-photo Place identity；
+  - `e3df8d5e` — Map semantic clarification 退出主画布；
+  - `af5f1d89` — v11 Urban Spatial hierarchy 收口；
+  - `4e2585a5` — 锁定 no-photo evidence-honest E2E contract；
+  - `b1f11846` — mobile no-photo Place editorial closure。
+- 当前最新 HEAD：`b1f118469fc5a5b22ded85b60da1969b0155f645`。本段写入时该 HEAD 的 GitHub Actions / 新 HUMAN_REVIEW artifact **尚未取得完成结果**，不得沿用旧 HEAD 的 SUCCESS 冒充当前 PASS。
+- 下一视觉门：重新生成同一 HEAD 的 desktop/mobile Human Review，重点人工检查 Home 首屏占比、Map 主表面、Selected Place sheet、photo/no-photo Place、Reality timeline；机器 gate 只证明结构/语义/overflow，不替代真人视觉签字。
+
+## Current phase（2026-10-19 — Reference-board visual language + local runtime PASS / CI emulator blocked）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 保持 **OPEN + DRAFT**；未 merge、未 tag、未 Release。`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`；机器 PASS 不等于真人视觉验收。
+- 本轮 UI 提交：`fea264ca` 目的地视觉层（暖灰画布、深绿主色、场景 Hero、目的地卡片）、`71b43d95` 移动 Hero 构图、`0d6abde1` 去掉打包 WebView 的 backdrop-filter、`66d534a4` 搜索/地图真实审核缩略图 + 无照片场所的“分类场景示意”Hero、`881125c4` e2e 断言同步、`25490727` Android runtime 一次有界重试。这些提交只改 Consumer / Preview workflow / 文档，不改 domain 事实或 API 契约。
+- 视觉事实（机器复核，不代替真人验收）：
+  - 色板统一到 `#315C46 / #B67232 / #B05446 / #5E7C90 / #E5E1D5 / #1A1A1A / #5E685F`，页面画布为暖灰、内容卡为白；
+  - Home 使用原创城市公园插画 Hero（不是真实场所照片），Place 有审核媒体时用真实审核图、无媒体时用同一 Hero 版式并明确标注“暂无审核照片 · 分类场景示意”；
+  - Search / Map 列表只把 `purpose === "scene_photo"` 的受治理媒体当缩略图，其余保持分类 glyph；未审核/私有/失败一律 fail-closed。
+- UI 合同：本地 UI Oracle **559 PASS / 0 FAIL**（desktop + mobile）。按新目的地 Hero 同步更新 `place.mobile` 首屏行数 38→40、`place.desktop` fullpage 1500→1750 与 first-viewport blocks 3→2，均带 note；没有删除或降低其它闸门。
+- 测试：本地 `map-passport.spec.ts` **41/41 PASS**；同 HEAD `25490727` 的 PR CI、UI Direct Validation、UI Direct Visual、Public Preview Stack、Windows Preview Runtime、Android Phone Preview、Branch Autofmt 均 **SUCCESS**。
+- 本机真实运行时（Pixel 5 AVD API36 `emulator-5562`，swiftshader，安装 CI 构建的 APK）：
+  - FAST = **PASS**、`failure_count=0`；
+  - canonical CDP journey = **28/28 PASS**（21 public + 7 authenticated），`horizontalOverflow=false`、safe-area 正常、place-overview 通过；
+  - 本地 API 使用 8010，并用模拟器内 iptables DNAT 把 `10.0.2.2:8000` 指向 8010；CI 仍走标准 8000 链路。
+- CI Android Preview runtime 仍被外部环境阻塞：API35 在 `hardware_back_from_home` 处 emulator 消失（`adb: device 'emulator-5554' not found`、`Connection refused`）；API36 同类掉线后重试在 launch/CDP 阶段挂起，最终 45 分钟 job 被 cancel。已加入一次有界重试与 20 分钟墙钟上限（`25490727` + 本段），但当前 runner 上仍未取得 CI PASS。
+  - 结论：`ANDROID_RUNTIME_ACCEPTANCE`（本机真实模拟器）= **PASS**；CI 侧 = **BLOCKED_BY_EXTERNAL_ENVIRONMENT**，不能写成 CI PASS。
+- 当前停止线不变：PR 保持 draft，未 merge、未 tag、未 Release；下一轮在 runner 恢复后重跑 Android Preview，若继续复现再考虑降低 AVD 分辨率或拆分 FAST/journey job。
+
+## Current phase（2026-10-17 — Local×Remote reconciliation + Android Preview runtime closure）
+
+- 分支 `feat/ui-direct-craft-v8`；PR #1 保持 **draft**；master / tag / GitHub Release 均未推进。`UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`；机器 PASS 不等于真人视觉验收。
+- 本轮先做双向事实核对再开发：工作区 `E:\AI\宠物管理` 当时在 `feat/ui-product-craft-v7-human-review-final`（干净）；ASCII worktree `D:\pa-fix` 在 `feat/ui-direct-craft-v8` 的 `6dc296c`（落后远端 2576 commits，干净）；`git fetch` 后远端为 `d193be30`。本地没有未提交成果或独立提交需要保护，`D:\pa-fix` 直接 fast-forward 到 `d193be30`，未覆盖任何本地工作。
+- 本轮提交（在 `d193be30` 之后）：`139e023e` Ruff 格式化；`17dc47f9` CDP journey 终态等待；`57214e90` 生命周期真实进程死亡；`81d4010d` 首页入口卡中文换行；`cd309a1e` 冷启动 Home 有界恢复；`4f6dc690` API 数据接口预热；`59fbd3b7` / `fa9604ec` Windows UTF-8；`30bed586` 场所操作按钮不拆行。
+- 源码 HEAD `30bed586` 的远端机器结果（同一 SHA）：
+  - Android Preview APK run `39042022036` 四个 job 全 **SUCCESS**：x86_64 emulator APK、ARM64 USB-device APK、API35 runtime smoke、API36 runtime smoke；
+  - PR CI `39042025090` SUCCESS（M1 / frontend / backend / Playwright，含 `A1.mobile` 移动端贡献选择器门禁）；
+  - UI Direct Validation `39042024956`、UI Direct Visual `39042025029`、Public Preview Stack Validation `39042024984`、Windows Preview Runtime `39042021986`、Android Phone Preview APK `39042022009`、Branch Autofmt `39042022043` 均 SUCCESS。
+- 运行时修复有真实证据：
+  - API35 lifecycle `process_death` 2/2 PASS：`killMethod=am-force-stop`、`pidAfterKill=null`、`processChanged=true`（此前 `am kill` 并未杀死进程，恢复从未被真正执行）；
+  - API36 full journey 28/28 PASS（21 public + 7 authenticated），Search 终态 `search/ready`；此前固定 1.5s 取样会在冷请求时拍到 `loading`；
+  - 两条 runtime 均 `horizontalOverflow=false`；Evidence → 系统 Back → Reality，以及 Home → 系统 Back → launcher，由结构化 `androidBackCallback*` 遥测确认。
+- 本地真机态复验（Pixel 5 AVD API36 `emulator-5562`，APK 由 `4f6dc69` 构建，`com.petaccess.map.preview`）：
+  - FAST = PASS、`failure_count=0`；full CDP journey = **28/28 PASS**；截图与 JSON 证据保留在本轮工作区（不提交二进制）；
+  - 本机宿主 8000 被另一 WSL 服务占用，本地 API 临时使用 8010，并在模拟器内用 iptables DNAT 把 `10.0.2.2:8000` 指向 8010；CI 仍走标准 8000 链路，未改变产品 endpoint 契约；
+  - 本地运行暴露并修复了 Windows GBK 解码/编码缺陷（`59fbd3b7` / `fa9604ec`），否则成功结果会在汇总阶段被误判为失败。
+- 视觉修复（机器复核，不代替真人验收）：移动端首页入口卡文字不再被 45px 图标列挤压逐字换行；393dp 下 Place 三个操作按钮等高、箭头不再单独换行，document 无横向溢出。
+- 本段之后的 docs 提交只改文档，不改变 Consumer / runtime；最终停止线不变：PR 保持 draft，未 merge、未 tag、未 Release。
+
+## Current phase（2026-10-13 — direct-v8 Packaged Runtime VERIFIED）
+
+- 分支：`feat/ui-direct-craft-v8`；PR #1 继续保持 **draft**；master / tag / GitHub Release 均未推进。
+- 本轮 runtime-verified source HEAD：`be4c14c30bc71740da6cdc99490e6af153e2c287`。
+- 同一 source HEAD 的机器链全部通过：
+  - UI Direct Validation run `38396421603` = **SUCCESS**；
+  - UI Direct Visual run `38396421881` = **SUCCESS**；
+  - PR CI run `38396421467` = **SUCCESS**（M1 / frontend / backend / Playwright subset 全绿）；
+  - Windows Preview Runtime run `38396412652` = **SUCCESS**；
+  - Android Preview APK run `38396412684` = **SUCCESS**。
+- Android Preview run `38396412684` 四个 job 全部 **SUCCESS**：
+  - x86_64 emulator Preview APK；
+  - ARM64 USB-device Preview APK；
+  - API 35 packaged-runtime smoke；
+  - API 36 packaged-runtime smoke。
+- Android runtime evidence artifacts：
+  - API35：artifact `11812886680`，约 15.3 MB；
+  - API36：artifact `11814505241`，约 14.6 MB；
+  - x86_64 Preview APK bundle：artifact `11813260230`；
+  - ARM64 USB Preview APK bundle：artifact `11812237961`。
+- Android hardware Back 缺陷已由真实 API35 packaged-WebView 证据关闭：在 Evidence 页面触发系统 Back 后，实际 URL 回到 `#/place/<id>/reality`，`uiPage=reality`、`uiState=ready`、`horizontalOverflow=false`；FAST = `PASS`、`failure_count=0`。实现改为 PetAccess 自己的 Consumer route stack，不再把 Android WebView `canGoBack` 当产品导航 SSOT。
+- Tauri 官方 `onBackButtonPress` 仍是 Android Back 接管入口；Consumer route stack 决定产品级 back/home/exit。深链无 Consumer 历史时回 Home，并清空深链历史；Home 无 Consumer 历史时退出 Activity。
+- Android Preview / Release runtime 边界不变：
+  - canonical Consumer = `apps/client-h5`；
+  - Android / Windows shell = `apps/client-h5/src-tauri`；
+  - `apps/client` uni-app x = `LEGACY_REFERENCE_ONLY`，禁止用于当前构建、人审或 Release。
+- 独立 Phone Preview workflow 已存在，但它必须绑定一个真实可公网访问的 HTTPS PetAccess API；workflow 会验证 PetAccess health/ping、`http://tauri.localhost` CORS，并可选强制真实 Tencent map。仓库当前没有 staging/public-beta 部署事实，因此不得伪造“手机下载即独立联网可用”。
+- `UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW` 保持不变。机器 Validation / Visual / Windows / Android PASS 都不能替代用户对当前最终运行画面的真人确认；在明确签字前，不得把 PR 标为 ready，不得 promotion 到 master/tag/Release。
+
+## Current phase（2026-10-13 — Packaged Android Runtime Closure + Mine Personal Center）
+
+- 分支仍为 `feat/ui-direct-craft-v8`，PR #1 保持 **draft**；master / tag / GitHub Release 均未推进。任何机器 PASS 都不等于用户 Human Visual Acceptance。
+- 已确认的 Android Preview 基线：Actions run `38345355876`（commit `1a2a8dc6…`）四个矩阵 job 全部 **SUCCESS**：
+  - x86_64 emulator Preview APK；
+  - ARM64 USB-device Preview APK；
+  - API 35 x86_64 packaged-runtime smoke；
+  - API 36 x86_64 packaged-runtime smoke。
+- API 35 runtime artifact 已人工拆包核验：`Routes=COVERED`、`Authenticated States=COVERED`、`Visual=COVERED`、`Governed Media=COVERED`；19 个 Router 页面 + Place rules/space 共 21 个 public/default case，以及 7 个 authenticated case 都有 packaged-WebView 语义证据与截图。FAST = `PASS`、`failure_count=0`，Evidence → Android System Back → Reality 实证通过。
+- Android Preview 是隔离 debug package `com.petaccess.map.preview`，不读取 release keystore；正式 Android release 仍只走 `apps/client-h5 + src-tauri` 的 release workflow。旧 `apps/client` uni-app x 继续保持 `LEGACY_REFERENCE_ONLY`。
+- 当前 Consumer UI 继续从“页面能跑”向“真实产品体验”收口：Contribution 手机横向溢出已被真实登录 E2E gate 覆盖；Mine 正在升级为个人出行中心，使用真实宠物/关注/贡献计数并为 0-data 状态提供建档、地图、贡献三个真实动作，不制造虚假个人历史。
+- 本段写入时，Mine personal-center 源实现已提交，最新 H5/PR CI/Visual 与新的 Android Preview 正在按最终源码重新执行；在对应 Actions 完成前不得把旧 run 冒充当前最终 HEAD 的 PASS。
+- `UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW` 保持不变。只有用户对当前最终 Web / Windows / Android 实际运行画面明确认可后，才允许 baseline promotion、PR ready、master 集成、tag 或 Release。
+
+## Current phase（2026-10-12 — direct-v8 Android Preview + Runtime Evidence Closure）
+
+- 分支仍为 `feat/ui-direct-craft-v8`；PR #1 保持 **draft**；master / tag / Release 不动。判断状态时仍必须重新读取当前 HEAD / Actions，不能把本文 SHA 当未来事实。
+- Consumer runtime 已明确收口：`apps/client-h5` 是唯一当前 Consumer；Windows / Android 使用 `apps/client-h5/src-tauri`（Tauri 2）。`apps/client` uni-app x 已标为 `LEGACY_REFERENCE_ONLY`，禁止用于当前 Android 构建、人审或 Release。
+- Android Preview 工作流已落地为隔离 package `com.petaccess.map.preview`，不读取 release keystore，可与正式 `com.petaccess.map` 并存；工程 gate 同时禁止 Release CI 消费 Preview flavor。
+- Preview matrix run `38218661525`（commit `682ba4621ec1a0f707969f84df84fe5fe02d9bcf`）真实生成并验证两份 artifact：
+  - emulator / x86_64 → `10.0.2.2:8000/api/v1`；
+  - usb-device / aarch64 → `127.0.0.1:8000/api/v1` + `adb reverse tcp:8000 tcp:8000`。
+  两个 job 均 SUCCESS；workflow 使用 `apksigner verify` + `aapt dump badging` 检查 debug 签名和实际 package。
+- ARM64 真机 Preview：`PetAccess-preview-usb-device-aarch64-682ba46-debug.apk`，SHA256 `89dee9719dfcb80791dccd4fd4d582cfd797d2e72ca23427289e7bde4b174a01`；x86_64 模拟器 Preview SHA256 `4be2a81afd30fe570f83f6380430fd802c554bf03dc7ffdcd335e0d0dd660417`。
+- 从 `682ba462…` 到本段写入前 HEAD 的后续提交只涉及 docs / acceptance tooling / report，不修改 Consumer/Tauri runtime，因此上述 APK 与当前 Consumer 源在运行时内容上等价；但它们**不替代当前最终 HEAD 的真机/AVD runtime screenshot 证据**。
+- Android acceptance 已加强：FAST 对核心页面逐页做 `data-ui-page` 语义确认、横向 overflow gate、即时截图，并要求 Evidence → Android 系统 Back → Reality；任一 `ERROR` 必须让命令非零退出。13-route CDP journey 全 PASS 才允许 Routes = COVERED。
+- 真机 Preview 可用 `scripts/android_acceptance/preview_usb_smoke.py` 一键完成 APK package 预检、安装、`adb reverse` 与 FAST；默认正式包 acceptance 语义不变。
+- Web 最新 Human Review 中，Contribution mobile 的历史横向裁切已修复并重新目视核验；Home / Search / Map / Place / Reality / Evidence / Mine / Settings 未发现新的布局破坏。机器/助手复核仍**不等于用户 Human Visual Acceptance**。
+- `UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW` 继续成立。最终停止线不变：同一最终 HEAD 的 Web HUMAN_REVIEW + Windows WebView2 + Android AVD/真机运行证据由用户真人确认前，不得 baseline promotion、master 集成、PR ready、tag 或 Release。
+
+## Current phase（2026-10-09 — direct-v8 Consumer Source Closure / Final Runtime Evidence Pending）
+
+- 分支仍为 `feat/ui-direct-craft-v8`；PR #1 保持 **draft**；master / tag / Release 不动。
+- `UI_HUMAN_VISUAL_ACCEPTANCE = REJECTED_REOPENED / PENDING_REVIEW`：最新机器 Validation/Visual 只证明契约与截图任务可运行，不代表真人已经认可最终视觉。
+- Search 已收口消费者结论词汇：列表主结论只允许“可以进入 / 不可进入 / 有条件进入 / 信息不足 / 来源不一致待复核”；技术 resolver summary 不再直接进入主标题。768–1099px 按响应式契约使用 compact list-detail，禁止横向溢出。
+- Map 坚持真实空间语义：无坐标不画点；Place→Map 按精确 UUID 读取公开 PlaceSummary；缩放与 nearby 查询半径使用同一覆盖模型；fallback / real renderer 共用 Lens glyph 语义。数据库代表点仅称“已收录位置坐标”，**不等于位置经过实地核验**。
+- Place / Why / Contribution / Operator Claim 都采用 route-scoped request generation，迟到的旧场所响应不得覆盖当前场所；Zone 决策按 zone_id 单独请求，不复制场所级答案。
+- Reality / Evidence / Facility 保持 published reviewed facts SSOT；publication-only 设施线索不冒充当前设施事实；工作人员处理不自动生成 Operator Policy。
+- 最终停止线不变：同一最终 HEAD 的 Web HUMAN_REVIEW + Windows WebView2 + Android AVD 真实运行证据由用户人工确认前，不得 baseline promotion、master 集成、PR ready、tag 或 Release。
+- 每次判断机器状态必须重新读取当前 HEAD 的 Actions；历史 PASS、cancelled/action_required run 或旧 screenshot pack 都不能代表当前版本。
+
+## Current phase（2026-10-07 — direct-v8 Source Closure / Final Runtime Evidence Pending）
+
+- 分支：`feat/ui-direct-craft-v8`；PR #1 继续 **draft**；base = `feat/ui-product-craft-v7-human-review-final`；master / tag / Release 不动。
+- `UI_HUMAN_VISUAL_ACCEPTANCE = REJECTED_REOPENED / PENDING_REVIEW`。用户对旧 runtime 的视觉否决继续有效，任何机器 Gate 都不能替代新的真人审图。
+- 本轮继续关闭“UI 文案正确、实际链路错误”的问题：Rule lead → RuleCandidate review；Place correction → moderator correction queue；Reality/Evidence → published v0.9 event stream；Map → PostGIS 真实点位 + 可选 Tencent GL；Search/Home 空态不再跳入无法新增 Place 的 Contribution 死循环。
+- Map provider 现在显式区分 `real` 与 `simplified`：无 Key / provider error 时必须展示“简化空间底图”说明，同时点位仍取已收录位置坐标（不等于位置经过实地核验）；Human Review manifest 记录实际 renderer，禁止把 fallback 截图冒充真实地图。
+- Consumer SSOT：Home / Search / Map / Place 使用同一 `CoexistenceSnapshot`；Rule、Presence、StaffResponse、Facility、Evidence、Dispute 的语义边界保持不变。
+- 当前 GitHub Actions 对此前 bot-authored PR runs 返回 `action_required` 且无 jobs；这不是 PASS。最新 source 需要本地 Agent 或获准的 Actions 对最终 HEAD 重跑 lint/typecheck/build/oracle/human-review。
+- authoritative Web 人审包仍应来自 `tests/ui-oracle/human-review-direct-v8.spec.ts` → `artifacts/ui-direct-v8/HUMAN_REVIEW/{desktop,mobile}/`；历史 `artifacts/ui-direct-craft-v8-local-acceptance/` 不得用于当前视觉签字。
+- 最终停止线：Web 新截图 + Windows WebView2 + Android AVD 都必须对应同一最终 HEAD。完成并由用户真人确认前：禁止 baseline promotion、禁止 master 集成、禁止把 PR 转 ready、禁止 tag / Release。
+## Current phase（2026-10-07 — direct-v8 Canonical Fidelity + Dispute Closure）
+
+- 分支：`feat/ui-direct-craft-v8`；PR #1 保持 **draft**；base = `feat/ui-product-craft-v7-human-review-final`；master / tag / Release 不动。
+- `UI_HUMAN_VISUAL_ACCEPTANCE = REJECTED_REOPENED / PENDING_REVIEW` 继续有效。机器 Gate、DOM contract、旧 screenshot 均不得替代用户对当前最终 runtime 的真人视觉验收。
+- 本轮继续按 Canonical Master §61 / §65–§72 与 `UI_RECONSTRUCTION_DESIGN_FREEZE.md` 反查 source，而不是为了旧 Oracle 数字删设计。
+- 已关闭的高价值语义缺口：Home 中性推荐标题恢复为“近期值得先看”；Published Reality dispute 在 Evidence / Event Log / Reality summary 中可见；StaffResponse / AnimalFacility 的 open dispute count 进入 Place Overview / Space / Map Facility Lens，异议不会删除事实、不会修改 Rule。
+- Consumer 仍严格保持：Rule != Reality；Observation != Rule；StaffResponse != OperatorPolicy；Facility != EntryPolicy；No Observation != No Animal Presence；Access != Friendly。
+- 当前唯一剩余 UI 停止线不是“再做一个版本”，而是：**对同一最终 HEAD 重新生成 authoritative Web HUMAN_REVIEW desktop+mobile，并由本地 Agent 对 Windows WebView2 / Android AVD 当前 HEAD 重新取证；配置真实地图 provider 时补 real-map 证据，否则明确 BLOCKED_EXTERNAL。**
+- 在上述真人视觉验收完成前：禁止 baseline promotion、禁止 master 集成、禁止 tag / Release、禁止把 PR 转 ready。
+
+## Current phase（2026-10-06 — direct-v8 Canonical Visual Recovery）
+
+- 分支：`feat/ui-direct-craft-v8`；PR #1 保持 **draft**；`master` / tag / Release 不动。
+- `UI_HUMAN_VISUAL_ACCEPTANCE = REJECTED_REOPENED` 继续有效：旧机器 Gate/旧 screenshot pack 不能替代真人视觉验收。
+- **旧包已降级为历史证据**：`artifacts/ui-direct-craft-v8-local-acceptance/HUMAN_REVIEW/` 对应的是此前 UI/Reality/Map/Contribution 状态，已不能作为当前 direct-v8 的视觉验收依据。
+- **新的唯一 Web 人审入口**：`tests/ui-oracle/human-review-direct-v8.spec.ts` → `artifacts/ui-direct-v8/HUMAN_REVIEW/{desktop,mobile}/`。每张 PNG 只有在对应 frozen archetype 的真实 DOM 状态/关键内容存在后才允许写出；manifest 明确标记 `humanVisualAcceptance=PENDING`。
+- 新人审包强制覆盖：Home 四任务入口与 Coexistence Digest；Search List–Detail；Place Rule/Reality/Staff/Facility/Evidence；Map 四 Lens；v0.9 Reality event log；Evidence provenance；登录后的 Contribution 五入口/Rule lead/Place correction/Reality flow；Mine/Settings/Privacy/Notifications/Pets/Boundary/Why/About/Onboarding/404。
+- 当前继续做的是 **canonical fidelity + semantic integrity**，不是新增 IA：Home/Search/Map/Place 的 Reality headline 已统一到完整 CoexistenceSnapshot（Presence + StaffResponse + Facility），Evidence 元数据也统一统计完整 Reality layer。
+- 停止线不变：新 Web 人审包 + Windows WebView2 + Android AVD 对当前最终 HEAD 重新取证并由用户真人审图前，禁止 baseline promotion、禁止 master 集成、禁止 tag、禁止 Release、禁止把 PR 转 ready。
+
+
 # PROJECT_STATE.md
 
+
+> ## CANONICAL CURRENT TRUTH — 2026-10-14
+>
+> **这一节是当前状态唯一入口。下方所有旧 `Current phase` 段落均为按时间追加的历史日志，
+> 不得覆盖本节，也不得把其中固定 SHA / PASS / NOT_PERFORMED 直接当成当前事实。**
+>
+> - 工作线：`feat/ui-direct-craft-v8`，PR #1 = **OPEN / DRAFT**。
+> - 判断当前代码必须重新读取远端 branch tip；不要从本文复制固定 HEAD。
+> - Canonical Consumer：`apps/client-h5`；Windows / Android = `apps/client-h5/src-tauri`。
+> - `apps/client` uni-app x = **LEGACY_REFERENCE_ONLY**，禁止用于当前 build / Human Review / Release。
+> - Consumer Discovery v9 核心页面已完成大轮重构；机器视觉门禁不等于真人审美签字。
+> - `UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW`。
+> - Android Preview：隔离 debug package `com.petaccess.map.preview`；x86_64 emulator + ARM64 USB
+>   build；packaged runtime 以 API35/API36 Actions artifact 为证。
+> - standalone Android Phone Preview 需要手机可达 HTTPS `PETACCESS_PHONE_PREVIEW_API_BASE`；
+>   未配置时状态为 `BLOCKED_BY_API_BASE`，不影响 emulator / USB Preview。
+> - GOV-01 仍需具名人类做规则候选最终裁决；Agent 不代签。
+> - 腾讯真实地图仍需真实 client/server Key；无 Key 时只允许声明 provider-neutral fallback。
+> - signed 下一版 Release 仍需真实 `PETACCESS_PUBLIC_API_BASE=https://.../api/v1` 及相应
+>   legal/platform/governance gate。
+> - **v0.1.0 已于 2026-09-24 发布**；当前 draft PR 是其后的候选，不得把
+>   `PUBLIC_RELEASE = NOT_PERFORMED` 理解成 v0.1.0 从未发布，只能理解为对应历史阶段
+>   “当时没有创建新的 Release”。
+> - Android/runtime 证据优先同 HEAD；如果 artifact commit 早于当前 tip，只能在 commit compare
+>   明确证明 workflow runtime input 范围内 **0 relevant delta** 时复用。
+> - promotion 停止线不变：Human Visual Acceptance 未由用户明确确认前，不把 PR 转 ready，
+>   不 promotion baseline，不 merge master，不创建下一版本 tag / Release。
+>
+> 更结构化的当前事实：见 `PRODUCTION_STATE.md`。
+> 发布事实与下一次发布门禁：见 `RELEASE.md`。
+> 外部依赖：见 `BLOCKERS.md`。
+
+## Current phase（2026-10-05 — Canonical Visual Recovery implementation complete / CI pending）
+
+- 状态：`DIRECT_V8_CANONICAL_VISUAL_RECOVERY = CODE_COMPLETE` · `MACHINE_ACCEPTANCE = PENDING` ·
+  `UI_HUMAN_VISUAL_ACCEPTANCE = REJECTED_REOPENED` · `PR #1 = DRAFT` ·
+  `MASTER = UNCHANGED` · `PUBLIC_RELEASE = NOT_PERFORMED`。
+- 权威恢复冻结：`docs/ui/DIRECT_V8_CANONICAL_VISUAL_RECOVERY_2026-10-05.md`。
+  Canonical Master v0.10-R1 决定产品内容；Executable Blueprint 只负责可测几何，不再允许旧 Gate
+  删除 Home recommendations/divergence、Map 四 Lens 或 Place Coexistence Passport 首屏事实。
+- 本轮 GitHub 实施：Home 恢复四任务 Lens → 按关注推荐 → Rule/Reality 速览 → divergence → recent；
+  Search 每行恢复 Rule + Reality + Evidence/Freshness；Map 恢复 Rule / Reality / Facility /
+  Divergence 四 Lens 且全部投影同一 CoexistenceSnapshot；Place 首屏恢复 Rule + Reality +
+  Staff Response + Animal Facility + Divergence，以及 Evidence / Why / Correction actions。
+- 数据边界：`RowFacts` 仅保留服务端 `CoexistenceSnapshot` 作为 Consumer projection SSOT；
+  UI 不新增第二 Rule/Reality resolver，不把 Reality / Facility tone 解释为 access verdict。
+- 工程收口：已修复上一轮 CI 暴露的 RowFacts fallback type gap；Home digest 与 Map lens projection
+  已拆分，避免新增 `vue>200` / `ts>300` quality-gate FAIL；Oracle JSON 已同步 Canonical。
+- 停止线：等待本 HEAD 的 PR CI / UI Direct Validation / UI Direct Visual 真实结果。
+  即使机器全绿，也只进入 `HUMAN_REVIEW_READY`；在真实 Web / Windows / Android 截图人工确认前，
+  禁止 baseline promotion、禁止 master 集成、禁止 tag / Release。
+
+
+## Current phase（2026-10-05 — direct-v8 Human Visual Reopen）
+
+- 分支：`feat/ui-direct-craft-v8`；PR #1 保持 **draft**；`master` / tag / Release 不动。
+- 人工视觉结论：`UI_HUMAN_VISUAL_ACCEPTANCE = REJECTED_REOPENED`。用户在真实本地运行软件中确认：整体产品观感与冻结设计存在明显偏差。
+- 机器状态不等于视觉通过：`UI Direct Validation` / `UI Direct Visual` 与 Oracle 全绿仅证明已编码的结构、几何、语言和状态契约通过，**不得再据此写作 Human Visual PASS / UI COMPLETE**。
+- 当前唯一 UI 主线：`DIRECT_V8_VISUAL_FIDELITY_RECOVERY = IN_PROGRESS`。依据顺序：Canonical Master → `UI_RECONSTRUCTION_DESIGN_FREEZE.md` → `UI_HUMAN_CLOSURE_V5.md` / 已批准参考 → 当前真实 runtime screenshot → 当前 source。
+- 冻结不变量继续有效：Rule / Reality / Evidence-Governance 分离；Observation != Rule；StaffResponse != OperatorPolicy；Facility != EntryPolicy；No Observation != No Animal Presence；Access != Friendly。
+- 冻结 archetype 不重做：Home=Task Launcher；Search=List–Detail；Place=Dossier；Map=Spatial Workspace；Reality=Event Log；Evidence=Provenance Record；Contribution=Structured Transaction Flow。
+- 停止线：在新的真实 Web / Windows / Android 人工截图明确通过之前，**禁止 baseline promotion、禁止 master 集成、禁止 tag、禁止 Release、禁止把 PR 转 ready**。
+
+### 为什么重开
+
+direct-v8 在若干页面达到了机器契约，但出现了「结构正确、产品视觉不对」的问题：语义状态层级被削弱、Rule/Reality 共处信息没有在首屏形成足够强的产品识别、部分核心 surface 过度稀疏并呈现 prototype / functional-page 感。当前工作是恢复设计 fidelity，不是再发明 IA 或换 Design System。
+
+## Current phase（2026-10-03 本轮实测 — v0.2.7-R1.1.1 Human Review Truth Closure）
+- 状态：`V0207_R1_1_1_HUMAN_REVIEW_TRUTH_CLOSURE = MACHINE_PASS` · `HUMAN_REVIEW_PACK = COMPLETE` ·
+  `HUMAN_REVIEW_CARDS = 7/7` · `HUMAN_REVIEW_PNGS = 7/7` · `HUMAN_REVIEW_IMG_REFS = 9/9` ·
+  `HUMAN_REVIEW_INDEX_REFERENTIAL_INTEGRITY = PASS` · `HUMAN_REVIEW_INDEX_EXACT_SET = PASS` ·
+  `UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW` · `MASTER = UNCHANGED` · `PUBLIC_RELEASE = NOT_PERFORMED`
+- 分支：`feat/ui-product-craft-v7-human-review-final`（基点 = origin/feat/ui-product-craft-v7-runtime-final `a83f64f`；
+  已 push；BASE_HEAD `42ed4e3` / V7_HEAD `346abbd` / R1_IMPLEMENTATION_HEAD `f8c1227` /
+  R1_1_CODE_HEAD `2010775` / R1_1_EVIDENCE_HEAD `647ecd5` / R1_1_DOCS_HEAD `a83f64f`；
+  FINAL_BRANCH_HEAD 以最终验证时刻 `git rev-parse HEAD` / `git rev-parse origin/feat/ui-product-craft-v7-human-review-final`
+  实测为准（避免自引用死锁）；origin/master 未动；v0.1.0 tag 未动；无 v0.2.0 tag / Release / store）。
+- 内容：P0-3 单一最终 writer 修复——`tests/ui-oracle/human-review-r1.spec.ts` 非 oracle-desktop project
+  在 pack 组装前 early return，只有 `oracle-desktop` 允许 assemble + 写最终 Index + 跑完结 gates
+  （ONE FINAL WRITER，deterministic）；P0-1/P0-2 显式 `HUMAN_REVIEW_EXPECTED_CARD_SET`（固定顺序 7 个）+ exact-set /
+  数量(7) / img-ref(9) / orphan / missing / `.png.png` 门禁全部 assert 化。
+- 人审包：`artifacts/ui-product-craft-v7-runtime-final/HUMAN_REVIEW/`（目录不变，无 v8/v9 噪音）重新生成：
+  **7 cards、7 PNG、9 `<img src>`、0 missing、0 orphan、0 `.png.png`**，Index 标题 `7 VALID / 7 total`；
+  01–05 = windows-smoke 真实 WebView2 证据逐字节复制（SHA256 一致），06/07 = generator 自然重截
+  （state integrity page/state/fixture/h1 全 PASS，`valid=true` 全部来自真实 DOM，零伪造）。
+- 机器 Gate（本轮实测）：prettier --check（spec）exit 0；eslint（spec）0 issues；
+  human-review-r1 spec（两个 project，`--workers=1`）**2 passed / 0 failed**
+  （desktop：7 shots、7 VALID、0 INVALID；mobile：skip assembly 日志 + 不再写 Index）。
+- 复用（未重跑，产品代码零改动，`apps/` 0 变更）：ui-oracle 427/0/0、ui-reconstruction 180/180、
+  e2e 189/189、visual 59/59（均来自 R1.1）；`WINDOWS_RUNTIME_RERUN = NOT_REQUIRED`（R1.1 targeted 5/5），
+  `ANDROID_RERUN = NOT_REQUIRED`，`FULL_PRODUCT_REGRESSION_RERUN = NOT_REQUIRED`，`BACKEND_CODE_CHANGED = NO`。
+- 停止线：exact-set 全绿 + Git truth PASS + HUMAN_REVIEW READY，**等待用户人工视觉签字**
+  （Agent 不代替 `UI_HUMAN_VISUAL_ACCEPTANCE = PASS`）；签字并授权后才执行 Stage B：
+  force recapture 批准快照 → canonical baseline = 批准外观 → visual compare ×2 → docs truth →
+  verify master ancestor → fast-forward master（仅 FF，无 force/merge/rebase）。
+
+### 历史记录 — v0.2.7-R1.1 Final Micro Closure（2026-10-03，HISTORICAL）
+
+## Current phase（2026-10-03 本轮实测 — v0.2.7-R1.1 Final Micro Closure）
+- 状态：`V0207_R1_1_MICRO_CLOSURE = MACHINE_PASS` · `HUMAN_REVIEW = READY` ·
+  `WINDOWS_RAIL_OVERFLOW = PASS` · `WINDOWS_RAIL_TOOLTIP = PASS` ·
+  `WINDOWS_RAIL_FOOTER = PASS` · `HUMAN_REVIEW_INDEX = PASS` ·
+  `WINDOWS_CONTRIBUTION_COMPOSITION = PASS` · `UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW` ·
+  `MASTER = UNCHANGED` · `PUBLIC_RELEASE = NOT_PERFORMED`
+- 分支：`feat/ui-product-craft-v7-runtime-final`（基点 = origin/feat/ui-product-craft-v7-runtime-closure `7d4772e`；
+  BASE_HEAD `42ed4e3` / V7_HEAD `346abbd` / R1_IMPLEMENTATION_HEAD `f8c1227`；
+  最终 HEAD 见 `docs/reports/V0207_R1_1_FINAL_MICRO_CLOSURE_REPORT.md` GIT_TRUTH，以 `git rev-parse HEAD` 实测为准；
+  origin/master 未动；v0.1.0 tag 未动；无 v0.2.0 tag / Release / store）。
+- 内容：P0-1 Human Review Index `.png.png` 修复（生成器 logicalName 模型 + beforePairs 修正 +
+  referential-integrity gate：全部 `<img src>` 必须 resolve，`expect(missingImages).toHaveLength(0)`）；
+  P0-2 DesktopRail 移除被 overflow-x:hidden 裁掉的自定义 tooltip（span/CSS/rail-tip-in 动画），
+  6 个导航 RouterLink 改 `aria-label` + 原生 `:title`，rail 横向 overflow 硬 Gate 保持（scrollWidth ≤ clientWidth + 1）；
+  P0-3 rail footer 可见文本改 compact version only = `v0.2`，完整版本/环境保留于 title/data-attribute；
+  P0-4 Git/Docs truth：FINAL_BRANCH_HEAD 与 ahead/behind 全部按重新 fetch/rev-list 实测重写。
+- 机器 Gate（本轮实测）：prettier PASS、eslint 0、client-h5 vue-tsc+build PASS、admin build PASS；
+  ui-oracle **427/0/0**；ui-reconstruction **180/180**；e2e **189/189**；
+  visual regression **59/59**（Stage A 不更新 snapshot）；backend `BACKEND_CODE_CHANGED = NO`
+  （`git diff origin/feat/ui-product-craft-v7-runtime-closure...HEAD -- services/` 为空）→
+  `BACKEND_FULL_RERUN = NOT_REQUIRED`；Android（未改 Contribution layout）`ANDROID_RERUN = NOT_REQUIRED`。
+- 真实 Windows runtime（Tauri v2 + WebView2，CDP :9223，沿用 `D:\pa-fix-target-win\debug\petaccess.exe`，
+  1120×760）：targeted 5/5 PASS（Map / Contribution choose / step1 / step2 / Rail closeup）——
+  rail 67/67 无横向滚动条、Contribution 三页 layoutMode=wide + sameRow=true、
+  footer 可见 `v0.2`、6 项 title+aria-label 原生 tooltip 齐备、document 无横向溢出。
+- 人审包：`artifacts/ui-product-craft-v7-runtime-final/HUMAN_REVIEW/` 7 张
+  （01–05 真实 WebView2 targeted refresh + 06 web 1440 WIDE + 07 web 1000 COMPACT）+ BEFORE/AFTER
+  （Map / Contribution）+ HUMAN_REVIEW_INDEX.html；
+  `HUMAN_REVIEW_INDEX_REFERENTIAL_INTEGRITY = PASS`（7/7、0 `.png.png`）。
+- 停止线：机器 gate 全绿 + HUMAN_REVIEW READY，**等待用户人工视觉签字**
+  （Agent 不代替 `UI_HUMAN_VISUAL_ACCEPTANCE = PASS`）；签字并授权后才执行
+  canonical baseline promotion → fast-forward master（仅 FF，无 force/merge/rebase）。
+
+### 历史记录 — v0.2.7-R1 Final Runtime Closure（2026-10-03，HISTORICAL）
+
+## Current phase（2026-10-03 本轮实测 — v0.2.7-R1 Final Runtime Craft Closure）
+- 状态：`V0207_R1_RUNTIME_CLOSURE = MACHINE_PASS` · `WINDOWS_RAIL_OVERFLOW = PASS` ·
+  `WINDOWS_CONTRIBUTION_COMPOSITION = PASS` · `UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW` ·
+  `PRODUCT_STRUCTURE = FROZEN` · `MASTER = UNCHANGED` · `PUBLIC_RELEASE = NOT_PERFORMED`
+- 分支：`feat/ui-product-craft-v7-runtime-closure`（基点 = origin/feat/ui-product-craft-v7
+  `346abbd`，R1_HEAD = `f8c1227`；origin/master 未动；v0.1.0 tag 未动；无 v0.2.0 tag / Release / store）。
+- 内容：P0-1 DesktopRail 横向 scrollbar 修复（footer ellipsis + 隐藏 tooltip display:none +
+  overflow-x hidden；rail.scrollWidth 104→67）；P0-2 Contribution 双栏 breakpoint 契约
+  （COMPACT 768–1119 / WIDE ≥1120，默认窗口 width 1000→1120，默认 Windows runtime 真并排）；
+  新增 DESKTOP_RAIL_NO_HORIZONTAL_OVERFLOW + nested contribution gates（oracle 427/0/0）。
+- 机器 Gate（本轮实测）：vue-tsc / h5 build / admin build / eslint 0 / prettier PASS；
+  ui-oracle **427/0/0**；ui-language 29 FAIL=0；ui-density 28 FAIL=0；
+  ui-reconstruction **180/180**；e2e **189/189**；visual regression **59/59**（Stage A 不更新 snapshot）；
+  backend `BACKEND_CODE_CHANGED = NO`（git diff 无 services 变更）→ `BACKEND_FULL_RERUN = NOT_REQUIRED`。
+- 真实 Windows runtime（Tauri v2 + WebView2，CDP :9223）：9 路由 smoke 全 PASS
+  （rail 67/68 无横向滚动条；contribution choose/step1/step2 layoutMode=wide；
+  完整 metrics 见 `artifacts/ui-product-craft-v7-runtime-closure/windows-runtime-metrics.json`）。
+- Android：贡献 targeted smoke（choose + step1，emulator-5554 / AVD main）PASS + 无 overflow；
+  浏览器 responsive 360/390/430 无 Contribution regression（reconstruction/e2e 覆盖）。
+- 人审包：`artifacts/ui-product-craft-v7-runtime-closure/HUMAN_REVIEW/` 7 张
+  （01–05 真实 WebView2 + 06 web 1440 WIDE + 07 web compact）+ BEFORE/AFTER（Map / Contribution）
+  + HUMAN_REVIEW_INDEX.html；metadata actual 全部来自真实 DOM。
+- 停止线：机器 gate 全绿 + HUMAN_REVIEW READY，**等待用户人工视觉签字**
+  （Agent 不代替 `UI_HUMAN_VISUAL_ACCEPTANCE = PASS`）；签字并授权后才做
+  canonical baseline promotion → `git push origin HEAD:master`（仅 fast-forward）。
+
+### 历史记录 — v0.2.7 Product Craft（2026-10-03，HISTORICAL）
+
+
+## Current phase（2026-10-03 本轮实测 — v0.2.7 Final Product Craft / Spatial Map / Desktop Composition Closure）
+- 状态：`V0207_PRODUCT_CRAFT = MACHINE_PASS` · `PRODUCT_STRUCTURE = FROZEN` ·
+  `UI_HUMAN_VISUAL_ACCEPTANCE = PENDING_REVIEW` · `V020_RC_READY = PRESERVED` ·
+  `PUBLIC_RELEASE = NOT_PERFORMED`
+- 分支：`feat/ui-product-craft-v7`（基点 = origin/master `42ed4e34`，已 push；
+  origin/master 未动；v0.1.0 tag 未动；无 v0.2.0 tag / Release / store）。
+- 内容：Map Spatial Craft（抽象城市画布 + marker 系统 + selected scale/halo）、
+  Contribution Desktop 双栏 composition（main 680 + context 280）、
+  Reality/Evidence/Search 阅读节奏收口、§40 十个 craft gates 全绿。
+- 机器 Gate（本轮实测）：vue-tsc / h5 build / admin build / eslint 0 / prettier PASS；
+  ui-oracle **423/0/0**（398 → +25，WHY_TEST_COUNT_CHANGED=新增 craft gates 与
+  map-mobile-expanded 页）；language 29 FAIL=0；density 28 FAIL=0；
+  ui-reconstruction **180/180**；e2e **189/189**；backend pytest
+  **961 passed / 2 skipped / 0 failed**；visual regression **59/59**（craft diff 全部
+  低于 2% 容差 → EXPECTED_CRAFT_DIFF sub-threshold，snapshot 零变更；admin 0）。
+- 人审包：`artifacts/ui-product-craft-v7/HUMAN_REVIEW/` 13/13 VALID（O6 全部
+  VALID=true）+ HUMAN_REVIEW_INDEX.html + before/after 对照。
+- 跨运行时：Android targeted FAST 7/7（emulator-5554 / AVD main；NO_HORIZONTAL_
+  OVERFLOW / NO_CRASH / NO_ANR / NO_RENDERER_CRASH 全 PASS）；Windows targeted
+  Smoke 7/7（Tauri v2 + WebView2；rail / keyboard / overflow 全 PASS）。
+- 环境注记：Docker Desktop 无法稳定启动，DB 栈改用会话级 Windows pg16+PostGIS、
+  Windows Redis、moto S3（scratch 内 `pg_up.ps1`/`redis_up.ps1`），仓库代码零依赖。
+- 停止线：机器全绿 + 人审包 READY，**等待用户人工视觉签字**（Agent 不代替
+  `UI_HUMAN_VISUAL_ACCEPTANCE = PASS`）；未 merge master / 未 tag / 未发布。
+### 历史记录 — v0.2.6 RC Integration（2026-10-02，HISTORICAL）
 ## Current phase（2026-10-02 本轮实测 — v0.2.6 RC Integration / Cross-Runtime Final Acceptance）
 - 状态：`V020_RC_INTEGRATION = PASS` · `UI_HUMAN_VISUAL_ACCEPTANCE = PASS_FOR_RC` ·
   `UI_VISUAL_CLOSURE = FROZEN_FOR_RC` · `CANONICAL_VISUAL_BASELINE_PROMOTION = PASS` ·

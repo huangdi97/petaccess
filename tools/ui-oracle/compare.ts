@@ -140,6 +140,10 @@ function compareElement(rule: ElementRule, probe: PageProbe, out: CompareRow[]):
       case "boxShadow":
         actual = cs.boxShadow && cs.boxShadow !== "none" ? String(cs.boxShadow) : "none";
         break;
+      case "shadowed":
+        /* v0.2.7：elevation/焦点浮起 —— 计算样式 shadow 是否存在（0/1）。 */
+        actual = cs.boxShadow && cs.boxShadow !== "none" ? 1 : 0;
+        break;
       case "backgroundColor":
         actual = cs.backgroundColor ?? "";
         break;
@@ -175,6 +179,16 @@ function compareElement(rule: ElementRule, probe: PageProbe, out: CompareRow[]):
         break;
       case "sectionGap":
         actual = num(m.sectionGapAvg);
+        break;
+      case "hOverflow":
+        /* v0.2.7-R1 P0-1: 1 when scrollWidth > clientWidth + 1 (horizontal
+           overflow must stay impossible on the 68px rail and its nested boxes). */
+        actual =
+          m.scrollWidth !== null && m.clientWidth !== null
+            ? m.scrollWidth > m.clientWidth + 1
+              ? 1
+              : 0
+            : null;
         break;
       default:
         actual = null;
@@ -629,8 +643,8 @@ function compareState(expect: StateExpectation, probe: PageProbe, out: CompareRo
       row(
         `${probe.pageId}-${id}`,
         "state",
-        field,
-        expected,
+        `${field}=${String(expected)}`,
+        actual,
         String(actual) === String(expected),
         "FAIL",
         `expected=${String(expected)} actual=${String(actual)} route=${s.route}`,
@@ -755,6 +769,10 @@ export function runCompare(): void {
     { PASS: 0, WARN: 0, FAIL: 0 },
   );
   console.log(`[${STAGE}] TOTAL PASS=${total.PASS} WARN=${total.WARN} FAIL=${total.FAIL}`);
+  // Contract FAIL must be a real CI failure. Reports are still written before
+  // setting exitCode so the workflow's always() review-board/artifact steps can
+  // publish the exact failing evidence for diagnosis.
+  if (total.FAIL > 0) process.exitCode = 1;
 }
 
 if (

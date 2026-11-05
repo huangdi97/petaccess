@@ -1,0 +1,1634 @@
+{
+  "contractId": "contribution",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "stage": "r111-audit",
+  "generatedAt": "2026-10-03T14:25:12.854Z",
+  "pages": [
+    {
+      "pageId": "contribute-needs-place",
+      "route": "/#/contribute",
+      "elements": {
+        "CONTRIBUTE_FIRST_SCREEN": {
+          "bbox": {
+            "x": null,
+            "y": null,
+            "width": null,
+            "height": null
+          },
+          "computed": {
+            "fontSize": null,
+            "fontWeight": null,
+            "lineHeight": null,
+            "padding": null,
+            "margin": null,
+            "borderRadius": null,
+            "boxShadow": null,
+            "backgroundColor": null,
+            "position": null,
+            "overflow": null,
+            "gap": null,
+            "borderBottomWidth": null,
+            "gridTemplateColumns": null
+          },
+          "ariaLabel": "",
+          "count": 0,
+          "maxChildWidth": null,
+          "contentHeightInViewport": null,
+          "leftRelative": null,
+          "sectionGapAvg": null,
+          "scrollWidth": null,
+          "clientWidth": null,
+          "rows": []
+        },
+        "CONTRIBUTION_MAIN_COLUMN_BOUNDED": {
+          "bbox": {
+            "x": 414,
+            "y": 16,
+            "width": 680,
+            "height": 176
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 680,
+          "contentHeightInViewport": 176,
+          "leftRelative": 414,
+          "sectionGapAvg": null,
+          "scrollWidth": 680,
+          "clientWidth": 680,
+          "rows": [
+            {
+              "height": 176,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "CONTRIBUTION_CONTEXT_VISIBLE": {
+          "bbox": {
+            "x": null,
+            "y": null,
+            "width": null,
+            "height": null
+          },
+          "computed": {
+            "fontSize": null,
+            "fontWeight": null,
+            "lineHeight": null,
+            "padding": null,
+            "margin": null,
+            "borderRadius": null,
+            "boxShadow": null,
+            "backgroundColor": null,
+            "position": null,
+            "overflow": null,
+            "gap": null,
+            "borderBottomWidth": null,
+            "gridTemplateColumns": null
+          },
+          "ariaLabel": "",
+          "count": 0,
+          "maxChildWidth": null,
+          "contentHeightInViewport": null,
+          "leftRelative": null,
+          "sectionGapAvg": null,
+          "scrollWidth": null,
+          "clientWidth": null,
+          "rows": []
+        },
+        "CONTRIBUTION_WORKSPACE_NO_HORIZONTAL_OVERFLOW": {
+          "bbox": {
+            "x": 234,
+            "y": 0,
+            "width": 1040,
+            "height": 240
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "16px 24px 48px",
+            "margin": "0px 166px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 1040,
+          "contentHeightInViewport": 240,
+          "leftRelative": 234,
+          "sectionGapAvg": null,
+          "scrollWidth": 1040,
+          "clientWidth": 1040,
+          "rows": [
+            {
+              "height": 240,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "CONTRIBUTION_MAIN_NO_HORIZONTAL_OVERFLOW": {
+          "bbox": {
+            "x": 414,
+            "y": 16,
+            "width": 680,
+            "height": 176
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 680,
+          "contentHeightInViewport": 176,
+          "leftRelative": 414,
+          "sectionGapAvg": null,
+          "scrollWidth": 680,
+          "clientWidth": 680,
+          "rows": [
+            {
+              "height": 176,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "CONTRIBUTION_CONTEXT_NO_HORIZONTAL_OVERFLOW": {
+          "bbox": {
+            "x": null,
+            "y": null,
+            "width": null,
+            "height": null
+          },
+          "computed": {
+            "fontSize": null,
+            "fontWeight": null,
+            "lineHeight": null,
+            "padding": null,
+            "margin": null,
+            "borderRadius": null,
+            "boxShadow": null,
+            "backgroundColor": null,
+            "position": null,
+            "overflow": null,
+            "gap": null,
+            "borderBottomWidth": null,
+            "gridTemplateColumns": null
+          },
+          "ariaLabel": "",
+          "count": 0,
+          "maxChildWidth": null,
+          "contentHeightInViewport": null,
+          "leftRelative": null,
+          "sectionGapAvg": null,
+          "scrollWidth": null,
+          "clientWidth": null,
+          "rows": []
+        }
+      },
+      "structure": {
+        "CONTRIBUTE_QUESTION_TEXT": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": [
+              "你刚刚知道了什么"
+            ]
+          },
+          "xSpread": null
+        },
+        "CONTRIBUTE_5_OPTIONS": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "CONTRIBUTE_OPTION_LABELS": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": [
+              "我看到了新的规则",
+              "我在现场看到动物",
+              "工作人员进行了处理",
+              "我发现了相关设施",
+              "场所信息有误"
+            ]
+          },
+          "xSpread": null
+        },
+        "CONTRIBUTE_NEEDS_PLACE_GUARD": {
+          "count": 1,
+          "sampleClasses": [
+            "state-message"
+          ],
+          "sampleText": "◑\n信息不完整\n\n现场贡献绑定到具体场所与区域。先在搜索或地图里选定一个场所，再从该场所发起。\n\n去搜索场所看地图",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 1,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "CONTRIBUTE_NEEDS_PLACE_HIDES_QUERY": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "CONTRIBUTE_LOCATION_COPY_CORRECT": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": [
+              "提交内容会进入人工核验"
+            ]
+          },
+          "xSpread": null
+        },
+        "CONTRIBUTE_4_CHOICES_FIRST_VIEWPORT": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "CONTRIBUTION_STEP_CONTEXT_PRESENT": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "CONTRIBUTION_OPTION_ROWS_NOT_PILLS": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        }
+      },
+      "density": {
+        "CONTRIBUTION_FIELD_GROUP_RHYTHM": {
+          "largestVerticalGap": null,
+          "horizontalOverflowPx": 0,
+          "infoBlockCount": 0,
+          "firstViewportVisibleTextLines": 10,
+          "contentHeightInViewport": null,
+          "primaryActionCount": 1
+        }
+      },
+      "hierarchy": {
+        "PRIMARY_CONTENT_DOMINATES_METADATA": {
+          "aFontSize": null,
+          "bFontSize": null,
+          "ratio": null
+        }
+      },
+      "budget": {},
+      "composition": {
+        "CONTRIBUTION_DESKTOP_WORKSPACE_BALANCE": {
+          "value": 0.65
+        }
+      },
+      "state": {
+        "route": "#/contribute",
+        "page": "contribution",
+        "state": "needs-place",
+        "fixture": "contribution-needs-place-v1",
+        "h1": "现场贡献",
+        "entityId": null,
+        "resultCount": null,
+        "selectedId": null,
+        "componentCounts": {}
+      },
+      "language": {
+        "uuidHits": [],
+        "enumHits": [],
+        "invariantHits": [],
+        "allcapsHits": [],
+        "refHits": []
+      },
+      "screenshot": "contribution-contribute-needs-place.png"
+    },
+    {
+      "pageId": "contribute-entry",
+      "route": "/#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+      "elements": {
+        "CONTRIBUTE_FIRST_SCREEN": {
+          "bbox": {
+            "x": 258,
+            "y": 77,
+            "width": 664,
+            "height": 434
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 664,
+          "contentHeightInViewport": 434,
+          "leftRelative": 258,
+          "sectionGapAvg": null,
+          "scrollWidth": 664,
+          "clientWidth": 664,
+          "rows": [
+            {
+              "height": 434,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "CONTRIBUTION_MAIN_COLUMN_BOUNDED": {
+          "bbox": {
+            "x": 258,
+            "y": 77,
+            "width": 664,
+            "height": 434
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 664,
+          "contentHeightInViewport": 434,
+          "leftRelative": 258,
+          "sectionGapAvg": null,
+          "scrollWidth": 664,
+          "clientWidth": 664,
+          "rows": [
+            {
+              "height": 434,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "CONTRIBUTION_CONTEXT_VISIBLE": {
+          "bbox": {
+            "x": 970,
+            "y": 77,
+            "width": 280,
+            "height": 322
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "12px 0px 0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "24px",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "本次贡献说明",
+          "count": 1,
+          "maxChildWidth": 280,
+          "contentHeightInViewport": 322,
+          "leftRelative": 970,
+          "sectionGapAvg": null,
+          "scrollWidth": 280,
+          "clientWidth": 280,
+          "rows": [
+            {
+              "height": 322,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "CONTRIBUTION_WORKSPACE_NO_HORIZONTAL_OVERFLOW": {
+          "bbox": {
+            "x": 234,
+            "y": 61,
+            "width": 1040,
+            "height": 498
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "16px 24px 48px",
+            "margin": "0px 166px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 1040,
+          "contentHeightInViewport": 498,
+          "leftRelative": 234,
+          "sectionGapAvg": null,
+          "scrollWidth": 1040,
+          "clientWidth": 1040,
+          "rows": [
+            {
+              "height": 498,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "CONTRIBUTION_MAIN_NO_HORIZONTAL_OVERFLOW": {
+          "bbox": {
+            "x": 258,
+            "y": 77,
+            "width": 664,
+            "height": 434
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 664,
+          "contentHeightInViewport": 434,
+          "leftRelative": 258,
+          "sectionGapAvg": null,
+          "scrollWidth": 664,
+          "clientWidth": 664,
+          "rows": [
+            {
+              "height": 434,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "CONTRIBUTION_CONTEXT_NO_HORIZONTAL_OVERFLOW": {
+          "bbox": {
+            "x": 970,
+            "y": 77,
+            "width": 280,
+            "height": 322
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "12px 0px 0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "24px",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "本次贡献说明",
+          "count": 1,
+          "maxChildWidth": 280,
+          "contentHeightInViewport": 322,
+          "leftRelative": 970,
+          "sectionGapAvg": null,
+          "scrollWidth": 280,
+          "clientWidth": 280,
+          "rows": [
+            {
+              "height": 322,
+              "borderRadius": "0px"
+            }
+          ]
+        }
+      },
+      "structure": {
+        "CONTRIBUTE_QUESTION_TEXT": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "CONTRIBUTE_5_OPTIONS": {
+          "count": 5,
+          "sampleClasses": [
+            "entry-option__button",
+            "entry-option__button",
+            "entry-option__button"
+          ],
+          "sampleText": "我看到了新的规则\n规则牌、公告或正式说明\n→",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 5,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": 0
+        },
+        "CONTRIBUTE_OPTION_LABELS": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "CONTRIBUTE_NEEDS_PLACE_GUARD": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "CONTRIBUTE_NEEDS_PLACE_HIDES_QUERY": {
+          "count": 1,
+          "sampleClasses": [
+            "query-context"
+          ],
+          "sampleText": "当前查询\n普通犬 · 进入 · 公共区域\n修改",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 1,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "CONTRIBUTE_LOCATION_COPY_CORRECT": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "CONTRIBUTE_4_CHOICES_FIRST_VIEWPORT": {
+          "count": 5,
+          "sampleClasses": [
+            "entry-option__button",
+            "entry-option__button",
+            "entry-option__button"
+          ],
+          "sampleText": "我看到了新的规则\n规则牌、公告或正式说明\n→",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 5,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": 0
+        },
+        "CONTRIBUTION_STEP_CONTEXT_PRESENT": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "CONTRIBUTION_OPTION_ROWS_NOT_PILLS": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        }
+      },
+      "density": {
+        "CONTRIBUTION_FIELD_GROUP_RHYTHM": {
+          "largestVerticalGap": null,
+          "horizontalOverflowPx": 0,
+          "infoBlockCount": 1,
+          "firstViewportVisibleTextLines": 32,
+          "contentHeightInViewport": null,
+          "primaryActionCount": 0
+        }
+      },
+      "hierarchy": {
+        "PRIMARY_CONTENT_DOMINATES_METADATA": {
+          "aFontSize": 20,
+          "bFontSize": 13,
+          "ratio": 1.54
+        }
+      },
+      "budget": {},
+      "composition": {
+        "CONTRIBUTION_DESKTOP_WORKSPACE_BALANCE": {
+          "value": 0.64
+        }
+      },
+      "state": {
+        "route": "#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+        "page": "contribution",
+        "state": "choose-type",
+        "fixture": "contribution-choose-type-v1",
+        "h1": "你刚刚知道了什么？",
+        "entityId": null,
+        "resultCount": null,
+        "selectedId": null,
+        "componentCounts": {
+          "choice-count": 5
+        }
+      },
+      "language": {
+        "uuidHits": [],
+        "enumHits": [],
+        "invariantHits": [],
+        "allcapsHits": [],
+        "refHits": []
+      },
+      "screenshot": "contribution-contribute-entry.png"
+    },
+    {
+      "pageId": "contribute-step-1",
+      "route": "/#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+      "elements": {
+        "CONTRIBUTE_FIRST_SCREEN": {
+          "bbox": {
+            "x": null,
+            "y": null,
+            "width": null,
+            "height": null
+          },
+          "computed": {
+            "fontSize": null,
+            "fontWeight": null,
+            "lineHeight": null,
+            "padding": null,
+            "margin": null,
+            "borderRadius": null,
+            "boxShadow": null,
+            "backgroundColor": null,
+            "position": null,
+            "overflow": null,
+            "gap": null,
+            "borderBottomWidth": null,
+            "gridTemplateColumns": null
+          },
+          "ariaLabel": "",
+          "count": 0,
+          "maxChildWidth": null,
+          "contentHeightInViewport": null,
+          "leftRelative": null,
+          "sectionGapAvg": null,
+          "scrollWidth": null,
+          "clientWidth": null,
+          "rows": []
+        },
+        "CONTRIBUTION_MAIN_COLUMN_BOUNDED": {
+          "bbox": {
+            "x": 258,
+            "y": 77,
+            "width": 664,
+            "height": 495
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 664,
+          "contentHeightInViewport": 495,
+          "leftRelative": 258,
+          "sectionGapAvg": null,
+          "scrollWidth": 664,
+          "clientWidth": 664,
+          "rows": [
+            {
+              "height": 495,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "CONTRIBUTION_CONTEXT_VISIBLE": {
+          "bbox": {
+            "x": 970,
+            "y": 77,
+            "width": 280,
+            "height": 322
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "12px 0px 0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "24px",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "本次贡献说明",
+          "count": 1,
+          "maxChildWidth": 280,
+          "contentHeightInViewport": 322,
+          "leftRelative": 970,
+          "sectionGapAvg": null,
+          "scrollWidth": 280,
+          "clientWidth": 280,
+          "rows": [
+            {
+              "height": 322,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "CONTRIBUTION_WORKSPACE_NO_HORIZONTAL_OVERFLOW": {
+          "bbox": {
+            "x": 234,
+            "y": 61,
+            "width": 1040,
+            "height": 559
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "16px 24px 48px",
+            "margin": "0px 166px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 1040,
+          "contentHeightInViewport": 559,
+          "leftRelative": 234,
+          "sectionGapAvg": null,
+          "scrollWidth": 1040,
+          "clientWidth": 1040,
+          "rows": [
+            {
+              "height": 559,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "CONTRIBUTION_MAIN_NO_HORIZONTAL_OVERFLOW": {
+          "bbox": {
+            "x": 258,
+            "y": 77,
+            "width": 664,
+            "height": 495
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 664,
+          "contentHeightInViewport": 495,
+          "leftRelative": 258,
+          "sectionGapAvg": null,
+          "scrollWidth": 664,
+          "clientWidth": 664,
+          "rows": [
+            {
+              "height": 495,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "CONTRIBUTION_CONTEXT_NO_HORIZONTAL_OVERFLOW": {
+          "bbox": {
+            "x": 970,
+            "y": 77,
+            "width": 280,
+            "height": 322
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "12px 0px 0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "24px",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "本次贡献说明",
+          "count": 1,
+          "maxChildWidth": 280,
+          "contentHeightInViewport": 322,
+          "leftRelative": 970,
+          "sectionGapAvg": null,
+          "scrollWidth": 280,
+          "clientWidth": 280,
+          "rows": [
+            {
+              "height": 322,
+              "borderRadius": "0px"
+            }
+          ]
+        }
+      },
+      "structure": {
+        "CONTRIBUTE_QUESTION_TEXT": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": [
+              "你刚刚知道了什么"
+            ]
+          },
+          "xSpread": null
+        },
+        "CONTRIBUTE_5_OPTIONS": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "CONTRIBUTE_OPTION_LABELS": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": [
+              "我看到了新的规则",
+              "我在现场看到动物",
+              "工作人员进行了处理",
+              "我发现了相关设施",
+              "场所信息有误"
+            ]
+          },
+          "xSpread": null
+        },
+        "CONTRIBUTE_NEEDS_PLACE_GUARD": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "CONTRIBUTE_NEEDS_PLACE_HIDES_QUERY": {
+          "count": 1,
+          "sampleClasses": [
+            "query-context"
+          ],
+          "sampleText": "当前查询\n普通犬 · 进入 · 公共区域\n修改",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 1,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "CONTRIBUTE_LOCATION_COPY_CORRECT": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "CONTRIBUTE_4_CHOICES_FIRST_VIEWPORT": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "CONTRIBUTION_STEP_CONTEXT_PRESENT": {
+          "count": 4,
+          "sampleClasses": [
+            "step-shell__place",
+            "muted step-shell__progress-label",
+            "step-shell__back"
+          ],
+          "sampleText": "云栖中心·测试商场 · 公共区域",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 4,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": 584.21875
+        },
+        "CONTRIBUTION_OPTION_ROWS_NOT_PILLS": {
+          "count": 3,
+          "sampleClasses": [
+            "option-row option-row--active",
+            "option-row",
+            "option-row"
+          ],
+          "sampleText": "仍然如此\n与页面显示内容一致",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 3,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": 0
+        }
+      },
+      "density": {
+        "CONTRIBUTION_FIELD_GROUP_RHYTHM": {
+          "largestVerticalGap": null,
+          "horizontalOverflowPx": 0,
+          "infoBlockCount": 2,
+          "firstViewportVisibleTextLines": 36,
+          "contentHeightInViewport": null,
+          "primaryActionCount": 1
+        }
+      },
+      "hierarchy": {
+        "PRIMARY_CONTENT_DOMINATES_METADATA": {
+          "aFontSize": null,
+          "bFontSize": null,
+          "ratio": null
+        }
+      },
+      "budget": {},
+      "composition": {
+        "CONTRIBUTION_DESKTOP_WORKSPACE_BALANCE": {
+          "value": 0.64
+        }
+      },
+      "state": {
+        "route": "#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+        "page": "contribution",
+        "state": "step-1",
+        "fixture": "contribution-step-1-v1",
+        "h1": "现场贡献",
+        "entityId": null,
+        "resultCount": null,
+        "selectedId": null,
+        "componentCounts": {}
+      },
+      "language": {
+        "uuidHits": [],
+        "enumHits": [],
+        "invariantHits": [],
+        "allcapsHits": [],
+        "refHits": []
+      },
+      "screenshot": "contribution-contribute-step-1.png"
+    },
+    {
+      "pageId": "contribute-step-2",
+      "route": "/#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+      "elements": {
+        "CONTRIBUTE_FIRST_SCREEN": {
+          "bbox": {
+            "x": null,
+            "y": null,
+            "width": null,
+            "height": null
+          },
+          "computed": {
+            "fontSize": null,
+            "fontWeight": null,
+            "lineHeight": null,
+            "padding": null,
+            "margin": null,
+            "borderRadius": null,
+            "boxShadow": null,
+            "backgroundColor": null,
+            "position": null,
+            "overflow": null,
+            "gap": null,
+            "borderBottomWidth": null,
+            "gridTemplateColumns": null
+          },
+          "ariaLabel": "",
+          "count": 0,
+          "maxChildWidth": null,
+          "contentHeightInViewport": null,
+          "leftRelative": null,
+          "sectionGapAvg": null,
+          "scrollWidth": null,
+          "clientWidth": null,
+          "rows": []
+        },
+        "CONTRIBUTION_MAIN_COLUMN_BOUNDED": {
+          "bbox": {
+            "x": 258,
+            "y": 77,
+            "width": 664,
+            "height": 1047
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 664,
+          "contentHeightInViewport": 823,
+          "leftRelative": 258,
+          "sectionGapAvg": null,
+          "scrollWidth": 664,
+          "clientWidth": 664,
+          "rows": [
+            {
+              "height": 1047,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "CONTRIBUTION_CONTEXT_VISIBLE": {
+          "bbox": {
+            "x": 970,
+            "y": 77,
+            "width": 280,
+            "height": 322
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "12px 0px 0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "24px",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "本次贡献说明",
+          "count": 1,
+          "maxChildWidth": 280,
+          "contentHeightInViewport": 322,
+          "leftRelative": 970,
+          "sectionGapAvg": null,
+          "scrollWidth": 280,
+          "clientWidth": 280,
+          "rows": [
+            {
+              "height": 322,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "CONTRIBUTION_WORKSPACE_NO_HORIZONTAL_OVERFLOW": {
+          "bbox": {
+            "x": 234,
+            "y": 61,
+            "width": 1040,
+            "height": 1111
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "16px 24px 48px",
+            "margin": "0px 166px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 1040,
+          "contentHeightInViewport": 839,
+          "leftRelative": 234,
+          "sectionGapAvg": null,
+          "scrollWidth": 1040,
+          "clientWidth": 1040,
+          "rows": [
+            {
+              "height": 1111,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "CONTRIBUTION_MAIN_NO_HORIZONTAL_OVERFLOW": {
+          "bbox": {
+            "x": 258,
+            "y": 77,
+            "width": 664,
+            "height": 1047
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 664,
+          "contentHeightInViewport": 823,
+          "leftRelative": 258,
+          "sectionGapAvg": null,
+          "scrollWidth": 664,
+          "clientWidth": 664,
+          "rows": [
+            {
+              "height": 1047,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "CONTRIBUTION_CONTEXT_NO_HORIZONTAL_OVERFLOW": {
+          "bbox": {
+            "x": 970,
+            "y": 77,
+            "width": 280,
+            "height": 322
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "12px 0px 0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "24px",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "本次贡献说明",
+          "count": 1,
+          "maxChildWidth": 280,
+          "contentHeightInViewport": 322,
+          "leftRelative": 970,
+          "sectionGapAvg": null,
+          "scrollWidth": 280,
+          "clientWidth": 280,
+          "rows": [
+            {
+              "height": 322,
+              "borderRadius": "0px"
+            }
+          ]
+        }
+      },
+      "structure": {
+        "CONTRIBUTE_QUESTION_TEXT": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": [
+              "你刚刚知道了什么"
+            ]
+          },
+          "xSpread": null
+        },
+        "CONTRIBUTE_5_OPTIONS": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "CONTRIBUTE_OPTION_LABELS": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": [
+              "我看到了新的规则",
+              "我在现场看到动物",
+              "工作人员进行了处理",
+              "我发现了相关设施",
+              "场所信息有误"
+            ]
+          },
+          "xSpread": null
+        },
+        "CONTRIBUTE_NEEDS_PLACE_GUARD": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "CONTRIBUTE_NEEDS_PLACE_HIDES_QUERY": {
+          "count": 1,
+          "sampleClasses": [
+            "query-context"
+          ],
+          "sampleText": "当前查询\n普通犬 · 进入 · 公共区域\n修改",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 1,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "CONTRIBUTE_LOCATION_COPY_CORRECT": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "CONTRIBUTE_4_CHOICES_FIRST_VIEWPORT": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        },
+        "CONTRIBUTION_STEP_CONTEXT_PRESENT": {
+          "count": 3,
+          "sampleClasses": [
+            "step-shell__place",
+            "muted step-shell__progress-label",
+            "step-shell__back"
+          ],
+          "sampleText": "云栖中心·测试商场 · 公共区域",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 2,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": 584.21875
+        },
+        "CONTRIBUTION_OPTION_ROWS_NOT_PILLS": {
+          "count": 0,
+          "sampleClasses": [],
+          "sampleText": "",
+          "surfaceRows": 0,
+          "hasArrows": false,
+          "collapsed": false,
+          "visibleInViewport": 0,
+          "details": {
+            "forbiddenTextHits": [],
+            "missingRequiredTexts": []
+          },
+          "xSpread": null
+        }
+      },
+      "density": {
+        "CONTRIBUTION_FIELD_GROUP_RHYTHM": {
+          "largestVerticalGap": 24,
+          "horizontalOverflowPx": 0,
+          "infoBlockCount": 0,
+          "firstViewportVisibleTextLines": 51,
+          "contentHeightInViewport": 681,
+          "primaryActionCount": 0
+        }
+      },
+      "hierarchy": {
+        "PRIMARY_CONTENT_DOMINATES_METADATA": {
+          "aFontSize": null,
+          "bFontSize": null,
+          "ratio": null
+        }
+      },
+      "budget": {},
+      "composition": {
+        "CONTRIBUTION_DESKTOP_WORKSPACE_BALANCE": {
+          "value": 0.64
+        }
+      },
+      "state": {
+        "route": "#/contribute/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+        "page": "contribution",
+        "state": "step-2",
+        "fixture": "contribution-step-2-v1",
+        "h1": "现场贡献",
+        "entityId": null,
+        "resultCount": null,
+        "selectedId": null,
+        "componentCounts": {}
+      },
+      "language": {
+        "uuidHits": [],
+        "enumHits": [],
+        "invariantHits": [],
+        "allcapsHits": [],
+        "refHits": []
+      },
+      "screenshot": "contribution-contribute-step-2.png"
+    }
+  ]
+}

@@ -1,0 +1,105 @@
+.operator-policy {
+  margin-top: var(--pa-space-6);
+  padding-top: var(--pa-space-5);
+  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+}
+
+.operator-policy__head h2 {
+  margin: 0;
+  font-size: var(--pa-font-size-20);
+  line-height: var(--pa-line-height-26);
+  font-weight: var(--pa-font-weight-650);
+}
+
+.operator-policy__head p {
+  margin: var(--pa-space-1) 0 0;
+  max-width: 680px;
+}
+
+.operator-policy__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-4);
+  margin-top: var(--pa-space-5);
+}
+
+.operator-policy__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--pa-space-4);
+}
+
+.operator-policy__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-1);
+}
+
+.operator-policy__field > span,
+.operator-policy__conditions > legend {
+  font-size: var(--pa-font-size-md);
+  font-weight: var(--pa-font-weight-600);
+  color: var(--pa-color-text-primary);
+}
+
+.operator-policy__field small,
+.operator-policy__conditions small {
+  font-size: var(--pa-font-size-sm);
+  line-height: var(--pa-line-height-20);
+  color: var(--pa-color-text-muted);
+}
+
+.operator-policy__field input,
+.operator-policy__field select,
+.operator-policy__field textarea {
+  margin: 0;
+}
+
+.operator-policy__field textarea {
+  min-height: 88px;
+  resize: vertical;
+}
+
+.operator-policy__conditions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pa-space-2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.operator-policy__condition-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--pa-space-2) var(--pa-space-4);
+}
+
+.operator-policy__check {
+  display: flex;
+  align-items: center;
+  gap: var(--pa-space-2);
+  min-height: 40px;
+  font-size: var(--pa-font-size-md);
+}
+
+.operator-policy__boundary {
+  margin: 0;
+  padding: var(--pa-space-3) 0;
+  border-top: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  border-bottom: var(--pa-border-width) solid var(--pa-color-border-subtle);
+  font-size: var(--pa-font-size-sm);
+  line-height: var(--pa-line-height-20);
+  color: var(--pa-color-text-secondary);
+}
+
+.operator-policy__result {
+  margin-top: var(--pa-space-4);
+}
+
+@media (max-width: 767px) {
+  .operator-policy__grid,
+  .operator-policy__condition-list {
+    grid-template-columns: 1fr;
+  }
+}

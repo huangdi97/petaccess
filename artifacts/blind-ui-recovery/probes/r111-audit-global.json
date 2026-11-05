@@ -1,0 +1,1322 @@
+{
+  "contractId": "global",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "stage": "r111-audit",
+  "generatedAt": "2026-10-03T14:25:18.141Z",
+  "pages": [
+    {
+      "pageId": "home",
+      "route": "/",
+      "elements": {
+        "APP_RAIL_WIDTH": {
+          "bbox": {
+            "x": 0,
+            "y": 0,
+            "width": 68,
+            "height": 900
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "16px 0px 0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "position": "fixed",
+            "overflow": "hidden auto",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "主导航",
+          "count": 1,
+          "maxChildWidth": 68,
+          "contentHeightInViewport": 900,
+          "leftRelative": 0,
+          "sectionGapAvg": null,
+          "scrollWidth": 67,
+          "clientWidth": 67,
+          "rows": [
+            {
+              "height": 900,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "RAIL_HAS_ARIA_LABEL": {
+          "bbox": {
+            "x": 0,
+            "y": 0,
+            "width": 68,
+            "height": 900
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "16px 0px 0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "position": "fixed",
+            "overflow": "hidden auto",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "主导航",
+          "count": 1,
+          "maxChildWidth": 68,
+          "contentHeightInViewport": 900,
+          "leftRelative": 0,
+          "sectionGapAvg": null,
+          "scrollWidth": 67,
+          "clientWidth": 67,
+          "rows": [
+            {
+              "height": 900,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "DESKTOP_RAIL_NO_HORIZONTAL_OVERFLOW": {
+          "bbox": {
+            "x": 0,
+            "y": 0,
+            "width": 68,
+            "height": 900
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "16px 0px 0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "position": "fixed",
+            "overflow": "hidden auto",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "主导航",
+          "count": 1,
+          "maxChildWidth": 68,
+          "contentHeightInViewport": 900,
+          "leftRelative": 0,
+          "sectionGapAvg": null,
+          "scrollWidth": 67,
+          "clientWidth": 67,
+          "rows": [
+            {
+              "height": 900,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "SINGLE_H1": {
+          "bbox": {
+            "x": 306,
+            "y": 161,
+            "width": 896,
+            "height": 26
+          },
+          "computed": {
+            "fontSize": "20px",
+            "fontWeight": "700",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 896,
+          "contentHeightInViewport": 26,
+          "leftRelative": 306,
+          "sectionGapAvg": null,
+          "scrollWidth": 896,
+          "clientWidth": 896,
+          "rows": [
+            {
+              "height": 26,
+              "borderRadius": "0px"
+            }
+          ]
+        }
+      },
+      "structure": {},
+      "density": {
+        "NO_GLOBAL_HORIZONTAL_OVERFLOW": {
+          "largestVerticalGap": null,
+          "horizontalOverflowPx": 0,
+          "infoBlockCount": 2,
+          "firstViewportVisibleTextLines": 37,
+          "contentHeightInViewport": null,
+          "primaryActionCount": 1
+        }
+      },
+      "hierarchy": {},
+      "budget": {},
+      "composition": {},
+      "state": {
+        "route": "#/",
+        "page": "home",
+        "state": "ready",
+        "fixture": "home-ready-v1",
+        "h1": "去之前，先看看这里的规则和现场。",
+        "entityId": null,
+        "resultCount": null,
+        "selectedId": null,
+        "componentCounts": {}
+      },
+      "language": {
+        "uuidHits": [],
+        "enumHits": [],
+        "invariantHits": [],
+        "allcapsHits": [],
+        "refHits": []
+      },
+      "screenshot": "global-home.png"
+    },
+    {
+      "pageId": "search",
+      "route": "/#/search",
+      "elements": {
+        "APP_RAIL_WIDTH": {
+          "bbox": {
+            "x": 0,
+            "y": 0,
+            "width": 68,
+            "height": 900
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "16px 0px 0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "position": "fixed",
+            "overflow": "hidden auto",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "主导航",
+          "count": 1,
+          "maxChildWidth": 68,
+          "contentHeightInViewport": 900,
+          "leftRelative": 0,
+          "sectionGapAvg": null,
+          "scrollWidth": 67,
+          "clientWidth": 67,
+          "rows": [
+            {
+              "height": 900,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "RAIL_HAS_ARIA_LABEL": {
+          "bbox": {
+            "x": 0,
+            "y": 0,
+            "width": 68,
+            "height": 900
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "16px 0px 0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "position": "fixed",
+            "overflow": "hidden auto",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "主导航",
+          "count": 1,
+          "maxChildWidth": 68,
+          "contentHeightInViewport": 900,
+          "leftRelative": 0,
+          "sectionGapAvg": null,
+          "scrollWidth": 67,
+          "clientWidth": 67,
+          "rows": [
+            {
+              "height": 900,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "DESKTOP_RAIL_NO_HORIZONTAL_OVERFLOW": {
+          "bbox": {
+            "x": 0,
+            "y": 0,
+            "width": 68,
+            "height": 900
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "16px 0px 0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "position": "fixed",
+            "overflow": "hidden auto",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "主导航",
+          "count": 1,
+          "maxChildWidth": 68,
+          "contentHeightInViewport": 900,
+          "leftRelative": 0,
+          "sectionGapAvg": null,
+          "scrollWidth": 67,
+          "clientWidth": 67,
+          "rows": [
+            {
+              "height": 900,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "SINGLE_H1": {
+          "bbox": {
+            "x": 87,
+            "y": 84,
+            "width": 1,
+            "height": 1
+          },
+          "computed": {
+            "fontSize": "20px",
+            "fontWeight": "700",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "-1px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "absolute",
+            "overflow": "hidden",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 1,
+          "contentHeightInViewport": 1,
+          "leftRelative": 19,
+          "sectionGapAvg": null,
+          "scrollWidth": 120,
+          "clientWidth": 1,
+          "rows": [
+            {
+              "height": 1,
+              "borderRadius": "0px"
+            }
+          ]
+        }
+      },
+      "structure": {},
+      "density": {
+        "NO_GLOBAL_HORIZONTAL_OVERFLOW": {
+          "largestVerticalGap": null,
+          "horizontalOverflowPx": 0,
+          "infoBlockCount": 5,
+          "firstViewportVisibleTextLines": 39,
+          "contentHeightInViewport": null,
+          "primaryActionCount": 1
+        }
+      },
+      "hierarchy": {},
+      "budget": {},
+      "composition": {},
+      "state": {
+        "route": "#/search",
+        "page": "search",
+        "state": "ready-selected",
+        "fixture": "search-ready-v1",
+        "h1": "搜索场所规则",
+        "entityId": null,
+        "resultCount": null,
+        "selectedId": "search-selected-row",
+        "componentCounts": {
+          "result-rows": 5
+        }
+      },
+      "language": {
+        "uuidHits": [],
+        "enumHits": [],
+        "invariantHits": [],
+        "allcapsHits": [],
+        "refHits": []
+      },
+      "screenshot": "global-search.png"
+    },
+    {
+      "pageId": "map",
+      "route": "/#/map",
+      "elements": {
+        "APP_RAIL_WIDTH": {
+          "bbox": {
+            "x": 0,
+            "y": 0,
+            "width": 68,
+            "height": 900
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "16px 0px 0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "position": "fixed",
+            "overflow": "hidden auto",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "主导航",
+          "count": 1,
+          "maxChildWidth": 68,
+          "contentHeightInViewport": 900,
+          "leftRelative": 0,
+          "sectionGapAvg": null,
+          "scrollWidth": 67,
+          "clientWidth": 67,
+          "rows": [
+            {
+              "height": 900,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "RAIL_HAS_ARIA_LABEL": {
+          "bbox": {
+            "x": 0,
+            "y": 0,
+            "width": 68,
+            "height": 900
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "16px 0px 0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "position": "fixed",
+            "overflow": "hidden auto",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "主导航",
+          "count": 1,
+          "maxChildWidth": 68,
+          "contentHeightInViewport": 900,
+          "leftRelative": 0,
+          "sectionGapAvg": null,
+          "scrollWidth": 67,
+          "clientWidth": 67,
+          "rows": [
+            {
+              "height": 900,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "DESKTOP_RAIL_NO_HORIZONTAL_OVERFLOW": {
+          "bbox": {
+            "x": 0,
+            "y": 0,
+            "width": 68,
+            "height": 900
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "16px 0px 0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "position": "fixed",
+            "overflow": "hidden auto",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "主导航",
+          "count": 1,
+          "maxChildWidth": 68,
+          "contentHeightInViewport": 900,
+          "leftRelative": 0,
+          "sectionGapAvg": null,
+          "scrollWidth": 67,
+          "clientWidth": 67,
+          "rows": [
+            {
+              "height": 900,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "SINGLE_H1": {
+          "bbox": {
+            "x": 67,
+            "y": -1,
+            "width": 1,
+            "height": 1
+          },
+          "computed": {
+            "fontSize": "20px",
+            "fontWeight": "700",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "-1px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "absolute",
+            "overflow": "hidden",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 1,
+          "contentHeightInViewport": 1,
+          "leftRelative": 67,
+          "sectionGapAvg": null,
+          "scrollWidth": 80,
+          "clientWidth": 1,
+          "rows": [
+            {
+              "height": 1,
+              "borderRadius": "0px"
+            }
+          ]
+        }
+      },
+      "structure": {},
+      "density": {
+        "NO_GLOBAL_HORIZONTAL_OVERFLOW": {
+          "largestVerticalGap": null,
+          "horizontalOverflowPx": 0,
+          "infoBlockCount": 5,
+          "firstViewportVisibleTextLines": 47,
+          "contentHeightInViewport": null,
+          "primaryActionCount": 1
+        }
+      },
+      "hierarchy": {},
+      "budget": {},
+      "composition": {},
+      "state": {
+        "route": "#/map",
+        "page": "map",
+        "state": "ready",
+        "fixture": "map-ready-v1",
+        "h1": "规则地图",
+        "entityId": null,
+        "resultCount": null,
+        "selectedId": "map-marker-selected",
+        "componentCounts": {}
+      },
+      "language": {
+        "uuidHits": [],
+        "enumHits": [],
+        "invariantHits": [],
+        "allcapsHits": [],
+        "refHits": []
+      },
+      "screenshot": "global-map.png"
+    },
+    {
+      "pageId": "place",
+      "route": "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+      "elements": {
+        "APP_RAIL_WIDTH": {
+          "bbox": {
+            "x": 0,
+            "y": 0,
+            "width": 68,
+            "height": 900
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "16px 0px 0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "position": "fixed",
+            "overflow": "hidden auto",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "主导航",
+          "count": 1,
+          "maxChildWidth": 68,
+          "contentHeightInViewport": 900,
+          "leftRelative": 0,
+          "sectionGapAvg": null,
+          "scrollWidth": 67,
+          "clientWidth": 67,
+          "rows": [
+            {
+              "height": 900,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "RAIL_HAS_ARIA_LABEL": {
+          "bbox": {
+            "x": 0,
+            "y": 0,
+            "width": 68,
+            "height": 900
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "16px 0px 0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "position": "fixed",
+            "overflow": "hidden auto",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "主导航",
+          "count": 1,
+          "maxChildWidth": 68,
+          "contentHeightInViewport": 900,
+          "leftRelative": 0,
+          "sectionGapAvg": null,
+          "scrollWidth": 67,
+          "clientWidth": 67,
+          "rows": [
+            {
+              "height": 900,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "DESKTOP_RAIL_NO_HORIZONTAL_OVERFLOW": {
+          "bbox": {
+            "x": 0,
+            "y": 0,
+            "width": 68,
+            "height": 900
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "16px 0px 0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "position": "fixed",
+            "overflow": "hidden auto",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "主导航",
+          "count": 1,
+          "maxChildWidth": 68,
+          "contentHeightInViewport": 900,
+          "leftRelative": 0,
+          "sectionGapAvg": null,
+          "scrollWidth": 67,
+          "clientWidth": 67,
+          "rows": [
+            {
+              "height": 900,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "SINGLE_H1": {
+          "bbox": {
+            "x": 100,
+            "y": 77,
+            "width": 820,
+            "height": 36
+          },
+          "computed": {
+            "fontSize": "28px",
+            "fontWeight": "650",
+            "lineHeight": "36px",
+            "padding": "0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "static",
+            "overflow": "visible",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 820,
+          "contentHeightInViewport": 36,
+          "leftRelative": 100,
+          "sectionGapAvg": null,
+          "scrollWidth": 820,
+          "clientWidth": 820,
+          "rows": [
+            {
+              "height": 36,
+              "borderRadius": "0px"
+            }
+          ]
+        }
+      },
+      "structure": {},
+      "density": {
+        "NO_GLOBAL_HORIZONTAL_OVERFLOW": {
+          "largestVerticalGap": null,
+          "horizontalOverflowPx": 0,
+          "infoBlockCount": 11,
+          "firstViewportVisibleTextLines": 51,
+          "contentHeightInViewport": null,
+          "primaryActionCount": 0
+        }
+      },
+      "hierarchy": {},
+      "budget": {},
+      "composition": {},
+      "state": {
+        "route": "#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+        "page": "place",
+        "state": "ready",
+        "fixture": "place-ready-v1",
+        "h1": "云栖中心·测试商场",
+        "entityId": "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+        "resultCount": null,
+        "selectedId": null,
+        "componentCounts": {}
+      },
+      "language": {
+        "uuidHits": [],
+        "enumHits": [],
+        "invariantHits": [],
+        "allcapsHits": [],
+        "refHits": []
+      },
+      "screenshot": "global-place.png"
+    },
+    {
+      "pageId": "reality",
+      "route": "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e/reality",
+      "elements": {
+        "APP_RAIL_WIDTH": {
+          "bbox": {
+            "x": 0,
+            "y": 0,
+            "width": 68,
+            "height": 900
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "16px 0px 0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "position": "fixed",
+            "overflow": "hidden auto",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "主导航",
+          "count": 1,
+          "maxChildWidth": 68,
+          "contentHeightInViewport": 900,
+          "leftRelative": 0,
+          "sectionGapAvg": null,
+          "scrollWidth": 67,
+          "clientWidth": 67,
+          "rows": [
+            {
+              "height": 900,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "RAIL_HAS_ARIA_LABEL": {
+          "bbox": {
+            "x": 0,
+            "y": 0,
+            "width": 68,
+            "height": 900
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "16px 0px 0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "position": "fixed",
+            "overflow": "hidden auto",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "主导航",
+          "count": 1,
+          "maxChildWidth": 68,
+          "contentHeightInViewport": 900,
+          "leftRelative": 0,
+          "sectionGapAvg": null,
+          "scrollWidth": 67,
+          "clientWidth": 67,
+          "rows": [
+            {
+              "height": 900,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "DESKTOP_RAIL_NO_HORIZONTAL_OVERFLOW": {
+          "bbox": {
+            "x": 0,
+            "y": 0,
+            "width": 68,
+            "height": 900
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "16px 0px 0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "position": "fixed",
+            "overflow": "hidden auto",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "主导航",
+          "count": 1,
+          "maxChildWidth": 68,
+          "contentHeightInViewport": 900,
+          "leftRelative": 0,
+          "sectionGapAvg": null,
+          "scrollWidth": 67,
+          "clientWidth": 67,
+          "rows": [
+            {
+              "height": 900,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "SINGLE_H1": {
+          "bbox": {
+            "x": 359,
+            "y": 76,
+            "width": 1,
+            "height": 1
+          },
+          "computed": {
+            "fontSize": "20px",
+            "fontWeight": "700",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "-1px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "absolute",
+            "overflow": "hidden",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 1,
+          "contentHeightInViewport": 1,
+          "leftRelative": 359,
+          "sectionGapAvg": null,
+          "scrollWidth": 80,
+          "clientWidth": 1,
+          "rows": [
+            {
+              "height": 1,
+              "borderRadius": "0px"
+            }
+          ]
+        }
+      },
+      "structure": {},
+      "density": {
+        "NO_GLOBAL_HORIZONTAL_OVERFLOW": {
+          "largestVerticalGap": null,
+          "horizontalOverflowPx": 0,
+          "infoBlockCount": 2,
+          "firstViewportVisibleTextLines": 17,
+          "contentHeightInViewport": null,
+          "primaryActionCount": 1
+        }
+      },
+      "hierarchy": {},
+      "budget": {},
+      "composition": {},
+      "state": {
+        "route": "#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e/reality",
+        "page": "reality",
+        "state": "empty",
+        "fixture": "reality-empty-v1",
+        "h1": "现场轨迹",
+        "entityId": "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+        "resultCount": null,
+        "selectedId": null,
+        "componentCounts": {}
+      },
+      "language": {
+        "uuidHits": [],
+        "enumHits": [],
+        "invariantHits": [],
+        "allcapsHits": [],
+        "refHits": []
+      },
+      "screenshot": "global-reality.png"
+    },
+    {
+      "pageId": "evidence",
+      "route": "/#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e/evidence",
+      "elements": {
+        "APP_RAIL_WIDTH": {
+          "bbox": {
+            "x": 0,
+            "y": 0,
+            "width": 68,
+            "height": 900
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "16px 0px 0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "position": "fixed",
+            "overflow": "hidden auto",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "主导航",
+          "count": 1,
+          "maxChildWidth": 68,
+          "contentHeightInViewport": 900,
+          "leftRelative": 0,
+          "sectionGapAvg": null,
+          "scrollWidth": 67,
+          "clientWidth": 67,
+          "rows": [
+            {
+              "height": 900,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "RAIL_HAS_ARIA_LABEL": {
+          "bbox": {
+            "x": 0,
+            "y": 0,
+            "width": 68,
+            "height": 900
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "16px 0px 0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "position": "fixed",
+            "overflow": "hidden auto",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "主导航",
+          "count": 1,
+          "maxChildWidth": 68,
+          "contentHeightInViewport": 900,
+          "leftRelative": 0,
+          "sectionGapAvg": null,
+          "scrollWidth": 67,
+          "clientWidth": 67,
+          "rows": [
+            {
+              "height": 900,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "DESKTOP_RAIL_NO_HORIZONTAL_OVERFLOW": {
+          "bbox": {
+            "x": 0,
+            "y": 0,
+            "width": 68,
+            "height": 900
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "16px 0px 0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "position": "fixed",
+            "overflow": "hidden auto",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "主导航",
+          "count": 1,
+          "maxChildWidth": 68,
+          "contentHeightInViewport": 900,
+          "leftRelative": 0,
+          "sectionGapAvg": null,
+          "scrollWidth": 67,
+          "clientWidth": 67,
+          "rows": [
+            {
+              "height": 900,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "SINGLE_H1": {
+          "bbox": {
+            "x": 359,
+            "y": 76,
+            "width": 1,
+            "height": 1
+          },
+          "computed": {
+            "fontSize": "20px",
+            "fontWeight": "700",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "-1px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "absolute",
+            "overflow": "hidden",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 1,
+          "contentHeightInViewport": 1,
+          "leftRelative": 359,
+          "sectionGapAvg": null,
+          "scrollWidth": 100,
+          "clientWidth": 1,
+          "rows": [
+            {
+              "height": 1,
+              "borderRadius": "0px"
+            }
+          ]
+        }
+      },
+      "structure": {},
+      "density": {
+        "NO_GLOBAL_HORIZONTAL_OVERFLOW": {
+          "largestVerticalGap": null,
+          "horizontalOverflowPx": 0,
+          "infoBlockCount": 9,
+          "firstViewportVisibleTextLines": 32,
+          "contentHeightInViewport": null,
+          "primaryActionCount": 0
+        }
+      },
+      "hierarchy": {},
+      "budget": {},
+      "composition": {},
+      "state": {
+        "route": "#/place/5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e/evidence",
+        "page": "evidence",
+        "state": "empty",
+        "fixture": "evidence-empty-v1",
+        "h1": "证据与来源",
+        "entityId": "5a9084d0-d2c7-5bb3-9914-fa7a11c53d9e",
+        "resultCount": null,
+        "selectedId": null,
+        "componentCounts": {}
+      },
+      "language": {
+        "uuidHits": [],
+        "enumHits": [],
+        "invariantHits": [],
+        "allcapsHits": [],
+        "refHits": []
+      },
+      "screenshot": "global-evidence.png"
+    },
+    {
+      "pageId": "contribute",
+      "route": "/#/contribute",
+      "elements": {
+        "APP_RAIL_WIDTH": {
+          "bbox": {
+            "x": 0,
+            "y": 0,
+            "width": 68,
+            "height": 900
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "16px 0px 0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "position": "fixed",
+            "overflow": "hidden auto",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "主导航",
+          "count": 1,
+          "maxChildWidth": 68,
+          "contentHeightInViewport": 900,
+          "leftRelative": 0,
+          "sectionGapAvg": null,
+          "scrollWidth": 67,
+          "clientWidth": 67,
+          "rows": [
+            {
+              "height": 900,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "RAIL_HAS_ARIA_LABEL": {
+          "bbox": {
+            "x": 0,
+            "y": 0,
+            "width": 68,
+            "height": 900
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "16px 0px 0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "position": "fixed",
+            "overflow": "hidden auto",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "主导航",
+          "count": 1,
+          "maxChildWidth": 68,
+          "contentHeightInViewport": 900,
+          "leftRelative": 0,
+          "sectionGapAvg": null,
+          "scrollWidth": 67,
+          "clientWidth": 67,
+          "rows": [
+            {
+              "height": 900,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "DESKTOP_RAIL_NO_HORIZONTAL_OVERFLOW": {
+          "bbox": {
+            "x": 0,
+            "y": 0,
+            "width": 68,
+            "height": 900
+          },
+          "computed": {
+            "fontSize": "15px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "padding": "16px 0px 0px",
+            "margin": "0px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "position": "fixed",
+            "overflow": "hidden auto",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "主导航",
+          "count": 1,
+          "maxChildWidth": 68,
+          "contentHeightInViewport": 900,
+          "leftRelative": 0,
+          "sectionGapAvg": null,
+          "scrollWidth": 67,
+          "clientWidth": 67,
+          "rows": [
+            {
+              "height": 900,
+              "borderRadius": "0px"
+            }
+          ]
+        },
+        "SINGLE_H1": {
+          "bbox": {
+            "x": 413,
+            "y": 15,
+            "width": 1,
+            "height": 1
+          },
+          "computed": {
+            "fontSize": "20px",
+            "fontWeight": "700",
+            "lineHeight": "normal",
+            "padding": "0px",
+            "margin": "-1px",
+            "borderRadius": "0px",
+            "boxShadow": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "position": "absolute",
+            "overflow": "hidden",
+            "gap": "normal",
+            "borderBottomWidth": "0px",
+            "gridTemplateColumns": "none"
+          },
+          "ariaLabel": "",
+          "count": 1,
+          "maxChildWidth": 1,
+          "contentHeightInViewport": 1,
+          "leftRelative": 413,
+          "sectionGapAvg": null,
+          "scrollWidth": 80,
+          "clientWidth": 1,
+          "rows": [
+            {
+              "height": 1,
+              "borderRadius": "0px"
+            }
+          ]
+        }
+      },
+      "structure": {},
+      "density": {
+        "NO_GLOBAL_HORIZONTAL_OVERFLOW": {
+          "largestVerticalGap": null,
+          "horizontalOverflowPx": 0,
+          "infoBlockCount": 0,
+          "firstViewportVisibleTextLines": 10,
+          "contentHeightInViewport": null,
+          "primaryActionCount": 1
+        }
+      },
+      "hierarchy": {},
+      "budget": {},
+      "composition": {},
+      "state": {
+        "route": "#/contribute",
+        "page": "contribution",
+        "state": "needs-place",
+        "fixture": "contribution-needs-place-v1",
+        "h1": "现场贡献",
+        "entityId": null,
+        "resultCount": null,
+        "selectedId": null,
+        "componentCounts": {}
+      },
+      "language": {
+        "uuidHits": [],
+        "enumHits": [],
+        "invariantHits": [],
+        "allcapsHits": [],
+        "refHits": []
+      },
+      "screenshot": "global-contribute.png"
+    }
+  ]
+}

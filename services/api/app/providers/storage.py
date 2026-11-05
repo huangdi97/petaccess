@@ -22,6 +22,7 @@ class StorageProvider(Protocol):
     def presigned_get_url(
         self, key: str, bucket: str | None = None, expires_seconds: int = 900
     ) -> str: ...
+    def read_object(self, key: str, bucket: str | None = None) -> bytes: ...
     def remove_object(self, key: str, bucket: str | None = None) -> None: ...
     def stat_object(self, key: str, bucket: str | None = None) -> dict[str, Any] | None: ...
     def healthy(self) -> bool: ...
@@ -80,6 +81,14 @@ class MinioStorageProvider:
             response_headers={"response-content-disposition": "inline"},
         )
 
+    def read_object(self, key: str, bucket: str | None = None) -> bytes:
+        response = self._client.get_object(bucket or self._bucket_default, key)
+        try:
+            return response.read()
+        finally:
+            response.close()
+            response.release_conn()
+
     def remove_object(self, key: str, bucket: str | None = None) -> None:
         self._client.remove_object(bucket or self._bucket_default, key)
 
@@ -135,6 +144,13 @@ class NullStorageProvider:
         self, key: str, bucket: str | None = None, expires_seconds: int = 900
     ) -> str:
         return f"nullstorage://{key}"
+
+    def read_object(self, key: str, bucket: str | None = None) -> bytes:
+        try:
+            data, _ = self._objects[key]
+        except KeyError as exc:
+            raise FileNotFoundError(key) from exc
+        return data
 
     def remove_object(self, key: str, bucket: str | None = None) -> None:
         self._objects.pop(key, None)

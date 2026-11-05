@@ -1,0 +1,15 @@
+{
+  "gitSha": "d2eeba2fe5ffbfba31f244881f6e1705a07f84c2",
+  "route": "/#/place/8412b521-5e1c-505d-9dec-568acb860c76/why",
+  "page": "why",
+  "state": "ready",
+  "viewportWidth": 430,
+  "viewportHeight": 932,
+  "devicePixelRatio": 1,
+  "documentClientWidth": 430,
+  "documentScrollWidth": 430,
+  "horizontalOverflow": false,
+  "consoleErrors": [],
+  "networkErrors": [],
+  "screenshot": "24_web_why_ready_430x932.png"
+}

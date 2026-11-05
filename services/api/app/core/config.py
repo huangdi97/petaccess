@@ -2,6 +2,7 @@
 
 from functools import lru_cache
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -92,6 +93,10 @@ class InsecureDefaultSecret(RuntimeError):
     """Raised at startup when a published dev secret would be used for real."""
 
 
+class InvalidPublicApiBase(RuntimeError):
+    """Raised when production would advertise a non-public or insecure API URL."""
+
+
 def validate_runtime(settings: Settings) -> None:
     """Fail at boot rather than run with a secret anyone can read from GitHub."""
     if settings.app_env.strip().lower() not in PRODUCTION_ENVS:
@@ -102,6 +107,18 @@ def validate_runtime(settings: Settings) -> None:
             "app_env="
             f"{settings.app_env!r} but these secrets still hold their dev defaults: "
             f"{', '.join(offenders)}. Set them in the environment; refusing to start."
+        )
+
+    public_api = urlsplit(settings.api_base_url.strip())
+    local_hosts = {"localhost", "127.0.0.1", "10.0.2.2", "::1"}
+    if (
+        public_api.scheme != "https"
+        or not public_api.hostname
+        or public_api.hostname.lower() in local_hosts
+    ):
+        raise InvalidPublicApiBase(
+            "production/staging API_BASE_URL must be a public HTTPS origin; "
+            f"got {settings.api_base_url!r}"
         )
 
 
