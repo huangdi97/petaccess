@@ -293,6 +293,8 @@ jobs:
             tests/e2e/m3-consumer-core.spec.ts \
             tests/e2e/place-preview-overflow.spec.ts \
             tests/e2e/query-context.spec.ts \
+            tests/e2e/backend-down-home.spec.ts \
+            tests/e2e/pa-icon-size.spec.ts \
             --workers=1
 
       - name: Playwright desktop DPI matrix
