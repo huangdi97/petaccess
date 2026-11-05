@@ -295,6 +295,15 @@ jobs:
             tests/e2e/query-context.spec.ts \
             --workers=1
 
+      - name: Playwright desktop DPI matrix
+        # 9 DPI cells x 6 surfaces, each in a fresh context. Give the matrix a
+        # budget that matches the work (the 30s default is sized for one page,
+        # not 54) and keep it serial: the cells assert layout, and the parallel
+        # contexts on a loaded runner are what kept this spec out of CI before.
+        run: |
+          pnpm exec playwright test tests/e2e/desktop-dpi.spec.ts \
+            --workers=1 --timeout=120000
+
       - name: Playwright contribution mobile + chronology contracts
         run: |
           pnpm exec playwright test tests/e2e/contribute-wizard.spec.ts \

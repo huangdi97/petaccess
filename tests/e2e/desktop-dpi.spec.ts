@@ -64,6 +64,19 @@ async function settle(page: Page) {
       timeout: 10000,
     })
     .catch(() => {});
+  // The shell publishes its own state, and a page can sit in "loading" without
+  // any skeleton (the Place overview renders none) — measuring overflow during
+  // that window measures a layout the user never sees. Bounded, so a page that
+  // never settles is still measured instead of silently eating the budget.
+  await page
+    .waitForFunction(
+      () => {
+        const host = document.querySelector("[data-ui-page]");
+        return !host || host.getAttribute("data-ui-state") !== "loading";
+      },
+      { timeout: 20000 },
+    )
+    .catch(() => {});
   await page.waitForTimeout(300);
 }
 
