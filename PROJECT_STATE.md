@@ -1,3 +1,11 @@
+## Current phase（2026-11-05 — 基线已推进 master，并补上基分支 push 门禁）
+
+- `feat/ui-product-craft-v7-human-review-final` 已通过 PR #2 合入 `master`：merge commit `63a97a4a`（父 `42ed4e34` + `5d3c19f2`）；`master` 与基分支树逐字节一致（`git diff --stat` 为空）。合并前 PR #2 的 7 项 check 全 **success**；`master` 与基分支是快进关系（`ahead_by=3043 / behind_by=0`），无冲突解决。
+- 事实记录：**`master` 此前最近 7 个提交的 PR CI 均为 failure**（`42ed4e34`、`a55ba214`、`842c0309`、`434efd38`、`3c718833`、`16dc7a80`、`6ce8d3f4`）；本次提升后 `63a97a4a` 的 PR CI = **success**（Engineering gate / Backend mypy+tests / Frontend / Playwright subset 全绿），`master` 由红转绿。
+- **补上基分支 push 门禁**（`5d3c19f2`）：`ui-direct-validation.yml` 与 `ui-direct-visual.yml` 的 `push.branches` 原本只有 `feat/ui-direct-craft-v8`，基分支仅作为 `pull_request` 目标存在，因此合并进基分支的 push 产生 **0 个 check-run**。加入基分支后，首次推送即触发两条工作流且均 success。
+- **未做，需你决定**：tag / GitHub Release / 版本号 bump。`release-ci.yml` 只在 `v*` tag 触发，且有 "Tag matches package version" 与 `VERSION_DRIFT` 门禁。实测版本 SSOT 目前三处一致为 **0.1.0**（`pyproject.toml` / 根 `package.json` / `apps/client-h5/package.json`）；旧 `master` 提交信息里的 "v0.2.6 RC" 只是文案、不是 SSOT。因此打 `v*` tag 前需要你先定版本，故未擅自打 tag、未发 Release。
+- `UI_HUMAN_VISUAL_ACCEPTANCE` 仍为 `PENDING_REVIEW`：机器门禁与 UI Oracle 全绿，但人眼签字从未发生；本次推进 master **不构成**人审通过，也未据此做 baseline acceptance。这一点已同时写入 PR #2 与 merge commit message。
+
 ## Current phase（2026-11-05 — PR #1 已合入 human-review 基分支）
 
 - `feat/ui-direct-craft-v8` 已通过 PR #1 合入 `feat/ui-product-craft-v7-human-review-final`：merge commit `21d73cff`，父提交 `96fb31e7` + `136a148c`；合并后基分支树与 head 树逐字节一致（`git diff --stat 136a148c 21d73cff` 为空）。PR #1 现为 `closed / merged`；**未 tag、未 release、未动 `master`**。
