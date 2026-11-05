@@ -1,3 +1,10 @@
+## Current phase（2026-11-05 — PR #1 已合入 human-review 基分支）
+
+- `feat/ui-direct-craft-v8` 已通过 PR #1 合入 `feat/ui-product-craft-v7-human-review-final`：merge commit `21d73cff`，父提交 `96fb31e7` + `136a148c`；合并后基分支树与 head 树逐字节一致（`git diff --stat 136a148c 21d73cff` 为空）。PR #1 现为 `closed / merged`；**未 tag、未 release、未动 `master`**。
+- 合并前实测：head `136a148c` 的 12 项 check 全 **success**；CI 内 299 例（243 journeys + 54 DPI + 2 contribute），24/24 个 e2e spec 全部被执行。
+- **`UI_HUMAN_VISUAL_ACCEPTANCE` 从未签字**，仍为 `PENDING_REVIEW`。本次合并按 owner 明确指令执行，不构成人审通过，也未据此做 baseline promotion —— 机器核验事实与人审结论必须分开记录，合并动作不改变这一点。
+- 下一步（未做）：在基分支重建 Human Review artifact 并取得用户签字；Android 设备证据仍绑定 `10d6409d` / `da4717c9`（自那以后 `apps/client-h5` 零改动，APK 未变）。
+
 ## Current phase（2026-11-05 — E2E 覆盖从 16/24 扩到 24/24，测试腐化清零）
 
 - 分支 `feat/ui-direct-craft-v8`；PR #1 **OPEN + DRAFT**，`mergeable_state = clean`；远端 = 本地 = `aa90401a`。
