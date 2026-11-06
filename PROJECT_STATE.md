@@ -1,3 +1,10 @@
+## Current phase（2026-11-05 — v0.2.0 已打 tag；Release CI 因缺公共 API 配置而阻塞）
+
+- **`v0.2.0` 已打 tag**（`8eb5f32e`）：版本 SSOT 全量升到 0.2.0（7 个 `package.json` + `tauri.conf.json` + `Cargo.toml` + `Cargo.lock` 的 crate 条目 + `check_version_drift.py` 的 `EXPECTED`），`VERSION_DRIFT = 0`。`release-ci.yml` 的产物名改为按 tag 派生（`github.ref_name` / `GITHUB_REF_NAME#v`），不再硬编码版本；否则下一版会产出标着旧版本号的文件。`tauri.conf.json` 的 `longDescription` 与 `Cargo.toml` 的 `description` 中的 "0.1.0 Early Preview" 同步为 0.2.0 —— 这两处是用户可见文案，不同步就会对用户说谎。`apps/client/manifest.json` 的 `versionName` 同步；其 `versionCode` 保持 100（升 `versionCode` 属上架发布决策，不是版本 SSOT 的事），需要你定。
+- 打 tag 前的同一提交验证：PR CI、Windows Preview Runtime、Android Preview APK、Android Phone Preview APK 均 success。其间 **API 35 runtime smoke 首跑失败**（所有路由返回同一非法 bounds `[71,1273][1009,1405]`、`hardware_back` 回调未触发、日志先有 `adb ... failed` 与 `could not connect to TCP port 5554`）；**同一 APK 的 API 36 smoke 通过**，重跑后 API 35 亦 success → 判定为该分片的模拟器/adb 环境偶发，非版本改动回归。
+- **Release CI（tag `v0.2.0`，run `42126081165`）= FAILURE，卡在 `Verify packaged runtime API`**：`public-api-preflight: PETACCESS_PUBLIC_API_BASE is required`。该变量在 `release-ci.yml` 中 7 处引用（`${{ vars.PETACCESS_PUBLIC_API_BASE }}`），语义是"打包后的运行时必须指向真实在线的公共 API"，本环境没有可部署的公共 API。因 `needs` 依赖，**Windows NSIS / Android 签名 APK / Checksums+SBOM 三个 job 被 skip，即 `v0.2.0` 尚未产出任何发布产物**。状态记为 **BLOCKED_EXTERNAL**：需先有可访问的公共 API 地址并配置该仓库变量，再重跑 release-ci。
+- 可作为旁证：同一提交的 preview 工作流已实际产出 Android APK 与 Windows 运行时（作为 workflow artifact），说明构建链本身可用；缺的是 release 流水线对"在线 API 身份"的前置校验。
+
 ## Current phase（2026-11-05 — 基线已推进 master，并补上基分支 push 门禁）
 
 - `feat/ui-product-craft-v7-human-review-final` 已通过 PR #2 合入 `master`：merge commit `63a97a4a`（父 `42ed4e34` + `5d3c19f2`）；`master` 与基分支树逐字节一致（`git diff --stat` 为空）。合并前 PR #2 的 7 项 check 全 **success**；`master` 与基分支是快进关系（`ahead_by=3043 / behind_by=0`），无冲突解决。
