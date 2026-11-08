@@ -106,6 +106,10 @@ HBuilderX is not a current Android blocker.
   4. 再授权 tag/release 流程。
 - Exact verification after resolution: Release CI 的 `Verify packaged runtime API` PASS，随后 Windows/Android signed jobs 才允许执行。
 - 影响：变量缺失、HTTP、错误服务或后端不可达时 **Release 必须失败**；Preview APK 不受此门限制。
+- 现状（2026-11-05）：`v0.2.0` tag 已打在 `8eb5f32e`（owner 授权），Release CI run `42126081165` 在 `Verify packaged runtime API` **按设计失败**（`public-api-preflight: PETACCESS_PUBLIC_API_BASE is required`），Windows NSIS / Android signed APK / Checksums+SBOM 三个 job 因 `needs` 被 skip —— **`v0.2.0` 目前没有任何发布产物**。
+- 仓库侧事实（已核对，非推测）：仓库 variables 共 0 个；environments 共 0 个；secrets 只有 4 个 Android 签名项（`ANDROID_KEYSTORE_BASE64` / `ANDROID_KEYSTORE_PASSWORD` / `ANDROID_KEY_ALIAS` / `ANDROID_KEY_PASSWORD`），**没有** `PETACCESS_PREVIEW_SSH_*` / `S3` / `JWT` 等部署凭据，因此 `public-preview-deploy.yml` 也无法自行部署出一个公共 API。
+- 解除后重跑的最小动作：配置变量 → 对现成 tag 重跑 Release CI（`gh workflow run` 不可用于 tag 视图，实际为对该 run 执行 `rerun`，或把 tag 重打到同一 SHA）。
+
 
 ---
 
