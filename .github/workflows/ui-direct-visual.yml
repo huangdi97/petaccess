@@ -5,6 +5,7 @@ on:
     branches:
       - feat/ui-direct-craft-v8
       - feat/ui-product-craft-v7-human-review-final
+      - master
   pull_request:
     branches:
       - feat/ui-product-craft-v7-human-review-final
