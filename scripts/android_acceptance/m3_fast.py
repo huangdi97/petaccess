@@ -53,7 +53,7 @@ PROBE = ROOT / "scripts" / "android_acceptance" / "cdp_probe.cjs"
 
 SYSTEM_UI_RECOVERIES: list[dict[str, str]] = []
 _SYSTEM_UI_DUMP = "/sdcard/petaccess-window.xml"
-_BOUNDS_RE = re.compile(r"\\[(?P<x1>\\d+),(?P<y1>\\d+)\\]\\[(?P<x2>\\d+),(?P<y2>\\d+)\\]")
+_BOUNDS_RE = re.compile(r"\[(?P<x1>\d+),(?P<y1>\d+)\]\[(?P<x2>\d+),(?P<y2>\d+)\]")
 
 
 def parse_cdp_output(output: str) -> dict[str, object]:
@@ -133,12 +133,24 @@ def _system_error_dialog(xml_text: str) -> dict[str, str] | None:
     }
 
 
-def _tap_bounds(bounds: str) -> None:
+def bounds_center(bounds: str) -> tuple[int, int]:
+    """Return the tap point for an Android ``[x1,y1][x2,y2]`` bounds string.
+
+    Pure so the parsing can be tested without a device: the whole point of the
+    acceptance tool is that it cannot silently misreport, and a bad bounds
+    parse previously sank a whole emulator smoke run.
+    """
+
     match = _BOUNDS_RE.fullmatch(bounds)
     if match is None:
         raise RuntimeError(f"invalid Android UI bounds: {bounds!r}")
     x = (int(match.group("x1")) + int(match.group("x2"))) // 2
     y = (int(match.group("y1")) + int(match.group("y2"))) // 2
+    return x, y
+
+
+def _tap_bounds(bounds: str) -> None:
+    x, y = bounds_center(bounds)
     shell(SERIAL, "input", "tap", str(x), str(y), timeout=30)
 
 

@@ -165,3 +165,26 @@ def test_serial_state_missing_when_offline(monkeypatch: pytest.MonkeyPatch) -> N
 
     monkeypatch.setattr(adb_module, "devices", lambda: [("emulator-5562", "device")])
     assert serial_state("emulator-9999") == "missing"
+
+
+def test_bounds_center_parses_real_android_bounds() -> None:
+    """Regression: the bounds pattern was written with doubled backslashes.
+
+    A raw-string ``r"\\\\["`` matches a literal backslash followed by "[", so
+    every real dump ("[71,1273][1009,1405]") failed to fullmatch and raised.
+    That turned a recoverable system-UI dialog into a hard emulator smoke
+    failure, so the parse is pinned here rather than discovered on a runner.
+    """
+
+    from scripts.android_acceptance.m3_fast import bounds_center
+
+    assert bounds_center("[71,1273][1009,1405]") == (540, 1339)
+    assert bounds_center("[0,0][10,20]") == (5, 10)
+
+
+def test_bounds_center_rejects_malformed_bounds() -> None:
+    from scripts.android_acceptance.m3_fast import bounds_center
+
+    for malformed in ("", "[71,1273][1009", "71,1273][1009,1405]", "[a,b][c,d]"):
+        with pytest.raises(RuntimeError):
+            bounds_center(malformed)
